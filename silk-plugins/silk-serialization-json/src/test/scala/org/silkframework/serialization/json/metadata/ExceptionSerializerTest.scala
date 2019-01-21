@@ -6,34 +6,31 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 
 class ExceptionSerializerTest extends FlatSpec with Matchers {
 
-  behavior of "Exception Serializer"
-
-  private val exceptionSerializer = ExceptionSerializer()
-
-  //* test objects //*
-  it should "not fail when exceptions without certain features occur (missing string constructor, empty cause)" in {
+  "Exception Serializer" should "not fail when exceptions miss a string constructor or have an empty cause" in {
     val cau = new Throwable("cause")
     val ex1 = NoStringConstructorThrowable(cau) // see CMEM-1472, lead to trouble with some of Sparks exceptions
     val ex2 = UnknownCauseException("no known cause") // has been observed to lead to to NPE in situations will lead to emulated exception
     val throwable1 = serializeThrowable(ex1)
     val throwable2 = serializeThrowable(ex2)
     throwable1.getMessage shouldBe "NoStringConstructor Test Message"
-    throwable2.getMessage shouldBe "Emulated Exception of class: org.silkframework.serialization.json.metadata.UnknownCauseException original message: "
+    throwable2.getMessage shouldBe "The exception message was empty or incorrectly de/serialized. The origin class was: UnknownCauseException"
   }
 
-  it should "not fail when an exception contains null values as messages" in {
+  "Exception Serializer" should "not fail when an exception contains null values as messages" in {
     val exceptionWithNulls: Throwable = NullMessageException("With String constructor, but no 'message'")
     val throwable = serializeThrowable(exceptionWithNulls)
-    throwable.getMessage shouldBe ""
+    throwable.getMessage shouldBe "The exception message was empty or incorrectly de/serialized. The origin class was: NullMessageException"
   }
 
-  it should "handle exceptions with edge case constructors" in {
+  "Exception Serializer" should "handle exceptions with edge case constructors" in {
     val edgeCase = new EdgeCaseException1("msg", "no comment", null)
     val throwable = serializeThrowable(edgeCase)
     throwable.getMessage shouldBe "msg"
   }
 
-  it should "deserialize exception without class name" in {
+  // TODO Is this even possible, remove if not
+  "Exception Serializer" should "deserialize an exception without a class name" in {
+    val exceptionSerializer = new ExceptionSerializer
     val message = "Some message"
     val throwable = exceptionSerializer.read(<Exception>
       <Class></Class>
@@ -46,21 +43,27 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
     throwable.getMessage shouldBe message
   }
 
-  "ExceptionSerializerJson" should "not fail when exceptions without certain features occur (missing string constructor, empty cause)" in {
+  "ExceptionSerializerJson" should "not fail when exceptions miss a string constructor or have an empty cause" in {
     val cau = new Throwable("cause")
     val ex1 = NoStringConstructorThrowable(cau) // see CMEM-1472, lead to trouble with some of Sparks exceptions
     val ex2 = UnknownCauseException("no known cause") // has been observed to lead to to NPE in situations
     val throwable1 = serializeThrowableJson(ex1)
     val throwable2 = serializeThrowableJson(ex2)
     throwable1.getMessage shouldBe "NoStringConstructor Test Message"
-    throwable2.getMessage shouldBe "null"
+    throwable2.getMessage shouldBe "The exception message was empty or incorrectly de/serialized. The origin class was: UnknownCauseException"
   }
 
   "ExceptionSerializerJson" should "not fail when an contain null values as messages" in {
     // Specifically test for Json, XML handles that differently
     val exceptionWithNulls: Throwable = NullMessageException("With String constructor, but no 'message'")
     val throwable = serializeThrowableJson(exceptionWithNulls)
-    throwable.getMessage shouldBe ""
+    throwable.getMessage shouldBe "The exception message was empty or incorrectly de/serialized. The origin class was: NullMessageException"
+  }
+
+  "Exception Serializer" should "handle exceptions with edge case constructors" in {
+    val edgeCase = new EdgeCaseException1("msg", "no comment", null)
+    val throwable = serializeThrowableJson(edgeCase)
+    throwable.getMessage shouldBe "msg"
   }
 
   /* Helper methods that serialize and deserialize a Throwable and return it. */
@@ -100,6 +103,8 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
 
 }
 
+
+//* test objects //*
 class EdgeCaseException1(msg: String, comment: String, cause: Throwable) extends RuntimeException(msg, cause) {
   def this(msg: String, cause: Throwable) = this(msg, "no comment", cause)
 }
