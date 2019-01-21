@@ -53,7 +53,7 @@ class JsonMetadataTest extends FlatSpec with Matchers {
   }
 
   def compareExceptions(ex1: Throwable, ex2: Throwable): Unit = {
-    ex1.getClass.getCanonicalName shouldBe ex2.getClass.getCanonicalName
+    ex1.getClass.getCanonicalName shouldBe "org.silkframework.entity.metadata.GenericExecutionFailure.GenericExecutionException"
     ex1.getMessage shouldBe ex2.getMessage
     ex1.getStackTrace.length shouldBe ex2.getStackTrace.length
     if(ex1.getCause != null) {
