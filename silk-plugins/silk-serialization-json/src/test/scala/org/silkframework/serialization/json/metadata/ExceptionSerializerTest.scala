@@ -13,13 +13,13 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
     val throwable1 = serializeThrowable(ex1)
     val throwable2 = serializeThrowable(ex2)
     throwable1.getMessage shouldBe "NoStringConstructor Test Message"
-    throwable2.getMessage shouldBe "The exception message was empty or incorrectly de/serialized. The origin class was: UnknownCauseException"
+    throwable2.getMessage shouldBe "The exception message was empty or incorrectly de/serialized. The origin class was: org.silkframework.serialization.json.metadata.UnknownCauseException"
   }
 
   "Exception Serializer" should "not fail when an exception contains null values as messages" in {
     val exceptionWithNulls: Throwable = NullMessageException("With String constructor, but no 'message'")
     val throwable = serializeThrowable(exceptionWithNulls)
-    throwable.getMessage shouldBe "The exception message was empty or incorrectly de/serialized. The origin class was: NullMessageException"
+    throwable.getMessage shouldBe "The exception message was empty or incorrectly de/serialized. The origin class was: org.silkframework.serialization.json.metadata.NullMessageException"
   }
 
   "Exception Serializer" should "handle exceptions with edge case constructors" in {
@@ -50,14 +50,14 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
     val throwable1 = serializeThrowableJson(ex1)
     val throwable2 = serializeThrowableJson(ex2)
     throwable1.getMessage shouldBe "NoStringConstructor Test Message"
-    throwable2.getMessage shouldBe "The exception message was empty or incorrectly de/serialized. The origin class was: UnknownCauseException"
+    throwable2.getMessage shouldBe "The exception message was empty or incorrectly de/serialized. The origin class was: org.silkframework.serialization.json.metadata.UnknownCauseException"
   }
 
   "ExceptionSerializerJson" should "not fail when an contain null values as messages" in {
     // Specifically test for Json, XML handles that differently
     val exceptionWithNulls: Throwable = NullMessageException("With String constructor, but no 'message'")
     val throwable = serializeThrowableJson(exceptionWithNulls)
-    throwable.getMessage shouldBe "The exception message was empty or incorrectly de/serialized. The origin class was: NullMessageException"
+    throwable.getMessage shouldBe "The exception message was empty or incorrectly de/serialized. The origin class was: org.silkframework.serialization.json.metadata.NullMessageException"
   }
 
   "Exception SerializerJson" should "handle exceptions with edge case constructors" in {
