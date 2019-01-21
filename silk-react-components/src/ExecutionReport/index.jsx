@@ -48,11 +48,10 @@ export default class ExecutionReportView extends React.Component {
   }
 
   render() {
-    if('ruleResults' in this.state.executionReport) {
-      return this.renderTransformReport();
-    } else {
-      return this.renderSummary();
-    }
+    return <div className=".ecc-silk-mapping">
+      { this.renderSummary() }
+      { 'ruleResults' in this.state.executionReport && this.renderTransformReport() }
+    </div>
   }
 
   renderSummary() {
@@ -62,54 +61,44 @@ export default class ExecutionReportView extends React.Component {
           <td>{v.value}</td>
         </tr>
     );
-    return <div className="ecc-silk-mapping__treenav">
-             <div className="mdl-card mdl-shadow--2dp mdl-card--stretch">
-               <table className="mdl-data-table mdl-js-data-table">
-                 <thead>
-                   <tr>
-                     <th>Summary</th>
-                     <th></th>
-                   </tr>
-                 </thead>
-                 <tbody>
-                 { summaryRows }
-                 </tbody>
-               </table>
+    return <div className="mdl-grid">
+             <div className="mdl-cell mdl-cell--12-col">
+               <div className="ecc-silk-mapping__treenav">
+                 <div className="mdl-card mdl-shadow--2dp mdl-card--stretch">
+                   <div className="mdl-card__title">
+                     <h2 className="mdl-card__title-text">Execution Report</h2>
+                   </div>
+                   <table className="mdl-data-table mdl-js-data-table">
+                     <thead>
+                     </thead>
+                     <tbody>
+                     { summaryRows }
+                     </tbody>
+                   </table>
+                 </div>
+               </div>
              </div>
            </div>
   }
 
   renderTransformReport() {
-    return <div className=".ecc-silk-mapping">
-            <div className="mdl-grid">
-              <div className="mdl-cell mdl-cell--2-col">
-                { this.renderSummary() }
-              </div>
-              <div className="mdl-cell mdl-cell--3-col">
-                <MappingsTree currentRuleId="root" showValueMappings={true} ruleIcons={this.generateIcons()} />
-              </div>
-              <div className="mdl-cell mdl-cell--7-col">
+    return <div className="mdl-grid">
+             <div className="mdl-cell mdl-cell--4-col">
+               <MappingsTree currentRuleId="root" showValueMappings={true} ruleValidation={this.generateIcons()} />
+             </div>
+              <div className="mdl-cell mdl-cell--8-col">
                 { this.renderRuleReport() }
               </div>
            </div>
-         </div>
   }
 
   generateIcons() {
     let ruleIcons = {};
     for(let [ruleId, ruleResults] of Object.entries(this.state.executionReport.ruleResults)) {
       if(ruleResults.errorCount === 0) {
-        ruleIcons[ruleId] = {
-          className: "ecc-silk-mapping__ruleitem-icon-green",
-          name: "done",
-          tooltip: "This mapping executed without any issue."
-        }
+        ruleIcons[ruleId] = "ok"
       } else {
-        ruleIcons[ruleId] = {
-          className: "ecc-silk-mapping__ruleitem-icon-red",
-          name: "warning",
-          tooltip: "There have been " + ruleResults.errorCount + " issues."
-        }
+        ruleIcons[ruleId] = "warning"
       }
     }
     return ruleIcons
