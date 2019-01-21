@@ -86,7 +86,8 @@ case class RdfFileDataset(
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
 
-  object FileSource extends DataSource with PeakDataSource with Serializable with SamplingDataSource with SchemaExtractionSource with SparqlRestrictionDataSource {
+  object FileSource extends DataSource with PeakDataSource with Serializable with SamplingDataSource
+      with SchemaExtractionSource with SparqlRestrictionDataSource with TypedPathRetrieveDataSource {
 
     // Load dataset
     private var endpoint: JenaEndpoint = null
@@ -104,21 +105,20 @@ case class RdfFileDataset(
         Seq.empty
       } else {
         load()
-        EntityRetriever(endpoint).retrieve(entitySchema, entities, None)
+        sparqlSource.retrieveByUri(entitySchema, entities)
       }
     }
 
     override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
                               (implicit userContext: UserContext): IndexedSeq[Path] = {
       load()
-      val restrictions = SparqlRestriction.forType(t)
-      SparqlAggregatePathsCollector(endpoint, graphOpt, restrictions, limit)
+      sparqlSource.retrievePaths(t, depth, limit)
     }
 
     override def retrieveTypes(limit: Option[Int])
                               (implicit userContext: UserContext): Traversable[(String, Double)] = {
       load()
-      SparqlTypesCollector(endpoint, graphOpt, limit)
+      sparqlSource.retrieveTypes(limit)
     }
 
     /**
@@ -148,7 +148,7 @@ case class RdfFileDataset(
 
     override def retrievePathsSparqlRestriction(sparqlRestriction: SparqlRestriction, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[Path] = {
       load()
-      new SparqlSource(SparqlParams(), endpoint).retrievePathsSparqlRestriction(sparqlRestriction, limit)
+      sparqlSource.retrievePathsSparqlRestriction(sparqlRestriction, limit)
     }
 
     override def sampleValues(typeUri: Option[Uri],
@@ -156,7 +156,7 @@ case class RdfFileDataset(
                               valueSampleLimit: Option[Int])
                              (implicit userContext: UserContext): Seq[Traversable[String]] = {
       load()
-      new SparqlSource(SparqlParams(), endpoint).sampleValues(typeUri, typedPaths, valueSampleLimit)
+      sparqlSource.sampleValues(typeUri, typedPaths, valueSampleLimit)
     }
 
     override def extractSchema[T](analyzerFactory: ValueAnalyzerFactory[T],
@@ -165,8 +165,15 @@ case class RdfFileDataset(
                                   progressFN: Double => Unit)
                                  (implicit userContext: UserContext): ExtractedSchema[T] = {
       load()
-      new SparqlSource(SparqlParams(), endpoint).extractSchema(analyzerFactory, pathLimit, sampleLimit, progressFN)
+      sparqlSource.extractSchema(analyzerFactory, pathLimit, sampleLimit, progressFN)
     }
+
+    override def retrieveTypedPath(typeUri: Uri, depth: Int, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+      load()
+      sparqlSource.retrieveTypedPath(typeUri, depth, limit)
+    }
+
+    private def sparqlSource = new SparqlSource(SparqlParams(graph = graphOpt), endpoint)
   }
 
   override def tripleSink(implicit userContext: UserContext): TripleSink = new FormattedEntitySink(file, formatter)

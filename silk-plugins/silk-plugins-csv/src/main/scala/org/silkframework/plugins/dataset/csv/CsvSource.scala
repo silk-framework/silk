@@ -8,14 +8,13 @@ import java.util.regex.Pattern
 
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
+import org.silkframework.entity.Path.IDX_PATH_IDX
 import org.silkframework.entity._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
-import Path.IDX_PATH_IDX
 
 import scala.io.Codec
-import scala.util.Try
 
 class CsvSource(file: Resource,
                 settings: CsvSettings = CsvSettings(),
@@ -30,7 +29,11 @@ class CsvSource(file: Resource,
                 // If the text file fails to be read because of a MalformedInputException, try other codecs
                 fallbackCodecs: List[Codec] = List(),
                 maxLinesToDetectCodec: Option[Int] = None,
-                ignoreMalformedInputExceptionInPropertyList: Boolean = false) extends DataSource with PathCoverageDataSource with PeakDataSource {
+                ignoreMalformedInputExceptionInPropertyList: Boolean = false)
+    extends DataSource
+        with PathCoverageDataSource
+        with PeakDataSource
+        with TypedPathRetrieveDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -102,6 +105,13 @@ class CsvSource(file: Resource,
       case e: MalformedInputException =>
         throw new RuntimeException("Exception in CsvSource " + file.name, e)
     }
+  }
+
+  override def retrieveTypedPath(typeUri: Uri,
+                                 depth: Int,
+                                 limit: Option[Int])
+                                (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+    retrievePaths(typeUri, depth, limit).map(_.asStringTypedPath)
   }
 
   override def retrieve(entitySchema: EntitySchema, limitOpt: Option[Int] = None)

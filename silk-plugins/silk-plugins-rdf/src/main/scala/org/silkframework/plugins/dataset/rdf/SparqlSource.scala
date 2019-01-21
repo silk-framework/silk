@@ -22,7 +22,8 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
     with PeakDataSource
     with SchemaExtractionSource
     with SamplingDataSource
-    with SparqlRestrictionDataSource {
+    with SparqlRestrictionDataSource
+    with TypedPathRetrieveDataSource {
 
   private val log = Logger.getLogger(classOf[SparqlSource].getName)
 
@@ -46,7 +47,11 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
 
   override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None)
                             (implicit userContext: UserContext): IndexedSeq[Path] = {
-    val restrictions = SparqlRestriction.forType(t)
+    retrieveTypedPath(t, depth, limit).map(tp => Path(tp.operators))
+  }
+
+  override def retrieveTypedPath(typeUri: Uri, depth: Int, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+    val restrictions = SparqlRestriction.forType(typeUri)
 
     retrievePathsSparqlRestriction(restrictions, limit)
   }
@@ -162,7 +167,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
 
   override def retrievePathsSparqlRestriction(restriction: SparqlRestriction,
                                               limit: Option[Int])
-                                             (implicit userContext: UserContext): IndexedSeq[Path] = {
+                                             (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     //Create an endpoint which fails after 3 retries
     val failFastEndpoint = sparqlEndpoint.withSparqlParams(params.copy(retryCount = 3, retryPause = 1000))
 
