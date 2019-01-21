@@ -60,7 +60,7 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
     throwable.getMessage shouldBe "The exception message was empty or incorrectly de/serialized. The origin class was: NullMessageException"
   }
 
-  "Exception Serializer" should "handle exceptions with edge case constructors" in {
+  "Exception SerializerJson" should "handle exceptions with edge case constructors" in {
     val edgeCase = new EdgeCaseException1("msg", "no comment", null)
     val throwable = serializeThrowableJson(edgeCase)
     throwable.getMessage shouldBe "msg"
