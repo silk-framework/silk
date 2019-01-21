@@ -86,6 +86,12 @@ const datatypes = _.map(
             description:
                 'Suited for XML Schema dates and times. Accepts values in the the following formats: xsd:date, xsd:dateTime, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth, xsd:time.',
         },
+        {
+            value: 'LanguageValueType',
+            label: 'Language Tagged',
+            description:
+                'Suited for texts that are in a specific language.',
+        },
     ],
     datatype => ({
         ...datatype,
@@ -164,9 +170,7 @@ const prepareValueMappingPayload = data => {
         },
         mappingTarget: {
             uri: handleCreatedSelectBoxValue(data, 'targetProperty'),
-            valueType: {
-                nodeType: handleCreatedSelectBoxValue(data, 'propertyType'),
-            },
+            valueType: handleCreatedSelectBoxValue(data, 'valueType'),
             isAttribute: data.isAttribute,
         },
     };
