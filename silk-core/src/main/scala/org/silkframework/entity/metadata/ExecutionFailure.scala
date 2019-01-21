@@ -63,8 +63,8 @@ object ExecutionFailure {
 
 
   /* messages */
-  final val NOMSG: String = "The exception message was empty or incorrectly de/desialized."
-  final val NOCLA: String = "The exception class does not exist or was incorrectly de/desialized."
+  final val NOMSG: String = "The exception message was empty or incorrectly de/serialized."
+  final val NOCLA: String = "The exception class does not exist or was incorrectly de/serialized."
   def messageOriginClass(className: Option[String]): String = {
     s"The origin class was: ${className.getOrElse("unknown")}"
   }
