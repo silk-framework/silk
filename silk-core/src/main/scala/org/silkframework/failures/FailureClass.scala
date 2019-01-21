@@ -1,7 +1,8 @@
 package org.silkframework.failures
 
 import org.silkframework.entity.Path
-import org.silkframework.entity.metadata.ExecutionFailure
+import org.silkframework.entity.metadata.GenericExecutionFailure
+import org.silkframework.entity.metadata.GenericExecutionFailure.GenericExecutionException
 import org.silkframework.util.{Identifier, Uri}
 
 /**
@@ -28,7 +29,21 @@ case class FailureClass private[failures](
 
   lazy val getRootClass: String = {
     val baseName = rootStackElement.map(_.getClassName).getOrElse(rootCause.getClass.getName)
-    if(baseName.contains('$')) baseName.substring(0, baseName.indexOf('$')) else baseName
+    val className = if(baseName.contains('$')) {
+      baseName.substring(0, baseName.indexOf('$'))
+    }
+    else {
+      baseName
+    }
+
+    if (GenericExecutionException.getClass.getName.contains(className)) {
+      rootCause.asInstanceOf[GenericExecutionException].exceptionClass
+        .getOrElse(rootCause.getClass.getName).split("&").head
+    }
+    else {
+      className
+    }
+
   }
 
   /**
