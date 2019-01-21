@@ -27,5 +27,5 @@ object XmlMetadataSerializer extends MetadataSerializerRegistry[Node] {
   /**
     * Each serialization format needs a dedicated Exception serializer
     */
-  override val exceptionSerializer: SerializationFormat[ExecutionFailure, Node] with MetadataSerializer = ExceptionSerializer()
+  override val exceptionSerializer: SerializationFormat[GenericExecutionFailure, Node] with MetadataSerializer = ExceptionSerializer()
 }

@@ -1,7 +1,7 @@
 package org.silkframework.serialization.json.metadata
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.entity.metadata.{ExceptionSerializer, ExecutionFailure}
+import org.silkframework.entity.metadata.{ExceptionSerializer, GenericExecutionFailure}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 
 class ExceptionSerializerTest extends FlatSpec with Matchers {
@@ -67,10 +67,10 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
   }
 
   /* Helper methods that serialize and deserialize a Throwable and return it. */
-  def serializeThrowable(exception: Throwable): ExecutionFailure = {
+  def serializeThrowable(exception: Throwable): GenericExecutionFailure = {
     val serializer = new ExceptionSerializer
     try {
-      val nde = serializer.write(ExecutionFailure.fromThrowable(exception))(WriteContext())
+      val nde = serializer.write(GenericExecutionFailure.fromThrowable(exception))(WriteContext())
       val res = serializer.read(nde)(ReadContext())
       res
     }
@@ -84,10 +84,10 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
     }
   }
 
-  def serializeThrowableJson(exception: Throwable): ExecutionFailure = {
+  def serializeThrowableJson(exception: Throwable): GenericExecutionFailure = {
     val serializer = new ExceptionSerializerJson
     try {
-      val nde = serializer.write(ExecutionFailure.fromThrowable(exception))(WriteContext())
+      val nde = serializer.write(GenericExecutionFailure.fromThrowable(exception))(WriteContext())
       val res = serializer.read(nde)(ReadContext())
       res
     }
@@ -105,6 +105,7 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
 
 
 //* test objects //*
+// TODO Is this something that can happen? I had more test exceptiojs here earlier but removed speculative cases
 class EdgeCaseException1(msg: String, comment: String, cause: Throwable) extends RuntimeException(msg, cause) {
   def this(msg: String, cause: Throwable) = this(msg, "no comment", cause)
 }

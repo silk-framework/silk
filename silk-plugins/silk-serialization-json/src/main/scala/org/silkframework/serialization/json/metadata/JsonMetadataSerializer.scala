@@ -1,6 +1,6 @@
 package org.silkframework.serialization.json.metadata
 
-import org.silkframework.entity.metadata.{ExecutionFailure, MetadataSerializer, MetadataSerializerRegistry}
+import org.silkframework.entity.metadata.{GenericExecutionFailure, MetadataSerializer, MetadataSerializerRegistry}
 import org.silkframework.runtime.serialization.SerializationFormat
 import org.silkframework.serialization.json.JsonFormat
 import org.silkframework.util.ScalaReflectUtils
@@ -29,5 +29,5 @@ object JsonMetadataSerializer extends MetadataSerializerRegistry[JsValue] {
   /**
     * Each serialization format needs a dedicated Exception serializer
     */
-  override val exceptionSerializer: SerializationFormat[ExecutionFailure, JsValue] with MetadataSerializer = ExceptionSerializerJson()
+  override val exceptionSerializer: SerializationFormat[GenericExecutionFailure, JsValue] with MetadataSerializer = ExceptionSerializerJson()
 }

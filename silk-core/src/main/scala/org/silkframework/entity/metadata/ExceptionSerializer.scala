@@ -11,12 +11,12 @@ import scala.xml.{Elem, Node}
   * Update: Map subclasses of throwable to the ExecutionFailure class and serialize/instantiate that.
   * Custom serializers was planned are not needed any longer.
   */
-case class ExceptionSerializer() extends XmlMetadataSerializer[ExecutionFailure] {
+case class ExceptionSerializer() extends XmlMetadataSerializer[GenericExecutionFailure] {
 
   @transient
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  override def read(ex: Node)(implicit readContext: ReadContext): ExecutionFailure = readException(ex)
+  override def read(ex: Node)(implicit readContext: ReadContext): GenericExecutionFailure = readException(ex)
 
   /**
     * Deserialize and instantiate an error. This used to recommend an automated registry and custom Serializers.
@@ -28,7 +28,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[ExecutionFailure]
     * @param node XML node
     * @return ExecutionFailure instance
     */
-  def readException(node: Node): ExecutionFailure = {
+  def readException(node: Node): GenericExecutionFailure = {
 
     if (node == null || node.text.trim.isEmpty) {
       return null
@@ -40,7 +40,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[ExecutionFailure]
     if (className.isEmpty) {
       logger.warn("The deserialized exception does not have a class")
       logger.warn(s"Message was: $message")
-      ExecutionFailure.noInformationFailure(message)
+      GenericExecutionFailure.noInformationFailure(message)
     }
     else {
       readDefaultThrowable(node)
@@ -53,16 +53,16 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[ExecutionFailure]
     * @param node - the XML node
     * @return
     */
-  def readDefaultThrowable(node: Node): ExecutionFailure = {
-    val failure: ExecutionFailure = try {
+  def readDefaultThrowable(node: Node): GenericExecutionFailure = {
+    val failure: GenericExecutionFailure = try {
       val exceptionClass = (node \ ExceptionSerializer.CLASS).text.trim
       val message = (node \ ExceptionSerializer.MESSAGE).text.trim
       val cause = getExceptionCauseOption(node)
-      ExecutionFailure(message, cause, Some(exceptionClass))
+      GenericExecutionFailure(message, cause, Some(exceptionClass))
     }
     catch {
       case t: Throwable =>
-        ExecutionFailure.noInformationFailure("There was a failure while gathering the information about the error." +
+        GenericExecutionFailure.noInformationFailure("There was a failure while gathering the information about the error." +
           s" Reason: ${t.getMessage}")
     }
 
@@ -78,7 +78,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[ExecutionFailure]
     * @param node XML node
     * @return
     */
-  private def getExceptionCauseOption(node: Node): Option[ExecutionFailure] = {
+  private def getExceptionCauseOption(node: Node): Option[GenericExecutionFailure] = {
     val cause = readException((node \ ExceptionSerializer.CAUSE).headOption.flatMap(_.child.headOption).orNull)
     Option(cause)
   }
@@ -94,9 +94,9 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[ExecutionFailure]
     stackTrace.toArray
   }
 
-  override def write(value: ExecutionFailure)(implicit writeContext: WriteContext[Node]): Node = writeException(value)
+  override def write(value: GenericExecutionFailure)(implicit writeContext: WriteContext[Node]): Node = writeException(value)
 
-  private def writeException(ex: ExecutionFailure): Node = {
+  private def writeException(ex: GenericExecutionFailure): Node = {
     <Exception>
       <Class>{ex.getExceptionClass}</Class>
       <Message>{ex.getMessage}</Message>
@@ -116,7 +116,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[ExecutionFailure]
     </Exception>
   }
 
-  private def writeStackTrace(ex: ExecutionFailure): Array[Elem] ={
+  private def writeStackTrace(ex: GenericExecutionFailure): Array[Elem] ={
     for(ste <- ex.getStackTrace) yield{
       <STE>
         <FileName>{ste.getFileName}</FileName>
