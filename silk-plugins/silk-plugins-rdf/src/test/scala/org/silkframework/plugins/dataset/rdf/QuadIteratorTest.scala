@@ -2,8 +2,8 @@ package org.silkframework.plugins.dataset.rdf
 
 import java.io.StringReader
 
-import org.apache.jena.rdf.model.{ModelFactory}
-import org.apache.jena.rdf.model.impl.{StatementImpl}
+import org.apache.jena.rdf.model.ModelFactory
+import org.apache.jena.rdf.model.impl.StatementImpl
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
@@ -19,7 +19,7 @@ class QuadIteratorTest extends FlatSpec with Matchers with MockitoSugar {
 
   it should "should produce isomorphic graphs when serializing the origin graph with QuadIterator" in {
     val quadIterator = source.sparqlEndpoint.construct("CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }")
-    val serialized = quadIterator.serialize(asQuads = false)
+    val serialized = quadIterator.serialize()
     var model = ModelFactory.createDefaultModel()
     model.read(new StringReader(serialized), null, "N-Quads")
 
@@ -39,14 +39,14 @@ class QuadIteratorTest extends FlatSpec with Matchers with MockitoSugar {
     val stmtIter = oldModel.listStatements()
 
     // now we parse the serialized graph back to a QuadIterator
-    val newQuadIterator = new QuadIteratorImpl(
+    val newQuadIterator = new TripleIteratorImpl(
       () => stmtIter.hasNext,
-      () => RdfFormatUtil.jenaStatementToQuad(stmtIter.next()),
+      () => RdfFormatUtil.jenaStatementToTriple(stmtIter.next()),
       () => stmtIter.close(),
       new NTriplesQuadFormatter
     )
 
-    val newSerialization = newQuadIterator.serialize(asQuads = false) +
+    val newSerialization = newQuadIterator.serialize() +
       "<http://example.org/test/test/1> <http://example.org/prop/1> \"shdfvjs se\\\\jdsö\\\\\\\\\\\\nsjhf\\\"df\"^^<http://www.w3.org/2001/XMLSchema#string> ."
     model = ModelFactory.createDefaultModel()
     model.read(new StringReader(newSerialization), null, "N-Quads")
@@ -54,5 +54,4 @@ class QuadIteratorTest extends FlatSpec with Matchers with MockitoSugar {
     // the twice serialized graph should be isomorphic to the origin graph
     oldModel.isIsomorphicWith(model) shouldBe true
   }
-
 }

@@ -39,14 +39,14 @@ class LocalSparqlCopyExecutor() extends LocalExecutor[SparqlCopyCustomTask] {
                     val nTripleFile = RdfFileDataset(resource, "N-Triples")
                     new LocalDatasetExecutor().execute(
                         PlainTask(internalTaskId, DatasetSpec(nTripleFile)),
-                        Seq(QuadEntityTable(results.getQuadEntities, task)),
+                        Seq(QuadEntityTable(results.asEntities, task)),
                         Some(QuadEntityTable.schema),
                         execution
                     )
                 }
                 // else we just stream it to the output
                 else{
-                    Some(QuadEntityTable(results.getQuadEntities, task))
+                    Some(QuadEntityTable(results.asEntities, task))
                 }
                 temporaryEntities
             case _ =>

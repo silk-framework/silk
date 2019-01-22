@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf
 
 import org.silkframework.dataset.DataSource
-import org.silkframework.dataset.rdf.{Quad, QuadFormatter, QuadIterator}
+import org.silkframework.dataset.rdf.{Quad, QuadFormatter, QuadIterator, TripleIterator}
 import org.silkframework.entity.Entity
 
 /**
@@ -16,22 +16,10 @@ class QuadIteratorImpl(
    val formatter: QuadFormatter
  ) extends QuadIterator {
 
-  def serialize(asQuads: Boolean = true): String = {
-    val sb = new StringBuilder()
-    sb.append(formatter.header)
-    while(hasQuad()){
-      sb.append(nextQuad().serialize(formatter))
-      // line end
-      sb.append("\n")
-    }
-    sb.append(formatter.footer)
-    // to string
-    sb.toString()
-  }
 
-  def serializeTriples(): String = serialize(asQuads = false)
+  def asTriples: TripleIterator = new TripleIteratorImpl(hasQuad, () => nextQuad().toTriple, close, formatter)
 
-  def getQuadEntities: Traversable[Entity] = {
+  def asEntities: Traversable[Entity] = {
     var count = 0L
     this.toTraversable.map( quad => {
       count += 1

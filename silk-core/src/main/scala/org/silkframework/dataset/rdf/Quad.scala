@@ -33,6 +33,7 @@ case class Quad (
 
   def serialize(formatter: QuadFormatter): String = formatter.formatQuad(this)
 
+  def toTriple: Triple = new Triple(this.subject, this.predicate, this.objectVal)
 }
 
 object Quad{

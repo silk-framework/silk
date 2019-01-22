@@ -85,11 +85,26 @@ object RdfFormatUtil {
   }
 
   /**
+    * Converts a Jena Triple to a (Silk) Triple object
+    * NOTE: when using this function in connection with the [[TripleIterator]] constructor, make sure to forward the QueryExecution close function
+    * @param q - the Jena Triple object
+    */
+  def jenaTripleToTriple(q: JenaTriple): Triple = {
+    val subj = q.getSubject
+    if(subj.isBlank){
+      Triple(BlankNode(subj.getBlankNodeLabel), Resource(q.getPredicate.getURI), getObject(q.getObject))
+    }
+    else{
+      Triple(Resource(subj.getURI), Resource(q.getPredicate.getURI), getObject(q.getObject))
+    }
+  }
+
+  /**
     * Converts a Jena Statement to a Quad object
     * NOTE: when using this function in connection with the [[QuadIterator]] constructor, make sure to forward the StatementIterator close function
     * @param q - the Jena Statement
     */
-  def jenaStatementToQuad(q: Statement): Triple = {
+  def jenaStatementToTriple(q: Statement): Triple = {
     val subj = q.getSubject.asNode()
     if(subj.isBlank){
       Triple(BlankNode(subj.getBlankNodeLabel), Resource(q.getPredicate.getURI), getObject(q.getObject.asNode()))

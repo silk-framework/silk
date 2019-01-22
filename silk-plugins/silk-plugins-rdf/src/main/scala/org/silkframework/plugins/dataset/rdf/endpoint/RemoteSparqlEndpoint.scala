@@ -22,7 +22,7 @@ import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.RDFLanguages
 import org.apache.jena.riot.adapters.RDFReaderFactoryRIOT
 import org.silkframework.dataset.rdf._
-import org.silkframework.plugins.dataset.rdf.{QuadIteratorImpl, RdfFormatUtil}
+import org.silkframework.plugins.dataset.rdf.{RdfFormatUtil, TripleIteratorImpl}
 import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.HttpURLConnectionUtils._
@@ -72,7 +72,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
   }
 
   override def construct(query: String)
-                        (implicit userContext: UserContext): QuadIteratorImpl = {
+                        (implicit userContext: UserContext): TripleIteratorImpl = {
     val queryUrl = sparqlParams.uri + "?query=" + URLEncoder.encode(query, "UTF-8") + sparqlParams.queryParameters
     //Open connection
     val httpConnection = new URL(queryUrl).openConnection.asInstanceOf[HttpURLConnection]
@@ -92,9 +92,9 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
 
       //NOTE: listStatement() will not produce graph
       val iterator = m.listStatements()
-      new QuadIteratorImpl(
+      new TripleIteratorImpl(
         iterator.hasNext,
-        () => RdfFormatUtil.jenaStatementToQuad(iterator.next()),
+        () => RdfFormatUtil.jenaStatementToTriple(iterator.next()),
         iterator.close,
         new NTriplesQuadFormatter
       )

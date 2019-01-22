@@ -24,17 +24,37 @@ trait QuadIterator extends Iterator[Quad] {
   val nextQuad: () => Quad
 
   /**
-    * Will serialize the entire content of the Iterator, thereby using it up and finally closing it
-    * @param asQuads - indicate whether to serialize the whole Quad (or just the triple)
+    * A formatter for serializing the Quad (or Triple) in a specific serialization
     */
-  def serialize(asQuads: Boolean = true): String
+  val formatter: QuadFormatter
 
   /**
     * Will generate an Entity for each Quad (using the EntitySchema of [[org.silkframework.execution.local.QuadEntityTable]]
     */
-  def getQuadEntities: Traversable[Entity]
+  def asEntities: Traversable[Entity]
+
+  /**
+    * Providing a [[TripleIterator]] by ignoring the context of each Quad
+    */
+  def asTriples: TripleIterator
 
   override def hasNext: Boolean = hasQuad()
 
   override def next(): Quad = nextQuad()
+
+  /**
+    * Will serialize the entire content of the Iterator, thereby using it up and finally closing it
+    */
+  def serialize(): String = {
+    val sb = new StringBuilder()
+    sb.append(formatter.header)
+    while(hasQuad()){
+      sb.append(nextQuad().serialize(formatter))
+      // line end
+      sb.append("\n")
+    }
+    sb.append(formatter.footer)
+    // to string
+    sb.toString()
+  }
 }

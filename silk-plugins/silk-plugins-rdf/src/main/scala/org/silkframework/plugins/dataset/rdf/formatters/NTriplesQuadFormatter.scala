@@ -12,7 +12,10 @@ class NTriplesQuadFormatter() extends QuadFormatter {
 
   private def format(quad: Quad, asQuad: Boolean = true): String = {
     val sos = new ByteArrayOutputStream()
-    RDFDataMgr.writeQuads(sos, Iterator(RdfFormatUtil.quadToJenaQuad(quad)).asJava)
+    if(asQuad)
+      RDFDataMgr.writeQuads(sos, Iterator(RdfFormatUtil.quadToJenaQuad(quad)).asJava)
+    else
+      RDFDataMgr.writeTriples(sos, Iterator(RdfFormatUtil.quadToJenaQuad(quad).asTriple()).asJava)
     sos.toString.dropRight(1)
   }
 
