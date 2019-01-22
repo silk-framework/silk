@@ -78,7 +78,7 @@ const MappingsTree = React.createClass({
                     tree: hierarchy,
                     expanded:
                         _.isEmpty(this.state.expanded) && topLevelId
-                            ? this.computeExpandedRules(hierarchy)
+                            ? this.initialExpandedRules(hierarchy)
                             : this.state.expanded,
                 });
             },
@@ -86,6 +86,15 @@ const MappingsTree = React.createClass({
                 this.setState({loading: false});
             }
         );
+    },
+
+    initialExpandedRules(tree) {
+        let expanded = {};
+        if(this.props.hasOwnProperty('ruleValidation')) {
+            expanded = this.computeExpandedRules(tree)
+        }
+        expanded[_.get(tree, 'id')] = true;
+        return expanded;
     },
 
     /**

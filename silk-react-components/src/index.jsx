@@ -2,12 +2,12 @@ import React from 'react';
 import ReactDom from 'react-dom';
 
 import HierarchicalMappingComponent from './HierarchicalMapping/HierarchicalMapping';
+import ExecutionReport from "./ExecutionReport/ExecutionReport";
+import TransformExecutionReport from "./ExecutionReport/TransformExecutionReport";
+import WorkflowExecutionReport from "./ExecutionReport/WorkflowExecutionReport";
 
 // eslint-disable-next-line
 import SilkStore from './SilkStore/silkStore';
-import ExecutionReportView from "./ExecutionReport";
-
-
 
 require('./style/style.scss');
 
@@ -18,9 +18,21 @@ window.silkReactComponents = {
             document.getElementById(containerId)
         );
     },
-    executionReportView: (containerId, apiSettings) => {
+    executionReport: (containerId, apiSettings) => {
         ReactDom.render(
-            <ExecutionReportView {...apiSettings} />,
+            <ExecutionReport {...apiSettings} />,
+            document.getElementById(containerId)
+        );
+    },
+    transformExecutionReport: (containerId, apiSettings) => {
+        ReactDom.render(
+            <TransformExecutionReport {...apiSettings} />,
+            document.getElementById(containerId)
+        );
+    },
+    workflowExecutionReport: (containerId, apiSettings) => {
+        ReactDom.render(
+            <WorkflowExecutionReport {...apiSettings} />,
             document.getElementById(containerId)
         );
     }

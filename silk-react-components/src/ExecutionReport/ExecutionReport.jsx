@@ -8,15 +8,12 @@ import hierarchicalMappingChannel from "../HierarchicalMapping/store";
 /**
  * Displays a task execution report.
  */
-export default class ExecutionReportView extends React.Component {
+export default class ExecutionReport extends React.Component {
 
   constructor(props) {
     super(props);
-    this.displayName = 'ExecutionReportView';
+    this.displayName = 'ExecutionReport';
     this.state = {
-      executionReport: {
-        summary: []
-      },
       currentRuleId: null
     };
 
@@ -32,30 +29,15 @@ export default class ExecutionReportView extends React.Component {
     });
   }
 
-  componentDidMount() {
-    this.props.diStore.getExecutionReport(
-      this.props.baseUrl,
-      this.props.project,
-      this.props.task)
-      .then((report) => {
-        this.setState({
-          executionReport: report
-        });
-      })
-      .catch((error) => {
-        console.log("Loading execution report failed! " + error); // FIXME: Handle error and give user feedback. Currently this is done via the activity status widget
-      });
-  }
-
   render() {
     return <div className=".ecc-silk-mapping">
       { this.renderSummary() }
-      { 'ruleResults' in this.state.executionReport && this.renderTransformReport() }
+      { 'ruleResults' in this.props.executionReport && this.renderTransformReport() }
     </div>
   }
 
   renderSummary() {
-    const summaryRows = this.state.executionReport.summary.map(v =>
+    const summaryRows = this.props.executionReport.summary.map(v =>
         <tr key={v.key}>
           <td>{v.key}</td>
           <td>{v.value}</td>
@@ -94,7 +76,7 @@ export default class ExecutionReportView extends React.Component {
 
   generateIcons() {
     let ruleIcons = {};
-    for(let [ruleId, ruleResults] of Object.entries(this.state.executionReport.ruleResults)) {
+    for(let [ruleId, ruleResults] of Object.entries(this.props.executionReport.ruleResults)) {
       if(ruleResults.errorCount === 0) {
         ruleIcons[ruleId] = "ok"
       } else {
@@ -105,7 +87,7 @@ export default class ExecutionReportView extends React.Component {
   }
 
   renderRuleReport() {
-    const ruleResults = this.state.executionReport.ruleResults[this.state.currentRuleId];
+    const ruleResults = this.props.executionReport.ruleResults[this.state.currentRuleId];
     let title;
     if(ruleResults === undefined) {
       title = "Select a mapping for detailed results."
@@ -148,15 +130,9 @@ export default class ExecutionReportView extends React.Component {
   }
 }
 
-ExecutionReportView.propTypes = {
+ExecutionReport.propTypes = {
   baseUrl: PropTypes.string.isRequired, // Base URL of the DI service
   project: PropTypes.string.isRequired, // project ID
   task: PropTypes.string.isRequired, // task ID
-  diStore: PropTypes.shape({
-    getExecutionReport: PropTypes.func,
-  }) // DI store object that provides the business layer API to DI related services
-};
-
-ExecutionReportView.defaultProps = {
-  diStore: dataIntegrationStore
+  executionReport: PropTypes.object // The transform execution report to render
 };

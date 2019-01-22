@@ -4,12 +4,22 @@ import dataIntegrationApi from './dataintegrationRestApi';
 const dataIntegrationStore = {
 
     /**
-     * Retrieves a task execution report.
+     * Retrieves a transform task execution report.
      */
-    getExecutionReport: (baseUrl, projectId, taskId) => {
+    getTransformExecutionReport: (baseUrl, projectId, taskId) => {
         return dataIntegrationApi.activityResult(baseUrl, projectId, taskId, "ExecuteTransform")
             .then(({data}) => {
               return data;
+            });
+    },
+
+    /**
+     * Retrieves a workflow task execution report.
+     */
+    getWorkflowExecutionReport: (baseUrl, projectId, taskId) => {
+        return dataIntegrationApi.activityResult(baseUrl, projectId, taskId, "ExecuteLocalWorkflow")
+            .then(({data}) => {
+                return data;
             });
     },
 

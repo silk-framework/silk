@@ -9,18 +9,18 @@
 @import controllers.core.routes.{Assets => CoreAssets}
 @import org.silkframework.workspace.ProjectTask
 
-@(task: ProjectTask[TransformSpec], statistics: TransformReport, prefixes: Prefixes)
+@(task: ProjectTask[TransformSpec])
 
 @header = {
   <script src="@CoreAssets.at("libs/silk-react-components/main.js")" type="text/javascript"></script>
 }
 
 @content = {
-  <div id="react-executionReportView"></div>
+  <div id="react-transformExecutionReport"></div>
 
   <script type="text/javascript">
-    silkReactComponents.executionReportView(
-      'react-executionReportView',
+    silkReactComponents.transformExecutionReport(
+      'react-transformExecutionReport',
       {
         baseUrl: '@config.baseUrl',
         project: '@task.project.name',
