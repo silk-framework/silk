@@ -2,12 +2,13 @@ package org.silkframework.plugins.dataset.rdf
 
 import java.io.ByteArrayOutputStream
 
-import org.apache.jena.graph.{Node, NodeFactory, Triple}
+import org.apache.jena.graph.{Node, NodeFactory}
 import org.apache.jena.rdf.model.{AnonId, ModelFactory, Statement}
 import org.apache.jena.riot.RDFDataMgr
 import org.apache.jena.riot.adapters.RDFWriterFactoryRIOT
 import org.apache.jena.vocabulary.XSD
 import org.apache.jena.sparql.core.{Quad => JenaQuad}
+import org.apache.jena.graph.{Triple => JenaTriple}
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.util.{StringUtils, Uri}
@@ -32,8 +33,8 @@ object RdfFormatUtil {
     */
   def quadToJenaQuad(q: Quad): JenaQuad ={
     val subj = q.subject match{
-      case Left(r) => NodeFactory.createURI(r.value)
-      case Right(b) => NodeFactory.createBlankNode(b.value)
+      case r: Resource => NodeFactory.createURI(r.value)
+      case b: BlankNode => NodeFactory.createBlankNode(b.value)
     }
     val pred = NodeFactory.createURI(q.predicate.value)
     val obj = q.objectVal match{
@@ -43,7 +44,7 @@ object RdfFormatUtil {
       case pl: PlainLiteral => NodeFactory.createLiteral(pl.value)
       case tl: DataTypeLiteral => NodeFactory.createLiteral(tl.value, NodeFactory.getType(tl.dataType))
     }
-    val graph = q.context.map(x => NodeFactory.createURI(x.value)).orNull
+    val graph = NodeFactory.createURI(q.context.value)
 
     new JenaQuad(graph, subj, pred, obj)
   }
@@ -76,10 +77,10 @@ object RdfFormatUtil {
   def jenaQuadToQuad(q: JenaQuad): Quad = {
     val subj = q.getSubject
     if(subj.isBlank){
-      Quad(BlankNode(subj.getBlankNodeLabel), Resource(q.getPredicate.getURI), getObject(q.getObject), Option(q.getGraph).map(g => Resource(g.getURI)))
+      Quad(BlankNode(subj.getBlankNodeLabel), Resource(q.getPredicate.getURI), getObject(q.getObject), Resource(q.getGraph.getURI))
     }
     else{
-      Quad(Resource(subj.getURI), Resource(q.getPredicate.getURI), getObject(q.getObject), Option(q.getGraph).map(g => Resource(g.getURI)))
+      Quad(Resource(subj.getURI), Resource(q.getPredicate.getURI), getObject(q.getObject), Resource(q.getGraph.getURI))
     }
   }
 
@@ -88,13 +89,13 @@ object RdfFormatUtil {
     * NOTE: when using this function in connection with the [[QuadIterator]] constructor, make sure to forward the StatementIterator close function
     * @param q - the Jena Statement
     */
-  def jenaStatementToQuad(q: Statement): Quad = {
+  def jenaStatementToQuad(q: Statement): Triple = {
     val subj = q.getSubject.asNode()
     if(subj.isBlank){
-      Quad.triple(BlankNode(subj.getBlankNodeLabel), Resource(q.getPredicate.getURI), getObject(q.getObject.asNode()))
+      Triple(BlankNode(subj.getBlankNodeLabel), Resource(q.getPredicate.getURI), getObject(q.getObject.asNode()))
     }
     else{
-      Quad.triple(Resource(subj.getURI), Resource(q.getPredicate.getURI), getObject(q.getObject.asNode()))
+      Triple(Resource(subj.getURI), Resource(q.getPredicate.getURI), getObject(q.getObject.asNode()))
     }
   }
 
@@ -172,7 +173,7 @@ object RdfFormatUtil {
     */
   def serializeTriple(subject: String, property: String, node: Node): String = {
     val output = new ByteArrayOutputStream()
-    val triple = new Triple(NodeFactory.createURI(subject), NodeFactory.createURI(property), node)
+    val triple = new JenaTriple(NodeFactory.createURI(subject), NodeFactory.createURI(property), node)
     RDFDataMgr.writeTriples(output, Iterator(triple).asJava)
     output.toString()
   }
@@ -181,7 +182,7 @@ object RdfFormatUtil {
     val subjectPropertyLength = 8
     val spaceDotNewLineLength = 3
     val output = new ByteArrayOutputStream()
-    val triple = new Triple(NodeFactory.createURI("a"), NodeFactory.createURI("b"), node)
+    val triple = new JenaTriple(NodeFactory.createURI("a"), NodeFactory.createURI("b"), node)
     RDFDataMgr.writeTriples(output, Iterator(triple).asJava)
     output.toString().drop(subjectPropertyLength).dropRight(spaceDotNewLineLength)
   }

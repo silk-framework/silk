@@ -4,86 +4,40 @@ import org.silkframework.entity.Entity
 import org.silkframework.execution.local.{QuadEntityTable, TripleEntityTable}
 import org.silkframework.util.Uri
 
-case class Quad private(
-   subject: Either[Resource, BlankNode],
+/**
+  * Represents an RDF Quad
+  * @param subject - subject (either Resource or BlankNode)
+  * @param predicate - the predicate uri
+  * @param objectVal - the object (as Resource, BlankNode or Literal)
+  * @param context - the graph or context (either Resource or BlankNode)
+  */
+case class Quad (
+   subject: ConcreteNode,
    predicate: Resource,
    objectVal: RdfNode,
-   context: Option[Resource]    // note no blank nodes allowed as context
+   context: ConcreteNode    // note no blank nodes allowed as context
  ) {
 
   def toEntity(uri: Option[Uri] = None): Entity ={
+    assert(Triple.DefaultTripleContext != context, "Trying to extract Quad-Entities from a Triple")
     val (value, typ) = TripleEntityTable.convertToEncodedType(this.objectVal)
     val values = IndexedSeq(
-      this.subject match{
-        case Left(v) => Seq(v.value)
-        case Right(v) => Seq(v.value)
-      },
+      Seq(this.subject.value),
       Seq(this.predicate.value),
       Seq(value),
       Seq(typ),
-      this.context.toSeq.map(_.value)
+      Seq(this.context.value)
     )
     Entity(uri.getOrElse(Uri(values.head.head)), values, QuadEntityTable.schema)
   }
 
-  private def replaceQuotes(value: String) = value.replaceAll("(^|[^\\\\])\"", "\\\\\"")
+  def serialize(formatter: QuadFormatter): String = formatter.formatQuad(this)
 
-  def serialize(asQuad: Boolean = true, formatter: QuadFormatter): String = {
-    if(asQuad) formatter.formatQuad(this)
-    else formatter.formatAsTriple(this)
-  }
-
-  def serializeTriple(formatter: QuadFormatter): String = serialize(asQuad = false, formatter = formatter)
-
-  override def hashCode(): Int = {
-    val prime = 31
-    var hashCode =  this.subject match{
-      case Left(v) => v.value.hashCode
-      case Right(v) => v.value.hashCode
-    }
-    hashCode = hashCode * prime + this.predicate.value.hashCode()
-    hashCode = hashCode * prime + this.objectVal.value.hashCode()
-    this.objectVal match {
-      case ll: LanguageLiteral => hashCode = hashCode * prime + ll.language.hashCode()
-      case ll: DataTypeLiteral => hashCode = hashCode * prime + ll.dataType.hashCode()
-      case _ =>
-    }
-    this.context.foreach(c =>
-      hashCode = hashCode * prime + c.value.hashCode()
-    )
-    hashCode
-  }
-
-  override def equals(obj: scala.Any): Boolean = {
-    obj match{
-      case q: Quad =>
-        val equalSubj = this.subject match{
-          case Left(v) => q.subject.isLeft && q.subject.left.get.value == v.value
-          case Right(v) => q.subject.isRight && q.subject.right.get.value == v.value
-        }
-        val equalPred = this.predicate.value == q.predicate.value
-        val equalObj =  this.objectVal.value == q.objectVal.value && (this.objectVal match{
-          case dl: DataTypeLiteral => q.objectVal.isInstanceOf[DataTypeLiteral] && q.objectVal.asInstanceOf[DataTypeLiteral].dataType == dl.dataType
-          case ll: LanguageLiteral => q.objectVal.isInstanceOf[LanguageLiteral] && q.objectVal.asInstanceOf[LanguageLiteral].language == ll.language
-          case _ => true
-        })
-          this.objectVal.value == q.objectVal.value
-        val equalContext = this.context match{
-          case Some(c) => q.context.nonEmpty && q.context.get.value == c.value
-          case None => q.context.isEmpty
-        }
-        equalSubj && equalPred && equalObj && equalContext
-      case _ => false
-    }
-  }
 }
 
 object Quad{
 
-  def apply(subject: Resource, predicate: Resource, obj: RdfNode, context: Option[Resource]) = new Quad(Left(subject), predicate, obj, context)
-  def apply(subject: BlankNode, predicate: Resource, obj: RdfNode, context: Option[Resource]) = new Quad(Right(subject), predicate, obj, context)
-
-  def triple(subject: Resource, predicate: Resource, obj: RdfNode) = new Quad(Left(subject), predicate, obj, None)
-  def triple(subject: BlankNode, predicate: Resource, obj: RdfNode) = new Quad(Right(subject), predicate, obj, None)
+  def apply(subject: Resource, predicate: Resource, obj: RdfNode, context: Resource) = new Quad(subject, predicate, obj, context)
+  def apply(subject: BlankNode, predicate: Resource, obj: RdfNode, context: Resource) = new Quad(subject, predicate, obj, context)
 
 }

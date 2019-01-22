@@ -20,7 +20,7 @@ class QuadIteratorImpl(
     val sb = new StringBuilder()
     sb.append(formatter.header)
     while(hasQuad()){
-      sb.append(nextQuad().serialize(asQuads, formatter))
+      sb.append(nextQuad().serialize(formatter))
       // line end
       sb.append("\n")
     }
