@@ -1,5 +1,7 @@
 package org.silkframework.dataset.rdf
 
+import java.io.{File, FileWriter}
+
 import org.silkframework.entity.Entity
 
 /**
@@ -43,7 +45,7 @@ trait QuadIterator extends Iterator[Quad] {
   override def next(): Quad = nextQuad()
 
   /**
-    * Will serialize the entire content of the Iterator, thereby using it up and finally closing it
+    * Will serialize the entire content of the Iterator using the defined formatter, thereby using it up and finally closing it
     */
   def serialize(): String = {
     val sb = new StringBuilder()
@@ -54,7 +56,32 @@ trait QuadIterator extends Iterator[Quad] {
       sb.append("\n")
     }
     sb.append(formatter.footer)
+    close()
     // to string
     sb.toString()
+  }
+
+  /**
+    * Will serialize the content to the given file using the defined formatter, thereby using it up and finally closing it
+    * NOTE: file will be overwritten
+    * @param file - the file to write to
+    */
+  def saveToFile(file: File): Unit ={
+    var writer: FileWriter = null
+    try {
+      file.createNewFile()
+      writer = new FileWriter(file)
+      writer.append(formatter.header)
+      while (hasQuad()) {
+        writer.append(nextQuad().serialize(formatter))
+        // line end
+        writer.append("\n")
+      }
+      writer.append(formatter.footer)
+    }
+    finally {
+      close()
+      writer.close()
+    }
   }
 }

@@ -1,12 +1,15 @@
 package org.silkframework.execution.local
 
 import org.silkframework.config.{SilkVocab, Task, TaskSpec}
+import org.silkframework.dataset.rdf.QuadIterator
 import org.silkframework.entity._
 import org.silkframework.util.Uri
 
-case class QuadEntityTable(entities: Traversable[Entity], task: Task[TaskSpec]) extends LocalEntities {
+case class QuadEntityTable(iterator: QuadIterator, task: Task[TaskSpec]) extends LocalEntities {
 
   override def entitySchema: EntitySchema = QuadEntityTable.schema
+
+  override def entities: Traversable[Entity] = iterator.asEntities    // NOTE: this will load all quads into memory
 }
 
 object QuadEntityTable {

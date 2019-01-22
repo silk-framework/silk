@@ -13,5 +13,17 @@ trait QuadFormatter extends Formatter{
   /**
     * Serializes a [Quad] as a triple without context.
     */
-  def formatAsTriple(triple: Quad): String
+  def formatAsTriple(triple: Triple): String
+
+  /**
+    * Parse a given line into a Quad
+    * @param txt - serialized Quad
+    */
+  def parseQuad(txt: String): Quad
+
+  /**
+    * Parse a given line into a Triple
+    * @param txt - serialized Triple
+    */
+  def parseTriple(txt: String): Triple
 }

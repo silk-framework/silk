@@ -1,8 +1,8 @@
 package org.silkframework.plugins.dataset.rdf.formatters
 
-import java.io.ByteArrayOutputStream
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
-import org.apache.jena.riot.RDFDataMgr
+import org.apache.jena.riot.{Lang, RDFDataMgr}
 import org.silkframework.dataset.rdf.{Quad, _}
 import org.silkframework.plugins.dataset.rdf.RdfFormatUtil
 
@@ -21,5 +21,21 @@ class NTriplesQuadFormatter() extends QuadFormatter {
 
   override def formatQuad(quad: Quad): String = format(quad)
 
-  override def formatAsTriple(triple: Quad): String = format(triple, asQuad = false)
+  override def formatAsTriple(triple: Triple): String = format(triple, asQuad = false)
+
+  private def parse(quad: String, asQuad: Boolean = true): Quad = {
+    val sos = new ByteArrayInputStream(quad.getBytes)
+    if(asQuad){
+      val jenaQuad = RDFDataMgr.createIteratorQuads(sos, Lang.NQUADS, null).next()
+      RdfFormatUtil.jenaQuadToQuad(jenaQuad)
+    }
+    else{
+      val jenaTriple = RDFDataMgr.createIteratorTriples(sos, Lang.NTRIPLES, null).next()
+      RdfFormatUtil.jenaTripleToTriple(jenaTriple)
+    }
+  }
+
+  override def parseQuad(txt: String): Quad = parse(txt)
+
+  override def parseTriple(txt: String): Triple = parse(txt, asQuad = false).asInstanceOf[Triple]
 }

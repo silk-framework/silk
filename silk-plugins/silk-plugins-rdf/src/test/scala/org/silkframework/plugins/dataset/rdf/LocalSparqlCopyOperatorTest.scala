@@ -1,7 +1,9 @@
 package org.silkframework.plugins.dataset.rdf
 
   import java.io.File
+  import java.io.File.TempDirectory
 
+  import org.apache.commons.io.FileUtils
   import org.scalatest.mock.MockitoSugar
   import org.scalatest.{FlatSpec, MustMatchers}
   import org.silkframework.config.PlainTask
@@ -10,7 +12,7 @@ package org.silkframework.plugins.dataset.rdf
   import org.silkframework.dataset.rdf.SparqlEndpointEntityTable
   import org.silkframework.execution.ExecutionReport
   import org.silkframework.execution.local.LocalExecution
-  import org.silkframework.plugins.dataset.rdf.datasets.{InMemoryDataset, RdfFileDataset}
+  import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
   import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlCopyExecutor
   import org.silkframework.plugins.dataset.rdf.tasks.SparqlCopyCustomTask
   import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
@@ -43,6 +45,7 @@ package org.silkframework.plugins.dataset.rdf
 
     private val WORKFLOW_ID = "copy_sparql"
     private val OUTPUT_DATASET_ID = "sparql_out"
+    private val INPUT_DATASET_ID = "test"
 
     private var tempFile: File = _
 
@@ -54,21 +57,21 @@ package org.silkframework.plugins.dataset.rdf
         result match{
           case Some(copy) =>
             if(withTempfile) {
-              tempFile = copy.task.data.asInstanceOf[DatasetSpec[RdfFileDataset]].plugin.file.asInstanceOf[FileResource].file
-              tempFile.exists() mustBe true
+              val tempFiles = new File(System.getProperty("java.io.tmpdir")).listFiles().toList.sortBy(f => f.lastModified())
+              tempFiles.nonEmpty && tempFiles.last.getName.contains("counstruct_copy_tmp") mustBe true
             }
             copy.entities.size mustBe 5                    // number of triples in source
-            copy.entities.forall(e => e.values.size == 4)   // we are dealing with triples (+ valueType)
+            copy.entities.forall(e => e.values.size == 4) mustBe true   // we are dealing with triples (+ valueType)
           case None => fail("Empty result of copy task")
         }
       }
+    }
 
-      if(withTempfile){
-        it should "delete temporary files via shutdown hook " + withTempfile in {
-            execution.executeShutdownHooks()
-            tempFile.exists() mustBe false
-        }
-      }
+    it should "delete temporary files via shutdown hook " in {
+      execution.executeShutdownHooks()
+      val tempFiles = new File(System.getProperty("java.io.tmpdir")).listFiles().toList.sortBy(f => f.lastModified())
+      if(tempFiles.last.getName.contains("counstruct_copy_tmp") && tempFiles.last.exists())
+        fail("Temp file was not deleted")
     }
 
     it should "run sparql copy workflow" in {
@@ -78,8 +81,11 @@ package org.silkframework.plugins.dataset.rdf
       val activityContext = new ActivityMonitor(name = "ReportMonitor", initialValue = Some(WorkflowExecutionReportWithProvenance.empty))
       executor.run(activityContext)
       val outputDataset = project.task[GenericDatasetSpec](OUTPUT_DATASET_ID).data.plugin
-      val allTriples = outputDataset.asInstanceOf[RdfFileDataset].sparqlEndpoint.select("SELECT * WHERE { ?s ?p ?o }")
-      allTriples.bindings.size mustBe 13
+      val inputDataset = project.task[GenericDatasetSpec](INPUT_DATASET_ID).data.plugin
+      val allOutputTriples = outputDataset.asInstanceOf[RdfFileDataset].sparqlEndpoint.constructModel("CONSTRUCT { ?s ?p ?o. } WHERE { ?s ?p ?o }")
+      allOutputTriples.size() mustBe 13
+      val allInputTriples = inputDataset.asInstanceOf[RdfFileDataset].sparqlEndpoint.constructModel("CONSTRUCT { ?s ?p ?o. } WHERE { ?s ?p ?o }")
+      allInputTriples.isIsomorphicWith(allOutputTriples) mustBe true
     }
 
   }

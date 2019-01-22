@@ -2,16 +2,16 @@ package org.silkframework.plugins.dataset.rdf.executors
 
 import java.io.File
 
-import org.silkframework.config.{PlainTask, Task}
-import org.silkframework.dataset.DatasetSpec
+import org.apache.commons.io.FileUtils
+import org.silkframework.config.Task
 import org.silkframework.dataset.rdf.{QuadIterator, SparqlEndpointEntityTable}
 import org.silkframework.entity.EntitySchema
-import org.silkframework.execution.{ExecutionReport, TaskException}
 import org.silkframework.execution.local._
-import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
+import org.silkframework.execution.{ExecutionReport, TaskException}
+import org.silkframework.plugins.dataset.rdf.QuadIteratorImpl
+import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlCopyCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
-import org.silkframework.runtime.resource.FileResource
 
 /**
   * Local executor for [[SparqlCopyCustomTask]].
@@ -33,20 +33,16 @@ class LocalSparqlCopyExecutor() extends LocalExecutor[SparqlCopyCustomTask] {
                     tempFile.delete
                     tempFile.deleteOnExit()
                     // adding file deletion shutdown hook
-                    execution.addShutdownHook(() => tempFile.delete)
+                    execution.addShutdownHook(() => FileUtils.forceDelete(tempFile))
+                    // save to temp file
+                    results.saveToFile(tempFile)
 
-                    val resource = FileResource(tempFile)
-                    val nTripleFile = RdfFileDataset(resource, "N-Triples")
-                    new LocalDatasetExecutor().execute(
-                        PlainTask(internalTaskId, DatasetSpec(nTripleFile)),
-                        Seq(QuadEntityTable(results.asEntities, task)),
-                        Some(QuadEntityTable.schema),
-                        execution
-                    )
+                    val qi = QuadIteratorImpl.apply(tempFile, new NTriplesQuadFormatter)
+                    Some(QuadEntityTable(qi, task))
                 }
                 // else we just stream it to the output
                 else{
-                    Some(QuadEntityTable(results.asEntities, task))
+                    Some(QuadEntityTable(results, task))
                 }
                 temporaryEntities
             case _ =>
