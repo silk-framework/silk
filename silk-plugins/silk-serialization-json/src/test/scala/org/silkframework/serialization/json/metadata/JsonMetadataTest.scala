@@ -3,7 +3,7 @@ package org.silkframework.serialization.json.metadata
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.{config, dataset}
 import org.silkframework.dataset.EmptyDataset
-import org.silkframework.entity.metadata.EntityMetadata
+import org.silkframework.entity.metadata.{EntityMetadata, GenericExecutionFailure}
 import org.silkframework.entity.{Entity, EntitySchema, Path, Restriction}
 import org.silkframework.failures.{EntityException, FailureClass}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
@@ -52,18 +52,14 @@ class JsonMetadataTest extends FlatSpec with Matchers {
     override def replaceableMetadata: Boolean = true
   }
 
-  def compareExceptions(ex1: Throwable, ex2: Throwable): Unit = {
-    ex1.getClass.getCanonicalName shouldBe "org.silkframework.entity.metadata.GenericExecutionFailure.GenericExecutionException"
+  def compareExceptions(ex1: GenericExecutionFailure, ex2: GenericExecutionFailure): Unit = {
     ex1.getMessage shouldBe ex2.getMessage
     ex1.getStackTrace.length shouldBe ex2.getStackTrace.length
-    if(ex1.getCause != null) {
-      if(ex2.getCause != null)
-        compareExceptions(ex1.getCause, ex2.getCause)
-      else
-        fail("Exceptions have different causes.")
-    }
-    else {
-      if(ex2.getCause != null)
+    (ex1.cause, ex2.cause) match {
+      case (Some(cause1), Some(cause2)) =>
+        compareExceptions(cause1, cause2)
+      case (None, None) =>
+      case _ =>
         fail("Exceptions have different causes.")
     }
   }
@@ -95,7 +91,7 @@ class JsonMetadataTest extends FlatSpec with Matchers {
   it should "serialize the container EntityMetadata and parse it lazily" in{
     val newMetadata = new EntityMetadataJson(
       Map(
-        EntityMetadata.FAILURE_KEY -> LazyMetadataJson(FailureClass(testException, alibiTask.id), FailureClassSerializerJson()),
+        EntityMetadata.FAILURE_KEY -> LazyMetadataJson(FailureClass(GenericExecutionFailure(testException), alibiTask.id), FailureClassSerializerJson()),
         TestSerializerCategoryName -> LazyMetadataJson(new DPair("s", "t"), serializer)
       )
     )

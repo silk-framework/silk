@@ -13,13 +13,14 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
     val throwable1 = serializeThrowable(ex1)
     val throwable2 = serializeThrowable(ex2)
     throwable1.getMessage shouldBe "NoStringConstructor Test Message"
-    throwable2.getMessage shouldBe "The exception message was empty or incorrectly de/serialized. The origin class was: org.silkframework.serialization.json.metadata.UnknownCauseException"
+    throwable1.getCause.flatMap(_.message) shouldBe Some("cause")
+    throwable2.cause.map(_.className) shouldBe Some("org.silkframework.serialization.json.metadata.UnknownCause")
   }
 
   "Exception Serializer" should "not fail when an exception contains null values as messages" in {
     val exceptionWithNulls: Throwable = NullMessageException("With String constructor, but no 'message'")
     val throwable = serializeThrowable(exceptionWithNulls)
-    throwable.getMessage shouldBe "The exception message was empty or incorrectly de/serialized. The origin class was: org.silkframework.serialization.json.metadata.NullMessageException"
+    throwable.message shouldBe empty
   }
 
   "Exception Serializer" should "handle exceptions with edge case constructors" in {
@@ -50,14 +51,15 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
     val throwable1 = serializeThrowableJson(ex1)
     val throwable2 = serializeThrowableJson(ex2)
     throwable1.getMessage shouldBe "NoStringConstructor Test Message"
-    throwable2.getMessage shouldBe "The exception message was empty or incorrectly de/serialized. The origin class was: org.silkframework.serialization.json.metadata.UnknownCauseException"
+    throwable2.getMessage shouldBe "no known cause"
+    throwable2.cause.map(_.getMessage) shouldBe Some("UnknownCause Test Message")
   }
 
   "ExceptionSerializerJson" should "not fail when an contain null values as messages" in {
     // Specifically test for Json, XML handles that differently
     val exceptionWithNulls: Throwable = NullMessageException("With String constructor, but no 'message'")
     val throwable = serializeThrowableJson(exceptionWithNulls)
-    throwable.getMessage shouldBe "The exception message was empty or incorrectly de/serialized. The origin class was: org.silkframework.serialization.json.metadata.NullMessageException"
+    throwable.message shouldBe empty
   }
 
   "Exception SerializerJson" should "handle exceptions with edge case constructors" in {
@@ -70,7 +72,7 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
   def serializeThrowable(exception: Throwable): GenericExecutionFailure = {
     val serializer = new ExceptionSerializer
     try {
-      val nde = serializer.write(GenericExecutionFailure.fromThrowable(exception))(WriteContext())
+      val nde = serializer.write(GenericExecutionFailure(exception))(WriteContext())
       val res = serializer.read(nde)(ReadContext())
       res
     }
@@ -87,7 +89,7 @@ class ExceptionSerializerTest extends FlatSpec with Matchers {
   def serializeThrowableJson(exception: Throwable): GenericExecutionFailure = {
     val serializer = new ExceptionSerializerJson
     try {
-      val nde = serializer.write(GenericExecutionFailure.fromThrowable(exception))(WriteContext())
+      val nde = serializer.write(GenericExecutionFailure(exception))(WriteContext())
       val res = serializer.read(nde)(ReadContext())
       res
     }
@@ -110,7 +112,7 @@ class EdgeCaseException1(msg: String, comment: String, cause: Throwable) extends
   def this(msg: String, cause: Throwable) = this(msg, "no comment", cause)
 }
 
-case class NoStringConstructorThrowable(ex: Throwable) extends Throwable {
+case class NoStringConstructorThrowable(ex: Throwable) extends Throwable(null, ex) {
   override def getMessage: String = "NoStringConstructor Test Message"
 }
 
@@ -118,7 +120,7 @@ case class NullMessageException(s: String) extends Throwable {
   override def getMessage: String = null
 }
 
-case class UnknownCauseException(message: String) extends Throwable {
+case class UnknownCauseException(message: String) extends Throwable(message) {
   override def getCause: Throwable = UnknownCause(this.message)
 }
 

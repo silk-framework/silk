@@ -23,13 +23,14 @@ package org.silkframework.entity.metadata
   * by None in the ExecutionFailure.
   *
   * @param message    optional message
-  * @param className  optional exception class name
+  * @param className  exception class name
   * @param cause      optional failure that is the reason for this one
+  * @param stackTrace optional stack trace
   */
-case class GenericExecutionFailure(message: String,
+case class GenericExecutionFailure(message: Option[String],
+                                   className: String,
                                    cause: Option[GenericExecutionFailure],
-                                   className: Option[String]
-                           ) {
+                                   stackTrace: Option[Array[StackTraceElement]]) {
 // TODO Rename class or make it a Throwable if you like. Throwable would make sense, but Markus and Andreas were against it
   /**
     * Constructor that copiess the values of a Throwable.
@@ -38,43 +39,19 @@ case class GenericExecutionFailure(message: String,
     * @return GenericExecutionFailure
     */
   def apply(t: Throwable): GenericExecutionFailure = {
-    GenericExecutionFailure.fromThrowable(t)
+    GenericExecutionFailure(t)
   }
 
-  var stackTrace: Option[Array[StackTraceElement]] = None
-
-  /**
-    * Set the stacktrace after the class instantiation.
-    *
-    * @param st Array of StackTraceElement objects
-    */
-  def setStackTrace(st: Array[StackTraceElement]): Unit = {
-    stackTrace = Some(st)
-  }
-
-  /**
-    * Get the stack trace.
-    *
-    * @return Array of StackTraceElement or an empty array.
-    */
   def getStackTrace: Array[StackTraceElement] = stackTrace.getOrElse(Array.empty)
 
-  def getMessage: String = {
-    if (message == null || message.trim.isEmpty) {
-      GenericExecutionFailure.NOMSG + " " + GenericExecutionFailure.messageOriginClass(className)
-    }
-    else {
-      message
-    }
-  }
+  def getMessage: String = message.orNull
 
   /**
-    * Get the class name of the original Exception. The String will be an error
-    * message, if the class does not exist.
+    * Get the class name of the original Exception.
     *
-    * @return class name od [[GenericExecutionFailure.NOMSG]]
+    * @return class name
     */
-  def getExceptionClass: String = className.getOrElse(GenericExecutionFailure.NOCLA)
+  def getExceptionClass: String = className
 
   def getCause: Option[GenericExecutionFailure] = cause
 }
@@ -84,25 +61,8 @@ case class GenericExecutionFailure(message: String,
   */
 object GenericExecutionFailure {
 
-  /* messages */
-  final val NOMSG: String = "The exception message was empty or incorrectly de/serialized."
-  final val NOCLA: String = "The exception class does not exist or was incorrectly de/serialized."
-  def messageOriginClass(className: Option[String]): String = {
-    s"The origin class was: ${className.getOrElse("unknown")}"
-  }
-
-  /**
-    * Basic ExecutionFailure instance with only a message.
-    *
-    * @param message Error message
-    * @return
-    */
-  def noInformationFailure(message: String): GenericExecutionFailure = {
-    GenericExecutionFailure(
-      message = message,
-      cause = None,
-      className = None
-    )
+  def apply(message: String, className: String): GenericExecutionFailure = {
+    GenericExecutionFailure(Some(message), className, None, None)
   }
 
   /**
@@ -121,30 +81,16 @@ object GenericExecutionFailure {
     * @param t Throwable
     * @return
     */
-  def fromThrowable(t: Throwable): GenericExecutionFailure = {
-    val executionFailure = if (t.getCause == null) {
-      GenericExecutionFailure(
-        t.getMessage,
-        None,
-        Some(t.getClass.getName)
-      )
+  def apply(t: Throwable): GenericExecutionFailure = {
+    val cause = if (t.getCause != null) {
+      Some(apply(t.getCause))
+    } else {
+      None
     }
-    else if (t.getCause == t) {
-      GenericExecutionFailure(
-        t.getMessage,
-        None,
-        Some(t.getClass.getName)
-      )
-    }
-    else {
-      GenericExecutionFailure(
-        t.getMessage,
-        Some(fromThrowable(t.getCause)),
-        Some(t.getClass.getName)
-      )
-    }
-    if (t.getStackTrace != null) executionFailure.setStackTrace(t.getStackTrace)
-    executionFailure
+    val message = Option(t.getMessage)
+    val className = t.getClass.getName
+    val stackTrace = Option(t.getStackTrace)
+    GenericExecutionFailure(message, className, cause, stackTrace)
   }
 
   /**

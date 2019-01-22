@@ -30,7 +30,7 @@ case class FailureClassSerializerJson() extends JsonMetadataSerializer[FailureCl
     val taskId = stringValue(value, TASK_ID_TAG)
     val property = stringValueOption(value, PROPERTY_TAG).map(Path(_))
     val accumulated = booleanValue(value, ACUUMULATED_TAG)
-    val fc = FailureClass(GenericExecutionFailure.asThrowable(rootCause), originalMessage, taskId, property)
+    val fc = FailureClass(rootCause, originalMessage, taskId, property)
     if(accumulated) {
       new AccumulatedFailureClass(fc)
     }
@@ -41,7 +41,7 @@ case class FailureClassSerializerJson() extends JsonMetadataSerializer[FailureCl
 
   override def write(value: FailureClass)(implicit writeContext: WriteContext[JsValue]): JsValue = {
     JsObject(Seq(
-      ROOT_CAUSE_TAG -> ExceptionSerializerJson().write(GenericExecutionFailure.fromThrowable(value.rootCause)),
+      ROOT_CAUSE_TAG -> ExceptionSerializerJson().write(value.rootCause),
       MESSAGE_TAG -> json.JsString(value.originalMessage),
       TASK_ID_TAG -> json.JsString(value.taskId),
       ACUUMULATED_TAG -> json.JsBoolean(value.accumulated())

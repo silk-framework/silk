@@ -7,21 +7,20 @@ import org.silkframework.util.{Identifier, Uri}
 
 /**
   * Denotes an equivalence class of exceptions dependent on Exception, the task it occurred in, the occurrence class and line number
- *
-  * @param rootCause - the first exception of its kind (causing the creation of this class)
-  * @param originalMessage - the original exception message from the outer most exception
-  * @param taskId - the task identifier associated with this kind of of exception
-  * @param property - the property which is associated/caused with the current failure
+  *
+  * @param rootCause       the first failure of its kind (causing the creation of this class)
+  * @param originalMessage the original exception message from the outer most exception
+  * @param taskId          the task identifier associated with this kind of failure
+  * @param property        the property which is associated/caused with the current failure
   */
 //noinspection ScalaStyle
-case class FailureClass private[failures](
-                                           rootCause: Throwable,
-                                           originalMessage: String,
-                                           taskId: Identifier,
-                                           property: Option[Path] //FIXME TypedPath needs JsValue serializer - CMEM-1368
- ) extends Serializable {
+case class FailureClass(rootCause: GenericExecutionFailure,
+                        originalMessage: String,
+                        taskId: Identifier,
+                        property: Option[Path]) //FIXME TypedPath needs JsValue serializer - CMEM-1368
+    extends Serializable {
 
-  assert(rootCause.getCause == null, "Initializing FailureClass with an Exception which has a cause is not allowed. Use a different apply method for this purpose.")
+  assert(rootCause.getCause.isEmpty, "Initializing FailureClass with an Exception which has a cause is not allowed. Use a different apply method for this purpose.")
 
   private lazy val rootStackElement = Option(rootCause.getStackTrace).flatMap(s => s.headOption)
 
@@ -79,14 +78,14 @@ case class FailureClass private[failures](
 }
 
 /**
-  * Extension of [[FailureClass]] denoting the current instance as already collected by an [[FailureClassAccumulator]]
+  * Extension of [[FailureClass]] denoting the current instance as already collected by an FailureClassAccumulator
   * @param rootCause - the first exception of its kind (causing the creation of this class)
   * @param originalMessage - the original exception message from the outer most exception
   * @param taskId - the task identifier associated with this kind of of exception
   * @param property - the property which is associated/caused with the current failure
   */
 class AccumulatedFailureClass private(
-  rootCause: Throwable,
+  rootCause: GenericExecutionFailure,
   originalMessage: String,
   taskId: Identifier,
   property: Option[Path]                              //FIXME TypedPath needs JsValue serializer CMEM-1368
@@ -109,22 +108,23 @@ object FailureClass{
     * @param ex - the initial exception containing the root exception
     * @return - the exception in the exception stack which has no causing exception itself
     */
-  private[failures] def getRootCause(ex: Throwable): Throwable = {
-    var thr: Throwable = ex
-    while(thr.getCause != null){
-      thr = thr.getCause
+  private[failures] def getRootCause(ex: GenericExecutionFailure): GenericExecutionFailure = {
+    var thr: GenericExecutionFailure = ex
+    while(thr.getCause.isDefined){
+      thr = thr.getCause.get
     }
     thr
   }
 
   /**
     * Instantiate a new instance of FailureClass using the forwarded exception by the system, an id of the current task and an optional property pointer
-    * @param exception - the initial exception
+    * @param failure - the initial failure
     * @param taskId - the task id of the currently running task
     * @return
     */
-  def apply(exception: Throwable, taskId: Identifier, property: Option[Path] = None): FailureClass =
-    apply(FailureClass.getRootCause(exception), exception.getMessage, taskId, property)
+  def apply(failure: GenericExecutionFailure, taskId: Identifier, property: Option[Path] = None): FailureClass = {
+    apply(FailureClass.getRootCause(failure), failure.getMessage, taskId, property)
+  }
 
   val TASK_ID_TAG = "TaskId"
   val MESSAGE_TAG = "Message"

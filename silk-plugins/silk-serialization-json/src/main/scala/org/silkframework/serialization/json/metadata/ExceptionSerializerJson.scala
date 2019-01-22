@@ -15,31 +15,22 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[GenericExecu
 
   override def read(ex: JsValue)(implicit readContext: ReadContext): GenericExecutionFailure = readException(ex)
 
-  def readException(node: JsValue): GenericExecutionFailure = {
-    node match {
+  def readException(jsValue: JsValue): GenericExecutionFailure = {
+    jsValue match {
       case JsNull => null
       case JsObject(_) =>
-        val message: String = Try (stringValue(node, ExceptionSerializer.MESSAGE)).getOrElse("no message")
-        val className = Try (stringValue(node, ExceptionSerializer.CLASS)).toOption
-        val cause: Option[GenericExecutionFailure] = getExceptionCauseOption(node)
-        val exception = if (className.nonEmpty) {
-          GenericExecutionFailure(message, cause, className)
-        }
-        else {
-          logger.warn("The deserialized exception does not have a class")
-          logger.warn(s"Message was: $message")
-          GenericExecutionFailure.noInformationFailure(message)
-        }
-        exception.setStackTrace(mustBeJsArray((node \ ExceptionSerializer.STACKTRACE).getOrElse(JsArray(Seq())))(readStackTrace))
-        exception
+        val message = stringValueOption(jsValue, ExceptionSerializer.MESSAGE)
+        val className = stringValue(jsValue, ExceptionSerializer.CLASSNAME)
+        val cause: Option[GenericExecutionFailure] = getExceptionCauseOption(jsValue)
+        val stackTrace = arrayValueOption(jsValue, ExceptionSerializer.STACKTRACE).map(readStackTrace)
+        GenericExecutionFailure(message, className, cause, stackTrace)
       case _ => throw new IllegalArgumentException("Neither JsNull nor JsObject was found, representing an Exception.")
     }
   }
 
   private def getExceptionCauseOption(node: JsValue): Option[GenericExecutionFailure] = {
-    (node \ ExceptionSerializer.CAUSE).toOption match {
-      case Some(c) => Some(readException(c))
-      case None => None
+    optionalValue(node, ExceptionSerializer.CAUSE) map { c =>
+      readException(c)
     }
   }
 
@@ -57,17 +48,19 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[GenericExecu
   override def write(ef: GenericExecutionFailure)(implicit writeContext: WriteContext[JsValue]): JsValue = writeException(ef)
 
   private def writeException(ef: GenericExecutionFailure): JsObject = {
-    JsObject(Seq(
-        ExceptionSerializer.CLASSNAME -> {if(ef.getExceptionClass.isEmpty) JsNull else JsString(ef.getExceptionClass)},
-        ExceptionSerializer.MESSAGE -> JsString(ef.getMessage),
-        ExceptionSerializer.CAUSE -> {if(ef.getCause.isEmpty) JsNull else writeException(ef.getCause.get)},
-        ExceptionSerializer.STACKTRACE -> writeStackTrace(ef)
-      )
+    JsObject(
+      Seq(
+        ExceptionSerializer.CLASSNAME -> JsString(ef.className)
+      ) ++ Seq(
+        ef.message.map(msg => ExceptionSerializer.MESSAGE -> JsString(msg)),
+        ef.cause.map(cause => ExceptionSerializer.CAUSE -> writeException(cause)),
+        ef.stackTrace.map(stackTrace => ExceptionSerializer.STACKTRACE -> writeStackTrace(stackTrace))
+      ).flatten
     )
   }
 
-  private def writeStackTrace(ef: GenericExecutionFailure): JsArray = {
-    val arr = for (ste <- ef.getStackTrace) yield {
+  private def writeStackTrace(stacktrace: Array[StackTraceElement]): JsArray = {
+    val arr = for (ste <- stacktrace) yield {
       JsObject(Seq(
         ExceptionSerializer.FILENAME -> JsString(ste.getFileName),
         ExceptionSerializer.CLASSNAME -> JsString(ste.getClassName),

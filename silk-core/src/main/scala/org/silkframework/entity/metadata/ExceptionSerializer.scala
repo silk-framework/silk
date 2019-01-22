@@ -3,8 +3,7 @@ package org.silkframework.entity.metadata
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.slf4j.LoggerFactory
 
-import scala.util.Try
-import scala.xml.{Elem, Node}
+import scala.xml.{Elem, Node, Null}
 
 /**
   * XML serializer for exceptions.
@@ -34,17 +33,7 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[GenericExecutionF
       return null
     }
 
-    // get name, if empty we just return the most basic ExecutionFailure
-    val className = Try((node \ ExceptionSerializer.CLASS).text.trim).toOption
-    val message = (node \ ExceptionSerializer.MESSAGE).text.trim
-    if (className.isEmpty) {
-      logger.warn("The deserialized exception does not have a class")
-      logger.warn(s"Message was: $message")
-      GenericExecutionFailure.noInformationFailure(message)
-    }
-    else {
-      readDefaultThrowable(node)
-    }
+    readDefaultThrowable(node)
   }
 
   /**
@@ -54,22 +43,12 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[GenericExecutionF
     * @return
     */
   def readDefaultThrowable(node: Node): GenericExecutionFailure = {
-    val failure: GenericExecutionFailure = try {
-      val exceptionClass = (node \ ExceptionSerializer.CLASS).text.trim
-      val message = (node \ ExceptionSerializer.MESSAGE).text.trim
-      val cause = getExceptionCauseOption(node)
-      GenericExecutionFailure(message, cause, Some(exceptionClass))
-    }
-    catch {
-      case t: Throwable =>
-        GenericExecutionFailure.noInformationFailure("There was a failure while gathering the information about the error." +
-          s" Reason: ${t.getMessage}")
-    }
+    val exceptionClassName = (node \ ExceptionSerializer.CLASS).text.trim
+    val message = (node \ ExceptionSerializer.MESSAGE).headOption.map(_.text.trim)
+    val cause = getExceptionCauseOption(node)
+    val stackTrace = (node \ ExceptionSerializer.STACKTRACE).headOption.map { readStackTrace }
 
-    if ((node \ ExceptionSerializer.STACKTRACE).nonEmpty) {
-      failure.setStackTrace(readStackTrace((node \ ExceptionSerializer.STACKTRACE).head))
-    }
-    failure
+    GenericExecutionFailure(message, exceptionClassName, cause, stackTrace)
   }
 
   /**
@@ -99,32 +78,30 @@ case class ExceptionSerializer() extends XmlMetadataSerializer[GenericExecutionF
   private def writeException(ex: GenericExecutionFailure): Node = {
     <Exception>
       <Class>{ex.getExceptionClass}</Class>
-      <Message>{ex.getMessage}</Message>
-      <Cause>
-      {
-        if(ex.getCause.isEmpty) {
-          ""
-        }
-        else {
-          writeException(ex.getCause.get)
-        }
+      { ex.message.map (msg => <Message>{msg}</Message>).getOrElse(Null)}
+      { ex.cause.map { cause =>
+          <Cause>{writeException(cause)}</Cause>
+        }.getOrElse(Null)
       }
-      </Cause>
-      <StackTrace>
-        {writeStackTrace(ex)}
-      </StackTrace>
+      { writeStackTrace(ex) }
     </Exception>
   }
 
-  private def writeStackTrace(ex: GenericExecutionFailure): Array[Elem] ={
-    for(ste <- ex.getStackTrace) yield{
-      <STE>
-        <FileName>{ste.getFileName}</FileName>
-        <ClassName>{ste.getClassName}</ClassName>
-        <MethodName>{ste.getMethodName}</MethodName>
-        <LineNumber>{ste.getLineNumber}</LineNumber>
-      </STE>
-    }
+  private def writeStackTrace(ex: GenericExecutionFailure): Elem ={
+    ex.stackTrace.map { stackTrace =>
+      <StackTrace>
+        {
+          for(ste <- stackTrace) yield{
+            <STE>
+              <FileName>{ste.getFileName}</FileName>
+              <ClassName>{ste.getClassName}</ClassName>
+              <MethodName>{ste.getMethodName}</MethodName>
+              <LineNumber>{ste.getLineNumber}</LineNumber>
+            </STE>
+          }
+        }
+      </StackTrace>
+    }.orNull
   }
 
   /**

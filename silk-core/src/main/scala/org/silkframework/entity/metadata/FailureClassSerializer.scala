@@ -15,7 +15,7 @@ case class FailureClassSerializer() extends XmlMetadataSerializer[FailureClass] 
     val rootCause = ExceptionSerializer().readException((node \ ROOT_CAUSE_TAG).headOption.flatMap(_.child.headOption).orNull)
     val property = (node \ PROPERTY_TAG).headOption.map(p => Path(p.text))
     val accumulated = (node \ ACUUMULATED_TAG).text.trim.toBoolean
-    val fc = FailureClass(GenericExecutionFailure.asThrowable(rootCause), message, taskId, property)
+    val fc = FailureClass(rootCause, message, taskId, property)
 
     if(accumulated) {
       new AccumulatedFailureClass(fc)
@@ -28,7 +28,7 @@ case class FailureClassSerializer() extends XmlMetadataSerializer[FailureClass] 
 
   override def write(fc: FailureClass)(implicit writeContext: WriteContext[Node]): Node = {
     <FailureClass>
-      <RootCause>{ExceptionSerializer().write(GenericExecutionFailure.fromThrowable(fc.rootCause))}</RootCause>
+      <RootCause>{ExceptionSerializer().write(fc.rootCause)}</RootCause>
       <Message>{fc.originalMessage}</Message>
       <TaskId>{fc.taskId}</TaskId>
       <Property>{fc.property}</Property>
