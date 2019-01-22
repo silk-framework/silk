@@ -51,9 +51,6 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     initialMetaData.copy(modified = Some(initialMetaData.modified.getOrElse(Instant.now)))
   ))
 
-  @volatile
-  private var scheduledWriter: Option[ScheduledFuture[_]] = None
-
   private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
     implicit val prefixes: Prefixes = module.project.config.prefixes
@@ -113,11 +110,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
         modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now))
       )
     )
-    // (Re)Schedule write
-    for (writer <- scheduledWriter) {
-      writer.cancel(false)
-    }
-    scheduledWriter = Some(ProjectTask.scheduledExecutor.schedule(new Writer(), ProjectTask.writeInterval, TimeUnit.SECONDS))
+    persistTask
     log.info("Updated task '" + id + "'")
   }
 
@@ -127,21 +120,6 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   def updateMetaData(newMetaData: MetaData)
                     (implicit userContext: UserContext): Unit = {
     update(dataValueHolder(), Some(newMetaData))
-  }
-
-  /**
-    * Flushes this project task. i.e., the data of this task is written to the workspace provider immediately.
-    * It is usually not needed to call this method, as task data is written to the workspace provider after a fixed interval without changes.
-    * This method forces the writing and returns after all data has been written.
-    */
-  def flush()
-           (implicit userContext: UserContext): Unit = synchronized {
-    // Cancel any scheduled writer
-    for (writer <- scheduledWriter) {
-      writer.cancel(false)
-    }
-    // Write now
-    new Writer().run()
   }
 
   /**
@@ -192,16 +170,14 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     allDependentTaskIds.distinct.toSet
   }
 
-  private class Writer(implicit userContext: UserContext) extends Runnable {
-    override def run(): Unit = {
-      // Write task
-      module.provider.putTask(project.name, ProjectTask.this)
-      log.info(s"Persisted task '$id' in project '${project.name}'")
-      // Update caches
-      for (activity <- taskActivities if activity.autoRun) {
-        if(!activity.control.status().isRunning) {
-          activity.control.start()
-        }
+  private def persistTask(implicit userContext: UserContext): Unit = {
+    // Write task
+    module.provider.putTask(project.name, ProjectTask.this)
+    log.info(s"Persisted task '$id' in project '${project.name}'")
+    // Update caches
+    for (activity <- taskActivities if activity.autoRun) {
+      if(!activity.control.status().isRunning) {
+        activity.control.start()
       }
     }
   }

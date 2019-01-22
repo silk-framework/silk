@@ -313,17 +313,4 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   def registerModule[T <: TaskSpec : ClassTag](): Unit = synchronized {
     modules = modules :+ new Module[T](provider, this)
   }
-
-  /** Flush outstanding updates */
-  def flush()
-           (implicit userContext: UserContext): Unit = synchronized {
-    for(task <- allTasks) {
-      try {
-        task.flush()
-      } catch {
-        case NonFatal(ex) =>
-          logger.log(Level.WARNING, s"Could not persist task ${task.id} of project ${config.id} to workspace provider.", ex)
-      }
-    }
-  }
 }
