@@ -177,7 +177,11 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     // Update caches
     for (activity <- taskActivities if activity.autoRun) {
       if(!activity.control.status().isRunning) {
-        activity.control.start()
+        try {
+          activity.control.start()
+        } catch {
+          case _: IllegalStateException => // ignore possible race condition that the activity was started since the check
+        }
       }
     }
   }
