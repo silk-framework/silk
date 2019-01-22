@@ -15,7 +15,7 @@
 package org.silkframework.plugins.dataset.rdf.sparql
 
 import org.silkframework.dataset.rdf.SparqlEndpoint
-import org.silkframework.entity.Path
+import org.silkframework.entity.{Path, TypedPath}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.runtime.activity.UserContext
 
@@ -24,7 +24,7 @@ import org.silkframework.runtime.activity.UserContext
  */
 trait SparqlPathsCollector {
   def apply(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Option[Int])
-           (implicit userContext: UserContext): Seq[Path]
+           (implicit userContext: UserContext): Seq[TypedPath]
 }
 
 object SparqlPathsCollector {

@@ -69,10 +69,10 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     * @param onlyLeafNodes Only return leaf nodes
     * @return Sequence of all found paths
     */
-  def collectPaths(onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, depth: Int): Seq[Path] = {
+  def collectPaths(onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, depth: Int): Seq[TypedPath] = {
     assert(!(onlyInnerNodes && onlyLeafNodes), "onlyInnerNodes and onlyLeafNodes cannot be set to true at the same time")
-    for(pathOperators <- collectPathsRecursive(onlyLeafNodes, onlyInnerNodes, prefix = Seq.empty, depth) if pathOperators.size > 1) yield {
-      Path(pathOperators.tail.toList)
+    for(typedPath <- collectPathsRecursive(onlyLeafNodes, onlyInnerNodes, prefix = Seq.empty, depth) if typedPath.operators.size > 1) yield {
+      TypedPath(Path(typedPath.operators.tail), typedPath.valueType, typedPath.isAttribute)
     }
   }.distinct
 
@@ -85,23 +85,28 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     * @param prefix         Path prefix to be prepended to all found paths
     * @return Sequence of all found paths
     */
-  private def collectPathsRecursive(onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, prefix: Seq[PathOperator], depth: Int): Seq[Seq[PathOperator]] = {
+  private def collectPathsRecursive(onlyLeafNodes: Boolean,
+                                    onlyInnerNodes: Boolean,
+                                    prefix: Seq[PathOperator],
+                                    depth: Int): Seq[TypedPath] = {
     // Generate a path from the xml node itself
     val path = prefix :+ ForwardOperator(node.label)
     // Generate paths for all children nodes
     val childPaths = if(depth == 0) Seq() else children.flatMap(_.collectPathsRecursive(onlyLeafNodes, onlyInnerNodes, path, depth - 1))
     // Generate paths for all attributes
     val attributes = if(depth == 0) Seq() else node.attributes.asAttrMap.keys.toSeq
-    val attributesPaths = attributes.map(attribute => path :+ ForwardOperator("@" + attribute))
+    val attributesPaths = attributes.map(attribute => TypedPath((path :+ ForwardOperator("@" + attribute)).toList, StringValueType, isAttribute = true))
+    val pathValueType: ValueType = if(children.nonEmpty || node.attributes.nonEmpty) UriValueType else StringValueType
+    val typedPath = TypedPath(path.toList, pathValueType, isAttribute = false)
 
     if(onlyInnerNodes && children.isEmpty && node.attributes.isEmpty) {
       Seq() // An inner node has at least an attribute or child elements
     } else if(onlyInnerNodes) {
-      Seq(path) ++ childPaths
+      Seq(typedPath) ++ childPaths
     } else if(!onlyLeafNodes) {
-      Seq(path) ++ attributesPaths ++ childPaths
+      Seq(typedPath) ++ attributesPaths ++ childPaths
     } else if (onlyLeafNodes && children.isEmpty) {
-      Seq(path) ++ attributesPaths // An XML element with a possible Text Element inside and attributes, but no child elements
+      Seq(typedPath) ++ attributesPaths // An XML element with a possible Text Element inside and attributes, but no child elements
     } else {
       attributesPaths ++ childPaths
     }

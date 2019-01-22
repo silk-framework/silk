@@ -1,11 +1,11 @@
 package org.silkframework.plugins.dataset.xml
 
-import org.silkframework.dataset.DataSource
+import org.silkframework.dataset.{DataSource, TypedPathRetrieveDataSource}
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager}
 
 class XmlSourceStreamingTest extends XmlSourceTestBase {
 
-  override def xmlSource(name: String, uriPattern: String): DataSource with XmlSourceTrait = {
+  override def xmlSource(name: String, uriPattern: String): DataSource with XmlSourceTrait with TypedPathRetrieveDataSource = {
     val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/xml/")
     val source = new XmlSourceStreaming(resources.get(name), "", uriPattern)
     source

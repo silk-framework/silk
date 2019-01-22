@@ -4,12 +4,13 @@ import java.io.StringReader
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset.{DataSource, DatasetSpec}
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.{Entity, EntitySchema, Path, StringValueType}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager, ReadOnlyResource}
 import org.silkframework.util.Uri
 
 class CsvSourceTest extends FlatSpec with Matchers {
+  behavior of "CCV Source"
 
   implicit val userContext: UserContext = UserContext.Empty
 
@@ -36,6 +37,14 @@ class CsvSourceTest extends FlatSpec with Matchers {
   "For persons.csv, CsvParser" should "extract the schema" in {
     val properties = source.retrievePaths("").map(_.propertyUri.get.toString).toSet
     properties should equal(Set("ID", "Name", "Age"))
+  }
+
+  it should "type all source paths as value typed paths" in {
+    source.retrieveTypedPath("") map (tp => tp.normalizedSerialization -> tp.valueType) shouldBe IndexedSeq(
+      "ID" -> StringValueType,
+      "Name" -> StringValueType,
+      "Age" -> StringValueType
+    )
   }
 
   "For dirtyHeaders.csv, CsvParser" should "encode the column names when extracting the schema" in {

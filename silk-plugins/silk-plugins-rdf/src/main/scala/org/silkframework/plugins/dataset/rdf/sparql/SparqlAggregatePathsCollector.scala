@@ -16,9 +16,9 @@ package org.silkframework.plugins.dataset.rdf.sparql
 
 import java.util.logging.Logger
 
-import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.dataset.rdf.{Resource, SparqlEndpoint}
 import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path}
+import org.silkframework.entity._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Timer, Uri}
 
@@ -33,13 +33,13 @@ import org.silkframework.util.{Timer, Uri}
  */
 object SparqlAggregatePathsCollector extends SparqlPathsCollector {
 
-  private implicit val logger = Logger.getLogger(getClass.getName)
+  private implicit val logger: Logger = Logger.getLogger(getClass.getName)
 
   /**
    * Retrieves a list of properties which are defined on most entities.
    */
   def apply(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Option[Int])
-           (implicit userContext: UserContext): IndexedSeq[Path] = {
+           (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     val forwardPaths = getForwardPaths(endpoint, graph, restrictions, limit.getOrElse(200))
     val backwardPaths = getBackwardPaths(endpoint, graph, restrictions, 10)
 
@@ -47,12 +47,12 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
   }
 
   private def getForwardPaths(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Int)
-                             (implicit userContext: UserContext): Traversable[(Path, Double)] = {
-    Timer("Retrieving forward pathes for '" + restrictions + "'") {
+                             (implicit userContext: UserContext): Traversable[(TypedPath, Double)] = {
+    Timer("Retrieving forward paths for '" + restrictions + "'") {
       val variable = restrictions.variable
 
       var sparql = new StringBuilder()
-      sparql ++= "SELECT ?p ( count(?" + variable + ") AS ?count ) "
+      sparql ++= "SELECT ?propertyToAggregateBySAPC (COUNT(?" + variable + ") AS ?count ) (SAMPLE(?objectNodeSAPC) AS ?objectNodeSampleSAPC) "
 
       for (graphUri <- graph if !graphUri.isEmpty)
         sparql ++= "FROM <" + graphUri + ">\n"
@@ -60,18 +60,22 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
       sparql ++= "WHERE {\n"
 
       sparql ++= restrictions.toSparql + "\n"
-      sparql ++= "?" + variable + " ?p ?o\n"
+      sparql ++= "?" + variable + " ?propertyToAggregateBySAPC ?objectNodeSAPC\n"
 
       sparql ++= "}\n"
-      sparql ++= "GROUP BY ?p\n"
+      sparql ++= "GROUP BY ?propertyToAggregateBySAPC\n"
       sparql ++= "ORDER BY DESC (?count)"
 
       val results = endpoint.select(sparql.toString(), limit).bindings.toList
       if (results.nonEmpty) {
         val maxCount = results.head("count").value.toDouble
-        for (result <- results if result.contains("p")) yield {
-          (Path(ForwardOperator(result("p").value) :: Nil),
-            result("count").value.toDouble / maxCount)
+        for (result <- results if result.contains("propertyToAggregateBySAPC")) yield {
+          val sampleValue = result.get("objectNodeSampleSAPC")
+          // Only set value or object type if value available, if not set to auto-detect which is interpreted as unknown
+          val valueType = sampleValue.map(v => if(v.isInstanceOf[Resource]) UriValueType else StringValueType).getOrElse(AutoDetectValueType)
+          val path = Path(ForwardOperator(result("propertyToAggregateBySAPC").value) :: Nil)
+          val typedPath = TypedPath(path, valueType, isAttribute = false)
+          (typedPath, result("count").value.toDouble / maxCount)
         }
       } else {
         Traversable.empty
@@ -80,12 +84,12 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
   }
 
   private def getBackwardPaths(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Int)
-                              (implicit userContext: UserContext): Traversable[(Path, Double)] = {
-    Timer("Retrieving backward pathes for '" + restrictions + "'") {
+                              (implicit userContext: UserContext): Traversable[(TypedPath, Double)] = {
+    Timer("Retrieving backward paths for '" + restrictions + "'") {
       val variable = restrictions.variable
 
       var sparql = new StringBuilder()
-      sparql ++= "SELECT ?p ( count(?" + variable + ") AS ?count )\n"
+      sparql ++= "SELECT ?propertyToAggregateBySAPC ( count(?" + variable + ") AS ?count )\n"
 
       for (graphUri <- graph if !graphUri.isEmpty)
         sparql ++= "FROM <" + graphUri + ">\n"
@@ -93,19 +97,20 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
       sparql ++= "WHERE {\n"
 
       sparql ++= restrictions.toSparql + "\n"
-      sparql ++= "?s ?p ?" + variable + " .\n"
+      sparql ++= "?s ?propertyToAggregateBySAPC ?" + variable + " .\n"
       sparql ++= s"FILTER isIRI(?$variable)\n"
 
       sparql ++= "}\n"
-      sparql ++= "GROUP BY ?p\n"
+      sparql ++= "GROUP BY ?propertyToAggregateBySAPC\n"
       sparql ++= "ORDER BY DESC (?count)"
 
       val results = endpoint.select(sparql.toString(), limit).bindings.toList
       if (results.nonEmpty) {
         val maxCount = results.head("count").value.toDouble
-        for (result <- results if result.contains("p")) yield {
-          (Path(BackwardOperator(result("p").value) :: Nil),
-            result("count").value.toDouble / maxCount)
+        for (result <- results if result.contains("propertyToAggregateBySAPC")) yield {
+          val path = Path(BackwardOperator(result("propertyToAggregateBySAPC").value) :: Nil)
+          val typedPath = TypedPath(path, UriValueType, isAttribute = false) // backward paths are always object paths
+          (typedPath, result("count").value.toDouble / maxCount)
         }
       } else {
         Traversable.empty
