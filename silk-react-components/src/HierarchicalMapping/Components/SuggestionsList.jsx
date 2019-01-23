@@ -89,7 +89,6 @@ const SuggestionsList = React.createClass({
                     });
                 },
                 err => {
-
                     this.setState({loading: false, error: [{error: err}]});
                 }
             );
@@ -225,6 +224,7 @@ const SuggestionsList = React.createClass({
     },
     // template rendering
     render() {
+
         if (this.state.loading) {
             return <Spinner />;
         }
@@ -300,7 +300,7 @@ const SuggestionsList = React.createClass({
                 {_.map(
                     this.state.warnings,
                     warn => (
-                        <div>
+                        <div className="ecc-hm-suggestions-error">
                             <b>{warn.title}</b>
                             <div>{warn.detail}</div>
                         </div>
@@ -316,7 +316,6 @@ const SuggestionsList = React.createClass({
                         No suggestions found for{' '}
                         <ParentElement parent={this.props.parent} />.
                     </Info>
-                    {warnings}
                 </CardContent>
             );
         } else {

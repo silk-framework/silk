@@ -1,0 +1,8 @@
+{
+  "cancel": "button.ecc-hm-suggestions-cancel",
+  "loader" : "div.mdl-spinner",
+  "errors": "div.ecc-hm-suggestions-error",
+  "errorsContainer": "div.mdl-alert--danger",
+  "suggestions": ".ecc-silk-mapping__suggestionlist .mdl-list .ecc-silk-mapping__ruleitem--literal"
+}
+

@@ -6,21 +6,6 @@ import nock from "nock";
 const baseUrl = 'http://test.url';
 
 const mockup = (case1, case2) => {
-    const data1 = (testCase) => {
-        return {
-            url: '/ontologyMatching/matchVocabularyClassDataset',
-            data: {
-                dataTypePropertiesOnly: false,
-                datasetUriPrefix: "",
-                matchFromDataset: true,
-                nrCandidates: 1,
-                projectName: "test",
-                ruleId: testCase,
-                targetClassUris: [testCase],
-                transformTaskName: "test",
-            },
-        }
-    };
 
     const data2 = (testCase) => {
         return {
@@ -39,12 +24,20 @@ const mockup = (case1, case2) => {
                         "initialInterestRate",
                     ],
                 };
+            case "404NF":
+                return {
+                    code: 404,
+                    body: {
+                        title: "Not Found",
+                        detail: "Not Found",
+                    }
+                };
             case "404":
                 return {
                     code: 404,
                     body: {
                         title: "second error title",
-                        detail: "error's detail",
+                        detail: "error's detail 404",
                     }
                 };
             case "500":
@@ -52,7 +45,7 @@ const mockup = (case1, case2) => {
                     code: 500,
                     body: {
                         title: "second error title",
-                        detail: "error's detail",
+                        detail: "error's detail 500",
 
                     }
                 };
@@ -61,6 +54,23 @@ const mockup = (case1, case2) => {
 
         }
     };
+
+    const data1 = (testCase) => {
+        return {
+            url: '/ontologyMatching/matchVocabularyClassDataset',
+            data: {
+                dataTypePropertiesOnly: false,
+                datasetUriPrefix: "",
+                matchFromDataset: true,
+                nrCandidates: 1,
+                projectName: "test",
+                ruleId: testCase,
+                targetClassUris: [testCase],
+                transformTaskName: "test",
+            },
+        }
+    };
+
 
     const response1 = (testCase) => {
         switch (testCase) {
@@ -77,12 +87,20 @@ const mockup = (case1, case2) => {
                         ],
                     }
                 };
+            case "404NF":
+                return {
+                    code: 404,
+                    body: {
+                        title: "Not Found",
+                        detail: "Not Found",
+                    }
+                };
             case "404":
                 return {
                     code: 404,
                     body: {
                         title: "first error title",
-                        detail: "error's detail",
+                        detail: "error's detail 404",
 
                     }
                 };
@@ -92,7 +110,7 @@ const mockup = (case1, case2) => {
                     body: {
 
                         title: "first error title",
-                        detail: "error's detail",
+                        detail: "error's detail 500",
 
                     }
                 };
@@ -125,5 +143,7 @@ const mockup = (case1, case2) => {
 mockup("200", "200");
 // 404 with json response
 mockup("404", "404");
+// 404 with json Not Found response from silk
+mockup("404NF", "404NF");
 // 500 with json response
 mockup("500", "500");

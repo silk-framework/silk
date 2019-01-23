@@ -346,17 +346,20 @@ hierarchicalMappingChannel
         Rx.Observable.forkJoin(
             silkStore
                 .request({
+                    // call the DI matchVocabularyClassDataset endpoint
                     topic: 'transform.task.rule.suggestions',
                     data: {...apiDetails, ...data},
                 })
                 .catch(err => {
-                    // FIXME: ignore all 404 with no body?
-                    // It comes always {title: "Not Found", detail: "Not found"} even if the endpoint is not provided.
-                    // Probably hardcoded in a dependency ...
-                    console.warn(err.status, err.title, err.detail);
-                    if (err.status === 404 && !err.title && !err.detail)
+
+                    // It comes always {title: "Not Found", detail: "Not Found"} when the endpoint is not found.
+                    // see: SilkErrorHandler.scala
+                    const errorBody = _.get(err, 'response.body')
+
+                    if (err.status === 404 && errorBody.title === "Not Found" && errorBody.detail === "Not Found") {
                         return Rx.Observable.return(null);
-                    return Rx.Observable.return({error: err})
+                    }
+                    return Rx.Observable.return({error: errorBody})
                 })
                 .map(returned => {
                     const body = _.get(returned, 'body', []);
@@ -393,15 +396,13 @@ hierarchicalMappingChannel
                 }),
             silkStore
                 .request({
+                    // call the silk endpoint valueSourcePaths
                     topic: 'transform.task.rule.valueSourcePaths',
                     data: {unusedOnly: true, ...apiDetails, ...data},
                 })
                 .catch(err => {
-                    // FIXME: ignore all 404 is right?
-                    console.warn(err.status, err.title, err.detail);
-                    if (err.status === 404)
-                        return Rx.Observable.return(null);
-                    return Rx.Observable.return({error: err});
+                    const errorBody = _.get(err, 'response.body');
+                    return Rx.Observable.return({error: errorBody});
 
                 })
                 .map(returned => {
