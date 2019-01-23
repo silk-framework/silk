@@ -102,6 +102,7 @@ class RulePlugins extends PluginModule {
         classOf[IfMatchesRegexTransformer] ::
         classOf[ContainsAllOf] ::
         classOf[ContainsAnyOf] ::
+        classOf[Negate] ::
         // Numeric
         classOf[NumReduceTransformer] ::
         classOf[NumOperationTransformer] ::
