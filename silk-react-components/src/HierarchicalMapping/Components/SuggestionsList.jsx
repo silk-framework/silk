@@ -49,7 +49,8 @@ const SuggestionsList = React.createClass({
             rawData: undefined,
             askForDiscard: false,
             checked: this.defaultCheckValue,
-            matchFromDataset: true
+            matchFromDataset: true,
+            warnings: [],
         };
     },
     onChecked(v) {
@@ -79,7 +80,7 @@ const SuggestionsList = React.createClass({
                         type: v.type || SUGGESTION_TYPES[0],
                     }));
                     this.setState({
-                        warnings: response.warnings,
+                        warnings: response.warnings.filter(w => !_.isEmpty(w)),
                         loading: false,
                         rawData,
                         data: this.state.showDefaultProperties
@@ -88,6 +89,7 @@ const SuggestionsList = React.createClass({
                     });
                 },
                 err => {
+
                     this.setState({loading: false, error: [{error: err}]});
                 }
             );

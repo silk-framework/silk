@@ -18,9 +18,9 @@ const silkStore = rxmq.channel('silk.api');
 
 // Set api details
 let apiDetails = {
-    transformTask: false,
-    baseUrl: false,
-    project: false,
+    transformTask: 'test',
+    baseUrl: 'http://test.url',
+    project: 'test',
 };
 
 // Set Api details
@@ -350,13 +350,17 @@ hierarchicalMappingChannel
                     data: {...apiDetails, ...data},
                 })
                 .catch(err => {
-                    if (err.status !== 404)
-                        return Rx.Observable.return({error: err})
-                    return Rx.Observable.return(null);
+                    // FIXME: ignore all 404 with no body?
+                    // It comes always {title: "Not Found", detail: "Not found"} even if the endpoint is not provided.
+                    // Probably hardcoded in a dependency ...
+                    console.warn(err.status, err.title, err.detail);
+                    if (err.status === 404 && !err.title && !err.detail)
+                        return Rx.Observable.return(null);
+                    return Rx.Observable.return({error: err})
                 })
                 .map(returned => {
                     const body = _.get(returned, 'body', []);
-                    const error = _.get(returned, 'error', [])
+                    const error = _.get(returned, 'error', []);
 
                     if (error) {
                         return {
@@ -392,14 +396,22 @@ hierarchicalMappingChannel
                     topic: 'transform.task.rule.valueSourcePaths',
                     data: {unusedOnly: true, ...apiDetails, ...data},
                 })
-                .catch(err =>{
-                    if (err.status !== 404)
-                        return Rx.Observable.return({error: err})
-                    return Rx.Observable.return(null);
+                .catch(err => {
+                    // FIXME: ignore all 404 is right?
+                    console.warn(err.status, err.title, err.detail);
+                    if (err.status === 404)
+                        return Rx.Observable.return(null);
+                    return Rx.Observable.return({error: err});
+
                 })
                 .map(returned => {
                     const body = _.get(returned, 'body', []);
-
+                    const error = _.get(returned, 'error', []);
+                    if (error) {
+                        return {
+                            error,
+                        }
+                    }
                     return {
                         data: _.map(body, path => new Suggestion(path))
                     }
