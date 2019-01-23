@@ -49,3 +49,25 @@ global.CustomEvent = global.window.CustomEvent;
 global.NodeList = global.window.NodeList;
 global.Node = global.window.Node;
 global._ = _
+
+export default (component) => {
+    const waitUntilComponentFinishes = async (component) => {
+        await wait();
+        await flushPromises();
+        component.update();
+    };
+
+    const flushPromises = () => {
+        return new Promise(resolve => setImmediate(resolve));
+    };
+
+    function wait() {
+        return new Promise(resolve => {
+            setTimeout(resolve, timeout)
+        });
+    }
+
+    const timeout = 5;
+
+    return waitUntilComponentFinishes(component)
+}

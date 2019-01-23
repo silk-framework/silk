@@ -124,6 +124,7 @@ const mockup = (case1, case2) => {
     const secondPayload = data2(case2);
     const secondResponse = response2(case2);
 
+    // create mockup for the 2 endpoints used in silk, with data case1 and case2
     nock(baseUrl)
         .post(firstPayload.url, firstPayload.data)
         .reply(firstResponse.code, () => firstResponse.body)
