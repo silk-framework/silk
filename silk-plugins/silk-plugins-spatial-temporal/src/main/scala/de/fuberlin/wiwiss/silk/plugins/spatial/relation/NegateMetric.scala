@@ -34,8 +34,8 @@ object NegateMetric{
       case touches: TouchesMetric => NegateMetric(blockingParameter = blockingParameter, relation = Constants.TOUCHES)
       case within: WithinMetric => NegateMetric(blockingParameter = blockingParameter, relation = Constants.WITHIN)
       case relates: RelateMetric => NegateMetric(blockingParameter = blockingParameter, relation = relates.relation)
-      case negates: NegateMetric => throw new IllegalArgumentException("No double negation is supported.")
-      case _ => throw new IllegalArgumentException("Non relational metric cannot be negated.")
+      case negates: NegateMetric => throw new IllegalArgumentException("Double negation is not supported.")
+      case _ => throw new IllegalArgumentException("Non relational metrics cannot be negated.")
     }
   }
 }
