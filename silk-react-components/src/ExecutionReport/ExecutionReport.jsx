@@ -30,7 +30,7 @@ export default class ExecutionReport extends React.Component {
   }
 
   render() {
-    return <div className=".ecc-silk-mapping">
+    return <div>
       { this.renderSummary() }
       { 'ruleResults' in this.props.executionReport && this.renderTransformReport() }
     </div>
@@ -43,29 +43,23 @@ export default class ExecutionReport extends React.Component {
           <td>{v.value}</td>
         </tr>
     );
-    return <div className="mdl-grid">
-             <div className="mdl-cell mdl-cell--12-col">
-               <div className="ecc-silk-mapping__treenav">
-                 <div className="mdl-card mdl-shadow--2dp mdl-card--stretch">
-                   <div className="mdl-card__title">
-                     <h2 className="mdl-card__title-text">Execution Report</h2>
-                   </div>
-                   <table className="mdl-data-table mdl-js-data-table">
-                     <thead>
-                     </thead>
-                     <tbody>
-                     { summaryRows }
-                     </tbody>
-                   </table>
-                 </div>
-               </div>
+    return <div className="ecc-silk-mapping__treenav mdl-card mdl-shadow--2dp mdl-card--stretch">
+             <div className="mdl-card__title">
+               <h2 className="mdl-card__title-text">Execution Report</h2>
              </div>
+             <table className="mdl-data-table mdl-js-data-table">
+               <thead>
+               </thead>
+               <tbody>
+               { summaryRows }
+               </tbody>
+             </table>
            </div>
   }
 
   renderTransformReport() {
-    return <div className="mdl-grid">
-             <div className="mdl-cell mdl-cell--4-col">
+    return <div className="mdl-grid mdl-grid--no-spacing">
+             <div className="mdl-cell mdl-cell--4col">
                <MappingsTree currentRuleId="root" showValueMappings={true} ruleValidation={this.generateIcons()} />
              </div>
               <div className="mdl-cell mdl-cell--8-col">

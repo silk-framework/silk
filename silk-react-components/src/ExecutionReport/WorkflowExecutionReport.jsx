@@ -38,9 +38,9 @@ export default class WorkflowExecutionReport extends React.Component {
   }
 
   render() {
-    return  <div className="mdl-grid">
+    return  <div className="mdl-grid mdl-grid--no-spacing">
               <div className="mdl-cell mdl-cell--2-col">
-                <div className="mdl-card mdl-shadow--2dp mdl-card--stretch">
+                <div className="ecc-silk-mapping__treenav mdl-card mdl-shadow--2dp mdl-card--stretch">
                   <ul className="mdl-list">
                     { Object.keys(this.state.executionReport.taskReports).map(task => this.renderTaskItem(task)) }
                   </ul>
