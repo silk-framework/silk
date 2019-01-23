@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "init": "ecc-link-dotfiles && rm .editorconfig && rm -r .gitlab",
-    "test": "mocha --require babel-core/register --require ./test/test_helper.js \"test/**/*@(.js|.jsx)\"",
+    "test": "mocha --require babel-core/register --require ./test/test_helper.js \"test/**/*.test@(.js|.jsx)\"",
     "testBamboo": "mocha -R mocha-bamboo-reporter --require babel-core/register --require ./test/test_helper.js \"test/**/*@(.js|.jsx)\"",
     "test:watch": "npm run test -- --watch",
     "eslint-check": "eslint --print-config .eslintrc.yml && eslint --print-config .eslintrc.yml | eslint-config-prettier-check",
@@ -41,7 +41,8 @@
     "mdl-selectfield": "1.0.3",
     "react": "^15.6.1",
     "react-beautiful-dnd": "^2.5.0",
-    "react-dom": "^15.6.1"
+    "react-dom": "^15.6.1",
+    "sinon": "^7.2.2"
   },
   "devDependencies": {
     "@eccenca/dotfiles": "^2.3.2",
@@ -60,6 +61,7 @@
     "ecc-license-checker": "^2.5.2",
     "enzyme": "^3.6.0",
     "enzyme-adapter-react-15": "^1.0.6",
+    "eslint-plugin-jsx-a11y": "^6.1.2",
     "file-loader": "^1.1.11",
     "jsdom": "11.11.0",
     "jsplumb": "2.5.1",
