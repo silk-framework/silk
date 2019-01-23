@@ -6,9 +6,9 @@ import org.silkframework.rule.similarity.SimpleDistanceMeasure
 import org.silkframework.runtime.plugin.Plugin
 
 @Plugin(
-  id = "NegateMetric",
+  id = "NegateRelationMetric",
   categories = Array("Spatial"),
-  label = "Negate (NOT)",
+  label = "Negate Relation (NOT)",
   description = "Computes every relation from DE-9IM between two geometries and negates its result."
 )
 case class NegateMetric(blockingParameter: Double = 1.0, relation: String = "") extends SimpleDistanceMeasure {
