@@ -42,7 +42,7 @@ function mountSuggestionsList(testCase1, testCase2) {
 
 const timeout = 5;
 
-describe('SuggestionsList with correct responses ( both 200 )', async () => {
+describe('SuggestionsList render with correct responses ( both 200 )', async () => {
 
     // set spy on component did mount to check how oft it is called
     sinon.spy(SuggestionsList.prototype, 'componentDidMount');
@@ -77,7 +77,7 @@ describe('SuggestionsList with correct responses ( both 200 )', async () => {
 
 });
 
-describe('SuggestionsList with wrong responses ( both 404 )', async () => {
+describe('SuggestionsList render with wrong responses ( both 404 )', async () => {
 
     const component = mountSuggestionsList("404", "404");
 
@@ -96,7 +96,7 @@ describe('SuggestionsList with wrong responses ( both 404 )', async () => {
     })
 });
 
-describe('SuggestionsList with wrong responses ( both 500 )', async () => {
+describe('SuggestionsList render with wrong responses ( both 500 )', async () => {
 
     const component = mountSuggestionsList("500", "500");
 
