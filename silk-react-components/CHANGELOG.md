@@ -2,4 +2,5 @@
 
 ### Add
 
-- unit tests for silk-react-components
+- bootstrap unit tests for silk-react-components
+- add unit tests for SuggestionsList "render"
