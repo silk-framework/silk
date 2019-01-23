@@ -18,7 +18,9 @@ object ExecutionReportSerializers {
 
     def serialize(value: ExecutionReport): JsObject = {
       Json.obj(
-        "summary" -> value.summary.map(serializeValue)
+        "label" -> value.label,
+        "summary" -> value.summary.map(serializeValue),
+        "warning" -> value.warning
       )
     }
 

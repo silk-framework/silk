@@ -10,7 +10,8 @@ import org.silkframework.runtime.activity.ActivityContext
 
 import scala.util.control.NonFatal
 
-class TransformedEntities(entities: Traversable[Entity],
+class TransformedEntities(taskLabel: String,
+                          entities: Traversable[Entity],
                           rules: Seq[TransformRule],
                           outputSchema: EntitySchema,
                           context: ActivityContext[TransformReport]) extends Traversable[Entity] {
@@ -21,7 +22,10 @@ class TransformedEntities(entities: Traversable[Entity],
 
   private val propertyRules = rules.filter(_.target.nonEmpty).toIndexedSeq
 
-  private val report = new TransformReportBuilder(rules, context.value.get.getOrElse(TransformReport()))
+  private val report = {
+    val prevReport = context.value.get.getOrElse(TransformReport(taskLabel))
+    new TransformReportBuilder(prevReport.label, rules, prevReport)
+  }
 
   private var errorFlag = false
 

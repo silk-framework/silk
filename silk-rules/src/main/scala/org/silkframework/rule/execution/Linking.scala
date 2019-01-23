@@ -8,7 +8,9 @@ import org.silkframework.util.DPair
 /**
   * Set of links.
   */
-case class Linking(rule: LinkageRule, links : Seq[Link] = Seq.empty, statistics: LinkingStatistics = LinkingStatistics()) extends ExecutionReport {
+case class Linking(label: String, rule: LinkageRule, links : Seq[Link] = Seq.empty, statistics: LinkingStatistics = LinkingStatistics()) extends ExecutionReport {
+
+  println("Updated statistics: " + statistics)
 
   lazy val summary: Seq[(String, String)] = {
     Seq(
@@ -16,6 +18,16 @@ case class Linking(rule: LinkageRule, links : Seq[Link] = Seq.empty, statistics:
       "number of target entities" -> statistics.entityCount.target.toString,
       "number of links" -> links.size.toString
     )
+  }
+
+  def warning: Option[String] = {
+    if(statistics.entityCount.source == 0) {
+      Some("No source entities could be loaded.")
+    } else if(statistics.entityCount.target == 0) {
+      Some("No target entities could be loaded.")
+    } else {
+      None
+    }
   }
 
 }

@@ -40,9 +40,9 @@ export default class WorkflowExecutionReport extends React.Component {
   render() {
     return  <div className="mdl-grid mdl-grid--no-spacing">
               <div className="mdl-cell mdl-cell--2-col">
-                <div className="ecc-silk-mapping__treenav mdl-card mdl-shadow--2dp mdl-card--stretch">
+                <div className="silk-report-card mdl-card mdl-shadow--2dp mdl-card--stretch">
                   <ul className="mdl-list">
-                    { Object.keys(this.state.executionReport.taskReports).map(task => this.renderTaskItem(task)) }
+                    { Object.entries(this.state.executionReport.taskReports).map(e => this.renderTaskItem(e[0], e[1])) }
                   </ul>
                 </div>
               </div>
@@ -54,11 +54,11 @@ export default class WorkflowExecutionReport extends React.Component {
             </div>
   }
 
-  renderTaskItem(task) {
+  renderTaskItem(task, report) {
     return <li key={task} className="mdl-list__item">
              <span className="mdl-list__item-primary-content">
                <button onClick={() => this.setState({selectedTask: task})} className="mdl-button mdl-js-button">
-                 { task }
+                 { report.label }
                </button>
              </span>
            </li>

@@ -59,7 +59,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       val op = new SampleOperator()
       val linkSpec2 = linkSpec.copy(rule = LinkageRule(op))
 
-      val generateLinks = new GenerateLinks("PoolGenerator", inputs, linkSpec2, Seq.empty, runtimeConfig) {
+      val generateLinks = new GenerateLinks("PoolGenerator", "Pool Generator", inputs, linkSpec2, Seq.empty, runtimeConfig) {
          override def entityDescs = entitySchemata
       }
 

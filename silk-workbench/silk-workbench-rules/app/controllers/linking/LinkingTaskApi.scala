@@ -318,7 +318,7 @@ class LinkingTaskApi extends Controller {
           val linkSource = createDataSource(xmlRoot, Some("sourceDataset"))
           val linkTarget = createDataSource(xmlRoot, Some("targetDataset"))
           val (model, linkSink) = createLinkSink(xmlRoot)
-          val link = new GenerateLinksActivity(taskName, DPair(linkSource, linkTarget), task.data, Seq(linkSink))
+          val link = new GenerateLinksActivity(taskName, task.taskLabel(), DPair(linkSource, linkTarget), task.data, Seq(linkSink))
           Activity(link).startBlocking()
           val acceptedContentType = request.acceptedTypes.headOption.map(_.mediaType).getOrElse("application/n-triples")
           result(model, acceptedContentType, "Successfully generated links")

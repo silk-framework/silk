@@ -22,6 +22,7 @@ case class ExecuteTransformFactory(
   override def apply(task: ProjectTask[TransformSpec]): Activity[TransformReport] = {
     Activity.regenerating {
       new ExecuteTransform(
+        task.taskLabel(),
         // No user context here, defer fetching data sources
         (userContext: UserContext) => task.dataSource(userContext),
         task.data,

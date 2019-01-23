@@ -39,15 +39,15 @@ export default class ExecutionReport extends React.Component {
   renderSummary() {
     const summaryRows = this.props.executionReport.summary.map(v =>
         <tr key={v.key}>
-          <td>{v.key}</td>
+          <td className="silk-report-table-bold">{v.key}</td>
           <td>{v.value}</td>
         </tr>
     );
-    return <div className="ecc-silk-mapping__treenav mdl-card mdl-shadow--2dp mdl-card--stretch">
+    return <div className="silk-report-card mdl-card mdl-shadow--2dp mdl-card--stretch">
              <div className="mdl-card__title">
                <h2 className="mdl-card__title-text">Execution Report</h2>
              </div>
-             <table className="mdl-data-table mdl-js-data-table">
+             <table className="silk-report-table">
                <thead>
                </thead>
                <tbody>
