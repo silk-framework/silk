@@ -2,6 +2,7 @@ package org.silkframework.rule
 
 import org.silkframework.config.Task
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
+import org.silkframework.entity.metadata.GenericExecutionFailure
 import org.silkframework.entity.{Entity, EntitySchema, Path}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.failures.FailureClass
@@ -98,7 +99,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
             case Left(transformedValues) =>
               f(Entity(uri, transformedValues, entitySchema))
             case Right(throwable) =>
-              f(Entity(uri, entitySchema, FailureClass(throwable, source.underlyingTask.id)))
+              f(Entity(uri, entitySchema, FailureClass(GenericExecutionFailure(throwable), source.underlyingTask.id)))
           }
         }
       }

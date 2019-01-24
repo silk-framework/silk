@@ -1,7 +1,7 @@
 package org.silkframework.serialization.json.metadata
 
 import org.silkframework.entity.Path
-import org.silkframework.entity.metadata.FailureClassSerializer
+import org.silkframework.entity.metadata.{GenericExecutionFailure, FailureClassSerializer}
 import org.silkframework.failures.{AccumulatedFailureClass, FailureClass}
 import org.silkframework.failures.FailureClass.{TASK_ID_TAG, _}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
@@ -29,12 +29,14 @@ case class FailureClassSerializerJson() extends JsonMetadataSerializer[FailureCl
     val originalMessage = stringValue(value, MESSAGE_TAG)
     val taskId = stringValue(value, TASK_ID_TAG)
     val property = stringValueOption(value, PROPERTY_TAG).map(Path(_))
-    val accumulated = booleanValue(value, ACUUMULATED_TAG)
+    val accumulated = booleanValue(value, ACCUMULATED_TAG)
     val fc = FailureClass(rootCause, originalMessage, taskId, property)
-    if(accumulated)
+    if(accumulated) {
       new AccumulatedFailureClass(fc)
-    else
+    }
+    else {
       fc
+    }
   }
 
   override def write(value: FailureClass)(implicit writeContext: WriteContext[JsValue]): JsValue = {
@@ -42,7 +44,7 @@ case class FailureClassSerializerJson() extends JsonMetadataSerializer[FailureCl
       ROOT_CAUSE_TAG -> ExceptionSerializerJson().write(value.rootCause),
       MESSAGE_TAG -> json.JsString(value.originalMessage),
       TASK_ID_TAG -> json.JsString(value.taskId),
-      ACUUMULATED_TAG -> json.JsBoolean(value.accumulated())
+      ACCUMULATED_TAG -> json.JsBoolean(value.accumulated())
     ) ++
       value.property.map(p => PROPERTY_TAG -> json.JsString(p.normalizedSerialization))
     )
