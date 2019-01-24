@@ -14,10 +14,10 @@ import org.silkframework.util.{Identifier, Uri}
   * @param property        the property which is associated/caused with the current failure
   */
 //noinspection ScalaStyle
-case class FailureClass(rootCause: GenericExecutionFailure,
-                        originalMessage: String,
-                        taskId: Identifier,
-                        property: Option[Path]) //FIXME TypedPath needs JsValue serializer - CMEM-1368
+class FailureClass private[failures](val rootCause: GenericExecutionFailure,
+                                     val originalMessage: String,
+                                     val taskId: Identifier,
+                                     val property: Option[Path]) //FIXME TypedPath needs JsValue serializer - CMEM-1368
     extends Serializable {
 
   assert(rootCause.cause.isEmpty, "Initializing FailureClass with an Exception which has a cause is not allowed. Use a different apply method for this purpose.")
@@ -123,7 +123,16 @@ object FailureClass{
     * @return
     */
   def apply(failure: GenericExecutionFailure, taskId: Identifier, property: Option[Path] = None): FailureClass = {
-    apply(FailureClass.getRootCause(failure), failure.getMessage, taskId, property)
+    new FailureClass(FailureClass.getRootCause(failure), failure.getMessage, taskId, property)
+  }
+
+  def apply(failure: GenericExecutionFailure, originalMessage: String, taskId: Identifier, property: Option[Path]): FailureClass = {
+    failure.cause match {
+      case Some(_) =>
+        apply(failure, taskId, property) // Not the root cause failure, get root cause
+      case None =>
+        new FailureClass(failure, originalMessage, taskId, property)
+    }
   }
 
   val TASK_ID_TAG = "TaskId"

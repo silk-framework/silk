@@ -69,7 +69,7 @@ object GenericExecutionFailure {
     * @return
     */
   def apply(t: Throwable): GenericExecutionFailure = {
-    val cause = if (t.getCause != null) {
+    val cause = if (t.getCause != null && t.getCause != t) {
       Some(apply(t.getCause))
     } else {
       None
