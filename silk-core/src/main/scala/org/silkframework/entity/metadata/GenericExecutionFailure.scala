@@ -31,17 +31,6 @@ case class GenericExecutionFailure(message: Option[String],
                                    className: String,
                                    cause: Option[GenericExecutionFailure],
                                    stackTrace: Option[Array[StackTraceElement]]) {
-// TODO Rename class or make it a Throwable if you like. Throwable would make sense, but Markus and Andreas were against it
-  /**
-    * Constructor that copiess the values of a Throwable.
-    *
-    * @param t Throwable
-    * @return GenericExecutionFailure
-    */
-  def apply(t: Throwable): GenericExecutionFailure = {
-    GenericExecutionFailure(t)
-  }
-
   def getStackTrace: Array[StackTraceElement] = stackTrace.getOrElse(Array.empty)
 
   def getMessage: String = message.orNull
