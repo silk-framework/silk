@@ -20,7 +20,7 @@ case class FailureClass(rootCause: GenericExecutionFailure,
                         property: Option[Path]) //FIXME TypedPath needs JsValue serializer - CMEM-1368
     extends Serializable {
 
-  assert(rootCause.getCause.isEmpty, "Initializing FailureClass with an Exception which has a cause is not allowed. Use a different apply method for this purpose.")
+  assert(rootCause.cause.isEmpty, "Initializing FailureClass with an Exception which has a cause is not allowed. Use a different apply method for this purpose.")
 
   private lazy val rootStackElement = Option(rootCause.getStackTrace).flatMap(s => s.headOption)
 
@@ -110,8 +110,8 @@ object FailureClass{
     */
   private[failures] def getRootCause(ex: GenericExecutionFailure): GenericExecutionFailure = {
     var thr: GenericExecutionFailure = ex
-    while(thr.getCause.isDefined){
-      thr = thr.getCause.get
+    while(thr.cause.isDefined){
+      thr = thr.cause.get
     }
     thr
   }

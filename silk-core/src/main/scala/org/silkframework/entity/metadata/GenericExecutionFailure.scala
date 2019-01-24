@@ -41,8 +41,6 @@ case class GenericExecutionFailure(message: Option[String],
     * @return class name
     */
   def getExceptionClass: String = className
-
-  def getCause: Option[GenericExecutionFailure] = cause
 }
 
 /**
@@ -61,7 +59,7 @@ object GenericExecutionFailure {
     * @return
     */
   def asThrowable(ef: GenericExecutionFailure): Throwable = {
-    GenericExecutionException(ef.getMessage, ef.getCause.map(asThrowable), Some(ef.getCause.getClass.getName), Some(ef.getStackTrace))
+    GenericExecutionException(ef.getMessage, ef.cause.map(asThrowable), Some(ef.cause.getClass.getName), Some(ef.getStackTrace))
   }
 
   /**
