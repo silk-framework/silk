@@ -2,9 +2,9 @@ package org.silkframework.runtime.activity
 
 import java.util.concurrent.ForkJoinPool
 
+import org.silkframework.runtime.execution.Execution
 import org.silkframework.util.StringUtils._
 
-import scala.math.max
 import scala.reflect.ClassTag
 
 /**
@@ -67,11 +67,7 @@ object Activity {
   /**
    * The fork join pool used to run activities.
    */
-  val forkJoinPool: ForkJoinPool = {
-    val minimumNumberOfThreads = 4
-    val threadCount = max(minimumNumberOfThreads, Runtime.getRuntime.availableProcessors())
-    new ForkJoinPool(threadCount, ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, true)
-  }
+  val forkJoinPool: ForkJoinPool = Execution.createForkJoinPool("Activity")
 
   /**
     * The base path into which all activity output is logged
