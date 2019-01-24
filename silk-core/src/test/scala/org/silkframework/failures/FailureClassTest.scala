@@ -22,10 +22,11 @@ class FailureClassTest extends FlatSpec with MustMatchers {
   }
 
   it should "return the correct root class name when a stacktrace is not available" in {
-    val genericExecutionFailure = GenericExecutionFailure(new RuntimeException("runtime", new IllegalArgumentException("causing"))).copy(stackTrace = None)
+    val genericExecutionFailure = GenericExecutionFailure(new Exception("Top exception")).
+        copy(cause = Some(GenericExecutionFailure(new RuntimeException("runtime")).copy(stackTrace = None)))
     val failure = failureClass(genericExecutionFailure)
-    failure.getRootClass mustBe thisClassName
-    failure.getRootLine mustBe 25
+    failure.getRootClass mustBe "java.lang.RuntimeException"
+    failure.getRootLine mustBe 0 // No line number available, since there is no stacktrace
   }
 
   it should "return the correct root class name when the exception was created in a nested class" in {

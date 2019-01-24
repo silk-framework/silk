@@ -2,7 +2,6 @@ package org.silkframework.failures
 
 import org.silkframework.entity.Path
 import org.silkframework.entity.metadata.GenericExecutionFailure
-import org.silkframework.entity.metadata.GenericExecutionFailure.GenericExecutionException
 import org.silkframework.util.{Identifier, Uri}
 
 /**
@@ -26,23 +25,15 @@ class FailureClass private[failures](val rootCause: GenericExecutionFailure,
 
   def getRootLine: Int = rootStackElement.getOrElse(return 0).getLineNumber
 
+  // The root class inside which the exception occurred. If no stack trace is available it will return the class name of the exception as fallback.
   lazy val getRootClass: String = {
-    val baseName = rootStackElement.map(_.getClassName).getOrElse(rootCause.getClass.getName)
-    val className = if(baseName.contains('$')) {
+    val baseName = rootStackElement.map(_.getClassName).getOrElse(rootCause.className)
+    if(baseName.contains('$')) {
       baseName.substring(0, baseName.indexOf('$'))
     }
     else {
       baseName
     }
-
-    if (GenericExecutionException.getClass.getName.contains(className)) {
-      rootCause.asInstanceOf[GenericExecutionException].exceptionClass
-        .getOrElse(rootCause.getClass.getName).split("&").head
-    }
-    else {
-      className
-    }
-
   }
 
   /**
@@ -139,7 +130,7 @@ object FailureClass{
   val MESSAGE_TAG = "Message"
   val ROOT_CAUSE_TAG = "RootCause"
   val PROPERTY_TAG = "Property"
-  val ACUUMULATED_TAG = "Accumulated"
+  val ACCUMULATED_TAG = "Accumulated"
 
 }
 

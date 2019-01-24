@@ -14,7 +14,7 @@ case class FailureClassSerializer() extends XmlMetadataSerializer[FailureClass] 
     val message = (node \ MESSAGE_TAG).text.trim
     val rootCause = ExceptionSerializer().readException((node \ ROOT_CAUSE_TAG).headOption.flatMap(_.child.headOption).orNull)
     val property = (node \ PROPERTY_TAG).headOption.map(p => Path(p.text))
-    val accumulated = (node \ ACUUMULATED_TAG).text.trim.toBoolean
+    val accumulated = (node \ ACCUMULATED_TAG).text.trim.toBoolean
     val fc = FailureClass(rootCause, message, taskId, property)
 
     if(accumulated) {
