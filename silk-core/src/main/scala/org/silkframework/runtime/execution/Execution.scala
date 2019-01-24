@@ -8,9 +8,18 @@ import java.util.logging.{Level, Logger}
 
 import scala.math.max
 
+/**
+  * Creates new thread pools.
+  * Use the factory methods in this object instead of creating thread pools directly.
+  * Takes care of naming threads and logging uncaught exceptions.
+  */
 object Execution {
 
+  /** Logger for uncaught exceptions */
   private val log = Logger.getLogger(getClass.getName)
+
+  /** Prefix to be prepended to thread names */
+  private val threadPrefix = "Silk-"
 
   /**
     * Creates a new fork/join pool.
@@ -21,7 +30,7 @@ object Execution {
   def createForkJoinPool(name: String): ForkJoinPool = {
     val minimumNumberOfThreads = 4
     val threadCount = max(minimumNumberOfThreads, Runtime.getRuntime.availableProcessors())
-    new ForkJoinPool(threadCount, new PrefixedForkJoinWorkerThreadFactory(name + "-thread-"), null, true)
+    new ForkJoinPool(threadCount, new PrefixedForkJoinWorkerThreadFactory(name), null, true)
   }
 
   /**
@@ -30,7 +39,27 @@ object Execution {
     * @param name A label to be used for naming threads. Helps debugging and finding threads that belong to this pool.
     */
   def createThreadPool(name: String): ExecutorService = {
-    Executors.newCachedThreadPool( new PrefixedThreadFactory(name + "-thread-"))
+    Executors.newCachedThreadPool( new PrefixedThreadFactory(name))
+  }
+
+  /**
+    * Creates a new fixed thread pool.
+    *
+    * @param name A label to be used for naming threads. Helps debugging and finding threads that belong to this pool.
+    * @param numberOfThreads The number of threads in the pool
+    */
+  def createFixedThreadPool(name: String, numberOfThreads: Int): ExecutorService = {
+    Executors.newFixedThreadPool(numberOfThreads, new PrefixedThreadFactory(name))
+  }
+
+  /**
+    * Creates a new scheduled thread pool.
+    *
+    * @param name A label to be used for naming threads. Helps debugging and finding threads that belong to this pool.
+    * @param corePoolSize The number of threads in the pool
+    */
+  def createScheduledThreadPool(name: String, corePoolSize: Int): ScheduledExecutorService = {
+    Executors.newScheduledThreadPool(corePoolSize, new PrefixedThreadFactory(name))
   }
 
   /**
@@ -42,7 +71,7 @@ object Execution {
     private val threadNumber = new AtomicInteger(1)
 
     override def newThread(r: Runnable): Thread = {
-      val t = new Thread(null, r, prefix + threadNumber.getAndIncrement, 0)
+      val t = new Thread(null, r, threadPrefix + prefix + threadNumber.getAndIncrement, 0)
       if (t.isDaemon) t.setDaemon(false)
       if (t.getPriority != Thread.NORM_PRIORITY) t.setPriority(Thread.NORM_PRIORITY)
       t.setUncaughtExceptionHandler(LoggingExceptionHandler)
@@ -62,7 +91,7 @@ object Execution {
 
     override def newThread(pool: ForkJoinPool): ForkJoinWorkerThread = {
       val t = factory.newThread(pool)
-      t.setName(prefix + threadNumber.getAndIncrement)
+      t.setName(threadPrefix + prefix + threadNumber.getAndIncrement)
       t.setUncaughtExceptionHandler(LoggingExceptionHandler)
       t
     }

@@ -15,11 +15,12 @@
 package org.silkframework.workspace
 
 import java.time.Instant
-import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
+import java.util.concurrent.{ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status, UserContext, ValueHolder}
+import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
@@ -229,5 +230,5 @@ object ProjectTask {
   /* Do not persist updates more frequently than this (in seconds) */
   val writeInterval = 3
 
-  private val scheduledExecutor = Executors.newSingleThreadScheduledExecutor()
+  private val scheduledExecutor = Execution.createScheduledThreadPool(getClass.getSimpleName, 1)
 }
