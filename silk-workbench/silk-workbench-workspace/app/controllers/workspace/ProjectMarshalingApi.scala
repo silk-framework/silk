@@ -3,6 +3,8 @@ package controllers.workspace
 import java.io._
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.workspace.ProjectMarshalingApi._
+import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.xml.XmlZipProjectMarshaling
 import org.silkframework.workspace.{ProjectMarshallerRegistry, ProjectMarshallingTrait, WorkspaceFactory}
@@ -11,7 +13,6 @@ import play.api.libs.json.JsArray
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
-import scala.concurrent.ExecutionContext.Implicits.global
 
 class ProjectMarshalingApi extends Controller {
 
@@ -88,10 +89,10 @@ class ProjectMarshalingApi extends Controller {
     }
   }
 
-  private def enumerateOutputStream(serializeFunc: java.io.OutputStream => Unit)(implicit ec: ExecutionContext): Enumerator[Array[Byte]] = {
+  private def enumerateOutputStream(serializeFunc: java.io.OutputStream => Unit): Enumerator[Array[Byte]] = {
     val outputStream = new PipedOutputStream
 
-    ec.execute(new Runnable {
+    exportExecutionContext.execute(new Runnable {
       override def run(): Unit = {
         try {
           serializeFunc(outputStream)
@@ -102,7 +103,7 @@ class ProjectMarshalingApi extends Controller {
       }
     })
 
-    Enumerator.fromStream(new PipedInputStream(outputStream))
+    Enumerator.fromStream(new PipedInputStream(outputStream))(exportExecutionContext)
   }
 
   private def bodyAsFile(implicit request: Request[AnyContent]): File = {
@@ -117,5 +118,15 @@ class ProjectMarshalingApi extends Controller {
         throw BadUserInputException("Must attach body as multipart form data or as raw bytes.")
     }
   }
+
+}
+
+object ProjectMarshalingApi {
+
+  /**
+    * To prevent deadlock, all project exports are executed in a separate thread pool.
+    */
+  private val exportExecutionContext: ExecutionContext =
+    ExecutionContext.fromExecutorService(Execution.createThreadPool("ProjectMarshalingApi"))
 
 }
