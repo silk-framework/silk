@@ -1,8 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {AffirmativeButton, DismissiveButton, SelectBox, Info, Spinner, Error, Table} from '@eccenca/gui-elements';
+import {AffirmativeButton, DismissiveButton, SelectBox, Info, Spinner, Error, Table, Icon} from '@eccenca/gui-elements';
 import dataIntegrationStore from "../api/dataintegrationStore";
-import MappingsTree from '../HierarchicalMapping/Components/MappingsTree';
 import hierarchicalMappingChannel from "../HierarchicalMapping/store";
 import ExecutionReport from "./ExecutionReport";
 
@@ -47,28 +46,52 @@ export default class WorkflowExecutionReport extends React.Component {
                 </div>
               </div>
               <div className="mdl-cell mdl-cell--10-col">
-                { this.state.executionReport.taskReports.hasOwnProperty(this.state.selectedTask) &&
-                  this.renderReport(this.state.selectedTask)
-                }
+                { this.renderReport(this.state.selectedTask) }
               </div>
             </div>
   }
 
   renderTaskItem(task, report) {
-    return <li key={task} className="mdl-list__item">
+    return <li key={task} className="mdl-list__item mdl-list__item--two-line silk-report-list-item" onClick={() => this.setState({selectedTask: task})} >
              <span className="mdl-list__item-primary-content">
-               <button onClick={() => this.setState({selectedTask: task})} className="mdl-button mdl-js-button">
-                 { report.label }
-               </button>
+               { report.label }
+               { this.renderTaskDescription(task, report) }
+             </span>
+             <span className="mdl-list__item-secondary-content">
+               { this.renderTaskIcon(task, report) }
              </span>
            </li>
   }
 
+  renderTaskDescription(task, report) {
+    if(report.hasOwnProperty("warning") && report.warning !== null) {
+      return <span className="mdl-list__item-sub-title">{report.warning}</span>
+    } else {
+      return <span className="mdl-list__item-sub-title">no issues</span>
+    }
+  }
+
+  renderTaskIcon(task, report) {
+    if(report.hasOwnProperty("warning") && report.warning !== null) {
+      return <Icon name="warning" className="silk-report-list-item-icon-red" />
+    } else {
+      return <Icon name="done" className="silk-report-list-item-icon-green" />
+    }
+  }
+
   renderReport(task) {
-    return <ExecutionReport baseUrl={this.props.baseUrl}
-                            project={this.props.project}
-                            task={task}
-                            executionReport={this.state.executionReport.taskReports[this.state.selectedTask]} />
+    if(this.state.executionReport.taskReports.hasOwnProperty(this.state.selectedTask)) {
+      return <ExecutionReport baseUrl={this.props.baseUrl}
+                              project={this.props.project}
+                              task={task}
+                              executionReport={this.state.executionReport.taskReports[this.state.selectedTask]}/>
+    } else {
+      return  <div className="silk-report-card mdl-card mdl-shadow--2dp mdl-card--stretch">
+                <div className="mdl-card__supporting-text">
+                  Select a task for detailed results.
+                </div>
+              </div>
+    }
   }
 }
 

@@ -10,8 +10,6 @@ import org.silkframework.util.DPair
   */
 case class Linking(label: String, rule: LinkageRule, links : Seq[Link] = Seq.empty, statistics: LinkingStatistics = LinkingStatistics()) extends ExecutionReport {
 
-  println("Updated statistics: " + statistics)
-
   lazy val summary: Seq[(String, String)] = {
     Seq(
       "number of source entities" -> statistics.entityCount.source.toString,
@@ -22,9 +20,11 @@ case class Linking(label: String, rule: LinkageRule, links : Seq[Link] = Seq.emp
 
   def warning: Option[String] = {
     if(statistics.entityCount.source == 0) {
-      Some("No source entities could be loaded.")
+      Some("No source entities have been loaded.")
     } else if(statistics.entityCount.target == 0) {
-      Some("No target entities could be loaded.")
+      Some("No target entities have been loaded.")
+    } else if(links.isEmpty) {
+      Some("No links have been generated.")
     } else {
       None
     }

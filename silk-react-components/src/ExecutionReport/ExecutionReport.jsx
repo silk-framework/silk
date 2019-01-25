@@ -59,12 +59,12 @@ export default class ExecutionReport extends React.Component {
 
   renderTransformReport() {
     return <div className="mdl-grid mdl-grid--no-spacing">
-             <div className="mdl-cell mdl-cell--4col">
+             <div className="mdl-cell mdl-cell--3-col">
                <MappingsTree currentRuleId="root" showValueMappings={true} ruleValidation={this.generateIcons()} />
              </div>
-              <div className="mdl-cell mdl-cell--8-col">
-                { this.renderRuleReport() }
-              </div>
+             <div className="mdl-cell mdl-cell--9-col">
+               { this.renderRuleReport() }
+             </div>
            </div>
   }
 
