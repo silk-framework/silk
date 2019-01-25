@@ -13,9 +13,9 @@ import org.silkframework.plugins.dataset.rdf.{QuadIteratorImpl, RdfFormatUtil}
   * @param file - the rdf file containing quads
   * @param task - the pertaining task
   */
-class FileBasedQuadEntityTable(file: File, task: Task[TaskSpec]) extends QuadEntityTable(() => {
+class FileBasedQuadEntityTable(file: File, lang: Lang, task: Task[TaskSpec]) extends QuadEntityTable(() => {
   val sos = new FileInputStream(file)
-  val iter = RDFDataMgr.createIteratorQuads(sos, Lang.NQUADS, null)
+  val iter = RDFDataMgr.createIteratorQuads(sos, lang, null)
   new QuadIteratorImpl(
     () => iter.hasNext,
     () => RdfFormatUtil.jenaQuadToQuad(iter.next()),

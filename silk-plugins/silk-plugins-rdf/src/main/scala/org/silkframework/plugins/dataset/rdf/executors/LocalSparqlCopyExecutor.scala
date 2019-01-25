@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.rdf.executors
 import java.io.File
 
 import org.apache.commons.io.FileUtils
+import org.apache.jena.riot.Lang
 import org.silkframework.config.Task
 import org.silkframework.dataset.rdf.{QuadIterator, SparqlEndpointEntityTable}
 import org.silkframework.entity.EntitySchema
@@ -35,7 +36,7 @@ class LocalSparqlCopyExecutor() extends LocalExecutor[SparqlCopyCustomTask] {
                     // save to temp file
                     results.saveToFile(tempFile)
 
-                    Some(new FileBasedQuadEntityTable(tempFile, task))
+                    Some(new FileBasedQuadEntityTable(tempFile, Lang.NQUADS, task))
                 }
                 // else we just stream it to the output
                 else{

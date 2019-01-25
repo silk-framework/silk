@@ -2,6 +2,7 @@ package org.silkframework.dataset.rdf
 
 import java.io.{File, FileWriter}
 
+import org.apache.jena.riot.RDFDataMgr
 import org.silkframework.entity.Entity
 
 /**
