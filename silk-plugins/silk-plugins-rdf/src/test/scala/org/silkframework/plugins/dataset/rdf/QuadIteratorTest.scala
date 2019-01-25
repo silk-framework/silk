@@ -4,10 +4,10 @@ import java.io.StringReader
 
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.rdf.model.impl.StatementImpl
+import org.apache.jena.riot.Lang
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
-import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, ReadOnlyResourceManager}
 
@@ -39,11 +39,11 @@ class QuadIteratorTest extends FlatSpec with Matchers with MockitoSugar {
     val stmtIter = oldModel.listStatements()
 
     // now we parse the serialized graph back to a QuadIterator
-    val newQuadIterator = new TripleIteratorImpl(
+    val newQuadIterator = TripleIteratorImpl(
       () => stmtIter.hasNext,
       () => RdfFormatUtil.jenaStatementToTriple(stmtIter.next()),
       () => stmtIter.close(),
-      new NTriplesQuadFormatter
+      Lang.NQUADS
     )
 
     val newSerialization = newQuadIterator.serialize() +

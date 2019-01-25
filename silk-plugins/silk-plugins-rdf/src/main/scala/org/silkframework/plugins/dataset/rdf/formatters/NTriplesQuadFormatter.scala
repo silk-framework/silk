@@ -48,4 +48,9 @@ class NTriplesQuadFormatter() extends QuadFormatter {
   override def parseQuad(txt: String): Quad = parse(txt)
 
   override def parseTriple(txt: String): Triple = parse(txt, asQuad = false).asInstanceOf[Triple]
+
+  /**
+    * The pertaining html media type
+    */
+  override def associatedMediaType: String = Lang.NQUADS.getContentType.getContentType
 }

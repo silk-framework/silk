@@ -1,10 +1,13 @@
 package org.silkframework.util
 
+import org.silkframework.dataset.rdf.QuadFormatter
+
 import scala.reflect._
 import scala.reflect.runtime.{universe => ru}
 import scala.reflect.runtime.universe._
 import scala.reflect.api
 import scala.util.{Failure, Success, Try}
+import scala.collection.JavaConverters._
 
 /**
   * Utility function for scala reflection
@@ -34,9 +37,9 @@ object ScalaReflectUtils {
   def stringToTypeTag(name: String): Try[ru.TypeTag[CA]] = classToTypeTag(Class.forName(name))
 
   /**
-    *
-    * @param cls
-    * @return
+    * Will create a TypeTag from a given class
+    * @param cls - the class
+    * @return - the pertaining TypeTag
     */
   def classToTypeTag(cls: Class[_]): Try[ru.TypeTag[CA]] = Try{
     val mirror = ru.runtimeMirror(cls.getClassLoader)  // obtain runtime mirror
@@ -65,12 +68,11 @@ object ScalaReflectUtils {
   }
 
   /**
-    *
-    * @param memberName
-    * @param obj
-    * @param methodParams
-    * @tparam T
-    * @return
+    * Extracts the member of an object by name
+    * @param memberName - the name
+    * @param obj - the object
+    * @param methodParams - if member is a method we might need its parameters
+    * @tparam R - the expected type of the member
     */
   def retrieveClassMember[R](memberName: String, obj: Any, methodParams: Array[Any] = Array()): Option[R] =
     classToTypeTag(obj.getClass) match{
@@ -88,12 +90,11 @@ object ScalaReflectUtils {
   }
 
   /**
-    *
-    * @param cls
-    * @param params
-    * @param paramTypes
-    * @tparam R
-    * @return
+    * Creates a new instance object of a given class
+    * @param cls - the class
+    * @param params - the constructor parameters if needed
+    * @param paramTypes - a type array aligning types with the given parameter objects (above)
+    * @tparam R - the expected type of the new instance
     */
   def createNewInstance[R](cls: Class[_], params: Array[Object], paramTypes: Array[Class[_]] = Array()): Option[R] = {
     val types = if(params.nonEmpty && paramTypes.length != params.length){
@@ -124,5 +125,24 @@ object ScalaReflectUtils {
     val func = mirror.symbol.typeSignature.member(ru.TermName(functionName)).asMethod
     val res = mirror.reflectMethod(func)(args:_*).asInstanceOf[Option[_]]
     res.map(_.asInstanceOf[Res])
+  }
+
+  private def recursiveSubClasses(symbol: ClassSymbol):  Set[Symbol] ={
+    symbol.knownDirectSubclasses.flatMap(s => recursiveSubClasses(s.asClass))
+  }
+
+  /**
+    * extract all known implementations or extensions of the given trait
+    * @param traitClass - the trait class
+    */
+  def getAllClassesImplementingTrait(traitClass: Class[_], cl: Option[ClassLoader] = None): Set[Class[_]] = {
+    val typeTag = stringToTypeTag(traitClass.getName.replace("$", ""))  // not sure how else to get to the Class[_] of a trait
+    assert(typeTag.isSuccess, "Class not found: " + traitClass.getName)
+    val symbol = typeTag.get.tpe.typeSymbol
+    assert(symbol.isClass && symbol.asClass.isTrait, "No trait class was provided. " + traitClass.getName + " is not a trait!")
+    val f = classOf[ClassLoader].getDeclaredField("classes")
+    f.setAccessible(true)
+    val allClasses = f.get(cl.getOrElse(traitClass.getClassLoader)).asInstanceOf[java.util.Vector[Class[_]]].asScala
+    allClasses.filter(c => c != classOf[QuadFormatter] && classOf[QuadFormatter].isAssignableFrom(c)).toSet         // note: no test for trait or abstract!
   }
 }

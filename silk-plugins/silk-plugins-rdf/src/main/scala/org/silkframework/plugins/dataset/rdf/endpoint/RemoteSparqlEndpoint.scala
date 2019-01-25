@@ -19,11 +19,10 @@ import java.net._
 
 import javax.xml.bind.DatatypeConverter
 import org.apache.jena.rdf.model.ModelFactory
-import org.apache.jena.riot.RDFLanguages
+import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.apache.jena.riot.adapters.RDFReaderFactoryRIOT
 import org.silkframework.dataset.rdf._
 import org.silkframework.plugins.dataset.rdf.{RdfFormatUtil, TripleIteratorImpl}
-import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.HttpURLConnectionUtils._
 
@@ -92,11 +91,11 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
 
       //NOTE: listStatement() will not produce graph
       val iterator = m.listStatements()
-      new TripleIteratorImpl(
+      TripleIteratorImpl(
         iterator.hasNext,
         () => RdfFormatUtil.jenaStatementToTriple(iterator.next()),
         iterator.close,
-        new NTriplesQuadFormatter
+        Lang.NQUADS
       )
     } catch {
       case ex: IOException =>
