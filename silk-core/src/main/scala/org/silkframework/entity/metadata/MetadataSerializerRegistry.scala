@@ -9,7 +9,7 @@ trait MetadataSerializerRegistry[Format <: Any] {
   /**
     * Each serialization format needs a dedicated Exception serializer
     */
-  val exceptionSerializer: SerializationFormat[Throwable, Format] with MetadataSerializer
+  val exceptionSerializer: SerializationFormat[GenericExecutionFailure, Format] with MetadataSerializer
 
   /* Serializer Registry */
 

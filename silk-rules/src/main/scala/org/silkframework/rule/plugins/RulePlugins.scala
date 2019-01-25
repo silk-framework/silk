@@ -102,6 +102,7 @@ class RulePlugins extends PluginModule {
         classOf[IfMatchesRegexTransformer] ::
         classOf[ContainsAllOf] ::
         classOf[ContainsAnyOf] ::
+        classOf[Negate] ::
         // Numeric
         classOf[NumReduceTransformer] ::
         classOf[NumOperationTransformer] ::
@@ -166,7 +167,8 @@ class RulePlugins extends PluginModule {
         classOf[MaximumAggregator] ::
         classOf[MinimumAggregator] ::
         classOf[QuadraticMeanAggregator] ::
-        classOf[GeometricMeanAggregator] :: Nil
+        classOf[GeometricMeanAggregator] ::
+      classOf[NegationAggregator] :: Nil
 
   private def serializers =
     TransformSpecFormat.getClass ::

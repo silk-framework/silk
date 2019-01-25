@@ -1,83 +1,66 @@
 package org.silkframework.serialization.json.metadata
 
-import org.silkframework.entity.metadata.{EntityMetadata, ExceptionSerializer}
+import org.silkframework.entity.metadata.{ExceptionSerializer, GenericExecutionFailure}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonHelpers._
+import org.slf4j.LoggerFactory
 import play.api.libs.json._
 
 import scala.util.Try
 
-case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
+case class ExceptionSerializerJson() extends JsonMetadataSerializer[GenericExecutionFailure] {
 
-  override def read(ex: JsValue)(implicit readContext: ReadContext): Throwable = readException(ex)
+  @transient
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def readException(node: JsValue): Throwable ={
-    node match {
+  override def read(ex: JsValue)(implicit readContext: ReadContext): GenericExecutionFailure = readException(ex)
+
+  def readException(jsValue: JsValue): GenericExecutionFailure = {
+    jsValue match {
       case JsNull => null
       case JsObject(_) =>
-        val className = stringValue(node, ExceptionSerializer.CLASS)
-        val message = Try{stringValue(node, ExceptionSerializer.MESSAGE)}.toOption
-        val cause = (node \ ExceptionSerializer.CAUSE).toOption match {
-          case Some(c) => readException(c)
-          case None => null
-        }
-
-        val exceptionClass = Class.forName(className).asInstanceOf[Class[Throwable]]
-        var arguments = Seq[Object]()
-        val constructor = if (cause != null) {
-          var zw = exceptionClass.getConstructor(classOf[String], classOf[Throwable])
-          arguments = Seq(message.orNull, cause)
-          if (zw == null) {
-            zw = exceptionClass.getConstructor(classOf[Throwable], classOf[String])
-            arguments = Seq(cause, message.orNull)
-          }
-          zw
-        }
-        else {
-          arguments = Seq(message.orNull)
-          exceptionClass.getConstructor(classOf[String])
-        }
-
-        val exception = if (constructor != null) {
-          exceptionClass.cast(constructor.newInstance(arguments: _*))
-        }
-        else {
-          new Exception("Emulated Exception of class: " + className + ", original message: " + message.orNull, cause)
-        }
-        exception.setStackTrace(mustBeJsArray((node \ ExceptionSerializer.STACKTRACE).getOrElse(JsArray(Seq())))(readStackTrace))
-        exception
-
+        val message = stringValueOption(jsValue, ExceptionSerializer.MESSAGE)
+        val className = stringValue(jsValue, ExceptionSerializer.CLASSNAME)
+        val cause: Option[GenericExecutionFailure] = getExceptionCauseOption(jsValue)
+        val stackTrace = arrayValueOption(jsValue, ExceptionSerializer.STACKTRACE).map(readStackTrace)
+        GenericExecutionFailure(message, className, cause, stackTrace)
       case _ => throw new IllegalArgumentException("Neither JsNull nor JsObject was found, representing an Exception.")
     }
   }
 
-  def readStackTrace(node: JsArray): Array[StackTraceElement] ={
-    val stackTrace = for(ste <- node.value) yield{
+  private def getExceptionCauseOption(node: JsValue): Option[GenericExecutionFailure] = {
+    optionalValue(node, ExceptionSerializer.CAUSE) map { c =>
+      readException(c)
+    }
+  }
 
-      val className = stringValue(ste, ExceptionSerializer.CLASSNAME)
-      val methodName = stringValue(ste, ExceptionSerializer.METHODNAME)
-      val fileName = Try{stringValue(ste, ExceptionSerializer.FILENAME)}.toOption
-      val lineNumber = Try{numberValue(ste, ExceptionSerializer.LINENUMBER)}.toOption
-      new StackTraceElement(className, methodName, fileName.orNull, lineNumber.map(_.toInt).getOrElse(-1))
+  def readStackTrace(node: JsArray): Array[StackTraceElement] = {
+    val stackTrace = for (ste <- node.value) yield {
+      val className = stringValueOption(ste, ExceptionSerializer.CLASSNAME).getOrElse("unknown")
+      val methodName = stringValueOption(ste, ExceptionSerializer.METHODNAME).getOrElse("unknown")
+      val fileName = stringValueOption(ste, ExceptionSerializer.FILENAME).getOrElse("unknown")
+      val lineNumber = numberValueOption(ste, ExceptionSerializer.LINENUMBER).map(_.intValue()).getOrElse(-1)
+      new StackTraceElement(className, methodName, fileName, lineNumber)
     }
     stackTrace.toArray
   }
 
-  override def write(ex: Throwable)(implicit writeContext: WriteContext[JsValue]): JsValue = writeException(ex)
+  override def write(ef: GenericExecutionFailure)(implicit writeContext: WriteContext[JsValue]): JsValue = writeException(ef)
 
-  private def writeException(ex: Throwable): JsObject ={
+  private def writeException(ef: GenericExecutionFailure): JsObject = {
     JsObject(
       Seq(
-        ExceptionSerializer.CLASS -> JsString(ex.getClass.getCanonicalName),
-        ExceptionSerializer.MESSAGE -> JsString(ex.getMessage),
-        ExceptionSerializer.CAUSE -> (if(ex.getCause != null) writeException(ex.getCause) else JsNull),
-        ExceptionSerializer.STACKTRACE -> writeStackTrace(ex)
-      )
+        ExceptionSerializer.CLASSNAME -> JsString(ef.className)
+      ) ++ Seq(
+        ef.message.map(msg => ExceptionSerializer.MESSAGE -> JsString(msg)),
+        ef.cause.map(cause => ExceptionSerializer.CAUSE -> writeException(cause)),
+        ef.stackTrace.map(stackTrace => ExceptionSerializer.STACKTRACE -> writeStackTrace(stackTrace))
+      ).flatten
     )
   }
 
-  private def writeStackTrace(ex: Throwable): JsArray ={
-    val arr = for(ste <- ex.getStackTrace) yield{
+  private def writeStackTrace(stacktrace: Array[StackTraceElement]): JsArray = {
+    val arr = for (ste <- stacktrace) yield {
       JsObject(Seq(
         ExceptionSerializer.FILENAME -> JsString(ste.getFileName),
         ExceptionSerializer.CLASSNAME -> JsString(ste.getClassName),
@@ -88,15 +71,8 @@ case class ExceptionSerializerJson() extends JsonMetadataSerializer[Throwable] {
     JsArray(arr)
   }
 
-  /**
-    * The identifier used to define metadata objects in the map of [[EntityMetadata]]
-    */
   override def metadataId: String = ExceptionSerializer.ID
 
-  /**
-    * An indicator whether the LazyMetadata object produced with this serializer will be replaceable (overridable in the Metadata map)
-    *
-    * @return
-    */
   override def replaceableMetadata: Boolean = false
 }
+

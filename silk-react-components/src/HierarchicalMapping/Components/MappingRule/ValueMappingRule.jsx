@@ -95,6 +95,14 @@ const RuleValueView = React.createClass({
 
         return accumulator;
     },
+    propertyTypeLabel(valueType) {
+        // Adds optional properties of the property type to the label, e.g. language tag
+        if(typeof valueType.lang === 'string') {
+            return ' (' + valueType.lang + ')';
+        } else {
+            return '';
+        }
+    },
     // template rendering
     render() {
         const {edit} = this.state;
@@ -109,6 +117,12 @@ const RuleValueView = React.createClass({
                 />
             );
         }
+
+        const nodeType = _.get(
+            this.props,
+            'mappingTarget.valueType.nodeType',
+            false
+        );
 
         return (
             <div className="ecc-silk-mapping__rulesviewer">
@@ -169,39 +183,24 @@ const RuleValueView = React.createClass({
                         ) : (
                             false
                         )}
-                        {_.get(
-                            this.props,
-                            'mappingTarget.valueType.nodeType',
-                            false
-                        ) ? (
+                        {nodeType ? (
                             <div className="ecc-silk-mapping__rulesviewer__propertyType">
                                 <dl className="ecc-silk-mapping__rulesviewer__attribute">
                                     <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
                                         Data type
                                     </dt>
                                     <dd
-                                        key={_.get(
-                                            this.props,
-                                            'mappingTarget.valueType.nodeType',
-                                            false
-                                        )}>
+                                        key={nodeType}>
                                         <InfoBox>
                                             <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
                                                 <PropertyTypeLabel
-                                                    name={_.get(
-                                                        this.props,
-                                                        'mappingTarget.valueType.nodeType',
-                                                        false
-                                                    )}
+                                                    name={nodeType}
+                                                    appendedText={this.propertyTypeLabel(this.props.mappingTarget.valueType)}
                                                 />
                                             </div>
                                             <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-sub">
                                                 <PropertyTypeDescription
-                                                    name={_.get(
-                                                        this.props,
-                                                        'mappingTarget.valueType.nodeType',
-                                                        false
-                                                    )}
+                                                    name={nodeType}
                                                 />
                                             </div>
                                         </InfoBox>

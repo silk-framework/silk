@@ -18,9 +18,9 @@ const silkStore = rxmq.channel('silk.api');
 
 // Set api details
 let apiDetails = {
-    transformTask: false,
-    baseUrl: false,
-    project: false,
+    transformTask: 'test',
+    baseUrl: 'http://test.url',
+    project: 'test',
 };
 
 // Set Api details
@@ -85,6 +85,12 @@ const datatypes = _.map(
             label: 'DateTime',
             description:
                 'Suited for XML Schema dates and times. Accepts values in the the following formats: xsd:date, xsd:dateTime, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth, xsd:time.',
+        },
+        {
+            value: 'LanguageValueType',
+            label: 'Language Tagged',
+            description:
+                'Suited for texts that are in a specific language.',
         },
     ],
     datatype => ({
@@ -164,9 +170,7 @@ const prepareValueMappingPayload = data => {
         },
         mappingTarget: {
             uri: handleCreatedSelectBoxValue(data, 'targetProperty'),
-            valueType: {
-                nodeType: handleCreatedSelectBoxValue(data, 'propertyType'),
-            },
+            valueType: handleCreatedSelectBoxValue(data, 'valueType'),
             isAttribute: data.isAttribute,
         },
     };
@@ -346,17 +350,24 @@ hierarchicalMappingChannel
         Rx.Observable.forkJoin(
             silkStore
                 .request({
+                    // call the DI matchVocabularyClassDataset endpoint
                     topic: 'transform.task.rule.suggestions',
                     data: {...apiDetails, ...data},
                 })
                 .catch(err => {
-                    if (err.status !== 404)
-                        return Rx.Observable.return({error: err})
-                    return Rx.Observable.return(null);
+
+                    // It comes always {title: "Not Found", detail: "Not Found"} when the endpoint is not found.
+                    // see: SilkErrorHandler.scala
+                    const errorBody = _.get(err, 'response.body')
+
+                    if (err.status === 404 && errorBody.title === "Not Found" && errorBody.detail === "Not Found") {
+                        return Rx.Observable.return(null);
+                    }
+                    return Rx.Observable.return({error: errorBody})
                 })
                 .map(returned => {
                     const body = _.get(returned, 'body', []);
-                    const error = _.get(returned, 'error', [])
+                    const error = _.get(returned, 'error', []);
 
                     if (error) {
                         return {
@@ -389,17 +400,23 @@ hierarchicalMappingChannel
                 }),
             silkStore
                 .request({
+                    // call the silk endpoint valueSourcePaths
                     topic: 'transform.task.rule.valueSourcePaths',
                     data: {unusedOnly: true, ...apiDetails, ...data},
                 })
-                .catch(err =>{
-                    if (err.status !== 404)
-                        return Rx.Observable.return({error: err})
-                    return Rx.Observable.return(null);
+                .catch(err => {
+                    const errorBody = _.get(err, 'response.body');
+                    return Rx.Observable.return({error: errorBody});
+
                 })
                 .map(returned => {
                     const body = _.get(returned, 'body', []);
-
+                    const error = _.get(returned, 'error', []);
+                    if (error) {
+                        return {
+                            error,
+                        }
+                    }
                     return {
                         data: _.map(body, path => new Suggestion(path))
                     }

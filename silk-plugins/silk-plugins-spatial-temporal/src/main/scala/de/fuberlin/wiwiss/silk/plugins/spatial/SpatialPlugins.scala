@@ -49,5 +49,6 @@ class SpatialPlugins extends PluginModule {
     classOf[OverlapsMetric] ::
     classOf[TouchesMetric] ::
     classOf[WithinMetric] ::
-    classOf[RelateMetric] :: Nil
+    classOf[RelateMetric] ::
+    classOf[NegateMetric] :: Nil
 }
