@@ -92,9 +92,9 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
       //NOTE: listStatement() will not produce graph
       val iterator = m.listStatements()
       TripleIteratorImpl(
-        iterator.hasNext,
+        () => iterator.hasNext,
         () => RdfFormatUtil.jenaStatementToTriple(iterator.next()),
-        iterator.close,
+        () => iterator.close(),
         Lang.NQUADS
       )
     } catch {
