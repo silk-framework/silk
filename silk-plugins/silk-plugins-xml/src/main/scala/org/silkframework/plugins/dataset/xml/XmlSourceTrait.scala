@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.{Entity, EntitySchema, TypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
@@ -9,7 +9,7 @@ import org.silkframework.util.Uri
   * A trait that all XML data source implementations should implement
   */
 trait XmlSourceTrait { this: DataSource =>
-  def retrieveXmlPaths(typeUri: Uri, depth: Int, limit: Option[Int], onlyLeafNodes: Boolean, onlyInnerNodes: Boolean): IndexedSeq[Path]
+  def retrieveXmlPaths(typeUri: Uri, depth: Int, limit: Option[Int], onlyLeafNodes: Boolean, onlyInnerNodes: Boolean): IndexedSeq[TypedPath]
 
   /**
     * Retrieves a list of entities from this source.

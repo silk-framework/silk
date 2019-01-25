@@ -3,6 +3,7 @@ package org.silkframework.entity.metadata
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.{config, dataset}
 import org.silkframework.dataset.EmptyDataset
+import org.silkframework.entity.metadata.GenericExecutionFailure.GenericExecutionException
 import org.silkframework.entity.{Entity, EntitySchema, Path, Restriction}
 import org.silkframework.failures.{EntityException, FailureClass}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
@@ -29,11 +30,11 @@ class EntityMetadataTestXml extends FlatSpec with Matchers {
     val lazyMetadata = entity1.metadata.getLazyMetadata(EntityMetadata.FAILURE_KEY).asInstanceOf[LazyMetadataXml[FailureClass]]
     val copy = LazyMetadataXml(lazyMetadata.serialized, FailureClassSerializer())
     copy.metadata.isDefined shouldBe true
-    copy.metadata.get.rootCause.getClass.getCanonicalName shouldBe testException.rootCause.getClass.getCanonicalName
+    copy.metadata.get.getRootClass shouldBe testException.getRootClass
     copy.metadata.get.rootCause.getMessage shouldBe testException.rootCause.getMessage
     copy.metadata.get.rootCause.getStackTrace.length shouldBe testException.rootCause.getStackTrace.length
-    copy.metadata.get.rootCause.getClass shouldBe testException.rootCause.getClass
-    copy.metadata.get.rootCause.getMessage shouldBe testException.rootCause.getMessage
+//    copy.metadata.get.rootCause.getClass shouldBe testException.rootCause.getClass This is now generic Throwable with a field contiaining the original class name
+//    Not used atm so it should be fine
     entity1.hasFailed shouldBe true
   }
 

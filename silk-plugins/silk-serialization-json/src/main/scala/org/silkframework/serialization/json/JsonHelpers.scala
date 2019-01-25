@@ -91,6 +91,17 @@ object JsonHelpers {
     }
   }
 
+  def arrayValueOption(json: JsValue, attributeName: String): Option[JsArray] = {
+    optionalValue(json, attributeName) match {
+      case Some(jsArray @ JsArray(_)) =>
+        Some(jsArray)
+      case Some(_) =>
+        throw JsonParseException("Value for attribute '" + attributeName + "' is not a JSON array!")
+      case None =>
+        None
+    }
+  }
+
   def optionalValue(json: JsValue, attributeName: String): Option[JsValue] = {
     (json \ attributeName).toOption.filterNot(_ == JsNull)
   }

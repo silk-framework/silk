@@ -283,13 +283,30 @@ object Utils {
 
       //Compute the spatial relation.
       if (relate(geometry1, geometry2, relation))
-        return limit
+        limit
       else
-        return Double.PositiveInfinity
+        Double.PositiveInfinity
 
     } catch {
       case e: Exception =>
         Double.PositiveInfinity
+    }
+  }
+
+  def negatsRelation(geometryString1: String, geometryString2: String, limit: Double, relation: String): Double = {
+    try {
+      //Get the geometries.
+      val geometry1 = Parser.WKTReader(geometryString1, Constants.DEFAULT_SRID)
+      val geometry2 = Parser.WKTReader(geometryString2, Constants.DEFAULT_SRID)
+
+      //Compute the spatial relation and negate it.
+      if (relate(geometry1, geometry2, relation))
+        Double.PositiveInfinity
+      else
+        limit
+
+    } catch {
+      case e: Exception => limit
     }
   }
 

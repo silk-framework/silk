@@ -59,14 +59,14 @@ object CachedEntitySchemata {
           {XmlSerialization.toXml(value.configuredSchema)}
         </ConfiguredEntitySchema>
         {
-          for(schema <- value.untypedSchema) yield {
+          for(schema <- value.untypedSchema.toSeq) yield {
             <UnTypedEntitySchema>
               {XmlSerialization.toXml(schema)}
             </UnTypedEntitySchema>
           }
         }
         {
-          for(params <- value.datasetParameters) yield {
+          for(params <- value.datasetParameters.toSeq) yield {
             <Dataset>{
               XmlSerialization.serializeParameter(params)
             }</Dataset>

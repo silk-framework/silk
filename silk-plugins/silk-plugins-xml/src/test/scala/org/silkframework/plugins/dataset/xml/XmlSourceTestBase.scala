@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.dataset.DataSource
+import org.silkframework.dataset.{DataSource, TypedPathRetrieveDataSource}
 import org.silkframework.entity._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ClasspathResourceLoader
@@ -13,7 +13,7 @@ import scala.languageFeature.postfixOps
 abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
   implicit val userContext: UserContext = UserContext.Empty
-  def xmlSource(name: String, uriPattern: String): DataSource with XmlSourceTrait
+  def xmlSource(name: String, uriPattern: String): DataSource with XmlSourceTrait with TypedPathRetrieveDataSource
 
   behavior of "XML Dataset"
 
@@ -153,6 +153,22 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     it should s"allow the retrieval of single entities ($fileName)" in {
       (persons atPath "Person" entityWithUri "Person").uri shouldBe Uri("Person")
     }
+  }
+
+  it should "retrieve typed paths" in {
+    xmlSource("persons.xml", "").retrieveTypedPath("Person").map(tp => tp.normalizedSerialization -> tp.valueType -> tp.isAttribute) shouldBe IndexedSeq(
+      "ID" -> StringValueType -> false,
+      "Name" -> StringValueType -> false,
+      "Events" -> UriValueType -> false,
+      "Events/@count" -> StringValueType -> true,
+      "Events/Birth" -> StringValueType -> false,
+      "Events/Death" -> StringValueType -> false,
+      "Properties" -> UriValueType -> false,
+      "Properties/Property" -> UriValueType -> false,
+      "Properties/Property/Key" -> UriValueType -> false,
+      "Properties/Property/Key/@id" -> StringValueType -> true,
+      "Properties/Property/Value" -> StringValueType -> false
+    )
   }
 
 
