@@ -1,6 +1,11 @@
 const path = require('path');
 
+
 module.exports = {
+
+};
+module.exports = {
+    entry: ["babel-polyfill", "./app/js"],
     webpackConfig: {
         common: {
             context: path.resolve(__dirname),

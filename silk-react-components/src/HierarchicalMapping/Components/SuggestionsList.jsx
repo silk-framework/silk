@@ -49,7 +49,8 @@ const SuggestionsList = React.createClass({
             rawData: undefined,
             askForDiscard: false,
             checked: this.defaultCheckValue,
-            matchFromDataset: true
+            matchFromDataset: true,
+            warnings: [],
         };
     },
     onChecked(v) {
@@ -79,7 +80,7 @@ const SuggestionsList = React.createClass({
                         type: v.type || SUGGESTION_TYPES[0],
                     }));
                     this.setState({
-                        warnings: response.warnings,
+                        warnings: response.warnings.filter(w => !_.isEmpty(w)),
                         loading: false,
                         rawData,
                         data: this.state.showDefaultProperties
@@ -223,6 +224,7 @@ const SuggestionsList = React.createClass({
     },
     // template rendering
     render() {
+
         if (this.state.loading) {
             return <Spinner />;
         }
@@ -298,7 +300,7 @@ const SuggestionsList = React.createClass({
                 {_.map(
                     this.state.warnings,
                     warn => (
-                        <div>
+                        <div className="ecc-hm-suggestions-error">
                             <b>{warn.title}</b>
                             <div>{warn.detail}</div>
                         </div>
@@ -314,7 +316,6 @@ const SuggestionsList = React.createClass({
                         No suggestions found for{' '}
                         <ParentElement parent={this.props.parent} />.
                     </Info>
-                    {warnings}
                 </CardContent>
             );
         } else {
