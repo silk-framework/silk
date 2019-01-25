@@ -61,7 +61,7 @@ package org.silkframework.plugins.dataset.rdf
               tempFiles.nonEmpty && tempFiles.last.getName.contains("counstruct_copy_tmp") mustBe true
             }
             copy.entities.size mustBe 5                    // number of triples in source
-            copy.entities.forall(e => e.values.size == 4) mustBe true   // we are dealing with triples (+ valueType)
+            copy.entities.forall(e => e.values.size == 5) mustBe true   // default number of quad values as entities
           case None => fail("Empty result of copy task")
         }
       }

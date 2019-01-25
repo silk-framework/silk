@@ -1,12 +1,8 @@
 package org.silkframework.plugins.dataset.rdf
 
-import java.io.File
-
 import org.silkframework.dataset.DataSource
 import org.silkframework.dataset.rdf.{QuadFormatter, Triple, TripleIterator}
 import org.silkframework.entity.Entity
-
-import scala.io.Source
 
 class TripleIteratorImpl(
   val hasTriple: () => Boolean,
@@ -36,15 +32,5 @@ object TripleIteratorImpl{
    formatter: QuadFormatter
  ): TripleIteratorImpl = {
     new TripleIteratorImpl(hasQuad, nextQuad, close, formatter)
-  }
-
-  def apply(file: File, formatter: QuadFormatter): TripleIteratorImpl = {
-    val iter = Source.fromFile(file, "UTF-8").getLines()
-    new TripleIteratorImpl(
-      () => iter.hasNext,
-      () => formatter.parseTriple(iter.next),
-      () => Unit,
-      formatter
-    )
   }
 }

@@ -26,12 +26,22 @@ class NTriplesQuadFormatter() extends QuadFormatter {
   private def parse(quad: String, asQuad: Boolean = true): Quad = {
     val sos = new ByteArrayInputStream(quad.getBytes)
     if(asQuad){
-      val jenaQuad = RDFDataMgr.createIteratorQuads(sos, Lang.NQUADS, null).next()
-      RdfFormatUtil.jenaQuadToQuad(jenaQuad)
+      val iter = RDFDataMgr.createIteratorQuads(sos, Lang.NQUADS, null)
+      if(iter.hasNext) {
+        val jenaQuad = iter.next()
+        RdfFormatUtil.jenaQuadToQuad(jenaQuad)
+      }
+      else
+        null
     }
     else{
-      val jenaTriple = RDFDataMgr.createIteratorTriples(sos, Lang.NTRIPLES, null).next()
-      RdfFormatUtil.jenaTripleToTriple(jenaTriple)
+      val iter = RDFDataMgr.createIteratorTriples(sos, Lang.NTRIPLES, null)
+      if(iter.hasNext) {
+        val jenaTriple = iter.next()
+        RdfFormatUtil.jenaTripleToTriple(jenaTriple)
+      }
+      else
+        null
     }
   }
 

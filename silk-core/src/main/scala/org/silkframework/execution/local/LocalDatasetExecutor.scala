@@ -115,9 +115,9 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
         withEntitySink(dataset) { entitySink =>
           writeTriples(entitySink, entities)
         }
-      case QuadEntityTable(iterator, _) =>
+      case QuadEntityTable(entitiesFunc, _) =>
         withEntitySink(dataset) { entitySink =>
-          writeTriples(entitySink, iterator.asEntities)
+          writeTriples(entitySink, entitiesFunc())
         }
       case tables: MultiEntityTable =>
         withEntitySink(dataset) { entitySink =>

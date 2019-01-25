@@ -8,8 +8,7 @@ import org.silkframework.dataset.rdf.{QuadIterator, SparqlEndpointEntityTable}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local._
 import org.silkframework.execution.{ExecutionReport, TaskException}
-import org.silkframework.plugins.dataset.rdf.QuadIteratorImpl
-import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
+import org.silkframework.plugins.dataset.rdf.datasets.FileBasedQuadEntityTable
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlCopyCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 
@@ -30,19 +29,17 @@ class LocalSparqlCopyExecutor() extends LocalExecutor[SparqlCopyCustomTask] {
                 // if we have to safe construct graph as temp file before propagation
                 val temporaryEntities = if(task.tempFile){
                     val tempFile = File.createTempFile(internalTaskId, "nt")
-                    tempFile.delete
                     tempFile.deleteOnExit()
                     // adding file deletion shutdown hook
                     execution.addShutdownHook(() => FileUtils.forceDelete(tempFile))
                     // save to temp file
                     results.saveToFile(tempFile)
 
-                    val qi = QuadIteratorImpl.apply(tempFile, new NTriplesQuadFormatter)
-                    Some(QuadEntityTable(qi, task))
+                    Some(new FileBasedQuadEntityTable(tempFile, task))
                 }
                 // else we just stream it to the output
                 else{
-                    Some(QuadEntityTable(results, task))
+                    Some(QuadEntityTable(() => results.asEntities, task))
                 }
                 temporaryEntities
             case _ =>
