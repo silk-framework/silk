@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.rdf
 
-import org.apache.jena.riot.Lang
 import org.silkframework.dataset.DataSource
 import org.silkframework.dataset.rdf.{QuadFormatter, Triple, TripleIterator}
 import org.silkframework.entity.Entity
@@ -33,25 +32,5 @@ object TripleIteratorImpl{
    formatter: QuadFormatter
  ): TripleIteratorImpl = {
     new TripleIteratorImpl(hasQuad, nextQuad, close, formatter)
-  }
-
-  def apply(
-     hasQuad: () => Boolean,
-     nextQuad: () => Triple,
-     close: () => Unit,
-     serialization: Lang
-   ): TripleIteratorImpl = {
-    apply(hasQuad, nextQuad, close, serialization.getContentType.getContentType)
-  }
-
-
-  def apply(
-     hasQuad: () => Boolean,
-     nextQuad: () => Triple,
-     close: () => Unit,
-     mediaType: String
-   ): TripleIteratorImpl = {
-    apply(hasQuad, nextQuad, close, QuadFormatter.getSuitableFormatter(mediaType)
-      .getOrElse(throw new IllegalArgumentException("No QuadFormatter found for media type " + mediaType)))
   }
 }

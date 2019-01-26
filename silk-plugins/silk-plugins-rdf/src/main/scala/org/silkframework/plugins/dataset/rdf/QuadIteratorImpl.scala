@@ -39,24 +39,4 @@ object QuadIteratorImpl{
  ): QuadIteratorImpl = {
     new QuadIteratorImpl(hasQuad, nextQuad, close, formatter)
   }
-
-  def apply(
-   hasQuad: () => Boolean,
-   nextQuad: () => Quad,
-   close: () => Unit,
-   serialization: Lang
- ): QuadIteratorImpl = {
-    apply(hasQuad, nextQuad, close, serialization.getContentType.getContentType)
-  }
-
-
-  def apply(
-   hasQuad: () => Boolean,
-   nextQuad: () => Quad,
-   close: () => Unit,
-   mediaType: String
- ): QuadIteratorImpl = {
-    apply(hasQuad, nextQuad, close, QuadFormatter.getSuitableFormatter(mediaType)
-      .getOrElse(throw new IllegalArgumentException("No QuadFormatter found for media type " + mediaType)))
-  }
 }

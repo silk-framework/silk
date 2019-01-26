@@ -4,8 +4,8 @@ import java.io.{File, FileInputStream}
 
 import org.apache.jena.riot.{Lang, RDFDataMgr}
 import org.silkframework.config.{Task, TaskSpec}
-import org.silkframework.dataset.rdf.QuadFormatter
 import org.silkframework.execution.local.QuadEntityTable
+import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
 import org.silkframework.plugins.dataset.rdf.{QuadIteratorImpl, RdfFormatUtil}
 
 /**
@@ -20,6 +20,6 @@ class FileBasedQuadEntityTable(file: File, lang: Lang, task: Task[TaskSpec]) ext
     () => iter.hasNext,
     () => RdfFormatUtil.jenaQuadToQuad(iter.next()),
     () => sos.close(),
-    QuadFormatter.getSuitableFormatter(lang.getContentType.getContentType).getOrElse(throw new IllegalArgumentException("Unknown media type: " + lang.getContentType.toString))
+    new NTriplesQuadFormatter
   ).asEntities},
   task)

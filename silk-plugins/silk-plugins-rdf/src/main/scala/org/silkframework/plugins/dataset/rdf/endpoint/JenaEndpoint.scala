@@ -18,9 +18,9 @@ import java.util.logging.{Level, Logger}
 
 import org.apache.jena.query._
 import org.apache.jena.rdf.model.Model
-import org.apache.jena.riot.Lang
 import org.apache.jena.update.UpdateProcessor
 import org.silkframework.dataset.rdf._
+import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
 import org.silkframework.plugins.dataset.rdf.{QuadIteratorImpl, RdfFormatUtil, TripleIteratorImpl}
 import org.silkframework.runtime.activity.UserContext
 
@@ -88,7 +88,7 @@ abstract class JenaEndpoint extends SparqlEndpoint {
         () => quadIterator.hasNext,
         () => RdfFormatUtil.jenaQuadToQuad(quadIterator.next()),
         () => qe.close(),
-        Lang.NQUADS
+        new NTriplesQuadFormatter
       )
     }
     else{
@@ -97,7 +97,7 @@ abstract class JenaEndpoint extends SparqlEndpoint {
         () => tripleIterator.hasNext,
         () => RdfFormatUtil.jenaTripleToTriple(tripleIterator.next()),
         () => qe.close(),
-        Lang.NQUADS
+        new NTriplesQuadFormatter
       )
     }
     results
