@@ -70,6 +70,9 @@ const SuggestionsRule = React.createClass({
                             onClick={this.onChangeChecked}>
                             <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline">
                                 {suggestion.sourcePath}
+                                <div className="ecc-silk-mapping__ruleitem-extraline ecc-silk-mapping__ruleitem-url">
+                                    http://resource.example.net/this_is_a_dummy/resource#urlhash
+                                </div>
                             </div>
                             <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">
                                 {targetProperty}

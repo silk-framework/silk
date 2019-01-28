@@ -221,6 +221,9 @@ const MappingRule = React.createClass({
                     message={_.get(this.props, 'status[0].message', false)}
                 />
                 {label || <ThingName id={mappingTarget.uri} />}
+                <div className="ecc-silk-mapping__ruleitem-extraline ecc-silk-mapping__ruleitem-url">
+                    http://resource.example.net/this_is_a_dummy/resource#urlhash
+                </div>
             </div>,
             <div
                 key={'sl3'}
