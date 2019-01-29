@@ -18,8 +18,10 @@ Enzyme.configure({ adapter: new Adapter() });
 const selectors = {
     "cancel": "button.ecc-hm-suggestions-cancel",
     "loader" : "div.mdl-spinner",
-    "errors": "div.ecc-hm-suggestions-error",
-    "errorsContainer": "div.mdl-alert--danger",
+    "errors": "div.ecc-hm-suggestions__errors-container div.ecc-hm-suggestions-error",
+    "warnings": "div.ecc-hm-suggestions__warnings-container div.ecc-hm-suggestions-warning",
+    "errorsContainer": "div.ecc-hm-suggestions__errors-container",
+    "warningsContainer": "div.ecc-hm-suggestions__warnings-container",
     "suggestions": ".ecc-silk-mapping__suggestionlist .mdl-list .ecc-silk-mapping__ruleitem--literal"
 }
 
@@ -50,14 +52,11 @@ describe('SuggestionsList render with correct responses ( both 200 )', () => {
     });
 
     it('does not load anymore', () => {
-        const loadingSpinner = component.find(selectors.loader);
-        expect(loadingSpinner).to.have.lengthOf(0);
+        expect(component.find(selectors.loader)).to.have.lengthOf(0);
     });
 
-    it('contains 4 elements', () => {
-        // The list show 4 elements
-        const suggestionsList = component.find(selectors.suggestions);
-        expect(suggestionsList).to.have.lengthOf(4);
+    it('show 4 suggestions', () => {
+        expect(component.find(selectors.suggestions)).to.have.lengthOf(4);
     });
 
 });
@@ -70,25 +69,35 @@ describe('SuggestionsList render with wrong responses ( both 404 mit errors )', 
         await waitUntilReady(component);
     });
 
-    it('contains two error message boxes', () => {
-        expect(component.find(selectors.errors)).to.have.lengthOf(2);
-        expect(component.find(selectors.errorsContainer)).to.have.lengthOf(1);
+    it('contains one warning box with 2 warnings', () => {
+        expect(component.find(selectors.warnings)).to.have.lengthOf(2);
+        expect(component.find(selectors.warningsContainer)).to.have.lengthOf(1);
+    })
+
+    it('contains no error box', () => {
+        expect(component.find(selectors.errors)).to.have.lengthOf(0);
+        expect(component.find(selectors.errorsContainer)).to.have.lengthOf(0);
     })
 });
 
-describe('SuggestionsList render with wrong responses ( 404 {title: "Not Found", detail: "Not found"}), 404 {title: "Not Found", detail: "Not found"}', () => {
+describe('SuggestionsList render with 404 responses (endpoint not found, default message of silk: \n' +
+    '  {title: "Not Found", detail: "Not found"})', () => {
 
     const component = mountSuggestionsList("404NF", "404NF");
 
     it('mounts', async () => {
         await waitUntilReady(component);
         // an update is required to ensure the last render is called
-        component.update();
     });
 
-    it('contains one error message box with 1 error', () => {
-        expect(component.find(selectors.errors)).to.have.lengthOf(1);
-        expect(component.find(selectors.errorsContainer)).to.have.lengthOf(1);
+    it('contains one warning box with 1 warning', () => {
+        expect(component.find(selectors.warnings)).to.have.lengthOf(1);
+        expect(component.find(selectors.warningsContainer)).to.have.lengthOf(1);
+    })
+
+    it('contains no error box', () => {
+        expect(component.find(selectors.errors)).to.have.lengthOf(0);
+        expect(component.find(selectors.errorsContainer)).to.have.lengthOf(0);
     })
 });
 
@@ -114,6 +123,10 @@ describe('SuggestionsList render with wrong responses ( both 500 )', () => {
         component.find(selectors.errors).forEach((node, id) => {
             expect(node.text()).to.contain(errorStrings[id]);
         });
+    })
 
+    it('contains no warning box', () => {
+        expect(component.find(selectors.warnings)).to.have.lengthOf(0);
+        expect(component.find(selectors.warningsContainer)).to.have.lengthOf(0);
     })
 });

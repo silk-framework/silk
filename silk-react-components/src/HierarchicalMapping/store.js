@@ -363,6 +363,7 @@ hierarchicalMappingChannel
                     if (err.status === 404 && errorBody.title === "Not Found" && errorBody.detail === "Not Found") {
                         return Rx.Observable.return(null);
                     }
+                    errorBody.code = err.status;
                     return Rx.Observable.return({error: errorBody})
                 })
                 .map(returned => {
@@ -406,6 +407,7 @@ hierarchicalMappingChannel
                 })
                 .catch(err => {
                     const errorBody = _.get(err, 'response.body');
+                    errorBody.code = err.status;
                     return Rx.Observable.return({error: errorBody});
 
                 })
