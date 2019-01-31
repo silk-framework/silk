@@ -8,17 +8,17 @@
 
 @if(rateButtons) {
   <div>
-    <div id="@id("confirmedLink")" style="@if(link.correct == Correct) {display:block} else {display:none}">
+    <div class="link-buttons-confirm" id="@id("confirmedLink")" style="@if(link.correct == Correct) {display:block} else {display:none}">
       <img src="@Assets.at("img/confirm.png")"/>
       <a onclick="resetLink(@encode(link))"><img src="@Assets.at("img/undecided-disabled.png")"/></a>
       <a onclick="addNegativeLink(@encode(link))"><img src="@Assets.at("img/decline-disabled.png")"/></a>
     </div>
-    <div id="@id("declinedLink")" style="@if(link.correct == Incorrect) {display:block} else {display:none}">
+    <div class="link-buttons-decline" id="@id("declinedLink")" style="@if(link.correct == Incorrect) {display:block} else {display:none}">
       <a onclick="addPositiveLink(@encode(link))"><img src="@Assets.at("img/confirm-disabled.png")"/></a>
       <a onclick="resetLink(@encode(link))"><img src="@Assets.at("img/undecided-disabled.png")"/></a>
       <img src="@Assets.at("img/decline.png")"/>
     </div>
-    <div id="@id("undecidedLink")" style="@if(link.correct == Unknown) {display:block} else {display:none}">
+    <div class="link-buttons-undecided" id="@id("undecidedLink")" style="@if(link.correct == Unknown) {display:block} else {display:none}">
       <a onclick="addPositiveLink(@encode(link))"><img src="@Assets.at("img/confirm-disabled.png")"/></a>
       <img src="@Assets.at("img/undecided.png")"/>
       <a onclick="addNegativeLink(@encode(link))"><img src="@Assets.at("img/decline-disabled.png")"/></a>
