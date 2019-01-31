@@ -1,14 +1,13 @@
 @import controllers.core.routes.{Assets => CoreAssets}
 @import controllers.rules.routes.Assets
 @import org.silkframework.entity.ValueType
-@import org.silkframework.rule.{TransformRule, TransformSpec}
+@import org.silkframework.rule.{TransformRule, TransformSpec, MappingTarget}
 @import org.silkframework.runtime.serialization.XmlSerialization.toXml
 @import org.silkframework.workbench.Context
 @import org.silkframework.runtime.activity.UserContext
+@import org.silkframework.rule.input.Transformer
 
 @(context: Context[TransformSpec], rule: TransformRule)(implicit session: play.api.mvc.Session, userContext: UserContext)
-
-@import org.silkframework.rule.input.Transformer
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/editor/editor-reset.css")" rel="stylesheet" />
@@ -31,9 +30,13 @@
     var serializationFunction = serializeTransformRule;
   </script>
 
-  @** As the editor does not manage the meta data, we just hold it and attach it to updated rules. **@
+  @** As the editor does not manage the meta data and mapping target, we just hold it and attach it to updated rules. **@
   <script id="rule-metadata" type="text/xml">
     @toXml(rule.metaData)
+  </script>
+
+  <script id="rule-mappingtarget" type="text/xml">
+    @rule.target.map((r: MappingTarget) => toXml(r))
   </script>
 }
 

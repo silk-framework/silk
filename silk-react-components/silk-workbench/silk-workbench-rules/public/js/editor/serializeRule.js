@@ -35,16 +35,9 @@ function serializeTransformRule() {
 
     xml.setAttribute('name', $('#rulename').val());
 
-    var targetUri = $('#targetproperty').val();
-    if (targetUri.trim().length > 0) {
-        var mappingTarget = xmlDoc.createElement('MappingTarget');
-        mappingTarget.setAttribute('uri', targetUri);
-        mappingTarget.setAttribute('isAttribute', $('#targetattribute').val());
-        var valueType = xmlDoc.createElement('ValueType');
-        valueType.setAttribute('nodeType', $('#targettype').val());
-        mappingTarget.appendChild(valueType);
-        xml.appendChild(mappingTarget);
-    }
+    // Add mapping target
+    var targetXml = $.parseXML($('#rule-mappingtarget').text());
+    xml.appendChild(targetXml.documentElement);
 
     // Add metadata
     var metaDataXml = $.parseXML($('#rule-metadata').text());
@@ -224,7 +217,5 @@ function findRootOperator(connections) {
  * Generate XML string
  */
 function makeXMLString(xml) {
-    var xmlString = new XMLSerializer().serializeToString(xml);
-    console.log(xmlString);
-    return xmlString;
+    return new XMLSerializer().serializeToString(xml);
 }
