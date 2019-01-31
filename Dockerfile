@@ -3,7 +3,9 @@ FROM openjdk:8-jdk as builder
 COPY . /build
 WORKDIR /build
 RUN \
-  echo "Install Maven 3.3.x" \
+  echo "Install node, npm and yarn" \
+  && bash /build/dockerfiles/install-node.sh \
+  && echo "Install Maven 3.3.x" \
   && curl -sL https://archive.apache.org/dist/maven/maven-3/3.3.9/binaries/apache-maven-3.3.9-bin.tar.gz | tar -xz -C /opt \
   && echo "Link current Maven" \
   && ln -s /opt/apache-maven-3.3.9 /opt/maven \
@@ -31,6 +33,16 @@ ENV \
 
 # add configuration & webapp
 COPY --from=builder /build/app/silk-workbench* /silk-workbench
+
+# Cleanup
+RUN \
+  echo "Cleanup" \
+  && npm cache clean --force \
+  && yarn cache clean \
+  && apt-get autoremove -y \
+  && apt-get clean -y \
+  && rm -rf /build/* /var/tmp/* \
+  && rm -rf /var/lib/apt/lists/*
 
 # expose port
 EXPOSE ${SERVER_PORT}
