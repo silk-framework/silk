@@ -234,11 +234,11 @@ function deleteLink(id, source, target) {
 
 /** Show the buttons in link evaluation */
 function showButtons(cssSelector) {
-    $(cssSelector).css('display', 'block');
+    $(cssSelector).attr('class', 'displayAsBlock');
 }
 
 function hideButtons(cssSelector) {
-    $(cssSelector).css('display', 'none');
+    $(cssSelector).attr('class', 'displayAsNone');
 }
 
 function resetLink(id, source, target) {
