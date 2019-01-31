@@ -7,7 +7,8 @@
 @import models.linking.LinkCandidateDecision
 @import org.silkframework.rule.LinkSpec
 
-@(context: plugins.Context[LinkSpec])(implicit session: play.api.mvc.Session)
+@import org.silkframework.workbench.Context
+@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/table.css")" rel="stylesheet" />

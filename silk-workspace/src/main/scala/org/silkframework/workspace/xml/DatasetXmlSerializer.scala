@@ -24,6 +24,7 @@ import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 
+import scala.util.Try
 import scala.xml.XML
 
 /**
@@ -35,27 +36,8 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
 
   override def prefix = "dataset"
 
-  /**
-   * Loads all tasks of this module.
-   */
-  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[Task[GenericDatasetSpec]] = {
-    // Read dataset tasks
-    val names = resources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
-    var tasks = for (name <- names) yield {
-      loadTask(name, resources, projectResources)
-    }
-
-    // Also read dataset tasks from the old source folder
-    if (tasks.isEmpty) {
-      val oldResources = resources.parent.get.child("source")
-      val oldNames = oldResources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
-      tasks =
-        for (name <- oldNames) yield {
-          loadTask(name, oldResources, projectResources)
-        }
-    }
-
-    tasks
+  private def taskNames(resources: ResourceLoader) = {
+    resources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
   }
 
   private def loadTask(name: String, resources: ResourceLoader, projectResources: ResourceManager) = {
@@ -80,5 +62,25 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
   override def removeTask(name: Identifier, resources: ResourceManager): Unit = {
     resources.delete(name.toString + ".xml")
     resources.delete(name.toString + "_cache.xml")
+  }
+
+  override def loadTasksSafe(resources: ResourceLoader, projectResources: ResourceManager): Seq[Try[Task[GenericDatasetSpec]]] = {
+    // Read dataset tasks
+    val names = taskNames(resources)
+    var tasks = for (name <- names) yield {
+      Try(loadTask(name, resources, projectResources))
+    }
+
+    // Also read dataset tasks from the old source folder
+    if (tasks.isEmpty) {
+      val oldResources = resources.parent.get.child("source")
+      val oldNames = taskNames(oldResources)
+      tasks =
+          for (name <- oldNames) yield {
+            Try(loadTask(name, oldResources, projectResources))
+          }
+    }
+
+    tasks
   }
 }

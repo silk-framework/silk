@@ -50,6 +50,6 @@ class CentroidDistanceMetricTest extends FlatSpec with Matchers {
   
   //Indexing.
   "CentroidDinstaceMetric test 5" should "return '(Set(List(0, 0))'" in {
-    metric.indexValue("POINT (0 0)", 0.0) should equal(Index.multiDim(Set(Seq(0, 0)), 2))
+    metric.indexValue("POINT (0 0)", 0.0, sourceOrTarget = false) should equal(Index.multiDim(Set(Seq(0, 0)), 2))
   }  
 }

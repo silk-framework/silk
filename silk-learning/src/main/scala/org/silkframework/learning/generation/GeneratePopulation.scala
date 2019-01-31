@@ -17,7 +17,7 @@ package org.silkframework.learning.generation
 import org.silkframework.learning.LearningConfiguration
 import org.silkframework.learning.individual.{Individual, LinkageRuleNode, Population}
 import org.silkframework.rule.LinkageRule
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 
 import scala.util.Random
 
@@ -28,7 +28,8 @@ class GeneratePopulation(seedLinkageRules: Traversable[LinkageRule], generator: 
 
   override val initialValue = Some(Population.empty)
 
-  override def run(context: ActivityContext[Population]): Unit = {
+  override def run(context: ActivityContext[Population])
+                  (implicit userContext: UserContext): Unit = {
     val individuals = for(i <- (0 until config.params.populationSize).par) yield {
       context.status.updateProgress(i.toDouble / config.params.populationSize, logStatus = false)
       generateIndividual()

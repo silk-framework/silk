@@ -1,13 +1,15 @@
-@import plugins.{Context, WorkbenchPlugins}
+@import org.silkframework.workbench.WorkbenchPlugins
+@import org.silkframework.config.TaskSpec
 
-@(context: Option[Context[_]], selectedTab: String, titleLabel: String)
+@import org.silkframework.workbench.Context
+@(context: Option[Context[_ <: TaskSpec]], selectedTab: String, titleLabel: String)
 
 @pluginTabs = {
-@for(cont <- context.toSeq;
-plugin <- WorkbenchPlugins();
-tab <- plugin.tabs(cont)) {
-  <a id=@{"tab-link-" + tab.title.replaceAll(" ", "-")} href="@config.baseUrl/@tab.path" onclick="window.location='@config.baseUrl/@tab.path'" class="mdl-tabs__tab @if(cont.path.contains(tab.path)) {is-active}">@tab.title</a>
-}
+  @for(cont <- context.toSeq;
+       plugin = WorkbenchPlugins.forTask(cont.task);
+       tab <- plugin.tabs) {
+    <a id=@{"tab-link-" + tab.title.replaceAll(" ", "-")} href="@config.baseUrl/@tab.path" onclick="window.location='@config.baseUrl/@tab.path'" class="mdl-tabs__tab @if(cont.path.contains(tab.path)) {is-active}">@tab.title</a>
+  }
 }
 
 <div id="tab-bar" class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">

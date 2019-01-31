@@ -1,4 +1,3 @@
-@import plugins.Context
 @import org.silkframework.rule.input.Transformer
 @import org.silkframework.rule.similarity.Aggregator
 @import org.silkframework.rule.similarity.DistanceMeasure
@@ -6,8 +5,10 @@
 @import controllers.rules.routes.Assets
 @import controllers.core.routes.{Assets => CoreAssets}
 @import org.silkframework.rule.LinkSpec
+@import org.silkframework.workbench.Context
+@import org.silkframework.runtime.activity.UserContext
 
-@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session)
+@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session, userContext: UserContext)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/editor/editor-reset.css")" rel="stylesheet" />

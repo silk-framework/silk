@@ -36,4 +36,11 @@ object SilkVocab {
   val triplePredicate: String = namespace + "triplePredicate"
   val tripleObject: String = namespace + "tripleObject"
   val tripleObjectValueType: String = namespace + "tripleObjectValueType"
+
+  // SPARQL Update query schema vocabulary
+  val SparqlUpdateSchemaType: String = namespace + "/SparqlUpdateSchemaType"
+
+  val sparqlUpdateQuery: String = namespace + "/sparqlUpdateQuery"
+
+  val internalUser: String = namespace + "internalUser"
 }

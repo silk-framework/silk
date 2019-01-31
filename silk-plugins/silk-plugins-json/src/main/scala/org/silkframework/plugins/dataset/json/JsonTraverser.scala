@@ -1,8 +1,9 @@
 package org.silkframework.plugins.dataset.json
 
+import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.runtime.resource.Resource
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 import play.api.libs.json._
 
 import scala.io.Codec
@@ -10,10 +11,11 @@ import scala.io.Codec
 /**
   * Data structure to traverse JSON files.
   *
+  * @param taskId     - the identifier of the task for which this traverser is executed
   * @param parentOpt
   * @param value
   */
-case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
+case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser], value: JsValue) {
   def children(prop: Uri): Seq[JsonTraverser] = {
     value match {
       case obj: JsObject =>
@@ -29,9 +31,9 @@ case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
     * Collects all paths from an json node. For an array, only the first object is considered.
     *
     * @param path Path prefix to be prepended to all found paths
-    * @return Sequence of all found paths
+    * @return Sequence of all found paths with their value type. At the moment only [[StringValueType]] or [[UriValueType]].
     */
-  def collectPaths(path: Seq[PathOperator], leafPathsOnly: Boolean, innerPathsOnly: Boolean, depth: Int): Seq[Seq[PathOperator]] = {
+  def collectPaths(path: Seq[PathOperator], leafPathsOnly: Boolean, innerPathsOnly: Boolean, depth: Int): Seq[(Seq[PathOperator], ValueType)] = {
     assert(!(leafPathsOnly && innerPathsOnly), "Cannot set leafPathsOnly and innerPathsOnly to true at the same time!")
 
     def fetchChildPaths(obj: JsObject) = {
@@ -45,13 +47,15 @@ case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
         if(leafPathsOnly) {
           childPaths
         } else {
-          Seq(path) ++ childPaths
+          Seq(path -> UriValueType) ++ childPaths
         }
       case array: JsArray if array.value.nonEmpty =>
         keepParent(array.value.head).collectPaths(path, leafPathsOnly, innerPathsOnly, depth)
       case _ =>
-        if (path.nonEmpty && !innerPathsOnly || innerPathsOnly && path.isEmpty) {
-          Seq(path)
+        if (path.nonEmpty && !innerPathsOnly) {
+          Seq(path -> StringValueType)
+        } else if(innerPathsOnly && path.isEmpty) {
+          Seq(path -> UriValueType)
         } else {
           Seq() // also return root path, since this is a valid type in JSON
         }
@@ -154,7 +158,7 @@ case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
   }
 
   def generateUri(path: String, value: JsObject): String = {
-    "urn:instance:" + path + nodeId(value)
+    DataSource.generateEntityUri(path, nodeId(value))
   }
 
   def nodeId(value: JsValue): String = {
@@ -175,18 +179,18 @@ case class JsonTraverser(parentOpt: Option[ParentTraverser], value: JsValue) {
     }
   }
 
-  def asNewParent(prop: Uri, value: JsValue): JsonTraverser = JsonTraverser(parentOpt = Some(ParentTraverser(this, prop)), value)
+  def asNewParent(prop: Uri, value: JsValue): JsonTraverser = JsonTraverser(taskId, parentOpt = Some(ParentTraverser(this, prop)), value)
 
-  def keepParent(value: JsValue): JsonTraverser = JsonTraverser(parentOpt = parentOpt, value)
+  def keepParent(value: JsValue): JsonTraverser = JsonTraverser(taskId, parentOpt = parentOpt, value)
 }
 
 object JsonTraverser {
-  def apply(resource: Resource)(implicit codec: Codec): JsonTraverser = {
-    JsonTraverser(None, Json.parse(resource.loadAsString))
+  def apply(taskId: Identifier, resource: Resource)(implicit codec: Codec): JsonTraverser = {
+    JsonTraverser(taskId, None, Json.parse(resource.loadAsString))
   }
 
-  def apply(jsValue: JsValue)(implicit codec: Codec): JsonTraverser = {
-    JsonTraverser(None, jsValue)
+  def apply(taskId: Identifier, jsValue: JsValue)(implicit codec: Codec): JsonTraverser = {
+    JsonTraverser(taskId, None, jsValue)
   }
 }
 

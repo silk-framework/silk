@@ -2,8 +2,6 @@ package org.silkframework.workspace.activity
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.{Activity, HasValue}
-import org.silkframework.runtime.plugin.AnyPlugin
-import org.silkframework.runtime.serialization.XmlFormat
 import org.silkframework.workspace.ProjectTask
 
 import scala.reflect.ClassTag
@@ -14,7 +12,7 @@ import scala.reflect.ClassTag
   * @tparam TaskType The type of the task the generate activities belong to
   * @tparam ActivityType The type of activity that is generated and by which the activity will be identified within the task
   */
-abstract class TaskActivityFactory[TaskType <: TaskSpec : ClassTag, ActivityType <: HasValue : ClassTag] extends AnyPlugin
+abstract class TaskActivityFactory[TaskType <: TaskSpec : ClassTag, ActivityType <: HasValue : ClassTag] extends WorkspaceActivityFactory
     with (ProjectTask[TaskType] => Activity[ActivityType#ValueType]) {
 
   /** True, if this activity shall be executed automatically after startup */
@@ -26,13 +24,9 @@ abstract class TaskActivityFactory[TaskType <: TaskSpec : ClassTag, ActivityType
   def apply(task: ProjectTask[TaskType]): Activity[ActivityType#ValueType]
 
   /**
-    * Checks, if this factory generates activities for a given task type
+    * Returns the type of the task for which this factory generates activities.
     */
-  def isTaskType[T: ClassTag]: Boolean = {
-    val requestedType = implicitly[ClassTag[T]].runtimeClass
-    val taskType = implicitly[ClassTag[TaskType]].runtimeClass
-    requestedType.isAssignableFrom(taskType)
-  }
+  def taskType: Class[_] = implicitly[ClassTag[TaskType]].runtimeClass
 
   /**
     * Returns the type of generated activities.

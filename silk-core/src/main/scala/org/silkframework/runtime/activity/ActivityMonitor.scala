@@ -1,4 +1,5 @@
 package org.silkframework.runtime.activity
+import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 
 import scala.reflect.ClassTag._
@@ -80,8 +81,6 @@ class ActivityMonitor[T](name: String,
   private def removeDoneChildren(): Unit = {
     childControls = childControls.filter(_.status().isRunning)
   }
-
-  override def userContext: UserContext = UserContext.Empty
 
   /**
     * Will provide context information relevant for the Activity to be performed (if any)

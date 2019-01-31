@@ -44,3 +44,9 @@ They are defined as dependencies in the `package.json`.
 
 - With `yarn start` you start a local development environment which mocks all APIs.
 - With `make build-react` you can build all React components of silk and copy them to their respective locations
+
+### React development with Silk backend
+
+Run in Silk root directory: sbt "project workbench" ~run
+
+This will start the Silk workbench with file watchers active that watch for source changes in the Silk React subproject and trigger builds of the component.

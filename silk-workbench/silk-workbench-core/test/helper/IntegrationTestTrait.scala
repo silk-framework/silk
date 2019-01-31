@@ -3,21 +3,20 @@ package helper
 import java.io._
 import java.net.URLDecoder
 
-import org.scalatest.{BeforeAndAfterAll, Suite}
+import org.scalatest.Suite
 import org.scalatestplus.play.OneServerPerSuite
-import org.silkframework.config.{PlainTask, Prefixes, Task}
+import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
-import org.silkframework.rule.TransformSpec
-import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.InMemoryResourceManager
+import org.silkframework.rule.{DatasetSelection, MappingRules, RootMappingRule, TransformSpec}
+import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
 import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.util.StreamUtils
 import org.silkframework.workspace._
-import org.silkframework.workspace.activity.transform.VocabularyCache
+import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.resources.FileRepository
 import play.api.Application
-import play.api.libs.json.{JsBoolean, JsValue, Json}
+import play.api.http.Writeable
+import play.api.libs.json._
 import play.api.libs.ws.{WS, WSRequest, WSResponse}
 import play.api.mvc.{Call, Results}
 import play.api.test.FakeApplication
@@ -27,13 +26,12 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.io.Source
 import scala.util.Random
-import scala.xml.{Elem, NodeSeq, Null, XML}
+import scala.xml.{Elem, XML}
 
 /**
-  * Created on 3/17/16.
+  * Basis for integration tests.
   */
-//noinspection ScalaStyle
-trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
+trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with TestWorkspaceProviderTestTrait with TestUserContextTrait {
   this: Suite =>
 
   final val APPLICATION_JSON: String = "application/json"
@@ -44,21 +42,17 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   final val BAD_REQUEST: Int = 400
 
   val baseUrl = s"http://localhost:$port"
-  var oldUserManager: () => User = null
-  private val tmpDir = File.createTempFile("di-resource-repository", "-tmp")
-  tmpDir.delete()
-  tmpDir.mkdirs()
 
   override lazy val port: Int = 19000 + Random.nextInt(1000)
 
-  /** The workspace provider that is used for holding the test workspace. */
-  def workspaceProvider: String = "inMemoryRdfWorkspace"
+  def workspaceProject(projectId: String)
+                      (implicit userContext: UserContext): Project = WorkspaceFactory().workspace.project(projectId)
 
   /** Routes used for testing. If None, the default routes will be used.*/
   protected def routes: Option[String] = None
 
   override implicit lazy val app: Application = {
-    var routerConf = routes.map(r => "play.http.router" -> r).toMap
+    val routerConf = routes.map(r => "play.http.router" -> r).toMap
     FakeApplication(additionalConfiguration = routerConf)
   }
 
@@ -67,37 +61,6 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     */
   def request(call: Call): WSRequest = {
     WS.url(s"$baseUrl${call.url}")
-  }
-
-  def deleteRecursively(f: File): Unit = {
-    if (f.isDirectory) {
-      for (c <- f.listFiles())
-        deleteRecursively(c)
-    }
-    if (!f.delete()) {
-      throw new FileNotFoundException("Failed to delete file: " + f)
-    }
-  }
-
-  // Workaround for config problem, this should make sure that the workspace is a fresh in-memory RDF workspace
-  override protected def beforeAll(): Unit = {
-    implicit val resourceManager: InMemoryResourceManager = InMemoryResourceManager()
-    implicit val prefixes: Prefixes = Prefixes.empty
-    val provider = PluginRegistry.create[WorkspaceProvider](workspaceProvider, Map.empty)
-    val replacementWorkspace = new Workspace(provider, FileRepository(tmpDir.getAbsolutePath))
-    val rdfWorkspaceUser = new User {
-      /**
-        * The current workspace of this user.
-        */
-      override def workspace: Workspace = replacementWorkspace
-    }
-    oldUserManager = User.userManager
-    User.userManager = () => rdfWorkspaceUser
-  }
-
-  override protected def afterAll(): Unit = {
-    User.userManager = oldUserManager
-    deleteRecursively(tmpDir)
   }
 
   /**
@@ -182,21 +145,25 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     checkResponse(response)
   }
 
+  def taskActivityValue(projectId: String, taskId: String, activityId: String, contentType: String = "application/json"): WSResponse = {
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/activities/$activityId/value")
+                    .withHeaders("accept" -> contentType)
+    val response = request.get()
+    checkResponse(response)
+  }
+
   /**
     * Creates a CSV dataset from a file resources.
     *
     * @param projectId
     * @param datasetId
     * @param fileResourceId
-    * @param uriPrefix The prefix that is prepended to automatically generated URIs like property URIs generated from
-    *                  the header line.
     */
   def createCsvFileDataset(projectId: String, datasetId: String, fileResourceId: String,
-                           uriPrefix: String, uriTemplate: Option[String] = None): WSResponse = {
+                           uriTemplate: Option[String] = None): WSResponse = {
     val datasetConfig =
       <Dataset id={datasetId} type="csv">
         <Param name="file" value={fileResourceId}/>
-        <Param name="prefix" value={uriPrefix}/>{uriTemplate.map(uri => <Param name="uri" value={uri}/>).getOrElse(NodeSeq.Empty)}
       </Dataset>
     createDataset(projectId, datasetId, datasetConfig)
   }
@@ -222,12 +189,24 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   /** Loads the given RDF input stream into the specified graph of the RDF store of the workspace, i.e. this only works if the workspace provider
     * is RDF-enabled and implements the [[GraphStoreTrait]]. */
   def loadRdfIntoGraph(graph: String, contentType: String = "application/n-triples"): OutputStream = {
-    User.userManager.apply().workspace.provider match {
+    WorkspaceFactory.factory.workspace.provider match {
       case rdfStore: RdfWorkspaceProvider if rdfStore.endpoint.isInstanceOf[GraphStoreTrait] =>
         val graphStore = rdfStore.endpoint.asInstanceOf[GraphStoreTrait]
         graphStore.postDataToGraph(graph, contentType)
       case e: Any =>
         fail(s"Not a RDF-enabled GraphStore supporting workspace provider (${e.getClass.getSimpleName})!")
+    }
+  }
+
+  /** Deletes a graph from the RDF store of the workspace, , i.e. this only works if the workspace provider
+    * is RDF-enabled. */
+  def deleteBackendGraph(graph: String): Unit = {
+    WorkspaceFactory.factory.workspace.provider match {
+      case rdfStore: RdfWorkspaceProvider =>
+        val graphStore = rdfStore.endpoint
+        graphStore.update(s"DROP SILENT GRAPH <$graph>")
+      case e: Any =>
+        fail(s"Not a RDF-enabled workspace provider (${e.getClass.getSimpleName})!")
     }
   }
 
@@ -271,11 +250,16 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     *                   application must supply a meaningful resource URI.
     * @return
     */
-  def executeSchemaExtractionAndDataProfiling(projectId: String, datasetId: String, datasetUri: String, uriPrefix: String): WSResponse = {
+  def executeSchemaExtractionAndDataProfiling(projectId: String,
+                                              datasetId: String,
+                                              datasetUri: String,
+                                              uriPrefix: String,
+                                              classProfilingLimit: Int = 10): WSResponse = {
     val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$datasetId/activities/DatasetProfiler/startBlocking")
     val response = request.post(Map(
       "datasetUri" -> Seq(datasetUri),
-      "uriPrefix" -> Seq(uriPrefix)
+      "uriPrefix" -> Seq(uriPrefix),
+      "classProfilingLimit" -> Seq(classProfilingLimit.toString)
     ))
     checkResponse(response)
   }
@@ -333,8 +317,6 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     *
     * @param projectId
     * @param datasetId
-    * @param uriPrefix    The URI prefix for the generated target property URIs of the mapping. This should be the same
-    *                     as the prefix used for the schema extraction.
     * @param propertyUris A sequence of URIs to select the properties for the default mapping.
     */
   def createDefaultMapping(projectId: String,
@@ -371,6 +353,28 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   }
 
   /**
+    * Create an empty transform task.
+    * @param projectId
+    * @param transformTaskId ID of the transform task to create.
+    * @param sourceId
+    * @param targetId
+    * @return
+    */
+  def createTransformTask(projectId: String, transformTaskId: String, sourceId: String, targetId: String, classUri: String = ""): Unit = {
+    val request = WS.url(s"$baseUrl/transform/tasks/$projectId/$transformTaskId")
+    val response = request.put(Map("source" -> sourceId, "sourceType" -> classUri, "target" -> targetId, "output" -> targetId).mapValues(v => Seq(v)))
+    checkResponse(response)
+    workspaceProject(projectId).task[TransformSpec](transformTaskId).activity[TransformPathsCache].control.waitUntilFinished()
+  }
+
+  /** Updates the root mapping rule with new mapping rules */
+  def updateTransformRules(projectId: String, transformTaskId: String, mappingRules: MappingRules): Unit = {
+    val oldTransformSpec = workspaceProject(projectId).task[TransformSpec](transformTaskId).data
+    val newTransformTask = oldTransformSpec.copy(mappingRule = oldTransformSpec.mappingRule.copy(rules = mappingRules))
+    workspaceProject(projectId).updateTask(transformTaskId, newTransformTask)
+  }
+
+  /**
     * Sets the linking rule of an existing linking task.
     *
     * @param projectId
@@ -396,10 +400,10 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
   }
 
   /**
-    * Downloads the transform output.
+    * Downloads the task output.
     */
-  def downloadTransformOutput(projectId: String, transformTaskId: String): WSResponse = {
-    val request = WS.url(s"$baseUrl/transform/tasks/$projectId/$transformTaskId/downloadOutput")
+  def downloadTaskOutput(projectId: String, taskId: String): WSResponse = {
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/downloadOutput")
     val response = request.get()
     checkResponse(response)
   }
@@ -411,13 +415,20 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     * @param linkingTaskId
     */
   def executeLinkingTask(projectId: String, linkingTaskId: String): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$linkingTaskId/activities/GenerateLinks/startBlocking")
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$linkingTaskId/activities/ExecuteLinking/startBlocking")
     val response = request.post("")
     checkResponse(response)
   }
 
-  def executeWorkflow(projectId: String, workflowId: String): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$workflowId/activities/ExecuteLocalWorkflow/startBlocking")
+  def evaluateLinkingTask(projectId: String, linkingTaskId: String): WSResponse = {
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$linkingTaskId/activities/EvaluateLinking/startBlocking")
+    val response = request.post("")
+    checkResponse(response)
+  }
+
+  def executeWorkflow(projectId: String, workflowId: String, sparkExecution: Boolean = false): WSResponse = {
+    val executorName = if(sparkExecution) "ExecuteSparkWorkflow" else "ExecuteLocalWorkflow"
+    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$workflowId/activities/$executorName/startBlocking")
     val response = request.post("")
     checkResponse(response)
   }
@@ -428,58 +439,11 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
     checkResponse(response)
   }
 
-  def executeVariableWorkflow(projectId: String, workflowId: String, datasetPayloads: Seq[VariableDatasetPayload]): WSResponse = {
-    val requestXML = {
-      <Workflow>
-        <DataSources>
-          {datasetPayloads.filterNot(_.isSink).map(_.datasetXml)}
-        </DataSources>
-        <Sinks>
-          {datasetPayloads.filter(_.isSink).map(_.datasetXml)}
-        </Sinks>{datasetPayloads.map(_.resourceXml)}
-      </Workflow>
-    }
-    executeVariableWorkflow(projectId, workflowId, requestXML)
-  }
-
-  def executeVariableWorkflow(projectId: String, workflowId: String, requestXML: Elem): WSResponse = {
-    val request = WS.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId/executeOnPayload")
-    val response = request.post(requestXML)
-    checkResponse(response)
-  }
-
-  def executeVariableWorkflowLocalExecutor(projectId: String, workflowId: String, datasetPayloads: Seq[VariableDatasetPayload]): WSResponse = {
-    val requestXML = {
-      <Workflow>
-        <DataSources>
-          {datasetPayloads.filterNot(_.isSink).map(_.datasetXml)}
-        </DataSources>
-        <Sinks>
-          {datasetPayloads.filter(_.isSink).map(_.datasetXml)}
-        </Sinks>{datasetPayloads.map(_.resourceXml)}
-      </Workflow>
-    }
-    executeVariableWorkflowLocalExecutor(projectId, workflowId, requestXML)
-  }
-
-  def executeVariableWorkflowLocalExecutor(projectId: String, workflowId: String, xmlBody: Elem): WSResponse = {
-    val request = WS.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId/executeOnPayload")
-    val response = request.post(xmlBody)
-    checkResponse(response)
-  }
-
   /**
     * Retrieves a file from the resources directory.
     */
   def file(path: String): File = {
     new File(URLDecoder.decode(getClass.getClassLoader.getResource(path).getFile, "UTF-8"))
-  }
-
-  def checkResponse(futureResponse: Future[WSResponse],
-                    responseCodePrefix: Char = '2'): WSResponse = {
-    val response = Await.result(futureResponse, 100.seconds)
-    assert(response.status.toString.head + "xx" == responseCodePrefix + "xx", s"Status text: ${response.statusText}. Response Body: ${response.body}")
-    response
   }
 
   def checkResponseCode(futureResponse: Future[WSResponse],
@@ -513,43 +477,8 @@ trait IntegrationTestTrait extends OneServerPerSuite with BeforeAndAfterAll {
 
   def resourceAsSource(resourceClassPath: String): Source = Source.createBufferedSource(getClass.getClassLoader.getResourceAsStream(resourceClassPath))
 
-  case class VariableDatasetPayload(datasetId: String,
-                                    datasetPluginType: String,
-                                    pluginParams: Map[String, String],
-                                    payLoadOpt: Option[String],
-                                    isSink: Boolean) {
-    var fileResourceId: String = datasetId + "_file_resource"
-
-    private val additionalParam = if(pluginParams.contains("file")) {
-      fileResourceId = pluginParams("file")
-      Map()
-    } else {
-      Map("file" -> fileResourceId)
-    }
-
-    lazy val datasetXml: Elem = {
-      <Dataset id={datasetId}>
-        <DatasetPlugin type={datasetPluginType}>
-          {for ((key, value) <- pluginParams ++ additionalParam) yield {
-            <Param name={key} value={value}/>
-        }}
-        </DatasetPlugin>
-      </Dataset>
-    }
-
-    lazy val resourceXml = {
-      payLoadOpt match {
-        case Some(payload) =>
-          <resource name={fileResourceId}>
-            {payload}
-          </resource>
-        case None =>
-          Null
-      }
-    }
-  }
-
-  def reloadVocabularyCache(project: Project, transformTaskId: String): Unit = {
+  def reloadVocabularyCache(project: Project, transformTaskId: String)
+                           (implicit userContext: UserContext): Unit = {
     val control = project.task[TransformSpec](transformTaskId).activity[VocabularyCache].control
     control.reset()
     control.startBlocking()

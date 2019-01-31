@@ -86,9 +86,15 @@ case class Uri(uri: String) {
     * if neither is available => None
     * @return
     */
-  def localName: Option[String] = toURI match{
-    case Success(u) if u.getFragment != null                    => Some(u.getFragment)
-    case Success(u) if u.getPath != null && u.getPath.nonEmpty  => Some(u.getPath.substring(u.getPath.lastIndexOf("/") + 1))
+  def localName: Option[String] = toURI match {
+    case Success(u) if u.getFragment != null =>
+      Some(u.getFragment)
+    case Success(u) if u.getPath != null && u.getPath.nonEmpty =>
+      Some(u.getPath.substring(u.getPath.lastIndexOf("/") + 1))
+    case Success(u) if u.isOpaque =>
+      val part = u.getSchemeSpecificPart
+      val splitIndex = math.max(part.lastIndexOf('/'), part.lastIndexOf(':')) + 1
+      Some(part.substring(splitIndex))
     case _ => None
   }
 }
@@ -120,14 +126,15 @@ object Uri {
     * 3. Plain Identifiers: Name
     */
   def parse(str: String, prefixes: Prefixes = Prefixes.empty): Uri = {
-    if (str.startsWith("<")) {
-      fromString(str.substring(1, str.length - 1))
-    } else if (!str.contains(':')) {
-      fromString(str)
-    } else if (str.startsWith("http") || str.startsWith("urn:")) {
-      fromString(str)
+    val trimmed = str.trim
+    if (trimmed.startsWith("<")) {
+      fromString(trimmed.substring(1, trimmed.length - 1))
+    } else if (!trimmed.contains(':')) {
+      fromString(trimmed)
+    } else if (trimmed.toLowerCase.startsWith("http") || trimmed.toLowerCase.startsWith("urn:")) {
+      fromString(trimmed)
     } else {
-      fromQualifiedName(str, prefixes)
+      fromQualifiedName(trimmed, prefixes)
     }
   }
 }

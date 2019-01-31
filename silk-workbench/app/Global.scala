@@ -1,19 +1,15 @@
 import org.silkframework.runtime.activity.Activity
+import org.silkframework.workbench.rules.{LinkingPlugin, TransformPlugin}
+import org.silkframework.workbench.workflow.WorkflowPlugin
 import play.api.Application
 import play.api.http.HeaderNames.CACHE_CONTROL
 import play.api.mvc.EssentialAction
-import plugins.WorkbenchPlugins
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Global extends WorkbenchGlobal {
 
   override def beforeStart(app: Application) {
-    // Load Workbench plugins
-    WorkbenchPlugins.register(WorkbenchDatasetPlugin())
-    WorkbenchPlugins.register(TransformPlugin())
-    WorkbenchPlugins.register(LinkingPlugin())
-    WorkbenchPlugins.register(WorkflowPlugin())
-
     super.beforeStart(app)
   }
 

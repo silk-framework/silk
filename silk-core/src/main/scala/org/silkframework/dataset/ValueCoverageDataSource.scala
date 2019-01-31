@@ -1,6 +1,7 @@
 package org.silkframework.dataset
 
 import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 /**
@@ -15,7 +16,8 @@ trait ValueCoverageDataSource {
     * @param inputPaths The actual input paths that when normalized match the dataSourcePath
     * @return
     */
-  def valueCoverage(dataSourcePath: Path, inputPaths: Traversable[Path]): ValueCoverageResult = {
+  def valueCoverage(dataSourcePath: Path, inputPaths: Traversable[Path])
+                   (implicit userContext: UserContext): ValueCoverageResult = {
     val completeValues: Set[(String, Option[String])] = valuesForDataSourcePath(dataSourcePath)
     val collectedValues: Set[(String, Option[String])] = valuesForInputPaths(inputPaths)
     val uniqueCompleteValues = completeValues.toSeq.distinct
@@ -31,7 +33,8 @@ trait ValueCoverageDataSource {
     * supported for this data source it should return None. */
   def convertToIdPath(path: Path): Option[Path]
 
-  def valuesForDataSourcePath(dataSourcePath: Path): Set[(String, Option[String])] = {
+  def valuesForDataSourcePath(dataSourcePath: Path)
+                             (implicit userContext: UserContext): Set[(String, Option[String])] = {
     val dataSourceValuePath = dataSourcePath
     val dataSourceIdPath = convertToIdPath(dataSourcePath).map(_.asStringTypedPath)
     val noneStream = Stream.continually(None)
@@ -50,7 +53,8 @@ trait ValueCoverageDataSource {
 
   private def noneStream = Stream.continually(None)
 
-  def valuesForInputPaths(inputPaths: Traversable[Path]): Set[(String, Option[String])] = {
+  def valuesForInputPaths(inputPaths: Traversable[Path])
+                         (implicit userContext: UserContext): Set[(String, Option[String])] = {
     val idInputPaths = inputPaths flatMap convertToIdPath
     val entitySchemaForInputPaths = EntitySchema(Uri(""), typedPaths = (inputPaths ++ idInputPaths).toIndexedSeq.map(_.asStringTypedPath))
     val collectedValues = retrieve(entitySchemaForInputPaths).flatMap { e =>

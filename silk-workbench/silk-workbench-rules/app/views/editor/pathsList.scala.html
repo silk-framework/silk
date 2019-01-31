@@ -1,7 +1,9 @@
 @import org.silkframework.util.DPair
 @import org.silkframework.workspace.Project
 
-@(sources: DPair[String], paths: DPair[Seq[String]], onlySource: Boolean, loadingMsg: String = "", warning: String = "", project: Project)
+@import org.silkframework.runtime.activity.UserContext
+@(sources: DPair[String], paths: DPair[Seq[String]], onlySource: Boolean, loadingMsg: String = "", warning: String = "",
+    project: Project)(implicit userContext: UserContext)
 
 @pathOperators(sources.source, paths.source, "Source")
 @pathOperators(sources.target, paths.target, "Target")

@@ -55,11 +55,13 @@ object PluginDocumentation {
                             (implicit sb: StringBuilder): Unit = {
     sb ++= "#### " + plugin.label + "\n\n"
     sb ++= plugin.description + "\n\n"
-    if (table.values.nonEmpty)
+    if (table.values.nonEmpty) {
       sb ++= table.toMarkdown + "\n"
-    else
+    } else {
       sb ++= "This plugin does not require any parameters.\n"
-    sb ++= "The identifier for this plugin is: `" + plugin.id + "`.\n\n"
+    }
+    sb ++= s"The identifier for this plugin is `${plugin.id}`.\n\n"
+    sb ++= s"It can be found in the package `${plugin.pluginClass.getPackage.getName}`.\n\n"
     sb ++= plugin.documentation + "\n"
   }
 

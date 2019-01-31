@@ -1,11 +1,13 @@
 package org.silkframework.workspace
 
 import org.silkframework.config.{MetaData, PlainTask, Task, TaskSpec}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceManager}
 import org.silkframework.util.Identifier
 
 import scala.reflect.ClassTag
+import scala.util.{Success, Try}
 
 @Plugin(
   id = "inMemory",
@@ -19,19 +21,22 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider with Refreshabl
   /**
     * Reads all projects from the workspace.
     */
-  override def readProjects(): Seq[ProjectConfig] = projects.values.map(_.config).toSeq
+  override def readProjects()
+                           (implicit userContext: UserContext): Seq[ProjectConfig] = projects.values.map(_.config).toSeq
 
   /**
     * Adds/Updates a project.
     */
-  override def putProject(project: ProjectConfig): Unit = {
+  override def putProject(project: ProjectConfig)
+                         (implicit userContext: UserContext): Unit = {
     projects += ((project.id, new InMemoryProject(project.copy(projectResourceUriOpt = Some(project.resourceUriOrElseDefaultUri)))))
   }
 
   /**
     * Deletes a project.
     */
-  override def deleteProject(name: Identifier): Unit = {
+  override def deleteProject(name: Identifier)
+                            (implicit userContext: UserContext): Unit = {
     projects -= name
   }
 
@@ -43,22 +48,31 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider with Refreshabl
   /**
     * Adds/Updates a task in a project.
     */
-  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T]): Unit = {
+  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T])
+                                                (implicit userContext: UserContext): Unit = {
     projects(project).tasks += ((task.id, task))
   }
 
   /**
     * Reads all tasks of a specific type from a project.
     */
-  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager): Seq[Task[T]] = {
+  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
+                                                  (implicit userContext: UserContext): Seq[Task[T]] = {
     val taskClass = implicitly[ClassTag[T]].runtimeClass
     projects(project).tasks.values.filter(task => taskClass.isAssignableFrom(task.data.getClass)).map(_.asInstanceOf[Task[T]]).toSeq
+  }
+
+  override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier,
+                                                       projectResources: ResourceManager)(implicit user: UserContext): Seq[Try[Task[T]]] = {
+    val taskClass = implicitly[ClassTag[T]].runtimeClass
+    projects(project).tasks.values.filter(task => taskClass.isAssignableFrom(task.data.getClass)).map(task => Success(task.asInstanceOf[Task[T]])).toSeq
   }
 
   /**
     * Deletes a task from a project.
     */
-  override def deleteTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier): Unit = {
+  override def deleteTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier)
+                                                   (implicit userContext: UserContext): Unit = {
     projects(project).tasks -= task
   }
 

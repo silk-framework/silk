@@ -14,8 +14,6 @@
 
 package org.silkframework.entity
 
-import java.net.URLDecoder
-
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri

@@ -11,6 +11,7 @@ import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 
+import scala.util.Try
 import scala.xml.{Attribute, Null, Text, XML}
 
 /**
@@ -38,10 +39,10 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[Task[TransformSpec]] = {
+  override def loadTasksSafe(resources: ResourceLoader, projectResources: ResourceManager): Seq[Try[Task[TransformSpec]]] = {
     val tasks =
       for(name <- resources.listChildren) yield
-        loadTask(name, resources.child(name), projectResources)
+        Try(loadTask(name, resources.child(name), projectResources))
     tasks
   }
 

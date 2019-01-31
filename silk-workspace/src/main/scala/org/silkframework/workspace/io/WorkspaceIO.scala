@@ -5,6 +5,7 @@ import java.util.logging.Logger
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
@@ -12,6 +13,7 @@ import org.silkframework.workspace.resources.ResourceRepository
 import org.silkframework.workspace.{ProjectConfig, RefreshableWorkspaceProvider, WorkspaceProvider}
 
 import scala.reflect.ClassTag
+import scala.util.{Failure, Success}
 
 /**
   * Transfers projects between workspaces.
@@ -23,7 +25,8 @@ object WorkspaceIO {
     * Copies all projects in one workspace to another workspace.
     */
   def copyProjects(inputWorkspace: WorkspaceProvider, outputWorkspace: WorkspaceProvider,
-                   inputResources: Option[ResourceRepository], outputResources: Option[ResourceRepository]): Unit = {
+                   inputResources: Option[ResourceRepository], outputResources: Option[ResourceRepository])
+                  (implicit userContext: UserContext): Unit = {
     for(project <- inputWorkspace.readProjects()) {
       copyProject(inputWorkspace, outputWorkspace,
         inputResources.map(_.get(project.id)), outputResources.map(_.get(project.id)), project)
@@ -35,7 +38,8 @@ object WorkspaceIO {
     */
   def copyProject(inputWorkspace: WorkspaceProvider, outputWorkspace: WorkspaceProvider,
                   inputResources: Option[ResourceManager], outputResources: Option[ResourceManager],
-                  project: ProjectConfig): Unit = {
+                  project: ProjectConfig)
+                 (implicit userContext: UserContext): Unit = {
     val updatedProjectConfig = project.copy(projectResourceUriOpt = Some(project.resourceUriOrElseDefaultUri))
     outputWorkspace.putProject(updatedProjectConfig)
     for(input <- inputResources; output <- outputResources)
@@ -70,9 +74,18 @@ object WorkspaceIO {
     }
   }
 
-  private def copyTasks[T <: TaskSpec : ClassTag](inputWorkspace: WorkspaceProvider, outputWorkspace: WorkspaceProvider, resources: ResourceManager, projectName: Identifier): Unit = {
-    for(task <- inputWorkspace.readTasks[T](projectName, resources)) {
-      outputWorkspace.putTask(projectName, task)
+  private def copyTasks[T <: TaskSpec : ClassTag](inputWorkspace: WorkspaceProvider,
+                                                  outputWorkspace: WorkspaceProvider,
+                                                  resources: ResourceManager,
+                                                  projectName: Identifier)
+                                                 (implicit userContext: UserContext): Unit = {
+    for(taskTry <- inputWorkspace.readTasksSafe[T](projectName, resources)) {
+      taskTry match {
+        case Success(task) =>
+          outputWorkspace.putTask(projectName, task)
+        case Failure(ex) =>
+          log.warning("Invalid task encountered while copying task between workspace providers. Error message: " + ex.getMessage)
+      }
     }
   }
 

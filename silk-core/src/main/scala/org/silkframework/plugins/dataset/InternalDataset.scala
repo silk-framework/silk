@@ -6,6 +6,7 @@ import javax.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{Param, Plugin, PluginRegistry}
 
 import scala.collection.mutable
@@ -37,7 +38,7 @@ trait InternalDatasetTrait extends Dataset with TripleSinkDataset with RdfDatase
     }
   }
 
-  override def tripleSink: TripleSink = {
+  override def tripleSink(implicit userContext: UserContext): TripleSink = {
     _internalDatasetPluginImpl match {
       case rdfDataset: TripleSinkDataset =>
         rdfDataset.tripleSink
@@ -46,11 +47,11 @@ trait InternalDatasetTrait extends Dataset with TripleSinkDataset with RdfDatase
     }
   }
 
-  override def source: DataSource = _internalDatasetPluginImpl.source
+  override def source(implicit userContext: UserContext): DataSource = _internalDatasetPluginImpl.source
 
-  override def linkSink: LinkSink = _internalDatasetPluginImpl.linkSink
+  override def linkSink(implicit userContext: UserContext): LinkSink = _internalDatasetPluginImpl.linkSink
 
-  override def entitySink: EntitySink = _internalDatasetPluginImpl.entitySink
+  override def entitySink(implicit userContext: UserContext): EntitySink = _internalDatasetPluginImpl.entitySink
 }
 
 /**

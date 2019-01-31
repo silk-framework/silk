@@ -1,20 +1,17 @@
-@import org.silkframework.workspace.{Project, User}
-@import org.silkframework.workspace.ProjectTask
-@import org.silkframework.workspace.Workspace
-@import org.silkframework.workspace.activity.ProjectActivity
-@import org.silkframework.workspace.activity.TaskActivity
 @import controllers.core.routes.{Assets => CoreAssets}
-@import scala.runtime.BoxedUnit
-@import controllers.workspace.routes.ActivityApi
-@import controllers.workspace.routes.WorkspaceController
-@import controllers.workspace.routes.Assets
+@import controllers.workspace.routes.{ActivityApi, Assets, WorkspaceController}
 @import org.silkframework.config.TaskSpec
 @import org.silkframework.workspace.activity.CachedActivity
+@import org.silkframework.runtime.activity.HasValue
+@import org.silkframework.workspace.activity.{CachedActivity, ProjectActivity, TaskActivity}
+@import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory, Workspace}
+@import org.silkframework.runtime.activity.UserContext
 
 @**
  * Overview page of all activities and their status
  *@
-@()(implicit session: play.api.mvc.Session)
+
+@()(implicit session: play.api.mvc.Session, userContext: UserContext)
 
 @header = {
   <link rel="stylesheet" href="@CoreAssets.at("libs/jstree/dist/themes/default/style.css")" type="text/css" />
@@ -99,7 +96,7 @@
 }
 
 @content = {
-  @workspaceActivities(User().workspace)
+  @workspaceActivities(WorkspaceFactory().workspace)
 
   <div id="statusCometIFrame"></div>
 }
@@ -146,7 +143,7 @@
   </li>
 }
 
-@projectActivityStatus(project: Project, activity: ProjectActivity) = {
+@projectActivityStatus(project: Project, activity: ProjectActivity[_ <: HasValue]) = {
   <li id="@id(project.name, "", activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
     @activity.name
     <div class="activity-progress-small">
@@ -159,7 +156,7 @@
     <div class="activity-button-stop">
       <img title="Stop activity" width="16" height="16" src="@Assets.at("img/control-stop.png")" onclick="post('@ActivityApi.cancelActivity(project.name, "", activity.name).url')" />
     </div>
-    @if(activity.config.nonEmpty) {
+    @if(activity.defaultConfig.nonEmpty) {
       <div class="activity-button-edit">
         <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@WorkspaceController.projectActivityConfigDialog(project.name, activity.name).url')" />
       </div>
@@ -181,7 +178,7 @@
       <img title="Stop activity" width="16" height="16" src="@Assets.at("img/control-stop.png")" onclick="post('@ActivityApi.cancelActivity(project.name, task.id, activity.name).url')" />
     </div>
     <div class="activity-button-edit">
-      @if(activity.config.nonEmpty) {
+      @if(activity.defaultConfig.nonEmpty) {
         <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@WorkspaceController.taskActivityConfigDialog(project.name, task.id, activity.name).url')" />
       }
     </div>

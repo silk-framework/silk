@@ -34,6 +34,6 @@ class MillisecsDistanceMetricTest extends FlatSpec with Matchers {
 
   //Indexing.
   "MillisecsDistanceMetric test 2" should "return 'Set(List(0))'" in {
-    metric.indexValue("1970-01-01T00:00:00+00:00", 0.0) should equal(Index.oneDim(Set(0)))
+    metric.indexValue("1970-01-01T00:00:00+00:00", 0.0, sourceOrTarget = false) should equal(Index.oneDim(Set(0)))
   }
 }

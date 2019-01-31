@@ -56,6 +56,7 @@
   skos:prefLabel "pref label"@en ;
   dct:title "dc title"@en ;
   dc:identifier "dc identifier"@en ;
+  dct:identifier "dct identifier"@en ;
   foaf:name "foaf name"@en ;
   skos:notation "skos notation"@en ;
   skos:definition "skos definition"@en ;

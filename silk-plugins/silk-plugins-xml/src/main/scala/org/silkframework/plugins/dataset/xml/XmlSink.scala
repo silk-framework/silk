@@ -9,6 +9,7 @@ import javax.xml.transform.stream.StreamResult
 import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl
 import org.silkframework.dataset.{EntitySink, TypedProperty}
 import org.silkframework.entity.UriValueType
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
@@ -37,7 +38,8 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
     *
     * @param properties The list of properties of the entities to be written.
     */
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty]): Unit = {
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
+                        (implicit userContext: UserContext): Unit = {
     if(atRoot) {
       val builder = DocumentBuilderFactory.newInstance.newDocumentBuilder
       // Check if the output template is a single processing instruction
@@ -64,7 +66,8 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
     * @param values  The list of values of the entity. For each property that has been provided
     *                when opening this writer, it must contain a set of values.
     */
-  override def writeEntity(subjectURI: String, values: Seq[Seq[String]]): Unit = {
+  override def writeEntity(subjectURI: String, values: Seq[Seq[String]])
+                          (implicit userContext: UserContext): Unit = {
     val entityNodes = getEntityNodes(subjectURI)
     for {
       (property, valueSeq) <- properties zip values if property.propertyUri != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
@@ -75,11 +78,11 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
     }
   }
 
-  override def closeTable(): Unit = {
+  override def closeTable()(implicit userContext: UserContext): Unit = {
     atRoot = false
   }
 
-  override def close(): Unit = {
+  override def close()(implicit userContext: UserContext): Unit = {
     val transformerFactory = new TransformerFactoryImpl() // We have to specify this here explicitly, else it will take the Saxon implementation
     val transformer = transformerFactory.newTransformer
 
@@ -93,7 +96,7 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
   /**
     * Makes sure that the next write will start from an empty dataset.
     */
-  override def clear(): Unit = {
+  override def clear()(implicit userContext: UserContext): Unit = {
     doc = null
     entityTemplate = null
     entityRoot = null

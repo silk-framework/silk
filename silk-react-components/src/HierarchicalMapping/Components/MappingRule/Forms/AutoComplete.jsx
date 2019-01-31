@@ -16,12 +16,17 @@ const AutoComplete = React.createClass({
                         ruleId,
                     },
                 })
-                .subscribe(({options}) => {
-                    callback(null, {
-                        options,
-                        complete: false,
-                    });
-                });
+                .subscribe(
+                    ({options}) => {
+                        callback(null, {
+                            options,
+                            complete: false,
+                        },
+                        );
+                    },
+                    (error) => {
+                    }
+                );
         };
 
         return (

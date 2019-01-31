@@ -17,6 +17,7 @@ package org.silkframework.plugins.dataset.rdf.sparql
 import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 /**
@@ -36,7 +37,8 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
    * @param entities The URIs of the entities to be retrieved. If empty, all entities will be retrieved.
    * @return The retrieved entities
    */
-  override def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int]): Traversable[Entity] = {
+  override def retrieve(entitySchema: EntitySchema, entities: Seq[Uri], limit: Option[Int])
+                       (implicit userContext: UserContext): Traversable[Entity] = {
     retrieveAll(entitySchema, limit, entities)
   }
 
@@ -46,44 +48,60 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
    * @param entitySchema The entity schema
    * @return The retrieved entities
    */
-  private def retrieveAll(entitySchema: EntitySchema, limit: Option[Int], entities: Seq[Uri]): Traversable[Entity] = {
+  private def retrieveAll(entitySchema: EntitySchema, limit: Option[Int], entities: Seq[Uri])
+                         (implicit userContext: UserContext): Traversable[Entity] = {
     val sparqlEntitySchema = SparqlEntitySchema.fromSchema(entitySchema, entities)
+    val sparqlQuery: String = buildSparqlQuery(sparqlEntitySchema, useDistinct = true)
+
+    val sparqlResults = endpoint.select(sparqlQuery, limit.getOrElse(Int.MaxValue))
+
+    new EntityTraversable(sparqlResults.bindings, entitySchema, None, limit, sparqlEntitySchema)
+  }
+
+  def buildSparqlQuery(sparqlEntitySchema: SparqlEntitySchema, useDistinct: Boolean): String = {
     //Select
     val sparql = new StringBuilder
-    sparql append "SELECT DISTINCT "
+    sparql append "SELECT "
+    if(useDistinct) {
+      sparql append "DISTINCT "
+    }
     val selectVariables = genSelectVariables(sparqlEntitySchema)
     sparql append selectVariables
     sparql append "\n"
 
-    // Graph. If the sub-select strategy should be used we have to use GRAPH instead of FROM
-    for (graph <- graphUri if !graph.isEmpty && !useSubSelect) sparql append s"FROM <$graph>\n"
+    addFrom(sparql)
 
     //Body
     sparql append "WHERE {\n"
     // GRAPH in subselect case
     for (graph <- graphUri if !graph.isEmpty && useSubSelect) sparql append s"GRAPH <$graph> {\n"
 
-    if (!sparqlEntitySchema.restrictions.toSparql.isEmpty) {
-      sparql append (sparqlEntitySchema.restrictions.toSparql + "\n")
-    } else {
-      sparql append s"?${sparqlEntitySchema.variable} ?${varPrefix}_p ?${varPrefix}_o .\n"
-    }
+    addRestrictions(sparqlEntitySchema, sparql)
 
     sparql append SparqlPathBuilder(sparqlEntitySchema.paths, "?" + sparqlEntitySchema.variable, "?" + varPrefix)
     // End GRAPH in subselect case
     for (graph <- graphUri if !graph.isEmpty && useSubSelect) sparql append s"}"
     sparql append "}" // END WHERE
-    if(useOrderBy) sparql append (" ORDER BY ?" + sparqlEntitySchema.variable)
+    if (useOrderBy) sparql append (" ORDER BY ?" + sparqlEntitySchema.variable)
 
-    val sparqlQuery = if(useSubSelect) {
+    if (useSubSelect) {
       s"SELECT $selectVariables\nWHERE {\n${sparql.toString}\n}"
     } else {
       sparql.toString()
     }
+  }
 
-    val sparqlResults = endpoint.select(sparqlQuery)
+  private def addFrom(sparql: StringBuilder) = {
+    // Graph. If the sub-select strategy should be used we have to use GRAPH instead of FROM
+    for (graph <- graphUri if !graph.isEmpty && !useSubSelect) sparql append s"FROM <$graph>\n"
+  }
 
-    new EntityTraversable(sparqlResults.bindings, entitySchema, None, limit, sparqlEntitySchema)
+  private def addRestrictions(sparqlEntitySchema: SparqlEntitySchema, sparql: StringBuilder) = {
+    if (!sparqlEntitySchema.restrictions.toSparql.isEmpty) {
+      sparql append (sparqlEntitySchema.restrictions.toSparql + "\n")
+    } else {
+      sparql append s"?${sparqlEntitySchema.variable} ?${varPrefix}_p ?${varPrefix}_o .\n"
+    }
   }
 
   private def genSelectVariables(sparqlEntitySchema: SparqlEntitySchema) = {

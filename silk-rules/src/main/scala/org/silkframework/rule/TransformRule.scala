@@ -11,7 +11,7 @@ import org.silkframework.rule.MappingTarget.MappingTargetFormat
 import org.silkframework.rule.TransformRule.RDF_TYPE
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
-import org.silkframework.rule.plugins.transformer.normalize.UrlEncodeTransformer
+import org.silkframework.rule.plugins.transformer.normalize.{UriFixTransformer, UrlEncodeTransformer}
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer}
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
@@ -137,9 +137,9 @@ sealed trait ValueTransformRule extends TransformRule
   * @param rules     The rules of this mapping.
   * @param metaData  The metadata.
   */
-case class RootMappingRule(id: Identifier,
-                           override val rules: MappingRules,
-                           metaData: MetaData = MetaData.empty) extends ContainerTransformRule {
+case class RootMappingRule(override val rules: MappingRules,
+                           id: Identifier = RootMappingRule.defaultId,
+                           metaData: MetaData = MetaData(RootMappingRule.defaultLabel)) extends ContainerTransformRule {
   /** Fails on the first rule it encounters that's invalid */
   override def validate(): Unit = {
     rules.allRules foreach (_.validate())
@@ -180,9 +180,11 @@ case class RootMappingRule(id: Identifier,
 
 object RootMappingRule {
 
-  def empty: RootMappingRule = RootMappingRule("root", MappingRules.empty)
+  def defaultId: String = "root"
 
-  def apply(rules: MappingRules): RootMappingRule = RootMappingRule("root", rules)
+  def defaultLabel: String = "Root Mapping"
+
+  def empty: RootMappingRule = RootMappingRule(MappingRules.empty)
 
   /**
     * XML serialization format.
@@ -249,7 +251,7 @@ case class PatternUriMapping(id: Identifier = "uri",
                              metaData: MetaData = MetaData.empty)
                              (implicit prefixes: Prefixes = Prefixes.empty) extends UriMapping {
 
-  override val operator: Input = UriPattern.parse(pattern)
+  override val operator: Input = UriPattern.parse(pattern.trim())
 
   override val target: Option[MappingTarget] = None
 
@@ -483,24 +485,34 @@ private object UriPattern {
     // FIXME we should write a real parser for this
     val inputs = {
       if(pattern == "{}") {
-        Seq(TransformInput("uri", UrlEncodeTransformer(onlyIfNeeded = true), Seq(PathInput("path", Path.empty))))
+        Seq(TransformInput("uri", UriFixTransformer(), Seq(PathInput("path", Path.empty))))
       } else {
+        var firstConstant: String = ""
         for ((str, i) <- pattern.split("[\\{\\}]").toList.zipWithIndex) yield {
-          if (i % 2 == 0)
+          if (i % 2 == 0) {
+            if(i == 0) {
+              firstConstant = str
+            }
             TransformInput("constant" + i, ConstantTransformer(str))
-          else
-            TransformInput("encode" + i, UrlEncodeTransformer(onlyIfNeeded = true), Seq(PathInput("path" + i, Path.parse(str))))
+          } else {
+            if(i == 1 && firstConstant == "") {
+              // There is a path at the start of the URI pattern, this value needs to become a valid URI
+              TransformInput("fixUri" + i, UriFixTransformer(), Seq(PathInput("path" + i, Path.parse(str))))
+            } else {
+              TransformInput("encode" + i, UrlEncodeTransformer(), Seq(PathInput("path" + i, Path.parse(str))))
+            }
+          }
         }
       }
     }
 
-    TransformInput(id = "buildUri",transformer = ConcatTransformer(""), inputs = inputs)
+    TransformInput(id = "buildUri",transformer = ConcatTransformer(), inputs = inputs)
   }
 
   def isPattern(inputs: Seq[Input]): Boolean = {
     inputs.forall {
       case PathInput(id, path) => true
-      case TransformInput(id, UrlEncodeTransformer(_,_), Seq(PathInput(_, path))) => true
+      case TransformInput(id, UrlEncodeTransformer(_), Seq(PathInput(_, path))) => true
       case TransformInput(id, ConstantTransformer(constant), Nil) => true
       case _ => false
     }
@@ -509,7 +521,7 @@ private object UriPattern {
   def build(inputs: Seq[Input]): String = {
     inputs.map {
       case PathInput(id, path) => "{" + path.serialize() + "}"
-      case TransformInput(id, UrlEncodeTransformer(_,_), Seq(PathInput(_, path))) => "{" + path.serialize() + "}"
+      case TransformInput(id, UrlEncodeTransformer(_), Seq(PathInput(_, path))) => "{" + path.serialize() + "}"
       case TransformInput(id, ConstantTransformer(constant), Nil) => constant
     }.mkString("")
   }

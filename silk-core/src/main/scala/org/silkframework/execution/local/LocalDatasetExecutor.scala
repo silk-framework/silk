@@ -8,6 +8,7 @@ import org.silkframework.dataset.rdf._
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.execution.{DatasetExecutor, TaskException}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -25,7 +26,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   /**
     * Reads data from a dataset.
     */
-  override def read(dataset: Task[DatasetSpec[Dataset]], schema: EntitySchema, execution: LocalExecution): LocalEntities = {
+  override def read(dataset: Task[DatasetSpec[Dataset]], schema: EntitySchema, execution: LocalExecution)
+                   (implicit userContext: UserContext): LocalEntities = {
     schema match {
       case TripleEntitySchema.schema =>
         handleTripleEntitySchema(dataset)
@@ -37,7 +39,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
         handleDatasetResourceEntitySchema(dataset)
       case _ =>
         val entities = dataset.source.retrieve(entitySchema = schema)
-        GenericEntityTable(entities, entitySchema = schema, Some(dataset))
+        GenericEntityTable(entities, entitySchema = schema, dataset)
     }
   }
 
@@ -46,7 +48,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
-            new DatasetResourceEntityTable(dsr.file, Some(dataset))
+            new LocalDatasetResourceEntityTable(dsr.file, dataset)
           case _: Dataset =>
             throw new ValidationException(s"Dataset task ${dataset.id} of type " +
                 s"${datasetSpec.plugin.pluginSpec.label} has no resource (file) or does not support requests for its resource!")
@@ -56,18 +58,20 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def handleMultiEntitySchema(dataset: Task[DatasetSpec[Dataset]], schema: EntitySchema, multi: MultiEntitySchema) = {
+  private def handleMultiEntitySchema(dataset: Task[DatasetSpec[Dataset]], schema: EntitySchema, multi: MultiEntitySchema)
+                                     (implicit userContext: UserContext)= {
     MultiEntityTable(
       entities = dataset.source.retrieve(entitySchema = schema),
       entitySchema = schema,
       subTables =
           for (subSchema <- multi.subSchemata) yield
-            GenericEntityTable(dataset.source.retrieve(entitySchema = subSchema), subSchema, Some(dataset)),
-      taskOption = Some(dataset)
+            GenericEntityTable(dataset.source.retrieve(entitySchema = subSchema), subSchema, dataset),
+      task = dataset
     )
   }
 
-  private def handleTripleEntitySchema(dataset: Task[DatasetSpec[Dataset]]): TripleEntityTable = {
+  private def handleTripleEntitySchema(dataset: Task[DatasetSpec[Dataset]])
+                                      (implicit userContext: UserContext): TripleEntityTable = {
     dataset.data match {
       case rdfDataset: RdfDataset =>
         readTriples(dataset, rdfDataset)
@@ -81,15 +85,16 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   private def handleSparqlEndpointSchema(dataset: Task[GenericDatasetSpec]): SparqlEndpointEntityTable = {
     dataset.data match {
       case rdfDataset: RdfDataset =>
-        new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, Some(dataset))
+        new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
       case DatasetSpec(rdfDataset: RdfDataset, _) =>
-        new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, Some(dataset))
+        new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
       case _ =>
         throw TaskException("Dataset does not offer a SPARQL endpoint!")
     }
   }
 
-  private def readTriples(dataset: Task[GenericDatasetSpec], rdfDataset: RdfDataset) = {
+  private def readTriples(dataset: Task[GenericDatasetSpec], rdfDataset: RdfDataset)
+                         (implicit userContext: UserContext)= {
     val sparqlResult = rdfDataset.sparqlEndpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")
     val tripleEntities = sparqlResult.bindings.view map { resultMap =>
       val s = resultMap("s").value
@@ -108,10 +113,11 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
       }
       Entity(s, IndexedSeq(Seq(s), Seq(p), Seq(value), Seq(typ)), TripleEntitySchema.schema)
     }
-    TripleEntityTable(tripleEntities, Some(dataset))
+    TripleEntityTable(tripleEntities, dataset)
   }
 
-  override protected def write(data: LocalEntities, dataset: Task[DatasetSpec[Dataset]], execution: LocalExecution): Unit = {
+  override protected def write(data: LocalEntities, dataset: Task[DatasetSpec[Dataset]], execution: LocalExecution)
+                              (implicit userContext: UserContext): Unit = {
     data match {
       case LinksTable(links, linkType, _) =>
         withLinkSink(dataset.data.plugin) { linkSink =>
@@ -127,10 +133,27 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
         }
       case datasetResource: DatasetResourceEntityTable =>
         writeDatasetResource(dataset, datasetResource)
+      case sparqlUpdateTable: SparqlUpdateEntityTable =>
+        executeSparqlUpdateQueries(dataset, sparqlUpdateTable)
       case et: LocalEntities =>
         withEntitySink(dataset) { entitySink =>
           writeEntities(entitySink, et)
         }
+    }
+  }
+
+  private def executeSparqlUpdateQueries(dataset: Task[DatasetSpec[Dataset]],
+                                         sparqlUpdateTable: SparqlUpdateEntityTable)
+                                        (implicit userContext: UserContext) = {
+    dataset.plugin match {
+      case rdfDataset: RdfDataset =>
+        val endpoint = rdfDataset.sparqlEndpoint
+        for (entity <- sparqlUpdateTable.entities) {
+          assert(entity.values.size == 1 && entity.values.head.size == 1)
+          endpoint.update(entity.values.head.head)
+        }
+      case _ =>
+        throw new ValidationException(s"Dataset task ${dataset.id} is not an RDF dataset!")
     }
   }
 
@@ -157,7 +180,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def withLinkSink(dataset: Dataset)(f: LinkSink => Unit): Unit = {
+  private def withLinkSink(dataset: Dataset)(f: LinkSink => Unit)(implicit userContext: UserContext): Unit = {
     val sink = dataset.linkSink
     try {
       f(sink)
@@ -166,7 +189,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def withEntitySink(dataset: DatasetSpec[Dataset])(f: EntitySink => Unit): Unit = {
+  private def withEntitySink(dataset: DatasetSpec[Dataset])(f: EntitySink => Unit)(implicit userContext: UserContext): Unit = {
     val sink = dataset.entitySink
     try {
       f(sink)
@@ -175,7 +198,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def writeEntities(sink: EntitySink, entityTable: LocalEntities): Unit = {
+  private def writeEntities(sink: EntitySink, entityTable: LocalEntities)
+                           (implicit userContext: UserContext): Unit = {
     var entityCount = 0
     val startTime = System.currentTimeMillis()
     var lastLog = startTime
@@ -196,7 +220,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     logger.log(Level.INFO, "Finished writing " + entityCount + " entities with type '" + entityTable.entitySchema.typeUri + "' in " + time + " seconds")
   }
 
-  private def writeLinks(sink: LinkSink, links: Seq[Link], linkType: Uri): Unit = {
+  private def writeLinks(sink: LinkSink, links: Seq[Link], linkType: Uri)
+                        (implicit userContext: UserContext): Unit = {
     val startTime = System.currentTimeMillis()
     sink.init()
     for (link <- links) sink.writeLink(link, linkType.uri)
@@ -204,7 +229,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     logger.log(Level.INFO, "Finished writing links in " + time + " seconds")
   }
 
-  private def writeTriples(sink: EntitySink, entities: Traversable[Entity]): Unit = {
+  private def writeTriples(sink: EntitySink, entities: Traversable[Entity])
+                          (implicit userContext: UserContext): Unit = {
     sink match {
       case tripleSink: TripleSink =>
         writeTriples(entities, tripleSink)
@@ -230,7 +256,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def writeTriples(entities: Traversable[Entity], sink: TripleSink): Unit = {
+  private def writeTriples(entities: Traversable[Entity], sink: TripleSink)
+                          (implicit userContext: UserContext): Unit = {
     sink.init()
     for (entity <- entities) {
       if (entity.values.size != 4) {
@@ -247,7 +274,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def writeMultiTables(sink: EntitySink, tables: MultiEntityTable): Unit = {
+  private def writeMultiTables(sink: EntitySink, tables: MultiEntityTable)
+                              (implicit userContext: UserContext): Unit = {
     writeEntities(sink, tables)
     for(table <- tables.subTables) {
       writeEntities(sink, table)

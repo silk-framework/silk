@@ -1,7 +1,9 @@
 package org.silkframework.util
 
+import java.io.{File, FileInputStream, FileOutputStream}
+
 import org.scalatest.MustMatchers
-import org.silkframework.runtime.serialization.{ReadContext, XmlFormat, XmlSerialization}
+import org.silkframework.runtime.serialization._
 
 /**
   * Helper methods for testing XML serialoization and deserialization.
@@ -21,5 +23,19 @@ trait XmlSerializationHelperTrait extends MustMatchers {
     val roundTripObjType = XmlSerialization.fromXml[T](xmlNode)
     roundTripObjType mustBe obj
     extraTests(obj, roundTripObjType)
+  }
+
+  def testRoundTripSerializationStreaming[T <: AnyRef](obj: T)
+                                                      (implicit format: StreamXmlFormat[T]): Unit = {
+    implicit val readContext: ReadContext = ReadContext()
+    val tempFile = File.createTempFile("xmlSerializationTest", ".xml")
+    tempFile.deleteOnExit()
+    val outputStream = new FileOutputStream(tempFile)
+    StreamXml.write(obj, outputStream)
+    outputStream.flush()
+    outputStream.close()
+    val inputStream = new FileInputStream(tempFile)
+    val roundTripEntities = StreamXml.read[T](inputStream)
+    roundTripEntities mustBe obj
   }
 }

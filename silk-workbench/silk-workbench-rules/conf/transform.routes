@@ -19,7 +19,6 @@ GET           /:project/:task/evaluate/generatedEntities                        
 # Execute Transformation
 GET           /:project/:task/execute                                              controllers.transform.ExecuteTransformTab.execute(project: String, task: String)
 GET           /:project/:task/execute/statistics                                   controllers.transform.ExecuteTransformTab.executeStatistics(project: String, task: String)
-GET           /:project/:task/executeDialog                                        controllers.transform.ExecuteTransformTab.executeDialog(project: String, task: String)
 GET           /:project/:task/execute/statusStream                                 controllers.transform.ExecuteTransformTab.statusStream(project: String, task: String)
 
 # API
@@ -35,7 +34,6 @@ POST          /tasks/:project/:task/rule/:rule/rules                            
 POST          /tasks/:project/:task/rule/:rule/rules/reorder                       controllers.transform.TransformTaskApi.reorderRules(project: String, task: String, rule: String)
 POST          /tasks/:project/:task/reloadCache                                    controllers.transform.TransformTaskApi.reloadTransformCache(project: String, task: String)
 PUT           /tasks/:project/:task/executeTransform                               controllers.transform.TransformTaskApi.executeTransformTask(project: String, task: String)
-GET           /tasks/:project/:task/downloadOutput                                 controllers.transform.TransformTaskApi.downloadOutput(project: String, task: String)
 
 POST          /tasks/:project/:task/peak/:rule                                     controllers.transform.PeakTransformApi.peak(project: String, task: String, rule: String)
 POST          /tasks/:project/:task/peak/:rule/childRule                           controllers.transform.PeakTransformApi.peakChildRule(project: String, task: String, rule: String)

@@ -68,6 +68,7 @@ class RulePlugins extends PluginModule {
         classOf[StripPrefixTransformer] ::
         classOf[StripPostfixTransformer] ::
         classOf[StripUriPrefixTransformer] ::
+        classOf[UriFixTransformer] ::
         classOf[AlphaReduceTransformer] ::
         classOf[RemoveSpecialCharsTransformer] ::
         classOf[ConvertCharsetTransformer] ::
@@ -101,6 +102,7 @@ class RulePlugins extends PluginModule {
         classOf[IfMatchesRegexTransformer] ::
         classOf[ContainsAllOf] ::
         classOf[ContainsAnyOf] ::
+        classOf[Negate] ::
         // Numeric
         classOf[NumReduceTransformer] ::
         classOf[NumOperationTransformer] ::
@@ -145,6 +147,7 @@ class RulePlugins extends PluginModule {
         classOf[EqualityMetric] ::
         classOf[InequalityMetric] ::
         classOf[LowerThanMetric] ::
+        classOf[GreaterThanMetric] ::
         classOf[NumMetric] ::
         classOf[DateMetric] ::
         classOf[DateTimeMetric] ::
@@ -155,14 +158,17 @@ class RulePlugins extends PluginModule {
         classOf[TokenwiseStringDistance] ::
         classOf[RelaxedEqualityMetric] ::
         classOf[CosineDistanceMetric] ::
-        classOf[ConstantMetric] :: Nil
+        classOf[ConstantMetric] ::
+        classOf[StartsWithDistance] ::
+        Nil
 
   private def aggregators =
     classOf[AverageAggregator] ::
         classOf[MaximumAggregator] ::
         classOf[MinimumAggregator] ::
         classOf[QuadraticMeanAggregator] ::
-        classOf[GeometricMeanAggregator] :: Nil
+        classOf[GeometricMeanAggregator] ::
+      classOf[NegationAggregator] :: Nil
 
   private def serializers =
     TransformSpecFormat.getClass ::

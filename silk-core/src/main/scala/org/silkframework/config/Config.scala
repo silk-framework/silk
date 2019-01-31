@@ -23,6 +23,7 @@ object Config{
   final val ELDS_HOME_CONF: String = "elds.home"
   final val USER_HOME_CONF: String = "user.home"
   final val DATAINTEGRATION_PATH: String = "/etc/dataintegration"
+  final val DATAINTEGRATION_CONFIG_DIR: String = DATAINTEGRATION_PATH + "/conf"
   final val DATAINTEGRATION_CONF: String = "/conf/dataintegration.conf"
   final val REFERENCE_CONF: String = "/conf/reference.conf"
   final val APPLICATION_CONF: String = "/conf/application.conf"
@@ -60,10 +61,9 @@ class DefaultConfig private() extends Config {
           val configFile = new File(eldsHome + dataintegrationConfigPath)
           if (!configFile.exists) {
             val msg = new StringBuilder
-            msg ++= s"Mandatory configuration file not found at: ${configFile.getAbsolutePath} "
-            if(System.getenv(ELDS_HOME_ENV) != null)
-              msg ++= "and " + System.getenv(ELDS_HOME_ENV) + dataintegrationConfigPath + ""
-            msg ++= ". Possible fix: Map a volume with the config file to this location. "
+            msg ++= s"Configuration file not found at: ${configFile.getAbsolutePath}.\n"
+            msg ++= s"Falling back on default reference.conf file.\n"
+            msg ++= "Possible fix: Map a volume with the config file to this location.\n"
             msg ++= "Otherwise set elds.home or $ELDS_HOME to point to the correct location."
             log.warning(msg.toString())
           }

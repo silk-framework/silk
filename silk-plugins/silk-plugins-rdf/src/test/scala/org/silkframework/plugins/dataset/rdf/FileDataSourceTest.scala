@@ -19,11 +19,13 @@ import java.net.URLDecoder
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.entity.{EntitySchema, Path, StringValueType, UriValueType}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.util.Uri
 
 class FileDataSourceTest extends FlatSpec with Matchers {
+  behavior of "File Data Source"
 
   implicit val prefixes: Prefixes = Map(
     "rdf" -> "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
@@ -31,11 +33,13 @@ class FileDataSourceTest extends FlatSpec with Matchers {
     "do" -> "http://dbpedia.org/ontology/"
   )
 
+  implicit val userContext: UserContext = UserContext.Empty
+
   val fileName = "test.nt"
 
-  val resourceLoader = new FileResourceManager(new File(URLDecoder.decode(getClass.getClassLoader.getResource("org/silkframework/plugins/dataset/rdf").getFile, "UTF-8")))
+  val resourceLoader = FileResourceManager(new File(URLDecoder.decode(getClass.getClassLoader.getResource("org/silkframework/plugins/dataset/rdf").getFile, "UTF-8")))
 
-  val dataset = new RdfFileDataset(resourceLoader.get(fileName), "N-TRIPLE")
+  val dataset = RdfFileDataset(resourceLoader.get(fileName), "N-TRIPLE")
 
   val entityDescCity =
     EntitySchema(
@@ -43,32 +47,41 @@ class FileDataSourceTest extends FlatSpec with Matchers {
       typedPaths = IndexedSeq(Path.parse("?a/rdfs:label").asStringTypedPath)
     )
 
-  "FileDataSource" should "return all cities" in {
+  it should "return all cities" in {
     dataset.source.retrieve(entityDescCity).size should equal (3)
   }
 
-  "FileDataSource" should "return entities by uri" in {
+  it should "return entities by uri" in {
     dataset.source.retrieveByUri(entityDescCity, "http://dbpedia.org/resource/Berlin" :: Nil).size should equal (1)
   }
 
-  val pathPlaces = Path.parse("?a/do:place/rdfs:label")
+  private val pathPlaces = Path.parse("?a/do:place/rdfs:label")
 
-  val pathPlacesCalledMunich = Path.parse("""?a/do:place[rdfs:label = "Munich"]/rdfs:label""")
+  private val pathPlacesCalledMunich = Path.parse("""?a/do:place[rdfs:label = "Munich"]/rdfs:label""")
 
-  val pathCities = Path.parse("""?a/do:place[rdf:type = do:City]/rdfs:label""")
+  private val pathCities = Path.parse("""?a/do:place[rdf:type = do:City]/rdfs:label""")
 
-  val entityDescPerson =
+  private val entityDescPerson =
     EntitySchema(
       typeUri = Uri("http://dbpedia.org/ontology/Person"),
       typedPaths = IndexedSeq(pathPlaces, pathPlacesCalledMunich, pathCities).map(_.asStringTypedPath)
     )
 
-  val persons = dataset.source.retrieve(entityDescPerson).toList
+  private val persons = dataset.source.retrieve(entityDescPerson).toList
 
-  "FileDataSource" should "work with filters" in {
+  it should "work with filters" in {
     persons.size should equal (1)
     persons.head.evaluate(pathPlaces).toSet should equal (Set("Berlin", "Munich", "Some Place"))
     persons.head.evaluate(pathPlacesCalledMunich).toSet should equal (Set("Munich"))
     persons.head.evaluate(pathCities).toSet should equal (Set("Berlin", "Munich"))
+  }
+
+  it should "return typed paths" in {
+    dataset.source.retrieveTypedPath("http://dbpedia.org/ontology/City").
+        map(tp => tp.normalizedSerialization -> tp.valueType) shouldBe IndexedSeq(
+          "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>" -> UriValueType,
+          "<http://www.w3.org/2000/01/rdf-schema#label>" -> StringValueType,
+          "\\<http://dbpedia.org/ontology/place>" -> UriValueType
+    )
   }
 }

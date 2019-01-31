@@ -173,9 +173,10 @@ object PluginDescription {
       } getOrElse ("No description", defaultValue)
 
       val advanced = pluginParam exists (_.advanced())
+      val visible = pluginParam forall (_.visibleInDialog())
 
       val dataType = ParameterType.forType(parType)
-      Parameter(parName, dataType, label, description, defaultValue, exampleValue, advanced)
+      Parameter(parName, dataType, label, description, defaultValue, exampleValue, advanced, visible)
     }
   }
 

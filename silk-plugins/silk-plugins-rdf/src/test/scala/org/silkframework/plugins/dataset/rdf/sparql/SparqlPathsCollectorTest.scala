@@ -24,12 +24,15 @@ import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path}
 import org.silkframework.plugins.dataset.rdf.SparqlDataset
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Timer
 
 class SparqlPathsCollectorTest extends FlatSpec with ShouldMatchers with BeforeAndAfterAll {
 
   private val graphDBpedia = "http://example.org/dbpedia"
   private val graphSchemaOrg = "http://example.org/schemaOrg"
+
+  implicit val userContext: UserContext = UserContext.Empty
 
   private lazy val endpoint = createEndpoint()
 
@@ -109,6 +112,7 @@ class SparqlPathsCollectorTest extends FlatSpec with ShouldMatchers with BeforeA
  */
 object SparqlPathsCollectorBenchmark {
   implicit val logger: Logger = Logger.getLogger(getClass.getName)
+  implicit val userContext: UserContext = UserContext.Empty
 
   private val tests = {
     Test(
@@ -131,7 +135,7 @@ object SparqlPathsCollectorBenchmark {
     def execute() {
       logger.info("Executing " + name + " test")
 
-      val endpoint = new RemoteSparqlEndpoint(SparqlParams(uri, retryCount = 100))
+      val endpoint = RemoteSparqlEndpoint(SparqlParams(uri, retryCount = 100))
       val sparqlRestriction = SparqlRestriction.fromSparql("a", restriction)
       val limit = Some(50)
 
@@ -142,6 +146,8 @@ object SparqlPathsCollectorBenchmark {
       Timer("SparqlSamplePathsCollector") {
         SparqlSamplePathsCollector(endpoint, None, sparqlRestriction, limit).toList
       }
+
+
     }
   }
 }

@@ -17,6 +17,7 @@ object JsonHelpers {
 
   def mustBeJsObject[T](jsValue: JsValue)(block: JsObject => T): T = {
     jsValue match {
+      case null => null.asInstanceOf[T]             //valid object representation
       case jsObject: JsObject => block(jsObject)
       case _ => throw JsonParseException("Error while parsing. JSON value is not JSON object!")
     }
@@ -24,6 +25,7 @@ object JsonHelpers {
 
   def mustBeJsArray[T](jsValue: JsValue)(block: JsArray => T): T = {
     jsValue match {
+      case null => null.asInstanceOf[T]             //valid array representation
       case jsArray: JsArray => block(jsArray)
       case _ => throw JsonParseException("Error while parsing. JSON value is not a JSON array!")
     }
@@ -89,6 +91,17 @@ object JsonHelpers {
     }
   }
 
+  def arrayValueOption(json: JsValue, attributeName: String): Option[JsArray] = {
+    optionalValue(json, attributeName) match {
+      case Some(jsArray @ JsArray(_)) =>
+        Some(jsArray)
+      case Some(_) =>
+        throw JsonParseException("Value for attribute '" + attributeName + "' is not a JSON array!")
+      case None =>
+        None
+    }
+  }
+
   def optionalValue(json: JsValue, attributeName: String): Option[JsValue] = {
     (json \ attributeName).toOption.filterNot(_ == JsNull)
   }
@@ -121,12 +134,18 @@ object JsonHelpers {
     }
   }
 
-  def metaData(json: JsValue)(implicit readContext: ReadContext): MetaData = {
+  /**
+    * Reads meta data.
+    *
+    * @param json The json to read the meta data from.
+    * @param identifier If no label is provided in the json, use this identifier to generate a label.
+    */
+  def metaData(json: JsValue, identifier: String)(implicit readContext: ReadContext): MetaData = {
     optionalValue(json, METADATA) match {
       case Some(metaDataJson) =>
-        MetaDataJsonFormat.read(metaDataJson)
+        MetaDataJsonFormat.read(metaDataJson, identifier)
       case None =>
-        MetaData.empty
+        MetaData(MetaData.labelFromId(identifier))
     }
   }
 

@@ -1,13 +1,17 @@
 package org.silkframework.plugins.dataset.csv
 
 import java.io.Reader
+import java.util.logging.Logger
 
 import com.univocity.parsers.csv.{CsvParserSettings, CsvParser => UniCsvParser}
+
+import scala.util.Try
 
 class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
   private final val MAX_CHARS_PER_COLUMNS_DEFAULT = 100000
   private final val MAX_COLUMNS_DEFAULT = 100000
   private val parserSettings = new CsvParserSettings()
+  private val log: Logger = Logger.getLogger(classOf[CsvParser].getName)
   import settings._
   parserSettings.getFormat.setDelimiter(separator)
   parserSettings.setLineSeparatorDetectionEnabled(true)
@@ -47,7 +51,10 @@ class CsvParser(selectedIndices: Seq[Int], settings: CsvSettings) {
 
   /** Stops parsing and closes all open resources. */
   def stopParsing(): Unit = {
-    parser.stopParsing()
+    val result = Try(parser.stopParsing())
+    if(result.isFailure) {
+      log.warning("Some error occurred during stopping the CSV Parser. Error message: " + result.failed.get.getMessage)
+    }
   }
 
   def parseLine(line: String): Seq[String] = {

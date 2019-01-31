@@ -2,16 +2,18 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
-import org.silkframework.dataset.rdf.{RdfDataset, SparqlParams}
+import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
+import org.silkframework.dataset.rdf.{RdfDataset, SparqlParams}
 import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.{Entity, EntitySchema, Path, TypedPath}
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
 import org.silkframework.plugins.dataset.rdf.formatters._
 import org.silkframework.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 import org.silkframework.runtime.resource.WritableResource
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 
 @Plugin(
   id = "file",
@@ -61,9 +63,11 @@ case class RdfFileDataset(
   override def sparqlEndpoint: JenaEndpoint = {
     // Load data set
     val dataset = DatasetFactory.createTxnMem()
-    val inputStream = file.inputStream
-    RDFDataMgr.read(dataset, inputStream, lang)
-    inputStream.close()
+    if(file.exists) {
+      val inputStream = file.inputStream
+      RDFDataMgr.read(dataset, inputStream, lang)
+      inputStream.close()
+    }
 
     // Retrieve model
     val model =
@@ -73,44 +77,48 @@ case class RdfFileDataset(
     new JenaModelEndpoint(model)
   }
 
-  override def source: FileSource.type = FileSource
+  override def source(implicit userContext: UserContext): FileSource.type = FileSource
 
-  override def linkSink: FormattedLinkSink = new FormattedLinkSink(file, formatter)
+  override def linkSink(implicit userContext: UserContext): FormattedLinkSink = new FormattedLinkSink(file, formatter)
 
-  override def entitySink: FormattedEntitySink = new FormattedEntitySink(file, formatter)
+  override def entitySink(implicit userContext: UserContext): FormattedEntitySink = new FormattedEntitySink(file, formatter)
 
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
 
-  object FileSource extends DataSource with PeakDataSource with Serializable {
+  object FileSource extends DataSource with PeakDataSource with Serializable with SamplingDataSource
+      with SchemaExtractionSource with SparqlRestrictionDataSource with TypedPathRetrieveDataSource {
 
     // Load dataset
     private var endpoint: JenaEndpoint = null
     private var lastModificationTime: Option[(Long, Int)] = None
 
-    override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None): Traversable[Entity] = {
+    override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
+                         (implicit userContext: UserContext): Traversable[Entity] = {
       load()
       EntityRetriever(endpoint).retrieve(entitySchema, entityRestriction, None)
     }
 
-    override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri]): Seq[Entity] = {
+    override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
+                              (implicit userContext: UserContext): Traversable[Entity] = {
       if (entities.isEmpty) {
         Seq.empty
       } else {
         load()
-        EntityRetriever(endpoint).retrieve(entitySchema, entities, None).toSeq
+        sparqlSource.retrieveByUri(entitySchema, entities)
       }
     }
 
-    override def retrievePaths(t: Uri, depth: Int, limit: Option[Int]): IndexedSeq[Path] = {
+    override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
+                              (implicit userContext: UserContext): IndexedSeq[Path] = {
       load()
-      val restrictions = SparqlRestriction.forType(t)
-      SparqlAggregatePathsCollector(endpoint, graphOpt, restrictions, limit)
+      sparqlSource.retrievePaths(t, depth, limit)
     }
 
-    override def retrieveTypes(limit: Option[Int]): Traversable[(String, Double)] = {
+    override def retrieveTypes(limit: Option[Int])
+                              (implicit userContext: UserContext): Traversable[(String, Double)] = {
       load()
-      SparqlTypesCollector(endpoint, graphOpt, limit)
+      sparqlSource.retrieveTypes(limit)
     }
 
     /**
@@ -130,7 +138,43 @@ case class RdfFileDataset(
         }
       }
     }
+
+    /**
+      * The dataset task underlying the Datset this source belongs to
+      */
+    override def underlyingTask: Task[DatasetSpec[Dataset]] = {
+      PlainTask(Identifier.fromAllowed(RdfFileDataset.this.file.name), DatasetSpec(EmptyDataset))
+    } //FIXME CMEM 1352 replace with actual task
+
+    override def retrievePathsSparqlRestriction(sparqlRestriction: SparqlRestriction, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[Path] = {
+      load()
+      sparqlSource.retrievePathsSparqlRestriction(sparqlRestriction, limit)
+    }
+
+    override def sampleValues(typeUri: Option[Uri],
+                              typedPaths: Seq[TypedPath],
+                              valueSampleLimit: Option[Int])
+                             (implicit userContext: UserContext): Seq[Traversable[String]] = {
+      load()
+      sparqlSource.sampleValues(typeUri, typedPaths, valueSampleLimit)
+    }
+
+    override def extractSchema[T](analyzerFactory: ValueAnalyzerFactory[T],
+                                  pathLimit: Int,
+                                  sampleLimit: Option[Int],
+                                  progressFN: Double => Unit)
+                                 (implicit userContext: UserContext): ExtractedSchema[T] = {
+      load()
+      sparqlSource.extractSchema(analyzerFactory, pathLimit, sampleLimit, progressFN)
+    }
+
+    override def retrieveTypedPath(typeUri: Uri, depth: Int, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+      load()
+      sparqlSource.retrieveTypedPath(typeUri, depth, limit)
+    }
+
+    private def sparqlSource = new SparqlSource(SparqlParams(graph = graphOpt), endpoint)
   }
 
-  override def tripleSink: TripleSink = new FormattedEntitySink(file, formatter)
+  override def tripleSink(implicit userContext: UserContext): TripleSink = new FormattedEntitySink(file, formatter)
 }

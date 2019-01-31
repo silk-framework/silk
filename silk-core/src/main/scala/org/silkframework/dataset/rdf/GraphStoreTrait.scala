@@ -5,6 +5,7 @@ import java.net.{HttpURLConnection, SocketTimeoutException, URL, URLEncoder}
 import java.util.logging.Logger
 
 import org.silkframework.config.DefaultConfig
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.HttpURLConnectionUtils._
 
 import scala.util.control.NonFatal
@@ -14,17 +15,26 @@ import scala.util.control.NonFatal
  */
 trait GraphStoreTrait {
 
+  private val UNAUTHORIZED = 401
+
   def graphStoreEndpoint(graph: String): String
 
-  def graphStoreHeaders(): Map[String, String] = Map.empty
+  /** HTTP headers to add to the graph store requests */
+  def graphStoreHeaders(userContext: UserContext): Map[String, String] = Map.empty
 
   /**
     * Handles a connection error.
     * The default implementation throws a runtime exception that contains the error body as read from the connection.
     */
   def handleError(connection: HttpURLConnection, message: String): Nothing = {
-    val serverErrorMessage = connection.errorMessage(prefix = "Error response: ").getOrElse("")
-    throw new RuntimeException(message + serverErrorMessage)
+    val serverErrorMessage = connection.errorMessage(prefix = " Error message: ").getOrElse("")
+    throw new RuntimeException(message + s" Got ${connection.getResponseCode} response." + serverErrorMessage)
+  }
+
+  /** This is called if an authentication error (401) happened.
+    * @return true if the authentication problem could be fixed, false otherwise. */
+  def handleAuthenticationError(userContext: UserContext): Boolean = {
+    false
   }
 
   def defaultTimeouts: GraphStoreDefaults = {
@@ -32,7 +42,9 @@ trait GraphStoreTrait {
     val connectionTimeout = cfg.getInt("graphstore.default.connection.timeout.ms")
     val readTimeout = cfg.getInt("graphstore.default.read.timeout.ms")
     val maxRequestSize = cfg.getLong("graphstore.default.max.request.size")
-    GraphStoreDefaults(connectionTimeoutIsMs = connectionTimeout, readTimeoutMs = readTimeout, maxRequestSize = maxRequestSize)
+    val fileUploadTimeout = cfg.getInt("graphstore.default.fileUpload.timeout.ms")
+    GraphStoreDefaults(connectionTimeoutInMs = connectionTimeout, readTimeoutMs = readTimeout,
+      maxRequestSize = maxRequestSize, fileUploadTimeoutInMs = fileUploadTimeout)
   }
 
   /**
@@ -45,25 +57,37 @@ trait GraphStoreTrait {
   def postDataToGraph(graph: String,
                       contentType: String = "application/n-triples",
                       chunkedStreamingMode: Option[Int] = Some(1000),
-                      comment: Option[String] = None): OutputStream = {
+                      comment: Option[String] = None)
+                     (implicit userContext: UserContext): OutputStream = {
     val connection: HttpURLConnection = initConnection(graph, comment)
     connection.setDoInput(true)
     connection.setDoOutput(true)
     chunkedStreamingMode foreach { connection.setChunkedStreamingMode }
     connection.setUseCaches(false)
     connection.setRequestProperty("Content-Type", contentType)
-    ConnectionClosingOutputStream(connection, handleError)
+    // since the OutputStream is used externally we cannot do the authentication error handling here
+    ConnectionClosingOutputStream(connection, userContext, errorHandler)
   }
 
-  def deleteGraph(graph: String): Unit = {
-    val connection = initConnection(graph)
-    connection.setRequestMethod("DELETE")
-    if(connection.getResponseCode / 100 != 2) {
-      handleError(connection, s"Could not delete graph $graph")
+  def deleteGraph(graph: String)
+                 (implicit userContext: UserContext): Unit = {
+    var tries = 0
+    while(tries < 2) {
+      tries += 1
+      val connection = initConnection(graph)
+      connection.setRequestMethod("DELETE")
+      if(connection.getResponseCode / 100 != 2) {
+        if(tries == 1 && connection.getResponseCode == UNAUTHORIZED) {
+          handleAuthenticationError(userContext)
+        } else {
+          handleError(connection, s"Could not delete graph $graph!")
+        }
+      }
     }
   }
 
-  private def initConnection(graph: String, comment: Option[String] = None): HttpURLConnection = {
+  private def initConnection(graph: String, comment: Option[String] = None)
+                            (implicit userContext: UserContext): HttpURLConnection = {
     var graphStoreUrl = graphStoreEndpoint(graph)
     for(c <- comment) {
       graphStoreUrl += "&comment=" + URLEncoder.encode(c, "UTF8")
@@ -71,28 +95,36 @@ trait GraphStoreTrait {
     val url = new URL(graphStoreUrl)
     val connection = url.openConnection().asInstanceOf[HttpURLConnection]
     connection.setRequestMethod("POST")
-    for ((header, headerValue) <- graphStoreHeaders()) {
+    for ((header, headerValue) <- graphStoreHeaders(userContext)) {
       connection.setRequestProperty(header, headerValue)
     }
-    connection.setConnectTimeout(defaultTimeouts.connectionTimeoutIsMs)
+    connection.setConnectTimeout(defaultTimeouts.connectionTimeoutInMs)
     connection.setReadTimeout(defaultTimeouts.readTimeoutMs)
     connection
   }
 
+  private def errorHandler: ErrorHandler = ErrorHandler(handleError, handleAuthenticationError)
+
   def getDataFromGraph(graph: String,
-                       acceptType: String = "text/turtle; charset=utf-8"): InputStream = {
-    val connection: HttpURLConnection = initConnection(graph)
-    connection.setRequestMethod("GET")
-    connection.setDoInput(true)
-    connection.setRequestProperty("Accept", acceptType)
-    ConnectionClosingInputStream(connection, handleError)
+                       acceptType: String = "text/turtle; charset=utf-8")
+                      (implicit userContext: UserContext): InputStream = {
+    def connection(): HttpURLConnection = {
+      val c = initConnection(graph)
+      c.setRequestMethod("GET")
+      c.setDoInput(true)
+      c.setRequestProperty("Accept", acceptType)
+      c
+    }
+    ConnectionClosingInputStream(connection, userContext, errorHandler)
   }
 }
 
 /**
  * Handles the sending of the request and the closing of the connection on closing the [[OutputStream]].
  */
-case class ConnectionClosingOutputStream(connection: HttpURLConnection, errorHandler: (HttpURLConnection, String) => Nothing) extends OutputStream {
+case class ConnectionClosingOutputStream(connection: HttpURLConnection,
+                                         userContext: UserContext,
+                                         errorHandler: ErrorHandler) extends OutputStream {
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   private lazy val outputStream = {
@@ -111,7 +143,10 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection, errorHan
       if(responseCode / 100 == 2) {
         log.fine("Successfully written to output stream.")
       } else {
-        errorHandler(connection, s"Could not write to graph store. Got $responseCode response code.")
+        if(responseCode == 401) {
+          errorHandler.authenticationErrorHandler(userContext) // Nothing else we can do here, all the data has already been written
+        }
+        errorHandler.genericErrorHandler(connection, s"Could not write to graph store. Got $responseCode response code.")
       }
     } catch {
       case _: SocketTimeoutException =>
@@ -124,17 +159,32 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection, errorHan
   }
 }
 
-case class ConnectionClosingInputStream(connection: HttpURLConnection, errorHandler: (HttpURLConnection, String) => Nothing) extends InputStream {
+case class ConnectionClosingInputStream(createConnection: () => HttpURLConnection,
+                                        userContext: UserContext,
+                                        errorHandler: ErrorHandler) extends InputStream {
   private val log: Logger = Logger.getLogger(this.getClass.getName)
+  private var connection: HttpURLConnection = null
 
   private lazy val inputStream: InputStream = {
-    connection.connect()
-    try {
-      connection.getInputStream
-    } catch {
-      case NonFatal(_) =>
-        errorHandler(connection, s"Could not read from graph store. Got ${connection.getResponseCode} response code.")
+    var tries = 0
+    var is: InputStream = null
+    while(tries < 2) {
+      tries += 1
+      connection = createConnection()
+      connection.connect()
+      try {
+        is = connection.getInputStream
+      } catch {
+        case NonFatal(_) =>
+          if(tries == 1 && connection.getResponseCode == 401 && errorHandler.authenticationErrorHandler(userContext)) {
+            // Authentication problem solved, let's try again
+          } else {
+            errorHandler.genericErrorHandler(connection, s"Could not read from graph store. Got ${connection.getResponseCode} response code.")
+          }
+      }
     }
+    assert(is != null, "InputStream has not been initialized!")
+    is
   }
 
   override def read(): Int = inputStream.read()
@@ -146,7 +196,10 @@ case class ConnectionClosingInputStream(connection: HttpURLConnection, errorHand
       if(responseCode / 100 == 2) {
         log.fine("Successfully received data from input stream.")
       } else {
-        errorHandler(connection, s"Could not read from graph store. Got $responseCode response code.")
+        if(responseCode == 401) {
+          errorHandler.authenticationErrorHandler(userContext)
+        }
+        errorHandler.genericErrorHandler(connection, s"Could not read from graph store. Got $responseCode response code.")
       }
     } finally {
       connection.disconnect()
@@ -154,4 +207,10 @@ case class ConnectionClosingInputStream(connection: HttpURLConnection, errorHand
   }
 }
 
-case class GraphStoreDefaults(connectionTimeoutIsMs: Int, readTimeoutMs: Int, maxRequestSize: Long)
+case class GraphStoreDefaults(connectionTimeoutInMs: Int,
+                              readTimeoutMs: Int,
+                              maxRequestSize: Long,
+                              fileUploadTimeoutInMs: Int)
+
+case class ErrorHandler(genericErrorHandler: (HttpURLConnection, String) => Nothing,
+                        authenticationErrorHandler: (UserContext) => Boolean = (_) => false)

@@ -5,6 +5,7 @@ import java.util.logging.Logger
 
 import org.silkframework.dataset.LinkSink
 import org.silkframework.entity.Link
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{FileResource, WritableResource}
 
 /**
@@ -31,7 +32,7 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
     }
   }
 
-  override def init(): Unit = {
+  override def init()(implicit userContext: UserContext): Unit = {
     // If we got a java file, we write directly to it, otherwise we write to a temporary string
     formattedLinkWriter = javaFile match {
       case Some(file) =>
@@ -44,11 +45,12 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
     write(formatter.header)
   }
 
-  override def writeLink(link: Link, predicateUri: String) {
+  override def writeLink(link: Link, predicateUri: String)
+                        (implicit userContext: UserContext): Unit = {
     write(formatter.format(link, predicateUri))
   }
 
-  override def close() {
+  override def close()(implicit userContext: UserContext): Unit = {
     formattedLinkWriter match {
       case Some(writer: StringWriter) =>
         write(formatter.footer)
@@ -69,7 +71,7 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
   /**
     * Makes sure that the next write will start from an empty dataset.
     */
-  override def clear(): Unit = {
+  override def clear()(implicit userContext: UserContext): Unit = {
     resource.delete()
   }
 }

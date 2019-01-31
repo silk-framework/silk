@@ -19,9 +19,9 @@ import java.util.logging.{Level, Logger}
 
 import org.apache.jena.query._
 import org.apache.jena.update.UpdateProcessor
-import org.silkframework.dataset.rdf.{BlankNode, DataTypeLiteral, LanguageLiteral, PlainLiteral, Resource, SparqlEndpoint, SparqlResults => SilkResultSet}
+import org.silkframework.dataset.rdf.{RdfNode, SparqlEndpoint, SparqlResults => SilkResultSet}
+import org.silkframework.runtime.activity.UserContext
 
-import scala.collection.JavaConversions._
 import scala.collection.immutable.SortedMap
 
 /**
@@ -50,7 +50,8 @@ abstract class JenaEndpoint extends SparqlEndpoint {
   /**
    * Executes a SPARQL SELECT query.
    */
-  override def select(sparql: String, limit: Int): SilkResultSet = synchronized {
+  override def select(sparql: String, limit: Int)
+                     (implicit userContext: UserContext): SilkResultSet = synchronized {
     val query = QueryFactory.create(sparql)
     // Log query
     if (logger.isLoggable(Level.FINE)) logger.fine("Executing query:\n" + sparql)
@@ -74,7 +75,8 @@ abstract class JenaEndpoint extends SparqlEndpoint {
   /**
     * Executes a construct query.
     */
-  override def construct(query: String): String = synchronized {
+  override def construct(query: String)
+                        (implicit userContext: UserContext): String = synchronized {
     val qe = createQueryExecution(QueryFactory.create(query))
     try {
       val resultModel = qe.execConstruct()
@@ -90,7 +92,8 @@ abstract class JenaEndpoint extends SparqlEndpoint {
   /**
     * Executes an update query.
     */
-  override def update(query: String): Unit = synchronized {
+  override def update(query: String)
+                     (implicit userContext: UserContext): Unit = synchronized {
     createUpdateExecution(query).execute()
   }
 
@@ -99,40 +102,13 @@ abstract class JenaEndpoint extends SparqlEndpoint {
    */
   private def toSilkResults(resultSet: ResultSet) = {
     val results =
-      for (result <- resultSet) yield {
-        toSilkBinding(result)
+      new Traversable[SortedMap[String, RdfNode]] {
+        override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
+          JenaResultsReader.read(resultSet, f)
+        }
       }
 
     SilkResultSet(results.toList)
   }
 
-  /**
-   * Converts a Jena ARQ QuerySolution to a Silk binding
-   */
-  private def toSilkBinding(querySolution: QuerySolution) = {
-    val values =
-      for (varName <- querySolution.varNames.toList;
-           value <- Option(querySolution.get(varName))) yield {
-        (varName, toSilkNode(value))
-      }
-
-    SortedMap(values: _*)
-  }
-
-  /**
-   *  Converts a Jena RDFNode to a Silk Node.
-   */
-  private def toSilkNode(node: org.apache.jena.rdf.model.RDFNode) = node match {
-    case r: org.apache.jena.rdf.model.Resource if !r.isAnon => Resource(r.getURI)
-    case r: org.apache.jena.rdf.model.Resource => BlankNode(r.getId.getLabelString)
-    case l: org.apache.jena.rdf.model.Literal => {
-      val dataType = Option(l.getDatatypeURI)
-      val lang = Option(l.getLanguage).filterNot(_.isEmpty)
-      val lexicalValue = l.getString
-      lang.map(LanguageLiteral(lexicalValue, _)).
-          orElse(dataType.map(DataTypeLiteral(lexicalValue, _))).
-          getOrElse(PlainLiteral(lexicalValue))
-    }
-    case _ => throw new IllegalArgumentException("Unsupported Jena RDFNode type '" + node.getClass.getName + "' in Jena SPARQL results")
-  }
 }

@@ -3,11 +3,12 @@ package org.silkframework.workspace.activity.workflow
 import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, VariableDataset}
 import org.silkframework.entity.EntitySchema
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 
-import scala.xml.{Elem, Node, Text}
+import scala.xml.{Node, Text}
 
 /**
   * A workflow is a DAG, whose nodes are either datasets or operators and specifies the data flow between them.
@@ -117,7 +118,8 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
     * @return
     * @throws Exception if a variable dataset is used as input and output, which is not allowed.
     */
-  def variableDatasets(project: Project): AllVariableDatasets = {
+  def variableDatasets(project: Project)
+                      (implicit userContext: UserContext): AllVariableDatasets = {
     val variableDatasetsUsedInOutput =
       for (datasetTask <- outputDatasets(project)
            if datasetTask.data.plugin.isInstanceOf[VariableDataset]) yield {
@@ -137,7 +139,8 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
   }
 
   /** Returns all Dataset tasks that are used as input in the workflow */
-  def inputDatasets(project: Project): Seq[ProjectTask[DatasetSpec[Dataset]]] = {
+  def inputDatasets(project: Project)
+                   (implicit userContext: UserContext): Seq[ProjectTask[DatasetSpec[Dataset]]] = {
     for (datasetNodeId <- operators.flatMap(_.inputs).distinct;
          dataset <- project.taskOption[DatasetSpec[Dataset]](nodeById(datasetNodeId).task)) yield {
       dataset
@@ -145,7 +148,8 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
   }
 
   /** Returns all Dataset tasks that are uesd as output in the workflow */
-  def outputDatasets(project: Project): Seq[ProjectTask[DatasetSpec[Dataset]]] = {
+  def outputDatasets(project: Project)
+                    (implicit userContext: UserContext): Seq[ProjectTask[DatasetSpec[Dataset]]] = {
     for (datasetNodeId <- operators.flatMap(_.outputs).distinct;
          dataset <- project.taskOption[DatasetSpec[Dataset]](nodeById(datasetNodeId).task)) yield {
       dataset
@@ -155,7 +159,7 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
   /** Returns node ids of workflow nodes that have inputs from other nodes */
   def inputWorkflowNodeIds(): Seq[String] = {
     val outputs = nodes.flatMap(_.outputs).distinct
-    val nodesWithInputs = nodes.filter(_.inputs.size > 0).map(_.nodeId)
+    val nodesWithInputs = nodes.filter(_.inputs.nonEmpty).map(_.nodeId)
     (outputs ++ nodesWithInputs).distinct
   }
 
@@ -170,11 +174,6 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
     val nodesWithOutputs = nodes.filter(_.outputs.nonEmpty).map(_.nodeId)
     (inputs ++ nodesWithOutputs).distinct
   }
-
-  case class AllVariableDatasets(dataSources: Seq[String], sinks: Seq[String])
-
-  case class WorkflowDependencyGraph(startNodes: Iterable[WorkflowDependencyNode],
-                                     endNodes: Seq[WorkflowDependencyNode])
 
   /**
     * A workflow does not have any inputs.
@@ -196,6 +195,11 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
     * The tasks that this task writes to.
     */
   override def outputTasks: Set[Identifier] = nodes.filter(_.inputs.nonEmpty).map(_.task).toSet
+
+  /**
+    * All tasks in this workflow.
+    */
+  override def referencedTasks: Set[Identifier] = nodes.map(_.task).toSet
 
   /**
     * Returns this workflow with position parameters of all workflow operators being set automatically by a layout algorithm.
@@ -227,6 +231,14 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
     }
   }
 }
+
+/** All IDs of variable datasets in a workflow */
+case class AllVariableDatasets(dataSources: Seq[String], sinks: Seq[String])
+
+/** The workflow dependency graph */
+case class WorkflowDependencyGraph(startNodes: Iterable[WorkflowDependencyNode],
+                                   endNodes: Seq[WorkflowDependencyNode])
+
 
 object Workflow {
 
@@ -303,7 +315,7 @@ object Workflow {
     }
 
     private def parseOutputPriority(op: Node): Option[Double] = {
-      val node = ((op \ "@outputPriority"))
+      val node = op \ "@outputPriority"
       if (node.isEmpty) {
         None
       } else {
@@ -312,7 +324,7 @@ object Workflow {
     }
 
     private def parseNodeId(op: Node, task: String): String = {
-      val node = ((op \ "@id"))
+      val node = op \ "@id"
       if (node.isEmpty) {
         task
       } else {
@@ -361,7 +373,17 @@ case class WorkflowDependencyNode(workflowNode: WorkflowNode) {
 
   def followingNodes: Set[WorkflowDependencyNode] = _followingNodes
 
+  /**
+    * Returns all nodes that directly precede this node.
+    */
   def precedingNodes: Set[WorkflowDependencyNode] = _precedingNodes
+
+  /**
+    * Returns all nodes that directly or indirectly precede this node.
+    */
+  def precedingNodesRecursively: Set[WorkflowDependencyNode] = {
+    precedingNodes ++ precedingNodes.flatMap(_.precedingNodesRecursively)
+  }
 
   def inputNodes: Seq[WorkflowDependencyNode] = {
     for (

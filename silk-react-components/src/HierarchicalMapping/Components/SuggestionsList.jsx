@@ -10,6 +10,7 @@ import {
     CardActions,
     ConfirmationDialog,
     Info,
+    Error,
     ContextMenu,
     MenuItem,
     Spinner,
@@ -48,6 +49,8 @@ const SuggestionsList = React.createClass({
             rawData: undefined,
             askForDiscard: false,
             checked: this.defaultCheckValue,
+            matchFromDataset: true,
+            warnings: [],
         };
     },
     onChecked(v) {
@@ -66,16 +69,18 @@ const SuggestionsList = React.createClass({
                 data: {
                     targetClassUris: this.props.targetClassUris,
                     ruleId: this.props.ruleId,
+                    matchFromDataset: this.state.matchFromDataset,
                 },
             })
             .subscribe(
                 response => {
-                    const rawData = response.suggestions.map(v => ({
+                    const rawData = _.map(response.suggestions, v => ({
                         ...v,
                         checked: this.defaultCheckValue,
                         type: v.type || SUGGESTION_TYPES[0],
                     }));
                     this.setState({
+                        warnings: response.warnings.filter(w => !_.isEmpty(w)),
                         loading: false,
                         rawData,
                         data: this.state.showDefaultProperties
@@ -219,6 +224,7 @@ const SuggestionsList = React.createClass({
     },
     // template rendering
     render() {
+
         if (this.state.loading) {
             return <Spinner />;
         }
@@ -289,6 +295,19 @@ const SuggestionsList = React.createClass({
 
         let suggestionsList = false;
         const hasChecks = _.get(this.state, 'checked');
+        const warnings = !_.isEmpty(this.state.warnings) && (
+            <Error>
+                {_.map(
+                    this.state.warnings,
+                    warn => (
+                        <div className="ecc-hm-suggestions-error">
+                            <b>{warn.title}</b>
+                            <div>{warn.detail}</div>
+                        </div>
+                    ),
+                )}
+            </Error>
+        );
 
         if (_.size(this.state.data) === 0) {
             suggestionsList = (
@@ -393,6 +412,7 @@ const SuggestionsList = React.createClass({
                         </ContextMenu>
                     </CardMenu>
                 </CardTitle>
+                {warnings}
                 {suggestionsList}
                 <CardActions fixed>
                     <AffirmativeButton

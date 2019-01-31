@@ -17,6 +17,7 @@ package org.silkframework.plugins.dataset.rdf.sparql
 import java.util.logging.Logger
 
 import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Timer
 
 object SparqlAggregateTypesCollector extends SparqlTypesCollector {
@@ -25,7 +26,8 @@ object SparqlAggregateTypesCollector extends SparqlTypesCollector {
 
   private implicit val logger = Logger.getLogger(getClass.getName)
 
-  def apply(endpoint: SparqlEndpoint, graph: Option[String], limit: Option[Int]): Traversable[(String, Double)] = {
+  def apply(endpoint: SparqlEndpoint, graph: Option[String], limit: Option[Int])
+           (implicit userContext: UserContext): Traversable[(String, Double)] = {
     Timer("Retrieving types in '" + endpoint + "'") {
       val query = buildQuery(graph)
       val results = endpoint.select(query, limit.getOrElse(defaultLimit)).bindings.toList

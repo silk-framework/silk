@@ -1,9 +1,10 @@
 @import org.silkframework.workspace.Project
+@import org.silkframework.runtime.activity.UserContext
 
 @(id: String,
   plugin: org.silkframework.runtime.plugin.PluginDescription[_],
   parameterValues: Seq[String],
   x: Int, y: Int, display: Boolean,
-  project: Project)
+  project: Project)(implicit userContext: UserContext)
 
 @operatorBox("Transform", id, plugin, parameterValues, x, y, display, project) { }

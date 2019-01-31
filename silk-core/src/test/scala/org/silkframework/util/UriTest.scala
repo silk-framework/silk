@@ -28,4 +28,12 @@ class UriTest extends FlatSpec with Matchers {
     Uri("").isValidUri shouldBe false
   }
 
+  it should "extract the local name" in {
+    Uri("http://example.org/parent/name").localName shouldBe Some("name")
+    Uri("http://example.org/name#fragment").localName shouldBe Some("fragment")
+    Uri("urn:namespace:name").localName shouldBe Some("name")
+    Uri("urn:namespace:name/child").localName shouldBe Some("child")
+    Uri("http://example.org").localName shouldBe None
+  }
+
 }

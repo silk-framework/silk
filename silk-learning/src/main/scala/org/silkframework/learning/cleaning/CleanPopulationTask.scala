@@ -17,14 +17,15 @@ package org.silkframework.learning.cleaning
 import org.silkframework.learning.generation.LinkageRuleGenerator
 import org.silkframework.learning.individual._
 import org.silkframework.rule.LinkageRule
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 
 class CleanPopulationTask(population: Population, fitnessFunction: (LinkageRule => Double), generator: LinkageRuleGenerator) extends Activity[Population] {
 
   /** Maximum difference between two fitness values to be considered equal. */
   private val fitnessEpsilon = 0.0001
 
-  override def run(context: ActivityContext[Population]): Unit = {
+  override def run(context: ActivityContext[Population])
+                  (implicit userContext: UserContext): Unit = {
     val individuals = population.individuals.par.map(cleanIndividual).seq
 
     val distinctIndividuals = removeDuplicates(individuals)
