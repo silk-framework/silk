@@ -9,6 +9,13 @@ RUN \
   && ln -s /opt/apache-maven-3.3.9 /opt/maven \
   && echo "\ncurrent maven version:" \
   && /opt/maven/bin/mvn --version \
+  && echo "install yarn" \
+  && curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add - \
+  && echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list \
+  && apt-get update -y \
+  && apt-get install -y yarn \
+  && echo "\ncurrentl yarn version:" \
+  && yarn --version \
   && echo "fetch jai-core to fix bug with missing maven artifacts" \
   && /opt/maven/bin/mvn dependency:get -DremoteRepositories=http://maven.geotoolkit.org -Dartifact=javax.media:jai_core:1.1.3 -Ddest=/tmp
 RUN \
