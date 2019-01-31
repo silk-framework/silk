@@ -4,6 +4,7 @@ import java.io._
 
 import org.silkframework.dataset.{EntitySink, TripleSink, TypedProperty}
 import org.silkframework.entity.ValueType
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{FileResource, WritableResource}
 import org.silkframework.util.Uri
 
@@ -22,7 +23,8 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
 
   private var writer: Writer = _
 
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty]) {
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
+                        (implicit userContext: UserContext){
     this.properties = properties
     if(writer == null) {
       // If we got a java file, we write directly to it, otherwise we write to a temporary string
@@ -37,7 +39,8 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
     }
   }
 
-  override def writeEntity(subject: String, values: Seq[Seq[String]]) {
+  override def writeEntity(subject: String, values: Seq[Seq[String]])
+                          (implicit userContext: UserContext): Unit = {
     for((property, valueSet) <- properties zip values;
         value <- valueSet) {
       if(property.isBackwardProperty) {
@@ -52,9 +55,9 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
     writer.write(formatter.formatLiteralStatement(subject, predicate, value, valueType))
   }
 
-  override def closeTable(): Unit = {}
+  override def closeTable()(implicit userContext: UserContext): Unit = {}
 
-  override def close() {
+  override def close()(implicit userContext: UserContext) {
     if (Option(writer).isDefined) {
       writer.write(formatter.footer)
       writer.close()
@@ -67,16 +70,17 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
     }
   }
 
-  override def init(): Unit = {
+  override def init()(implicit userContext: UserContext): Unit = {
     openTable(typeUri = "", properties = Seq())
   }
 
-  override def writeTriple(subject: String, predicate: String, value: String, valueType: ValueType): Unit = {
+  override def writeTriple(subject: String, predicate: String, value: String, valueType: ValueType)
+                          (implicit userContext: UserContext): Unit = {
     writeStatement(subject, predicate, value, valueType)
   }
 
   /**
     * Makes sure that the next write will start from an empty dataset.
     */
-  override def clear(): Unit = resource.delete()
+  override def clear()(implicit userContext: UserContext): Unit = resource.delete()
 }

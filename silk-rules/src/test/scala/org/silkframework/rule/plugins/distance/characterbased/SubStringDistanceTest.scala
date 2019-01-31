@@ -23,7 +23,7 @@ class SubStringDistanceTest extends PluginTest {
     val s = new SubStringDistance("2")
     val str1 = "AB12"
     val str2 = "12AB"
-    substring.indexValue(str1, 1.0) should not be s.indexValue(str1, 1.0)
+    substring.indexValue(str1, 1.0, sourceOrTarget = false) should not be s.indexValue(str1, 1.0, sourceOrTarget = false)
     eval(str1, str2) shouldBe 1.0
     s.evaluate(str1, str2) shouldBe 0.0
   }
@@ -31,7 +31,7 @@ class SubStringDistanceTest extends PluginTest {
   it should "match strings smaller than 'granularity' if they match exactly" in {
     val str1 = "id"
     val str2 = "id"
-    substring.indexValue(str1, Double.MaxValue).size shouldBe 1
+    substring.indexValue(str1, Double.MaxValue, sourceOrTarget = false).size shouldBe 1
     eval(str1, str2) shouldBe 0.0
   }
 

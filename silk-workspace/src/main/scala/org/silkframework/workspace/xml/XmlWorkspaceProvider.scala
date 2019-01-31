@@ -3,12 +3,14 @@ package org.silkframework.workspace.xml
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.{ProjectConfig, RefreshableWorkspaceProvider, WorkspaceProvider}
 
 import scala.reflect.ClassTag
+import scala.util.Try
 import scala.util.control.NonFatal
 import scala.xml.XML
 
@@ -34,7 +36,8 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     plugins += (clazz -> plugin)
   }
 
-  override def readProjects(): Seq[ProjectConfig] = {
+  override def readProjects()
+                           (implicit userContext: UserContext): Seq[ProjectConfig] = {
     resources.listChildren.flatMap(loadProject)
   }
 
@@ -51,7 +54,8 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     }
   }
 
-  override def putProject(config: ProjectConfig): Unit = {
+  override def putProject(config: ProjectConfig)
+                         (implicit userContext: UserContext): Unit = {
     val uri = config.resourceUriOrElseDefaultUri
     val configXMl =
       <ProjectConfig resourceUri={uri}>
@@ -60,7 +64,8 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     resources.child(config.id).get("config.xml").write(){ os => configXMl.write(os) }
   }
 
-  override def deleteProject(name: Identifier): Unit = {
+  override def deleteProject(name: Identifier)
+                            (implicit userContext: UserContext): Unit = {
     resources.delete(name)
   }
 
@@ -71,15 +76,18 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     resources.child(name)
   }
 
-  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager): Seq[Task[T]] = {
+  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
+                                                  (implicit userContext: UserContext): Seq[Task[T]] = {
     plugin[T].loadTasks(resources.child(project).child(plugin[T].prefix), projectResources)
   }
 
-  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T]): Unit = {
+  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T])
+                                                (implicit userContext: UserContext): Unit = {
     plugin[T].writeTask(task, resources.child(project).child(plugin[T].prefix))
   }
 
-  override def deleteTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier): Unit = {
+  override def deleteTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier)
+                                                   (implicit userContext: UserContext): Unit = {
     plugin[T].removeTask(task, resources.child(project).child(plugin[T].prefix))
   }
 
@@ -96,5 +104,11 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   override def refresh(): Unit = {
     // No refresh needed, all tasks are read from the file system on every read. Nothing is cached
     // This is implemented to avoid warnings on project imports.
+  }
+
+  override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier,
+                                                       projectResources: ResourceManager)
+                                                      (implicit user: UserContext): Seq[Try[Task[T]]] = {
+    plugin[T].loadTasksSafe(resources.child(project).child(plugin[T].prefix), projectResources)
   }
 }

@@ -38,7 +38,7 @@ case class CosineDistanceMetric(k: Int = 3) extends SimpleDistanceMeasure {
     else distance
   }
 
-  override def indexValue(str: String, limit: Double): Index = {
+  override def indexValue(str: String, limit: Double, sourceOrTarget: Boolean): Index = {
     if(str.trim()=="")
       return Index.empty
     val values = str.split(";")

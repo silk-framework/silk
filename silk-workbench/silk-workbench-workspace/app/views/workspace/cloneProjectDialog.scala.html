@@ -9,8 +9,12 @@
   <script type="text/javascript">//<![CDATA[
     function submit() {
       console.log("submit()");
+      var setButtonDisabled = function(disabled) {
+        document.getElementById('dialog-submit-button').disabled = disabled;
+        document.getElementById('dialog-cancel-button').disabled = disabled;
+      };
       var name = $("input[name='project_name']").val();
-
+      setButtonDisabled(true);
       $.ajax({
         type: 'POST',
         url: '@config.baseUrl/workspace/projects/@project/clone?newProject=' + name,
@@ -20,6 +24,7 @@
           reloadWorkspace();
         },
         error: function(request) {
+          setButtonDisabled(false);
           alert(request.responseText);
         }
       });

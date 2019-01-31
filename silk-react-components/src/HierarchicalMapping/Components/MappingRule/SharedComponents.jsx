@@ -54,13 +54,17 @@ export const RuleTypes = ({rule, ...otherProps}) => {
             return <span {...otherProps}>{types}</span>;
         case MAPPING_RULE_TYPE_DIRECT:
         case MAPPING_RULE_TYPE_COMPLEX:
+            let appendText = _.get(rule, 'mappingTarget.valueType.lang', '');
+            if(appendText !== '') { // add language tag if available
+                appendText = ' (' + appendText + ')';
+            }
             return (
                 <span {...otherProps}>
                     {_.get(
                         rule,
                         'mappingTarget.valueType.nodeType',
                         NO_TARGET_TYPE
-                    )}
+                    ) + appendText}
                 </span>
             );
         case MAPPING_RULE_TYPE_ROOT:
@@ -205,7 +209,11 @@ const PropertyTypeInfo = React.createClass({
         };
     },
     render() {
-        return <div>{this.state.result}</div>;
+        let text = this.state.result;
+        if(this.props.appendedText) {
+            text = text + this.props.appendedText;
+        }
+        return <div>{text}</div>;
     },
 });
 
@@ -224,8 +232,8 @@ export const ThingDescription = ({id}) => {
     return <URIInfo uri={id} field="description" fallback={fallbackInfo} />;
 };
 
-export const PropertyTypeLabel = ({name}) => (
-    <PropertyTypeInfo name={name} option="label" />
+export const PropertyTypeLabel = ({name, appendedText}) => (
+    <PropertyTypeInfo name={name} option="label" appendedText={appendedText} />
 );
 
 export const PropertyTypeDescription = ({name}) => (

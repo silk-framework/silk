@@ -3,9 +3,10 @@ package org.silkframework.runtime.users
 import java.util.logging.Logger
 
 import org.silkframework.config.{DefaultConfig, Prefixes}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
-import play.api.mvc.Request
+import play.api.mvc.RequestHeader
 
 import scala.util.control.NonFatal
 
@@ -13,7 +14,9 @@ import scala.util.control.NonFatal
   * Fetches user related data from a request object.
   */
 trait WebUserManager {
-  def user(request: Request[_]): Option[WebUser]
+  def user(request: RequestHeader): Option[WebUser]
+
+  def userContext(request: RequestHeader): UserContext
 }
 
 object WebUserManager {
@@ -48,5 +51,7 @@ object WebUserManager {
 }
 
 object EmptyWebUserManager extends WebUserManager {
-  override def user(request: Request[_]): Option[WebUser] = None
+  override def user(request: RequestHeader): Option[WebUser] = None
+
+  override def userContext(request: RequestHeader): UserContext = UserContext.Empty
 }

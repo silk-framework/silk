@@ -1,19 +1,22 @@
 package controllers.linking
 
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import models.linking.EvalLink._
 import models.linking.{EvalLink, LinkSorter}
 import org.silkframework.entity.{Entity, Link}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.DetailedEvaluator
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.util.DPair
-import org.silkframework.workspace.User
+import org.silkframework.workbench.Context
+import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import play.api.mvc.{Action, AnyContent, Controller}
-import plugins.Context
 
 class ReferenceLinksManager extends Controller {
 
-  def referenceLinksView(project: String, task: String): Action[AnyContent] = Action { implicit request =>
+  def referenceLinksView(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.referenceLinks.referenceLinks(context))
   }
@@ -23,8 +26,8 @@ class ReferenceLinksManager extends Controller {
                      linkType: String,
                      sorting: String,
                      filter: String,
-                     page: Int): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+                     page: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val referenceLinks = task.data.referenceLinks
     def linkSpec = task.data

@@ -16,7 +16,8 @@ package org.silkframework.rule.execution
 
 import org.silkframework.cache.EntityCache
 import org.silkframework.dataset.DataSource
-import org.silkframework.runtime.activity.{Activity, ActivityContext, Status}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, Status, UserContext}
+
 import util.control.Breaks._
 
 /**
@@ -30,7 +31,8 @@ class CacheLoader(source: DataSource,
 
   override def name = "Loading"
 
-  override def run(context: ActivityContext[Unit]): Unit = {
+  override def run(context: ActivityContext[Unit])
+                  (implicit userContext: UserContext): Unit = {
     context.status.updateMessage("Loading entities of dataset " + source.toString)
     entityCache.clear()
     load(context)
@@ -38,7 +40,7 @@ class CacheLoader(source: DataSource,
     context.status.updateMessage(s"Entities loaded [ dataset :: ${source.toString} ].")
   }
 
-  private def load(context: ActivityContext[Unit]) = {
+  private def load(context: ActivityContext[Unit])(implicit userContext: UserContext) = {
     val startTime = System.currentTimeMillis()
     var entityCounter = 0
     breakable {
@@ -54,7 +56,7 @@ class CacheLoader(source: DataSource,
     }
   }
 
-  private def retrieveEntities = {
+  private def retrieveEntities(implicit userContext: UserContext) = {
     sampleSizeOpt match {
       case Some(sampleSize) =>
         source.sampleEntities(entityCache.entitySchema, sampleSize, None) // TODO: Add filter

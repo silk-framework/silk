@@ -15,15 +15,14 @@
 package org.silkframework.rule.execution
 
 import java.io.File
+import java.util.UUID
 import java.util.logging.LogRecord
 
 import org.silkframework.cache.{FileEntityCache, MemoryEntityCache}
-import org.silkframework.config.Task
-import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, LinkSink}
+import org.silkframework.dataset.{DataSource, LinkSink}
 import org.silkframework.entity.{Entity, Link}
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
-import org.silkframework.runtime.activity.Status.Canceling
-import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, Status}
+import org.silkframework.runtime.activity._
 import org.silkframework.util.FileUtils._
 import org.silkframework.util.{CollectLogs, DPair, Identifier}
 
@@ -47,10 +46,11 @@ class GenerateLinks(id: Identifier,
    */
   def warnings = warningLog
 
-  override def initialValue = Some(Linking())
+  override def initialValue = Some(Linking(rule = linkSpec.rule))
 
-  override def run(context: ActivityContext[Linking]): Unit = {
-    context.value.update(Linking())
+  override def run(context: ActivityContext[Linking])
+                  (implicit userContext: UserContext): Unit = {
+    context.value.update(Linking(rule = linkSpec.rule))
 
     warningLog = CollectLogs() {
       // Entity caches
@@ -65,10 +65,10 @@ class GenerateLinks(id: Identifier,
       // Execute matching
       val sourceEqualsTarget = linkSpec.dataSelections.source == linkSpec.dataSelections.target
       val matcher = context.child(new Matcher(loaders, linkSpec.rule, caches, runtimeConfig, sourceEqualsTarget), 0.95)
-      val updateLinks = (links: Seq[Link]) => context.value.update(Linking(links, LinkingStatistics(entityCount = caches.map(_.size))))
+      val updateLinks = (links: Seq[Link]) => context.value.update(Linking(linkSpec.rule, links, LinkingStatistics(entityCount = caches.map(_.size))))
       matcher.value.subscribe(updateLinks)
-      matcher.start()
-      matcher.waitUntilFinished()
+      matcher.startBlocking()
+      caches.foreach(_.clear())
       if(context.status.isCanceling) return
 
       // Filter links
@@ -83,7 +83,7 @@ class GenerateLinks(id: Identifier,
         filteredLinks = (filteredLinks.toSet -- linkSpec.referenceLinks.negative ++ linkSpec.referenceLinks.positive).toSeq
       }
 
-      context.value.update(Linking(filteredLinks, LinkingStatistics(entityCount = caches.map(_.size))))
+      context.value.update(Linking(linkSpec.rule, filteredLinks, LinkingStatistics(entityCount = caches.map(_.size))))
 
       //Output links
       // TODO dont commit links to context if the task is not configured to hold links
@@ -97,11 +97,11 @@ class GenerateLinks(id: Identifier,
     val targetIndexFunction = (entity: Entity) => runtimeConfig.executionMethod.indexEntity(entity, linkSpec.rule, sourceOrTarget = false)
 
     if (runtimeConfig.useFileCache) {
-      val cacheDir = new File(runtimeConfig.homeDir + "/entityCache/" + id)
+      val cacheDir = new File(runtimeConfig.homeDir + "/entityCache/" + id + UUID.randomUUID().toString)
 
       DPair(
-        source = new FileEntityCache(entityDescs.source, sourceIndexFunction, cacheDir + "/source/", runtimeConfig),
-        target = new FileEntityCache(entityDescs.target, targetIndexFunction, cacheDir + "/target/", runtimeConfig)
+        source = new FileEntityCache(entityDescs.source, sourceIndexFunction, cacheDir + "_source/", runtimeConfig),
+        target = new FileEntityCache(entityDescs.target, targetIndexFunction, cacheDir + "_target/", runtimeConfig)
       )
     } else {
       DPair(
@@ -110,18 +110,4 @@ class GenerateLinks(id: Identifier,
       )
     }
   }
-}
-
-object GenerateLinks {
-
-  def fromSources(id: Identifier,
-                  datasets: Traversable[Task[DatasetSpec[Dataset]]],
-                  linkSpec: LinkSpec,
-                  runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig()) = {
-    val sourcePair = linkSpec.findSources(datasets)
-    val outputs = linkSpec.outputs.flatMap(o => datasets.find(_.id == o)).map(_.linkSink)
-    new GenerateLinks(id, sourcePair, linkSpec, outputs, runtimeConfig)
-  }
-
-  def empty = new GenerateLinks(Identifier.random, DPair.empty, LinkSpec(), Seq.empty)
 }

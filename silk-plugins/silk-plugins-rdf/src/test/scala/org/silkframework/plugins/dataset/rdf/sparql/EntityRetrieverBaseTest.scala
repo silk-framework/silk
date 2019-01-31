@@ -8,6 +8,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.entity.{EntitySchema, Path, Restriction, TypedPath}
 import org.silkframework.plugins.dataset.rdf.SparqlDataset
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.util.Uri
 
@@ -17,6 +18,8 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers with B
                       useOrderBy: Boolean = true): EntityRetriever
   private val GRAPH = "http://testGraph"
   private var fusekiServerInfo: Option[FusekiServerInfo] = None
+
+  implicit val userContext: UserContext = UserContext.Empty
 
   lazy val endpoint: SparqlEndpoint = {
     val fusekiUrl = fusekiServerInfo.getOrElse(throw new RuntimeException("Did not start Fuseki server!")).url
@@ -159,6 +162,12 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers with B
         entities.head.values mustBe expectedResult
       }
     }
+  }
+
+  it should "respect the configured query limit" in {
+    val entitySchema = schema(Person, Seq(path(name)))
+    val entities = retriever.retrieve(entitySchema, entities = Seq(), limit = Some(1)).toArray.toSeq
+    entities.size mustBe 1
   }
 
   private def schema(typeUri: String,

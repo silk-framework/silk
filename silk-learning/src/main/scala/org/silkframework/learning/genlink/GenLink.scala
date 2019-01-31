@@ -8,7 +8,7 @@ import org.silkframework.learning.individual.Population
 import org.silkframework.learning.reproduction.Reproduction
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 
 private class GenLink(trainingLinks: ReferenceEntities, seeds: Traversable[LinkageRule],
                       config: LearningConfiguration) extends Activity[Result] {
@@ -25,17 +25,15 @@ private class GenLink(trainingLinks: ReferenceEntities, seeds: Traversable[Linka
   /** The status of this task. */
   @volatile private var learningStatus: Status.Status = _
 
-  /** Set if the execution should be stopped. */
-  @volatile private var stop = false
-
   /** The number of ineffective iterations, i.e., iterations that did not improve the fitness significantly. */
   @volatile private var ineffectiveIterations = 0
   
   override def initialValue = Some(Result(Population.empty, 0, ""))
 
-  override def run(context: ActivityContext[Result]) = {
+  override def run(context: ActivityContext[Result])
+                  (implicit userContext: UserContext): Unit = {
     //Reset state
-    stop = false
+    cancelled = false
     iterations = 0
     learningStatus = Status.NotStarted
     ineffectiveIterations = 0
@@ -44,12 +42,12 @@ private class GenLink(trainingLinks: ReferenceEntities, seeds: Traversable[Linka
     val generator = LinkageRuleGenerator(trainingLinks, config.components)
 
     //Generate initial population
-    if(!stop) executeStep(new GeneratePopulation(seeds, generator, config), context)
+    if(!cancelled) executeStep(new GeneratePopulation(seeds, generator, config), context)
 
-    while (!stop && !learningStatus.isInstanceOf[Status.Finished]) {
+    while (!cancelled && !learningStatus.isInstanceOf[Status.Finished]) {
       executeStep(new Reproduction(population, fitnessFunction, generator, config), context)
 
-      if (iterations % config.params.cleanFrequency == 0 && !stop) {
+      if (iterations % config.params.cleanFrequency == 0 && !cancelled) {
         executeStep(new CleanPopulationTask(population, fitnessFunction, generator), context)
       }
     }
@@ -60,11 +58,8 @@ private class GenLink(trainingLinks: ReferenceEntities, seeds: Traversable[Linka
     Result(population, iterations, learningStatus.toString)
   }
 
-  override def cancelExecution() {
-    stop = true
-  }
-
-  private def executeStep(activity: Activity[Population], context: ActivityContext[Result]) {
+  private def executeStep(activity: Activity[Population], context: ActivityContext[Result])
+                         (implicit userContext: UserContext){
     // Update population
     population = context.child(activity).startBlockingAndGetValue()
 

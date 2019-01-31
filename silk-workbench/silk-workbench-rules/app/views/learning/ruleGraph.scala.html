@@ -2,13 +2,13 @@
 * Renders a linkage rule as a graph (like in the editor).
 *@
 @import org.silkframework.rule.LinkSpec
-@import plugins.Context
+@import org.silkframework.workbench.Context
 @import views.html.editor.renderRule
 @import play.api.Logger
 
-
+@import org.silkframework.runtime.activity.UserContext
 @(rule: org.silkframework.rule.LinkageRule,
-  context: Context[LinkSpec])
+  context: Context[LinkSpec])(implicit userContext: UserContext)
 
 @defining("droppable-" + java.util.UUID.randomUUID.toString()) { uniqueId =>
 

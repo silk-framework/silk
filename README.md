@@ -19,8 +19,9 @@ Community documentation is maintained in the [doc](doc/) folder.
 
 ### Local build
 
-- JDK 8 or later
+- JDK 8
 - [Simple Build Tool](http://www.scala-sbt.org/) (sbt)
+- [Yarn](https://yarnpkg.com) for React/JavaScript build pipeline (>= 1.3)
 
 Downloading and installing sbt is not necessary as it is available from this directory. Depending on the operating system you may need to adapt the commands below to run it from the local directory, i.e., by using `./sbt` instead of `sbt`
 

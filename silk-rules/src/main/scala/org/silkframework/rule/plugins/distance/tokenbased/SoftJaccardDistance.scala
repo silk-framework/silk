@@ -14,6 +14,7 @@
 
 package org.silkframework.rule.plugins.distance.tokenbased
 
+import org.silkframework.entity.Index
 import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistance
 import org.silkframework.rule.similarity.DistanceMeasure
 import org.silkframework.runtime.plugin.Plugin
@@ -40,15 +41,15 @@ case class SoftJaccardDistance(maxDistance: Int = 1) extends DistanceMeasure {
     jaccard(values1Replaced, values2)
   }
 
-  override def index(values: Seq[String], limit: Double) = {
+  override def index(values: Seq[String], limit: Double, sourceOrTarget: Boolean): Index = {
     if(values.isEmpty) {
       //We index an empty value, so that the index is empty but has the right size
-      levenshtein.indexValue("", limit)
+      levenshtein.indexValue("", limit, sourceOrTarget)
     } else {
       //Determine the number of values we need to index
       val indexSize = math.round(values.size * limit + 0.5).toInt
       //Index each value separately and merge all indices
-      values.take(indexSize).map(levenshtein.indexValue(_, limit)).reduce(_ merge _)
+      values.take(indexSize).map((str: String) => levenshtein.indexValue(str, limit, sourceOrTarget)).reduce(_ merge _)
     }
   }
 }

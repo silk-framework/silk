@@ -10,11 +10,18 @@ case class CombinedActivity(override val name: String,
    *
    * @param context Holds the context in which the activity is executed.
    */
-  override def run(context: ActivityContext[Unit]): Unit = {
+  override def run(context: ActivityContext[Unit])
+                  (implicit userContext: UserContext): Unit = {
     activities foreach(_.run(context))
   }
 
-  override def cancelExecution(): Unit = {
+  override def cancelExecution()(implicit userContext: UserContext): Unit = {
     activities foreach(_.cancelExecution())
+    super.cancelExecution()
+  }
+
+  override def resetCancelFlag()(implicit userContext: UserContext): Unit = {
+    activities foreach(_.resetCancelFlag())
+    super.resetCancelFlag()
   }
 }

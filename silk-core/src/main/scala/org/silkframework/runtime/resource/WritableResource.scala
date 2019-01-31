@@ -2,6 +2,8 @@ package org.silkframework.runtime.resource
 
 import java.io.{File, FileInputStream, InputStream, OutputStream}
 
+import org.silkframework.util.StreamUtils
+
 trait WritableResource extends Resource {
 
   /**
@@ -18,11 +20,7 @@ trait WritableResource extends Resource {
   def writeStream(inputStream: InputStream, append: Boolean = false, closeStream: Boolean = false): Unit = {
     try {
       write(append) { outputStream =>
-        var b = inputStream.read()
-        while (b != -1) {
-          outputStream.write(b)
-          b = inputStream.read()
-        }
+        StreamUtils.fastStreamCopy(inputStream, outputStream, close = false)
       }
     } finally {
       if(closeStream) {

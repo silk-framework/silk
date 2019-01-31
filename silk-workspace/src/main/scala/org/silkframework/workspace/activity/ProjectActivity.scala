@@ -1,45 +1,17 @@
 package org.silkframework.workspace.activity
 
-import org.silkframework.config.Prefixes
-import org.silkframework.runtime.activity.{Activity, ActivityControl}
-import org.silkframework.runtime.plugin.PluginDescription
-import org.silkframework.workspace.Project
+import org.silkframework.runtime.activity.{Activity, ActivityControl, HasValue}
+import org.silkframework.workspace.{Project, ProjectTask}
+import scala.reflect.ClassTag
 
-class ProjectActivity(override val project: Project, initialFactory: ProjectActivityFactory[_]) extends WorkspaceActivity {
+class ProjectActivity[ActivityType <: HasValue : ClassTag](override val project: Project, defaultFactory: ProjectActivityFactory[ActivityType])
+  extends WorkspaceActivity[ActivityType] {
 
-  @volatile
-  private var currentControl: ActivityControl[_] = Activity(initialFactory(project))
+  override def taskOption: Option[ProjectTask[_]] = None
 
-  @volatile
-  private var currentFactory = initialFactory
+  override def factory: ProjectActivityFactory[ActivityType] = defaultFactory
 
-  override def name = currentFactory.pluginSpec.id
-
-  override def taskOption = None
-
-  def value = currentControl.value()
-
-  override def status = currentControl.status()
-
-  override def startTime: Option[Long] = currentControl.startTime
-
-  def control = currentControl
-
-  def factory = currentFactory
-
-  def config: Map[String, String] = PluginDescription(currentFactory.getClass).parameterValues(currentFactory)(Prefixes.empty)
-
-  def update(config: Map[String, String]) = {
-    val oldControl = currentControl
-    implicit val prefixes = project.config.prefixes
-    implicit val resources = project.resources
-    currentFactory = PluginDescription(currentFactory.getClass)(config)
-    currentControl = Activity(currentFactory(project))
-    // Keep subscribers
-    for(subscriber <- oldControl.status.subscribers) {
-      currentControl.status.subscribe(subscriber)
-    }
+  override protected def createInstance(config: Map[String, String]): ActivityControl[ActivityType#ValueType] = {
+    Activity(defaultFactory(project))
   }
-
-  def activityType = currentFactory.activityType
 }

@@ -34,7 +34,7 @@ case class DuringMetric(blockingParameter: Double = 1.0) extends SimpleDistanceM
     Utils.evaluateRelation(str1, str2, Constants.DURING)
   }
 
-  override def indexValue(str: String, distance: Double): Index = {
+  override def indexValue(str: String, distance: Double, sourceOrTarget: Boolean): Index = {
     Utils.indexTimes(str, blockingParameter)
   }
 }

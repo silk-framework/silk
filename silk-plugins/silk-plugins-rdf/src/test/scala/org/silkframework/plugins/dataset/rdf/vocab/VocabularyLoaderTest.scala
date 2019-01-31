@@ -5,8 +5,10 @@ import org.apache.jena.rdf.model.ModelFactory
 import org.scalatest.{FlatSpec, ShouldMatchers}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaDatasetEndpoint
 import org.silkframework.rule.vocab._
+import org.silkframework.runtime.activity.UserContext
 
 class VocabularyLoaderTest extends FlatSpec with ShouldMatchers {
+  private implicit val userContext: UserContext = UserContext.Empty
   private val MOVIE = "Movie"
   private val FILM = "Film"
   private val PERSON = "Person"
@@ -56,7 +58,7 @@ class VocabularyLoaderTest extends FlatSpec with ShouldMatchers {
   it should "load all kinds of alternative labels and comments" in {
     properties(2) shouldBe
         VocabularyProperty(
-          info = GenericInfo(uri("label"), Some("label"), Some("dc description"), Seq("dc identifier", "dc title", "foaf name", "pref label", "skos notation")),
+          info = GenericInfo(uri("label"), Some("label"), Some("dc description"), Seq("dc identifier", "dc title", "dct identifier", "foaf name", "pref label", "skos notation")),
           domain = Some(classMap(uri(MOVIE))),
           range = Some(VocabularyClass(GenericInfo("http://www.w3.org/2001/XMLSchema#string"), Seq())),
           propertyType = DatatypePropertyType

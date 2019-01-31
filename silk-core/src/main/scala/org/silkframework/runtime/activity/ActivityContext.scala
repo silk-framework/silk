@@ -41,9 +41,4 @@ trait ActivityContext[T] {
    * @return The activity control for the child activity.
    */
   def child[R](activity: Activity[R], progressContribution: Double = 0.0): ActivityControl[R]
-
-  /**
-    * The user context the activity is executed in.
-    */
-  def userContext: UserContext
 }

@@ -1,7 +1,8 @@
 package controllers.core.util
 
 import org.silkframework.config.TaskSpec
-import org.silkframework.workspace.{Project, ProjectTask, User}
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsError, JsValue, Json, Reads}
 import play.api.mvc.{Controller, Request, Result}
 
@@ -27,16 +28,18 @@ trait ControllerUtilsTrait {
     )
   }
 
-  def projectAndTask[T <: TaskSpec : ClassTag](projectName: String, taskName: String): (Project, ProjectTask[T]) = {
-    val project = User().workspace.project(projectName)
+  def projectAndTask[T <: TaskSpec : ClassTag](projectName: String, taskName: String)
+                                              (implicit userContext: UserContext): (Project, ProjectTask[T]) = {
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[T](taskName)
     (project, task)
   }
 
-  def getProject(projectName: String): Project = User().workspace.project(projectName)
+  def getProject(projectName: String)(implicit userContext: UserContext): Project = WorkspaceFactory().workspace.project(projectName)
 
-  def task[T <: TaskSpec : ClassTag](projectName: String, taskName: String): ProjectTask[T] = {
-    val project = User().workspace.project(projectName)
+  def task[T <: TaskSpec : ClassTag](projectName: String, taskName: String)
+                                    (implicit userContext: UserContext): ProjectTask[T] = {
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[T](taskName)
     task
   }

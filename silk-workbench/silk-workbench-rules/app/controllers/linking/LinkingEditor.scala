@@ -1,25 +1,28 @@
 package controllers.linking
 
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.LinkageRuleEvaluator
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.util.DPair
-import org.silkframework.workspace.User
+import org.silkframework.workbench.Context
+import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 import play.api.mvc.{Action, AnyContent, Controller}
-import plugins.Context
 
 import scala.util.control.NonFatal
 
 class LinkingEditor extends Controller {
 
-  def editor(project: String, task: String): Action[AnyContent] = Action { implicit request =>
+  def editor(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.editor.linkingEditor(context))
   }
 
-  def paths(projectName: String, taskName: String, groupPaths: Boolean): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+  def paths(projectName: String, taskName: String, groupPaths: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val pathsCache = task.activity[LinkingPathsCache].control
     val prefixes = project.config.prefixes
@@ -42,8 +45,8 @@ class LinkingEditor extends Controller {
     }
   }
 
-  def score(projectName: String, taskName: String): Action[AnyContent] = Action {
-    val project = User().workspace.project(projectName)
+  def score(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val entitiesCache = task.activity[ReferenceEntitiesCache].control
 
@@ -76,5 +79,4 @@ class LinkingEditor extends Controller {
       }
     }
   }
-
 }

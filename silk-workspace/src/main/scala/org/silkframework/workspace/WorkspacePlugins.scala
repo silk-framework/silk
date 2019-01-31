@@ -5,7 +5,7 @@ import org.silkframework.workspace.activity.dataset.Types.TypesFormat
 import org.silkframework.workspace.activity.dataset.TypesCacheFactory
 import org.silkframework.workspace.activity.linking._
 import org.silkframework.workspace.activity.transform.CachedEntitySchemata.CachedEntitySchemaXmlFormat
-import org.silkframework.workspace.activity.transform.{ExecuteTransformFactory, TransformPathsCacheFactory, VocabularyCache, VocabularyCacheFactory}
+import org.silkframework.workspace.activity.transform._
 import org.silkframework.workspace.activity.workflow.Workflow.WorkflowXmlFormat
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorFactory, NopPersistWorkflowProvenance}
 import org.silkframework.workspace.xml.{FileWorkspaceProvider, XmlZipProjectMarshaling}
@@ -37,19 +37,17 @@ class WorkspacePlugins extends PluginModule {
     classOf[VocabularyCacheFactory] :: Nil
 
   def linkingActivities: List[Class[_]] =
-    classOf[GenerateLinksFactory] ::
-    classOf[LearningFactory] ::
-    classOf[ActiveLearningFactory] ::
+    classOf[EvaluateLinkingFactory] ::
+    classOf[ExecuteLinkingFactory] ::
     classOf[LinkingPathsCacheFactory] ::
     classOf[ReferenceEntitiesCacheFactory] :: Nil
 
   def workflowActivities: List[Class[_]] =
-    classOf[LocalWorkflowExecutorFactory] ::
-        Nil
+    classOf[LocalWorkflowExecutorFactory] :: Nil
 
   def formats: List[Class[_]] = {
     TypesFormat.getClass ::
-    VocabularyCache.ValueFormat.getClass ::
+    VocabularyCacheValue.ValueFormat.getClass ::
     CachedEntitySchemaXmlFormat.getClass ::
     WorkflowXmlFormat.getClass ::
     Nil

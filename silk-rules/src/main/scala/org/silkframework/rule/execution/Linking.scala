@@ -2,12 +2,13 @@ package org.silkframework.rule.execution
 
 import org.silkframework.entity.Link
 import org.silkframework.execution.ExecutionReport
+import org.silkframework.rule.LinkageRule
 import org.silkframework.util.DPair
 
 /**
   * Set of links.
   */
-case class Linking(links: Seq[Link] = Seq.empty, statistics: LinkingStatistics = LinkingStatistics()) extends ExecutionReport {
+case class Linking(rule: LinkageRule, links : Seq[Link] = Seq.empty, statistics: LinkingStatistics = LinkingStatistics()) extends ExecutionReport {
 
   lazy val summary: Seq[(String, String)] = {
     Seq(

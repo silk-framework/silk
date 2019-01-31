@@ -4,7 +4,10 @@ import org.scalatest.{BeforeAndAfterAll, Suite}
 import org.silkframework.config.DefaultConfig
 
 /**
-  * Trait to be mixed in to modify config parameters during the run of a suite
+  * Trait to be mixed in to modify config parameters during the run of a suite.
+  * If mixed in with other traits that implement BeforeAndAfterAll, the order of mixin
+  * is very important if the mixed in trait depends on the modified config. The ConfigTestTrait
+  * should then be mixed in first (left) of the other trait.
   */
 trait ConfigTestTrait extends BeforeAndAfterAll { this: Suite =>
   /** The properties that should be changed.
@@ -42,4 +45,5 @@ trait ConfigTestTrait extends BeforeAndAfterAll { this: Suite =>
     DefaultConfig.instance.refresh()
     super.afterAll()
   }
+
 }

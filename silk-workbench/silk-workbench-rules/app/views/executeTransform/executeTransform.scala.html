@@ -1,9 +1,9 @@
-@import plugins.Context
 @import org.silkframework.rule.execution.ExecuteTransform
 @import views.html.workspace.activity.taskActivityControl
 @import controllers.transform.routes.ExecuteTransformTab
 @import org.silkframework.rule.TransformSpec
-@import controllers.transform.routes
+@import controllers.workspace.routes.TaskApi
+@import org.silkframework.workbench.Context
 
 @(context: Context[TransformSpec])(implicit session: play.api.mvc.Session)
 
@@ -27,7 +27,7 @@
       </div>
     </li>
     <li>
-      <a class="mdl-button mdl-js-button mdl-button--icon" href="@routes.TransformTaskApi.downloadOutput(context.project.name, context.task.id).url" target="_download">
+      <a class="mdl-button mdl-js-button mdl-button--icon" href="@{TaskApi.downloadOutput(context.project.name, context.task.id).url}" target="_download">
         <i class="material-icons">file_download</i>
       </a>
     </li>

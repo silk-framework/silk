@@ -35,7 +35,7 @@ object HttpProblemDetailsException {
     }
   }
 
-  private def parse(json: JsValue): HttpProblemDetailsException = {
+  def parse(json: JsValue): HttpProblemDetailsException = {
     val title = (json \ "title").as[JsString].value
     val detail = (json \ "detail").as[JsString].value
     val cause = (json \ "cause").toOption.map(parse)

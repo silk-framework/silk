@@ -43,7 +43,7 @@ case class QGramsMetric(q: Int = 2, minChar: Char = '0', maxChar: Char = 'z') ex
     jaccardCoefficient(str1.qGrams(q), str2.qGrams(q), threshold)
   }
 
-  override def indexValue(value: String, limit: Double): Index = {
+  override def indexValue(value: String, limit: Double, sourceOrTarget: Boolean): Index = {
     val qGrams = value.qGrams(q)
 
     //The number of values we need to index

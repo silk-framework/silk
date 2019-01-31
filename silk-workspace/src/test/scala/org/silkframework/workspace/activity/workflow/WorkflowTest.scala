@@ -5,6 +5,7 @@ import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 
@@ -39,6 +40,7 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
       val id = Identifier(dataset.nodeId)
       val datasetTask = mock[ProjectTask[GenericDatasetSpec]]
       when(datasetTask.id).thenReturn(id)
+      implicit val userContext: UserContext = UserContext.Empty
       when(project.taskOption[GenericDatasetSpec](dataset.task)).thenReturn(Some(datasetTask))
     }
     val sortedWorkflowNodes = workflow.topologicalSortedNodes.map(_.nodeId)
@@ -56,7 +58,7 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
 
   it should "generate a DAG of the node dependencies" in {
     val dag = testWorkflow.workflowDependencyGraph
-    dag mustBe testWorkflow.WorkflowDependencyGraph(
+    dag mustBe WorkflowDependencyGraph(
       startNodes = Set(
         WorkflowDependencyNode(WorkflowDataset(List(), DS_A1, List(TRANSFORM_1), (0, 0), DS_A1, None)),
         WorkflowDependencyNode(WorkflowDataset(List(), DS_A2, List(TRANSFORM_2), (0, 0), DS_A2, None))),

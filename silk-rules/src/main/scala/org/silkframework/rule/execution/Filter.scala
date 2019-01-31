@@ -16,7 +16,7 @@ package org.silkframework.rule.execution
 
 import org.silkframework.entity.Link
 import org.silkframework.rule.LinkFilter
-import org.silkframework.runtime.activity.{Activity, ActivityContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -27,16 +27,18 @@ class Filter(links: Seq[Link], filter: LinkFilter) extends Activity[Seq[Link]] {
 
   override def name = "Filtering"
 
-  override def run(context: ActivityContext[Seq[Link]]): Unit = {
+  override def run(context: ActivityContext[Seq[Link]])
+                  (implicit userContext: UserContext): Unit = {
     val threshold = filter.threshold.getOrElse(-1.0)
     filter.limit match {
       case Some(limit) => {
         context.status.updateMessage("Filtering output")
         val linkBuffer = new ArrayBuffer[Link]()
         for ((sourceUri, groupedLinks) <- links.filter(_.confidence.getOrElse(-1.0) >= threshold).groupBy(_.source)) {
-          if(filter.unambiguous==Some(true)) {
-            if(groupedLinks.distinct.size==1)
+          if(filter.unambiguous.contains(true)) {
+            if(groupedLinks.distinct.size==1) {
               linkBuffer.append(groupedLinks.head)
+            }
           } else {
             val bestLinks = groupedLinks.distinct.sortWith(_.confidence.getOrElse(-1.0) > _.confidence.getOrElse(-1.0)).take(limit)
             linkBuffer.appendAll(bestLinks)

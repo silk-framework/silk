@@ -34,7 +34,7 @@ case class DisjointMetric() extends SimpleDistanceMeasure {
     Utils.evaluateRelation(str1, str2, limit, Constants.DISJOINT)
   }
 
-  override def indexValue(str: String, distance: Double): Index = {
+  override def indexValue(str: String, distance: Double, sourceOrTarget: Boolean): Index = {
     Index.default
   }
 }

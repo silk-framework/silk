@@ -14,17 +14,20 @@
 
 package org.silkframework.util
 
+import java.util.logging.Logger
+
 case class Table(name: String,
                  header: Seq[String],
                  values: Seq[Seq[Any]])
                 (columnWidthInCharacters: Seq[Int] = Table.defaultColumnSizes(header.size)) {
+  private val logger: Logger = Logger.getLogger(this.getClass.getName)
 
-  def transpose = Table(name, header, values.transpose)(columnWidthInCharacters)
+  def transpose: Table = Table(name, header, values.transpose)(columnWidthInCharacters)
 
   /**
    * Formats this table as CSV.
    */
-  def toCsv = {
+  def toCsv: String = {
     val csv = new StringBuilder()
 
     csv.append(name + "," + header.mkString(",") + "\n")
@@ -37,7 +40,7 @@ case class Table(name: String,
   /**
    * Formats this table as textile.
    */
-  def toTextile = {
+  def toTextile: String = {
     val sb = new StringBuilder()
 
     sb.append(header.mkString("|_. ", " |_. ", " |\n"))
@@ -62,7 +65,8 @@ case class Table(name: String,
                                                                                  symbol.             |
 
     */
-  def toMarkdown = {
+  def toMarkdown: String = {
+    val MAX_CHARACTERS = 500
     val sb = new StringBuilder()
 
     sb.append(header.mkString("| ", " | ", " |\n"))
@@ -71,10 +75,19 @@ case class Table(name: String,
       sb.append("| ")
       val lineValues = scala.collection.mutable.ListBuffer.empty[String]
       for(cell <- row.zip(columnWidthInCharacters)) {
-        val v = cell._1
+        val cellValue = {
+          val value = cell._1
+          var truncatedValue = if(value != null) value.toString.take(MAX_CHARACTERS) else "*null*"
+          val newLineIdx = truncatedValue.lastIndexOf('\n')
+          if(truncatedValue.length >= MAX_CHARACTERS && newLineIdx > 0) {
+            logger.warning(s"Had to truncate cell value of in table $name because it exceeded the max length of $MAX_CHARACTERS characters.")
+            truncatedValue = truncatedValue.take(newLineIdx) + "\n…\n"
+          }
+          truncatedValue.replace("\\", "\\\\")
+        }
         val maxChars = cell._2
         // If there are line breaks in a value, we need to generate multiple rows
-        val lines = Table.softGrouped(v.toString.replace("\\", "\\\\"), maxChars)
+        val lines = Table.softGrouped(cellValue, maxChars)
         lineValues += lines.mkString("\\\n")
       }
       sb.append(lineValues.mkString(" | "))
@@ -87,7 +100,7 @@ case class Table(name: String,
   /**
    * Formats this table as latex.
    */
-  def toLatex = {
+  def toLatex: String = {
     val sb = new StringBuilder()
 
     sb.append("\\begin{table}\n")
@@ -115,13 +128,18 @@ object Table {
     val minLength = math.max(1, (maxLength * (1.0 / 2)).toInt)
     var remainingString = input
     var splits = Vector.empty[String]
-    while(remainingString.size > 0) {
+    while(remainingString.length > 0) {
+      val newLineSplitIdx = remainingString.take(maxLength + 1).indexOf('\n')
       val whiteSpaceSplitIdx = remainingString.take(maxLength + 1).lastIndexOf(' ')
       val slashSplitIdx = remainingString.take(maxLength + 1).lastIndexOf('/') + 1
       val camelCaseSplitIdx = remainingString.take(maxLength + 1).sliding(2).toSeq.lastIndexWhere(s => s.length == 2 && s(0).isLower && s(1).isUpper) + 1
       var isCamelCase = false
+      var isNewLine = false
 
-      val splitIndex = if(whiteSpaceSplitIdx > minLength) {
+      val splitIndex = if(newLineSplitIdx >= 0) {
+        isNewLine = true
+        newLineSplitIdx + 1  // Newline should be included at the end
+      } else if(whiteSpaceSplitIdx > minLength) {
         whiteSpaceSplitIdx
       } else if(slashSplitIdx > minLength) {
         slashSplitIdx
@@ -133,10 +151,8 @@ object Table {
       }
 
       val (next, remain) = remainingString.splitAt(splitIndex)
-      if (isCamelCase)
-        splits :+= next + "-"
-      else
-        splits :+= next
+      val camelCaseSuffix = if(isCamelCase) "-" else ""
+      splits :+= next.stripSuffix("\n").stripSuffix("\r") + camelCaseSuffix
       remainingString = remain
     }
     splits

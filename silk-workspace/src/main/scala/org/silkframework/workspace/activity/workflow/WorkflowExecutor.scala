@@ -4,7 +4,7 @@ import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.Dataset
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.{ExecutionReport, ExecutionType, ExecutorRegistry}
-import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityMonitor, Status}
+import org.silkframework.runtime.activity._
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
 
@@ -35,11 +35,13 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
                                               inputs: Seq[ExecType#DataType],
                                               outputSchema: Option[EntitySchema])
                                              (implicit workflowRunContext: WorkflowRunContext): Option[ExecType#DataType] = {
+    implicit val userContext: UserContext = workflowRunContext.userContext
     ExecutorRegistry.execute(task, inputs, outputSchema, executionContext, workflowRunContext.taskContexts(task.id))
   }
 
   /** Return error if VariableDataset is used in output and input */
-  protected def checkVariableDatasets(): Unit = {
+  protected def checkVariableDatasets()
+                                     (implicit userContext: UserContext): Unit = {
     val variableDatasets = currentWorkflow.variableDatasets(project)
     val notCoveredVariableDatasets = variableDatasets.dataSources.filter(!replaceDataSources.contains(_))
     if (notCoveredVariableDatasets.nonEmpty) {
@@ -54,20 +56,22 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   }
 
   protected def workflow(implicit workflowRunContext: WorkflowRunContext): Workflow = workflowRunContext.workflow
+}
 
-  case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecutionReport],
-                                workflow: Workflow,
-                                alreadyExecuted: mutable.Set[WorkflowNode] = mutable.Set()) {
+case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecutionReport],
+                              workflow: Workflow,
+                              userContext: UserContext,
+                              alreadyExecuted: mutable.Set[WorkflowNode] = mutable.Set()) {
 
-    /**
-      * Holds the execution reports for each task.
-      */
-    val taskContexts: Map[Identifier, ActivityContext[ExecutionReport]] = {
-      for(node <- workflow.nodes) yield {
-        val taskMonitor = new ActivityMonitor[ExecutionReport](node.task, Some(activityContext))
-        (node.task, taskMonitor)
-      }
-    }.toMap
+  /**
+    * Holds the execution reports for each task.
+    */
+  val taskContexts: Map[Identifier, ActivityContext[ExecutionReport]] = {
+    for(node <- workflow.nodes) yield {
+      val taskMonitor = new ActivityMonitor[ExecutionReport](node.task, Some(activityContext))
+      (node.task, taskMonitor)
+    }
+  }.toMap
 
     /**
       * Listeners for updates to task reports.
@@ -81,15 +85,13 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       }
     }
 
-    /**
-      * Updates the workflow execution report on each update of a task report.
-      */
-    private class TaskReportListener(task: Identifier) extends (ExecutionReport => Unit) {
-      def apply(report: ExecutionReport): Unit = activityContext.value.synchronized {
-        activityContext.value() = activityContext.value().withReport(task, report)
-      }
+  /**
+    * Updates the workflow execution report on each update of a task report.
+    */
+  private class TaskReportListener(task: Identifier) extends (ExecutionReport => Unit) {
+    def apply(report: ExecutionReport): Unit = activityContext.value.synchronized {
+      activityContext.value() = activityContext.value().withReport(task, report)
     }
-
   }
 
 }

@@ -9,6 +9,7 @@ import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.runtime.serialization.XmlSerialization._
 
+import scala.util.Try
 import scala.xml.{Attribute, Null, Text, XML}
 
 private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
@@ -18,17 +19,19 @@ private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[Task[Workflow]] = {
+  override def loadTasksSafe(resources: ResourceLoader, projectResources: ResourceManager): Seq[Try[Task[Workflow]]] = {
     implicit val readContext = ReadContext(projectResources)
     val names = resources.list.filter(_.endsWith(".xml"))
     val tasks =
       for(name <- names) yield {
-        var xml = resources.get(name).read(XML.load)
-        // Old XML versions do not contain the id
-        if((xml \ "@id").isEmpty) {
-          xml = xml % Attribute("id", Text(name.stripSuffix(".xml")), Null)
+        Try {
+          var xml = resources.get(name).read(XML.load)
+          // Old XML versions do not contain the id
+          if ((xml \ "@id").isEmpty) {
+            xml = xml % Attribute("id", Text(name.stripSuffix(".xml")), Null)
+          }
+          fromXml[Task[Workflow]](xml)
         }
-        fromXml[Task[Workflow]](xml)
       }
     tasks
   }

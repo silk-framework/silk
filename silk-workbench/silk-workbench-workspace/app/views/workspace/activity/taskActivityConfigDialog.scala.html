@@ -1,10 +1,11 @@
 @import controllers.workspace.routes
 @import org.silkframework.runtime.plugin.{AnyPlugin, PluginDescription}
 @import org.silkframework.workspace.activity.TaskActivity
+@import org.silkframework.runtime.activity.UserContext
 
 @import scala.language.existentials
 
-@(activity: TaskActivity[_, _])
+@(activity: TaskActivity[_, _])(implicit userContext: UserContext)
 
 @widgets.pluginDialog(
     activity.project,
@@ -18,7 +19,7 @@
       const contentScrollTop = document.getElementsByClassName("mdl-layout__content")[0].scrollTop;
       sessionStorage.setItem("activityViewScrollPosition", contentScrollTop);
       $.post(
-        '@Html(routes.ActivityApi.postActivityConfig(activity.task.project.name, activity.task.id, activity.name).url)',
+        '@Html(routes.ActivityApi.startActivity(activity.task.project.name, activity.task.id, activity.name, blocking = false).url)',
         parameters
       ).done(function() {
         closeDialog();

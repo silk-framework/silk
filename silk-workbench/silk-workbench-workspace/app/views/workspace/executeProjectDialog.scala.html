@@ -2,8 +2,9 @@
 @import org.silkframework.workspace.activity.ProjectExecutor
 @import org.silkframework.workspace.Project
 @import controllers.workspace.routes
+@import org.silkframework.runtime.activity.UserContext
 
-@(project: Project)
+@(project: Project)(implicit userContext: UserContext)
 
 @widgets.pluginDialog(project,
                       name = project.name,
