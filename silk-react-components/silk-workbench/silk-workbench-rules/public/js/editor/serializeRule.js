@@ -36,8 +36,11 @@ function serializeTransformRule() {
     xml.setAttribute('name', $('#rulename').val());
 
     // Add mapping target
-    var targetXml = $.parseXML($('#rule-mappingtarget').text());
-    xml.appendChild(targetXml.documentElement);
+    var targetXmlString = $('#rule-mappingtarget').text();
+    if(targetXmlString.trim().length !== 0) {
+        var targetXml = $.parseXML(targetXmlString);
+        xml.appendChild(targetXml.documentElement);
+    }
 
     // Add metadata
     var metaDataXml = $.parseXML($('#rule-metadata').text());
