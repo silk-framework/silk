@@ -201,6 +201,7 @@ object PluginRegistry {
   def registerPlugin(implementingClass: Class[_]): Unit = {
     val pluginDesc = PluginDescription(implementingClass)
     registerPlugin(pluginDesc)
+    log.fine(s"Loaded plugin " + pluginDesc.id)
   }
 
   private def getSuperTypes(clazz: Class[_]): Set[Class[_]] = {
@@ -255,7 +256,5 @@ object PluginRegistry {
       // Build a map from each category to all corresponding plugins
       categoriesAndPlugins.groupBy(_._1).mapValues(_.map(_._2))
     }
-    
   }
-  
 }
