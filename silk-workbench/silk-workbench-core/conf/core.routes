@@ -3,6 +3,7 @@ GET        /logo.png             controllers.core.Branding.logo
 GET        /aboutDialog          controllers.core.Branding.aboutDialog
 GET        /mdlStyle             controllers.core.Branding.mdlStyle
 GET        /config               controllers.core.ConfigController.index
-GET        /plugins/:pluginType  controllers.core.PluginApi.plugins(pluginType)
+GET        /plugins              controllers.core.PluginApi.plugins()
+GET        /plugins/:pluginType  controllers.core.PluginApi.pluginsForTypes(pluginType)
 
 GET        /assets/*file         controllers.core.Assets.at(path="/public/lib/silk-workbench-core", file)
