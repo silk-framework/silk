@@ -48,7 +48,7 @@ case class Entity private(
     subEntities: IndexedSeq[Option[Entity]] = this.subEntities,
     metadata: EntityMetadata[_] = this.metadata,
     failureOpt: Option[FailureClass] = None,
-    projectValuesIfNewSchema: Boolean = false      //TODO reevaluate the default setting (for now switched to false)
+    projectValuesIfNewSchema: Boolean = false
   ): Entity = this.failure match{
     case Some(_) => this                                // if origin entity has already failed, we forward it so the failure is not overwritten
     case None =>
@@ -81,7 +81,7 @@ case class Entity private(
   def applyNewSchema(es: EntitySchema): Entity = copy(schema = es, projectValuesIfNewSchema = false)
 
   /**
-    *
+    * The value-array containing as many values as properties in the schema
     */
   val values: IndexedSeq[Seq[String]] = vals.map(Entity.handleNullsInValueSeq)
 
