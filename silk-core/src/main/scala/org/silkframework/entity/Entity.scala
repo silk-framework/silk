@@ -48,7 +48,7 @@ case class Entity private(
     subEntities: IndexedSeq[Option[Entity]] = this.subEntities,
     metadata: EntityMetadata[_] = this.metadata,
     failureOpt: Option[FailureClass] = None,
-    projectValuesIfNewSchema: Boolean = true
+    projectValuesIfNewSchema: Boolean = false      //TODO reevaluate the default setting (for now switched to false)
   ): Entity = this.failure match{
     case Some(_) => this                                // if origin entity has already failed, we forward it so the failure is not overwritten
     case None =>

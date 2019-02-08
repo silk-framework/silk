@@ -77,9 +77,7 @@ lazy val rules = (project in file("silk-rules"))
   .dependsOn(core % "test->test;compile->compile", pluginsCsv % "test->compile")
   .settings(commonSettings: _*)
   .settings(
-    name := "Silk Rules",
-    libraryDependencies += "systems.uom" % "systems-ucum-java8" % "0.9",
-    libraryDependencies += "systems.uom" % "systems-quantity" % "0.9"
+    name := "Silk Rules"
   )
 
 lazy val learning = (project in file("silk-learning"))
