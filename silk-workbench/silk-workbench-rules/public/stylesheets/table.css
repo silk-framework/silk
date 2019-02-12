@@ -40,3 +40,10 @@ a:hover {
   color: #555555;
 }
 
+div.displayAsBlock {
+  display: block;
+}
+
+div.displayAsNone {
+  display: none;
+}

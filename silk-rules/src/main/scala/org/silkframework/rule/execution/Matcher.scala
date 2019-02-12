@@ -22,6 +22,7 @@ import org.silkframework.cache.EntityCache
 import org.silkframework.entity.Link
 import org.silkframework.rule.{LinkageRule, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
+import org.silkframework.runtime.execution.Execution
 import org.silkframework.util.DPair
 
 import scala.math.{max, min}
@@ -58,7 +59,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     cancelled = false
 
     //Create execution service for the matching tasks
-    val executorService = Executors.newFixedThreadPool(runtimeConfig.numThreads)
+    val executorService = Execution.createFixedThreadPool("Matcher", runtimeConfig.numThreads)
     val executor = new ExecutorCompletionService[IndexedSeq[Link]](executorService)
 
     //Start matching thread scheduler
