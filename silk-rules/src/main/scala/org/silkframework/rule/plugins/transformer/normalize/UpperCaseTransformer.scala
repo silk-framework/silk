@@ -24,7 +24,7 @@ import org.silkframework.runtime.plugin.Plugin
   description = "Converts a string to upper case."
 )
 case class UpperCaseTransformer() extends SimpleTransformer {
-  override def evaluate(value: String) = {
+  override def evaluate(value: String): String = {
     value.toUpperCase
   }
 }
