@@ -1,9 +1,6 @@
 package org.silkframework.plugins.dataset.rdf
 
   import java.io.File
-  import java.io.File.TempDirectory
-
-  import org.apache.commons.io.FileUtils
   import org.scalatest.mock.MockitoSugar
   import org.scalatest.{FlatSpec, MustMatchers}
   import org.silkframework.config.PlainTask
@@ -16,7 +13,7 @@ package org.silkframework.plugins.dataset.rdf
   import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlCopyExecutor
   import org.silkframework.plugins.dataset.rdf.tasks.SparqlCopyCustomTask
   import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
-  import org.silkframework.runtime.resource.{ClasspathResourceLoader, FileResource, ReadOnlyResourceManager}
+  import org.silkframework.runtime.resource.{ClasspathResourceLoader, ReadOnlyResourceManager}
   import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
   import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutionReportWithProvenance}
 
@@ -47,8 +44,6 @@ package org.silkframework.plugins.dataset.rdf
     private val OUTPUT_DATASET_ID = "sparql_out"
     private val INPUT_DATASET_ID = "test"
 
-    private var tempFile: File = _
-
     for(withTempfile <- Seq(true, false)){
       val task = PlainTask("task", SparqlCopyCustomTask(constructQuery, withTempfile))
 
@@ -56,10 +51,6 @@ package org.silkframework.plugins.dataset.rdf
         val result = executor.execute(task, input, None, execution, context)
         result match{
           case Some(copy) =>
-            if(withTempfile) {
-              val tempFiles = new File(System.getProperty("java.io.tmpdir")).listFiles().toList.sortBy(f => f.lastModified())
-              tempFiles.nonEmpty && tempFiles.last.getName.contains("counstruct_copy_tmp") mustBe true
-            }
             copy.entities.size mustBe 5                    // number of triples in source
             copy.entities.forall(e => e.values.size == 5) mustBe true   // default number of quad values as entities
           case None => fail("Empty result of copy task")
@@ -87,5 +78,4 @@ package org.silkframework.plugins.dataset.rdf
       val allInputTriples = inputDataset.asInstanceOf[RdfFileDataset].sparqlEndpoint.constructModel("CONSTRUCT { ?s ?p ?o. } WHERE { ?s ?p ?o }")
       allInputTriples.isIsomorphicWith(allOutputTriples) mustBe true
     }
-
   }
