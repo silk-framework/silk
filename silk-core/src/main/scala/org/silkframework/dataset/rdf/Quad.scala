@@ -18,8 +18,7 @@ case class Quad (
    context: Option[Resource]    // note no blank nodes allowed as context
  ) {
 
-  def toEntity(uri: Option[Uri] = None): Entity ={
-    assert(Triple.DefaultTripleContext != context, "Trying to extract Quad-Entities from a Triple")
+  def toQuadEntity(uri: Option[Uri] = None): Entity = {
     val (value, typ) = TripleEntityTable.convertToEncodedType(this.objectVal)
     val values = IndexedSeq(
       Seq(this.subject.value),
@@ -30,15 +29,11 @@ case class Quad (
     )
     Entity(uri.getOrElse(Uri(values.head.head)), values, QuadEntityTable.schema)
   }
-
-  def serialize(formatter: QuadFormatter): String = formatter.formatQuad(this)
-
-  def toTriple: Triple = new Triple(this.subject, this.predicate, this.objectVal)
 }
 
 object Quad{
 
-  def apply(subject: Resource, predicate: Resource, obj: RdfNode, context: Resource) = new Quad(subject, predicate, obj, Some(context))
-  def apply(subject: BlankNode, predicate: Resource, obj: RdfNode, context: Resource) = new Quad(subject, predicate, obj, Some(context))
-
+  def apply(subject: ConcreteNode, predicate: Resource, obj: RdfNode, context: Resource): Quad = {
+    new Quad(subject, predicate, obj, Some(context))
+  }
 }

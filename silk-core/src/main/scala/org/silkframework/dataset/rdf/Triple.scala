@@ -17,9 +17,7 @@ class Triple(
   objVal: RdfNode
 ) extends Quad(subj, pred, objVal, None) {
 
-  override def serialize(formatter: QuadFormatter): String = formatter.formatAsTriple(this)
-
-  override def toEntity(uri: Option[Uri] = None): Entity ={
+  def toTripleEntity(uri: Option[Uri] = None): Entity = {
     val (value, typ) = TripleEntityTable.convertToEncodedType(this.objectVal)
     val values = IndexedSeq(
       Seq(this.subject.value),
@@ -33,9 +31,7 @@ class Triple(
 
 object Triple{
 
-  val DefaultTripleContext = Resource("urn:instance:default:triple:context")
-
-  def apply(subject: Resource, predicate: Resource, obj: RdfNode) = new Triple(subject, predicate, obj)
-  def apply(subject: BlankNode, predicate: Resource, obj: RdfNode) = new Triple(subject, predicate, obj)
-
+  def apply(subject: ConcreteNode, predicate: Resource, obj: RdfNode): Triple = {
+    new Triple(subject, predicate, obj)
+  }
 }

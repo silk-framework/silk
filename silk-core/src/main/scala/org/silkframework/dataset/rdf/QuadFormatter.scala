@@ -3,12 +3,12 @@ package org.silkframework.dataset.rdf
 /**
   * Serializes Quads
   */
-trait QuadFormatter extends Formatter{
+trait QuadFormatter extends ElementFormatter[Quad] {
 
   /**
     * Serializes a [Quad] with context (if present).
     */
-  def formatQuad(quad: Quad): String
+  def formatQuad(quad: org.silkframework.dataset.rdf.Quad): String
 
   /**
     * Serializes a [Quad] as a triple without context.
@@ -31,5 +31,7 @@ trait QuadFormatter extends Formatter{
     * The pertaining html media type
     */
   def associatedMediaType: String
+
+  override def formatElement(quad: Quad): String = formatQuad(quad)
 
 }

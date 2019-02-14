@@ -21,7 +21,7 @@ import org.apache.jena.rdf.model.Model
 import org.apache.jena.update.UpdateProcessor
 import org.silkframework.dataset.rdf._
 import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
-import org.silkframework.plugins.dataset.rdf.{QuadIteratorImpl, RdfFormatUtil, TripleIteratorImpl}
+import org.silkframework.plugins.dataset.rdf.{QueryExecutionQuadIterator, QueryExecutionTripleIterator, RdfFormatUtil}
 import org.silkframework.runtime.activity.UserContext
 
 import scala.collection.immutable.SortedMap
@@ -82,25 +82,11 @@ abstract class JenaEndpoint extends SparqlEndpoint {
 
     val qe = createQueryExecution(QueryFactory.create(query))
     // if we have a quad construct query (not SPARQL 1.1, but Jena already supports it: https://jena.apache.org/documentation/query/construct-quad.html)
-    val results = if(qe.getQuery.isConstructQuad) {
-      val quadIterator = qe.execConstructQuads()
-      QuadIteratorImpl(
-        () => quadIterator.hasNext,
-        () => RdfFormatUtil.jenaQuadToQuad(quadIterator.next()),
-        () => qe.close(),
-        new NTriplesQuadFormatter
-      )
+    if(qe.getQuery.isConstructQuad) {
+      QueryExecutionQuadIterator(qe)
+    } else {
+      QueryExecutionTripleIterator(qe)
     }
-    else{
-      val tripleIterator = qe.execConstructTriples()
-      TripleIteratorImpl(
-        () => tripleIterator.hasNext,
-        () => RdfFormatUtil.jenaTripleToTriple(tripleIterator.next()),
-        () => qe.close(),
-        new NTriplesQuadFormatter
-      )
-    }
-    results
   }
 
   /**

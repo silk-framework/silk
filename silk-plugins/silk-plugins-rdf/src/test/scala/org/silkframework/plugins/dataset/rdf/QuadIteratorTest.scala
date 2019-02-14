@@ -6,6 +6,7 @@ import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.rdf.model.impl.StatementImpl
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.dataset.rdf.{IteratorFormatter, QuadIterator}
 import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
 import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
 import org.silkframework.runtime.activity.UserContext
@@ -19,7 +20,7 @@ class QuadIteratorTest extends FlatSpec with Matchers with MockitoSugar {
 
   it should "should produce isomorphic graphs when serializing the origin graph with QuadIterator" in {
     val quadIterator = source.sparqlEndpoint.construct("CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }")
-    val serialized = quadIterator.serialize()
+    val serialized = serialize(quadIterator)
     var model = ModelFactory.createDefaultModel()
     model.read(new StringReader(serialized), null, "N-Quads")
 
@@ -36,22 +37,19 @@ class QuadIteratorTest extends FlatSpec with Matchers with MockitoSugar {
       oldModel.createLiteral("shdfvjs se\\jdsö\\\\\\nsjhf\"df")
     ))
 
-    val stmtIter = oldModel.listStatements()
-
     // now we parse the serialized graph back to a QuadIterator
-    val newQuadIterator = TripleIteratorImpl(
-      () => stmtIter.hasNext,
-      () => RdfFormatUtil.jenaStatementToTriple(stmtIter.next()),
-      () => stmtIter.close(),
-      new NTriplesQuadFormatter
-    )
+    val newQuadIterator = JenaModelTripleIterator(oldModel)
 
-    val newSerialization = newQuadIterator.serialize() +
+    val newSerialization = serialize(newQuadIterator) +
       "<http://example.org/test/test/1> <http://example.org/prop/1> \"shdfvjs se\\\\jdsö\\\\\\\\\\\\nsjhf\\\"df\"^^<http://www.w3.org/2001/XMLSchema#string> ."
     model = ModelFactory.createDefaultModel()
     model.read(new StringReader(newSerialization), null, "N-Quads")
 
     // the twice serialized graph should be isomorphic to the origin graph
     oldModel.isIsomorphicWith(model) shouldBe true
+  }
+
+  private def serialize(quadIterator: QuadIterator): String = {
+    IteratorFormatter.serialize(quadIterator, new NTriplesQuadFormatter())
   }
 }

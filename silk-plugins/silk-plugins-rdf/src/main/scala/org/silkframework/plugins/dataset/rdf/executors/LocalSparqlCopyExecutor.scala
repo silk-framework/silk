@@ -5,11 +5,12 @@ import java.io.File
 import org.apache.commons.io.FileUtils
 import org.apache.jena.riot.Lang
 import org.silkframework.config.Task
-import org.silkframework.dataset.rdf.{QuadIterator, SparqlEndpointEntityTable}
+import org.silkframework.dataset.rdf.{IteratorFormatter, QuadIterator, SparqlEndpointEntityTable}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local._
 import org.silkframework.execution.{ExecutionReport, TaskException}
 import org.silkframework.plugins.dataset.rdf.datasets.FileBasedQuadEntityTable
+import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlCopyCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 
@@ -34,13 +35,13 @@ class LocalSparqlCopyExecutor() extends LocalExecutor[SparqlCopyCustomTask] {
                     // adding file deletion shutdown hook
                     execution.addShutdownHook(() => FileUtils.forceDelete(tempFile))
                     // save to temp file
-                    results.saveToFile(tempFile)
+                    IteratorFormatter.saveToFile(tempFile, results, new NTriplesQuadFormatter())
 
                     Some(new FileBasedQuadEntityTable(tempFile, Lang.NQUADS, task))
                 }
                 // else we just stream it to the output
                 else{
-                    Some(QuadEntityTable(() => results.asEntities, task))
+                    Some(QuadEntityTable(() => results.asQuadEntities, task))
                 }
                 temporaryEntities
             case _ =>
