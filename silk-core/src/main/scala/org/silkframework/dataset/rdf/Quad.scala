@@ -9,13 +9,13 @@ import org.silkframework.util.Uri
   * @param subject - subject (either Resource or BlankNode)
   * @param predicate - the predicate uri
   * @param objectVal - the object (as Resource, BlankNode or Literal)
-  * @param context - the graph or context (either Resource or BlankNode)
+  * @param context - the optional graph or context (either Resource or BlankNode)
   */
 case class Quad (
    subject: ConcreteNode,
    predicate: Resource,
    objectVal: RdfNode,
-   context: ConcreteNode    // note no blank nodes allowed as context
+   context: Option[Resource]    // note no blank nodes allowed as context
  ) {
 
   def toEntity(uri: Option[Uri] = None): Entity ={
@@ -26,7 +26,7 @@ case class Quad (
       Seq(this.predicate.value),
       Seq(value),
       Seq(typ),
-      Seq(this.context.value)
+      this.context.map(_.value).toSeq
     )
     Entity(uri.getOrElse(Uri(values.head.head)), values, QuadEntityTable.schema)
   }
@@ -38,7 +38,7 @@ case class Quad (
 
 object Quad{
 
-  def apply(subject: Resource, predicate: Resource, obj: RdfNode, context: Resource) = new Quad(subject, predicate, obj, context)
-  def apply(subject: BlankNode, predicate: Resource, obj: RdfNode, context: Resource) = new Quad(subject, predicate, obj, context)
+  def apply(subject: Resource, predicate: Resource, obj: RdfNode, context: Resource) = new Quad(subject, predicate, obj, Some(context))
+  def apply(subject: BlankNode, predicate: Resource, obj: RdfNode, context: Resource) = new Quad(subject, predicate, obj, Some(context))
 
 }

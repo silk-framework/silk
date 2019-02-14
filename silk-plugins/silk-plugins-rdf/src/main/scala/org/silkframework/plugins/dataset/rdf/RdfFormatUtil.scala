@@ -44,7 +44,7 @@ object RdfFormatUtil {
       case pl: PlainLiteral => NodeFactory.createLiteral(pl.value)
       case tl: DataTypeLiteral => NodeFactory.createLiteral(tl.value, NodeFactory.getType(tl.dataType))
     }
-    val graph = NodeFactory.createURI(q.context.value)
+    val graph = q.context.map(c => NodeFactory.createURI(c.value)).orNull
 
     new JenaQuad(graph, subj, pred, obj)
   }

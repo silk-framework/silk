@@ -15,7 +15,7 @@ class Triple(
   subj: ConcreteNode,
   pred: Resource,
   objVal: RdfNode
-) extends Quad(subj, pred, objVal, Triple.DefaultTripleContext) {
+) extends Quad(subj, pred, objVal, None) {
 
   override def serialize(formatter: QuadFormatter): String = formatter.formatAsTriple(this)
 
