@@ -1,6 +1,7 @@
 package controllers.util
 
 
+import org.silkframework.config.Prefixes
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, SerializationFormat, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
 import org.silkframework.workbench.utils.{ErrorResult, NotAcceptableException}
@@ -29,9 +30,9 @@ object SerializationUtils {
     * @return A HTTP result
     */
   def serializeCompileTime[T: ClassTag](value: T,
+                                        project: Option[Project],
                                         defaultMimeTypes: Seq[String] = defaultMimeTypes)
-                                       (implicit request: Request[AnyContent],
-                                        project: Project): Result = {
+                                       (implicit request: Request[AnyContent]): Result = {
     implicit val writeContext = createWriteContext(project)
     val valueType = implicitly[ClassTag[T]].runtimeClass
 
@@ -41,8 +42,13 @@ object SerializationUtils {
     }
   }
 
-  private def createWriteContext(project: Project) = {
-    WriteContext[Any](prefixes = project.config.prefixes, projectId = Some(project.config.id))
+  private def createWriteContext(project: Option[Project]): WriteContext[Any] = {
+    project match {
+      case Some(proj) =>
+        WriteContext[Any](prefixes = proj.config.prefixes, projectId = Some(proj.config.id))
+      case None =>
+        WriteContext[Any](prefixes = Prefixes.default, projectId = None)
+    }
   }
 
   /**
@@ -58,7 +64,7 @@ object SerializationUtils {
                        defaultMimeTypes: Seq[String] = defaultMimeTypes)
                       (implicit request: Request[AnyContent],
                        project: Project): Result = {
-    implicit val writeContext = createWriteContext(project)
+    implicit val writeContext = createWriteContext(Some(project))
     val valueType = value.getClass
 
     val noneType = notAcceptable(request, valueType)
@@ -78,7 +84,7 @@ object SerializationUtils {
                                                 defaultMimeTypes: Seq[String] = defaultMimeTypes)
                                                (implicit request: Request[AnyContent],
                                                 project: Project): Option[String] = {
-    implicit val writeContext = createWriteContext(project)
+    implicit val writeContext = createWriteContext(Some(project))
     val valueType = implicitly[ClassTag[T]].runtimeClass
 
     val noneType = None
@@ -92,7 +98,7 @@ object SerializationUtils {
                                    defaultMimeTypes: Seq[String] = defaultMimeTypes)
                                   (implicit request: Request[AnyContent],
                                    project: Project): Option[String] = {
-    implicit val writeContext = createWriteContext(project)
+    implicit val writeContext = createWriteContext(Some(project))
     val valueType = value.getClass
 
     val noneType = None
@@ -107,7 +113,7 @@ object SerializationUtils {
                                                 containerName: Option[String] = None)
                                                (implicit request: RequestHeader,
                                                 project: Project): Result = {
-    implicit val writeContext = createWriteContext(project)
+    implicit val writeContext = createWriteContext(Some(project))
     val valueType = implicitly[ClassTag[T]].runtimeClass
 
     applySerializationFormat[T](request.acceptedTypes, defaultMimeTypes, valueType) { (serializationFormat, mimeType) =>
@@ -238,7 +244,7 @@ object SerializationUtils {
         fn(Serialization.formatForMime(classToSerialize, mimeType), mimeType)
       case None =>
         val msg = s"No serialization for accepted MIME types (${acceptedTypes.mkString(", ")})" +
-                  s" available for values of type ${classToSerialize.getSimpleName}"
+          s" available for values of type ${classToSerialize.getSimpleName}"
         ErrorResult(NotAcceptableException(msg))
     }
   }
@@ -257,9 +263,9 @@ object SerializationUtils {
 
   private def findSerializationFormatByMimeType(classToSerialize: Class[_], mimeTypes: Seq[String]) = {
     mimeTypes.
-        map(mt => (mt, Serialization.formatForMimeOption(classToSerialize, mt))).
-        find { case (mimeType, serializeFormat) => serializeFormat.isDefined }.
-        map(tuple => (tuple._1, tuple._2.get))
+      map(mt => (mt, Serialization.formatForMimeOption(classToSerialize, mt))).
+      find { case (mimeType, serializeFormat) => serializeFormat.isDefined }.
+      map(tuple => (tuple._1, tuple._2.get))
   }
 
   private def applySerializationFormat[T](acceptedTypes: Seq[MediaType],

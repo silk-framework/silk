@@ -30,7 +30,7 @@ class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
 
     vocabularies.findClass(fullTypeUri.uri) match {
       case Some(vocabType) =>
-        serializeCompileTime(vocabType)
+        serializeCompileTime(vocabType, Some(project))
       case None =>
         ErrorResult(NotFoundException(s"Type $typeUri could not be found in any of the target vocabularies."))
     }
@@ -46,7 +46,7 @@ class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
 
     vocabularies.findProperty(fullPropertyUri.uri) match {
       case Some(vocabProperty) =>
-        serializeCompileTime(vocabProperty)
+        serializeCompileTime(vocabProperty, Some(project))
       case None =>
         ErrorResult(NotFoundException(s"Property $propertyUri could not be found in any of the target vocabularies."))
     }
@@ -64,9 +64,9 @@ class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
 
     (vocabularies.findClass(fullUri.uri), vocabularies.findProperty(fullUri.uri)) match {
       case (Some(vocabType), None) =>
-        serializeCompileTime(vocabType)
+        serializeCompileTime(vocabType, Some(project))
       case (None, Some(vocabProperty)) =>
-        serializeCompileTime(vocabProperty)
+        serializeCompileTime(vocabProperty, Some(project))
       case (None, None) =>
         ErrorResult(NotFoundException(s"Property or Class $uri could not be found in any of the target vocabularies."))
       case (Some(_), Some(_)) =>

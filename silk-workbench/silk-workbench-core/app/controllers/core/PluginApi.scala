@@ -1,7 +1,10 @@
 package controllers.core
 
+import controllers.util.SerializationUtils
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.plugin._
+import org.silkframework.runtime.serialization.WriteContext
+import org.silkframework.serialization.json.{JsonFormat, WriteOnlyJsonFormat}
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, Controller, Request}
 
@@ -32,70 +35,10 @@ class PluginApi extends Controller {
   }}
 
   private def generate(pluginList: PluginList)(implicit request: Request[AnyContent]) = {
-    //if(request.accepts("text/csv") || request.accepts("application/csv")) {
+    if(request.accepts("text/csv") || request.accepts("application/csv")) {
       Ok(PluginCsvSerializer(pluginList))
-    //} else {
-    //  Ok(PluginJsonSerializer(pluginList))
-    //}
-  }
-
-  case class PluginList(pluginsByType: ListMap[String, Seq[PluginDescription[_]]])
-
-  object PluginList {
-    def load(pluginTypes: Seq[String]): PluginList= {
-      val pluginsByType =
-        for(pluginType <- pluginTypes) yield {
-          val pluginClass = getClass.getClassLoader.loadClass(pluginType)
-          (pluginType, PluginRegistry.availablePluginsForClass(pluginClass))
-        }
-
-      PluginList(ListMap(pluginsByType: _*))
-    }
-  }
-
-  /**
-    * Generates a JSON serialization of the available plugins.
-    * The returned JSON format stays as close to JSON Schema as possible.
-    */
-  private object PluginJsonSerializer {
-
-    def apply(plugins: PluginList): JsObject = {
-      JsObject(
-        for((pluginType, plugins) <- plugins.pluginsByType; plugin <- plugins) yield {
-          plugin.id.toString -> serializePlugin(plugin)
-        }
-      )
-    }
-
-    private def serializePlugin(plugin: PluginDescription[_]) = {
-      Json.obj(
-        "title" -> JsString(plugin.label),
-        "description" -> JsString(plugin.description),
-        "type" -> "object",
-        "properties" -> JsObject(serializeParams(plugin.parameters)),
-        "required" -> JsArray(plugin.parameters.filterNot(_.defaultValue.isDefined).map(_.name).map(JsString))
-      )
-    }
-
-    private def serializeParams(params: Seq[Parameter]) = {
-      for(param <- params) yield {
-        param.name -> serializeParam(param)
-      }
-    }
-
-    private def serializeParam(param: Parameter) = {
-      val defaultValue = param.stringDefaultValue(Prefixes.empty) match {
-        case Some(value) => JsString(value)
-        case None => JsNull
-      }
-
-      Json.obj(
-        "title" -> JsString(param.label),
-        "description" -> JsString(param.description),
-        "type" -> JsString(param.dataType.name),
-        "value" -> defaultValue,
-        "advanced" -> JsBoolean(param.advanced)
-      )
+    } else {
+      SerializationUtils.serializeCompileTime(pluginList, None)
     }
   }
 

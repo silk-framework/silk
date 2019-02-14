@@ -26,9 +26,9 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   private implicit val valueCoverageResultFormat = Json.format[ValueCoverageResult]
 
   def getDataset(projectName: String, sourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    implicit val project = WorkspaceFactory().workspace.project(projectName)
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[GenericDatasetSpec](sourceName)
-    serializeCompileTime[DatasetTask](task)
+    serializeCompileTime[DatasetTask](task, Some(project))
   }
 
   def getDatasetAutoConfigured(projectName: String, sourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
@@ -38,7 +38,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
     datasetPlugin match {
       case autoConfigurable: DatasetPluginAutoConfigurable[_] =>
         val autoConfDataset = autoConfigurable.autoConfigured
-        serializeCompileTime[DatasetTask](PlainTask(task.id, DatasetSpec(autoConfDataset)))
+        serializeCompileTime[DatasetTask](PlainTask(task.id, DatasetSpec(autoConfDataset)), Some(project))
       case _ =>
         ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
     }
