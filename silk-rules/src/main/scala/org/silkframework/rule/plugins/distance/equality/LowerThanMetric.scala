@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.distance.equality
 
-import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.rule.similarity.{NonSymmetricDistanceMeasure, SimpleDistanceMeasure}
+import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.util.StringUtils._
 
 @Plugin(
@@ -10,7 +10,10 @@ import org.silkframework.util.StringUtils._
   label = "Lower than",
   description = "Checks if the source value is lower than the target value. " +
   "If both strings are numbers, numerical order is used for comparison. Otherwise, alphanumerical order is used")
-case class LowerThanMetric(orEqual: Boolean = false) extends SimpleDistanceMeasure {
+case class LowerThanMetric(@Param("Accept equal values")
+                           orEqual: Boolean = false,
+                           @Param("Reverse source and target inputs")
+                           reverse: Boolean = false) extends SimpleDistanceMeasure with NonSymmetricDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, threshold: Double): Double = {
     LowerThanMetric.evaluate(str1, str2, orEqual)
