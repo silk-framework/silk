@@ -16,6 +16,8 @@ class SparqlEndpointEntityTable(sparqlEndpoint: SparqlEndpoint, val task: Task[T
 
   def select(query: String, limit: Int = Integer.MAX_VALUE)
             (implicit userContext: UserContext): SparqlResults = sparqlEndpoint.select(query, limit)
+
+  def construct(query: String)(implicit userContext: UserContext): QuadIterator = sparqlEndpoint.construct(query)
 }
 
 object SparqlEndpointEntitySchema {

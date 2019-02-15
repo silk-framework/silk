@@ -1,4 +1,4 @@
-package org.silkframework.plugins.dataset.rdf
+package org.silkframework.plugins.dataset.rdf.access
 
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
 import org.silkframework.dataset.{EntitySink, LinkSink, TripleSink, TypedProperty}

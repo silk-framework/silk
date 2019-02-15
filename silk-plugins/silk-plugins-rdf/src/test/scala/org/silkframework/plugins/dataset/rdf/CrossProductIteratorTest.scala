@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.rdf
 
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.plugins.dataset.rdf.executors.CrossProductIterator
 
 class CrossProductIteratorTest extends FlatSpec with MustMatchers {
   behavior of "Cross Product Matcher"

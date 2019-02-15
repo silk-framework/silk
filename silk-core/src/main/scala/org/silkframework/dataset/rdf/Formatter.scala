@@ -1,4 +1,4 @@
-package org.silkframework.plugins.dataset.rdf.formatters
+package org.silkframework.dataset.rdf
 
 /**
  * Created by andreas on 12/11/15.

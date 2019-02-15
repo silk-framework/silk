@@ -1,10 +1,12 @@
-package org.silkframework.plugins.dataset.rdf
+package org.silkframework.plugins.dataset.rdf.executors
 
 import org.silkframework.config.Task
+import org.silkframework.dataset.DataSource
 import org.silkframework.dataset.rdf.{SparqlEndpointEntityTable, SparqlResults}
 import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.{ExecutionReport, TaskException}
+import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
+import org.silkframework.plugins.dataset.rdf.tasks.{SparqlCopyCustomTask, SparqlSelectCustomTask}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 
 /**
@@ -59,7 +61,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
       val values = vars map { v =>
         binding.get(v).toSeq.map(_.value)
       }
-      Entity(s"urn:entity:$count", values = values, schema = taskData.outputSchema)
+      Entity(DataSource.URN_NID_PREFIX + count, values = values, schema = taskData.outputSchema)
     }
     entities
   }

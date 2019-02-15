@@ -4,7 +4,7 @@ import org.apache.jena.query.{Query, QueryExecution, QueryExecutionFactory}
 import org.apache.jena.rdf.model.Model
 import org.apache.jena.sparql.core.DatasetGraphFactory
 import org.apache.jena.update.{UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
-import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams, SparqlResults}
+import org.silkframework.dataset.rdf.{QuadIterator, SparqlEndpoint, SparqlParams, SparqlResults}
 import org.silkframework.runtime.activity.UserContext
 
 /**
@@ -35,7 +35,7 @@ class JenaModelEndpoint(model: Model) extends JenaEndpoint {
   }
 
   override def construct(query: String)
-                        (implicit userContext: UserContext): String = {
+                        (implicit userContext: UserContext): QuadIterator= {
     this.synchronized {
       super.construct(query)
     }

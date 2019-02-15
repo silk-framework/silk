@@ -1,11 +1,11 @@
-package org.silkframework.plugins.dataset.rdf
+package org.silkframework.plugins.dataset.rdf.access
 
 import java.io.{BufferedOutputStream, File, FileOutputStream, OutputStream}
 import java.nio.file.Files
 import java.util.logging.Logger
 
-import org.silkframework.dataset.rdf.{GraphStoreFileUploadTrait, GraphStoreTrait}
-import org.silkframework.dataset.{EntitySink, LinkSink, TripleSink, TypedProperty}
+import org.silkframework.dataset.rdf.{GraphStoreFileUploadTrait, GraphStoreTrait, Quad}
+import org.silkframework.dataset._
 import org.silkframework.entity.{Link, ValueType}
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
 import org.silkframework.runtime.activity.UserContext

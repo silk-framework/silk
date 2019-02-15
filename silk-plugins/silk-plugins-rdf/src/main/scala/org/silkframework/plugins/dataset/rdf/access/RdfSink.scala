@@ -1,9 +1,10 @@
-package org.silkframework.plugins.dataset.rdf
+package org.silkframework.plugins.dataset.rdf.access
 
 import java.io.ByteArrayOutputStream
 
 import org.apache.jena.riot.{Lang, RDFDataMgr}
 import org.silkframework.entity.{Link, ValueType}
+import org.silkframework.plugins.dataset.rdf.RdfFormatUtil
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
 import org.silkframework.runtime.activity.UserContext
 
