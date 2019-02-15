@@ -27,7 +27,7 @@ class LocalSparqlCopyExecutor() extends LocalExecutor[SparqlCopyCustomTask] {
         inputs match {
             case Seq(sparql: SparqlEndpointEntityTable) =>
                 val internalTaskId = "counstruct_copy_tmp"
-                val results: QuadIterator = sparql.construct(task.selectQuery.str)
+                val results: QuadIterator = sparql.construct(task.query.str)
                 // if we have to safe construct graph as temp file before propagation
                 val temporaryEntities = if(task.tempFile){
                     val tempFile = File.createTempFile(internalTaskId, "nt")
