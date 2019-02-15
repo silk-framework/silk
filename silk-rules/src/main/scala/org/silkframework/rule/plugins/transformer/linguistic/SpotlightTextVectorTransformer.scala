@@ -6,7 +6,7 @@ import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.util.HttpURLConnectionUtils._
 
-import scala.collection.mutable.{ArrayBuffer, Set => MSet}
+import scala.collection.mutable.ArrayBuffer
 import scala.xml.{Elem, XML}
 
 /**
@@ -26,7 +26,7 @@ import scala.xml.{Elem, XML}
 case class SpotlightTextVectorTransformer() extends Transformer {
   def apply(values: Seq[Seq[String]]): Seq[String] = {
     val stringSet = values.reduce(_ union _)
-    if(stringSet.size==0)
+    if(stringSet.isEmpty)
       return Seq[String]()
     val query = if(stringSet.size>1)
       stringSet.reduceLeft(_ + " " + _)

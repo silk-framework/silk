@@ -16,14 +16,14 @@ case class DurationTransformer() extends Transformer {
 
   private val datatypeFactory = DatatypeFactory.newInstance()
 
-  override def apply(values: Seq[Seq[String]]) = {
+  override def apply(values: Seq[Seq[String]]): Seq[String] = {
     // Check if we did get values from two transformers
     if (values.size < 2) {
       // We cannot build a difference from a single value
-      values(0)
+      values.head
     } else {
       // Compute a duration for each pair of values from both transformers
-      for (v1 <- values(0); v2 <- values(1)) yield {
+      for (v1 <- values.head; v2 <- values(1)) yield {
         duration(v1, v2)
       }
     }
