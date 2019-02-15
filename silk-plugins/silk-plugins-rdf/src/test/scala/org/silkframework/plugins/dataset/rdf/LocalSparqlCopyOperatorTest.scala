@@ -27,7 +27,7 @@ package org.silkframework.plugins.dataset.rdf
     /**
       * Returns the path of the XML zip project that should be loaded before the test suite starts.
       */
-    override def projectPathInClasspath: String = "org/silkframework/plugins/dataset/rdf/dfhrjhjrsdekjisdwe.zip"
+    override def projectPathInClasspath: String = "org/silkframework/plugins/dataset/rdf/sparqlCopyProject.zip"
 
     /** The workspace provider that is used for holding the test workspace. */
     override def workspaceProvider: String = "inMemory"
