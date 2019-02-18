@@ -89,9 +89,9 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
     //Create an entity description from the link specification
 
     //Check if the restriction has been changed
-    val typeChanged = currentEDs.source.typeUri != context.value().source.typeUri &&
+    val typeChanged = currentEDs.source.typeUri != context.value().source.typeUri ||
         currentEDs.target.typeUri != context.value().target.typeUri
-    val restrictionChanged = currentEDs.source.filter != context.value().source.filter &&
+    val restrictionChanged = currentEDs.source.filter != context.value().source.filter ||
         currentEDs.target.filter != context.value().target.filter
     val emptyPaths = context.value().source.typedPaths.isEmpty && context.value().target.typedPaths.isEmpty
     val update =
