@@ -11,13 +11,11 @@ import play.api.http.Status._
 import play.api.libs.json.{JsArray, JsValue}
 import play.api.mvc.Results.Ok
 import play.api.mvc._
-
+import Serialization.defaultMimeTypes
 import scala.reflect.ClassTag
 import scala.xml.{Elem, Node}
 
 object SerializationUtils {
-
-  private val defaultMimeTypes = Seq("application/xml", "application/json", "text/turtle", "text/plain")
 
   /**
     * Tries to serialize a given value based on the accept header. The compile time type is used instead of the runtime

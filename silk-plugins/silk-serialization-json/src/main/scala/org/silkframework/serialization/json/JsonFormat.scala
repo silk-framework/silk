@@ -24,7 +24,7 @@ abstract class JsonFormat[T: ClassTag] extends SerializationFormat[T, JsValue] {
     * Formats a JSON value as string.
     */
   def toString(value: T, mimeType: String)(implicit writeContext: WriteContext[JsValue]): String = {
-    Json.stringify(write(value))
+    Json.prettyPrint(write(value))
   }
 
   /**
