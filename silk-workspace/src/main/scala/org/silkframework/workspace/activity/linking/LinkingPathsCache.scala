@@ -62,16 +62,8 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
     }
     context.status.update("Retrieving frequent property paths", 0.0)
 
-    //Create an entity description from the link specification
     val currentEntityDescs = linkSpec.entityDescriptions
-
-    //Check if the restriction has been changed
-    val typeChanged = currentEntityDescs.source.typeUri != context.value().source.typeUri &&
-        currentEntityDescs.target.typeUri != context.value().target.typeUri
-    val emptyPaths = context.value().source.typedPaths.isEmpty && context.value().target.typedPaths.isEmpty
-    val update = emptyPaths ||
-        typeChanged ||
-        dirty
+    val (typeChanged: Boolean, emptyPaths: Boolean, update: Boolean) = updateCache(context, currentEntityDescs)
 
     // Update paths
     if (update) {
@@ -91,6 +83,23 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
         }
       context.value.update(updatedSchemata)
     }
+  }
+
+  private def updateCache(context: ActivityContext[DPair[EntitySchema]], currentEDs: DPair[EntitySchema]) = {
+    //Create an entity description from the link specification
+
+    //Check if the restriction has been changed
+    val typeChanged = currentEDs.source.typeUri != context.value().source.typeUri &&
+        currentEDs.target.typeUri != context.value().target.typeUri
+    val restrictionChanged = currentEDs.source.filter != context.value().source.filter &&
+        currentEDs.target.filter != context.value().target.filter
+    val emptyPaths = context.value().source.typedPaths.isEmpty && context.value().target.typedPaths.isEmpty
+    val update =
+      emptyPaths ||
+          restrictionChanged ||
+          typeChanged ||
+          dirty
+    (typeChanged, emptyPaths, update)
   }
 
   private def updateSchema(datasetSelection: DatasetSelection,
