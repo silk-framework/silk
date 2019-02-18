@@ -134,7 +134,10 @@ object EntityMetadataJson{
         sb.append("\t\"" + ent._1.trim + "\":")
         JsonMetadataSerializer.getSerializationFormat[CT](ent._1) match{
           case Some(serializer) => ent._2.metadata match{
-            case Some(m) => sb.append(serializer.toString(m, ent._2.defaultMimeType))
+            case Some(m) =>
+              val serializedJson = serializer.toString(m, ent._2.defaultMimeType)
+              // The fromString method assumes that everything is on the same line...
+              sb.append(serializedJson.replace('\n', ' '))
             case None => sb.append("null")
           }
           case None => sb.append("null")
