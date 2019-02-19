@@ -20,6 +20,9 @@ class NonSymmetricDistanceMeasureIntegrationTest extends FlatSpec with MustMatch
 
   it should "produce correct results with reverse=false" in {
     linkingResult(linkTaskReverseFalse).links.size mustBe 1
+  }
+
+  it should "produce correct results with reverse=true" in {
     linkingResult(linkTaskReverseTrue).links.size mustBe 3
   }
 
