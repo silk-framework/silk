@@ -22,7 +22,7 @@ import org.scalatest.{BeforeAndAfterAll, FlatSpec, ShouldMatchers}
 import org.silkframework.dataset.rdf.SparqlParams
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path}
-import org.silkframework.plugins.dataset.rdf.SparqlDataset
+import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Timer

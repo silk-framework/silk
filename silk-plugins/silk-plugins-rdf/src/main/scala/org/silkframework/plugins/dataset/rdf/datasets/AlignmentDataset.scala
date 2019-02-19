@@ -1,4 +1,4 @@
-package org.silkframework.plugins.dataset.rdf
+package org.silkframework.plugins.dataset.rdf.datasets
 
 import org.silkframework.dataset._
 import org.silkframework.plugins.dataset.rdf.formatters.{AlignmentLinkFormatter, FormattedLinkSink}

@@ -1,4 +1,4 @@
-package org.silkframework.plugins.dataset.rdf
+package org.silkframework.plugins.dataset.rdf.access
 
 import org.silkframework.config.Task
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}

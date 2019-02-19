@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.rdf
 
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.plugins.dataset.rdf.tasks._
 import org.silkframework.runtime.validation.ValidationException
 
 class SparqlUpdateCustomTaskTest extends FlatSpec with MustMatchers {

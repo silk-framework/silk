@@ -1,15 +1,15 @@
-package org.silkframework.plugins.dataset.rdf
+package org.silkframework.plugins.dataset.rdf.tasks
 
 import org.apache.jena.query.QueryFactory
 import org.silkframework.config.CustomTask
 import org.silkframework.dataset.rdf.{SparqlEndpointDatasetParameter, SparqlEndpointEntitySchema}
-import org.silkframework.entity._
+import org.silkframework.entity.{AutoDetectValueType, EntitySchema, Path, TypedPath}
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
-import scala.collection.JavaConverters._
 import scala.util.Try
+import scala.collection.JavaConverters._
 
 /**
   * Custom task that executes a SPARQL select query on the input data source and translates the SPARQL result into

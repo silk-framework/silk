@@ -14,12 +14,14 @@
 
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import java.io.StringWriter
 import java.util.logging.{Level, Logger}
 
 import org.apache.jena.query._
+import org.apache.jena.rdf.model.Model
 import org.apache.jena.update.UpdateProcessor
-import org.silkframework.dataset.rdf.{RdfNode, SparqlEndpoint, SparqlResults => SilkResultSet}
+import org.silkframework.dataset.rdf._
+import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
+import org.silkframework.plugins.dataset.rdf.{QueryExecutionQuadIterator, QueryExecutionTripleIterator, RdfFormatUtil}
 import org.silkframework.runtime.activity.UserContext
 
 import scala.collection.immutable.SortedMap
@@ -51,7 +53,7 @@ abstract class JenaEndpoint extends SparqlEndpoint {
    * Executes a SPARQL SELECT query.
    */
   override def select(sparql: String, limit: Int)
-                     (implicit userContext: UserContext): SilkResultSet = synchronized {
+                     (implicit userContext: UserContext): SparqlResults = synchronized {
     val query = QueryFactory.create(sparql)
     // Log query
     if (logger.isLoggable(Level.FINE)) logger.fine("Executing query:\n" + sparql)
@@ -76,17 +78,27 @@ abstract class JenaEndpoint extends SparqlEndpoint {
     * Executes a construct query.
     */
   override def construct(query: String)
-                        (implicit userContext: UserContext): String = synchronized {
+                        (implicit userContext: UserContext): QuadIterator = synchronized {
+
     val qe = createQueryExecution(QueryFactory.create(query))
-    try {
-      val resultModel = qe.execConstruct()
-      val writer = new StringWriter()
-      resultModel.write(writer, "Turtle")
-      writer.toString
+    // if we have a quad construct query (not SPARQL 1.1, but Jena already supports it: https://jena.apache.org/documentation/query/construct-quad.html)
+    if(qe.getQuery.isConstructQuad) {
+      QueryExecutionQuadIterator(qe)
+    } else {
+      QueryExecutionTripleIterator(qe)
     }
-    finally {
-      qe.close()
-    }
+  }
+
+  /**
+    * Executes a construct query and returns a Jena Model
+    */
+  def constructModel(query: String)
+                    (implicit userContext: UserContext): Model = synchronized {
+
+    val qe = createQueryExecution(QueryFactory.create(query))
+    val model = qe.execConstruct()
+    qe.close()
+    model
   }
 
   /**
@@ -108,7 +120,7 @@ abstract class JenaEndpoint extends SparqlEndpoint {
         }
       }
 
-    SilkResultSet(results.toList)
+    SparqlResults(results.toList)
   }
 
 }

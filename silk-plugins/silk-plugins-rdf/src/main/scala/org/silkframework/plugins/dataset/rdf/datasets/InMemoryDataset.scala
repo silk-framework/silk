@@ -1,9 +1,10 @@
-package org.silkframework.plugins.dataset.rdf
+package org.silkframework.plugins.dataset.rdf.datasets
 
 import org.apache.jena.rdf.model.ModelFactory
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint, SparqlParams}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
+import org.silkframework.plugins.dataset.rdf.access.{SparqlSink, SparqlSource}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{Param, Plugin}
 

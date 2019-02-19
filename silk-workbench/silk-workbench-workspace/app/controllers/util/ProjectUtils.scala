@@ -8,7 +8,7 @@ import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, SparqlParams}
-import org.silkframework.plugins.dataset.rdf.SparqlSink
+import org.silkframework.plugins.dataset.rdf.access.SparqlSink
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.formatters.{FormattedJenaLinkSink, NTriplesRdfFormatter}
 import org.silkframework.runtime.activity.UserContext
