@@ -15,7 +15,7 @@
 package org.silkframework.rule.execution
 
 import java.util.concurrent._
-import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.atomic.{AtomicInteger, AtomicLong, AtomicReference}
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.cache.EntityCache
@@ -43,7 +43,8 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
               sourceEqualsTarget: Boolean = false) extends Activity[IndexedSeq[Link]] {
 
   /** The name of this task. */
-  override def name = "MatchTask"
+  override def name: String = "MatchTask"
+  final val POLL_TIMEOUT_MS = 100
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -52,12 +53,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
    */
   override def run(context: ActivityContext[IndexedSeq[Link]])
                   (implicit userContext: UserContext): Unit = {
-    require(caches.source.blockCount == caches.target.blockCount, "sourceCache.blockCount == targetCache.blockCount")
-
-    //Reset properties
-    context.value.update(IndexedSeq.empty)
-    cancelled = false
-
+    init(context)
     //Create execution service for the matching tasks
     val executorService = Execution.createFixedThreadPool("Matcher", runtimeConfig.numThreads)
     val executor = new ExecutorCompletionService[IndexedSeq[Link]](executorService)
@@ -68,49 +64,72 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     scheduler.start()
 
     //Process finished tasks
-    var finishedTasks = 0
-    var lastLog: Long = 0
-    val minLogDelayInMs = 1000
-    while (!cancelled && (scheduler.isAlive || finishedTasks < scheduler.taskCount) && errors.get().isEmpty) {
-      val result = executor.poll(100, TimeUnit.MILLISECONDS)
+    val finishedTasks = new AtomicInteger()
+    val logProgress = progressLogger(context, finishedTasks, scheduler)
+    while (!cancelled && (scheduler.isAlive || finishedTasks.get() < scheduler.taskCount) && errors.get().isEmpty) {
+      val result = executor.poll(POLL_TIMEOUT_MS, TimeUnit.MILLISECONDS)
       if (result != null) {
         context.value.update(context.value() ++ result.get)
-        finishedTasks += 1
-
+        finishedTasks.incrementAndGet()
         for(linkLimit <- runtimeConfig.linkLimit if context.value().size >= linkLimit) {
           cancelled = true
         }
-
-        if(System.currentTimeMillis() - lastLog > minLogDelayInMs) {
-          //Update status
-          updateStatus(context, finishedTasks, scheduler.taskCount)
-          lastLog = System.currentTimeMillis()
-        }
+        logProgress()
       }
     }
 
-    errors.get() match {
-      case Seq() =>
-        for(result <- Option(executor.poll(100, TimeUnit.MILLISECONDS))) {
-          context.value.update(context.value() ++ result.get)
-          updateStatus(context, finishedTasks, scheduler.taskCount)
-        }
+    if (errors.get().isEmpty) {
+      for (result <- Option(executor.poll(POLL_TIMEOUT_MS, TimeUnit.MILLISECONDS))) {
+        context.value.update(context.value() ++ result.get)
+        updateStatus(context, finishedTasks.get(), scheduler.taskCount)
+      }
+    } else {
+      handleErrors(errors.get())
+    }
+
+    //Shutdown
+    if (scheduler.isAlive) {
+      scheduler.interrupt()
+    }
+
+    if(cancelled) {
+      executorService.shutdownNow()
+    } else {
+      executorService.shutdown()
+    }
+  }
+
+  private def init(context: ActivityContext[IndexedSeq[Link]]) = {
+    require(caches.source.blockCount == caches.target.blockCount, "sourceCache.blockCount == targetCache.blockCount")
+
+    //Reset properties
+    context.value.update(IndexedSeq.empty)
+    cancelled = false
+  }
+
+  private def progressLogger(context: ActivityContext[IndexedSeq[Link]],
+                             finishedTasks: AtomicInteger,
+                             scheduler: SchedulerThread): () => Unit = {
+    var lastLog: Long = 0
+    val minLogDelayInMs = 1000
+    () => {
+      if(System.currentTimeMillis() - lastLog > minLogDelayInMs) {
+        //Update status
+        updateStatus(context, finishedTasks.get(), scheduler.taskCount)
+        lastLog = System.currentTimeMillis()
+      }
+    }
+  }
+
+  private def handleErrors(errors: Seq[Throwable]) = {
+    errors match {
       case Seq(error) =>
         throw error
-      case errors =>
+      case _ =>
         // There are multiple errors. We log all and throw the first one
         errors.foreach(log.log(Level.WARNING, "Error during matching", _))
         throw errors.head
     }
-
-    //Shutdown
-    if (scheduler.isAlive)
-      scheduler.interrupt()
-
-    if(cancelled)
-      executorService.shutdownNow()
-    else
-      executorService.shutdown()
   }
 
   private def updateStatus(context: ActivityContext[IndexedSeq[Link]], finishedTasks: Int, nrOfTasks: Int): Unit = {
@@ -163,10 +182,11 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     private def updateSourcePartitions(includeLastPartitions: Boolean) {
       val newSourcePartitions = {
         for (block <- 0 until caches.source.blockCount) yield {
-          if (includeLastPartitions)
+          if (includeLastPartitions) {
             caches.source.partitionCount(block)
-          else
+          } else {
             max(0, caches.source.partitionCount(block) - 1)
+          }
         }
       }.toArray
 
