@@ -20,6 +20,7 @@ class LowerThanMetricTest extends PluginTest {
 
   lazy val lower = LowerThanMetric()
   lazy val lowerOrEqual = LowerThanMetric(orEqual = true)
+  lazy val lowerReversed = LowerThanMetric(reverse = true)
   val t = 1.0
 
   behavior of "LowerThanMetric"
@@ -70,6 +71,11 @@ class LowerThanMetricTest extends PluginTest {
 
   it should "return 0.0 if the source string is equal to the target number, provided that orEqual is true" in {
     lowerOrEqual.evaluate("xx-55", "xx-55", t) shouldBe 0.0
+  }
+
+  it should "be reversible" in {
+    lowerReversed.apply(Seq("aab"), Seq("aaa"), t) shouldBe 0.0
+    lowerReversed.apply(Seq("aaa"), Seq("aab"), t) shouldBe 1.0
   }
 
   override def pluginObject: LowerThanMetric = lower

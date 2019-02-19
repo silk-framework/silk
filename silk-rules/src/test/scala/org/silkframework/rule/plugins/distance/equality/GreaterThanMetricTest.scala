@@ -21,6 +21,7 @@ class GreaterThanMetricTest extends PluginTest {
 
   lazy val greater = GreaterThanMetric()
   lazy val greaterOrEqual = GreaterThanMetric(orEqual = true)
+  lazy val greaterReversed = GreaterThanMetric(reverse = true)
   val t = 1.0
 
   behavior of "GreaterThanMetric"
@@ -71,6 +72,11 @@ class GreaterThanMetricTest extends PluginTest {
 
   it should "return 0.0 if the source string is equal to the target number, provided that orEqual is true" in {
     greaterOrEqual.evaluate("xx-55", "xx-55", t) shouldBe 0.0
+  }
+
+  it should "be reversible" in {
+    greaterReversed.apply(Seq("aab"), Seq("aaa"), t) shouldBe 1.0
+    greaterReversed.apply(Seq("aaa"), Seq("aab"), t) shouldBe 0.0
   }
 
   override def pluginObject: GreaterThanMetric = greater
