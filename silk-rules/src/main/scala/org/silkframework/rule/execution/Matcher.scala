@@ -45,6 +45,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
   /** The name of this task. */
   override def name: String = "MatchTask"
   final val POLL_TIMEOUT_MS = 100
+  final val minLogDelayInMs = 5000
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -78,13 +79,13 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       }
     }
 
-    if (errors.get().isEmpty) {
-      for (result <- Option(executor.poll(POLL_TIMEOUT_MS, TimeUnit.MILLISECONDS))) {
-        context.value.update(context.value() ++ result.get)
-        updateStatus(context, finishedTasks.get(), scheduler.taskCount)
-      }
-    } else {
+    if (errors.get().nonEmpty) {
       handleErrors(errors.get())
+    }
+
+    for (result <- Option(executor.poll(POLL_TIMEOUT_MS, TimeUnit.MILLISECONDS))) {
+      context.value.update(context.value() ++ result.get)
+      updateStatus(context, finishedTasks.get(), scheduler.taskCount)
     }
 
     //Shutdown
@@ -99,7 +100,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     }
   }
 
-  private def init(context: ActivityContext[IndexedSeq[Link]]) = {
+  private def init(context: ActivityContext[IndexedSeq[Link]]): Unit = {
     require(caches.source.blockCount == caches.target.blockCount, "sourceCache.blockCount == targetCache.blockCount")
 
     //Reset properties
@@ -111,7 +112,6 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
                              finishedTasks: AtomicInteger,
                              scheduler: SchedulerThread): () => Unit = {
     var lastLog: Long = 0
-    val minLogDelayInMs = 1000
     () => {
       if(System.currentTimeMillis() - lastLog > minLogDelayInMs) {
         //Update status
