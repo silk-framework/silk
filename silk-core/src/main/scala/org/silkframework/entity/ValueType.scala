@@ -133,7 +133,7 @@ object ValueType {
     Right(BooleanValueType),
     Right(IntegerValueType),
     Right(UriValueType),
-    Right(AutoDetectValueType),
+    Right(UntypedValueType),
     Right(BlankNodeValueType),
     Right(DateValueType),
     Right(DateTimeValueType)
@@ -156,9 +156,9 @@ object ValueType {
   * If this value type is set, then the values can be transformed to any valid value that can be inferred from the
   * lexical form, e.g. "1" can be an Int, but also a String.
   */
-case object AutoDetectValueType extends ValueType with Serializable {
+case object UntypedValueType extends ValueType with Serializable {
 
-  override def label = "Autodetect"
+  override def label = "Untyped"
 
   /** returns true if the lexical string is a representation of this type */
   override def validate(lexicalString: String): Boolean = true
@@ -166,7 +166,7 @@ case object AutoDetectValueType extends ValueType with Serializable {
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
   override def uri: Option[String] = None
 
-  override def id: String = "AutoDetectValueType"
+  override def id: String = "UntypedValueType"
 
   /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
   override def ordering: Ordering[String] = ValueType.DefaultOrdering

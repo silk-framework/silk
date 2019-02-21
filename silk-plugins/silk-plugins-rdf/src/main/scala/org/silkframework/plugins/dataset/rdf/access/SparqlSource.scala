@@ -21,8 +21,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
     with PeakDataSource
     with SchemaExtractionSource
     with SamplingDataSource
-    with SparqlRestrictionDataSource
-    with TypedPathRetrieveDataSource {
+    with SparqlRestrictionDataSource {
 
   private val log = Logger.getLogger(classOf[SparqlSource].getName)
 
@@ -44,14 +43,9 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
     }
   }
 
-  override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None)
-                            (implicit userContext: UserContext): IndexedSeq[Path] = {
-    retrieveTypedPath(t, depth, limit).map(tp => Path(tp.operators))
-  }
-
-  override def retrieveTypedPath(typeUri: Uri, depth: Int, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+  override def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None)
+                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     val restrictions = SparqlRestriction.forType(typeUri)
-
     retrievePathsSparqlRestriction(restrictions, limit)
   }
 

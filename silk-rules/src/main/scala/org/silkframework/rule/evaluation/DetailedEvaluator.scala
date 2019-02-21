@@ -14,7 +14,7 @@
 
 package org.silkframework.rule.evaluation
 
-import org.silkframework.entity.{AutoDetectValueType, Entity}
+import org.silkframework.entity.{UntypedValueType, Entity}
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.rule.{LinkageRule, TransformRule}
@@ -68,7 +68,7 @@ object DetailedEvaluator {
     val result = evaluateInput(rule.operator, entity)
     // Validate values
     for {
-      valueType <- rule.target.map(_.valueType) if valueType != AutoDetectValueType
+      valueType <- rule.target.map(_.valueType) if valueType != UntypedValueType
       value <- result.values
       if !valueType.validate(value)
     } {

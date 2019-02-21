@@ -71,10 +71,11 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     */
   def collectPaths(onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, depth: Int): Seq[TypedPath] = {
     assert(!(onlyInnerNodes && onlyLeafNodes), "onlyInnerNodes and onlyLeafNodes cannot be set to true at the same time")
-    for(typedPath <- collectPathsRecursive(onlyLeafNodes, onlyInnerNodes, prefix = Seq.empty, depth) if typedPath.operators.size > 1) yield {
+    val ret = for(typedPath <- collectPathsRecursive(onlyLeafNodes, onlyInnerNodes, prefix = Seq.empty, depth) if typedPath.operators.size > 1) yield {
       TypedPath(Path(typedPath.operators.tail), typedPath.valueType, typedPath.isAttribute)
     }
-  }.distinct
+    ret.distinct
+  }
 
   /**
     * Recursively collects all direct and indirect paths for this node.
@@ -96,8 +97,7 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     // Generate paths for all attributes
     val attributes = if(depth == 0) Seq() else node.attributes.asAttrMap.keys.toSeq
     val attributesPaths = attributes.map(attribute => TypedPath((path :+ ForwardOperator("@" + attribute)).toList, StringValueType, isAttribute = true))
-    val pathValueType: ValueType = if(children.nonEmpty || node.attributes.nonEmpty) UriValueType else StringValueType
-    val typedPath = TypedPath(path.toList, pathValueType, isAttribute = false)
+    val typedPath = TypedPath(path.toList, UntypedValueType, isAttribute = false)
 
     if(onlyInnerNodes && children.isEmpty && node.attributes.isEmpty) {
       Seq() // An inner node has at least an attribute or child elements

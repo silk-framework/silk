@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
-import org.silkframework.entity.AutoDetectValueType
+import org.silkframework.entity.UntypedValueType
 import org.silkframework.plugins.dataset.rdf.access.SparqlSink
 
 /**
@@ -16,10 +16,10 @@ class SparqlSinkTest extends FlatSpec with Matchers with MockitoSugar {
 
   it should "generate valid statements based on the lexical value representation" in {
     val sink = new SparqlSink(SparqlParams(), mock[SparqlEndpoint])
-    sink.buildStatementString(SUBJ, PROP, "test", AutoDetectValueType) should endWith (" \"test\" .\n")
-    sink.buildStatementString(SUBJ, PROP, "123", AutoDetectValueType) should endWith (" \"123\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n")
-    sink.buildStatementString(SUBJ, PROP, "123.45", AutoDetectValueType) should endWith (" \"123.45\"^^<http://www.w3.org/2001/XMLSchema#double> .\n")
-    sink.buildStatementString(SUBJ, PROP, "http://url.org", AutoDetectValueType) should endWith (" <http://url.org> .\n")
-    sink.buildStatementString(SUBJ, PROP, "http://url.org Some Text", AutoDetectValueType) should endWith (" \"http://url.org Some Text\" .\n")
+    sink.buildStatementString(SUBJ, PROP, "test", UntypedValueType) should endWith (" \"test\" .\n")
+    sink.buildStatementString(SUBJ, PROP, "123", UntypedValueType) should endWith (" \"123\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n")
+    sink.buildStatementString(SUBJ, PROP, "123.45", UntypedValueType) should endWith (" \"123.45\"^^<http://www.w3.org/2001/XMLSchema#double> .\n")
+    sink.buildStatementString(SUBJ, PROP, "http://url.org", UntypedValueType) should endWith (" <http://url.org> .\n")
+    sink.buildStatementString(SUBJ, PROP, "http://url.org Some Text", UntypedValueType) should endWith (" \"http://url.org Some Text\" .\n")
   }
 }

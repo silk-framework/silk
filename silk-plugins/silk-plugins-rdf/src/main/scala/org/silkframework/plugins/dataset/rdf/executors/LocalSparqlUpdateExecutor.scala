@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.executors
 
 import org.silkframework.config.Task
+import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.execution.local._
@@ -124,10 +125,12 @@ case class BatchSparqlUpdateEmitter[U](f: Entity => U, batchSize: Int) {
     }
   }
 
+  private var entityCount = 0
   private def emitEntity(): Unit = {
-    f(Entity("", values = IndexedSeq(Seq(sparqlUpdateQueries.toString)), schema = SparqlUpdateEntitySchema.schema))
+    f(Entity(DataSource.URN_NID_PREFIX + entityCount, values = IndexedSeq(Seq(sparqlUpdateQueries.toString)), schema = SparqlUpdateEntitySchema.schema))
     sparqlUpdateQueries = new StringBuffer()
     queryCount = 0
+    entityCount += 1
   }
 
   def close(): Unit = {

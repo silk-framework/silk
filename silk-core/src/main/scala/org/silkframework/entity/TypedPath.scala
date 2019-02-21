@@ -4,6 +4,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 
+import scala.util.Try
 import scala.xml.Node
 
 /**
@@ -23,13 +24,16 @@ case class TypedPath(
     * checks metadata for an positive entry for the IS_ATTRIBUTE_KEY key
     * earmarks XML attributes
     */
-  def isAttribute: Boolean = metadata.get(TypedPath.META_FIELD_XML_ATTRIBUTE).exists(_ => true)
+  def isAttribute: Boolean = metadata.get(TypedPath.META_FIELD_XML_ATTRIBUTE).exists(x =>
+    Try(x.asInstanceOf[Boolean]).getOrElse(throw new IllegalArgumentException(TypedPath.META_FIELD_XML_ATTRIBUTE + " needs a boolean value")))
 
   /**
     * Returns the original input String
     * @return
     */
   def getOriginalName: Option[String] = metadata.get(TypedPath.META_FIELD_ORIGIN_NAME).map(_.toString)
+
+  def toSimplePath: Path = Path(operators)
 
   /**
     * Returns a typed property if this is a path of length one.
@@ -44,7 +48,8 @@ case class TypedPath(
   override def equals(other: Any): Boolean = {
     other match {
       case tp@TypedPath(_, otherValueType, _) =>
-        otherValueType == valueType &&
+        // if one of the comparison objects are untyped, we ignore the type all together
+        (otherValueType == UntypedValueType || valueType == UntypedValueType || otherValueType == valueType) &&
           tp.normalizedSerialization == normalizedSerialization &&
           tp.isAttribute == isAttribute
       case _ =>
@@ -103,7 +108,7 @@ object TypedPath {
     * Empty TypedPath (used as filler or duds)
     * @return
     */
-  def empty: TypedPath = TypedPath(Path.empty, AutoDetectValueType, isAttribute = false)
+  def empty: TypedPath = TypedPath(Path.empty, UntypedValueType, isAttribute = false)
 
   implicit object TypedPathFormat extends XmlFormat[TypedPath] {
     /**

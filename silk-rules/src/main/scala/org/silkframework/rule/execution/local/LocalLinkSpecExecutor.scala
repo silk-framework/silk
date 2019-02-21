@@ -2,7 +2,7 @@ package org.silkframework.rule.execution.local
 
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptyDataset}
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.{Entity, EntitySchema, Path, TypedPath}
 import org.silkframework.execution.local.{LinksTable, LocalEntities, LocalExecution, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, Executor}
 import org.silkframework.rule.LinkSpec
@@ -66,7 +66,7 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
                               (implicit userContext: UserContext): Traversable[(String, Double)] = Traversable.empty
 
     override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
-                              (implicit userContext: UserContext): IndexedSeq[Path] = IndexedSeq.empty
+                              (implicit userContext: UserContext): IndexedSeq[TypedPath] = IndexedSeq.empty
 
     /**
       * The dataset task underlying the Datset this source belongs to

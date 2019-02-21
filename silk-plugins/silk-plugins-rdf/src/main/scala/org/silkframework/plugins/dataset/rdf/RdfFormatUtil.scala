@@ -127,7 +127,7 @@ object RdfFormatUtil {
     }
   }
 
-  private def autoDetectValueType(value: String): Node = {
+  private def untypedValueType(value: String): Node = {
     value match {
       // Check if value is an URI
       case v: String if (value.startsWith("http") || value.startsWith("urn")) && new Uri(v).isValidUri =>
@@ -145,8 +145,8 @@ object RdfFormatUtil {
 
   def resolveObjectValue(lexicalValue: String, valueType: ValueType): Node = {
     valueType match {
-      case AutoDetectValueType =>
-        autoDetectValueType(lexicalValue)
+      case UntypedValueType =>
+        untypedValueType(lexicalValue)
       case CustomValueType(typeUri) if UriValueType.validate(typeUri) =>
         model.createLiteral(lexicalValue).asNode() // Hack: Jena needs an implementation for each type URI, so serialize as String and attach datatype later
       case UriValueType if UriValueType.validate(lexicalValue) =>

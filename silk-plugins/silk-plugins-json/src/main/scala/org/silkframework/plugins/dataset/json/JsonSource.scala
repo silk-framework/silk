@@ -4,7 +4,6 @@ import java.net.URLEncoder
 import java.util.logging.{Level, Logger}
 
 import com.fasterxml.jackson.core.{JsonFactory, JsonToken}
-import org.silkframework.dataset._
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
@@ -13,7 +12,6 @@ import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 import scala.io.Codec
 
 /**
@@ -25,7 +23,7 @@ import scala.io.Codec
  * @param uriPattern A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements
  */
 case class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Codec) extends DataSource
-    with PeakDataSource with HierarchicalSampleValueAnalyzerExtractionSource with TypedPathRetrieveDataSource {
+    with PeakDataSource with HierarchicalSampleValueAnalyzerExtractionSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -71,15 +69,10 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
   /**
    * Retrieves the most frequent paths in this source.
    */
-  override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
-                            (implicit userContext: UserContext): IndexedSeq[Path] = {
-    retrieveJsonPaths(t, depth, limit, leafPathsOnly = false, innerPathsOnly = false).drop(1).map(_._1)
-  }
-
-  override def retrieveTypedPath(typeUri: Uri, depth: Int = Int.MaxValue, limit: Option[Int] = None)
-                                (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+  override def retrievePaths(typeUri: Uri, depth: Int = Int.MaxValue, limit: Option[Int] = None)
+                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     retrieveJsonPaths(typeUri, depth, limit, leafPathsOnly = false, innerPathsOnly = false).drop(1).map { case (path, valueType) =>
-        TypedPath(path, valueType, isAttribute = false)
+      TypedPath(path, valueType, isAttribute = false)
     }
   }
 
@@ -186,7 +179,7 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
 
     try {
       while (jParser.nextToken() != null && paths.size < limit) {
-        val token = jParser.getCurrentToken()
+        val token = jParser.getCurrentToken
         handleCurrentToken(token)
       }
     } finally {

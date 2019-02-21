@@ -101,9 +101,9 @@ class SparqlPathsCollectorTest extends FlatSpec with ShouldMatchers with BeforeA
     model
   }
 
-  private def forward(property: String) = Path(ForwardOperator(property) :: Nil)
+  private def forward(property: String) = Path(ForwardOperator(property) :: Nil).asUntypedValueType
 
-  private def backward(property: String) = Path(BackwardOperator(property) :: Nil)
+  private def backward(property: String) = Path(BackwardOperator(property) :: Nil).asUntypedValueType
 
 }
 

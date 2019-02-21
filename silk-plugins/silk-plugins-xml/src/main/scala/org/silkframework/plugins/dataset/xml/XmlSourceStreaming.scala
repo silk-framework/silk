@@ -20,8 +20,7 @@ import scala.xml._
   * XML streaming source.
   */
 class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) extends DataSource
-  with PeakDataSource with PathCoverageDataSource with ValueCoverageDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource
-  with TypedPathRetrieveDataSource {
+  with PeakDataSource with PathCoverageDataSource with ValueCoverageDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource {
 
   private val xmlFactory = XMLInputFactory.newInstance()
 
@@ -80,16 +79,8 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * @param depth Only retrieve paths up to a certain length.
     * @param limit Restricts the number of paths to be retrieved. If not given, all found paths are returned.
     */
-  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
-                            (implicit userContext: UserContext): IndexedSeq[Path] = {
-    retrieveXmlPaths(typeUri, depth, limit, onlyLeafNodes = false, onlyInnerNodes = false).drop(1) // Drop empty path
-        .map(tp => Path(tp.operators))
-  }
-
-  override def retrieveTypedPath(typeUri: Uri,
-                                 depth: Int,
-                                 limit: Option[Int])
-                                (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+  override def retrievePaths(typeUri: Uri, depth: Int = Int.MaxValue, limit: Option[Int] = None)
+                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     retrieveXmlPaths(typeUri, depth, limit, onlyLeafNodes = false, onlyInnerNodes = false).drop(1) // Drop empty path
   }
 

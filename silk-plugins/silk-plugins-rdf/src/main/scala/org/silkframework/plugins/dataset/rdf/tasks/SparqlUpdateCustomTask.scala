@@ -153,7 +153,7 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
         filter(_.isInstanceOf[SparqlUpdateTemplatePlaceholder]).
         map(_.asInstanceOf[SparqlUpdateTemplatePlaceholder].prop).
         distinct
-    EntitySchema("", properties.map(p => Path(p).asAutoDetectTypedPath).toIndexedSeq)
+    EntitySchema("", properties.map(p => Path(p).asUntypedValueType).toIndexedSeq)
   }
 
   override def outputSchemaOpt: Option[EntitySchema] = Some(SparqlUpdateEntitySchema.schema)

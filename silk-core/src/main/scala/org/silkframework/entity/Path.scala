@@ -19,7 +19,6 @@ import java.net.URLEncoder
 import org.silkframework.config.Prefixes
 import org.silkframework.util.Uri
 
-import scala.ref.WeakReference
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -98,7 +97,7 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
   def asStringTypedPath: TypedPath = TypedPath(this.operators, StringValueType, isAttribute = false)
 
   /** Returns a [[org.silkframework.entity.TypedPath]] from this path with auto detect type. */
-  def asAutoDetectTypedPath: TypedPath = TypedPath(this.operators, AutoDetectValueType, isAttribute = false)
+  def asUntypedValueType: TypedPath = TypedPath(this.operators, UntypedValueType, isAttribute = false)
 }
 
 object Path {

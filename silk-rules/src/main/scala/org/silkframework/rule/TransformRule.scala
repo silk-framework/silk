@@ -56,7 +56,7 @@ sealed trait TransformRule extends Operator {
     val values = operator(entity)
     // Validate values
     for {
-      valueType <- target.map(_.valueType) if valueType != AutoDetectValueType
+      valueType <- target.map(_.valueType) if valueType != UntypedValueType
       value <- values
     } {
       if(!valueType.validate(value)) {
@@ -73,7 +73,7 @@ sealed trait TransformRule extends Operator {
     def collectPaths(param: Input): Seq[TypedPath] = param match {
       case p: PathInput if p.path.operators.isEmpty => Seq()
       case PathInput(_, path: TypedPath) => Seq(path)
-      case PathInput(_, path: Path) => Seq(TypedPath(path, AutoDetectValueType, isAttribute = false))
+      case PathInput(_, path: Path) => Seq(TypedPath(path, UntypedValueType, isAttribute = false))
       case p: TransformInput => p.inputs.flatMap(collectPaths)
     }
 

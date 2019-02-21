@@ -32,8 +32,7 @@ class CsvSource(file: Resource,
                 ignoreMalformedInputExceptionInPropertyList: Boolean = false)
     extends DataSource
         with PathCoverageDataSource
-        with PeakDataSource
-        with TypedPathRetrieveDataSource {
+        with PeakDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -96,22 +95,15 @@ class CsvSource(file: Resource,
   override def toString: String = file.toString
 
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
-                            (implicit userContext: UserContext): IndexedSeq[Path] = {
+                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     try {
       for (property <- propertyList) yield {
-        Path(ForwardOperator(Uri.parse(property)) :: Nil)
+        Path(ForwardOperator(Uri.parse(property)) :: Nil).asStringTypedPath
       }
     } catch {
       case e: MalformedInputException =>
         throw new RuntimeException("Exception in CsvSource " + file.name, e)
     }
-  }
-
-  override def retrieveTypedPath(typeUri: Uri,
-                                 depth: Int,
-                                 limit: Option[Int])
-                                (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
-    retrievePaths(typeUri, depth, limit).map(_.asStringTypedPath)
   }
 
   override def retrieve(entitySchema: EntitySchema, limitOpt: Option[Int] = None)

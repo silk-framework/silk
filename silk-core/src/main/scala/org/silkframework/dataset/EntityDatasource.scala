@@ -1,7 +1,7 @@
 package org.silkframework.dataset
 
 import org.silkframework.config.Task
-import org.silkframework.entity.{Entity, EntitySchema, Path, TypedPath}
+import org.silkframework.entity.{Entity, EntitySchema, TypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri

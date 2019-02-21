@@ -86,17 +86,16 @@ case class Entity private(
   val values: IndexedSeq[Seq[String]] = vals.map(Entity.handleNullsInValueSeq)
 
   val failure: Option[GenericExecutionFailure] = {
-    val illegalArgumentException = classOf[IllegalArgumentException].getCanonicalName
     if(metadata.failure.metadata.isEmpty) {                                                    // if no failure has occurred yet
       if(schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].subSchemata.size < subEntities.size){
         // if sub entities size is not equal to sub schemata size
-        Some(GenericExecutionFailure("Number of sub-entities is not equal to the number of sub-schemata for: " + uri, illegalArgumentException))
+        Some(GenericExecutionFailure(new IllegalArgumentException("Number of sub-entities is not equal to the number of sub-schemata for: " + uri)))
       }
       else if(uri.uri.trim.isEmpty){
-        Some(GenericExecutionFailure("Entity with an empty URI is not allowed.", illegalArgumentException))
+        Some(GenericExecutionFailure(new IllegalArgumentException("Entity with an empty URI is not allowed.")))
       }
       else if (! this.validate) { // if entity is not valid
-        Some(GenericExecutionFailure("Provided schema does not fit entity values or sub-entities.", illegalArgumentException))
+        Some(GenericExecutionFailure(new IllegalArgumentException("Provided schema does not fit entity values or sub-entities.")))
       }
       else{
         None
@@ -117,7 +116,7 @@ case class Entity private(
     */
   @deprecated("Use evaluate(path: TypedPath) instead, since uniqueness of paths are only guaranteed with provided ValueType.", "18.03")
   def evaluate(path: Path): Seq[String] = {
-    valueOfTypedPath(path.asAutoDetectTypedPath)
+    valueOfTypedPath(path.asUntypedValueType)
   }
 
   /**
@@ -178,7 +177,7 @@ case class Entity private(
     * @param property - the property name to query
     * @return
     */
-  def singleValue(property: String)(implicit prefixes: Prefixes = Prefixes.default): Option[String] = valueOfTypedPath(Path.saveApply(property).asAutoDetectTypedPath).headOption
+  def singleValue(property: String)(implicit prefixes: Prefixes = Prefixes.default): Option[String] = valueOfTypedPath(Path.saveApply(property).asUntypedValueType).headOption
 
   /**
     * returns the first value (of possibly many) for the property of the given name in this entity

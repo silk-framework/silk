@@ -3,7 +3,7 @@ package org.silkframework.rule
 import org.silkframework.config.Task
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.entity.metadata.GenericExecutionFailure
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.{Entity, EntitySchema, TypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.failures.FailureClass
 import org.silkframework.util.Uri
@@ -24,7 +24,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     */
   override def retrieveTypes(limit: Option[Int] = None)
                             (implicit userContext: UserContext): Traversable[(String, Double)] = {
-    for(TypeMapping(name, typeUri, _) <- transformRule.rules.typeRules) yield {
+    for(TypeMapping(_, typeUri, _) <- transformRule.rules.typeRules) yield {
       (typeUri.toString, 1.0)
     }
   }
@@ -37,8 +37,8 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @param limit Restricts the number of paths to be retrieved. No effect on this data source.
     */
   override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None)
-                            (implicit userContext: UserContext): IndexedSeq[Path] = {
-    transformRule.rules.allRules.flatMap(_.target).map(_.asPath()).distinct.toIndexedSeq
+                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+    transformRule.rules.allRules.flatMap(_.target).map(_.asTypedPath()).distinct.toIndexedSeq
   }
 
   /**
@@ -78,17 +78,17 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
       }
 
     val sourceEntities = source.retrieve(inputSchema, limit)
-    def transformedUri: (Entity) => String = (entity: Entity) => subjectRule.flatMap(_ (entity).headOption).getOrElse(entity.uri.toString)
+    def transformedUri: Entity => String = (entity: Entity) => subjectRule.flatMap(_ (entity).headOption).getOrElse(entity.uri.toString)
     // True if the entity should be output, i.e. if entity URIs are defined the transformed entity URI should be included in that set
-    val filterEntity: (Entity) => Boolean = entities match {
+    val filterEntity: Entity => Boolean = entities match {
       case Some(uris) =>
         val uriSet = uris.map(_.uri.toString).toSet
-        (entity) =>  {
+        entity =>  {
           val uri = transformedUri(entity)
           uriSet.contains(uri)
         }
       case None =>
-        (_) => true
+        _ => true
     }
 
     new Traversable[Entity] {

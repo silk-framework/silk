@@ -16,7 +16,7 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
         s"$S_P <http://testurl> .\n"
   }
 
-  private def format(objectValue: String, valueType: ValueType = AutoDetectValueType): String = {
+  private def format(objectValue: String, valueType: ValueType = UntypedValueType): String = {
     RdfFormatUtil.tripleValuesToNTriplesSyntax("s", "p", objectValue, valueType)
   }
 
@@ -116,18 +116,18 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
       s"""$S_P "2002-05-30T09:00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .$NL"""
   }
 
-  it should "serialize triples with AutoDetectValueType as Integer if the value is a whole number" in {
-    format("1024", AutoDetectValueType) mustBe
+  it should "serialize triples with UntypedValueType as Integer if the value is a whole number" in {
+    format("1024", UntypedValueType) mustBe
       s"""$S_P "1024"^^<http://www.w3.org/2001/XMLSchema#integer> .$NL"""
   }
 
-  it should "serialize triples with AutoDetectValueType as URI if the value is a valid URI" in {
-    format("http://example.org/resource", AutoDetectValueType) mustBe
+  it should "serialize triples with UntypedValueType as URI if the value is a valid URI" in {
+    format("http://example.org/resource", UntypedValueType) mustBe
       s"""$S_P <http://example.org/resource> .$NL"""
   }
 
-  it should "serialize triples with AutoDetectValueType as String if the value is an invalid URI" in {
-    format("example.org/resource", AutoDetectValueType) mustBe
+  it should "serialize triples with UntypedValueType as String if the value is an invalid URI" in {
+    format("example.org/resource", UntypedValueType) mustBe
       s"""$S_P "example.org/resource" .$NL"""
   }
 

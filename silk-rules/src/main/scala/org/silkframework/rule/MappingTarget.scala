@@ -23,7 +23,7 @@ case class MappingTarget(propertyUri: Uri,
 
   override def toString: String = {
     val sb = new StringBuilder(propertyUri.uri)
-    if(valueType != AutoDetectValueType) {
+    if(valueType != UntypedValueType) {
       sb += ' '
       sb ++= valueType.label
     }

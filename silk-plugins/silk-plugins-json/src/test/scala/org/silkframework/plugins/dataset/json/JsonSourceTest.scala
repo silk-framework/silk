@@ -72,7 +72,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   it should "return all paths including intermediate paths for retrieve paths" in {
     val paths = jsonExampleSource.retrievePaths(Uri(""), depth = Int.MaxValue)
     paths.size mustBe 8
-    paths must contain allOf(Path.parse("/persons"), Path.parse("/persons/phoneNumbers"))
+    paths must contain allOf(Path.parse("/persons").asUntypedValueType, Path.parse("/persons/phoneNumbers").asUntypedValueType)
   }
 
   it should "return all paths of depth 1" in {
@@ -253,7 +253,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   }
 
   it should "return typed paths" in {
-    val typedPaths = jsonExampleSource.retrieveTypedPath("")
+    val typedPaths = jsonExampleSource.retrievePaths("")
     typedPaths.map(tp => (tp.normalizedSerialization, tp.valueType)) mustBe IndexedSeq(
       "persons" -> UriValueType,
       "persons/id" -> StringValueType,

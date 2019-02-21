@@ -13,8 +13,7 @@ import org.silkframework.util.{Identifier, Uri}
 import scala.xml.XML
 
 class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) extends DataSource
-    with PathCoverageDataSource with ValueCoverageDataSource with PeakDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource
-    with TypedPathRetrieveDataSource {
+    with PathCoverageDataSource with ValueCoverageDataSource with PeakDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -28,15 +27,8 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     }
   }
 
-  override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
-                            (implicit userContext: UserContext): IndexedSeq[Path] = {
-    retrieveXmlPaths(t, depth, limit, onlyLeafNodes = false, onlyInnerNodes = false) map (tp => Path(tp.operators))
-  }
-
-  override def retrieveTypedPath(typeUri: Uri,
-                                 depth: Int,
-                                 limit: Option[Int])
-                                (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+  override def retrievePaths(typeUri: Uri, depth: Int = Int.MaxValue, limit: Option[Int] = None)
+                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     retrieveXmlPaths(typeUri, depth, limit, onlyLeafNodes = false, onlyInnerNodes = false)
   }
 

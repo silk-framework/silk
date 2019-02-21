@@ -89,7 +89,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
 
     logger.info("Found " + relevantProperties.size + " relevant properties in " + endpoint)
 
-    relevantProperties.map(_.asAutoDetectTypedPath) // No path type here, since the sample path collector is a fallback only
+    relevantProperties.map(_.asUntypedValueType) // No path type here, since the sample path collector is a fallback only
   }
 
   private def getEntityProperties(endpoint: SparqlEndpoint, graph: Option[String], entityUri: String, variable: String, limit: Int)
