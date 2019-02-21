@@ -22,9 +22,9 @@ import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.RDFLanguages
 import org.apache.jena.riot.adapters.RDFReaderFactoryRIOT
 import org.silkframework.dataset.rdf._
-import org.silkframework.plugins.dataset.rdf.{JenaModelTripleIterator, RdfFormatUtil}
-import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
+import org.silkframework.plugins.dataset.rdf.JenaModelTripleIterator
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.HttpURLConnectionUtils._
 
 import scala.io.Source
@@ -36,6 +36,9 @@ import scala.io.Source
 case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoint {
 
   private val constructSerialization = RDFLanguages.TURTLE
+
+  private final val CONNECTION_TIMEOUT = 10000
+  private final val READ_TIMEOUT = 60000
 
   override def toString: String = sparqlParams.uri
 
@@ -52,12 +55,14 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
     //Open connection
     val httpConnection = new URL(queryUrl).openConnection.asInstanceOf[HttpURLConnection]
     httpConnection.setRequestProperty("ACCEPT", "application/sparql-results+xml")
+    setConnectionTimeouts(httpConnection)
     //Set authentication
     for ((user, password) <- sparqlParams.login) {
       httpConnection.setRequestProperty("Authorization", "Basic " + DatatypeConverter.printBase64Binary((user + ":" + password).getBytes))
     }
 
     try {
+      checkResponseStatus(httpConnection, "SELECT query")
       httpConnection.getInputStream
     } catch {
       case ex: IOException =>
@@ -71,11 +76,17 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
     }
   }
 
+  private def setConnectionTimeouts(httpConnection: HttpURLConnection) = {
+    httpConnection.setConnectTimeout(CONNECTION_TIMEOUT)
+    httpConnection.setReadTimeout(READ_TIMEOUT)
+  }
+
   override def construct(query: String)
                         (implicit userContext: UserContext): TripleIterator = {
     val queryUrl = sparqlParams.uri + "?query=" + URLEncoder.encode(query, "UTF-8") + sparqlParams.queryParameters
     //Open connection
     val httpConnection = new URL(queryUrl).openConnection.asInstanceOf[HttpURLConnection]
+    setConnectionTimeouts(httpConnection)
     httpConnection.setRequestProperty("ACCEPT", constructSerialization.getContentType.getContentType)
     //Set authentication
     for ((user, password) <- sparqlParams.login) {
@@ -83,6 +94,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
     }
 
     try {
+      checkResponseStatus(httpConnection, "Construct query")
       val inputStream = httpConnection.getInputStream
       val reader = new RDFReaderFactoryRIOT().getReader(constructSerialization.getName)
       val m = ModelFactory.createDefaultModel()
@@ -104,6 +116,14 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
         }
     } finally {
       httpConnection.disconnect()
+    }
+  }
+
+  private def checkResponseStatus(httpConnection: HttpURLConnection, requestType: String): Unit = {
+    val status = httpConnection.getResponseCode
+    if (status / 100 != 2) {
+      val errorMessage = httpConnection.errorMessage(" Error details: ").getOrElse("")
+      throw new ValidationException(s"$requestType failed on endpoint ${sparqlParams.uri} with code: $status.$errorMessage")
     }
   }
 
