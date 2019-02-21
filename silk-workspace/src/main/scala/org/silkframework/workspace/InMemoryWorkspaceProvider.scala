@@ -90,4 +90,9 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider with Refreshabl
     val cache = new InMemoryResourceManager
 
   }
+
+  override def readProject(projectId: String)
+                          (implicit userContext: UserContext): Option[ProjectConfig] = {
+    projects.get(projectId).map(_.config)
+  }
 }

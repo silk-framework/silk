@@ -19,9 +19,6 @@ import org.silkframework.util.DPair
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 
-/**
-  * Created on 9/13/16.
-  */
 trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with MockitoSugar {
 
   val PROJECT_NAME = "ProjectName"
@@ -258,6 +255,18 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
     refreshTest {
       workspaceProvider.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(transformTaskUpdated)
     }
+  }
+
+  it should "remove meta data when a task is deleted" in {
+    val newTransformTaskLabel = "newTransformTask"
+    workspace.project(PROJECT_NAME).removeAnyTask(TRANSFORM_ID, removeDependentTasks = false)
+    workspace.project(PROJECT_NAME).addTask[TransformSpec](TRANSFORM_ID, transformTaskUpdated.data, MetaData(newTransformTaskLabel))
+    workspace.reload()
+    val oldMetaData = transformTaskUpdated.metaData
+    val newMetaData = workspace.project(PROJECT_NAME).anyTask(TRANSFORM_ID).metaData
+    newMetaData.label shouldBe newTransformTaskLabel
+    newMetaData.description should not be oldMetaData.description
+    newMetaData.modified should not be oldMetaData.modified
   }
 
   it should "update hierarchical transformation tasks" in {
