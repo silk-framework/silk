@@ -16,7 +16,7 @@ package org.silkframework.rule.plugins.transformer.validation
 
 import javax.xml.datatype.DatatypeFactory
 
-import org.silkframework.rule.input.{SimpleTransformer, Transformer}
+import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.{Param, Plugin}
 import ValidateDateAfter._
 import org.silkframework.runtime.validation.ValidationException
@@ -34,16 +34,16 @@ case class ValidateDateAfter(
   def apply(values: Seq[Seq[String]]): Seq[String] = {
     require(values.length == 2, "ValidateDateOrder accepts exactly two inputs")
 
-    val firstDate = datatypeFactory.newXMLGregorianCalendar(values(0).head)
+    val firstDate = datatypeFactory.newXMLGregorianCalendar(values.head.head)
     val secondDate = datatypeFactory.newXMLGregorianCalendar(values(1).head)
 
     if(firstDate.compare(secondDate) == 0) {
       if(allowEqual)
-        values(0)
+        values.head
       else
         throw new ValidationException(s"Date $firstDate is not after data $secondDate, but equal")
     } else if(firstDate.compare(secondDate) > 0) {
-      values(0)
+      values.head
     } else {
       throw new ValidationException(s"Date $firstDate is not after data $secondDate.")
     }

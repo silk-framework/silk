@@ -2,7 +2,7 @@ package org.silkframework.workspace
 
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{MetaData, PlainTask, TaskSpec}
+import org.silkframework.config.{MetaData, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier

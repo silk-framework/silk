@@ -47,8 +47,7 @@ class TransformRuleTest extends FlatSpec with MustMatchers {
 
   private def createRootRule(duplicate1: Boolean, duplicate2: Boolean) = {
     val rootMapping = RootMappingRule(
-      "root",
-      rules = MappingRules(
+      MappingRules(
         uriRule = Some(ComplexUriMapping(duplicated1, operator = TransformInput(transformer = ConstantUriTransformer()))),
         typeRules = Seq(TypeMapping(duplicated2)),
         propertyRules = Seq(
@@ -74,7 +73,7 @@ class TransformRuleTest extends FlatSpec with MustMatchers {
     val objectMapping = ObjectMapping(rules = MappingRules(propertyRules = Seq(
       DirectMapping(mappingTarget = MappingTarget(Uri(targetPropertyUri)))
     )))
-    val rootMappingRule = RootMappingRule("id", MappingRules(propertyRules = Seq(objectMapping)))
+    val rootMappingRule = RootMappingRule(MappingRules(propertyRules = Seq(objectMapping)))
     rootMappingRule.validate()
   }
 }

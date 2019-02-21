@@ -17,7 +17,7 @@ package org.silkframework.entity
 import java.io.{DataInput, DataOutput}
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.metadata.{EntityMetadata, EntityMetadataXml}
+import org.silkframework.entity.metadata.{EntityMetadata, EntityMetadataXml, GenericExecutionFailure}
 import org.silkframework.failures.FailureClass
 import org.silkframework.util.Uri
 
@@ -48,7 +48,7 @@ case class Entity private(
     subEntities: IndexedSeq[Option[Entity]] = this.subEntities,
     metadata: EntityMetadata[_] = this.metadata,
     failureOpt: Option[FailureClass] = None,
-    projectValuesIfNewSchema: Boolean = true
+    projectValuesIfNewSchema: Boolean = false
   ): Entity = this.failure match{
     case Some(_) => this                                // if origin entity has already failed, we forward it so the failure is not overwritten
     case None =>
@@ -81,25 +81,29 @@ case class Entity private(
   def applyNewSchema(es: EntitySchema): Entity = copy(schema = es, projectValuesIfNewSchema = false)
 
   /**
-    * The value sequence
+    * The value-array containing as many values as properties in the schema
     */
   val values: IndexedSeq[Seq[String]] = vals.map(Entity.handleNullsInValueSeq)
 
-  val failure: Option[Throwable] = if(metadata.failure.metadata.isEmpty) {                                                    // if no failure has occurred yet
-    if(schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].subSchemata.size < subEntities.size){
-      Some(new IllegalArgumentException("Number of sub-entities is not equal to the number of sub-schemata for: " + uri))  // if sub entities size is not equal to sub schemata size
+  val failure: Option[GenericExecutionFailure] = {
+    val illegalArgumentException = classOf[IllegalArgumentException].getCanonicalName
+    if(metadata.failure.metadata.isEmpty) {                                                    // if no failure has occurred yet
+      if(schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].subSchemata.size < subEntities.size){
+        // if sub entities size is not equal to sub schemata size
+        Some(GenericExecutionFailure("Number of sub-entities is not equal to the number of sub-schemata for: " + uri, illegalArgumentException))
+      }
+      else if(uri.uri.trim.isEmpty){
+        Some(GenericExecutionFailure("Entity with an empty URI is not allowed.", illegalArgumentException))
+      }
+      else if (! this.validate) { // if entity is not valid
+        Some(GenericExecutionFailure("Provided schema does not fit entity values or sub-entities.", illegalArgumentException))
+      }
+      else{
+        None
+      }}
+    else {
+      metadata.failure.metadata.map(_.rootCause)   //propagate former failure
     }
-    else if(uri.uri.trim.isEmpty){
-      Some(new IllegalArgumentException("Entity with an empty URI is not allowed."))
-    }
-    else if (! this.validate) { // if entity is not valid
-      Some(new IllegalArgumentException("Provided schema does not fit entity values or sub-entities."))
-    }
-    else{
-      None
-  }}
-  else {
-    metadata.failure.metadata.map(_.rootCause)   //propagate former failure
   }
 
   /**

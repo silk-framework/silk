@@ -26,7 +26,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class RelateMetricTest extends FlatSpec with Matchers {
 
-  val metric = new RelateMetric(relation="FF*FF****")
+  val metric = RelateMetric(relation="FF*FF****")
 
   //Relate evaluation.
   "RelateMetric test 1" should "return '0.0'" in {

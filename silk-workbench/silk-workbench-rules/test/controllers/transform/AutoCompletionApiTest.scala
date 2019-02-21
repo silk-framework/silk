@@ -87,7 +87,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
     val transformSpec =
       TransformSpec(
         selection = DatasetSelection("source", uri("Person")),
-        mappingRule = RootMappingRule(
+        mappingRule = RootMappingRule(rules =
           MappingRules(
             uriRule = None,
             typeRules = Seq(TypeMapping(typeUri = uri("Person"))),

@@ -25,7 +25,7 @@ import scala.io.Codec
  * @param uriPattern A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements
  */
 case class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Codec) extends DataSource
-    with PeakDataSource with HierarchicalSampleValueAnalyzerExtractionSource {
+    with PeakDataSource with HierarchicalSampleValueAnalyzerExtractionSource with TypedPathRetrieveDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -73,7 +73,14 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
    */
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
                             (implicit userContext: UserContext): IndexedSeq[Path] = {
-    retrieveJsonPaths(t, depth, limit, leafPathsOnly = false, innerPathsOnly = false).drop(1)
+    retrieveJsonPaths(t, depth, limit, leafPathsOnly = false, innerPathsOnly = false).drop(1).map(_._1)
+  }
+
+  override def retrieveTypedPath(typeUri: Uri, depth: Int = Int.MaxValue, limit: Option[Int] = None)
+                                (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+    retrieveJsonPaths(typeUri, depth, limit, leafPathsOnly = false, innerPathsOnly = false).drop(1).map { case (path, valueType) =>
+        TypedPath(path, valueType, isAttribute = false)
+    }
   }
 
   def retrieveJsonPaths(typePath: Uri,
@@ -81,11 +88,11 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
                         limit: Option[Int],
                         leafPathsOnly: Boolean,
                         innerPathsOnly: Boolean,
-                        json: JsonTraverser = JsonTraverser(underlyingTask.id, file)(codec)): IndexedSeq[Path] = {
+                        json: JsonTraverser = JsonTraverser(underlyingTask.id, file)(codec)): IndexedSeq[(Path, ValueType)] = {
     val subSelectedElements: Seq[JsonTraverser] = navigateToType(typePath, json)
     for (element <- subSelectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
-         path <- element.collectPaths(path = Nil, leafPathsOnly = leafPathsOnly, innerPathsOnly = innerPathsOnly, depth = depth)) yield {
-      Path(path.toList)
+         (path, valueType) <- element.collectPaths(path = Nil, leafPathsOnly = leafPathsOnly, innerPathsOnly = innerPathsOnly, depth = depth)) yield {
+      (Path(path.toList), valueType)
     }
   }
 
@@ -97,7 +104,7 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
 
   override def retrieveTypes(limit: Option[Int])
                             (implicit userContext: UserContext): Traversable[(String, Double)] = {
-    retrieveJsonPaths("", Int.MaxValue, limit, leafPathsOnly = false, innerPathsOnly = true) map  (p => (p.normalizedSerialization, 1.0))
+    retrieveJsonPaths("", Int.MaxValue, limit, leafPathsOnly = false, innerPathsOnly = true) map  (p => (p._1.normalizedSerialization, 1.0))
   }
 
   private class Entities(elements: Seq[JsonTraverser], entityDesc: EntitySchema, allowedUris: Set[String]) extends Traversable[Entity] {

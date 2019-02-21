@@ -20,7 +20,8 @@ import scala.xml._
   * XML streaming source.
   */
 class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) extends DataSource
-  with PeakDataSource with PathCoverageDataSource with ValueCoverageDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource {
+  with PeakDataSource with PathCoverageDataSource with ValueCoverageDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource
+  with TypedPathRetrieveDataSource {
 
   private val xmlFactory = XMLInputFactory.newInstance()
 
@@ -82,9 +83,17 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
                             (implicit userContext: UserContext): IndexedSeq[Path] = {
     retrieveXmlPaths(typeUri, depth, limit, onlyLeafNodes = false, onlyInnerNodes = false).drop(1) // Drop empty path
+        .map(tp => Path(tp.operators))
   }
 
-  def retrieveXmlPaths(typeUri: Uri, depth: Int, limit: Option[Int], onlyLeafNodes: Boolean, onlyInnerNodes: Boolean): IndexedSeq[Path] = {
+  override def retrieveTypedPath(typeUri: Uri,
+                                 depth: Int,
+                                 limit: Option[Int])
+                                (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+    retrieveXmlPaths(typeUri, depth, limit, onlyLeafNodes = false, onlyInnerNodes = false).drop(1) // Drop empty path
+  }
+
+  def retrieveXmlPaths(typeUri: Uri, depth: Int, limit: Option[Int], onlyLeafNodes: Boolean, onlyInnerNodes: Boolean): IndexedSeq[TypedPath] = {
     val inputStream = file.inputStream
     try {
       val reader: XMLStreamReader = initStreamReader(inputStream)
@@ -194,18 +203,18 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * The parser must be positioned on the start element when calling this method.
     * On return, the parser will be positioned on the element that directly follows the element.
     */
-  private def collectPaths(reader: XMLStreamReader, path: Path, onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, depth: Int): Seq[Path] = {
+  private def collectPaths(reader: XMLStreamReader, path: Path, onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, depth: Int): Seq[TypedPath] = {
     assert(reader.isStartElement)
     assert(!(onlyInnerNodes && onlyLeafNodes), "onlyInnerNodes and onlyLeafNodes cannot be set to true at the same time")
 
     // Collect attribute paths
-    val attributePaths = fetchAttributePaths(reader, path)
+    val attributePaths: IndexedSeq[TypedPath] = fetchAttributePaths(reader, path)
 
     // Move to first child
     nextStartOrEndTag(reader)
 
     // Iterate all child elements
-    var paths = Seq[Path]()
+    var paths = Seq[TypedPath]()
     var startElements = Set[String]()
     while(!reader.isEndElement) {
       if (reader.isStartElement && !startElements.contains(reader.getLocalName)) {
@@ -232,22 +241,24 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
 
     reader.next()
 
-    val depthAdjustedAttributePaths = if(depth == 0) Seq() else attributePaths
+    val depthAdjustedAttributePaths: IndexedSeq[TypedPath] = if(depth == 0) IndexedSeq() else attributePaths
+    val pathValueType = if(attributePaths.nonEmpty || startElements.nonEmpty) UriValueType else StringValueType
+    val typedPath = TypedPath(path, pathValueType, isAttribute = false)
 
     if(onlyInnerNodes && startElements.isEmpty && attributePaths.isEmpty) {
       Seq() // An inner node has at least an attribute or child elements
     } else if(onlyInnerNodes) {
-      path +: paths // The paths are already depth adjusted and only contain inner nodes
+      TypedPath(path, UriValueType, isAttribute = false) +: paths // The paths are already depth adjusted and only contain inner nodes
     } else if(onlyLeafNodes && startElements.isEmpty) {
-      Seq(path) ++ depthAdjustedAttributePaths // A leaf node is a node without children, but may have attributes
+      Seq(typedPath) ++ depthAdjustedAttributePaths // A leaf node is a node without children, but may have attributes
     } else if(onlyLeafNodes) {
       depthAdjustedAttributePaths ++ paths
     } else {
-      path +: (depthAdjustedAttributePaths ++ paths)
+      typedPath +: (depthAdjustedAttributePaths ++ paths)
     }
   }
 
-  private def choosePaths(onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, childPaths: Seq[Path], depthAdjustedChildPaths: Seq[Path]) = {
+  private def choosePaths(onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, childPaths: Seq[Path], depthAdjustedChildPaths: Seq[TypedPath]) = {
     if (onlyInnerNodes) {
       if (childPaths.isEmpty) {
         Seq()
@@ -267,7 +278,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
 
   private def fetchAttributePaths(reader: XMLStreamReader, path: Path) = {
     for (attributeIndex <- 0 until reader.getAttributeCount) yield {
-      path ++ Path("@" + reader.getAttributeLocalName(attributeIndex))
+      TypedPath(path ++ Path("@" + reader.getAttributeLocalName(attributeIndex)), StringValueType, isAttribute = true)
     }
   }
 

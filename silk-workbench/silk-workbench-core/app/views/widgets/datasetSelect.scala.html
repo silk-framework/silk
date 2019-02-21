@@ -3,6 +3,7 @@
 @import org.silkframework.rule.TransformSpec
 @import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
 @import org.silkframework.runtime.activity.UserContext
+
 @(projectName: String, modifier: String, inputId: Option[String])(implicit userContext: UserContext)
 
 @project = @{ WorkspaceFactory().workspace.project(projectName.toString) }
@@ -12,9 +13,9 @@
 @generateOptions = @{ (tasks: Seq[ProjectTask[_]]) =>
   for(task <- tasks) yield {
     if(inputId.isDefined && task.id.toString == inputId.get) {
-        <option value={task.id} selected="selected">{task.id}</option>
+        <option value={task.id} selected="selected">{task.taskLabel()}</option>
     } else {
-        <option value={task.id}>{task.id}</option>
+        <option value={task.id}>{task.taskLabel()}</option>
     }
   }
 }

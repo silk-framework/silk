@@ -102,7 +102,7 @@ class TargetVocabularyApiTest extends TransformTaskApiTestBase {
     val transformSpec =
       TransformSpec(
         selection = DatasetSelection("source", "https://ns.eccenca.com/source/Person"),
-        mappingRule = RootMappingRule(MappingRules.empty),
+        mappingRule = RootMappingRule.empty,
         targetVocabularies = Seq("foaf.rdf")
       )
     val transformTask = PlainTask(task, transformSpec)

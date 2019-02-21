@@ -232,18 +232,24 @@ function deleteLink(id, source, target) {
     });
 }
 
-/* exported resetLink
-silk-workbench/silk-workbench-rules/app/views/widgets/linkButtons.scala.html
- */
+/** Show the buttons in link evaluation */
+function showButtons(cssSelector) {
+    $(cssSelector).attr('class', 'displayAsBlock');
+}
+
+function hideButtons(cssSelector) {
+    $(cssSelector).attr('class', 'displayAsNone');
+}
+
 function resetLink(id, source, target) {
     $.ajax({
         type: 'DELETE',
         url: `${apiUrl}?source=${source}&target=${target}`,
         data: '',
         success() {
-            $(`#confirmedLink${id}`).hide();
-            $(`#declinedLink${id}`).hide();
-            $(`#undecidedLink${id}`).show();
+            hideButtons(`#confirmedLink${id}`);
+            hideButtons(`#declinedLink${id}`);
+            showButtons(`#undecidedLink${id}`);
         },
         error(request) {
             alert(request.responseText);
@@ -260,9 +266,9 @@ function addPositiveLink(id, source, target) {
         url: `${apiUrl}?linkType=positive&source=${source}&target=${target}`,
         data: '',
         success() {
-            $(`#confirmedLink${id}`).show();
-            $(`#declinedLink${id}`).hide();
-            $(`#undecidedLink${id}`).hide();
+            showButtons(`#confirmedLink${id}`);
+            hideButtons(`#declinedLink${id}`);
+            hideButtons(`#undecidedLink${id}`);
         },
         error(request) {
             alert(request.responseText);
@@ -279,9 +285,9 @@ function addNegativeLink(id, source, target) {
         url: `${apiUrl}?linkType=negative&source=${source}&target=${target}`,
         data: '',
         success() {
-            $(`#confirmedLink${id}`).hide();
-            $(`#declinedLink${id}`).show();
-            $(`#undecidedLink${id}`).hide();
+            hideButtons(`#confirmedLink${id}`);
+            showButtons(`#declinedLink${id}`);
+            hideButtons(`#undecidedLink${id}`);
         },
         error(request) {
             alert(request.responseText);

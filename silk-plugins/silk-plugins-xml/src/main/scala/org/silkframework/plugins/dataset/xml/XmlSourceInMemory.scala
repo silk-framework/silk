@@ -13,7 +13,8 @@ import org.silkframework.util.{Identifier, Uri}
 import scala.xml.XML
 
 class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) extends DataSource
-    with PathCoverageDataSource with ValueCoverageDataSource with PeakDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource {
+    with PathCoverageDataSource with ValueCoverageDataSource with PeakDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource
+    with TypedPathRetrieveDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -29,10 +30,17 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
 
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
                             (implicit userContext: UserContext): IndexedSeq[Path] = {
-   retrieveXmlPaths(t, depth, limit, onlyLeafNodes = false, onlyInnerNodes = false)
+    retrieveXmlPaths(t, depth, limit, onlyLeafNodes = false, onlyInnerNodes = false) map (tp => Path(tp.operators))
   }
 
-  def retrieveXmlPaths(typeUri: Uri, depth: Int, limit: Option[Int], onlyLeafNodes: Boolean, onlyInnerNodes: Boolean): IndexedSeq[Path] = {
+  override def retrieveTypedPath(typeUri: Uri,
+                                 depth: Int,
+                                 limit: Option[Int])
+                                (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+    retrieveXmlPaths(typeUri, depth, limit, onlyLeafNodes = false, onlyInnerNodes = false)
+  }
+
+  override def retrieveXmlPaths(typeUri: Uri, depth: Int, limit: Option[Int], onlyLeafNodes: Boolean, onlyInnerNodes: Boolean): IndexedSeq[TypedPath] = {
     // At the moment we just generate paths from the first xml node that is found
     val xml = loadXmlNodes(typeUri.uri)
     if (xml.isEmpty) {

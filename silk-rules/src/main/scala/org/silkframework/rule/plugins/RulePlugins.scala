@@ -102,6 +102,7 @@ class RulePlugins extends PluginModule {
         classOf[IfMatchesRegexTransformer] ::
         classOf[ContainsAllOf] ::
         classOf[ContainsAnyOf] ::
+        classOf[Negate] ::
         // Numeric
         classOf[NumReduceTransformer] ::
         classOf[NumOperationTransformer] ::
@@ -146,6 +147,7 @@ class RulePlugins extends PluginModule {
         classOf[EqualityMetric] ::
         classOf[InequalityMetric] ::
         classOf[LowerThanMetric] ::
+        classOf[GreaterThanMetric] ::
         classOf[NumMetric] ::
         classOf[DateMetric] ::
         classOf[DateTimeMetric] ::
@@ -158,6 +160,7 @@ class RulePlugins extends PluginModule {
         classOf[CosineDistanceMetric] ::
         classOf[ConstantMetric] ::
         classOf[StartsWithDistance] ::
+        classOf[IsSubstringDistance] ::
         Nil
 
   private def aggregators =
@@ -165,7 +168,8 @@ class RulePlugins extends PluginModule {
         classOf[MaximumAggregator] ::
         classOf[MinimumAggregator] ::
         classOf[QuadraticMeanAggregator] ::
-        classOf[GeometricMeanAggregator] :: Nil
+        classOf[GeometricMeanAggregator] ::
+      classOf[NegationAggregator] :: Nil
 
   private def serializers =
     TransformSpecFormat.getClass ::

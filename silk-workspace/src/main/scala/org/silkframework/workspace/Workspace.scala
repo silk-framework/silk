@@ -86,7 +86,6 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
                    (implicit userContext: UserContext): Unit = {
     loadUserProjects()
     project(name).activities.foreach(_.control.cancel())
-    project(name).flush()
     provider.deleteProject(name)
     cachedProjects = cachedProjects.filterNot(_.name == name)
   }
@@ -127,32 +126,11 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   }
 
   /**
-    * Flushes this workspace. i.e., all task data is written to the workspace provider immediately.
-    * It is usually not needed to call this method, as task data is written to the workspace provider after a fixed interval without changes.
-    * This method forces the writing and returns after all data has been written.
-    */
-  def flush()(implicit userContext: UserContext): Unit = {
-    loadUserProjects()
-    for {
-      project <- projects // FIXME: Should not work directly on all cached projects. Will be fixed in CMEM-998
-      task <- project.allTasks
-    } {
-      try {
-        task.flush()
-      } catch {
-        case NonFatal(ex) =>
-          log.log(Level.WARNING, s"Could not persist task ${task.id} of project ${project.config.id} to workspace provider.", ex)
-      }
-    }
-  }
-
-  /**
     * Reloads this workspace.
     */
   def reload()(implicit userContext: UserContext): Unit = {
     loadUserProjects()
-    // Write all data
-    flush()
+
     // Stop all activities
     for{ project <- projects // Should not work directly on the cached projects
          activity <- project.activities } {

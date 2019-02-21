@@ -8,7 +8,8 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpointEntityTable}
 import org.silkframework.entity._
-import org.silkframework.plugins.dataset.rdf.{LocalSparqlSelectExecutor, SparqlSelectCustomTask}
+import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlSelectExecutor
+import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule.{TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext

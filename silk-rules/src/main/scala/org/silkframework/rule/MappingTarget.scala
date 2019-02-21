@@ -17,7 +17,7 @@ import scala.xml.Node
   * @param isAttribute In data sinks that support attributes, such as XML, an attribute is generated.
   */
 case class MappingTarget(propertyUri: Uri,
-                         valueType: ValueType = AutoDetectValueType,
+                         valueType: ValueType = StringValueType,
                          isBackwardProperty: Boolean = false,
                          isAttribute: Boolean = false) {
 

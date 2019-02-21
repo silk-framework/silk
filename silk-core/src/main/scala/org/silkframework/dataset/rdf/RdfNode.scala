@@ -25,14 +25,19 @@ sealed trait RdfNode {
 }
 
 /**
+  * An RdfNode which is either a Resource or a BlankNode
+  */
+sealed trait ConcreteNode extends RdfNode
+
+/**
  * An RDF resource.
  */
-case class Resource(value: String) extends RdfNode
+case class Resource(value: String) extends ConcreteNode
 
 /**
  * An RDF blank node.
  */
-case class BlankNode(value: String) extends RdfNode
+case class BlankNode(value: String) extends ConcreteNode
 
 /**
  * An RDF literal.

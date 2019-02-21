@@ -31,9 +31,9 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
     * Collects all paths from an json node. For an array, only the first object is considered.
     *
     * @param path Path prefix to be prepended to all found paths
-    * @return Sequence of all found paths
+    * @return Sequence of all found paths with their value type. At the moment only [[StringValueType]] or [[UriValueType]].
     */
-  def collectPaths(path: Seq[PathOperator], leafPathsOnly: Boolean, innerPathsOnly: Boolean, depth: Int): Seq[Seq[PathOperator]] = {
+  def collectPaths(path: Seq[PathOperator], leafPathsOnly: Boolean, innerPathsOnly: Boolean, depth: Int): Seq[(Seq[PathOperator], ValueType)] = {
     assert(!(leafPathsOnly && innerPathsOnly), "Cannot set leafPathsOnly and innerPathsOnly to true at the same time!")
 
     def fetchChildPaths(obj: JsObject) = {
@@ -47,13 +47,15 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
         if(leafPathsOnly) {
           childPaths
         } else {
-          Seq(path) ++ childPaths
+          Seq(path -> UriValueType) ++ childPaths
         }
       case array: JsArray if array.value.nonEmpty =>
         keepParent(array.value.head).collectPaths(path, leafPathsOnly, innerPathsOnly, depth)
       case _ =>
-        if (path.nonEmpty && !innerPathsOnly || innerPathsOnly && path.isEmpty) {
-          Seq(path)
+        if (path.nonEmpty && !innerPathsOnly) {
+          Seq(path -> StringValueType)
+        } else if(innerPathsOnly && path.isEmpty) {
+          Seq(path -> UriValueType)
         } else {
           Seq() // also return root path, since this is a valid type in JSON
         }

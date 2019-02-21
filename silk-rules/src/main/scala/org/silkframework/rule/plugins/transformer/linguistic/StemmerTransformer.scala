@@ -24,7 +24,7 @@ import org.silkframework.runtime.plugin.Plugin
   description = "Stems a string using the Porter Stemmer."
 )
 case class StemmerTransformer() extends SimpleTransformer {
-  override def evaluate(value: String) = {
+  override def evaluate(value: String): String = {
     val stemmer = new PorterStemmer
     stemmer.stem(value)
   }
@@ -50,15 +50,15 @@ private class PorterStemmer {
       step5a()
       step5b()
     }
-    return word
+    word
   }
 
   // Just recode the existing stuff, then go through and refactor with some intelligence.
   private def cons(i: Int): Boolean = {
-    var ch = word(i)
+    val ch = word(i)
 
     // magic!
-    var vowels = "aeiou"
+    val vowels = "aeiou"
 
     // multi return. yuck
     if (vowels.contains(ch))
@@ -73,7 +73,7 @@ private class PorterStemmer {
         return !cons(i - 1)
       }
     }
-    return true
+    true
 
   }
 
@@ -91,11 +91,11 @@ private class PorterStemmer {
   */
 
   private def calcM(s: String): Int = {
-    var l = s.length
+    val l = s.length
     var count = 0
     var currentConst = false
 
-    for (c <- 0 to l - 1) {
+    for (c <- 0 until l) {
       if (cons(c)) {
         if (!currentConst && c != 0) {
           count += 1
@@ -107,7 +107,7 @@ private class PorterStemmer {
       }
     }
 
-    return count
+    count
   }
 
 
@@ -120,13 +120,13 @@ private class PorterStemmer {
       }
     }
 
-    return false;
+    false
 
   }
 
   /* doublec(j) is true <=> j,(j-1) contain a double consonant. */
   private def doublec(): Boolean = {
-    var l = word.length - 1
+    val l = word.length - 1
 
     if (l < 1)
       return false
@@ -134,7 +134,7 @@ private class PorterStemmer {
     if (word(l) != word(l - 1))
       return false
 
-    return cons(l)
+    cons(l)
 
   }
 
@@ -148,55 +148,54 @@ private class PorterStemmer {
   */
 
   private def cvc(s: String): Boolean = {
-    var i = word.length - 1 - s.length
+    val i = word.length - 1 - s.length
     if (i < 2 || !cons(i) || cons(i - 1) || !cons(i - 2))
-      return false;
+      return false
 
-    var ch = word(i)
+    val ch = word(i)
 
-    var vals = "wxy"
+    val vals = "wxy"
 
     if (vals.contains(ch))
       return false
 
-    return true;
+    true
   }
 
 
   // returns true if it did the change.
   private def replacer(orig: String, replace: String, checker: Int => Boolean): Boolean = {
-    var l = word.length
-    var origLength = orig.length
+    val l = word.length
+    val origLength = orig.length
     var res = false
     if (word.endsWith(orig)) {
-      var n = word.substring(0, l - origLength)
-      var m = calcM(n)
+      val n = word.substring(0, l - origLength)
+      val m = calcM(n)
       if (checker(m)) {
         word = n + replace
       }
       res = true
 
     }
-    return res
+    res
   }
 
   // process the list of tuples to find which prefix matches the case.
   // checker is the conditional checker for m.
   def processSubList(l: List[(String, String)], checker: Int => Boolean): Boolean = {
-    var iter = l.iterator
+    val iter = l.iterator
     var done = false
 
     while (!done && iter.hasNext) {
-      var v = iter.next
+      val v = iter.next
       done = replacer(v._1, v._2, checker)
 
     }
 
-    return done
+    done
   }
 
   def step1() {
-    var l = word.length
     var m = calcM(word)
 
     // step 1a
@@ -204,7 +203,7 @@ private class PorterStemmer {
     processSubList(vals, _ >= 0)
 
     // step 1b
-    if (!(replacer("eed", "ee", _ > 0))) {
+    if (!replacer("eed", "ee", _ > 0)) {
 
       if ((vowelInStem("ed") && replacer("ed", "", _ >= 0)) || (vowelInStem("ing") && replacer("ing", "", _ >= 0))) {
 
@@ -214,7 +213,7 @@ private class PorterStemmer {
           // if this isn't done, then it gets more confusing.
 
           m = calcM(word)
-          var last = word(word.length - 1)
+          val last = word(word.length - 1)
           if (doublec() && !"lsz".contains(last)) {
             word = word.substring(0, word.length - 1)
           }
@@ -227,12 +226,12 @@ private class PorterStemmer {
     }
 
     // step 1c
-    (vowelInStem("y") && replacer("y", "i", _ >= 0))
+    vowelInStem("y") && replacer("y", "i", _ >= 0)
   }
 
-  def step2() = {
+  def step2(): Boolean = {
 
-    var vals = List(("ational", "ate"), ("tional", "tion"), ("enci", "ence"), ("anci", "ance"), ("izer", "ize"), ("bli", "ble"), ("alli", "al"),
+    val vals = List(("ational", "ate"), ("tional", "tion"), ("enci", "ence"), ("anci", "ance"), ("izer", "ize"), ("bli", "ble"), ("alli", "al"),
       ("entli", "ent"), ("eli", "e"), ("ousli", "ous"), ("ization", "ize"), ("ation", "ate"), ("ator", "ate"), ("alism", "al"),
       ("iveness", "ive"), ("fulness", "ful"), ("ousness", "ous"), ("aliti", "al"), ("iviti", "ive"), ("biliti", "ble"), ("logi", "log"))
 
@@ -240,15 +239,15 @@ private class PorterStemmer {
 
   }
 
-  def step3() = {
-    var vals = List(("icate", "ic"), ("ative", ""), ("alize", "al"), ("iciti", "ic"), ("ical", "ic"), ("ful", ""), ("ness", ""))
+  def step3(): Boolean = {
+    val vals = List(("icate", "ic"), ("ative", ""), ("alize", "al"), ("iciti", "ic"), ("ical", "ic"), ("ful", ""), ("ness", ""))
     processSubList(vals, _ > 0)
   }
 
-  def step4() = {
+  def step4(): Unit = {
 
     // first part.
-    var vals = List(("al", ""), ("ance", ""), ("ence", ""), ("er", ""), ("ic", ""), ("able", ""), ("ible", ""), ("ant", ""), ("ement", ""),
+    val vals = List(("al", ""), ("ance", ""), ("ence", ""), ("er", ""), ("ic", ""), ("able", ""), ("ible", ""), ("ant", ""), ("ement", ""),
       ("ment", ""), ("ent", ""))
 
     var res = processSubList(vals, _ > 1)
@@ -265,13 +264,13 @@ private class PorterStemmer {
 
     // third part.
     if (!res) {
-      var vals = List(("ou", ""), ("ism", ""), ("ate", ""), ("iti", ""), ("ous", ""), ("ive", ""), ("ize", ""))
+      val vals = List(("ou", ""), ("ism", ""), ("ate", ""), ("iti", ""), ("ous", ""), ("ive", ""), ("ize", ""))
       res = processSubList(vals, _ > 1)
     }
 
   }
 
-  def step5a() = {
+  def step5a(): Unit = {
     var res = false
     res = replacer("e", "", _ > 1)
     if (!cvc("e")) {
@@ -279,13 +278,10 @@ private class PorterStemmer {
     }
   }
 
-  def step5b() = {
-    var res = false
-    var m = calcM(word)
+  def step5b(): Unit = {
+    val m = calcM(word)
     if (m > 1 && doublec() && word.endsWith("l")) {
       word = word.substring(0, word.length - 1)
     }
-
   }
-
 }

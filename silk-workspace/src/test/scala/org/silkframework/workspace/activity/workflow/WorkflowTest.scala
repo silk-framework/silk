@@ -4,7 +4,6 @@ import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}

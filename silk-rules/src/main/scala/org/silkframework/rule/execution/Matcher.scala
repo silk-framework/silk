@@ -22,6 +22,7 @@ import org.silkframework.cache.EntityCache
 import org.silkframework.entity.Link
 import org.silkframework.rule.{LinkageRule, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
+import org.silkframework.runtime.execution.Execution
 import org.silkframework.util.DPair
 
 import scala.math.{max, min}
@@ -58,19 +59,19 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     cancelled = false
 
     //Create execution service for the matching tasks
-    val executorService = Executors.newFixedThreadPool(runtimeConfig.numThreads)
+    val executorService = Execution.createFixedThreadPool("Matcher", runtimeConfig.numThreads)
     val executor = new ExecutorCompletionService[IndexedSeq[Link]](executorService)
 
     //Start matching thread scheduler
-    val error = new AtomicReference[Option[String]](None)
-    val scheduler = new SchedulerThread(executor, error)
+    val errors = new AtomicReference[Seq[Throwable]](Seq.empty)
+    val scheduler = new SchedulerThread(executor, errors)
     scheduler.start()
 
     //Process finished tasks
     var finishedTasks = 0
     var lastLog: Long = 0
     val minLogDelayInMs = 1000
-    while (!cancelled && (scheduler.isAlive || finishedTasks < scheduler.taskCount) && error.get().isEmpty) {
+    while (!cancelled && (scheduler.isAlive || finishedTasks < scheduler.taskCount) && errors.get().isEmpty) {
       val result = executor.poll(100, TimeUnit.MILLISECONDS)
       if (result != null) {
         context.value.update(context.value() ++ result.get)
@@ -88,14 +89,18 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       }
     }
 
-    error.get() match {
-      case Some(schedulerThreadErrorMessage) =>
-        throw new RuntimeException("" + schedulerThreadErrorMessage)
-      case None =>
+    errors.get() match {
+      case Seq() =>
         for(result <- Option(executor.poll(100, TimeUnit.MILLISECONDS))) {
           context.value.update(context.value() ++ result.get)
           updateStatus(context, finishedTasks, scheduler.taskCount)
         }
+      case Seq(error) =>
+        throw error
+      case errors =>
+        // There are multiple errors. We log all and throw the first one
+        errors.foreach(log.log(Level.WARNING, "Error during matching", _))
+        throw errors.head
     }
 
     //Shutdown
@@ -118,7 +123,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
   /**
    * Monitors the entity caches and schedules new matching threads whenever a new partition has been loaded.
    */
-  private class SchedulerThread(executor: CompletionService[IndexedSeq[Link]], error: AtomicReference[Option[String]]) extends Thread {
+  private class SchedulerThread(executor: CompletionService[IndexedSeq[Link]], errors: AtomicReference[Seq[Throwable]]) extends Thread {
     @volatile var taskCount = 0
 
     private var sourcePartitions = new Array[Int](caches.source.blockCount)
@@ -143,8 +148,12 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
         } while((sourceLoading || targetLoading) && loaderSuccessful)
         val failedLoaders = Seq(loaders.source, loaders.target).filter(_.status.get.exists(_.failed))
         if(failedLoaders.nonEmpty) { // One of the loaders failed
-          val loaderErrorMessages = failedLoaders.map(l => s"${l.name} task failed: ${l.status.get.get.message}").mkString(", ")
-          error.set(Some(loaderErrorMessages))
+          val loaderErrorMessages =
+            for(loader <- failedLoaders) yield {
+              val status = loader.status.get.get
+              new RuntimeException(s"${loader.name} task failed: ${status.message}", status.exception.orNull)
+            }
+          errors.set(loaderErrorMessages)
         }
       } catch {
         case _: InterruptedException =>

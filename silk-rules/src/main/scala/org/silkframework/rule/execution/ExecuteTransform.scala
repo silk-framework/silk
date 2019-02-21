@@ -1,7 +1,7 @@
 package org.silkframework.rule.execution
 
 import org.silkframework.dataset.{DataSource, EntitySink}
-import org.silkframework.execution.ExecutionReport
+import org.silkframework.execution.{AbortExecutionException, ExecutionReport}
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
 import org.silkframework.rule.execution.local.TransformedEntities
@@ -49,7 +49,7 @@ class ExecuteTransform(input: UserContext => DataSource,
     entitySink.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get))
 
     val entities = dataSource.retrieve(rule.inputSchema)
-    val transformedEntities = new TransformedEntities(entities, rule.transformRule.rules, rule.outputSchema, context.asInstanceOf[ActivityContext[ExecutionReport]])
+    val transformedEntities = new TransformedEntities(entities, rule.transformRule.rules, rule.outputSchema, context)
     var count = 0
     breakable {
       for (entity <- transformedEntities) {

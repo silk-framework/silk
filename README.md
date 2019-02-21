@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/silk-framework/silk.svg?branch=develop)](https://travis-ci.org/silk-framework/silk)
+[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/silk-framework/silk)
 
 # Silk Link Discovery Framework
 
@@ -18,7 +19,7 @@ Community documentation is maintained in the [doc](doc/) folder.
 
 ### Local build
 
-- JDK 8 or later
+- JDK 8
 - [Simple Build Tool](http://www.scala-sbt.org/) (sbt)
 - [Yarn](https://yarnpkg.com) for React/JavaScript build pipeline (>= 1.3)
 
@@ -35,7 +36,9 @@ Downloading and installing sbt is not necessary as it is available from this dir
 
 ## Running the Silk Workbench as docker container
 
-- Build the docker image with: `docker build -t silkframework/silk-workbench:latest .` (This maybe take some minutes)
+- Build or pull the latest docker image:
+  - Build the docker image with: `docker build -t silkframework/silk-workbench:latest .` (This maybe take some minutes)
+  - Pull the docker image via: docker pull silkframework/silk-workbench
 - Run the docker container with: `docker run -d --name silk-workbench -p 80:80 silkframework/silk-workbench:latest`
 - In your browser, navigate to 'http://DOCKER_HOST:80'
 - To make the userdata available from outside the docker container you can add a volume mount, therefore add `-v $PWD:/opt/silk/workspace` to the docker run command.

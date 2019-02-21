@@ -18,7 +18,7 @@ import java.util.logging.Logger
 
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.entity.{ForwardOperator, Path}
+import org.silkframework.entity.{ForwardOperator, Path, TypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
@@ -41,7 +41,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
   private implicit val logger = Logger.getLogger(SparqlSamplePathsCollector.getClass.getName)
 
   def apply(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Option[Int])
-           (implicit userContext: UserContext): Seq[Path] = {
+           (implicit userContext: UserContext): Seq[TypedPath] = {
     val sampleEntities = {
       if (restrictions.isEmpty)
         getEntities(endpoint, graph, SparqlRestriction.fromSparql("a", "?a ?p ?o"))
@@ -72,7 +72,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
   }
 
   private def getEntitiesPaths(endpoint: SparqlEndpoint, graph: Option[String], entities: Traversable[String], variable: String, limit: Int)
-                              (implicit userContext: UserContext): Seq[Path] = {
+                              (implicit userContext: UserContext): Seq[TypedPath] = {
     logger.info("Searching for relevant properties in " + endpoint)
 
     val entityArray = entities.toArray
@@ -89,7 +89,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
 
     logger.info("Found " + relevantProperties.size + " relevant properties in " + endpoint)
 
-    relevantProperties
+    relevantProperties.map(_.asAutoDetectTypedPath) // No path type here, since the sample path collector is a fallback only
   }
 
   private def getEntityProperties(endpoint: SparqlEndpoint, graph: Option[String], entityUri: String, variable: String, limit: Int)

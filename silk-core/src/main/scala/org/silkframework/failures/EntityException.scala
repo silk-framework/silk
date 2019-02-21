@@ -1,6 +1,7 @@
 package org.silkframework.failures
 
 import org.silkframework.entity.Path
+import org.silkframework.entity.metadata.GenericExecutionFailure
 import org.silkframework.util.Identifier
 
 import scala.language.implicitConversions
@@ -24,7 +25,7 @@ class EntityException(msg: String, ex: Throwable, taskId: Identifier, property: 
   /**
     * The pertaining [[FailureClass]] object
     */
-  lazy val failureClass: FailureClass = FailureClass(FailureClass.getRootCause(exception), message, taskId, property)
+  lazy val failureClass: FailureClass = FailureClass(FailureClass.getRootCause(GenericExecutionFailure(exception)), message, taskId, property)
 }
 
 object EntityException{

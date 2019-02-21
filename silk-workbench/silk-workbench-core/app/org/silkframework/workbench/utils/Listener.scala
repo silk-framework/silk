@@ -1,7 +1,9 @@
 package org.silkframework.workbench.utils
 
-import java.util.concurrent.{Executors, TimeUnit}
+import java.util.concurrent.TimeUnit
 import java.util.logging.{Level, Logger}
+
+import org.silkframework.runtime.execution.Execution
 
 /**
   * A Listener that limits that rate of updates.
@@ -56,5 +58,5 @@ trait Listener[T] extends (T => Unit) {
 }
 
 object Listener {
-  private val executor = Executors.newScheduledThreadPool(1)
+  private val executor = Execution.createScheduledThreadPool(getClass.getSimpleName, 1)
 }

@@ -86,8 +86,9 @@ const MappingsHeader = React.createClass({
         const navBreadcrumbs = (
             <BreadcrumbList>
                 {breadcrumbs.length > 0
-                    ? breadcrumbs.map(crumb => (
+                    ? breadcrumbs.map((crumb, idx) => (
                           <BreadcrumbItem
+                              key={idx}
                               onClick={event => {
                                   self.handleNavigate(
                                       crumb.id,
@@ -100,7 +101,7 @@ const MappingsHeader = React.createClass({
                           </BreadcrumbItem>
                       ))
                     : false}
-                <BreadcrumbItem>
+                <BreadcrumbItem key={breadcrumbs.length}>
                     <RuleTitle rule={_.get(this.props, 'rule', {})} />
                 </BreadcrumbItem>
             </BreadcrumbList>

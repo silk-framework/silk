@@ -1,122 +1,120 @@
 package org.silkframework.entity.metadata
 
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import ExceptionSerializer._
+import org.slf4j.LoggerFactory
 
-import scala.xml.{Elem, Node}
+import scala.xml.{Elem, Node, Null}
 
 /**
-  * XML serializer for exceptions
-  * NOTE: use [[readException]] and [[write]] to reference more specific Serializers for subclasses of Throwable
+  * XML serializer for exceptions.
+  * Update: Map subclasses of throwable to the ExecutionFailure class and serialize/instantiate that.
+  * Custom serializers was planned are not needed any longer.
   */
-case class ExceptionSerializer() extends XmlMetadataSerializer[Throwable] {
+case class ExceptionSerializer() extends XmlMetadataSerializer[GenericExecutionFailure] {
 
-  override def read(ex: Node)(implicit readContext: ReadContext): Throwable = readException(ex)
+  @transient
+  private val logger = LoggerFactory.getLogger(this.getClass)
 
-  def readException(node: Node): Throwable ={
-    if(node == null || node.text.trim.isEmpty)
+  override def read(ex: Node)(implicit readContext: ReadContext): GenericExecutionFailure = readException(ex)
+
+  /**
+    * Deserialize and instantiate an error. This used to recommend an automated registry and custom Serializers.
+    * It then searched certain constructors and tried to instantiate the Throwable.
+    *
+    * Now we only instantiate an ExecutionFailure. This also avoids the emulated exceptions that sometimes
+    * were necessary.
+    *
+    * @param node XML node
+    * @return ExecutionFailure instance
+    */
+  def readException(node: Node): GenericExecutionFailure = {
+
+    if (node == null || node.text.trim.isEmpty) {
       return null
-
-    val className = (node \ CLASS).text.trim
-    val exceptionClass = Class.forName(className).asInstanceOf[Class[Throwable]]
-
-    //FIXME introduce an automated registry for this switch?
-    exceptionClass match{
-    //NOTE: insert special Exception reading switch here
-    //case ex: SpecialException => readSpecialException(..)
-      case _ => readDefaultThrowable(node, exceptionClass)
     }
+
+    readDefaultThrowable(node)
   }
 
   /**
-    * Here we try to guess the right constructor.
-    * Trying out combinations of String (message) and Throwable (cause), then only String.
-    * NOTE: some exceptions use thusly typed constructors differently or dont have any of such constructors.
-    * Please introduce your own serializer for such exception classes
+    * Finds a fitting constructor and returns the instantiated exception object.
+    *
     * @param node - the XML node
-    * @param exceptionClass - the exception class in question
     * @return
     */
-  def readDefaultThrowable(node: Node, exceptionClass: Class[Throwable]): Throwable = {
-    val message = (node \ MESSAGE).text.trim
-    val cause = readException((node \ CAUSE).headOption.flatMap(_.child.headOption).orNull)
-    var arguments = Seq[Object]()
-    val constructor = if (cause != null) {
-      var zw = exceptionClass.getConstructor(classOf[String], classOf[Throwable])
-      arguments = Seq(message, cause)
-      if (zw == null) {
-        zw = exceptionClass.getConstructor(classOf[Throwable], classOf[String])
-        arguments = Seq(cause, message)
-      }
-      zw
-    }
-    else {
-      arguments = Seq(message)
-      exceptionClass.getConstructor(classOf[String])
-    }
+  def readDefaultThrowable(node: Node): GenericExecutionFailure = {
+    val exceptionClassName = (node \ ExceptionSerializer.CLASS).text.trim
+    val message = (node \ ExceptionSerializer.MESSAGE).headOption.map(_.text.trim)
+    val cause = getExceptionCauseOption(node)
+    val stackTrace = (node \ ExceptionSerializer.STACKTRACE).headOption.map { readStackTrace }
 
-    val exception = if (constructor != null) {
-      exceptionClass.cast(constructor.newInstance(arguments: _*))
-    }
-    else {
-      new Exception("Emulated Exception of class: " + exceptionClass.getCanonicalName + ", original message: " + message, cause)
-    }
-    exception.setStackTrace(readStackTrace((node \ STACKTRACE).head))
-    exception
+    GenericExecutionFailure(message, exceptionClassName, cause, stackTrace)
   }
 
-  def readStackTrace(node: Node): Array[StackTraceElement] ={
-    val stackTrace = for(ste <- node \ STELEMENT) yield{
-      val className = (ste \ CLASSNAME).text.trim
-      val methodName = (ste \ METHODNAME).text.trim
-      val fileName = (ste \ FILENAME).text.trim
-      val lineNumber = (ste \ LINENUMBER).text.trim
-      new StackTraceElement(className, methodName, fileName, if(lineNumber.length > 0) lineNumber.toInt else 0)
+  /**
+    * Method to help retrieve optional causes.
+    *
+    * @param node XML node
+    * @return
+    */
+  private def getExceptionCauseOption(node: Node): Option[GenericExecutionFailure] = {
+    val cause = readException((node \ ExceptionSerializer.CAUSE).headOption.flatMap(_.child.headOption).orNull)
+    Option(cause)
+  }
+
+  def readStackTrace(node: Node): Array[StackTraceElement] = {
+    val stackTrace = for (ste <- node \ ExceptionSerializer.STELEMENT) yield {
+      val className = (ste \ ExceptionSerializer.CLASSNAME).text.trim
+      val methodName = (ste \ ExceptionSerializer.METHODNAME).text.trim
+      val fileName = (ste \ ExceptionSerializer.FILENAME).text.trim
+      val lineNumber = (ste \ ExceptionSerializer.LINENUMBER).text.trim
+      new StackTraceElement(className, methodName, fileName, if (lineNumber.length > 0) lineNumber.toInt else -1)
     }
     stackTrace.toArray
   }
 
-  override def write(ex: Throwable)(implicit writeContext: WriteContext[Node]): Node = ex.getClass match{
-    //FIXME introduce an automated registry for this switch?
-  //case se: SpecialException => writeSpecialException(..)
-    case _ => writeException(ex)
-  }
+  override def write(value: GenericExecutionFailure)(implicit writeContext: WriteContext[Node]): Node = writeException(value)
 
-  private def writeException(ex: Throwable): Node ={
+  private def writeException(ex: GenericExecutionFailure): Node = {
     <Exception>
-      <Class>{ex.getClass.getCanonicalName}</Class>
-      <Message>{ex.getMessage}</Message>
-      <Cause>
-        {if(ex.getCause != null) writeException(ex.getCause)}
-      </Cause>
-      <StackTrace>
-        {writeStackTrace(ex)}
-      </StackTrace>
+      <Class>{ex.getExceptionClass}</Class>
+      { ex.message.map (msg => <Message>{msg}</Message>).getOrElse(Null)}
+      { ex.cause.map { cause =>
+          <Cause>{writeException(cause)}</Cause>
+        }.getOrElse(Null)
+      }
+      { writeStackTrace(ex) }
     </Exception>
   }
 
-  private def writeStackTrace(ex: Throwable): Array[Elem] ={
-    for(ste <- ex.getStackTrace) yield{
-      <STE>
-        <FileName>{ste.getFileName}</FileName>
-        <ClassName>{ste.getClassName}</ClassName>
-        <MethodName>{ste.getMethodName}</MethodName>
-        <LineNumber>{ste.getLineNumber}</LineNumber>
-      </STE>
-    }
+  private def writeStackTrace(ex: GenericExecutionFailure): Elem ={
+    ex.stackTrace.map { stackTrace =>
+      <StackTrace>
+        {
+          for(ste <- stackTrace) yield{
+            <STE>
+              <FileName>{ste.getFileName}</FileName>
+              <ClassName>{ste.getClassName}</ClassName>
+              <MethodName>{ste.getMethodName}</MethodName>
+              <LineNumber>{ste.getLineNumber}</LineNumber>
+            </STE>
+          }
+        }
+      </StackTrace>
+    }.orNull
   }
 
   /**
-    * The identifier used to define metadata objects in the map of [[EntityMetadata]]
+    * The identifier used to define metadata objects in the map of [[org.silkframework.entity.metadata.EntityMetadata]]
+    * NOTE: This method has to be implemented as def and not as val, else the serialization format registration will fail !!!!!!!!!
     */
   override def metadataId: String = ExceptionSerializer.ID
 
   /**
     * An indicator whether the LazyMetadata object produced with this serializer will be replaceable (overridable in the Metadata map)
-    *
-    * @return
     */
   override def replaceableMetadata: Boolean = false
+
 }
 
 object ExceptionSerializer{
