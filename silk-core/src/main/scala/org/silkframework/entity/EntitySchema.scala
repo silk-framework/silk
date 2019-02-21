@@ -60,20 +60,22 @@ case class EntitySchema(
     * @throws NoSuchElementException If the path could not be found in the schema.
     */
   def pathIndex(path: Path): Int = {
-    val valueTypeOpt = path match{
-      case tp: TypedPath => Option(tp.valueType)
-      case _ => None
-    }
     //find the given path and, if provided, match the value type as well
-    typedPaths.zipWithIndex.find(pi => (
-      valueTypeOpt.isEmpty ||                               //if no ValueType is specified or ...
-      valueTypeOpt.get == AutoDetectValueType ||            //ValueType is of no importance or...
-      pi._1.valueType == AutoDetectValueType ||             //ValueType of the list element is of no importance or...
-      pi._1.valueType == valueTypeOpt.get                   //both ValueTypes match then...
-    ) && pi._1.normalizedSerialization == path.normalizedSerialization) match{                              //if the paths equal
+    typedPaths.zipWithIndex.find(pi => path.equals(pi._1)) match{//depending on the input type we use its equals
       case Some((_, ind)) => ind
       case None => throw new NoSuchElementException(s"Path $path not found on entity. Available paths: ${typedPaths.mkString(", ")}.")
     }
+  }
+
+  /**
+    * This function will return an available TypedPath depending on the type of the path parameter.
+    * By providing only a Path the TypedPath is selected by its path-operators only (ignoring ValueType).
+    * Providing a TypedPath the full TypedPath equals function is used for comparison.
+    * @param path - either a Path or a TypedPath
+    * @return - an element of the typedPath collection (if any)
+    */
+  def findTypedPath(path: Path): Option[TypedPath] = {
+    this.typedPaths.find(tp => path.equals(tp))
   }
 
   /**
@@ -101,7 +103,7 @@ case class EntitySchema(
   def renameProperty(oldName: TypedPath, newName: TypedPath): EntitySchema ={
     val sourceSchema = getSchemaOfProperty(oldName)
     val targetSchema = sourceSchema.map(sa => sa.copy(
-      typedPaths = sa.typedPaths.map(tp => if(tp == oldName) TypedPath(newName, tp.valueType, tp.isAttribute) else tp)
+      typedPaths = sa.typedPaths.map(tp => if(tp == oldName) TypedPath(newName.operators, tp.valueType, tp.isAttribute) else tp)
     ))
     targetSchema.getOrElse(this)
   }

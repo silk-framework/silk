@@ -177,7 +177,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
     entities.size shouldBe 4                        //in this case number of entities is the same as number of lines in csv
     val top = entities.head
     top.schema.propertyNames shouldBe IndexedSeq("vals1", "vals2", "vals3")
-    top.valueOf("vals2").head shouldBe "val2"
+    top.valueOfTypedPath(Path("vals2").asStringTypedPath).head shouldBe "val2"
   }
 
   it should "support #idx special forward path" in {

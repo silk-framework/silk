@@ -14,7 +14,7 @@
 
 package org.silkframework.rule.input
 
-import org.silkframework.entity.{Entity, Path}
+import org.silkframework.entity._
 import org.silkframework.rule.Operator
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationException

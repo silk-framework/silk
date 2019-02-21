@@ -1,7 +1,7 @@
 package org.silkframework.dataset
 
 import org.silkframework.config.Task
-import org.silkframework.entity.{Entity, EntitySchema, TypedPath}
+import org.silkframework.entity.{Entity, EntitySchema, Path, TypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
@@ -21,7 +21,7 @@ case class EntityDatasource(underlyingTask: Task[DatasetSpec[Dataset]], entities
       val matchingPathMap = matchingPaths.toMap
       if(matchingPaths.size != requestSchema.typedPaths.size) {
         val missingPath = requestSchema.typedPaths.find(tp => !matchingPathMap.contains(tp))
-        throw new ValidationException("Some requested paths do not exist in data source, e.g. " + missingPath.get.serialize() + "!")
+        throw new ValidationException("Some requested paths do not exist in data source, e.g. " + missingPath.get.normalizedSerialization + "!")
       } else {
         val matchingPathMap = matchingPaths.toMap
         val valuesIndexes = requestSchema.typedPaths.map ( tp => matchingPathMap(tp) )

@@ -81,7 +81,7 @@ case class Entity private(
   def applyNewSchema(es: EntitySchema): Entity = copy(schema = es, projectValuesIfNewSchema = false)
 
   /**
-    *
+    * The value sequence
     */
   val values: IndexedSeq[Seq[String]] = vals.map(Entity.handleNullsInValueSeq)
 
@@ -102,24 +102,25 @@ case class Entity private(
     metadata.failure.metadata.map(_.rootCause)   //propagate former failure
   }
 
+  /**
+    * Signals if the given [[Entity]] is marked as having failed to evaluate
+    */
   def hasFailed: Boolean = failure.isDefined
 
   /**
     * Will retrieve the values of a given path (if available)
-    * @param path
-    * @return
+    * @param path - the property or path
     */
   @deprecated("Use evaluate(path: TypedPath) instead, since uniqueness of paths are only guaranteed with provided ValueType.", "18.03")
   def evaluate(path: Path): Seq[String] = {
-    valueOf(path.asAutoDetectTypedPath)
+    valueOfTypedPath(path.asAutoDetectTypedPath)
   }
 
   /**
     * Will retrieve the values of a given path (if available)
-    * @param path
-    * @return
+    * @param path - the property or path
     */
-  def evaluate(path: TypedPath): Seq[String] = valueOf(path)
+  def evaluate(path: TypedPath): Seq[String] = valueOfTypedPath(path)
 
   /**
     * returns the all values for the column index of the row representing this entity
@@ -128,15 +129,27 @@ case class Entity private(
     */
   def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
 
-
-  def valueOf(property: String): Seq[String] = valueOf(Path.saveApply(property.trim).asAutoDetectTypedPath)
+  /**
+    * In opposition to [[valueOfTypedPath()]], will this function ignore the type of the path
+    * and match only by path name and return the values for the successfully matched path.
+    * @param property - the property or path
+    * @throws MatchError - if there are multiple paths in the given schema with the same serialization
+    */
+  def valueOfPath(property: String): Seq[String] = {
+    val path = Path.saveApply(property.trim)
+    this.schema.typedPaths.filter(tp => path.equals(tp)).toList match{
+      case Nil => Seq()
+      case tp@TypedPath(_,_,_)::Nil => valueOfTypedPath(tp.head)
+      case _ => throw new MatchError("There are multiple paths with the same serialization in this schema: " +
+        schema.typeUri + ". Calling valueOfPath() on such schemata is not allowed.")
+    }
+  }
 
   /**
     * returns all values of a given property in the entity
-    * @param path - the path you want values of
-    * @return
+    * @param path - the property or path
     */
-  def valueOf(path: TypedPath): Seq[String] ={
+  def valueOfTypedPath(path: TypedPath): Seq[String] ={
     if(path.operators.isEmpty) {
       Seq(uri)
     } else {
@@ -161,14 +174,14 @@ case class Entity private(
     * @param property - the property name to query
     * @return
     */
-  def singleValue(property: String)(implicit prefixes: Prefixes = Prefixes.default): Option[String] = valueOf(Path.saveApply(property).asAutoDetectTypedPath).headOption
+  def singleValue(property: String)(implicit prefixes: Prefixes = Prefixes.default): Option[String] = valueOfTypedPath(Path.saveApply(property).asAutoDetectTypedPath).headOption
 
   /**
     * returns the first value (of possibly many) for the property of the given name in this entity
     * @param path - the path to query
     * @return
     */
-  def singleValue(path: TypedPath): Option[String] = valueOf(path).headOption
+  def singleValue(path: TypedPath): Option[String] = valueOfTypedPath(path).headOption
 
   /**
     * Validates the complete value row against the given types of the schema

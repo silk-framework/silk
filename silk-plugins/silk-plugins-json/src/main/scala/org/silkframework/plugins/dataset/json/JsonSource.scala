@@ -119,7 +119,7 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
         // Check if this URI should be extracted
         if (allowedUris.isEmpty || allowedUris.contains(uri)) {
           // Extract values
-          val values = for (path <- entityDesc.typedPaths) yield node.evaluate(path)
+          val values = for (path <- entityDesc.typedPaths) yield node.evaluate(path.operators)
           f(Entity(uri, values, entityDesc))
         }
       }

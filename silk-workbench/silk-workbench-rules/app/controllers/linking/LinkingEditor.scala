@@ -4,8 +4,6 @@ import controllers.core.{RequestUserContextAction, UserContextAction}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.LinkageRuleEvaluator
-import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.util.DPair
 import org.silkframework.workbench.Context
 import org.silkframework.workspace.WorkspaceFactory

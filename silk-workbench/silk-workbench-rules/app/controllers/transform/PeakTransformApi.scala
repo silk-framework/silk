@@ -1,19 +1,18 @@
 package controllers.transform
 
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.core.RequestUserContextAction
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
 import org.silkframework.config.{PlainTask, Prefixes, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpointEntityTable}
 import org.silkframework.dataset._
+import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpointEntityTable}
 import org.silkframework.entity._
 import org.silkframework.plugins.dataset.rdf.{LocalSparqlSelectExecutor, SparqlSelectCustomTask}
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule.{TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.ReadContext
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
@@ -200,7 +199,7 @@ class PeakTransformApi extends Controller {
     (tryCounter, errorCounter, errorMessage, resultBuffer)
   }
 
-  private def serializePath(path: Path)
+  private def serializePath(path: TypedPath)
                            (implicit prefixes: Prefixes): Seq[String] = {
     path.operators.map { op =>
       op.serialize
