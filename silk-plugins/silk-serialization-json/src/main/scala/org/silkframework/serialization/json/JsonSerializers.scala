@@ -18,7 +18,6 @@ import org.silkframework.serialization.json.InputJsonSerializer._
 import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{DPair, Identifier, Uri}
-import org.silkframework.util.StringUtils._
 import play.api.libs.json._
 
 /**
@@ -256,17 +255,17 @@ object JsonSerializers {
       ValueType.valueTypeById(nodeType) match {
         case Left(_) =>
           nodeType match {
-            case "CustomValueType" =>
+            case ValueType.OUTDATED_AUTO_DETECT => UntypedValueType
+            case ValueType.CUSTOM_VALUE_TYPE =>
               val uriString = stringValue(value, URI)
               val uri = Uri.parse(uriString, readContext.prefixes)
               CustomValueType(uri.uri)
-            case "LanguageValueType" =>
+            case ValueType.LANGUAGE_VALUE_TYPE =>
               val lang = stringValue(value, LANG)
               LanguageValueType(lang)
           }
         case Right(valueType) =>
           valueType
-
       }
     }
 

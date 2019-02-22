@@ -33,6 +33,7 @@ class SparqlSelectIntegrationTest extends FlatSpec with SingleProjectWorkspacePr
 
   private def checkOutputResource(name: String, expectedResult: String): Unit = {
     val outputResource = project.resources.getInPath(name)
-    outputResource.loadAsString("UTF-8") mustBe expectedResult
+    val loaded = outputResource.loadAsString("UTF-8")
+    loaded mustBe expectedResult
   }
 }

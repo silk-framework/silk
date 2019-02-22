@@ -8,6 +8,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFo
 import org.silkframework.util.Uri
 
 import scala.util.Try
+import scala.util.matching.Regex
 import scala.xml.Node
 
 /**
@@ -38,6 +39,7 @@ object ValueType {
   final val XSD = "http://www.w3.org/2001/XMLSchema#"
   final val CUSTOM_VALUE_TYPE = "CustomValueType"
   final val LANGUAGE_VALUE_TYPE = "LanguageValueType"
+  final val OUTDATED_AUTO_DETECT = "AutoDetectValueType"
 
   val DefaultOrdering: Ordering[String] = Ordering.String
   val GregorianCalendarOrdering: Ordering[XMLGregorianCalendar] = Ordering.fromLessThan[XMLGregorianCalendar]((date1: XMLGregorianCalendar, date2: XMLGregorianCalendar) =>{
@@ -103,6 +105,7 @@ object ValueType {
                                   nodeType: String,
                                   prefixes: Prefixes): ValueType = {
     nodeType match {
+      case OUTDATED_AUTO_DETECT => UntypedValueType
       case CUSTOM_VALUE_TYPE =>
         (value \ "@uri").headOption match {
           case Some(typeUri) =>
@@ -125,6 +128,9 @@ object ValueType {
   val allValueType: Seq[Either[(String, Class[_ <: ValueType]), ValueType]] = Seq(
     Left((CUSTOM_VALUE_TYPE, classOf[CustomValueType])),
     Left((LANGUAGE_VALUE_TYPE, classOf[LanguageValueType])),
+    // this type string is a left over from the previous name of UntypedValueType.
+    // Since many project configs in tests still feature the old type, this is a valid workaround.
+    Left((OUTDATED_AUTO_DETECT, UntypedValueType.getClass.asInstanceOf[Class[_ <: ValueType]])),
     Right(IntValueType),
     Right(LongValueType),
     Right(StringValueType),
@@ -192,7 +198,7 @@ case class CustomValueType(typeUri: String) extends ValueType {
 /** Represents language tagged strings. */
 case class LanguageValueType(language: String) extends ValueType {
 
-  override def label = "@" + language
+  override def label: String = "@" + language
 
   override def validate(lexicalString: String): Boolean = true // No validation needed
 
@@ -309,7 +315,7 @@ case object IntegerValueType extends ValueType with Serializable {
 
   override def label = "Integer"
 
-  val integerRegex = """^[+-]?(([1-9][0-9]*)|(0))$""".r
+  val integerRegex: Regex = """^[+-]?(([1-9][0-9]*)|(0))$""".r
 
   override def validate(lexicalString: String): Boolean = {
     integerRegex.findFirstMatchIn(lexicalString).isDefined

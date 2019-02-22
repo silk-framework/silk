@@ -148,7 +148,6 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
       var stop = false
       while (entry != null && !stop) {
         if (!entry.isDirectory) {
-          val entryName = entry.getName
           val nameParts = entry.getName.split("/")
           if(stripPrefix == "" && projectName.isDefined && (nameParts.last == "config.xml")) {
             /* If this is a workspace zip, but a single project should be imported, pick the first project from the workspace
