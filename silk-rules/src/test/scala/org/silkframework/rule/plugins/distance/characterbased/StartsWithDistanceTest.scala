@@ -6,6 +6,7 @@ class StartsWithDistanceTest extends FlatSpec with MustMatchers {
   behavior of "starts with distance"
 
   val distance = StartsWithDistance(minLength = 2)
+  val distanceReversed = StartsWithDistance(reverse = true, minLength = 2)
   val EPS = 0.00001
 
   val prefix = "http://somePrefix/"
@@ -31,6 +32,15 @@ class StartsWithDistanceTest extends FlatSpec with MustMatchers {
     }
     for(matching <- matchingUrls) {
       distance.evaluate(matching, prefix) mustBe 0.0 +- EPS
+    }
+  }
+
+  it should "work with reversed inputs" in {
+    for(nonMatch <- nonMatchingUrls) {
+      distanceReversed.apply(Seq(prefix), Seq(nonMatch)) mustBe 1.0 +- EPS
+    }
+    for(matching <- matchingUrls) {
+      distanceReversed.apply(Seq(prefix), Seq(matching)) mustBe 0.0 +- EPS
     }
   }
 

@@ -160,6 +160,7 @@ class RulePlugins extends PluginModule {
         classOf[CosineDistanceMetric] ::
         classOf[ConstantMetric] ::
         classOf[StartsWithDistance] ::
+        classOf[IsSubstringDistance] ::
         Nil
 
   private def aggregators =
