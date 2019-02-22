@@ -240,7 +240,10 @@ object JsonSerializers {
 
   def readParameters(value: JsValue): Map[String, String] = {
     mustBeJsObject(mustBeDefined(value, PARAMETERS)) { array =>
-      Json.fromJson[Map[String, String]](array).get
+      Json.fromJson[Map[String, String]](array) match {
+        case JsSuccess(arr, _) => arr
+        case error @ JsError(_) => throw new ValidationException("Could not read parameters from JSON. Details: " + JsError.toJson(error))
+      }
     }
   }
 
