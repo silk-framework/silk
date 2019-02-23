@@ -104,7 +104,7 @@ object ValueType {
   private def readClassValueTypes(value: Node,
                                   nodeType: String,
                                   prefixes: Prefixes): ValueType = {
-    nodeType match {
+    nodeType.replace("$", "") match {
       case OUTDATED_AUTO_DETECT => UntypedValueType
       case CUSTOM_VALUE_TYPE =>
         (value \ "@uri").headOption match {

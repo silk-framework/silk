@@ -56,11 +56,6 @@ case class TypedPath(
         false
     }
   }
-
-  override def hashCode: Int = {
-    val c = super.hashCode * 113 + valueType.hashCode()
-    c * 113 + isAttribute.hashCode()
-  }
 }
 
 object TypedPath {
