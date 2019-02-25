@@ -53,15 +53,27 @@ case class EntitySchema(
 
   /**
     * Retrieves the index of a given path.
-    * NOTE: will work simple Paths as well, but there might be a chance that a given path exists twice with different value types
     *
     * @param path - the path to find
     * @return - the index of the path in question
     * @throws NoSuchElementException If the path could not be found in the schema.
     */
-  def pathIndex(path: Path): Int = {
+  def pathIndex(path: TypedPath): Int = {
     //find the given path and, if provided, match the value type as well
-    typedPaths.zipWithIndex.find(pi => path.equals(pi._1)) match{//depending on the input type we use its equals
+    typedPaths.zipWithIndex.find(pi => path.equals(pi._1)) match{
+      case Some((_, ind)) => ind
+      case None => throw new NoSuchElementException(s"Path $path not found on entity. Available paths: ${typedPaths.mkString(", ")}.")
+    }
+  }
+
+  /**
+    * Retrieves the index of a given path.
+    * NOTE: there might be a chance that a given path exists twice with different value types, use [[pathIndex]] instead
+    * @return - the index of the path in question
+    * @throws NoSuchElementException If the path could not be found in the schema.
+    */
+  def pathIndexIgnoreType(path: Path): Int = {
+    typedPaths.zipWithIndex.find(pi => Path(path.operators).equals(pi._1)) match{
       case Some((_, ind)) => ind
       case None => throw new NoSuchElementException(s"Path $path not found on entity. Available paths: ${typedPaths.mkString(", ")}.")
     }
@@ -74,7 +86,7 @@ case class EntitySchema(
     * @param path - either a Path or a TypedPath
     * @return - an element of the typedPath collection (if any)
     */
-  def findTypedPath(path: Path): Option[TypedPath] = {
+  def findTypedPath(path: TypedPath): Option[TypedPath] = {
     this.typedPaths.find(tp => path.equals(tp))
   }
 
@@ -85,6 +97,17 @@ case class EntitySchema(
     * @return
     */
   def getSchemaOfProperty(tp: TypedPath): Option[EntitySchema] = this.typedPaths.find(tt => tt == tp) match{
+    case Some(_) => Some(this)
+    case None => None
+  }
+
+  /**
+    * this will return the EntitySchema containing the given untyped path
+    * NOTE: there might be a chance that a given path exists twice with different value types, use [[getSchemaOfPropertyIgnoreType]] instead
+    * NOTE: has to be overwritten in MultiEntitySchema
+    * @param tp - the untyped path
+    */
+  def getSchemaOfPropertyIgnoreType(tp: Path): Option[EntitySchema] = this.typedPaths.find(tt => tt.toSimplePath.equals(tp)) match{
     case Some(_) => Some(this)
     case None => None
   }

@@ -33,6 +33,18 @@ sealed trait ValueType {
 
   /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
   def ordering: Ordering[String]
+
+  /**
+    * Extends equals to return true if either one of the comparators is an UntypedValueType
+    * @param vt - the other ValueType
+    */
+  def equalsOrIndifferentTo(vt: ValueType): Boolean = {
+    vt match{
+      case UntypedValueType => true
+      case _ if this == UntypedValueType => true
+      case v => v == this
+    }
+  }
 }
 
 object ValueType {
@@ -71,12 +83,9 @@ object ValueType {
     override def write(value: ValueType)(implicit writeContext: WriteContext[Node]): Node = {
       val typeId = valueTypeId(value)
       value match {
-        case CustomValueType(typeUri) =>
-            <ValueType nodeType={typeId} uri={typeUri}/>
-        case LanguageValueType(lang) =>
-            <ValueType nodeType={typeId} lang={lang}/>
-        case objValueType: ValueType =>
-            <ValueType nodeType={typeId}/>
+        case CustomValueType(typeUri) => <ValueType nodeType={typeId} uri={typeUri}/>
+        case LanguageValueType(lang) => <ValueType nodeType={typeId} lang={lang}/>
+        case objValueType: ValueType => <ValueType nodeType={typeId}/>
       }
     }
   }
@@ -150,7 +159,7 @@ object ValueType {
     case Right(obj) => (obj.id, Right(obj))
   }.toMap
 
-  val valueTypeIdMapByClass: Map[Class[_], String] = valueTypeMapByStringId.map(ei =>
+  val valueTypeIdMapByClass: Map[Class[_], String] = valueTypeMapByStringId.filterNot(x => x._1 == OUTDATED_AUTO_DETECT).map(ei =>
     ei._2 match {
       case Left(clazz) => (clazz, ei._1)
       case Right(obj) => (obj.getClass, ei._1)

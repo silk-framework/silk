@@ -45,13 +45,29 @@ case class TypedPath(
     case _ => None
   }
 
+  /**
+    *
+    * @param tp
+    * @return
+    */
+  def equalsUntyped(tp: TypedPath): Boolean = {
+    tp match {
+      case tp@TypedPath(_, otherValueType, _) =>
+        // if one of the comparison objects are untyped, we ignore the type all together
+        valueType.equalsOrIndifferentTo(otherValueType) &&
+          tp.normalizedSerialization == normalizedSerialization &&
+          tp.isAttribute == isAttribute
+      case _ =>
+        false
+    }
+  }
+
   override def equals(other: Any): Boolean = {
     other match {
       case tp@TypedPath(_, otherValueType, _) =>
-        // if one of the comparison objects are untyped, we ignore the type all together
-        (otherValueType == UntypedValueType || valueType == UntypedValueType || otherValueType == valueType) &&
-          tp.normalizedSerialization == normalizedSerialization &&
-          tp.isAttribute == isAttribute
+        valueType == otherValueType &&
+        tp.normalizedSerialization == normalizedSerialization &&
+        tp.isAttribute == isAttribute
       case _ =>
         false
     }

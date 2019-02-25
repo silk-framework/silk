@@ -50,6 +50,19 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
       case None => this.subSchemata.find(es => es.typedPaths.contains(tp))
   }
 
+
+  /**
+    * this will return the EntitySchema containing the given untyped path
+    * NOTE: has to be overwritten in MultiEntitySchema
+    * NOTE: there might be a chance that a given path exists twice with different value types, use [[getSchemaOfPropertyIgnoreType]] instead
+    * @param tp - the untyped path
+    */
+  override def getSchemaOfPropertyIgnoreType(tp: Path): Option[EntitySchema] =
+    this.pivotSchema.getSchemaOfPropertyIgnoreType(tp) match{
+      case Some(es) => Some(es)
+      case None => this.subSchemata.find(es => es.typedPaths.map(_.toSimplePath).contains(Path(tp.operators)))
+    }
+
   /**
     * Returns the index of a given path in the pivot schema.
     * Note that paths in any of the sub schemata are not searched for.
@@ -57,7 +70,7 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
     * @param path - the path to find
     * @return - the index of the path in question
     */
-  override def pathIndex(path: Path): Int = pivotSchema.pathIndex(path)
+  override def pathIndex(path: TypedPath): Int = pivotSchema.pathIndex(path)
 }
 
 object MultiEntitySchema{

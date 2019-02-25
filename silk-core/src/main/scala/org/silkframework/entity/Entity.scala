@@ -116,7 +116,7 @@ case class Entity private(
     */
   @deprecated("Use evaluate(path: TypedPath) instead, since uniqueness of paths are only guaranteed with provided ValueType.", "18.03")
   def evaluate(path: Path): Seq[String] = {
-    valueOfTypedPath(path.asUntypedValueType)
+    valueOfPathIgnoreType(path)
   }
 
   /**
@@ -131,22 +131,6 @@ case class Entity private(
     * @return
     */
   def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
-
-  /**
-    * In opposition to [[valueOfTypedPath()]], will this function ignore the type of the path
-    * and match only by path name and return the values for the successfully matched path.
-    * @param property - the property or path
-    * @throws MatchError - if there are multiple paths in the given schema with the same serialization
-    */
-  def valueOfPath(property: String): Seq[String] = {
-    val path = Path.saveApply(property.trim)
-    this.schema.typedPaths.filter(tp => path.equals(tp)).toList match{
-      case Nil => Seq()
-      case tp@TypedPath(_,_,_)::Nil => valueOfTypedPath(tp.head)
-      case _ => throw new MatchError("There are multiple paths with the same serialization in this schema: " +
-        schema.typeUri + ". Calling valueOfPath() on such schemata is not allowed.")
-    }
-  }
 
   /**
     * returns all values of a given property in the entity
@@ -173,11 +157,36 @@ case class Entity private(
   }
 
   /**
+    * returns all values of a given property in the entity
+    * NOTE: there might be a chance that a given path exists twice with different value types, use [[valueOfTypedPath()]] instead
+    * @param path - the property or path
+    */
+  def valueOfPathIgnoreType(path: Path): Seq[String] ={
+    if(path.operators.isEmpty) {
+      Seq(uri)
+    } else {
+      schema.getSchemaOfPropertyIgnoreType(path) match {
+        case Some(es) =>
+          //if pertaining schema is this schema or its the pivot schema of a MultiEntitySchema
+          val ent = if (es == schema || schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].pivotSchema == es) {
+            this
+          }
+          else {
+            subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
+          }
+          //now find the pertaining index and get values
+          ent.evaluate(es.pathIndexIgnoreType(path))
+        case None => Seq()
+      }
+    }
+  }
+
+  /**
     * returns the first value (of possibly many) for the property of the given name in this entity
     * @param property - the property name to query
     * @return
     */
-  def singleValue(property: String)(implicit prefixes: Prefixes = Prefixes.default): Option[String] = valueOfTypedPath(Path.saveApply(property).asUntypedValueType).headOption
+  def singleValueIgnoreType(property: String)(implicit prefixes: Prefixes = Prefixes.default): Option[String] = valueOfPathIgnoreType(Path.saveApply(property)).headOption
 
   /**
     * returns the first value (of possibly many) for the property of the given name in this entity

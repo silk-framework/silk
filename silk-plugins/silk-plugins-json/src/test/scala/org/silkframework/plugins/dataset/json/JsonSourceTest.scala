@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.json
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.dataset._
-import org.silkframework.entity.{EntitySchema, Path, StringValueType, UriValueType}
+import org.silkframework.entity._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager}
 import org.silkframework.util.Uri
@@ -72,7 +72,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   it should "return all paths including intermediate paths for retrieve paths" in {
     val paths = jsonExampleSource.retrievePaths(Uri(""), depth = Int.MaxValue)
     paths.size mustBe 8
-    paths must contain allOf(Path.parse("/persons").asUntypedValueType, Path.parse("/persons/phoneNumbers").asUntypedValueType)
+    paths must contain allOf(TypedPath("/persons", UriValueType, false), TypedPath("/persons/phoneNumbers", UriValueType, false))
   }
 
   it should "return all paths of depth 1" in {

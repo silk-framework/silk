@@ -21,7 +21,7 @@ import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, ShouldMatchers}
 import org.silkframework.dataset.rdf.SparqlParams
 import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path}
+import org.silkframework.entity._
 import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
@@ -55,9 +55,9 @@ class SparqlPathsCollectorTest extends FlatSpec with ShouldMatchers with BeforeA
     val paths = SparqlAggregatePathsCollector(endpoint, Some(graphDBpedia), SparqlRestriction.forType("http://dbpedia.org/ontology/City"), None)
     paths.toSet shouldBe
       Set(
-        forward("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-        forward("http://www.w3.org/2000/01/rdf-schema#label"),
-        backward("http://dbpedia.org/ontology/place")
+        forward("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", UriValueType),
+        forward("http://www.w3.org/2000/01/rdf-schema#label", StringValueType),
+        backward("http://dbpedia.org/ontology/place", UriValueType)
       )
   }
 
@@ -65,8 +65,8 @@ class SparqlPathsCollectorTest extends FlatSpec with ShouldMatchers with BeforeA
     val paths = SparqlSamplePathsCollector(endpoint, Some(graphDBpedia), SparqlRestriction.forType("http://dbpedia.org/ontology/City"), None)
     paths.toSet shouldBe
       Set(
-        forward("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-        forward("http://www.w3.org/2000/01/rdf-schema#label")
+        forward("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", UntypedValueType),
+        forward("http://www.w3.org/2000/01/rdf-schema#label", UntypedValueType)
         // The sample path collector does not return backward paths: backward("http://dbpedia.org/ontology/place")
       )
   }
@@ -75,8 +75,8 @@ class SparqlPathsCollectorTest extends FlatSpec with ShouldMatchers with BeforeA
     val paths = SparqlAggregatePathsCollector(endpoint, Some(graphSchemaOrg), SparqlRestriction.forType("http://schema.org/City"), None)
     paths.toSet shouldBe
       Set(
-        forward("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-        forward("http://www.w3.org/2000/01/rdf-schema#label")
+        forward("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", UriValueType),
+        forward("http://www.w3.org/2000/01/rdf-schema#label", StringValueType)
       )
   }
 
@@ -84,8 +84,8 @@ class SparqlPathsCollectorTest extends FlatSpec with ShouldMatchers with BeforeA
     val paths = SparqlSamplePathsCollector(endpoint, Some(graphSchemaOrg), SparqlRestriction.forType("http://schema.org/City"), None)
     paths.toSet shouldBe
       Set(
-        forward("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-        forward("http://www.w3.org/2000/01/rdf-schema#label")
+        forward("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", UntypedValueType),
+        forward("http://www.w3.org/2000/01/rdf-schema#label", UntypedValueType)
       )
   }
 
@@ -101,9 +101,9 @@ class SparqlPathsCollectorTest extends FlatSpec with ShouldMatchers with BeforeA
     model
   }
 
-  private def forward(property: String) = Path(ForwardOperator(property) :: Nil).asUntypedValueType
+  private def forward(property: String, typ: ValueType) = TypedPath(ForwardOperator(property) :: Nil, typ, isAttribute = false)
 
-  private def backward(property: String) = Path(BackwardOperator(property) :: Nil).asUntypedValueType
+  private def backward(property: String, typ: ValueType) = TypedPath(BackwardOperator(property) :: Nil, typ, isAttribute = false)
 
 }
 
