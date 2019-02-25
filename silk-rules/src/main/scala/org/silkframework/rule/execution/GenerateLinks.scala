@@ -86,6 +86,12 @@ class GenerateLinks(id: Identifier,
         // Remove negative reference links and add positive reference links
         filteredLinks = (filteredLinks.toSet -- linkSpec.referenceLinks.negative ++ linkSpec.referenceLinks.positive).toSeq
       }
+      runtimeConfig.linkLimit foreach { linkLimit =>
+          if(filteredLinks.size > linkLimit) {
+            log.info(s"Reducing ${filteredLinks.size} links to link limit of $linkLimit.")
+          }
+        filteredLinks = filteredLinks.take(linkLimit)
+      }
 
       context.value.update(Linking(linkSpec.rule, filteredLinks, LinkingStatistics(entityCount = caches.map(_.size))))
 
