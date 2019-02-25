@@ -83,12 +83,23 @@ case class EntitySchema(
     * This function will return an available TypedPath depending on the type of the path parameter.
     * By providing only a Path the TypedPath is selected by its path-operators only (ignoring ValueType).
     * Providing a TypedPath the full TypedPath equals function is used for comparison.
-    * @param path - either a Path or a TypedPath
+    * @param path - a TypedPath
     * @return - an element of the typedPath collection (if any)
     */
   def findTypedPath(path: TypedPath): Option[TypedPath] = {
     this.typedPaths.find(tp => path.equals(tp))
   }
+
+  /**
+    * Same as [[findTypedPath]] but ignoring the ValueType of the path, returning the first TypedPath matching the Path operators
+    * NOTE: there might be a chance that a given path exists twice with different value types, use [[findTypedPath]] instead
+    * @param path - ether a Path or a TypedPath
+    * @return - an element of the typedPath collection (if any)
+    */
+  def findPathIgnoreType(path: Path): Option[TypedPath] = {
+    this.typedPaths.find(tp => Path(path.operators).equals(tp))
+  }
+
 
   /**
     * this will return the EntitySchema containing the given typed path

@@ -128,9 +128,31 @@ case class Entity private(
   /**
     * returns the all values for the column index of the row representing this entity
     * @param pathIndex - the index in the value array
-    * @return
     */
-  def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
+  def evaluate(pathIndex: Int): Seq[String] = {
+    this.schema match{
+      case mes: MultiEntitySchema =>
+        val schemata = Seq(mes.pivotSchema) ++ mes.subSchemata
+        val pivotSize = mes.pivotSchema.typedPaths.size
+        // create range sequence where the first entry is the EntitySchema belonging to the value of the index (and the second is out of range)
+        val rangeMap = schemata.zip(Seq(0) ++ mes.subSchemata.zipWithIndex.map(x => mes.subSchemata.
+          splitAt(x._2)._1
+          .foldLeft(pivotSize)((i, s) => s.typedPaths.size + i))
+        ).sliding(2)
+        // now find the correct range and EntitySchema
+        val zw = rangeMap.find(x => x.head._2 <= pathIndex && (x.tail.headOption match{
+          case Some(o) => o._2 > pathIndex
+          case None => true
+        })).map(_.head)
+        zw.flatMap(x => {if(x._1 == mes.pivotSchema){
+          Some(this.values(pathIndex))
+        }
+        else{
+          this.subEntities.flatten.find(se => se.schema == x._1).map(e => e.evaluate(pathIndex - x._2))
+        }}).getOrElse(Seq())
+      case _: EntitySchema => this.values(pathIndex)
+    } //TODO create test for this
+  }
 
   /**
     * returns all values of a given property in the entity
@@ -183,10 +205,11 @@ case class Entity private(
 
   /**
     * returns the first value (of possibly many) for the property of the given name in this entity
+    * NOTE: there might be a chance that a given path exists twice with different value types, use TypedPath based version instead
     * @param property - the property name to query
     * @return
     */
-  def singleValueIgnoreType(property: String)(implicit prefixes: Prefixes = Prefixes.default): Option[String] = valueOfPathIgnoreType(Path.saveApply(property)).headOption
+  def singleValue(property: String)(implicit prefixes: Prefixes = Prefixes.default): Option[String] = valueOfPathIgnoreType(Path.saveApply(property)).headOption
 
   /**
     * returns the first value (of possibly many) for the property of the given name in this entity
@@ -199,7 +222,7 @@ case class Entity private(
     * Validates the complete value row against the given types of the schema
     * @return - the result of the validation matrix (where all values are valid)
     */
-  def validate: Boolean = {
+  private def validate: Boolean = {
     val tps = schema match {
       case mes: MultiEntitySchema => mes.pivotSchema
       case _ => schema
