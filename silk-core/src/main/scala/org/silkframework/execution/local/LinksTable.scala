@@ -8,18 +8,25 @@ case class LinksTable(
      links: Seq[Link],
      linkType: Uri,
      task: Task[TaskSpec]
-   ) extends LocalEntities {
+   ) extends LocalEntitiesWithIterator {
 
   val entitySchema: EntitySchema = LinksTable.linkEntitySchema
 
-  val entities: Seq[Entity] = {
-    for (link <- links) yield
-      Entity(
-        uri = link.source,
-        values = IndexedSeq(Seq(link.target), Seq(link.confidence.getOrElse(0.0).toString)),
-        schema = entitySchema
-      )
+  lazy val entities: Seq[Entity] = {
+    for (link <- links) yield LinksTable.convertLinkToEntity(link, entitySchema)
   }
+
+  override def entityIterator: Iterator[Entity] = {
+    new LinkEntityIterator(links, entitySchema)
+  }
+}
+
+class LinkEntityIterator(links: Seq[Link], entitySchema: EntitySchema) extends Iterator[Entity] {
+  private val linkIterator = links.iterator
+
+  override def hasNext: Boolean = linkIterator.hasNext
+
+  override def next(): Entity = LinksTable.convertLinkToEntity(linkIterator.next(), entitySchema)
 }
 
 object LinksTable {
@@ -27,4 +34,12 @@ object LinksTable {
   val linkEntitySchema = EntitySchema("", IndexedSeq(
     TypedPath(Path("targetUri"), UriValueType, isAttribute = false),
     TypedPath(Path("confidence"), DoubleValueType, isAttribute = false)))
+
+  def convertLinkToEntity(link: Link, entitySchema: EntitySchema): Entity = {
+    Entity(
+      uri = link.source,
+      values = IndexedSeq(Seq(link.target), Seq(link.confidence.getOrElse(0.0).toString)),
+      schema = entitySchema
+    )
+  }
 }
