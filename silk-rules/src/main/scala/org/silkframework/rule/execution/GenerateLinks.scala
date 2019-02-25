@@ -16,15 +16,17 @@ package org.silkframework.rule.execution
 
 import java.io.File
 import java.util.UUID
-import java.util.logging.LogRecord
+import java.util.logging.{LogRecord, Logger}
 
-import org.silkframework.cache.{FileEntityCache, MemoryEntityCache}
+import org.silkframework.cache.{EntityCache, FileEntityCache, MemoryEntityCache}
 import org.silkframework.dataset.{DataSource, LinkSink}
 import org.silkframework.entity.{Entity, Link}
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity._
 import org.silkframework.util.FileUtils._
 import org.silkframework.util.{CollectLogs, DPair, Identifier}
+
+import scala.util.Try
 
 /**
  * Main task to generate links.
@@ -34,6 +36,7 @@ class GenerateLinks(id: Identifier,
                     linkSpec: LinkSpec,
                     outputs: Seq[LinkSink],
                     runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig()) extends Activity[Linking] {
+  private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   /** The warnings which occurred during execution */
   @volatile private var warningLog: Seq[LogRecord] = Seq.empty
@@ -68,7 +71,8 @@ class GenerateLinks(id: Identifier,
       val updateLinks = (links: Seq[Link]) => context.value.update(Linking(linkSpec.rule, links, LinkingStatistics(entityCount = caches.map(_.size))))
       matcher.value.subscribe(updateLinks)
       matcher.startBlocking()
-      caches.foreach(_.clear())
+
+      cleanUpCaches(caches)
       if(context.status.isCanceling) return
 
       // Filter links
@@ -91,6 +95,19 @@ class GenerateLinks(id: Identifier,
       context.child(outputTask, 0.02).startBlocking()
     }
   }
+  private def cleanUpCaches(caches: DPair[EntityCache]): Unit = {
+    var success = false
+    for (_ <- 1 to 3 if !success) {
+      success = Try(caches.foreach(_.clear())).isSuccess
+      if(!success) {
+        Thread.sleep(50) // Another process could be deleting the cache directory. Wait a short time and try again.
+      }
+    }
+    if (!success) {
+      log.warning(s"Could not successfully clean up cache files for linking execution. Tried 3 times.")
+    }
+  }
+
 
   private def createCaches() = {
     val sourceIndexFunction = (entity: Entity) => runtimeConfig.executionMethod.indexEntity(entity, linkSpec.rule, sourceOrTarget = true)
