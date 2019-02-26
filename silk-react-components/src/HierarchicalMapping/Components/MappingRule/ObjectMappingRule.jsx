@@ -192,6 +192,12 @@ const ObjectRule = React.createClass({
             );
         }
     },
+    handleCopy(){
+        this.props.handleCopy(this.props.id);
+    },
+    handleClone(){
+        this.props.handleClone(this.props.id);
+    },
     // template rendering
     render() {
         const {type} = this.props;
@@ -513,6 +519,18 @@ const ObjectRule = React.createClass({
                             raised
                             onClick={this.handleEdit}>
                             Edit
+                        </Button>
+                        <Button
+                            className="ecc-silk-mapping__rulesviewer__actionrow-edit"
+                            raised
+                            onClick={this.handleCopy}>
+                            Copy
+                        </Button>
+                        <Button
+                            className="ecc-silk-mapping__rulesviewer__actionrow-edit"
+                            raised
+                            onClick={this.handleClone}>
+                            Clone
                         </Button>
                         {deleteButton}
                     </CardActions>
