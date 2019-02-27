@@ -52,7 +52,8 @@ class CacheLoader(source: DataSource,
       }
 
       val time = (System.currentTimeMillis - startTime) / 1000.0
-      context.log.info("Finished writing " + entityCounter + " entities with type '" + entityCache.entitySchema.typeUri + "' in " + time + " seconds")
+      context.log.info("Finished writing " + entityCounter + " entities with type '" + entityCache.entitySchema.typeUri +
+          "' in " + time + " seconds." + context.status.projectAndTaskIdString)
     }
   }
 
