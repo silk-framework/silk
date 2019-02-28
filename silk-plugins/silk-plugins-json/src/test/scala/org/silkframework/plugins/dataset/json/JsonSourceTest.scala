@@ -21,7 +21,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
       JsonSource(resources.get("example.json"), "", "#id", Codec.UTF8)
     }
     else{
-      JsonSource(resources.get("example.json").loadLines(Codec.UTF8).mkString("\n"), "", "#id", Codec.UTF8)
+      JsonSource(resources.get("example.json").loadAsString(Codec.UTF8), "", "#id")
     }
   }
 
@@ -244,7 +244,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
       schema.classes.size mustBe 4
       val classes = schema.classes
       classes.head mustBe ExtractedSchemaClass("", Seq())
-      classes(1) mustBe ExtractedSchemaClass("persons", Seq(ExtractedSchemaProperty(Path("id"), Some("0")), ExtractedSchemaProperty(Path("name"), Some("John"))))
+      classes(1) mustBe ExtractedSchemaClass("persons", Seq(ExtractedSchemaProperty(Path("id"), Some("0")), ExtractedSchemaProperty(Path("name"), Some("John"))));
       classes(2) mustBe ExtractedSchemaClass("persons/phoneNumbers", Seq(ExtractedSchemaProperty(Path("type"), Some("home")), ExtractedSchemaProperty(Path("number"), Some("123"))))
       classes(3) mustBe ExtractedSchemaClass("organizations", Seq(ExtractedSchemaProperty(Path("name"), Some("John Inc"))))
     }
