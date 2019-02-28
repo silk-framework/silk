@@ -21,6 +21,7 @@ import javax.xml.bind.DatatypeConverter
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.RDFLanguages
 import org.apache.jena.riot.adapters.RDFReaderFactoryRIOT
+import org.silkframework.config.DefaultConfig
 import org.silkframework.dataset.rdf._
 import org.silkframework.plugins.dataset.rdf.JenaModelTripleIterator
 import org.silkframework.runtime.activity.UserContext
@@ -36,9 +37,6 @@ import scala.io.Source
 case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoint {
 
   private val constructSerialization = RDFLanguages.TURTLE
-
-  private final val CONNECTION_TIMEOUT = 10000
-  private final val READ_TIMEOUT = 60000
 
   override def toString: String = sparqlParams.uri
 
@@ -76,9 +74,9 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
     }
   }
 
-  private def setConnectionTimeouts(httpConnection: HttpURLConnection) = {
-    httpConnection.setConnectTimeout(CONNECTION_TIMEOUT)
-    httpConnection.setReadTimeout(READ_TIMEOUT)
+  private def setConnectionTimeouts(httpConnection: HttpURLConnection): Unit = {
+    httpConnection.setConnectTimeout(RemoteSparqlEndpoint.defaultConnectionTimeout)
+    httpConnection.setReadTimeout(RemoteSparqlEndpoint.defaultReadTimeout)
   }
 
   override def construct(query: String)
@@ -165,5 +163,11 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
   }
 }
 
-
-
+object RemoteSparqlEndpoint {
+  lazy val (defaultConnectionTimeout, defaultReadTimeout) = {
+    val cfg = DefaultConfig.instance()
+    val ct = cfg.getInt("silk.remoteSparqlEndpoint.defaults.connection.timeout.ms")
+    val rt = cfg.getInt("silk.remoteSparqlEndpoint.defaults.read.timeout.ms")
+    (ct, rt)
+  }
+}
