@@ -246,5 +246,4 @@ private class VocabularyLoader(endpoint: SparqlEndpoint) {
   private def firstValue(variable: String, bindings: Traversable[SortedMap[String, RdfNode]]): Option[String] = {
     bindings.flatMap(_.get(variable)).headOption.map(_.value)
   }
-
 }

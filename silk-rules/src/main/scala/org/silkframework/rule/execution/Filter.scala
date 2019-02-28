@@ -29,12 +29,11 @@ class Filter(links: Seq[Link], filter: LinkFilter) extends Activity[Seq[Link]] {
 
   override def run(context: ActivityContext[Seq[Link]])
                   (implicit userContext: UserContext): Unit = {
-    val threshold = filter.threshold.getOrElse(-1.0)
     filter.limit match {
       case Some(limit) => {
         context.status.updateMessage("Filtering output")
         val linkBuffer = new ArrayBuffer[Link]()
-        for ((sourceUri, groupedLinks) <- links.filter(_.confidence.getOrElse(-1.0) >= threshold).groupBy(_.source)) {
+        for ((sourceUri, groupedLinks) <- links.groupBy(_.source)) {
           if(filter.unambiguous.contains(true)) {
             if(groupedLinks.distinct.size==1) {
               linkBuffer.append(groupedLinks.head)
@@ -48,7 +47,7 @@ class Filter(links: Seq[Link], filter: LinkFilter) extends Activity[Seq[Link]] {
         context.log.info("Filtered " + links.size + " links yielding " + linkBuffer.size + " links")
       }
       case None => {
-        val distinctLinks = links.distinct.filter(_.confidence.getOrElse(-1.0) >= threshold)
+        val distinctLinks = links.distinct
         context.value.update(distinctLinks)
         context.log.info("Merged " + links.size + " links yielding " + distinctLinks.size + " links")
       }

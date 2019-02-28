@@ -46,7 +46,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
 
   private val refreshTest = withRefresh(PROJECT_NAME)(_)
 
-  private val workspaceProvider = createWorkspaceProvider()
+  val workspaceProvider: WorkspaceProvider = createWorkspaceProvider()
 
   private val repository = InMemoryResourceRepository()
 
@@ -55,7 +55,6 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
   private val projectResources = repository.get(PROJECT_NAME)
 
   private lazy val project = workspace.project(PROJECT_NAME)
-  private lazy val projectOther = workspace.project(PROJECT_NAME_OTHER)
 
   val rule =
     LinkageRule(
