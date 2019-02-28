@@ -1,11 +1,9 @@
-package org.silkframework.plugins.dataset.csv
+package org.silkframework.runtime.resource
 
 import java.io.{InputStream, SequenceInputStream}
 import java.time.Instant
 import java.util.logging.Logger
 import java.util.zip.{ZipException, ZipFile}
-
-import org.silkframework.runtime.resource.{Resource, WritableResource}
 
 import scala.collection.JavaConverters
 

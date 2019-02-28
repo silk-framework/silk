@@ -1,10 +1,7 @@
-package org.silkframework.plugins.dataset.csv
+package org.silkframework.runtime.resource
 
-import java.io._
+import java.io.File
 import java.util.logging.Logger
-
-import org.silkframework.runtime.resource.{Resource, WritableResource}
-
 
 trait BulkResourceSupport {
 
@@ -25,4 +22,3 @@ trait BulkResourceSupport {
   }
 
 }
-

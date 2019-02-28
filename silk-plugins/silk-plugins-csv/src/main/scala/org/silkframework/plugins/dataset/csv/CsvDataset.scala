@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.csv
 import org.silkframework.dataset._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{Param, Plugin}
-import org.silkframework.runtime.resource.WritableResource
+import org.silkframework.runtime.resource.{BulkResourceSupport, WritableResource}
 
 @Plugin(
   id = "csv",
