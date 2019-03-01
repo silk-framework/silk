@@ -23,6 +23,7 @@ import org.silkframework.entity.Link
 import org.silkframework.rule.{LinkageRule, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
 import org.silkframework.runtime.execution.Execution
+import org.silkframework.runtime.execution.Execution.PrefixedThreadFactory
 import org.silkframework.util.DPair
 
 import scala.math.{max, min}
@@ -46,6 +47,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
   override def name: String = "MatchTask"
   final val POLL_TIMEOUT_MS = 100
   final val minLogDelayInMs = 5000
+  final val MAX_PARTITION_MATCHER_QUEUE_SIZE = 1000
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -56,7 +58,8 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
                   (implicit userContext: UserContext): Unit = {
     init(context)
     //Create execution service for the matching tasks
-    val executorService = Execution.createFixedThreadPool("Matcher", runtimeConfig.numThreads)
+    new PrefixedThreadFactory(name)
+    val executorService = Execution.createFixedThreadPool("Matcher", runtimeConfig.numThreads, new LinkedBlockingQueue[Runnable](MAX_PARTITION_MATCHER_QUEUE_SIZE))
     val executor = new ExecutorCompletionService[IndexedSeq[Link]](executorService)
 
     //Start matching thread scheduler
@@ -222,7 +225,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     }
 
     private def newMatcher(block: Int, sourcePartition: Int, targetPartition: Int) {
-      executor.submit(new Matcher(block, sourcePartition, targetPartition))
+      executor.submit(new PartitionMatcher(block, sourcePartition, targetPartition))
       taskCount += 1
     }
   }
@@ -230,7 +233,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
   /**
    * Matches the entities of two partitions.
    */
-  private class Matcher(blockIndex: Int, sourcePartitionIndex: Int, targetPartitionIndex: Int) extends Callable[IndexedSeq[Link]] {
+  private class PartitionMatcher(blockIndex: Int, sourcePartitionIndex: Int, targetPartitionIndex: Int) extends Callable[IndexedSeq[Link]] {
     override def call(): IndexedSeq[Link] = {
       var links = IndexedSeq[Link]()
 

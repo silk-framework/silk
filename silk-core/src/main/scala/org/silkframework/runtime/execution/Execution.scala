@@ -5,6 +5,8 @@ import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.logging.{Level, Logger}
+import java.util.concurrent.RejectedExecutionHandler
+import java.util.concurrent.ThreadPoolExecutor
 
 import scala.math.max
 
@@ -48,8 +50,23 @@ object Execution {
     * @param name A label to be used for naming threads. Helps debugging and finding threads that belong to this pool.
     * @param numberOfThreads The number of threads in the pool
     */
-  def createFixedThreadPool(name: String, numberOfThreads: Int): ExecutorService = {
-    Executors.newFixedThreadPool(numberOfThreads, new PrefixedThreadFactory(name))
+  def createFixedThreadPool(name: String,
+                            numberOfThreads: Int,
+                            workQueue: BlockingQueue[Runnable] = new LinkedBlockingQueue[Runnable]()): ExecutorService = {
+    val tpe = new ThreadPoolExecutor(numberOfThreads,
+      numberOfThreads,
+      0L,
+      TimeUnit.MILLISECONDS,
+      workQueue,
+      new PrefixedThreadFactory(name))
+    tpe.setRejectedExecutionHandler(new BlockingRejectExecutionHandler())
+    tpe
+  }
+
+  private class BlockingRejectExecutionHandler extends RejectedExecutionHandler {
+    override def rejectedExecution(r: Runnable, executor: ThreadPoolExecutor): Unit = {
+      executor.getQueue.put(r)
+    }
   }
 
   /**
@@ -66,7 +83,7 @@ object Execution {
     * Thread factory that names threads using a prefix and a count.
     * Also makes sure that uncaught exceptions are logged.
     */
-  private class PrefixedThreadFactory(prefix: String) extends ThreadFactory {
+  class PrefixedThreadFactory(prefix: String) extends ThreadFactory {
 
     private val threadNumber = new AtomicInteger(1)
 
