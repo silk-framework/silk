@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.csv
 import org.silkframework.dataset._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{Param, Plugin}
-import org.silkframework.runtime.resource.{BulkResourceSupport, WritableResource}
+import org.silkframework.runtime.resource.{BulkResourceSupport, Resource, WritableResource}
 
 @Plugin(
   id = "csv",
@@ -40,7 +40,18 @@ case class CsvDataset
     value = "Escape character to be used inside quotes, used to escape the quote character. It must also be used to escape itself, e.g. by doubling it, e.g. \"\". If left empty, it defaults to quote.")
   quoteEscapeCharacter: String = "\"") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset with CsvDatasetTrait with ResourceBasedDataset with BulkResourceSupport {
 
-  checkForBulkResource()
+
+  def resource: Resource = {
+    if (isBulkResource(file)) {
+      val bulkResource = asBulkResource(file)
+
+      bulkResource
+
+    }
+    else {
+      resource
+    }
+  }
 
   override def source(implicit userContext: UserContext): DataSource = csvSource()
 

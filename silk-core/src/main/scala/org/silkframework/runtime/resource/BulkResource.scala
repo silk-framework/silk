@@ -56,7 +56,24 @@ object BulkResource extends Resource {
     *         The caller is responsible for closing the stream after reading.
     */
   override def inputStream: InputStream = {
-    combineStreams(unzippedStreams(zipFile.path))
+    log warning s"Warning returning InputStream that behaves like a simple concatenation of resource files." +
+      s" Use getInputStreamSet if more than a simple concatenation is needed"
+    getConcatInputStream
+  }
+
+
+  /**
+    * Creates an input stream for reading the resource.
+    * This method creates one input stream from the input streams of the resources contained in
+    * the zip file. And only works if all files have the same schema.
+    *
+    * Warning: Only use when a literal concatenation is all you need.
+    *
+    * @return An input stream for reading the resource.
+    *         The caller is responsible for closing the stream after reading.
+    */
+  def getConcatInputStream: InputStream = {
+    combineStreams(getInputStreamSet(zipFile.path))
   }
 
   /**
@@ -65,7 +82,7 @@ object BulkResource extends Resource {
     * @param zipFilePath Location of the zip file
     * @return Sequence of InputStream objects
     */
-  def unzippedStreams(zipFilePath: String): Seq[InputStream] = {
+  def getInputStreamSet(zipFilePath: String): Seq[InputStream] = {
     try {
       val zipFile = new ZipFile(zipFilePath)
       val zipEntrySeq: Seq[InputStream] = for (entry <- zipFile.entries()) yield {
@@ -79,6 +96,8 @@ object BulkResource extends Resource {
         throw new ZipException(t.getMessage)
     }
   }
+
+
 
   /**
     * Combines (hopefully without crossing the streams) a sequence of input streams into one logical concatenation.
