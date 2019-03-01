@@ -26,7 +26,7 @@ import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm';
 import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm';
 import MappingsList from './MappingsList';
 import SuggestionsList from './SuggestionsList';
-import {MAPPING_RULE_TYPE_OBJECT} from '../helpers';
+import {MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT} from '../helpers';
 
 const MappingsWorkview = React.createClass({
     mixins: [UseMessageBus],
@@ -71,6 +71,7 @@ const MappingsWorkview = React.createClass({
             editing: [],
             askForDiscard: false,
             showSuggestions: false,
+            askForChilds: false,
         };
     },
     componentDidMount() {
@@ -289,6 +290,63 @@ const MappingsWorkview = React.createClass({
             );
     },
 
+    createCopiedMappingRule(data, copyChilds) {
+        this.setState({
+            loading: true,
+        });
+        const topic = data.type === MAPPING_RULE_TYPE_DIRECT
+            ? 'rule.createValueMapping'
+            : copyChilds
+                    ? 'rule.copyObjectMapping'
+                    : 'rule.createObjectMapping';
+        hierarchicalMappingChannel
+            .request({
+                topic: topic,
+                data: data,
+            })
+            .subscribe(
+                (replySubject) => {
+                    this.setState({
+                        loading: false,
+                    });
+                    if (data.type === MAPPING_RULE_TYPE_DIRECT) {
+                        sessionStorage.setItem('pastedId', replySubject.body.id);
+                    } else {
+                        hierarchicalMappingChannel
+                        .subject('ruleId.change')
+                            .onNext({
+                                newRuleId: replySubject.body.id,
+                                parentId: data.parentId,
+                            });
+                    }
+
+                    hierarchicalMappingChannel.subject('reload').onNext(true);
+                }
+            )
+    },
+
+    handlePaste(askForChilds = true, copyChilds = false) {
+        let data = JSON.parse(sessionStorage.getItem('copyingData'));
+        if (data !== {}) {
+            data.parentId = this.props.currentRuleId;
+            data.label = 'Copy of ' + data.label;
+
+            if (data.type === MAPPING_RULE_TYPE_DIRECT) {
+                this.createCopiedMappingRule(data);
+                sessionStorage.removeItem('copyingData');
+            } else {
+                if (askForChilds) {
+                    this.setState({
+                        askForChilds: true,
+                    });
+                } else {
+                    this.createCopiedMappingRule(data, copyChilds);
+                    sessionStorage.removeItem('copyingData');
+                }
+            };
+        }
+    },
+
     // template rendering
     render() {
         const {rules = {}, id} = this.state.ruleData;
@@ -396,16 +454,51 @@ const MappingsWorkview = React.createClass({
                     currentRuleId={_.get(this.props, 'currentRuleId', 'root')}
                     rules={_.get(rules, 'propertyRules', [])}
                     handleCopy={this.handleCopy}
+                    handlePaste={this.handlePaste}
                     isCopying={this.state.isCopying}
                 />
             ) : (
                 false
             );
 
+        const askForChildsDialog = this.state.askForChilds ? (
+            <ConfirmationDialog
+                active
+                modal
+                title="Copying Object"
+                confirmButton={
+                    <DisruptiveButton
+                        onClick={() => {
+                            this.setState({
+                                askForChilds: false,
+                            });
+                            this.handlePaste(false, true);
+                        }}>
+                        Yes
+                    </DisruptiveButton>
+                }
+                cancelButton={
+                    <DismissiveButton
+                        onClick={() => {
+                            this.setState({
+                                askForChilds: false,
+                            });
+                            this.handlePaste(false);
+                        }}>
+                        No
+                    </DismissiveButton>
+                }>
+                <p>Do you want to copy all the child Mapping Rules of this object?</p>
+            </ConfirmationDialog>
+        ) : (
+            false
+        );
+
         return (
             <div className="ecc-silk-mapping__rules">
                 {loading}
                 {discardView}
+                {askForChildsDialog}
                 <MappingsHeader
                     rule={this.state.ruleData}
                     key={`navhead_${id}`}

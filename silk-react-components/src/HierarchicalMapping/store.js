@@ -793,4 +793,67 @@ hierarchicalMappingChannel
             .connect();
     });
 
+hierarchicalMappingChannel
+    .subject('rule.copyObjectMapping')
+    .subscribe(({data, replySubject}) => {
+        const copiedDetails = {
+            transformTask: data.copiedObjectTask,
+            baseUrl: apiDetails.baseUrl,
+            project: data.copiedObjectProject,
+        };
+        const parent = data.parentId ? data.parentId : rootId;
+
+        silkStore
+            .request({
+                topic: 'transform.task.rules.get',
+                data: {...copiedDetails},
+            })
+            .subscribe(returned => {
+                function removeKeys(obj, keys) {
+                    var index;
+                    for (var prop in obj) {
+                        if (obj.hasOwnProperty(prop)) {
+                            switch (typeof(obj[prop])) {
+                                case 'string':
+                                    index = keys.indexOf(prop);
+                                    if(index > -1)
+                                        delete obj[prop]
+                                    break;
+                                case 'object':
+                                    index = keys.indexOf(prop);
+                                    if (index > -1)
+                                        delete obj[prop]
+                                    else
+                                        removeKeys(obj[prop], keys)
+                                    break;
+                            }
+                        }
+                    }
+                }
+
+                const rules = returned.body;
+                if (!_.isString(rootId))
+                    rootId = rules.id;
+                let rule = findRule(
+                    _.cloneDeep(rules),
+                    data.copiedObjectId,
+                    true,
+                    []
+                );
+                removeKeys(rule, 'id');
+                rule.metadata.label = 'Copy of ' + rule.metadata.label;
+                silkStore
+                    .request({
+                        topic: 'transform.task.rule.rules.append',
+                        data: {
+                            ...apiDetails,
+                            ruleId: parent,
+                            payload: rule,
+                        },
+                    })
+                    .multicast(replySubject)
+                    .connect();
+            })
+    })
+
 export default hierarchicalMappingChannel;
