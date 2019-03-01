@@ -256,6 +256,7 @@ const MappingRule = React.createClass({
                     type={type}
                     parentId={parentId}
                     edit={false}
+                    handleCopy={this.props.handleCopy}
                 />
             ) : (
                 <RuleValueEdit
@@ -264,6 +265,7 @@ const MappingRule = React.createClass({
                     type={type}
                     parentId={parentId}
                     edit={false}
+                    handleCopy={this.props.handleCopy}
                 />
             )
         ) : (

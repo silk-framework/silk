@@ -133,7 +133,9 @@ const MappingsList = React.createClass({
         );
 
         const listItem = (index, item, provided, snapshot) => (
-            <MappingRule {...item.props} provided snapshot />
+            <MappingRule {...item.props} provided snapshot
+                handleCopy={this.props.handleCopy}
+            />
         );
 
         const listItems = _.isEmpty(rules) ? (
