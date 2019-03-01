@@ -20,23 +20,23 @@ import org.silkframework.config.{Blocking, RuntimeConfig}
 import org.silkframework.rule.execution.ExecutionMethod
 
 /**
- * The linking runtime configuration.
- *
- * @param executionMethod The method used to execute the linkage rule.
- * @param blocking The blocking parameters.
- * @param includeReferenceLinks If true, links for which there is a negative reference link are not generated,
- *                              while links for which there is a positive reference link are always generated.
- * @param useFileCache If true, the entities are cached on the file system. If false, an in-memory cache is used.
- * @param reloadCache Specifies if the entity cache is to be reloaded before executing the matching.
- * @param partitionSize The maximum size of the entity partitions in the cache.
- * @param numThreads The number of concurrent threads used for matching.
- * @param generateLinksWithEntities Generate links with the entities they connect.
- * @param homeDir The directory used by Silk to store persistent information such as caches.
- * @param sampleSizeOpt Load all entities if set to None, else only load a random sample of max. the configured size
- *                      from each data source to be linked.
- * @param linkLimit If defined, the execution will stop after the configured number of links is reached.
-  *                 This is just a hint and the execution may produce slightly fewer or more links.
- */
+  * The linking runtime configuration.
+  *
+  * @param executionMethod           The method used to execute the linkage rule.
+  * @param blocking                  The blocking parameters.
+  * @param includeReferenceLinks     If true, links for which there is a negative reference link are not generated,
+  *                                  while links for which there is a positive reference link are always generated.
+  * @param useFileCache              If true, the entities are cached on the file system. If false, an in-memory cache is used.
+  * @param reloadCache               Specifies if the entity cache is to be reloaded before executing the matching.
+  * @param partitionSize             The maximum size of the entity partitions in the cache.
+  * @param numThreads                The number of concurrent threads used for matching.
+  * @param generateLinksWithEntities Generate links with the entities they connect.
+  * @param homeDir                   The directory used by Silk to store persistent information such as caches.
+  * @param sampleSizeOpt             Load all entities if set to None, else only load a random sample of max. the configured size
+  *                                  from each data source to be linked.
+  * @param linkLimit                 If defined, the execution will stop after the configured number of links is reached and will return
+  *                                  at most the specified number of links.
+  */
 case class RuntimeLinkingConfig(executionMethod: ExecutionMethod = ExecutionMethod(),
                                 blocking: Blocking = Blocking(),
                                 includeReferenceLinks: Boolean = false,
