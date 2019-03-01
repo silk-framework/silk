@@ -45,7 +45,7 @@ class CacheLoader(source: DataSource,
     var entityCounter = 0
     breakable {
       for (entity <- retrieveEntities) {
-        if (context.status().isInstanceOf[Status.Canceling])
+        if (context.status().isInstanceOf[Status.Canceling] || cancelled)
           break()
         entityCache.write(entity)
         entityCounter += 1
