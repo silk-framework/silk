@@ -103,6 +103,12 @@ const RuleValueView = React.createClass({
             return '';
         }
     },
+    handleCopy(){
+        this.props.handleCopy(this.props.id);
+    },
+    handleClone(){
+        this.props.handleClone(this.props.id);
+    },
     // template rendering
     render() {
         const {edit} = this.state;
@@ -318,6 +324,18 @@ const RuleValueView = React.createClass({
                             raised
                             onClick={this.handleEdit}>
                             Edit
+                        </Button>
+                        <Button
+                            className="ecc-silk-mapping__ruleseditor__actionrow-edit"
+                            raised
+                            onClick={this.handleCopy}>
+                            Copy
+                        </Button>
+                        <Button
+                            className="ecc-silk-mapping__ruleseditor__actionrow-edit"
+                            raised
+                            onClick={this.handleClone}>
+                            Clone
                         </Button>
                         <DisruptiveButton
                             className="ecc-silk-mapping__ruleseditor__actionrow-remove"

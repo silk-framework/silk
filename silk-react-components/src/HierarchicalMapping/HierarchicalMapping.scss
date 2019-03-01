@@ -761,3 +761,13 @@ ul.ecc-hierarchical-mapping-error-list {
     margin: 0 0.5rem;
 
 }
+
+.mdl-layout_item--background-flash{
+    animation: background-flash .5s 6;
+}
+
+@keyframes background-flash {
+    0% { background-color : #7376ff; opacity: 1; }
+    50% { background-color : #7376ff; opacity: .1; }
+    100% { background-color : #7376ff; opacity: 1; }
+}

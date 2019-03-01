@@ -47,8 +47,12 @@ const MappingRule = React.createClass({
 
     // initilize state
     getInitialState() {
+        const isPasted = sessionStorage.getItem('pastedId') &&
+            (sessionStorage.getItem('pastedId') === this.props.id) &&
+            !sessionStorage.removeItem('pastedId');
         return {
-            expanded: false,
+            isPasted : isPasted,
+            expanded: isPasted || false,
             editing: false,
             askForDiscard: false,
             loading: false,
@@ -256,6 +260,8 @@ const MappingRule = React.createClass({
                     type={type}
                     parentId={parentId}
                     edit={false}
+                    handleCopy={this.props.handleCopy}
+                    handleClone={this.props.handleClone}
                 />
             ) : (
                 <RuleValueEdit
@@ -264,6 +270,8 @@ const MappingRule = React.createClass({
                     type={type}
                     parentId={parentId}
                     edit={false}
+                    handleCopy={this.props.handleCopy}
+                    handleClone={this.props.handleClone}
                 />
             )
         ) : (
@@ -329,6 +337,7 @@ const MappingRule = React.createClass({
                             'ecc-silk-mapping__ruleitem--literal':
                                 type !== 'object',
                             'ecc-silk-mapping__ruleitem--defect': errorInfo,
+                            'mdl-layout_item--background-flash': this.state.isPasted,
                         })}>
                         <div
                             className={'ecc-silk-mapping__ruleitem--dnd'}
