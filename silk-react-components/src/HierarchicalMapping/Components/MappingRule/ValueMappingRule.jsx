@@ -326,13 +326,13 @@ const RuleValueView = React.createClass({
                             Edit
                         </Button>
                         <Button
-                            className="ecc-silk-mapping__ruleseditor__actionrow-edit"
+                            className="ecc-silk-mapping__ruleseditor__actionrow-copy"
                             raised
                             onClick={this.handleCopy}>
                             Copy
                         </Button>
                         <Button
-                            className="ecc-silk-mapping__ruleseditor__actionrow-edit"
+                            className="ecc-silk-mapping__ruleseditor__actionrow-clone"
                             raised
                             onClick={this.handleClone}>
                             Clone
