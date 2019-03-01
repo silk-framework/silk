@@ -79,8 +79,8 @@ object Activity {
    * The [ActivityControl] instance can be used to start the execution of the activity.
    * After that it can be used to monitor the execution status as well as the current value and allows to request the cancellation of the execution.
    */
-  def apply[T](activity: Activity[T]): ActivityControl[T] = {
-    new ActivityExecution[T](activity)
+  def apply[T](activity: Activity[T], projectAndTaskId: Option[ProjectAndTaskIds] = None): ActivityControl[T] = {
+    new ActivityExecution[T](activity, projectAndTaskId = projectAndTaskId)
   }
 
   /**
