@@ -347,6 +347,22 @@ const MappingsWorkview = React.createClass({
         }
     },
 
+    handleClone(id) {
+        hierarchicalMappingChannel
+            .request({
+                topic: 'rule.getDataToCopyRule',
+                data: {
+                    id: id,
+                },
+            })
+            .subscribe(
+                ({data}) => {
+                    sessionStorage.setItem('copyingData',JSON.stringify(data));
+                    this.handlePaste();
+                }
+            );
+    },
+
     // template rendering
     render() {
         const {rules = {}, id} = this.state.ruleData;
@@ -455,6 +471,7 @@ const MappingsWorkview = React.createClass({
                     rules={_.get(rules, 'propertyRules', [])}
                     handleCopy={this.handleCopy}
                     handlePaste={this.handlePaste}
+                    handleClone={this.handleClone}
                     isCopying={this.state.isCopying}
                 />
             ) : (
@@ -508,6 +525,7 @@ const MappingsWorkview = React.createClass({
                         rule={this.state.ruleData}
                         key={`objhead_${id}`}
                         handleCopy={this.handleCopy}
+                        handleClone={this.handleClone}
                     />
                     {listSuggestions ? false : listMappings}
                 </div>

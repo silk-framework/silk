@@ -135,6 +135,7 @@ const MappingsList = React.createClass({
         const listItem = (index, item, provided, snapshot) => (
             <MappingRule {...item.props} provided snapshot
                 handleCopy={this.props.handleCopy}
+                handleClone={this.props.handleClone}
             />
         );
 
