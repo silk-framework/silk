@@ -4,6 +4,7 @@ import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
 import org.silkframework.entity.AutoDetectValueType
+import org.silkframework.plugins.dataset.rdf.access.SparqlSink
 
 /**
   * Created on 4/25/16.

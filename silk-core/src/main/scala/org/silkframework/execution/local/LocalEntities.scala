@@ -1,7 +1,7 @@
 package org.silkframework.execution.local
 
 import org.silkframework.entity.Entity
-import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.{EntityHolder, EntityHolderWithEntityIterator}
 
 /**
   * A local table of entities.
@@ -13,3 +13,5 @@ trait LocalEntities extends EntityHolder {
     */
   override def headOption: Option[Entity] = this.entities.headOption
 }
+
+trait LocalEntitiesWithIterator extends LocalEntities with EntityHolderWithEntityIterator

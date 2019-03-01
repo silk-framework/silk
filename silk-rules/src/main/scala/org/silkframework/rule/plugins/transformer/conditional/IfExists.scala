@@ -31,7 +31,7 @@ import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExam
 case class IfExists() extends Transformer {
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     require(values.size >= 2, "The ifExists transformation requires at least two inputs")
-    if(values(0).nonEmpty)
+    if(values.head.nonEmpty)
       values(1)
     else
       if(values.size >= 3) values(2) else Seq.empty

@@ -7,7 +7,7 @@ import org.scalatest.{BeforeAndAfterAll, FlatSpec, MustMatchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.entity.{EntitySchema, Path, Restriction, TypedPath}
-import org.silkframework.plugins.dataset.rdf.SparqlDataset
+import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.util.Uri

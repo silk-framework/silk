@@ -17,7 +17,7 @@ package org.silkframework.rule.plugins.transformer.tokenization
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
 
-import scala.collection.mutable.{ArrayBuffer, HashSet}
+import scala.collection.mutable.ArrayBuffer
 
 @Plugin(
   id = "camelcasetokenizer",

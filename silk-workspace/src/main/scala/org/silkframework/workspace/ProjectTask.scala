@@ -112,7 +112,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       )
     )
     persistTask
-    log.info("Updated task '" + id + "'")
+    log.info(s"Updated task '$id' of project ${project.name}." + userContext.logInfo)
   }
 
   /**
@@ -174,7 +174,6 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   private def persistTask(implicit userContext: UserContext): Unit = {
     // Write task
     module.provider.putTask(project.name, ProjectTask.this)
-    log.info(s"Persisted task '$id' in project '${project.name}'")
     // Update caches
     for (activity <- taskActivities if activity.autoRun) {
       if(!activity.control.status().isRunning) {

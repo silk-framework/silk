@@ -21,6 +21,8 @@ import org.silkframework.config.RuntimeConfig
 import org.silkframework.entity.{Entity, EntitySchema, Index}
 import org.silkframework.util.FileUtils._
 
+import scala.util.control.NonFatal
+
 /**
  * An entity cache, which caches the entities on the local file system.
  */
@@ -66,7 +68,13 @@ class FileEntityCache(val entitySchema: EntitySchema,
   override def clear() {
     logger.log(Level.FINE, s"Clearing the file cache [ path :: ${dir.getAbsolutePath} ].")
 
-    dir.deleteRecursive()
+    try {
+      dir.deleteRecursive()
+    } catch {
+      case NonFatal(ex) =>
+        logger.log(Level.WARNING, s"Could not delete cache directory ${dir.getAbsolutePath}. Error message: ${Option(ex.getMessage).getOrElse("-")}")
+        throw ex
+    }
     for (block <- blocks) {
       block.clear()
     }

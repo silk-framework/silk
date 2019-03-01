@@ -28,8 +28,8 @@ case class AverageAggregator() extends Aggregator {
   private val positiveWeight: Int = 9
   private val negativeWeight: Int = 10
 
-  override def evaluate(values: Traversable[(Int, Double)]) = {
-    if (!values.isEmpty) {
+  override def evaluate(values: Traversable[(Int, Double)]): Option[Double] = {
+    if (values.nonEmpty) {
       var sumWeights = 0
       var sumValues = 0.0
 
@@ -56,10 +56,6 @@ case class AverageAggregator() extends Aggregator {
   /**
    * Combines two indexes into one.
    */
-  override def combineIndexes(index1: Index, index2: Index)= index1 disjunction index2
+  override def combineIndexes(index1: Index, index2: Index): Index = index1 disjunction index2
 
-//  override def computeThreshold(limit: Double, weight: Double): Double = {
-//    val t = 1.0 - ((1.0 - limit) / weight) * positiveWeight.toDouble / negativeWeight
-//    math.max(t, -1.0)
-//  }
 }

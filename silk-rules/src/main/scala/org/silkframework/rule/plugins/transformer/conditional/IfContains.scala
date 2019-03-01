@@ -33,7 +33,7 @@ import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExam
 case class IfContains(search: String) extends Transformer {
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
     require(values.size >= 2, "The ifContains transformation accepts two or three inputs")
-    if(values(0).exists(_.contains(search)))
+    if(values.head.exists(_.contains(search)))
       values(1)
     else
       if(values.size >= 3) values(2) else Seq.empty

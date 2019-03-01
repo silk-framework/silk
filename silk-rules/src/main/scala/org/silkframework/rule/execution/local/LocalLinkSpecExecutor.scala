@@ -12,7 +12,7 @@ import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Uri}
 
 /**
-  * Created on 7/20/16.
+  * Local linking task executor
   */
 class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
 
@@ -28,9 +28,8 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
       entitySource(inputs.head, task.dataSelections.source.typeUri),
       entitySource(inputs.tail.head, task.dataSelections.target.typeUri)
     )
-    val output = execution.createInternalDataset(None) // TODO: Is this needed?
-    val activity = new GenerateLinks(task.id, sources, linkSpec, Seq(output.linkSink))
-    val linking = Activity(activity).startBlockingAndGetValue()
+    val activity = new GenerateLinks(task.id, sources, linkSpec, Seq())
+    val linking = context.child(activity).startBlockingAndGetValue()
     context.value() = linking
     Some(LinksTable(linking.links, linkSpec.rule.linkType, task))
   }
