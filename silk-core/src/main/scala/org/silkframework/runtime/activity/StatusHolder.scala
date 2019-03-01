@@ -143,9 +143,9 @@ case class ProjectAndTaskIds(projectId: String, taskId: Option[String]) {
   override def toString: String = {
     taskId match {
       case Some(id) =>
-        s"($projectId, $id)"
+        s"(project: $projectId, task: $id)"
       case None =>
-        s"($projectId)"
+        s"(project: $projectId)"
     }
   }
 }
