@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.csv
 import org.silkframework.dataset._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{Param, Plugin}
-import org.silkframework.runtime.resource.{BulkResourceSupport, Resource, WritableResource}
+import org.silkframework.runtime.resource.{BulkResource, BulkResourceSupport, Resource, WritableResource}
 
 @Plugin(
   id = "csv",
@@ -41,11 +41,16 @@ case class CsvDataset
   quoteEscapeCharacter: String = "\"") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset with CsvDatasetTrait with ResourceBasedDataset with BulkResourceSupport {
 
 
-  def resource: Resource = {
+  def resource: WritableResource = {
     if (isBulkResource(file)) {
       val bulkResource = asBulkResource(file)
 
-      bulkResource
+      if (BulkResource.hasEqualHeaders(bulkResource) ) {
+        BulkResource.removeDuplicateFileHeaders(bulkResource)
+      }
+      else {
+        throw new Exception("CSV bulk resource could not be processed.")
+      }
 
     }
     else {
@@ -55,11 +60,11 @@ case class CsvDataset
 
   override def source(implicit userContext: UserContext): DataSource = csvSource()
 
-  override def linkSink(implicit userContext: UserContext): LinkSink = new CsvLinkSink(file, csvSettings)
+  override def linkSink(implicit userContext: UserContext): LinkSink = new CsvLinkSink(resource, csvSettings)
 
-  override def entitySink(implicit userContext: UserContext): EntitySink = new CsvEntitySink(file, csvSettings)
+  override def entitySink(implicit userContext: UserContext): EntitySink = new CsvEntitySink(resource, csvSettings)
 
-  private def csvSource(ignoreMalformed: Boolean = false) = new CsvSource(file, csvSettings, properties, uri, regexFilter, codec,
+  private def csvSource(ignoreMalformed: Boolean = false) = new CsvSource(resource, csvSettings, properties, uri, regexFilter, codec,
     skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines, ignoreMalformedInputExceptionInPropertyList = ignoreMalformed)
 
   /**

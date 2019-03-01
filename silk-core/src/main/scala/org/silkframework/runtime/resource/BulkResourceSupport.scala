@@ -2,6 +2,7 @@ package org.silkframework.runtime.resource
 
 import java.io.File
 import java.util.logging.Logger
+import BulkResource._
 
 /**
   * Trait for Datasets that need to support zipped files with multiple resources.
@@ -20,20 +21,20 @@ trait BulkResourceSupport {
     * A BulkResource is returned if the file belonging to the given resource ends with .zip or is a
     * directory.
     *
-    * @param resource The WritableResource that is checked
+    * @param resource WritableResource tha may be zip or folder
     * @return instance of BulkResource
     */
   def asBulkResource(resource: WritableResource): BulkResource = {
     if (resource.name.endsWith(".zip") && !new File(resource.path).isDirectory) {
-      log info "Zipped Resource found."
+      log info "Zip file Resource found."
       BulkResource(resource)
     }
     else if (new File(resource.path).isDirectory) {
       log info "Resource Folder found."
-      resource
+      BulkResource(resource)
     }
-    else{
-      resource
+    else {
+      throw new IllegalArgumentException(resource.path + " is not a bulk resource.")
     }
   }
 
