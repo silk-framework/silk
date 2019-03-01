@@ -30,7 +30,7 @@ PUT           /tasks/:project/:task/rules                                       
 GET           /tasks/:project/:task/rule/:rule                                     controllers.transform.TransformTaskApi.getRule(project: String, task: String, rule: String)
 PUT           /tasks/:project/:task/rule/:rule                                     controllers.transform.TransformTaskApi.putRule(project: String, task: String, rule: String)
 DELETE        /tasks/:project/:task/rule/:rule                                     controllers.transform.TransformTaskApi.deleteRule(project: String, task: String, rule: String)
-POST          /tasks/:project/:task/rule/:rule/rules                               controllers.transform.TransformTaskApi.appendRule(project: String, task: String, rule: String)
+POST          /tasks/:project/:task/rule/:rule/rules                               controllers.transform.TransformTaskApi.appendRule(project: String, task: String, rule: String, afterRuleId: Option[String] ?= None)
 POST          /tasks/:project/:task/rule/:rule/rules/reorder                       controllers.transform.TransformTaskApi.reorderRules(project: String, task: String, rule: String)
 POST          /tasks/:project/:task/reloadCache                                    controllers.transform.TransformTaskApi.reloadTransformCache(project: String, task: String)
 PUT           /tasks/:project/:task/executeTransform                               controllers.transform.TransformTaskApi.executeTransformTask(project: String, task: String)

@@ -270,6 +270,26 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     retrieveRuleOrder() mustBe Seq("directRule2", "objectRule", "directRule")
   }
 
+  "Insert new mapping rule after the second rule" in {
+    val insertedAfterRuleId = "insertedAfter"
+    jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules?afterRuleId=objectRule") {
+      s"""
+        {
+          "type": "direct",
+          "id": "$insertedAfterRuleId",
+          "sourcePath": "/source:prop23",
+          "mappingTarget": {
+            "uri": "target:prop23",
+            "valueType": {
+              "nodeType": "StringValueType"
+            }
+          }
+        }
+      """
+    }
+    retrieveRuleOrder() mustBe Seq("directRule2", "objectRule", insertedAfterRuleId, "directRule")
+  }
+
   "Update direct mapping rule" in {
     jsonPutRequest(s"$baseUrl/transform/tasks/$project/$task/rule/directRule") {
       """
@@ -307,7 +327,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     }
 
     // Make sure that the position of the updated rule did not change
-    retrieveRuleOrder() mustBe Seq("directRule2", "objectRule", "directRule")
+    retrieveRuleOrder() mustBe Seq("directRule2", "objectRule", "insertedAfter", "directRule")
   }
 
   "Set complex URI pattern" in {

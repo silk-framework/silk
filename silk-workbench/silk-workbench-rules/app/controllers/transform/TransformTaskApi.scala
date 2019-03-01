@@ -145,7 +145,10 @@ class TransformTaskApi extends Controller {
     }
   }
 
-  def appendRule(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  def appendRule(projectName: String,
+                 taskName: String,
+                 ruleName: String,
+                 afterRuleId: Option[String] = None): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
     task.synchronized {
@@ -155,7 +158,15 @@ class TransformTaskApi extends Controller {
           if(task.data.nestedRuleAndSourcePath(newChildRule.id).isDefined) {
             throw new ValidationException(s"Rule with ID ${newChildRule.id} already exists!")
           }
-          val updatedRule = parentRule.operator.withChildren(parentRule.operator.children :+ newChildRule)
+          val children = parentRule.operator.children
+          val newChildren = children.indexWhere(rule => afterRuleId.contains(rule.id.toString)) match {
+            case afterRuleIdx: Int if afterRuleIdx >= 0 =>
+              val (before, after) = children.splitAt(afterRuleIdx + 1)
+              (before :+ newChildRule) ++ after // insert after specified rule
+            case -1 => // append
+              children :+ newChildRule
+          }
+          val updatedRule = parentRule.operator.withChildren(newChildren)
           updateRule(parentRule.update(updatedRule))
           serializeCompileTime(newChildRule)
         }
