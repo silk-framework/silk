@@ -66,11 +66,7 @@ object BulkResourceSupport {
     */
   def getInputStreamSet(bulkResource: BulkResource): Seq[InputStream] = {
     try {
-      val zipFile = new ZipFile(bulkResource.path)
-      val zipEntrySeq: Seq[InputStream] = for (entry <- zipFile.entries()) yield {
-        zipFile.getInputStream(entry)
-      }
-      zipEntrySeq
+      bulkResource.inputStreams
     }
     catch {
       case t: Throwable =>
