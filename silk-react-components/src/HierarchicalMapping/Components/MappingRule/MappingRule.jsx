@@ -14,6 +14,7 @@ import {
     Spinner,
     DisruptiveButton,
     DismissiveButton,
+    ScrollingMixin,
 } from '@eccenca/gui-elements';
 import UseMessageBus from '../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../store';
@@ -85,6 +86,8 @@ const MappingRule = React.createClass({
             hierarchicalMappingChannel.subject('ruleView.discardAll'),
             this.discardAll
         );
+        if (this.state.isPasted)
+            ScrollingMixin.scrollElementIntoView(this)
     },
     onOpenEdit(obj) {
         if (_.isEqual(this.props.id, obj.id)) {
