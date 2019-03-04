@@ -32,11 +32,11 @@ trait BulkResourceSupport {
   def asBulkResource(resource: WritableResource): BulkResource = {
     if (resource.name.endsWith(".zip") && !new File(resource.path).isDirectory) {
       log info "Zip file Resource found."
-      BulkResource(resource)
+      BulkResource(new File(resource.path))
     }
     else if (new File(resource.path).isDirectory) {
       log info "Resource Folder found."
-      BulkResource(resource)
+      BulkResource(new File(resource.path))
     }
     else {
       throw new IllegalArgumentException(resource.path + " is not a bulk resource.")
@@ -86,7 +86,7 @@ object BulkResourceSupport {
     * @return Set of Streams
     */
   def getIndividualStreams(bulkResource: BulkResource): Seq[InputStream] = {
-    bulkResource.getInputStreamSet
+    bulkResource.inputStreams
   }
 
 
@@ -101,8 +101,8 @@ object BulkResourceSupport {
     * @param skipLines Lines to skip at the beginning of each file except the 1st
     * @return
     */
-  def getConcatenatedSream(bulkResource: BulkResource, skipLines: Option[Int] = None): InputStream = {
-     combineStreams(bulkResource.getInputStreamSet, skipLines)
+  def getConcatenatedStream(bulkResource: BulkResource, skipLines: Option[Int] = None): InputStream = {
+     combineStreams(bulkResource.inputStreams, skipLines)
   }
 
   /**

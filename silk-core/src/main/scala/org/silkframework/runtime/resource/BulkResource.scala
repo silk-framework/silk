@@ -6,13 +6,12 @@ import java.util.logging.Logger
 import java.util.zip.{ZipEntry, ZipException, ZipFile}
 
 import BulkResource._
-import org.apache.commons.io.input.ReaderInputStream
 
-import scala.collection.{JavaConverters, mutable}
+import scala.collection.mutable
 
-class BulkResource extends Resource {
+case class BulkResource(file: File) extends Resource {
 
-  var zipFile: WritableResource = _
+  var zipFile: Resource = FileResource(file)
   var replacementInputStream: Option[InputStream] = None
 
   def apply(writableResource: WritableResource): BulkResource = {
@@ -74,7 +73,7 @@ class BulkResource extends Resource {
 
   /**
     * Replaces the inputStream of the resource. Used to create a valid resource object with an input stream
-    * that can be manually combined from the set of input streams accessible with [[getInputStreamSet]].
+    * that can be manually combined from the set of input streams accessible with [[inputStreams]].
     * Does not change any other metadata like size, date etc.
     *
     * @param inputStreamReplacement Replacement Input Stream
@@ -89,7 +88,7 @@ class BulkResource extends Resource {
     *
     * @return Sequence of InputStream objects
     */
-  def getInputStreamSet: Seq[InputStream] = {
+  def inputStreams: Seq[InputStream] = {
     try {
       val zipFile = new ZipFile(path)
       val entries = zipFile.entries()
@@ -113,7 +112,7 @@ class BulkResource extends Resource {
     *         The caller is responsible for closing the stream after reading.
     */
   def getCombinedInputStream: InputStream = {
-    BulkResourceSupport.combineStreams(getInputStreamSet)
+    BulkResourceSupport.combineStreams(inputStreams)
   }
 
 }
@@ -134,18 +133,18 @@ object BulkResource {
     * @param bulkResource Zip or resource folder
     * @return Sequence of InputStream objects
     */
-  def getHeaderlessInputStream(bulkResource: BulkResource): InputStream = {
-    val streams = getInputStreamSet(bulkResource)
-    val head = streams.head
-    val tail = streams.tail
-    val streamsWithoutHeaders: Seq[InputStream] = tail.map(is => {
-      val lis = new LineNumberReader(new InputStreamReader(is))
-      val line = lis.readLine()
-      log warning s"Skipping line $line while combining input streams."
-      new ReaderInputStream(lis)
-    })
-    BulkResourceSupport.combineStreams(Seq(head) ++ streamsWithoutHeaders)
-  }
+//  def getHeaderlessInputStream(bulkResource: BulkResource): InputStream = {
+//    val streams = BulkResourceSupport.getInputStreamSet(bulkResource)
+//    val head = streams.head
+//    val tail = streams.tail
+//    val streamsWithoutHeaders: Seq[InputStream] = tail.map(is => {
+//      val lis = new LineNumberReader(new InputStreamReader(is))
+//      val line = lis.readLine()
+//      log warning s"Skipping line $line while combining input streams."
+//      new ReaderInputStream(lis)
+//    })
+//    BulkResourceSupport.combineStreams(Seq(head) ++ streamsWithoutHeaders)
+//  }
 
 
   /**
@@ -155,19 +154,19 @@ object BulkResource {
     * @param bulkResource Zip or resource folder
     * @return True if all files in the archive hace the same first line
     */
-  def hasEqualHeaders(bulkResource: BulkResource): Boolean = {
-    val streams = getInputStreamSet(bulkResource)
-    val headers = streams.map(is => {
-      val lis = new LineNumberReader(new InputStreamReader(is))
-      lis.readLine()
-    })
-    headers.reduce((h1, h2) => h1.equals(h2))
-  }
+//  def hasEqualHeaders(bulkResource: BulkResource): Boolean = {
+//    val streams = getInputStreamSet(bulkResource)
+//    val headers = streams.map(is => {
+//      val lis = new LineNumberReader(new InputStreamReader(is))
+//      lis.readLine()
+//    })
+//    headers.reduce((h1, h2) => h1.equals(h2))
+//  }
 
 
-  def removeDuplicateFileHeaders(bulkResource: BulkResource): WritableResource = {
-    BulkResource(bulkResource, getHeaderlessInputStream(bulkResource))
-  }
+//  def removeDuplicateFileHeaders(bulkResource: BulkResource): WritableResource = {
+//    BulkResource(bulkResource, getHeaderlessInputStream(bulkResource))
+//  }
 
 
 }
