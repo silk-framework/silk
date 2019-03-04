@@ -16,8 +16,6 @@ package org.silkframework.rule
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.Restriction
-import org.silkframework.entity.rdf.SparqlRestrictionParser
-import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Identifier, Uri}
 
 import scala.xml.Node
