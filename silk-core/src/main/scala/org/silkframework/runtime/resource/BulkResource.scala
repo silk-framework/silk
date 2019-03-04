@@ -9,7 +9,7 @@ import BulkResource._
 
 import scala.collection.mutable
 
-case class BulkResource(file: File) extends Resource {
+case class BulkResource(file: File) extends WritableResource {
 
   var zipFile: Resource = FileResource(file)
   var replacementInputStream: Option[InputStream] = None
@@ -115,6 +115,17 @@ case class BulkResource(file: File) extends Resource {
     BulkResourceSupport.combineStreams(inputStreams)
   }
 
+  /**
+    * Preferred method for writing to a resource.
+    *
+    * @param write A function that accepts an output stream and writes to it.
+    */
+  override def write(append: Boolean)(write: OutputStream => Unit): Unit = ???
+
+  /**
+    * Deletes this resource.
+    */
+  override def delete(): Unit = ???
 }
 
 

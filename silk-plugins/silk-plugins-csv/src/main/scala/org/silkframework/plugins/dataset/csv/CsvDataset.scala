@@ -43,14 +43,14 @@ case class CsvDataset
 
   def resource: WritableResource = {
     if (isBulkResource(file)) {
-      val bulkResource = asBulkResource(file)
+      asBulkResource(file)
 
-      if (BulkResource.hasEqualHeaders(bulkResource) ) {
-        BulkResource.removeDuplicateFileHeaders(bulkResource)
-      }
-      else {
-        throw new Exception("CSV bulk resource could not be processed.")
-      }
+//      if (BulkResource.hasEqualHeaders(bulkResource) ) {
+//        BulkResource.removeDuplicateFileHeaders(bulkResource)
+//      }
+//      else {
+//        throw new Exception("CSV bulk resource could not be processed.")
+//      }
 
     }
     else {
