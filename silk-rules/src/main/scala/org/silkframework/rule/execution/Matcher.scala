@@ -235,7 +235,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     }
 
     private def newMatcher(block: Int, sourcePartition: Int, targetPartition: Int) {
-      executor.submit(new PartitionMatcher(block, sourcePartition, targetPartition, cancelled))
+      executor.submit(new PartitionMatcher(block, sourcePartition, targetPartition))
       taskCount += 1
     }
   }
@@ -243,8 +243,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
   /**
    * Matches the entities of two partitions.
    */
-  private class PartitionMatcher(blockIndex: Int, sourcePartitionIndex: Int, targetPartitionIndex: Int,
-                                 cancelled: => Boolean) extends Callable[IndexedSeq[Link]] {
+  private class PartitionMatcher(blockIndex: Int, sourcePartitionIndex: Int, targetPartitionIndex: Int) extends Callable[IndexedSeq[Link]] {
     override def call(): IndexedSeq[Link] = {
       var links = IndexedSeq[Link]()
 
