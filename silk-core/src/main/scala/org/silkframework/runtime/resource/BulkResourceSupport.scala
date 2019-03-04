@@ -1,9 +1,13 @@
 package org.silkframework.runtime.resource
 
-import java.io.{File, InputStream}
+import java.io._
 import java.util.logging.Logger
+import java.util.zip.{ZipException, ZipFile}
 
-import BulkResource._
+import org.apache.commons.io.input.ReaderInputStream
+import org.silkframework.runtime.resource.BulkResource.log
+
+import scala.collection.JavaConverters
 
 /**
   * Trait for Datasets that need to support zipped files with multiple resources.
@@ -50,6 +54,30 @@ trait BulkResourceSupport {
   def isBulkResource(resource: WritableResource): Boolean = {
     resource.name.endsWith(".zip") && !new File(resource.path).isDirectory
   }
+}
+
+object BulkResourceSupport {
+
+  /**
+    * Get a Seq of InputStream object, each belonging to on file in the given achieve.
+    *
+    * @param bulkResource Zip or resource folder
+    * @return Sequence of InputStream objects
+    */
+  def getInputStreamSet(bulkResource: BulkResource): Seq[InputStream] = {
+    try {
+      val zipFile = new ZipFile(bulkResource.path)
+      val zipEntrySeq: Seq[InputStream] = for (entry <- zipFile.entries()) yield {
+        zipFile.getInputStream(entry)
+      }
+      zipEntrySeq
+    }
+    catch {
+      case t: Throwable =>
+        log severe s"Exception for zip resource ${bulkResource.path}: " + t.getMessage
+        throw new ZipException(t.getMessage)
+    }
+  }
 
   /**
     * Returns the input streams belonging to the input resource. One for each file in the zipped bulk resource.
@@ -70,12 +98,43 @@ trait BulkResourceSupport {
     * the first.
     *
     * @param bulkResource Input resource
-    * @param skipLines
+    * @param skipLines Lines to skip at the beginning of each file except the 1st
     * @return
     */
   def getConcatenatedSream(bulkResource: BulkResource, skipLines: Option[Int] = None): InputStream = {
-    bulkResource.getCombinedInputStream
+     combineStreams(bulkResource.getInputStreamSet, skipLines)
   }
 
+  /**
+    * Combines a sequence of input streams (hopefully without crossing the streams) into one logical concatenation.
+    *
+    * @param streams Sequence of InputStream objects
+    * @return InputStream
+    */
+  def combineStreams(streams: Seq[InputStream], skipLines: Option[Int] = None): InputStream = {
+    if (skipLines.isEmpty) {
+      val streamEnumeration = JavaConverters.asJavaEnumerationConverter[InputStream](streams.iterator)
+      new SequenceInputStream(streamEnumeration.asJavaEnumeration)
+    }
+    else {
+      if (skipLines.get > 0) {
+        val head = streams.head
+        val tail = streams.tail
+        val streamsWithoutHeaders: Seq[InputStream] = tail.map(is => {
+          val lis = new LineNumberReader(new InputStreamReader(is))
+          for (i <- 0 to skipLines.get) {
+            val line = lis.readLine()
+            log warning s"Skipping line ${i +1} while combining input streams: \n $line"
+            line
+          }
+          new ReaderInputStream(lis)
+        })
+        combineStreams(Seq(head) ++ streamsWithoutHeaders, None)
+      }
+      else {
+        throw new IllegalArgumentException("The line to skip must be None or a number greater 0.")
+      }
+    }
+  }
 
 }

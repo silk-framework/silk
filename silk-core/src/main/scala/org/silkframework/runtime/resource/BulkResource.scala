@@ -3,12 +3,12 @@ package org.silkframework.runtime.resource
 import java.io._
 import java.time.Instant
 import java.util.logging.Logger
-import java.util.zip.{ZipException, ZipFile}
+import java.util.zip.{ZipEntry, ZipException, ZipFile}
 
 import BulkResource._
 import org.apache.commons.io.input.ReaderInputStream
 
-import scala.collection.JavaConverters
+import scala.collection.{JavaConverters, mutable}
 
 class BulkResource extends Resource {
 
@@ -92,10 +92,10 @@ class BulkResource extends Resource {
   def getInputStreamSet: Seq[InputStream] = {
     try {
       val zipFile = new ZipFile(path)
-      val zipEntrySeq: Seq[InputStream] = for (entry <- zipFile.entries()) yield {
-        zipFile.getInputStream(entry)
-      }
-      zipEntrySeq
+      val entries = zipFile.entries()
+      val streams = new mutable.HashSet[ZipEntry]
+      while (entries.hasMoreElements) streams.add(entries.nextElement())
+      streams.map(s => zipFile.getInputStream(s)).toSeq
     }
     catch {
       case t: Throwable =>
@@ -113,7 +113,7 @@ class BulkResource extends Resource {
     *         The caller is responsible for closing the stream after reading.
     */
   def getCombinedInputStream: InputStream = {
-    combineStreams(getInputStreamSet)
+    BulkResourceSupport.combineStreams(getInputStreamSet)
   }
 
 }
@@ -126,27 +126,6 @@ class BulkResource extends Resource {
 object BulkResource {
 
   val log: Logger = Logger.getLogger(this.getClass.getSimpleName)
-
-  /**
-    * Get a Seq of InputStream object, each belonging to on file in the given achieve.
-    *
-    * @param bulkResource Zip or resource folder
-    * @return Sequence of InputStream objects
-    */
-  def getInputStreamSet(bulkResource: BulkResource): Seq[InputStream] = {
-    try {
-      val zipFile = new ZipFile(bulkResource.path)
-      val zipEntrySeq: Seq[InputStream] = for (entry <- zipFile.entries()) yield {
-        zipFile.getInputStream(entry)
-      }
-      zipEntrySeq
-    }
-    catch {
-      case t: Throwable =>
-        log severe s"Exception for zip resource ${bulkResource.path}: " + t.getMessage
-        throw new ZipException(t.getMessage)
-    }
-  }
 
   /**
     * Creates an input stream for a given bulk resource that represents a concatenation of the contained
@@ -165,7 +144,7 @@ object BulkResource {
       log warning s"Skipping line $line while combining input streams."
       new ReaderInputStream(lis)
     })
-    combineStreams(Seq(head) ++ streamsWithoutHeaders)
+    BulkResourceSupport.combineStreams(Seq(head) ++ streamsWithoutHeaders)
   }
 
 
@@ -188,38 +167,6 @@ object BulkResource {
 
   def removeDuplicateFileHeaders(bulkResource: BulkResource): WritableResource = {
     BulkResource(bulkResource, getHeaderlessInputStream(bulkResource))
-  }
-
-  /**
-    * Combines a sequence of input streams (hopefully without crossing the streams) into one logical concatenation.
-    *
-    * @param streams Sequence of InputStream objects
-    * @return InputStream
-    */
-  def combineStreams(streams: Seq[InputStream], skipLines: Option[Int] = None): InputStream = {
-    if (skipLines.isEmpty) {
-      val streamEnumeration = JavaConverters.asJavaEnumerationConverter[InputStream](streams.iterator)
-      new SequenceInputStream(streamEnumeration.asJavaEnumeration)
-    }
-    else {
-      if (skipLines.get > 0) {
-        val head = streams.head
-        val tail = streams.tail
-        val streamsWithoutHeaders: Seq[InputStream] = tail.map(is => {
-          val lis = new LineNumberReader(new InputStreamReader(is))
-          Seq[String] = for (i <- 0 to skipLines.get) {
-            val line = lis.readLine()
-            log warning s"Skipping line ${i +1} while combining input streams: \n $line"
-            line
-          }
-          new ReaderInputStream(lis)
-        })
-        combineStreams(Seq(head) ++ streamsWithoutHeaders, None)
-      }
-      else {
-        throw new IllegalArgumentException("The line to skip must be None or a number greater 0.")
-      }
-    }
   }
 
 
