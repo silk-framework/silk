@@ -55,6 +55,8 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
    */
   override def run(context: ActivityContext[IndexedSeq[Link]])
                   (implicit userContext: UserContext): Unit = {
+    val startTime = System.currentTimeMillis()
+    def timeoutReached: Boolean = System.currentTimeMillis() - startTime > runtimeConfig.executionTimeout.getOrElse(Long.MaxValue)
     init(context)
     //Create execution service for the matching tasks
     val executorService = boundedExecutionService()
@@ -73,7 +75,10 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       if (result != null) {
         context.value.update(context.value() ++ result.get)
         finishedTasks.incrementAndGet()
-        for(linkLimit <- runtimeConfig.linkLimit if context.value().size >= linkLimit) {
+        if(runtimeConfig.linkLimit.getOrElse(Int.MaxValue) <= context.value().size
+            || Thread.currentThread().isInterrupted
+            || context.status.isCanceling
+            || timeoutReached) {
           cancelled = true
         }
         logProgress()
