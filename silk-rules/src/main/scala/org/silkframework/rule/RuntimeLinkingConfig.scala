@@ -36,6 +36,8 @@ import org.silkframework.rule.execution.ExecutionMethod
   *                                  from each data source to be linked.
   * @param linkLimit                 If defined, the execution will stop after the configured number of links is reached and will return
   *                                  at most the specified number of links.
+  * @param executionTimeout          The timeout in milliseconds that the execution should run. This does not completely abort
+  *                                  the execution, i.e. resulting links at the timeout are still returned.
   */
 case class RuntimeLinkingConfig(executionMethod: ExecutionMethod = ExecutionMethod(),
                                 blocking: Blocking = Blocking(),
@@ -49,7 +51,8 @@ case class RuntimeLinkingConfig(executionMethod: ExecutionMethod = ExecutionMeth
                                 homeDir: String = System.getProperty("user.home") + "/.silk/",
                                 logLevel: Level = Level.INFO,
                                 sampleSizeOpt: Option[Int] = None,
-                                linkLimit: Option[Int] = None) extends RuntimeConfig {
+                                linkLimit: Option[Int] = None,
+                                executionTimeout: Option[Long] = None) extends RuntimeConfig {
 
   require(partitionSize > 1, "partitionSize must be greater than 0 (partitionSize=" + partitionSize + ")")
 }
