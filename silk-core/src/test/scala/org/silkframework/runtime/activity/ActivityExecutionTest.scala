@@ -17,7 +17,7 @@ class ActivityExecutionTest extends FlatSpec with MustMatchers {
   }
 
   it should "interrupt activities when they are cancelled by the user" in {
-    val activityExecution = new ActivityExecution(new SleepingActivity())
+    val activityExecution = new ActivityExecution(new SleepingActivity(), projectAndTaskId = None)
     val start = System.currentTimeMillis()
     Future {
       val SHORT_TIME = 50
