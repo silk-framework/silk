@@ -196,9 +196,30 @@ object BulkResource {
     * @param streams Sequence of InputStream objects
     * @return InputStream
     */
-  def combineStreams(streams: Seq[InputStream]): InputStream = {
-    val streamEnumeration = JavaConverters.asJavaEnumerationConverter[InputStream](streams.iterator)
-    new SequenceInputStream(streamEnumeration.asJavaEnumeration)
+  def combineStreams(streams: Seq[InputStream], skipLines: Option[Int] = None): InputStream = {
+    if (skipLines.isEmpty) {
+      val streamEnumeration = JavaConverters.asJavaEnumerationConverter[InputStream](streams.iterator)
+      new SequenceInputStream(streamEnumeration.asJavaEnumeration)
+    }
+    else {
+      if (skipLines.get > 0) {
+        val head = streams.head
+        val tail = streams.tail
+        val streamsWithoutHeaders: Seq[InputStream] = tail.map(is => {
+          val lis = new LineNumberReader(new InputStreamReader(is))
+          Seq[String] = for (i <- 0 to skipLines.get) {
+            val line = lis.readLine()
+            log warning s"Skipping line ${i +1} while combining input streams: \n $line"
+            line
+          }
+          new ReaderInputStream(lis)
+        })
+        combineStreams(Seq(head) ++ streamsWithoutHeaders, None)
+      }
+      else {
+        throw new IllegalArgumentException("The line to skip must be None or a number greater 0.")
+      }
+    }
   }
 
 

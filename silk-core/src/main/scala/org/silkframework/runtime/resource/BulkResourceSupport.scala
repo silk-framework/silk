@@ -1,7 +1,8 @@
 package org.silkframework.runtime.resource
 
-import java.io.File
+import java.io.{File, InputStream}
 import java.util.logging.Logger
+
 import BulkResource._
 
 /**
@@ -48,6 +49,32 @@ trait BulkResourceSupport {
     */
   def isBulkResource(resource: WritableResource): Boolean = {
     resource.name.endsWith(".zip") && !new File(resource.path).isDirectory
+  }
+
+  /**
+    * Returns the input streams belonging to the input resource. One for each file in the zipped bulk resource.
+    *
+    * @param bulkResource Input resource
+    * @return Set of Streams
+    */
+  def getIndividualStreams(bulkResource: BulkResource): Seq[InputStream] = {
+    bulkResource.getInputStreamSet
+  }
+
+
+  /**
+    * Returns one input stream belonging to the input resource. This input stream logically is equal to the input stream
+    * on the concatenation of the individual resources in the bulk resource.
+    *
+    * If skipLines is non empty the concatenated input stream will skip the provided amount of lines in each file except
+    * the first.
+    *
+    * @param bulkResource Input resource
+    * @param skipLines
+    * @return
+    */
+  def getConcatenatedSream(bulkResource: BulkResource, skipLines: Option[Int] = None): InputStream = {
+    bulkResource.getCombinedInputStream
   }
 
 
