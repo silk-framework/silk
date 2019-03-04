@@ -64,16 +64,6 @@ object Execution {
     tpe
   }
 
-  /** This has some drawbacks and can lead to deadlocks if used incorrectly.
-    * It's usually safe if there is only one thread adding the work.
-    * Consider instead to use [[ThreadPoolExecutor.CallerRunsPolicy]] that executed the task in the calling thread when
-    * the queue is full. */
-  class BlockingRejectExecutionHandler extends RejectedExecutionHandler {
-    override def rejectedExecution(r: Runnable, executor: ThreadPoolExecutor): Unit = {
-      executor.getQueue.put(r)
-    }
-  }
-
   /**
     * Creates a new scheduled thread pool.
     *
@@ -88,7 +78,7 @@ object Execution {
     * Thread factory that names threads using a prefix and a count.
     * Also makes sure that uncaught exceptions are logged.
     */
-  class PrefixedThreadFactory(prefix: String) extends ThreadFactory {
+  private class PrefixedThreadFactory(prefix: String) extends ThreadFactory {
 
     private val threadNumber = new AtomicInteger(1)
 
