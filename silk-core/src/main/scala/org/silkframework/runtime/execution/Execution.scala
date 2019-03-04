@@ -52,18 +52,23 @@ object Execution {
     */
   def createFixedThreadPool(name: String,
                             numberOfThreads: Int,
-                            workQueue: BlockingQueue[Runnable] = new LinkedBlockingQueue[Runnable]()): ExecutorService = {
+                            workQueue: BlockingQueue[Runnable] = new LinkedBlockingQueue[Runnable](),
+                            rejectedExecutionHandler: Option[RejectedExecutionHandler] = None): ExecutorService = {
     val tpe = new ThreadPoolExecutor(numberOfThreads,
       numberOfThreads,
       0L,
       TimeUnit.MILLISECONDS,
       workQueue,
       new PrefixedThreadFactory(name))
-    tpe.setRejectedExecutionHandler(new BlockingRejectExecutionHandler())
+    rejectedExecutionHandler.foreach(tpe.setRejectedExecutionHandler)
     tpe
   }
 
-  private class BlockingRejectExecutionHandler extends RejectedExecutionHandler {
+  /** This has some drawbacks and can lead to deadlocks if used incorrectly.
+    * It's usually safe if there is only one thread adding the work.
+    * Consider instead to use [[ThreadPoolExecutor.CallerRunsPolicy]] that executed the task in the calling thread when
+    * the queue is full. */
+  class BlockingRejectExecutionHandler extends RejectedExecutionHandler {
     override def rejectedExecution(r: Runnable, executor: ThreadPoolExecutor): Unit = {
       executor.getQueue.put(r)
     }
