@@ -15,7 +15,7 @@
 package org.silkframework.rule.execution
 
 import java.util.concurrent._
-import java.util.concurrent.atomic.{AtomicInteger, AtomicLong, AtomicReference}
+import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.cache.EntityCache
@@ -46,6 +46,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
   override def name: String = "MatchTask"
   final val POLL_TIMEOUT_MS = 100
   final val minLogDelayInMs = 5000
+  final val MAX_PARTITION_MATCHER_QUEUE_SIZE = 1000
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -56,7 +57,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
                   (implicit userContext: UserContext): Unit = {
     init(context)
     //Create execution service for the matching tasks
-    val executorService = Execution.createFixedThreadPool("Matcher", runtimeConfig.numThreads)
+    val executorService = boundedExecutionService()
     val executor = new ExecutorCompletionService[IndexedSeq[Link]](executorService)
 
     //Start matching thread scheduler
@@ -88,16 +89,28 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       updateStatus(context, finishedTasks.get(), scheduler.taskCount)
     }
 
-    //Shutdown
+    shutdown(executorService, scheduler)
+  }
+
+  private def shutdown(executorService: ExecutorService, scheduler: SchedulerThread): Unit = {
     if (scheduler.isAlive) {
       scheduler.interrupt()
     }
 
-    if(cancelled) {
+    if (cancelled) {
       executorService.shutdownNow()
     } else {
       executorService.shutdown()
     }
+  }
+
+  private def boundedExecutionService(): ExecutorService = {
+    Execution.createFixedThreadPool(
+      "Matcher",
+      runtimeConfig.numThreads,
+      new LinkedBlockingQueue[Runnable](MAX_PARTITION_MATCHER_QUEUE_SIZE), // bounded queue to keep memory foot print constant
+      Some(new ThreadPoolExecutor.CallerRunsPolicy())
+    )
   }
 
   private def init(context: ActivityContext[IndexedSeq[Link]]): Unit = {
@@ -222,7 +235,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     }
 
     private def newMatcher(block: Int, sourcePartition: Int, targetPartition: Int) {
-      executor.submit(new Matcher(block, sourcePartition, targetPartition))
+      executor.submit(new PartitionMatcher(block, sourcePartition, targetPartition))
       taskCount += 1
     }
   }
@@ -230,7 +243,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
   /**
    * Matches the entities of two partitions.
    */
-  private class Matcher(blockIndex: Int, sourcePartitionIndex: Int, targetPartitionIndex: Int) extends Callable[IndexedSeq[Link]] {
+  private class PartitionMatcher(blockIndex: Int, sourcePartitionIndex: Int, targetPartitionIndex: Int) extends Callable[IndexedSeq[Link]] {
     override def call(): IndexedSeq[Link] = {
       var links = IndexedSeq[Link]()
 
@@ -260,7 +273,9 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
         }
       }
       catch {
-        case ex: Exception => log.log(Level.WARNING, "Could not execute match task", ex)
+        case ex: Exception =>  if(!cancelled) {
+          log.log(Level.WARNING, "Could not execute match task", ex)
+        }
       }
 
       links
