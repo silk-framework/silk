@@ -95,7 +95,6 @@ class TransformTaskApi extends Controller {
         deserializeCompileTime[RootMappingRule]() { updatedRules =>
           //Update transformation task
           val updatedTask = task.data.copy(mappingRule = updatedRules)
-          updatedTask.mappingRule.validate()
           project.updateTask(taskName, updatedTask)
           Ok
         }
@@ -245,7 +244,6 @@ class TransformTaskApi extends Controller {
                          userContext: UserContext): Unit = {
     val updatedRoot = ruleTraverser.root.operator.asInstanceOf[RootMappingRule]
     val updatedTask = task.data.copy(mappingRule = updatedRoot)
-    updatedRoot.validate()
     task.project.updateTask(task.id, updatedTask)
   }
 

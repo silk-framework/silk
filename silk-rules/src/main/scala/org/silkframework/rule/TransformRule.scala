@@ -81,11 +81,17 @@ sealed trait TransformRule extends Operator {
   }
 
   /** Throws ValidationException if this transform rule is not valid. */
-  def validate(): Unit = {
+  protected def validate(): Unit = {
     validateTargetUri()
+    // Validate that the operator tree uses unique identifiers
+    operator.validateIds()
+    // Validate all child transform rules
     rules.foreach(_.validate())
   }
 
+  /**
+    * Validates that the target URI is a valid URI.
+    */
   private def validateTargetUri(): Unit = {
     target foreach { mt =>
       val failure = Try {
@@ -138,11 +144,9 @@ sealed trait ValueTransformRule extends TransformRule
 case class RootMappingRule(override val rules: MappingRules,
                            id: Identifier = RootMappingRule.defaultId,
                            metaData: MetaData = MetaData(RootMappingRule.defaultLabel)) extends ContainerTransformRule {
-  /** Fails on the first rule it encounters that's invalid */
-  override def validate(): Unit = {
-    rules.allRules foreach (_.validate())
-    validateIds()
-  }
+
+  validate()
+  validateIds()
 
   /**
     * The children operators.
