@@ -133,4 +133,19 @@ object BulkResourceSupport {
     }
   }
 
+  /**
+    * Closes the given set of streams. Calls wait() before closing if that is possible.
+    *
+    * @param streams Sequence of InoutStreams
+    */
+  def closeStreamSet(streams: Seq[InputStream]): Unit = {
+    if (streams.nonEmpty) streams.foreach( s => {
+      try s.wait()
+      catch {
+        case _: Throwable => // who cares
+      }
+      finally s.close()
+    })
+  }
+
 }
