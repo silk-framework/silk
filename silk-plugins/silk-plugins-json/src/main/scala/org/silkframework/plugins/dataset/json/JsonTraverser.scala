@@ -6,14 +6,12 @@ import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
 import play.api.libs.json._
 
-import scala.io.Codec
-
 /**
   * Data structure to traverse JSON files.
   *
   * @param taskId     - the identifier of the task for which this traverser is executed
-  * @param parentOpt
-  * @param value
+  * @param parentOpt - the parent traverser for backward traversal
+  * @param value     - the current json object
   */
 case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser], value: JsValue) {
   def children(prop: Uri): Seq[JsonTraverser] = {
@@ -172,9 +170,9 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
     */
   private def nodeToString(json: JsValue): String = {
     json match {
-      case JsBoolean(value) => value.toString
-      case JsNumber(value) => value.toString
-      case JsString(value) => value.toString
+      case JsBoolean(v) => v.toString
+      case JsNumber(v) => v.toString
+      case JsString(v) => v.toString
       case _ => json.toString()
     }
   }
@@ -185,11 +183,11 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
 }
 
 object JsonTraverser {
-  def apply(taskId: Identifier, resource: Resource)(implicit codec: Codec): JsonTraverser = {
+  def apply(taskId: Identifier, resource: Resource): JsonTraverser = {
     JsonTraverser(taskId, None, Json.parse(resource.loadAsString))
   }
 
-  def apply(taskId: Identifier, jsValue: JsValue)(implicit codec: Codec): JsonTraverser = {
+  def apply(taskId: Identifier, jsValue: JsValue): JsonTraverser = {
     JsonTraverser(taskId, None, jsValue)
   }
 }

@@ -1,7 +1,8 @@
 package org.silkframework.workspace.activity
 
-import org.silkframework.runtime.activity.{Activity, ActivityControl, HasValue}
+import org.silkframework.runtime.activity.{Activity, ActivityControl, HasValue, ProjectAndTaskIds}
 import org.silkframework.workspace.{Project, ProjectTask}
+
 import scala.reflect.ClassTag
 
 class ProjectActivity[ActivityType <: HasValue : ClassTag](override val project: Project, defaultFactory: ProjectActivityFactory[ActivityType])
@@ -12,6 +13,6 @@ class ProjectActivity[ActivityType <: HasValue : ClassTag](override val project:
   override def factory: ProjectActivityFactory[ActivityType] = defaultFactory
 
   override protected def createInstance(config: Map[String, String]): ActivityControl[ActivityType#ValueType] = {
-    Activity(defaultFactory(project))
+    Activity(defaultFactory(project), projectAndTaskId = Some(ProjectAndTaskIds(project.name, None)))
   }
 }

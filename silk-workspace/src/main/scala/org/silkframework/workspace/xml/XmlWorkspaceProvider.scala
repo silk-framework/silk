@@ -38,10 +38,11 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
 
   override def readProjects()
                            (implicit userContext: UserContext): Seq[ProjectConfig] = {
-    resources.listChildren.flatMap(loadProject)
+    resources.listChildren.flatMap(readProject(_))
   }
 
-  private def loadProject(projectName: String): Option[ProjectConfig] = {
+  override def readProject(projectName: String)
+                          (implicit userContext: UserContext): Option[ProjectConfig] = {
     try {
       val configXML = resources.child(projectName).get("config.xml").read(XML.load)
       val prefixes = Prefixes.fromXML((configXML \ "Prefixes").head)

@@ -52,7 +52,7 @@ trait MockServerTestTrait {
     server.getAddress.getPort
   }
 
-  private def respond(httpExchange: HttpExchange, responseContent: ServedContent): Unit = {
+  protected def respond(httpExchange: HttpExchange, responseContent: ServedContent): Unit = {
     // Consume body if available
     val is = new BufferedInputStream(httpExchange.getRequestBody)
     while(is.read() != -1) {}

@@ -15,8 +15,9 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
 
   implicit val userContext: UserContext = UserContext.Empty
 
+  private val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/json/")
+
   private def jsonExampleSource: JsonSource = {
-    val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/json/")
     val source = JsonSource(resources.get("example.json"), "", "#id", Codec.UTF8)
     source
   }
@@ -264,6 +265,13 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
       "organizations" -> UriValueType,
       "organizations/name" -> StringValueType
     )
+  }
+
+  it should "test string based apply method" in {
+    val str = resources.get("example.json").loadAsString(Codec.UTF8)
+    val result = JsonSource(str, "", "#id").peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(Path.parse("/persons/phoneNumbers/number").asStringTypedPath)), 3).toSeq
+    result.size mustBe 1
+    result.head.values mustBe IndexedSeq(Seq("123", "456", "789"))
   }
 
   private def jsonSource(json: String): JsonSource = {

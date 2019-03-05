@@ -9,6 +9,8 @@ import org.silkframework.runtime.users.{DefaultUserManager, User}
   */
 trait UserContext {
   def user: Option[User]
+
+  def logInfo: String = user.map(u => "User: " + u.logInfo).getOrElse("")
 }
 
 object UserContext {

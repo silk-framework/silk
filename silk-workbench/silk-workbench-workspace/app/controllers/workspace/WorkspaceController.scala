@@ -80,8 +80,6 @@ class WorkspaceController extends Controller {
       inputStream.close()
     }
 
-    WorkspaceFactory().workspace.reload()
-
     Ok
   }
 

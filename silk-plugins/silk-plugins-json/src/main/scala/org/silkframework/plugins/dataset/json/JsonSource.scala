@@ -10,6 +10,7 @@ import org.silkframework.entity._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
+import play.api.libs.json.{JsValue, Json}
 
 import scala.collection.mutable
 import scala.io.Codec
@@ -17,13 +18,13 @@ import scala.io.Codec
 /**
  * A data source that retrieves all entities from an JSON file.
  *
- * @param file JSON resource
+ * @param input JSON value
  * @param basePath The path to the elements to be read, starting from the root element, e.g., '/Persons/Person'.
  *                 If left empty, all direct children of the root element will be read.
  * @param uriPattern A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements
  */
-case class JsonSource(file: Resource, basePath: String, uriPattern: String, codec: Codec) extends DataSource
-    with PeakDataSource with HierarchicalSampleValueAnalyzerExtractionSource {
+case class JsonSource(input: JsValue, basePath: String, uriPattern: String) extends DataSource
+  with PeakDataSource with HierarchicalSampleValueAnalyzerExtractionSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -32,7 +33,7 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
                        (implicit userContext: UserContext): Traversable[Entity] = {
     logger.log(Level.FINE, "Retrieving data from JSON.")
-    val jsonTraverser = JsonTraverser(underlyingTask.id, file)(codec)
+    val jsonTraverser = JsonTraverser(underlyingTask.id, input)
     val selectedElements = jsonTraverser.select(basePathParts)
     val subPath = Path.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
     val subPathElements = if(subPath.operators.nonEmpty) {
@@ -60,7 +61,7 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
       Seq.empty
     } else {
       logger.log(Level.FINE, "Retrieving data from JSON.")
-      val jsonTraverser = JsonTraverser(underlyingTask.id, file)(codec)
+      val jsonTraverser = JsonTraverser(underlyingTask.id, input)
       val selectedElements = jsonTraverser.select(basePathParts)
       new Entities(selectedElements, entitySchema, entities.map(_.uri).toSet)
     }
@@ -81,7 +82,7 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
                         limit: Option[Int],
                         leafPathsOnly: Boolean,
                         innerPathsOnly: Boolean,
-                        json: JsonTraverser = JsonTraverser(underlyingTask.id, file)(codec)): IndexedSeq[(Path, ValueType)] = {
+                        json: JsonTraverser = JsonTraverser(underlyingTask.id, input)): IndexedSeq[(Path, ValueType)] = {
     val subSelectedElements: Seq[JsonTraverser] = navigateToType(typePath, json)
     for (element <- subSelectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
          (path, valueType) <- element.collectPaths(path = Nil, leafPathsOnly = leafPathsOnly, innerPathsOnly = innerPathsOnly, depth = depth)) yield {
@@ -128,7 +129,7 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
 
   override def peak(entitySchema: EntitySchema, limit: Int)
                    (implicit userContext: UserContext): Traversable[Entity] = {
-    peakWithMaximumFileSize(file, entitySchema, limit)
+    super.peak(entitySchema, limit)
   }
 
   /**
@@ -139,7 +140,7 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
     */
   def collectPaths(limit: Int, collectValues: (List[String], String) => Unit = (_, _) => {}): Seq[List[String]] = {
     val factory = new JsonFactory()
-    val jParser = factory.createParser(file.inputStream)
+    val jParser = factory.createParser(input.toString())
     val paths = mutable.HashMap[List[String], Int]()
     paths.put(Nil, 0)
     var idx = 1
@@ -211,5 +212,12 @@ case class JsonSource(file: Resource, basePath: String, uriPattern: String, code
     *
     * @return
     */
-  override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(file.name), DatasetSpec(EmptyDataset))     //FIXME CMEM 1352 replace with actual task
+  override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.random, DatasetSpec(EmptyDataset))     //FIXME CMEM 1352 replace with actual task
+}
+
+object JsonSource{
+
+  def apply(str: String, basePath: String, uriPattern: String): JsonSource = apply(Json.parse(str), basePath, uriPattern)
+  def apply(file: Resource, basePath: String, uriPattern: String, codec: Codec): JsonSource = apply(Json.parse(file.loadAsString(codec)), basePath, uriPattern)
+
 }

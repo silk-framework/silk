@@ -63,6 +63,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
     override def foreach[U](f: Entity => U): Unit = {
       var inconsistentOrder = false
       var counter = 0
+      val startTime = System.currentTimeMillis()
 
       val pathRetrievers = for (path <- entitySchema.typedPaths) yield new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema, entityUris), path, limit)
 
@@ -82,6 +83,8 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
             canceled = true
           }
         }
+        logger.info(s"Retrieved $counter entities of type '${entitySchema.typeUri}'" +
+            s"${graphUri.map(g => s" from graph '$g'").getOrElse("")} in ${System.currentTimeMillis() - startTime}ms.")
       }
       catch {
         case ex: InterruptedException =>
