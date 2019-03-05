@@ -1,12 +1,12 @@
 package org.silkframework.rule
 
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.rule.input.TransformInput
+import org.silkframework.entity.Path
+import org.silkframework.rule.input.{PathInput, TransformInput}
+import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.plugins.transformer.value.ConstantUriTransformer
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
-
-import scala.util.Try
 
 class TransformRuleTest extends FlatSpec with MustMatchers {
   behavior of "Transform Rule"
@@ -19,6 +19,12 @@ class TransformRuleTest extends FlatSpec with MustMatchers {
     testErrorCases(duplicate1 = true, duplicate2 = true)
     testErrorCases(duplicate1 = false, duplicate2 = true)
     testErrorCases(duplicate1 = true, duplicate2 = false)
+  }
+
+  it should "validate IDs in rule operator trees" in {
+    intercept[ValidationException] {
+      createRuleWithDuplicatedOperatorID()
+    }
   }
 
   private def testErrorCases(duplicate1: Boolean, duplicate2: Boolean): Unit = {
@@ -60,6 +66,19 @@ class TransformRuleTest extends FlatSpec with MustMatchers {
               )
             )
           )
+        )
+      )
+    )
+    rootMapping
+  }
+
+  private def createRuleWithDuplicatedOperatorID() = {
+    val rootMapping = RootMappingRule(
+      MappingRules(
+        uriRule = None,
+        typeRules = Seq.empty,
+        propertyRules = Seq(
+          ComplexMapping("invalidRule", TransformInput("duplicateID", LowerCaseTransformer(), Seq(PathInput("duplicateID", Path.empty))))
         )
       )
     )
