@@ -15,6 +15,7 @@ class UriTest extends FlatSpec with Matchers {
   it should "parse full URIs" in {
     Uri.parse("<http://example.org/entity1>").uri shouldBe "http://example.org/entity1"
     Uri.parse("http://example.org/entity1").uri shouldBe "http://example.org/entity1"
+    Uri.parse("jdbc:sqlserver://192.168.177.147:1433").uri shouldBe "jdbc:sqlserver://192.168.177.147:1433"
   }
 
   it should "parse prefix names" in {

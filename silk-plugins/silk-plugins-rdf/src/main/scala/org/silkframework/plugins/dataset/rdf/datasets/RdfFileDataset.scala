@@ -10,7 +10,7 @@ import org.silkframework.entity.{Entity, EntitySchema, Path, TypedPath}
 import org.silkframework.plugins.dataset.rdf.access.SparqlSource
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
 import org.silkframework.plugins.dataset.rdf.formatters._
-import org.silkframework.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
+import org.silkframework.plugins.dataset.rdf.sparql.EntityRetriever
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 import org.silkframework.runtime.resource.WritableResource

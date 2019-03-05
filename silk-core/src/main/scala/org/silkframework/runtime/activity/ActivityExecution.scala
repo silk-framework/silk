@@ -1,7 +1,7 @@
 package org.silkframework.runtime.activity
 
 import java.util.concurrent.ForkJoinPool.ManagedBlocker
-import java.util.concurrent.{ForkJoinPool, ForkJoinTask, TimeUnit}
+import java.util.concurrent.{ForkJoinPool, ForkJoinTask}
 
 import org.silkframework.runtime.activity.Status.{Canceling, Finished}
 
