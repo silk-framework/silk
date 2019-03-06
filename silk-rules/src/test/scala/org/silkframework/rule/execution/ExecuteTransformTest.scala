@@ -75,7 +75,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
   }
 
   private def entity(values: IndexedSeq[String], properties: IndexedSeq[String]): Entity = {
-    Entity("", values map (v => Seq(v)), EntitySchema(Uri("entity"), typedPaths = properties map (Path.apply) map (_.asStringTypedPath)))
+    Entity("", values map (v => Seq(v)), EntitySchema(Uri("entity"), typedPaths = properties.map(Path.saveApply).map(_.asStringTypedPath)))
   }
 
   private def entity(value: String, propertyUri: String): Entity = {
