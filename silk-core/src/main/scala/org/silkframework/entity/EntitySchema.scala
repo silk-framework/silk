@@ -107,7 +107,7 @@ case class EntitySchema(
     * @param tp - the typed path
     * @return
     */
-  def getSchemaOfProperty(tp: TypedPath): Option[EntitySchema] = this.typedPaths.find(tt => tt == tp) match{
+  def getSchemaOfProperty(tp: TypedPath): Option[EntitySchema] = this.typedPaths.find(tt => tt.equalsUntyped(tp)) match{
     case Some(_) => Some(this)
     case None => None
   }
@@ -137,7 +137,7 @@ case class EntitySchema(
   def renameProperty(oldName: TypedPath, newName: TypedPath): EntitySchema ={
     val sourceSchema = getSchemaOfProperty(oldName)
     val targetSchema = sourceSchema.map(sa => sa.copy(
-      typedPaths = sa.typedPaths.map(tp => if(tp == oldName) TypedPath(newName.operators, tp.valueType, tp.isAttribute) else tp)
+      typedPaths = sa.typedPaths.map(tp => if(tp.equalsUntyped(oldName)) TypedPath(newName.operators, tp.valueType, tp.isAttribute) else tp)
     ))
     targetSchema.getOrElse(this)
   }
@@ -158,7 +158,7 @@ case class EntitySchema(
       case es: EntitySchema =>
         EntitySchema(
           es.typeUri,
-          tps.flatMap(tp => es.typedPaths.find(t => t == tp) match{
+          tps.flatMap(tp => es.typedPaths.find(t => tp.equalsUntyped(t)) match{
             case Some(_) => Some(tp)
             case None => None
           }).toIndexedSeq,

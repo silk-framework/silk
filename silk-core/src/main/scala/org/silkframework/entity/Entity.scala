@@ -67,7 +67,7 @@ case class Entity private(
     * @return - the new value array
     */
   private def shiftProperties(es: EntitySchema): IndexedSeq[Seq[String]] ={
-    es.typedPaths.map(tp => this.schema.typedPaths.find(t => t == tp) match{
+    es.typedPaths.map(tp => this.schema.typedPaths.find(p => p.equalsUntyped(tp)) match{
       case Some(fp) => this.evaluate(fp)
       case None => Seq()
     })
