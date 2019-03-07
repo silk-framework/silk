@@ -9,7 +9,24 @@ import org.silkframework.util.Identifier
 /**
   * A link spec as a boolean rule. This representation is only applicable to a subset of linking rules.
   */
-case class BooleanLinkageRule(root: BooleanOperator)
+case class BooleanLinkageRule(root: BooleanOperator) {
+  def comparisons: Seq[BooleanComparisonOperator] = {
+    comparisons(root)
+  }
+
+  def comparisons(operator: BooleanOperator): Seq[BooleanComparisonOperator] = {
+    operator match {
+      case BooleanAnd(children) =>
+        children.flatMap(comparisons)
+      case BooleanOr(children) =>
+        children.flatMap(comparisons)
+      case BooleanNot(child) =>
+        comparisons(child)
+      case comparison: BooleanComparisonOperator =>
+        Seq(comparison)
+    }
+  }
+}
 
 sealed trait BooleanOperator
 

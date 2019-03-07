@@ -8,7 +8,11 @@ import org.silkframework.util.Identifier
   * In comparison to the [[org.silkframework.entity.Index]] object, this data structure links the index values to
   * the comparator inputs. Also this index uses the full Int range as value domain instead reducing it to the number of blocks.
   */
-case class LinkageRuleIndex(root: LinkageRuleIndexSimilarityOperator)
+case class LinkageRuleIndex(root: LinkageRuleIndexSimilarityOperator) {
+  def comparisons: Seq[LinkageRuleIndexComparison] = {
+    LinkageRuleIndex.comparisons(root)
+  }
+}
 
 sealed trait LinkageRuleIndexNode
 
@@ -55,6 +59,20 @@ object LinkageRuleIndex {
         apply(entity, booleanLinkSpec, sourceOrTarget)
       case None =>
         throw new IllegalArgumentException("Link specification is not a boolean link specification!")
+    }
+  }
+
+  /** Returns all comparison nodes of the linkage rule index */
+  def comparisons(operator: LinkageRuleIndexSimilarityOperator): Seq[LinkageRuleIndexComparison] = {
+    operator match {
+      case LinkageRuleIndexAnd(children) =>
+        children.flatMap(comparisons)
+      case LinkageRuleIndexOr(children) =>
+        children.flatMap(comparisons)
+      case LinkageRuleIndexNot(child) =>
+        comparisons(child)
+      case comparison: LinkageRuleIndexComparison =>
+        Seq(comparison)
     }
   }
 }
