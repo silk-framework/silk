@@ -47,5 +47,4 @@ private class TransformReportBuilder(rules: Seq[TransformRule], previousReport: 
   def build(): TransformReport = {
     TransformReport(entityCounter, entityErrorCounter, ruleResults)
   }
-
 }
