@@ -21,7 +21,7 @@ import org.silkframework.runtime.plugin.Plugin
   id = "inequality",
   categories = Array("Equality"),
   label = "Inequality",
-  description = "Return 1 if strings are equal, 0 otherwise.")
+  description = "Returns success if values are not equal, failure otherwise.")
 case class InequalityMetric() extends SimpleDistanceMeasure {
   override def evaluate(str1: String, str2: String, threshold: Double) = if (str1 == str2) 1.0 else 0.0
 }
