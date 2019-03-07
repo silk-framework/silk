@@ -181,14 +181,34 @@ case class EntitySchema(
       obj match {
         case es: EntitySchema =>
           es.typeUri == this.typeUri &&
-          es.typedPaths.size == this.typedPaths.size &&
-          es.typedPaths.zip(this.typedPaths).forall(ps => ps._1 == ps._2) &&
-          es.subPath == this.subPath &&
-          (es.filter.operator match{
+            es.typedPaths.size == this.typedPaths.size &&
+            es.typedPaths.zip(this.typedPaths).forall(ps => ps._1 == ps._2) &&
+            es.subPath == this.subPath &&
+            (es.filter.operator match{
               case Some(f) if this.filter.operator.nonEmpty => f.paths.forall(p => this.filter.operator.get.paths.contains(p))
               case None if this.filter.operator.isEmpty => true
               case _ => false
-          })
+            })
+        case _ => false
+      }
+    }
+    else
+      false
+  }
+
+  def equalsUntyped(obj: scala.Any): Boolean = {
+    if(obj != null) {
+      obj match {
+        case es: EntitySchema =>
+          es.typeUri == this.typeUri &&
+            es.typedPaths.size == this.typedPaths.size &&
+            es.typedPaths.zip(this.typedPaths).forall(ps => ps._1.equalsUntyped(ps._2)) &&
+            es.subPath == this.subPath &&
+            (es.filter.operator match{
+              case Some(f) if this.filter.operator.nonEmpty => f.paths.forall(p => this.filter.operator.get.paths.contains(p))
+              case None if this.filter.operator.isEmpty => true
+              case _ => false
+            })
         case _ => false
       }
     }
