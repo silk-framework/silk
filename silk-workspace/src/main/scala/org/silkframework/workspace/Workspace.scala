@@ -21,6 +21,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
 
+import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
@@ -79,15 +80,17 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     provider.putProject(config)
     val newProject = new Project(config, provider, repository.get(config.id))
     cachedProjects :+= newProject
+    log.info(s"Created new project '${config.id}'. " + userContext.logInfo)
     newProject
   }
 
   def removeProject(name: Identifier)
-                   (implicit userContext: UserContext): Unit = {
+                   (implicit userContext: UserContext): Unit = synchronized {
     loadUserProjects()
     project(name).activities.foreach(_.control.cancel())
     provider.deleteProject(name)
     cachedProjects = cachedProjects.filterNot(_.name == name)
+    log.info(s"Removed project '$name'. " + userContext.logInfo)
   }
 
   /**
@@ -121,7 +124,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
         throw IdentifierAlreadyExistsException("Project " + name.toString + " does already exist!")
       case None =>
         marshaller.unmarshalProject(name, provider, repository.get(name), file)
-        reload()
+        reloadProject(name)
+        log.info(s"Imported project '$name'. " + userContext.logInfo)
     }
   }
 
@@ -143,6 +147,22 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     }
     // Reload projects
     cachedProjects = loadProjects()
+  }
+
+  /** Reload a project from the backend */
+  private def reloadProject(id: Identifier)
+                           (implicit userContext: UserContext): Unit = synchronized {
+    // remove project
+    Try(project(id).activities.foreach(_.control.cancel()))
+    cachedProjects = cachedProjects.filterNot(_.name == id)
+    provider.readProject(id) match {
+      case Some(projectConfig) =>
+        val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
+        project.initTasks()
+        cachedProjects :+= project
+      case None =>
+        log.warning(s"Project '$id' could not be reloaded in workspace, because it could not be read from the workspace provider!")
+    }
   }
 
   /**

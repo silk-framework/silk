@@ -16,6 +16,12 @@ trait WorkspaceProvider {
   def readProjects()(implicit user: UserContext): Seq[ProjectConfig]
 
   /**
+    * Reads a single project from the backend.
+    * @return The project config or None if the project does not exist or an error occurred.
+    */
+  def readProject(projectId: String)(implicit userContext: UserContext): Option[ProjectConfig]
+
+  /**
    * Adds/Updates a project.
    */
   def putProject(projectConfig: ProjectConfig)(implicit user: UserContext): Unit

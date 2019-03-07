@@ -45,14 +45,15 @@ class CacheLoader(source: DataSource,
     var entityCounter = 0
     breakable {
       for (entity <- retrieveEntities) {
-        if (context.status().isInstanceOf[Status.Canceling])
+        if (context.status().isInstanceOf[Status.Canceling] || cancelled)
           break()
         entityCache.write(entity)
         entityCounter += 1
       }
 
       val time = (System.currentTimeMillis - startTime) / 1000.0
-      context.log.info("Finished writing " + entityCounter + " entities with type '" + entityCache.entitySchema.typeUri + "' in " + time + " seconds")
+      context.log.info("Finished writing " + entityCounter + " entities with type '" + entityCache.entitySchema.typeUri +
+          "' in " + time + " seconds." + context.status.projectAndTaskIdString)
     }
   }
 

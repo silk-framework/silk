@@ -3,7 +3,7 @@ package org.silkframework.workspace.activity
 import java.lang.reflect.{ParameterizedType, Type, TypeVariable}
 
 import org.silkframework.config.{Prefixes, TaskSpec}
-import org.silkframework.runtime.activity.{Activity, ActivityControl, HasValue, UserContext}
+import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.workspace.{Project, ProjectTask}
@@ -33,7 +33,10 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
   protected override def createInstance(config: Map[String, String]): ActivityControl[ActivityType#ValueType] = {
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val resources: ResourceManager = project.resources
-    Activity(PluginDescription(defaultFactory.getClass)(config).apply(task))
+    Activity(
+      PluginDescription(defaultFactory.getClass)(config).apply(task),
+      projectAndTaskId = Some(ProjectAndTaskIds(project.name, taskOption.map(_.id)))
+    )
   }
 
   def reset()(implicit userContext: UserContext): Unit = {

@@ -81,6 +81,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     provider.putTask(project.name, task)
     task.init()
     cachedTasks += ((name, task))
+    logger.info(s"Added task '$name' to project ${project.name}. " + userContext.logInfo)
   }
 
   /**
@@ -98,7 +99,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     // Delete task
     provider.deleteTask(project.name, taskId)
     cachedTasks -= taskId
-    logger.info(s"Removed task '$taskId' from project ${project.name}")
+    logger.info(s"Removed task '$taskId' from project ${project.name}." + userContext.logInfo)
   }
 
   private def load()

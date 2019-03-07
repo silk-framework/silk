@@ -2,6 +2,7 @@ package controllers.workspace
 
 import java.io.File
 import java.net.URL
+import java.util.logging.Logger
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import org.silkframework.config._
@@ -24,6 +25,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.existentials
 
 class WorkspaceApi extends Controller {
+  private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   def reload: Action[AnyContent] = UserContextAction { implicit userContext =>
     WorkspaceFactory().workspace.reload()
@@ -153,7 +155,7 @@ class WorkspaceApi extends Controller {
     val project = WorkspaceFactory().workspace.project(projectName)
     val resource = project.resources.get(resourceName)
 
-    request.body match {
+    val response = request.body match {
       case AnyContentAsMultipartFormData(formData) if formData.files.nonEmpty =>
         putResourceFromMultipartFormData(resource, formData)
       case AnyContentAsMultipartFormData(formData) if formData.dataParts.contains("resource-url") =>
@@ -176,6 +178,10 @@ class WorkspaceApi extends Controller {
       case _ =>
         ErrorResult(UnsupportedMediaTypeException.supportedFormats("multipart/form-data", "application/octet-stream", "text/plain"))
     }
+    if(response == NoContent) { // Successfully updated
+      log.info(s"Created/updated resource '$resourceName' in project '$projectName'. " + userContext.logInfo)
+    }
+    response
   }
 
   private def putResourceFromMultipartFormData(resource: WritableResource, formData: MultipartFormData[Files.TemporaryFile]) = {
@@ -205,7 +211,7 @@ class WorkspaceApi extends Controller {
   def deleteResource(projectName: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     project.resources.delete(resourceName)
-
+    log.info(s"Deleted resource '$resourceName' in project '$projectName'. " + userContext.logInfo)
     NoContent
   }
 }
