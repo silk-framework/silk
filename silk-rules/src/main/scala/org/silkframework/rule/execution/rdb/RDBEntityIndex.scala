@@ -20,7 +20,8 @@ class RDBEntityIndex(linkSpec: LinkSpec,
 }
 
 
-class RDBEntityIndexLoader(entitySchema: EntitySchema,
+class RDBEntityIndexLoader(linkSpec: LinkSpec,
+                           entitySchema: EntitySchema,
                            dataSource: DataSource,
                            runtimeLinkingConfig: RuntimeLinkingConfig) extends Activity[EntityTables] {
   override def run(context: ActivityContext[EntityTables])
@@ -31,7 +32,6 @@ class RDBEntityIndexLoader(entitySchema: EntitySchema,
 
   private def profileEntities(entitySchema: EntitySchema)
                              (implicit userContext: UserContext): Unit = {
-    entitySchema.typedPaths.map()
     val entities = retrieveEntities()
 
   }

@@ -10,27 +10,51 @@ import org.silkframework.util.Identifier
   */
 case class LinkageRuleIndex(root: LinkageRuleIndexSimilarityOperator)
 
-sealed trait LinkageRuleIndexNode {
-  // This id is the same as of the corresponding linkage rule operator
-  def id: Identifier
-}
+sealed trait LinkageRuleIndexNode
 
 sealed trait LinkageRuleIndexSimilarityOperator extends LinkageRuleIndexNode
 
-case class LinkageRuleIndexAggregator(id: Identifier, children: LinkageRuleIndexSimilarityOperator) extends LinkageRuleIndexSimilarityOperator
+case class LinkageRuleIndexAnd(children: Seq[LinkageRuleIndexSimilarityOperator]) extends LinkageRuleIndexSimilarityOperator
+
+case class LinkageRuleIndexOr(children: Seq[LinkageRuleIndexSimilarityOperator]) extends LinkageRuleIndexSimilarityOperator
+
+case class LinkageRuleIndexNot(child: LinkageRuleIndexSimilarityOperator) extends LinkageRuleIndexSimilarityOperator
 
 case class LinkageRuleIndexComparison(id: Identifier,
-                                      source: LinkageRuleIndexInput,
-                                      target: LinkageRuleIndexInput) extends LinkageRuleIndexSimilarityOperator
+                                      indexValues: LinkageRuleIndexInput) extends LinkageRuleIndexSimilarityOperator
 
 // The actual index values of a specific input of a comparison
 case class LinkageRuleIndexInput(id: Identifier, indexValues: Set[Int])
 
 object LinkageRuleIndex {
   def apply(entity: Entity,
-            sourceOrTarget: Boolean,
-           // TODO: Remove limit?
-            limit: Double = 0.0): LinkageRuleIndex = {
-    null // TODO
+            booleanLinkageRule: BooleanLinkageRule,
+            sourceOrTarget: Boolean): LinkageRuleIndex = {
+    LinkageRuleIndex(convert(booleanLinkageRule.root, entity, sourceOrTarget))
+  }
+
+  private def convert(booleanOperator: BooleanOperator,
+                      entity: Entity,
+                      sourceOrTarget: Boolean): LinkageRuleIndexSimilarityOperator = {
+    booleanOperator match {
+      case BooleanAnd(children) => LinkageRuleIndexAnd(children.map(convert(_, entity, sourceOrTarget)))
+      case BooleanOr(children) => LinkageRuleIndexOr(children.map(convert(_, entity, sourceOrTarget)))
+      case BooleanNot(child) => LinkageRuleIndexNot(convert(child, entity, sourceOrTarget))
+      case BooleanComparisonOperator(id, sourceInput, targetInput, comparison) =>
+        val inputId = if(sourceOrTarget) sourceInput.inputOperator.id else targetInput.inputOperator.id
+        val index = comparison.index(entity, sourceOrTarget, limit = 0.0)
+        LinkageRuleIndexComparison(id, LinkageRuleIndexInput(inputId, index.flatten))
+    }
+  }
+
+  def apply(entity: Entity,
+            linkageRule: LinkageRule,
+            sourceOrTarget: Boolean): LinkageRuleIndex = {
+    BooleanLinkageRule(linkageRule) match {
+      case Some(booleanLinkSpec) =>
+        apply(entity, booleanLinkSpec, sourceOrTarget)
+      case None =>
+        throw new IllegalArgumentException("Link specification is not a boolean link specification!")
+    }
   }
 }

@@ -4,11 +4,12 @@ import org.silkframework.entity.TypedPath
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.aggegrator.{MaximumAggregator, MinimumAggregator, NegationAggregator}
 import org.silkframework.rule.similarity.{Aggregation, Aggregator, Comparison, SimilarityOperator}
+import org.silkframework.util.Identifier
 
 /**
   * A link spec as a boolean rule. This representation is only applicable to a subset of linking rules.
   */
-case class BooleanLinkSpec(root: BooleanOperator)
+case class BooleanLinkageRule(root: BooleanOperator)
 
 sealed trait BooleanOperator
 
@@ -21,8 +22,10 @@ case class BooleanNot(child: BooleanOperator) extends BooleanOperator
 /** Boolean operator that turns values into a (fuzzy) boolean value */
 sealed trait ValueInputBooleanOutput extends BooleanOperator
 
-case class BooleanSimilarityOperator(sourceOperator: ValueOutputOperator,
-                                     targetOperator: ValueOutputOperator) extends ValueInputBooleanOutput
+case class BooleanComparisonOperator(id: Identifier,
+                                     sourceOperator: ValueOutputOperator,
+                                     targetOperator: ValueOutputOperator,
+                                     comparison: Comparison) extends ValueInputBooleanOutput
 
 sealed trait ValueOutputOperator {
   /** The operator from the link spec */
@@ -33,17 +36,20 @@ case class InputPathOperator(typedPath: TypedPath, inputOperator: Input) extends
 
 case class TransformationOperator(children: Seq[ValueOutputOperator], inputOperator: Input) extends ValueOutputOperator
 
-object BooleanLinkSpec {
-  /** Converts a link spec in a boolean link spec if it can be interpreted as a boolean expression. */
-  def apply(linkSpec: LinkSpec): Option[BooleanLinkSpec] = {
-    linkSpec.rule.operator.flatMap { operator =>
-        try {
-          Some(BooleanLinkSpec(convert(operator)))
-        } catch {
-          case _: NonBooleanConvertibleException =>
-            None
-        }
+object BooleanLinkageRule {
+  /** Converts a link spec into a boolean linkage rule if it can be interpreted as a boolean expression. */
+  def apply(linkSpec: LinkSpec): Option[BooleanLinkageRule] = {
+    apply(linkSpec.rule)
+  }
 
+  def apply(linkageRule: LinkageRule): Option[BooleanLinkageRule] = {
+    linkageRule.operator.flatMap { operator =>
+      try {
+        Some(BooleanLinkageRule(convert(operator)))
+      } catch {
+        case _: NonBooleanConvertibleException =>
+          None
+      }
     }
   }
 
@@ -76,7 +82,7 @@ object BooleanLinkSpec {
   }
 
   def convert(comparison: Comparison): BooleanOperator = {
-    BooleanSimilarityOperator(convert(comparison.inputs.source), convert(comparison.inputs.target))
+    BooleanComparisonOperator(comparison.id, convert(comparison.inputs.source), convert(comparison.inputs.target), comparison)
   }
 
   def convert(input: Input): ValueOutputOperator = {
