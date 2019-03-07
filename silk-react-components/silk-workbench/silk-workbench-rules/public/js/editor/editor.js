@@ -98,6 +98,32 @@ var endpointValueTarget = {
     maxConnections: -1,
 };
 
+var endpointValueTargetTop = {
+    anchor: [0, 0.35, -1, 0],
+    endpoint: 'Dot',
+    paintStyle: {
+        fill: '#3187CF',
+        radius: defaultRadius,
+    },
+    connectorStyle: valueConnectorStyle,
+    isTarget: true,
+    scope: 'value',
+    maxConnections: 1,
+};
+
+var endpointValueTargetBottom = {
+    anchor: [0, 0.65, -1, 0],
+    endpoint: 'Dot',
+    paintStyle: {
+        fill: '#3187CF',
+        radius: defaultRadius,
+    },
+    connectorStyle: valueConnectorStyle,
+    isTarget: true,
+    scope: 'value',
+    maxConnections: 1,
+};
+
 var endpointSimilaritySource = {
     anchor: 'RightMiddle',
     endpoint: 'Dot',
@@ -670,6 +696,13 @@ function loadInstance(index) {
     for (var j = 0; j < elements.length; j++) {
         var endpoint_left = elements[j][2];
         var endpoint_right = endpoints[elements[j][1]];
+        // If there are multiple endpoints, we connect to the first available one
+        if(endpoint_right instanceof Array) {
+            endpoint_right = endpoint_right[0];
+            // Remove used endpoint from the list
+            endpoints[elements[j][1]].splice(0, 1);
+        }
+
         if (endpoint_left && endpoint_right) {
             jsPlumb.connect({
                 sourceEndpoint: endpoint_left,
@@ -853,7 +886,11 @@ function addEndpoints(boxId, boxClass) {
         boxClass.search(/compare/) !== -1
     ) {
         // todo: these classes should be named consistently, not sometimes "compareDiv", and sometimes "comparators"
-        boxEndpoints.left = jsPlumb.addEndpoint(boxId, endpointValueTarget);
+        var leftEndpoints = [];
+        leftEndpoints.push(jsPlumb.addEndpoint(boxId, endpointValueTargetTop));
+        leftEndpoints.push(jsPlumb.addEndpoint(boxId, endpointValueTargetBottom));
+        boxEndpoints.left = leftEndpoints;
+
         boxEndpoints.right = jsPlumb.addEndpoint(
             boxId,
             endpointSimilaritySource

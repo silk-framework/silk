@@ -157,17 +157,18 @@
       @connectOperator(inputs.target)
 
       @* Create endpoints *@
-      var @targetEndpoint(id) = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueTarget);
+      var @targetEndpoint(id)_source = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueTargetTop);
+      var @targetEndpoint(id)_target = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointValueTargetBottom);
       var @sourceEndpoint(id) = jsPlumb.addEndpoint('@GenerateId(id,true)', endpointSimilaritySource);
 
       @* Connect children *@
       jsPlumb.connect({
       source: @sourceEndpoint(inputs.source.id),
-      target: @targetEndpoint(id)
+      target: @targetEndpoint(id)_source
       });
       jsPlumb.connect({
       source: @sourceEndpoint(inputs.target.id),
-      target: @targetEndpoint(id)
+      target: @targetEndpoint(id)_target
       });
     }
     case TransformInput(id, transformer, inputs) => {
