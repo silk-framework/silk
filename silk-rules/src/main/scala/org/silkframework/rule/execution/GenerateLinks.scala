@@ -20,7 +20,7 @@ import java.util.logging.{LogRecord, Logger}
 
 import org.silkframework.cache.{EntityCache, FileEntityCache, MemoryEntityCache}
 import org.silkframework.dataset.{DataSource, LinkSink}
-import org.silkframework.entity.{Entity, Link}
+import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity._
 import org.silkframework.util.FileUtils._
@@ -44,12 +44,12 @@ class GenerateLinks(id: Identifier,
   private var children: List[ActivityControl[_]] = Nil
 
   /** The entity descriptions which define which entities are retrieved by this task */
-  def entityDescs = linkSpec.entityDescriptions
+  def entityDescs: DPair[EntitySchema] = linkSpec.entityDescriptions
 
   /**
    * All warnings which have been generated during executing.
    */
-  def warnings = warningLog
+  def warnings: Seq[LogRecord] = warningLog
 
   override def initialValue = Some(Linking(rule = linkSpec.rule))
 
