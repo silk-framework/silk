@@ -5,11 +5,21 @@ import java.time.Instant
 import java.util.logging.Logger
 import java.util.zip.{ZipEntry, ZipException, ZipFile}
 
-import BulkResource._
-
 import scala.collection.mutable
 
+/**
+  * Resource that represents an archive with multiple files.
+  * Provides a singular Inputstream across the file contents ans otherwise uses
+  * the meta data of the archieve.
+  *
+  * Mainly features a replaceable input stream and functions to get one
+  * concatenated or a set of streams.
+  *
+  * @param file Zip resources
+  */
 case class BulkResource(file: File) extends WritableResource {
+
+  val log: Logger = Logger.getLogger(this.getClass.getSimpleName)
 
   var zipFile: Resource = FileResource(file)
   var replacementInputStream: Option[InputStream] = None
@@ -65,9 +75,9 @@ case class BulkResource(file: File) extends WritableResource {
     *         The caller is responsible for closing the stream after reading.
     */
   override def inputStream: InputStream = {
-    if (replacementInputStream.nonEmpty) log.warning(s"Returning InputStream that concatenates all resources in $name. " +
-      s"Use the methods of the BulkResource object to get and combine the resources individually")
-    replacementInputStream.getOrElse(getCombinedInputStream)
+    if (replacementInputStream.nonEmpty) log.warning(s"Returning a stream that concatenates all resources in " +
+      s"$name. Use the methods of the BulkResource object to get and combine the resources individually")
+    replacementInputStream.getOrElse(BulkResourceSupport.combineStreams(inputStreams))
   }
 
 
@@ -103,17 +113,6 @@ case class BulkResource(file: File) extends WritableResource {
     }
   }
 
-  /**
-    * This method creates one input stream from the input streams of the resources contained in
-    * the zip file. This is equivalent to an input stream for a concatenation of the resource contents.
-    * WARNING: Only use when a literal concatenation is all you need.
-    *
-    * @return An input stream for reading the resource.
-    *         The caller is responsible for closing the stream after reading.
-    */
-  def getCombinedInputStream: InputStream = {
-    BulkResourceSupport.combineStreams(inputStreams)
-  }
 
   /**
     * Preferred method for writing to a resource.
@@ -125,59 +124,22 @@ case class BulkResource(file: File) extends WritableResource {
   /**
     * Deletes this resource.
     */
-  override def delete(): Unit = ???
+  override def delete(): Unit = try {
+    val ftd = new File(zipFile.path)
+    ftd.deleteOnExit()
+    ftd.delete()
+  }
+  catch {
+    case ex:IOException => log severe s"$zipFile could not be deleted:${ex.getMessage} "
+  }
 }
-
-
-/**
-  * Companion with helper methods for obtaining InputStreams from achieves and folders.
-  * The BulkResource handling should generally be done in a dataset that implements the BulkResourceSupport trait.
-  */
-object BulkResource {
-
-  val log: Logger = Logger.getLogger(this.getClass.getSimpleName)
-
-  /**
-    * Creates an input stream for a given bulk resource that represents a concatenation of the contained
-    * files where the first line of each file except the first is removed.
-    *
-    * @param bulkResource Zip or resource folder
-    * @return Sequence of InputStream objects
-    */
-//  def getHeaderlessInputStream(bulkResource: BulkResource): InputStream = {
-//    val streams = BulkResourceSupport.getInputStreamSet(bulkResource)
-//    val head = streams.head
-//    val tail = streams.tail
-//    val streamsWithoutHeaders: Seq[InputStream] = tail.map(is => {
-//      val lis = new LineNumberReader(new InputStreamReader(is))
-//      val line = lis.readLine()
-//      log warning s"Skipping line $line while combining input streams."
-//      new ReaderInputStream(lis)
-//    })
-//    BulkResourceSupport.combineStreams(Seq(head) ++ streamsWithoutHeaders)
-//  }
-
-
-  /**
-    * Checks if the given archive or folder contains files that akk share the same first line.,
-    * e.g. csv files with the same header in each part.
-    *
-    * @param bulkResource Zip or resource folder
-    * @return True if all files in the archive hace the same first line
-    */
-//  def hasEqualHeaders(bulkResource: BulkResource): Boolean = {
-//    val streams = getInputStreamSet(bulkResource)
-//    val headers = streams.map(is => {
-//      val lis = new LineNumberReader(new InputStreamReader(is))
-//      lis.readLine()
-//    })
-//    headers.reduce((h1, h2) => h1.equals(h2))
-//  }
-
-
-//  def removeDuplicateFileHeaders(bulkResource: BulkResource): WritableResource = {
-//    BulkResource(bulkResource, getHeaderlessInputStream(bulkResource))
-//  }
-
-
-}
+//
+//
+///**
+//  * Companion with helper methods for obtaining InputStreams from achieves and folders.
+//  * The BulkResource handling should generally be done in a dataset that implements the BulkResourceSupport trait.
+//  */
+//object BulkResource {
+//
+//
+//}
