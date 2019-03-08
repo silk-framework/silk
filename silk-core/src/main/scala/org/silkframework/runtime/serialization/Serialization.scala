@@ -10,13 +10,19 @@ import scala.reflect.ClassTag
   */
 object Serialization {
 
+  /** The default mime type order to be used if multiple serialization formats are applicable. */
+  val defaultMimeTypes: Seq[String] = Seq("application/xml", "application/json", "text/turtle", "text/plain")
+
   /**
     * Holds all registered serialization formats.
     */
   private lazy val serializationFormats: Seq[SerializationFormat[Any, Any]] = {
     implicit val prefixes = Prefixes.empty
     val formatTypes = PluginRegistry.availablePlugins[SerializationFormat[Any, Any]]
-    formatTypes.map(_.apply())
+    val formats = formatTypes.map(_.apply())
+    // Sort formats based on their order in 'defaultMimeTypes'
+    val sortedFormats = formats.sortBy(_.mimeTypes.toSeq.map(defaultMimeTypes.indexOf).filter(_ != -1).sorted.headOption.getOrElse(defaultMimeTypes.size))
+    sortedFormats
   }
 
   def availableFormats: Seq[SerializationFormat[Any, Any]] = serializationFormats

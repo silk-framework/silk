@@ -31,7 +31,7 @@ class TransformTaskApi extends Controller {
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
-    serializeCompileTime[TransformTask](task)
+    serializeCompileTime[TransformTask](task, Some(project))
   }
 
   def putTransformTask(projectName: String, taskName: String, createOnly: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
@@ -81,7 +81,7 @@ class TransformTaskApi extends Controller {
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
-    serializeCompileTime(task.data.mappingRule)
+    serializeCompileTime(task.data.mappingRule, Some(project))
   }
 
   def putRules(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
@@ -107,7 +107,7 @@ class TransformTaskApi extends Controller {
     implicit val prefixes: Prefixes = project.config.prefixes
 
     processRule(task, ruleId) { rule =>
-      serializeCompileTime(rule.operator.asInstanceOf[TransformRule])
+      serializeCompileTime(rule.operator.asInstanceOf[TransformRule], Some(project))
     }
   }
 
@@ -122,7 +122,7 @@ class TransformTaskApi extends Controller {
         implicit val updatedRequest: Request[AnyContent] = updateJsonRequest(request, currentRule)
         deserializeCompileTime[TransformRule]() { updatedRule =>
           updateRule(currentRule.update(updatedRule))
-          serializeCompileTime[TransformRule](updatedRule)
+          serializeCompileTime[TransformRule](updatedRule, Some(project))
         }
       }
     }
@@ -156,7 +156,7 @@ class TransformTaskApi extends Controller {
           }
           val updatedRule = parentRule.operator.withChildren(parentRule.operator.children :+ newChildRule)
           updateRule(parentRule.update(updatedRule))
-          serializeCompileTime(newChildRule)
+          serializeCompileTime(newChildRule, Some(project))
         }
       }
     }
