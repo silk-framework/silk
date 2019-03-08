@@ -118,9 +118,9 @@ object BulkResourceSupport {
         val tail = streams.tail
         val streamsWithoutHeaders: Seq[InputStream] = tail.map(is => {
           val lis = new LineNumberReader(new InputStreamReader(is))
-          for (i <- 0 to skipLines.get) {
+          for (i <- 0 until skipLines.get) {
             val line = lis.readLine()
-            log warning s"Skipping line ${i +1} while combining input streams: \n $line"
+            log warning s"Skipping line ${i + 1} while combining input streams: \n $line"
             line
           }
           new ReaderInputStream(lis)
