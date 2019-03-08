@@ -56,9 +56,14 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   protected def createInstance(config: Map[String, String]): ActivityControl[ActivityType#ValueType]
 
   /**
-    * The name of this activity.
+    * Identifier of this activity.
     */
   final def name: Identifier = factory.pluginSpec.id
+
+  /**
+    * Human-readable label for this activity.
+    */
+  final def label: String = factory.pluginSpec.label
 
   /**
     * Retrieves all held instances of this activity type.
