@@ -2,10 +2,9 @@ package org.silkframework.runtime.resource
 
 import java.io._
 import java.util.logging.Logger
-import java.util.zip.{ZipException, ZipFile}
+import java.util.zip.ZipException
 
 import org.apache.commons.io.input.ReaderInputStream
-import org.silkframework.runtime.resource.BulkResource.log
 
 import scala.collection.JavaConverters
 
@@ -57,6 +56,8 @@ trait BulkResourceSupport {
 }
 
 object BulkResourceSupport {
+
+  private val log: Logger = Logger.getLogger(this.getClass.getSimpleName)
 
   /**
     * Get a Seq of InputStream object, each belonging to on file in the given achieve.
@@ -116,22 +117,47 @@ object BulkResourceSupport {
       if (skipLines.get > 0) {
         val head = streams.head
         val tail = streams.tail
-        val streamsWithoutHeaders: Seq[InputStream] = tail.map(is => {
-          val lis = new LineNumberReader(new InputStreamReader(is))
-          for (i <- 0 until skipLines.get) {
-            val line = lis.readLine()
-            log warning s"Skipping line ${i + 1} while combining input streams: \n $line"
-            line
-          }
-          new ReaderInputStream(lis)
+        val newTail: Seq[InputStream] = tail.map(is => {
+          val correctedStream = getSkipLinesInputStream(is, skipLines.get)
+          new ReaderInputStream(new InputStreamReader(correctedStream))
         })
-        combineStreams(Seq(head) ++ streamsWithoutHeaders, None)
+        combineStreams(Seq(head) ++ newTail, None)
       }
       else {
         throw new IllegalArgumentException("The line to skip must be None or a number greater 0.")
       }
     }
   }
+
+
+  /**
+    * Return an input stream that is equa to the given stream with the given
+    * number of lines skipped.
+    *
+    * @param inputStream - input stream wirh lines to skip
+    * @param linesToSkip - number of lines to skip
+    * @return
+    */
+  private def getSkipLinesInputStream(inputStream: InputStream, linesToSkip: Int = 1): InputStream = {
+    val lis = new LineNumberReader(new InputStreamReader(inputStream))
+    for (i <-0 until linesToSkip) {
+      val line = lis.readLine()
+      log info s"Skipping line: $line in bulk resource."
+    }
+    combineStreams(Seq(getNewlineInputStream, new ReaderInputStream(lis)))
+  }
+
+
+  /**
+    * Get an InputStream representing only a newline char.
+    *
+    * @return InputStream
+    */
+  def getNewlineInputStream: InputStream = {
+    val newline = System.lineSeparator()
+    new ByteArrayInputStream(newline.getBytes())
+  }
+
 
   /**
     * Closes the given set of streams. Calls wait() before closing if that is possible.
@@ -146,6 +172,22 @@ object BulkResourceSupport {
       }
       finally s.close()
     })
+  }
+
+
+  /**
+    * Closes the given niput stream. Calls wait() before closing if that is possible.
+    *
+    * @param stream Input stream
+    */
+  def closeStream(stream: InputStream): Unit = {
+    if (stream != null) {
+      try stream.wait()
+      catch {
+        case _: Throwable => // who cares
+      }
+      finally stream.close()
+    }
   }
 
 }
