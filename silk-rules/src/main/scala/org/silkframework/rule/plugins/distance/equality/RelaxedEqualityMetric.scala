@@ -20,7 +20,7 @@ import org.silkframework.runtime.plugin.Plugin
   id = "relaxedEquality",
   categories = Array("Equality"),
   label = "RelaxedEquality",
-  description = "Return 1 if strings are equal, 0 otherwise. Lower/upper case and differences like ö/o, n/ñ, c/ç etc. are treated as equal.")
+  description = "Return success if strings are equal, failure otherwise. Lower/upper case and differences like ö/o, n/ñ, c/ç etc. are treated as equal.")
 class RelaxedEqualityMetric extends SimpleDistanceMeasure {
 
   val collator = {

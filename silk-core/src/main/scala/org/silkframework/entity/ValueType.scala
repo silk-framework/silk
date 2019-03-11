@@ -109,14 +109,14 @@ object ValueType {
             val uri = Uri.parse(typeUri.text.trim, prefixes)
             CustomValueType(uri.uri)
           case None =>
-            throw new IllegalArgumentException("Uri element not existing in node")
+            throw new IllegalArgumentException("'uri' attribute not existing in node")
         }
       case LANGUAGE_VALUE_TYPE =>
         (value \ "@lang").headOption match {
           case Some(lang) =>
             LanguageValueType(lang.text.trim)
           case None =>
-            throw new IllegalArgumentException("Uri element not existing in node")
+            throw new IllegalArgumentException("'lang' attribute not existing in node")
         }
     }
   }

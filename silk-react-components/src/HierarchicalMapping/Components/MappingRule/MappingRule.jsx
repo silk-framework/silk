@@ -195,6 +195,7 @@ const MappingRule = React.createClass({
         };
         const action = (
             <Button
+                className={"silk" + this.props.id}
                 iconName={
                     type === MAPPING_RULE_TYPE_OBJECT
                         ? 'arrow_nextpage'

@@ -194,6 +194,7 @@ const MappingsObject = React.createClass({
                                         className="mdl-list__item-secondary-content"
                                         key="action">
                                         <Button
+                                            className={"silk"+this.props.rule.id}
                                             iconName={
                                                 this.state.expanded
                                                     ? 'expand_less'

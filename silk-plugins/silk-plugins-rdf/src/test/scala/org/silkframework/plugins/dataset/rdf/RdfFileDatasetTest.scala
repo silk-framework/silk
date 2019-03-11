@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.rdf
 
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 

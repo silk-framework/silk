@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.formatters
 
+import org.silkframework.dataset.rdf.Formatter
 import org.silkframework.entity.ValueType
 
 /**

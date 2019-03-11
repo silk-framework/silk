@@ -21,10 +21,9 @@ import scala.xml.{Node, Text}
 /**
  * A Link Filter specifies the parameters of the filtering phase.
  *
- * @param threshold Defines the minimum similarity of two data items which is required to generate a link between them.
  * @param limit Defines the number of links originating from a single data item. Only the n highest-rated links per source data item will remain after the filtering.
  */
-case class LinkFilter(limit: Option[Int] = None, threshold: Option[Double] = None, unambiguous: Option[Boolean] = None) {
+case class LinkFilter(limit: Option[Int] = None, unambiguous: Option[Boolean] = None) {
   /**
    * Serializes this Link Filter as XML.
    */
@@ -33,15 +32,11 @@ case class LinkFilter(limit: Option[Int] = None, threshold: Option[Double] = Non
       case None => None
       case Some(l) => Some(Text(l.toString))
     }
-    val thresholdXML: Option[Text] = threshold match {
-      case None => None
-      case Some(t) => Some(Text(t.toString))
-    }
     val unambiguousXML: Option[Text] = unambiguous match {
       case None => None
       case Some(u) => Some(Text(u.toString))
     }
-    <Filter limit={limitXML} threshold={thresholdXML} unambiguous={unambiguousXML} />
+    <Filter limit={limitXML} unambiguous={unambiguousXML} />
   }
 
 }
@@ -56,12 +51,8 @@ object LinkFilter {
    */
   def fromXML(node: Node): LinkFilter = {
     val limitStr = (node \ "@limit").text
-    val threshold = (node \ "@threshold").headOption.map(_.text.toDouble)
     val unambiguous = (node \ "@unambiguous").headOption.map(_.text.toBoolean)
 
-    if (threshold.isDefined)
-      logger.warning("The use of a global threshold is deprecated. Please use per-comparison thresholds.")
-
-    LinkFilter(if (limitStr.isEmpty) None else Some(limitStr.toInt), threshold, unambiguous)
+    LinkFilter(if (limitStr.isEmpty) None else Some(limitStr.toInt), unambiguous)
   }
 }

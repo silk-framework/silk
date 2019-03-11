@@ -39,7 +39,7 @@ abstract class SimpleDistanceMeasure extends DistanceMeasure {
    */
   def indexValue(value: String, limit: Double, sourceOrTarget: Boolean): Index = Index.default
 
-  override final def apply(values1: Seq[String], values2: Seq[String], limit: Double): Double = {
+  override def apply(values1: Seq[String], values2: Seq[String], limit: Double): Double = {
     var minDistance = Double.MaxValue
 
     for (str1 <- values1; str2 <- values2 if minDistance > 0.0) {
@@ -50,7 +50,7 @@ abstract class SimpleDistanceMeasure extends DistanceMeasure {
     minDistance
   }
 
-  override final def index(values: Seq[String], limit: Double, sourceOrTarget: Boolean): Index = {
+  override def index(values: Seq[String], limit: Double, sourceOrTarget: Boolean): Index = {
     if(values.isEmpty)
       indexValue("", limit, sourceOrTarget) //We index an empty value, so that the index is empty but has the right size
     else

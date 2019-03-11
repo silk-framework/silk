@@ -2,26 +2,24 @@ package org.silkframework.runtime.activity
 
 import java.util.logging.{Level, Logger}
 
+import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.activity.Status.Canceling
+
+import scala.util.Try
 
 /**
  * Holds the current status of an activity.
  */
 class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
                    parent: Option[StatusHolder] = None,
-                   progressContribution: Double = 0.0) extends Observable[Status] {
+                   progressContribution: Double = 0.0,
+                   val projectAndTaskId: Option[ProjectAndTaskIds] = None) extends Observable[Status] {
 
   /**
    * The level at which task status changes should be logged.
    * Examples are status updates when the task is started and stopped.
    */
   private val statusLogLevel = Level.INFO
-
-  /**
-   * The level at which updates to the running status logged.
-   * Examples are updates to the current progress or the current status message.
-   */
-  private val progressLogLevel = Level.INFO
 
   /**
     * The level at which the failure of a task is logged.
@@ -39,6 +37,8 @@ class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
    */
   override def apply(): Status = status
 
+  def projectAndTaskIdString: String = projectAndTaskId.map(p => s" $p ").getOrElse("")
+
   /**
     * True, if canceling has been requested.
     */
@@ -50,10 +50,11 @@ class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
   def update(newStatus: Status, logStatus: Boolean = true) {
     // Log new status change if requested
     if(logStatus) {
+      val message = newStatus.toString + " " + projectAndTaskId.getOrElse("")
       newStatus match {
-        case s: Status.Running => log.log(progressLogLevel, s.toString)
-        case s: Status.Finished if s.failed => log.log(failureLogLevel, s.toString, s.exception.get)
-        case s => log.log(statusLogLevel, s.toString)
+        case _: Status.Running => log.log(StatusHolder.progressLogLevel, message)
+        case s: Status.Finished if s.failed => log.log(failureLogLevel, message, s.exception.get)
+        case _ => log.log(statusLogLevel, message)
       }
     }
 
@@ -109,5 +110,42 @@ class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
    */
   def update(message: String, progress: Double) {
     update(Status.Running(message, progress))
+  }
+}
+
+object StatusHolder {
+  val log: Logger = Logger.getLogger(getClass.getName)
+  /**
+    * The level at which updates to the running status logged.
+    * Examples are updates to the current progress or the current status message.
+    */
+  lazy val progressLogLevel: Level = {
+    val cfg = DefaultConfig.instance()
+    val progressLogKey = "logging.di.activity.progress"
+    if(cfg.hasPath(progressLogKey)) {
+      cfg.getAnyRef(progressLogKey) match {
+        case level: String =>
+          Try(Level.parse(level)).getOrElse {
+            log.warning(s"Invalid log level '$level' for parameter '$progressLogKey'!")
+            Level.INFO
+          }
+        case _ =>
+          log.warning(s"Config parameter '$progressLogLevel' must have a string value!")
+          Level.INFO
+      }
+    } else {
+      Level.INFO
+    }
+  }
+}
+
+case class ProjectAndTaskIds(projectId: String, taskId: Option[String]) {
+  override def toString: String = {
+    taskId match {
+      case Some(id) =>
+        s"(project: $projectId, task: $id)"
+      case None =>
+        s"(project: $projectId)"
+    }
   }
 }

@@ -18,9 +18,9 @@ const silkStore = rxmq.channel('silk.api');
 
 // Set api details
 let apiDetails = {
-    transformTask: false,
-    baseUrl: false,
-    project: false,
+    transformTask: 'test',
+    baseUrl: 'http://test.url',
+    project: 'test',
 };
 
 // Set Api details
@@ -350,17 +350,25 @@ hierarchicalMappingChannel
         Rx.Observable.forkJoin(
             silkStore
                 .request({
+                    // call the DI matchVocabularyClassDataset endpoint
                     topic: 'transform.task.rule.suggestions',
                     data: {...apiDetails, ...data},
                 })
                 .catch(err => {
-                    if (err.status !== 404)
-                        return Rx.Observable.return({error: err})
-                    return Rx.Observable.return(null);
+
+                    // It comes always {title: "Not Found", detail: "Not Found"} when the endpoint is not found.
+                    // see: SilkErrorHandler.scala
+                    const errorBody = _.get(err, 'response.body')
+
+                    if (err.status === 404 && errorBody.title === "Not Found" && errorBody.detail === "Not Found") {
+                        return Rx.Observable.return(null);
+                    }
+                    errorBody.code = err.status;
+                    return Rx.Observable.return({error: errorBody})
                 })
                 .map(returned => {
                     const body = _.get(returned, 'body', []);
-                    const error = _.get(returned, 'error', [])
+                    const error = _.get(returned, 'error', []);
 
                     if (error) {
                         return {
@@ -393,17 +401,24 @@ hierarchicalMappingChannel
                 }),
             silkStore
                 .request({
+                    // call the silk endpoint valueSourcePaths
                     topic: 'transform.task.rule.valueSourcePaths',
                     data: {unusedOnly: true, ...apiDetails, ...data},
                 })
-                .catch(err =>{
-                    if (err.status !== 404)
-                        return Rx.Observable.return({error: err})
-                    return Rx.Observable.return(null);
+                .catch(err => {
+                    const errorBody = _.get(err, 'response.body');
+                    errorBody.code = err.status;
+                    return Rx.Observable.return({error: errorBody});
+
                 })
                 .map(returned => {
                     const body = _.get(returned, 'body', []);
-
+                    const error = _.get(returned, 'error', []);
+                    if (error) {
+                        return {
+                            error,
+                        }
+                    }
                     return {
                         data: _.map(body, path => new Suggestion(path))
                     }

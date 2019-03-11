@@ -19,9 +19,6 @@ import org.silkframework.util.DPair
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 
-/**
-  * Created on 9/13/16.
-  */
 trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with MockitoSugar {
 
   val PROJECT_NAME = "ProjectName"
@@ -46,7 +43,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
 
   private val refreshTest = withRefresh(PROJECT_NAME)(_)
 
-  private val workspaceProvider = createWorkspaceProvider()
+  val workspaceProvider: WorkspaceProvider = createWorkspaceProvider()
 
   private val repository = InMemoryResourceRepository()
 
@@ -55,7 +52,6 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
   private val projectResources = repository.get(PROJECT_NAME)
 
   private lazy val project = workspace.project(PROJECT_NAME)
-  private lazy val projectOther = workspace.project(PROJECT_NAME_OTHER)
 
   val rule =
     LinkageRule(
@@ -218,7 +214,8 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
     project.addTask[GenericDatasetSpec](DUMMY_DATASET, DatasetSpec(dummyDataset))
     workspaceProvider.putTask(PROJECT_NAME, dataset)
     refreshTest {
-      val ds = workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).filter(_.id.toString == DATASET_ID).headOption.get
+      val tasks = workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources)
+      val ds = tasks.find(_.id.toString == DATASET_ID).get
       ds shouldBe dataset
     }
   }
@@ -226,7 +223,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
   it should "update dataset tasks" in {
     workspaceProvider.putTask(PROJECT_NAME, datasetUpdated)
     refreshTest {
-      val ds = workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).filter(_.id.toString == DATASET_ID).headOption.get
+      val ds = workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).find(_.id.toString == DATASET_ID).get
       ds shouldBe datasetUpdated
     }
   }
@@ -257,6 +254,18 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
     refreshTest {
       workspaceProvider.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(transformTaskUpdated)
     }
+  }
+
+  it should "remove meta data when a task is deleted" in {
+    val newTransformTaskLabel = "newTransformTask"
+    workspace.project(PROJECT_NAME).removeAnyTask(TRANSFORM_ID, removeDependentTasks = false)
+    workspace.project(PROJECT_NAME).addTask[TransformSpec](TRANSFORM_ID, transformTaskUpdated.data, MetaData(newTransformTaskLabel))
+    workspace.reload()
+    val oldMetaData = transformTaskUpdated.metaData
+    val newMetaData = workspace.project(PROJECT_NAME).anyTask(TRANSFORM_ID).metaData
+    newMetaData.label shouldBe newTransformTaskLabel
+    newMetaData.description should not be oldMetaData.description
+    newMetaData.modified should not be oldMetaData.modified
   }
 
   it should "update hierarchical transformation tasks" in {

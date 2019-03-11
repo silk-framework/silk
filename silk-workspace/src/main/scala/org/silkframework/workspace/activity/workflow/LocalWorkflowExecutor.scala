@@ -7,7 +7,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{LocalEntities, LocalExecution}
-import org.silkframework.plugins.dataset.{InternalDataset, InternalDatasetTrait}
+import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.workspace.ProjectTask
 
@@ -65,6 +65,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         if(!cancelled) {
           throw e // Only rethrow exception if the activity was not cancelled, else the error could be due to the cancellation.
         }
+    } finally {
+      this.executionContext.executeShutdownHooks()
     }
   }
 

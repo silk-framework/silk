@@ -14,12 +14,13 @@
 
 package org.silkframework.plugins.dataset.rdf.formatters
 
+import org.silkframework.dataset.rdf.LinkFormatter
 import org.silkframework.entity.{Link, ValueType}
 import org.silkframework.plugins.dataset.rdf.RdfFormatUtil
 
 case class NTriplesLinkFormatter() extends LinkFormatter with EntityFormatter {
 
-  override def format(link: Link, predicateUri: String): String = {
+  override def formatLink(link: Link, predicateUri: String): String = {
     "<" + link.source + "> <" + predicateUri + "> <" + link.target + "> .\n"
   }
 

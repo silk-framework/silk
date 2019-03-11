@@ -11,6 +11,7 @@ import {
     ConfirmationDialog,
     Info,
     Error,
+    Warning,
     ContextMenu,
     MenuItem,
     Spinner,
@@ -49,7 +50,8 @@ const SuggestionsList = React.createClass({
             rawData: undefined,
             askForDiscard: false,
             checked: this.defaultCheckValue,
-            matchFromDataset: true
+            matchFromDataset: true,
+            warnings: [],
         };
     },
     onChecked(v) {
@@ -79,7 +81,7 @@ const SuggestionsList = React.createClass({
                         type: v.type || SUGGESTION_TYPES[0],
                     }));
                     this.setState({
-                        warnings: response.warnings,
+                        warnings: response.warnings.filter(w => !_.isEmpty(w)),
                         loading: false,
                         rawData,
                         data: this.state.showDefaultProperties
@@ -223,6 +225,7 @@ const SuggestionsList = React.createClass({
     },
     // template rendering
     render() {
+
         if (this.state.loading) {
             return <Spinner />;
         }
@@ -293,20 +296,42 @@ const SuggestionsList = React.createClass({
 
         let suggestionsList = false;
         const hasChecks = _.get(this.state, 'checked');
-        const warnings = !_.isEmpty(this.state.warnings) && (
-            <Error>
+        const errors = _.filter(this.state.warnings, warning => warning.code !== 404);
+        const warnings = _.filter(this.state.warnings, warning => warning.code === 404);
+
+        const errorsComponent = !_.isEmpty(errors) && (
+            <Error
+                className={"ecc-hm-suggestions__errors-container"}>
                 {_.map(
-                    this.state.warnings,
-                    warn => (
-                        <div>
-                            <b>{warn.title}</b>
-                            <div>{warn.detail}</div>
+                    errors,
+                    error => (
+                        <div
+                            key={error.code+error.detail+error.title}
+                            className="ecc-hm-suggestions-error">
+                            <b>{error.title} ({error.code})</b>
+                            <div>{error.detail}</div>
                         </div>
                     ),
                 )}
             </Error>
         );
 
+        const warningsComponent = !_.isEmpty(warnings) && (
+            <Warning
+                className={"ecc-hm-suggestions__warnings-container"}>
+                {_.map(
+                    warnings,
+                    warning => (
+                        <div
+                            key={warning.code+warning.detail+warning.title}
+                            className="ecc-hm-suggestions-warning">
+                            <b>{warning.title} ({warning.code})</b>
+                            <div>{warning.detail}</div>
+                        </div>
+                    ),
+                )}
+            </Warning>
+        );
         if (_.size(this.state.data) === 0) {
             suggestionsList = (
                 <CardContent>
@@ -314,7 +339,6 @@ const SuggestionsList = React.createClass({
                         No suggestions found for{' '}
                         <ParentElement parent={this.props.parent} />.
                     </Info>
-                    {warnings}
                 </CardContent>
             );
         } else {
@@ -411,7 +435,8 @@ const SuggestionsList = React.createClass({
                         </ContextMenu>
                     </CardMenu>
                 </CardTitle>
-                {warnings}
+                {warningsComponent}
+                {errorsComponent}
                 {suggestionsList}
                 <CardActions fixed>
                     <AffirmativeButton

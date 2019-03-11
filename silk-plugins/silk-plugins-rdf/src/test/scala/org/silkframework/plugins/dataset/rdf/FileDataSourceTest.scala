@@ -20,6 +20,7 @@ import java.net.URLDecoder
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{EntitySchema, Path, StringValueType, UriValueType}
+import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.util.Uri

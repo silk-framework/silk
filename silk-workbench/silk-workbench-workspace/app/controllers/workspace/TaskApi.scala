@@ -65,10 +65,10 @@ class TaskApi extends Controller with ControllerUtilsTrait {
   }
 
   def getTask(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    implicit val project = WorkspaceFactory().workspace.project(projectName)
+    val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
 
-    SerializationUtils.serializeCompileTime[Task[TaskSpec]](task)
+    SerializationUtils.serializeCompileTime[Task[TaskSpec]](task, Some(project))
   }
 
   def deleteTask(projectName: String, taskName: String, removeDependentTasks: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>

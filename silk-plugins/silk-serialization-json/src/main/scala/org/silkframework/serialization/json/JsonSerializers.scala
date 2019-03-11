@@ -240,7 +240,10 @@ object JsonSerializers {
 
   def readParameters(value: JsValue): Map[String, String] = {
     mustBeJsObject(mustBeDefined(value, PARAMETERS)) { array =>
-      Json.fromJson[Map[String, String]](array).get
+      Json.fromJson[Map[String, String]](array) match {
+        case JsSuccess(arr, _) => arr
+        case error @ JsError(_) => throw new ValidationException("Could not read parameters from JSON. Details: " + JsError.toJson(error))
+      }
     }
   }
 
@@ -876,7 +879,6 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): LinkFilter = {
       LinkFilter(
         limit = numberValueOption(value, LIMIT).map(_.intValue),
-        threshold = numberValueOption(value, THRESHOLD).map(_.doubleValue),
         unambiguous = booleanValueOption(value, UNAMBIGUOUS)
       )
     }
@@ -884,7 +886,6 @@ object JsonSerializers {
     override def write(value: LinkFilter)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         LIMIT -> value.limit.map(JsNumber(_)),
-        THRESHOLD -> value.threshold.map(JsNumber(_)),
         UNAMBIGUOUS -> value.unambiguous.map(JsBoolean)
       )
     }

@@ -10,5 +10,5 @@ import org.silkframework.runtime.plugin.Plugin
   description = "Remove leading and trailing whitespaces."
 )
 case class TrimTransformer() extends SimpleTransformer {
-  override def evaluate(value: String) = value.trim
+  override def evaluate(value: String): String = value.trim
 }

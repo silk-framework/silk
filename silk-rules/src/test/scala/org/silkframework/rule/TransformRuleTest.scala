@@ -1,12 +1,12 @@
 package org.silkframework.rule
 
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.rule.input.TransformInput
+import org.silkframework.entity.Path
+import org.silkframework.rule.input.{PathInput, TransformInput}
+import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.plugins.transformer.value.ConstantUriTransformer
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
-
-import scala.util.Try
 
 class TransformRuleTest extends FlatSpec with MustMatchers {
   behavior of "Transform Rule"
@@ -15,20 +15,24 @@ class TransformRuleTest extends FlatSpec with MustMatchers {
   val duplicated2 = "duplicated2"
 
   it should "validate IDs in nested rules" in {
-    val rootMappingCorrect: RootMappingRule = createRootRule(duplicate1 = false, duplicate2 = false)
-    rootMappingCorrect.validate() // Should validate
+    createRootRule(duplicate1 = false, duplicate2 = false)
     testErrorCases(duplicate1 = true, duplicate2 = true)
     testErrorCases(duplicate1 = false, duplicate2 = true)
     testErrorCases(duplicate1 = true, duplicate2 = false)
   }
 
+  it should "validate IDs in rule operator trees" in {
+    intercept[ValidationException] {
+      createRuleWithDuplicatedOperatorID()
+    }
+  }
+
   private def testErrorCases(duplicate1: Boolean, duplicate2: Boolean): Unit = {
-    val rootMappingDuplicate: RootMappingRule = createRootRule(duplicate1 = duplicate1, duplicate2 = duplicate2)
     intercept[ValidationException]{
-      rootMappingDuplicate.validate()
+      createRootRule(duplicate1 = duplicate1, duplicate2 = duplicate2)
     }
     try {
-      rootMappingDuplicate.validate()
+      createRootRule(duplicate1 = duplicate1, duplicate2 = duplicate2)
     } catch {
       case e: ValidationException =>
         val errorMessage = e.errors.map(_.message).mkString("")
@@ -68,12 +72,24 @@ class TransformRuleTest extends FlatSpec with MustMatchers {
     rootMapping
   }
 
+  private def createRuleWithDuplicatedOperatorID() = {
+    val rootMapping = RootMappingRule(
+      MappingRules(
+        uriRule = None,
+        typeRules = Seq.empty,
+        propertyRules = Seq(
+          ComplexMapping("invalidRule", TransformInput("duplicateID", LowerCaseTransformer(), Seq(PathInput("duplicateID", Path.empty))))
+        )
+      )
+    )
+    rootMapping
+  }
+
   private def checkTargetUri(targetPropertyUri: String) = {
     // Nest it, so we know it works recursively
     val objectMapping = ObjectMapping(rules = MappingRules(propertyRules = Seq(
       DirectMapping(mappingTarget = MappingTarget(Uri(targetPropertyUri)))
     )))
-    val rootMappingRule = RootMappingRule(MappingRules(propertyRules = Seq(objectMapping)))
-    rootMappingRule.validate()
+    RootMappingRule(MappingRules(propertyRules = Seq(objectMapping)))
   }
 }

@@ -2,9 +2,9 @@ package org.silkframework.workspace.activity.linking
 
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.EntitySchema
-import org.silkframework.execution.{AbortExecutionException, ExecutionException, ExecutionType, ExecutorRegistry}
+import org.silkframework.execution.{AbortExecutionException, ExecutionType, ExecutorRegistry}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
-import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
@@ -44,7 +44,8 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
 
     // Generate links
     context.status.update("Generating links", 0.4)
-    val links = ExecutorRegistry.execute(task, inputs, None, execution) match {
+    val links = ExecutorRegistry.execute(task, inputs, None, execution,
+      new ActivityMonitor(getClass.getSimpleName, projectAndTaskId = context.status.projectAndTaskId)) match {
       case Some(result) => result
       case None => throw AbortExecutionException("Linking task did not generate any links")
     }
@@ -53,6 +54,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
     context.status.update("Writing links to output", 0.8)
     for(output <- task.data.outputs) {
       val outputTask = task.project.task[GenericDatasetSpec](output)
+      outputTask.data.linkSink.clear() // Clear link sink before writing in single execution mode
       ExecutorRegistry.execute(outputTask, Seq(links), None, execution)
     }
   }

@@ -17,7 +17,7 @@ package org.silkframework.plugins.dataset.rdf.sparql
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, ShouldMatchers}
-import org.silkframework.plugins.dataset.rdf.SparqlDataset
+import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
 import org.silkframework.runtime.activity.UserContext
 
 class SparqlAggregateTypesCollectorTest extends FlatSpec with ShouldMatchers with BeforeAndAfterAll {
