@@ -329,8 +329,9 @@ const MappingsWorkview = React.createClass({
         let data = JSON.parse(sessionStorage.getItem('copyingData'));
         if (data !== {}) {
             data.parentId = this.props.currentRuleId;
-            data.label = 'Copy of ' + data.label;
-
+            _.isEmpty(_.trim(data.label))
+                ? data.label = 'Copy of ' + data.targetProperty
+                : data.label = 'Copy of ' + data.label;
             if (data.type === MAPPING_RULE_TYPE_DIRECT) {
                 this.createCopiedMappingRule(data);
                 sessionStorage.removeItem('copyingData');
