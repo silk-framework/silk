@@ -7,6 +7,7 @@ import org.silkframework.entity.{EntitySchema, TypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.runtime.resource._
+import BulkResourceSupport._
 
 @Plugin(
   id = "csv",
@@ -43,27 +44,7 @@ case class CsvDataset (
   quoteEscapeCharacter: String = "\"") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset with CsvDatasetTrait with ResourceBasedDataset with BulkResourceSupport {
 
 
-  def resource: WritableResource = {
-    if (isBulkResource(file)) {
-      val bulkResource = asBulkResource(file)
-      val schemaSet = checkResourceSchema(bulkResource)
-
-      if (schemaSet.isEmpty) {
-        throw new Exception("The schema of the bulk resource could not be determined")
-      }
-      else if (schemaSet.length == 1) {
-        onSingleSchemaBulkContent(bulkResource).get
-      }
-      else {
-        onMultiSchemaBulkContent(bulkResource)
-          .getOrElse(onSingleSchemaBulkContent(bulkResource).get)
-      }
-
-    }
-    else {
-      resource
-    }
-  }
+  def resource: WritableResource = checkIfBulkResource(file)
 
   override def source(implicit userContext: UserContext): DataSource = csvSource()
 
@@ -111,8 +92,8 @@ case class CsvDataset (
     * @return
     */
   override def onMultiSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource] = {
-    throw new UnsupportedOperationException("The csv dataset does not support bulk resources with different a schnema" +
-      "for each sub resource")
+    throw new UnsupportedOperationException("The csv dataset does not support bulk resources with schema differences" +
+      "in its sub resources")
   }
 
   /**
@@ -134,21 +115,19 @@ case class CsvDataset (
     * @param bulkResource bulk resource
     * @return Sequence of distinct schema objects
     */
-  override def checkResourceSchema(bulkResource: BulkResource): IndexedSeq[EntitySchema] = {
+  override def checkResourceSchema(bulkResource: BulkResource): Seq[EntitySchema] = {
     val csvSources = for (subResource <- bulkResource.subResources) yield {
-      new CsvSource(resource, csvSettings, properties, uri, regexFilter, codec,
+      log info s"Checking schema for bulk resource contents: ${subResource.name}"
+      new CsvSource(subResource, csvSettings, properties, uri, regexFilter, codec,
         skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines, ignoreMalformedInputExceptionInPropertyList = false)
     }
-
-    val schemaSeq: IndexedSeq[EntitySchema] = csvSources.map(s => {
+    csvSources.map(s => {
       val properties = s.propertyList
-      implicit val userContext = UserContext.INTERNAL_USER
+      implicit val userContext: UserContext = UserContext.INTERNAL_USER
       val paths: IndexedSeq[TypedPath] = s.retrieveTypedPath("")
         .map(tp => TypedPath(tp.normalizedSerialization, tp.valueType))
       EntitySchema("", paths.toIndexedSeq)
     }).toIndexedSeq
-
-    schemaSeq
   }
 
 }
