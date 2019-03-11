@@ -7,7 +7,7 @@ const CONTENT_TYPE_JSON = 'application/json';
  * API for the DataIntegration REST API. This includes the pure REST calls returning the results as JSON without any
  * further business logic.
  */
-const dataIntegrationApi = {
+const silkApi = {
 
     /** returns the JSON representation of a DI task */
     getTask: function(baseUrl, projectId, taskId) {
@@ -130,6 +130,6 @@ const dataIntegrationApi = {
     completionEndpoint: function(baseUrl, projectId, taskId) {
         return `${baseUrl}/scripts/projects/${projectId}/tasks/${taskId}/completions`;
     }
-}
+};
 
-export default dataIntegrationApi
+export default silkApi

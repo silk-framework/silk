@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {AffirmativeButton, DismissiveButton, SelectBox, Info, Spinner, Error, Table, Icon} from '@eccenca/gui-elements';
-import dataIntegrationStore from "../api/dataintegrationStore";
+import silkStore from "../api/silkStore";
 import hierarchicalMappingChannel from "../HierarchicalMapping/store";
 import ExecutionReport from "./ExecutionReport";
 
@@ -105,5 +105,5 @@ WorkflowExecutionReport.propTypes = {
 };
 
 WorkflowExecutionReport.defaultProps = {
-  diStore: dataIntegrationStore
+  diStore: silkStore
 };

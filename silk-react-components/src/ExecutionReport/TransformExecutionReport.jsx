@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {AffirmativeButton, DismissiveButton, SelectBox, Info, Spinner, Error, Table} from '@eccenca/gui-elements';
-import dataIntegrationStore from "../api/dataintegrationStore";
+import silkStore from "../api/silkStore";
 import MappingsTree from '../HierarchicalMapping/Components/MappingsTree';
 import hierarchicalMappingChannel from "../HierarchicalMapping/store";
 import ExecutionReport from "./ExecutionReport";
@@ -54,5 +54,5 @@ TransformExecutionReport.propTypes = {
 };
 
 TransformExecutionReport.defaultProps = {
-  diStore: dataIntegrationStore
+  diStore: silkStore
 };

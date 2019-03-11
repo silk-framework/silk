@@ -1,13 +1,13 @@
-import dataIntegrationApi from './dataintegrationRestApi';
+import silkApi from './silkRestApi';
 
 /** Business logic layer over the DataIntegration REST API. */
-const dataIntegrationStore = {
+const silkStore = {
 
     /**
      * Retrieves a transform task execution report.
      */
     getTransformExecutionReport: (baseUrl, projectId, taskId) => {
-        return dataIntegrationApi.activityResult(baseUrl, projectId, taskId, "ExecuteTransform")
+        return silkApi.activityResult(baseUrl, projectId, taskId, "ExecuteTransform")
             .then(({data}) => {
               return data;
             });
@@ -17,7 +17,7 @@ const dataIntegrationStore = {
      * Retrieves a workflow task execution report.
      */
     getWorkflowExecutionReport: (baseUrl, projectId, taskId) => {
-        return dataIntegrationApi.activityResult(baseUrl, projectId, taskId, "ExecuteLocalWorkflow")
+        return silkApi.activityResult(baseUrl, projectId, taskId, "ExecuteLocalWorkflow")
             .then(({data}) => {
                 return data;
             });
@@ -27,7 +27,7 @@ const dataIntegrationStore = {
      * Retrieves the current script code.
      */
     getScript: (baseUrl, projectId, scriptTaskId) => {
-        return dataIntegrationApi.getTask(baseUrl, projectId, scriptTaskId)
+        return silkApi.getTask(baseUrl, projectId, scriptTaskId)
             .then(({data}) => {
                 return data.data.parameters.script;
             });
@@ -42,7 +42,7 @@ const dataIntegrationStore = {
             "column": column
         };
 
-        return dataIntegrationApi.completions(baseUrl, projectId, scriptTaskId, requestJson)
+        return silkApi.completions(baseUrl, projectId, scriptTaskId, requestJson)
     },
 
     /**
@@ -63,18 +63,18 @@ const dataIntegrationStore = {
         }};
         const executeSparkOperatorActivity = "ExecuteSparkOperator";
         // Save script task with modified script, FIXME: Have separate 'Save' step, execute activity without the need of saving the script task
-        return dataIntegrationApi.patchTask(baseUrl, projectId, scriptTaskId, patchJson)
+        return silkApi.patchTask(baseUrl, projectId, scriptTaskId, patchJson)
             .then(() => {
                 // Configure the script task's workflow operator ID for the activity execution (the same script task could appear multiple times in a workflow)
-                return dataIntegrationApi.configureTaskActivity(baseUrl, projectId, workflowId, executeSparkOperatorActivity, {"operator": workflowOperatorId});
+                return silkApi.configureTaskActivity(baseUrl, projectId, workflowId, executeSparkOperatorActivity, {"operator": workflowOperatorId});
             })
             .then(() => {
-                return dataIntegrationApi.executeTaskActivityBlocking(baseUrl, projectId, workflowId, executeSparkOperatorActivity);
+                return silkApi.executeTaskActivityBlocking(baseUrl, projectId, workflowId, executeSparkOperatorActivity);
             })
             .then(() => {
-                return dataIntegrationApi.activityResult(baseUrl, projectId, workflowId, executeSparkOperatorActivity);
+                return silkApi.activityResult(baseUrl, projectId, workflowId, executeSparkOperatorActivity);
             })
     }
 };
 
-export default dataIntegrationStore;
+export default silkStore;
