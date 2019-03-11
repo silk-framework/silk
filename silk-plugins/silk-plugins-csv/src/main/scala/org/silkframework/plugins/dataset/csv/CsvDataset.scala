@@ -1,9 +1,12 @@
 package org.silkframework.plugins.dataset.csv
 
+import java.io.InputStream
+
 import org.silkframework.dataset._
+import org.silkframework.entity.{EntitySchema, TypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{Param, Plugin}
-import org.silkframework.runtime.resource.{BulkResource, BulkResourceSupport, Resource, WritableResource}
+import org.silkframework.runtime.resource._
 
 @Plugin(
   id = "csv",
@@ -11,8 +14,7 @@ import org.silkframework.runtime.resource.{BulkResource, BulkResourceSupport, Re
   description =
       """Retrieves all entities from a csv file."""
 )
-case class CsvDataset
-(
+case class CsvDataset (
   @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
     file: WritableResource,
   @Param("Comma-separated list of URL-encoded properties. If not provided, the list of properties is read from the first line.")
@@ -43,14 +45,19 @@ case class CsvDataset
 
   def resource: WritableResource = {
     if (isBulkResource(file)) {
-      asBulkResource(file)
+      val bulkResource = asBulkResource(file)
+      val schemaSet = checkResourceSchema(bulkResource)
 
-//      if (BulkResource.hasEqualHeaders(bulkResource) ) {
-//        BulkResource.removeDuplicateFileHeaders(bulkResource)
-//      }
-//      else {
-//        throw new Exception("CSV bulk resource could not be processed.")
-//      }
+      if (schemaSet.isEmpty) {
+        throw new Exception("The schema of the bulk resource could not be determined")
+      }
+      else if (schemaSet.length == 1) {
+        onSingleSchemaBulkContent(bulkResource).get
+      }
+      else {
+        onMultiSchemaBulkContent(bulkResource)
+          .getOrElse(onSingleSchemaBulkContent(bulkResource).get)
+      }
 
     }
     else {
@@ -93,6 +100,57 @@ case class CsvDataset
     }
     quote
   }
+
+  /**
+    * Gets called when it is detected that all files in the bulk resource have the different schemata.
+    * The implementing class needs to provide a bulk resource object with an input stream that
+    * covers all files.
+    * If that case cannot be supported None should be returned.
+    *
+    * @param bulkResource Bulk resource
+    * @return
+    */
+  override def onMultiSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource] = {
+    throw new UnsupportedOperationException("The csv dataset does not support bulk resources with different a schnema" +
+      "for each sub resource")
+  }
+
+  /**
+    * Gets called when it is detected that all files in the bulk resource have the same schema.
+    * The implementing class needs to provide a logical concatenation of the individual resources.
+    * If that case cannot be supported None should be returned.
+    *
+    * @param bulkResource Bulk resource
+    * @return
+    */
+  override def onSingleSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource] = {
+    val combinedStream = BulkResourceSupport.combineStreams(bulkResource.inputStreams, Some(1))
+    Some(BulkResource.createFromBulkResource(bulkResource, combinedStream))
+  }
+
+  /**
+    * The implementing dataset must provide a way to determine the schema of each resource in the bulk resource.
+    *
+    * @param bulkResource bulk resource
+    * @return Sequence of distinct schema objects
+    */
+  override def checkResourceSchema(bulkResource: BulkResource): IndexedSeq[EntitySchema] = {
+    val csvSources = for (subResource <- bulkResource.subResources) yield {
+      new CsvSource(resource, csvSettings, properties, uri, regexFilter, codec,
+        skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines, ignoreMalformedInputExceptionInPropertyList = false)
+    }
+
+    val schemaSeq: IndexedSeq[EntitySchema] = csvSources.map(s => {
+      val properties = s.propertyList
+      implicit val userContext = UserContext.INTERNAL_USER
+      val paths: IndexedSeq[TypedPath] = s.retrieveTypedPath("")
+        .map(tp => TypedPath(tp.normalizedSerialization, tp.valueType))
+      EntitySchema("", paths.toIndexedSeq)
+    }).toIndexedSeq
+
+    schemaSeq
+  }
+
 }
 
 object CsvDataset {

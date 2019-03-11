@@ -5,6 +5,7 @@ import java.util.logging.Logger
 import java.util.zip.ZipException
 
 import org.apache.commons.io.input.ReaderInputStream
+import org.silkframework.entity.EntitySchema
 
 import scala.collection.JavaConverters
 
@@ -42,6 +43,7 @@ trait BulkResourceSupport {
     }
   }
 
+
   /**
     * Returns true if the given resource is a BulkResource and false otherwise.
     * A BulkResource is detected if the file belonging to the given resource ends with .zip or is a
@@ -53,6 +55,45 @@ trait BulkResourceSupport {
   def isBulkResource(resource: WritableResource): Boolean = {
     resource.name.endsWith(".zip") && !new File(resource.path).isDirectory
   }
+
+
+  /* The following methods that need to implement by the datasets to avoid dependency/structure changes
+     In general it would be better to have a model with datasets that don't implement logic (like other operators).
+     Then we could define arbitrary "flag" traits and leave the impl. to each executor.
+     Now spark does the second thing and the local exec. does the first. However, the local way is unlikely to change.
+
+     FIXME Rethink traits/execution model */
+
+  /**
+    * Gets called when it is detected that all files in the bulk resource have the different schemata.
+    * The implementing class needs to provide a bulk resource object with an input stream that
+    * covers all files.
+    * If that case cannot be supported None should be returned.
+    *
+    * @param bulkResource Bulk resource
+    * @return
+    */
+  def onMultiSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource]
+
+  /**
+    * Gets called when it is detected that all files in the bulk resource have the same schema.
+    * The implementing class needs to provide a logical concatenation of the individual resources.
+    * If that case cannot be supported None should be returned.
+    *
+    * @param bulkResource Bulk resource
+    * @return
+    */
+  def onSingleSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource]
+
+  /**
+    * The implementing dataset must provide a way to determine the schema of each resource in the bulk resource.
+    * The cardinality of the result is 1, there is only one schema.
+    *
+    * @param bulkResource Bulk resource
+    * @return
+    */
+  def checkResourceSchema(bulkResource: BulkResource): IndexedSeq[EntitySchema]
+
 }
 
 object BulkResourceSupport {
@@ -189,5 +230,19 @@ object BulkResourceSupport {
       finally stream.close()
     }
   }
+
+
+  /**
+    * Create a resource with the meta data of the given bulk resource and the givin input stream as its backing
+    * input stream.
+    *
+    * @param bulkResource Resource
+    * @param unifiedInputStream The input stream that will be provided by the new resource
+    * @return
+    */
+  def asWritableResource(bulkResource: BulkResource, unifiedInputStream: InputStream): Resource = {
+    ReadOnlyResource(BulkResource.createFromBulkResource(bulkResource, unifiedInputStream))
+  }
+
 
 }

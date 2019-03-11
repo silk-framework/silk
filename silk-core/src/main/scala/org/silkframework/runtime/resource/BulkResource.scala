@@ -35,6 +35,7 @@ case class BulkResource(file: File) extends WritableResource {
     this
   }
 
+
   /**
     * The local name of this resource.
     */
@@ -113,6 +114,18 @@ case class BulkResource(file: File) extends WritableResource {
     }
   }
 
+  /**
+    * Returns a set of resources representing the files contained in a the bulk resource.
+    * Each will have one unique input stream and the same meta data as the whole bulk resource.
+    *
+    * @return Sequence of resources
+    */
+  def subResources: Seq[WritableResource] = {
+    for (stream <- inputStreams) yield {
+      apply(this, stream)
+    }
+  }
+
 
   /**
     * Preferred method for writing to a resource.
@@ -133,13 +146,22 @@ case class BulkResource(file: File) extends WritableResource {
     case ex:IOException => log severe s"$zipFile could not be deleted:${ex.getMessage} "
   }
 }
-//
-//
-///**
-//  * Companion with helper methods for obtaining InputStreams from achieves and folders.
-//  * The BulkResource handling should generally be done in a dataset that implements the BulkResourceSupport trait.
-//  */
-//object BulkResource {
-//
-//
-//}
+
+
+/**
+  * Companion with helper functions.
+  */
+object BulkResource {
+
+  /**
+    * Create new bulk resource with the given input stream replaceing the bulk resource input stream.
+    *
+    * @param bulkResource Resource used to create new Resource
+    * @param inputStreamReplacement Input stream to be provided by the resource
+    * @return
+    */
+  def createFromBulkResource(bulkResource: BulkResource, inputStreamReplacement: InputStream): BulkResource = {
+    BulkResource.createFromBulkResource(bulkResource, inputStreamReplacement)
+  }
+
+}
