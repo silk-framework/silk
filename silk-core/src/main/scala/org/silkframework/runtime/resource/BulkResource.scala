@@ -35,7 +35,6 @@ case class BulkResource(file: File) extends WritableResource {
     this
   }
 
-
   /**
     * The local name of this resource.
     */
@@ -89,8 +88,9 @@ case class BulkResource(file: File) extends WritableResource {
     *
     * @param inputStreamReplacement Replacement Input Stream
     */
-  def replaceInputStream(inputStreamReplacement: InputStream): Unit = {
+  def replaceInputStream(inputStreamReplacement: InputStream): BulkResource = {
     replacementInputStream = Some(inputStreamReplacement)
+    this
   }
 
 
@@ -122,7 +122,7 @@ case class BulkResource(file: File) extends WritableResource {
     */
   def subResources: Seq[WritableResource] = {
     for (stream <- inputStreams) yield {
-      apply(this, stream)
+      BulkResource.createFromBulkResource(this, stream)
     }
   }
 
@@ -161,7 +161,8 @@ object BulkResource {
     * @return
     */
   def createFromBulkResource(bulkResource: BulkResource, inputStreamReplacement: InputStream): BulkResource = {
-    BulkResource.createFromBulkResource(bulkResource, inputStreamReplacement)
+    val newResource = new BulkResource(bulkResource.file)
+    newResource.replaceInputStream(inputStreamReplacement)
   }
 
 }

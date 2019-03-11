@@ -6,6 +6,7 @@ import java.util.zip.ZipException
 
 import org.apache.commons.io.input.ReaderInputStream
 import org.silkframework.entity.EntitySchema
+import org.silkframework.runtime.resource.BulkResourceSupport.getDistinctSchemaDescriptions
 
 import scala.collection.JavaConverters
 
@@ -19,7 +20,7 @@ import scala.collection.JavaConverters
   */
 trait BulkResourceSupport {
 
-  private val log: Logger = Logger.getLogger(this.getClass.getSimpleName)
+  val log: Logger = Logger.getLogger(this.getClass.getSimpleName)
 
   /**
     * Returns a BulkResource depending on the given inputs location and name.
@@ -40,6 +41,37 @@ trait BulkResourceSupport {
     }
     else {
       throw new IllegalArgumentException(resource.path + " is not a bulk resource.")
+    }
+  }
+
+  /**
+    * Cast the iput and return a BulkResource object if the given WritableResource is a zip file.
+    * Otherwise the given object is returned as is.
+    *
+    * Uses the dataset specific checkResourceSchema, onSingleSchemaBulkContent and onMultiSchemaBulkContent
+    * function's to check the resource content and schema.
+    *
+    * @param file Resource
+    * @return BulkResource or the given resource if it is no ar
+    */
+  def checkIfBulkResource(file: WritableResource): WritableResource = {
+    if (isBulkResource(file)) {
+      val bulkResource = asBulkResource(file)
+      val schemaSet = getDistinctSchemaDescriptions(checkResourceSchema(bulkResource))
+
+      if (schemaSet.isEmpty) {
+        throw new Exception("The schema of the bulk resource could not be determined")
+      }
+      else if (schemaSet.length == 1) {
+        onSingleSchemaBulkContent(bulkResource).get
+      }
+      else {
+        onMultiSchemaBulkContent(bulkResource)
+          .getOrElse(onSingleSchemaBulkContent(bulkResource).get)
+      }
+    }
+    else {
+      file
     }
   }
 
@@ -92,12 +124,19 @@ trait BulkResourceSupport {
     * @param bulkResource Bulk resource
     * @return
     */
-  def checkResourceSchema(bulkResource: BulkResource): IndexedSeq[EntitySchema]
+  def checkResourceSchema(bulkResource: BulkResource): Seq[EntitySchema]
 
 }
 
+/**
+  * Companion object with helper functions.
+  */
 object BulkResourceSupport {
 
+  /*constants*/
+  final val GENERATED_XML_ROOT_NAMWE: String = "GENERATED_ROOT" // TODO make configurable? at leat check ex. root
+
+  /*logger*/
   private val log: Logger = Logger.getLogger(this.getClass.getSimpleName)
 
   /**
@@ -170,6 +209,16 @@ object BulkResourceSupport {
     }
   }
 
+  /**
+    * Return a pair of input streams each containing a part of an xml tag ("<elementName>" and resp.
+    * </elemName>") for combinations writh other treams in the combinesStreams function.
+    *
+    * @param elementName XM Element name, defaults to "GENERATED_ROOT"
+    * @return
+    */
+  def getXmlElementWrapperInputStreams(elementName: String): (InputStream, InputStream) =
+    (new ByteArrayInputStream(s"<$elementName>".getBytes()), new ByteArrayInputStream(s"</$elementName>".getBytes()))
+
 
   /**
     * Return an input stream that is equa to the given stream with the given
@@ -179,7 +228,7 @@ object BulkResourceSupport {
     * @param linesToSkip - number of lines to skip
     * @return
     */
-  private def getSkipLinesInputStream(inputStream: InputStream, linesToSkip: Int = 1): InputStream = {
+  private def getSkipLinesInputStream(inputStream: InputStream, linesToSkip: Int = 0): InputStream = {
     val lis = new LineNumberReader(new InputStreamReader(inputStream))
     for (i <-0 until linesToSkip) {
       val line = lis.readLine()
@@ -199,6 +248,18 @@ object BulkResourceSupport {
     new ByteArrayInputStream(newline.getBytes())
   }
 
+
+  /**
+    * Get only the schemata with different paths/types.
+    */
+  def getDistinctSchemaDescriptions(schemaSequence: IndexedSeq[EntitySchema]): Seq[EntitySchema] = {
+    if (schemaSequence.isEmpty) {
+      Seq.empty[EntitySchema]
+    }
+    else {
+      schemaSequence.distinct
+    } // should work since equals is overwritte and should apply here as well, although it looks like WIP TODO check it!
+  }
 
   /**
     * Closes the given set of streams. Calls wait() before closing if that is possible.
