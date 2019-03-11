@@ -5,7 +5,7 @@ import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.Plugin
 
 @Plugin(
-  id = "mlfb-normalizer",
+  id = "metaphone",
   categories = Array("Linguistic"),
   label = "Metaphone",
   description = "Metaphone phonetic encoding. Provided by the StringMetric library: http://rockymadden.com/stringmetric/"
