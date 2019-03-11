@@ -1,8 +1,10 @@
 @import org.silkframework.workbench.WorkbenchPlugins
 @import org.silkframework.config.TaskSpec
-
+@import config.WorkbenchConfig
+@import controllers.core.Start
 @import org.silkframework.workbench.Context
-@(context: Option[Context[_ <: TaskSpec]], selectedTab: String, titleLabel: String)
+
+@(context: Option[Context[_ <: TaskSpec]], selectedTab: String, titleLabel: String)(implicit session: play.api.mvc.Session)
 
 @pluginTabs = {
   @for(cont <- context.toSeq;
@@ -19,6 +21,28 @@
     <a id="workspace-link" href="@config.baseUrl/workspace" onclick="window.location='@config.baseUrl/workspace'" class="mdl-tabs__tab @if(selectedTab == "workspace") {is-active}">Workspace</a>
     <a id="allActivities-view-link" href="@config.baseUrl/workspace/allActivities" onclick="window.location='@config.baseUrl/workspace/allActivities'" class="mdl-tabs__tab @if(selectedTab == "activities") {is-active}">Activities</a>
     @pluginTabs
-  </div>
 
+    <button id="app-actions" class="mdl-button mdl-js-button mdl-button--icon">
+      <i class="material-icons">more_vert</i>
+    </button>
+    <script type="text/javascript">
+      function app_logout() {
+        f=document.getElementById('logout_form');
+        if(f) {
+          f.submit();
+        }
+      }
+    </script>
+    <form id="logout_form" action="@{Start.deployPath + "logout"}" method="post">
+      <input type="hidden" value="Logout" />
+    </form>
+    <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect" for="app-actions">
+      <li class="mdl-menu__item" onclick="showDialog('@config.baseUrl/core/aboutDialog');">About</li>
+      <li class="mdl-menu__item" onclick="window.location='@config.baseUrl/core/config'">Configuration</li>
+      @if(WorkbenchConfig.get.showLogoutButton && session.get("loggedIn")==Some("true")) {
+        <li class="mdl-menu__item" onclick="app_logout();">Logout</li>
+      }
+    </ul>
+
+  </div>
 </div>
