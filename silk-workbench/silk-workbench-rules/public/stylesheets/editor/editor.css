@@ -405,6 +405,14 @@ label:hover {
     border-radius:5px;
 }
 
+label.edit_label {
+  display: inline-block;
+  width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0px;
+}
+
 input.edit_label {
   display: none;
   border-width: 0px;
