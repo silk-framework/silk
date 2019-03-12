@@ -23,7 +23,7 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers with B
 
   lazy val endpoint: SparqlEndpoint = {
     val fusekiUrl = fusekiServerInfo.getOrElse(throw new RuntimeException("Did not start Fuseki server!")).url
-    SparqlDataset(endpointURI = fusekiUrl, graph = GRAPH).sparqlEndpoint
+    SparqlDataset(endpointURI = fusekiUrl, graph = GRAPH).sparqlEndpoint()
   }
 
   override def beforeAll(): Unit = {

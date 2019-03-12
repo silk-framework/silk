@@ -58,7 +58,7 @@ class SparqlAggregateTypesCollectorTest extends FlatSpec with ShouldMatchers wit
 
   private def createEndpoint() = {
     val fusekiUrl = fusekiServerInfo.getOrElse(throw new RuntimeException("Did not start Fuseki server!")).url
-    SparqlDataset(endpointURI = fusekiUrl).sparqlEndpoint
+    SparqlDataset(endpointURI = fusekiUrl).sparqlEndpoint()
   }
 
   private def loadData(name: String): Model = {

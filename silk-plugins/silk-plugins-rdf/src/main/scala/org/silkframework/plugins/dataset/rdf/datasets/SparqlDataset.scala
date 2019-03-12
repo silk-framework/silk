@@ -1,8 +1,10 @@
 package org.silkframework.plugins.dataset.rdf.datasets
 
-import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, RdfDataset, SparqlParams}
+import java.io.InputStream
+
+import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, RdfDataset, SparqlEndpoint, SparqlParams}
 import org.silkframework.dataset.{TripleSink, TripleSinkDataset}
-import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
+import org.silkframework.plugins.dataset.rdf.endpoint.{JenaModelEndpoint, RemoteSparqlEndpoint}
 import org.silkframework.plugins.dataset.rdf.access.{SparqlSink, SparqlSource}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, PasswordParameter, Plugin}
@@ -53,15 +55,15 @@ case class SparqlDataset(
       useOrderBy = useOrderBy
     )
 
-  override val sparqlEndpoint: RemoteSparqlEndpoint = {
+  override def sparqlEndpoint(sparqlInputStream: Option[InputStream] = None): SparqlEndpoint = {
     RemoteSparqlEndpoint(params)
   }
 
-  override def source(implicit userContext: UserContext) = new SparqlSource(params, sparqlEndpoint)
+  override def source(implicit userContext: UserContext) = new SparqlSource(params, sparqlEndpoint())
 
-  override def linkSink(implicit userContext: UserContext) = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
+  override def linkSink(implicit userContext: UserContext) = new SparqlSink(params, sparqlEndpoint(), dropGraphOnClear = clearGraphBeforeExecution)
 
-  override def entitySink(implicit userContext: UserContext) = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
+  override def entitySink(implicit userContext: UserContext) = new SparqlSink(params, sparqlEndpoint(), dropGraphOnClear = clearGraphBeforeExecution)
 
-  override def tripleSink(implicit userContext: UserContext): TripleSink = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
+  override def tripleSink(implicit userContext: UserContext): TripleSink = new SparqlSink(params, sparqlEndpoint(), dropGraphOnClear = clearGraphBeforeExecution)
 }

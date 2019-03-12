@@ -1,8 +1,9 @@
 package org.silkframework.plugins.dataset
 
+import java.io.InputStream
 import java.net.{URI, URISyntaxException}
-import javax.inject.Inject
 
+import javax.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint}
@@ -29,10 +30,10 @@ trait InternalDatasetTrait extends Dataset with TripleSinkDataset with RdfDatase
   protected def internalDatasetPluginImpl: Dataset
   private lazy val _internalDatasetPluginImpl = internalDatasetPluginImpl
 
-  override def sparqlEndpoint: SparqlEndpoint = {
+  override def sparqlEndpoint(inputStream: Option[InputStream]): SparqlEndpoint = {
     _internalDatasetPluginImpl match {
       case rdfDataset: RdfDataset =>
-        rdfDataset.sparqlEndpoint
+        rdfDataset.sparqlEndpoint()
       case _ =>
         throw new RuntimeException("Internal dataset implementation is no RdfDataset, cannot return SparqlEndpoint. ")
     }

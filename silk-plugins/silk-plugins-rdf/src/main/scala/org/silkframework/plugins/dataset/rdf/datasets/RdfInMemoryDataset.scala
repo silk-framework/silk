@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.datasets
 
-import java.io.StringReader
+import java.io.{InputStream, StringReader}
 
 import org.apache.jena.rdf.model.ModelFactory
 import org.silkframework.dataset._
@@ -27,22 +27,22 @@ case class RdfInMemoryDataset(data: String,
   private lazy val model = ModelFactory.createDefaultModel
   model.read(new StringReader(data), null, format)
 
-  override val sparqlEndpoint: SparqlEndpoint = new JenaModelEndpoint(model)
+  override def sparqlEndpoint(sparqlInputStream: Option[InputStream] = None): SparqlEndpoint = new JenaModelEndpoint(model)
 
   /**
     * Returns a data source for reading entities from the data set.
     */
-  override def source(implicit userContext: UserContext): DataSource = new SparqlSource(SparqlParams(), sparqlEndpoint)
+  override def source(implicit userContext: UserContext): DataSource = new SparqlSource(SparqlParams(), sparqlEndpoint())
 
   /**
     * Returns a entity sink for writing entities to the data set.
     */
-  override def entitySink(implicit userContext: UserContext): EntitySink = new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = clearBeforeExecution)
+  override def entitySink(implicit userContext: UserContext): EntitySink = new SparqlSink(SparqlParams(), sparqlEndpoint(), dropGraphOnClear = clearBeforeExecution)
 
   /**
     * Returns a link sink for writing entity links to the data set.
     */
-  override def linkSink(implicit userContext: UserContext): LinkSink = new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = clearBeforeExecution)
+  override def linkSink(implicit userContext: UserContext): LinkSink = new SparqlSink(SparqlParams(), sparqlEndpoint(), dropGraphOnClear = clearBeforeExecution)
 
-  override def tripleSink(implicit userContext: UserContext): TripleSink = new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = clearBeforeExecution)
+  override def tripleSink(implicit userContext: UserContext): TripleSink = new SparqlSink(SparqlParams(), sparqlEndpoint(), dropGraphOnClear = clearBeforeExecution)
 }

@@ -38,7 +38,7 @@ package org.silkframework.plugins.dataset.rdf
     private val constructQuery = "CONSTRUCT { ?s ?p ?o. } WHERE { ?s ?p ?o. FILTER(?s = <http://dbpedia.org/resource/Albert_Einstein>) }"
     private val context = mock[ActivityContext[ExecutionReport]]
     private val source = RdfFileDataset(resources.get("test.nt"), "N-Triples")    // FIXME CMEM-1759 use quad file when QuadSink is available
-    private val input = Seq(new SparqlEndpointEntityTable(source.sparqlEndpoint, PlainTask("endpointTask", DatasetSpec.empty)))
+    private val input = Seq(new SparqlEndpointEntityTable(source.sparqlEndpoint(), PlainTask("endpointTask", DatasetSpec.empty)))
 
     private val WORKFLOW_ID = "copy_sparql"
     private val OUTPUT_DATASET_ID = "sparql_out"
@@ -73,9 +73,9 @@ package org.silkframework.plugins.dataset.rdf
       executor.run(activityContext)
       val outputDataset = project.task[GenericDatasetSpec](OUTPUT_DATASET_ID).data.plugin
       val inputDataset = project.task[GenericDatasetSpec](INPUT_DATASET_ID).data.plugin
-      val allOutputTriples = outputDataset.asInstanceOf[RdfFileDataset].sparqlEndpoint.constructModel("CONSTRUCT { ?s ?p ?o. } WHERE { ?s ?p ?o }")
+      val allOutputTriples = outputDataset.asInstanceOf[RdfFileDataset].sparqlEndpoint().constructModel("CONSTRUCT { ?s ?p ?o. } WHERE { ?s ?p ?o }")
       allOutputTriples.size() mustBe 13
-      val allInputTriples = inputDataset.asInstanceOf[RdfFileDataset].sparqlEndpoint.constructModel("CONSTRUCT { ?s ?p ?o. } WHERE { ?s ?p ?o }")
+      val allInputTriples = inputDataset.asInstanceOf[RdfFileDataset].sparqlEndpoint().constructModel("CONSTRUCT { ?s ?p ?o. } WHERE { ?s ?p ?o }")
       allInputTriples.isIsomorphicWith(allOutputTriples) mustBe true
     }
   }

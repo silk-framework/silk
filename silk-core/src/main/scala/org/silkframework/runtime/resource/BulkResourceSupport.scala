@@ -252,7 +252,7 @@ object BulkResourceSupport {
   /**
     * Get only the schemata with different paths/types.
     */
-  def getDistinctSchemaDescriptions(schemaSequence: IndexedSeq[EntitySchema]): Seq[EntitySchema] = {
+  def getDistinctSchemaDescriptions(schemaSequence: Seq[EntitySchema]): Seq[EntitySchema] = {
     if (schemaSequence.isEmpty) {
       Seq.empty[EntitySchema]
     }

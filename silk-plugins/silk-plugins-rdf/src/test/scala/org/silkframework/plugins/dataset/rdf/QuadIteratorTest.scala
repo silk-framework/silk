@@ -19,12 +19,12 @@ class QuadIteratorTest extends FlatSpec with Matchers with MockitoSugar {
   private val source = RdfFileDataset(resources.get("target.nt"), "N-Triples")
 
   it should "should produce isomorphic graphs when serializing the origin graph with QuadIterator" in {
-    val quadIterator = source.sparqlEndpoint.construct("CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }")
+    val quadIterator = source.sparqlEndpoint().construct("CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }")
     val serialized = serialize(quadIterator)
     var model = ModelFactory.createDefaultModel()
     model.read(new StringReader(serialized), null, "N-Quads")
 
-    val oldModel = source.sparqlEndpoint.constructModel("CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }")
+    val oldModel = source.sparqlEndpoint().constructModel("CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }")
     // the serialized graph (via QuadIterator) should be isomorphic to the origin graph
     model.isEmpty shouldBe false
     oldModel.isEmpty shouldBe false
