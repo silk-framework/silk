@@ -75,7 +75,7 @@ case class BulkResource(file: File) extends WritableResource {
     *         The caller is responsible for closing the stream after reading.
     */
   override def inputStream: InputStream = {
-    if (replacementInputStream.nonEmpty) log.warning(s"Returning a stream that concatenates all resources in " +
+    if (replacementInputStream.isEmpty) log.warning(s"Returning a stream that concatenates all resources in " +
       s"$name. Use the methods of the BulkResource object to get and combine the resources individually")
     replacementInputStream.getOrElse(BulkResourceSupport.combineStreams(inputStreams))
   }
