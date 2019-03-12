@@ -148,7 +148,6 @@ case class XmlDataset(
     )
 
     Some(BulkResource.createFromBulkResource(bulkResource, combinedStream))
-
   }
 
   /**

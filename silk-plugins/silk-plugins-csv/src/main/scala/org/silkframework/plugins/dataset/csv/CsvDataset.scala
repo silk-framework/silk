@@ -106,6 +106,7 @@ case class CsvDataset (
     */
   override def onSingleSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource] = {
     val combinedStream = BulkResourceSupport.combineStreams(bulkResource.inputStreams, Some(1))
+    val copy = copyStream(combinedStream)
     Some(BulkResource.createFromBulkResource(bulkResource, combinedStream))
   }
 
@@ -119,7 +120,7 @@ case class CsvDataset (
     val csvSources = for (subResource <- bulkResource.subResources) yield {
       log info s"Checking schema for bulk resource contents: ${subResource.name}"
       new CsvSource(subResource, csvSettings, properties, uri, regexFilter, codec,
-        skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines, ignoreMalformedInputExceptionInPropertyList = false)
+        skipLinesBeginning = 0, ignoreBadLines = ignoreBadLines, ignoreMalformedInputExceptionInPropertyList = false)
     }
     csvSources.map(s => {
       val properties = s.propertyList

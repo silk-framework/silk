@@ -63,9 +63,11 @@ trait BulkResourceSupport {
         throw new Exception("The schema of the bulk resource could not be determined")
       }
       else if (schemaSet.length == 1) {
+        log info s"One schema found for all resources in: ${bulkResource.name}"
         onSingleSchemaBulkContent(bulkResource).get
       }
       else {
+        log info s"Multiple schemata found in: ${bulkResource.name}"
         onMultiSchemaBulkContent(bulkResource)
           .getOrElse(onSingleSchemaBulkContent(bulkResource).get)
       }
@@ -191,7 +193,15 @@ object BulkResourceSupport {
   def combineStreams(streams: Seq[InputStream], skipLines: Option[Int] = None): InputStream = {
     if (skipLines.isEmpty) {
       val streamEnumeration = JavaConverters.asJavaEnumerationConverter[InputStream](streams.iterator)
-      new SequenceInputStream(streamEnumeration.asJavaEnumeration)
+      val combi = new SequenceInputStream(streamEnumeration.asJavaEnumeration)
+
+      var txt = ""
+      var b = 0
+      b = combi.read()
+      while (b > 0) {
+       print(b.toChar.toString.replace("\r",""))
+      }
+      combi
     }
     else {
       if (skipLines.get > 0) {
@@ -270,7 +280,8 @@ object BulkResourceSupport {
     if (streams.nonEmpty) streams.foreach( s => {
       try s.wait()
       catch {
-        case _: Throwable => // who cares
+        case t: Throwable =>
+          log severe "Some kind of exception occured when closing an input stream: " + t.getMessage
       }
       finally s.close()
     })
@@ -304,6 +315,19 @@ object BulkResourceSupport {
   def asWritableResource(bulkResource: BulkResource, unifiedInputStream: InputStream): Resource = {
     ReadOnlyResource(BulkResource.createFromBulkResource(bulkResource, unifiedInputStream))
   }
+
+  /**
+    * Copy an input stream.
+    *
+    * @param inputStream
+    * @return
+    */
+  def copyStream(inputStream: InputStream): InputStream = {
+    val text = scala.io.Source.fromInputStream(inputStream).mkString
+    val stream: InputStream = new ByteArrayInputStream(text.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
+    stream
+  }
+
 
 
 }

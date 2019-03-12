@@ -165,4 +165,11 @@ object BulkResource {
     newResource.replaceInputStream(inputStreamReplacement)
   }
 
+  def copyStream(inputStream: InputStream): InputStream = {
+    val text = scala.io.Source.fromInputStream(inputStream).mkString
+    println(text)
+    val stream: InputStream = new ByteArrayInputStream(text.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
+    stream
+  }
+
 }
