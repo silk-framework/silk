@@ -121,7 +121,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
 
     context.task.data.plugin match {
       case rdf: RdfDataset =>
-        val sparqlEndpoint = rdf.sparqlEndpoint
+        val sparqlEndpoint = rdf.sparqlEndpoint()
         var queryResults: Option[SparqlResults] = None
         if (!query.isEmpty) {
           queryResults = Some(sparqlEndpoint.select(query))
