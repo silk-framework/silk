@@ -5,6 +5,11 @@ import org.silkframework.entity.{Entity, EntitySchema, TypedPath}
 import org.silkframework.rule._
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.util.{DPair, Identifier}
+import java.sql._
+import java.util.logging.Logger
+
+import org.silkframework.config.DefaultConfig
+import org.silkframework.rule.execution.rdb.RDBEntityIndex.createConnection
 
 /**
   * An entity index based on a relational database that is used to generate linking candidates based on a link specification.
@@ -12,10 +17,39 @@ import org.silkframework.util.{DPair, Identifier}
 class RDBEntityIndex(linkSpec: LinkSpec,
                      dataSources: DPair[DataSource],
                      runtimeLinkingConfig: RuntimeLinkingConfig) extends Activity[Unit] {
+  private val cfg = DefaultConfig.instance()
 
   override def run(context: ActivityContext[Unit])
                   (implicit userContext: UserContext): Unit = {
+    init()
+    val uniquePrefix = RDBEntityIndex.uniquePrefix
+    val sourceLoader = new RDBEntityIndexLoader(linkSpec, dataSources.source, sourceOrTarget = true, runtimeLinkingConfig, uniquePrefix)
+    val targetLoader = new RDBEntityIndexLoader(linkSpec, dataSources.target, sourceOrTarget = false, runtimeLinkingConfig, uniquePrefix)
+    val sourceLoaderActivity = context.child(activity = sourceLoader, progressContribution = 0.25)
+    val targetLoaderActivity = context.child(activity = targetLoader, progressContribution = 0.25)
+    sourceLoaderActivity.start()
+    targetLoaderActivity.start()
+    sourceLoaderActivity.waitUntilFinished()
+    targetLoaderActivity.waitUntilFinished()
+  }
 
+  private def init(): Unit = {
+    val missingConfigs = Seq(
+      RDBEntityIndex.jdbcConnectionStringConfigKey,
+      RDBEntityIndex.linkingExecutionRdbUserKey,
+      RDBEntityIndex.linkingExecutionRdbPasswordKey,
+      RDBEntityIndex.linkingExecutionRdbJdbcDriverClass
+    ).filter(!cfg.hasPath(_))
+    if (missingConfigs.nonEmpty) {
+      throw new RuntimeException("Configuration missing for RDB based linking execution. Please configure: " + missingConfigs.mkString(", "))
+    }
+    val driverClass = cfg.getString(RDBEntityIndex.linkingExecutionRdbJdbcDriverClass)
+    try {
+      Class.forName(driverClass)
+    } catch {
+      case ex: ClassNotFoundException =>
+        throw new RuntimeException("Configured JDBC driver class could not be found: " + driverClass, ex)
+    }
   }
 }
 
@@ -30,7 +64,12 @@ class RDBEntityIndex(linkSpec: LinkSpec,
 class RDBEntityIndexLoader(linkSpec: LinkSpec,
                            dataSource: DataSource,
                            sourceOrTarget: Boolean,
-                           runtimeLinkingConfig: RuntimeLinkingConfig) extends Activity[EntityTables] {
+                           runtimeLinkingConfig: RuntimeLinkingConfig,
+                           uniquePrefix: String) extends Activity[EntityTables] {
+  private val tablePrefix = uniquePrefix + (if(sourceOrTarget) "source_" else "target_")
+  private val mainIndexTableName = tablePrefix + "mainIndexTable"
+  private val entityIdColumn = "entityId"
+  private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   def entitySchema: EntitySchema = if(sourceOrTarget) linkSpec.entityDescriptions.source else linkSpec.entityDescriptions.target
   def linkageRule: LinkageRule = linkSpec.rule
@@ -39,8 +78,41 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
 
   override def run(context: ActivityContext[EntityTables])
                   (implicit userContext: UserContext): Unit = {
-    profileEntities(entitySchema)
+    val indexProfile = profileEntities(entitySchema)
+    val connection = RDBEntityIndex.createConnection()
+    var (forMainIndexTable, separateIndexTable) = indexProfile.indexProfiles.partition(_._2.cardinality._2 <= 1)
+    // Create main index table
+    try {
+      createMainIndexTable(connection, forMainIndexTable)
+    } catch {
+      case ex: SQLException =>
+        throw new RuntimeException("Tables for entity linking could not be created because of SQL error. Details: " + ex.getMessage, ex)
+      case ex: SQLTimeoutException =>
+        throw new RuntimeException("Tables for entity linking could not be created because of SQL timeout. Details: " + ex.getMessage, ex)
+    } finally {
+      connection.close()
+    }
+  }
 
+  private def createMainIndexTable(connection: Connection, forMainIndexTable: Map[Identifier, IndexProfile]): Unit = {
+    if (forMainIndexTable.nonEmpty) {
+      val createTable = new StringBuilder(s"""CREATE TABLE $mainIndexTableName(\n""")
+      createTable.append(s" $entityIdColumn integer NOT NULL,\n")
+      for ((comparisonId, indexProfile) <- forMainIndexTable) {
+        createTable.append(s"  $comparisonId integer ${if (indexProfile.cardinality._1 == 1) "NOT NULL" else ""},\n")
+      }
+      createTable.append(");")
+      connection.createStatement().executeUpdate(createTable.toString())
+      registerTable(mainIndexTableName, connection)
+      log.fine("Created RDB main entity index table: " + createTable.toString())
+    }
+  }
+
+  private def registerTable(tableName: String, connection: Connection): Unit = {
+    connection.createStatement().execute(
+      s"""
+        |INSERT INTO ${RDBEntityIndex.linkingTableRegistry} VALUES ()
+      """.stripMargin)
   }
 
   private def profileEntities(entitySchema: EntitySchema)
@@ -80,8 +152,8 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
 
 /**
   * The profiling results for the entities and their index values.
-  * @param pathProfiles A map from the data source entities' typed paths.
-  * @param indexProfile A map from the comparison ID to the corresponding index value profile.
+  * @param pathProfiles  A map from the data source entities' typed paths.
+  * @param indexProfiles A map from the comparison ID to the corresponding index value profile.
   */
 case class RdbIndexProfile(pathProfiles: Map[TypedPath, EntityPathProfile],
                            indexProfiles: Map[Identifier, IndexProfile])
@@ -153,3 +225,60 @@ case class RdfIndexColumn(rdfColumnName: String,
                           nullable: Boolean)
 
 case class RdbRuntimeConfig(jdbcConnectionString: String, user: String, password: String)
+
+object RDBEntityIndex {
+  private val log: Logger = Logger.getLogger(this.getClass.getName)
+  private val cfg = DefaultConfig.instance()
+  final val linkingTableRegistry = "linkingTableRegistry" // Table that stores all created tables
+
+  private var initialized = false
+
+  var count = 1L
+
+  /** Clean up old tables, create missing tables. */
+  def init(): Unit = synchronized {
+    if(!initialized) {
+      val conn = createConnection()
+      try {
+        val statement = conn.createStatement()
+        val createTableRegister = // TODO: IF NOT EXISTS needs Postgres 9.1, is this Ok? This exists for ages in MySQL.
+          s"""CREATE TABLE IF NOT EXISTS $linkingTableRegistry(
+             |  table_name text primary key,
+             |  created timestamp not null default CURRENT_TIMESTAMP,
+             |  lastPing timestamp default NULL
+             |);
+          """.stripMargin
+        statement.executeUpdate(createTableRegister.toString)
+        val tablesToDelete = statement.executeQuery(s"""SELECT table_name FROM $linkingTableRegistry""")
+        while (tablesToDelete.next()) {
+          val tableName = tablesToDelete.getString("table_name")
+          statement.executeUpdate(s"""DROP TABLE IF EXISTS $tableName;""")
+        }
+        log.info("Finished clean up and initializing linking tables in RDB linking backend.")
+        initialized = true
+      } finally {
+        conn.close()
+      }
+    }
+  }
+
+  def uniquePrefix: String = synchronized {
+    count += 1
+    "linking" + count + "_"
+  }
+
+  /** Creates a new JDBC database connection */
+  def createConnection(): Connection = {
+    DriverManager.getConnection(
+      cfg.getString(jdbcConnectionStringConfigKey),
+      cfg.getString(linkingExecutionRdbUserKey),
+      cfg.getString(linkingExecutionRdbPasswordKey))
+  }
+
+  final val generatedTablesTable = "linking_generated_tables"
+
+  final val jdbcConnectionStringConfigKey = "linking.execution.rdb.jdbcConnectionString"
+  final val linkingExecutionRdbUserKey = "linking.execution.rdb.user"
+  final val linkingExecutionRdbPasswordKey = "linking.execution.rdb.password"
+  final val linkingExecutionRdbJdbcDriverClass = "linking.execution.rdb.jdbcDriverClass"
+}
