@@ -11,13 +11,8 @@
 
 @(task: ProjectTask[TransformSpec])
 
-@header = {
+<div>
   <script src="@CoreAssets.at("libs/silk-react-components/main.js")" type="text/javascript"></script>
-}
-
-@content = {
-  <div id="react-transformExecutionReport"></div>
-
   <script type="text/javascript">
     silkReactComponents.transformExecutionReport(
       'react-transformExecutionReport',
@@ -28,6 +23,5 @@
       }
     );
   </script>
-}
-
-@frame(header)(content)
+  <div id="react-transformExecutionReport"></div>
+</div>

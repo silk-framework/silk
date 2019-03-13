@@ -20,6 +20,7 @@ GET           /:project/:task/evaluate/generatedEntities                        
 GET           /:project/:task/execute                                              controllers.transform.ExecuteTransformTab.execute(project: String, task: String)
 GET           /:project/:task/execute/report                                       controllers.transform.ExecuteTransformTab.executionReport(project: String, task: String)
 GET           /:project/:task/execute/statusStream                                 controllers.transform.ExecuteTransformTab.statusStream(project: String, task: String)
+GET           /:project/:task/execute/updateReportStream                           controllers.transform.ExecuteTransformTab.updateReportStream(project: String, task: String)
 
 # API
 GET           /tasks/:project/:task                                                controllers.transform.TransformTaskApi.getTransformTask(project: String, task: String)

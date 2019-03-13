@@ -9,11 +9,6 @@
 @(context: Context[TransformSpec])(implicit session: play.api.mvc.Session)
 
 @header = {
-  <script type="text/javascript">
-    function updateReport() {
-      $( "#report_wrapper" ).load('@ExecuteTransformTab.executionReport(context.project.name, context.task.id).url');
-    }
-  </script>
   <script src="@CoreAssets.at("libs/silk-react-components/main.js")" type="text/javascript"></script>
 }
 
@@ -21,12 +16,6 @@
   <ul>
     <li>
       @taskActivityControl(context.task.activity[ExecuteTransform], showButtons = true)
-    </li>
-    <li>
-      <button id="button_statistics" class="mdl-button mdl-js-button mdl-button--raised" onclick="updateReport()">Validation Report</button>
-      <div class="mdl-tooltip mdl-tooltip--large" for="button_statistics">
-        Loads the validation report about the current transform execution.
-      </div>
     </li>
     <li>
       <a class="mdl-button mdl-js-button mdl-button--icon" href="@{TaskApi.downloadOutput(context.project.name, context.task.id).url}" target="_download">
@@ -37,7 +26,10 @@
 }
 
 @content = {
-  <div id="report_wrapper"></div>
+  @widgets.autoReload(
+    contentPath = ExecuteTransformTab.executionReport(context.project.name, context.task.id).url,
+    streamPath = ExecuteTransformTab.updateReportStream(context.project.name, context.task.id).url
+  )
 }
 
 @main(Some(context), titleLabel = context.task.taskLabel())(header)(toolbar)(content)

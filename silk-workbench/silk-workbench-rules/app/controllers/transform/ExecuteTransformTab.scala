@@ -28,4 +28,11 @@ class ExecuteTransformTab extends Controller {
     Ok.chunked(Widgets.statusStream(stream))
   }
 
+  def updateReportStream(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val task = project.task[TransformSpec](taskName)
+    val stream = Stream.status(task.activity[ExecuteTransform].control.status, _.succeeded)
+    Ok.chunked(Widgets.autoReload("reload", stream))
+  }
+
 }
