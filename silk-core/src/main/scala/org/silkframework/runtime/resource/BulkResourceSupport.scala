@@ -194,14 +194,10 @@ object BulkResourceSupport {
     if (skipLines.isEmpty) {
       val streamEnumeration = JavaConverters.asJavaEnumerationConverter[InputStream](streams.iterator)
       val combi = new SequenceInputStream(streamEnumeration.asJavaEnumeration)
-
-      var txt = ""
-      var b = 0
-      b = combi.read()
-      while (b > 0) {
-       print(b.toChar.toString.replace("\r",""))
-      }
-      combi
+      val copy = copyStream(combi)
+      combi.close()
+      copy.reset()
+      copy
     }
     else {
       if (skipLines.get > 0) {
@@ -323,11 +319,44 @@ object BulkResourceSupport {
     * @return
     */
   def copyStream(inputStream: InputStream): InputStream = {
-    val text = scala.io.Source.fromInputStream(inputStream).mkString
-    val stream: InputStream = new ByteArrayInputStream(text.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
+  //  val text = scala.io.Source.fromInputStream(inputStream).mkString
+    val stream: InputStream = new ByteArrayInputStream(streamToBytes(inputStream))
+    inputStream.close()
+    stream.reset()
     stream
   }
 
 
+  def streamToBytes(inputStream: InputStream): Array[Byte] = {
+    val len = 16384
+    val buf = Array.ofDim[Byte](len)
+    val out = new ByteArrayOutputStream
+
+    @scala.annotation.tailrec
+    def copy(): Array[Byte] = {
+      val n = inputStream.read(buf, 0, len)
+      if (n != -1) {
+        out.write(buf, 0, n); copy()
+      }
+      else {
+        out.toByteArray
+      }
+    }
+
+    copy()
+  }
+
+  def printStream(inputStream: InputStream): Unit = {
+    val copy = copyStream(inputStream)
+    var txt = ""
+    var b = 0
+    b = copy.read()
+    while (b > 0) {
+      txt += b.toChar
+      b = copy.read()
+
+    }
+    println(txt.replaceAll("\r",""))
+  }
 
 }
