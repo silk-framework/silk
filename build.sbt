@@ -77,7 +77,8 @@ lazy val rules = (project in file("silk-rules"))
   .dependsOn(core % "test->test;compile->compile", pluginsCsv % "test->compile")
   .settings(commonSettings: _*)
   .settings(
-    name := "Silk Rules"
+    name := "Silk Rules",
+    libraryDependencies += "org.postgresql" % "postgresql" % "42.2.5"
   )
 
 lazy val learning = (project in file("silk-learning"))

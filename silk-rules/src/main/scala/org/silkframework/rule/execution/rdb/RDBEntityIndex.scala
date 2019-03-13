@@ -1,15 +1,14 @@
 package org.silkframework.rule.execution.rdb
 
+import java.sql._
+import java.util.logging.Logger
+
+import org.silkframework.config.DefaultConfig
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema, TypedPath}
 import org.silkframework.rule._
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.util.{DPair, Identifier}
-import java.sql._
-import java.util.logging.Logger
-
-import org.silkframework.config.DefaultConfig
-import org.silkframework.rule.execution.rdb.RDBEntityIndex.createConnection
 
 /**
   * An entity index based on a relational database that is used to generate linking candidates based on a link specification.
@@ -34,12 +33,7 @@ class RDBEntityIndex(linkSpec: LinkSpec,
   }
 
   private def init(): Unit = {
-    val missingConfigs = Seq(
-      RDBEntityIndex.jdbcConnectionStringConfigKey,
-      RDBEntityIndex.linkingExecutionRdbUserKey,
-      RDBEntityIndex.linkingExecutionRdbPasswordKey,
-      RDBEntityIndex.linkingExecutionRdbJdbcDriverClass
-    ).filter(!cfg.hasPath(_))
+    val missingConfigs = RDBEntityIndex.missingConfigs()
     if (missingConfigs.nonEmpty) {
       throw new RuntimeException("Configuration missing for RDB based linking execution. Please configure: " + missingConfigs.mkString(", "))
     }
@@ -97,22 +91,26 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
   private def createMainIndexTable(connection: Connection, forMainIndexTable: Map[Identifier, IndexProfile]): Unit = {
     if (forMainIndexTable.nonEmpty) {
       val createTable = new StringBuilder(s"""CREATE TABLE $mainIndexTableName(\n""")
-      createTable.append(s" $entityIdColumn integer NOT NULL,\n")
+      createTable.append(s" $entityIdColumn integer NOT NULL")
       for ((comparisonId, indexProfile) <- forMainIndexTable) {
-        createTable.append(s"  $comparisonId integer ${if (indexProfile.cardinality._1 == 1) "NOT NULL" else ""},\n")
+        createTable.append(s",\n  $comparisonId integer ${if (indexProfile.cardinality._1 == 1) "NOT NULL" else ""}")
       }
-      createTable.append(");")
-      connection.createStatement().executeUpdate(createTable.toString())
+      createTable.append("\n);")
+      RDBEntityIndex.logSqlErrors(createTable.toString()) {
+        connection.createStatement().executeUpdate(createTable.toString())
+      }
       registerTable(mainIndexTableName, connection)
       log.fine("Created RDB main entity index table: " + createTable.toString())
     }
   }
 
   private def registerTable(tableName: String, connection: Connection): Unit = {
-    connection.createStatement().execute(
-      s"""
-        |INSERT INTO ${RDBEntityIndex.linkingTableRegistry} VALUES ()
-      """.stripMargin)
+    val query = s"""
+                   |INSERT INTO ${RDBEntityIndex.linkingTableRegistry} (table_name) VALUES ('$tableName')
+      """.stripMargin
+    RDBEntityIndex.logSqlErrors(query) {
+      connection.createStatement().execute(query)
+    }
   }
 
   private def profileEntities(entitySchema: EntitySchema)
@@ -231,8 +229,10 @@ object RDBEntityIndex {
   private val cfg = DefaultConfig.instance()
   final val linkingTableRegistry = "linkingTableRegistry" // Table that stores all created tables
 
-  private var initialized = false
+  private var initialized = !configured() // Do not initialize if not configured
 
+  /** startTimeStamp and count are used to create unique execution IDs */
+  private lazy val startTimeStamp: Long = System.currentTimeMillis()
   var count = 1L
 
   /** Clean up old tables, create missing tables. */
@@ -245,14 +245,19 @@ object RDBEntityIndex {
           s"""CREATE TABLE IF NOT EXISTS $linkingTableRegistry(
              |  table_name text primary key,
              |  created timestamp not null default CURRENT_TIMESTAMP,
-             |  lastPing timestamp default NULL
+             |  lastPing timestamp not null default CURRENT_TIMESTAMP
              |);
           """.stripMargin
-        statement.executeUpdate(createTableRegister.toString)
+        logSqlErrors(createTableRegister) {
+          statement.executeUpdate(createTableRegister)
+        }
         val tablesToDelete = statement.executeQuery(s"""SELECT table_name FROM $linkingTableRegistry""")
         while (tablesToDelete.next()) {
           val tableName = tablesToDelete.getString("table_name")
-          statement.executeUpdate(s"""DROP TABLE IF EXISTS $tableName;""")
+          val dropTableSql = s"""DROP TABLE IF EXISTS $tableName;"""
+          logSqlErrors(dropTableSql) {
+            statement.executeUpdate(dropTableSql)
+          }
         }
         log.info("Finished clean up and initializing linking tables in RDB linking backend.")
         initialized = true
@@ -262,9 +267,35 @@ object RDBEntityIndex {
     }
   }
 
+  init()
+
+  def logSqlErrors[T](query: => String)
+                     (block: => T): T = {
+    try {
+      block
+    } catch {
+      case ex: SQLException =>
+        log.warning("There was an SQL error when executing following query: " + query)
+        throw ex
+    }
+  }
+
+  def configured(): Boolean = {
+    missingConfigs().isEmpty
+  }
+
+  def missingConfigs(): Seq[String] = {
+    Seq(
+      RDBEntityIndex.jdbcConnectionStringConfigKey,
+      RDBEntityIndex.linkingExecutionRdbUserKey,
+      RDBEntityIndex.linkingExecutionRdbPasswordKey,
+      RDBEntityIndex.linkingExecutionRdbJdbcDriverClass
+    ).filter(!cfg.hasPath(_))
+  }
+
   def uniquePrefix: String = synchronized {
     count += 1
-    "linking" + count + "_"
+    "linking" + startTimeStamp + "_" + count + "_"
   }
 
   /** Creates a new JDBC database connection */
