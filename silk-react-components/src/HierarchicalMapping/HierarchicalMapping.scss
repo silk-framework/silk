@@ -1,3 +1,5 @@
+@import "~@eccenca/gui-elements/src/configuration.default";
+
 .ecc-silk-mapping {
     margin: 1rem;
 
@@ -763,11 +765,14 @@ ul.ecc-hierarchical-mapping-error-list {
 }
 
 .mdl-layout_item--background-flash{
-    animation: background-flash .5s 6;
+    animation-name: anim-new-element;
+    animation-duration: 1s;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
 }
 
-@keyframes background-flash {
-    0% { background-color : #7376ff; opacity: 1; }
-    50% { background-color : #7376ff; opacity: .1; }
-    100% { background-color : #7376ff; opacity: 1; }
+@keyframes anim-new-element {
+    25% {
+        background-color: darken($ecc-color-info-background, 30%);
+        color: $ecc-color-info-text;
+    }
 }
