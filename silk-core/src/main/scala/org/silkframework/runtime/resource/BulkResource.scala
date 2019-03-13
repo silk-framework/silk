@@ -165,6 +165,8 @@ object BulkResource {
     newResource.replaceInputStream(inputStreamReplacement)
   }
 
+
+
   def copyStream(inputStream: InputStream): InputStream = {
     val text = scala.io.Source.fromInputStream(inputStream).mkString
     println(text)

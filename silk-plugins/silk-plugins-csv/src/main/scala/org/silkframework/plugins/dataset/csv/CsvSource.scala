@@ -50,7 +50,8 @@ class CsvSource(file: Resource,
         case ex: RuntimeException =>
           if(ignoreMalformedInputExceptionInPropertyList) {
             IndexedSeq.empty
-          } else {
+          }
+          else {
             throw ex
           }
       }

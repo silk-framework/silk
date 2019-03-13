@@ -346,6 +346,10 @@ object BulkResourceSupport {
     copy()
   }
 
+  /**
+    * Print stream contents for log/test purposes
+    * @param inputStream
+    */
   def printStream(inputStream: InputStream): Unit = {
     val copy = copyStream(inputStream)
     var txt = ""

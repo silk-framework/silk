@@ -1,7 +1,5 @@
 package org.silkframework.plugins.dataset.csv
 
-import java.io.InputStream
-
 import org.silkframework.dataset._
 import org.silkframework.entity.{EntitySchema, TypedPath}
 import org.silkframework.runtime.activity.UserContext

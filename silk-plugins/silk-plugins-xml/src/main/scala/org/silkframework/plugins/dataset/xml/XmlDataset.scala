@@ -76,7 +76,8 @@ case class XmlDataset(
   override def source(implicit userContext: UserContext): DataSource = {
     if(streaming) {
       new XmlSourceStreaming(resource, basePath, uriPattern)
-    } else {
+    }
+    else {
       new XmlSourceInMemory(resource, basePath, uriPattern)
     }
   }
