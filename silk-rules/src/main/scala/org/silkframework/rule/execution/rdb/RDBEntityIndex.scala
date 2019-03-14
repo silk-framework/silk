@@ -62,6 +62,7 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
                            sourceOrTarget: Boolean,
                            runtimeLinkingConfig: RuntimeLinkingConfig,
                            uniquePrefix: String) extends Activity[EntityTables] {
+  final val BULK_UPDATE_SIZE = 1000
   private val tablePrefix = uniquePrefix + (if(sourceOrTarget) "source_" else "target_")
   private val mainIndexTableName = tablePrefix + "mainIndexTable"
   private val entityIdColumn = "entityId"
@@ -103,22 +104,50 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
     val indexProfiles = booleanLinkageRule.comparisons.map(c => (c.id, IndexProfile())).toMap
     var entityId = 1
     val mainTableColumns = forMainIndexTable.toSeq.map(_._1.toString)
+    val bulkUpdater = BulkUpdater(BULK_UPDATE_SIZE)
     for(entity <- entities) {
       val linkageRuleIndex = LinkageRuleIndex.apply(entity, booleanLinkageRule, sourceOrTarget)
       if(mainTableColumns.nonEmpty) {
         val query = s"INSERT INTO $mainIndexTableName ($entityIdColumn, ${mainTableColumns.mkString(",")}) " +
             s"VALUES ($entityId, ${linkageRuleIndex.comparisonIndexValues(mainTableColumns).map(_.headOption.map(_.toString).getOrElse("null")).mkString(",")});"
-        executeUpdate(query)
+        bulkUpdater.addQueryForExecution(query)
       }
       val separateIndexTableComparisons = separateIndexTables.toSeq.map(_._1.toString)
       for ((sepIndexTable, sepIndexTableValues) <- separateIndexTableComparisons.zip(linkageRuleIndex.comparisonIndexValues(separateIndexTableComparisons));
            indexValue <- sepIndexTableValues) {
         val query = s"INSERT INTO ${separateIndexTable(sepIndexTable)} ($entityIdColumn, $indexValueColumn) VALUES ($entityId, $indexValue);"
-        executeUpdate(query)
+        bulkUpdater.addQueryForExecution(query)
       }
       entityId += 1
     }
+    bulkUpdater.execute()
     RdbIndexProfile(pathProfiles, indexProfiles)
+  }
+
+  case class BulkUpdater(bulkSize: Int) {
+    private var queries = new StringBuilder()
+    private var count = 0
+
+    private def reset(): Unit = {
+      queries = new StringBuilder()
+      count = 0
+    }
+
+    def addQueryForExecution(query: String)
+                            (implicit connection: Connection): Unit = {
+      if(count >= bulkSize) {
+        execute()
+      }
+      queries.append(query).append("\n")
+    }
+
+    def execute()
+               (implicit connection: Connection): Unit = {
+      if(count >= 0) {
+        executeUpdate(queries.toString)
+        reset()
+      }
+    }
   }
 
   private def createSeparateIndexTable(separateIndexTables: Map[Identifier, IndexProfile])
@@ -128,7 +157,7 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
       createTable.append(s" $entityIdColumn integer NOT NULL,\n")
       createTable.append(s" $indexValueColumn integer NOT NULL\n);")
       executeUpdate(createTable.toString())
-      registerTable(mainIndexTableName)
+      registerTable(separateIndexTable(id))
       log.fine("Created RDB separate entity index table: " + id)
     }
   }
