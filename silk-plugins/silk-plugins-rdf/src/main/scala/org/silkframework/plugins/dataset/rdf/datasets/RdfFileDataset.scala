@@ -204,7 +204,7 @@ case class RdfFileDataset(
     * @return
     */
   override def onSingleSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource] = {
-    Some(BulkResource.createFromBulkResource(bulkResource, combineStreams(bulkResource.inputStreams, None)))
+    Some(BulkResource.createBulkResourceWithStream(bulkResource, combineStreams(bulkResource.inputStreams, None)))
   }
   /**
     * The implementing dataset must provide a way to determine the schema of each resource in the bulk resource.
@@ -216,7 +216,7 @@ case class RdfFileDataset(
   override def checkResourceSchema(bulkResource: BulkResource): Seq[EntitySchema] = {
 
     val individualSources = for (stream <- bulkResource.inputStreams) yield {
-      BulkResource.createFromBulkResource(bulkResource, stream)
+      BulkResource.createBulkResourceWithStream(bulkResource, stream)
     }
 
     val individualSchemata: IndexedSeq[EntitySchema] = individualSources.map( res => {

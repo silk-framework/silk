@@ -309,13 +309,13 @@ object BulkResourceSupport {
     * @return
     */
   def asWritableResource(bulkResource: BulkResource, unifiedInputStream: InputStream): Resource = {
-    ReadOnlyResource(BulkResource.createFromBulkResource(bulkResource, unifiedInputStream))
+    ReadOnlyResource(BulkResource.createBulkResourceWithStream(bulkResource, unifiedInputStream))
   }
 
   /**
     * Copy an input stream.
     *
-    * @param inputStream
+    * @param inputStream stream to copy
     * @return
     */
   def copyStream(inputStream: InputStream): InputStream = {
@@ -327,6 +327,12 @@ object BulkResourceSupport {
   }
 
 
+  /**
+    * Creates a byte array from a stream.
+    *
+    * @param inputStream stream to get bytes from
+    * @return
+    */
   def streamToBytes(inputStream: InputStream): Array[Byte] = {
     val len = 16384
     val buf = Array.ofDim[Byte](len)
@@ -348,7 +354,7 @@ object BulkResourceSupport {
 
   /**
     * Print stream contents for log/test purposes
-    * @param inputStream
+    * @param inputStream stream to print
     */
   def printStream(inputStream: InputStream): Unit = {
     val copy = copyStream(inputStream)

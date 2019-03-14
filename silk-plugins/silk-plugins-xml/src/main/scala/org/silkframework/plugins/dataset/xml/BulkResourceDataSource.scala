@@ -13,23 +13,45 @@ import org.silkframework.util.Uri
 import scala.collection.mutable
 import scala.xml.XML
 
-object BulkResourceSupportWrapperSource extends DataSource with PeakDataSource with TypedPathRetrieveDataSource {
+
+/**
+  * Wrapper for that provides access to BulkResources with an underlying data source object and
+  * the bulk resource object.
+  */
+object BulkResourceDataSource extends DataSource with PeakDataSource with TypedPathRetrieveDataSource {
 
   private final val logger: Logger = Logger.getLogger(this.getClass.getSimpleName)
 
+  /* all the stuff needed to emulate a valid source*/
   private var underlyingResource: Option[BulkResource] = None
-  private var underlyingDataset: Option[XmlDataset] = None
-  private var underlyingSource: Option[DataSource] = None
+  private var underlyingDataset: Option[Dataset] = None
   private var streaming: Option[Boolean] = None
   private var individualSources: Seq[DataSource] = Seq.empty
-  private val basePath: String = underlyingDataset.get.basePath
-  private val uriPattern: String = underlyingDataset.get.uriPattern
+  private val basePath: Option[String] = {
+    underlyingDataset.getOrElse(None) match {
+      case ds: XmlDataset => Some(ds.basePath)
+      case _ => None
+    }
+  }
+  private val uriPattern: Option[String] = {
+    underlyingDataset.getOrElse(None) match {
+      case ds: XmlDataset => Some(ds.uriPattern)
+      case _ => None
+    }
+  }
 
-  def apply(bulkResource: BulkResource, dataset: XmlDataset, dataSource: DataSource, isStreamin: Boolean): DataSource = {
+  /**
+    * Create data source that uses the bulk resource.
+    *
+    * @param bulkResource Zip Resource
+    * @param dataset      Dataset
+    * @param isStreamin   XML SPECIFIC OPTION
+    * @return
+    */
+  def apply(bulkResource: BulkResource, dataset: Dataset, isStreaming: Boolean = false): DataSource = {
     underlyingDataset = Some(dataset)
     underlyingResource = Some(bulkResource)
-    underlyingSource = Some(dataSource)
-    streaming = Some(isStreamin)
+    streaming = Some(isStreaming)
     this
   }
 
@@ -53,12 +75,12 @@ object BulkResourceSupportWrapperSource extends DataSource with PeakDataSource w
   override def retrieveTypes(limit: Option[Int])(implicit userContext: UserContext): Traversable[(String, Double)] = {
 
     val individualSources = for (stream <- underlyingResource.get.inputStreams) yield {
-      val subResource = BulkResource.createFromBulkResource(underlyingResource.get, stream)
+      val subResource = BulkResource.createBulkResourceWithStream(underlyingResource.get, stream)
       if (streaming.nonEmpty && streaming.get.equals(true)) {
-        new XmlSourceStreaming(subResource, basePath, uriPattern)
+        new XmlSourceStreaming(subResource, basePath.getOrElse(""), uriPattern.getOrElse(""))
       }
       else {
-        new XmlSourceInMemory(subResource, basePath, uriPattern)
+        new XmlSourceInMemory(subResource, basePath.getOrElse(""), uriPattern.getOrElse(""))
       }
     }
     val types: mutable.HashSet[(String, Double)] = new mutable.HashSet[(String, Double)]
@@ -72,12 +94,12 @@ object BulkResourceSupportWrapperSource extends DataSource with PeakDataSource w
 
 
   /**
-    * Returns the XML nodes found at the base path and
+    * Returns the XML nodes found at the base path
     *
     * @return
     */
   private def loadXmlNodes(typeUri: String): Seq[XmlTraverser] = {
-    val pathStr = if (typeUri.isEmpty) basePath else typeUri
+    val pathStr: String = if (typeUri.isEmpty) basePath.get else typeUri
     val traverserSet = for (sub <- underlyingResource.get.subResources) yield {
       val xml = sub.read(XML.load)
       val rootTraverser = XmlTraverser(xml)
@@ -91,8 +113,10 @@ object BulkResourceSupportWrapperSource extends DataSource with PeakDataSource w
     def foreach[U](f: Entity => U) {
       // Enumerate entities
       for ((traverser, index) <- xml.zipWithIndex) {
-        val uri = traverser.generateUri(uriPattern)
-        val values = for (typedPath <- entityDesc.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)
+        val uri = traverser.generateUri(uriPattern.getOrElse(""))
+        val values = for (typedPath <- entityDesc.typedPaths) yield {
+          traverser.evaluatePathAsString(typedPath, uriPattern.getOrElse(""))
+        }
         f(Entity(uri, values, entityDesc))
       }
     }

@@ -122,7 +122,7 @@ case class BulkResource(file: File) extends WritableResource {
     */
   def subResources: Seq[WritableResource] = {
     for (stream <- inputStreams) yield {
-      BulkResource.createFromBulkResource(this, stream)
+      BulkResource.createBulkResourceWithStream(this, stream)
     }
   }
 
@@ -132,7 +132,11 @@ case class BulkResource(file: File) extends WritableResource {
     *
     * @param write A function that accepts an output stream and writes to it.
     */
-  override def write(append: Boolean)(write: OutputStream => Unit): Unit = ???
+  override def write(append: Boolean)(write: OutputStream => Unit): Unit = {
+    throw new NotImplementedError(
+      "Not yet implementet, writing should create a zip archieve with one file. Do we need that?"
+    )
+  }
 
   /**
     * Deletes this resource.
@@ -145,6 +149,9 @@ case class BulkResource(file: File) extends WritableResource {
   catch {
     case ex:IOException => log severe s"$zipFile could not be deleted:${ex.getMessage} "
   }
+
+  override def read[T](reader: InputStream => T): T = super.read(reader)
+
 }
 
 
@@ -160,13 +167,18 @@ object BulkResource {
     * @param inputStreamReplacement Input stream to be provided by the resource
     * @return
     */
-  def createFromBulkResource(bulkResource: BulkResource, inputStreamReplacement: InputStream): BulkResource = {
+  def createBulkResourceWithStream(bulkResource: BulkResource, inputStreamReplacement: InputStream): BulkResource = {
     val newResource = new BulkResource(bulkResource.file)
     newResource.replaceInputStream(inputStreamReplacement)
   }
 
 
-
+  /**
+    * Creates a copy of the given stream from the marked position, resets the given input stream, if possible.
+    *
+    * @param inputStream Input stream to copy
+    * @return
+    */
   def copyStream(inputStream: InputStream): InputStream = {
     val text = scala.io.Source.fromInputStream(inputStream).mkString
     println(text)

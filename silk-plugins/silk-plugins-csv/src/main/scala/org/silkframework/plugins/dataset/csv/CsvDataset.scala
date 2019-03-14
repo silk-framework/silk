@@ -105,7 +105,7 @@ case class CsvDataset (
   override def onSingleSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource] = {
     val combinedStream = BulkResourceSupport.combineStreams(bulkResource.inputStreams, Some(1))
     val copy = copyStream(combinedStream)
-    Some(BulkResource.createFromBulkResource(bulkResource, combinedStream))
+    Some(BulkResource.createBulkResourceWithStream(bulkResource, combinedStream))
   }
 
   /**
