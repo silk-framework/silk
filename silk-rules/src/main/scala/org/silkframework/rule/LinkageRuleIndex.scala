@@ -12,6 +12,13 @@ case class LinkageRuleIndex(root: LinkageRuleIndexSimilarityOperator) {
   def comparisons: Seq[LinkageRuleIndexComparison] = {
     LinkageRuleIndex.comparisons(root)
   }
+
+  def comparisonIndexValues(comparisonIds: Seq[String]): Seq[Set[Int]] = {
+    val cs = comparisons
+    comparisonIds.map { comparisonId =>
+      cs.find(_.id.toString == comparisonId).map(_.indexValues.indexValues).getOrElse(Set.empty)
+    }
+  }
 }
 
 sealed trait LinkageRuleIndexNode

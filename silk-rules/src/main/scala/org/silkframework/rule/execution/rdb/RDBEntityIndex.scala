@@ -9,6 +9,7 @@ import org.silkframework.entity.{Entity, EntitySchema, TypedPath}
 import org.silkframework.rule._
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.util.{DPair, Identifier}
+import RDBEntityIndex.{executeUpdate, executeQuery}
 
 /**
   * An entity index based on a relational database that is used to generate linking candidates based on a link specification.
@@ -44,6 +45,7 @@ class RDBEntityIndex(linkSpec: LinkSpec,
       case ex: ClassNotFoundException =>
         throw new RuntimeException("Configured JDBC driver class could not be found: " + driverClass, ex)
     }
+    RDBEntityIndex.init()
   }
 }
 
@@ -63,8 +65,10 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
   private val tablePrefix = uniquePrefix + (if(sourceOrTarget) "source_" else "target_")
   private val mainIndexTableName = tablePrefix + "mainIndexTable"
   private val entityIdColumn = "entityId"
+  private val indexValueColumn = "indexValue"
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
+  def separateIndexTable(id: String): String = tablePrefix + "separateIndexTable_" + id
   def entitySchema: EntitySchema = if(sourceOrTarget) linkSpec.entityDescriptions.source else linkSpec.entityDescriptions.target
   def linkageRule: LinkageRule = linkSpec.rule
   val booleanLinkageRule: BooleanLinkageRule = BooleanLinkageRule(linkageRule).getOrElse(
@@ -73,11 +77,13 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
   override def run(context: ActivityContext[EntityTables])
                   (implicit userContext: UserContext): Unit = {
     val indexProfile = profileEntities(entitySchema)
-    val connection = RDBEntityIndex.createConnection()
-    var (forMainIndexTable, separateIndexTable) = indexProfile.indexProfiles.partition(_._2.cardinality._2 <= 1)
+    implicit val connection: Connection = RDBEntityIndex.createConnection()
+    val (forMainIndexTable, separateIndexTables) = indexProfile.indexProfiles.partition(_._2.cardinality._2 <= 1)
     // Create main index table
     try {
-      createMainIndexTable(connection, forMainIndexTable)
+      createMainIndexTable(forMainIndexTable)
+      createSeparateIndexTable(separateIndexTables)
+      loadTables(indexProfile)
     } catch {
       case ex: SQLException =>
         throw new RuntimeException("Tables for entity linking could not be created because of SQL error. Details: " + ex.getMessage, ex)
@@ -88,7 +94,47 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
     }
   }
 
-  private def createMainIndexTable(connection: Connection, forMainIndexTable: Map[Identifier, IndexProfile]): Unit = {
+  def loadTables(indexProfile: RdbIndexProfile)
+                (implicit userContext: UserContext,
+                 connection: Connection): Unit = {
+    val entities = retrieveEntities()
+    val (forMainIndexTable, separateIndexTables) = indexProfile.indexProfiles.partition(_._2.cardinality._2 <= 1)
+    val pathProfiles = entitySchema.typedPaths.map(tp => (tp, EntityPathProfile())).toMap
+    val indexProfiles = booleanLinkageRule.comparisons.map(c => (c.id, IndexProfile())).toMap
+    var entityId = 1
+    val mainTableColumns = forMainIndexTable.toSeq.map(_._1.toString)
+    for(entity <- entities) {
+      val linkageRuleIndex = LinkageRuleIndex.apply(entity, booleanLinkageRule, sourceOrTarget)
+      if(mainTableColumns.nonEmpty) {
+        val query = s"INSERT INTO $mainIndexTableName ($entityIdColumn, ${mainTableColumns.mkString(",")}) " +
+            s"VALUES ($entityId, ${linkageRuleIndex.comparisonIndexValues(mainTableColumns).map(_.headOption.map(_.toString).getOrElse("null")).mkString(",")});"
+        executeUpdate(query)
+      }
+      val separateIndexTableComparisons = separateIndexTables.toSeq.map(_._1.toString)
+      for ((sepIndexTable, sepIndexTableValues) <- separateIndexTableComparisons.zip(linkageRuleIndex.comparisonIndexValues(separateIndexTableComparisons));
+           indexValue <- sepIndexTableValues) {
+        val query = s"INSERT INTO ${separateIndexTable(sepIndexTable)} ($entityIdColumn, $indexValueColumn) VALUES ($entityId, $indexValue);"
+        executeUpdate(query)
+      }
+      entityId += 1
+    }
+    RdbIndexProfile(pathProfiles, indexProfiles)
+  }
+
+  private def createSeparateIndexTable(separateIndexTables: Map[Identifier, IndexProfile])
+                                      (implicit connection: Connection): Unit = {
+    for((id, _) <- separateIndexTables) {
+      val createTable = new StringBuilder(s"""CREATE TABLE ${separateIndexTable(id)}(\n""")
+      createTable.append(s" $entityIdColumn integer NOT NULL,\n")
+      createTable.append(s" $indexValueColumn integer NOT NULL\n);")
+      executeUpdate(createTable.toString())
+      registerTable(mainIndexTableName)
+      log.fine("Created RDB separate entity index table: " + id)
+    }
+  }
+
+  private def createMainIndexTable(forMainIndexTable: Map[Identifier, IndexProfile])
+                                  (implicit connection: Connection): Unit = {
     if (forMainIndexTable.nonEmpty) {
       val createTable = new StringBuilder(s"""CREATE TABLE $mainIndexTableName(\n""")
       createTable.append(s" $entityIdColumn integer NOT NULL")
@@ -99,18 +145,14 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
       RDBEntityIndex.logSqlErrors(createTable.toString()) {
         connection.createStatement().executeUpdate(createTable.toString())
       }
-      registerTable(mainIndexTableName, connection)
-      log.fine("Created RDB main entity index table: " + createTable.toString())
+      registerTable(mainIndexTableName)
+      log.fine("Created RDB main entity index table: " + mainIndexTableName)
     }
   }
 
-  private def registerTable(tableName: String, connection: Connection): Unit = {
-    val query = s"""
-                   |INSERT INTO ${RDBEntityIndex.linkingTableRegistry} (table_name) VALUES ('$tableName')
-      """.stripMargin
-    RDBEntityIndex.logSqlErrors(query) {
-      connection.createStatement().execute(query)
-    }
+  private def registerTable(tableName: String)(implicit connection: Connection): Unit = {
+    val query = s"""INSERT INTO ${RDBEntityIndex.linkingTableRegistry} (table_name) VALUES ('$tableName')""".stripMargin
+    executeUpdate(query)
   }
 
   private def profileEntities(entitySchema: EntitySchema)
@@ -238,9 +280,8 @@ object RDBEntityIndex {
   /** Clean up old tables, create missing tables. */
   def init(): Unit = synchronized {
     if(!initialized) {
-      val conn = createConnection()
+      implicit val conn = createConnection()
       try {
-        val statement = conn.createStatement()
         val createTableRegister = // TODO: IF NOT EXISTS needs Postgres 9.1, is this Ok? This exists for ages in MySQL.
           s"""CREATE TABLE IF NOT EXISTS $linkingTableRegistry(
              |  table_name text primary key,
@@ -248,16 +289,14 @@ object RDBEntityIndex {
              |  lastPing timestamp not null default CURRENT_TIMESTAMP
              |);
           """.stripMargin
-        logSqlErrors(createTableRegister) {
-          statement.executeUpdate(createTableRegister)
-        }
-        val tablesToDelete = statement.executeQuery(s"""SELECT table_name FROM $linkingTableRegistry""")
+        executeUpdate(createTableRegister)
+        val tablesToDelete = executeQuery(s"""SELECT table_name FROM $linkingTableRegistry""")
         while (tablesToDelete.next()) {
           val tableName = tablesToDelete.getString("table_name")
           val dropTableSql = s"""DROP TABLE IF EXISTS $tableName;"""
-          logSqlErrors(dropTableSql) {
-            statement.executeUpdate(dropTableSql)
-          }
+          executeUpdate(dropTableSql)
+          val deleteQuery = s"delete from $linkingTableRegistry where table_name='$tableName';"
+          executeUpdate(deleteQuery)
         }
         log.info("Finished clean up and initializing linking tables in RDB linking backend.")
         initialized = true
@@ -266,8 +305,6 @@ object RDBEntityIndex {
       }
     }
   }
-
-  init()
 
   def logSqlErrors[T](query: => String)
                      (block: => T): T = {
@@ -296,6 +333,25 @@ object RDBEntityIndex {
   def uniquePrefix: String = synchronized {
     count += 1
     "linking" + startTimeStamp + "_" + count + "_"
+  }
+
+  /** Executes a query. */
+  def executeUpdate(query: String)
+                           (implicit connection: Connection): Int = {
+    RDBEntityIndex.logSqlErrors(query) {
+      val statement = connection.createStatement()
+      val result = statement.executeUpdate(query)
+      statement.close()
+      result
+    }
+  }
+
+  def executeQuery(query: String)
+                          (implicit connection: Connection): ResultSet = {
+    RDBEntityIndex.logSqlErrors(query) {
+      val statement = connection.createStatement()
+      statement.executeQuery(query)
+    }
   }
 
   /** Creates a new JDBC database connection */
