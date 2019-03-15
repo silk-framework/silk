@@ -36,4 +36,31 @@ class EntityTest extends FlatSpec with Matchers {
     val inputStream = new ByteArrayInputStream(outputStream.toByteArray)
     Entity.deserialize(new DataInputStream(inputStream), entity.schema)
   }
+
+  /* COMPLEX ENTITIES */
+
+  val subSchema1 = EntitySchema(typeUri = Uri("sub1"), typedPaths = IndexedSeq(Path("path3").asStringTypedPath, Path("path4").asStringTypedPath), filter = Restriction.empty, Path("sub1"))
+  val subSchema2 = EntitySchema(typeUri = Uri("sub2"), typedPaths = IndexedSeq(Path("path5").asStringTypedPath, Path("path6").asStringTypedPath), filter = Restriction.empty, Path("sub2"))
+
+  val complexSchema = new MultiEntitySchema( schema, IndexedSeq(subSchema1, subSchema2))
+
+  val se1 = Entity("http://silk-framework.com/example/subE1", IndexedSeq(Seq("value3", "value4"), Seq("value11")), subSchema1)
+  val se2 = Entity("http://silk-framework.com/example/subE2", IndexedSeq(Seq("value5", "value6"), Seq()), subSchema2)
+
+  val complexEntity = Entity("http://silk-framework.com/example/complex", IndexedSeq(Seq("value1", "value2"), Seq("value3")), complexSchema, IndexedSeq(Some(se1), Some(se2)))
+  val complexEntity2 = Entity("http://silk-framework.com/example/complex2", IndexedSeq(Seq("value1", "value2"), Seq("value3")), complexSchema, IndexedSeq(None, Some(se2)))
+
+  "Complex Entity" should "be serializable" in {
+    serialized(complexEntity) should be (complexEntity)
+    serialized(complexEntity2) should be (complexEntity2)
+  }
+
+  "Complex Entity" should "be evaluated correctly" in {
+    complexEntity.evaluate(1) shouldBe complexEntity.evaluate(Path("path2").asStringTypedPath)
+    complexEntity.evaluate(3) shouldBe complexEntity.evaluate(Path("path4").asStringTypedPath)
+    complexEntity.evaluate(4) shouldBe complexEntity.evaluate(Path("path5").asStringTypedPath)
+    complexEntity.evaluate(3) shouldBe complexEntity.evaluate(Path.parse("sub1/path4").asStringTypedPath)
+    complexEntity.evaluate(4) shouldBe complexEntity.evaluate(Path.parse("sub2/path5").asStringTypedPath)
+  }
+
 }

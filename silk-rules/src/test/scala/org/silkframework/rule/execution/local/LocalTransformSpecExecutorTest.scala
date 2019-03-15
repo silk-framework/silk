@@ -28,11 +28,11 @@ class LocalTransformSpecExecutorTest extends FlatSpec with MustMatchers with Exe
       DatasetSelection.empty,
       RootMappingRule(MappingRules(
         propertyRules = Seq(
-          DirectMapping(sourcePath = Path("pathA"), mappingTarget = enMappingTarget),
-          DirectMapping(sourcePath = Path("pathB"), mappingTarget = deMappingTarget),
-          DirectMapping(sourcePath = Path("pathD"), mappingTarget = deMappingTarget),
-          DirectMapping(sourcePath = Path("pathC"), mappingTarget = plainMappingTarget),
-          DirectMapping(sourcePath = Path("pathE"), mappingTarget = plainMappingTarget)
+          DirectMapping(id= "sp1", sourcePath = Path("pathA"), mappingTarget = enMappingTarget),
+          DirectMapping(id= "sp2", sourcePath = Path("pathB"), mappingTarget = deMappingTarget),
+          DirectMapping(id= "sp3", sourcePath = Path("pathD"), mappingTarget = deMappingTarget),
+          DirectMapping(id= "sp4", sourcePath = Path("pathC"), mappingTarget = plainMappingTarget),
+          DirectMapping(id= "sp5", sourcePath = Path("pathE"), mappingTarget = plainMappingTarget)
         )
       ))
     ))

@@ -180,7 +180,7 @@ case class EntitySchema(
     if(obj != null) {
       obj match {
         case es: EntitySchema =>
-          es.typeUri == this.typeUri && //TODO TypedPath change: please validate, create test
+          es.typeUri == this.typeUri &&
             es.typedPaths.size == this.typedPaths.size &&
             es.typedPaths.zip(this.typedPaths).forall(ps => ps._1 == ps._2) &&
             es.subPath == this.subPath &&

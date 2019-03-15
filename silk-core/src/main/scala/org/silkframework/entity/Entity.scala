@@ -135,10 +135,10 @@ case class Entity private(
         val schemata = Seq(mes.pivotSchema) ++ mes.subSchemata
         val pivotSize = mes.pivotSchema.typedPaths.size
         // create range sequence where the first entry is the EntitySchema belonging to the value of the index (and the second is out of range)
-        val rangeMap = schemata.zip(Seq(0) ++ mes.subSchemata.zipWithIndex.map(x => mes.subSchemata.
+        val rangeMap = (schemata.zip(Seq(0) ++ mes.subSchemata.zipWithIndex.map(x => mes.subSchemata.
           splitAt(x._2)._1
           .foldLeft(pivotSize)((i, s) => s.typedPaths.size + i))
-        ).sliding(2)
+        ) ++ Seq(( EntitySchema.empty, mes.typedPaths.size ))).sliding(2)
         // now find the correct range and EntitySchema
         val zw = rangeMap.find(x => x.head._2 <= pathIndex && (x.tail.headOption match{
           case Some(o) => o._2 > pathIndex
@@ -151,7 +151,7 @@ case class Entity private(
           this.subEntities.flatten.find(se => se.schema == x._1).map(e => e.evaluate(pathIndex - x._2))
         }}).getOrElse(Seq())
       case _: EntitySchema => this.values(pathIndex)
-    } //TODO TypedPath change: reworked, formerly done in valueOf, create test for this
+    }
   }
 
   /**
@@ -172,7 +172,7 @@ case class Entity private(
             subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
           }
           //now find the pertaining index and get values
-          ent.evaluate(es.pathIndex(path))
+          ent.evaluate(es.pathIndex(TypedPath.reducePath(path, es.subPath).asInstanceOf[TypedPath]))
         case None => Seq()
       }
     }
@@ -197,7 +197,7 @@ case class Entity private(
             subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
           }
           //now find the pertaining index and get values
-          ent.evaluate(es.pathIndexIgnoreType(path))
+          ent.evaluate(es.pathIndexIgnoreType(TypedPath.reducePath(path, es.subPath).asInstanceOf[TypedPath]))
         case None => Seq()
       }
     }
@@ -251,6 +251,10 @@ case class Entity private(
         }
         </Val>
       }
+      for (sub <- subEntities) yield {
+        <Sub>{sub.foreach(e => e.toXML)}</Sub>
+      }
+      // NOTE: at the moment metadata is lost when serializing to XML
     }
     </Entity>
   }
@@ -261,6 +265,16 @@ case class Entity private(
       stream.writeInt(valueSet.size)
       for (value <- valueSet) {
         stream.writeUTF(value)
+      }
+    }
+    stream.writeInt(subEntities.size)
+    for (sub <- subEntities) {
+      sub match{
+        case Some(e) =>
+          stream.writeBoolean(true)
+          e.serialize(stream)
+        case None =>
+          stream.writeBoolean(false)
       }
     }
   }
@@ -352,8 +366,20 @@ object Entity {
 
     //Read Values
     def readValue = Seq.fill(stream.readInt)(stream.readUTF)
-    val values = IndexedSeq.fill(desc.typedPaths.size)(readValue)
 
-    new Entity(uri, values, desc)
+    desc match{
+      case mes: MultiEntitySchema =>
+        val values = IndexedSeq.fill(mes.pivotSchema.typedPaths.size)(readValue)
+        val subs = mes.subSchemata.map(se => {
+          if(stream.readBoolean())
+            Some(deserialize(stream, se))
+          else
+            None
+        })
+        Entity(uri, values, mes, subs)
+      case es: EntitySchema =>
+        val values = IndexedSeq.fill(desc.typedPaths.size)(readValue)
+        Entity(uri, values, es)
+    }
   }
 }

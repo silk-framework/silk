@@ -32,7 +32,7 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
     this.getSchemaOfProperty(oldName) match{
       case Some(_) => new MultiEntitySchema(
         this.pivotSchema.renameProperty(oldName, newName),
-        this.subSchemata.map(_.renameProperty(oldName, newName))
+        this.subSchemata.map(es => es.renameProperty(TypedPath.reducePath(oldName, es.subPath).asInstanceOf[TypedPath], newName))
       )
       case None => this
     }
@@ -47,7 +47,9 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
   override def getSchemaOfProperty(tp: TypedPath): Option[EntitySchema] =
     this.pivotSchema.getSchemaOfProperty(tp) match{
       case Some(es) => Some(es)
-      case None => this.subSchemata.find(es => es.typedPaths.contains(tp))
+      case None => this.subSchemata.find(es => {
+        es.typedPaths.contains(TypedPath.reducePath(tp, es.subPath))
+      })
   }
 
 
@@ -60,7 +62,10 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
   override def getSchemaOfPropertyIgnoreType(tp: Path): Option[EntitySchema] =
     this.pivotSchema.getSchemaOfPropertyIgnoreType(tp) match{
       case Some(es) => Some(es)
-      case None => this.subSchemata.find(es => es.typedPaths.map(_.toSimplePath).contains(Path(tp.operators)))
+      case None =>
+        this.subSchemata.find(es => {
+          es.typedPaths.map(_.toSimplePath).contains(TypedPath.reducePath(tp, es.subPath))
+        })
     }//TODO TypedPath change: new
 
   /**
@@ -71,6 +76,22 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
     * @return - the index of the path in question
     */
   override def pathIndex(path: TypedPath): Int = pivotSchema.pathIndex(path)
+
+  override def equals(obj: Any): Boolean = obj match{
+    case mes: MultiEntitySchema =>
+      mes.pivotSchema.equals(this.pivotSchema) &&
+      mes.subSchemata.size == this.subSchemata.size &&
+      mes.subSchemata.zip(this.subSchemata).forall(x => x._1.equals(x._2))
+    case _ => false
+  }
+
+  override def equalsUntyped(obj: Any): Boolean = obj match{
+    case mes: MultiEntitySchema =>
+      mes.pivotSchema.equalsUntyped(this.pivotSchema) &&
+        mes.subSchemata.size == this.subSchemata.size &&
+        mes.subSchemata.zip(this.subSchemata).forall(x => x._1.equalsUntyped(x._2))
+    case _ => false
+  }
 }
 
 object MultiEntitySchema{
