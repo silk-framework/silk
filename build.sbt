@@ -37,6 +37,12 @@ lazy val commonSettings = Seq(
     "org.apache.thrift" % "libthrift" % "0.9.3",
     "io.netty" % "netty" % "3.10.5.Final",
     "com.fasterxml.jackson.core" % "jackson-databind" % "2.9.6",
+    "com.fasterxml.jackson.core" % "jackson-annotations" % "2.9.6",
+    "com.fasterxml.jackson.core" % "jackson-core" % "2.9.6",
+    "com.fasterxml.jackson.datatype" % "jackson-datatype-jdk8" % "2.9.6",
+    "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % "2.9.6",
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.6",
+    "com.fasterxml.jackson.module" % "jackson-module-paranamer" % "2.9.6",
     "com.google.code.findbugs" % "jsr305" % "3.0.0",
     "javax.servlet" % "javax.servlet-api" % "3.1.0" // FIXME: Needs to be re-evaluated when changing the Fuseki version (currently 3.7.0), comes from jetty-servlets 9.4.7.v20170914
   ),
