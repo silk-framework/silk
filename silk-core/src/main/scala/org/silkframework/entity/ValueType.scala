@@ -38,7 +38,7 @@ sealed trait ValueType {
     * Extends equals to return true if either one of the comparators is an UntypedValueType
     * @param vt - the other ValueType
     */
-  def equalsOrIndifferentTo(vt: ValueType): Boolean = {
+  def equalsOrIndifferentTo(vt: ValueType): Boolean = {//TODO TypedPath change: new
     vt match{
       case UntypedValueType => true
       case _ if this == UntypedValueType => true
@@ -114,7 +114,7 @@ object ValueType {
                                   nodeType: String,
                                   prefixes: Prefixes): ValueType = {
     nodeType.replace("$", "") match {
-      case OUTDATED_AUTO_DETECT => UntypedValueType
+      case OUTDATED_AUTO_DETECT => UntypedValueType //for backward compatibility
       case CUSTOM_VALUE_TYPE =>
         (value \ "@uri").headOption match {
           case Some(typeUri) =>
@@ -159,7 +159,7 @@ object ValueType {
     case Right(obj) => (obj.id, Right(obj))
   }.toMap
 
-  val valueTypeIdMapByClass: Map[Class[_], String] = valueTypeMapByStringId.filterNot(x => x._1 == OUTDATED_AUTO_DETECT).map(ei =>
+  val valueTypeIdMapByClass: Map[Class[_], String] = valueTypeMapByStringId.filterNot(x => x._1 == OUTDATED_AUTO_DETECT).map(ei =>  // we have to remove the outdated name
     ei._2 match {
       case Left(clazz) => (clazz, ei._1)
       case Right(obj) => (obj.getClass, ei._1)
@@ -171,7 +171,7 @@ object ValueType {
   * If this value type is set, then the values can be transformed to any valid value that can be inferred from the
   * lexical form, e.g. "1" can be an Int, but also a String.
   */
-case object UntypedValueType extends ValueType with Serializable {
+case object UntypedValueType extends ValueType with Serializable {//renamed from AutoDetectValueType
 
   override def label = "Untyped"
 

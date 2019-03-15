@@ -95,10 +95,10 @@ class CsvSource(file: Resource,
   override def toString: String = file.toString
 
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
-                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {//TODO TypedPath change:
     try {
       for (property <- propertyList) yield {
-        Path(ForwardOperator(Uri.parse(property)) :: Nil).asStringTypedPath
+        Path(ForwardOperator(Uri.parse(property)) :: Nil).asStringTypedPath //TODO TypedPath change: converted all to StringTypeValueType
       }
     } catch {
       case e: MalformedInputException =>

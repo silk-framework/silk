@@ -88,7 +88,7 @@ object DatasetSpec {
     }
 
     override def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None)
-                              (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+                              (implicit userContext: UserContext): IndexedSeq[TypedPath] = { //TODO TypedPath change:
       source.retrievePaths(typeUri, depth, limit)
     }
 

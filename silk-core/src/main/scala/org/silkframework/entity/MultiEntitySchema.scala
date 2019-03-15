@@ -61,7 +61,7 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
     this.pivotSchema.getSchemaOfPropertyIgnoreType(tp) match{
       case Some(es) => Some(es)
       case None => this.subSchemata.find(es => es.typedPaths.map(_.toSimplePath).contains(Path(tp.operators)))
-    }
+    }//TODO TypedPath change: new
 
   /**
     * Returns the index of a given path in the pivot schema.

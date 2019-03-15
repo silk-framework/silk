@@ -56,7 +56,7 @@ trait DataSource {
    * @return A Sequence of the found paths sorted by their frequency (most frequent first).
    */
   def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None)
-                   (implicit userContext: UserContext): IndexedSeq[TypedPath]
+                   (implicit userContext: UserContext): IndexedSeq[TypedPath] //TODO TypedPath change: NOTE: deleted TypedPathRetrieveDataSource trait
 
   /**
    * Retrieves entities from this source which satisfy a specific entity schema.

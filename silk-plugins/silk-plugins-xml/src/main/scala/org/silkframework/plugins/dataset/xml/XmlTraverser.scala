@@ -97,7 +97,7 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     // Generate paths for all attributes
     val attributes = if(depth == 0) Seq() else node.attributes.asAttrMap.keys.toSeq
     val attributesPaths = attributes.map(attribute => TypedPath((path :+ ForwardOperator("@" + attribute)).toList, StringValueType, isAttribute = true))
-    val typedPath = TypedPath(path.toList, UntypedValueType, isAttribute = false)
+    val typedPath = TypedPath(path.toList, UntypedValueType, isAttribute = false) //TODO TypedPath change: removed buggy String/Uri type distinction PAY SPECIAL ATTENTION TO THIS SECTION!
 
     if(onlyInnerNodes && children.isEmpty && node.attributes.isEmpty) {
       Seq() // An inner node has at least an attribute or child elements

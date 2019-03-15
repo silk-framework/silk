@@ -46,11 +46,10 @@ case class TypedPath(
   }
 
   /**
-    * TODO
-    * @param tp
-    * @return
+    * Additional equals ignoring the ValueType if one of the paths feature an UntypedValueType
+    * @param tp - the comparison object
     */
-  def equalsUntyped(tp: TypedPath): Boolean = {
+  def equalsUntyped(tp: TypedPath): Boolean = {//TODO TypedPath change: new
     tp match {
       case tp@TypedPath(_, otherValueType, _) =>
         // if one of the comparison objects are untyped, we ignore the type all together
@@ -62,7 +61,7 @@ case class TypedPath(
     }
   }
 
-  override def equals(other: Any): Boolean = {
+  override def equals(other: Any): Boolean = {//TODO TypedPath change: new
     other match {
       case tp@TypedPath(_, otherValueType, _) =>
         valueType == otherValueType &&
@@ -119,7 +118,7 @@ object TypedPath {
     * Empty TypedPath (used as filler or duds)
     * @return
     */
-  def empty: TypedPath = TypedPath(Path.empty, UntypedValueType, isAttribute = false)
+  def empty: TypedPath = TypedPath(Path.empty, UntypedValueType, isAttribute = false)//TODO TypedPath change:
 
   implicit object TypedPathFormat extends XmlFormat[TypedPath] {
     /**

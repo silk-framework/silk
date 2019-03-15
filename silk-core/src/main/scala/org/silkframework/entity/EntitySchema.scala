@@ -58,7 +58,7 @@ case class EntitySchema(
     * @return - the index of the path in question
     * @throws NoSuchElementException If the path could not be found in the schema.
     */
-  def pathIndex(path: TypedPath): Int = {
+  def pathIndex(path: TypedPath): Int = { //TODO TypedPath change: overhauled completely evaluating every Type
     //find the given path and, if provided, match the value type as well
     typedPaths.zipWithIndex.find(pi => path.equals(pi._1)) match{
       case Some((_, ind)) => ind
@@ -72,7 +72,7 @@ case class EntitySchema(
     * @return - the index of the path in question
     * @throws NoSuchElementException If the path could not be found in the schema.
     */
-  def pathIndexIgnoreType(path: Path): Int = {
+  def pathIndexIgnoreType(path: Path): Int = {//TODO TypedPath change: new, neglecting type comparison
     typedPaths.zipWithIndex.find(pi => Path(path.operators).equals(pi._1)) match{
       case Some((_, ind)) => ind
       case None => throw new NoSuchElementException(s"Path $path not found on entity. Available paths: ${typedPaths.mkString(", ")}.")
@@ -86,7 +86,7 @@ case class EntitySchema(
     * @param path - a TypedPath
     * @return - an element of the typedPath collection (if any)
     */
-  def findTypedPath(path: TypedPath): Option[TypedPath] = {
+  def findTypedPath(path: TypedPath): Option[TypedPath] = {//TODO TypedPath change: new
     this.typedPaths.find(tp => path.equals(tp))
   }
 
@@ -96,8 +96,8 @@ case class EntitySchema(
     * @param path - ether a Path or a TypedPath
     * @return - an element of the typedPath collection (if any)
     */
-  def findPathIgnoreType(path: Path): Option[TypedPath] = {
-    this.typedPaths.find(tp => Path(path.operators).equals(tp))
+  def findPathIgnoreType(path: Path): Option[TypedPath] = {//TODO TypedPath change: new
+    this.typedPaths.find(tp => tp.toSimplePath.equals(path)) //we make sure to use a Path using its equals
   }
 
 
@@ -107,7 +107,7 @@ case class EntitySchema(
     * @param tp - the typed path
     * @return
     */
-  def getSchemaOfProperty(tp: TypedPath): Option[EntitySchema] = this.typedPaths.find(tt => tt.equals(tp)) match{
+  def getSchemaOfProperty(tp: TypedPath): Option[EntitySchema] = findTypedPath(tp) match{ //TODO TypedPath change: new
     case Some(_) => Some(this)
     case None => None
   }
@@ -118,7 +118,7 @@ case class EntitySchema(
     * NOTE: has to be overwritten in MultiEntitySchema
     * @param tp - the untyped path
     */
-  def getSchemaOfPropertyIgnoreType(tp: Path): Option[EntitySchema] = this.typedPaths.find(tt => tt.toSimplePath.equals(tp)) match{
+  def getSchemaOfPropertyIgnoreType(tp: Path): Option[EntitySchema] = this.typedPaths.find(tt => tt.toSimplePath.equals(tp)) match{//TODO TypedPath change: new
     case Some(_) => Some(this)
     case None => None
   }
@@ -158,7 +158,7 @@ case class EntitySchema(
       case es: EntitySchema =>
         EntitySchema(
           es.typeUri,
-          tps.flatMap(tp => es.typedPaths.find(t => tp.equalsUntyped(t)) match{
+          tps.flatMap(tp => es.typedPaths.find(t => tp.equalsUntyped(t)) match{   //TODO TypedPath change:
             case Some(_) => Some(tp)
             case None => None
           }).toIndexedSeq,
@@ -180,7 +180,7 @@ case class EntitySchema(
     if(obj != null) {
       obj match {
         case es: EntitySchema =>
-          es.typeUri == this.typeUri &&
+          es.typeUri == this.typeUri && //TODO TypedPath change: please validate, create test
             es.typedPaths.size == this.typedPaths.size &&
             es.typedPaths.zip(this.typedPaths).forall(ps => ps._1 == ps._2) &&
             es.subPath == this.subPath &&
@@ -196,7 +196,7 @@ case class EntitySchema(
       false
   }
 
-  def equalsUntyped(obj: scala.Any): Boolean = {
+  def equalsUntyped(obj: scala.Any): Boolean = {//TODO TypedPath change: new
     if(obj != null) {
       obj match {
         case es: EntitySchema =>

@@ -200,7 +200,7 @@ class PeakTransformApi extends Controller {
     (tryCounter, errorCounter, errorMessage, resultBuffer)
   }
 
-  private def serializePath(path: TypedPath)
+  private def serializePath(path: TypedPath)    //TODO TypedPath change: now param is TypedPath
                            (implicit prefixes: Prefixes): Seq[String] = {
     path.operators.map { op =>
       op.serialize

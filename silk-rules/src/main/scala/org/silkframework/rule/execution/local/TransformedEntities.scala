@@ -25,11 +25,11 @@ class TransformedEntities(entities: Traversable[Entity],
 
   private var errorFlag = false
 
-  override def foreach[U](f: (Entity) => U): Unit = {
+  override def foreach[U](f: Entity => U): Unit = {
     // For each schema path, collect all rules that map to it
     val rulesPerPath =
       for(path <- outputSchema.typedPaths) yield {
-        propertyRules.filter(_.target.get.asTypedPath() == path)
+        propertyRules.filter(_.target.get.asTypedPath() == path)    //TODO TypedPath change: new TypedPath equals!
       }
 
     var count = 0
