@@ -36,7 +36,7 @@ lazy val commonSettings = Seq(
     "com.google.inject" % "guice" % "4.0",
     "org.apache.thrift" % "libthrift" % "0.9.3",
     "io.netty" % "netty" % "3.10.5.Final",
-    "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.5",
+    "com.fasterxml.jackson.core" % "jackson-databind" % "2.9.6",
     "com.google.code.findbugs" % "jsr305" % "3.0.0",
     "javax.servlet" % "javax.servlet-api" % "3.1.0" // FIXME: Needs to be re-evaluated when changing the Fuseki version (currently 3.7.0), comes from jetty-servlets 9.4.7.v20170914
   ),
@@ -132,7 +132,7 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(
     name := "Silk Plugins JSON",
     libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.4.8",
-    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.8.6"
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.9.6"
   )
 
 lazy val pluginsSpatialTemporal = (project in file("silk-plugins/silk-plugins-spatial-temporal"))
