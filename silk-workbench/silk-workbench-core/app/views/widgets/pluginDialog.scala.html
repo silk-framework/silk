@@ -2,17 +2,17 @@
 @import org.silkframework.runtime.plugin.ParameterType._
 @import org.silkframework.runtime.plugin.{AnyPlugin, Parameter, ParameterType, PluginDescription}
 @import org.silkframework.workspace.Project
-
 @import org.silkframework.runtime.activity.UserContext
+
 @(project: Project,
-    name: String,
-    plugins: Seq[PluginDescription[_]],
-    currentObj: Option[AnyPlugin],
-    resources: List[String],
-    title: String = "Edit Properties",
-    submitLabel: String = "OK",
-    secondaryLabel: String = "Secondary",
-    createDialog: Boolean = false)(contents: Html)(implicit userContext: UserContext)
+  name: String,
+  plugins: Seq[PluginDescription[_]],
+  currentObj: Option[AnyPlugin],
+  resources: List[String],
+  title: String = "Edit Properties",
+  submitLabel: String = "OK",
+  secondaryLabel: String = "Secondary",
+  createDialog: Boolean = false)(contents: Html)(implicit userContext: UserContext)
 
 @dialog(title = title, submitLabel = submitLabel, secondaryLabel = secondaryLabel, width = 500, createDialog = createDialog) {
   <div id="plugintabs">
@@ -22,7 +22,7 @@
           <option value="@plugin.id">@plugin.label</option>
         }
       </select>
-      <label class="mdl-selectfield__label" for="resource_type_select">Resource Type</label>
+      <label class="mdl-selectfield__label" for="resource_type_select">Type</label>
     </div>
     <script type="text/javascript">
       var plugin_dialog_submit_delegates = {};
@@ -141,10 +141,12 @@
       @plugin.description
     </p>
 
-    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-      <input class="mdl-textfield__input" type="text" id="@(plugin.id)_name" name="@(plugin.id)_name" value="@name"  @if(!createDialog) { disabled="true" } />
-      <label class="mdl-textfield__label" for="@(plugin.id)_name">Name</label>
-    </div>
+    @if(createDialog) {
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+        <input class="mdl-textfield__input" type="text" id="@(plugin.id)_name" name="@(plugin.id)_name" value="@name" />
+        <label class="mdl-textfield__label" for="@(plugin.id)_name">Name</label>
+      </div>
+    }
 
     @for(param <- plugin.parameters) {
       @if(param.visibleInDialog) {
@@ -157,7 +159,11 @@
   <script type="text/javascript">
     function @(plugin.id)_submit(onlyAutoConfigure, callbacks) {
       // Retrieve the name of the plugin
-      var name = $('[name=\'@(plugin.id)_name\']').val();
+      @if(createDialog) {
+        var name =  $('[name=\'@(plugin.id)_name\']').val();
+      } else {
+        var name = '@name';
+      }
       if(name.length === 0) {
         showError("Name is empty.");
         return false;

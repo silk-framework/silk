@@ -92,7 +92,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
             uriRule = None,
             typeRules = Seq(TypeMapping(typeUri = uri("Person"))),
             propertyRules = Seq(
-              DirectMapping(sourcePath = Path(uri("name")), mappingTarget = MappingTarget(uri("name"))),
+              DirectMapping("name", sourcePath = Path(uri("name")), mappingTarget = MappingTarget(uri("name"))),
               ObjectMapping(
                 id = "addressMapping",
                 sourcePath = Path(uri("address")),
@@ -101,8 +101,8 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
                   uriRule = None,
                   typeRules = Seq.empty,
                   propertyRules = Seq(
-                    DirectMapping(sourcePath = Path(uri("city")), mappingTarget = MappingTarget(uri("city"))),
-                    DirectMapping(sourcePath = Path(uri("country")), mappingTarget = MappingTarget(uri("country")))
+                    DirectMapping("city", sourcePath = Path(uri("city")), mappingTarget = MappingTarget(uri("city"))),
+                    DirectMapping("country", sourcePath = Path(uri("country")), mappingTarget = MappingTarget(uri("country")))
                   )
                 )
               )
