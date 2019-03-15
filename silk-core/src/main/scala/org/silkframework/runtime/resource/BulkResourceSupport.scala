@@ -20,6 +20,10 @@ import scala.collection.JavaConverters
   */
 trait BulkResourceSupport {
 
+  def resourceFile(res: WritableResource): WritableResource = {
+    checkIfBulkResource(res)
+  }
+
   val log: Logger = Logger.getLogger(this.getClass.getSimpleName)
 
   /**
@@ -33,10 +37,6 @@ trait BulkResourceSupport {
   def asBulkResource(resource: WritableResource): BulkResource = {
     if (resource.name.endsWith(".zip") && !new File(resource.path).isDirectory) {
       log info "Zip file Resource found."
-      BulkResource(new File(resource.path))
-    }
-    else if (new File(resource.path).isDirectory) {
-      log info "Resource Folder found."
       BulkResource(new File(resource.path))
     }
     else {
@@ -195,7 +195,6 @@ object BulkResourceSupport {
       val streamEnumeration = JavaConverters.asJavaEnumerationConverter[InputStream](streams.iterator)
       val combi = new SequenceInputStream(streamEnumeration.asJavaEnumeration)
       val copy = copyStream(combi)
-      combi.close()
       copy.reset()
       copy
     }

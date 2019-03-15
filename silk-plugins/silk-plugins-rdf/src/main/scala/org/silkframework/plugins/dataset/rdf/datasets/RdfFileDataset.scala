@@ -36,14 +36,16 @@ case class RdfFileDataset(
   @Param(label = "Max. read size (MB)",
     value = "The maximum size of the RDF file resource for read operations. Since the whole dataset will be kept in-memory, this value should be kept low to guarantee stability.")
   maxReadSize: Long = 10,
-  @Param("A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.")
+  @Param("A list of entities to be retrieved. If not Fgiven, all entities will be retrieved. Multiple entities are separated by whitespace.")
   entityList: MultilineStringParameter = MultilineStringParameter("")) extends RdfDataset with TripleSinkDataset with ResourceBasedDataset with BulkResourceSupport {
+
+  val bulkfile = resourceFile(file)
 
   /** The RDF format of the given resource. */
   private val lang = {
     // If the format is not specified explicitly, we try to guess it
     if(format.isEmpty) {
-      val guessedLang = RDFLanguages.filenameToLang(file.name)
+      val guessedLang = RDFLanguages.filenameToLang(bulkfile.name)
       require(guessedLang != null, "Cannot guess RDF format from resource name. Please specify it explicitly using the 'format' parameter.")
       guessedLang
     } else {
@@ -67,8 +69,8 @@ case class RdfFileDataset(
   override def sparqlEndpoint(sparqlInputStream: Option[InputStream] = None): JenaEndpoint = {
     // Load data set
     val dataset = DatasetFactory.createTxnMem()
-    if(file.exists) {
-      val inputStream = sparqlInputStream.getOrElse(file.inputStream)
+    if(bulkfile.exists) {
+      val inputStream = sparqlInputStream.getOrElse(bulkfile.inputStream)
       RDFDataMgr.read(dataset, inputStream, lang)
       inputStream.close()
     }
@@ -83,9 +85,9 @@ case class RdfFileDataset(
 
   override def source(implicit userContext: UserContext): FileSource.type = FileSource
 
-  override def linkSink(implicit userContext: UserContext): FormattedLinkSink = new FormattedLinkSink(file, formatter)
+  override def linkSink(implicit userContext: UserContext): FormattedLinkSink = new FormattedLinkSink(bulkfile, formatter)
 
-  override def entitySink(implicit userContext: UserContext): FormattedEntitySink = new FormattedEntitySink(file, formatter)
+  override def entitySink(implicit userContext: UserContext): FormattedEntitySink = new FormattedEntitySink(bulkfile, formatter)
 
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
@@ -130,12 +132,12 @@ case class RdfFileDataset(
       * Does nothing if the data set has already been loaded.
       */
     private def load(): Unit = synchronized {
-      val modificationTime = file.modificationTime.map(mt => (mt.getEpochSecond, mt.getNano))
+      val modificationTime = bulkfile.modificationTime.map(mt => (mt.getEpochSecond, mt.getNano))
       if (endpoint == null || modificationTime != lastModificationTime) {
-        if (file.size.isEmpty) {
+        if (bulkfile.size.isEmpty) {
           throw new RuntimeException("File size could not be determined, ")
-        } else if (file.size.get > maxReadSize * 1000 * 1000) {
-          throw new RuntimeException(s"File size (${file.size.get / 1000000.0} MB) is larger than configured max. read size ($maxReadSize MB).")
+        } else if (bulkfile.size.get > maxReadSize * 1000 * 1000) {
+          throw new RuntimeException(s"File size (${bulkfile.size.get / 1000000.0} MB) is larger than configured max. read size ($maxReadSize MB).")
         } else {
           endpoint = sparqlEndpoint()
           lastModificationTime = modificationTime
@@ -147,7 +149,7 @@ case class RdfFileDataset(
       * The dataset task underlying the Datset this source belongs to
       */
     override def underlyingTask: Task[DatasetSpec[Dataset]] = {
-      PlainTask(Identifier.fromAllowed(RdfFileDataset.this.file.name), DatasetSpec(EmptyDataset))
+      PlainTask(Identifier.fromAllowed(RdfFileDataset.this.bulkfile.name), DatasetSpec(EmptyDataset))
     } //FIXME CMEM 1352 replace with actual task
 
     override def retrievePathsSparqlRestriction(sparqlRestriction: SparqlRestriction, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[Path] = {
@@ -180,7 +182,7 @@ case class RdfFileDataset(
     private def sparqlSource = new SparqlSource(SparqlParams(graph = graphOpt), endpoint)
   }
 
-  override def tripleSink(implicit userContext: UserContext): TripleSink = new FormattedEntitySink(file, formatter)
+  override def tripleSink(implicit userContext: UserContext): TripleSink = new FormattedEntitySink(bulkfile, formatter)
 
   /**
     * Gets called when it is detected that all files in the bulk resource have the different schemata.
