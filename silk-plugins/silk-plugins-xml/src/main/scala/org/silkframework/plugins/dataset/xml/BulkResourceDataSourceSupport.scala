@@ -23,7 +23,7 @@ trait BulkResourceDataSourceSupport {
     val source: Option[DataSource] = dataset match {
       case ds: ResourceBasedDataset => {
         if (isBulkResource(ds.file)) {
-          Some(BulkResourceDataSource(asBulkResource(ds.file), dataset, isStreaming = false))
+          Some(XmlBulkDataSource(asBulkResource(ds.file), dataset, isStreaming = false))
         }
         else {
           log severe "Warning no BulResource was detected, if no default source is provided errors may occur. "

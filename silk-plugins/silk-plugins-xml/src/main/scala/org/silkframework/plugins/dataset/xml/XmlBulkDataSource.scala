@@ -18,7 +18,7 @@ import scala.xml.XML
   * Wrapper for that provides access to BulkResources with an underlying data source object and
   * the bulk resource object.
   */
-object BulkResourceDataSource extends DataSource with PeakDataSource with TypedPathRetrieveDataSource {
+object XmlBulkDataSource extends DataSource with PeakDataSource with TypedPathRetrieveDataSource {
 
   private final val logger: Logger = Logger.getLogger(this.getClass.getSimpleName)
 

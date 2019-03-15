@@ -19,7 +19,7 @@ import scala.collection.mutable
   */
 case class BulkResource(file: File) extends WritableResource {
 
-  val log: Logger = Logger.getLogger(this.getClass.getSimpleName)
+  private val log = Logger.getLogger(getClass.getName)
 
   var zipFile: Resource = FileResource(file)
   var replacementInputStream: Option[InputStream] = None
@@ -75,7 +75,7 @@ case class BulkResource(file: File) extends WritableResource {
     *         The caller is responsible for closing the stream after reading.
     */
   override def inputStream: InputStream = {
-    if (replacementInputStream.isEmpty) log.warning(s"Returning a stream that concatenates all resources in " +
+    if (replacementInputStream.isEmpty) log info(s"Returning a stream that concatenates all resources in " +
       s"$name. Use the methods of the BulkResource object to get and combine the resources individually")
     replacementInputStream.getOrElse(BulkResourceSupport.combineStreams(inputStreams))
   }
@@ -161,6 +161,35 @@ case class BulkResource(file: File) extends WritableResource {
 object BulkResource {
 
   /**
+    * Returns true if the given resource is a BulkResource and false otherwise.
+    * A BulkResource is detected if the file belonging to the given resource ends with .zip or is a
+    * directory.
+    *
+    * @param resource WritableResource to check
+    * @return true if an archive or folder
+    */
+  def isBulkResource(resource: WritableResource): Boolean = {
+    resource.name.endsWith(".zip") && !new File(resource.path).isDirectory
+  }
+
+  /**
+    * Returns a BulkResource depending on the given inputs location and name.
+    * A BulkResource is returned if the file belonging to the given resource ends with .zip or is a
+    * directory.
+    *
+    * @param resource WritableResource tha may be zip or folder
+    * @return instance of BulkResource
+    */
+  def asBulkResource(resource: WritableResource): BulkResource = {
+    if (resource.name.endsWith(".zip")) {
+      BulkResource(new File(resource.path))
+    }
+    else {
+      throw new IllegalArgumentException(resource.path + " is not a bulk resource.")
+    }
+  }
+
+  /**
     * Create new bulk resource with the given input stream replaceing the bulk resource input stream.
     *
     * @param bulkResource Resource used to create new Resource
@@ -181,7 +210,6 @@ object BulkResource {
     */
   def copyStream(inputStream: InputStream): InputStream = {
     val text = scala.io.Source.fromInputStream(inputStream).mkString
-    println(text)
     val stream: InputStream = new ByteArrayInputStream(text.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
     stream
   }

@@ -6,7 +6,9 @@ import java.util.zip.ZipException
 
 import org.apache.commons.io.input.ReaderInputStream
 import org.silkframework.entity.EntitySchema
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.BulkResourceSupport.getDistinctSchemaDescriptions
+import BulkResource._
 
 import scala.collection.JavaConverters
 
@@ -20,29 +22,7 @@ import scala.collection.JavaConverters
   */
 trait BulkResourceSupport {
 
-  def resourceFile(res: WritableResource): WritableResource = {
-    checkIfBulkResource(res)
-  }
-
-  val log: Logger = Logger.getLogger(this.getClass.getSimpleName)
-
-  /**
-    * Returns a BulkResource depending on the given inputs location and name.
-    * A BulkResource is returned if the file belonging to the given resource ends with .zip or is a
-    * directory.
-    *
-    * @param resource WritableResource tha may be zip or folder
-    * @return instance of BulkResource
-    */
-  def asBulkResource(resource: WritableResource): BulkResource = {
-    if (resource.name.endsWith(".zip") && !new File(resource.path).isDirectory) {
-      log info "Zip file Resource found."
-      BulkResource(new File(resource.path))
-    }
-    else {
-      throw new IllegalArgumentException(resource.path + " is not a bulk resource.")
-    }
-  }
+  private val log = Logger.getLogger(getClass.getName)
 
   /**
     * Cast the iput and return a BulkResource object if the given WritableResource is a zip file.
@@ -54,7 +34,7 @@ trait BulkResourceSupport {
     * @param file Resource
     * @return BulkResource or the given resource if it is no ar
     */
-  def checkIfBulkResource(file: WritableResource): WritableResource = {
+  def checkIfBulkResource(file: WritableResource)(implicit userContext: UserContext): WritableResource = {
     if (isBulkResource(file)) {
       val bulkResource = asBulkResource(file)
       val schemaSet = getDistinctSchemaDescriptions(checkResourceSchema(bulkResource))
@@ -78,25 +58,13 @@ trait BulkResourceSupport {
   }
 
 
-  /**
-    * Returns true if the given resource is a BulkResource and false otherwise.
-    * A BulkResource is detected if the file belonging to the given resource ends with .zip or is a
-    * directory.
-    *
-    * @param resource WritableResource to check
-    * @return true if an archive or folder
-    */
-  def isBulkResource(resource: WritableResource): Boolean = {
-    resource.name.endsWith(".zip") && !new File(resource.path).isDirectory
-  }
 
 
   /* The following methods that need to implement by the datasets to avoid dependency/structure changes
      In general it would be better to have a model with datasets that don't implement logic (like other operators).
      Then we could define arbitrary "flag" traits and leave the impl. to each executor.
-     Now spark does the second thing and the local exec. does the first. However, the local way is unlikely to change.
+     Now spark does the second thing and the local exec. does the first. However, the local way is unlikely to change. */
 
-     FIXME Rethink traits/execution model */
 
   /**
     * Gets called when it is detected that all files in the bulk resource have the different schemata.
@@ -126,7 +94,7 @@ trait BulkResourceSupport {
     * @param bulkResource Bulk resource
     * @return
     */
-  def checkResourceSchema(bulkResource: BulkResource): Seq[EntitySchema]
+  def checkResourceSchema(bulkResource: BulkResource)(implicit userContext: UserContext): Seq[EntitySchema]
 
 }
 
@@ -135,11 +103,7 @@ trait BulkResourceSupport {
   */
 object BulkResourceSupport {
 
-  /*constants*/
-  final val GENERATED_XML_ROOT_NAMWE: String = "GENERATED_ROOT" // TODO make configurable? at leat check ex. root
-
-  /*logger*/
-  private val log: Logger = Logger.getLogger(this.getClass.getSimpleName)
+  private val log = Logger.getLogger(getClass.getName)
 
   /**
     * Get a Seq of InputStream object, each belonging to on file in the given achieve.
