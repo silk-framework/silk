@@ -197,7 +197,7 @@ case class Entity private(
             subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
           }
           //now find the pertaining index and get values
-          ent.evaluate(es.pathIndexIgnoreType(TypedPath.reducePath(path, es.subPath).asInstanceOf[TypedPath]))
+          ent.evaluate(es.pathIndexIgnoreType(TypedPath.reducePath(path, es.subPath)))
         case None => Seq()
       }
     }
@@ -242,20 +242,24 @@ case class Entity private(
   }
 
   def toXML: Node = {
-    <Entity uri={uri.toString}> {
-      for (valueSet <- values) yield {
-        <Val> {
-          for (value <- valueSet) yield {
-            <e>{value}</e>
-          }
+    <Entity uri={uri.toString}>
+      <Values>      {
+        for (valueSet <- values) yield {
+          <Val> {
+            for (value <- valueSet) yield {
+              <e>{value}</e>
+            }
+            }
+          </Val>
         }
-        </Val>
-      }
-      for (sub <- subEntities) yield {
-        <Sub>{sub.foreach(e => e.toXML)}</Sub>
-      }
-      // NOTE: at the moment metadata is lost when serializing to XML
-    }
+        }
+      </Values>
+      <SubEntities>{
+        for (sub <- subEntities) yield {
+          <Sub>{sub.foreach(e => e.toXML)}</Sub>
+          // NOTE: at the moment metadata is lost when serializing to XML
+        }}
+      </SubEntities>
     </Entity>
   }
 
@@ -349,14 +353,23 @@ object Entity {
 
 
   def fromXML(node: Node, desc: EntitySchema): Entity = {
+    if(node == null)
+      return null
     new Entity(
       uri = (node \ "@uri").text.trim,
       vals = {
-        for (valNode <- node \ "Val") yield {
+        for (valNode <- node \ "Values" \ "Val") yield {
           for (e <- valNode \ "e") yield e.text
         }
       }.toIndexedSeq,
-      schema = desc
+      schema = desc,
+      subEntities = {
+        var ind = -1
+        for (valNode <- node \ "SubEntities" \ "Sub") yield {
+          ind = ind + 1
+          Option(fromXML(valNode, desc.asInstanceOf[MultiEntitySchema].subSchemata(ind)))
+        }
+      }.toIndexedSeq
     )
   }
 
