@@ -734,58 +734,38 @@ hierarchicalMappingChannel
                     isObjectMapping,
                     []
                 );
-                const data = _.get(rule, 'type') === MAPPING_RULE_TYPE_DIRECT
-                    ?
-                    {
-                        type: _.get(rule, 'type', MAPPING_RULE_TYPE_DIRECT),
-                        comment: _.get(rule, 'metadata.description', ''),
-                        label: _.get(rule, 'metadata.label', ''),
-                        targetProperty: _.get(
-                            rule,
-                            'mappingTarget.uri',
-                            ''
-                        ),
-                        valueType: _.get(
-                            rule,
-                            'mappingTarget.valueType',
-                            {nodeType: 'StringValueType'}
-                        ),
-                        sourceProperty: rule.sourcePath,
-                        isAttribute: _.get(
-                            rule,
-                            'mappingTarget.isAttribute',
-                            false
-                        ),
-                    }
-                    :
-                    {
-                        type: _.get(rule, 'type'),
-                        comment: _.get(rule, 'metadata.description', ''),
-                        label: _.get(rule, 'metadata.label', ''),
-                        sourceProperty: _.get(
-                            rule,
-                            'sourcePath',
-                            undefined
-                        ),
-                        targetProperty: _.get(
-                            rule,
-                            'mappingTarget.uri',
-                            undefined
-                        ),
-                        targetEntityType: _.chain(rule)
-                            .get('rules.typeRules', [])
-                            .map('typeUri')
-                            .value(),
-                        pattern: _.get(rule, 'rules.uriRule.pattern', ''),
-                        entityConnection: _.get(
-                            rule,
-                            'mappingTarget.isBackwardProperty',
-                            false
-                        ),
-                        copiedObjectId: id,
-                        copiedObjectTask: apiDetails.transformTask,
-                        copiedObjectProject: apiDetails.project,
-                    };
+
+                let data = {
+                    type: rule.type,
+                    comment: _.get(rule, 'metadata.description', ''),
+                    label: _.get(rule, 'metadata.label', ''),
+                    targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
+                    sourceProperty: _.get(rule, 'sourcePath', undefined),
+                };
+
+                if (rule.type === MAPPING_RULE_TYPE_DIRECT) {
+                    data.valueType = _.get(rule, 'mappingTarget.valueType', {nodeType: 'StringValueType'});
+                    data.isAttribute = _.get(rule, 'mappingTarget.isAttribute', false);
+                } else if (rule.type === MAPPING_RULE_TYPE_COMPLEX) {
+                    data.valueType = _.get(rule, 'mappingTarget.valueType', {nodeType: 'StringValueType'});
+                    data.isAttribute = _.get(rule, 'mappingTarget.isAttribute', false);
+                    data.operator = rule.operator;
+                    data.sourcePaths = rule.sourcePaths;
+                } else if (rule.type === MAPPING_RULE_TYPE_OBJECT) {
+                    data.targetEntityType = _.chain(rule)
+                        .get('rules.typeRules', [])
+                        .map('typeUri')
+                        .value();
+                    data.pattern = _.get(rule, 'rules.uriRule.pattern', '');
+                    data.entityConnection = _.get(
+                        rule,
+                        'mappingTarget.isBackwardProperty',
+                        false
+                    );
+                    data.copiedObjectId = id;
+                    data.copiedObjectTask = apiDetails.transformTask;
+                    data.copiedObjectProject = apiDetails.project;
+                };
 
                 return {data: data};
             })
