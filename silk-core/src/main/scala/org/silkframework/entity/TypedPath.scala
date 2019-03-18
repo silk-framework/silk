@@ -71,6 +71,8 @@ case class TypedPath(
         false
     }
   }
+
+  override def toString: String = super.toString + ": " + valueType
 }
 
 object TypedPath {

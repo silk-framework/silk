@@ -158,7 +158,7 @@ case class EntitySchema(
       case es: EntitySchema =>
         EntitySchema(
           es.typeUri,
-          tps.flatMap(tp => es.typedPaths.find(t => tp.equalsUntyped(t)) match{   //TODO TypedPath change:
+          tps.flatMap(tp => es.findPathIgnoreType(tp) match{   //TODO TypedPath change:
             case Some(_) => Some(tp)
             case None => None
           }).toIndexedSeq,
