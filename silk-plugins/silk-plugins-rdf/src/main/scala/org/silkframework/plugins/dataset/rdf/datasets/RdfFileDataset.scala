@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.datasets
 
-import java.io.InputStream
+import java.io.{FileNotFoundException, InputStream}
 
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
@@ -39,13 +39,14 @@ case class RdfFileDataset(
   @Param("A list of entities to be retrieved. If not Fgiven, all entities will be retrieved. Multiple entities are separated by whitespace.")
   entityList: MultilineStringParameter = MultilineStringParameter("")) extends RdfDataset with TripleSinkDataset with ResourceBasedDataset with BulkResourceSupport {
 
-  val bulkfile = resourceFile(file)
+  implicit val userContext: UserContext = UserContext.INTERNAL_USER
+  val bulkFile: WritableResource = initBulkResource(file)
 
   /** The RDF format of the given resource. */
   private val lang = {
     // If the format is not specified explicitly, we try to guess it
-    if(format.isEmpty) {
-      val guessedLang = RDFLanguages.filenameToLang(bulkfile.name)
+    if (format.isEmpty) {
+      val guessedLang = RDFLanguages.filenameToLang(bulkFile.name)
       require(guessedLang != null, "Cannot guess RDF format from resource name. Please specify it explicitly using the 'format' parameter.")
       guessedLang
     } else {
@@ -57,43 +58,50 @@ case class RdfFileDataset(
 
   /** Currently RDF is written using custom formatters (instead of using an RDF writer from Jena). */
   private def formatter: LinkFormatter with EntityFormatter = {
-    if(lang == Lang.NTRIPLES) {
+    if (lang == Lang.NTRIPLES) {
       NTriplesLinkFormatter()
     } else {
       throw new IllegalArgumentException(s"Unsupported output format. Currently only N-Triples is supported.")
     }
   }
 
-  private val graphOpt = if(graph.trim.isEmpty) None else Some(graph)
+  private val graphOpt = if (graph.trim.isEmpty) None else Some(graph)
 
   override def sparqlEndpoint(sparqlInputStream: Option[InputStream] = None): JenaEndpoint = {
     // Load data set
     val dataset = DatasetFactory.createTxnMem()
-    if(bulkfile.exists) {
-      val inputStream = sparqlInputStream.getOrElse(bulkfile.inputStream)
+    if (bulkFile.exists) {
+      val inputStream = sparqlInputStream.getOrElse(bulkFile.inputStream)
       RDFDataMgr.read(dataset, inputStream, lang)
       inputStream.close()
+    }
+    else {
+      throw new FileNotFoundException(s"The file $bulkFile could  note be found or read.")
     }
 
     // Retrieve model
     val model =
-      if (!graph.trim.isEmpty) { dataset.getNamedModel(graph) }
-      else { dataset.getDefaultModel }
+      if (!graph.trim.isEmpty) {
+        dataset.getNamedModel(graph)
+      }
+      else {
+        dataset.getDefaultModel
+      }
 
     new JenaModelEndpoint(model)
   }
 
   override def source(implicit userContext: UserContext): FileSource.type = FileSource
 
-  override def linkSink(implicit userContext: UserContext): FormattedLinkSink = new FormattedLinkSink(bulkfile, formatter)
+  override def linkSink(implicit userContext: UserContext): FormattedLinkSink = new FormattedLinkSink(bulkFile, formatter)
 
-  override def entitySink(implicit userContext: UserContext): FormattedEntitySink = new FormattedEntitySink(bulkfile, formatter)
+  override def entitySink(implicit userContext: UserContext): FormattedEntitySink = new FormattedEntitySink(bulkFile, formatter)
 
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
 
   object FileSource extends DataSource with PeakDataSource with Serializable with SamplingDataSource
-      with SchemaExtractionSource with SparqlRestrictionDataSource with TypedPathRetrieveDataSource {
+    with SchemaExtractionSource with SparqlRestrictionDataSource with TypedPathRetrieveDataSource {
 
     // Load dataset
     private var endpoint: JenaEndpoint = _
@@ -132,12 +140,12 @@ case class RdfFileDataset(
       * Does nothing if the data set has already been loaded.
       */
     private def load(): Unit = synchronized {
-      val modificationTime = bulkfile.modificationTime.map(mt => (mt.getEpochSecond, mt.getNano))
+      val modificationTime = bulkFile.modificationTime.map(mt => (mt.getEpochSecond, mt.getNano))
       if (endpoint == null || modificationTime != lastModificationTime) {
-        if (bulkfile.size.isEmpty) {
+        if (bulkFile.size.isEmpty) {
           throw new RuntimeException("File size could not be determined, ")
-        } else if (bulkfile.size.get > maxReadSize * 1000 * 1000) {
-          throw new RuntimeException(s"File size (${bulkfile.size.get / 1000000.0} MB) is larger than configured max. read size ($maxReadSize MB).")
+        } else if (bulkFile.size.get > maxReadSize * 1000 * 1000) {
+          throw new RuntimeException(s"File size (${bulkFile.size.get / 1000000.0} MB) is larger than configured max. read size ($maxReadSize MB).")
         } else {
           endpoint = sparqlEndpoint()
           lastModificationTime = modificationTime
@@ -149,7 +157,7 @@ case class RdfFileDataset(
       * The dataset task underlying the Datset this source belongs to
       */
     override def underlyingTask: Task[DatasetSpec[Dataset]] = {
-      PlainTask(Identifier.fromAllowed(RdfFileDataset.this.bulkfile.name), DatasetSpec(EmptyDataset))
+      PlainTask(Identifier.fromAllowed(RdfFileDataset.this.bulkFile.name), DatasetSpec(EmptyDataset))
     } //FIXME CMEM 1352 replace with actual task
 
     override def retrievePathsSparqlRestriction(sparqlRestriction: SparqlRestriction, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[Path] = {
@@ -182,32 +190,9 @@ case class RdfFileDataset(
     private def sparqlSource = new SparqlSource(SparqlParams(graph = graphOpt), endpoint)
   }
 
-  override def tripleSink(implicit userContext: UserContext): TripleSink = new FormattedEntitySink(bulkfile, formatter)
+  override def tripleSink(implicit userContext: UserContext): TripleSink = new FormattedEntitySink(bulkFile, formatter)
 
-  /**
-    * Gets called when it is detected that all files in the bulk resource have the different schemata.
-    * The implementing class needs to provide a bulk resource object with an input stream that
-    * covers all files.
-    * If that case cannot be supported None should be returned.
-    *
-    * @param bulkResource Bulk resource
-    * @return
-    */
-  override def onMultiSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource] =
-    throw new UnsupportedOperationException("The rdf dataset does not support bulk resources with schema differences" +
-      "in its sub resources")
 
-  /**
-    * Gets called when it is detected that all files in the bulk resource have the same schema.
-    * The implementing class needs to provide a logical concatenation of the individual resources.
-    * If that case cannot be supported None should be returned.
-    *
-    * @param bulkResource Bulk resource
-    * @return
-    */
-  override def onSingleSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource] = {
-    Some(BulkResource.createBulkResourceWithStream(bulkResource, combineStreams(bulkResource.inputStreams, None)))
-  }
   /**
     * The implementing dataset must provide a way to determine the schema of each resource in the bulk resource.
     * The cardinality of the result is 1, there is only one schema.
@@ -215,7 +200,8 @@ case class RdfFileDataset(
     * @param bulkResource Bulk resource
     * @return
     */
-  override def checkResourceSchema(bulkResource: BulkResource): Seq[EntitySchema] = {
+  override def checkResourceSchema(bulkResource: BulkResource)
+                                  (implicit userContext: UserContext): Seq[EntitySchema] = {
 
     val individualSources = for (stream <- bulkResource.inputStreams) yield {
       BulkResource.createBulkResourceWithStream(bulkResource, stream)
@@ -224,8 +210,6 @@ case class RdfFileDataset(
     val individualSchemata: IndexedSeq[EntitySchema] = individualSources.map( res => {
       val je = sparqlEndpoint(Some(res.inputStream))
       val src = new SparqlSource(SparqlParams(graph = graphOpt), je)
-
-      implicit val userContext: UserContext = UserContext.INTERNAL_USER
       val typeUri = src.retrieveTypes()
       val typedPaths = src.retrieveTypedPath("")
       EntitySchema(typeUri.head._1, typedPaths)
@@ -235,4 +219,22 @@ case class RdfFileDataset(
     getDistinctSchemaDescriptions(individualSchemata)
   }
 
+  /**
+    * For now we don't care about the difference between a one and multiple schemata since there is very little
+    * difference between one file and its input stream and an stream set iterator stream providing an input stream.
+    *
+    * @param bulkResource Bulk resource
+    * @return
+    */
+  override def onMultiSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource] = ???
+
+  /**
+    * Gets called when it is detected that all files in the bulk resource have the same schema.
+    * The implementing class needs to provide a logical concatenation of the individual resources.
+    * If that case cannot be supported None should be returned.
+    *
+    * @param bulkResource Bulk resource
+    * @return
+    */
+  override def onSingleSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource] = ???
 }

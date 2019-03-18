@@ -4,7 +4,6 @@ import org.silkframework.dataset._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.runtime.resource._
-import BulkResource._
 
 @Plugin(
   id = "csv",
@@ -38,13 +37,13 @@ case class CsvDataset (
     ignoreBadLines: Boolean = false,
   @Param(label = "Quote escape character",
     value = "Escape character to be used inside quotes, used to escape the quote character. It must also be used to escape itself, e.g. by doubling it, e.g. \"\". If left empty, it defaults to quote.")
-  quoteEscapeCharacter: String = "\"") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset with CsvDatasetTrait {
-
+  quoteEscapeCharacter: String = "\"") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset]
+                                       with CsvDatasetTrait with BulkResourceBasedDataset with WritableResourceDataset {
 
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
 
   override def source(implicit userContext: UserContext): DataSource = if (isBulkResource(file)) {
-    BulkCsvDataSource.apply(asBulkResource(file), this, csvSettings)
+    new BulkCsvDataSource(asBulkResource(file), this)
   }
   else {
     csvSource()
@@ -54,8 +53,10 @@ case class CsvDataset (
 
   override def entitySink(implicit userContext: UserContext): EntitySink = new CsvEntitySink(file, csvSettings)
 
-  private def csvSource(ignoreMalformed: Boolean = false) = new CsvSource(file, csvSettings, properties, uri, regexFilter, codec,
-    skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines, ignoreMalformedInputExceptionInPropertyList = ignoreMalformed)
+  private def csvSource(ignoreMalformed: Boolean = false) = new CsvSource(file, csvSettings, properties, uri,
+    regexFilter, codec, skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines,
+    ignoreMalformedInputExceptionInPropertyList = ignoreMalformed
+  )
 
   /**
     * returns an auto-configured version of this plugin
@@ -83,7 +84,6 @@ case class CsvDataset (
     }
     quote
   }
-
 }
 
 object CsvDataset {

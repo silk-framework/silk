@@ -13,12 +13,23 @@ import BulkResource._
 import scala.collection.JavaConverters
 
 /**
-  * Trait for Datasets that need to support zipped files with multiple resources.
-  * Provides a checkResource function that returns a Resource or a BulkResource, depending on the input.
+  * Trait for data sets that need to support zipped files with multiple resources or similar structures.
+  * Provides a checkResource function that checks and returns a Resource or a BulkResource, depending on the input.
   * See @BulkResource.
-  * To fully support zipped or partitioned resources the implementing class should use the methods of
-  * BulkResource. It provides a input stream on the concatenated content of the zip or a set of input streams
-  * that can be used in more complex methods of combining the input.
+  *
+  * The methods of onSingleSchemaBulkResource, onMultiSchemaBulkResource and checkResourceSchema a used for
+  * creating/checking for a bulk resource. These have to be provided by the implementing class.
+  *
+  * This should be only used if the data set can quickly implement the logic needed, e.g. when multi schema resources are
+  * not supported or support is possible on stream or data frame level. This is often the case when the input streams
+  * can be combined to one logical stream or a union operation is trivial. Helper methods for that are provided by the
+  * companion object.
+  *
+  * Alternatively, BulkResourceBasedDataSet can be used. This replaces not the dataset resource but rather it s data
+  * source object.
+  *
+  * @see BulkResourceBasedDataSet
+  * @see BulkResource
   */
 trait BulkResourceSupport {
 
@@ -34,7 +45,7 @@ trait BulkResourceSupport {
     * @param file Resource
     * @return BulkResource or the given resource if it is no ar
     */
-  def checkIfBulkResource(file: WritableResource)(implicit userContext: UserContext): WritableResource = {
+  def initBulkResource(file: WritableResource)(implicit userContext: UserContext): WritableResource = {
     if (isBulkResource(file)) {
       val bulkResource = asBulkResource(file)
       val schemaSet = getDistinctSchemaDescriptions(checkResourceSchema(bulkResource))
@@ -58,13 +69,10 @@ trait BulkResourceSupport {
   }
 
 
-
-
-  /* The following methods that need to implement by the datasets to avoid dependency/structure changes
-     In general it would be better to have a model with datasets that don't implement logic (like other operators).
-     Then we could define arbitrary "flag" traits and leave the impl. to each executor.
-     Now spark does the second thing and the local exec. does the first. However, the local way is unlikely to change. */
-
+  /*The following methods that need to implement by the data sets to avoid dependency/structure changes
+    In general it would be better to have a model with data sets that don't implement logic (like other operators).
+    Then we could define arbitrary "flag" traits and leave the impl. to each executor.
+    Now spark does the second thing and the local exec. does the first. However, the local way is unlikely to change.*/
 
   /**
     * Gets called when it is detected that all files in the bulk resource have the different schemata.
@@ -227,7 +235,7 @@ object BulkResourceSupport {
     }
     else {
       schemaSequence.distinct
-    } // should work since equals is overwritte and should apply here as well, although it looks like WIP TODO check it!
+    } // should work since equals is overwritten and should apply here as well, although it looks like WIP TODO check it!
   }
 
   /**

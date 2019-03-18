@@ -257,7 +257,7 @@ class CsvSource(file: Resource,
     entityValues
   }
 
-  private def csvParser(skipFirst: Boolean = false): CsvParser = {
+  def csvParser(skipFirst: Boolean = false): CsvParser = {
     lazy val reader = getAndInitBufferedReaderForCsvFile()
     val parser = new CsvParser(Seq.empty, csvSettings) // Here we could only load the required indices as a performance improvement
     try {
