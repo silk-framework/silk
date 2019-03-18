@@ -155,20 +155,101 @@ class TransformTaskApi extends Controller {
       implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task))
       processRule(task, ruleName) { parentRule =>
         deserializeCompileTime[TransformRule]() { newChildRule =>
-          if(task.data.nestedRuleAndSourcePath(newChildRule.id).isDefined) {
-            throw new ValidationException(s"Rule with ID ${newChildRule.id} already exists!")
-          }
-          val children = parentRule.operator.children
-          val newChildren = children.indexWhere(rule => afterRuleId.contains(rule.id.toString)) match {
-            case afterRuleIdx: Int if afterRuleIdx >= 0 =>
-              val (before, after) = children.splitAt(afterRuleIdx + 1)
-              (before :+ newChildRule) ++ after // insert after specified rule
-            case -1 => // append
-              children :+ newChildRule
-          }
-          val updatedRule = parentRule.operator.withChildren(newChildren)
-          updateRule(parentRule.update(updatedRule))
-          serializeCompileTime(newChildRule)
+          addRuleToTransformTask(parentRule, newChildRule, afterRuleId)
+        }
+      }
+    }
+  }
+
+  private def addRuleToTransformTask(parentRule: RuleTraverser,
+                                     newChildRule: TransformRule,
+                                     afterRuleId: Option[String])
+                                    (implicit request: Request[AnyContent],
+                                     task: ProjectTask[TransformSpec],
+                                     userContext: UserContext,
+                                     project: Project): Result = {
+    if (task.data.nestedRuleAndSourcePath(newChildRule.id).isDefined) {
+      throw new ValidationException(s"Rule with ID ${newChildRule.id} already exists!")
+    }
+    val children = parentRule.operator.children
+    val newChildren = children.indexWhere(rule => afterRuleId.contains(rule.id.toString)) match {
+      case afterRuleIdx: Int if afterRuleIdx >= 0 =>
+        val (before, after) = children.splitAt(afterRuleIdx + 1)
+        (before :+ newChildRule) ++ after // insert after specified rule
+      case -1 => // append
+        children :+ newChildRule
+    }
+    val updatedRule = parentRule.operator.withChildren(newChildren)
+    updateRule(parentRule.update(updatedRule))
+    serializeCompileTime(newChildRule)
+  }
+
+  private def assignNewIdsToRule(task: ProjectTask[TransformSpec],
+                                 ruleToCopy: RuleTraverser): TransformRule = {
+    implicit val idGenerator: IdentifierGenerator = identifierGenerator(task)
+    ruleToCopy.operator match {
+      case t: TransformRule => assignNewIdsToRule(t)
+      case other: Operator => throw new RuntimeException("Selected operator was not transform rule. Operator ID: " + other.id)
+    }
+  }
+
+  private def assignNewIdsToRule(t: TransformRule)
+                                (implicit idGenerator: IdentifierGenerator): TransformRule = {
+    t match {
+      case r: RootMappingRule =>
+        val updatedMappingRules = assignNewIdsToMappingRules(r.rules)
+        r.copy(id = idGenerator.generate(r.id), rules = updatedMappingRules)
+      case c: ComplexMapping => c.copy(id = idGenerator.generate(c.id))
+      case c: ComplexUriMapping => c.copy(id = idGenerator.generate(c.id))
+      case d: DirectMapping => d.copy(id = idGenerator.generate(d.id))
+      case o: ObjectMapping =>
+        val updatedMappingRules = assignNewIdsToMappingRules(o.rules)
+        o.copy(id = idGenerator.generate(o.id), rules = updatedMappingRules)
+      case typeMapping: TypeMapping => assignNewIdsToRule(typeMapping)
+      case uriMapping: UriMapping => assignNewIdsToRule(uriMapping)
+    }
+  }
+
+  private def assignNewIdsToMappingRules(mappingRules: MappingRules)
+                                        (implicit identifierGenerator: IdentifierGenerator): MappingRules = {
+    mappingRules.copy(
+      uriRule = mappingRules.uriRule.map(assignNewIdsToRule),
+      typeRules = mappingRules.typeRules.map(assignNewIdsToRule),
+      propertyRules = mappingRules.propertyRules.map(assignNewIdsToRule)
+    )
+  }
+
+  private def assignNewIdsToRule(typeMapping: TypeMapping)
+                                (implicit idGenerator: IdentifierGenerator): TypeMapping = {
+    typeMapping.copy(id = idGenerator.generate(typeMapping.id))
+  }
+
+  private def assignNewIdsToRule(uriMapping: UriMapping)
+                                (implicit idGenerator: IdentifierGenerator): UriMapping = {
+    uriMapping match {
+      case c: ComplexUriMapping =>
+        c.copy(id = idGenerator.generate(c.id))
+      case p: PatternUriMapping =>
+        p.copy(id = idGenerator.generate(p.id))
+    }
+  }
+
+  def copyRule(projectName: String,
+               taskName: String,
+               ruleName: String,
+               sourceProject: String,
+               sourceTask: String,
+               sourceRule: String,
+               afterRuleId: Option[String] = None): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    val (_, fromTask) = getProjectAndTask[TransformSpec](sourceProject, sourceTask)
+    implicit val prefixes: Prefixes = project.config.prefixes
+    task.synchronized {
+      implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task))
+      processRule(fromTask, sourceRule) { ruleToCopy =>
+        processRule(task, ruleName) { parentRule =>
+          val newChildRule = assignNewIdsToRule(task, ruleToCopy)
+          addRuleToTransformTask(parentRule, newChildRule, afterRuleId)
         }
       }
     }

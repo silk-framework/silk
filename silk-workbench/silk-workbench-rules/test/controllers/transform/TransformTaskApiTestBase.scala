@@ -66,6 +66,13 @@ trait TransformTaskApiTestBase extends PlaySpec with IntegrationTestTrait with C
     responseJson
   }
 
+  def postRequest(url: String): JsValue = {
+    var request = WS.url(url)
+    request = request.withHeaders("Accept" -> "application/json")
+    val response = request.post("")
+    checkResponse(response).json
+  }
+
   def waitForCaches(task: String): Unit = {
     waitForCaches(task, project)
   }

@@ -248,10 +248,10 @@ trait UriMapping extends ValueTransformRule
   */
 case class PatternUriMapping(id: Identifier = "uri",
                              pattern: String = "http://example.org/{ID}",
-                             metaData: MetaData = MetaData.empty)
-                             (implicit prefixes: Prefixes = Prefixes.empty) extends UriMapping {
+                             metaData: MetaData = MetaData.empty,
+                             prefixes: Prefixes = Prefixes.empty) extends UriMapping {
 
-  override val operator: Input = UriPattern.parse(pattern.trim())
+  override val operator: Input = UriPattern.parse(pattern.trim())(prefixes)
 
   override val target: Option[MappingTarget] = None
 
@@ -324,7 +324,8 @@ case class ObjectMapping(id: Identifier = "mapping",
                          sourcePath: Path = Path(Nil),
                          target: Option[MappingTarget] = Some(MappingTarget("http://www.w3.org/2002/07/owl#sameAs", UriValueType)),
                          override val rules: MappingRules,
-                         metaData: MetaData = MetaData.empty)(implicit prefixes: Prefixes = Prefixes.empty) extends ContainerTransformRule {
+                         metaData: MetaData = MetaData.empty,
+                         prefixes: Prefixes = Prefixes.empty) extends ContainerTransformRule {
 
   override val typeString = "Object"
 
@@ -400,8 +401,8 @@ object TransformRule {
         sourcePath = Path.parse((node \ "@relativePath").text),
         target = (node \ "MappingTarget").headOption.map(fromXml[MappingTarget]),
         rules = MappingRules.fromSeq((node \ "MappingRules" \ "_").map(read)),
-        metaData = (node \ "MetaData").headOption.map(MetaDataXmlFormat.read).getOrElse(MetaData.empty)
-      )(readContext.prefixes)
+        metaData = (node \ "MetaData").headOption.map(MetaDataXmlFormat.read).getOrElse(MetaData.empty),
+        readContext.prefixes)
     }
 
     private def readTransformRule(node: Node)(implicit readContext: ReadContext): TransformRule = {
@@ -431,7 +432,7 @@ object TransformRule {
 
     def write(value: TransformRule)(implicit writeContext: WriteContext[Node]): Node = {
       value match {
-        case ObjectMapping(name, relativePath, target, childRules, metaData) =>
+        case ObjectMapping(name, relativePath, target, childRules, metaData, _) =>
           <ObjectMapping name={name} relativePath={relativePath.normalizedSerialization} >
             {MetaDataXmlFormat.write(metaData)}
             {MappingRulesFormat.write(childRules)}
