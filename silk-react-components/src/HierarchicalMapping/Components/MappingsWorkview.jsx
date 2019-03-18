@@ -26,7 +26,11 @@ import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm';
 import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm';
 import MappingsList from './MappingsList';
 import SuggestionsList from './SuggestionsList';
-import {MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT} from '../helpers';
+import {
+    MAPPING_RULE_TYPE_COMPLEX,
+    MAPPING_RULE_TYPE_DIRECT,
+    MAPPING_RULE_TYPE_OBJECT
+} from '../helpers';
 
 const MappingsWorkview = React.createClass({
     mixins: [UseMessageBus],
@@ -295,7 +299,7 @@ const MappingsWorkview = React.createClass({
         this.setState({
             loading: true,
         });
-        const topic = data.type === MAPPING_RULE_TYPE_DIRECT
+        const topic = data.type === MAPPING_RULE_TYPE_DIRECT || data.type === MAPPING_RULE_TYPE_COMPLEX
             ? 'rule.createValueMapping'
             : copyChilds
                     ? 'rule.copyObjectMapping'
@@ -310,9 +314,10 @@ const MappingsWorkview = React.createClass({
                     this.setState({
                         loading: false,
                     });
-                    if (data.type === MAPPING_RULE_TYPE_DIRECT) {
+                    if (data.type === MAPPING_RULE_TYPE_DIRECT ||
+                        data.type === MAPPING_RULE_TYPE_COMPLEX) {
                         sessionStorage.setItem('pastedId', replySubject.body.id);
-                    } else {
+                    } else if (data.type === MAPPING_RULE_TYPE_OBJECT) {
                         hierarchicalMappingChannel
                         .subject('ruleId.change')
                             .onNext({
