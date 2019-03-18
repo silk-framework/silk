@@ -22,6 +22,7 @@ import {
     InfoBox,
 } from './SharedComponents';
 import {
+    isCopiableRule,
     MAPPING_RULE_TYPE_COMPLEX_URI,
     MAPPING_RULE_TYPE_OBJECT,
     MAPPING_RULE_TYPE_ROOT,
@@ -290,6 +291,28 @@ const ObjectRule = React.createClass({
         let entityRelation = false;
         let deleteButton = false;
 
+        const copyButton = isCopiableRule(this.props.type) ? (
+            <Button
+                className="ecc-silk-mapping__rulesviewer__actionrow-copy"
+                raised
+                onClick={this.handleCopy}>
+                Copy
+            </Button>
+        ) : (
+            false
+        );
+
+        const cloneButton = isCopiableRule(this.props.type) ? (
+            <Button
+                className="ecc-silk-mapping__rulesviewer__actionrow-clone"
+                raised
+                onClick={this.handleClone}>
+                Clone
+            </Button>
+        ) : (
+            false
+        );
+
         if (type !== MAPPING_RULE_TYPE_ROOT) {
             targetProperty = (
                 <div className="ecc-silk-mapping__rulesviewer__targetProperty">
@@ -520,18 +543,8 @@ const ObjectRule = React.createClass({
                             onClick={this.handleEdit}>
                             Edit
                         </Button>
-                        <Button
-                            className="ecc-silk-mapping__rulesviewer__actionrow-copy"
-                            raised
-                            onClick={this.handleCopy}>
-                            Copy
-                        </Button>
-                        <Button
-                            className="ecc-silk-mapping__rulesviewer__actionrow-clone"
-                            raised
-                            onClick={this.handleClone}>
-                            Clone
-                        </Button>
+                        {copyButton}
+                        {cloneButton}
                         {deleteButton}
                     </CardActions>
                 </div>
