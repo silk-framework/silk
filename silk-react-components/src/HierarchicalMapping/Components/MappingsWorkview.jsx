@@ -282,6 +282,7 @@ const MappingsWorkview = React.createClass({
             })
             .subscribe(
                 ({data}) => {
+                    data.clone = false;
                     sessionStorage.setItem('copyingData',JSON.stringify(data));
                     this.setState({
                         isCopying: !this.state.isCopying,
@@ -328,7 +329,8 @@ const MappingsWorkview = React.createClass({
     handlePaste(askForChilds = false, copyChilds = true) {
         let data = JSON.parse(sessionStorage.getItem('copyingData'));
         if (data !== {}) {
-            data.parentId = this.props.currentRuleId;
+            if (!data.clone)
+                data.parentId = this.props.currentRuleId;
             _.isEmpty(_.trim(data.label))
                 ? data.label = 'Copy of ' + data.targetProperty
                 : data.label = 'Copy of ' + data.label;
@@ -348,7 +350,7 @@ const MappingsWorkview = React.createClass({
         }
     },
 
-    handleClone(id) {
+    handleClone(id, parent = false) {
         hierarchicalMappingChannel
             .request({
                 topic: 'rule.getDataToCopyRule',
@@ -358,6 +360,8 @@ const MappingsWorkview = React.createClass({
             })
             .subscribe(
                 ({data}) => {
+                    data.clone = true;
+                    data.parentId = parent ? parent : this.props.currentRuleId;
                     sessionStorage.setItem('copyingData',JSON.stringify(data));
                     this.handlePaste(false, true);
                 }

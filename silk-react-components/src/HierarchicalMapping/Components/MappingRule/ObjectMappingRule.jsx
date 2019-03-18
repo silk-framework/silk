@@ -197,7 +197,7 @@ const ObjectRule = React.createClass({
         this.props.handleCopy(this.props.id);
     },
     handleClone(){
-        this.props.handleClone(this.props.id);
+        this.props.handleClone(this.props.id, this.props.parentId);
     },
     // template rendering
     render() {
