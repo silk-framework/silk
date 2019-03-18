@@ -325,7 +325,7 @@ const MappingsWorkview = React.createClass({
             )
     },
 
-    handlePaste(askForChilds = true, copyChilds = false) {
+    handlePaste(askForChilds = false, copyChilds = true) {
         let data = JSON.parse(sessionStorage.getItem('copyingData'));
         if (data !== {}) {
             data.parentId = this.props.currentRuleId;
@@ -359,7 +359,7 @@ const MappingsWorkview = React.createClass({
             .subscribe(
                 ({data}) => {
                     sessionStorage.setItem('copyingData',JSON.stringify(data));
-                    this.handlePaste();
+                    this.handlePaste(false, true);
                 }
             );
     },
@@ -471,7 +471,7 @@ const MappingsWorkview = React.createClass({
                     currentRuleId={_.get(this.props, 'currentRuleId', 'root')}
                     rules={_.get(rules, 'propertyRules', [])}
                     handleCopy={this.handleCopy}
-                    handlePaste={this.handlePaste}
+                    handlePaste={() => {this.handlePaste(false, true)}}
                     handleClone={this.handleClone}
                     isCopying={this.state.isCopying}
                 />
