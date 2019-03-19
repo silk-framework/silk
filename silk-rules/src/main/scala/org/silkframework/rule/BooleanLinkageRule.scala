@@ -1,6 +1,7 @@
 package org.silkframework.rule
 
 import org.silkframework.entity.TypedPath
+import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.aggegrator.{MaximumAggregator, MinimumAggregator, NegationAggregator}
 import org.silkframework.rule.similarity.{Aggregation, Aggregator, Comparison, SimilarityOperator}
@@ -26,15 +27,99 @@ case class BooleanLinkageRule(root: BooleanOperator) {
         Seq(comparison)
     }
   }
+
+  /** Extracts SPARQL filters from specific comparison patterns and converts them into a boolean SPARQL filter expression. */
+  def toSparqlRestriction(varName: String): SparqlRestriction = {
+    val sparqlQuery = new StringBuilder()
+    SparqlRestriction.fromSparql(varName, sparqlQuery.toString)
+  }
+
+  /** Turns the boolean linkage rule to conjunctive normal form, in order to better turn it into executable form.
+    * CNF example: (A || !B || C) && (!A || B) && G */
+  def toCNF: BooleanLinkageRule = {
+    val negationNormalForm = applyDeMorgan(root)
+    BooleanLinkageRule(distributeOrOverAnd(negationNormalForm).asBooleanOperator)
+  }
+
+  def mergeAnd(op1: BooleanAnd, op2: BooleanAnd): BooleanAnd = {
+    BooleanAnd(op1.children ++ op2.children)
+  }
+
+  /** This expects the boolean expression to be in negation normal form.
+    * This will distribute Or over And resulting in a conjunctive normal form (CNF).
+    * The returned data structure is always an AND with one or more nested ORs. */
+  private def distributeOrOverAnd(operator: BooleanOperator): CnfBooleanAnd = {
+    operator match {
+      case _: BooleanNot => CnfBooleanAnd(Seq(CnfBooleanOr(Seq(CnfBooleanLeaf(operator)))))
+      case BooleanAnd(children) =>
+        val processedChildren = distributeOrOverAnd(children)
+        val merged = processedChildren.reduce((a, b) => CnfBooleanAnd(a.orClauses ++ b.orClauses))
+        merged
+      case BooleanOr(children) =>
+        val processedChildren = distributeOrOverAnd(children)
+        // since the result must be a CNF, just merge all children
+        var calcDistributive = processedChildren.head
+        for(nextAnd <- processedChildren.tail) {
+          calcDistributive = CnfBooleanAnd(for(currentClauses <- calcDistributive.orClauses;
+              andChild <- nextAnd.orClauses) yield {
+            CnfBooleanOr(currentClauses.leaves ++ andChild.leaves)
+          })
+        }
+        calcDistributive
+      case bc: BooleanComparisonOperator => CnfBooleanAnd(Seq(CnfBooleanOr(Seq(CnfBooleanLeaf(bc)))))
+    }
+  }
+
+  /** Helper classes to ensure KNF characteristics*/
+  case class CnfBooleanAnd(orClauses: Seq[CnfBooleanOr]) {
+    def asBooleanOperator: BooleanAnd = BooleanAnd(orClauses.map(_.asBooleanOperator))
+  }
+  case class CnfBooleanOr(leaves: Seq[CnfBooleanLeaf]) {
+    def asBooleanOperator: BooleanOr = BooleanOr(leaves.map(_.asBooleanOperator))
+  }
+  case class CnfBooleanLeaf(booleanOperator: BooleanOperator) {
+    def asBooleanOperator: BooleanOperator = booleanOperator
+  }
+
+  private def distributeOrOverAnd(children: Seq[BooleanOperator]): Seq[CnfBooleanAnd] = {
+    children.map(distributeOrOverAnd)
+  }
+
+  /** Applies De Morgan recursively to achieve negation normal form */
+  private def applyDeMorgan(operator: BooleanOperator): BooleanOperator = {
+    operator match {
+      case BooleanNot(notChild) =>
+        notChild match {
+          case _: BooleanComparisonOperator => operator // We are done here
+          case BooleanAnd(children) =>
+            BooleanOr(children.map(c => applyDeMorgan(BooleanNot(c)))) // Apply De Morgan to children
+          case BooleanOr(children) =>
+            BooleanAnd(children.map(c => applyDeMorgan(BooleanNot(c))))
+          case BooleanNot(subNotChild) =>
+            applyDeMorgan(subNotChild) // Double negation elimination
+        }
+      case BooleanOr(children) => BooleanOr(children.map(applyDeMorgan))
+      case BooleanAnd(children) => BooleanAnd(children.map(applyDeMorgan))
+      case _: BooleanComparisonOperator => operator
+    }
+  }
 }
 
 sealed trait BooleanOperator
 
-case class BooleanAnd(children: Seq[BooleanOperator]) extends BooleanOperator
+case class BooleanAnd(children: Seq[BooleanOperator]) extends BooleanOperator {
+  assert(children.nonEmpty)
+  override def toString: String = s"And(${children.map(_.toString).mkString(", ")})"
+}
 
-case class BooleanOr(children: Seq[BooleanOperator]) extends BooleanOperator
+case class BooleanOr(children: Seq[BooleanOperator]) extends BooleanOperator {
+  assert(children.nonEmpty)
+  override def toString: String = s"Or(${children.map(_.toString).mkString(", ")})"
+}
 
-case class BooleanNot(child: BooleanOperator) extends BooleanOperator
+case class BooleanNot(child: BooleanOperator) extends BooleanOperator {
+  override def toString: String = s"Not(${child.toString})"
+}
 
 /** Boolean operator that turns values into a (fuzzy) boolean value */
 sealed trait ValueInputBooleanOutput extends BooleanOperator
@@ -42,7 +127,9 @@ sealed trait ValueInputBooleanOutput extends BooleanOperator
 case class BooleanComparisonOperator(id: Identifier,
                                      sourceOperator: ValueOutputOperator,
                                      targetOperator: ValueOutputOperator,
-                                     comparison: Comparison) extends ValueInputBooleanOutput
+                                     comparison: Comparison) extends ValueInputBooleanOutput {
+  override def toString: String = s"'$id'"
+}
 
 sealed trait ValueOutputOperator {
   /** The operator from the link spec */

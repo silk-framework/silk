@@ -16,7 +16,7 @@ package org.silkframework.rule
 
 import java.util.logging.Logger
 
-import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.entity.{EntitySchema, Path, StringValueType, TypedPath}
 import org.silkframework.execution.local.LinksTable
