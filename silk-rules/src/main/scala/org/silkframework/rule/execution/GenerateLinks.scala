@@ -59,11 +59,13 @@ class GenerateLinks(id: Identifier,
     context.value.update(Linking(rule = linkSpec.rule))
 
     warningLog = CollectLogs() {
-      if(RDBEntityIndex.configured()) {
-        runRdbLinking(context)
-      } else {
-        runNativeLinking(context)
-      }
+      runNativeLinking(context)
+      // TODO: uncomment when working on CMEM-1408 again
+//      if(RDBEntityIndex.configured()) {
+//        runRdbLinking(context)
+//      } else {
+//        runNativeLinking(context)
+//      }
     }
   }
 

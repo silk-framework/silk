@@ -31,6 +31,7 @@ class RDBEntityIndex(linkSpec: LinkSpec,
     targetLoaderActivity.start()
     sourceLoaderActivity.waitUntilFinished()
     targetLoaderActivity.waitUntilFinished()
+    // TODO: Do the actual matching by joining the source and target tables in the RDB and execute the link spec on the candidate pairs
   }
 
   private def init(): Unit = {
@@ -62,7 +63,7 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
                            sourceOrTarget: Boolean,
                            runtimeLinkingConfig: RuntimeLinkingConfig,
                            uniquePrefix: String) extends Activity[EntityTables] {
-  final val BULK_UPDATE_SIZE = 1000
+  final val BULK_UPDATE_SIZE = 100
   private val tablePrefix = uniquePrefix + (if(sourceOrTarget) "source_" else "target_")
   private val mainIndexTableName = tablePrefix + "mainIndexTable"
   private val entityIdColumn = "entityId"
@@ -82,8 +83,9 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
     val (forMainIndexTable, separateIndexTables) = indexProfile.indexProfiles.partition(_._2.cardinality._2 <= 1)
     // Create main index table
     try {
-      createMainIndexTable(forMainIndexTable)
-      createSeparateIndexTable(separateIndexTables)
+//      createMainIndexTable(forMainIndexTable)
+      // TODO: Create separate tables only in order for the query optimizer to do its job
+      createSeparateIndexTable(indexProfile.indexProfiles)
       loadTables(indexProfile)
     } catch {
       case ex: SQLException =>
@@ -99,31 +101,34 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
                 (implicit userContext: UserContext,
                  connection: Connection): Unit = {
     val entities = retrieveEntities()
-    val (forMainIndexTable, separateIndexTables) = indexProfile.indexProfiles.partition(_._2.cardinality._2 <= 1)
+//    val (forMainIndexTable, separateIndexTables) = indexProfile.indexProfiles.partition(_._2.cardinality._2 <= 1)
     val pathProfiles = entitySchema.typedPaths.map(tp => (tp, EntityPathProfile())).toMap
     val indexProfiles = booleanLinkageRule.comparisons.map(c => (c.id, IndexProfile())).toMap
     var entityId = 1
-    val mainTableColumns = forMainIndexTable.toSeq.map(_._1.toString)
+//    val mainTableColumns = forMainIndexTable.toSeq.map(_._1.toString)
     val bulkUpdater = BulkUpdater(BULK_UPDATE_SIZE)
     for(entity <- entities) {
       val linkageRuleIndex = LinkageRuleIndex.apply(entity, booleanLinkageRule, sourceOrTarget)
-      if(mainTableColumns.nonEmpty) {
-        val query = s"INSERT INTO $mainIndexTableName ($entityIdColumn, ${mainTableColumns.mkString(",")}) " +
-            s"VALUES ($entityId, ${linkageRuleIndex.comparisonIndexValues(mainTableColumns).map(_.headOption.map(_.toString).getOrElse("null")).mkString(",")});"
-        bulkUpdater.addQueryForExecution(query)
-      }
-      val separateIndexTableComparisons = separateIndexTables.toSeq.map(_._1.toString)
+//      if(mainTableColumns.nonEmpty) {
+//        val query = s"INSERT INTO $mainIndexTableName ($entityIdColumn, ${mainTableColumns.mkString(",")}) " +
+//            s"VALUES ($entityId, ${linkageRuleIndex.comparisonIndexValues(mainTableColumns).map(_.headOption.map(_.toString).getOrElse("null")).mkString(",")});"
+//        bulkUpdater.addQueryForExecution(query)
+//      }
+      val separateIndexTableComparisons = indexProfile.indexProfiles.toSeq.map(_._1.toString)
       for ((sepIndexTable, sepIndexTableValues) <- separateIndexTableComparisons.zip(linkageRuleIndex.comparisonIndexValues(separateIndexTableComparisons));
            indexValue <- sepIndexTableValues) {
         val query = s"INSERT INTO ${separateIndexTable(sepIndexTable)} ($entityIdColumn, $indexValueColumn) VALUES ($entityId, $indexValue);"
+        // TODO: Use COPY operator for Postgres instead of loading the data via UPDATE because there are problems with the memory foot print and performance
         bulkUpdater.addQueryForExecution(query)
       }
+      // TODO: Create relevant indexes after loading the entities
       entityId += 1
     }
     bulkUpdater.execute()
     RdbIndexProfile(pathProfiles, indexProfiles)
   }
 
+  /** Collects and executes queries as bulk */
   case class BulkUpdater(bulkSize: Int) {
     private var queries = new StringBuilder()
     private var count = 0
@@ -156,12 +161,13 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
       val createTable = new StringBuilder(s"""CREATE TABLE ${separateIndexTable(id)}(\n""")
       createTable.append(s" $entityIdColumn integer NOT NULL,\n")
       createTable.append(s" $indexValueColumn integer NOT NULL\n);")
+      registerTable(separateIndexTable(id)) // TODO: Register in the same transaction
       executeUpdate(createTable.toString())
-      registerTable(separateIndexTable(id))
       log.fine("Created RDB separate entity index table: " + id)
     }
   }
 
+  // TODO: Remove. Probably deprecated.
   private def createMainIndexTable(forMainIndexTable: Map[Identifier, IndexProfile])
                                   (implicit connection: Connection): Unit = {
     if (forMainIndexTable.nonEmpty) {
