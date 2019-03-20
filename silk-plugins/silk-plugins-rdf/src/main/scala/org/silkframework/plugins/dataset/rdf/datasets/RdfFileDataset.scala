@@ -241,5 +241,8 @@ case class RdfFileDataset(
     * @param bulkResource Bulk resource
     * @return
     */
-  override def onSingleSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource] = Some(BulkResource.asBulkResource(bulkFile, Some("nt")))
+  override def onSingleSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource] = {
+
+    Some(BulkResource.asBulkResource(file, Some("nt")))
+  }
 }

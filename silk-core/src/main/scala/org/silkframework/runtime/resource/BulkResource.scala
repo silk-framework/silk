@@ -190,7 +190,7 @@ object BulkResource {
     * @return instance of BulkResource
     */
   def asBulkResource(resource: WritableResource, virtualFileEnding: Option[String]): BulkResource = {
-    if (resource.name.endsWith(virtualFileEnding.getOrElse(".zip"))) {
+    if (resource.name.endsWith(virtualFileEnding.getOrElse("zip")) || resource.path.endsWith("zip")) {
       BulkResource(new File(resource.path), virtualFileEnding)
     }
     else {
