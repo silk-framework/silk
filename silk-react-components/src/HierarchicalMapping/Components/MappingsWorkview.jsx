@@ -29,7 +29,8 @@ import SuggestionsList from './SuggestionsList';
 import {
     MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_DIRECT,
-    MAPPING_RULE_TYPE_OBJECT
+    MAPPING_RULE_TYPE_OBJECT,
+    MAPPING_RULE_TYPE_ROOT,
 } from '../helpers';
 
 const MappingsWorkview = React.createClass({
@@ -276,18 +277,22 @@ const MappingsWorkview = React.createClass({
         return !_.isEmpty(nextState.ruleData);
     },
 
-    handleCopy(id) {
+    handleCopy(id, type) {
         hierarchicalMappingChannel
             .request({
-                topic: 'rule.getDataToCopyRule',
-                data: {
-                    id: id,
-                },
+                topic: 'getApiDetails',
             })
             .subscribe(
-                ({data}) => {
-                    data.clone = false;
-                    sessionStorage.setItem('copyingData',JSON.stringify(data));
+                ({apiDetails}) => {
+                    const copyingData = {
+                        baseUrl: apiDetails.baseUrl,
+                        project: apiDetails.project,
+                        transformTask: apiDetails.transformTask,
+                        id: id,
+                        type: type,
+                        cloning: false,
+                    };
+                    sessionStorage.setItem('copyingData',JSON.stringify(copyingData));
                     this.setState({
                         isCopying: !this.state.isCopying,
                     });
@@ -295,80 +300,65 @@ const MappingsWorkview = React.createClass({
             );
     },
 
-    createCopiedMappingRule(data, copyChilds) {
-        this.setState({
-            loading: true,
-        });
-        const topic = data.type === MAPPING_RULE_TYPE_DIRECT || data.type === MAPPING_RULE_TYPE_COMPLEX
-            ? 'rule.createValueMapping'
-            : copyChilds
-                    ? 'rule.copyObjectMapping'
-                    : 'rule.createObjectMapping';
-        hierarchicalMappingChannel
-            .request({
-                topic: topic,
-                data: data,
-            })
-            .subscribe(
-                (replySubject) => {
-                    this.setState({
-                        loading: false,
-                    });
-                    if (data.type === MAPPING_RULE_TYPE_DIRECT ||
-                        data.type === MAPPING_RULE_TYPE_COMPLEX) {
-                        sessionStorage.setItem('pastedId', replySubject.body.id);
-                    } else if (data.type === MAPPING_RULE_TYPE_OBJECT) {
-                        hierarchicalMappingChannel
-                        .subject('ruleId.change')
-                            .onNext({
-                                newRuleId: replySubject.body.id,
-                                parentId: data.parentId,
-                            });
-                    }
-
-                    hierarchicalMappingChannel.subject('reload').onNext(true);
-                }
-            )
-    },
-
-    handlePaste(askForChilds = false, copyChilds = true) {
-        let data = JSON.parse(sessionStorage.getItem('copyingData'));
-        if (data !== {}) {
-            if (!data.clone)
-                data.parentId = this.props.currentRuleId;
-            _.isEmpty(_.trim(data.label))
-                ? data.label = 'Copy of ' + data.targetProperty
-                : data.label = 'Copy of ' + data.label;
-            if (data.type === MAPPING_RULE_TYPE_DIRECT) {
-                this.createCopiedMappingRule(data);
-                sessionStorage.removeItem('copyingData');
-            } else {
-                if (askForChilds) {
-                    this.setState({
-                        askForChilds: true,
-                    });
-                } else {
-                    this.createCopiedMappingRule(data, copyChilds);
-                    sessionStorage.removeItem('copyingData');
+    handlePaste() {
+        const copyingData = JSON.parse(sessionStorage.getItem('copyingData'));
+        if (copyingData !== {}) {
+            const data = {
+                id: copyingData.cloning
+                    ? copyingData.parentId
+                    : this.props.currentRuleId || MAPPING_RULE_TYPE_ROOT,
+                queryParameters: {
+                    sourceProject: copyingData.project,
+                    sourceTask: copyingData.transformTask,
+                    sourceRule: copyingData.id,
+                    afterRuleId: copyingData.cloning ? copyingData.id : null,
                 }
             };
+            hierarchicalMappingChannel
+                .request({
+                    topic: 'rule.copy',
+                    data: data,
+                })
+                .subscribe(
+                    (newRule) => {
+                        if (copyingData.type === MAPPING_RULE_TYPE_DIRECT ||
+                            copyingData.type === MAPPING_RULE_TYPE_COMPLEX) {
+                            sessionStorage.setItem('pastedId', newRule.id);
+                        } else if (copyingData.type === MAPPING_RULE_TYPE_OBJECT) {
+                            hierarchicalMappingChannel
+                                .subject('ruleId.change')
+                                .onNext({
+                                    newRuleId: newRule.id,
+                                });
+                        }
+                        sessionStorage.removeItem('copyingData');
+                        hierarchicalMappingChannel.subject('reload').onNext(true);
+                    }
+                )
         }
     },
 
-    handleClone(id, parent = false) {
+    handleClone(id, type, parent = false) {
         hierarchicalMappingChannel
             .request({
-                topic: 'rule.getDataToCopyRule',
-                data: {
-                    id: id,
-                },
+                topic: 'getApiDetails',
             })
             .subscribe(
-                ({data}) => {
-                    data.clone = true;
-                    data.parentId = parent ? parent : this.props.currentRuleId;
-                    sessionStorage.setItem('copyingData',JSON.stringify(data));
-                    this.handlePaste(false, true);
+                ({apiDetails}) => {
+                    const copyingData = {
+                        baseUrl: apiDetails.baseUrl,
+                        project: apiDetails.project,
+                        transformTask: apiDetails.transformTask,
+                        id: id,
+                        type: type,
+                        cloning: true,
+                        parentId: parent ? parent : this.props.currentRuleId,
+                    };
+                    sessionStorage.setItem('copyingData',JSON.stringify(copyingData));
+                    this.setState({
+                        isCopying: !this.state.isCopying,
+                    });
+                    this.handlePaste();
                 }
             );
     },
@@ -480,7 +470,7 @@ const MappingsWorkview = React.createClass({
                     currentRuleId={_.get(this.props, 'currentRuleId', 'root')}
                     rules={_.get(rules, 'propertyRules', [])}
                     handleCopy={this.handleCopy}
-                    handlePaste={() => {this.handlePaste(false, true)}}
+                    handlePaste={this.handlePaste}
                     handleClone={this.handleClone}
                     isCopying={this.state.isCopying}
                 />
