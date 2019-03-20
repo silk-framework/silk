@@ -184,11 +184,15 @@ class TransformTaskApi extends Controller {
     serializeCompileTime(newChildRule)
   }
 
-  private def assignNewIdsToRule(task: ProjectTask[TransformSpec],
+  private def assignNewIdsAndLabelToRule(task: ProjectTask[TransformSpec],
                                  ruleToCopy: RuleTraverser): TransformRule = {
     implicit val idGenerator: IdentifierGenerator = identifierGenerator(task)
     ruleToCopy.operator match {
-      case t: TransformRule => assignNewIdsToRule(t)
+      case t: TransformRule =>
+        val originalLabel = if(t.metaData.label.trim != "") t.metaData.label else t.target.map(_.propertyUri.toString).getOrElse("unlabeled")
+        val newLabel = "Copy of " + originalLabel
+        val transformRuleCopy = assignNewIdsToRule(t)
+        transformRuleCopy.withMetaData(t.metaData.copy(label = newLabel))
       case other: Operator => throw new RuntimeException("Selected operator was not transform rule. Operator ID: " + other.id)
     }
   }
@@ -248,7 +252,7 @@ class TransformTaskApi extends Controller {
       implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task))
       processRule(fromTask, sourceRule) { ruleToCopy =>
         processRule(task, ruleName) { parentRule =>
-          val newChildRule = assignNewIdsToRule(task, ruleToCopy)
+          val newChildRule = assignNewIdsAndLabelToRule(task, ruleToCopy)
           addRuleToTransformTask(parentRule, newChildRule, afterRuleId)
         }
       }

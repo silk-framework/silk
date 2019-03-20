@@ -473,6 +473,9 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val originalInput = as[ObjectMapping](originalTransformRule).operator
     val clonedInput = as[ObjectMapping](clonedTransformRule).operator
     originalInput mustBe clonedInput
+    val originalLabel = originalTransformRule.metaData.label
+    val clonedLabel = clonedTransformRule.metaData.label
+    clonedLabel mustBe s"Copy of $originalLabel"
   }
 
   private def as[T](obj: Any): T = {
