@@ -211,7 +211,8 @@ class CsvSource(file: Resource,
     }
   }
 
-  private def collectValues(indices: IndexedSeq[Int], entry: Array[String], entityIdx: Int): IndexedSeq[String] = {
+  // TODO extract to common class or leave to ResourceManagers
+  protected def collectValues(indices: IndexedSeq[Int], entry: Array[String], entityIdx: Int): IndexedSeq[String] = {
     indices map {
       case IDX_PATH_IDX =>
         entityIdx.toString
@@ -259,12 +260,13 @@ class CsvSource(file: Resource,
 
   def csvParser(skipFirst: Boolean = false): CsvParser = {
     lazy val reader = getAndInitBufferedReaderForCsvFile()
-    val parser = new CsvParser(Seq.empty, csvSettings) // Here we could only load the required indices as a performance improvement
+    val parser = new CsvParser(Seq.empty, csvSettings)
     try {
       parser.beginParsing(reader)
       if(skipFirst) parser.parseNext()
       parser
-    } catch {
+    }
+    catch {
       case e: Throwable =>
         parser.stopParsing()
         throw new RuntimeException("Problem during initialization of CSV parser: " + e.getMessage, e)

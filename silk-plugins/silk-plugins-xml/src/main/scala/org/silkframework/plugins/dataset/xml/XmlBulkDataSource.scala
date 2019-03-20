@@ -3,12 +3,13 @@ package org.silkframework.plugins.dataset.xml
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.dataset._
-import org.silkframework.entity.{Path, TypedPath}
+import org.silkframework.entity._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.BulkResource
 import org.silkframework.util.Uri
 
 import scala.collection.mutable
+import scala.xml.XML
 
 //FIXME: Make more generic, e.g. for all resource based data sets if dependencies and other traits allow it
 
@@ -171,5 +172,61 @@ class XmlBulkDataSourceInMemory(bulk: BulkResource, base: String, pattern: Strin
       subResourcePaths.foreach(p => paths.add(p))
     }
     paths.toIndexedSeq
+  }
+
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
+                       (implicit userContext: UserContext): Traversable[Entity] = {
+    logger.log(Level.FINE, "Retrieving data from XML.")
+
+    val nodes = loadXmlNodes(entitySchema.typeUri.uri)
+    val subTypeEntities = if(entitySchema.subPath.operators.nonEmpty) {
+      nodes.flatMap(_.evaluatePath(entitySchema.subPath))
+    } else { nodes }
+    val entities = new Entities(subTypeEntities, entitySchema)
+
+    limit match {
+      case Some(max) => entities.take(max)
+      case None => entities
+    }
+  }
+
+
+  private def loadXmlNodes(typeUri: String): Seq[XmlTraverser] = {
+    // If a type URI is provided, we use it as path. Otherwise we are using the base Path (which is deprecated)
+    val pathStr = if (typeUri.isEmpty) base else typeUri
+    val xml = bulk.read(XML.load)
+    val rootTraverser = XmlTraverser(xml)
+    // Move to base path
+    rootTraverser.evaluatePath(Path.parse(pathStr))
+  }
+
+  private class Entities(xml: Seq[XmlTraverser], entityDesc: EntitySchema) extends Traversable[Entity] {
+    def foreach[U](f: Entity => U) {
+      // Enumerate entities
+      for ((traverser, index) <- xml.zipWithIndex) {
+        val uri = traverser.generateUri(pattern)
+        val values = for (typedPath <- entityDesc.typedPaths) yield traverser.evaluatePathAsString(typedPath, pattern)
+        f(Entity(uri, values, entityDesc))
+      }
+    }
+  }
+
+  override def combinedPath(typeUri: String, inputPath: Path): Path = {
+    val typePath = Path.parse(typeUri)
+    Path(typePath.operators ++ inputPath.operators)
+  }
+
+  override def convertToIdPath(path: Path): Option[Path] = {
+    Some(Path(path.operators ::: List(ForwardOperator("#id"))))
+  }
+
+  override def peak(entitySchema: EntitySchema, limit: Int)
+                   (implicit userContext: UserContext): Traversable[Entity] = {
+    peakWithMaximumFileSize(bulk, entitySchema, limit)
+  }
+
+  override def collectPaths(limit: Int, collectValues: (List[String], String) => Unit): Seq[List[String]] = {
+    // Re-use implementation of streaming based XML source
+    new XmlSourceStreaming(bulk, base, pattern).collectPaths(limit, collectValues)
   }
 }

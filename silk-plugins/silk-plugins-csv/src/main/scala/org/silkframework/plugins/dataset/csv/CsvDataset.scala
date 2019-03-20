@@ -43,7 +43,7 @@ case class CsvDataset (
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
 
   override def source(implicit userContext: UserContext): DataSource = if (isBulkResource(file)) {
-    new BulkCsvDataSource(asBulkResource(file), this)
+    new BulkCsvDataSource(asBulkResource(file), this, csvSettings)
   }
   else {
     csvSource()

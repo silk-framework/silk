@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.datasets
 
-import java.io.{FileNotFoundException, InputStream}
+import java.io.{File, FileNotFoundException, InputStream}
 
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
@@ -40,10 +40,10 @@ case class RdfFileDataset(
   entityList: MultilineStringParameter = MultilineStringParameter("")) extends RdfDataset with TripleSinkDataset with ResourceBasedDataset with BulkResourceSupport {
 
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
-  val bulkFile: WritableResource = initBulkResource(file)
+  val bulkFile: WritableResource = initBulkResource(file, Some("nt"))
 
   /** The RDF format of the given resource. */
-  private val lang = {
+  private def lang = {
     // If the format is not specified explicitly, we try to guess it
     if (format.isEmpty) {
       val guessedLang = RDFLanguages.filenameToLang(bulkFile.name)
@@ -65,18 +65,23 @@ case class RdfFileDataset(
     }
   }
 
-  private val graphOpt = if (graph.trim.isEmpty) None else Some(graph)
+  private def graphOpt = if (graph.trim.isEmpty) None else Some(graph)
 
   override def sparqlEndpoint(sparqlInputStream: Option[InputStream] = None): JenaEndpoint = {
     // Load data set
     val dataset = DatasetFactory.createTxnMem()
-    if (bulkFile.exists) {
-      val inputStream = sparqlInputStream.getOrElse(bulkFile.inputStream)
+    if (file.exists && BulkResource.isBulkResource(file)) {
+      val inputStream = sparqlInputStream.getOrElse(BulkResource.asBulkResource(file, Some("nt")).inputStream)
+      RDFDataMgr.read(dataset, inputStream, lang)
+      inputStream.close()
+    }
+    else if (file.exists) {
+      val inputStream = file.inputStream
       RDFDataMgr.read(dataset, inputStream, lang)
       inputStream.close()
     }
     else {
-      throw new FileNotFoundException(s"The file $bulkFile could  note be found or read.")
+      throw new FileNotFoundException(s"The file ${file.path} could  note be found or read.")
     }
 
     // Retrieve model
@@ -206,18 +211,18 @@ case class RdfFileDataset(
     val individualSources = for (stream <- bulkResource.inputStreams) yield {
       BulkResource.createBulkResourceWithStream(bulkResource, stream)
     }
-
     val individualSchemata: IndexedSeq[EntitySchema] = individualSources.map( res => {
       val je = sparqlEndpoint(Some(res.inputStream))
       val src = new SparqlSource(SparqlParams(graph = graphOpt), je)
       val typeUri = src.retrieveTypes()
-      val typedPaths = src.retrieveTypedPath("")
-      EntitySchema(typeUri.head._1, typedPaths)
+      val typedPaths = src.retrieveTypedPath(Uri(""))
+      EntitySchema( if (typeUri.isEmpty) "" else typeUri.head._1, typedPaths)
 
     }).toIndexedSeq
-
     getDistinctSchemaDescriptions(individualSchemata)
   }
+
+
 
   /**
     * For now we don't care about the difference between a one and multiple schemata since there is very little
@@ -226,7 +231,7 @@ case class RdfFileDataset(
     * @param bulkResource Bulk resource
     * @return
     */
-  override def onMultiSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource] = ???
+  override def onMultiSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource] = None // will default to one schema
 
   /**
     * Gets called when it is detected that all files in the bulk resource have the same schema.
@@ -236,5 +241,5 @@ case class RdfFileDataset(
     * @param bulkResource Bulk resource
     * @return
     */
-  override def onSingleSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource] = ???
+  override def onSingleSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource] = Some(BulkResource.asBulkResource(bulkFile, Some("nt")))
 }

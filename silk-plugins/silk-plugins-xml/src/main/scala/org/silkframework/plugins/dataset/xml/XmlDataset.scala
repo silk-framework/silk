@@ -69,8 +69,8 @@ case class XmlDataset( @Param("File name inside the resources directory. In the 
   validateOutputTemplate()
 
   override def source(implicit userContext: UserContext): DataSource = {
-    if (bulkFile.nonEmpty) {
-      bulkSource(bulkFile.get)
+    if (bulkFile().nonEmpty) {
+      bulkSource(bulkFile().get)
     }
     else {
       originalSource

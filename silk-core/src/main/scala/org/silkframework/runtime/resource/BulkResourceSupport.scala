@@ -2,7 +2,7 @@ package org.silkframework.runtime.resource
 
 import java.io._
 import java.util.logging.Logger
-import java.util.zip.ZipException
+import java.util.zip.{ZipEntry, ZipException, ZipFile}
 
 import org.apache.commons.io.input.ReaderInputStream
 import org.silkframework.entity.EntitySchema
@@ -10,7 +10,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.BulkResourceSupport.getDistinctSchemaDescriptions
 import BulkResource._
 
-import scala.collection.JavaConverters
+import scala.collection.{JavaConverters, mutable}
 
 /**
   * Trait for data sets that need to support zipped files with multiple resources or similar structures.
@@ -44,10 +44,10 @@ trait BulkResourceSupport {
     *
     * @param file Resource
     * @return BulkResource or the given resource if it is no ar
-    */
-  def initBulkResource(file: WritableResource)(implicit userContext: UserContext): WritableResource = {
+    **/
+  def initBulkResource(file: WritableResource, virtualFileEnding: Option[String])(implicit userContext: UserContext): WritableResource = {
     if (isBulkResource(file)) {
-      val bulkResource = asBulkResource(file)
+      val bulkResource = asBulkResource(file, virtualFileEnding)
       val schemaSet = getDistinctSchemaDescriptions(checkResourceSchema(bulkResource))
 
       if (schemaSet.isEmpty) {
@@ -59,8 +59,7 @@ trait BulkResourceSupport {
       }
       else {
         log info s"Multiple schemata found in: ${bulkResource.name}"
-        onMultiSchemaBulkContent(bulkResource)
-          .getOrElse(onSingleSchemaBulkContent(bulkResource).get)
+        onMultiSchemaBulkContent(bulkResource).getOrElse(onSingleSchemaBulkContent(bulkResource).get)
       }
     }
     else {
@@ -212,6 +211,23 @@ object BulkResourceSupport {
       log info s"Skipping line: $line in bulk resource."
     }
     combineStreams(Seq(getNewlineInputStream, new ReaderInputStream(lis)))
+  }
+
+  /**
+    * Returns the specified lines as String from the given stream.
+    *
+    * @param inputStream - input stream wirh lines to read
+    * @param lines - number of lines to read
+    * @return
+    */
+  def getLinesFromInputStream(inputStream: InputStream, lines: Int = 1): String = {
+    val lnr = new LineNumberReader(new InputStreamReader(inputStream))
+    val lineStringSeq: Seq[String] = for (i <-0 until lines) yield {
+      val line = lnr.readLine()
+      log info s"Reading line: $line in bulk resource."
+      line
+    }
+    lineStringSeq.mkString("\n")
   }
 
 

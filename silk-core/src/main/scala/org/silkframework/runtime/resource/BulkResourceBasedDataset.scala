@@ -27,9 +27,9 @@ trait BulkResourceBasedDataset  { this: Dataset =>
 
   override def referencedResources: Seq[Resource] = Seq(file)
 
-  def bulkFile: Option[BulkResource] = {
+  def bulkFile(virtualEnding: Option[String] = None): Option[BulkResource] = {
     if (isBulkResource(file)) {
-      Some(asBulkResource(file))
+      Some(asBulkResource(file, virtualEnding))
     }
     else {
       None
@@ -55,10 +55,10 @@ trait BulkResourceBasedDataset  { this: Dataset =>
     * @param resource WritableResource tha may be zip or folder
     * @return instance of BulkResource
     */
-  def asBulkResource(resource: Resource): BulkResource = {
+  def asBulkResource(resource: Resource, virtualEnding: Option[String] = None): BulkResource = {
     if (resource.name.endsWith(".zip") && !new File(resource.path).isDirectory) {
       log info s"Zip file Resource found: ${resource.name}"
-      BulkResource(new File(resource.path))
+      BulkResource(new File(resource.path), virtualEnding)
     }
     else if (new File(resource.path).isDirectory) {
       log info "Resource Folder found: ${resource.name}"

@@ -17,7 +17,7 @@ import scala.collection.mutable
   *
   * @param file Zip resources
   */
-case class BulkResource(file: File) extends WritableResource {
+case class BulkResource(file: File, virtualFileEnding: Option[String]) extends WritableResource {
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -38,7 +38,16 @@ case class BulkResource(file: File) extends WritableResource {
   /**
     * The local name of this resource.
     */
-  override def name: String = zipFile.name
+  override def name: String = {
+    if (file.getName.contains(".")) {
+      val prefix = file.getName.split("[.]").reverse.tail.reverse.mkString("")
+      val ending = file.getName.split("[.]").last
+      s"$prefix.${virtualFileEnding.getOrElse(ending)}"
+    }
+    else {
+      s"${file.getName}.${virtualFileEnding.getOrElse("")}"
+    }
+  }
 
   /**
     * The path of this resource.
@@ -180,9 +189,9 @@ object BulkResource {
     * @param resource WritableResource tha may be zip or folder
     * @return instance of BulkResource
     */
-  def asBulkResource(resource: WritableResource): BulkResource = {
-    if (resource.name.endsWith(".zip")) {
-      BulkResource(new File(resource.path))
+  def asBulkResource(resource: WritableResource, virtualFileEnding: Option[String]): BulkResource = {
+    if (resource.name.endsWith(virtualFileEnding.getOrElse(".zip"))) {
+      BulkResource(new File(resource.path), virtualFileEnding)
     }
     else {
       throw new IllegalArgumentException(resource.path + " is not a bulk resource.")
@@ -197,7 +206,7 @@ object BulkResource {
     * @return
     */
   def createBulkResourceWithStream(bulkResource: BulkResource, inputStreamReplacement: InputStream): BulkResource = {
-    val newResource = new BulkResource(bulkResource.file)
+    val newResource = new BulkResource(bulkResource.file, None)
     newResource.replaceInputStream(inputStreamReplacement)
   }
 
