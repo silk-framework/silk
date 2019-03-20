@@ -221,7 +221,8 @@ const MappingRule = React.createClass({
                     status={_.get(this.props, 'status[0].type', false)}
                     message={_.get(this.props, 'status[0].message', false)}
                 />
-                {label || <ThingName id={mappingTarget.uri} />}
+                {<ThingName id={mappingTarget.uri} />}
+                {label ? ` (${label})` : ``}
             </div>,
             <div
                 key={'sl3'}
