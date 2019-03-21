@@ -6,6 +6,7 @@ import org.silkframework.config.CustomTask
 import org.silkframework.entity._
 import org.silkframework.execution.local.SparqlUpdateEntitySchema
 import org.silkframework.plugins.dataset.rdf.RdfFormatUtil
+import org.silkframework.rule.util.JenaSerializationUtil
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
@@ -128,11 +129,11 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
     (sparqlUpdateTemplateParts map {
       case SparqlUpdateTemplatePlainLiteralPlaceholder(prop) =>
         val value = assignmentValue(prop)
-        RdfFormatUtil.serializeSingleNode(NodeFactory.createLiteral(value))
+        JenaSerializationUtil.serializeSingleNode(NodeFactory.createLiteral(value))
       case SparqlUpdateTemplateURIPlaceholder(prop) =>
         val value = assignmentValue(prop)
         validateUri(value)
-        RdfFormatUtil.serializeSingleNode(NodeFactory.createURI(value))
+        JenaSerializationUtil.serializeSingleNode(NodeFactory.createURI(value))
       case SparqlUpdateTemplateStaticPart(partialSparql) =>
         partialSparql
     }).mkString

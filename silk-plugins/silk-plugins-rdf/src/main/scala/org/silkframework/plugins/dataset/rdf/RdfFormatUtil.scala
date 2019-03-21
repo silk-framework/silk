@@ -1,19 +1,15 @@
 package org.silkframework.plugins.dataset.rdf
 
-import java.io.ByteArrayOutputStream
-
 import org.apache.jena.graph.{Node, NodeFactory}
 import org.apache.jena.rdf.model.{AnonId, ModelFactory, Statement}
-import org.apache.jena.riot.RDFDataMgr
 import org.apache.jena.riot.adapters.RDFWriterFactoryRIOT
 import org.apache.jena.vocabulary.XSD
 import org.apache.jena.sparql.core.{Quad => JenaQuad}
 import org.apache.jena.graph.{Triple => JenaTriple}
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
+import org.silkframework.rule.util.JenaSerializationUtil
 import org.silkframework.util.{StringUtils, Uri}
-
-import scala.collection.JavaConverters._
 
 /** Utility methods for serializing to RDF */
 object RdfFormatUtil {
@@ -117,7 +113,7 @@ object RdfFormatUtil {
   private val model = ModelFactory.createDefaultModel()
   def tripleValuesToNTriplesSyntax(subject: String, property: String, value: String, valueType: ValueType): String = {
     val objNode = resolveObjectValue(value, valueType)
-    val tripleString = serializeTriple(subject, property, objNode)
+    val tripleString = JenaSerializationUtil.serializeTriple(subject, property, objNode)
     valueType match {
       case CustomValueType(typeUri) if UriValueType.validate(typeUri) =>
         val cutLine = tripleString.dropRight(3) // Hack, since Jena does not provide any way to use arbitrary types without implementing a custom type
@@ -176,29 +172,5 @@ object RdfFormatUtil {
       case _ =>
         throw new IllegalArgumentException(s"Cannot create RDF node from value type $valueType and lexical string '$lexicalValue'! Validation failed.")
     }
-  }
-
-  /**
-    * Serialize a single triple.
-    *
-    * @param subject Subject URI
-    * @param property Property URI
-    * @param node A Jena [[Node]].
-    * @return
-    */
-  def serializeTriple(subject: String, property: String, node: Node): String = {
-    val output = new ByteArrayOutputStream()
-    val triple = new JenaTriple(NodeFactory.createURI(subject), NodeFactory.createURI(property), node)
-    RDFDataMgr.writeTriples(output, Iterator(triple).asJava)
-    output.toString()
-  }
-
-  def serializeSingleNode(node: Node): String = {
-    val subjectPropertyLength = 8
-    val spaceDotNewLineLength = 3
-    val output = new ByteArrayOutputStream()
-    val triple = new JenaTriple(NodeFactory.createURI("a"), NodeFactory.createURI("b"), node)
-    RDFDataMgr.writeTriples(output, Iterator(triple).asJava)
-    output.toString().drop(subjectPropertyLength).dropRight(spaceDotNewLineLength)
   }
 }

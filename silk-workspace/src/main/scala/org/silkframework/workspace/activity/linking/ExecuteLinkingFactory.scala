@@ -1,11 +1,15 @@
 package org.silkframework.workspace.activity.linking
 
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.Restriction.{And, CustomOperator}
+import org.silkframework.entity.{EntitySchema, Restriction}
+import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.execution.{AbortExecutionException, ExecutionType, ExecutorRegistry}
-import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
+import org.silkframework.rule.execution.{ComparisonToRestrictionConverter, SparqlFilterRestriction}
+import org.silkframework.rule.{BooleanLinkageRule, DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.util.DPair
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
 
@@ -37,10 +41,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
 
     // Execute inputs
     context.status.update("Loading inputs", 0.1)
-    val inputs =
-      for((selection, schema) <- task.data.dataSelections zip task.data.entityDescriptions) yield {
-        loadInput(selection, schema)
-      }
+    val inputs = loadInputs()
 
     // Generate links
     context.status.update("Generating links", 0.4)
@@ -59,17 +60,47 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
     }
   }
 
-  private def loadInput(selection: DatasetSelection, entitySchema: EntitySchema)
+  private def loadInputs()
+                        (implicit executionType: ExecutionType,
+                         userContext: UserContext): DPair[ExecutionType#DataType] = {
+    for (((selection, schema), sourceOrTarget) <- task.data.dataSelections zip task.data.entityDescriptions zip Seq(true, false)) yield {
+      loadInput(selection, schema, Some(sourceOrTarget))
+    }
+  }
+
+  private def generateSparqlRestriction(sourceOrTarget: Boolean): Option[CustomOperator] = {
+    ComparisonToRestrictionConverter.linkageRuleToSparqlFilter(
+      task.data.rule,
+      SparqlEntitySchema.variable,
+      variablePrefix = "generatedFilterVar",
+      sourceOrTarget = sourceOrTarget
+    )
+  }
+
+  /** @param sourceOrTarget Is this the source or target input of the link spec. This should be None if this is not a direct input.
+    *                       This is needed for optional SPARQL restriction generation from the linkage rule. */
+  private def loadInput(selection: DatasetSelection,
+                        entitySchema: EntitySchema,
+                        sourceOrTarget: Option[Boolean])
                        (implicit execution: ExecutionType,
                         userContext: UserContext): ExecutionType#DataType = {
+    val updatedEntitySchema = sourceOrTarget.flatMap(generateSparqlRestriction) match {
+      case Some(newSparqlRestriction) =>
+        val updatedFilterOperator = entitySchema.filter.operator match {
+          case Some(operator) => And(Seq(operator, newSparqlRestriction))
+          case None => newSparqlRestriction
+        }
+        entitySchema.copy(filter = Restriction(Some(updatedFilterOperator)))
+      case None => entitySchema
+    }
     val result =
       task.project.taskOption[TransformSpec](selection.inputId) match {
         case Some(transformTask) =>
-          val input = loadInput(transformTask.data.selection, transformTask.data.inputSchema)
+          val input = loadInput(transformTask.data.selection, transformTask.data.inputSchema, None)
           ExecutorRegistry.execute[TransformSpec, ExecutionType](transformTask, Seq(input), Some(entitySchema), execution)
         case None =>
           val datasetTask = task.project.task[GenericDatasetSpec](selection.inputId)
-          ExecutorRegistry.execute(datasetTask, Seq.empty, Some(entitySchema), execution)
+          ExecutorRegistry.execute(datasetTask, Seq.empty, Some(updatedEntitySchema), execution)
       }
 
     result.getOrElse(throw AbortExecutionException(s"The input task ${selection.inputId} did not generate any result"))

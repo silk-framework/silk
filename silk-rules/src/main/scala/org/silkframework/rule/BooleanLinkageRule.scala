@@ -1,7 +1,6 @@
 package org.silkframework.rule
 
 import org.silkframework.entity.TypedPath
-import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.aggegrator.{MaximumAggregator, MinimumAggregator, NegationAggregator}
 import org.silkframework.rule.similarity.{Aggregation, Aggregator, Comparison, SimilarityOperator}
@@ -28,21 +27,11 @@ case class BooleanLinkageRule(root: BooleanOperator) {
     }
   }
 
-  /** Extracts SPARQL filters from specific comparison patterns and converts them into a boolean SPARQL filter expression. */
-  def toSparqlRestriction(varName: String): SparqlRestriction = {
-    val sparqlQuery = new StringBuilder()
-    SparqlRestriction.fromSparql(varName, sparqlQuery.toString)
-  }
-
   /** Turns the boolean linkage rule to conjunctive normal form, in order to better turn it into executable form.
     * CNF example: (A || !B || C) && (!A || B) && G */
-  def toCNF: BooleanLinkageRule = {
+  def toCNF: CnfBooleanAnd = {
     val negationNormalForm = applyDeMorgan(root)
-    BooleanLinkageRule(distributeOrOverAnd(negationNormalForm).asBooleanOperator)
-  }
-
-  def mergeAnd(op1: BooleanAnd, op2: BooleanAnd): BooleanAnd = {
-    BooleanAnd(op1.children ++ op2.children)
+    distributeOrOverAnd(negationNormalForm)
   }
 
   /** This expects the boolean expression to be in negation normal form.
@@ -50,7 +39,9 @@ case class BooleanLinkageRule(root: BooleanOperator) {
     * The returned data structure is always an AND with one or more nested ORs. */
   private def distributeOrOverAnd(operator: BooleanOperator): CnfBooleanAnd = {
     operator match {
-      case _: BooleanNot => CnfBooleanAnd(Seq(CnfBooleanOr(Seq(CnfBooleanLeaf(operator)))))
+      case booleanNot: BooleanNot =>
+        // We know that in negation normal form this must be a leaf
+        CnfBooleanAnd(Seq(CnfBooleanOr(Seq(CnfBooleanLeafNot(booleanNot)))))
       case BooleanAnd(children) =>
         val processedChildren = distributeOrOverAnd(children)
         val merged = processedChildren.reduce((a, b) => CnfBooleanAnd(a.orClauses ++ b.orClauses))
@@ -66,19 +57,10 @@ case class BooleanLinkageRule(root: BooleanOperator) {
           })
         }
         calcDistributive
-      case bc: BooleanComparisonOperator => CnfBooleanAnd(Seq(CnfBooleanOr(Seq(CnfBooleanLeaf(bc)))))
+      case bc: BooleanComparisonOperator =>
+        // This is trivially a leaf
+        CnfBooleanAnd(Seq(CnfBooleanOr(Seq(CnfBooleanLeafComparison(bc)))))
     }
-  }
-
-  /** Helper classes to ensure KNF characteristics*/
-  case class CnfBooleanAnd(orClauses: Seq[CnfBooleanOr]) {
-    def asBooleanOperator: BooleanAnd = BooleanAnd(orClauses.map(_.asBooleanOperator))
-  }
-  case class CnfBooleanOr(leaves: Seq[CnfBooleanLeaf]) {
-    def asBooleanOperator: BooleanOr = BooleanOr(leaves.map(_.asBooleanOperator))
-  }
-  case class CnfBooleanLeaf(booleanOperator: BooleanOperator) {
-    def asBooleanOperator: BooleanOperator = booleanOperator
   }
 
   private def distributeOrOverAnd(children: Seq[BooleanOperator]): Seq[CnfBooleanAnd] = {
@@ -130,6 +112,29 @@ case class BooleanComparisonOperator(id: Identifier,
                                      comparison: Comparison) extends ValueInputBooleanOutput {
   override def toString: String = s"'$id'"
 }
+
+/** Helper classes to ensure KNF characteristics*/
+case class CnfBooleanAnd(orClauses: Seq[CnfBooleanOr]) {
+  def asBooleanOperator: BooleanAnd = BooleanAnd(orClauses.map(_.asBooleanOperator))
+}
+
+case class CnfBooleanOr(leaves: Seq[CnfBooleanLeaf]) {
+  def asBooleanOperator: BooleanOr = BooleanOr(leaves.map(_.asBooleanOperator))
+}
+
+sealed trait CnfBooleanLeaf {
+  def asBooleanOperator: BooleanOperator = booleanOperator
+
+  def booleanOperator: BooleanOperator
+}
+
+case class CnfBooleanLeafNot(booleanOperator: BooleanNot) extends CnfBooleanLeaf {
+  assert(booleanOperator.child.isInstanceOf[BooleanComparisonOperator], "Only comparison operators allowed as child of NOT operator in CNF.")
+
+  def booleanComparison: BooleanComparisonOperator = booleanOperator.child.asInstanceOf[BooleanComparisonOperator]
+}
+
+case class CnfBooleanLeafComparison(booleanOperator: BooleanComparisonOperator) extends CnfBooleanLeaf
 
 sealed trait ValueOutputOperator {
   /** The operator from the link spec */

@@ -44,7 +44,7 @@ class BooleanLinkageRuleTest extends FlatSpec with MustMatchers {
     toCNF(and(A, B)) mustBe and(or(A), or(B))
   }
 
-  it should "distribute OR over AND" in {
+  it should "distribute AND over OR" in {
     toCNF(
       or(
         and(A, B),
@@ -120,7 +120,7 @@ class BooleanLinkageRuleTest extends FlatSpec with MustMatchers {
   private val dummyComparison = Comparison("dummyComparison", metric = EqualityMetric(), inputs = DPair(dummyPathInput, dummyPathInput))
 
   private def toCNF(boolOperator: BooleanOperator): BooleanOperator = {
-    BooleanLinkageRule(boolOperator).toCNF.root
+    BooleanLinkageRule(boolOperator).toCNF.asBooleanOperator
   }
 
   private def leaf(id: String): BooleanOperator = {

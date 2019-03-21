@@ -20,7 +20,7 @@ import org.apache.jena.query.DatasetFactory
 import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, ShouldMatchers}
 import org.silkframework.dataset.rdf.SparqlParams
-import org.silkframework.entity.rdf.SparqlRestriction
+import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path}
 import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
@@ -136,7 +136,7 @@ object SparqlPathsCollectorBenchmark {
       logger.info("Executing " + name + " test")
 
       val endpoint = RemoteSparqlEndpoint(SparqlParams(uri, retryCount = 100))
-      val sparqlRestriction = SparqlRestriction.fromSparql("a", restriction)
+      val sparqlRestriction = SparqlRestriction.fromSparql(SparqlEntitySchema.variable, restriction)
       val limit = Some(50)
 
       Timer("SparqlAggregatePathsCollector") {
