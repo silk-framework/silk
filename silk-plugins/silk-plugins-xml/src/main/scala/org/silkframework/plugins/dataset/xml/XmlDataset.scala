@@ -64,13 +64,13 @@ case class XmlDataset( @Param("File name inside the resources directory. In the 
                        @Param(value = "The output template used for writing XML. Must be valid XML. The generated entity is identified through a processing instruction of the form <?MyEntity?>.")
                        outputTemplate: MultilineStringParameter = "<Root><?Entity?></Root>",
                        @Param(value = "Streaming allows for reading large XML files.", advanced = true)
-                       streaming: Boolean = true) extends Dataset with BulkResourceBasedDataset  with ResourceBasedDataset {
+                       streaming: Boolean = true) extends Dataset with BulkResourceBasedDataset {
 
   validateOutputTemplate()
 
   override def source(implicit userContext: UserContext): DataSource = {
-    if (bulkFile(file).nonEmpty) {
-      bulkSource(bulkFile(file).get)
+    if (bulkFile().nonEmpty) {
+      bulkSource(bulkFile().get)
     }
     else {
       originalSource
