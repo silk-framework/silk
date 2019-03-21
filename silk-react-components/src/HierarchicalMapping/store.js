@@ -10,6 +10,7 @@ import {
     MAPPING_RULE_TYPE_URI,
     MAPPING_RULE_TYPE_COMPLEX_URI,
     SUGGESTION_TYPES,
+    MAPPING_RULE_TYPE_ROOT,
 } from './helpers';
 import {Suggestion} from './Suggestion';
 
@@ -728,7 +729,7 @@ hierarchicalMappingChannel
             baseUrl: apiDetails.baseUrl,
             project: apiDetails.project,
             transformTask: apiDetails.transformTask,
-            id: data.id,
+            id: data.id || MAPPING_RULE_TYPE_ROOT,
             queryParameters: data.queryParameters,
         };
         silkStore
