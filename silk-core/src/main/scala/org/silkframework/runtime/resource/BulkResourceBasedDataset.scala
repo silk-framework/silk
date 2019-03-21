@@ -7,12 +7,10 @@ import org.silkframework.dataset.Dataset
 
 /**
   * Utilities to replace the data source object with a source based on bulk resources.
-  * This also would replace EesourceBasedDataset. At least every resource based dataset is
   * a potential bulk resource supporting data set
   *
   * @see ResourceBasedDataset
   */
-// FIXME: Remove or extend ResourceBasedDataset after bulk support is there for all relevant datasets
 trait BulkResourceBasedDataset  { this: Dataset =>
 
   private final val log: Logger = Logger.getLogger(this.getClass.getSimpleName)
@@ -61,7 +59,7 @@ trait BulkResourceBasedDataset  { this: Dataset =>
       BulkResource(new File(resource.path), virtualEnding)
     }
     else if (new File(resource.path).isDirectory) {
-      log info "Resource Folder found: ${resource.name}"
+      log info s"Resource Folder found: ${resource.name}"
       throw new NotImplementedError("The bulk resource support does not work for non-zip files for now")    }
     else {
       throw new IllegalArgumentException(resource.path + " is not a bulk resource.")

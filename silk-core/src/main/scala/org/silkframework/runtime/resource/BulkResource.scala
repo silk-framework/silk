@@ -211,16 +211,4 @@ object BulkResource {
   }
 
 
-  /**
-    * Creates a copy of the given stream from the marked position, resets the given input stream, if possible.
-    *
-    * @param inputStream Input stream to copy
-    * @return
-    */
-  def copyStream(inputStream: InputStream): InputStream = {
-    val text = scala.io.Source.fromInputStream(inputStream).mkString
-    val stream: InputStream = new ByteArrayInputStream(text.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
-    stream
-  }
-
 }

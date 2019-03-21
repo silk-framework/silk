@@ -2,7 +2,7 @@ package org.silkframework.runtime.resource
 
 import java.io._
 import java.util.logging.Logger
-import java.util.zip.{ZipEntry, ZipException, ZipFile}
+import java.util.zip.ZipException
 
 import org.apache.commons.io.input.ReaderInputStream
 import org.silkframework.entity.EntitySchema
@@ -10,15 +10,15 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.BulkResourceSupport.getDistinctSchemaDescriptions
 import BulkResource._
 
-import scala.collection.{JavaConverters, mutable}
+import scala.collection.JavaConverters
 
 /**
   * Trait for data sets that need to support zipped files with multiple resources or similar structures.
   * Provides a checkResource function that checks and returns a Resource or a BulkResource, depending on the input.
   * See @BulkResource.
   *
-  * The methods of onSingleSchemaBulkResource, onMultiSchemaBulkResource and checkResourceSchema a used for
-  * creating/checking for a bulk resource. These have to be provided by the implementing class.
+  * The methods for creating determining individual distinct schemata inside the bulk resource and the methods
+  * to create BulkResource objects have to be provided by the implementing class.
   *
   * This should be only used if the data set can quickly implement the logic needed, e.g. when multi schema resources are
   * not supported or support is possible on stream or data frame level. This is often the case when the input streams
@@ -48,18 +48,18 @@ trait BulkResourceSupport {
   def initBulkResource(file: WritableResource, virtualFileEnding: Option[String])(implicit userContext: UserContext): WritableResource = {
     if (isBulkResource(file)) {
       val bulkResource = asBulkResource(file, virtualFileEnding)
-      val schemaSet = getDistinctSchemaDescriptions(checkResourceSchema(bulkResource))
+      val schemaSet = getDistinctSchemaDescriptions(getDistinctBulkResourceSchemata(bulkResource))
 
       if (schemaSet.isEmpty) {
         throw new Exception("The schema of the bulk resource could not be determined")
       }
       else if (schemaSet.length == 1) {
         log info s"One schema found for all resources in: ${bulkResource.name}"
-        onSingleSchemaBulkContent(bulkResource).get
+        createSingleSchemaBulkResource(bulkResource).get
       }
       else {
         log info s"Multiple schemata found in: ${bulkResource.name}"
-        onMultiSchemaBulkContent(bulkResource).getOrElse(onSingleSchemaBulkContent(bulkResource).get)
+        createMultiSchemaBulkResource(bulkResource).getOrElse(createSingleSchemaBulkResource(bulkResource).get)
       }
     }
     else {
@@ -82,7 +82,7 @@ trait BulkResourceSupport {
     * @param bulkResource Bulk resource
     * @return
     */
-  def onMultiSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource]
+  def createMultiSchemaBulkResource(bulkResource: BulkResource): Option[BulkResource]
 
   /**
     * Gets called when it is detected that all files in the bulk resource have the same schema.
@@ -92,7 +92,7 @@ trait BulkResourceSupport {
     * @param bulkResource Bulk resource
     * @return
     */
-  def onSingleSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource]
+  def createSingleSchemaBulkResource(bulkResource: BulkResource): Option[BulkResource]
 
   /**
     * The implementing dataset must provide a way to determine the schema of each resource in the bulk resource.
@@ -101,7 +101,7 @@ trait BulkResourceSupport {
     * @param bulkResource Bulk resource
     * @return
     */
-  def checkResourceSchema(bulkResource: BulkResource)(implicit userContext: UserContext): Seq[EntitySchema]
+  def getDistinctBulkResourceSchemata(bulkResource: BulkResource)(implicit userContext: UserContext): Seq[EntitySchema]
 
 }
 

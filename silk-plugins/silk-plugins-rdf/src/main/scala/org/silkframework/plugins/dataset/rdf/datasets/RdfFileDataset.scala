@@ -205,20 +205,27 @@ case class RdfFileDataset(
     * @param bulkResource Bulk resource
     * @return
     */
-  override def checkResourceSchema(bulkResource: BulkResource)
-                                  (implicit userContext: UserContext): Seq[EntitySchema] = {
+  override def getDistinctBulkResourceSchemata(bulkResource: BulkResource)
+                                              (implicit userContext: UserContext): Seq[EntitySchema] = {
 
     val individualSources = for (stream <- bulkResource.inputStreams) yield {
       BulkResource.createBulkResourceWithStream(bulkResource, stream)
     }
-    val individualSchemata: IndexedSeq[EntitySchema] = individualSources.map( res => {
+    val individualSchemata = individualSources.flatMap( res => {
       val je = sparqlEndpoint(Some(res.inputStream))
       val src = new SparqlSource(SparqlParams(graph = graphOpt), je)
-      val typeUri = src.retrieveTypes()
-      val typedPaths = src.retrieveTypedPath(Uri(""))
-      EntitySchema( if (typeUri.isEmpty) "" else typeUri.head._1, typedPaths)
-
-    }).toIndexedSeq
+      val types = src.retrieveTypes()
+      val schemataForTypes = for (t <- types.toIndexedSeq) yield {
+        val typedPaths = src.retrieveTypedPath(t._1)
+        EntitySchema( t._1, typedPaths)
+      }
+      val noTypeSchemata: EntitySchema = {
+        val typedPath = src.retrieveTypedPath("")
+        EntitySchema("", typedPath)
+      }
+      val com = schemataForTypes ++ IndexedSeq(noTypeSchemata)
+      com
+    })
     getDistinctSchemaDescriptions(individualSchemata)
   }
 
@@ -231,7 +238,8 @@ case class RdfFileDataset(
     * @param bulkResource Bulk resource
     * @return
     */
-  override def onMultiSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource] = None // will default to one schema
+  override def createMultiSchemaBulkResource(bulkResource: BulkResource): Option[BulkResource] =
+    None // will default to result from createSingleSchemaBulkResource schema
 
   /**
     * Gets called when it is detected that all files in the bulk resource have the same schema.
@@ -241,8 +249,7 @@ case class RdfFileDataset(
     * @param bulkResource Bulk resource
     * @return
     */
-  override def onSingleSchemaBulkContent(bulkResource: BulkResource): Option[BulkResource] = {
-
+  override def createSingleSchemaBulkResource(bulkResource: BulkResource): Option[BulkResource] = {
     Some(BulkResource.asBulkResource(file, Some("nt")))
   }
 }
