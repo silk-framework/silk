@@ -64,13 +64,13 @@ case class XmlDataset( @Param("File name inside the resources directory. In the 
                        @Param(value = "The output template used for writing XML. Must be valid XML. The generated entity is identified through a processing instruction of the form <?MyEntity?>.")
                        outputTemplate: MultilineStringParameter = "<Root><?Entity?></Root>",
                        @Param(value = "Streaming allows for reading large XML files.", advanced = true)
-                       streaming: Boolean = true) extends Dataset with BulkResourceBasedDataset {
+                       streaming: Boolean = true) extends Dataset with BulkResourceBasedDataset  with ResourceBasedDataset {
 
   validateOutputTemplate()
 
   override def source(implicit userContext: UserContext): DataSource = {
-    if (bulkFile().nonEmpty) {
-      bulkSource(bulkFile().get)
+    if (bulkFile(file).nonEmpty) {
+      bulkSource(bulkFile(file).get)
     }
     else {
       originalSource
@@ -95,7 +95,6 @@ case class XmlDataset( @Param("File name inside the resources directory. In the 
     }
   }
 
-
   override def linkSink(implicit userContext: UserContext): LinkSink = throw new NotImplementedError("Links cannot be written at the moment")
 
   override def entitySink(implicit userContext: UserContext): EntitySink = new XmlSink(file, outputTemplate.str)
@@ -105,14 +104,12 @@ case class XmlDataset( @Param("File name inside the resources directory. In the 
     */
   private def validateOutputTemplate(): Unit = {
     val xml = loadString(outputTemplate.str)
-
     def collectProcInstructions(node: Node): Seq[ProcInstr] = {
       node match {
         case proc: ProcInstr => Seq(proc)
         case _ => node.child.flatMap(collectProcInstructions)
       }
     }
-
     val procInstructions = collectProcInstructions(xml)
     if (procInstructions.size != 1) {
       throw new ValidationException("outputTemplate must contain exactly one processing intruction of the form <?Entity?> to specify where the entities should be inserted.")
@@ -133,6 +130,5 @@ case class XmlDataset( @Param("File name inside the resources directory. In the 
           "instruction of the form <?Entity?>!")
     }
   }
-
 
 }

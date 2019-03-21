@@ -9,6 +9,7 @@ import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.execution.{DatasetExecutor, TaskException}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.BulkResourceBasedDataset
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 

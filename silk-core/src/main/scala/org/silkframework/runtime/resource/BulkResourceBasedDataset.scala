@@ -11,21 +11,30 @@ import org.silkframework.dataset.Dataset
   *
   * @see ResourceBasedDataset
   */
-trait BulkResourceBasedDataset  { this: Dataset =>
+trait BulkResourceBasedDataset  {// this: Dataset =>
 
   private final val log: Logger = Logger.getLogger(this.getClass.getSimpleName)
 
   /** The resource the dataset is reading from */
-  def file: Resource
+//  def file: Resource
+//
+//  def writableResource: Option[WritableResource] = file match {
+//    case wr: WritableResource => Some(wr)
+//    case _ => None
+//  }
+//
+//  override def referencedResources: Seq[Resource] = Seq(file)
+//
 
-  def writableResource: Option[WritableResource] = file match {
-    case wr: WritableResource => Some(wr)
-    case _ => None
-  }
 
-  override def referencedResources: Seq[Resource] = Seq(file)
-
-  def bulkFile(virtualEnding: Option[String] = None): Option[BulkResource] = {
+  /**
+    * Get an instance of a BulkResource, if a bulk file is given. Otherwiaw returns None.
+    *
+    * @param file
+    * @param virtualEnding
+    * @return
+    */
+  def bulkFile(file: WritableResource, virtualEnding: Option[String] = None): Option[BulkResource] = {
     if (isBulkResource(file)) {
       Some(asBulkResource(file, virtualEnding))
     }
@@ -33,6 +42,8 @@ trait BulkResourceBasedDataset  { this: Dataset =>
       None
     }
   }
+
+
   /**
     * Returns true if the given resource is a BulkResource and false otherwise.
     * A BulkResource is detected if the file belonging to the given resource ends with .zip or is a
