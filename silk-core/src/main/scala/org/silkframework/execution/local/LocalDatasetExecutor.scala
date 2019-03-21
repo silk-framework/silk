@@ -49,6 +49,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
             new LocalDatasetResourceEntityTable(dsr.file, dataset)
+          case dsr: BulkResourceBasedDataset =>
+            new LocalDatasetResourceEntityTable(dsr.file, dataset)
           case _: Dataset =>
             throw new ValidationException(s"Dataset task ${dataset.id} of type " +
                 s"${datasetSpec.plugin.pluginSpec.label} has no resource (file) or does not support requests for its resource!")
@@ -163,6 +165,14 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
               case None =>
                 throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
                     s"does not have a writable resource!")
+            }
+          case dsr: BulkResourceBasedDataset =>
+            dsr.writableResource match {
+              case Some(wr) =>
+                wr.writeResource(inputResource)
+              case None =>
+                throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
+                  s"does not have a writable resource!")
             }
           case _: Dataset =>
             throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
