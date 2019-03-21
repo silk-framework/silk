@@ -7,6 +7,7 @@ import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.ResourceBasedDataset
+import org.silkframework.runtime.resource.BulkResourceBasedDataset
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers
@@ -142,6 +143,8 @@ class TaskApi extends Controller with ControllerUtilsTrait {
       case Some(outputId) =>
         project.taskOption[GenericDatasetSpec](outputId).map(_.data.plugin) match {
           case Some(ds: ResourceBasedDataset) =>
+            Ok.stream(Enumerator.fromStream(ds.file.inputStream)).withHeaders("Content-Disposition" -> s"attachment; filename=${ds.file.name}")
+          case Some(ds: BulkResourceBasedDataset) =>
             Ok.stream(Enumerator.fromStream(ds.file.inputStream)).withHeaders("Content-Disposition" -> s"attachment; filename=${ds.file.name}")
           case Some(_) =>
             ErrorResult(BAD_REQUEST, "No resource based output dataset", s"The specified output dataset '$outputId' is not based on a resource.")
