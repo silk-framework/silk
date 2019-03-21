@@ -352,9 +352,9 @@ case class ObjectMapping(id: Identifier = "mapping",
             Some(ComplexUriMapping(rule.id, rewrittenInput, rule.metaData))
           }
           case None if sourcePath.isEmpty =>
-            Some(PatternUriMapping(pattern = s"{}/$id"))
+            Some(PatternUriMapping(pattern = s"{}/$id", prefixes = prefixes))
           case None =>
-            Some(PatternUriMapping(pattern = s"{${pathPrefix.normalizedSerialization}}/$id"))
+            Some(PatternUriMapping(pattern = s"{${pathPrefix.normalizedSerialization}}/$id", prefixes = prefixes))
         }
       case None =>
         None
