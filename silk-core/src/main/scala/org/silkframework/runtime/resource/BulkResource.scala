@@ -6,11 +6,17 @@ import java.util.logging.Logger
 import java.util.zip.{ZipEntry, ZipException, ZipFile}
 
 import scala.collection.mutable
+import java.net.URI
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
+import java.util
 
 /**
   * Resource that represents an archive with multiple files.
   * Provides a singular Inputstream across the file contents ans otherwise uses
-  * the meta data of the archieve.
+  * the meta data of the achieve.
   *
   * Mainly features a replaceable input stream and functions to get one
   * concatenated or a set of streams.
@@ -142,9 +148,26 @@ case class BulkResource(file: File, virtualFileEnding: Option[String]) extends W
     * @param write A function that accepts an output stream and writes to it.
     */
   override def write(append: Boolean)(write: OutputStream => Unit): Unit = {
-    throw new NotImplementedError(
-      "Not yet implementet, writing should create a zip archieve with one file. Do we need that?"
-    )
+
+    val nonZipResource = FileResource(new File(path.replace("zip", virtualFileEnding.get)))
+    nonZipResource.write(append)(write)
+    val uri = URI.create(s"jar:file:/$path")
+
+    println(s"Writing to ${nonZipResource.path}")
+    println(s"Adding to ${uri.toString}")
+
+    try {
+      val env = new util.HashMap[String, String]{"create"->"true"}
+      val zipFileSystem = FileSystems.newFileSystem(uri, env)
+      try {
+        val nonZipFile = Paths.get(nonZipResource.path)
+        val pathInZipFile = zipFileSystem.getPath(s"/name.$virtualFileEnding.get")
+        Files.copy(nonZipFile, pathInZipFile, StandardCopyOption.REPLACE_EXISTING)
+      }
+      finally {
+        if (zipFileSystem != null) zipFileSystem.close()
+      }
+    }
   }
 
   /**
