@@ -1,5 +1,7 @@
 package controllers.transform
 
+import org.silkframework.rule.{ComplexMapping, ObjectMapping, TransformRule, TransformSpec}
+import org.silkframework.workspace.ProjectTask
 import play.api.libs.json.{JsArray, JsString, Json}
 import play.api.libs.ws.WS
 
@@ -11,6 +13,8 @@ import scala.xml.XML
 class TransformTaskApiTest extends TransformTaskApiTestBase {
 
   def printResponses = false
+
+  private val OBJECT_RULE_ID = "objectRule"
 
   "Setup project" in {
     createProject(project)
@@ -105,10 +109,10 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
 
   "Append new object mapping rule to root" in {
     val json = jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules") {
-      """
+      s"""
         {
           "type": "object",
-          "id": "objectRule",
+          "id": "$OBJECT_RULE_ID",
           "sourcePath": "source:address",
           "mappingTarget": {
             "uri": "target:address",
@@ -131,7 +135,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
 
   "Retrieve full mapping rule tree" in {
     jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rules") mustMatchJson {
-      """
+      s"""
         {
  |    "type": "root",
  |    "id": "root",
@@ -174,7 +178,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
  |            },
  |            {
  |                "type": "object",
- |                "id": "objectRule",
+ |                "id": "$OBJECT_RULE_ID",
  |                "mappingTarget": {
  |                    "isAttribute": false,
  |                    "isBackwardProperty": false,
@@ -207,10 +211,10 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
 
   "Retrieve a single mapping rule" in {
     jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule") mustMatchJson {
-      """
+      s"""
         {
           "type" : "object",
-          "id" : "objectRule",
+          "id" : "$OBJECT_RULE_ID",
           "sourcePath" : "source:address",
           "mappingTarget" : {
             "uri" : "target:address",
@@ -257,27 +261,44 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
 
   "Reorder the child rules" in {
     jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules/reorder") {
-      """
+      s"""
         [
           "directRule2",
-          "objectRule",
+          "$OBJECT_RULE_ID",
           "directRule"
         ]
       """
     }
 
     // Check if the rules have been reordered correctly
-    retrieveRuleOrder() mustBe Seq("directRule2", "objectRule", "directRule")
+    retrieveRuleOrder() mustBe Seq("directRule2", OBJECT_RULE_ID, "directRule")
   }
 
+  val insertedAfterRuleId = "insertedAfter"
+
   "Insert new mapping rule after the second rule" in {
-    val insertedAfterRuleId = "insertedAfter"
     jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules?afterRuleId=objectRule") {
       s"""
         {
-          "type": "direct",
+          "type": "complex",
           "id": "$insertedAfterRuleId",
           "sourcePath": "/source:prop23",
+          "operator": {
+              "function": "lowerCase",
+              "id": "directRule",
+              "inputs": [
+                  {
+                      "id": "number",
+                      "path": "sourceProp",
+                      "type": "pathInput"
+                  }
+              ],
+              "parameters": {},
+              "type": "transformInput"
+          },
+          "sourcePaths": [
+              "sourceProp"
+          ],
           "mappingTarget": {
             "uri": "target:prop23",
             "valueType": {
@@ -287,7 +308,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
         }
       """
     }
-    retrieveRuleOrder() mustBe Seq("directRule2", "objectRule", insertedAfterRuleId, "directRule")
+    retrieveRuleOrder() mustBe Seq("directRule2", OBJECT_RULE_ID, insertedAfterRuleId, "directRule")
   }
 
   "Update direct mapping rule" in {
@@ -327,7 +348,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     }
 
     // Make sure that the position of the updated rule did not change
-    retrieveRuleOrder() mustBe Seq("directRule2", "objectRule", "insertedAfter", "directRule")
+    retrieveRuleOrder() mustBe Seq("directRule2", OBJECT_RULE_ID, insertedAfterRuleId, "directRule")
   }
 
   "Set complex URI pattern" in {
@@ -358,19 +379,6 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val uriRule = json \ "rules" \ "uriRule"
     (uriRule \ "type").get mustBe JsString("complexUri")
     (uriRule \ "operator" \ "function").get mustBe JsString("constant")
-  }
-
-  "Delete mapping rule" in {
-    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
-    val response = request.delete()
-    checkResponse(response)
-  }
-
-  "Return 404 if a requested rule does not exist" in {
-    var request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
-    request = request.withHeaders("Accept" -> "application/json")
-    val response = Await.result(request.get(), 100.seconds)
-    response.status mustBe 404
   }
 
   "Return 400 if submitted mapping parameters are invalid" in {
@@ -442,6 +450,48 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     response.status mustBe 400
   }
 
+  private def transformTask: ProjectTask[TransformSpec] = workspaceProject(project).task[TransformSpec](task)
+
+  "Copy an existing mapping rule and put it next to the existing one" in {
+    postRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules/copyFrom?" +
+        s"sourceProject=$project&sourceTask=$task&sourceRule=$insertedAfterRuleId&afterRuleId=$insertedAfterRuleId")
+    retrieveRuleOrder() mustBe Seq("directRule2", OBJECT_RULE_ID, insertedAfterRuleId, insertedAfterRuleId + "1", "directRule")
+    val originalTransformRule = rootPropertyRule(insertedAfterRuleId)
+    val clonedTransformRule = rootPropertyRule(insertedAfterRuleId + "1")
+    val originalInput = as[ComplexMapping](originalTransformRule).operator
+    val clonedInput = as[ComplexMapping](clonedTransformRule).operator
+    originalInput mustBe clonedInput
+  }
+
+  "Copy an existing object rule and put it to the end of the list" in {
+    postRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules/copyFrom?" +
+        s"sourceProject=$project&sourceTask=$task&sourceRule=$OBJECT_RULE_ID")
+    retrieveRuleOrder() mustBe Seq("directRule2", OBJECT_RULE_ID, insertedAfterRuleId, insertedAfterRuleId + "1",
+      "directRule", OBJECT_RULE_ID + "1")
+    val originalTransformRule = rootPropertyRule(OBJECT_RULE_ID)
+    val clonedTransformRule = rootPropertyRule(OBJECT_RULE_ID + "1")
+    val originalInput = as[ObjectMapping](originalTransformRule).operator
+    val clonedInput = as[ObjectMapping](clonedTransformRule).operator
+    originalInput mustBe clonedInput
+    val originalLabel = originalTransformRule.metaData.label
+    val clonedLabel = clonedTransformRule.metaData.label
+    clonedLabel mustBe s"Copy of $originalLabel"
+  }
+
+  private def as[T](obj: Any): T = {
+    obj match {
+      case t: T =>
+        t
+      case _ =>
+        throw new RuntimeException("Object cannot be cast.")
+    }
+  }
+
+  private def rootPropertyRule(ruleId: String): TransformRule = {
+    transformTask.data.rules.propertyRules.
+        find(_.id.toString == ruleId).getOrElse(throw new RuntimeException(s"Property rule '$ruleId' not found!"))
+  }
+
   "Append multiple new direct mapping rules without ID at the same time" in {
     val resultsFutures = for(i <- 1 to 10) yield {
       Future(jsonPostRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules") {
@@ -467,4 +517,18 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val jsons = Await.result(seqFuture, 10.seconds)
     jsons.map(json => (json \ "id").as[String]).distinct.size mustBe 10
   }
+
+  "Delete mapping rule" in {
+    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
+    val response = request.delete()
+    checkResponse(response)
+  }
+
+  "Return 404 if a requested rule does not exist" in {
+    var request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
+    request = request.withHeaders("Accept" -> "application/json")
+    val response = Await.result(request.get(), 100.seconds)
+    response.status mustBe 404
+  }
+
 }

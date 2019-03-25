@@ -104,10 +104,10 @@ const RuleValueView = React.createClass({
         }
     },
     handleCopy(){
-        this.props.handleCopy(this.props.id);
+        this.props.handleCopy(this.props.id, this.props.type);
     },
     handleClone(){
-        this.props.handleClone(this.props.id);
+        this.props.handleClone(this.props.id, this.props.type);
     },
     // template rendering
     render() {

@@ -23,7 +23,8 @@ class TransformRuleXmlSerializationTest extends FlatSpec with ShouldMatchers {
         rules = MappingRules(
           DirectMapping("directMapping", Path("inputPath"), MappingTarget("outputProperty", StringValueType))
         )
-      )(Prefixes.empty))
+      )
+    )
   }
 
   def testSerialzation(obj: TransformRule): Unit = {

@@ -10,6 +10,7 @@ import {
     MAPPING_RULE_TYPE_URI,
     MAPPING_RULE_TYPE_COMPLEX_URI,
     SUGGESTION_TYPES,
+    MAPPING_RULE_TYPE_ROOT,
 } from './helpers';
 import {Suggestion} from './Suggestion';
 
@@ -713,126 +714,35 @@ hierarchicalMappingChannel
     });
 
 hierarchicalMappingChannel
-    .subject('rule.getDataToCopyRule')
-    .subscribe(({data, replySubject}) => {
-        const {id, isObjectMapping} = data;
-
-        silkStore
-            .request({
-                topic: 'transform.task.rules.get',
-                data: {...apiDetails},
-            })
-            .map(returned => {
-                const rules = returned.body;
-                const searchId = id || rules.id;
-                if (!_.isString(rootId)) {
-                    rootId = rules.id;
-                }
-                const rule = findRule(
-                    _.cloneDeep(rules),
-                    searchId,
-                    isObjectMapping,
-                    []
-                );
-
-                let data = {
-                    type: rule.type,
-                    comment: _.get(rule, 'metadata.description', ''),
-                    label: _.get(rule, 'metadata.label', ''),
-                    targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
-                    sourceProperty: _.get(rule, 'sourcePath', undefined),
-                };
-
-                if (rule.type === MAPPING_RULE_TYPE_DIRECT) {
-                    data.valueType = _.get(rule, 'mappingTarget.valueType', {nodeType: 'StringValueType'});
-                    data.isAttribute = _.get(rule, 'mappingTarget.isAttribute', false);
-                } else if (rule.type === MAPPING_RULE_TYPE_COMPLEX) {
-                    data.valueType = _.get(rule, 'mappingTarget.valueType', {nodeType: 'StringValueType'});
-                    data.isAttribute = _.get(rule, 'mappingTarget.isAttribute', false);
-                    data.operator = rule.operator;
-                    data.sourcePaths = rule.sourcePaths;
-                } else if (rule.type === MAPPING_RULE_TYPE_OBJECT) {
-                    data.targetEntityType = _.chain(rule)
-                        .get('rules.typeRules', [])
-                        .map('typeUri')
-                        .value();
-                    data.pattern = _.get(rule, 'rules.uriRule.pattern', '');
-                    data.entityConnection = _.get(
-                        rule,
-                        'mappingTarget.isBackwardProperty',
-                        false
-                    );
-                    data.copiedObjectId = id;
-                    data.copiedObjectTask = apiDetails.transformTask;
-                    data.copiedObjectProject = apiDetails.project;
-                };
-
-                return {data: data};
-            })
-            .multicast(replySubject)
-            .connect();
+    .subject('getApiDetails')
+    .subscribe(({replySubject}) => {
+        replySubject.onNext({
+            apiDetails: apiDetails,
+        });
+        replySubject.onCompleted();
     });
 
 hierarchicalMappingChannel
-    .subject('rule.copyObjectMapping')
+    .subject('rule.copy')
     .subscribe(({data, replySubject}) => {
-        const copiedDetails = {
-            transformTask: data.copiedObjectTask,
+        const copyingData = {
             baseUrl: apiDetails.baseUrl,
-            project: data.copiedObjectProject,
+            project: apiDetails.project,
+            transformTask: apiDetails.transformTask,
+            id: data.id || MAPPING_RULE_TYPE_ROOT,
+            queryParameters: data.queryParameters,
         };
-        const parent = data.parentId ? data.parentId : rootId;
-
         silkStore
             .request({
-                topic: 'transform.task.rules.get',
-                data: {...copiedDetails},
+                topic: 'transform.task.rule.copy',
+                data: {...copyingData},
             })
-            .subscribe(returned => {
-                function removeKeys(obj, keys) {
-                    var index;
-                    for (var prop in obj) {
-                        if (obj.hasOwnProperty(prop)) {
-                            switch (typeof(obj[prop])) {
-                                case 'string':
-                                    index = keys.indexOf(prop);
-                                    if(index > -1)
-                                        delete obj[prop]
-                                    break;
-                                case 'object':
-                                    index = keys.indexOf(prop);
-                                    if (index > -1)
-                                        delete obj[prop]
-                                    else
-                                        removeKeys(obj[prop], keys)
-                                    break;
-                            }
-                        }
-                    }
-                }
-
-                const rules = returned.body;
-                if (!_.isString(rootId))
-                    rootId = rules.id;
-                let rule = findRule(
-                    _.cloneDeep(rules),
-                    data.copiedObjectId,
-                    true,
-                    []
-                );
-                removeKeys(rule, 'id');
-                rule.metadata.label = 'Copy of ' + rule.metadata.label;
-                silkStore
-                    .request({
-                        topic: 'transform.task.rule.rules.append',
-                        data: {
-                            ...apiDetails,
-                            ruleId: parent,
-                            payload: rule,
-                        },
-                    })
-                    .multicast(replySubject)
-                    .connect();
+            .subscribe(
+                (returned) => {
+                    replySubject.onNext({
+                        id: returned.body.id
+                    });
+                    replySubject.onCompleted();
             })
     })
 

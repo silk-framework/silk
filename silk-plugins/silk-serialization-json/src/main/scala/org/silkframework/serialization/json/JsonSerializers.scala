@@ -428,7 +428,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): PatternUriMapping = {
       val name = identifier(value, "uri")
       val pattern = stringValue(value, PATTERN_PROPERTY)
-      PatternUriMapping(name, pattern.trim(), metaData(value, "uri"))(readContext.prefixes)
+      PatternUriMapping(name, pattern.trim(), metaData(value, "uri"), readContext.prefixes)
     }
 
     /**
@@ -555,7 +555,7 @@ object JsonSerializers {
       val mappingName = mappingTarget.flatMap(_.propertyUri.localName).getOrElse("ObjectMapping")
       val id = identifier(value, mappingName)
       val sourcePath = silkPath(id, stringValue(value, SOURCE_PATH))
-      ObjectMapping(id, sourcePath, mappingTarget, children, metaData(value, mappingName))(readContext.prefixes)
+      ObjectMapping(id, sourcePath, mappingTarget, children, metaData(value, mappingName), readContext.prefixes)
     }
 
     /**
