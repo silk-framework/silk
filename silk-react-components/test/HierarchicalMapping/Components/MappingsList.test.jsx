@@ -9,12 +9,17 @@ import Adapter from "enzyme-adapter-react-15/build";
 import store from './../../../src/HierarchicalMapping/store';
 import waitUntilReady from '../../test_helper';
 
-import MappingsList from '../../../src/HierarchicalMapping/Components/MappingsList';
+import MappingsList from '../../../src/HierarchicalMapping/Components/MappingsWorkview';
 import './MappingList.server';
 
 chai.use(chaiEnzyme());
 Enzyme.configure({ adapter: new Adapter() });
 
+/**
+ * mock of sessionStorage
+ *
+ * @constructor
+ */
 function SessionStorage() {
 	this.data = {};
 	this.setItem = (key, value) => {
@@ -23,8 +28,18 @@ function SessionStorage() {
 	this.getItem = (key) => this.data[key];
 }
 
+/**
+ * setting up the session storage as a global variable
+ * in component sessionStorage is in use
+ *
+ * @type {SessionStorage}
+ */
 global.sessionStorage = new SessionStorage();
-
+/**
+ * HTML Selectors
+ *
+ * @type {{listItems: string, plusButton: string, actionsMenu: string, copyButton: string, cloneButton: string, row: string}}
+ */
 const selectors = {
 		copyButton: ".ecc-silk-mapping__ruleitem-expanded .ecc-silk-mapping__rulesviewer div.ecc-silk-mapping__ruleseditor__actionrow button.ecc-silk-mapping__ruleseditor__actionrow-copy",
 		cloneButton: ".ecc-silk-mapping__ruleitem-expanded .ecc-silk-mapping__rulesviewer div.ecc-silk-mapping__ruleseditor__actionrow button.ecc-silk-mapping__ruleseditor__actionrow-clone",
@@ -33,6 +48,11 @@ const selectors = {
 		plusButton: '.ecc-floatingactionlist__wrapper--fixed button.ecc-floatingactionlist__button',
 		actionsMenu: '.ecc-floatingactionlist__wrapper--fixed ul.ecc-floatingactionlist__menu'
 	},
+	/**
+	 * The mock rules for component
+	 *
+	 * @type {*[]}
+	 */
 	mockRules = [
 		{
 			id: "country",
@@ -67,11 +87,23 @@ const selectors = {
 			type: 'direct'
 		}
 	],
+	/**
+	 * @mock onCopyHandler
+	 * @mock onCloneHandler
+	 * @mock onPastHandler
+	 */
 	onCopyHandler = sinon.spy(),
 	onCloneHandler = sinon.spy(),
 	onPastHandler = sinon.spy();
+/**
+ * @type {boolean}
+ */
 let isCopying = false;
-
+/**
+ * Mounting the component
+ *
+ * @returns {*}
+ */
 const mountSuggestionsList = () => {
 	return mount(
 		<MappingsList
