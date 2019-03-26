@@ -36,3 +36,32 @@ export const trimValueLabelObject = object => {
 export const trimUriPattern = pattern => {
     return _.trim(pattern);
 };
+
+export const camelCase = string => {
+        // add space before every capital letter
+        string = string.replace(/([A-Z]+)/g, ' $1');
+        // capital first letter
+        string = string.charAt(0).toUpperCase() + string.slice(1);
+        // remove leading space if exist
+        if (_.startsWith(string, ' ')) {
+            string = string.slice(1);
+        }
+        return string.replace(/_$/, "");
+};
+
+export const uriToLabel = uri => {
+    const cleanUri = uri.toString().replace(/(^<+|>+$)/g, '');
+    const hashparts = cleanUri.split('#');
+    const uriparts = hashparts.length > 1 ? hashparts : cleanUri.split(':');
+
+    let idx = 1;
+    let label = uriparts[uriparts.length - idx];
+    while (!label) {
+        idx += 1;
+        label = uriparts[uriparts.length - idx];
+        if (idx < 0) {
+            return cleanUri;
+        }
+    }
+    return camelCase(label);
+};
