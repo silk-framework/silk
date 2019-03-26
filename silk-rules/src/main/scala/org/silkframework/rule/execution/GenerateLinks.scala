@@ -71,7 +71,7 @@ class GenerateLinks(id: Identifier,
   }
 
   private def runRdbLinking(context: ActivityContext[Linking])
-                       (implicit userContext: UserContext): Unit = {
+                           (implicit userContext: UserContext): Unit = {
     val entityIndex = new RDBEntityIndex(linkSpec, inputs, runtimeConfig)
     context.child(entityIndex).startBlocking()
   }
@@ -96,10 +96,10 @@ class GenerateLinks(id: Identifier,
     children ::= matcher
     matcher.startBlocking()
 
-      val entityCounts = caches.map(_.size)
-      cleanUpCaches(caches)
+    val entityCounts = caches.map(_.size)
+    cleanUpCaches(caches)
 
-      if(context.status.isCanceling) return
+    if(context.status.isCanceling) return
 
     // Filter links
     val filterTask = new Filter(matcher.value(), linkSpec.rule.filter)
@@ -150,17 +150,19 @@ class GenerateLinks(id: Identifier,
     val sourceIndexFunction = (entity: Entity) => runtimeConfig.executionMethod.indexEntity(entity, linkSpec.rule, sourceOrTarget = true)
     val targetIndexFunction = (entity: Entity) => runtimeConfig.executionMethod.indexEntity(entity, linkSpec.rule, sourceOrTarget = false)
 
+    val sourceSchema = ComparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entityDescs.source, linkSpec.rule, sourceOrTarget = true)
+    val targetSchema = ComparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entityDescs.target, linkSpec.rule, sourceOrTarget = false)
     if (runtimeConfig.useFileCache) {
       val cacheDir = new File(runtimeConfig.homeDir + "/entityCache/" + id + UUID.randomUUID().toString)
 
       DPair(
-        source = new FileEntityCache(entityDescs.source, sourceIndexFunction, cacheDir + "_source/", runtimeConfig),
-        target = new FileEntityCache(entityDescs.target, targetIndexFunction, cacheDir + "_target/", runtimeConfig)
+        source = new FileEntityCache(sourceSchema, sourceIndexFunction, cacheDir + "_source/", runtimeConfig),
+        target = new FileEntityCache(targetSchema, targetIndexFunction, cacheDir + "_target/", runtimeConfig)
       )
     } else {
       DPair(
-        source = new MemoryEntityCache(entityDescs.source, sourceIndexFunction, runtimeConfig),
-        target = new MemoryEntityCache(entityDescs.target, targetIndexFunction, runtimeConfig)
+        source = new MemoryEntityCache(sourceSchema, sourceIndexFunction, runtimeConfig),
+        target = new MemoryEntityCache(targetSchema, targetIndexFunction, runtimeConfig)
       )
     }
   }

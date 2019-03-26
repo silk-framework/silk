@@ -68,15 +68,6 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
     }
   }
 
-  private def generateSparqlRestriction(sourceOrTarget: Boolean): Option[CustomOperator] = {
-    ComparisonToRestrictionConverter.linkageRuleToSparqlFilter(
-      task.data.rule,
-      SparqlEntitySchema.variable,
-      variablePrefix = "generatedFilterVar",
-      sourceOrTarget = sourceOrTarget
-    )
-  }
-
   /** @param sourceOrTarget Is this the source or target input of the link spec. This should be None if this is not a direct input.
     *                       This is needed for optional SPARQL restriction generation from the linkage rule. */
   private def loadInput(selection: DatasetSelection,
@@ -84,15 +75,9 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
                         sourceOrTarget: Option[Boolean])
                        (implicit execution: ExecutionType,
                         userContext: UserContext): ExecutionType#DataType = {
-    val updatedEntitySchema = sourceOrTarget.flatMap(generateSparqlRestriction) match {
-      case Some(newSparqlRestriction) =>
-        val updatedFilterOperator = entitySchema.filter.operator match {
-          case Some(operator) => And(Seq(operator, newSparqlRestriction))
-          case None => newSparqlRestriction
-        }
-        entitySchema.copy(filter = Restriction(Some(updatedFilterOperator)))
-      case None => entitySchema
-    }
+    val updatedEntitySchema = sourceOrTarget.map(sot =>
+      ComparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entitySchema, task.data.rule, sot)
+    ).getOrElse(entitySchema)
     val result =
       task.project.taskOption[TransformSpec](selection.inputId) match {
         case Some(transformTask) =>
@@ -105,5 +90,4 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
 
     result.getOrElse(throw AbortExecutionException(s"The input task ${selection.inputId} did not generate any result"))
   }
-
 }

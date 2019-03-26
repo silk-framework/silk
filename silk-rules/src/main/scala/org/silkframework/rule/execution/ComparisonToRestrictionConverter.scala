@@ -1,9 +1,9 @@
 package org.silkframework.rule.execution
 
 import org.apache.jena.graph.NodeFactory
-import org.silkframework.entity.Path
-import org.silkframework.entity.Restriction.CustomOperator
-import org.silkframework.entity.rdf.SparqlPathBuilder
+import org.silkframework.entity.{EntitySchema, Path, Restriction}
+import org.silkframework.entity.Restriction.{And, CustomOperator}
+import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
 import org.silkframework.rule.input.{PathInput, TransformInput}
 import org.silkframework.rule.plugins.distance.equality.{EqualityMetric, InequalityMetric}
 import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
@@ -81,6 +81,31 @@ object ComparisonToRestrictionConverter {
       val finalSparqlFilterRestriction = SparqlFilterRestriction.conjunction(disjunctionSparqlRestrictions) // Step 5
       finalSparqlFilterRestriction.map(filter => CustomOperator(filter.toSparql))
     }
+  }
+
+  def extendEntitySchemaWithLinkageRuleRestriction(entitySchema: EntitySchema,
+                                                   linkageRule: LinkageRule,
+                                                   sourceOrTarget: Boolean): EntitySchema = {
+    generateSparqlRestriction(linkageRule, sourceOrTarget) match {
+      case Some(newSparqlRestriction) =>
+        val updatedFilterOperator = entitySchema.filter.operator match {
+          case Some(operator) => And(Seq(operator, newSparqlRestriction))
+          case None => newSparqlRestriction
+        }
+        entitySchema.copy(filter = Restriction(Some(updatedFilterOperator)))
+      case None => entitySchema
+    }
+  }
+
+
+  private def generateSparqlRestriction(linkageRule: LinkageRule,
+                                        sourceOrTarget: Boolean): Option[CustomOperator] = {
+    ComparisonToRestrictionConverter.linkageRuleToSparqlFilter(
+      linkageRule,
+      SparqlEntitySchema.variable,
+      variablePrefix = "generatedFilterVar",
+      sourceOrTarget = sourceOrTarget
+    )
   }
 }
 
