@@ -13,6 +13,21 @@ import org.silkframework.util.DPair
 class ComparisonToRestrictionConverterTest extends FlatSpec with MustMatchers {
   behavior of "Comparison to Restriction Converter"
 
+  it should "convert a linkage rule of a simple and" in {
+    val notSatisfiable = and(
+      sourceEqual("http://p1", "p1"),
+      targetEqual("http://t1", "t1")
+    )
+    convert(notSatisfiable, sourceOrTarget = true).get.serialize mustBe
+      """?a <http://p1> ?var_pref_0_0_Value .
+        |
+        |FILTER (((STR(?var_pref_0_0_Value) = "p1")))""".stripMargin
+    convert(notSatisfiable, sourceOrTarget = false).get.serialize mustBe
+      """?a <http://t1> ?var_pref_1_0_Value .
+        |
+        |FILTER (((STR(?var_pref_1_0_Value) = "t1")))""".stripMargin
+  }
+
   it should "convert a boolean linkage rule into a SPARQL filter" in {
     val andOrMix = and(
       or(
@@ -27,22 +42,34 @@ class ComparisonToRestrictionConverterTest extends FlatSpec with MustMatchers {
         not(targetInEqual("http://T2", "T2"))
       )
     )
-    convert(andOrMix, sourceOrTarget = true).serialize mustBe
+    convert(andOrMix, sourceOrTarget = true).get.serialize mustBe
         """?a <http://P1> ?var_pref_0_0_Value .
           |?a <http://P3> ?var_pref_0_1_Value .
           |?a <http://P2> ?var_pref_1_0_Value .
           |
           |FILTER (((STR(?var_pref_0_0_Value) != "P1" || STR(?var_pref_0_1_Value) != "P3") && (STR(?var_pref_1_0_Value) = "P2")))""".stripMargin
-    convert(andOrMix, sourceOrTarget = false).serialize mustBe
+    convert(andOrMix, sourceOrTarget = false).get.serialize mustBe
         """?a <http://T1> ?var_pref_2_0_Value .
           |?a <http://T2> ?var_pref_2_1_Value .
           |
           |FILTER (((STR(?var_pref_2_0_Value) = "T1" || STR(?var_pref_2_1_Value) != "T2")))""".stripMargin
   }
 
-  private def convert(operator: SimilarityOperator, subject: String = "a", variablePrefix: String = "var_pref_", sourceOrTarget: Boolean): Restriction.Operator = {
+  it should "not convert a linkage rule that cannot be fully satisfied by a filter" in {
+    val notSatisfiable = and(
+      or( /** Mixing source restriction and target restriction in the same disjunction. This cannot be pushed as a filter
+              for neither the source nor the target data source. */
+        sourceEqual("http://p1", "p1"),
+        targetEqual("http://t1", "t1")
+      )
+    )
+    convert(notSatisfiable, sourceOrTarget = true) mustBe None
+    convert(notSatisfiable, sourceOrTarget = false) mustBe None
+  }
+
+  private def convert(operator: SimilarityOperator, subject: String = "a", variablePrefix: String = "var_pref_", sourceOrTarget: Boolean): Option[Restriction.Operator] = {
     ComparisonToRestrictionConverter.linkageRuleToSparqlFilter(
-      LinkageRule(Some(operator)), subject, variablePrefix, sourceOrTarget).get
+      LinkageRule(Some(operator)), subject, variablePrefix, sourceOrTarget)
   }
 
   private def and(operators: SimilarityOperator*): Aggregation = Aggregation(aggregator = MinimumAggregator(), operators = operators)
