@@ -143,7 +143,7 @@ case class DataSourceInequalityRestriction(path: Path, value: String) extends Da
 case class SparqlFilterRestriction(sparqlPattern: String, filterExpression: String) {
   def toSparql: String = {
     s"""$sparqlPattern
-      | FILTER ($filterExpression)""".stripMargin
+       |FILTER ($filterExpression)""".stripMargin
   }
 }
 
@@ -153,8 +153,8 @@ object SparqlFilterRestriction {
     if(filterRestrictions.isEmpty) {
       None
     } else {
-      val sparqlPattern = filterRestrictions.map(_.sparqlPattern).mkString("\n")
-      val sparqlFilter = filterRestrictions.map(_.filterExpression).mkString("(", "||", ")")
+      val sparqlPattern = filterRestrictions.map(_.sparqlPattern).mkString
+      val sparqlFilter = filterRestrictions.map(_.filterExpression).mkString("(", " || ", ")")
       Some(SparqlFilterRestriction(sparqlPattern, sparqlFilter))
     }
   }
@@ -164,8 +164,8 @@ object SparqlFilterRestriction {
     if(filterRestrictions.isEmpty) {
       None
     } else {
-      val sparqlPattern = filterRestrictions.map(_.sparqlPattern).mkString("\n")
-      val sparqlFilter = filterRestrictions.map(_.filterExpression).mkString("(", "&&", ")")
+      val sparqlPattern = filterRestrictions.map(_.sparqlPattern).mkString
+      val sparqlFilter = filterRestrictions.map(_.filterExpression).mkString("(", " && ", ")")
       Some(SparqlFilterRestriction(sparqlPattern, sparqlFilter))
     }
   }
