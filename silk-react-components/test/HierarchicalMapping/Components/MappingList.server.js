@@ -76,7 +76,7 @@ const mockUpFunction = (identifier) => {
 	/**
 	 * Getting response for rules
 	 *
-	 * @returns {{code: number, body: {metadata: {label: string}, rules: {typeRules: Array, propertyRules: *[], uriRule: null}, id: string, type: string}}}
+	 * @returns {{code: number, body: {metadata: {label: string}, rules: {typeRules: Array, propertyRules: *[]}, id: string, type: string}}}
 	 */
 	const getRulesResponse = () => {
 		return {
@@ -85,7 +85,6 @@ const mockUpFunction = (identifier) => {
 				type: "root",
 				id: "root",
 				rules: {
-					uriRule: null,
 					typeRules: [],
 					propertyRules: [
 						{
@@ -131,7 +130,7 @@ const mockUpFunction = (identifier) => {
 	 * Getting the URL of copyRule
 	 *
 	 * @param sourceRule {string}
-	 * @returns {{data: {sourceTask: string, sourceRule: *, afterRuleId: null, sourceProject: string}, url: string}}
+	 * @returns {{data: {sourceTask: string, sourceRule: *, sourceProject: string}, url: string}}
 	 */
 	const rulesDataURLCopyFrom = (sourceRule) => {
 		return {
@@ -139,8 +138,7 @@ const mockUpFunction = (identifier) => {
 			data: {
 				sourceProject: 'test',
 				sourceTask: 'test',
-				sourceRule: sourceRule,
-				afterRuleId: null
+				sourceRule: sourceRule
 			}
 		};
 	};
