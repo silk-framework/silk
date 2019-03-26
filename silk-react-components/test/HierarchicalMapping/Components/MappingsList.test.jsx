@@ -9,7 +9,7 @@ import Adapter from "enzyme-adapter-react-15/build";
 import store from './../../../src/HierarchicalMapping/store';
 import waitUntilReady from '../../test_helper';
 
-import MappingsList from '../../../src/HierarchicalMapping/Components/MappingsWorkview';
+import MappingsWorkview from '../../../src/HierarchicalMapping/Components/MappingsWorkview';
 import './MappingList.server';
 
 chai.use(chaiEnzyme());
@@ -35,6 +35,7 @@ function SessionStorage() {
  * @type {SessionStorage}
  */
 global.sessionStorage = new SessionStorage();
+
 /**
  * HTML Selectors
  *
@@ -48,45 +49,7 @@ const selectors = {
 		plusButton: '.ecc-floatingactionlist__wrapper--fixed button.ecc-floatingactionlist__button',
 		actionsMenu: '.ecc-floatingactionlist__wrapper--fixed ul.ecc-floatingactionlist__menu'
 	},
-	/**
-	 * The mock rules for component
-	 *
-	 * @type {*[]}
-	 */
-	mockRules = [
-		{
-			id: "country",
-			mappingTarget: {
-				isAttribute: false,
-				isBackwardProperty: false,
-				uri: "<urn:ruleProperty:country>",
-				valueType: {
-					nodeType: "StringValueType"
-				}
-			},
-			metadata: {
-				label: ""
-			},
-			sourcePath: "dbpediaowl:country",
-			type: "direct"
-		},
-		{
-			id: "basedOn",
-			mappingTarget: {
-				isAttribute: false,
-				isBackwardProperty: false,
-				uri: "<urn:ruleProperty:basedOn>",
-				valueType: {
-					nodeType: "StringValueType"
-				}
-			},
-			metadata: {
-				label: ""
-			},
-			sourcePath: "dbpediaowl:basedOn",
-			type: 'direct'
-		}
-	],
+
 	/**
 	 * @mock onCopyHandler
 	 * @mock onCloneHandler
@@ -106,26 +69,21 @@ let isCopying = false;
  */
 const mountSuggestionsList = () => {
 	return mount(
-		<MappingsList
+		<MappingsWorkview
 			currentRuleId={'root'}
-			rules={mockRules}
-			handleCopy={onCopyHandler}
-			handlePaste={onPastHandler}
-			handleClone={onCloneHandler}
-			isCopying={isCopying}
 		/>
 	);
 };
 
-describe('MappingList copy and past', () => {
+describe('MappingsWorkview copy and past', () => {
 	// set spy on component did mount to check how oft it is called
-	sinon.spy(MappingsList.prototype, 'componentDidMount');
-	// mount the MappingList
+	sinon.spy(MappingsWorkview.prototype, 'componentDidMount');
+	// mount the MappingsWorkview
 	const component = mountSuggestionsList();
 
 	it('mounts once', async () => {
 		await waitUntilReady(component);
-		expect(MappingsList.prototype.componentDidMount.calledOnce);
+		expect(MappingsWorkview.prototype.componentDidMount.calledOnce);
 	});
 
 	describe('should simulate click on plus and do copy and past', () => {
@@ -180,7 +138,7 @@ describe('MappingList copy and past', () => {
 	});
 });
 
-describe('MappingList clone and past', () => {
+describe('MappingsWorkview clone and past', () => {
 	const component = mountSuggestionsList();
 
 	it('mounts once', async () => {
