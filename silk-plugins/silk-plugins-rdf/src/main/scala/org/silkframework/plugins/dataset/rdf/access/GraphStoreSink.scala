@@ -69,15 +69,19 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   }
 
   private def internalInit()(implicit userContext: UserContext): Unit = {
-    if(stmtCount > 0 || byteCount > 0) {
-      overallByteCount += byteCount
-      overallStmtCount += stmtCount
-    }
+    updateStatistics()
     if(output.isEmpty) {
-      stmtCount = 0
-      byteCount = 0L
       output = initOutputStream
       log.fine("Initialized graph store sink.")
+    }
+  }
+
+  private def updateStatistics(): Unit = {
+    if (stmtCount > 0 || byteCount > 0) {
+      overallByteCount += byteCount
+      overallStmtCount += stmtCount
+      stmtCount = 0
+      byteCount = 0L
     }
   }
 
@@ -137,6 +141,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   override def closeTable()(implicit userContext: UserContext): Unit = {}
 
   private def internalClose()(implicit userContext: UserContext): Unit = {
+    updateStatistics()
     output match {
       case Some(o) =>
         try {
@@ -163,7 +168,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
 
   override def close()(implicit userContext: UserContext): Unit = {
     internalClose()
-    if(stmtCount > 0) {
+    if(overallStmtCount > 0) {
       log.info(s"Finished writing $entityCount entities to graph '$graphUri'. Statistics: (Graph store requests: $nrGraphStoreRequests, overall statement count: " +
           s"$overallStmtCount, overall bytes written: $overallByteCount)")
     }

@@ -22,7 +22,7 @@ import org.silkframework.runtime.plugin.Plugin
   id = "equality",
   categories = Array("Equality", "Recommended"),
   label = "Equality",
-  description = "Return 0 if strings are equal, 1 otherwise."
+  description = "Returns success if values are equal, failure otherwise."
 )
 case class EqualityMetric() extends SimpleDistanceMeasure {
 

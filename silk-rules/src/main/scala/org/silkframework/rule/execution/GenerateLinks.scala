@@ -54,6 +54,7 @@ class GenerateLinks(id: Identifier,
 
   override def initialValue = Some(Linking(rule = linkSpec.rule))
 
+  //noinspection ScalaStyle
   override def run(context: ActivityContext[Linking])
                   (implicit userContext: UserContext): Unit = {
     context.value.update(Linking(rule = linkSpec.rule))
@@ -95,8 +96,10 @@ class GenerateLinks(id: Identifier,
     children ::= matcher
     matcher.startBlocking()
 
-    cleanUpCaches(caches)
-    if(context.status.isCanceling) return
+      val entityCounts = caches.map(_.size)
+      cleanUpCaches(caches)
+
+      if(context.status.isCanceling) return
 
     // Filter links
     val filterTask = new Filter(matcher.value(), linkSpec.rule.filter)
@@ -116,7 +119,7 @@ class GenerateLinks(id: Identifier,
       filteredLinks = filteredLinks.take(linkLimit)
     }
 
-    context.value.update(Linking(linkSpec.rule, filteredLinks, LinkingStatistics(entityCount = caches.map(_.size))))
+      context.value.update(Linking(linkSpec.rule, filteredLinks, LinkingStatistics(entityCount = entityCounts)))
 
     //Output links
     // TODO dont commit links to context if the task is not configured to hold links

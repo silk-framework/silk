@@ -166,12 +166,13 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
         }
       }
 
-      log.info(s"Retrieved $counter entities of type '${entitySchema.typeUri}'" +
-          s"${graphUri.map(g => s" from graph '$g'").getOrElse("")} in ${System.currentTimeMillis() - startTime}ms.")
-
       for (curSubjectUri <- curSubject) {
         f(Entity(curSubjectUri, values.map(_.distinct).toIndexedSeq, entitySchema))
+        counter += 1
       }
+
+      log.info(s"Retrieved $counter entities of type '${entitySchema.typeUri}'" +
+          s"${graphUri.map(g => s" from graph '$g'").getOrElse("")} in ${System.currentTimeMillis() - startTime}ms.")
     }
   }
 

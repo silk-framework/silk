@@ -21,6 +21,7 @@ var linkType;
 var sorting = 'unsorted';
 var filter = '';
 var page;
+var timeout = 2000;
 
 var fid;
 contentWidthCallback = updateResultsWidth;
@@ -71,7 +72,7 @@ function updatePage(newPage) {
     }
 }
 
-function updateLinks(timeout = 2000) {
+function updateLinks() {
     $('#pending').show();
     clearTimeout(fid);
     if (timeout > 0) {

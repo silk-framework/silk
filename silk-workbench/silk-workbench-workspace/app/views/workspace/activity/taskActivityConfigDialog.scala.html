@@ -10,6 +10,8 @@
 @widgets.pluginDialog(
     activity.project,
     name = activity.name,
+    title = "Start activity",
+    submitLabel = "start",
     plugins = PluginDescription(activity.factory.getClass) :: Nil,
     currentObj = Some(activity.factory.asInstanceOf[AnyPlugin]),
     resources = Nil) {

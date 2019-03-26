@@ -108,7 +108,7 @@ class WorkflowApi extends Controller {
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
     val id = activity.startBlocking(workflowConfiguration)
 
-    SerializationUtils.serializeCompileTime(activity.instance(id).value())
+    SerializationUtils.serializeCompileTime(activity.instance(id).value(), Some(project))
   }
 
   /**
