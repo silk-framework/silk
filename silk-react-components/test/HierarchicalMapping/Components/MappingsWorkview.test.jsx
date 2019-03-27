@@ -1,36 +1,23 @@
 import React from 'react';
-import chai, { expect, assert } from 'chai';
-import { mount } from 'enzyme';
+import chai, {assert, expect} from 'chai';
+import {mount} from 'enzyme';
 import sinon from "sinon";
 import chaiEnzyme from "chai-enzyme";
 import Enzyme from "enzyme/build";
 import Adapter from "enzyme-adapter-react-15/build";
-
-import store from './../../../src/HierarchicalMapping/store';
 import waitUntilReady from '../../test_helper';
+import {SessionStorage} from '../../test_helper';
 
 import MappingsWorkview from '../../../src/HierarchicalMapping/Components/MappingsWorkview';
-import { propertyRules, initialRulesLength } from './MappingsWorkview.server';
+import {initialRulesLength, propertyRules} from './MappingsWorkview.server';
 
 chai.use(chaiEnzyme());
 Enzyme.configure({ adapter: new Adapter() });
 
 /**
- * mock of sessionStorage
- *
- * @constructor
- */
-function SessionStorage() {
-	this.data = {};
-	this.setItem = (key, value) => {
-		this.data[key] = value;
-	};
-	this.getItem = (key) => this.data[key];
-}
-
-/**
- * setting up the session storage as a global variable
- * in component sessionStorage is in use
+ * Setting up the session storage
+ * In the MappingsWorkview component the sessionStorage is used to store meta data of a mapping rule when the 'Copy'
+ * button is clicked.
  *
  * @type {SessionStorage}
  */
@@ -53,11 +40,11 @@ const selectors = {
 	/**
 	 * @mock onCopyHandler
 	 * @mock onCloneHandler
-	 * @mock onPastHandler
+	 * @mock onPasteHandler
 	 */
 	onCopyHandler = sinon.spy(),
 	onCloneHandler = sinon.spy(),
-	onPastHandler = sinon.spy();
+	onPasteHandler = sinon.spy();
 /**
  * @type {boolean}
  */
@@ -75,7 +62,7 @@ const mountSuggestionsList = () => {
 	);
 };
 
-describe('MappingsWorkview copy and past', () => {
+describe('MappingsWorkview', () => {
 	// set spy on component did mount to check how oft it is called
 	sinon.spy(MappingsWorkview.prototype, 'componentDidMount');
 	// mount the MappingsWorkview
@@ -85,7 +72,7 @@ describe('MappingsWorkview copy and past', () => {
 		expect(MappingsWorkview.prototype.componentDidMount.calledOnce);
 	});
 
-	describe('should simulate click on plus and do copy and past', () => {
+	describe('Copy and paste of a mapping rule', () => {
 		let item;
 		beforeEach(async () => {
 			await waitUntilReady(component);
@@ -93,62 +80,47 @@ describe('MappingsWorkview copy and past', () => {
 			item = items.at(1);
 		});
 
+		const plusButton = component.find(selectors.plusButton),
+			  actions = component.find(selectors.actionsMenu);
 		let copyButton = component.find(selectors.copyButton),
-			plusButton = component.find(selectors.plusButton),
-			actions = component.find(selectors.actionsMenu),
-			pastAction = null;
+			pasteAction = null;
 
-		it('should copy button have length', () => {
+		it('should copy a rule when clicking the Copy button', () => {
 			item.simulate('click');
 			if (!copyButton.length) {
 				copyButton = component.find(selectors.copyButton);
 			}
 			expect(copyButton).to.have.lengthOf(1);
-		});
-
-		it('should simulate click of copy button', () => {
 			copyButton.simulate('click');
 			isCopying = true;
 			component.render();
 			expect(onCopyHandler.calledOnce);
 		});
 
-		it('should plus button have length', () => {
+		it('should paste the rule when clicking on the Paste action', () => {
+			// Check for blue plus button
 			expect(plusButton).to.have.lengthOf(1);
 			plusButton.simulate('click');
-		});
-
-		it('should actions menu have children of length 4', () => {
+			// All actions should be available including the paste action
 			expect(actions.children()).to.have.lengthOf(4);
-		});
-
-		it('should find the past action', () => {
-			pastAction = actions.childAt(2);
-			expect(pastAction).to.have.lengthOf(1);
-		});
-
-		it('should simulate click on past action', () => {
-			pastAction.simulate('click');
+			// find the paste action
+			pasteAction = actions.childAt(2);
+			expect(pasteAction).to.have.lengthOf(1);
+			pasteAction.simulate('click');
 			isCopying = false;
 			component.render();
-			expect(onPastHandler.calledOnce);
+			expect(onPasteHandler.calledOnce);
 			item.simulate('click');
 		});
 
-		it('should property rules have length above initial length', () => {
-			expect(propertyRules).to.have.lengthOf.above(initialRulesLength);
+		it('should result in containing 3 mapping rules now instead of 2', () => {
+			expect(propertyRules).to.have.lengthOf(3);
 		});
 	});
-});
 
-describe('MappingsWorkview clone and past', () => {
-	const component = mountSuggestionsList();
+	describe('Clone a mapping rule', () => {
+		const component = mountSuggestionsList();
 
-	it('mounts once', async () => {
-		await waitUntilReady(component);
-	});
-
-	describe('should simulate click on plus and do clone and past', () => {
 		let item;
 		beforeEach(async () => {
 			await waitUntilReady(component);
@@ -158,22 +130,18 @@ describe('MappingsWorkview clone and past', () => {
 
 		let cloneButton = component.find(selectors.cloneButton);
 
-		it('should clone button have length', () => {
+		it('should click the clone button', () => {
 			item.simulate('click');
 			if (!cloneButton.length) {
 				cloneButton = component.find(selectors.copyButton);
 			}
 			expect(cloneButton).to.have.lengthOf(1);
-		});
-
-		it('should simulate click of clone button', () => {
 			cloneButton.simulate('click');
 			expect(onCloneHandler.calledOnce);
 		});
 
-		it('should property rules have length of 4', () => {
+		it('should now contain 4 mapping rules instead of 3', () => {
 			expect(propertyRules).to.have.lengthOf(4);
 		});
 	});
 });
-

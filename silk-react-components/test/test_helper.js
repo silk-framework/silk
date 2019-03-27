@@ -40,6 +40,19 @@ global.document.body.createTextRange = function() {
             }
         }
     }
+};
+
+/**
+ * mock of sessionStorage
+ *
+ * @constructor
+ */
+function SessionStorage() {
+    this.data = {};
+    this.setItem = (key, value) => {
+        this.data[key] = value;
+    };
+    this.getItem = (key) => this.data[key];
 }
 
 // Needed for MDL
@@ -71,3 +84,5 @@ export default (component) => {
 
     return waitUntilComponentFinishes(component)
 }
+
+export {SessionStorage};
