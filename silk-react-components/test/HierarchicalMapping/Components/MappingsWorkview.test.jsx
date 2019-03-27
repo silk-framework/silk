@@ -10,7 +10,7 @@ import store from './../../../src/HierarchicalMapping/store';
 import waitUntilReady from '../../test_helper';
 
 import MappingsWorkview from '../../../src/HierarchicalMapping/Components/MappingsWorkview';
-import './MappingList.server';
+import { propertyRules, initialRulesLength } from './MappingsWorkview.server';
 
 chai.use(chaiEnzyme());
 Enzyme.configure({ adapter: new Adapter() });
@@ -80,7 +80,6 @@ describe('MappingsWorkview copy and past', () => {
 	sinon.spy(MappingsWorkview.prototype, 'componentDidMount');
 	// mount the MappingsWorkview
 	const component = mountSuggestionsList();
-
 	it('mounts once', async () => {
 		await waitUntilReady(component);
 		expect(MappingsWorkview.prototype.componentDidMount.calledOnce);
@@ -135,6 +134,10 @@ describe('MappingsWorkview copy and past', () => {
 			expect(onPastHandler.calledOnce);
 			item.simulate('click');
 		});
+
+		it('should property rules have length above initial length', () => {
+			expect(propertyRules).to.have.lengthOf.above(initialRulesLength);
+		});
 	});
 });
 
@@ -153,10 +156,7 @@ describe('MappingsWorkview clone and past', () => {
 			item = items.at(0);
 		});
 
-		let cloneButton = component.find(selectors.cloneButton),
-			plusButton = component.find(selectors.plusButton),
-			actions = component.find(selectors.actionsMenu),
-			pastAction = null;
+		let cloneButton = component.find(selectors.cloneButton);
 
 		it('should clone button have length', () => {
 			item.simulate('click');
@@ -171,24 +171,8 @@ describe('MappingsWorkview clone and past', () => {
 			expect(onCloneHandler.calledOnce);
 		});
 
-		it('should plus button have length', () => {
-			expect(plusButton).to.have.lengthOf(1);
-			plusButton.simulate('click');
-		});
-
-		it('should actions menu have children of length 4', () => {
-			expect(actions.children()).to.have.lengthOf(4);
-		});
-
-		it('should find the past action', () => {
-			pastAction = actions.childAt(2);
-			expect(pastAction).to.have.lengthOf(1);
-		});
-
-		it('should simulate click on past action', () => {
-			pastAction.simulate('click');
-			expect(onPastHandler.calledOnce);
-			item.simulate('click');
+		it('should property rules have length of 4', () => {
+			expect(propertyRules).to.have.lengthOf(4);
 		});
 	});
 });

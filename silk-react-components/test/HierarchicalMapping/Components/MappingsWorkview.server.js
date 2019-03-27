@@ -1,10 +1,52 @@
 import nock from "nock";
 
-// default baseUrl in case nothing else is defined.
-// for more details see store.js:
-// hierarchicalMappingChannel.subject('setSilkDetails')
-const baseUrl = ' http://test.url:80';
-
+/**
+ * Base url for mock
+ * @type {string}
+ */
+const baseUrl = ' http://test.url:80',
+	/**
+	 * Initial property rules
+	 * @type {*[]}
+	 */
+	propertyRules = [
+		{
+			type: "direct",
+			id: "country",
+			sourcePath: "dbpediaowl:country",
+			mappingTarget: {
+				uri: "<urn:ruleProperty:country>",
+				valueType: {
+					nodeType: "StringValueType"
+				},
+				isBackwardProperty: false,
+				isAttribute: false
+			},
+			metadata: {
+				label: ""
+			}
+		},
+		{
+			type: "direct",
+			id: "basedOn",
+			sourcePath: "dbpediaowl:basedOn",
+			mappingTarget: {
+				uri: "<urn:ruleProperty:basedOn>",
+				valueType: { "nodeType": "StringValueType" },
+				isBackwardProperty: false,
+				isAttribute: false
+			},
+			metadata: {
+				label: ""
+			}
+		}
+	],
+	/**
+	 * Initial property rules length
+	 *
+	 * @type {number}
+	 */
+	initialRulesLength = 2;
 /**
  * mocking up the backend functionality
  *
@@ -56,7 +98,10 @@ const mockUpFunction = (identifier) => {
 						transformedValues: ["http://dbpedia.org/resource/United_States"]
 					}
 				],
-				"status": { "id": "success", "msg": "" }
+				status: {
+					id: "success",
+					msg: ""
+				}
 			}
 		};
 
@@ -86,38 +131,7 @@ const mockUpFunction = (identifier) => {
 				id: "root",
 				rules: {
 					typeRules: [],
-					propertyRules: [
-						{
-							type: "direct",
-							id: "country",
-							sourcePath: "dbpediaowl:country",
-							mappingTarget: {
-								uri: "<urn:ruleProperty:country>",
-								valueType: {
-									nodeType: "StringValueType"
-								},
-								isBackwardProperty: false,
-								isAttribute: false
-							},
-							metadata: {
-								label: ""
-							}
-						},
-						{
-							type: "direct",
-							id: "basedOn",
-							sourcePath: "dbpediaowl:basedOn",
-							mappingTarget: {
-								uri: "<urn:ruleProperty:basedOn>",
-								valueType: { "nodeType": "StringValueType" },
-								isBackwardProperty: false,
-								isAttribute: false
-							},
-							metadata: {
-								label: ""
-							}
-						}
-					]
+					propertyRules: propertyRules
 				},
 				metadata: {
 					label: "Root Mapping"
@@ -207,14 +221,39 @@ const mockUpFunction = (identifier) => {
 
 	nock(baseUrl)
 		.get(rulesPayload.url)
-		.reply(rulesResponse.code, rulesResponse.body);
+		.reply(rulesResponse.code, () => {
+			propertyRules.push({
+				type: "direct",
+				id: `${identifier}1`,
+				sourcePath: `dbpediaowl:${identifier}`,
+				mappingTarget: {
+					uri: `<urn:ruleProperty:${identifier}>`,
+					valueType: {
+						nodeType: "StringValueType"
+					},
+					isBackwardProperty: false,
+					isAttribute: false
+				},
+				metadata: {
+					label: `Copy of urn:ruleProperty:${identifier}`
+				}
+			});
+			return rulesResponse.body;
+		});
 
 	nock(baseUrl)
 		.get(rulesDataURLCopyFromPayload.url, rulesDataURLCopyFromPayload.data)
-		.reply(rulesDataURLCopyFromResponse.code, rulesDataURLCopyFromResponse.body);
+		.reply(rulesDataURLCopyFromResponse.code, () => {
+			return rulesDataURLCopyFromResponse.body;
+		});
 };
 
 // mock up testCases cases
 mockUpFunction("basedOn");
 
 mockUpFunction('country');
+
+export {
+	propertyRules,
+	initialRulesLength
+}
