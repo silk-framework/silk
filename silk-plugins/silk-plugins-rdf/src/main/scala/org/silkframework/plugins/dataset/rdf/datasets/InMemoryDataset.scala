@@ -18,23 +18,23 @@ case class InMemoryDataset(@Param(label = "Clear graph before workflow execution
 
   private val model = ModelFactory.createDefaultModel()
 
-  override def sparqlEndpoint(sparqlInputStream: Option[InputStream] = None): SparqlEndpoint = new JenaModelEndpoint(model)
+  override def sparqlEndpoint: SparqlEndpoint = new JenaModelEndpoint(model)
 
   /**
     * Returns a data source for reading entities from the data set.
     */
-  override def source(implicit userContext: UserContext): DataSource = new SparqlSource(SparqlParams(), sparqlEndpoint())
+  override def source(implicit userContext: UserContext): DataSource = new SparqlSource(SparqlParams(), sparqlEndpoint)
 
   /**
     * Returns a entity sink for writing entities to the data set.
     */
-  override def entitySink(implicit userContext: UserContext): EntitySink = new SparqlSink(SparqlParams(), sparqlEndpoint(), dropGraphOnClear = clearGraphBeforeExecution)
+  override def entitySink(implicit userContext: UserContext): EntitySink = new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 
   /**
     * Returns a link sink for writing entity links to the data set.
     */
-  override def linkSink(implicit userContext: UserContext): LinkSink = new SparqlSink(SparqlParams(), sparqlEndpoint(), dropGraphOnClear = clearGraphBeforeExecution)
+  override def linkSink(implicit userContext: UserContext): LinkSink = new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 
-  override def tripleSink(implicit userContext: UserContext): TripleSink = new SparqlSink(SparqlParams(), sparqlEndpoint(), dropGraphOnClear = clearGraphBeforeExecution)
+  override def tripleSink(implicit userContext: UserContext): TripleSink = new SparqlSink(SparqlParams(), sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 
 }

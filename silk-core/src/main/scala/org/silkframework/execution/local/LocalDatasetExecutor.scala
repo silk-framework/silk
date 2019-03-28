@@ -84,9 +84,9 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   private def handleSparqlEndpointSchema(dataset: Task[GenericDatasetSpec]): SparqlEndpointEntityTable = {
     dataset.data match {
       case rdfDataset: RdfDataset =>
-        new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint(), dataset)
+        new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
       case DatasetSpec(rdfDataset: RdfDataset, _) =>
-        new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint(), dataset)
+        new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, dataset)
       case _ =>
         throw TaskException("Dataset does not offer a SPARQL endpoint!")
     }
@@ -94,7 +94,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
 
   private def readTriples(dataset: Task[GenericDatasetSpec], rdfDataset: RdfDataset)
                          (implicit userContext: UserContext)= {
-    val sparqlResult = rdfDataset.sparqlEndpoint().select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")
+    val sparqlResult = rdfDataset.sparqlEndpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")
     val tripleEntities = sparqlResult.bindings.view map { resultMap =>
       val s = resultMap("s").value
       val p = resultMap("p").value
@@ -140,7 +140,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
                                         (implicit userContext: UserContext): Unit = {
     dataset.plugin match {
       case rdfDataset: RdfDataset =>
-        val endpoint = rdfDataset.sparqlEndpoint()
+        val endpoint = rdfDataset.sparqlEndpoint
         for (entity <- sparqlUpdateTable.entities) {
           assert(entity.values.size == 1 && entity.values.head.size == 1)
           endpoint.update(entity.values.head.head)

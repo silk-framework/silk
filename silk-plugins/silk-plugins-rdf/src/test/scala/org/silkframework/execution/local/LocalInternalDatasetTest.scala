@@ -24,7 +24,7 @@ class LocalInternalDatasetTest extends FlatSpec with MustMatchers with InMemoryW
       sink.init()
       sink.writeTriple("s" + id.getOrElse("None"), "b", "o", StringValueType)
       sink.close()
-      ds.sparqlEndpoint().select("SELECT ?s WHERE {?s ?p ?o}").bindings.size mustBe 1
+      ds.sparqlEndpoint.select("SELECT ?s WHERE {?s ?p ?o}").bindings.size mustBe 1
     }
   }
 }

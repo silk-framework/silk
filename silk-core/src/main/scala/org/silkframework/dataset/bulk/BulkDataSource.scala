@@ -14,7 +14,7 @@ import org.silkframework.util.Uri
   *                      If false, the types and paths of the first data source are used.
   */
 class BulkDataSource(sources: Seq[DataSource with TypedPathRetrieveDataSource],
-                     mergeSchemata: Boolean) extends DataSource with TypedPathRetrieveDataSource {
+                     mergeSchemata: Boolean) extends DataSource with TypedPathRetrieveDataSource with PeakDataSource {
   require(sources.nonEmpty, "Tried to create a bulk data source with an empty list of sources.")
 
   override def retrieveTypes(limit: Option[Int])(implicit userContext: UserContext): Traversable[(String, Double)] = {

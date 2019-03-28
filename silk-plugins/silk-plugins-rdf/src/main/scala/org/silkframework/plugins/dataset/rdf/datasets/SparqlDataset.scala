@@ -55,15 +55,15 @@ case class SparqlDataset(
       useOrderBy = useOrderBy
     )
 
-  override def sparqlEndpoint(sparqlInputStream: Option[InputStream] = None): SparqlEndpoint = {
+  override def sparqlEndpoint: SparqlEndpoint = {
     RemoteSparqlEndpoint(params)
   }
 
-  override def source(implicit userContext: UserContext) = new SparqlSource(params, sparqlEndpoint())
+  override def source(implicit userContext: UserContext) = new SparqlSource(params, sparqlEndpoint)
 
-  override def linkSink(implicit userContext: UserContext) = new SparqlSink(params, sparqlEndpoint(), dropGraphOnClear = clearGraphBeforeExecution)
+  override def linkSink(implicit userContext: UserContext) = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 
-  override def entitySink(implicit userContext: UserContext) = new SparqlSink(params, sparqlEndpoint(), dropGraphOnClear = clearGraphBeforeExecution)
+  override def entitySink(implicit userContext: UserContext) = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 
-  override def tripleSink(implicit userContext: UserContext): TripleSink = new SparqlSink(params, sparqlEndpoint(), dropGraphOnClear = clearGraphBeforeExecution)
+  override def tripleSink(implicit userContext: UserContext): TripleSink = new SparqlSink(params, sparqlEndpoint, dropGraphOnClear = clearGraphBeforeExecution)
 }
