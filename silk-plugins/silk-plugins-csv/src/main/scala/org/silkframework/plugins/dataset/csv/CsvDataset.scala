@@ -43,6 +43,8 @@ case class CsvDataset (
 
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
 
+  override def mergeSchemata: Boolean = false
+
   override def createSource(resource: Resource): DataSource with TypedPathRetrieveDataSource = {
     csvSource(resource)
   }

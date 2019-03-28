@@ -69,7 +69,9 @@ case class XmlDataset( @Param("File name inside the resources directory. In the 
 
   validateOutputTemplate()
 
-  def createSource(resource: Resource): DataSource with TypedPathRetrieveDataSource = {
+  override def mergeSchemata: Boolean = true
+
+  override def createSource(resource: Resource): DataSource with TypedPathRetrieveDataSource = {
     if(streaming) {
       new XmlSourceStreaming(resource, basePath, uriPattern)
     }

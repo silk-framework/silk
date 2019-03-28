@@ -17,6 +17,11 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
 
   private final val log: Logger = Logger.getLogger(this.getClass.getSimpleName)
 
+  /** If true, the types and paths of the underlying data sources are merged.
+    * If false, the types and paths of the first data source are used.
+    */
+  def mergeSchemata: Boolean
+
   /**
     * Create a data source for a particular resource inside the bulk file.
     */
@@ -25,7 +30,7 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
   override final def source(implicit userContext: UserContext): DataSource with TypedPathRetrieveDataSource = {
     bulkFile() match {
       case Some(bulk) =>
-        new BulkDataSource(file.name, bulk.subResources.map(createSource))
+        new BulkDataSource(bulk.subResources.map(createSource), mergeSchemata)
       case None =>
         createSource(file)
     }
