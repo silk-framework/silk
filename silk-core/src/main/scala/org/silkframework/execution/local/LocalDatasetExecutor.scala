@@ -6,10 +6,10 @@ import org.silkframework.config.Task
 import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetSpec}
 import org.silkframework.dataset.rdf._
 import org.silkframework.dataset._
+import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.entity._
 import org.silkframework.execution.{DatasetExecutor, TaskException}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.BulkResourceBasedDataset
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 

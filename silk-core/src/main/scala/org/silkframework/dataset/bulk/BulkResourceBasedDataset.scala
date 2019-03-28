@@ -1,9 +1,11 @@
-package org.silkframework.runtime.resource
+package org.silkframework.dataset.bulk
 
 import java.io.File
 import java.util.logging.Logger
 
-import org.silkframework.dataset.Dataset
+import org.silkframework.dataset.{DataSource, Dataset, ResourceBasedDataset, TypedPathRetrieveDataSource}
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.{BulkResource, Resource, WritableResource}
 
 /**
   * Utilities to replace the data source object with a source based on bulk resources.
@@ -11,19 +13,23 @@ import org.silkframework.dataset.Dataset
   *
   * @see ResourceBasedDataset
   */
-trait BulkResourceBasedDataset  { this: Dataset =>
+trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
 
   private final val log: Logger = Logger.getLogger(this.getClass.getSimpleName)
 
-  /** The resource the dataset is reading from */
-  def file: Resource
+  /**
+    * Create a data source for a particular resource inside the bulk file.
+    */
+  def createSource(resource: Resource): DataSource with TypedPathRetrieveDataSource
 
-  def writableResource: Option[WritableResource] = file match {
-    case wr: WritableResource => Some(wr)
-    case _ => None
+  override final def source(implicit userContext: UserContext): DataSource with TypedPathRetrieveDataSource = {
+    bulkFile() match {
+      case Some(bulk) =>
+        new BulkDataSource(file.name, bulk.subResources.map(createSource))
+      case None =>
+        createSource(file)
+    }
   }
-
-  override def referencedResources: Seq[Resource] = Seq(file)
 
 
   /**
@@ -52,7 +58,7 @@ trait BulkResourceBasedDataset  { this: Dataset =>
     * @param resource WritableResource to check
     * @return true if an archive or folder
     */
-  def isBulkResource(resource: Resource): Boolean = {
+  protected def isBulkResource(resource: Resource): Boolean = {
     resource.name.endsWith(".zip") && !new File(resource.path).isDirectory
   }
 
@@ -64,7 +70,7 @@ trait BulkResourceBasedDataset  { this: Dataset =>
     * @param resource WritableResource tha may be zip or folder
     * @return instance of BulkResource
     */
-  def asBulkResource(resource: Resource, virtualEnding: Option[String] = None): BulkResource = {
+  protected def asBulkResource(resource: Resource, virtualEnding: Option[String] = None): BulkResource = {
     if (resource.name.endsWith(".zip") && !new File(resource.path).isDirectory) {
       log info s"Zip file Resource found: ${resource.name}"
       BulkResource(new File(resource.path), virtualEnding)

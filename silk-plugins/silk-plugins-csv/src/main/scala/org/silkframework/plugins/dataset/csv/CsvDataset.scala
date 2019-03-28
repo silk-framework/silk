@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.csv
 
 import org.silkframework.dataset._
+import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.runtime.resource._
@@ -42,18 +43,15 @@ case class CsvDataset (
 
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
 
-  override def source(implicit userContext: UserContext): DataSource = if (isBulkResource(file)) {
-    new BulkCsvDataSource(asBulkResource(file), this, csvSettings)
-  }
-  else {
-    csvSource()
+  override def createSource(resource: Resource): DataSource with TypedPathRetrieveDataSource = {
+    csvSource(resource)
   }
 
   override def linkSink(implicit userContext: UserContext): LinkSink = new CsvLinkSink(file, csvSettings)
 
   override def entitySink(implicit userContext: UserContext): EntitySink = new CsvEntitySink(file, csvSettings)
 
-  private def csvSource(ignoreMalformed: Boolean = false) = new CsvSource(file, csvSettings, properties, uri,
+  private def csvSource(resource: Resource, ignoreMalformed: Boolean = false) = new CsvSource(resource, csvSettings, properties, uri,
     regexFilter, codec, skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines,
     ignoreMalformedInputExceptionInPropertyList = ignoreMalformed
   )
@@ -62,7 +60,7 @@ case class CsvDataset (
     * returns an auto-configured version of this plugin
     */
   override def autoConfigured(implicit userContext: UserContext): CsvDataset = {
-    val source = csvSource(ignoreMalformed = true)
+    val source = csvSource(file, ignoreMalformed = true)
     val autoConfig = source.autoConfigure()
     this.copy(
       separator = if (autoConfig.detectedSeparator == "\t") "\\t" else autoConfig.detectedSeparator,

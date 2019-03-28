@@ -1,9 +1,10 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.dataset._
+import org.silkframework.dataset.bulk.{BulkDataSource, BulkResourceBasedDataset}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
-import org.silkframework.runtime.resource.{BulkResource, BulkResourceBasedDataset, WritableResource}
+import org.silkframework.runtime.resource.{BulkResource, Resource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.{Failure, Success, Try}
@@ -68,30 +69,12 @@ case class XmlDataset( @Param("File name inside the resources directory. In the 
 
   validateOutputTemplate()
 
-  override def source(implicit userContext: UserContext): DataSource = {
-    if (bulkFile().nonEmpty) {
-      bulkSource(bulkFile().get)
-    }
-    else {
-      originalSource
-    }
-  }
-
-  def bulkSource(bulkResource: BulkResource)(implicit userContext: UserContext): DataSource = {
+  def createSource(resource: Resource): DataSource with TypedPathRetrieveDataSource = {
     if(streaming) {
-      new XmlBulkDataSource(bulkResource, basePath, uriPattern)
+      new XmlSourceStreaming(resource, basePath, uriPattern)
     }
     else {
-      new XmlBulkDataSourceInMemory(bulkResource, basePath, uriPattern)
-    }
-  }
-
-  def originalSource(implicit userContext: UserContext): DataSource = {
-    if(streaming) {
-      new XmlSourceStreaming(file, basePath, uriPattern)
-    }
-    else {
-      new XmlSourceInMemory(file, basePath, uriPattern)
+      new XmlSourceInMemory(resource, basePath, uriPattern)
     }
   }
 

@@ -6,6 +6,7 @@ import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
+import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.dataset.rdf.{LinkFormatter, RdfDataset, SparqlParams}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path, TypedPath}
@@ -16,7 +17,7 @@ import org.silkframework.plugins.dataset.rdf.sparql.EntityRetriever
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 import org.silkframework.runtime.resource.BulkResourceSupport._
-import org.silkframework.runtime.resource.{BulkResource, BulkResourceSupport, WritableResource}
+import org.silkframework.runtime.resource.{BulkResource, BulkResourceSupport, Resource, WritableResource}
 import org.silkframework.util.{Identifier, Uri}
 
 @Plugin(
@@ -37,7 +38,7 @@ case class RdfFileDataset(
     value = "The maximum size of the RDF file resource for read operations. Since the whole dataset will be kept in-memory, this value should be kept low to guarantee stability.")
   maxReadSize: Long = 10,
   @Param("A list of entities to be retrieved. If not Fgiven, all entities will be retrieved. Multiple entities are separated by whitespace.")
-  entityList: MultilineStringParameter = MultilineStringParameter("")) extends RdfDataset with TripleSinkDataset with ResourceBasedDataset with BulkResourceSupport {
+  entityList: MultilineStringParameter = MultilineStringParameter("")) extends RdfDataset with TripleSinkDataset with BulkResourceBasedDataset with BulkResourceSupport {
 
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
   val bulkFile: WritableResource = initBulkResource(file, Some("nt"))
@@ -96,7 +97,7 @@ case class RdfFileDataset(
     new JenaModelEndpoint(model)
   }
 
-  override def source(implicit userContext: UserContext): FileSource.type = FileSource
+  override def createSource(resource: Resource): DataSource with TypedPathRetrieveDataSource = new FileSource(resource)
 
   override def linkSink(implicit userContext: UserContext): FormattedLinkSink = new FormattedLinkSink(bulkFile, formatter)
 
@@ -105,7 +106,7 @@ case class RdfFileDataset(
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
 
-  object FileSource extends DataSource with PeakDataSource with Serializable with SamplingDataSource
+  class FileSource(resource: Resource) extends DataSource with PeakDataSource with Serializable with SamplingDataSource
     with SchemaExtractionSource with SparqlRestrictionDataSource with TypedPathRetrieveDataSource {
 
     // Load dataset
@@ -152,7 +153,7 @@ case class RdfFileDataset(
         } else if (bulkFile.size.get > maxReadSize * 1000 * 1000) {
           throw new RuntimeException(s"File size (${bulkFile.size.get / 1000000.0} MB) is larger than configured max. read size ($maxReadSize MB).")
         } else {
-          endpoint = sparqlEndpoint()
+          endpoint = sparqlEndpoint(Some(resource.inputStream))
           lastModificationTime = modificationTime
         }
       }

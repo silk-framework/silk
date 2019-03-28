@@ -109,18 +109,7 @@ case class BulkResource(file: File, virtualFileEnding: Option[String]) extends W
     * @return Sequence of InputStream objects
     */
   def inputStreams: Seq[InputStream] = {
-    try {
-      val zipFile = new ZipFile(path)
-      val entries = zipFile.entries()
-      val streams = new mutable.HashSet[ZipEntry]
-      while (entries.hasMoreElements) streams.add(entries.nextElement())
-      streams.map(s => zipFile.getInputStream(s)).toSeq
-    }
-    catch {
-      case t: Throwable =>
-        log severe s"Exception for zip resource $path: " + t.getMessage
-        throw new ZipException(t.getMessage)
-    }
+    subResources.map(_.inputStream)
   }
 
   /**
@@ -130,11 +119,16 @@ case class BulkResource(file: File, virtualFileEnding: Option[String]) extends W
     * @return Sequence of resources
     */
   def subResources: Seq[WritableResource] = {
-    for (stream <- inputStreams) yield {
-      BulkResource.createBulkResourceWithStream(this, stream)
+    try {
+      val zipLoader = ZipResourceLoader(new ZipFile(path))
+      zipLoader.list.sorted.map(f => ReadOnlyResource(zipLoader.get(f)))
+    }
+    catch {
+      case t: Throwable =>
+        log severe s"Exception for zip resource $path: " + t.getMessage
+        throw new ZipException(t.getMessage)
     }
   }
-
 
   /**
     * Preferred method for writing to a resource.
