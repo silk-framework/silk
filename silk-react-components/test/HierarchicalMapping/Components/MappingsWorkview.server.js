@@ -4,7 +4,7 @@ import nock from "nock";
  * Base url for mock
  * @type {string}
  */
-const baseUrl = ' http://test.url:80',
+const baseUrl = 'http://test.url',
 	/**
 	 * Initial property rules
 	 * @type {*[]}
@@ -40,13 +40,8 @@ const baseUrl = ' http://test.url:80',
 				label: ""
 			}
 		}
-	],
-	/**
-	 * Initial property rules length
-	 *
-	 * @type {number}
-	 */
-	initialRulesLength = 2;
+	];
+
 /**
  * mocking up the backend functionality
  *
@@ -146,13 +141,31 @@ const mockUpFunction = (identifier) => {
 	 * @param sourceRule {string}
 	 * @returns {{data: {sourceTask: string, sourceRule: *, sourceProject: string}, url: string}}
 	 */
-	const rulesDataURLCopyFrom = (sourceRule) => {
+	const rulesDataURLCopyFromCopy = (sourceRule) => {
 		return {
-			url: `/transform/tasks/movies/test/rule/root/rules/copyFrom`,
+			url: `/transform/tasks/test/test/rule/root/rules/copyFrom?sourceProject=test&sourceTask=test&sourceRule=${sourceRule}&afterRuleId`,
 			data: {
 				sourceProject: 'test',
 				sourceTask: 'test',
 				sourceRule: sourceRule
+			}
+		};
+	};
+
+	/**
+	 * Getting the URL of copyRule
+	 *
+	 * @param sourceRule {string}
+	 * @returns {{data: {sourceTask: string, sourceRule: *, sourceProject: string}, url: string}}
+	 */
+	const rulesDataURLCopyFromClone = (sourceRule) => {
+		return {
+			url: `/transform/tasks/test/test/rule/root/rules/copyFrom?sourceProject=test&sourceTask=test&sourceRule=${sourceRule}&afterRuleId=country`,
+			data: {
+				sourceProject: 'test',
+				sourceTask: 'test',
+				sourceRule: sourceRule,
+				afterRuleId: 'country'
 			}
 		};
 	};
@@ -208,7 +221,12 @@ const mockUpFunction = (identifier) => {
 		/**
 		 * @type {{data, url}}
 		 */
-		rulesDataURLCopyFromPayload = rulesDataURLCopyFrom(identifier),
+		rulesDataURLCopyFromPayload = rulesDataURLCopyFromCopy(identifier),
+
+		/**
+		 * @type {{data, url}}
+		 */
+		rulesDataURLCopyFromPayloadClone = rulesDataURLCopyFromClone(identifier),
 
 		/**
 		 * @type {{code, body}}
@@ -217,11 +235,13 @@ const mockUpFunction = (identifier) => {
 
 	nock(baseUrl)
 		.post(payload.url)
-		.reply(response.code, () => response.body);
+		.reply(response.code, () => response.body)
 
-	nock(baseUrl)
 		.get(rulesPayload.url)
-		.reply(rulesResponse.code, () => {
+		.reply(rulesResponse.code, () => rulesResponse.body)
+
+		.post(rulesDataURLCopyFromPayload.url)
+		.reply(rulesDataURLCopyFromResponse.code, () => {
 			propertyRules.push({
 				type: "direct",
 				id: `${identifier}1`,
@@ -238,12 +258,29 @@ const mockUpFunction = (identifier) => {
 					label: `Copy of urn:ruleProperty:${identifier}`
 				}
 			});
-			return rulesResponse.body;
-		});
+			rulesResponse.body.rules.propertyRules = propertyRules;
+			return rulesDataURLCopyFromResponse.body;
+		})
 
-	nock(baseUrl)
-		.get(rulesDataURLCopyFromPayload.url, rulesDataURLCopyFromPayload.data)
+		.post(rulesDataURLCopyFromPayloadClone.url)
 		.reply(rulesDataURLCopyFromResponse.code, () => {
+			propertyRules.push({
+				type: "direct",
+				id: `${identifier}1`,
+				sourcePath: `dbpediaowl:${identifier}`,
+				mappingTarget: {
+					uri: `<urn:ruleProperty:${identifier}>`,
+					valueType: {
+						nodeType: "StringValueType"
+					},
+					isBackwardProperty: false,
+					isAttribute: false
+				},
+				metadata: {
+					label: `Copy of urn:ruleProperty:${identifier}`
+				}
+			});
+			rulesResponse.body.rules.propertyRules = propertyRules;
 			return rulesDataURLCopyFromResponse.body;
 		});
 };
@@ -254,6 +291,5 @@ mockUpFunction("basedOn");
 mockUpFunction('country');
 
 export {
-	propertyRules,
-	initialRulesLength
-}
+	propertyRules
+};

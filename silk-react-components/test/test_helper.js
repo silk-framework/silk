@@ -48,11 +48,31 @@ global.document.body.createTextRange = function() {
  * @constructor
  */
 function SessionStorage() {
+    /**
+     * @type {*}
+     */
+
     this.data = {};
+    /**
+     * @param key {string}
+     * @param value {*}
+     */
+
     this.setItem = (key, value) => {
         this.data[key] = value;
     };
-    this.getItem = (key) => this.data[key];
+    /**
+     * @param key
+     * @returns {*}
+     */
+
+    this.getItem = key => this.data[key];
+
+    /**
+     * @param key {string}
+     * @returns {boolean}
+     */
+    this.removeItem = key => delete this.data[key];
 }
 
 // Needed for MDL

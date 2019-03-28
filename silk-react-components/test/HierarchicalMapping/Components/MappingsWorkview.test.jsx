@@ -1,15 +1,15 @@
 import React from 'react';
-import chai, {assert, expect} from 'chai';
-import {mount} from 'enzyme';
+import chai, { assert, expect } from 'chai';
+import { mount } from 'enzyme';
 import sinon from "sinon";
 import chaiEnzyme from "chai-enzyme";
 import Enzyme from "enzyme/build";
 import Adapter from "enzyme-adapter-react-15/build";
 import waitUntilReady from '../../test_helper';
-import {SessionStorage} from '../../test_helper';
+import { SessionStorage } from '../../test_helper';
 
 import MappingsWorkview from '../../../src/HierarchicalMapping/Components/MappingsWorkview';
-import {initialRulesLength, propertyRules} from './MappingsWorkview.server';
+import { propertyRules } from './MappingsWorkview.server';
 
 chai.use(chaiEnzyme());
 Enzyme.configure({ adapter: new Adapter() });
@@ -30,7 +30,7 @@ global.sessionStorage = new SessionStorage();
  */
 const selectors = {
 		copyButton: ".ecc-silk-mapping__ruleitem-expanded .ecc-silk-mapping__rulesviewer div.ecc-silk-mapping__ruleseditor__actionrow button.ecc-silk-mapping__ruleseditor__actionrow-copy",
-		cloneButton: ".ecc-silk-mapping__ruleitem-expanded .ecc-silk-mapping__rulesviewer div.ecc-silk-mapping__ruleseditor__actionrow button.ecc-silk-mapping__ruleseditor__actionrow-clone",
+		cloneButton: ".ecc-silk-mapping__ruleitem-expanded .ecc-silk-mapping__rulesviewer div.ecc-silk-mapping__ruleseditor__actionrow",
 		row: '.mdl-list .clickable',
 		listItems: '.mdl-list',
 		plusButton: '.ecc-floatingactionlist__wrapper--fixed button.ecc-floatingactionlist__button',
@@ -45,10 +45,6 @@ const selectors = {
 	onCopyHandler = sinon.spy(),
 	onCloneHandler = sinon.spy(),
 	onPasteHandler = sinon.spy();
-/**
- * @type {boolean}
- */
-let isCopying = false;
 /**
  * Mounting the component
  *
@@ -81,7 +77,7 @@ describe('MappingsWorkview', () => {
 		});
 
 		const plusButton = component.find(selectors.plusButton),
-			  actions = component.find(selectors.actionsMenu);
+			actions = component.find(selectors.actionsMenu);
 		let copyButton = component.find(selectors.copyButton),
 			pasteAction = null;
 
@@ -92,7 +88,6 @@ describe('MappingsWorkview', () => {
 			}
 			expect(copyButton).to.have.lengthOf(1);
 			copyButton.simulate('click');
-			isCopying = true;
 			component.render();
 			expect(onCopyHandler.calledOnce);
 		});
@@ -104,10 +99,9 @@ describe('MappingsWorkview', () => {
 			// All actions should be available including the paste action
 			expect(actions.children()).to.have.lengthOf(4);
 			// find the paste action
-			pasteAction = actions.childAt(2);
+			pasteAction = actions.childAt(2).find('button');
 			expect(pasteAction).to.have.lengthOf(1);
 			pasteAction.simulate('click');
-			isCopying = false;
 			component.render();
 			expect(onPasteHandler.calledOnce);
 			item.simulate('click');
@@ -133,10 +127,10 @@ describe('MappingsWorkview', () => {
 		it('should click the clone button', () => {
 			item.simulate('click');
 			if (!cloneButton.length) {
-				cloneButton = component.find(selectors.copyButton);
+				cloneButton = component.find(selectors.cloneButton);
 			}
-			expect(cloneButton).to.have.lengthOf(1);
-			cloneButton.simulate('click');
+			expect(cloneButton.childAt(2)).to.have.lengthOf(1);
+			cloneButton.childAt(2).simulate('click');
 			expect(onCloneHandler.calledOnce);
 		});
 
