@@ -73,26 +73,7 @@ const mockUpFunction = (identifier) => {
 				sourcePaths: [
 					[`/dbpediaowl:${testCase}`]
 				],
-				results: [
-					{
-						sourceValues: [
-							["http://dbpedia.org/resource/United_States"]
-						],
-						transformedValues: ["http://dbpedia.org/resource/United_States"]
-					},
-					{
-						sourceValues: [
-							["http://dbpedia.org/resource/Cinema_of_Denmark", "http://dbpedia.org/resource/Cinema_of_Sweden", "http://dbpedia.org/resource/Cinema_of_the_United_Kingdom"]
-						],
-						transformedValues: ["http://dbpedia.org/resource/Cinema_of_Denmark", "http://dbpedia.org/resource/Cinema_of_Sweden", "http://dbpedia.org/resource/Cinema_of_the_United_Kingdom"]
-					},
-					{
-						sourceValues: [
-							["http://dbpedia.org/resource/United_States"]
-						],
-						transformedValues: ["http://dbpedia.org/resource/United_States"]
-					}
-				],
+				results: [],
 				status: {
 					id: "success",
 					msg: ""
