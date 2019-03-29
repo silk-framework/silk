@@ -1,9 +1,8 @@
 package org.silkframework.plugins.dataset
 
-import java.io.InputStream
 import java.net.{URI, URISyntaxException}
-
 import javax.inject.Inject
+
 import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint}

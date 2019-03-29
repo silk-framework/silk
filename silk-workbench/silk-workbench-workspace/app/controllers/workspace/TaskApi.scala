@@ -144,8 +144,6 @@ class TaskApi extends Controller with ControllerUtilsTrait {
         project.taskOption[GenericDatasetSpec](outputId).map(_.data.plugin) match {
           case Some(ds: ResourceBasedDataset) =>
             Ok.stream(Enumerator.fromStream(ds.file.inputStream)).withHeaders("Content-Disposition" -> s"attachment; filename=${ds.file.name}")
-          case Some(ds: BulkResourceBasedDataset) =>
-            Ok.stream(Enumerator.fromStream(ds.file.inputStream)).withHeaders("Content-Disposition" -> s"attachment; filename=${ds.file.name}")
           case Some(_) =>
             ErrorResult(BAD_REQUEST, "No resource based output dataset", s"The specified output dataset '$outputId' is not based on a resource.")
           case None =>

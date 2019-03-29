@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.datasets
 
-import java.io.{InputStream, StringReader}
+import java.io.StringReader
 
 import org.apache.jena.rdf.model.ModelFactory
 import org.silkframework.dataset._
@@ -27,7 +27,7 @@ case class RdfInMemoryDataset(data: String,
   private lazy val model = ModelFactory.createDefaultModel
   model.read(new StringReader(data), null, format)
 
-  override def sparqlEndpoint: SparqlEndpoint = new JenaModelEndpoint(model)
+  override val sparqlEndpoint: SparqlEndpoint = new JenaModelEndpoint(model)
 
   /**
     * Returns a data source for reading entities from the data set.

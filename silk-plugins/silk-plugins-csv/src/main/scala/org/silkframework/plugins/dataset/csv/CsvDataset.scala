@@ -62,7 +62,7 @@ case class CsvDataset (
     * returns an auto-configured version of this plugin
     */
   override def autoConfigured(implicit userContext: UserContext): CsvDataset = {
-    val source = csvSource(file, ignoreMalformed = true)
+    val source = csvSource(firstResource, ignoreMalformed = true)
     val autoConfig = source.autoConfigure()
     this.copy(
       separator = if (autoConfig.detectedSeparator == "\t") "\\t" else autoConfig.detectedSeparator,

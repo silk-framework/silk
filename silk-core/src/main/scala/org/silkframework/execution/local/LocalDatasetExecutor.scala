@@ -6,7 +6,6 @@ import org.silkframework.config.Task
 import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetSpec}
 import org.silkframework.dataset.rdf._
 import org.silkframework.dataset._
-import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.entity._
 import org.silkframework.execution.{DatasetExecutor, TaskException}
 import org.silkframework.runtime.activity.UserContext
@@ -163,14 +162,6 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
               case None =>
                 throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
                     s"does not have a writable resource!")
-            }
-          case dsr: BulkResourceBasedDataset =>
-            dsr.writableResource match {
-              case Some(wr) =>
-                wr.writeResource(inputResource)
-              case None =>
-                throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
-                  s"does not have a writable resource!")
             }
           case _: Dataset =>
             throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +

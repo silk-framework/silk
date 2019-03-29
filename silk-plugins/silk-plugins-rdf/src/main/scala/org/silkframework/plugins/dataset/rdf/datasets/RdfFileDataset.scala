@@ -1,7 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.datasets
 
-import java.io.{FileNotFoundException, InputStream}
-
+import java.io.FileNotFoundException
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.config.{PlainTask, Task}
@@ -36,7 +35,7 @@ case class RdfFileDataset(
   @Param(label = "Max. read size (MB)",
     value = "The maximum size of the RDF file resource for read operations. Since the whole dataset will be kept in-memory, this value should be kept low to guarantee stability.")
   maxReadSize: Long = 10,
-  @Param("A list of entities to be retrieved. If not Fgiven, all entities will be retrieved. Multiple entities are separated by whitespace.")
+  @Param("A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.")
   entityList: MultilineStringParameter = MultilineStringParameter("")) extends RdfDataset with TripleSinkDataset with BulkResourceBasedDataset {
 
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
@@ -68,7 +67,7 @@ case class RdfFileDataset(
 
   override def sparqlEndpoint: JenaEndpoint = {
     if (file.exists && BulkResource.isBulkResource(file)) {
-      createSparqlEndpoint(BulkResource.asBulkResource(file, Some("nt")).subResources)
+      createSparqlEndpoint(BulkResource.asBulkResource(file).subResources)
     } else {
       createSparqlEndpoint(Seq(file))
     }

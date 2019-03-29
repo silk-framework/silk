@@ -17,37 +17,16 @@ import scala.collection.mutable
   *
   * @param file Zip resources
   */
-case class BulkResource(file: File, virtualFileEnding: Option[String]) extends WritableResource {
+case class BulkResource(file: File) extends WritableResource {
 
   private val log = Logger.getLogger(getClass.getName)
 
-  var zipFile: Resource = FileResource(file)
-  var replacementInputStream: Option[InputStream] = None
-
-  def apply(writableResource: WritableResource): BulkResource = {
-    zipFile = writableResource
-    this
-  }
-
-  def apply(writableResource: WritableResource, inputStreamReplacement: InputStream): BulkResource = {
-    replacementInputStream = Some(inputStreamReplacement)
-    zipFile = writableResource
-    this
-  }
+  private val zipFile: Resource = FileResource(file)
 
   /**
     * The local name of this resource.
     */
-  override def name: String = {
-    if (file.getName.contains(".")) {
-      val prefix = file.getName.split("[.]").reverse.tail.reverse.mkString("")
-      val ending = file.getName.split("[.]").last
-      s"$prefix.${virtualFileEnding.getOrElse(ending)}"
-    }
-    else {
-      s"${file.getName}.${virtualFileEnding.getOrElse("")}"
-    }
-  }
+  override def name: String = zipFile.name
 
   /**
     * The path of this resource.
@@ -84,22 +63,7 @@ case class BulkResource(file: File, virtualFileEnding: Option[String]) extends W
     *         The caller is responsible for closing the stream after reading.
     */
   override def inputStream: InputStream = {
-    if (replacementInputStream.isEmpty) log info(s"Returning a stream that concatenates all resources in " +
-      s"$name. Use the methods of the BulkResource object to get and combine the resources individually")
-    replacementInputStream.getOrElse(BulkResourceSupport.combineStreams(inputStreams))
-  }
-
-
-  /**
-    * Replaces the inputStream of the resource. Used to create a valid resource object with an input stream
-    * that can be manually combined from the set of input streams accessible with [[inputStreams]].
-    * Does not change any other metadata like size, date etc.
-    *
-    * @param inputStreamReplacement Replacement Input Stream
-    */
-  def replaceInputStream(inputStreamReplacement: InputStream): BulkResource = {
-    replacementInputStream = Some(inputStreamReplacement)
-    this
+    BulkResourceSupport.combineStreams(inputStreams)
   }
 
 
@@ -136,9 +100,7 @@ case class BulkResource(file: File, virtualFileEnding: Option[String]) extends W
     * @param write A function that accepts an output stream and writes to it.
     */
   override def write(append: Boolean)(write: OutputStream => Unit): Unit = {
-    throw new NotImplementedError(
-      "Not yet implementet, writing should create a zip archieve with one file. Do we need that?"
-    )
+    throw new UnsupportedOperationException("Writing to zip archives is not supported at the moment")
   }
 
   /**
@@ -148,8 +110,7 @@ case class BulkResource(file: File, virtualFileEnding: Option[String]) extends W
     val ftd = new File(zipFile.path)
     ftd.deleteOnExit()
     ftd.delete()
-  }
-  catch {
+  } catch {
     case ex:IOException => log severe s"$zipFile could not be deleted:${ex.getMessage} "
   }
 
@@ -163,6 +124,8 @@ case class BulkResource(file: File, virtualFileEnding: Option[String]) extends W
   */
 object BulkResource {
 
+  private final val log: Logger = Logger.getLogger(this.getClass.getSimpleName)
+
   /**
     * Returns true if the given resource is a BulkResource and false otherwise.
     * A BulkResource is detected if the file belonging to the given resource ends with .zip or is a
@@ -171,7 +134,7 @@ object BulkResource {
     * @param resource WritableResource to check
     * @return true if an archive or folder
     */
-  def isBulkResource(resource: WritableResource): Boolean = {
+  def isBulkResource(resource: Resource): Boolean = {
     resource.name.endsWith(".zip") && !new File(resource.path).isDirectory
   }
 
@@ -183,26 +146,17 @@ object BulkResource {
     * @param resource WritableResource tha may be zip or folder
     * @return instance of BulkResource
     */
-  def asBulkResource(resource: WritableResource, virtualFileEnding: Option[String]): BulkResource = {
-    if (resource.name.endsWith(virtualFileEnding.getOrElse("zip")) || resource.path.endsWith("zip")) {
-      BulkResource(new File(resource.path), virtualFileEnding)
+  def asBulkResource(resource: Resource): BulkResource = {
+    if (resource.name.endsWith(".zip") && !new File(resource.path).isDirectory) {
+      log info s"Zip file Resource found: ${resource.name}"
+      BulkResource(new File(resource.path))
     }
+    else if (new File(resource.path).isDirectory) {
+      log info s"Resource Folder found: ${resource.name}"
+      throw new NotImplementedError("The bulk resource support does not work for non-zip files for now")    }
     else {
       throw new IllegalArgumentException(resource.path + " is not a bulk resource.")
     }
   }
-
-  /**
-    * Create new bulk resource with the given input stream replaceing the bulk resource input stream.
-    *
-    * @param bulkResource Resource used to create new Resource
-    * @param inputStreamReplacement Input stream to be provided by the resource
-    * @return
-    */
-  def createBulkResourceWithStream(bulkResource: BulkResource, inputStreamReplacement: InputStream): BulkResource = {
-    val newResource = new BulkResource(bulkResource.file, None)
-    newResource.replaceInputStream(inputStreamReplacement)
-  }
-
 
 }

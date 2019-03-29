@@ -2,18 +2,13 @@ package org.silkframework.runtime.resource
 
 import java.io._
 import java.util.logging.Logger
-import java.util.zip.ZipException
 
 import org.apache.commons.io.input.ReaderInputStream
-import org.silkframework.entity.EntitySchema
-import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.BulkResourceSupport.getDistinctSchemaDescriptions
-import BulkResource._
 
 import scala.collection.JavaConverters
 
 /**
-  * Trait for data sets that need to support zipped files with multiple resources or similar structures.
+  * Helper functions for data sets that need to support zipped files with multiple resources or similar structures.
   * Provides a checkResource function that checks and returns a Resource or a BulkResource, depending on the input.
   * See @BulkResource.
   *
@@ -31,129 +26,9 @@ import scala.collection.JavaConverters
   * @see BulkResourceBasedDataSet
   * @see BulkResource
   */
-trait BulkResourceSupport {
-
-  private val log = Logger.getLogger(getClass.getName)
-
-  /**
-    * Cast the iput and return a BulkResource object if the given WritableResource is a zip file.
-    * Otherwise the given object is returned as is.
-    *
-    * Uses the dataset specific checkResourceSchema, onSingleSchemaBulkContent and onMultiSchemaBulkContent
-    * function's to check the resource content and schema.
-    *
-    * @param file Resource
-    * @return BulkResource or the given resource if it is no ar
-    **/
-  def initBulkResource(file: WritableResource, virtualFileEnding: Option[String])(implicit userContext: UserContext): WritableResource = {
-    if (isBulkResource(file)) {
-      val bulkResource = asBulkResource(file, virtualFileEnding)
-      val schemaSet = getDistinctSchemaDescriptions(getDistinctBulkResourceSchemata(bulkResource))
-
-      if (schemaSet.isEmpty) {
-        throw new Exception("The schema of the bulk resource could not be determined")
-      }
-      else if (schemaSet.length == 1) {
-        log info s"One schema found for all resources in: ${bulkResource.name}"
-        createSingleSchemaBulkResource(bulkResource).get
-      }
-      else {
-        log info s"Multiple schemata found in: ${bulkResource.name}"
-        createMultiSchemaBulkResource(bulkResource).getOrElse(createSingleSchemaBulkResource(bulkResource).get)
-      }
-    }
-    else {
-      file
-    }
-  }
-
-
-  /*The following methods that need to implement by the data sets to avoid dependency/structure changes
-    In general it would be better to have a model with data sets that don't implement logic (like other operators).
-    Then we could define arbitrary "flag" traits and leave the impl. to each executor.
-    Now spark does the second thing and the local exec. does the first. However, the local way is unlikely to change.*/
-
-  /**
-    * Gets called when it is detected that all files in the bulk resource have the different schemata.
-    * The implementing class needs to provide a bulk resource object with an input stream that
-    * covers all files.
-    * If that case cannot be supported None should be returned.
-    *
-    * @param bulkResource Bulk resource
-    * @return
-    */
-  def createMultiSchemaBulkResource(bulkResource: BulkResource): Option[BulkResource]
-
-  /**
-    * Gets called when it is detected that all files in the bulk resource have the same schema.
-    * The implementing class needs to provide a logical concatenation of the individual resources.
-    * If that case cannot be supported None should be returned.
-    *
-    * @param bulkResource Bulk resource
-    * @return
-    */
-  def createSingleSchemaBulkResource(bulkResource: BulkResource): Option[BulkResource]
-
-  /**
-    * The implementing dataset must provide a way to determine the schema of each resource in the bulk resource.
-    * The cardinality of the result is 1, there is only one schema.
-    *
-    * @param bulkResource Bulk resource
-    * @return
-    */
-  def getDistinctBulkResourceSchemata(bulkResource: BulkResource)(implicit userContext: UserContext): Seq[EntitySchema]
-
-}
-
-/**
-  * Companion object with helper functions.
-  */
 object BulkResourceSupport {
 
   private val log = Logger.getLogger(getClass.getName)
-
-  /**
-    * Get a Seq of InputStream object, each belonging to on file in the given achieve.
-    *
-    * @param bulkResource Zip or resource folder
-    * @return Sequence of InputStream objects
-    */
-  def getInputStreamSet(bulkResource: BulkResource): Seq[InputStream] = {
-    try {
-      bulkResource.inputStreams
-    }
-    catch {
-      case t: Throwable =>
-        log severe s"Exception for zip resource ${bulkResource.path}: " + t.getMessage
-        throw new ZipException(t.getMessage)
-    }
-  }
-
-  /**
-    * Returns the input streams belonging to the input resource. One for each file in the zipped bulk resource.
-    *
-    * @param bulkResource Input resource
-    * @return Set of Streams
-    */
-  def getIndividualStreams(bulkResource: BulkResource): Seq[InputStream] = {
-    bulkResource.inputStreams
-  }
-
-
-  /**
-    * Returns one input stream belonging to the input resource. This input stream logically is equal to the input stream
-    * on the concatenation of the individual resources in the bulk resource.
-    *
-    * If skipLines is non empty the concatenated input stream will skip the provided amount of lines in each file except
-    * the first.
-    *
-    * @param bulkResource Input resource
-    * @param skipLines Lines to skip at the beginning of each file except the 1st
-    * @return
-    */
-  def getConcatenatedStream(bulkResource: BulkResource, skipLines: Option[Int] = None): InputStream = {
-     combineStreams(bulkResource.inputStreams, skipLines)
-  }
 
   /**
     * Combines a sequence of input streams (hopefully without crossing the streams) into one logical concatenation.
@@ -186,17 +61,6 @@ object BulkResourceSupport {
   }
 
   /**
-    * Return a pair of input streams each containing a part of an xml tag ("<elementName>" and resp.
-    * </elemName>") for combinations writh other treams in the combinesStreams function.
-    *
-    * @param elementName XM Element name, defaults to "GENERATED_ROOT"
-    * @return
-    */
-  def getXmlElementWrapperInputStreams(elementName: String): (InputStream, InputStream) =
-    (new ByteArrayInputStream(s"<$elementName>".getBytes()), new ByteArrayInputStream(s"</$elementName>".getBytes()))
-
-
-  /**
     * Return an input stream that is equa to the given stream with the given
     * number of lines skipped.
     *
@@ -213,45 +77,15 @@ object BulkResourceSupport {
     combineStreams(Seq(getNewlineInputStream, new ReaderInputStream(lis)))
   }
 
-  /**
-    * Returns the specified lines as String from the given stream.
-    *
-    * @param inputStream - input stream wirh lines to read
-    * @param lines - number of lines to read
-    * @return
-    */
-  def getLinesFromInputStream(inputStream: InputStream, lines: Int = 1): String = {
-    val lnr = new LineNumberReader(new InputStreamReader(inputStream))
-    val lineStringSeq: Seq[String] = for (i <-0 until lines) yield {
-      val line = lnr.readLine()
-      log info s"Reading line: $line in bulk resource."
-      line
-    }
-    lineStringSeq.mkString("\n")
-  }
-
 
   /**
     * Get an InputStream representing only a newline char.
     *
     * @return InputStream
     */
-  def getNewlineInputStream: InputStream = {
+  private def getNewlineInputStream: InputStream = {
     val newline = System.lineSeparator()
     new ByteArrayInputStream(newline.getBytes())
-  }
-
-
-  /**
-    * Get only the schemata with different paths/types.
-    */
-  def getDistinctSchemaDescriptions(schemaSequence: Seq[EntitySchema]): Seq[EntitySchema] = {
-    if (schemaSequence.isEmpty) {
-      Seq.empty[EntitySchema]
-    }
-    else {
-      schemaSequence.distinct
-    } // should work since equals is overwritten and should apply here as well, although it looks like WIP TODO check it!
   }
 
   /**
@@ -284,19 +118,6 @@ object BulkResourceSupport {
       }
       finally stream.close()
     }
-  }
-
-
-  /**
-    * Create a resource with the meta data of the given bulk resource and the givin input stream as its backing
-    * input stream.
-    *
-    * @param bulkResource Resource
-    * @param unifiedInputStream The input stream that will be provided by the new resource
-    * @return
-    */
-  def asWritableResource(bulkResource: BulkResource, unifiedInputStream: InputStream): Resource = {
-    ReadOnlyResource(BulkResource.createBulkResourceWithStream(bulkResource, unifiedInputStream))
   }
 
   /**
