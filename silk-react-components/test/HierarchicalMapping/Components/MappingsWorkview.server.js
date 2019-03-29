@@ -120,16 +120,11 @@ const mockUpFunction = (identifier) => {
 	 * Getting the URL of copyRule
 	 *
 	 * @param sourceRule {string}
-	 * @returns {{data: {sourceTask: string, sourceRule: *, sourceProject: string}, url: string}}
+	 * @returns {{url: string}}
 	 */
 	const rulesDataURLCopyFromCopy = (sourceRule) => {
 		return {
-			url: `/transform/tasks/test/test/rule/root/rules/copyFrom?sourceProject=test&sourceTask=test&sourceRule=${sourceRule}&afterRuleId`,
-			data: {
-				sourceProject: 'test',
-				sourceTask: 'test',
-				sourceRule: sourceRule
-			}
+			url: `/transform/tasks/test/test/rule/root/rules/copyFrom?sourceProject=test&sourceTask=test&sourceRule=${sourceRule}&afterRuleId`
 		};
 	};
 
@@ -137,17 +132,11 @@ const mockUpFunction = (identifier) => {
 	 * Getting the URL of copyRule
 	 *
 	 * @param sourceRule {string}
-	 * @returns {{data: {sourceTask: string, sourceRule: *, sourceProject: string}, url: string}}
+	 * @returns {{url: string}}
 	 */
 	const rulesDataURLCopyFromClone = (sourceRule) => {
 		return {
-			url: `/transform/tasks/test/test/rule/root/rules/copyFrom?sourceProject=test&sourceTask=test&sourceRule=${sourceRule}&afterRuleId=country`,
-			data: {
-				sourceProject: 'test',
-				sourceTask: 'test',
-				sourceRule: sourceRule,
-				afterRuleId: 'country'
-			}
+			url: `/transform/tasks/test/test/rule/root/rules/copyFrom?sourceProject=test&sourceTask=test&sourceRule=${sourceRule}&afterRuleId=country`
 		};
 	};
 
@@ -180,6 +169,29 @@ const mockUpFunction = (identifier) => {
 	};
 
 	/**
+	 * Adding new property rule
+	 *
+	 * @param testCase
+	 */
+	const addNewPropertyRule = (testCase) => {
+		propertyRules.push({
+			type: "direct",
+			id: `${identifier}1`,
+			sourcePath: `dbpediaowl:${testCase}`,
+			mappingTarget: {
+				uri: `<urn:ruleProperty:${testCase}>`,
+				valueType: {
+					nodeType: "StringValueType"
+				},
+				isBackwardProperty: false,
+				isAttribute: false
+			},
+			metadata: {
+				label: `Copy of urn:ruleProperty:${testCase}`
+			}
+		});
+	};
+	/**
 	 * @type {{url: string}}
 	 */
 	const payload = dataURL(identifier),
@@ -200,12 +212,12 @@ const mockUpFunction = (identifier) => {
 		rulesResponse = getRulesResponse(),
 
 		/**
-		 * @type {{data, url}}
+		 * @type {{url}}
 		 */
 		rulesDataURLCopyFromPayload = rulesDataURLCopyFromCopy(identifier),
 
 		/**
-		 * @type {{data, url}}
+		 * @type {{url}}
 		 */
 		rulesDataURLCopyFromPayloadClone = rulesDataURLCopyFromClone(identifier),
 
@@ -223,44 +235,14 @@ const mockUpFunction = (identifier) => {
 
 		.post(rulesDataURLCopyFromPayload.url)
 		.reply(rulesDataURLCopyFromResponse.code, () => {
-			propertyRules.push({
-				type: "direct",
-				id: `${identifier}1`,
-				sourcePath: `dbpediaowl:${identifier}`,
-				mappingTarget: {
-					uri: `<urn:ruleProperty:${identifier}>`,
-					valueType: {
-						nodeType: "StringValueType"
-					},
-					isBackwardProperty: false,
-					isAttribute: false
-				},
-				metadata: {
-					label: `Copy of urn:ruleProperty:${identifier}`
-				}
-			});
+			addNewPropertyRule(identifier);
 			rulesResponse.body.rules.propertyRules = propertyRules;
 			return rulesDataURLCopyFromResponse.body;
 		})
 
 		.post(rulesDataURLCopyFromPayloadClone.url)
 		.reply(rulesDataURLCopyFromResponse.code, () => {
-			propertyRules.push({
-				type: "direct",
-				id: `${identifier}1`,
-				sourcePath: `dbpediaowl:${identifier}`,
-				mappingTarget: {
-					uri: `<urn:ruleProperty:${identifier}>`,
-					valueType: {
-						nodeType: "StringValueType"
-					},
-					isBackwardProperty: false,
-					isAttribute: false
-				},
-				metadata: {
-					label: `Copy of urn:ruleProperty:${identifier}`
-				}
-			});
+			addNewPropertyRule(identifier);
 			rulesResponse.body.rules.propertyRules = propertyRules;
 			return rulesDataURLCopyFromResponse.body;
 		});
