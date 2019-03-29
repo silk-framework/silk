@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.dataset._
-import org.silkframework.dataset.bulk.{BulkDataSource, BulkResourceBasedDataset}
+import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 import org.silkframework.runtime.resource.{Resource, WritableResource}
@@ -55,7 +55,7 @@ Path examples:
 - `#text` retrieves the text of the selected node.
 """
 )
-case class XmlDataset( @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
+case class XmlDataset( @Param("The XML file. This may also be a zip archive of multiple XML files that share the same schema.")
                        file: WritableResource,
                        @Param(value = "The base path when writing XML. For instance: /RootElement/Entity. Should no longer be used for reading XML! Instead, set the base path by specifying it as input type on the subsequent transformation or linking tasks.", advanced = true)
                        basePath: String = "",

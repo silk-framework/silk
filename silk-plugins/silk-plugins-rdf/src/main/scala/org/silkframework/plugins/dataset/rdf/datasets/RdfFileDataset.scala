@@ -24,9 +24,9 @@ import org.silkframework.util.{Identifier, Uri}
   description =
 """Dataset which retrieves and writes all entities from/to an RDF file.
 The dataset is loaded in-memory and thus the size is restricted by the available memory.
-Large datasets should be loaded into an external RDF store and retrieved using the Sparql dataset instead.""")
+Large datasets should be loaded into an external RDF store and retrieved using the SPARQL dataset instead.""")
 case class RdfFileDataset(
-  @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
+  @Param("The RDF file. This may also be a zip archive of multiple RDF files.")
   file: WritableResource,
   @Param("""Supported input formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle". Supported output formats are: "N-Triples".""")
   format: String,

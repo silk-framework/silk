@@ -7,7 +7,6 @@ import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.ResourceBasedDataset
-import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers

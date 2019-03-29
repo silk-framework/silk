@@ -13,7 +13,7 @@ import org.silkframework.runtime.resource._
       """Retrieves all entities from a csv file."""
 )
 case class CsvDataset (
-  @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
+  @Param("The CSV file. This may also be a zip archive of multiple CSV files that share the same schema.")
     file: WritableResource,
   @Param("Comma-separated list of URL-encoded properties. If not provided, the list of properties is read from the first line.")
     properties: String = "",
