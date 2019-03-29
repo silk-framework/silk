@@ -1,9 +1,10 @@
 package org.silkframework.plugins.dataset.csv
 
 import org.silkframework.dataset._
+import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{Param, Plugin}
-import org.silkframework.runtime.resource.WritableResource
+import org.silkframework.runtime.resource._
 
 @Plugin(
   id = "csv",
@@ -11,9 +12,8 @@ import org.silkframework.runtime.resource.WritableResource
   description =
       """Retrieves all entities from a csv file."""
 )
-case class CsvDataset
-(
-  @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
+case class CsvDataset (
+  @Param("The CSV file. This may also be a zip archive of multiple CSV files that share the same schema.")
     file: WritableResource,
   @Param("Comma-separated list of URL-encoded properties. If not provided, the list of properties is read from the first line.")
     properties: String = "",
@@ -38,22 +38,31 @@ case class CsvDataset
     ignoreBadLines: Boolean = false,
   @Param(label = "Quote escape character",
     value = "Escape character to be used inside quotes, used to escape the quote character. It must also be used to escape itself, e.g. by doubling it, e.g. \"\". If left empty, it defaults to quote.")
-  quoteEscapeCharacter: String = "\"") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset] with WritableResourceDataset with CsvDatasetTrait with ResourceBasedDataset {
+  quoteEscapeCharacter: String = "\"") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset]
+                                       with CsvDatasetTrait with BulkResourceBasedDataset with WritableResourceDataset {
 
-  override def source(implicit userContext: UserContext): DataSource = csvSource()
+  implicit val userContext: UserContext = UserContext.INTERNAL_USER
+
+  override def mergeSchemata: Boolean = false
+
+  override def createSource(resource: Resource): DataSource with TypedPathRetrieveDataSource = {
+    csvSource(resource)
+  }
 
   override def linkSink(implicit userContext: UserContext): LinkSink = new CsvLinkSink(file, csvSettings)
 
   override def entitySink(implicit userContext: UserContext): EntitySink = new CsvEntitySink(file, csvSettings)
 
-  private def csvSource(ignoreMalformed: Boolean = false) = new CsvSource(file, csvSettings, properties, uri, regexFilter, codec,
-    skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines, ignoreMalformedInputExceptionInPropertyList = ignoreMalformed)
+  private def csvSource(resource: Resource, ignoreMalformed: Boolean = false) = new CsvSource(resource, csvSettings, properties, uri,
+    regexFilter, codec, skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines,
+    ignoreMalformedInputExceptionInPropertyList = ignoreMalformed
+  )
 
   /**
     * returns an auto-configured version of this plugin
     */
   override def autoConfigured(implicit userContext: UserContext): CsvDataset = {
-    val source = csvSource(ignoreMalformed = true)
+    val source = csvSource(firstResource, ignoreMalformed = true)
     val autoConfig = source.autoConfigure()
     this.copy(
       separator = if (autoConfig.detectedSeparator == "\t") "\\t" else autoConfig.detectedSeparator,
