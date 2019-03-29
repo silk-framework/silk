@@ -136,9 +136,12 @@ describe('MappingsWorkview', () => {
 
 		it('should now contain 4 mapping rules instead of 3', () => {
 			// FIXME: Can be removed when RX is removed from the code.
-			setTimeout(() => {
-				expect(propertyRules).to.have.lengthOf(4)
-			}, 50)
+			return new Promise(function(resolve) {
+				setTimeout(() => {
+					expect(propertyRules).to.have.lengthOf(4);
+					resolve()
+				}, 50)
+			})
 		});
 	});
 });
