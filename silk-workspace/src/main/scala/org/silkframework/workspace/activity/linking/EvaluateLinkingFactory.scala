@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.linking
 
 import org.silkframework.rule.execution.{GenerateLinks, Linking}
-import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
+import org.silkframework.rule.{LinkSpec, LinkingExecutionBackend, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.workspace.ProjectTask
@@ -29,7 +29,10 @@ case class EvaluateLinkingFactory(
   @Param("If defined, the execution will stop after the configured number of links is reached.\nThis is just a hint and the execution may produce slightly fewer or more links.")
   linkLimit: Int = DEFAULT_LINK_LIMIT,
   @Param("Timeout in seconds after that the matching task of an evaluation should be aborted. Set to 0 or negative to disable the timeout.")
-  timeout: Int = EVALUATION_TIMEOUT_SECONDS) extends TaskActivityFactory[LinkSpec, EvaluateLinkingActivity] {
+  timeout: Int = EVALUATION_TIMEOUT_SECONDS,
+  // TODO: Any way to configure these execution specific configs outside the LinkSpec?
+  @Param("The execution backend for the entity index and the linking candidate generation. There is a native file-based and a relational database variant.")
+  executionBackend: LinkingExecutionBackend = LinkingExecutionBackend.nativeExecution) extends TaskActivityFactory[LinkSpec, EvaluateLinkingActivity] {
 
   override def apply(task: ProjectTask[LinkSpec]): Activity[Linking] = {
     val runtimeConfig =
@@ -39,7 +42,8 @@ case class EvaluateLinkingFactory(
         partitionSize = partitionSize,
         generateLinksWithEntities = generateLinksWithEntities,
         linkLimit = Some(linkLimit),
-        executionTimeout = Some(timeout).filter(_ > 0L).map(_ * 1000L)
+        executionTimeout = Some(timeout).filter(_ > 0L).map(_ * 1000L),
+        executionBackend = executionBackend
       )
     new EvaluateLinkingActivity(task, runtimeConfig, writeOutputs)
   }

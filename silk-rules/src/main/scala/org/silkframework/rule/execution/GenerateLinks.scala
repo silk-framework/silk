@@ -22,7 +22,7 @@ import org.silkframework.cache.{EntityCache, FileEntityCache, MemoryEntityCache}
 import org.silkframework.dataset.{DataSource, LinkSink}
 import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.rule.execution.rdb.RDBEntityIndex
-import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
+import org.silkframework.rule.{LinkSpec, LinkingExecutionBackend, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity._
 import org.silkframework.util.FileUtils._
 import org.silkframework.util.{CollectLogs, DPair, Identifier}
@@ -60,13 +60,11 @@ class GenerateLinks(id: Identifier,
     context.value.update(Linking(rule = linkSpec.rule))
 
     warningLog = CollectLogs() {
-      runNativeLinking(context)
-      // TODO: uncomment when working on CMEM-1408 again
-//      if(RDBEntityIndex.configured()) {
-//        runRdbLinking(context)
-//      } else {
-//        runNativeLinking(context)
-//      }
+      if(RDBEntityIndex.configured() && runtimeConfig.executionBackend == LinkingExecutionBackend.rdb) {
+        runRdbLinking(context)
+      } else {
+        runNativeLinking(context)
+      }
     }
   }
 

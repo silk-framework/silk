@@ -1,12 +1,10 @@
 package org.silkframework.workspace.activity.linking
 
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.entity.Restriction.{And, CustomOperator}
-import org.silkframework.entity.{EntitySchema, Restriction}
-import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
+import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.{AbortExecutionException, ExecutionType, ExecutorRegistry}
-import org.silkframework.rule.execution.{ComparisonToRestrictionConverter, SparqlFilterRestriction}
-import org.silkframework.rule.{BooleanLinkageRule, DatasetSelection, LinkSpec, TransformSpec}
+import org.silkframework.rule.execution.ComparisonToRestrictionConverter
+import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.util.DPair
