@@ -4,7 +4,7 @@ import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.{BulkDataSource, BulkResourceBasedDataset}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
-import org.silkframework.runtime.resource.{BulkResource, Resource, WritableResource}
+import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.{Failure, Success, Try}

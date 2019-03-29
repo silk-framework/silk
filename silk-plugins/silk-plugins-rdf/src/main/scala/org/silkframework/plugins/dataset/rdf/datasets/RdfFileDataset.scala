@@ -15,7 +15,7 @@ import org.silkframework.plugins.dataset.rdf.formatters._
 import org.silkframework.plugins.dataset.rdf.sparql.EntityRetriever
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
-import org.silkframework.runtime.resource.{BulkResource, Resource, WritableResource}
+import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.util.{Identifier, Uri}
 
 @Plugin(
@@ -66,11 +66,7 @@ case class RdfFileDataset(
   private def graphOpt = if (graph.trim.isEmpty) None else Some(graph)
 
   override def sparqlEndpoint: JenaEndpoint = {
-    if (file.exists && BulkResource.isBulkResource(file)) {
-      createSparqlEndpoint(BulkResource.asBulkResource(file).subResources)
-    } else {
-      createSparqlEndpoint(Seq(file))
-    }
+    createSparqlEndpoint(allResources)
   }
 
   private def createSparqlEndpoint(resources: Seq[Resource]): JenaEndpoint = {

@@ -1,25 +1,34 @@
 package org.silkframework.dataset.bulk
 
+import java.io.File
+import java.util.logging.Logger
+import java.util.zip.{ZipException, ZipFile}
+
 import org.silkframework.dataset.{DataSource, Dataset, ResourceBasedDataset, TypedPathRetrieveDataSource}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.{BulkResource, Resource}
+import org.silkframework.runtime.resource.{ReadOnlyResource, Resource, ZipResourceLoader}
 import org.silkframework.runtime.validation.ValidationException
 
+import scala.util.control.NonFatal
+
 /**
-  * Utilities to replace the data source object with a source based on bulk resources.
-  * a potential bulk resource supporting data set
+  * A resource based data source for which the resource could also be a zip archive.
+  * If the resource is a zip archive, all files in the zip archive are read.
+  * If the resource is not a zip archive, the resource is read directly.
   *
   * @see ResourceBasedDataset
   */
 trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
 
-  /** If true, the types and paths of the underlying data sources are merged.
+  /**
+    * Determines if the schemata of the underlying data sources should be merged.
+    * If true, the types and paths of the underlying data sources are merged.
     * If false, the types and paths of the first data source are used.
     */
   def mergeSchemata: Boolean
 
   /**
-    * Create a data source for a particular resource inside the bulk file.
+    * Creates a data source for a particular resource inside the bulk file.
     */
   def createSource(resource: Resource): DataSource with TypedPathRetrieveDataSource
 
@@ -27,11 +36,29 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
     * Returns a data source for reading entities from the data set.
     */
   override final def source(implicit userContext: UserContext): DataSource with TypedPathRetrieveDataSource = {
-    bulkFile() match {
-      case Some(bulk) =>
-        new BulkDataSource(bulk.subResources.map(createSource), mergeSchemata)
-      case None =>
-        createSource(file)
+    allResources match {
+      case Seq(singleResource) =>
+        createSource(singleResource)
+      case _ =>
+        new BulkDataSource(allResources.map(createSource), mergeSchemata)
+    }
+  }
+
+  /**
+    * Checks if the resource is a bulk archive.
+    */
+  def isBulkResource: Boolean = BulkResourceBasedDataset.isBulkResource(file)
+
+  /**
+    * Returns all resources this dataset is based on.
+    * If the dataset is based on a bulk file, this returns all sub resources.
+    * Otherwise, returns the file itself.
+    */
+  def allResources: Seq[Resource] = {
+    if (BulkResourceBasedDataset.isBulkResource(file)) {
+      BulkResourceBasedDataset.retrieveSubResources(file)
+    } else {
+      Seq(file)
     }
   }
 
@@ -42,25 +69,46 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
     * @throws ValidationException If this is a bulk file and the bulk file is empty.
     */
   def firstResource: Resource = {
-    bulkFile() match {
-      case Some(r) =>
-        r.subResources.headOption.getOrElse(throw new ValidationException(s"Bulk file ${r.name} is empty"))
-      case None =>
-        file
-    }
+    allResources.headOption.getOrElse(throw new ValidationException(s"Bulk file ${file.name} is empty"))
   }
+}
 
+object BulkResourceBasedDataset {
+
+  private final val log: Logger = Logger.getLogger(this.getClass.getSimpleName)
 
   /**
-    * Get an instance of a BulkResource, if a bulk file is given. Otherwise returns None.
-    * Some functions expect the file ending of the bulk content instead of ".zip". Optionally a virtual file ending for
-    * the zip can be provided.
+    * Returns true if the given resource is a BulkResource and false otherwise.
+    * A BulkResource is detected if the file belonging to the given resource ends with .zip or is a
+    * directory.
+    *
+    * @param resource WritableResource to check
+    * @return true if an archive or folder
     */
-  def bulkFile(): Option[BulkResource] = {
-    if (BulkResource.isBulkResource(file)) {
-      Some(BulkResource.asBulkResource(file))
-    } else {
-      None
+  private def isBulkResource(resource: Resource): Boolean = {
+    resource.name.endsWith(".zip") && !new File(resource.path).isDirectory
+  }
+
+  /**
+    * Returns all sub resources inside a bulk resource.
+    */
+  private def retrieveSubResources(resource: Resource): Seq[Resource] = {
+    if (resource.name.endsWith(".zip") && !new File(resource.path).isDirectory) {
+      log info s"Zip file Resource found: ${resource.name}"
+      try {
+        val zipLoader = ZipResourceLoader(new ZipFile(resource.path))
+        zipLoader.list.sorted.map(f => ReadOnlyResource(zipLoader.get(f)))
+      } catch {
+        case NonFatal(t) =>
+          log warning s"Exception for zip resource ${resource.path}: " + t.getMessage
+          throw new ZipException(t.getMessage)
+      }
+    }
+    else if (new File(resource.path).isDirectory) {
+      log info s"Resource Folder found: ${resource.name}"
+      throw new NotImplementedError("The bulk resource support does not work for non-zip files for now")    }
+    else {
+      throw new IllegalArgumentException(resource.path + " is not a bulk resource.")
     }
   }
 
