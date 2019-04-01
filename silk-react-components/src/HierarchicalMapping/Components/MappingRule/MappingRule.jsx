@@ -215,23 +215,24 @@ const MappingRule = React.createClass({
         );
 
         const uriLabel = uriToLabel(mappingTarget.uri);
+        const cleanUri = mappingTarget.uri.replace(/(^<+|>+$)/g, '');
         const ruleLabel = [
             label
                 ? [
                     label,
-                    mappingTarget.uri !== label
+                    cleanUri !== label
                         ? [
                             <div className="ecc-silk-mapping__ruleitem-extraline ecc-silk-mapping__ruleitem-url">
-                                {mappingTarget.uri}
+                                {cleanUri}
                             </div>
                         ] : null
                 ]
                 : [
                     uriLabel,
-                        uriLabel.toLowerCase() !== mappingTarget.uri.toLowerCase()
+                        uriLabel.toLowerCase() !== cleanUri.toLowerCase()
                             ? [
                                 <div className="ecc-silk-mapping__ruleitem-extraline ecc-silk-mapping__ruleitem-url">
-                                    {mappingTarget.uri.replace(/(^<+|>+$)/g, '')}
+                                    {cleanUri}
                                 </div>
                             ] : null
                     ]
