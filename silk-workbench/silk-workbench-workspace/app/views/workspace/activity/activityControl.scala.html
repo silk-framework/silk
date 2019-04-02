@@ -1,8 +1,9 @@
 @import controllers.core.routes.Assets
 @import controllers.workspace.routes.ActivityApi
 @import controllers.workspace.routes.WorkspaceController
+@import org.silkframework.workspace.activity.WorkspaceActivity
 
-@(project: String, task: Option[String], activity: String, showProgressBar: Boolean, showStartButton: Boolean, showRestartButton: Boolean, showConfigButton: Boolean)
+@(project: String, task: Option[String], activity: WorkspaceActivity[_], showProgressBar: Boolean, showStartButton: Boolean, showRestartButton: Boolean, showConfigButton: Boolean)
 
 <div id="@id("progress_")" class="activity-control">
 
@@ -16,30 +17,58 @@
   }
 
   @if(showStartButton) {
-    <button name="start" class="activity-button mdl-button mdl-js-button mdl-button--icon" onclick="startActivity()" title="Start @activity" >
+    <button id="@id("startButton")"
+            name="start" class="activity-button mdl-button mdl-js-button mdl-button--icon"
+            onclick="startActivity()" >
       <i class="material-icons">play_arrow</i>
     </button>
-    <button name="stop" class="activity-button mdl-button mdl-js-button mdl-button--icon" onclick="stopActivity()" title="Stop @activity">
+    <div class="mdl-tooltip" for="@id("startButton")">
+      Start @activity.label
+    </div>
+    <button id="@id("stopButton")"
+            name="stop"
+            class="activity-button mdl-button mdl-js-button mdl-button--icon"
+            onclick="stopActivity()" >
       <i class="material-icons">stop</i>
     </button>
+    <div class="mdl-tooltip" for="@id("stopButton")">
+      Stop @activity.label
+    </div>
   }
 
   @if(showRestartButton) {
-    <button name="reset" class="activity-button mdl-button mdl-js-button mdl-button--icon" onclick="restartActivity()" title="Reset @activity to its initial value and restart." >
+    <button id="@id("restartButton")"
+            name="reset"
+            class="activity-button mdl-button mdl-js-button mdl-button--icon"
+            onclick="restartActivity()" >
       <i class="material-icons">replay</i>
     </button>
+    <div class="mdl-tooltip" for="@id("restartButton")">
+      Reset @activity.label to its initial value and restart.
+    </div>
   }
 
   @if(showConfigButton && task.isDefined) {
-    <button name="config" class="activity-button mdl-button mdl-js-button mdl-button--icon" onclick="showDialog('@WorkspaceController.taskActivityConfigDialog(project, task.get, activity)')" >
+    <button id="@id("configButton")"
+            name="config"
+            class="activity-button mdl-button mdl-js-button mdl-button--icon"
+            onclick="showDialog('@WorkspaceController.taskActivityConfigDialog(project, task.get, activity.name)')" >
       <i class="material-icons">settings</i>
     </button>
+    <div class="mdl-tooltip" for="@id("configButton")">
+      Start @activity.label after configuring parameters.
+    </div>
   }
 
   @if(showConfigButton && task.isEmpty) {
-    <button name="config" class="activity-button mdl-button mdl-js-button mdl-button--icon" onclick="showDialog('@WorkspaceController.projectActivityConfigDialog(project, activity)')" >
+    <button id="@id("configButton")"
+            name="config" class="activity-button mdl-button mdl-js-button mdl-button--icon"
+            onclick="showDialog('@WorkspaceController.projectActivityConfigDialog(project, activity.name)')" >
       <i class="material-icons">settings</i>
     </button>
+    <div class="mdl-tooltip" for="@id("configButton")">
+      Start @activity.label after configuring parameters.
+    </div>
   }
 
 </div>
@@ -49,7 +78,7 @@
     // Get control node
     let control = $(document.getElementById("progress_" + status.project + "_" + status.task + "_" + encodeURIComponent(status.activity).replace(/%20/g,'+')));
     let progressbar = control.children(".activity-progress");
-    let tooltip = control.children(".mdl-tooltip");
+    let tooltip = control.children(".mdl-tooltip").first();
 
     // Initialize progress bar
     if(progressbar.find(".ui-progressbar-value").length == 0) {
@@ -93,7 +122,7 @@
   function startActivity() {
     $.ajax({
       type: 'POST',
-      url: '@Html(ActivityApi.startActivity(project, task.getOrElse(""), activity, blocking = false).url)',
+      url: '@Html(ActivityApi.startActivity(project, task.getOrElse(""), activity.name, blocking = false).url)',
       success: function(response) {
       },
       error: function(request) {
@@ -105,7 +134,7 @@
   function stopActivity() {
     $.ajax({
       type: 'POST',
-      url: '@Html(ActivityApi.cancelActivity(project, task.getOrElse(""), activity).url)',
+      url: '@Html(ActivityApi.cancelActivity(project, task.getOrElse(""), activity.name).url)',
       success: function(response) {
       },
       error: function(request) {
@@ -117,7 +146,7 @@
   function restartActivity() {
     $.ajax({
       type: 'POST',
-      url: '@Html(ActivityApi.restartActivity(project, task.getOrElse(""), activity).url)',
+      url: '@Html(ActivityApi.restartActivity(project, task.getOrElse(""), activity.name).url)',
       success: function(response) {
       },
       error: function(request) {
@@ -128,7 +157,7 @@
 
   $( window ).on("load", function() {
     setTimeout(function () {
-      $("#activity_control_wrapper").append('<iframe src="@ActivityApi.activityUpdates(project, task.getOrElse(""), activity)" style="display:none" frameborder="0" height="0" width="0">');
+      $("#activity_control_wrapper").append('<iframe src="@ActivityApi.activityUpdates(project, task.getOrElse(""), activity.name)" style="display:none" frameborder="0" height="0" width="0">');
     }, 1);
   });
 </script>
@@ -136,5 +165,5 @@
 <div id="activity_control_wrapper" style="display: none"/>
 
 @id(prefix: String) = @{
-  prefix + project + "_" + task.getOrElse("") + "_" + helper.urlEncode(activity)
+  prefix + project + "_" + task.getOrElse("") + "_" + helper.urlEncode(activity.name)
 }

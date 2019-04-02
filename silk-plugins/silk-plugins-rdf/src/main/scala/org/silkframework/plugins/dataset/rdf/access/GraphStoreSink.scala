@@ -27,14 +27,18 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   private var properties = Seq[TypedProperty]()
   private var output: Option[OutputStream] = None
   private val log = Logger.getLogger(classOf[GraphStoreSink].getName)
+  private var overallStmtCount = 0L
+  private var overallByteCount = 0L
+  private var entityCount = 0
   private var stmtCount = 0
   private var byteCount = 0L
+  private var nrGraphStoreRequests = 0
   // If a file upload graph store is used this will buffer the intermediate result that will be added via file upload.
   private var tempFile: Option[File] = None
   private val maxBytesPerRequest = graphStore.defaultTimeouts.maxRequestSize // in bytes
 
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty])(implicit userContext: UserContext): Unit = {
-    init()
+    internalInit()
     this.properties = properties
   }
 
@@ -47,20 +51,37 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
         writeStatement(subject, property.propertyUri, value, property.valueType)
       }
     }
+    entityCount += 1
   }
 
   override def writeLink(link: Link, predicateUri: String)
                         (implicit userContext: UserContext): Unit = {
     val (newStatements, _) = formatLink(link, predicateUri)
     writeStatementString(newStatements)
+    entityCount += 1
   }
 
   override def init()(implicit userContext: UserContext): Unit = {
+    internalInit()
+    entityCount = 0
+    overallStmtCount = 0L
+    overallByteCount = 0L
+  }
+
+  private def internalInit()(implicit userContext: UserContext): Unit = {
+    updateStatistics()
     if(output.isEmpty) {
-      stmtCount = 0
-      byteCount = 0L
       output = initOutputStream
       log.fine("Initialized graph store sink.")
+    }
+  }
+
+  private def updateStatistics(): Unit = {
+    if (stmtCount > 0 || byteCount > 0) {
+      overallByteCount += byteCount
+      overallStmtCount += stmtCount
+      stmtCount = 0
+      byteCount = 0L
     }
   }
 
@@ -95,8 +116,8 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
         val outputLength = outBytes.length
         if(byteCount + outputLength > maxBytesPerRequest) {
           log.fine("Reached max bytes per request size limit, ending and starting new connection.")
-          close()
-          init()
+          internalClose()
+          internalInit()
         }
         byteCount += outputLength
         o.write(outBytes)
@@ -119,7 +140,8 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
 
   override def closeTable()(implicit userContext: UserContext): Unit = {}
 
-  override def close()(implicit userContext: UserContext): Unit = {
+  private def internalClose()(implicit userContext: UserContext): Unit = {
+    updateStatistics()
     output match {
       case Some(o) =>
         try {
@@ -129,6 +151,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
               tempFile match {
                 case Some(fileToUpload) =>
                   fileUploadGraphStore.uploadFileToGraph(graphUri, fileToUpload, "application/n-triples", comment)
+                  nrGraphStoreRequests += 1
                 case None =>
                   throw new IllegalStateException("GraphStore file upload error: No temporary file exists even though an output stream exists!")
               }
@@ -139,7 +162,15 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
           output = None
         }
       case None =>
-        // no effect
+      // no effect
+    }
+  }
+
+  override def close()(implicit userContext: UserContext): Unit = {
+    internalClose()
+    if(overallStmtCount > 0) {
+      log.info(s"Finished writing $entityCount entities to graph '$graphUri'. Statistics: (Graph store requests: $nrGraphStoreRequests, overall statement count: " +
+          s"$overallStmtCount, overall bytes written: $overallByteCount)")
     }
   }
 }

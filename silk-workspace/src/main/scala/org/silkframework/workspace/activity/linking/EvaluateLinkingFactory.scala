@@ -27,8 +27,9 @@ case class EvaluateLinkingFactory(
   @Param("Write the generated links to the configured output of this task.")
   writeOutputs: Boolean = false,
   @Param("If defined, the execution will stop after the configured number of links is reached.\nThis is just a hint and the execution may produce slightly fewer or more links.")
-  linkLimit: Int = DEFAULT_LINK_LIMIT
-  ) extends TaskActivityFactory[LinkSpec, EvaluateLinkingActivity] {
+  linkLimit: Int = DEFAULT_LINK_LIMIT,
+  @Param("Timeout in seconds after that the matching task of an evaluation should be aborted. Set to 0 or negative to disable the timeout.")
+  timeout: Int = EVALUATION_TIMEOUT_SECONDS) extends TaskActivityFactory[LinkSpec, EvaluateLinkingActivity] {
 
   override def apply(task: ProjectTask[LinkSpec]): Activity[Linking] = {
     val runtimeConfig =
@@ -37,7 +38,8 @@ case class EvaluateLinkingFactory(
         useFileCache = useFileCache,
         partitionSize = partitionSize,
         generateLinksWithEntities = generateLinksWithEntities,
-        linkLimit = Some(linkLimit)
+        linkLimit = Some(linkLimit),
+        executionTimeout = Some(timeout).filter(_ > 0L).map(_ * 1000L)
       )
     new EvaluateLinkingActivity(task, runtimeConfig, writeOutputs)
   }
@@ -87,7 +89,6 @@ class EvaluateLinkingActivity(task: ProjectTask[LinkSpec], runtimeConfig: Runtim
     generateLinks foreach (_.resetCancelFlag())
     super.resetCancelFlag()
   }
-
 }
 
 object EvaluateLinkingFactory {
@@ -95,5 +96,7 @@ object EvaluateLinkingFactory {
   val DEFAULT_PARTITION_SIZE = 500
 
   val DEFAULT_LINK_LIMIT = 10000
+
+  final val EVALUATION_TIMEOUT_SECONDS: Int = 60
 
 }

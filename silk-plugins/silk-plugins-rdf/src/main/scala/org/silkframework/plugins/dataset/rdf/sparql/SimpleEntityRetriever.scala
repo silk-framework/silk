@@ -14,6 +14,8 @@
 
 package org.silkframework.plugins.dataset.rdf.sparql
 
+import java.util.logging.Logger
+
 import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
 import org.silkframework.entity.{Entity, EntitySchema, Path}
@@ -28,6 +30,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
                             graphUri: Option[String] = None,
                             useOrderBy: Boolean = true,
                             useSubSelect: Boolean = false) extends EntityRetriever {
+  private val log: Logger = Logger.getLogger(getClass.getName)
   private val varPrefix = "v"
 
   /**
@@ -129,6 +132,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
 
       // Count retrieved entities
       var counter = 0
+      val startTime = System.currentTimeMillis()
 
       for (result <- sparqlResults) {
         //If the subject is unknown, find binding for subject variable
@@ -164,7 +168,11 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
 
       for (curSubjectUri <- curSubject) {
         f(Entity(curSubjectUri, values.map(_.distinct).toIndexedSeq, entitySchema))
+        counter += 1
       }
+
+      log.info(s"Retrieved $counter entities of type '${entitySchema.typeUri}'" +
+          s"${graphUri.map(g => s" from graph '$g'").getOrElse("")} in ${System.currentTimeMillis() - startTime}ms.")
     }
   }
 

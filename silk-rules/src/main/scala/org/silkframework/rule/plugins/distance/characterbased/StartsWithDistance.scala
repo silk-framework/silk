@@ -8,7 +8,7 @@ import org.silkframework.runtime.plugin.{Param, Plugin}
   id = "startsWith",
   categories = Array("Characterbased"),
   label = "Starts With",
-  description = "Return 0 if the first string starts with the second string, 1 otherwise."
+  description = "Returns success if the first string starts with the second string, failure otherwise."
 )
 case class StartsWithDistance(@Param("Reverse source and target values")
                               reverse: Boolean = false,

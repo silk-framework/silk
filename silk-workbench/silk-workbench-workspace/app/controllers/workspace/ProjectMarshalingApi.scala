@@ -1,6 +1,7 @@
 package controllers.workspace
 
 import java.io._
+import java.util.logging.Logger
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.workspace.ProjectMarshalingApi._
@@ -15,6 +16,8 @@ import play.api.mvc._
 import scala.concurrent.ExecutionContext
 
 class ProjectMarshalingApi extends Controller {
+
+  private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   import ProjectMarshallerRegistry._
 
@@ -62,6 +65,7 @@ class ProjectMarshalingApi extends Controller {
       val workspace = WorkspaceFactory().workspace
       marshaller.unmarshalWorkspace(workspace.provider, workspace.repository, bodyAsFile)
       workspace.reload()
+      log.info(s"Imported workspace. " + userContext.logInfo)
       Ok
     }
   }

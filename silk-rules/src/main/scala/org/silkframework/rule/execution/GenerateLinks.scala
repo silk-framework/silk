@@ -41,6 +41,8 @@ class GenerateLinks(id: Identifier,
   /** The warnings which occurred during execution */
   @volatile private var warningLog: Seq[LogRecord] = Seq.empty
 
+  private var children: List[ActivityControl[_]] = Nil
+
   /** The entity descriptions which define which entities are retrieved by this task */
   def entityDescs = linkSpec.entityDescriptions
 
@@ -51,6 +53,7 @@ class GenerateLinks(id: Identifier,
 
   override def initialValue = Some(Linking(rule = linkSpec.rule))
 
+  //noinspection ScalaStyle
   override def run(context: ActivityContext[Linking])
                   (implicit userContext: UserContext): Unit = {
     context.value.update(Linking(rule = linkSpec.rule))
@@ -58,21 +61,24 @@ class GenerateLinks(id: Identifier,
     warningLog = CollectLogs() {
       // Entity caches
       val caches = createCaches()
-
       // Load entities
       val loaders = for((input, cache) <- inputs zip caches) yield context.child(new CacheLoader(input, cache, runtimeConfig.sampleSizeOpt))
+      children :::= loaders.toList
       if (runtimeConfig.reloadCache) {
         loaders.foreach(_.start())
       }
-
+      if(context.status.isCanceling) return
       // Execute matching
-      val sourceEqualsTarget = linkSpec.dataSelections.source == linkSpec.dataSelections.target
+      val sourceEqualsTarget = false // FIXME: CMEM-1975: Fix heuristic for this particular matching optimization
       val matcher = context.child(new Matcher(loaders, linkSpec.rule, caches, runtimeConfig, sourceEqualsTarget), 0.95)
       val updateLinks = (links: Seq[Link]) => context.value.update(Linking(linkSpec.rule, links, LinkingStatistics(entityCount = caches.map(_.size))))
       matcher.value.subscribe(updateLinks)
+      children ::= matcher
       matcher.startBlocking()
 
+      val entityCounts = caches.map(_.size)
       cleanUpCaches(caches)
+
       if(context.status.isCanceling) return
 
       // Filter links
@@ -93,7 +99,7 @@ class GenerateLinks(id: Identifier,
         filteredLinks = filteredLinks.take(linkLimit)
       }
 
-      context.value.update(Linking(linkSpec.rule, filteredLinks, LinkingStatistics(entityCount = caches.map(_.size))))
+      context.value.update(Linking(linkSpec.rule, filteredLinks, LinkingStatistics(entityCount = entityCounts)))
 
       //Output links
       // TODO dont commit links to context if the task is not configured to hold links
@@ -101,6 +107,12 @@ class GenerateLinks(id: Identifier,
       context.child(outputTask, 0.02).startBlocking()
     }
   }
+
+  override def cancelExecution()(implicit userContext: UserContext): Unit = {
+    children foreach { _.cancel()}
+    super.cancelExecution()
+  }
+
   private def cleanUpCaches(caches: DPair[EntityCache]): Unit = {
     var success = false
     for (_ <- 1 to 3 if !success) {

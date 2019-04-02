@@ -68,7 +68,8 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
     */
   val taskContexts: Map[Identifier, ActivityContext[ExecutionReport]] = {
     for(node <- workflow.nodes) yield {
-      val taskMonitor = new ActivityMonitor[ExecutionReport](node.task, Some(activityContext))
+      val projectAndTaskString = activityContext.status.projectAndTaskId.map(ids => ids.copy(ids.projectId, ids.taskId.map(_ + " -> " + node.task)))
+      val taskMonitor = new ActivityMonitor[ExecutionReport](node.task, Some(activityContext), projectAndTaskId = projectAndTaskString)
       (node.task, taskMonitor)
     }
   }.toMap

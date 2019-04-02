@@ -9,7 +9,9 @@ import scala.util.control.NonFatal
 
 private class ActivityExecution[T](activity: Activity[T],
                                    parent: Option[ActivityContext[_]] = None,
-                                   progressContribution: Double = 0.0) extends ActivityMonitor[T](activity.name, parent, progressContribution, activity.initialValue)
+                                   progressContribution: Double = 0.0,
+                                   projectAndTaskId: Option[ProjectAndTaskIds])
+    extends ActivityMonitor[T](activity.name, parent, progressContribution, activity.initialValue, projectAndTaskId = projectAndTaskId)
     with ActivityControl[T] {
 
   /**

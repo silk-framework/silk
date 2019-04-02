@@ -17,6 +17,7 @@ package org.silkframework.rule
 import java.util.concurrent.atomic.AtomicInteger
 
 import org.silkframework.runtime.serialization.XmlSerialization
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
 import scala.xml.Node
@@ -40,6 +41,19 @@ trait Operator {
     */
   def withChildren(newChildren: Seq[Operator]): Operator
 
+  /**
+    * Asserts that all identifiers in this rule tree are unique.
+    *
+    * @throws ValidationException If duplicate identifiers have been found.
+    */
+  final def validateIds(): Unit = {
+    val allIds = RuleTraverser(this).iterateAllChildren.map(_.operator.id).toList
+    val duplicateIds = allIds.groupBy(_.toString).filter(_._2.size > 1).keys
+    if (duplicateIds.nonEmpty) {
+      throw new ValidationException("Duplicate identifiers found in rule: " + duplicateIds.mkString(", "))
+    }
+  }
+
 }
 
 /**
@@ -53,7 +67,7 @@ object Operator {
   /**
    * Generates a new operator identifier.
    */
-  def generateId = Identifier("unnamed_" + lastId.incrementAndGet())
+  def generateId: Identifier = Identifier("unnamed_" + lastId.incrementAndGet())
 
   /**
    * Reads the operator identifier from an xml element.
