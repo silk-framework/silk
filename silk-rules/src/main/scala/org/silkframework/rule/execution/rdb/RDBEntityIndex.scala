@@ -8,7 +8,7 @@ import org.silkframework.dataset.{DataSource, TypedProperty}
 import org.silkframework.entity.{Entity, EntitySchema, StringValueType, TypedPath}
 import org.silkframework.plugins.dataset.csv.{CsvSettings, CsvSink}
 import org.silkframework.rule._
-import org.silkframework.rule.execution.rdb.RDBEntityIndex.executeUpdate
+import org.silkframework.rule.execution.rdb.RDBEntityIndex.{executeQuery, executeUpdate, linkingTableRegistry}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.resource.{FileResourceManager, WritableResource}
 import org.silkframework.util.{DPair, Identifier, Uri}
@@ -152,6 +152,12 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
         }
         sink.closeTable()
         sink.close()
+        val copyQuery =
+          s"""COPY $csvFileName(entityId,indexValue)
+             |FROM '/data/$csvFileName.csv' DELIMITER ',' CSV HEADER;
+          """.stripMargin
+        log.fine(s"Executing $copyQuery")
+        executeUpdate(copyQuery)
     }
 
     //    for (entity <- entities) {
