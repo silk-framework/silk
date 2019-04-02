@@ -4,12 +4,14 @@ import java.sql._
 import java.util.logging.Logger
 
 import org.silkframework.config.DefaultConfig
-import org.silkframework.dataset.DataSource
-import org.silkframework.entity.{Entity, EntitySchema, TypedPath}
+import org.silkframework.dataset.{DataSource, TypedProperty}
+import org.silkframework.entity.{Entity, EntitySchema, StringValueType, TypedPath}
+import org.silkframework.plugins.dataset.csv.{CsvSettings, CsvSink}
 import org.silkframework.rule._
+import org.silkframework.rule.execution.rdb.RDBEntityIndex.executeUpdate
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
-import org.silkframework.util.{DPair, Identifier}
-import RDBEntityIndex.{executeUpdate, executeQuery}
+import org.silkframework.runtime.resource.{FileResourceManager, WritableResource}
+import org.silkframework.util.{DPair, Identifier, Uri}
 
 /**
   * An entity index based on a relational database that is used to generate linking candidates based on a link specification.
@@ -100,31 +102,76 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
   def loadTables(indexProfile: RdbIndexProfile)
                 (implicit userContext: UserContext,
                  connection: Connection): Unit = {
+
     val entities = retrieveEntities()
-//    val (forMainIndexTable, separateIndexTables) = indexProfile.indexProfiles.partition(_._2.cardinality._2 <= 1)
+    //    val (forMainIndexTable, separateIndexTables) = indexProfile.indexProfiles.partition(_._2.cardinality._2 <= 1)
     val pathProfiles = entitySchema.typedPaths.map(tp => (tp, EntityPathProfile())).toMap
     val indexProfiles = booleanLinkageRule.comparisons.map(c => (c.id, IndexProfile())).toMap
-    var entityId = 1
-//    val mainTableColumns = forMainIndexTable.toSeq.map(_._1.toString)
-    val bulkUpdater = BulkUpdater(BULK_UPDATE_SIZE)
-    for(entity <- entities) {
-      val linkageRuleIndex = LinkageRuleIndex.apply(entity, booleanLinkageRule, sourceOrTarget)
-//      if(mainTableColumns.nonEmpty) {
-//        val query = s"INSERT INTO $mainIndexTableName ($entityIdColumn, ${mainTableColumns.mkString(",")}) " +
-//            s"VALUES ($entityId, ${linkageRuleIndex.comparisonIndexValues(mainTableColumns).map(_.headOption.map(_.toString).getOrElse("null")).mkString(",")});"
-//        bulkUpdater.addQueryForExecution(query)
-//      }
-      val separateIndexTableComparisons = indexProfile.indexProfiles.toSeq.map(_._1.toString)
-      for ((sepIndexTable, sepIndexTableValues) <- separateIndexTableComparisons.zip(linkageRuleIndex.comparisonIndexValues(separateIndexTableComparisons));
-           indexValue <- sepIndexTableValues) {
-        val query = s"INSERT INTO ${separateIndexTable(sepIndexTable)} ($entityIdColumn, $indexValueColumn) VALUES ($entityId, $indexValue);"
-        // TODO: Use COPY operator for Postgres instead of loading the data via UPDATE because there are problems with the memory foot print and performance
-        bulkUpdater.addQueryForExecution(query)
+    //    var entityId = 1
+    //    val mainTableColumns = forMainIndexTable.toSeq.map(_._1.toString)
+    //    val bulkUpdater = BulkUpdater(BULK_UPDATE_SIZE)
+    val resourceManager = new FileResourceManager("./temp/")
+    val settings =
+      CsvSettings(
+        quote = None,
+        arraySeparator = None
+      )
+    val headers =
+      Seq(
+        TypedProperty(entityIdColumn, StringValueType, isBackwardProperty = false),
+        TypedProperty(indexValueColumn, StringValueType, isBackwardProperty = false)
+      )
+
+    // zip entities with an index that is used as ID (entityId))
+    val csvFilesToBeWritten = entities.toSeq.zipWithIndex.flatMap(entityAndIndex => {
+      // create rule index
+      val linkageRuleIndex = LinkageRuleIndex(entityAndIndex._1, booleanLinkageRule, sourceOrTarget)
+      val separateIndexTableIdentifiers = indexProfile.indexProfiles.toSeq.map(_._1.toString)
+      // create sequence from identifiers and actual comparison index values
+      val tableAndValues = separateIndexTableIdentifiers.zip(linkageRuleIndex.comparisonIndexValues(separateIndexTableIdentifiers))
+      // create map consisting of key (e.g. equality1) and Seq(entityId, index value)
+      // example: ArrayBuffer((equality1,Set((23,1756552979))), (substring1,Set((23,96682), (23,109078), ...))))
+      tableAndValues.map { case (sepIndexTableKey, sepIndexTableValues) =>
+        separateIndexTable(sepIndexTableKey) -> sepIndexTableValues.map(x => (entityAndIndex._2, x))
       }
-      // TODO: Create relevant indexes after loading the entities
-      entityId += 1
+      // now we need to group the keys, since they correspond with the filenames
+    }).groupBy(_._1)
+      // the result still contains the whole map as result, but we only want the values
+      // additionally we flatten the map to get rid of the Seq in Seq
+      .mapValues(_ flatMap { case (_, entityIdAndIndexValue) => entityIdAndIndexValue })
+
+    // now we write the streams to the individual CSV files
+    csvFilesToBeWritten.foreach {
+      case (csvFileName, csvFileRows) =>
+        val writableResource: WritableResource = resourceManager.get(s"$csvFileName.csv")
+        val sink = new CsvSink(writableResource, settings)
+        sink.openTable(new Uri(csvFileName), headers)
+        csvFileRows.foreach {
+          case (entityIdValue, indexValue) =>
+            sink.write(Seq(entityIdValue.toString, indexValue.toString))
+        }
+        sink.closeTable()
+        sink.close()
     }
-    bulkUpdater.execute()
+
+    //    for (entity <- entities) {
+    //      val linkageRuleIndex = LinkageRuleIndex.apply(entity, booleanLinkageRule, sourceOrTarget)
+    //      //      if(mainTableColumns.nonEmpty) {
+    //      //        val query = s"INSERT INTO $mainIndexTableName ($entityIdColumn, ${mainTableColumns.mkString(",")}) " +
+    //      //            s"VALUES ($entityId, ${linkageRuleIndex.comparisonIndexValues(mainTableColumns).map(_.headOption.map(_.toString).getOrElse("null")).mkString(",")});"
+    //      //        bulkUpdater.addQueryForExecution(query)
+    //      //      }
+    //      val separateIndexTableComparisons = indexProfile.indexProfiles.toSeq.map(_._1.toString)
+    //      for ((sepIndexTable, sepIndexTableValues) <- separateIndexTableComparisons.zip(linkageRuleIndex.comparisonIndexValues(separateIndexTableComparisons));
+    //           indexValue <- sepIndexTableValues) {
+    ////        val query = s"INSERT INTO ${separateIndexTable(sepIndexTable)} ($entityIdColumn, $indexValueColumn) VALUES ($entityId, $indexValue);"
+    //        // TODO: Use COPY operator for Postgres instead of loading the data via UPDATE because there are problems with the memory foot print and performance
+    //        //        bulkUpdater.addQueryForExecution(query)
+    //      }
+    //      // TODO: Create relevant indexes after loading the entities
+    //      entityId += 1
+    //    }
+    //    bulkUpdater.execute()
     RdbIndexProfile(pathProfiles, indexProfiles)
   }
 
