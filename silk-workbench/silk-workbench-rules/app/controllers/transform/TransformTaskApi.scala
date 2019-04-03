@@ -237,6 +237,16 @@ class TransformTaskApi extends Controller {
     }
   }
 
+  /** Converts a root mapping rule to an object mapping rule. */
+  private def convertRootMappingRule(rule: TransformRule): TransformRule = {
+    rule match {
+      case RootMappingRule(rules, id, metaData) =>
+        ObjectMapping(id, rules = rules, metaData = metaData)
+      case other: TransformRule =>
+        other
+    }
+  }
+
   def copyRule(projectName: String,
                taskName: String,
                ruleName: String,
@@ -251,7 +261,7 @@ class TransformTaskApi extends Controller {
       implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task))
       processRule(fromTask, sourceRule) { ruleToCopy =>
         processRule(task, ruleName) { parentRule =>
-          val newChildRule = assignNewIdsAndLabelToRule(task, ruleToCopy)
+          val newChildRule = convertRootMappingRule(assignNewIdsAndLabelToRule(task, ruleToCopy))
           addRuleToTransformTask(parentRule, newChildRule, afterRuleId)
         }
       }

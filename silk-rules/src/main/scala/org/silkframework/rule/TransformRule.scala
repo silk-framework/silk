@@ -48,6 +48,8 @@ sealed trait TransformRule extends Operator {
 
   def rules: MappingRules = MappingRules.empty
 
+  assert(rules.allRules.forall(!_.isInstanceOf[RootMappingRule]), "No root mapping rule allowed as child of another rule!")
+
   /**
     * Generates the transformed values.
     *
@@ -332,7 +334,6 @@ case class ObjectMapping(id: Identifier = "mapping",
                          override val rules: MappingRules,
                          metaData: MetaData = MetaData.empty,
                          prefixes: Prefixes = Prefixes.empty) extends ContainerTransformRule {
-
   override val typeString = "Object"
 
   def uriRule(pathPrefix: Path = Path.empty): Option[UriMapping] = {

@@ -1,6 +1,6 @@
 package controllers.transform
 
-import org.silkframework.rule.{ComplexMapping, ObjectMapping, TransformRule, TransformSpec}
+import org.silkframework.rule._
 import org.silkframework.workspace.ProjectTask
 import play.api.libs.json.{JsArray, JsString, Json}
 import play.api.libs.ws.WS
@@ -15,6 +15,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   def printResponses = false
 
   private val OBJECT_RULE_ID = "objectRule"
+  private val ROOT_RULE_ID = "root"
 
   "Setup project" in {
     createProject(project)
@@ -35,15 +36,15 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     // A label has been generated for this transform
     (response \ "metadata" \ "label").as[String] mustBe "Test Transform"
     // An id and a label has been generated for the root mapping
-    (response \ "data" \ "root" \ "id").as[String] mustBe "root"
-    (response \ "data" \ "root" \ "metadata" \ "label").as[String] mustBe "Root Mapping"
+    (response \ "data" \ ROOT_RULE_ID \ "id").as[String] mustBe ROOT_RULE_ID
+    (response \ "data" \ ROOT_RULE_ID \ "metadata" \ "label").as[String] mustBe "Root Mapping"
   }
 
   "Check that we can GET the transform task as XML" in {
     val request = WS.url(s"$baseUrl/transform/tasks/$project/$task").
         withHeaders("ACCEPT" -> "application/xml")
     val response = request.get()
-    (XML.loadString(checkResponse(response).body) \ "RootMappingRule" \ "@id").toString mustBe "root"
+    (XML.loadString(checkResponse(response).body) \ "RootMappingRule" \ "@id").toString mustBe ROOT_RULE_ID
   }
 
   "Set root mapping parameters: URI pattern and type" in {
@@ -478,6 +479,22 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     clonedLabel mustBe s"Copy of $originalLabel"
   }
 
+  "Copy root mapping rule as child rule of itself" in {
+    postRequest(s"$baseUrl/transform/tasks/$project/$task/rule/$ROOT_RULE_ID/rules/copyFrom?" +
+        s"sourceProject=$project&sourceTask=$task&sourceRule=$ROOT_RULE_ID")
+    retrieveRuleOrder() mustBe Seq("directRule2", OBJECT_RULE_ID, insertedAfterRuleId, insertedAfterRuleId + "1",
+      "directRule", OBJECT_RULE_ID + "1", ROOT_RULE_ID + "1")
+    val originalTransformRule = rootPropertyRule(ROOT_RULE_ID)
+    val clonedTransformRule = rootPropertyRule(ROOT_RULE_ID + "1")
+    originalTransformRule.rules.allRules.size mustBe (clonedTransformRule.rules.allRules.size + 1)
+    val originalUriRule = as[RootMappingRule](originalTransformRule).rules.uriRule.get.operator
+    val clonedUriRule = as[ObjectMapping](clonedTransformRule).rules.uriRule.get.operator
+    clonedUriRule mustBe originalUriRule
+    val originalLabel = originalTransformRule.metaData.label
+    val clonedLabel = clonedTransformRule.metaData.label
+    clonedLabel mustBe s"Copy of $originalLabel"
+  }
+
   private def as[T](obj: Any): T = {
     obj match {
       case t: T =>
@@ -488,8 +505,12 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   private def rootPropertyRule(ruleId: String): TransformRule = {
-    transformTask.data.rules.propertyRules.
-        find(_.id.toString == ruleId).getOrElse(throw new RuntimeException(s"Property rule '$ruleId' not found!"))
+    if(ruleId == ROOT_RULE_ID) {
+      transformTask.data.mappingRule
+    } else {
+      transformTask.data.rules.propertyRules.
+          find(_.id.toString == ruleId).getOrElse(throw new RuntimeException(s"Property rule '$ruleId' not found!"))
+    }
   }
 
   "Append multiple new direct mapping rules without ID at the same time" in {
