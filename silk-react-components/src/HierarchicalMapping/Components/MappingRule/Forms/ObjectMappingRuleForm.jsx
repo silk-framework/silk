@@ -50,7 +50,7 @@ const ObjectMappingRuleForm = React.createClass({
             prevState.loading === true &&
             _.get(this.state, 'loading', false) === false
         ) {
-            this.scrollIntoView({
+            this.props.scrollIntoView({
                 topOffset: 75,
             });
         }
