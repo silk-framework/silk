@@ -7,15 +7,7 @@ import _ from 'lodash';
 import {
     DisruptiveButton,
     DismissiveButton,
-    Card,
-    CardTitle,
-    CardContent,
-    CardMenu,
-    FloatingActionList,
-    ContextMenu,
-    MenuItem,
     ConfirmationDialog,
-    Info,
     Spinner,
 } from '@eccenca/gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
@@ -478,44 +470,10 @@ const MappingsWorkview = React.createClass({
                 false
             );
 
-        const askForChildsDialog = this.state.askForChilds ? (
-            <ConfirmationDialog
-                active
-                modal
-                title="Copying Object"
-                confirmButton={
-                    <DisruptiveButton
-                        onClick={() => {
-                            this.setState({
-                                askForChilds: false,
-                            });
-                            this.handlePaste(false, true);
-                        }}>
-                        Yes
-                    </DisruptiveButton>
-                }
-                cancelButton={
-                    <DismissiveButton
-                        onClick={() => {
-                            this.setState({
-                                askForChilds: false,
-                            });
-                            this.handlePaste(false);
-                        }}>
-                        No
-                    </DismissiveButton>
-                }>
-                <p>Do you want to copy all the child Mapping Rules of this object?</p>
-            </ConfirmationDialog>
-        ) : (
-            false
-        );
-
         return (
             <div className="ecc-silk-mapping__rules">
                 {loading}
                 {discardView}
-                {askForChildsDialog}
                 <MappingsHeader
                     rule={this.state.ruleData}
                     key={`navhead_${id}`}
