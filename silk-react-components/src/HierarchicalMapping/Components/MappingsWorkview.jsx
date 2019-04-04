@@ -316,7 +316,7 @@ const MappingsWorkview = React.createClass({
                         if (copyingData.type === MAPPING_RULE_TYPE_DIRECT ||
                             copyingData.type === MAPPING_RULE_TYPE_COMPLEX) {
                             sessionStorage.setItem('pastedId', newRule.id);
-                        } else if (copyingData.type === MAPPING_RULE_TYPE_OBJECT) {
+                        } else if (copyingData.type === MAPPING_RULE_TYPE_OBJECT || copyingData.type === MAPPING_RULE_TYPE_ROOT) {
                             hierarchicalMappingChannel
                                 .subject('ruleId.change')
                                 .onNext({
