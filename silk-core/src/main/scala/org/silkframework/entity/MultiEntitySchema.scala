@@ -32,7 +32,7 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
     this.getSchemaOfProperty(oldName) match{
       case Some(_) => new MultiEntitySchema(
         this.pivotSchema.renameProperty(oldName, newName),
-        this.subSchemata.map(es => es.renameProperty(TypedPath.reducePath(oldName, es.subPath).asInstanceOf[TypedPath], newName))
+        this.subSchemata.map(es => es.renameProperty(TypedPath.removePathPrefix(oldName, es.subPath).asInstanceOf[TypedPath], newName))
       )
       case None => this
     }
@@ -48,7 +48,7 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
     this.pivotSchema.getSchemaOfProperty(tp) match{
       case Some(es) => Some(es)
       case None => this.subSchemata.find(es => {
-        es.typedPaths.contains(TypedPath.reducePath(tp, es.subPath))
+        es.typedPaths.contains(TypedPath.removePathPrefix(tp, es.subPath))
       })
   }
 
@@ -64,7 +64,7 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
       case Some(es) => Some(es)
       case None =>
         this.subSchemata.find(es => {
-          es.typedPaths.map(_.toSimplePath).contains(TypedPath.reducePath(tp, es.subPath))
+          es.typedPaths.map(_.toSimplePath).contains(TypedPath.removePathPrefix(tp, es.subPath))
         })
     }//TODO TypedPath change: new
 

@@ -127,7 +127,7 @@ object TypedPath {
     * @param path - the path to be reduced
     * @param subPath -  the sub path
     */
-  def reducePath(path: Path, subPath: Path): Path = if(path.operators.startsWith(subPath.operators)){
+  def removePathPrefix(path: Path, subPath: Path): Path = if(path.operators.startsWith(subPath.operators)){
     path match{
       case tp: TypedPath => TypedPath(path.operators.drop(subPath.operators.size), tp.valueType, tp.isAttribute)
       case _ => Path(path.operators.drop(subPath.operators.size))

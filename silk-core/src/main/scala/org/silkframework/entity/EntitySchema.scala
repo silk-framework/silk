@@ -176,7 +176,7 @@ case class EntitySchema(
     hashCode
   }
 
-  override def equals(obj: scala.Any): Boolean = {
+  override def equals(obj: Any): Boolean = {
     if(obj != null) {
       obj match {
         case es: EntitySchema =>
@@ -196,7 +196,7 @@ case class EntitySchema(
       false
   }
 
-  def equalsUntyped(obj: scala.Any): Boolean = {//TODO TypedPath change: new
+  def equalsUntyped(obj: Any): Boolean = {//TODO TypedPath change: new
     if(obj != null) {
       obj match {
         case es: EntitySchema =>

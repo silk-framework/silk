@@ -21,8 +21,8 @@ import org.silkframework.entity.metadata.{EntityMetadata, EntityMetadataXml, Gen
 import org.silkframework.failures.FailureClass
 import org.silkframework.util.Uri
 
-import scala.xml.Node
 import scala.language.existentials
+import scala.xml.Node
 
 /**
   * An Entity can represent an instance of any given concept
@@ -130,26 +130,28 @@ case class Entity private(
     * @param pathIndex - the index in the value array
     */
   def evaluate(pathIndex: Int): Seq[String] = {
-    this.schema match{
+    this.schema match {
       case mes: MultiEntitySchema =>
         val schemata = Seq(mes.pivotSchema) ++ mes.subSchemata
         val pivotSize = mes.pivotSchema.typedPaths.size
         // create range sequence where the first entry is the EntitySchema belonging to the value of the index (and the second is out of range)
         val rangeMap = (schemata.zip(Seq(0) ++ mes.subSchemata.zipWithIndex.map(x => mes.subSchemata.
-          splitAt(x._2)._1
-          .foldLeft(pivotSize)((i, s) => s.typedPaths.size + i))
-        ) ++ Seq(( EntitySchema.empty, mes.typedPaths.size ))).sliding(2)
+            splitAt(x._2)._1
+            .foldLeft(pivotSize)((i, s) => s.typedPaths.size + i))
+        ) ++ Seq((EntitySchema.empty, mes.typedPaths.size))).sliding(2)
         // now find the correct range and EntitySchema
-        val zw = rangeMap.find(x => x.head._2 <= pathIndex && (x.tail.headOption match{
+        val zw = rangeMap.find(x => x.head._2 <= pathIndex && (x.tail.headOption match {
           case Some(o) => o._2 > pathIndex
           case None => true
         })).map(_.head)
-        zw.flatMap(x => {if(x._1 == mes.pivotSchema){
-          Some(this.values(pathIndex))
-        }
-        else{
-          this.subEntities.flatten.find(se => se.schema == x._1).map(e => e.evaluate(pathIndex - x._2))
-        }}).getOrElse(Seq())
+        zw.flatMap(x =>
+          if (x._1 == mes.pivotSchema) {
+            Some(this.values(pathIndex))
+          }
+          else {
+            this.subEntities.flatten.find(se => se.schema == x._1).map(e => e.evaluate(pathIndex - x._2))
+          }
+        ).getOrElse(Seq())
       case _: EntitySchema => this.values(pathIndex)
     }
   }
@@ -172,7 +174,7 @@ case class Entity private(
             subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
           }
           //now find the pertaining index and get values
-          ent.evaluate(es.pathIndex(TypedPath.reducePath(path, es.subPath).asInstanceOf[TypedPath]))
+          ent.evaluate(es.pathIndex(TypedPath.removePathPrefix(path, es.subPath).asInstanceOf[TypedPath]))
         case None => Seq()
       }
     }
@@ -197,7 +199,7 @@ case class Entity private(
             subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
           }
           //now find the pertaining index and get values
-          ent.evaluate(es.pathIndexIgnoreType(TypedPath.reducePath(path, es.subPath)))
+          ent.evaluate(es.pathIndexIgnoreType(TypedPath.removePathPrefix(path, es.subPath)))
         case None => Seq()
       }
     }

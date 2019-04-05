@@ -38,12 +38,9 @@ sealed trait ValueType {
     * Extends equals to return true if either one of the comparators is an UntypedValueType
     * @param vt - the other ValueType
     */
-  def equalsOrIndifferentTo(vt: ValueType): Boolean = {//TODO TypedPath change: new
-    vt match{
-      case UntypedValueType => true
-      case _ if this == UntypedValueType => true
-      case v => v == this
-    }
+  def equalsOrIndifferentTo(vt: ValueType): Boolean = { //TODO TypedPath change: new
+    Set(this, vt).contains(UntypedValueType) ||
+        vt == this
   }
 }
 
