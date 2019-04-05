@@ -144,6 +144,15 @@ class TransformTaskApi extends Controller {
     }
   }
 
+  /**
+    * Adds the rule provided in the request to the children of the specified transform task mapping rule.
+    *
+    * @param taskName    Transform task where the mapping rule should be added.
+    * @param ruleName    The parent rule ID that the new rule should be added to as a child.
+    * @param afterRuleId If specified then the new rule is added right after this rule. If not specified the new rule
+    *                    is appended to the end of the list.
+    * @return The newly created rule.
+    */
   def appendRule(projectName: String,
                  taskName: String,
                  ruleName: String,
@@ -247,6 +256,19 @@ class TransformTaskApi extends Controller {
     }
   }
 
+  /**
+    * Copies a mapping rule from a source transform task to a target transform task.
+    *
+    * @param projectName   The target project where the rule is copied to.
+    * @param taskName      The target transform task the rule is copied to.
+    * @param ruleName      The target rule where the copied rule should be added as child.
+    * @param sourceProject The project the source rule is copied from.
+    * @param sourceTask    The source task the source rule is copied from.
+    * @param sourceRule    The ID of the source rule that should be copied.
+    * @param afterRuleId   An optional rule ID of one of the children of the parent rule after which the new rule should be
+    *                      added.
+    * @return The newly added rule.
+    */
   def copyRule(projectName: String,
                taskName: String,
                ruleName: String,
