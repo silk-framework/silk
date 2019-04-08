@@ -291,27 +291,21 @@ const ObjectRule = React.createClass({
         let entityRelation = false;
         let deleteButton = false;
 
-        const copyButton = isCopiableRule(this.props.type) ? (
+        const copyButton = isCopiableRule(this.props.type) &&
             <Button
                 className="ecc-silk-mapping__rulesviewer__actionrow-copy"
                 raised
                 onClick={this.handleCopy}>
                 Copy
-            </Button>
-        ) : (
-            false
-        );
+            </Button>;
 
-        const cloneButton = isCopiableRule(this.props.type) ? (
+        const cloneButton = isCopiableRule(this.props.type) &&
             <Button
                 className="ecc-silk-mapping__rulesviewer__actionrow-clone"
                 raised
                 onClick={this.handleClone}>
                 Clone
-            </Button>
-        ) : (
-            false
-        );
+            </Button>;
 
         if (type !== MAPPING_RULE_TYPE_ROOT) {
             targetProperty = (

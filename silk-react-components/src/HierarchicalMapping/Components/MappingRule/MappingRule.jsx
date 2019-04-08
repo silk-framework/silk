@@ -48,8 +48,9 @@ const MappingRule = React.createClass({
 
     // initilize state
     getInitialState() {
-        const isPasted = sessionStorage.getItem('pastedId') &&
-            (sessionStorage.getItem('pastedId') === this.props.id) &&
+        const pastedId = sessionStorage.getItem('pastedId');
+        const isPasted = (pastedId !== null) && (pastedId === this.props.id);
+        if (isPasted)
             !sessionStorage.removeItem('pastedId');
         return {
             isPasted : isPasted,
