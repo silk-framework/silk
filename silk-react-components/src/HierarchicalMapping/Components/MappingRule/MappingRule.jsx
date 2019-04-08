@@ -219,7 +219,9 @@ const MappingRule = React.createClass({
         const ruleLabel = [
             label
                 ? [
-                    label,
+                    <div className="ecc-silk-mapping__ruleitem-label">
+                        {label}
+                    </div>,
                     cleanUri.toLowerCase() !== label.toLowerCase()
                         ? [
                             <div className="ecc-silk-mapping__ruleitem-extraline ecc-silk-mapping__ruleitem-url">
@@ -228,7 +230,9 @@ const MappingRule = React.createClass({
                         ] : null
                 ]
                 : [
-                    uriLabel,
+                    <div className="ecc-silk-mapping__ruleitem-label">
+                        {uriLabel}
+                    </div>,
                         uriLabel.toLowerCase() !== cleanUri.toLowerCase()
                             ? [
                                 <div className="ecc-silk-mapping__ruleitem-extraline ecc-silk-mapping__ruleitem-url">
