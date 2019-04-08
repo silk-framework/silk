@@ -17,8 +17,6 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
 
   private val logger = Logger.getLogger(getClass.getName)
 
-  private val maxFileSizeForPeak = DefaultConfig.instance().getInt(MAX_SIZE_CONFIG_KEY)
-
   override def retrieveTypes(limit: Option[Int])
                             (implicit userContext: UserContext): Traversable[(String, Double)] = {
     val xml = file.read(XML.load)
