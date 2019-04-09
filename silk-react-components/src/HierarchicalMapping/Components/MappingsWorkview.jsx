@@ -323,7 +323,6 @@ const MappingsWorkview = React.createClass({
                                     newRuleId: newRule.id,
                                 });
                         }
-                        sessionStorage.removeItem('copyingData');
                         hierarchicalMappingChannel.subject('reload').onNext(true);
                     }
                 )
