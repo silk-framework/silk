@@ -1,7 +1,6 @@
 import React from 'react';
-import {expect, assert} from 'chai';
+import chai, {expect, assert} from 'chai';
 import { mount } from 'enzyme';
-import chai from "chai";
 import chaiEnzyme from "chai-enzyme";
 import Enzyme from "enzyme/build";
 import Adapter from "enzyme-adapter-react-15/build";
