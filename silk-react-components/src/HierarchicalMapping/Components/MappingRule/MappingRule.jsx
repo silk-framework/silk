@@ -24,6 +24,7 @@ import {
     isObjectMappingRule,
     MAPPING_RULE_TYPE_OBJECT,
     uriToLabel,
+    getRuleLabel,
 } from '../../helpers';
 import Navigation from '../../Mixins/Navigation';
 import className from 'classnames';
@@ -216,31 +217,7 @@ const MappingRule = React.createClass({
 
         const uriLabel = uriToLabel(mappingTarget.uri);
         const cleanUri = mappingTarget.uri.replace(/(^<+|>+$)/g, '');
-        const ruleLabel = [
-            label
-                ? [
-                    <div className="ecc-silk-mapping__ruleitem-label">
-                        {label}
-                    </div>,
-                    cleanUri.toLowerCase() !== label.toLowerCase()
-                        ? [
-                            <div className="ecc-silk-mapping__ruleitem-extraline ecc-silk-mapping__ruleitem-url">
-                                {cleanUri}
-                            </div>
-                        ] : null
-                ]
-                : [
-                    <div className="ecc-silk-mapping__ruleitem-label">
-                        {uriLabel}
-                    </div>,
-                        uriLabel.toLowerCase() !== cleanUri.toLowerCase()
-                            ? [
-                                <div className="ecc-silk-mapping__ruleitem-extraline ecc-silk-mapping__ruleitem-url">
-                                    {cleanUri}
-                                </div>
-                            ] : null
-                    ]
-        ];
+        const ruleLabelData = getRuleLabel({ label, cleanUri, uriLabel });
 
         // TODO: enable real API structure
         const shortView = [
@@ -252,7 +229,10 @@ const MappingRule = React.createClass({
                     status={_.get(this.props, 'status[0].type', false)}
                     message={_.get(this.props, 'status[0].message', false)}
                 />
-                {ruleLabel}
+				<div className="ecc-silk-mapping__ruleitem-label">
+					{ruleLabelData.displayLabel}
+				</div>
+				{ruleLabelData.uri && <div className="ecc-silk-mapping__ruleitem-extraline ecc-silk-mapping__ruleitem-url">{ruleLabelData.uri}</div>}
             </div>,
             <div
                 key={'sl3'}

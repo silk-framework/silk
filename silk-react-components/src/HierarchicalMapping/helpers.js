@@ -65,3 +65,17 @@ export const uriToLabel = uri => {
     }
     return camelCase(label);
 };
+
+/**
+ * @param label {string}
+ * @param cleanUri {string}
+ * @param uriLabel {string}
+ *
+ * @returns {{displayLabel: string, uri: null||string}}
+ */
+export const getRuleLabel = ({ label, cleanUri, uriLabel }) => {
+	return {
+		displayLabel: label ? label : uriLabel,
+		uri: cleanUri.toLocaleString() !== label.toLocaleString() ? cleanUri : null
+	};
+};
