@@ -1,6 +1,6 @@
 package org.silkframework.failures
 
-import org.silkframework.entity.Path
+import org.silkframework.entity.{Path, TypedPath}
 import org.silkframework.entity.metadata.GenericExecutionFailure
 import org.silkframework.util.Identifier
 
@@ -17,6 +17,8 @@ import scala.language.implicitConversions
 class EntityException(msg: String, ex: Throwable, taskId: Identifier, property: Option[Path] = None) extends Exception(msg, ex){
 
   def this(msg: String, taskId: Identifier, property: Path) = this(msg, null, taskId, Some(property))
+
+  def this(msg: String, taskId: Identifier, property: TypedPath) = this(msg, null, taskId, Some(property.toSimplePath))
 
   private val exception = if(ex == null) this else ex
 

@@ -14,7 +14,8 @@ object EntitySerializers {
 
     override def write(value: EntitySchema)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       implicit val prefixes: Prefixes = writeContext.prefixes
-      val paths = for(typedPath <- value.typedPaths) yield JsString(typedPath.serialize())
+      // TODO: Typed paths are not correctly serialized here, check where this serialization is consumed
+      val paths = for(typedPath <- value.typedPaths) yield JsString(typedPath.toSimplePath.serialize())
       Json.obj(
         "typeUri" -> value.typeUri.uri,
         "paths" -> JsArray(paths),
@@ -48,7 +49,7 @@ object EntitySerializers {
 
     override def write(value: EntityHolder)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       // Append header
-      val header: Array[String] = value.entitySchema.typedPaths.map(path => path.serialize(stripForwardSlash = true)(writeContext.prefixes)).toArray
+      val header: Array[String] = value.entitySchema.typedPaths.map(path => path.toSimplePath.serialize()(writeContext.prefixes)).toArray
 
       // Convert entity values to a nested JSON array
       val valuesJson = JsArray(

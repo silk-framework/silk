@@ -147,7 +147,9 @@ case class RdfFileDataset(
       PlainTask(Identifier.fromAllowed(RdfFileDataset.this.file.name), DatasetSpec(EmptyDataset))
     } //FIXME CMEM 1352 replace with actual task
 
-    override def retrievePathsSparqlRestriction(sparqlRestriction: SparqlRestriction, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[Path] = {
+    override def retrievePathsSparqlRestriction(sparqlRestriction: SparqlRestriction,
+                                                limit: Option[Int])
+                                               (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
       load()
       sparqlSource.retrievePathsSparqlRestriction(sparqlRestriction, limit)
     }

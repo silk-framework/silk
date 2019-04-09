@@ -24,6 +24,8 @@ import org.silkframework.rule.plugins.transformer.tokenization.Tokenizer
 import org.silkframework.rule.similarity.DistanceMeasure
 import org.silkframework.util.DPair
 
+import scala.collection.immutable
+
 /**
   * Analyses the reference entities and generates pairs of paths.
   */
@@ -42,20 +44,20 @@ class CompatiblePathsGenerator(components: Components) {
         //Remove paths which hold the same values (e.g. rdfs:label and drugbank:drugName)
         val distinctPaths = DuplicateRemover(paths, entities)
         //Return all path pairs
-        val pathPairs = PairGenerator(distinctPaths, entities)
+        val pathPairs = PairGenerator(distinctPaths, entities).map(_.map(_.toSimplePath))
 
         pathPairs.flatMap(createGenerators)
       }
       else {
         for (s <- paths.source;
              t <- paths.target;
-             generator <- createGenerators(DPair(s, t)))
+             generator <- createGenerators(DPair(s.toSimplePath, t.toSimplePath)))
           yield generator
       }
     }
   }
 
-  private def createGenerators(pathPair: DPair[TypedPath]) = {
+  private def createGenerators(pathPair: DPair[Path]): Seq[ComparisonGenerator] = {
     ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("levenshteinDistance", Nil, DistanceMeasure), 3.0) ::
     ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("jaccard", Nil, DistanceMeasure), 1.0) ::
     // Substring is currently too slow ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("substring", Nil, DistanceMeasure), 0.6) ::

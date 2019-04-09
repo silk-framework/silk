@@ -10,15 +10,13 @@ import scala.xml.Node
 /**
   * Constitutes a path with type information.
   *
-  * @param ops the path operators
+  * @param operators the path operators
   * @param valueType the type that has to be considered during processing.
   * @param metadata an immutable map that stores metadata object
   */
-case class TypedPath(
-    private val ops: List[PathOperator],
-    valueType: ValueType,
-    metadata: Map[String, Any]
-  ) extends Path(ops) {
+case class TypedPath(operators: List[PathOperator],
+                     valueType: ValueType,
+                     metadata: Map[String, Any]) extends PathOperatorList {
 
   /**
     * checks metadata for an positive entry for the IS_ATTRIBUTE_KEY key
@@ -33,7 +31,7 @@ case class TypedPath(
     */
   def getOriginalName: Option[String] = metadata.get(TypedPath.META_FIELD_ORIGIN_NAME).map(_.toString)
 
-  def toSimplePath: Path = Path(operators)
+  lazy val toSimplePath: Path = Path(operators)
 
   /**
     * Returns a typed property if this is a path of length one.
@@ -54,7 +52,7 @@ case class TypedPath(
       case tp@TypedPath(_, otherValueType, _) =>
         // if one of the comparison objects are untyped, we ignore the type all together
         valueType.equalsOrIndifferentTo(otherValueType) &&
-          tp.normalizedSerialization == normalizedSerialization &&
+          tp.toSimplePath.normalizedSerialization == toSimplePath.normalizedSerialization &&
           tp.isAttribute == isAttribute
       case _ =>
         false
@@ -65,11 +63,18 @@ case class TypedPath(
     other match {
       case tp@TypedPath(_, otherValueType, _) =>
         valueType == otherValueType &&
-        tp.normalizedSerialization == normalizedSerialization &&
+        tp.toSimplePath.normalizedSerialization == toSimplePath.normalizedSerialization &&
         tp.isAttribute == isAttribute
       case _ =>
         false
     }
+  }
+
+  override def hashCode(): Int = {
+    var code = toSimplePath.hashCode
+    code += isAttribute.hashCode() + 113 * code
+    code += valueType.hashCode() + 113 * code
+    code
   }
 
   override def toString: String = super.toString + ": " + valueType
@@ -124,17 +129,16 @@ object TypedPath {
 
   /**
     * Will remove a given subpath prefix from the operator list of a TypedPath
-    * @param path - the path to be reduced
-    * @param subPath -  the sub path
+    *
+    * @param typedPath the path to be reduced
+    * @param subPath   the sub path
     */
-  def removePathPrefix(path: Path, subPath: Path): Path = if(path.operators.startsWith(subPath.operators)){
-    path match{
-      case tp: TypedPath => TypedPath(path.operators.drop(subPath.operators.size), tp.valueType, tp.isAttribute)
-      case _ => Path(path.operators.drop(subPath.operators.size))
+  def removePathPrefix(typedPath: TypedPath, subPath: Path): TypedPath = {
+    if(typedPath.operators.startsWith(subPath.operators)){
+      typedPath.copy(operators = typedPath.operators.drop(subPath.operators.size))
+    } else {
+      typedPath
     }
-  }
-  else{
-    path
   }
 
   implicit object TypedPathFormat extends XmlFormat[TypedPath] {
@@ -160,7 +164,7 @@ object TypedPath {
     override def write(typedPath: TypedPath)(implicit writeContext: WriteContext[Node]): Node = {
       implicit val p: Prefixes = writeContext.prefixes
       <TypedPath isAttribute={typedPath.isAttribute.toString} >
-        <Path>{typedPath.normalizedSerialization}</Path>
+        <Path>{typedPath.toSimplePath.normalizedSerialization}</Path>
         {XmlSerialization.toXml(typedPath.valueType)}
       </TypedPath>
     }

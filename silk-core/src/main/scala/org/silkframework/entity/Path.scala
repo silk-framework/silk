@@ -24,7 +24,7 @@ import scala.util.{Failure, Success, Try}
 /**
   * Represents an RDF path.
   */
-class Path private[entity](val operators: List[PathOperator]) extends Serializable {
+class Path private[entity](val operators: List[PathOperator]) extends Serializable with PathOperatorList  {
 
   /**
     * The normalized serialization using the Silk RDF path language.
@@ -56,25 +56,6 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
   }
 
   /**
-    * Returns the property URI, if this is a simple forward path of length 1.
-    * Otherwise, returns none.
-    */
-  def propertyUri: Option[Uri] = operators match {
-    case ForwardOperator(prop) :: Nil => Some(prop)
-    case _ => None
-  }
-
-  /**
-    * Returns the number of operators in this path.
-    */
-  def size: Int = operators.size
-
-  /**
-    * Tests if this path is empty, i.e, has not operators.
-    */
-  def isEmpty: Boolean = operators.isEmpty
-
-  /**
     * Concatenates this path with another path.
     */
   def ++(path: Path): Path = Path(operators ::: path.operators)
@@ -95,6 +76,8 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
 
   /** Returns a [[org.silkframework.entity.TypedPath]] from this path with string type values. */
   def asStringTypedPath: TypedPath = TypedPath(this.operators, StringValueType, isAttribute = false)
+
+  def asUriTypedPath: TypedPath = TypedPath(this.operators, UriValueType, isAttribute = false)
 
   /** Returns an untyped ([[UntypedValueType]]) [[TypedPath]].  */
   def asUntypedValueType: TypedPath = TypedPath(this.operators, UntypedValueType, isAttribute = false)
@@ -156,4 +139,35 @@ object Path {
       case Failure(f) => if(strict) throw f else apply(Uri(pathStr))
     }
   }
+
+  def removePathPrefix(path: Path, subPath: Path): Path= {
+    if(path.operators.startsWith(subPath.operators)){
+      new Path(path.operators.drop(subPath.operators.size))
+    } else {
+      path
+    }
+  }
+}
+
+trait PathOperatorList {
+  def operators: List[PathOperator]
+
+  /**
+    * Returns the property URI, if this is a simple forward path of length 1.
+    * Otherwise, returns none.
+    */
+  def propertyUri: Option[Uri] = operators match {
+    case ForwardOperator(prop) :: Nil => Some(prop)
+    case _ => None
+  }
+
+  /**
+    * Returns the number of operators in this path.
+    */
+  def size: Int = operators.size
+
+  /**
+    * Tests if this path is empty, i.e, has not operators.
+    */
+  def isEmpty: Boolean = operators.isEmpty
 }

@@ -116,7 +116,7 @@ case class Entity private(
     */
   @deprecated("Use evaluate(path: TypedPath) instead, since uniqueness of paths are only guaranteed with provided ValueType.", "18.03")
   def evaluate(path: Path): Seq[String] = {
-    valueOfPathIgnoreType(path) //TODO TypedPath change:
+    valueOfPath(path) //TODO TypedPath change:
   }
 
   /**
@@ -174,7 +174,7 @@ case class Entity private(
             subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
           }
           //now find the pertaining index and get values
-          ent.evaluate(es.pathIndex(TypedPath.removePathPrefix(path, es.subPath).asInstanceOf[TypedPath]))
+          ent.evaluate(es.indexOfTypedPath(TypedPath.removePathPrefix(path, es.subPath)))
         case None => Seq()
       }
     }
@@ -185,7 +185,7 @@ case class Entity private(
     * NOTE: there might be a chance that a given path exists twice with different value types, use [[valueOfTypedPath()]] instead
     * @param path - the property or path
     */
-  def valueOfPathIgnoreType(path: Path): Seq[String] ={ //TODO TypedPath change: new
+  def valueOfPath(path: Path): Seq[String] ={ //TODO TypedPath change: new
     if(path.operators.isEmpty) {
       Seq(uri)
     } else {
@@ -199,7 +199,7 @@ case class Entity private(
             subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
           }
           //now find the pertaining index and get values
-          ent.evaluate(es.pathIndexIgnoreType(TypedPath.removePathPrefix(path, es.subPath)))
+          ent.evaluate(es.indexOfPath(Path.removePathPrefix(path, es.subPath)))
         case None => Seq()
       }
     }
@@ -211,7 +211,7 @@ case class Entity private(
     * @param property - the property name to query
     * @return
     */
-  def singleValue(property: String)(implicit prefixes: Prefixes = Prefixes.default): Option[String] = valueOfPathIgnoreType(Path.saveApply(property)).headOption //TODO TypedPath change: here we ignore the type
+  def singleValue(property: String)(implicit prefixes: Prefixes = Prefixes.default): Option[String] = valueOfPath(Path.saveApply(property)).headOption //TODO TypedPath change: here we ignore the type
 
   /**
     * returns the first value (of possibly many) for the property of the given name in this entity

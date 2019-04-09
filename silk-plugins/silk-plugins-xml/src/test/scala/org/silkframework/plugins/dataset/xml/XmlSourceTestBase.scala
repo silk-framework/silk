@@ -157,7 +157,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
   //TODO TypedPath change:  is the difference between String and Uri type so important for Xml?
   it should "retrieve typed paths" in {
-    xmlSource("persons.xml", "").retrievePaths("Person").map(tp => tp.normalizedSerialization -> tp.valueType -> tp.isAttribute) shouldBe IndexedSeq(
+    xmlSource("persons.xml", "").retrievePaths("Person").map(tp => tp.toSimplePath.normalizedSerialization -> tp.valueType -> tp.isAttribute) shouldBe IndexedSeq(
       "ID" -> StringValueType -> false,
       "Name" -> StringValueType -> false,
       "Events" -> UriValueType -> false,
@@ -229,15 +229,15 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     }
 
     def subPaths: Seq[String] = {
-      xmlSource.retrievePaths(basePath, depth = Int.MaxValue).map(_.serialize())
+      xmlSource.retrievePaths(basePath, depth = Int.MaxValue).map(_.toSimplePath.serialize())
     }
 
     def subPathsDepth(depth: Int): Seq[String] = {
-      xmlSource.retrievePaths(basePath, depth = depth).map(_.serialize())
+      xmlSource.retrievePaths(basePath, depth = depth).map(_.toSimplePath.serialize())
     }
 
     def leafPaths(depth: Int): Seq[String] = {
-      xmlSource.retrieveXmlPaths(basePath, depth, None, onlyLeafNodes = true, onlyInnerNodes = false).map(_.normalizedSerialization)
+      xmlSource.retrieveXmlPaths(basePath, depth, None, onlyLeafNodes = true, onlyInnerNodes = false).map(_.toSimplePath.normalizedSerialization)
     }
 
     private def retrieve(paths: IndexedSeq[TypedPath]): Seq[Entity] = {

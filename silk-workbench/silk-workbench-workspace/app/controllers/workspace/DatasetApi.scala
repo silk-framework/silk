@@ -110,10 +110,10 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
 
     val firstTypes = source.retrieveTypes().head._1
     val paths = source.retrievePaths(firstTypes).toIndexedSeq
-    val entityDesc = EntitySchema(firstTypes, paths.map(_.asStringTypedPath))
+    val entityDesc = EntitySchema(firstTypes, paths)
     val entities = source.retrieve(entityDesc).take(maxEntities).toList
 
-    Ok(views.html.workspace.dataset.table(context, paths, entities))
+    Ok(views.html.workspace.dataset.table(context, paths.map(_.toSimplePath), entities))
   }
 
   def sparql(project: String, task: String, query: String = ""): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
@@ -225,7 +225,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
       val typeUri = transformation.selection.typeUri
       // TODO: Filter by mapping type, e.g. no URI mapping?
       val paths = transformation.rules.flatMap(_.sourcePaths).distinct
-      CoveragePathInput(typeUri.uri, paths)
+      CoveragePathInput(typeUri.uri, paths.map(_.toSimplePath))
     }
   }
 

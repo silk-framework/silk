@@ -38,7 +38,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
         val reader: XMLStreamReader = initStreamReader(inputStream)
         val paths = collectPaths(reader, Path.empty, onlyLeafNodes = false, onlyInnerNodes = true, depth = Int.MaxValue)
         for (path <- paths) yield {
-          (path.normalizedSerialization, 1.0 / (path.operators.size + 1))
+          (path.toSimplePath.normalizedSerialization, 1.0 / (path.operators.size + 1))
         }
       } finally {
         inputStream.close()
@@ -249,7 +249,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     }
   }
 
-  private def choosePaths(onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, childPaths: Seq[Path], depthAdjustedChildPaths: Seq[TypedPath]) = {
+  private def choosePaths(onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, childPaths: Seq[TypedPath], depthAdjustedChildPaths: Seq[TypedPath]) = {
     if (onlyInnerNodes) {
       if (childPaths.isEmpty) {
         Seq()

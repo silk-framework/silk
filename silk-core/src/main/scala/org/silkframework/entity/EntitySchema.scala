@@ -58,7 +58,7 @@ case class EntitySchema(
     * @return - the index of the path in question
     * @throws NoSuchElementException If the path could not be found in the schema.
     */
-  def pathIndex(path: TypedPath): Int = { //TODO TypedPath change: overhauled completely evaluating every Type
+  def indexOfTypedPath(path: TypedPath): Int = { //TODO TypedPath change: overhauled completely evaluating every Type
     //find the given path and, if provided, match the value type as well
     typedPaths.zipWithIndex.find(pi => path.equals(pi._1)) match{
       case Some((_, ind)) => ind
@@ -68,12 +68,13 @@ case class EntitySchema(
 
   /**
     * Retrieves the index of a given path.
-    * NOTE: there might be a chance that a given path exists twice with different value types, use [[pathIndex]] instead
+    * NOTE: there might be a chance that a given path exists twice with different value types, use [[indexOfTypedPath]] instead
+ *
     * @return - the index of the path in question
     * @throws NoSuchElementException If the path could not be found in the schema.
     */
-  def pathIndexIgnoreType(path: Path): Int = {//TODO TypedPath change: new, neglecting type comparison
-    typedPaths.zipWithIndex.find(pi => Path(path.operators).equals(pi._1)) match{
+  def indexOfPath(path: Path): Int = {//TODO TypedPath change: new, neglecting type comparison
+    typedPaths.zipWithIndex.find(pi => path.operators == pi._1.operators) match{
       case Some((_, ind)) => ind
       case None => throw new NoSuchElementException(s"Path $path not found on entity. Available paths: ${typedPaths.mkString(", ")}.")
     }
@@ -87,7 +88,7 @@ case class EntitySchema(
     * @return - an element of the typedPath collection (if any)
     */
   def findTypedPath(path: TypedPath): Option[TypedPath] = {//TODO TypedPath change: new
-    this.typedPaths.find(tp => path.equals(tp))
+    this.typedPaths.find(tp => path == tp)
   }
 
   /**
@@ -96,7 +97,7 @@ case class EntitySchema(
     * @param path - ether a Path or a TypedPath
     * @return - an element of the typedPath collection (if any)
     */
-  def findPathIgnoreType(path: Path): Option[TypedPath] = {//TODO TypedPath change: new
+  def findPath(path: Path): Option[TypedPath] = {//TODO TypedPath change: new
     this.typedPaths.find(tp => tp.toSimplePath.equals(path)) //we make sure to use a Path using its equals
   }
 
@@ -123,7 +124,7 @@ case class EntitySchema(
     case None => None
   }
 
-  lazy val propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.normalizedSerialization)
+  lazy val propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.toSimplePath.normalizedSerialization)
 
   def child(path: Path): EntitySchema = copy(subPath = Path(subPath.operators ::: path.operators))
 
@@ -158,7 +159,7 @@ case class EntitySchema(
       case es: EntitySchema =>
         EntitySchema(
           es.typeUri,
-          tps.flatMap(tp => es.findPathIgnoreType(tp) match{   //TODO TypedPath change:
+          tps.flatMap(tp => es.findPath(tp.toSimplePath) match{   //TODO TypedPath change:
             case Some(_) => Some(tp)
             case None => None
           }).toIndexedSeq,

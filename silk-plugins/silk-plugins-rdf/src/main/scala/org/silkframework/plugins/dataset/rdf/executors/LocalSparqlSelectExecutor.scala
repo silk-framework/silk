@@ -46,7 +46,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
         case Some(prop) =>
           prop.uri
         case _ =>
-          throw TaskException("Path in input schema of SPARQL select operator is not a simple forward property: " + v.normalizedSerialization)
+          throw TaskException("Path in input schema of SPARQL select operator is not a simple forward property: " + v.toSimplePath.normalizedSerialization)
       }
     }
     vars

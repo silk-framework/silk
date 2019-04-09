@@ -187,7 +187,8 @@
       @project.config.prefixes.shorten(entity.uri)
     </span>
     <ul>
-      @for(path <- entity.schema.typedPaths) {
+      @for(typedPath <- entity.schema.typedPaths;
+           path = typedPath.toSimplePath) {
         @renderValues(path, entity.evaluate(path), divClassPrefix)
       }
     </ul>

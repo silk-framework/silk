@@ -65,7 +65,9 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       var counter = 0
       val startTime = System.currentTimeMillis()
 
-      val pathRetrievers = for (path <- entitySchema.typedPaths) yield new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema, entityUris), path, limit)
+      val pathRetrievers = for (typedPath <- entitySchema.typedPaths) yield {
+        new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema, entityUris), typedPath.toSimplePath, limit)
+      }
 
       pathRetrievers.foreach(_.start())
 

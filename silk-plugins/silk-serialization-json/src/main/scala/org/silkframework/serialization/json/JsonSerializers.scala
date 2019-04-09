@@ -642,7 +642,7 @@ object JsonSerializers {
           TYPE -> JsString("complex"),
           ID -> JsString(rule.id),
           OPERATOR -> toJson(rule.operator),
-          "sourcePaths" -> JsArray(rule.sourcePaths.map(_.serialize()(writeContext.prefixes)).map(JsString)),
+          "sourcePaths" -> JsArray(rule.sourcePaths.map(_.toSimplePath.serialize()(writeContext.prefixes)).map(JsString)),
           METADATA -> toJson(rule.metaData)
         ) ++
             rule.target.map("mappingTarget" -> toJson(_))
@@ -1077,7 +1077,8 @@ object JsonSerializers {
     }
 
     private def entitySchema(schema: EntitySchema) = {
-      val paths = for(typedPath <- schema.typedPaths) yield JsString(typedPath.normalizedSerialization)
+      // TODO: Why is only the Path written instead of the TypedPath, where is serialization read?
+      val paths = for(typedPath <- schema.typedPaths) yield JsString(typedPath.toSimplePath.normalizedSerialization)
       Json.obj(
         "paths" -> JsArray(paths)
       )

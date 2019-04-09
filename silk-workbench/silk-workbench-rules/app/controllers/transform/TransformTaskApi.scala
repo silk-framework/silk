@@ -322,7 +322,7 @@ class TransformTaskApi extends Controller {
             if(isRdfInput) {
               p
             } else {
-              Path(p.operators.drop(sourcePath.size))
+              TypedPath.removePathPrefix(p, Path(sourcePath))
             }
         }
         val filteredPaths = if(unusedOnly) {
@@ -333,7 +333,7 @@ class TransformTaskApi extends Controller {
         } else {
           matchingPaths
         }
-        Ok(Json.toJson(filteredPaths.map(_.serialize())))
+        Ok(Json.toJson(filteredPaths.map(_.toSimplePath.serialize())))
       case None =>
         NotFound("No rule found with ID " + ruleId)
     }

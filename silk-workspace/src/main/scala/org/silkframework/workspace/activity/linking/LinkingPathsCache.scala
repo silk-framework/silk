@@ -4,7 +4,7 @@ import org.silkframework.config.DefaultConfig
 import org.silkframework.dataset.{DataSource, DatasetSpec, SparqlRestrictionDataSource}
 import org.silkframework.entity.Restriction.CustomOperator
 import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.entity.{EntitySchema, Path, TypedPath}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.resource.WritableResource
@@ -106,11 +106,11 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
                            entitySchema: EntitySchema)
                           (implicit userContext: UserContext): EntitySchema = {
     val paths = retrievePaths(datasetSelection)
-    entitySchema.copy(typedPaths = (entitySchema.typedPaths ++ paths.map(_.asStringTypedPath)).distinct)
+    entitySchema.copy(typedPaths = (entitySchema.typedPaths ++ paths).distinct)
   }
 
   private def retrievePaths(datasetSelection: DatasetSelection)
-                           (implicit userContext: UserContext): IndexedSeq[Path] = {
+                           (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     // Retrieve the data source
     task.dataSource(datasetSelection) match {
       case DatasetSpec.DataSourceWrapper(ds: SparqlRestrictionDataSource, _) =>

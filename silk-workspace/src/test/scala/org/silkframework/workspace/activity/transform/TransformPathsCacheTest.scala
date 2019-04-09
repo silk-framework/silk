@@ -24,7 +24,7 @@ class TransformPathsCacheTest extends FlatSpec with SingleProjectWorkspaceProvid
       "phoneNumbers/type" -> StringValueType,
       "phoneNumbers/number" -> StringValueType
     )) {
-      val valueType = entitySchema.typedPaths.find(_.normalizedSerialization == path).map(_.valueType).getOrElse(
+      val valueType = entitySchema.typedPaths.find(_.toSimplePath.normalizedSerialization == path).map(_.valueType).getOrElse(
         throw new RuntimeException(s"Path $path was not found in cached entity schema!")
       )
       valueType mustBe expectedValueType

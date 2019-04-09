@@ -79,7 +79,7 @@ class FileDataSourceTest extends FlatSpec with Matchers {
 
   it should "return typed paths" in {
     dataset.source.retrievePaths("http://dbpedia.org/ontology/City").
-        map(tp => tp.normalizedSerialization -> tp.valueType) shouldBe IndexedSeq(
+        map(tp => tp.toSimplePath.normalizedSerialization -> tp.valueType) shouldBe IndexedSeq(
           "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>" -> UriValueType,
           "<http://www.w3.org/2000/01/rdf-schema#label>" -> StringValueType,
           "\\<http://dbpedia.org/ontology/place>" -> UriValueType

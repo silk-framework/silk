@@ -53,14 +53,14 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
                     (implicit userContext: UserContext): Unit = {
       val entitySchemata =
         DPair(
-          source = linkSpec.entityDescriptions.source.copy(typedPaths = paths.map(_.source.asStringTypedPath).distinct.toIndexedSeq),
-          target = linkSpec.entityDescriptions.target.copy(typedPaths = paths.map(_.target.asStringTypedPath).distinct.toIndexedSeq)
+          source = linkSpec.entityDescriptions.source.copy(typedPaths = paths.map(_.source).distinct.toIndexedSeq),
+          target = linkSpec.entityDescriptions.target.copy(typedPaths = paths.map(_.target).distinct.toIndexedSeq)
         )
       val op = new SampleOperator()
       val linkSpec2 = linkSpec.copy(rule = LinkageRule(op))
 
       val generateLinks = new GenerateLinks("PoolGenerator", inputs, linkSpec2, Seq.empty, runtimeConfig) {
-         override def entityDescs = entitySchemata
+         override def entityDescs: DPair[EntitySchema] = entitySchemata
       }
 
       generateLinksActivity = context.child(generateLinks, 0.8)
@@ -131,9 +131,9 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
       val indexing = true
 
-      private val sourceInputs = paths.map(_.source).distinct.map(p => PathInput(path = p))
+      private val sourceInputs = paths.map(_.source).distinct.map(p => PathInput(path = p.toSimplePath))
 
-      private val targetInputs = paths.map(_.target).distinct.map(p => PathInput(path = p))
+      private val targetInputs = paths.map(_.target).distinct.map(p => PathInput(path = p.toSimplePath))
 
       def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index = {
         val inputs = if(sourceOrTarget) sourceInputs else targetInputs

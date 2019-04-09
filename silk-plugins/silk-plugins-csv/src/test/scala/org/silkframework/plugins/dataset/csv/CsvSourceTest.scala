@@ -40,7 +40,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
   }
 
   it should "type all source paths as value typed paths" in {
-    source.retrievePaths("") map (tp => tp.normalizedSerialization -> tp.valueType) shouldBe IndexedSeq(
+    source.retrievePaths("") map (tp => tp.toSimplePath.normalizedSerialization -> tp.valueType) shouldBe IndexedSeq(
       "ID" -> StringValueType,
       "Name" -> StringValueType,
       "Age" -> StringValueType
@@ -170,7 +170,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
   }
 
   private def getEntities(dataSource: DataSource): Seq[Entity] = {
-    val paths = dataSource.retrievePaths(Uri("")).toIndexedSeq.map(_.asStringTypedPath)
+    val paths = dataSource.retrievePaths(Uri("")).toIndexedSeq
     val entities = dataSource.retrieve(EntitySchema(Uri(""), paths)).toSeq
     entities
   }
@@ -186,7 +186,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
     entities.size shouldBe 4                        //in this case number of entities is the same as number of lines in csv
     val top = entities.head
     top.schema.propertyNames shouldBe IndexedSeq("vals1", "vals2", "vals3")
-    top.valueOfPathIgnoreType(Path("vals2")).head shouldBe "val2"
+    top.valueOfPath(Path("vals2")).head shouldBe "val2"
   }
 
   it should "support #idx special forward path" in {

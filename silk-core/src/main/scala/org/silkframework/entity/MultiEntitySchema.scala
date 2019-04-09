@@ -64,7 +64,7 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
       case Some(es) => Some(es)
       case None =>
         this.subSchemata.find(es => {
-          es.typedPaths.map(_.toSimplePath).contains(TypedPath.removePathPrefix(tp, es.subPath))
+          es.typedPaths.map(_.toSimplePath).contains(Path.removePathPrefix(tp, es.subPath))
         })
     }//TODO TypedPath change: new
 
@@ -75,7 +75,7 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
     * @param path - the path to find
     * @return - the index of the path in question
     */
-  override def pathIndex(path: TypedPath): Int = pivotSchema.pathIndex(path)
+  override def indexOfTypedPath(path: TypedPath): Int = pivotSchema.indexOfTypedPath(path)
 
   override def equals(obj: Any): Boolean = obj match{
     case mes: MultiEntitySchema =>
