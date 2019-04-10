@@ -1,5 +1,6 @@
 package controllers.workspace
 
+import akka.stream.scaladsl.Source
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils
@@ -7,6 +8,7 @@ import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.ResourceBasedDataset
+import org.silkframework.runtime.resource.FileResource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers
@@ -14,6 +16,7 @@ import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.workspace.{Project, WorkspaceFactory}
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.ErrorResult
+import play.api.http.HttpEntity
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{JsBoolean, JsObject, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, BodyParsers, Controller}
@@ -142,7 +145,12 @@ class TaskApi extends Controller with ControllerUtilsTrait {
       case Some(outputId) =>
         project.taskOption[GenericDatasetSpec](outputId).map(_.data.plugin) match {
           case Some(ds: ResourceBasedDataset) =>
-            Ok.stream(Enumerator.fromStream(ds.file.inputStream)).withHeaders("Content-Disposition" -> s"attachment; filename=${ds.file.name}")
+            ds.file match {
+              case FileResource(file) =>
+                Ok.sendFile(file)
+              case _ =>
+                ErrorResult(BAD_REQUEST, "Output resource is not a file", s"The specified output dataset '$outputId' is not based on a file resource.")
+            }
           case Some(_) =>
             ErrorResult(BAD_REQUEST, "No resource based output dataset", s"The specified output dataset '$outputId' is not based on a resource.")
           case None =>

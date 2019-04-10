@@ -3,15 +3,15 @@ package controllers.workspace
 import java.io._
 import java.nio.charset.StandardCharsets
 
-import com.ning.http.client.multipart.FilePart
-import com.ning.http.client.{AsyncCompletionHandler, AsyncHttpClient, Request, Response => AHCResponse}
 import helper.IntegrationTestTrait
+import org.asynchttpclient.{AsyncCompletionHandler, AsyncHttpClient, Request, Response}
+import org.asynchttpclient.request.body.multipart.FilePart
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource._
 import org.silkframework.workspace.WorkspaceFactory
-import play.api.libs.ws.WS
-import play.api.libs.ws.ning.NingWSResponse
+import play.api.libs.ws.ahc.AhcWSResponse
+import play.api.libs.ws.{WS, WSResponse}
 
 import scala.concurrent.{Future, Promise}
 import scala.util.Try
@@ -87,7 +87,7 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     val request = WS.url(s"$baseUrl/export/xmlZip")
     val response = request.get()
     val result = checkResponse(response)
-    result.bodyAsBytes
+    result.bodyAsBytes.toArray
   }
 
   private def clearWorkspace()
@@ -99,13 +99,14 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
   private def executeAsyncRequest(asyncHttpClient: AsyncHttpClient,
                                   request: Request,
                                   // To run when the request completed or failed
-                                  postProcessing: () => Unit): Future[NingWSResponse] = {
-    val result = Promise[NingWSResponse]()
-    asyncHttpClient.executeRequest(request, new AsyncCompletionHandler[AHCResponse]() {
-      override def onCompleted(response: AHCResponse) = {
-        result.success(NingWSResponse(response))
+                                  postProcessing: () => Unit): Future[WSResponse] = {
+    val result = Promise[WSResponse]()
+    asyncHttpClient.executeRequest(request, new AsyncCompletionHandler[WSResponse]() {
+      override def onCompleted(response: Response) = {
+        val wsResponse = AhcWSResponse(response)
+        result.success(wsResponse)
         postProcessing()
-        response
+        wsResponse
       }
 
       override def onThrowable(t: Throwable) = {

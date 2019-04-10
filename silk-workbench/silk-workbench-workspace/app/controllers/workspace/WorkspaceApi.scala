@@ -4,6 +4,7 @@ import java.io.File
 import java.net.URL
 import java.util.logging.Logger
 
+import akka.util.ByteString
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import org.silkframework.config._
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
@@ -165,8 +166,8 @@ class WorkspaceApi extends Controller {
         resource.writeBytes(Array[Byte]())
         NoContent
       case AnyContentAsRaw(buffer) =>
-        val bytes = buffer.asBytes().getOrElse(Array[Byte]())
-        resource.writeBytes(bytes)
+        val bytes = buffer.asBytes().getOrElse(ByteString.empty)
+        resource.writeBytes(bytes.toArray)
         NoContent
       case AnyContentAsText(txt) =>
         resource.writeString(txt)
