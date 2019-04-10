@@ -103,7 +103,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
       (persons atPath "").subPaths shouldBe
         Seq("Person", "Person/ID", "Person/Name", "Person/Events", "Person/Events/@count", "Person/Events/Birth",
           "Person/Events/Death", "Person/Properties", "Person/Properties/Property", "Person/Properties/Property/Key",
-          "Person/Properties/Property/Key/@id", "Person/Properties/Property/Value")
+          "Person/Properties/Property/Value", "Person/Properties/Property/Key", "Person/Properties/Property/Key/@id")
     }
 
     it should s"list all paths of the root node of depth 1 ($fileName)" in {
@@ -119,7 +119,8 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     it should s"list all paths, given a base path ($fileName)" in {
       (persons atPath "Person").subPaths shouldBe
         Seq("ID", "Name", "Events", "Events/@count", "Events/Birth", "Events/Death", "Properties",
-          "Properties/Property", "Properties/Property/Key", "Properties/Property/Key/@id", "Properties/Property/Value")
+          "Properties/Property", "Properties/Property/Key", "Properties/Property/Value", "Properties/Property/Key",
+          "Properties/Property/Key/@id")
     }
 
     it should s"list all paths of depth 1, given a base path ($fileName)" in {
@@ -132,18 +133,6 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
         Seq("ID", "Name", "Events", "Events/@count", "Events/Birth", "Events/Death", "Properties",
           "Properties/Property")
     }
-
-    it should s"list all leaf paths of the root ($fileName)" in {
-      (persons atPath "").leafPaths(Int.MaxValue) shouldBe
-        Seq("Person/ID", "Person/Name", "Person/Events/@count", "Person/Events/Birth", "Person/Events/Death",
-          "Person/Properties/Property/Key", "Person/Properties/Property/Key/@id", "Person/Properties/Property/Value")
-    }
-
-    it should s"list all leaf paths of a subpath ($fileName)" in {
-      (persons atPath "Person/Properties").leafPaths(Int.MaxValue) shouldBe
-        Seq("Property/Key", "Property/Key/@id", "Property/Value")
-    }
-
 
     it should s"respect the limit when reading entities ($fileName)" in {
       (persons atPath "Person" limit 1 valuesAt "Name") shouldBe Seq(Seq("Max Doe"))
@@ -166,9 +155,10 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
       "Events/Death" -> StringValueType -> false,
       "Properties" -> UriValueType -> false,
       "Properties/Property" -> UriValueType -> false,
+      "Properties/Property/Key" -> StringValueType ->false,
+      "Properties/Property/Value" -> StringValueType -> false,
       "Properties/Property/Key" -> UriValueType -> false,
-      "Properties/Property/Key/@id" -> StringValueType -> true,
-      "Properties/Property/Value" -> StringValueType -> false
+      "Properties/Property/Key/@id" -> StringValueType -> true
     )
   }
 
@@ -229,15 +219,16 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     }
 
     def subPaths: Seq[String] = {
-      xmlSource.retrievePaths(basePath, depth = Int.MaxValue).map(_.toSimplePath.serialize())
+      typedSubPaths.map(_._1)
+    }
+
+    def typedSubPaths: Seq[(String, ValueType)] = {
+      val typedPaths = xmlSource.retrievePaths(basePath, depth = Int.MaxValue)
+      typedPaths.map(tp => (tp.toSimplePath.serialize(), tp.valueType))
     }
 
     def subPathsDepth(depth: Int): Seq[String] = {
       xmlSource.retrievePaths(basePath, depth = depth).map(_.toSimplePath.serialize())
-    }
-
-    def leafPaths(depth: Int): Seq[String] = {
-      xmlSource.retrieveXmlPaths(basePath, depth, None, onlyLeafNodes = true, onlyInnerNodes = false).map(_.toSimplePath.normalizedSerialization)
     }
 
     private def retrieve(paths: IndexedSeq[TypedPath]): Seq[Entity] = {

@@ -19,15 +19,12 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
 
   override def retrieveTypes(limit: Option[Int])
                             (implicit userContext: UserContext): Traversable[(String, Double)] = {
-    val xml = file.read(XML.load)
-    for (path <- Path.empty +: XmlTraverser(xml).collectPaths(onlyLeafNodes = false, onlyInnerNodes = true, depth = Int.MaxValue).map(_.toSimplePath)) yield {
-      (path.normalizedSerialization, 1.0 / path.operators.size)
-    }
+    new XmlSourceStreaming(file, basePath, uriPattern).retrieveTypes(limit)
   }
 
   override def retrievePaths(typeUri: Uri, depth: Int = Int.MaxValue, limit: Option[Int] = None)
                             (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
-    retrieveXmlPaths(typeUri, depth, limit, onlyLeafNodes = false, onlyInnerNodes = false)
+    new XmlSourceStreaming(file, basePath, uriPattern).retrievePaths(typeUri, depth, limit)
   }
 
   override def retrieveXmlPaths(typeUri: Uri, depth: Int, limit: Option[Int], onlyLeafNodes: Boolean, onlyInnerNodes: Boolean): IndexedSeq[TypedPath] = {
