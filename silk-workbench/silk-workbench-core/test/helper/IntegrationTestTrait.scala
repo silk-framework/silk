@@ -60,7 +60,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     * Constructs a REST request for a given Call.
     */
   def request(call: Call): WSRequest = {
-    WS.url(s"$baseUrl${call.url}")
+    client.url(s"$baseUrl${call.url}")
   }
 
   /**
@@ -69,17 +69,15 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     * @param projectId the id of the new project, see [[org.silkframework.util.Identifier]] for allowed characters.
     */
   def createProject(projectId: String): WSResponse = {
-    val response = WS.url(s"$baseUrl/workspace/projects/$projectId").put("")
+    val response = client.url(s"$baseUrl/workspace/projects/$projectId").put("")
     checkResponse(response)
   }
 
   /**
     * Adds common prefixes to the project, so URIs can be written as qualified names.
-    *
-    * @param projectId
     */
   def addProjectPrefixes(projectId: String, extraPrefixes: Map[String, String] = Map.empty): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/prefixes")
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/prefixes")
     val response = request.put(Map(
       "rdf" -> Seq("http://www.w3.org/1999/02/22-rdf-syntax-ns#"),
       "rdfs" -> Seq("http://www.w3.org/2000/01/rdf-schema#"),
@@ -97,7 +95,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
   }
 
   def listResources(projectId: String): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/resources")
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/resources")
     val response = request.get
     checkResponse(response)
   }
@@ -105,48 +103,48 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
   /**
     * Uploads a file and creates a resource in the project.
     *
-    * @param projectId
-    * @param fileName
+    * @param projectId project identifier
+    * @param fileName file name
     * @param resourceDir The directory where the file is stored.
     */
   def uploadResource(projectId: String, fileName: String, resourceDir: String): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/resources/$fileName")
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/resources/$fileName")
     val response = request.put(file(resourceDir + "/" + fileName))
     checkResponse(response)
   }
 
   def createEmptyResource(projectId: String, resourceId: String): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/resources/$resourceId")
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/resources/$resourceId")
     val response = request.put(Results.EmptyContent())
     checkResponse(response)
   }
 
   def resourceExists(projectId: String, resourceId: String): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/resources/$resourceId")
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/resources/$resourceId")
     val response = request.get
     checkResponse(response)
   }
 
   def getResourcesJson(projectId: String): String = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/resources")
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/resources")
     val response = request.get
     checkResponse(response).body
   }
 
   def getResource(projectId: String, resourceId: String): String = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/resources/$resourceId")
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/resources/$resourceId")
     val response = request.get
     checkResponse(response).body
   }
 
   def executeTaskActivity(projectId: String, taskId: String, activityId: String, parameters: Map[String, String]): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/activities/$activityId/startBlocking")
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/activities/$activityId/startBlocking")
     val response = request.post(parameters map { case (k, v) => (k, Seq(v)) })
     checkResponse(response)
   }
 
   def taskActivityValue(projectId: String, taskId: String, activityId: String, contentType: String = "application/json"): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/activities/$activityId/value")
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/activities/$activityId/value")
                     .withHeaders("accept" -> contentType)
     val response = request.get()
     checkResponse(response)
@@ -154,10 +152,6 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
 
   /**
     * Creates a CSV dataset from a file resources.
-    *
-    * @param projectId
-    * @param datasetId
-    * @param fileResourceId
     */
   def createCsvFileDataset(projectId: String, datasetId: String, fileResourceId: String,
                            uriTemplate: Option[String] = None): WSResponse = {
@@ -255,7 +249,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
                                               datasetUri: String,
                                               uriPrefix: String,
                                               classProfilingLimit: Int = 10): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$datasetId/activities/DatasetProfiler/startBlocking")
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$datasetId/activities/DatasetProfiler/startBlocking")
     val response = request.post(Map(
       "datasetUri" -> Seq(datasetUri),
       "uriPrefix" -> Seq(uriPrefix),
@@ -270,27 +264,27 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
   }
 
   def getAutoConfiguredDataset(projectId: String, datasetId: String): Elem = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId/autoConfigured").
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId/autoConfigured").
         withHeaders("accept" -> "application/xml")
     val response = request.get()
     XML.loadString(checkResponse(response).body)
   }
 
   def createDataset(projectId: String, datasetId: String, datasetConfig: Elem): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId")
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId")
     val response = request.put(datasetConfig)
     checkResponse(response)
   }
 
   def getDatasetConfig(projectId: String, datasetId: String): Elem = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId").
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId").
         withHeaders("accept" -> "application/xml")
     val response = request.get()
     XML.loadString(checkResponse(response).body)
   }
 
   def peakIntoDatasetTransformation(projectId: String, transformationId: String, ruleId: String): String = {
-    val request = WS.url(s"$baseUrl/transform/tasks/$projectId/$transformationId/peak/$ruleId")
+    val request = client.url(s"$baseUrl/transform/tasks/$projectId/$transformationId/peak/$ruleId")
     val response = request.post("")
     val result = checkResponse(response)
     result.body
@@ -305,7 +299,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     * @return
     */
   def executeDatasetMatching(projectId: String, datasetUri: String): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/activities/DatasetMatcher/startBlocking")
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/activities/DatasetMatcher/startBlocking")
     val response = request.post(Map(
       "datasetUri" -> Seq(datasetUri)
     ))
@@ -323,7 +317,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
                            datasetId: String,
                            uriPrefix: String,
                            propertyUris: Traversable[String] = Seq()): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$datasetId/activities/DefaultMappingGenerator/startBlocking")
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$datasetId/activities/DefaultMappingGenerator/startBlocking")
     val response = request.post(Map(
       "pathSelection" -> Seq(propertyUris.mkString(" ")),
       "uriPrefix" -> Seq(uriPrefix)
@@ -332,7 +326,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
   }
 
   def createTask(projectId: String, taskId: String, taskJson: JsValue): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId")
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId")
     val response = request.put(taskJson)
     checkResponse(response)
   }
@@ -347,7 +341,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     * @param outputDatasetId
     */
   def createLinkingTask(projectId: String, linkingTaskId: String, sourceId: String, targetId: String, outputDatasetId: String): WSResponse = {
-    val request = WS.url(s"$baseUrl/linking/tasks/$projectId/$linkingTaskId")
+    val request = client.url(s"$baseUrl/linking/tasks/$projectId/$linkingTaskId")
     val response = request.withQueryString("source" -> sourceId, "target" -> targetId, "output" -> outputDatasetId).put("")
     checkResponse(response)
   }
@@ -361,7 +355,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     * @return
     */
   def createTransformTask(projectId: String, transformTaskId: String, sourceId: String, targetId: String, classUri: String = ""): Unit = {
-    val request = WS.url(s"$baseUrl/transform/tasks/$projectId/$transformTaskId")
+    val request = client.url(s"$baseUrl/transform/tasks/$projectId/$transformTaskId")
     val response = request.put(Map("source" -> sourceId, "sourceType" -> classUri, "target" -> targetId, "output" -> targetId).mapValues(v => Seq(v)))
     checkResponse(response)
     workspaceProject(projectId).task[TransformSpec](transformTaskId).activity[TransformPathsCache].control.waitUntilFinished()
@@ -382,7 +376,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     * @param ruleXml
     */
   def setLinkingRule(projectId: String, linkingTaskId: String, ruleXml: Elem): WSResponse = {
-    val request = WS.url(s"$baseUrl/linking/tasks/$projectId/$linkingTaskId/rule")
+    val request = client.url(s"$baseUrl/linking/tasks/$projectId/$linkingTaskId/rule")
     val response = request.put(ruleXml)
     checkResponse(response)
   }
@@ -391,7 +385,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     * Executes a transform task. This is a blocking request.
     */
   def executeTransformTask(projectId: String, transformTaskId: String, parameters: Map[String, String] = Map.empty): WSResponse = {
-    var request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$transformTaskId/activities/ExecuteTransform/startBlocking")
+    var request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$transformTaskId/activities/ExecuteTransform/startBlocking")
     if(parameters.nonEmpty) {
       request = request.withQueryString(parameters.toSeq: _*)
     }
@@ -403,7 +397,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     * Downloads the task output.
     */
   def downloadTaskOutput(projectId: String, taskId: String): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/downloadOutput")
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/downloadOutput")
     val response = request.get()
     checkResponse(response)
   }
@@ -415,26 +409,26 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     * @param linkingTaskId
     */
   def executeLinkingTask(projectId: String, linkingTaskId: String): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$linkingTaskId/activities/ExecuteLinking/startBlocking")
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$linkingTaskId/activities/ExecuteLinking/startBlocking")
     val response = request.post("")
     checkResponse(response)
   }
 
   def evaluateLinkingTask(projectId: String, linkingTaskId: String): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$linkingTaskId/activities/EvaluateLinking/startBlocking")
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$linkingTaskId/activities/EvaluateLinking/startBlocking")
     val response = request.post("")
     checkResponse(response)
   }
 
   def executeWorkflow(projectId: String, workflowId: String, sparkExecution: Boolean = false): WSResponse = {
     val executorName = if(sparkExecution) "ExecuteSparkWorkflow" else "ExecuteLocalWorkflow"
-    val request = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$workflowId/activities/$executorName/startBlocking")
+    val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$workflowId/activities/$executorName/startBlocking")
     val response = request.post("")
     checkResponse(response)
   }
 
   def activitiesLog(): WSResponse = {
-    val request = WS.url(s"$baseUrl/workspace/activities/log")
+    val request = client.url(s"$baseUrl/workspace/activities/log")
     val response = request.get()
     checkResponse(response)
   }
@@ -455,7 +449,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
   }
 
   def getTransformationTaskRules(project: String, taskName: String, accept: String = "application/json"): String = {
-    val request = WS.url(s"$baseUrl/transform/tasks/$project/$taskName/rules")
+    val request = client.url(s"$baseUrl/transform/tasks/$project/$taskName/rules")
     val response = request.
         withHeaders("accept" -> accept).
         get()
@@ -470,7 +464,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
 
   def createWorkflow(projectId: String, workflowId: String, workflow: Workflow): WSResponse = {
     val workflowConfig = XmlSerialization.toXml[Task[Workflow]](PlainTask(workflowId, workflow))
-    val request = WS.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId")
+    val request = client.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId")
     val response = request.put(workflowConfig)
     checkResponse(response)
   }
@@ -487,7 +481,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
   def waitForCaches(task: String, project: String): Unit = {
     var cachesLoaded = false
     do {
-      val request = WS.url(s"$baseUrl/workspace/projects/$project/tasks/$task/cachesLoaded")
+      val request = client.url(s"$baseUrl/workspace/projects/$project/tasks/$task/cachesLoaded")
       val response = request.get()
       val responseJson = checkResponse(response).json
       cachesLoaded = responseJson.as[JsBoolean].value

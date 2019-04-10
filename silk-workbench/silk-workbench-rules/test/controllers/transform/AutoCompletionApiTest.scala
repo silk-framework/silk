@@ -112,7 +112,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
         targetVocabularies = Seq("foaf.rdf")
       )
     val transformTask = PlainTask(task, transformSpec)
-    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task")
+    val request = client.url(s"$baseUrl/transform/tasks/$project/$task")
     val response = request.put(toJson[TransformTask](transformTask))
     checkResponse(response)
 

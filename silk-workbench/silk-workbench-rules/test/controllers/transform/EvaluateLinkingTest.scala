@@ -24,7 +24,7 @@ class EvaluateLinkingTest extends FlatSpec with IntegrationTestTrait with Single
   }
 
   ignore should "return the generated links as JSON" in {
-    val response = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$linkingTaskId/activities/EvaluateLinking/value")
+    val response = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$linkingTaskId/activities/EvaluateLinking/value")
                      .withHeaders("Accept" -> "application/json")
                      .get()
     val linkingResult = checkResponse(response).json

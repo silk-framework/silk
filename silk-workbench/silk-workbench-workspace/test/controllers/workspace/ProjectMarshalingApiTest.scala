@@ -11,7 +11,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource._
 import org.silkframework.workspace.WorkspaceFactory
 import play.api.libs.ws.ahc.AhcWSResponse
-import play.api.libs.ws.{WS, WSResponse}
+import play.api.libs.ws.WSResponse
 
 import scala.concurrent.{Future, Promise}
 import scala.util.Try
@@ -54,7 +54,7 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
   }
 
   private def importProject(projectId: String, xmlZipInputBytes: Array[Byte], expectedResponseCodePrefix: Char = '2'): Unit = {
-    val asyncHttpClient: AsyncHttpClient = WS.client.underlying
+    val asyncHttpClient: AsyncHttpClient = client.underlying
     var postBuilder = asyncHttpClient.preparePost(s"$baseUrl/projects/$projectId/import")
     val tempFile = File.createTempFile("di_file_upload", ".zip")
     try {
@@ -78,13 +78,13 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
   }
 
   private def importWorkspace(workspaceBytes: Array[Byte]): Unit = {
-    val request = WS.url(s"$baseUrl/import/xmlZip")
+    val request = client.url(s"$baseUrl/import/xmlZip")
     val response = request.post(workspaceBytes)
     checkResponse(response)
   }
 
   private def exportWorkspace(): Array[Byte] = {
-    val request = WS.url(s"$baseUrl/export/xmlZip")
+    val request = client.url(s"$baseUrl/export/xmlZip")
     val response = request.get()
     val result = checkResponse(response)
     result.bodyAsBytes.toArray

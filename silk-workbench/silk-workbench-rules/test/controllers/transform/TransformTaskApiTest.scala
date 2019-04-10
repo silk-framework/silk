@@ -24,13 +24,13 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Add a new empty transform task" in {
-    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task")
+    val request = client.url(s"$baseUrl/transform/tasks/$project/$task")
     val response = request.put(Map("source" -> Seq("dataset")))
     checkResponse(response)
   }
 
   "Check that we can GET the transform task as JSON" in {
-    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task").
+    val request = client.url(s"$baseUrl/transform/tasks/$project/$task").
         withHeaders("ACCEPT" -> "application/json")
     val response = Json.parse(checkResponse(request.get()).body)
     // A label has been generated for this transform
@@ -41,7 +41,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Check that we can GET the transform task as XML" in {
-    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task").
+    val request = client.url(s"$baseUrl/transform/tasks/$project/$task").
         withHeaders("ACCEPT" -> "application/xml")
     val response = request.get()
     (XML.loadString(checkResponse(response).body) \ "RootMappingRule" \ "@id").toString mustBe ROOT_RULE_ID
@@ -383,7 +383,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Return 400 if submitted mapping parameters are invalid" in {
-    var request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/root")
+    var request = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/root")
     request = request.withHeaders("Accept" -> "application/json")
 
     val json =
@@ -406,7 +406,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Return 400 if an invalid rule should be appended" in {
-    var request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules")
+    var request = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules")
     request = request.withHeaders("Accept" -> "application/json")
 
     val json =
@@ -429,7 +429,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Return 400 if an invalid rule json is provided" in {
-    var request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules")
+    var request = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules")
     request = request.withHeaders("Accept" -> "application/json")
 
     val json =
@@ -540,13 +540,13 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Delete mapping rule" in {
-    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
+    val request = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
     val response = request.delete()
     checkResponse(response)
   }
 
   "Return 404 if a requested rule does not exist" in {
-    var request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
+    var request = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
     request = request.withHeaders("Accept" -> "application/json")
     val response = Await.result(request.get(), 100.seconds)
     response.status mustBe 404

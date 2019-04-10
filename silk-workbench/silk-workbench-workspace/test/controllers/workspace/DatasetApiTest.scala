@@ -19,7 +19,7 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
 
   "add datasets using XML" in {
     val dataset = "dataset1"
-    var request = WS.url(s"$baseUrl/workspace/projects/$project/datasets/dataset1")
+    var request = client.url(s"$baseUrl/workspace/projects/$project/datasets/dataset1")
     val response = request.put(
       <Dataset id={dataset} type="internal">
         <MetaData>
@@ -35,7 +35,7 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
 
   "add datasets using JSON" in {
     val dataset = "dataset2"
-    var request = WS.url(s"$baseUrl/workspace/projects/$project/datasets/$dataset")
+    var request = client.url(s"$baseUrl/workspace/projects/$project/datasets/$dataset")
     request = request.withHeaders("Accept" -> "application/json")
     val response = request.put(
       Json.obj(
@@ -61,7 +61,7 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
 
   "get dataset using JSON" in {
     val dataset = "dataset1"
-    var request = WS.url(s"$baseUrl/workspace/projects/$project/datasets/$dataset")
+    var request = client.url(s"$baseUrl/workspace/projects/$project/datasets/$dataset")
     request = request.withHeaders("Accept" -> "application/json")
     val response = checkResponse(request.get())
     response.json mustBe
@@ -87,7 +87,7 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
 
   "get dataset using XML" in {
     val dataset = "dataset2"
-    var request = WS.url(s"$baseUrl/workspace/projects/$project/datasets/$dataset")
+    var request = client.url(s"$baseUrl/workspace/projects/$project/datasets/$dataset")
     request = request.withHeaders("Accept" -> "application/xml")
     val response = checkResponse(request.get())
     val xml = response.xml
