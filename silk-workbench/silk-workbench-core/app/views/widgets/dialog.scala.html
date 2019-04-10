@@ -34,9 +34,12 @@
   </form>
   <script type="text/javascript">
     if (primary_dialog) {
-      primary_dialog.querySelector('.close').addEventListener('click', function () {
-        primary_dialog.close();
-      });
+      var closeButton = primary_dialog.querySelector('.close');
+      if(closeButton) {
+        closeButton.addEventListener('click', function () {
+          primary_dialog.close();
+        });
+      }
       var secondaryButton = primary_dialog.querySelector('#dialog-secondary-button');
       if(secondaryButton) {
         secondaryButton.addEventListener('click', function () {
@@ -45,9 +48,12 @@
       }
     }
     if (secondary_dialog) {
-      secondary_dialog.querySelector('.close').addEventListener('click', function () {
-        secondary_dialog.close();
-      });
+      var closeButton = secondary_dialog.querySelector('.close');
+      if(closeButton) {
+        closeButton.addEventListener('click', function () {
+          secondary_dialog.close();
+        });
+      }
       var secondaryButton = secondary_dialog.querySelector('#dialog-secondary-button');
       if(secondaryButton) {
         secondaryButton.addEventListener('click', function () {
