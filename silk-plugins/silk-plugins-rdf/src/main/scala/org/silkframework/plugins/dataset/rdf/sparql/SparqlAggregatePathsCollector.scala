@@ -40,7 +40,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
    */
   def apply(endpoint: SparqlEndpoint, graph: Option[String], restrictions: SparqlRestriction, limit: Option[Int])
            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
-    val forwardPaths = getForwardPaths(endpoint, graph, restrictions, limit.getOrElse(200))
+    val forwardPaths = getForwardPaths(endpoint, graph, restrictions, limit.getOrElse(300))
     val backwardPaths = getBackwardPaths(endpoint, graph, restrictions, 10)
 
     (forwardPaths ++ backwardPaths).toIndexedSeq.sortBy(-_._2).map(_._1)
