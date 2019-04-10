@@ -7,6 +7,8 @@ import Adapter from "enzyme-adapter-react-15/build";
 import MappingRule from '../../../../src/HierarchicalMapping/Components/MappingRule/MappingRule';
 import waitUntilReady from '../../../test_helper'
 import {DragDropContext, Droppable} from "react-beautiful-dnd";
+import sinon from 'sinon';
+import SuggestionsList from '../../../../src/HierarchicalMapping/Components/SuggestionsList';
 
 chai.use(chaiEnzyme());
 Enzyme.configure({ adapter: new Adapter() });
@@ -20,11 +22,11 @@ const props = (uri, label) => {
         "id": "hasName1",
         "sourcePath": "name",
         "mappingTarget": {
-        "uri": uri,
+            "uri": uri,
             "valueType": {
-            "nodeType": "AutoDetectValueType"
-        },
-        "isBackwardProperty": false,
+                "nodeType": "AutoDetectValueType"
+            },
+            "isBackwardProperty": false,
             "isAttribute": false
         },
         "metadata": {
@@ -76,8 +78,14 @@ const uri = (component) => {
 describe("MappingRule with label existing and not empty", () => {
     const component = mountMappingRule(sampleData.uri, sampleData.label);
 
-    it('mounts', async () => {
+    sinon.spy(MappingRule.prototype, 'componentDidMount');
+
+    beforeEach(async () => {
         await waitUntilReady(component);
+    });
+
+    it('mounts', async () => {
+        expect(MappingRule.prototype.componentDidMount.calledOnce);
     });
 
     it('shows the right label text', () => {
@@ -91,6 +99,10 @@ describe("MappingRule with label existing and not empty", () => {
 
 describe("MappingRule with label equals URI", () => {
     const component = mountMappingRule(sampleData.uri, sampleData.uri);
+
+    beforeEach(async () => {
+        await waitUntilReady(component);
+    });
 
     it('mounts', async () => {
         await waitUntilReady(component);
@@ -108,6 +120,10 @@ describe("MappingRule with label equals URI", () => {
 describe("MappingRule with no label and absolute URI", () => {
     const component = mountMappingRule(sampleData.uri, null);
 
+    beforeEach(async () => {
+        await waitUntilReady(component);
+    });
+
     it('mounts', async () => {
         await waitUntilReady(component);
     });
@@ -123,6 +139,10 @@ describe("MappingRule with no label and absolute URI", () => {
 
 describe("MappingRule with no label and relative URI", () => {
     const component = mountMappingRule(sampleData.uriRelative, null);
+
+    beforeEach(async () => {
+        await waitUntilReady(component);
+    });
 
     it('mounts', async () => {
         await waitUntilReady(component);

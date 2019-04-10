@@ -68,14 +68,15 @@ export const uriToLabel = uri => {
 
 /**
  * @param label {string}
- * @param cleanUri {string}
  * @param uriLabel {string}
  *
  * @returns {{displayLabel: string, uri: null||string}}
  */
-export const getRuleLabel = ({ label, cleanUri, uriLabel }) => {
-	return {
-		displayLabel: label ? label : uriLabel,
-		uri: cleanUri.toLocaleString() !== label.toLocaleString() ? cleanUri : null
-	};
+export const getRuleLabel = ({ label, uri }) => {
+    const cleanUri = uri.replace(/(^<+|>+$)/g, ''),
+        uriLabel = uriToLabel(uri);
+    return {
+        displayLabel: label ? label : uriLabel,
+        uri: label ? cleanUri.toLocaleString() !== label.toLocaleString() ? cleanUri : null : uriLabel.toLowerCase() !== cleanUri.toLowerCase() ? cleanUri : null
+    };
 };

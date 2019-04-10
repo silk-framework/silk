@@ -215,9 +215,7 @@ const MappingRule = React.createClass({
             />
         );
 
-        const uriLabel = uriToLabel(mappingTarget.uri);
-        const cleanUri = mappingTarget.uri.replace(/(^<+|>+$)/g, '');
-        const ruleLabelData = getRuleLabel({ label, cleanUri, uriLabel });
+        const ruleLabelData = getRuleLabel({ label, uri: mappingTarget.uri });
 
         // TODO: enable real API structure
         const shortView = [
