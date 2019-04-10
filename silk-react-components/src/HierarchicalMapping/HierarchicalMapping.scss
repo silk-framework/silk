@@ -263,7 +263,7 @@ ul.ecc-hierarchical-mapping-error-list {
         padding: 0;
 
         & > li:nth-child(odd):not(.ecc-silk-mapping__ruleitem--defect) {
-            background-color: rgba(to_color($data-table-hover-color), 0.39);
+            background-color: rgba(to_color($data-table-hover-color), 0.12);
         }
 
         .mdl-card,
