@@ -50,9 +50,9 @@ lazy val commonSettings = Seq(
     case other =>
       val oldStrategy = (assemblyMergeStrategy in assembly).value
       oldStrategy(other)
-  },
+  }
   // Use dependency injected routes in Play modules
-  routesGenerator := InjectedRoutesGenerator
+  //routesGenerator := InjectedRoutesGenerator
 )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -93,7 +93,7 @@ lazy val workspace = (project in file("silk-workspace"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workspace",
-    libraryDependencies += "com.typesafe.play" % "play-ws_2.11" % "2.5.19"
+    libraryDependencies += "com.typesafe.play" % "play-ws_2.11" % "2.6.21"
   )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -131,7 +131,7 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins JSON",
-    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.5.19",
+    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.6.12",
     libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.8.6"
   )
 
@@ -161,7 +161,7 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Serialization JSON",
-    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.5.19"
+    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.6.12"
   )
 
 // Aggregate all plugins
@@ -254,7 +254,10 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     buildInfoPackage := "org.silkframework.buildInfo",
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
-    libraryDependencies += "org.scalatestplus" % "play_2.11" % "1.4.0" % "test"
+    libraryDependencies += "org.scalatestplus" % "play_2.11" % "1.4.0" % "test",
+    // We are still using Play iteratees, in the future we should migrate to Akka Streams and remove this dependency
+    libraryDependencies += "com.typesafe.play" %% "play-iteratees" % "2.6.1",
+    libraryDependencies += "com.typesafe.play" %% "play-iteratees-reactive-streams" % "2.6.1"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
@@ -263,7 +266,8 @@ lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-wo
   .aggregate(workbenchCore)
   .settings(commonSettings: _*)
   .settings(
-    name := "Silk Workbench Workspace"
+    name := "Silk Workbench Workspace",
+    libraryDependencies += ws % "test"
   )
 
 lazy val workbenchRules = (project in file("silk-workbench/silk-workbench-rules"))

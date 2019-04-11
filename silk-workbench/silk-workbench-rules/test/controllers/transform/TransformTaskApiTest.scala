@@ -3,7 +3,6 @@ package controllers.transform
 import org.silkframework.rule._
 import org.silkframework.workspace.ProjectTask
 import play.api.libs.json.{JsArray, JsString, Json}
-import play.api.libs.ws.WS
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._

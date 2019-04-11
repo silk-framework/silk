@@ -4,8 +4,11 @@ import java.io.File
 import java.net.URL
 import java.util.logging.Logger
 
+import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
+import javax.inject.Inject
 import org.silkframework.config._
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
@@ -20,12 +23,14 @@ import org.silkframework.workspace.activity.ProjectExecutor
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import play.api.libs.Files
 import play.api.libs.iteratee.Enumerator
+import play.api.libs.iteratee.streams.IterateeStreams
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.existentials
 
-class WorkspaceApi extends Controller {
+class WorkspaceApi  @Inject() () extends InjectedController {
+
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   def reload: Action[AnyContent] = UserContextAction { implicit userContext =>
@@ -148,8 +153,9 @@ class WorkspaceApi extends Controller {
     val project = WorkspaceFactory().workspace.project(projectName)
     val resource = project.resources.get(resourceName, mustExist = true)
     val enumerator = Enumerator.fromStream(resource.inputStream)
+    val source = Source.fromPublisher(IterateeStreams.enumeratorToPublisher(enumerator))
 
-    Ok.chunked(enumerator).withHeaders("Content-Disposition" -> "attachment")
+    Ok.chunked(source).withHeaders("Content-Disposition" -> "attachment")
   }
 
   def putResource(projectName: String, resourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request =>implicit userContext =>

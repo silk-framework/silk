@@ -4,14 +4,14 @@ import java.io._
 import java.nio.charset.StandardCharsets
 
 import helper.IntegrationTestTrait
-import org.asynchttpclient.{AsyncCompletionHandler, AsyncHttpClient, Request, Response}
-import org.asynchttpclient.request.body.multipart.FilePart
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource._
 import org.silkframework.workspace.WorkspaceFactory
-import play.api.libs.ws.ahc.AhcWSResponse
 import play.api.libs.ws.WSResponse
+import play.api.libs.ws.ahc.AhcWSResponse
+import play.shaded.ahc.org.asynchttpclient.request.body.multipart.FilePart
+import play.shaded.ahc.org.asynchttpclient.{AsyncCompletionHandler, AsyncHttpClient, Request, Response}
 
 import scala.concurrent.{Future, Promise}
 import scala.util.Try
@@ -54,7 +54,7 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
   }
 
   private def importProject(projectId: String, xmlZipInputBytes: Array[Byte], expectedResponseCodePrefix: Char = '2'): Unit = {
-    val asyncHttpClient: AsyncHttpClient = client.underlying
+    val asyncHttpClient = client.underlying[AsyncHttpClient]
     var postBuilder = asyncHttpClient.preparePost(s"$baseUrl/projects/$projectId/import")
     val tempFile = File.createTempFile("di_file_upload", ".zip")
     try {
@@ -103,7 +103,7 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
     val result = Promise[WSResponse]()
     asyncHttpClient.executeRequest(request, new AsyncCompletionHandler[WSResponse]() {
       override def onCompleted(response: Response) = {
-        val wsResponse = AhcWSResponse(response)
+        val wsResponse = new AhcWSResponse(response)
         result.success(wsResponse)
         postProcessing()
         wsResponse

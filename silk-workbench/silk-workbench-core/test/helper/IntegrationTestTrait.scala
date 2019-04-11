@@ -7,7 +7,7 @@ import org.scalatest.Suite
 import org.scalatestplus.play.OneServerPerSuite
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
-import org.silkframework.rule.{DatasetSelection, MappingRules, RootMappingRule, TransformSpec}
+import org.silkframework.rule.{MappingRules, TransformSpec}
 import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
 import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.util.StreamUtils
@@ -15,11 +15,10 @@ import org.silkframework.workspace._
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.Application
-import play.api.http.Writeable
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
-import play.api.libs.ws.{WS, WSRequest, WSResponse}
+import play.api.libs.ws.{WSRequest, WSResponse}
 import play.api.mvc.{Call, Results}
-import play.api.test.FakeApplication
 
 import scala.collection.immutable.SortedMap
 import scala.concurrent.duration._
@@ -53,7 +52,10 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
 
   override implicit lazy val app: Application = {
     val routerConf = routes.map(r => "play.http.router" -> r).toMap
-    FakeApplication(additionalConfiguration = routerConf)
+
+    val builder = GuiceApplicationBuilder()
+    builder.configure(routerConf)
+    builder.build()
   }
 
   /**
@@ -115,7 +117,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
 
   def createEmptyResource(projectId: String, resourceId: String): WSResponse = {
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/resources/$resourceId")
-    val response = request.put(Results.EmptyContent())
+    val response = request.put("")
     checkResponse(response)
   }
 

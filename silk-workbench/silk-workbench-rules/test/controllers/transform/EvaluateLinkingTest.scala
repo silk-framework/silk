@@ -4,7 +4,6 @@ import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import play.api.libs.json._
-import play.api.libs.ws.WS
 
 class EvaluateLinkingTest extends FlatSpec with IntegrationTestTrait with SingleProjectWorkspaceProviderTestTrait with MustMatchers {
 

@@ -3,11 +3,9 @@ package controllers.transform
 
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
-import org.silkframework.config.DefaultConfig
 import org.silkframework.util.ConfigTestTrait
 import play.api.Logger
 import play.api.libs.json._
-import play.api.libs.ws.WS
 
 /**
   * Base trait for transformation API tests.

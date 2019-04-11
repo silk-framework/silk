@@ -3,6 +3,7 @@ package controllers.workspace
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.SerializationUtils._
+import javax.inject.Inject
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
@@ -20,7 +21,8 @@ import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
 
-class DatasetApi extends Controller with ControllerUtilsTrait {
+class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTrait {
+
   private implicit val partialPath = Json.format[PathCoverage]
   private implicit val valueCoverageMissFormat = Json.format[ValueCoverageMiss]
   private implicit val valueCoverageResultFormat = Json.format[ValueCoverageResult]

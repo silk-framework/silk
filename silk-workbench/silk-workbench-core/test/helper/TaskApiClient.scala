@@ -3,7 +3,7 @@ package helper
 import org.silkframework.config.MetaData
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import play.api.libs.json.JsValue
-import play.api.libs.ws.{WS, WSResponse}
+import play.api.libs.ws.WSResponse
 
 trait TaskApiClient extends ApiClient {
 

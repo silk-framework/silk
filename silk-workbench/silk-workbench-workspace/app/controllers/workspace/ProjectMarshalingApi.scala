@@ -3,13 +3,16 @@ package controllers.workspace
 import java.io._
 import java.util.logging.Logger
 
+import akka.stream.scaladsl.Source
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.workspace.ProjectMarshalingApi._
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.xml.XmlZipProjectMarshaling
 import org.silkframework.workspace.{ProjectMarshallerRegistry, ProjectMarshallingTrait, WorkspaceFactory}
+import play.api.http.HttpEntity
 import play.api.libs.iteratee.Enumerator
+import play.api.libs.iteratee.streams.IterateeStreams
 import play.api.libs.json.JsArray
 import play.api.mvc._
 
@@ -53,7 +56,7 @@ class ProjectMarshalingApi extends Controller {
 
       val fileName = projectName + marshaller.suffix.map("." + _).getOrElse("")
 
-      Ok.chunked(enumerator).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
+      Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(enumerator))).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
     }
   }
 
@@ -79,10 +82,9 @@ class ProjectMarshalingApi extends Controller {
 
       val fileName = "workspace" + marshaller.suffix.map("." + _).getOrElse("")
 
-      Ok.chunked(enumerator).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
+      Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(enumerator))).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
     }
   }
-
 
   private def withMarshaller(marshallerId: String)(f: ProjectMarshallingTrait => Result): Result = {
     marshallerById(marshallerId) match {

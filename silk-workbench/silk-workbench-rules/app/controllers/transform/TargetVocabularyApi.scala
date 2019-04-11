@@ -3,11 +3,11 @@ package controllers.transform
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils._
+import javax.inject.Inject
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.vocab.{VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.WriteContext
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.util.Uri
@@ -15,12 +15,12 @@ import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.transform.VocabularyCache
 import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{JsValue, Json, Writes}
-import play.api.mvc.{Action, AnyContent, Controller}
+import play.api.mvc.{Action, AnyContent, InjectedController}
 
 /**
   * Provides access to the target vocabulary.
   */
-class TargetVocabularyApi extends Controller with ControllerUtilsTrait {
+class TargetVocabularyApi  @Inject() () extends InjectedController with ControllerUtilsTrait {
 
   /** Returns meta data for a vocabulary class */
   def getTypeInfo(projectName: String, transformTaskName: String, typeUri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>

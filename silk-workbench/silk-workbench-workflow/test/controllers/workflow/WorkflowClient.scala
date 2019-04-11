@@ -5,7 +5,7 @@ import controllers.workspace.ActivityClient
 import org.silkframework.util.Identifier
 import play.api.http.Writeable
 import play.api.libs.json.{JsArray, JsObject, JsString, JsValue}
-import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
+import play.api.libs.ws.{BodyWritable, WSClient, WSRequest, WSResponse}
 
 import scala.collection.AbstractIterable
 import scala.concurrent.duration._
@@ -39,7 +39,7 @@ class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identif
 
   def executeVariableWorkflow[T](requestBody: T,
                                  accept: String = "application/xml",
-                                 blocking: Boolean = true)(implicit wrt: Writeable[T]): WSResponse = {
+                                 blocking: Boolean = true)(implicit wrt: BodyWritable[T]): WSResponse = {
 
     var request: WSRequest = executeOnPayloadUri(projectId, workflowId, blocking)
     if(blocking) {

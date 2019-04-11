@@ -3,7 +3,6 @@ package controllers.workspace
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
-import play.api.libs.ws.WS
 
 class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
 

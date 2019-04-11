@@ -1,29 +1,29 @@
 package controllers.workspace
 
-import akka.stream.scaladsl.Source
-import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.core.util.ControllerUtilsTrait
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.SerializationUtils
+import javax.inject.Inject
 import org.silkframework.config.{MetaData, Task, TaskSpec}
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.ResourceBasedDataset
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.FileResource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.JsonSerializers._
-import org.silkframework.workspace.{Project, WorkspaceFactory}
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.ErrorResult
-import play.api.http.HttpEntity
-import play.api.libs.iteratee.Enumerator
+import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{JsBoolean, JsObject, JsValue, Json}
-import play.api.mvc.{Action, AnyContent, BodyParsers, Controller}
+import play.api.mvc.{AbstractController, Action, AnyContent, BodyParsers, ControllerComponents, InjectedController}
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
-class TaskApi extends Controller with ControllerUtilsTrait {
+class TaskApi @Inject() (cc: ControllerComponents) extends AbstractController(cc) with ControllerUtilsTrait {
+
+  implicit private val executionContext: ExecutionContext = controllerComponents.executionContext
 
   def postTask(projectName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
@@ -127,6 +127,7 @@ class TaskApi extends Controller with ControllerUtilsTrait {
       val result = copyRequest.copy(projectName, taskName)
       Ok(Json.toJson(result))
     }
+    Ok
   }
 
   def cachesLoaded(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>

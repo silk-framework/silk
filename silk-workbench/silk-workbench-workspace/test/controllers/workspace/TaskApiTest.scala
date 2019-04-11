@@ -6,7 +6,6 @@ import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.workspace.TestCustomTask
 import play.api.http.Status
 import play.api.libs.json._
-import play.api.libs.ws.WS
 
 class TaskApiTest extends PlaySpec with IntegrationTestTrait {
 
