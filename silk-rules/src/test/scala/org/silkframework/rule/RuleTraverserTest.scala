@@ -1,9 +1,9 @@
 package org.silkframework.rule
 
-import org.scalatest.{FlatSpec, ShouldMatchers}
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.util.Identifier
 
-class RuleTraverserTest extends FlatSpec with ShouldMatchers {
+class RuleTraverserTest extends FlatSpec with Matchers {
 
   behavior of "RuleTraverser"
 

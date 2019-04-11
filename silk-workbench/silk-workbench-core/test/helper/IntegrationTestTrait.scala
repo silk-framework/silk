@@ -3,7 +3,7 @@ package helper
 import java.io._
 import java.net.URLDecoder
 
-import org.scalatest.Suite
+import org.scalatest.{Suite, TestSuite}
 import org.scalatestplus.play.OneServerPerSuite
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
@@ -31,7 +31,7 @@ import scala.xml.{Elem, XML}
   * Basis for integration tests.
   */
 trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with TestWorkspaceProviderTestTrait with TestUserContextTrait {
-  this: Suite =>
+  this: TestSuite =>
 
   final val APPLICATION_JSON: String = "application/json"
   final val APPLICATION_XML: String = "application/xml"

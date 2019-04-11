@@ -1,10 +1,10 @@
 package org.silkframework.dataset
 
-import org.scalatest.{FlatSpec, ShouldMatchers}
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.entity.StringValueType
 import org.silkframework.runtime.activity.UserContext
 
-class DatasetSpecTest extends FlatSpec with ShouldMatchers {
+class DatasetSpecTest extends FlatSpec with Matchers {
 
   behavior of "DatasetSpec"
 

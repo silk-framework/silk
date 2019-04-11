@@ -22,6 +22,7 @@ import org.silkframework.workbench.Context
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
+import play.api.http.ContentTypes
 import play.api.mvc.{Action, AnyContent, Controller}
 
 class Learning extends Controller {
@@ -226,7 +227,7 @@ class Learning extends Controller {
     val task = project.task[LinkSpec](taskName)
     val stream1 = Stream.status(task.activity[LearningActivity].control.status)
     val stream2 = Stream.status(task.activity[ActiveLearning].control.status, _.isInstanceOf[Finished])
-    Ok.chunked(Widgets.autoReload("reload", stream1 interleave stream2))
+    Ok.chunked(Widgets.autoReload("reload", stream1 interleave stream2)).as(ContentTypes.HTML)
   }
 
   def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
@@ -254,7 +255,7 @@ class Learning extends Controller {
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val stream = Stream.activityValue(task.activity[ActiveLearning].control)
-    Ok.chunked(Widgets.autoReload("reload", stream))
+    Ok.chunked(Widgets.autoReload("reload", stream)).as(ContentTypes.HTML)
   }
 
   def statusStream(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
@@ -264,7 +265,7 @@ class Learning extends Controller {
     val stream1 = Stream.status(task.activity[LearningActivity].control.status)
     val stream2 = Stream.status(task.activity[ActiveLearning].control.status)
 
-    Ok.chunked(Widgets.statusStream(stream1 interleave stream2))
+    Ok.chunked(Widgets.statusStream(stream1 interleave stream2)).as(ContentTypes.HTML)
   }
 
   def population(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>

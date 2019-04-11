@@ -11,7 +11,7 @@ import org.silkframework.workspace.xml.XmlZipProjectMarshaling
   * Trait that can be mixed in to replace the workspace provider with an in-memory version
   * that has a project pre-loaded from the Classpath.
   */
-trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with TestWorkspaceProviderTestTrait with TestUserContextTrait { this: Suite =>
+trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with TestWorkspaceProviderTestTrait with TestUserContextTrait { this: TestSuite =>
   /**
     * Returns the path of the XML zip project that should be loaded before the test suite starts.
     */

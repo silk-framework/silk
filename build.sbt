@@ -20,7 +20,7 @@ lazy val commonSettings = Seq(
     }
   },
   // Testing
-  libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test",
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.7" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "4.0.0" % "test",
   libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.11",
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
@@ -254,7 +254,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     buildInfoPackage := "org.silkframework.buildInfo",
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
-    libraryDependencies += "org.scalatestplus" % "play_2.11" % "1.4.0" % "test",
+    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % "test",
     // We are still using Play iteratees, in the future we should migrate to Akka Streams and remove this dependency
     libraryDependencies += "com.typesafe.play" %% "play-iteratees" % "2.6.1",
     libraryDependencies += "com.typesafe.play" %% "play-iteratees-reactive-streams" % "2.6.1"

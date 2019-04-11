@@ -14,6 +14,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
+import play.api.http.ContentTypes
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc._
@@ -179,7 +180,7 @@ class ActivityApi @Inject() () extends InjectedController {
 
     val allSources = projectActivityStreams ++ taskActivityStreams
 
-    Ok.chunked(Source.combine(Source.empty, Source.empty, allSources: _*)(Merge(_)))
+    Ok.chunked(Source.combine(Source.empty, Source.empty, allSources: _*)(Merge(_))).as(ContentTypes.HTML)
   }
 
   private def activityControl(projectName: String, taskName: String, activityName: String)

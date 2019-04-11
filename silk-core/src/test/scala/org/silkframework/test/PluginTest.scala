@@ -12,7 +12,7 @@ import org.silkframework.runtime.plugin.PluginRegistry
   *  - The plugin is serializable (and the serialization is correct according to the plugins serialization operator)
   *  - The plugin is valid (e.g., the parameter types are allowed)
   */
-abstract class PluginTest extends FlatSpec with ShouldMatchers {
+abstract class PluginTest extends FlatSpec with Matchers {
 
   /**
     * Use this plugin object for testing.
