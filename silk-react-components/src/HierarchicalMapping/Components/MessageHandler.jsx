@@ -38,10 +38,6 @@ const MessageHandler = React.createClass({
 		this.subscribe(errorChannel.subject('message.warning'), this.onError.bind(this, 'warning'));
 	},
 
-	componentWillUnmount() {
-
-	},
-
 	// handle graphs loaded
 	onError(errorType, data) {
 
