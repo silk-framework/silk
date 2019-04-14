@@ -5,10 +5,10 @@ import chaiEnzyme from "chai-enzyme";
 import Enzyme from "enzyme/build";
 import Adapter from "enzyme-adapter-react-15/build";
 import MappingRule from '../../../../src/HierarchicalMapping/Components/MappingRule/MappingRule';
+import {getRuleLabel} from '../../../../src/HierarchicalMapping/helpers';
 import waitUntilReady from '../../../test_helper'
 import {DragDropContext, Droppable} from "react-beautiful-dnd";
 import sinon from 'sinon';
-import SuggestionsList from '../../../../src/HierarchicalMapping/Components/SuggestionsList';
 
 chai.use(chaiEnzyme());
 Enzyme.configure({ adapter: new Adapter() });
@@ -75,84 +75,43 @@ const uri = (component) => {
     return component.find(selectors.uri)
 };
 
-describe("MappingRule with label existing and not empty", () => {
-    const component = mountMappingRule(sampleData.uri, sampleData.label);
+describe("MappingRule", () => {
 
-    sinon.spy(MappingRule.prototype, 'componentDidMount');
+    it('should correctly display label and target URI in the UI', async () => {
+        const component = mountMappingRule(sampleData.uri, sampleData.label);
 
-    beforeEach(async () => {
+        sinon.spy(MappingRule.prototype, 'componentDidMount');
         await waitUntilReady(component);
-    });
-
-    it('mounts', async () => {
         expect(MappingRule.prototype.componentDidMount.calledOnce);
-    });
-
-    it('shows the right label text', () => {
         expect(label(component).text()).to.equal(sampleData.label);
-    });
-
-    it('shows the right uri text', () => {
         expect(uri(component).text()).to.equal(sampleData.uri);
     });
-});
 
-describe("MappingRule with label equals URI", () => {
-    const component = mountMappingRule(sampleData.uri, sampleData.uri);
+    const labelUri = (label, uri) => getRuleLabel({label, uri});
 
-    beforeEach(async () => {
-        await waitUntilReady(component);
+    it('should show label and URI if both are specified', () => {
+        expect(labelUri(sampleData.label, sampleData.uri)).to.include({displayLabel: sampleData.label, uri: sampleData.uri});
     });
 
-    it('mounts', async () => {
-        await waitUntilReady(component);
+    it('should generate a label out of the last part of the (camel-case) URI if no label was given', () => {
+        expect(labelUri('', 'labelCamelCase')).to.include({displayLabel: 'Label Camel Case', uri: 'labelCamelCase'});
+        expect(labelUri(null, 'http://some/path/label')).to.include({displayLabel: 'Label', uri: 'http://some/path/label'});
+        expect(labelUri(null, 'http://some/path/labelCamelCase')).to.include({displayLabel: 'Label Camel Case', uri: 'http://some/path/labelCamelCase'});
+        expect(labelUri(undefined, 'urn:test:labelCamelCase')).to.include({displayLabel: 'Label Camel Case', uri: 'urn:test:labelCamelCase'});
     });
 
-    it('shows the right label text', () => {
-        expect(label(component).text()).to.equal(sampleData.uri);
+    it('should only show the URI as display label if the URI is the same (case-insensitive) as the label', () => {
+        expect(labelUri('urn:test:Test', 'urn:test:Test')).to.include({displayLabel: 'urn:test:Test', uri: null});
+        expect(labelUri('urn:test:Test', 'urn:test:test')).to.include({displayLabel: 'urn:test:test', uri: null});
+        expect(labelUri('http://domain.suffix/Test', 'http://domain.suffix/Test')).to.include({displayLabel: 'http://domain.suffix/Test', uri: null});
+        expect(labelUri('http://domain.suffix/test', 'http://domain.suffix/Test')).to.include({displayLabel: 'http://domain.suffix/Test', uri: null});
+        expect(labelUri('urn:test:Test', 'urn:test:test')).to.include({displayLabel: 'urn:test:test', uri: null});
+        expect(labelUri('someTest', 'someTest')).to.include({displayLabel: 'someTest', uri: null});
+        expect(labelUri('someTest', 'sometest')).to.include({displayLabel: 'sometest', uri: null});
     });
 
-    it('does not show uri text', () => {
-        expect(uri(component)).to.lengthOf(0);
-    });
-});
-
-describe("MappingRule with no label and absolute URI", () => {
-    const component = mountMappingRule(sampleData.uri, null);
-
-    beforeEach(async () => {
-        await waitUntilReady(component);
-    });
-
-    it('mounts', async () => {
-        await waitUntilReady(component);
-    });
-
-    it('shows the right label text', () => {
-        expect(label(component).text()).to.equal(sampleData.uriLabel);
-    });
-
-    it('shows the right uri text', () => {
-        expect(uri(component).text()).to.equal(sampleData.uri);
-    });
-});
-
-describe("MappingRule with no label and relative URI", () => {
-    const component = mountMappingRule(sampleData.uriRelative, null);
-
-    beforeEach(async () => {
-        await waitUntilReady(component);
-    });
-
-    it('mounts', async () => {
-        await waitUntilReady(component);
-    });
-
-    it('shows the right label text', () => {
-        expect(label(component).text()).to.equal(sampleData.uriLabelRelative);
-    });
-
-    it('does not show uri text', () => {
-        expect(uri(component)).to.lengthOf(0);
+    it('should only show the URI as display label if the generated display label does not differ case-insensitive', () => {
+        expect(labelUri(null, 'Text')).to.include({displayLabel: 'Text', uri: null});
+        expect(labelUri(null, 'text')).to.include({displayLabel: 'text', uri: null});
     });
 });
