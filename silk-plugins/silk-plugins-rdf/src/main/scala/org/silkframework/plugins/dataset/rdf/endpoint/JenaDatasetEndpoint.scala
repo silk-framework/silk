@@ -9,11 +9,22 @@ import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.apache.jena.update.{UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint, SparqlParams}
 import org.silkframework.runtime.activity.UserContext
+import scala.collection.JavaConverters._
 
 /**
   * A SPARQL endpoint which executes all queries on a Jena Dataset.
   */
 class JenaDatasetEndpoint(dataset: Dataset, val sparqlParams: SparqlParams = SparqlParams(pageSize = 0)) extends JenaEndpoint with GraphStoreTrait {
+
+  override def logModel(message: String): Unit = {
+    println(message)
+    for(name <- dataset.listNames().asScala) {
+      val writer = new StringWriter()
+      dataset.getNamedModel(name).write(writer, "NT")
+      println(writer)
+    }
+
+  }
 
   override protected def createQueryExecution(query: Query): QueryExecution = {
     QueryExecutionFactory.create(query, dataset)
