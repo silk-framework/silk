@@ -33,8 +33,6 @@ abstract class JenaEndpoint extends SparqlEndpoint {
 
   private val logger = Logger.getLogger(classOf[JenaEndpoint].getName)
 
-  def logModel(message: String): Unit = {}
-
   /**
    * Overloaded in subclasses.
    */
@@ -108,9 +106,7 @@ abstract class JenaEndpoint extends SparqlEndpoint {
     */
   override def update(query: String)
                      (implicit userContext: UserContext): Unit = synchronized {
-    logModel("Before update with query \n" + query + "\n:")
     createUpdateExecution(query).execute()
-    logModel("After update")
   }
 
   /**
