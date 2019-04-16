@@ -12,8 +12,8 @@ import org.silkframework.workspace.xml.XmlWorkspaceProvider
 import scala.reflect.ClassTag
 import scala.util.Try
 
-class CombinedWorkspaceProvider(primaryWorkspace: WorkspaceProvider,
-                                secondaryWorkspace: WorkspaceProvider) extends WorkspaceProvider {
+class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
+                                val secondaryWorkspace: WorkspaceProvider) extends WorkspaceProvider {
 
   override def sparqlEndpoint: Option[SparqlEndpoint] = primaryWorkspace.sparqlEndpoint.orElse(secondaryWorkspace.sparqlEndpoint)
 
