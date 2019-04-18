@@ -42,7 +42,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                   (implicit userContext: UserContext): Unit = {
     cancelled = false
 
-    implicit val workflowRunContext = WorkflowRunContext(
+    implicit val workflowRunContext: WorkflowRunContext = WorkflowRunContext(
       activityContext = context,
       workflow = currentWorkflow,
       userContext = userContext
