@@ -130,7 +130,7 @@ ul.ecc-hierarchical-mapping-error-list {
 }
 
 .ecc-silk-mapping__rules {
-    flex-basis: calc(75% - $ecc-size-block-whitespace);
+    flex-basis: calc(75% - #{$ecc-size-block-whitespace});
     flex-grow: 4;
     flex-shrink: 1;
     min-width: 50%;
