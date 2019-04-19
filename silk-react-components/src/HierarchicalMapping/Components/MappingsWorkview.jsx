@@ -271,7 +271,7 @@ const MappingsWorkview = React.createClass({
 
     handleCopy(id, type) {
         errorChannel.subject('message.info').onNext({
-            message: 'Mapping rule copied',
+            message: 'Mapping rule copied. Use "+" button to paste',
         });
         hierarchicalMappingChannel
             .request({
