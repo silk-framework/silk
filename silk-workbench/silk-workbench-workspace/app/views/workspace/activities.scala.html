@@ -57,22 +57,26 @@
 
       // Update values
       progressbar.attr('title', status.message);
-      if(status.failed) {
-        progressbar.progressbar("option", {value: 100});
+      if(status.statusName === "Idle") {
+        progressbar.progressbar("option", {disabled: true, value: 0});
+        progressbarText.text(status.message);
+        progressbarHelp.hide();
+      } else if(status.failed) {
+        progressbar.progressbar("option", {disabled: false, value: 100});
         progressbarValue.css({
           "background": '#FF5050'
         });
         progressbarText.text("Failed ");
         progressbarHelp.show();
       } else if(status.statusName === "Waiting") {
-        progressbar.progressbar("option", {value: 100});
+        progressbar.progressbar("option", {disabled: false, value: 100});
         progressbarValue.css({
           "background": '#fffb00'
         });
         progressbarText.text(status.message);
         progressbarHelp.show();
       } else {
-        progressbar.progressbar("option", {value: parseFloat(status.progress)});
+        progressbar.progressbar("option", {disabled: false, value: parseFloat(status.progress)});
         progressbarValue.css({
           "background": 'rgb(100, ' + Math.round(100 + status.progress * 1.55) + ', 100)'
         });
