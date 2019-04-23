@@ -144,13 +144,20 @@ ul.ecc-hierarchical-mapping-error-list {
 
     .mdl-card__title-back {
         position: relative;
-        left: $ecc-size-block-whitespace/2;
+        margin-left: -1 * $ecc-size-block-whitespace;
         align-self: flex-start;
+        margin-top: -0.5 * ($button-icon-size - $typo-icon-font-size);
+        margin-bottom: -0.5 * ($button-icon-size - $typo-icon-font-size);
     }
 
     .mdl-card__title-text {
         align-self: center;
         display: flex;
+    }
+
+    .ecc-breadcrumbs__button {
+        padding-top: 0;
+        padding-bottom: 0;
     }
 }
 
