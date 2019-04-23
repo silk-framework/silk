@@ -98,6 +98,7 @@ describe("MappingRule", () => {
         expect(labelUri(null, 'http://some/path/label')).to.include({displayLabel: 'Label', uri: 'http://some/path/label'});
         expect(labelUri(null, 'http://some/path/labelCamelCase')).to.include({displayLabel: 'Label Camel Case', uri: 'http://some/path/labelCamelCase'});
         expect(labelUri(undefined, 'urn:test:labelCamelCase')).to.include({displayLabel: 'Label Camel Case', uri: 'urn:test:labelCamelCase'});
+        expect(labelUri(undefined, 'http://uriWithHash/dontUseThis#labelCamelCase')).to.include({displayLabel: 'Label Camel Case', uri: 'http://uriWithHash/dontUseThis#labelCamelCase'});
     });
 
     it('should only show the URI as display label if the URI is the same (case-insensitive) as the label', () => {
