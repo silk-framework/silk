@@ -100,6 +100,14 @@
       });
       progressbarText.text("Failed ");
       progressbarHelp.show();
+    } else if(status.statusName === "Waiting") {
+      progressbar.progressbar("option", {value: 100});
+      progressbarValue.addClass('status_waiting');
+      progressbarValue.css({
+        "background": '#fffb00'
+      });
+      progressbarText.text(status.message);
+      progressbarHelp.show();
     } else {
       progressbar.progressbar("option", {value: parseFloat(status.progress)});
       progressbarValue.css({
