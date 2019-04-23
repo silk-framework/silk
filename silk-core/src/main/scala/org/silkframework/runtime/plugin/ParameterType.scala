@@ -51,7 +51,7 @@ sealed abstract class ParameterType[T: ClassTag] {
     * @param resourceLoader The current resources for resolving resource references.
     * @return Either returns the parsed value or throws an exception.
     */
-  def fromString(str: String)(implicit prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceManager = EmptyResourceManager): T
+  def fromString(str: String)(implicit prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceManager = EmptyResourceManager()): T
 
   /**
     * Serializes a value to its string representation.
@@ -208,7 +208,7 @@ object ParameterType {
 
     private val utf8: String = "UTF8"
 
-    def fromString(str: String)(implicit prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceManager = EmptyResourceManager): Map[String, String] = {
+    def fromString(str: String)(implicit prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceManager = EmptyResourceManager()): Map[String, String] = {
       str.split(',').map(_.split(':')).map(v => Tuple2(URLDecoder.decode(v(0), utf8), URLDecoder.decode(v(1), utf8))).toMap
     }
 
