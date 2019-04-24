@@ -314,12 +314,16 @@ class LinkingTaskApi extends Controller {
   def referenceLinksEvaluated(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
+    val rule = task.data.rule
     implicit val writeContext = WriteContext[JsValue]()
 
-    val rule = task.data.rule
-    val referenceEntitiesCache = task.activity[ReferenceEntitiesCache]
-    referenceEntitiesCache.control.waitUntilFinished()
-    val referenceEntities = referenceEntitiesCache.value
+    // Make sure that the reference entities cache is up-to-date
+    val referenceEntitiesCache = task.activity[ReferenceEntitiesCache].control
+    if(referenceEntitiesCache.status().isRunning) {
+      referenceEntitiesCache.waitUntilFinished()
+    }
+    referenceEntitiesCache.startBlocking()
+    val referenceEntities = referenceEntitiesCache.value()
 
     def serializeLinks(entities: Traversable[DPair[Entity]]): JsValue = {
       JsArray(
