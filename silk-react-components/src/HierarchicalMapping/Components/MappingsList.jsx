@@ -133,7 +133,10 @@ const MappingsList = React.createClass({
         );
 
         const listItem = (index, item, provided, snapshot) => (
-            <MappingRule {...item.props} provided snapshot />
+            <MappingRule {...item.props} provided snapshot
+                handleCopy={this.props.handleCopy}
+                handleClone={this.props.handleClone}
+            />
         );
 
         const listItems = _.isEmpty(rules) ? (
@@ -167,7 +170,7 @@ const MappingsList = React.createClass({
                 fabSize="large"
                 fixed
                 iconName="add"
-                actions={[
+                actions={_.concat(
                     {
                         icon: 'insert_drive_file',
                         label: 'Add value mapping',
@@ -186,12 +189,17 @@ const MappingsList = React.createClass({
                             });
                         },
                     },
+                    (sessionStorage.getItem('copyingData') !== null) ? {
+                        icon: 'folder',
+                        label: 'Paste mapping',
+                        handler: this.props.handlePaste,
+                    } : [],
                     {
                         icon: 'lightbulb_outline',
                         label: 'Suggest mappings',
                         handler: this.handleShowSuggestions,
                     },
-                ]}
+                )}
             />
         );
 

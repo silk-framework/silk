@@ -10,7 +10,7 @@ import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.ResourceRepository
-import org.silkframework.workspace.{ProjectConfig, RefreshableWorkspaceProvider, WorkspaceProvider}
+import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider}
 
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success}
@@ -44,19 +44,13 @@ object WorkspaceIO {
     outputWorkspace.putProject(updatedProjectConfig)
     for(input <- inputResources; output <- outputResources)
       copyResources(input, output)
-    val resources = outputResources.getOrElse(inputResources.getOrElse(EmptyResourceManager))
+    val resources = outputResources.getOrElse(inputResources.getOrElse(EmptyResourceManager()))
     copyTasks[DatasetSpec[Dataset]](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
     copyTasks[TransformSpec](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
     copyTasks[LinkSpec](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
     copyTasks[Workflow](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
     copyTasks[CustomTask](inputWorkspace, outputWorkspace, resources, updatedProjectConfig.id)
-    outputWorkspace match {
-      case rw: RefreshableWorkspaceProvider =>
-        rw.refresh()
-      case _ =>
-        log.warning("Workspace provider of type " + outputWorkspace.getClass.getName + " is not refreshable. Imported project " +
-        updatedProjectConfig.id.toString + " might be inconsistent.")
-    }
+    outputWorkspace.refresh()
   }
 
   def copyResources(inputResources: ResourceManager, outputResources: ResourceManager): Unit = {

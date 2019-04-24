@@ -66,7 +66,7 @@ private class ActivityExecution[T](activity: Activity[T],
 
   private def setStartMetaData(user: UserContext) = {
     resetMetaData()
-    status.update(Status.Started())
+    status.update(Status.Waiting())
     this.startedByUser = user
   }
 
@@ -118,6 +118,7 @@ private class ActivityExecution[T](activity: Activity[T],
   override def underlying: Activity[T] = activity
 
   private def runActivity()(implicit user: UserContext): Unit = synchronized {
+    status.update(Status.Running("Running", None))
     ThreadLock.synchronized {
       runningThread = Some(Thread.currentThread())
     }

@@ -7,6 +7,9 @@ export const MAPPING_RULE_TYPE_COMPLEX = 'complex';
 export const MAPPING_RULE_TYPE_URI = 'uri';
 export const MAPPING_RULE_TYPE_COMPLEX_URI = 'complexUri';
 
+export const isCopiableRule = type =>
+    MAPPING_RULE_TYPE_DIRECT === type || MAPPING_RULE_TYPE_OBJECT === type || MAPPING_RULE_TYPE_COMPLEX === type || MAPPING_RULE_TYPE_ROOT === type;
+
 export const isObjectMappingRule = type =>
     MAPPING_RULE_TYPE_ROOT === type || MAPPING_RULE_TYPE_OBJECT === type;
 

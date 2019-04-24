@@ -14,6 +14,7 @@ import {
     Spinner,
     DisruptiveButton,
     DismissiveButton,
+    ScrollingMixin,
 } from '@eccenca/gui-elements';
 import UseMessageBus from '../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../store';
@@ -52,8 +53,13 @@ const MappingRule = React.createClass({
 
     // initilize state
     getInitialState() {
+        const pastedId = sessionStorage.getItem('pastedId');
+        const isPasted = (pastedId !== null) && (pastedId === this.props.id);
+        if (isPasted)
+            !sessionStorage.removeItem('pastedId');
         return {
-            expanded: false,
+            isPasted : isPasted,
+            expanded: isPasted || false,
             editing: false,
             askForDiscard: false,
             loading: false,
@@ -86,6 +92,8 @@ const MappingRule = React.createClass({
             hierarchicalMappingChannel.subject('ruleView.discardAll'),
             this.discardAll
         );
+        if (this.state.isPasted)
+            ScrollingMixin.scrollElementIntoView(this)
     },
     onOpenEdit(obj) {
         if (_.isEqual(this.props.id, obj.id)) {
@@ -265,6 +273,8 @@ const MappingRule = React.createClass({
                     type={type}
                     parentId={parentId}
                     edit={false}
+                    handleCopy={this.props.handleCopy}
+                    handleClone={this.props.handleClone}
                 />
             ) : (
                 <RuleValueEdit
@@ -273,6 +283,8 @@ const MappingRule = React.createClass({
                     type={type}
                     parentId={parentId}
                     edit={false}
+                    handleCopy={this.props.handleCopy}
+                    handleClone={this.props.handleClone}
                 />
             )
         ) : (
@@ -338,6 +350,7 @@ const MappingRule = React.createClass({
                             'ecc-silk-mapping__ruleitem--literal':
                                 type !== 'object',
                             'ecc-silk-mapping__ruleitem--defect': errorInfo,
+                            'mdl-layout_item--background-flash': this.state.isPasted,
                         })}>
                         <div
                             className={'ecc-silk-mapping__ruleitem--dnd'}
