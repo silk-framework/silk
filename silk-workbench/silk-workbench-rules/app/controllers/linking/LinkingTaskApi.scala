@@ -6,20 +6,22 @@ import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
 import org.silkframework.config.MetaData
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.entity.{Link, Restriction}
+import org.silkframework.entity.{Entity, Link, Restriction}
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
-import org.silkframework.rule.evaluation.ReferenceLinks
+import org.silkframework.rule.evaluation.{DetailedEvaluator, LinkageRuleEvaluator, ReferenceLinks}
 import org.silkframework.rule.execution.{GenerateLinks => GenerateLinksActivity}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.{Activity, UserContext}
-import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSerialization}
 import org.silkframework.runtime.validation._
+import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
+import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
 
 class LinkingTaskApi extends Controller {
@@ -307,6 +309,34 @@ class LinkingTaskApi extends Controller {
   private def projectAndTask(projectName: String, taskName: String)
                             (implicit userContext: UserContext): (Project, ProjectTask[LinkSpec]) = {
     getProjectAndTask[LinkSpec](projectName, taskName)
+  }
+
+  def referenceLinksEvaluated(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val task = project.task[LinkSpec](taskName)
+    implicit val writeContext = WriteContext[JsValue]()
+
+    val rule = task.data.rule
+    val referenceEntitiesCache = task.activity[ReferenceEntitiesCache]
+    referenceEntitiesCache.control.waitUntilFinished()
+    val referenceEntities = referenceEntitiesCache.value
+
+    def serializeLinks(entities: Traversable[DPair[Entity]]): JsValue = {
+      JsArray(
+        for(entities <- entities.toSeq) yield {
+          val link = new Link(entities.source.uri, entities.target.uri, Some(rule(entities)), Some(entities))
+          new LinkJsonFormat(Some(rule)).write(link)
+        }
+      )
+    }
+
+    val result =
+      Json.obj(
+        "positive" -> serializeLinks(referenceEntities.positiveEntities),
+        "negative" -> serializeLinks(referenceEntities.negativeEntities)
+      )
+
+    Ok(result)
   }
 
   def postLinkDatasource(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
