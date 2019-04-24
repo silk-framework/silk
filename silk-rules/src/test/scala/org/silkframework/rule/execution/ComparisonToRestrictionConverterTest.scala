@@ -2,7 +2,7 @@ package org.silkframework.rule.execution
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.entity.{Path, Restriction}
-import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.{BooleanLinkageRule, LinkageRule}
 import org.silkframework.rule.input.{PathInput, TransformInput}
 import org.silkframework.rule.plugins.aggegrator.{MaximumAggregator, MinimumAggregator, NegationAggregator}
 import org.silkframework.rule.plugins.distance.equality.{EqualityMetric, InequalityMetric}
@@ -65,6 +65,34 @@ class ComparisonToRestrictionConverterTest extends FlatSpec with MustMatchers {
     )
     convert(notSatisfiable, sourceOrTarget = true) mustBe None
     convert(notSatisfiable, sourceOrTarget = false) mustBe None
+  }
+
+  it should "fail early for exponentially exploding conversions" in {
+    /*
+    This kind of source clauses will lead to exponential explosion when converted into a CNF:
+    (X1 ^ Y1) v (X2 ^ Y2) v ... v (Xn ^ Yn)
+    The algorithm should have some way to prevent running out of memory and fail early.
+     */
+    val maxComparisons = BooleanLinkageRule.MAX_COMPARISONS_IN_LINKAGE_RULE_FOR_CNF_CONVERSION
+    val okRule = exponentiallyExplodingRule(maxComparisons)
+    val notOkRule = exponentiallyExplodingRule(maxComparisons + 2) // + 2 because this is divided by 2 later
+    convert(okRule, sourceOrTarget = true) mustBe defined
+    convert(notOkRule, sourceOrTarget = true).isEmpty mustBe true
+  }
+
+  private def exponentiallyExplodingRule(nrOfComparisons: Int): Aggregation = {
+    or(
+      (for(i <- 1 to (nrOfComparisons / 2)) yield {
+        andPair(i.toString)
+      }) :_*
+    )
+  }
+
+  private def andPair(suffix: String): Aggregation = {
+    and(
+      sourceEqual("A" + suffix, "A" + suffix),
+      sourceEqual("B" + suffix, "B" + suffix)
+    )
   }
 
   private def convert(operator: SimilarityOperator, subject: String = "a", variablePrefix: String = "var_pref_", sourceOrTarget: Boolean): Option[Restriction.Operator] = {

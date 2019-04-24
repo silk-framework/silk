@@ -5,6 +5,7 @@ import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.aggegrator.{MaximumAggregator, MinimumAggregator, NegationAggregator}
 import org.silkframework.rule.similarity.{Aggregation, Aggregator, Comparison, SimilarityOperator}
 import org.silkframework.util.Identifier
+import BooleanLinkageRule.MAX_COMPARISONS_IN_LINKAGE_RULE_FOR_CNF_CONVERSION
 
 /**
   * A link spec as a boolean rule. This representation is only applicable to a subset of linking rules.
@@ -30,6 +31,11 @@ case class BooleanLinkageRule(root: BooleanOperator) {
   /** Turns the boolean linkage rule to conjunctive normal form, in order to better turn it into executable form.
     * CNF example: (A || !B || C) && (!A || B) && G */
   def toCNF: CnfBooleanAnd = {
+    if(comparisons.size > MAX_COMPARISONS_IN_LINKAGE_RULE_FOR_CNF_CONVERSION) {
+      // FIXME: Apply something smarter than a worst case upper limit
+      throw new IllegalArgumentException("Linkage rule has too many comparisons for conversion to conjunctive normal form. Max. number: "
+          + MAX_COMPARISONS_IN_LINKAGE_RULE_FOR_CNF_CONVERSION)
+    }
     val negationNormalForm = applyDeMorgan(root)
     distributeOrOverAnd(negationNormalForm)
   }
@@ -146,6 +152,10 @@ case class InputPathOperator(typedPath: TypedPath, inputOperator: Input) extends
 case class TransformationOperator(children: Seq[ValueOutputOperator], inputOperator: Input) extends ValueOutputOperator
 
 object BooleanLinkageRule {
+  /* This should prevent exponentially exploding CNF rules. The max. number of clauses that could be generated
+  * */
+  final val MAX_COMPARISONS_IN_LINKAGE_RULE_FOR_CNF_CONVERSION = 24
+
   /** Converts a link spec into a boolean linkage rule if it can be interpreted as a boolean expression. */
   def apply(linkSpec: LinkSpec): Option[BooleanLinkageRule] = {
     apply(linkSpec.rule)

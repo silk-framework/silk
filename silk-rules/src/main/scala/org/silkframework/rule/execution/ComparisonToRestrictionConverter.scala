@@ -56,30 +56,34 @@ object ComparisonToRestrictionConverter {
                                 subject: String,
                                 variablePrefix: String,
                                 sourceOrTarget: Boolean): Option[CustomOperator] = {
-    BooleanLinkageRule(linkageRule). // Step 1
-        map(_.toCNF). // Step 2
-        flatMap { cnfBoolRule =>
-      val disjunctionSparqlRestrictions = (for((disjunction, idx) <- cnfBoolRule.orClauses.zipWithIndex) yield {
-        val dataSourceRestrictions = disjunction.leaves map {
-          case cnfNot: CnfBooleanLeafNot =>
-            convertComparison(cnfNot.booleanComparison.comparison, sourceOrTarget, invertRestriction = true)
-          case CnfBooleanLeafComparison(comparisonOperator) =>
-            convertComparison(comparisonOperator.comparison, sourceOrTarget, invertRestriction = false)
-        }
-        val variablePrefixForDisjunction = variablePrefix + idx + "_"
-        if(dataSourceRestrictions.forall(_.isDefined)) { // Step 3: Check if all parts were converted
-          val sparqlFilterRestrictions = dataSourceRestrictions.flatten.zipWithIndex.
-              map { case (dataSourceRestriction, restrictionIdx) =>
-                val restrictionVariablePrefix = variablePrefixForDisjunction + restrictionIdx + "_"
-                dataSourceRestriction.toSparqlFilter(subject, restrictionVariablePrefix) // Step 4: convert to SPARQL filter restriction
-              }
-          SparqlFilterRestriction.disjunction(sparqlFilterRestrictions) // Step 4: Combine all SPARQL filter restrictions as disjunction
-        } else {
-          None
-        }
-      }).flatten
-      val finalSparqlFilterRestriction = SparqlFilterRestriction.conjunction(disjunctionSparqlRestrictions) // Step 5
-      finalSparqlFilterRestriction.map(filter => CustomOperator(filter.toSparql))
+    try {
+      BooleanLinkageRule(linkageRule). // Step 1
+          map(_.toCNF). // Step 2
+          flatMap { cnfBoolRule =>
+        val disjunctionSparqlRestrictions = (for ((disjunction, idx) <- cnfBoolRule.orClauses.zipWithIndex) yield {
+          val dataSourceRestrictions = disjunction.leaves map {
+            case cnfNot: CnfBooleanLeafNot =>
+              convertComparison(cnfNot.booleanComparison.comparison, sourceOrTarget, invertRestriction = true)
+            case CnfBooleanLeafComparison(comparisonOperator) =>
+              convertComparison(comparisonOperator.comparison, sourceOrTarget, invertRestriction = false)
+          }
+          val variablePrefixForDisjunction = variablePrefix + idx + "_"
+          if (dataSourceRestrictions.forall(_.isDefined)) { // Step 3: Check if all parts were converted
+            val sparqlFilterRestrictions = dataSourceRestrictions.flatten.zipWithIndex.
+                map { case (dataSourceRestriction, restrictionIdx) =>
+                  val restrictionVariablePrefix = variablePrefixForDisjunction + restrictionIdx + "_"
+                  dataSourceRestriction.toSparqlFilter(subject, restrictionVariablePrefix) // Step 4: convert to SPARQL filter restriction
+                }
+            SparqlFilterRestriction.disjunction(sparqlFilterRestrictions) // Step 4: Combine all SPARQL filter restrictions as disjunction
+          } else {
+            None
+          }
+        }).flatten
+        val finalSparqlFilterRestriction = SparqlFilterRestriction.conjunction(disjunctionSparqlRestrictions) // Step 5
+        finalSparqlFilterRestriction.map(filter => CustomOperator(filter.toSparql))
+      }
+    } catch {
+      case _: IllegalArgumentException => None
     }
   }
 
