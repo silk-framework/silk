@@ -39,3 +39,29 @@ export const trimValueLabelObject = object => {
 export const trimUriPattern = pattern => {
     return _.trim(pattern);
 };
+
+export const uriToLabel = uri => {
+    const cleanUri = uri.replace(/(^<+|>+$)/g, '');
+    const cutIndex = Math.max(cleanUri.lastIndexOf("#"), cleanUri.lastIndexOf("/"), cleanUri.lastIndexOf(":"), 0);
+    const label = _.startCase(cleanUri.substr(cutIndex,cleanUri.length));
+    return uri.toLowerCase() === label.toLowerCase() ? uri : label;
+};
+
+/**
+ * @param label {string}
+ * @param uriLabel {string}
+ *
+ * @returns {{displayLabel: string, uri: null||string}}
+ */
+export const getRuleLabel = ({ label, uri }) => {
+    const cleanUri = uri.replace(/(^<+|>+$)/g, ''),
+        uriLabel = uriToLabel(uri);
+    return {
+        displayLabel: label
+            ? uri.toLowerCase() === label.toLowerCase() ? uri : label
+            : uriLabel,
+        uri: label
+            ? cleanUri.toLowerCase() !== label.toLowerCase() ? cleanUri : null
+            : uriLabel.toLowerCase() !== cleanUri.toLowerCase() ? cleanUri : null
+    };
+};
