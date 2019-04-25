@@ -23,7 +23,7 @@ class BooleanFilterLinkSpecIntegrationTest extends FlatSpec with SingleProjectWo
     "OrFilterUnionWithAndPathComparison" -> ExpectedStats(4, 3, 12), // with added path comparison as child of CNF AND-clause this has no effect on filters from other AND children => same filters
     "OrFilterUnionWithPathComparison" -> ExpectedStats(4, 4, 16), // with added path comparison in CNF OR-clause the filters cannot be pushed into the data source => no filtering
     "ComplexBooleanExpression1" -> ExpectedStats(4, 1, 4), // pure target entity filter that should leave entity :e3
-    "OrWithFilterFromBothSources" -> ExpectedStats(4, 4, 8), // Filters for both sources in the same CNF OR-clause will no be pushed into data source => no filtering
+    "OrWithFilterFromBothSources" -> ExpectedStats(4, 4, 12), // Filters for both sources in the same CNF OR-clause will no be pushed into data source => no filtering
     "ComplexBooleanExpression2" -> ExpectedStats(3, 3, 9)
   )
 
