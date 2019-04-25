@@ -80,7 +80,7 @@ describe('MappingsWorkview', () => {
 			pasteAction = null;
 
 		it("should rule data of state to be equal to parent rule id", () => {
-			expect(component.state().ruleData.id).to.equal(ruleId)
+			expect(component.state().ruleData.id).to.equal(ruleId);
 		});
 
 		it('should copy a rule when clicking the Copy button', () => {
@@ -127,7 +127,7 @@ describe('MappingsWorkview', () => {
 		let cloneButton = component.find(selectors.cloneButton);
 
 		it("should rule data of state to be equal to parent rule id", () => {
-			expect(component.state().ruleData.id).to.equal(ruleId)
+			expect(component.state().ruleData.id).to.equal(ruleId);
 		});
 
 		it('should click the clone button', () => {
