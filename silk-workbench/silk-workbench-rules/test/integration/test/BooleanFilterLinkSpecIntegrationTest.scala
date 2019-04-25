@@ -18,7 +18,7 @@ class BooleanFilterLinkSpecIntegrationTest extends FlatSpec with SingleProjectWo
 
   private val testCases = Seq(
     "AndWithFilterAndPathComparison" -> ExpectedStats(4, 2, 2),
-    "AndFilterIntersect" -> ExpectedStats(4, 1, 1), // filter with selectivity of 2 intersects filter with selectivity of 2 with one common entity => 1 entity
+    "AndFilterIntersect" -> ExpectedStats(4, 1, 4), // filter with selectivity of 2 intersects filter with selectivity of 2 with one common entity => 1 entity
     "OrFilterUnion" -> ExpectedStats(4, 3, 12), // filter with selectivity of 2 combined with other filter with selectivity of 2 that share one common entity => 3 entities
     "OrFilterUnionWithAndPathComparison" -> ExpectedStats(4, 3, 12), // with added path comparison as child of CNF AND-clause this has no effect on filters from other AND children => same filters
     "OrFilterUnionWithPathComparison" -> ExpectedStats(4, 4, 16), // with added path comparison in CNF OR-clause the filters cannot be pushed into the data source => no filtering
