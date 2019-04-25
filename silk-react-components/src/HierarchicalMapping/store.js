@@ -731,6 +731,7 @@ hierarchicalMappingChannel
             transformTask: apiDetails.transformTask,
             id: data.id || MAPPING_RULE_TYPE_ROOT,
             queryParameters: data.queryParameters,
+            appendTo: data.appendTo,
         };
         silkStore
             .request({

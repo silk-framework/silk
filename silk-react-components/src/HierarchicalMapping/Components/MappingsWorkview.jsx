@@ -281,6 +281,7 @@ const MappingsWorkview = React.createClass({
                         project: apiDetails.project,
                         transformTask: apiDetails.transformTask,
                         id: id,
+                        appendTo: this.state.ruleData.id,
                         type: type,
                         cloning: false,
                     };
@@ -304,7 +305,8 @@ const MappingsWorkview = React.createClass({
                     sourceTask: copyingData.transformTask,
                     sourceRule: copyingData.id,
                     afterRuleId: copyingData.cloning ? copyingData.id : null,
-                }
+                },
+                appendTo: copyingData.appendTo
             };
             hierarchicalMappingChannel
                 .request({
@@ -342,6 +344,7 @@ const MappingsWorkview = React.createClass({
                         project: apiDetails.project,
                         transformTask: apiDetails.transformTask,
                         id: id,
+                        appendTo: this.state.ruleData.id,
                         type: type,
                         cloning: true,
                         parentId: parent ? parent : this.props.currentRuleId,
@@ -461,6 +464,7 @@ const MappingsWorkview = React.createClass({
                 <MappingsList
                     currentRuleId={_.get(this.props, 'currentRuleId', 'root')}
                     rules={_.get(rules, 'propertyRules', [])}
+                    parentRuleId={id}
                     handleCopy={this.handleCopy}
                     handlePaste={this.handlePaste}
                     handleClone={this.handleClone}

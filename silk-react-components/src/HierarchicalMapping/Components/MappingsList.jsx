@@ -20,6 +20,7 @@ const MappingsList = React.createClass({
     // define property types
     propTypes: {
         rules: React.PropTypes.array.isRequired,
+        parentRuleId: React.PropTypes.string,
         // currentRuleId actually the current object mapping rule id we are viewing
     },
     getInitialState() {
@@ -63,7 +64,7 @@ const MappingsList = React.createClass({
                     childrenRules,
                     fromPos,
                     toPos,
-                    id: this.props.currentRuleId,
+                    id: this.props.parentRuleId,
                 },
             })
             .subscribe(() => {
