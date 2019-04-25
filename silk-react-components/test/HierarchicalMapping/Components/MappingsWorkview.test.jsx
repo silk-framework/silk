@@ -9,7 +9,7 @@ import waitUntilReady from '../../test_helper';
 import { SessionStorage } from '../../test_helper';
 
 import MappingsWorkview from '../../../src/HierarchicalMapping/Components/MappingsWorkview';
-import { propertyRules } from './MappingsWorkview.server';
+import { propertyRules, ruleId } from './MappingsWorkview.server';
 
 chai.use(chaiEnzyme());
 Enzyme.configure({ adapter: new Adapter() });
@@ -52,9 +52,7 @@ const selectors = {
  */
 const mountSuggestionsList = () => {
 	return mount(
-		<MappingsWorkview
-			currentRuleId={'root'}
-		/>
+		<MappingsWorkview />
 	);
 };
 
@@ -80,6 +78,10 @@ describe('MappingsWorkview', () => {
 			actions = component.find(selectors.actionsMenu);
 		let copyButton = component.find(selectors.copyButton),
 			pasteAction = null;
+
+		it("should rule data of state to be equal to parent rule id", () => {
+			expect(component.state().ruleData.id).to.equal(ruleId)
+		});
 
 		it('should copy a rule when clicking the Copy button', () => {
 			item.simulate('click');
@@ -123,6 +125,10 @@ describe('MappingsWorkview', () => {
 		});
 
 		let cloneButton = component.find(selectors.cloneButton);
+
+		it("should rule data of state to be equal to parent rule id", () => {
+			expect(component.state().ruleData.id).to.equal(ruleId)
+		});
 
 		it('should click the clone button', () => {
 			item.simulate('click');

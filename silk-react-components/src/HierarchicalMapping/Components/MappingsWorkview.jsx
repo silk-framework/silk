@@ -306,7 +306,7 @@ const MappingsWorkview = React.createClass({
                     sourceRule: copyingData.id,
                     afterRuleId: copyingData.cloning ? copyingData.id : null,
                 },
-                appendTo: copyingData.appendTo
+                appendTo: copyingData.appendTo === this.state.ruleData.id ? copyingData.appendTo : this.state.ruleData.id
             };
             hierarchicalMappingChannel
                 .request({
