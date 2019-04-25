@@ -143,7 +143,7 @@ object JsonSerializer {
       ("activity" -> JsString(activity)) ::
       ("statusName" -> JsString(status.name)) ::
       ("isRunning" -> JsBoolean(status.isRunning)) ::
-      ("progress" -> JsNumber(status.progress * 100.0)) ::
+      ("progress" -> status.progress.map(p => JsNumber(p * 100.0)).getOrElse(JsNull)) ::
       ("message" -> JsString(status.toString)) ::
       ("failed" -> JsBoolean(status.failed)) ::
       ("lastUpdateTime" -> JsNumber(status.timestamp)) ::

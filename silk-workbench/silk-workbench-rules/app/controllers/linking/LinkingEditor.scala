@@ -29,7 +29,7 @@ class LinkingEditor extends Controller {
     val sourceNames = task.data.dataSelections.map(_.inputId.toString)
 
     if(pathsCache.status().isRunning) {
-      val loadingMsg = f"Cache loading (${pathsCache.status().progress * 100}%.1f%%)"
+      val loadingMsg = f"Cache loading (${pathsCache.status().progress.getOrElse(0.0) * 100}%.1f%%)"
       ServiceUnavailable(views.html.editor.paths(sourceNames, DPair.fill(Seq.empty), onlySource = false, loadingMsg = loadingMsg, project = project))
     } else if(pathsCache.status().failed) {
       Ok(views.html.editor.paths(sourceNames, DPair.fill(Seq.empty), onlySource = false, warning = pathsCache.status().message + " Try reloading the paths.", project = project))
@@ -52,7 +52,7 @@ class LinkingEditor extends Controller {
 
     // If the entity cache is still loading
     if(entitiesCache.status().isRunning) {
-      ServiceUnavailable(f"Cache loading (${entitiesCache.status().progress * 100}%.1f%%)")
+      ServiceUnavailable(f"Cache loading (${entitiesCache.status().progress.getOrElse(0.0) * 100}%.1f%%)")
     // If the cache loading failed
     } else if(entitiesCache.status().failed) {
       Ok(views.html.editor.score(
