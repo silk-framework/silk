@@ -50,7 +50,7 @@ const selectors = {
  *
  * @returns {*}
  */
-const mountSuggestionsList = () => {
+const mountMappingsWorkview = () => {
 	return mount(
 		<MappingsWorkview />
 	);
@@ -60,7 +60,7 @@ describe('MappingsWorkview', () => {
 	// set spy on component did mount to check how oft it is called
 	sinon.spy(MappingsWorkview.prototype, 'componentDidMount');
 	// mount the MappingsWorkview
-	const component = mountSuggestionsList();
+	const component = mountMappingsWorkview();
 	it('mounts once', async () => {
 		await waitUntilReady(component);
 		expect(MappingsWorkview.prototype.componentDidMount.calledOnce);
@@ -115,8 +115,7 @@ describe('MappingsWorkview', () => {
 	});
 
 	describe('Clone a mapping rule', () => {
-		const component = mountSuggestionsList();
-
+		const component = mountMappingsWorkview();
 		let item;
 		beforeEach(async () => {
 			await waitUntilReady(component);
