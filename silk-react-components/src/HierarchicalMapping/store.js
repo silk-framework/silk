@@ -732,7 +732,7 @@ hierarchicalMappingChannel
             transformTask: apiDetails.transformTask,
             id: data.id || MAPPING_RULE_TYPE_ROOT,
             queryParameters: data.queryParameters,
-            appendTo: data.appendTo,
+            appendTo: data.id, // the rule the copied rule should be appended to
         };
         silkStore
             .request({

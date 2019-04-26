@@ -284,7 +284,6 @@ const MappingsWorkview = React.createClass({
                         project: apiDetails.project,
                         transformTask: apiDetails.transformTask,
                         id: id,
-                        appendTo: this.state.ruleData.id,
                         type: type,
                         cloning: false,
                     };
@@ -300,16 +299,13 @@ const MappingsWorkview = React.createClass({
         const copyingData = JSON.parse(sessionStorage.getItem('copyingData'));
         if (copyingData !== {}) {
             const data = {
-                id: copyingData.cloning
-                    ? copyingData.parentId
-                    : this.props.currentRuleId || MAPPING_RULE_TYPE_ROOT,
+                id: this.state.ruleData.id,
                 queryParameters: {
                     sourceProject: copyingData.project,
                     sourceTask: copyingData.transformTask,
                     sourceRule: copyingData.id,
                     afterRuleId: copyingData.cloning ? copyingData.id : null,
-                },
-                appendTo: copyingData.appendTo === this.state.ruleData.id ? copyingData.appendTo : this.state.ruleData.id
+                }
             };
             hierarchicalMappingChannel
                 .request({
@@ -346,7 +342,6 @@ const MappingsWorkview = React.createClass({
                         project: apiDetails.project,
                         transformTask: apiDetails.transformTask,
                         id: id,
-                        appendTo: this.state.ruleData.id,
                         type: type,
                         cloning: true,
                         parentId: parent ? parent : this.props.currentRuleId,
