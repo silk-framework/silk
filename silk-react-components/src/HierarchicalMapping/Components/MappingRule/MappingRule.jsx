@@ -21,7 +21,12 @@ import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
 import {RuleTypes, SourcePath, ThingName, ThingIcon} from './SharedComponents';
-import {isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT} from '../../helpers';
+import {
+    isObjectMappingRule,
+    MAPPING_RULE_TYPE_OBJECT,
+    uriToLabel,
+    getRuleLabel,
+} from '../../helpers';
 import Navigation from '../../Mixins/Navigation';
 import className from 'classnames';
 
@@ -218,8 +223,9 @@ const MappingRule = React.createClass({
             />
         );
 
-        // TODO: enable real API structure
+        const ruleLabelData = getRuleLabel({ label, uri: mappingTarget.uri });
 
+        // TODO: enable real API structure
         const shortView = [
             <div
                 key={'hl1'}
@@ -229,7 +235,10 @@ const MappingRule = React.createClass({
                     status={_.get(this.props, 'status[0].type', false)}
                     message={_.get(this.props, 'status[0].message', false)}
                 />
-                {label || <ThingName id={mappingTarget.uri} />}
+				<div className="ecc-silk-mapping__ruleitem-label">
+					{ruleLabelData.displayLabel}
+				</div>
+				{ruleLabelData.uri && <div className="ecc-silk-mapping__ruleitem-extraline ecc-silk-mapping__ruleitem-url">{ruleLabelData.uri}</div>}
             </div>,
             <div
                 key={'sl3'}
