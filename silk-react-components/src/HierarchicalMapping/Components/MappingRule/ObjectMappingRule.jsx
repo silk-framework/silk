@@ -23,6 +23,7 @@ import {
 } from './SharedComponents';
 import {
     isCopiableRule,
+    isClonableRule,
     MAPPING_RULE_TYPE_COMPLEX_URI,
     MAPPING_RULE_TYPE_OBJECT,
     MAPPING_RULE_TYPE_ROOT,
@@ -299,7 +300,7 @@ const ObjectRule = React.createClass({
                 Copy
             </Button>;
 
-        const cloneButton = isCopiableRule(this.props.type) &&
+        const cloneButton = isClonableRule(this.props.type) &&
             <Button
                 className="ecc-silk-mapping__rulesviewer__actionrow-clone"
                 raised

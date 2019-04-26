@@ -1,4 +1,18 @@
 @import "~@eccenca/gui-elements/src/configuration.default";
+.ecc-component-messagehandler {
+    .ecc-temp__appmessages & {
+        position: fixed;
+        right: 1rem;
+        bottom: 0;
+        width: 40rem;
+        max-width: calc(100% - 2rem);
+        max-height: 100%;
+        overflow-y: auto;
+        box-sizing: border-box;
+        padding: 0.5rem 1rem;
+        z-index: 1;
+    }
+}
 
 .ecc-silk-mapping {
     margin: 1rem;

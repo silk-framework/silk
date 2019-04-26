@@ -16,6 +16,7 @@ import {Suggestion} from './Suggestion';
 
 const hierarchicalMappingChannel = rxmq.channel('silk.hierarchicalMapping');
 const silkStore = rxmq.channel('silk.api');
+export const errorChannel = rxmq.channel('errors');
 
 // Set api details
 let apiDetails = {
