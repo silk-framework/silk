@@ -299,9 +299,7 @@ const MappingsWorkview = React.createClass({
         const copyingData = JSON.parse(sessionStorage.getItem('copyingData'));
         if (copyingData !== {}) {
             const data = {
-                id: copyingData.cloning
-                    ? copyingData.parentId
-                    : this.props.currentRuleId || MAPPING_RULE_TYPE_ROOT,
+                id: this.state.ruleData.id,
                 queryParameters: {
                     sourceProject: copyingData.project,
                     sourceTask: copyingData.transformTask,
@@ -463,6 +461,7 @@ const MappingsWorkview = React.createClass({
                 <MappingsList
                     currentRuleId={_.get(this.props, 'currentRuleId', 'root')}
                     rules={_.get(rules, 'propertyRules', [])}
+                    parentRuleId={id}
                     handleCopy={this.handleCopy}
                     handlePaste={this.handlePaste}
                     handleClone={this.handleClone}
