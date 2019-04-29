@@ -49,7 +49,7 @@ class PluginDescription[+T](val id: Identifier, val categories: Set[String], val
   /**
    * Creates a new instance of this plugin.
    */
-  def apply(parameterValues: Map[String, String] = Map.empty)(implicit prefixes: Prefixes, resources: ResourceManager = EmptyResourceManager): T = {
+  def apply(parameterValues: Map[String, String] = Map.empty)(implicit prefixes: Prefixes, resources: ResourceManager = EmptyResourceManager()): T = {
     val parsedParameters = parseParameters(parameterValues)
     try {
       constructor.newInstance(parsedParameters: _*)

@@ -32,7 +32,7 @@ object WebUserManager {
         val userManagerPluginId = config.getString(WEB_USER_MANAGER_PARAMETER_KEY)
         if(userManagerPluginId != lastPlugin || webUserManager.isEmpty) {
           implicit val prefixes: Prefixes = Prefixes.empty
-          implicit val resourceManager: ResourceManager = EmptyResourceManager
+          implicit val resourceManager: ResourceManager = EmptyResourceManager()
           webUserManager = Some(PluginRegistry.create[WebUserManager](userManagerPluginId))
         }
         lastPlugin = userManagerPluginId

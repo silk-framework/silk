@@ -28,7 +28,7 @@ trait GraphStoreTrait {
     */
   def handleError(connection: HttpURLConnection, message: String): Nothing = {
     val serverErrorMessage = connection.errorMessage(prefix = " Error message: ").getOrElse("")
-    throw new RuntimeException(message + s" Got ${connection.getResponseCode} response." + serverErrorMessage)
+    throw new RuntimeException(message + s" Got ${connection.getResponseCode} response on ${connection.getURL}." + serverErrorMessage)
   }
 
   /** This is called if an authentication error (401) happened.

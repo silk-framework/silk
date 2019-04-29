@@ -34,7 +34,7 @@ trait ExecutorRegistry {
     val suitableExecutors = for(plugin <- plugins; taskType <- isSuitable(taskClass, context, plugin)) yield (plugin, taskType)
 
     implicit val prefixes: Prefixes = Prefixes.empty
-    implicit val resource: ResourceManager = EmptyResourceManager
+    implicit val resource: ResourceManager = EmptyResourceManager()
 
     suitableExecutors.size match {
       case 0 =>

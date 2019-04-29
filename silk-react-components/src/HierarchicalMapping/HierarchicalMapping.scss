@@ -1,4 +1,18 @@
 @import "~@eccenca/gui-elements/src/configuration.default";
+.ecc-component-messagehandler {
+    .ecc-temp__appmessages & {
+        position: fixed;
+        right: 1rem;
+        bottom: 0;
+        width: 40rem;
+        max-width: calc(100% - 2rem);
+        max-height: 100%;
+        overflow-y: auto;
+        box-sizing: border-box;
+        padding: 0.5rem 1rem;
+        z-index: 1;
+    }
+}
 
 .ecc-silk-mapping {
     margin: 1rem;
@@ -309,15 +323,12 @@ ul.ecc-hierarchical-mapping-error-list {
     outline: none;
 }
 
-.ecc-silk-mapping__ruleitem--literal {
-    .mdl-list__item-secondary-content {
-        align-self: flex-start;
-    }
-}
-
-.ecc-silk-mapping__ruleitem--object {
-    .mdl-list__item-secondary-content {
-        align-self: center;
+.mdl-list__item-secondary-content {
+    .ecc-silk-mapping__ruleitem--literal &,
+    .ecc-silk-mapping__ruleitem--object & {
+        align-self: stretch;
+        justify-content: center;
+        align-items: center;
     }
 }
 
@@ -353,6 +364,22 @@ ul.ecc-hierarchical-mapping-error-list {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.ecc-silk-mapping__ruleitem-extraline {
+    display: block;
+    margin-right: $ecc-size-blockelement-margin-horizontal;
+    font-size: $ecc-size-typo-caption;
+    font-weight: normal;
+    opacity: .61;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ecc-silk-mapping__ruleitem-url {
+    direction: rtl;
+    text-align: left;
 }
 
 .ecc-silk-mapping__suggestitem-checkbox {
@@ -432,7 +459,7 @@ ul.ecc-hierarchical-mapping-error-list {
             display: flex;
             flex-direction: row;
             flex-wrap: nowrap;
-            align-items: center;
+            align-items: baseline;
         }
 
         .ecc-silk-mapping__ruleitem-headline,

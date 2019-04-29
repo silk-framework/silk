@@ -9,7 +9,7 @@ import waitUntilReady from '../../test_helper';
 import { SessionStorage } from '../../test_helper';
 
 import MappingsWorkview from '../../../src/HierarchicalMapping/Components/MappingsWorkview';
-import { propertyRules } from './MappingsWorkview.server';
+import { propertyRules, ruleId } from './MappingsWorkview.server';
 
 chai.use(chaiEnzyme());
 Enzyme.configure({ adapter: new Adapter() });
@@ -50,11 +50,9 @@ const selectors = {
  *
  * @returns {*}
  */
-const mountSuggestionsList = () => {
+const mountMappingsWorkview = () => {
 	return mount(
-		<MappingsWorkview
-			currentRuleId={'root'}
-		/>
+		<MappingsWorkview />
 	);
 };
 
@@ -62,7 +60,7 @@ describe('MappingsWorkview', () => {
 	// set spy on component did mount to check how oft it is called
 	sinon.spy(MappingsWorkview.prototype, 'componentDidMount');
 	// mount the MappingsWorkview
-	const component = mountSuggestionsList();
+	const component = mountMappingsWorkview();
 	it('mounts once', async () => {
 		await waitUntilReady(component);
 		expect(MappingsWorkview.prototype.componentDidMount.calledOnce);
@@ -80,6 +78,10 @@ describe('MappingsWorkview', () => {
 			actions = component.find(selectors.actionsMenu);
 		let copyButton = component.find(selectors.copyButton),
 			pasteAction = null;
+
+		it("should rule data of state to be equal to parent rule id", () => {
+			expect(component.state().ruleData.id).to.equal(ruleId);
+		});
 
 		it('should copy a rule when clicking the Copy button', () => {
 			item.simulate('click');
@@ -113,8 +115,7 @@ describe('MappingsWorkview', () => {
 	});
 
 	describe('Clone a mapping rule', () => {
-		const component = mountSuggestionsList();
-
+		const component = mountMappingsWorkview();
 		let item;
 		beforeEach(async () => {
 			await waitUntilReady(component);
@@ -123,6 +124,10 @@ describe('MappingsWorkview', () => {
 		});
 
 		let cloneButton = component.find(selectors.cloneButton);
+
+		it("should rule data of state to be equal to parent rule id", () => {
+			expect(component.state().ruleData.id).to.equal(ruleId);
+		});
 
 		it('should click the clone button', () => {
 			item.simulate('click');

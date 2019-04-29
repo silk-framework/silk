@@ -37,9 +37,9 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with Tes
   }
 
   def workspaceEndpoint(implicit userContext: UserContext): SparqlEndpoint = {
-    WorkspaceFactory().workspace(userContext).provider match {
-      case rdfWorkspace: RdfWorkspaceProvider =>
-        rdfWorkspace.endpoint
+    WorkspaceFactory().workspace(userContext).provider.sparqlEndpoint match {
+      case Some(endpoint) =>
+        endpoint
       case _ =>
         throw new RuntimeException("Not an RDF workspace provider configured!")
     }

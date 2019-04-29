@@ -419,12 +419,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   /** Refreshes the project in the workspace, which usually means that it is reloaded from wherever its stored.
     * This should make sure that not only the possible cache version is up to date, but also the background model. */
   private def refreshProject(projectName: String): Unit = {
-    workspaceProvider match {
-      case w: RefreshableWorkspaceProvider =>
-        w.refresh()
-      case _ =>
-        // Not refreshable
-    }
+    workspaceProvider.refresh()
   }
 }
 

@@ -33,7 +33,7 @@ sealed trait Status {
    * The progress of the computation.
    * Will be 0.0 when the task has been started and 1.0 when it has finished execution.
    */
-  def progress: Double = 0.0
+  def progress: Option[Double] = None
 
   /**
    * True, if the task is running at the moment; False, otherwise.
@@ -75,10 +75,10 @@ object Status {
   }
   
   /**
-   * Status which indicates that the task has been started.
+   * Status which indicates that the task has been started and is waiting to be executed..
    */
-  case class Started() extends Status {
-    override def message: String = "Started"
+  case class Waiting() extends Status {
+    override def message: String = "Waiting"
     override def isRunning: Boolean = true
   }
   
@@ -88,15 +88,20 @@ object Status {
    * @param message The status message
    * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
    */
-  case class Running(message: String, override val progress: Double) extends Status {
+  case class Running(message: String, override val progress: Option[Double]) extends Status {
     override def isRunning: Boolean = true
     override def toString: String = {
-      if(progress != 0.0) {
-        message + " (" + "%3.1f".format(progress * 100.0) + "%)"
-      } else {
-        message
+      progress match {
+        case Some(p) =>
+          message + " (" + "%3.1f".format(p * 100.0) + "%)"
+        case None =>
+          message
       }
     }
+  }
+
+  object Running {
+    def apply(message: String, progress: Double): Running = Running(message, Some(progress))
   }
   
   /**
@@ -104,7 +109,7 @@ object Status {
    *
    * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
    */
-  case class Canceling(override val progress: Double) extends Status {
+  case class Canceling(override val progress: Option[Double]) extends Status {
     override def message: String = "Stopping..."
     override def isRunning: Boolean = true
   }
@@ -131,7 +136,7 @@ object Status {
       }
     }
   
-    override def progress: Double = 1.0
+    override def progress: Option[Double] = Some(1.0)
   
     override def failed: Boolean = !success
   }

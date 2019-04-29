@@ -141,10 +141,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       activity.control.cancel()
     }
     // Refresh workspace provider
-    provider match {
-      case refreshableProvider: RefreshableWorkspaceProvider => refreshableProvider.refresh()
-      case _ => // Do nothing
-    }
+    provider.refresh()
+
     // Reload projects
     cachedProjects = loadProjects()
   }

@@ -1,5 +1,6 @@
 import nock from "nock";
 
+let ruleId = 'root';
 /**
  * Base url for mock
  * @type {string}
@@ -104,7 +105,7 @@ const mockUpFunction = (identifier) => {
 			code: 200,
 			body: {
 				type: "root",
-				id: "root",
+				id: ruleId,
 				rules: {
 					typeRules: [],
 					propertyRules: propertyRules
@@ -124,7 +125,7 @@ const mockUpFunction = (identifier) => {
 	 */
 	const rulesDataURLCopyFromCopy = (sourceRule) => {
 		return {
-			url: `/transform/tasks/test/test/rule/root/rules/copyFrom?sourceProject=test&sourceTask=test&sourceRule=${sourceRule}&afterRuleId`
+			url: `/transform/tasks/test/test/rule/${ruleId}/rules/copyFrom?sourceProject=test&sourceTask=test&sourceRule=${sourceRule}&afterRuleId`
 		};
 	};
 
@@ -136,7 +137,7 @@ const mockUpFunction = (identifier) => {
 	 */
 	const rulesDataURLCopyFromClone = (sourceRule) => {
 		return {
-			url: `/transform/tasks/test/test/rule/root/rules/copyFrom?sourceProject=test&sourceTask=test&sourceRule=${sourceRule}&afterRuleId=country`
+			url: `/transform/tasks/test/test/rule/${ruleId}/rules/copyFrom?sourceProject=test&sourceTask=test&sourceRule=${sourceRule}&afterRuleId=country`
 		};
 	};
 
@@ -254,5 +255,6 @@ mockUpFunction("basedOn");
 mockUpFunction('country');
 
 export {
-	propertyRules
+	propertyRules,
+	ruleId
 };

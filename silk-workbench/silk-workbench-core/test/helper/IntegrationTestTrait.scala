@@ -187,9 +187,9 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
   /** Loads the given RDF input stream into the specified graph of the RDF store of the workspace, i.e. this only works if the workspace provider
     * is RDF-enabled and implements the [[GraphStoreTrait]]. */
   def loadRdfIntoGraph(graph: String, contentType: String = "application/n-triples"): OutputStream = {
-    WorkspaceFactory.factory.workspace.provider match {
-      case rdfStore: RdfWorkspaceProvider if rdfStore.endpoint.isInstanceOf[GraphStoreTrait] =>
-        val graphStore = rdfStore.endpoint.asInstanceOf[GraphStoreTrait]
+    WorkspaceFactory.factory.workspace.provider.sparqlEndpoint match {
+      case Some(rdfStore: GraphStoreTrait) =>
+        val graphStore = rdfStore.asInstanceOf[GraphStoreTrait]
         graphStore.postDataToGraph(graph, contentType)
       case e: Any =>
         fail(s"Not a RDF-enabled GraphStore supporting workspace provider (${e.getClass.getSimpleName})!")
@@ -199,10 +199,9 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
   /** Deletes a graph from the RDF store of the workspace, , i.e. this only works if the workspace provider
     * is RDF-enabled. */
   def deleteBackendGraph(graph: String): Unit = {
-    WorkspaceFactory.factory.workspace.provider match {
-      case rdfStore: RdfWorkspaceProvider =>
-        val graphStore = rdfStore.endpoint
-        graphStore.update(s"DROP SILENT GRAPH <$graph>")
+    WorkspaceFactory.factory.workspace.provider.sparqlEndpoint match {
+      case Some(endpoint) =>
+        endpoint.update(s"DROP SILENT GRAPH <$graph>")
       case e: Any =>
         fail(s"Not a RDF-enabled workspace provider (${e.getClass.getSimpleName})!")
     }
