@@ -2,7 +2,7 @@
 
   <property name="elds.home" value="${ELDS_HOME:-${user.home}/.elds}"/>
 
-  <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel"/>
+  <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel"/>
 
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
     <file>${elds.home}/var/log/dataintegration.log</file>

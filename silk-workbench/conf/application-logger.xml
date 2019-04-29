@@ -2,7 +2,7 @@
 
   <property name="silk.home" value="${SILK_HOME:-${user.home}/.silk}" />
 
-  <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel" />
+  <conversionRule conversionWord="coloredLevel" converterClass="play.api.libs.logback.ColoredLevel" />
 
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
     <file>${silk.home}/log/workbench.log</file>
