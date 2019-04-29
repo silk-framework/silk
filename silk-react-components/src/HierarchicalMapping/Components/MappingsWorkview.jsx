@@ -19,6 +19,7 @@ import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm';
 import MappingsList from './MappingsList';
 import SuggestionsList from './SuggestionsList';
 import {
+    isObjectMappingRule,
     MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_DIRECT,
     MAPPING_RULE_TYPE_OBJECT,
@@ -296,10 +297,11 @@ const MappingsWorkview = React.createClass({
     },
 
     handlePaste() {
-        const copyingData = JSON.parse(sessionStorage.getItem('copyingData'));
+        const copyingData = JSON.parse(sessionStorage.getItem('copyingData')),
+            {breadcrumbs, id} =this.state.ruleData;
         if (copyingData !== {}) {
             const data = {
-                id: this.state.ruleData.id,
+                id: breadcrumbs.length > 0 && isObjectMappingRule(copyingData.type) ? breadcrumbs[breadcrumbs.length - 1].id : id ,
                 queryParameters: {
                     sourceProject: copyingData.project,
                     sourceTask: copyingData.transformTask,
@@ -470,7 +472,7 @@ const MappingsWorkview = React.createClass({
             ) : (
                 false
             );
-
+        console.log(this.state);
         return (
             <div className="ecc-silk-mapping__rules">
                 {loading}
