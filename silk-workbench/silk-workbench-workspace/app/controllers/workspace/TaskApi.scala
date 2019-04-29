@@ -17,7 +17,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{JsBoolean, JsObject, JsValue, Json}
-import play.api.mvc.{AbstractController, Action, AnyContent, BodyParsers, ControllerComponents, InjectedController}
+import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
 
@@ -127,7 +127,6 @@ class TaskApi @Inject() (cc: ControllerComponents) extends AbstractController(cc
       val result = copyRequest.copy(projectName, taskName)
       Ok(Json.toJson(result))
     }
-    Ok
   }
 
   def cachesLoaded(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
