@@ -23,7 +23,7 @@ trait TransformTaskApiTestBase extends PlaySpec with IntegrationTestTrait with C
 
   override def propertyMap = Map("vocabulary.manager.plugin" -> Some("rdfFiles"))
 
-  protected override def routes = Some("test.Routes")
+  protected override def routes = Some(classOf[test.Routes])
 
   def jsonGetRequest(url: String): JsValue = {
     var request = client.url(url)

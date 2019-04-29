@@ -23,7 +23,7 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   override def workspaceProvider = "inMemory"
 
-  protected override def routes = Some("test.Routes")
+  protected override def routes = Some(classOf[test.Routes])
 
   "Setup project" in {
     createProject(project)

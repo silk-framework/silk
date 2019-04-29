@@ -13,7 +13,7 @@ class EvaluateLinkingTest extends FlatSpec with IntegrationTestTrait with Single
 
   def linkingTaskId: String = "movies"
 
-  override def routes: Option[String] = Some("test.Routes")
+  override def routes = Some(classOf[test.Routes])
 
   override def workspaceProvider: String = "inMemory"
 

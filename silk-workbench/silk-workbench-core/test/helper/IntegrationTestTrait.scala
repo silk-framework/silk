@@ -3,7 +3,7 @@ package helper
 import java.io._
 import java.net.URLDecoder
 
-import org.scalatest.{Suite, TestSuite}
+import org.scalatest.TestSuite
 import org.scalatestplus.play.OneServerPerSuite
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
@@ -18,7 +18,8 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
 import play.api.libs.ws.{WSRequest, WSResponse}
-import play.api.mvc.{Call, Results}
+import play.api.mvc.Call
+import play.api.routing.Router
 
 import scala.collection.immutable.SortedMap
 import scala.concurrent.duration._
@@ -48,13 +49,14 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
                       (implicit userContext: UserContext): Project = WorkspaceFactory().workspace.project(projectId)
 
   /** Routes used for testing. If None, the default routes will be used.*/
-  protected def routes: Option[String] = None
+  protected def routes: Option[Class[_ <: Router]] = None
 
   override implicit lazy val app: Application = {
-    val routerConf = routes.map(r => "play.http.router" -> r).toMap
-
-    val builder = GuiceApplicationBuilder()
-    builder.configure(routerConf)
+    var builder = GuiceApplicationBuilder()
+    for(routerClass <- routes) {
+      val routes = builder.injector().instanceOf(routerClass)
+      builder = builder.router(routes)
+    }
     builder.build()
   }
 
