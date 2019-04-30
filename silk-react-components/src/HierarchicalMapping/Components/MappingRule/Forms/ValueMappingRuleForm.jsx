@@ -8,7 +8,7 @@ import {
     CardActions,
     TextField,
     Spinner,
-    ScrollingMixin,
+    ScrollingHOC,
     Checkbox,
     SelectBox,
 } from '@eccenca/gui-elements';
@@ -27,7 +27,7 @@ import {
 } from '../../../helpers';
 
 const ValueMappingRuleForm = React.createClass({
-    mixins: [UseMessageBus, ScrollingMixin],
+    mixins: [UseMessageBus],
     // define property types
     propTypes: {
         id: React.PropTypes.string,
@@ -46,7 +46,7 @@ const ValueMappingRuleForm = React.createClass({
             prevState.loading === true &&
             _.get(this.state, 'loading', false) === false
         ) {
-            this.scrollIntoView({
+            this.props.scrollIntoView({
                 topOffset: 75,
             });
         }
@@ -400,4 +400,4 @@ const ValueMappingRuleForm = React.createClass({
     },
 });
 
-export default ValueMappingRuleForm;
+export default ScrollingHOC(ValueMappingRuleForm);
