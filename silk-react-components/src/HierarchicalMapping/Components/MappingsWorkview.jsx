@@ -67,6 +67,7 @@ const MappingsWorkview = React.createClass({
             ruleData: {},
             ruleEditView: false,
             editing: [],
+            isCopying: !!sessionStorage.getItem('copyingData'),
             askForDiscard: false,
             showSuggestions: false,
             askForChilds: false,
@@ -134,7 +135,7 @@ const MappingsWorkview = React.createClass({
             });
         }
     },
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState) {
         if (prevProps.currentRuleId !== this.props.currentRuleId) {
             this.loadData();
         }
@@ -296,12 +297,12 @@ const MappingsWorkview = React.createClass({
             );
     },
 
-    handlePaste() {
+    handlePaste(cloning = false) {
         const copyingData = JSON.parse(sessionStorage.getItem('copyingData')),
             {breadcrumbs, id} =this.state.ruleData;
         if (copyingData !== {}) {
             const data = {
-                id: breadcrumbs.length > 0 && isObjectMappingRule(copyingData.type) ? breadcrumbs[breadcrumbs.length - 1].id : id ,
+                id: breadcrumbs.length > 0 && isObjectMappingRule(copyingData.type) && copyingData.cloning ? breadcrumbs[breadcrumbs.length - 1].id : id ,
                 queryParameters: {
                     sourceProject: copyingData.project,
                     sourceTask: copyingData.transformTask,
@@ -325,6 +326,9 @@ const MappingsWorkview = React.createClass({
                                 .onNext({
                                     newRuleId: newRule.id,
                                 });
+                        }
+                        if (cloning) {
+                            sessionStorage.removeItem('copyingData');
                         }
                         hierarchicalMappingChannel.subject('reload').onNext(true);
                     }
@@ -352,7 +356,7 @@ const MappingsWorkview = React.createClass({
                     this.setState({
                         isCopying: !this.state.isCopying,
                     });
-                    this.handlePaste();
+                    this.handlePaste(true);
                 }
             );
     },
