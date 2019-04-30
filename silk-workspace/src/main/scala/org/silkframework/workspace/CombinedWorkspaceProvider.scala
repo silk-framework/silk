@@ -1,19 +1,22 @@
 package org.silkframework.workspace
 
+import java.util.logging.{Level, Logger}
+
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.Plugin
-import org.silkframework.runtime.resource.{FileResourceManager, ResourceManager, UrlResourceManager}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.io.WorkspaceIO
-import org.silkframework.workspace.xml.XmlWorkspaceProvider
 
 import scala.reflect.ClassTag
 import scala.util.Try
+import scala.util.control.NonFatal
 
 class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
                                 val secondaryWorkspace: WorkspaceProvider) extends WorkspaceProvider {
+
+  private val log = Logger.getLogger(getClass.getName)
 
   override def sparqlEndpoint: Option[SparqlEndpoint] = primaryWorkspace.sparqlEndpoint.orElse(secondaryWorkspace.sparqlEndpoint)
 
@@ -44,12 +47,7 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
     * @return The project config or None if the project does not exist or an error occurred.
     */
   override def readProject(projectId: String)(implicit userContext: UserContext): Option[ProjectConfig] = {
-    val projectConfig = primaryWorkspace.readProject(projectId)
-    for(config <- projectConfig) {
-      secondaryWorkspace.deleteProject(projectId)
-      secondaryWorkspace.putProject(config)
-    }
-    projectConfig
+    primaryWorkspace.readProject(projectId)
   }
 
   /**
@@ -65,7 +63,12 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
     */
   override def deleteProject(name: Identifier)(implicit user: UserContext): Unit = {
     primaryWorkspace.deleteProject(name)
-    secondaryWorkspace.deleteProject(name)
+    try {
+      secondaryWorkspace.deleteProject(name)
+    } catch {
+      case NonFatal(ex) =>
+        log.log(Level.WARNING, s"Deleted project $name from $primaryWorkspace, but could not delete it from $secondaryWorkspace", ex)
+    }
   }
 
   /**
@@ -95,6 +98,12 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
     */
   override def deleteTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier)(implicit user: UserContext): Unit = {
     primaryWorkspace.deleteTask(project, task)
-    secondaryWorkspace.deleteTask(project, task)
+    try {
+      secondaryWorkspace.deleteTask(project, task)
+    } catch {
+      case NonFatal(ex) =>
+        log.log(Level.WARNING, s"Deleted task $task in project $project from $primaryWorkspace, but could not delete it from $secondaryWorkspace", ex)
+    }
+
   }
 }
