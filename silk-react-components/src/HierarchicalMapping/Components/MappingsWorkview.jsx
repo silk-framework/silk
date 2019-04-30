@@ -472,7 +472,7 @@ const MappingsWorkview = React.createClass({
             ) : (
                 false
             );
-        console.log(this.state);
+
         return (
             <div className="ecc-silk-mapping__rules">
                 {loading}
