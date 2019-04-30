@@ -29,7 +29,7 @@ class ActivityClient(baseUrl: String, projectId: Identifier, taskId: Identifier)
 
   def activityValue(activityId: String, contentType: String = "application/json"): WSResponse = {
     val getActivityValueRequest = client.url(s"$activities/$activityId/value")
-    val response = getActivityValueRequest.withHeaders(("ACCEPT", contentType)).get()
+    val response = getActivityValueRequest.addHttpHeaders(("ACCEPT", contentType)).get()
     checkResponse(response)
   }
 

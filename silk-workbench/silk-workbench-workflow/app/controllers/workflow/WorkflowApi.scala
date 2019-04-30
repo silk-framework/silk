@@ -2,29 +2,22 @@ package controllers.workflow
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
-import org.silkframework.config.Task
-import org.silkframework.dataset.Dataset
 import controllers.util.SerializationUtils
-import org.silkframework.config.{MetaData, Task}
+import javax.inject.Inject
+import org.silkframework.config.Task
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
-import org.silkframework.workspace.activity.workflow.{AllVariableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow}
-import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
-import play.api.libs.json.{JsArray, JsObject, JsString, JsValue}
-import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller, _}
-
-import scala.xml.NodeSeq
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
 import org.silkframework.workspace.WorkspaceFactory
-import org.silkframework.workspace.activity.workflow._
-import play.api.libs.json._
-import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller, _}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
+import play.api.libs.json.{JsArray, JsString, _}
+import play.api.mvc.{Action, AnyContent, AnyContentAsXml, _}
 
-class WorkflowApi extends Controller {
+class WorkflowApi @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
 
   def getWorkflows(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = fetchProject(projectName)

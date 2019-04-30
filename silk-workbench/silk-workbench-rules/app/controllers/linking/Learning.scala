@@ -3,6 +3,7 @@ package controllers.linking
 import java.util.logging.Logger
 
 import controllers.core.{RequestUserContextAction, Stream, UserContextAction, Widgets}
+import javax.inject.Inject
 import models.learning.{PathValue, PathValues}
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
@@ -23,9 +24,9 @@ import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
 import play.api.http.ContentTypes
-import play.api.mvc.{Action, AnyContent, Controller}
+import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 
-class Learning extends Controller {
+class Learning @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
 
   private val log = Logger.getLogger(getClass.getName)
 

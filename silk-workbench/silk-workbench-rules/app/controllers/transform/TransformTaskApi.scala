@@ -5,6 +5,7 @@ import java.util.logging.{Level, Logger}
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
+import javax.inject.Inject
 import org.silkframework.config.{MetaData, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
@@ -22,11 +23,9 @@ import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
+import TransformTaskApi._
 
-class TransformTaskApi extends Controller {
-
-  // The property that is set when copying a root mapping rule that will be converted into an object mapping rule
-  final val ROOT_COPY_TARGET_PROPERTY = "urn:temp:child"
+class TransformTaskApi @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -469,6 +468,12 @@ class TransformTaskApi extends Controller {
         NotFound("No rule found with ID " + ruleId)
     }
   }
+}
+
+object TransformTaskApi {
+
+  // The property that is set when copying a root mapping rule that will be converted into an object mapping rule
+  final val ROOT_COPY_TARGET_PROPERTY = "urn:temp:child"
 }
 
 // Peak API

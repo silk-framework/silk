@@ -1,15 +1,16 @@
 package controllers.transform
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
+import javax.inject.Inject
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.{EvaluateTransform => EvaluateTransformTask}
 import org.silkframework.workbench.Context
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
-import play.api.mvc.{Action, AnyContent, Controller}
+import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 
 /** Endpoints for evaluating transform tasks */
-class EvaluateTransform extends Controller {
+class EvaluateTransform @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
 
   def evaluate(project: String, task: String, offset: Int, limit: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[TransformSpec](project, task, request.path)

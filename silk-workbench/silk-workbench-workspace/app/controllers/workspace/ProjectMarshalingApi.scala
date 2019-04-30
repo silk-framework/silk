@@ -6,11 +6,11 @@ import java.util.logging.Logger
 import akka.stream.scaladsl.Source
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.workspace.ProjectMarshalingApi._
+import javax.inject.Inject
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.xml.XmlZipProjectMarshaling
 import org.silkframework.workspace.{ProjectMarshallerRegistry, ProjectMarshallingTrait, WorkspaceFactory}
-import play.api.http.HttpEntity
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.streams.IterateeStreams
 import play.api.libs.json.JsArray
@@ -18,7 +18,7 @@ import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
 
-class ProjectMarshalingApi extends Controller {
+class ProjectMarshalingApi @Inject() (cc: ControllerComponents) extends AbstractController(cc){
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
@@ -115,7 +115,7 @@ class ProjectMarshalingApi extends Controller {
   private def bodyAsFile(implicit request: Request[AnyContent]): File = {
     request.body match {
       case AnyContentAsMultipartFormData(formData) if formData.files.size == 1 =>
-        formData.files.head.ref.file
+        formData.files.head.ref.path.toFile
       case AnyContentAsMultipartFormData(formData) if formData.files.size != 1 =>
         throw BadUserInputException("Must provide exactly one file in multipart form data body.")
       case AnyContentAsRaw(buffer) =>

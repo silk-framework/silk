@@ -43,7 +43,7 @@ class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identif
 
     var request: WSRequest = executeOnPayloadUri(projectId, workflowId, blocking)
     if(blocking) {
-      request = request.withHeaders("Accept" -> accept)
+      request = request.addHttpHeaders("Accept" -> accept)
     }
     val response = request.post(requestBody)
     val result = checkResponse(response)

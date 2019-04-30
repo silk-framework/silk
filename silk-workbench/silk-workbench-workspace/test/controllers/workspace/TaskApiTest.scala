@@ -62,7 +62,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   "get dataset task" in {
     var request = client.url(s"$baseUrl/workspace/projects/$project/tasks/$datasetId")
-    request = request.withHeaders("Accept" -> "application/json")
+    request = request.addHttpHeaders("Accept" -> "application/json")
     val response = checkResponse(request.get())
     response.json mustBe
       Json.obj(
@@ -87,7 +87,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   "update dataset task" in {
     var request = client.url(s"$baseUrl/workspace/projects/$project/tasks/$datasetId")
-    request = request.withHeaders("Accept" -> "application/json")
+    request = request.addHttpHeaders("Accept" -> "application/json")
     val response = request.put(
       Json.obj(
         "id" -> datasetId,
@@ -112,7 +112,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   "get updated dataset" in {
     var request = client.url(s"$baseUrl/workspace/projects/$project/tasks/$datasetId")
-    request = request.withHeaders("Accept" -> "application/xml")
+    request = request.addHttpHeaders("Accept" -> "application/xml")
     val response = checkResponse(request.get())
     val xml = response.xml
 
@@ -140,7 +140,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   private def checkTransformTask(typeUri: String): Unit = {
     var request = client.url(s"$baseUrl/workspace/projects/$project/tasks/$transformId")
-    request = request.withHeaders("Accept" -> "application/json")
+    request = request.addHttpHeaders("Accept" -> "application/json")
     val response = checkResponse(request.get())
     val json = response.json
     (json \ "id").get mustBe JsString(transformId)
@@ -209,7 +209,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   "get linking task" in {
     var request = client.url(s"$baseUrl/workspace/projects/$project/tasks/$linkTaskId")
-    request = request.withHeaders("Accept" -> "application/json")
+    request = request.addHttpHeaders("Accept" -> "application/json")
     val response = checkResponse(request.get())
 
     (response.json \ "id").get mustBe JsString(linkTaskId)
@@ -244,7 +244,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   "check that linking task has been updated correctly" in {
     var request = client.url(s"$baseUrl/workspace/projects/$project/tasks/$linkTaskId")
-    request = request.withHeaders("Accept" -> "application/json")
+    request = request.addHttpHeaders("Accept" -> "application/json")
     val response = checkResponse(request.get())
 
     (response.json \ "id").get mustBe JsString(linkTaskId)
@@ -264,7 +264,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   "get workflow task" in {
     var request = client.url(s"$baseUrl/workspace/projects/$project/tasks/$workflowId")
-    request = request.withHeaders("Accept" -> "application/xml")
+    request = request.addHttpHeaders("Accept" -> "application/xml")
     val response = checkResponse(request.get())
 
     (response.xml \ "@id").text mustBe workflowId
@@ -283,7 +283,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   "get custom task" in {
     var request = client.url(s"$baseUrl/workspace/projects/$project/tasks/$customTaskId")
-    request = request.withHeaders("Accept" -> "application/xml")
+    request = request.addHttpHeaders("Accept" -> "application/xml")
     val response = checkResponse(request.get())
 
     (response.xml \ "@id").text mustBe customTaskId
@@ -340,7 +340,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
 
     "overwrite tasks when copying" in {
       // Change the label of a dataset in the source project
-      val updateDatasetRequest = client.url(s"$baseUrl/workspace/projects/$project/tasks/$datasetId").withHeaders("Accept" -> "application/json")
+      val updateDatasetRequest = client.url(s"$baseUrl/workspace/projects/$project/tasks/$datasetId").addHttpHeaders("Accept" -> "application/json")
       checkResponse(updateDatasetRequest.patch(Json.parse("""{ "metadata": { "label": "changed label" } }""")))
 
       // Copy transform task that references the changed dataset
@@ -358,7 +358,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
 
       // Assert that the dataset has been overwritten
       val datasetResponse = client.url(s"$baseUrl/workspace/projects/$targetProject/tasks/$datasetId")
-                                .withHeaders("Accept" -> "application/json")
+                                .addHttpHeaders("Accept" -> "application/json")
                                 .get()
       val datasetJson = checkResponse(datasetResponse).json
       (datasetJson \ "metadata" \ "label").as[JsString].value mustBe "changed label"

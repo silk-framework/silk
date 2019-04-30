@@ -149,7 +149,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
 
   def taskActivityValue(projectId: String, taskId: String, activityId: String, contentType: String = "application/json"): WSResponse = {
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/activities/$activityId/value")
-                    .withHeaders("accept" -> contentType)
+                    .addHttpHeaders("accept" -> contentType)
     val response = request.get()
     checkResponse(response)
   }
@@ -268,7 +268,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
 
   def getAutoConfiguredDataset(projectId: String, datasetId: String): Elem = {
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId/autoConfigured").
-        withHeaders("accept" -> "application/xml")
+      addHttpHeaders("accept" -> "application/xml")
     val response = request.get()
     XML.loadString(checkResponse(response).body)
   }
@@ -281,7 +281,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
 
   def getDatasetConfig(projectId: String, datasetId: String): Elem = {
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/datasets/$datasetId").
-        withHeaders("accept" -> "application/xml")
+      addHttpHeaders("accept" -> "application/xml")
     val response = request.get()
     XML.loadString(checkResponse(response).body)
   }
@@ -454,7 +454,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
   def getTransformationTaskRules(project: String, taskName: String, accept: String = "application/json"): String = {
     val request = client.url(s"$baseUrl/transform/tasks/$project/$taskName/rules")
     val response = request.
-        withHeaders("accept" -> accept).
+        addHttpHeaders("accept" -> accept).
         get()
     val r = checkResponse(response)
     r.body

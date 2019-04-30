@@ -1,9 +1,10 @@
 package controllers.core
 
+import javax.inject.Inject
 import org.silkframework.config.DefaultConfig
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{AbstractController, ControllerComponents}
 
-class ConfigController extends Controller {
+class ConfigController @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
 
   private val ignoredPaths = Set("awt", "file", "jline", "line", "path", "promise", "sbt", "play.http.secret.key")
 

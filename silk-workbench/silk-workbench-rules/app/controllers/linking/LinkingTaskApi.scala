@@ -4,6 +4,7 @@ import java.util.logging.{Level, Logger}
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
+import javax.inject.Inject
 import org.silkframework.config.MetaData
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.{Link, Restriction}
@@ -20,9 +21,9 @@ import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
-import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
+import play.api.mvc.{AbstractController, Action, AnyContent, AnyContentAsXml, ControllerComponents}
 
-class LinkingTaskApi extends Controller {
+class LinkingTaskApi @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -168,7 +169,7 @@ class LinkingTaskApi extends Controller {
 
     for(data <- request.body.asMultipartFormData;
         file <- data.files) {
-      var referenceLinks = ReferenceLinks.fromXML(scala.xml.XML.loadFile(file.ref.file))
+      var referenceLinks = ReferenceLinks.fromXML(scala.xml.XML.loadFile(file.ref.path.toFile))
       if(generateNegative) {
         referenceLinks = referenceLinks.generateNegative
       }

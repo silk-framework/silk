@@ -1,15 +1,16 @@
 package controllers.transform
 
 import controllers.core.{RequestUserContextAction, Stream, Widgets}
+import javax.inject.Inject
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.workbench.Context
 import org.silkframework.workspace.WorkspaceFactory
 import play.api.http.ContentTypes
-import play.api.mvc.{Action, AnyContent, Controller}
+import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 
 /** Endpoints for the 'Execute' page of a transform task */
-class ExecuteTransformTab extends Controller {
+class ExecuteTransformTab @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
 
   def execute(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[TransformSpec](project, task, request.path)

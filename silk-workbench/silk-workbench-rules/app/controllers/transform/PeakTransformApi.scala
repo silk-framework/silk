@@ -3,6 +3,7 @@ package controllers.transform
 import controllers.core.RequestUserContextAction
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
+import javax.inject.Inject
 import org.silkframework.config.{PlainTask, Prefixes, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpointEntityTable}

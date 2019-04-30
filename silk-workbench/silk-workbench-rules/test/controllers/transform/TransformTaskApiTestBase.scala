@@ -27,7 +27,7 @@ trait TransformTaskApiTestBase extends PlaySpec with IntegrationTestTrait with C
 
   def jsonGetRequest(url: String): JsValue = {
     var request = client.url(url)
-    request = request.withHeaders("Accept" -> "application/json")
+    request = request.addHttpHeaders("Accept" -> "application/json")
     val response = request.get()
     val json = checkResponse(response).json
 
@@ -40,7 +40,7 @@ trait TransformTaskApiTestBase extends PlaySpec with IntegrationTestTrait with C
 
   def jsonPutRequest(url: String)(json: String): JsValue = {
     var request = client.url(url)
-    request = request.withHeaders("Accept" -> "application/json")
+    request = request.addHttpHeaders("Accept" -> "application/json")
     val response = request.put(Json.parse(json))
     val responseJson = checkResponse(response).json
 
@@ -53,7 +53,7 @@ trait TransformTaskApiTestBase extends PlaySpec with IntegrationTestTrait with C
 
   def jsonPostRequest(url: String)(json: String): JsValue = {
     var request = client.url(url)
-    request = request.withHeaders("Accept" -> "application/json")
+    request = request.addHttpHeaders("Accept" -> "application/json")
     val response = request.post(Json.parse(json))
     val responseJson = checkResponse(response).json
 
@@ -66,7 +66,7 @@ trait TransformTaskApiTestBase extends PlaySpec with IntegrationTestTrait with C
 
   def postRequest(url: String): JsValue = {
     var request = client.url(url)
-    request = request.withHeaders("Accept" -> "application/json")
+    request = request.addHttpHeaders("Accept" -> "application/json")
     val response = request.post("")
     checkResponse(response).json
   }

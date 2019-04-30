@@ -10,7 +10,7 @@ lazy val commonSettings = Seq(
   organization := "org.silkframework",
   version := "3.0.0-SNAPSHOT",
   // Building
-  scalaVersion := "2.11.11",
+  scalaVersion := "2.11.12",
   publishTo := {
     val artifactory = "https://artifactory.eccenca.com/"
     if (isSnapshot.value) {
@@ -67,9 +67,9 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "com.rockymadden.stringmetric" % "stringmetric-core_2.11" % "0.27.4",
     libraryDependencies += "com.thoughtworks.paranamer" % "paranamer" % "2.7",
     // Additional scala standard libraries
-    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.1.0",
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1",
     libraryDependencies += "commons-io" % "commons-io" % "2.4"
   )
 
