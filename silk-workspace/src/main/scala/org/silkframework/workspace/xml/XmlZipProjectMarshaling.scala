@@ -1,15 +1,15 @@
 package org.silkframework.workspace.xml
 
-import java.io.{File, InputStream, OutputStream}
-import java.util.zip.{ZipFile, ZipInputStream, ZipOutputStream}
+import java.io.{File, OutputStream}
+import java.util.zip.{ZipFile, ZipOutputStream}
 
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.runtime.resource._
-import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
+import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
-import org.silkframework.workspace.{ProjectConfig, ProjectMarshallingTrait, WorkspaceProvider}
+import org.silkframework.workspace.{Project, ProjectConfig, ProjectMarshallingTrait, WorkspaceProvider}
 
 /**
   * Created on 6/27/16.
@@ -26,7 +26,8 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
   val name = "XML zip file"
 
   /**
-    * Marshals the project.
+    * Marshals the project from the given workspace provider and resource manager.
+    * All tasks are read from the workspace provider.
     *
     * @param project
     * @param outputStream      The output stream the marshaled project data should be written to.
@@ -54,6 +55,34 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
 
     //Return proposed file name
     project.id.toString + ".zip"
+  }
+
+  /**
+    * Marshals the project from the in-memory [[Project]] object and the given resource manager.
+    *
+    * @param project A project object that contains all tasks in-memory.
+    * @param outputStream The output stream for the marshalling output.
+    * @param resourceManager Marshal resources from this resource manager.
+    * @return The proposed ZIP file name.
+    */
+  override def marshalProject(project: Project,
+                              outputStream: OutputStream,
+                              resourceManager: ResourceManager)
+                             (implicit userContext: UserContext): String = {
+    // Open ZIP
+    val zip = new ZipOutputStream(outputStream)
+    try {
+      val zipResourceManager = ZipOutputStreamResourceManager(zip)
+      val outputWorkspaceProvider = new XmlWorkspaceProvider(zipResourceManager)
+
+      exportProject(project, outputWorkspaceProvider, resourceManager, Some(getProjectResources(outputWorkspaceProvider, project.config.id)))
+    } finally {
+      // Close ZIP
+      zip.close()
+    }
+
+    //Return proposed file name
+    project.config.id.toString + ".zip"
   }
 
   /**
@@ -114,6 +143,30 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
     "workspace.zip"
   }
 
+  override def marshalWorkspace(outputStream: OutputStream,
+                                projects: Seq[Project],
+                                resourceRepository: ResourceRepository)
+                               (implicit userContext: UserContext): String = {
+    // Open ZIP
+    val zip = new ZipOutputStream(outputStream)
+    try {
+      val zipResourceManager = ZipOutputStreamResourceManager(zip)
+      val xmlWorkspaceProvider = new XmlWorkspaceProvider(zipResourceManager)
+
+      // Load all projects into temporary XML workspace provider
+      for (project <- projects) {
+        exportProject(project, xmlWorkspaceProvider, resourceRepository.get(project.config.id),
+          Some(getProjectResources(xmlWorkspaceProvider, project.config.id)))
+      }
+    } finally {
+      // Close ZIP
+      zip.close()
+    }
+
+    //Return proposed file name
+    "workspace.zip"
+  }
+
   override def unmarshalWorkspace(workspaceProvider: WorkspaceProvider,
                                   resourceRepository: ResourceRepository,
                                   file: File)
@@ -131,53 +184,6 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
     } finally {
       zip.close()
     }
-  }
-
-  private def createWorkspaceFromInputStream(projectName: Option[Identifier],
-                                             inputStream: InputStream): XmlWorkspaceProvider = {
-    val resourceManager = UrlResourceManager(InMemoryResourceManager())
-    // Open ZIP
-    val zip = new ZipInputStream(inputStream)
-
-    // Read all ZIP entries
-    try {
-      val projectRes = if(projectName.isDefined) resourceManager.child(projectName.get) else resourceManager
-      var entry = zip.getNextEntry
-      var stripPrefix = ""
-      var configFound = false
-      var stop = false
-      while (entry != null && !stop) {
-        if (!entry.isDirectory) {
-          val entryName = entry.getName
-          val nameParts = entry.getName.split("/")
-          if(stripPrefix == "" && projectName.isDefined && (nameParts.last == "config.xml")) {
-            /* If this is a workspace zip, but a single project should be imported, pick the first project from the workspace
-               This is the fastest way to address this issue, since only one project is actually copied from the ZIP stream.
-               FIXME: The fact that config.xml is the first file to appear in any project folder may become invalid in the future
-             */
-            configFound = true
-            stripPrefix = if(nameParts.size == 2) nameParts(0) + "/" else ""
-          }
-          if(entry.getName.startsWith(stripPrefix)) {
-            /* FIXME: If this is a workspace zip only the first project is imported, all others are ignored
-                      A better solution would probably be to let the user choose which project to import from the workspace zip. */
-            projectRes.getInPath(entry.getName.stripPrefix(stripPrefix)).writeStream(zip)
-          } else {
-            stop = true // Since project files are ordered in the stream, we can stop if another project pops up
-          }
-        }
-        zip.closeEntry()
-        entry = zip.getNextEntry
-      }
-      if(projectName.isDefined && !configFound) {
-        // No project found, but project expected
-        throw new ValidationException("No project found in given zip file. Imported nothing!")
-      }
-    } finally {
-      // Close ZIP and reload
-      zip.close()
-    }
-    new XmlWorkspaceProvider(resourceManager)
   }
 
   private def getProjectResources(provider: XmlWorkspaceProvider, project: Identifier): ResourceManager = {

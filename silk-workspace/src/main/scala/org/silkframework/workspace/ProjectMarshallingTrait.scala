@@ -2,10 +2,15 @@ package org.silkframework.workspace
 
 import java.io.{File, OutputStream}
 
+import org.silkframework.config.CustomTask
+import org.silkframework.dataset.{Dataset, DatasetSpec}
+import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.io.WorkspaceIO
+import org.silkframework.workspace.io.WorkspaceIO.copyResources
 import org.silkframework.workspace.resources.ResourceRepository
 
 /**
@@ -39,6 +44,11 @@ trait ProjectMarshallingTrait {
                      resourceManager: ResourceManager)
                     (implicit userContext: UserContext): String
 
+  def marshalProject(project: Project,
+                     outputStream: OutputStream,
+                     resourceManager: ResourceManager)
+                    (implicit userContext: UserContext): String
+
   /**
     * Unmarshals the project
     *
@@ -61,6 +71,19 @@ trait ProjectMarshallingTrait {
     */
   def marshalWorkspace(outputStream: OutputStream,
                        workspaceProvider: WorkspaceProvider,
+                       resourceRepository: ResourceRepository)
+                      (implicit userContext: UserContext): String
+
+  /**
+    * Marshals the entire workspace from the in-memory [[Project]] objects.
+    *
+    * @param outputStream       The output stream the marshaled project data should be written to.
+    * @param projects           All projects from the workspace that should be marshaled.
+    * @param resourceRepository The resource repository from which project resources should be marshaled.
+    * @return The proposed file name for the marshaled resource.
+    */
+  def marshalWorkspace(outputStream: OutputStream,
+                       projects: Seq[Project],
                        resourceRepository: ResourceRepository)
                       (implicit userContext: UserContext): String
 
@@ -114,5 +137,34 @@ trait ProjectMarshallingTrait {
     // Export project
     val project = workspaceProvider.readProjects().find(_.id == projectName).get
     WorkspaceIO.copyProject(workspaceProvider, exportToWorkspace, resources, exportToResources, project)
+  }
+
+  protected def exportProject(project: Project,
+                              outputWorkspaceProvider: WorkspaceProvider,
+                              resources: ResourceManager,
+                              exportToResources: Option[ResourceManager])
+                             (implicit userContext: UserContext): Unit = {
+    // Load project into temporary XML workspace provider
+    val updatedProjectConfig = project.config.copy(projectResourceUriOpt = Some(project.config.resourceUriOrElseDefaultUri))
+    val projectId = updatedProjectConfig.id
+    outputWorkspaceProvider.putProject(updatedProjectConfig)
+    for(outputResources <- exportToResources) {
+      copyResources(resources, outputResources)
+    }
+    for(dataset <- project.tasks[DatasetSpec[Dataset]]) {
+      outputWorkspaceProvider.putTask(projectId, dataset)
+    }
+    for(transformTask <- project.tasks[TransformSpec]) {
+      outputWorkspaceProvider.putTask(projectId, transformTask)
+    }
+    for(task <- project.tasks[LinkSpec]) {
+      outputWorkspaceProvider.putTask(projectId, task)
+    }
+    for(task <- project.tasks[Workflow]) {
+      outputWorkspaceProvider.putTask(projectId, task)
+    }
+    for(task <- project.tasks[CustomTask]) {
+      outputWorkspaceProvider.putTask(projectId, task)
+    }
   }
 }
