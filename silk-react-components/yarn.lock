@@ -8,10 +8,10 @@
   dependencies:
     fs-extra "^5.0.0"
 
-"@eccenca/gui-elements@4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@eccenca/gui-elements/-/gui-elements-4.0.0.tgz#75f33498bae94c3512c72f7163019e95fbc3fda7"
-  integrity sha512-PUVOZlmrzzBmy4IdyhemSh/dwuLv1wQmweHFKUMA1niJo9yc2Sy1steMzHcsirWHWS0IQ9bMIwVnm87140pu7Q==
+"@eccenca/gui-elements@^4.2.3":
+  version "4.2.3"
+  resolved "https://registry.yarnpkg.com/@eccenca/gui-elements/-/gui-elements-4.2.3.tgz#a67efd71bb22052df193dc7d0e0c75e50a6b4d4e"
+  integrity sha512-MqlnMriscAphdQoawBNJepO2O8+5r65UNFxaNXdC+S7t5NvEFLXOV7HfEipNO9zSK+8Y2wIZ4DKl2Ms7jZiOlQ==
   dependencies:
     "@eccenca/material-design-lite" "^2.0.0"
     classnames "^2.2.5"
