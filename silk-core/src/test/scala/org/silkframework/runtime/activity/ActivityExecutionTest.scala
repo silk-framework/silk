@@ -1,5 +1,7 @@
 package org.silkframework.runtime.activity
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.runtime.users.User
 
@@ -17,11 +19,14 @@ class ActivityExecutionTest extends FlatSpec with MustMatchers {
   }
 
   it should "interrupt activities when they are cancelled by the user" in {
-    val activityExecution = new ActivityExecution(new SleepingActivity(), projectAndTaskId = None)
+    val running = new AtomicBoolean(false)
+    val activityExecution = new ActivityExecution(new SleepingActivity(running), projectAndTaskId = None)
     val start = System.currentTimeMillis()
     Future {
-      val SHORT_TIME = 50
-      Thread.sleep(SHORT_TIME)
+      while(!running.get()) {
+        val SHORT_TIME = 50
+        Thread.sleep(SHORT_TIME)
+      }
       activityExecution.cancel()
     }
     activityExecution.startBlocking()
@@ -36,8 +41,9 @@ class ActivityExecutionTest extends FlatSpec with MustMatchers {
   }
 }
 
-class SleepingActivity() extends Activity[Unit] {
+class SleepingActivity(running: AtomicBoolean) extends Activity[Unit] {
   override def run(context: ActivityContext[Unit])(implicit userContext: UserContext): Unit = {
+    running.set(true)
     val LONG_TIME = 100000
     Thread.sleep(LONG_TIME)
   }
