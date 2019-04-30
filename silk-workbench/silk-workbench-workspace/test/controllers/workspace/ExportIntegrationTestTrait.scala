@@ -5,58 +5,30 @@ import java.util.UUID
 import java.util.zip.ZipInputStream
 
 import helper.IntegrationTestTrait
-import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatest.{MustMatchers, Suite}
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace._
-import play.api.libs.ws.WS
 
+import scala.io.Source
 import scala.reflect.ClassTag
 import scala.util.Try
 
+
 /**
-  * Tests the workspace and project export features.
+  * Test base for workspace and project export integration tests.
   */
-class WorkspaceExportIntegrationTest extends FlatSpec with IntegrationTestTrait
-    with SingleProjectWorkspaceProviderTestTrait with MustMatchers {
+trait ExportIntegrationTestTrait
+    extends IntegrationTestTrait
+        with SingleProjectWorkspaceProviderTestTrait
+        with MustMatchers {
+  this: Suite =>
+
   override def projectPathInClasspath: String = "controllers/workspace/miniProject.zip"
 
   override def workspaceProvider: String = "mockableInMemoryWorkspace"
-
-  it should "export project with broken workspace provider" in {
-    makeWorkspaceFail()
-    val projectExportUri = baseUrl + s"/workspace/projects/$projectId/export/xmlZip"
-    val responseBody = checkResponse(WS.url(projectExportUri).get()).bodyAsBytes
-    checkZipEntries(responseBody, Seq(
-      "singleProject/workflow/Workflow.xml",
-      "singleProject/linking/miniLinking/alignment.xml",
-      "singleProject/linking/miniLinking/linkSpec.xml",
-      "singleProject/transform/miniTransform/rules.xml",
-      "singleProject/transform/miniTransform/dataset.xml",
-      "singleProject/dataset/miniCsv.xml",
-      "singleProject/dataset/internalDataset.xml",
-      "singleProject/resources/miniResource.csv",
-      "singleProject/config.xml"))
-  }
-
-  it should "export workspace with broken workspace provider" in {
-    makeWorkspaceFail()
-    val workspaceExportURI = baseUrl + "/workspace/export/xmlZip"
-    val responseBody = checkResponse(WS.url(workspaceExportURI).get()).bodyAsBytes
-    checkZipEntries(responseBody, Seq(
-      "singleProject/workflow/Workflow.xml",
-      "singleProject/linking/miniLinking/alignment.xml",
-      "singleProject/linking/miniLinking/linkSpec.xml",
-      "singleProject/transform/miniTransform/rules.xml",
-      "singleProject/transform/miniTransform/dataset.xml",
-      "singleProject/dataset/miniCsv.xml",
-      "singleProject/dataset/internalDataset.xml",
-      "singleProject/resources/miniResource.csv",
-      "singleProject/config.xml"
-    ))
-  }
 
   private lazy val workspace: Workspace = WorkspaceFactory().workspace
 
@@ -66,21 +38,41 @@ class WorkspaceExportIntegrationTest extends FlatSpec with IntegrationTestTrait
 
   override def routes: Option[String] = Some("test.Routes")
 
-  private def checkZipEntries(responseBody: Array[Byte], expectedFiles: Seq[String]): Unit = {
+  protected def checkZipEntries(responseBody: Array[Byte], expectedFiles: Seq[String]): Unit = {
     val entries = zipEntries(responseBody)
     entries.map(_.name) mustBe expectedFiles
     entries.foreach(_.size must be > 10) // Check for 'No empty files'
   }
 
+  // Get the file as string
+  protected def getZipEntry(responseBody: Array[Byte], file: String): String = {
+    val zip = zipStream(responseBody)
+    var nextEntry = zip.getNextEntry
+    var result = ""
+    while(nextEntry != null && result.isEmpty) {
+      if(nextEntry.getName == file) {
+        result = Source.fromInputStream(zip).mkString
+      }
+      nextEntry = zip.getNextEntry
+    }
+    zip.close()
+    result
+  }
+
   private def zipEntries(responseBytes: Array[Byte]): Seq[ZipEntry] = {
-    val zip = new ZipInputStream(new  ByteArrayInputStream(responseBytes))
+    val zip = zipStream(responseBytes)
     var results = List.empty[ZipEntry]
     var nextEntry = zip.getNextEntry
     while(nextEntry != null) {
       results ::= ZipEntry(nextEntry.getName, streamSize(zip))
       nextEntry = zip.getNextEntry
     }
+    zip.close()
     results
+  }
+
+  private def zipStream(responseBytes: Array[Byte]): ZipInputStream = {
+    new ZipInputStream(new  ByteArrayInputStream(responseBytes))
   }
 
   private def streamSize(is: InputStream): Int = {
@@ -95,7 +87,7 @@ class WorkspaceExportIntegrationTest extends FlatSpec with IntegrationTestTrait
 
   case class ZipEntry(name: String, size: Int)
 
-  private def makeWorkspaceFail(): Unit = {
+  protected def makeWorkspaceFail(): Unit = {
     val brokenWorkspace = new BreakableWorkspaceProviderConfig() {
       override def readProjects()
                                (implicit user: UserContext): Option[Seq[ProjectConfig]] = {

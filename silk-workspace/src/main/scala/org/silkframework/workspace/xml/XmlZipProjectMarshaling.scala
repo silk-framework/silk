@@ -26,38 +26,6 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
   val name = "XML zip file"
 
   /**
-    * Marshals the project from the given workspace provider and resource manager.
-    * All tasks are read from the workspace provider.
-    *
-    * @param project
-    * @param outputStream      The output stream the marshaled project data should be written to.
-    * @param workspaceProvider The workspace provider the project is coming from.
-    * @return
-    */
-  override def marshalProject(project: ProjectConfig,
-                              outputStream: OutputStream,
-                              workspaceProvider: WorkspaceProvider,
-                              resourceManager: ResourceManager)
-                             (implicit userContext: UserContext): String = {
-    // Open ZIP
-    val zip = new ZipOutputStream(outputStream)
-    try {
-      val zipResourceManager = ZipOutputStreamResourceManager(zip)
-      val xmlWorkspaceProvider = new XmlWorkspaceProvider(zipResourceManager)
-
-      // Load project into temporary XML workspace provider
-      exportProject(project.id, workspaceProvider, exportToWorkspace = xmlWorkspaceProvider,
-        Some(resourceManager), Some(getProjectResources(xmlWorkspaceProvider, project.id)))
-    } finally {
-      // Close ZIP
-      zip.close()
-    }
-
-    //Return proposed file name
-    project.id.toString + ".zip"
-  }
-
-  /**
     * Marshals the project from the in-memory [[Project]] object and the given resource manager.
     *
     * @param project A project object that contains all tasks in-memory.
@@ -117,30 +85,6 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
     } finally {
       zip.close()
     }
-  }
-
-  override def marshalWorkspace(outputStream: OutputStream,
-                                workspaceProvider: WorkspaceProvider,
-                                resourceRepository: ResourceRepository)
-                               (implicit userContext: UserContext): String = {
-    // Open ZIP
-    val zip = new ZipOutputStream(outputStream)
-    try {
-      val zipResourceManager = ZipOutputStreamResourceManager(zip)
-      val xmlWorkspaceProvider = new XmlWorkspaceProvider(zipResourceManager)
-
-      // Load all projects into temporary XML workspace provider
-      for (project <- workspaceProvider.readProjects()) {
-        exportProject(project.id, workspaceProvider, exportToWorkspace = xmlWorkspaceProvider,
-          Some(resourceRepository.get(project.id)), Some(getProjectResources(xmlWorkspaceProvider, project.id)))
-      }
-    } finally {
-      // Close ZIP
-      zip.close()
-    }
-
-    //Return proposed file name
-    "workspace.zip"
   }
 
   override def marshalWorkspace(outputStream: OutputStream,

@@ -31,19 +31,13 @@ trait ProjectMarshallingTrait {
   def suffix: Option[String]
 
   /**
-    * Marshals the project.
+    * Marshals the project from the in-memory [[Project]] object and the given resource manager.
     *
-    * @param project
-    * @param outputStream      The output stream the marshaled project data should be written to.
-    * @param workspaceProvider The workspace provider the project is coming from.
-    * @return
+    * @param project         The in-memory [[Project]] object from the workspace.
+    * @param outputStream    The output stream the marshaled project data should be written to.
+    * @param resourceManager The resource manager from which project resources should be marshaled.
+    * @return The proposed file name for the marshaled resource.
     */
-  def marshalProject(project: ProjectConfig,
-                     outputStream: OutputStream,
-                     workspaceProvider: WorkspaceProvider,
-                     resourceManager: ResourceManager)
-                    (implicit userContext: UserContext): String
-
   def marshalProject(project: Project,
                      outputStream: OutputStream,
                      resourceManager: ResourceManager)
@@ -54,25 +48,13 @@ trait ProjectMarshallingTrait {
     *
     * @param projectName
     * @param workspaceProvider The workspace provider the project should be imported into.
-    * @param file       The marshaled project file.
+    * @param file              The marshaled project file.
     */
   def unmarshalProject(projectName: Identifier,
                        workspaceProvider: WorkspaceProvider,
                        resourceManager: ResourceManager,
                        file: File)
                       (implicit userContext: UserContext): Unit
-
-  /**
-    * Marshals the entire workspace.
-    *
-    * @param outputStream      The output stream the marshaled project data should be written to.
-    * @param workspaceProvider The workspace provider the projects are coming from.
-    * @return
-    */
-  def marshalWorkspace(outputStream: OutputStream,
-                       workspaceProvider: WorkspaceProvider,
-                       resourceRepository: ResourceRepository)
-                      (implicit userContext: UserContext): String
 
   /**
     * Marshals the entire workspace from the in-memory [[Project]] objects.
