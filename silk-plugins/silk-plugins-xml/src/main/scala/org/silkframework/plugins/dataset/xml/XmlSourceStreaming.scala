@@ -78,23 +78,31 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   override def retrievePaths(typeUri: Uri, depth: Int = Int.MaxValue, limit: Option[Int] = None)
                             (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     val schema = extractSchema(PathCategorizerValueAnalyzerFactory(), pathLimit = schemaElementLimit, sampleLimit = Some(1))
-    val pathBuffer = mutable.ArrayBuffer[TypedPath]()
+    val pathBuffer = new mutable.HashMap[Path, TypedPath]()
+
+    def append(typedPath: TypedPath): Unit = pathBuffer.get(typedPath.toSimplePath) match{
+        // if the containing path is only of StringValueType we override with UriValueType
+      case Some(p) if p.valueType == StringValueType && typedPath.valueType == UriValueType => pathBuffer.put(typedPath.toSimplePath, typedPath)
+      case Some(_) => // else we leave as is
+      case None => pathBuffer.put(typedPath.toSimplePath, typedPath) // we always enter new paths
+    }
+
     val normalizedTypeUri = typeUri.toString.dropWhile(_ == '/')
     for(schemaClass <- schema.classes if schemaClass.sourceType.startsWith(normalizedTypeUri)) {
       val relativeClass = schemaClass.sourceType.drop(normalizedTypeUri.length).dropWhile(_ == '/')
       val classPath = Path.parse(relativeClass)
-      if(classPath.size > 0 && classPath.size <= depth) {
-        pathBuffer.append(TypedPath(classPath, UriValueType, isAttribute = false))
+      if(classPath.size > 0 && classPath.size <= depth && schemaClass.properties.nonEmpty) {  // only assume we are dealing with a new type when its not an empty tag
+        append(TypedPath(classPath, UriValueType, isAttribute = false))
       }
       for(schemaPath <- schemaClass.properties) {
         val typedPath = TypedPath(Path.parse(relativeClass + "/" + schemaPath.path.normalizedSerialization), StringValueType,
           isAttribute = schemaPath.path.normalizedSerialization.startsWith("@"))
         if(typedPath.size <= depth) {
-          pathBuffer.append(typedPath)
+          append(typedPath)
         }
       }
     }
-    pathBuffer.toIndexedSeq
+    pathBuffer.values.toIndexedSeq
   }
 
   private def pathRank(pathLength: Int): Double = 1.0 / (pathLength + 1)
