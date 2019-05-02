@@ -193,7 +193,7 @@ const MappingsList = React.createClass({
                     (sessionStorage.getItem('copyingData') !== null) ? {
                         icon: 'folder',
                         label: 'Paste mapping',
-                        handler: this.props.handlePaste,
+                        handler: () => this.props.handlePaste(),
                     } : [],
                     {
                         icon: 'lightbulb_outline',
