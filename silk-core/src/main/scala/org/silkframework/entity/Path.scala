@@ -24,7 +24,7 @@ import scala.util.{Failure, Success, Try}
 /**
   * Represents an RDF path.
   */
-class Path private[entity](val operators: List[PathOperator]) extends Serializable with PathOperatorList  {
+class Path private[entity](val operators: List[PathOperator]) extends Serializable  {
 
   /**
     * The normalized serialization using the Silk RDF path language.
@@ -42,6 +42,25 @@ class Path private[entity](val operators: List[PathOperator]) extends Serializab
     case Prefixes.empty if stripForwardSlash => normalizedSerialization
     case _ => serializePath(prefixes, stripForwardSlash)
   }
+
+  /**
+    * Returns the property URI, if this is a simple forward path of length 1.
+    * Otherwise, returns none.
+    */
+  def propertyUri: Option[Uri] = operators match {
+    case ForwardOperator(prop) :: Nil => Some(prop)
+    case _ => None
+  }
+
+  /**
+    * Returns the number of operators in this path.
+    */
+  def size: Int = operators.size
+
+  /**
+    * Tests if this path is empty, i.e, has not operators.
+    */
+  def isEmpty: Boolean = operators.isEmpty
 
   /**
     * Internal path serialization function.
@@ -147,27 +166,4 @@ object Path {
       path
     }
   }
-}
-
-trait PathOperatorList {
-  def operators: List[PathOperator]
-
-  /**
-    * Returns the property URI, if this is a simple forward path of length 1.
-    * Otherwise, returns none.
-    */
-  def propertyUri: Option[Uri] = operators match {
-    case ForwardOperator(prop) :: Nil => Some(prop)
-    case _ => None
-  }
-
-  /**
-    * Returns the number of operators in this path.
-    */
-  def size: Int = operators.size
-
-  /**
-    * Tests if this path is empty, i.e, has not operators.
-    */
-  def isEmpty: Boolean = operators.isEmpty
 }

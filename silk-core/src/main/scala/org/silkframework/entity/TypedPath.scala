@@ -10,13 +10,13 @@ import scala.xml.Node
 /**
   * Constitutes a path with type information.
   *
-  * @param operators the path operators
+  * @param ops the path operators
   * @param valueType the type that has to be considered during processing.
   * @param metadata an immutable map that stores metadata object
   */
-case class TypedPath(operators: List[PathOperator],
+case class TypedPath(ops: List[PathOperator],
                      valueType: ValueType,
-                     metadata: Map[String, Any]) extends PathOperatorList {
+                     metadata: Map[String, Any]) extends Path(ops) {
 
   /**
     * checks metadata for an positive entry for the IS_ATTRIBUTE_KEY key
@@ -135,7 +135,7 @@ object TypedPath {
     */
   def removePathPrefix(typedPath: TypedPath, subPath: Path): TypedPath = {
     if(typedPath.operators.startsWith(subPath.operators)){
-      typedPath.copy(operators = typedPath.operators.drop(subPath.operators.size))
+      typedPath.copy(ops = typedPath.operators.drop(subPath.operators.size))
     } else {
       typedPath
     }
