@@ -1,4 +1,6 @@
 package org.silkframework.runtime.activity
+import java.util.concurrent.ForkJoinPool
+import java.util.concurrent.ForkJoinPool.ManagedBlocker
 import java.util.logging.Logger
 
 import scala.reflect.ClassTag
@@ -57,6 +59,34 @@ class ActivityMonitor[T](name: String,
     val execution = new ActivityExecution(activity, Some(this), progressContribution, projectAndTaskId = projectAndTaskId)
     addChild(execution)
     execution
+  }
+
+  /**
+    * Blocks execution until a given condition is met.
+    * This should be called by Activities whenever they are waiting indefinitely.
+    *
+    * @param condition Evaluates the condition to wait for. Will be called frequently.
+    */
+  def blockUntil(condition: () => Boolean): Unit = {
+    val sleepTime = 500
+    while(!condition()) {
+      ForkJoinPool.managedBlock(
+        new ManagedBlocker {
+          @volatile
+          private var releasable = false
+
+          override def block(): Boolean = {
+            Thread.sleep(sleepTime)
+            releasable = true
+            true
+          }
+
+          override def isReleasable: Boolean = {
+            releasable
+          }
+        }
+      )
+    }
   }
 
   /**
