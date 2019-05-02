@@ -5,7 +5,7 @@ import rxmq from 'ecc-messagebus';
 
 import UseMessageBus from '../UseMessageBusMixin';
 
-import { Nothing, Alert, Error, Info, Success, Warning } from '@eccenca/gui-elements';
+import { Alert, Error, Info, Success, Warning } from '@eccenca/gui-elements';
 
 const renderClasses = {
 	alert: Alert,
@@ -106,7 +106,7 @@ const MessageHandler = React.createClass({
 			<div className='ecc-component-messagehandler'>
 				{messages}
 			</div>
-		) : <Nothing />;
+		) : false;
 	}
 });
 
