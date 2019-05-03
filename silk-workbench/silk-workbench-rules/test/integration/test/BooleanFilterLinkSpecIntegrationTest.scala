@@ -39,8 +39,7 @@ class BooleanFilterLinkSpecIntegrationTest extends FlatSpec with SingleProjectWo
       val nrLinks = linkingResult.links.size
       sourceEntities mustBe expectedSourceEntities
       targetEntities mustBe expectedTargetEntities
-      // FIXME: nrLinks are ignored since they are not correct
-//      nrLinks mustBe expectedNrLinks
+      nrLinks mustBe expectedNrLinks
     }
   }
 }

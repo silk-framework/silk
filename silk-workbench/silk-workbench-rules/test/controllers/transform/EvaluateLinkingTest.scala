@@ -19,11 +19,11 @@ class EvaluateLinkingTest extends FlatSpec with IntegrationTestTrait with Single
   override def workspaceProvider: String = "inMemory"
 
   // TODO this tests run standalone, but let other tests fail. Disabling for now
-  ignore should "generate evaluation links" in {
+  it should "generate evaluation links" in {
     evaluateLinkingTask(projectId, linkingTaskId)
   }
 
-  ignore should "return the generated links as JSON" in {
+  it should "return the generated links as JSON" in {
     val response = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$linkingTaskId/activities/EvaluateLinking/value")
                      .withHeaders("Accept" -> "application/json")
                      .get()
