@@ -17,7 +17,7 @@ import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGener
 import play.api.libs.json.{JsArray, JsString, _}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, _}
 
-class WorkflowApi @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
+class WorkflowApi @Inject() () extends InjectedController {
 
   def getWorkflows(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = fetchProject(projectName)

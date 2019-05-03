@@ -26,7 +26,7 @@ import scala.util.control.NonFatal
 
 import PeakTransformApi._
 
-class PeakTransformApi @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
+class PeakTransformApi @Inject() () extends InjectedController {
 
   implicit private val peakStatusWrites: Writes[PeakStatus] = Json.writes[PeakStatus]
   implicit private val peakResultWrites: Writes[PeakResult] = Json.writes[PeakResult]

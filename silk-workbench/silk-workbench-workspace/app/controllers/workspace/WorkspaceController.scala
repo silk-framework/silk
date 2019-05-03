@@ -8,9 +8,9 @@ import javax.inject.Inject
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.xml.XmlZipProjectMarshaling
 import org.silkframework.workspace.{PrefixRegistry, WorkspaceFactory}
-import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
+import play.api.mvc.{InjectedController, Action, AnyContent, ControllerComponents}
 
-class WorkspaceController @Inject() (cc: ControllerComponents) extends AbstractController(cc){
+class WorkspaceController @Inject() () extends InjectedController{
 
   def index: Action[AnyContent] = Action { implicit request =>
     Ok(views.html.workspace.workspace())

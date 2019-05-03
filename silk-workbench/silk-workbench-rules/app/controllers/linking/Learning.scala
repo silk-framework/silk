@@ -24,9 +24,9 @@ import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
 import play.api.http.ContentTypes
-import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
+import play.api.mvc.{InjectedController, Action, AnyContent, ControllerComponents}
 
-class Learning @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
+class Learning @Inject() () extends InjectedController {
 
   private val log = Logger.getLogger(getClass.getName)
 

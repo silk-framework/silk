@@ -4,7 +4,7 @@ import java.io._
 import java.net.URLDecoder
 
 import org.scalatest.TestSuite
-import org.scalatestplus.play.OneServerPerSuite
+import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
 import org.silkframework.rule.{MappingRules, TransformSpec}
@@ -31,7 +31,7 @@ import scala.xml.{Elem, XML}
 /**
   * Basis for integration tests.
   */
-trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with TestWorkspaceProviderTestTrait with TestUserContextTrait {
+trait IntegrationTestTrait extends TaskApiClient with GuiceOneServerPerSuite with TestWorkspaceProviderTestTrait with TestUserContextTrait {
   this: TestSuite =>
 
   final val APPLICATION_JSON: String = "application/json"
@@ -241,8 +241,8 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     * Executes schema extraction and profiling on a dataset. Attaches the schema and profiling data to
     * the resource with datasetUri as URI.
     *
-    * @param projectId
-    * @param datasetId
+    * @param projectId project identifier
+    * @param datasetId dataset identifier
     * @param datasetUri The dataset URI. This is an external URI outside of Silk and is not used inside Silk. The calling
     *                   application must supply a meaningful resource URI.
     * @return
@@ -296,7 +296,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
   /**
     * Executes dataset matching based on the profiling data.
     *
-    * @param projectId
+    * @param projectId project identifier
     * @param datasetUri The dataset URI. This is an external URI outside of Silk and is not used inside Silk. The calling
     *                   application must supply a meaningful resource URI.
     * @return
@@ -345,7 +345,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
     */
   def createLinkingTask(projectId: String, linkingTaskId: String, sourceId: String, targetId: String, outputDatasetId: String): WSResponse = {
     val request = client.url(s"$baseUrl/linking/tasks/$projectId/$linkingTaskId")
-    val response = request.withQueryString("source" -> sourceId, "target" -> targetId, "output" -> outputDatasetId).put("")
+    val response = request.addQueryStringParameters("source" -> sourceId, "target" -> targetId, "output" -> outputDatasetId).put("")
     checkResponse(response)
   }
 
@@ -390,7 +390,7 @@ trait IntegrationTestTrait extends TaskApiClient with OneServerPerSuite with Tes
   def executeTransformTask(projectId: String, transformTaskId: String, parameters: Map[String, String] = Map.empty): WSResponse = {
     var request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$transformTaskId/activities/ExecuteTransform/startBlocking")
     if(parameters.nonEmpty) {
-      request = request.withQueryString(parameters.toSeq: _*)
+      request = request.addQueryStringParameters(parameters.toSeq: _*)
     }
     val response = request.post("")
     checkResponse(response)

@@ -15,7 +15,7 @@ import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
-import play.api.mvc.{AbstractController, Action, AnyContent, Controller, ControllerComponents}
+import play.api.mvc.{InjectedController, Action, AnyContent, Controller, ControllerComponents}
 
 import scala.language.implicitConversions
 import scala.util.Try
@@ -23,7 +23,7 @@ import scala.util.Try
 /**
   * Generates auto completions for mapping paths and types.
   */
-class AutoCompletionApi @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
+class AutoCompletionApi @Inject() () extends InjectedController {
   val log: Logger = Logger.getLogger(this.getClass.getName)
 
   /**

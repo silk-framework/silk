@@ -4,10 +4,10 @@ import controllers.core.RequestUserContextAction
 import javax.inject.Inject
 import org.silkframework.workbench.Context
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
-import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
+import play.api.mvc.{InjectedController, Action, AnyContent, ControllerComponents}
 
 /** View endpoints for the workflow editor */
-class WorkflowEditorController @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
+class WorkflowEditorController @Inject() () extends InjectedController {
 
   def editor(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[Workflow](project, task, request.path)

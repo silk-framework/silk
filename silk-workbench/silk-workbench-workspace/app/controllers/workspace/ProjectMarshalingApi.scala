@@ -18,7 +18,7 @@ import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
 
-class ProjectMarshalingApi @Inject() (cc: ControllerComponents) extends AbstractController(cc){
+class ProjectMarshalingApi @Inject() () extends InjectedController{
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 

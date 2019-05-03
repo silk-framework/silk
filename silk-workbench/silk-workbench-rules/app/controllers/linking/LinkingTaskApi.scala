@@ -21,9 +21,9 @@ import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
-import play.api.mvc.{AbstractController, Action, AnyContent, AnyContentAsXml, ControllerComponents}
+import play.api.mvc.{InjectedController, Action, AnyContent, AnyContentAsXml, ControllerComponents}
 
-class LinkingTaskApi @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
+class LinkingTaskApi @Inject() () extends InjectedController {
 
   private val log = Logger.getLogger(getClass.getName)
 

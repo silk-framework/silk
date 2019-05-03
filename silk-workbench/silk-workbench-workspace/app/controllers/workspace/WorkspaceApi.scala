@@ -6,16 +6,14 @@ import java.util.logging.Logger
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
-import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import javax.inject.Inject
 import org.silkframework.config._
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
-import org.silkframework.runtime.activity.{Activity, UserContext}
+import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.{UrlResource, WritableResource}
+import org.silkframework.runtime.resource.{ResourceManager, UrlResource, WritableResource}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace._
@@ -48,7 +46,7 @@ class WorkspaceApi  @Inject() () extends InjectedController {
   }
 
   def newProject(project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    if (WorkspaceFactory().workspace.projects.exists(_.name == project)) {
+    if (WorkspaceFactory().workspace.projects.exists(_.name.toString == project)) {
       ErrorResult(CONFLICT, "Conflict", s"Project with name '$project' already exists. Creation failed.")
     } else {
       val projectConfig = ProjectConfig(project)
@@ -80,8 +78,8 @@ class WorkspaceApi  @Inject() () extends InjectedController {
 
   def executeProject(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    implicit val prefixes = project.config.prefixes
-    implicit val resources = project.resources
+    implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val resources: ResourceManager = project.resources
 
     val projectExecutors = PluginRegistry.availablePlugins[ProjectExecutor]
     if (projectExecutors.isEmpty) {
@@ -95,12 +93,12 @@ class WorkspaceApi  @Inject() () extends InjectedController {
 
   def importLinkSpec(projectName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    implicit val readContext = ReadContext(project.resources)
+    implicit val readContext: ReadContext = ReadContext(project.resources)
 
     request.body match {
       case AnyContentAsMultipartFormData(data) =>
         for (file <- data.files) {
-          val config = XmlSerialization.fromXml[LinkingConfig](scala.xml.XML.loadFile(file.ref.file))
+          val config = XmlSerialization.fromXml[LinkingConfig](scala.xml.XML.loadFile(file.ref.path.toFile))
           SilkConfigImporter(config, project)
         }
         Ok
@@ -116,7 +114,7 @@ class WorkspaceApi  @Inject() () extends InjectedController {
   def exportLinkSpec(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    implicit val prefixes = project.config.prefixes
+    implicit val prefixes: Prefixes = project.config.prefixes
 
     val silkConfig = SilkConfigExporter.build(project, task)
 
@@ -193,7 +191,7 @@ class WorkspaceApi  @Inject() () extends InjectedController {
 
   private def putResourceFromMultipartFormData(resource: WritableResource, formData: MultipartFormData[Files.TemporaryFile]) = {
     try {
-      val file = formData.files.head.ref.file
+      val file = formData.files.head.ref.path.toFile
       resource.writeFile(file)
       NoContent
     } catch {

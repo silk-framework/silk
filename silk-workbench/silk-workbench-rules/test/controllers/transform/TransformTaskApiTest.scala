@@ -497,12 +497,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   private def as[T](obj: Any): T = {
-    obj match {
-      case t: T =>
-        t
-      case _ =>
-        throw new RuntimeException("Object cannot be cast.")
-    }
+    obj.asInstanceOf[T]
   }
 
   private def rootPropertyRule(ruleId: String): TransformRule = {

@@ -21,7 +21,7 @@ import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
 
-class TaskApi @Inject() (cc: ControllerComponents) extends AbstractController(cc) with ControllerUtilsTrait {
+class TaskApi @Inject() () extends InjectedController with ControllerUtilsTrait {
 
   implicit private val executionContext: ExecutionContext = controllerComponents.executionContext
 

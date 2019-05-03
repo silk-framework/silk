@@ -9,11 +9,11 @@ import org.silkframework.util.DPair
 import org.silkframework.workbench.Context
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
-import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
+import play.api.mvc.{InjectedController, Action, AnyContent, ControllerComponents}
 
 import scala.util.control.NonFatal
 
-class LinkingEditor @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
+class LinkingEditor @Inject() () extends InjectedController {
 
   def editor(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)

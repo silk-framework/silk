@@ -25,7 +25,7 @@ import play.api.libs.json._
 import play.api.mvc._
 import TransformTaskApi._
 
-class TransformTaskApi @Inject() (cc: ControllerComponents) extends AbstractController(cc) {
+class TransformTaskApi @Inject() () extends InjectedController {
 
   private val log = Logger.getLogger(getClass.getName)
 

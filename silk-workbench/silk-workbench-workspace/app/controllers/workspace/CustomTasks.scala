@@ -7,9 +7,9 @@ import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.WorkspaceFactory
-import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
+import play.api.mvc.{InjectedController, Action, AnyContent, ControllerComponents}
 
-class CustomTasks @Inject() (cc: ControllerComponents) extends AbstractController(cc){
+class CustomTasks @Inject() () extends InjectedController{
 
   def getTask(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
