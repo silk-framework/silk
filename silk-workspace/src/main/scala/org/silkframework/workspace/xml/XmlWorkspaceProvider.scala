@@ -3,11 +3,12 @@ package org.silkframework.workspace.xml
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config._
+import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
-import org.silkframework.workspace.{ProjectConfig, RefreshableWorkspaceProvider, WorkspaceProvider}
+import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider}
 
 import scala.reflect.ClassTag
 import scala.util.Try
@@ -17,7 +18,7 @@ import scala.xml.XML
 /**
   * Holds all projects in a xml-based file structure.
   */
-class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProvider with RefreshableWorkspaceProvider {
+class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProvider {
 
   private val log = Logger.getLogger(classOf[XmlWorkspaceProvider].getName)
 
@@ -102,7 +103,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   /**
     * Refreshes all projects, i.e. cleans all possible caches if there are any and reloads all projects freshly.
     */
-  override def refresh(): Unit = {
+  override def refresh()(implicit userContext: UserContext): Unit = {
     // No refresh needed, all tasks are read from the file system on every read. Nothing is cached
     // This is implemented to avoid warnings on project imports.
   }
@@ -112,4 +113,9 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
                                                       (implicit user: UserContext): Seq[Try[Task[T]]] = {
     plugin[T].loadTasksSafe(resources.child(project).child(plugin[T].prefix), projectResources)
   }
+
+  /**
+    * Returns None, because the projects are not held as RDF.
+    */
+  override def sparqlEndpoint: Option[SparqlEndpoint] = None
 }

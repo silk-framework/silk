@@ -18,6 +18,7 @@ import hierarchicalMappingChannel from './store';
 
 import MappingsTree from './Components/MappingsTree';
 import MappingsWorkview from './Components/MappingsWorkview';
+import MessageHandler from './Components/MessageHandler';
 import {MAPPING_RULE_TYPE_OBJECT} from './helpers';
 
 const HierarchicalMapping = React.createClass({
@@ -313,13 +314,19 @@ const HierarchicalMapping = React.createClass({
         ) : (
             false
         );
-
+        const messagequeue = <MessageHandler />;
+        const pseudotoasts = messagequeue ? (
+            <div className="ecc-temp__appmessages">{messagequeue}</div>
+        ) : (
+            false
+        );
         return (
             <section className="ecc-silk-mapping">
                 {debugOptions}
                 {deleteView}
                 {discardView}
                 {loading}
+                {pseudotoasts}
                 <div className="ecc-silk-mapping__content">
                     {navigationTree}
                     {

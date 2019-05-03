@@ -226,7 +226,6 @@ export const ThingDescription = ({id}) => {
         <NotAvailable
             inline
             label="No description available."
-            description={false}
         />
     );
     return <URIInfo uri={id} field="description" fallback={fallbackInfo} />;

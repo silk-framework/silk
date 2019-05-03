@@ -136,6 +136,8 @@ const MappingsObject = React.createClass({
                     parentId={_.get(parent, 'id', '')}
                     parent={parent}
                     edit={false}
+                    handleCopy={this.props.handleCopy}
+                    handleClone={this.props.handleClone}
                 />
             );
         }

@@ -104,7 +104,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait)
                    (implicit userContext: UserContext): String = {
     loadUserProjects()
-    marshaller.marshalProject(project(name).config, outputStream, provider, repository.get(name))
+    marshaller.marshalProject(project(name), outputStream, repository.get(name))
   }
 
   /**
@@ -141,10 +141,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       activity.control.cancel()
     }
     // Refresh workspace provider
-    provider match {
-      case refreshableProvider: RefreshableWorkspaceProvider => refreshableProvider.refresh()
-      case _ => // Do nothing
-    }
+    provider.refresh()
+
     // Reload projects
     cachedProjects = loadProjects()
   }

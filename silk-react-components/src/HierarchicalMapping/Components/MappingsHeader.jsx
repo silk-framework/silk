@@ -12,7 +12,6 @@ import {
     CardMenu,
     ContextMenu,
     MenuItem,
-    PerformanceMixin,
     BreadcrumbList,
     BreadcrumbItem,
 } from '@eccenca/gui-elements';
@@ -26,7 +25,7 @@ import {
 } from './MappingRule/SharedComponents';
 
 const MappingsHeader = React.createClass({
-    mixins: [Navigation, PerformanceMixin],
+    mixins: [Navigation],
 
     // define property types
     propTypes: {
