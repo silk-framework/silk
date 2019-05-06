@@ -1,6 +1,6 @@
 import React from 'react';
-import chai, {expect, assert} from 'chai';
-import { mount } from 'enzyme';
+import chai, {assert, expect} from 'chai';
+import {mount} from 'enzyme';
 import chaiEnzyme from "chai-enzyme";
 import Enzyme from "enzyme/build";
 import Adapter from "enzyme-adapter-react-15/build";
@@ -8,7 +8,6 @@ import MappingRule from '../../../../src/HierarchicalMapping/Components/MappingR
 import {getRuleLabel} from '../../../../src/HierarchicalMapping/helpers';
 import waitUntilReady from '../../../test_helper'
 import {DragDropContext, Droppable} from "react-beautiful-dnd";
-import sinon from 'sinon';
 
 chai.use(chaiEnzyme());
 Enzyme.configure({ adapter: new Adapter() });
@@ -80,9 +79,7 @@ describe("MappingRule", () => {
     it('should correctly display label and target URI in the UI', async () => {
         const component = mountMappingRule(sampleData.uri, sampleData.label);
 
-        sinon.spy(MappingRule.prototype, 'componentDidMount');
         await waitUntilReady(component);
-        expect(MappingRule.prototype.componentDidMount.calledOnce);
         expect(label(component).text()).to.equal(sampleData.label);
         expect(uri(component).text()).to.equal(sampleData.uri);
     });

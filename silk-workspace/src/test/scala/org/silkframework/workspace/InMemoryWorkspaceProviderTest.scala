@@ -4,5 +4,5 @@ import org.scalatest.FlatSpec
 
 class InMemoryWorkspaceProviderTest extends FlatSpec with WorkspaceProviderTestTrait {
 
-  override def createWorkspaceProvider(): WorkspaceProvider = InMemoryWorkspaceProvider()
+  override def createWorkspaceProvider(): WorkspaceProvider = new InMemoryWorkspaceProvider()
 }

@@ -1,11 +1,10 @@
 import nock from "nock";
 
-let ruleId = 'root';
 /**
  * Base url for mock
  * @type {string}
  */
-const baseUrl = 'http://test.url',
+const baseUrl = "http://test.url",
 	/**
 	 * Initial property rules
 	 * @type {*[]}
@@ -91,7 +90,7 @@ const mockUpFunction = (identifier) => {
 	 */
 	const rulesDataURL = () => {
 		return {
-			url: '/transform/tasks/test/test/rules'
+			url: "/transform/tasks/test/test/rules"
 		};
 	};
 
@@ -105,13 +104,35 @@ const mockUpFunction = (identifier) => {
 			code: 200,
 			body: {
 				type: "root",
-				id: ruleId,
+				id: "root",
 				rules: {
 					typeRules: [],
 					propertyRules: propertyRules
 				},
 				metadata: {
 					label: "Root Mapping"
+				}
+			}
+		};
+	};
+
+	/**
+	 * Getting response for rules
+	 *
+	 * @returns {{code: number, body: {metadata: {label: string}, rules: {typeRules: Array, propertyRules: *[]}, id: string, type: string}}}
+	 */
+	const getRulesResponse2 = () => {
+		return {
+			code: 200,
+			body: {
+				type: "object",
+				id: "test",
+				rules: {
+					typeRules: [],
+					propertyRules: propertyRules
+				},
+				metadata: {
+					label: "testing"
 				}
 			}
 		};
@@ -125,7 +146,7 @@ const mockUpFunction = (identifier) => {
 	 */
 	const rulesDataURLCopyFromCopy = (sourceRule) => {
 		return {
-			url: `/transform/tasks/test/test/rule/${ruleId}/rules/copyFrom?sourceProject=test&sourceTask=test&sourceRule=${sourceRule}&afterRuleId`
+			url: `/transform/tasks/test/test/rule/root/rules/copyFrom?sourceProject=test&sourceTask=test&sourceRule=${sourceRule}&afterRuleId`
 		};
 	};
 
@@ -137,7 +158,31 @@ const mockUpFunction = (identifier) => {
 	 */
 	const rulesDataURLCopyFromClone = (sourceRule) => {
 		return {
-			url: `/transform/tasks/test/test/rule/${ruleId}/rules/copyFrom?sourceProject=test&sourceTask=test&sourceRule=${sourceRule}&afterRuleId=country`
+			url: `/transform/tasks/test/test/rule/root/rules/copyFrom?sourceProject=test&sourceTask=test&sourceRule=${sourceRule}&afterRuleId=country`
+		};
+	};
+
+	/**
+	 * Getting the URL of copyRule
+	 *
+	 * @param sourceRule {string}
+	 * @returns {{url: string}}
+	 */
+	const rulesDataURLCopyFromCopy2 = (sourceRule) => {
+		return {
+			url: `/transform/tasks/test/test/rule/test/rules/copyFrom?sourceProject=test&sourceTask=test&sourceRule=${sourceRule}&afterRuleId`
+		};
+	};
+
+	/**
+	 * Getting the URL of copyRule
+	 *
+	 * @param sourceRule {string}
+	 * @returns {{url: string}}
+	 */
+	const rulesDataURLCopyFromClone2 = (sourceRule) => {
+		return {
+			url: `/transform/tasks/test/test/rule/test/rules/copyFrom?sourceProject=test&sourceTask=test&sourceRule=${sourceRule}&afterRuleId=country`
 		};
 	};
 
@@ -213,6 +258,11 @@ const mockUpFunction = (identifier) => {
 		rulesResponse = getRulesResponse(),
 
 		/**
+		 * @type {{code, body}}
+		 */
+		rulesResponse2 = getRulesResponse2(),
+
+		/**
 		 * @type {{url}}
 		 */
 		rulesDataURLCopyFromPayload = rulesDataURLCopyFromCopy(identifier),
@@ -221,6 +271,15 @@ const mockUpFunction = (identifier) => {
 		 * @type {{url}}
 		 */
 		rulesDataURLCopyFromPayloadClone = rulesDataURLCopyFromClone(identifier),
+		/**
+		 * @type {{url}}
+		 */
+		rulesDataURLCopyFromPayload2 = rulesDataURLCopyFromCopy2(identifier),
+
+		/**
+		 * @type {{url}}
+		 */
+		rulesDataURLCopyFromPayloadClone2 = rulesDataURLCopyFromClone2(identifier),
 
 		/**
 		 * @type {{code, body}}
@@ -231,8 +290,14 @@ const mockUpFunction = (identifier) => {
 		.post(payload.url)
 		.reply(response.code, () => response.body)
 
+		.post(`${payload.url}1`)
+		.reply(response.code, () => response.body)
+
 		.get(rulesPayload.url)
 		.reply(rulesResponse.code, () => rulesResponse.body)
+
+		.get(rulesPayload.url)
+		.reply(rulesResponse.code, () => rulesResponse2.body)
 
 		.post(rulesDataURLCopyFromPayload.url)
 		.reply(rulesDataURLCopyFromResponse.code, () => {
@@ -246,15 +311,28 @@ const mockUpFunction = (identifier) => {
 			addNewPropertyRule(identifier);
 			rulesResponse.body.rules.propertyRules = propertyRules;
 			return rulesDataURLCopyFromResponse.body;
+		})
+
+		.post(rulesDataURLCopyFromPayload2.url)
+		.reply(rulesDataURLCopyFromResponse.code, () => {
+			addNewPropertyRule(identifier);
+			rulesResponse.body.rules.propertyRules = propertyRules;
+			return rulesDataURLCopyFromResponse.body;
+		})
+
+		.post(rulesDataURLCopyFromPayloadClone2.url)
+		.reply(rulesDataURLCopyFromResponse.code, () => {
+			addNewPropertyRule(identifier);
+			rulesResponse.body.rules.propertyRules = propertyRules;
+			return rulesDataURLCopyFromResponse.body;
 		});
 };
 
 // mock up testCases cases
 mockUpFunction("basedOn");
 
-mockUpFunction('country');
+mockUpFunction("country");
 
 export {
-	propertyRules,
-	ruleId
+	propertyRules
 };

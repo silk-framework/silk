@@ -77,7 +77,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController{
     withMarshaller(marshallerPluginId) { marshaller =>
       val enumerator = enumerateOutputStream { outputStream =>
         val workspace = WorkspaceFactory().workspace
-        marshaller.marshalWorkspace(outputStream, workspace.provider, workspace.repository)
+        marshaller.marshalWorkspace(outputStream, workspace.projects, workspace.repository)
       }
 
       val fileName = "workspace" + marshaller.suffix.map("." + _).getOrElse("")
