@@ -100,7 +100,7 @@ export default (component) => {
         });
     }
 
-    const timeout = 5;
+    const timeout = 20;
 
     return waitUntilComponentFinishes(component)
 }

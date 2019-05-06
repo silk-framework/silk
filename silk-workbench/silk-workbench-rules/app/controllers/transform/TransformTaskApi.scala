@@ -25,6 +25,9 @@ import play.api.mvc._
 
 class TransformTaskApi extends Controller {
 
+  // The property that is set when copying a root mapping rule that will be converted into an object mapping rule
+  final val ROOT_COPY_TARGET_PROPERTY = "urn:temp:child"
+
   private val log = Logger.getLogger(getClass.getName)
 
   def getTransformTask(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
@@ -250,7 +253,7 @@ class TransformTaskApi extends Controller {
   private def convertRootMappingRule(rule: TransformRule): TransformRule = {
     rule match {
       case RootMappingRule(rules, id, metaData) =>
-        ObjectMapping(id, rules = rules, metaData = metaData)
+        ObjectMapping(id, rules = rules, metaData = metaData, target = Some(MappingTarget(ROOT_COPY_TARGET_PROPERTY, UriValueType)))
       case other: TransformRule =>
         other
     }

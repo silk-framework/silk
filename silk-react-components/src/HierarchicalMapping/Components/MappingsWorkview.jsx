@@ -11,7 +11,7 @@ import {
     Spinner,
 } from '@eccenca/gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
-import hierarchicalMappingChannel from '../store';
+import hierarchicalMappingChannel, { errorChannel } from '../store';
 import MappingsHeader from './MappingsHeader';
 import MappingsObject from './MappingsObject';
 import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm';
@@ -19,6 +19,7 @@ import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm';
 import MappingsList from './MappingsList';
 import SuggestionsList from './SuggestionsList';
 import {
+    isObjectMappingRule,
     MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_DIRECT,
     MAPPING_RULE_TYPE_OBJECT,
@@ -66,6 +67,7 @@ const MappingsWorkview = React.createClass({
             ruleData: {},
             ruleEditView: false,
             editing: [],
+            isCopying: !!sessionStorage.getItem('copyingData'),
             askForDiscard: false,
             showSuggestions: false,
             askForChilds: false,
@@ -133,7 +135,7 @@ const MappingsWorkview = React.createClass({
             });
         }
     },
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState) {
         if (prevProps.currentRuleId !== this.props.currentRuleId) {
             this.loadData();
         }
@@ -270,6 +272,9 @@ const MappingsWorkview = React.createClass({
     },
 
     handleCopy(id, type) {
+        errorChannel.subject('message.info').onNext({
+            message: 'Mapping rule copied. Use "+" button to paste',
+        });
         hierarchicalMappingChannel
             .request({
                 topic: 'getApiDetails',
@@ -292,13 +297,12 @@ const MappingsWorkview = React.createClass({
             );
     },
 
-    handlePaste() {
-        const copyingData = JSON.parse(sessionStorage.getItem('copyingData'));
+    handlePaste(cloning = false) {
+        const copyingData = JSON.parse(sessionStorage.getItem('copyingData')),
+            {breadcrumbs, id} =this.state.ruleData;
         if (copyingData !== {}) {
             const data = {
-                id: copyingData.cloning
-                    ? copyingData.parentId
-                    : this.props.currentRuleId || MAPPING_RULE_TYPE_ROOT,
+                id: breadcrumbs.length > 0 && isObjectMappingRule(copyingData.type) && copyingData.cloning ? breadcrumbs[breadcrumbs.length - 1].id : id ,
                 queryParameters: {
                     sourceProject: copyingData.project,
                     sourceTask: copyingData.transformTask,
@@ -323,7 +327,9 @@ const MappingsWorkview = React.createClass({
                                     newRuleId: newRule.id,
                                 });
                         }
-                        sessionStorage.removeItem('copyingData');
+                        if (cloning) {
+                            sessionStorage.removeItem('copyingData');
+                        }
                         hierarchicalMappingChannel.subject('reload').onNext(true);
                     }
                 )
@@ -350,7 +356,7 @@ const MappingsWorkview = React.createClass({
                     this.setState({
                         isCopying: !this.state.isCopying,
                     });
-                    this.handlePaste();
+                    this.handlePaste(true);
                 }
             );
     },
@@ -461,6 +467,7 @@ const MappingsWorkview = React.createClass({
                 <MappingsList
                     currentRuleId={_.get(this.props, 'currentRuleId', 'root')}
                     rules={_.get(rules, 'propertyRules', [])}
+                    parentRuleId={id}
                     handleCopy={this.handleCopy}
                     handlePaste={this.handlePaste}
                     handleClone={this.handleClone}

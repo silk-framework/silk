@@ -345,10 +345,10 @@ silkStore
 silkStore
     .subject('transform.task.rule.copy')
     .subscribe(({data, replySubject}) => {
-        const {baseUrl, project, transformTask, id, queryParameters} = data;
+        const { baseUrl, project, transformTask, appendTo, queryParameters } = data;
         superagent
             .post(
-                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${id}/rules/copyFrom`
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${appendTo}/rules/copyFrom`
             )
             .accept('application/json')
             .send(queryParameters)
