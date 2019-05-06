@@ -60,7 +60,7 @@ class GenerateLinks(id: Identifier,
     context.value.update(Linking(rule = linkSpec.rule))
 
     warningLog = CollectLogs() {
-      if(RDBEntityIndex.configured() && runtimeConfig.executionBackend == LinkingExecutionBackend.rdb && false) { //FIXME: Remove false to enable RDB feature
+      if(RDBEntityIndex.configured() && runtimeConfig.executionBackend == LinkingExecutionBackend.rdb && false) { //FIXME CMEM-1408: Remove false to enable RDB feature
         runRdbLinking(context)
       } else {
         runNativeLinking(context)

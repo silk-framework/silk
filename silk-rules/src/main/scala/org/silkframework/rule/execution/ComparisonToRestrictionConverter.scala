@@ -25,8 +25,6 @@ object ComparisonToRestrictionConverter {
     *                          comparison if the child of a boolean NOT operator.
     */
   def convertComparison(comparison: Comparison, sourceOrTarget: Boolean, invertRestriction: Boolean): Option[DataSourceRestriction] = {
-    // FIXME: Handle more filter-like patterns
-    // FIXME: When adding more patterns, refactor match expression, e.g. Map[<ComparisonType>, Seq[<FilterPatternMatcher>]]
     val dataSourceInput = if(sourceOrTarget) comparison.inputs.source else comparison.inputs.target // the input from the respective data source
     val comparisonInput = if(sourceOrTarget) comparison.inputs.target else comparison.inputs.source // the input "value" to compare against
     val restriction = (comparison.metric, dataSourceInput, comparisonInput) match {
