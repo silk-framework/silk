@@ -23,7 +23,7 @@ import scala.concurrent.ExecutionContext
 
 class TaskApi @Inject() () extends InjectedController with ControllerUtilsTrait {
 
-  implicit private val executionContext: ExecutionContext = controllerComponents.executionContext
+  implicit private lazy val executionContext: ExecutionContext = controllerComponents.executionContext
 
   def postTask(projectName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
