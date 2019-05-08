@@ -11,6 +11,7 @@ import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Uri
@@ -34,7 +35,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
   }
 
   def getDatasetAutoConfigured(projectName: String, sourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    implicit val project = WorkspaceFactory().workspace.project(projectName)
+    implicit val project: Project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[GenericDatasetSpec](sourceName)
     val datasetPlugin = task.data.plugin
     datasetPlugin match {
@@ -48,7 +49,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
 
   def putDataset(projectName: String, datasetName: String, autoConfigure: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    implicit val readContext = ReadContext(project.resources, project.config.prefixes)
+    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
 
     try {
       deserializeCompileTime() { dataset: DatasetTask =>
@@ -89,8 +90,8 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
     val project = WorkspaceFactory().workspace.project(projectName)
     val createDialog = project.taskOption[DatasetSpec[Dataset]](datasetName).isEmpty
     val dialogTitle = if(createDialog) "Create Dataset" else "Edit Dataset"
-    implicit val prefixes = project.config.prefixes
-    implicit val resources = project.resources
+    implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val resources: ResourceManager = project.resources
     val datasetParams = request.queryString.mapValues(_.head)
     val datasetPlugin = Dataset.apply(pluginId, datasetParams)
     datasetPlugin match {
@@ -137,7 +138,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
   /** Get types of a dataset including the search string */
   def types(project: String, task: String, search: String = ""): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
-    implicit val prefixes = context.project.config.prefixes
+    implicit val prefixes: Prefixes = context.project.config.prefixes
 
     val typesFull = context.task.activity[TypesCache].value.types
     val typesResolved = typesFull.map(t => new Uri(t).serialize)
@@ -155,7 +156,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
   }
 
   def getMappingValueCoverage(projectName: String,
-                              datasetId: String): Action[JsValue] = RequestUserContextAction(BodyParsers.parse.json) { implicit request => implicit userContext =>
+                              datasetId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[MappingValueCoverageRequest] { mappingCoverageRequest =>
       val project = WorkspaceFactory().workspace.project(projectName)
       val datasetTask = project.task[GenericDatasetSpec](datasetId)
@@ -191,7 +192,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
 
     try {
       val project = WorkspaceFactory().workspace.project(projectName)
-      implicit val prefixes = project.config.prefixes
+      implicit val prefixes: Prefixes = project.config.prefixes
       val datasetTask = project.task[GenericDatasetSpec](datasetId)
       datasetTask.plugin.source match {
         case cd: PathCoverageDataSource =>
@@ -209,7 +210,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
     }
   }
 
-  private def getCoverageFromCoverageSource(filterPaths: (PathCoverageResult) => Seq[PathCoverage],
+  private def getCoverageFromCoverageSource(filterPaths: PathCoverageResult => Seq[PathCoverage],
                                             project: Project,
                                             cd: PathCoverageDataSource)
                                            (implicit prefixes: Prefixes,
@@ -235,7 +236,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
   private def coveragePathFilterFn(request: Request[AnyContent]): PathCoverageResult => Seq[PathCoverage] = {
     val (mapped, partialMapped, unmapped) = coverageTypes(request)
 
-    val filteredPaths: (PathCoverageResult) => Seq[PathCoverage] = (result) => {
+    val filteredPaths: PathCoverageResult => Seq[PathCoverage] = result => {
       result.paths.filter(p =>
         p.covered && p.fully && mapped // fully mapped
             ||

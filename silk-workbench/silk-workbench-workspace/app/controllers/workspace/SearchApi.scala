@@ -17,7 +17,7 @@ import play.api.mvc.{Action, BodyParsers, InjectedController}
 class SearchApi @Inject() () extends InjectedController with ControllerUtilsTrait {
 
 
-  def search(): Action[JsValue] = RequestUserContextAction(BodyParsers.parse.json) { implicit request => implicit userContext =>
+  def search(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     implicit val responseOptionsReader = Json.reads[TaskFormatOptions]
     implicit val searchRequestReader = Json.reads[SearchRequest]
     validateJson[SearchRequest] { searchRequest =>

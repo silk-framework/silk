@@ -120,7 +120,7 @@ class TaskApi @Inject() () extends InjectedController with ControllerUtilsTrait 
   }
 
   def copyTask(projectName: String,
-               taskName: String): Action[JsValue] = RequestUserContextAction(BodyParsers.parse.json) { implicit request => implicit userContext =>
+               taskName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     implicit val jsonReader = Json.reads[CopyTaskRequest]
     implicit val jsonWriter = Json.writes[CopyTaskResponse]
     validateJson[CopyTaskRequest] { copyRequest =>
