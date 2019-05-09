@@ -2,31 +2,26 @@
  An individual Mapping Rule Line
  */
 
-import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
+import {Draggable} from 'react-beautiful-dnd';
 import React from 'react';
 import _ from 'lodash';
 
 import {
     Button,
-    ContextMenu,
-    MenuItem,
     ConfirmationDialog,
-    Spinner,
-    DisruptiveButton,
+    ContextMenu,
     DismissiveButton,
-    ScrollingMixin,
+    DisruptiveButton,
+    MenuItem,
+    ScrollingHOC,
+    Spinner,
 } from '@eccenca/gui-elements';
 import UseMessageBus from '../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
-import {RuleTypes, SourcePath, ThingName, ThingIcon} from './SharedComponents';
-import {
-    isObjectMappingRule,
-    MAPPING_RULE_TYPE_OBJECT,
-    uriToLabel,
-    getRuleLabel,
-} from '../../helpers';
+import {RuleTypes, SourcePath, ThingIcon} from './SharedComponents';
+import {getRuleLabel, isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT,} from '../../helpers';
 import Navigation from '../../Mixins/Navigation';
 import className from 'classnames';
 
@@ -93,7 +88,7 @@ const MappingRule = React.createClass({
             this.discardAll
         );
         if (this.state.isPasted)
-            ScrollingMixin.scrollElementIntoView(this)
+            this.props.scrollIntoView()
     },
     onOpenEdit(obj) {
         if (_.isEqual(this.props.id, obj.id)) {
@@ -403,4 +398,4 @@ const MappingRule = React.createClass({
     },
 });
 
-export default MappingRule;
+export default ScrollingHOC(MappingRule);

@@ -16,6 +16,7 @@ import {Suggestion} from './Suggestion';
 
 const hierarchicalMappingChannel = rxmq.channel('silk.hierarchicalMapping');
 const silkStore = rxmq.channel('silk.api');
+export const errorChannel = rxmq.channel('errors');
 
 // Set api details
 let apiDetails = {
@@ -731,6 +732,7 @@ hierarchicalMappingChannel
             transformTask: apiDetails.transformTask,
             id: data.id || MAPPING_RULE_TYPE_ROOT,
             queryParameters: data.queryParameters,
+            appendTo: data.id, // the rule the copied rule should be appended to
         };
         silkStore
             .request({

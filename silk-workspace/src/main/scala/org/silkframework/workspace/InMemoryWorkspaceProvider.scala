@@ -15,7 +15,7 @@ import scala.util.{Success, Try}
   label = "In-memory workspace",
   description = "Workspace provider that holds all projects in memory. All contents will be gone on restart."
 )
-case class InMemoryWorkspaceProvider() extends WorkspaceProvider {
+class InMemoryWorkspaceProvider() extends WorkspaceProvider {
 
   protected var projects = Map[Identifier, InMemoryProject]()
 

@@ -1,15 +1,15 @@
-import React from 'react';
-import chai, { assert, expect } from 'chai';
-import { mount } from 'enzyme';
+import React from "react";
+import chai, { assert, expect } from "chai";
+import { mount } from "enzyme";
 import sinon from "sinon";
 import chaiEnzyme from "chai-enzyme";
 import Enzyme from "enzyme/build";
 import Adapter from "enzyme-adapter-react-15/build";
-import waitUntilReady from '../../test_helper';
-import { SessionStorage } from '../../test_helper';
+import waitUntilReady from "../../test_helper";
+import { SessionStorage } from "../../test_helper";
 
-import MappingsWorkview from '../../../src/HierarchicalMapping/Components/MappingsWorkview';
-import { propertyRules } from './MappingsWorkview.server';
+import MappingsWorkview from "../../../src/HierarchicalMapping/Components/MappingsWorkview";
+import { propertyRules } from "./MappingsWorkview.server";
 
 chai.use(chaiEnzyme());
 Enzyme.configure({ adapter: new Adapter() });
@@ -31,10 +31,10 @@ global.sessionStorage = new SessionStorage();
 const selectors = {
 		copyButton: ".ecc-silk-mapping__ruleitem-expanded .ecc-silk-mapping__rulesviewer div.ecc-silk-mapping__ruleseditor__actionrow button.ecc-silk-mapping__ruleseditor__actionrow-copy",
 		cloneButton: ".ecc-silk-mapping__ruleitem-expanded .ecc-silk-mapping__rulesviewer div.ecc-silk-mapping__ruleseditor__actionrow",
-		row: '.mdl-list .clickable',
-		listItems: '.mdl-list',
-		plusButton: '.ecc-floatingactionlist__wrapper--fixed button.ecc-floatingactionlist__button',
-		actionsMenu: '.ecc-floatingactionlist__wrapper--fixed ul.ecc-floatingactionlist__menu'
+		row: ".mdl-list .clickable",
+		listItems: ".mdl-list",
+		plusButton: ".ecc-floatingactionlist__wrapper--fixed button.ecc-floatingactionlist__button",
+		actionsMenu: ".ecc-floatingactionlist__wrapper--fixed ul.ecc-floatingactionlist__menu"
 	},
 
 	/**
@@ -50,25 +50,24 @@ const selectors = {
  *
  * @returns {*}
  */
-const mountSuggestionsList = () => {
+const mountMappingsWorkview = (currentRule = "root") => {
 	return mount(
-		<MappingsWorkview
-			currentRuleId={'root'}
-		/>
+		<MappingsWorkview currentRuleId={currentRule} />
 	);
 };
 
-describe('MappingsWorkview', () => {
+describe("MappingsWorkview", () => {
 	// set spy on component did mount to check how oft it is called
-	sinon.spy(MappingsWorkview.prototype, 'componentDidMount');
+	sinon.spy(MappingsWorkview.prototype, "componentDidMount");
+	sinon.spy(MappingsWorkview.prototype, "componentWillUnmount");
 	// mount the MappingsWorkview
-	const component = mountSuggestionsList();
-	it('mounts once', async () => {
+	const component = mountMappingsWorkview();
+	it("mounts once", async () => {
 		await waitUntilReady(component);
 		expect(MappingsWorkview.prototype.componentDidMount.calledOnce);
 	});
 
-	describe('Copy and paste of a mapping rule', () => {
+	describe("Copy and paste of a mapping rule", () => {
 		let item;
 		beforeEach(async () => {
 			await waitUntilReady(component);
@@ -81,41 +80,55 @@ describe('MappingsWorkview', () => {
 		let copyButton = component.find(selectors.copyButton),
 			pasteAction = null;
 
-		it('should copy a rule when clicking the Copy button', () => {
-			item.simulate('click');
+		it("should rule data of state to be equal to parent rule id", () => {
+			expect(component.state().ruleData.id).to.equal("root");
+		});
+
+		it("should copy a rule when clicking the Copy button", () => {
+			item.simulate("click");
 			if (!copyButton.length) {
 				copyButton = component.find(selectors.copyButton);
 			}
 			expect(copyButton).to.have.lengthOf(1);
-			copyButton.simulate('click');
+			copyButton.simulate("click");
 			component.render();
 			expect(onCopyHandler.calledOnce);
 		});
 
-		it('should paste the rule when clicking on the Paste action', () => {
+		it("should paste the rule when clicking on the Paste action", () => {
 			// Check for blue plus button
 			expect(plusButton).to.have.lengthOf(1);
-			plusButton.simulate('click');
+			plusButton.simulate("click");
 			// All actions should be available including the paste action
 			expect(actions.children()).to.have.lengthOf(4);
 			// find the paste action
-			pasteAction = actions.childAt(2).find('button');
+			pasteAction = actions.childAt(2).find("button");
 			expect(pasteAction).to.have.lengthOf(1);
-			pasteAction.simulate('click');
+			pasteAction.simulate("click");
 			component.render();
 			expect(onPasteHandler.calledOnce);
-			item.simulate('click');
+			item.simulate("click");
 		});
 
-		it('should result in containing 3 mapping rules now instead of 2', () => {
+		it("should result in containing 3 mapping rules now instead of 2", () => {
 			expect(propertyRules).to.have.lengthOf(3);
+		});
+
+		it("should component unmount", () => {
+			component.unmount();
+			expect(MappingsWorkview.prototype.componentWillUnmount.calledOnce);
 		});
 	});
 
-	describe('Clone a mapping rule', () => {
-		const component = mountSuggestionsList();
-
+	describe("Clone a mapping rule", () => {
+		const component = mountMappingsWorkview("test");
 		let item;
+
+		it("mounts once", async () => {
+			await waitUntilReady(component);
+			expect(MappingsWorkview.prototype.componentDidMount.calledOnce);
+		});
+
 		beforeEach(async () => {
 			await waitUntilReady(component);
 			const items = component.find(selectors.row);
@@ -124,24 +137,33 @@ describe('MappingsWorkview', () => {
 
 		let cloneButton = component.find(selectors.cloneButton);
 
-		it('should click the clone button', () => {
-			item.simulate('click');
+		it("should rule data of state to be equal to parent rule id", () => {
+			expect(component.state().ruleData.id).to.equal("test");
+		});
+
+		it("should click the clone button", () => {
+			item.simulate("click");
 			if (!cloneButton.length) {
 				cloneButton = component.find(selectors.cloneButton);
 			}
 			expect(cloneButton.childAt(2)).to.have.lengthOf(1);
-			cloneButton.childAt(2).simulate('click');
+			cloneButton.childAt(2).simulate("click");
 			expect(onCloneHandler.calledOnce);
 		});
 
-		it('should now contain 4 mapping rules instead of 3', () => {
+		it("should now contain 4 mapping rules instead of 3", () => {
 			// FIXME: Can be removed when RX is removed from the code.
-			return new Promise(function(resolve) {
+			return new Promise((resolve) => {
 				setTimeout(() => {
 					expect(propertyRules).to.have.lengthOf(4);
-					resolve()
-				}, 50)
-			})
+					resolve();
+				}, 50);
+			});
+		});
+
+		it("should component unmount", () => {
+			component.unmount();
+			expect(MappingsWorkview.prototype.componentWillUnmount.calledOnce);
 		});
 	});
 });
