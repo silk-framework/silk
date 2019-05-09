@@ -4,8 +4,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import org.scalatest.{FlatSpec, MustMatchers}
 
-class InterruptableTraversableTest extends FlatSpec with MustMatchers {
-  behavior of "Interruptable Traversable"
+class InterruptibleTraversableTest extends FlatSpec with MustMatchers {
+  behavior of "Interruptible Traversable"
 
   private val SHORT_TIME = 50
 
@@ -45,7 +45,7 @@ class InterruptableTraversableTest extends FlatSpec with MustMatchers {
   }
 
   private def traverseEndlessly(startedIterating: AtomicBoolean): Traversable[Int] = {
-    new InterruptableTraversable(
+    new InterruptibleTraversable(
       new Traversable[Int] {
         override def foreach[U](f: Int => U): Unit = {
           var i = 0

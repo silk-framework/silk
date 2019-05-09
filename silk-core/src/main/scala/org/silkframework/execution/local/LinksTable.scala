@@ -2,6 +2,7 @@ package org.silkframework.execution.local
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.entity._
+import org.silkframework.execution.InterruptibleTraversable
 import org.silkframework.util.Uri
 
 case class LinksTable(
@@ -12,8 +13,8 @@ case class LinksTable(
 
   val entitySchema: EntitySchema = LinksTable.linkEntitySchema
 
-  lazy val entities: Seq[Entity] = {
-    for (link <- links) yield LinksTable.convertLinkToEntity(link, entitySchema)
+  lazy val entities: Traversable[Entity] = {
+    for (link <- new InterruptibleTraversable(links)) yield LinksTable.convertLinkToEntity(link, entitySchema)
   }
 
   override def entityIterator: Iterator[Entity] = {
