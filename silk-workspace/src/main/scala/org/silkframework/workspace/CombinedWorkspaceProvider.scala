@@ -13,8 +13,17 @@ import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.control.NonFatal
 
+/**
+  * A workspace that is held in one backend, but all updates are also pushed to a secondary backend.
+  *
+  * @param primaryWorkspace The backend that holds the workspace.
+  * @param secondaryWorkspace The secondary backend to which updates are pushed as well.
+  * @param failOnSecondaryError If true, whenever an update to the secondary workspace fails, the entire update fails.
+  *                             If false, whenever an update to the secondary workspace fails, the entire update succeeds and a warning is logged.
+  */
 class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
-                                val secondaryWorkspace: WorkspaceProvider) extends WorkspaceProvider {
+                                val secondaryWorkspace: WorkspaceProvider,
+                                failOnSecondaryError: Boolean = false) extends WorkspaceProvider {
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -54,21 +63,14 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
     * Adds/Updates a project.
     */
   override def putProject(projectConfig: ProjectConfig)(implicit user: UserContext): Unit = {
-    primaryWorkspace.putProject(projectConfig)
-    secondaryWorkspace.putProject(projectConfig)
+    executeOnBackends(_.putProject(projectConfig), s"Adding project ${projectConfig.id}")
   }
 
   /**
     * Deletes a project.
     */
   override def deleteProject(name: Identifier)(implicit user: UserContext): Unit = {
-    primaryWorkspace.deleteProject(name)
-    try {
-      secondaryWorkspace.deleteProject(name)
-    } catch {
-      case NonFatal(ex) =>
-        log.log(Level.WARNING, s"Deleted project $name from $primaryWorkspace, but could not delete it from $secondaryWorkspace", ex)
-    }
+    executeOnBackends(_.deleteProject(name), s"Deleting project $name")
   }
 
   /**
@@ -89,21 +91,31 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
     * Adds/Updates a task in a project.
     */
   override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T])(implicit user: UserContext): Unit = {
-    primaryWorkspace.putTask(project, task)
-    secondaryWorkspace.putTask(project, task)
+    executeOnBackends(_.putTask(project, task), s"Adding/Updating task $task in project $project")
   }
 
   /**
     * Deletes a task from a project.
     */
   override def deleteTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier)(implicit user: UserContext): Unit = {
-    primaryWorkspace.deleteTask(project, task)
+    executeOnBackends(_.deleteTask(project, task), s"Deleting task $task from project $project")
+  }
+
+  /**
+    * Executes an operation on both backends, e.g., updating a task.
+    */
+  private def executeOnBackends(operation: WorkspaceProvider => Unit, description: String): Unit = {
+    operation(primaryWorkspace)
     try {
-      secondaryWorkspace.deleteTask(project, task)
+      operation(secondaryWorkspace)
     } catch {
       case NonFatal(ex) =>
-        log.log(Level.WARNING, s"Deleted task $task in project $project from $primaryWorkspace, but could not delete it from $secondaryWorkspace", ex)
+        val message = s"$description was successful on $primaryWorkspace, but failed on $secondaryWorkspace"
+        if(failOnSecondaryError) {
+          throw new RuntimeException(message, ex)
+        } else {
+          log.log(Level.WARNING, message, ex)
+        }
     }
-
   }
 }
