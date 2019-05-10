@@ -187,7 +187,9 @@ object LinkSpec {
             if(id.isEmpty)
               throw new ValidationException(s"Link specification $id contains an output that does not reference a predefined output by id")
             Identifier(id)
-          }
+          },
+        linkLimit = (node \ "@linkLimit").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
+        matchingExecutionTimeout = (node \ "@matchingExecutionTimeout").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
       )
     }
 
@@ -195,7 +197,7 @@ object LinkSpec {
      * Serialize a value to XML.
      */
     def write(spec: LinkSpec)(implicit writeContext: WriteContext[Node]): Node =
-      <Interlink>
+      <Interlink linkLimit={spec.linkLimit.toString} matchingExecutionTimeout={spec.matchingExecutionTimeout.toString}>
         {spec.dataSelections.source.toXML(asSource = true)}
         {spec.dataSelections.target.toXML(asSource = false)}
         {toXml(spec.rule)}
