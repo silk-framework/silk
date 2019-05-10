@@ -45,3 +45,7 @@
 .silk-report-list-item-icon-red {
   color: to_color($palette-red-800);
 }
+
+table.di-execution-report-table td {
+  overflow: scroll;
+}

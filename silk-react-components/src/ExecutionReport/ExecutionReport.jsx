@@ -101,7 +101,7 @@ export default class ExecutionReport extends React.Component {
   }
 
   renderRuleErrors(ruleResults) {
-    return  <table className="mdl-data-table mdl-js-data-table" style={{width: "100%"}}>
+    return  <table className="mdl-data-table mdl-js-data-table di-execution-report-table" style={{width: "100%"}}>
               <thead>
                 <tr>
                   <th>Entity</th>
