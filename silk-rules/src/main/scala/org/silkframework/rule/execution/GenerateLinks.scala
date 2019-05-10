@@ -54,6 +54,7 @@ class GenerateLinks(id: Identifier,
 
   override def initialValue = Some(Linking(label, rule = linkSpec.rule))
 
+  //noinspection ScalaStyle
   override def run(context: ActivityContext[Linking])
                   (implicit userContext: UserContext): Unit = {
     context.value.update(Linking(label, rule = linkSpec.rule))
@@ -69,7 +70,7 @@ class GenerateLinks(id: Identifier,
       }
       if(context.status.isCanceling) return
       // Execute matching
-      val sourceEqualsTarget = linkSpec.dataSelections.source == linkSpec.dataSelections.target
+      val sourceEqualsTarget = false // FIXME: CMEM-1975: Fix heuristic for this particular matching optimization
       val matcher = context.child(new Matcher(loaders, linkSpec.rule, caches, runtimeConfig, sourceEqualsTarget), 0.95)
       val updateLinks = (links: Seq[Link]) => context.value.update(Linking(label, linkSpec.rule, links, LinkingStatistics(entityCount = caches.map(_.size))))
       matcher.value.subscribe(updateLinks)
@@ -77,6 +78,7 @@ class GenerateLinks(id: Identifier,
       matcher.startBlocking()
 
       cleanUpCaches(caches)
+
       if(context.status.isCanceling) return
 
       // Filter links

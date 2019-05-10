@@ -22,6 +22,8 @@ import {
     InfoBox,
 } from './SharedComponents';
 import {
+    isCopiableRule,
+    isClonableRule,
     MAPPING_RULE_TYPE_COMPLEX_URI,
     MAPPING_RULE_TYPE_OBJECT,
     MAPPING_RULE_TYPE_ROOT,
@@ -192,6 +194,12 @@ const ObjectRule = React.createClass({
             );
         }
     },
+    handleCopy(){
+        this.props.handleCopy(this.props.id, this.props.type);
+    },
+    handleClone(){
+        this.props.handleClone(this.props.id, this.props.type, this.props.parentId);
+    },
     // template rendering
     render() {
         const {type} = this.props;
@@ -283,6 +291,22 @@ const ObjectRule = React.createClass({
         let targetProperty = false;
         let entityRelation = false;
         let deleteButton = false;
+
+        const copyButton = isCopiableRule(this.props.type) &&
+            <Button
+                className="ecc-silk-mapping__rulesviewer__actionrow-copy"
+                raised
+                onClick={this.handleCopy}>
+                Copy
+            </Button>;
+
+        const cloneButton = isClonableRule(this.props.type) &&
+            <Button
+                className="ecc-silk-mapping__rulesviewer__actionrow-clone"
+                raised
+                onClick={this.handleClone}>
+                Clone
+            </Button>;
 
         if (type !== MAPPING_RULE_TYPE_ROOT) {
             targetProperty = (
@@ -514,6 +538,8 @@ const ObjectRule = React.createClass({
                             onClick={this.handleEdit}>
                             Edit
                         </Button>
+                        {copyButton}
+                        {cloneButton}
                         {deleteButton}
                     </CardActions>
                 </div>

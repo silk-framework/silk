@@ -66,7 +66,7 @@ object PluginRegistry {
    * @tparam T The type of the plugin.
    * @return The plugin instance.
    */
-  def createFromConfig[T: ClassTag](configPath: String)(implicit prefixes: Prefixes = Prefixes.empty, resources: ResourceManager = EmptyResourceManager): T = {
+  def createFromConfig[T: ClassTag](configPath: String)(implicit prefixes: Prefixes = Prefixes.empty, resources: ResourceManager = EmptyResourceManager()): T = {
     createFromConfigOption[T](configPath) match {
       case Some(p) => p
       case None => throw new InvalidPluginException(s"Configuration property $configPath does not contain a plugin definition.")
@@ -82,7 +82,7 @@ object PluginRegistry {
     */
   def createFromConfigOption[T: ClassTag](configPath: String)
                                          (implicit prefixes: Prefixes = Prefixes.empty,
-                                          resources: ResourceManager = EmptyResourceManager): Option[T] = {
+                                          resources: ResourceManager = EmptyResourceManager()): Option[T] = {
     if(!configMgr().hasPath(configPath + ".plugin")) {
       None
     } else {

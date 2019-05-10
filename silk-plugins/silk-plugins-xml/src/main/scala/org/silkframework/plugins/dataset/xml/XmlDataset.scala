@@ -1,9 +1,10 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.dataset._
+import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
-import org.silkframework.runtime.resource.WritableResource
+import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.{Failure, Success, Try}
@@ -13,9 +14,9 @@ import scala.xml._
   id = "xml",
   label = "XML file",
   description =
-"""Retrieves all entities from an xml file.""",
+    """Retrieves all entities from an xml file.""",
   documentation =
-"""Typically, this dataset is used to transform an XML file to another format, e.g., to RDF.
+    """Typically, this dataset is used to transform an XML file to another format, e.g., to RDF.
 When this dataset is used as an input for another task (e.g., a transformation task), the input type of the consuming task selects the path where the entities to be read are located.
 
 Example:
@@ -54,26 +55,28 @@ Path examples:
 - `#text` retrieves the text of the selected node.
 """
 )
-case class XmlDataset(
-  @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
-  file: WritableResource,
-  @Param(value = "The base path when writing XML. For instance: /RootElement/Entity. Should no longer be used for reading XML! Instead, set the base path by specifying it as input type on the subsequent transformation or linking tasks.", advanced = true)
-  basePath: String = "",
-  @deprecated("This will be removed in the next release.", "")
-  @Param(value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
-  uriPattern: String = "",
-  @Param(value = "The output template used for writing XML. Must be valid XML. The generated entity is identified through a processing instruction of the form <?MyEntity?>.")
-  outputTemplate: MultilineStringParameter = "<Root><?Entity?></Root>",
-  @Param(value = "Streaming allows for reading large XML files.", advanced = true)
-  streaming: Boolean = true) extends Dataset with ResourceBasedDataset {
+case class XmlDataset( @Param("The XML file. This may also be a zip archive of multiple XML files that share the same schema.")
+                       file: WritableResource,
+                       @Param(value = "The base path when writing XML. For instance: /RootElement/Entity. Should no longer be used for reading XML! Instead, set the base path by specifying it as input type on the subsequent transformation or linking tasks.", advanced = true)
+                       basePath: String = "",
+                       @deprecated("This will be removed in the next release.", "")
+                       @Param(value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
+                       uriPattern: String = "",
+                       @Param(value = "The output template used for writing XML. Must be valid XML. The generated entity is identified through a processing instruction of the form <?MyEntity?>.")
+                       outputTemplate: MultilineStringParameter = "<Root><?Entity?></Root>",
+                       @Param(value = "Streaming allows for reading large XML files.", advanced = true)
+                       streaming: Boolean = true) extends Dataset with BulkResourceBasedDataset {
 
   validateOutputTemplate()
 
-  override def source(implicit userContext: UserContext): DataSource = {
+  override def mergeSchemata: Boolean = true
+
+  override def createSource(resource: Resource): DataSource with TypedPathRetrieveDataSource = {
     if(streaming) {
-      new XmlSourceStreaming(file, basePath, uriPattern)
-    } else {
-      new XmlSourceInMemory(file, basePath, uriPattern)
+      new XmlSourceStreaming(resource, basePath, uriPattern)
+    }
+    else {
+      new XmlSourceInMemory(resource, basePath, uriPattern)
     }
   }
 
@@ -93,7 +96,7 @@ case class XmlDataset(
       }
     }
     val procInstructions = collectProcInstructions(xml)
-    if(procInstructions.size != 1) {
+    if (procInstructions.size != 1) {
       throw new ValidationException("outputTemplate must contain exactly one processing intruction of the form <?Entity?> to specify where the entities should be inserted.")
     }
   }
@@ -109,7 +112,7 @@ case class XmlDataset(
         throw new ValidationException("outputTemplate could not be processed as valid XML. Error in line " + ex.getLineNumber + " column " + ex.getColumnNumber)
       case _ =>
         throw new ValidationException("outputTemplate must be valid XML containing a single processing instruction or a single processing " +
-            "instruction of the form <?Entity?>!")
+          "instruction of the form <?Entity?>!")
     }
   }
 

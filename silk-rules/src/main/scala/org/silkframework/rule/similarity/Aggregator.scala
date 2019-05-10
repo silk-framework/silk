@@ -21,9 +21,26 @@ trait Aggregator extends AnyPlugin {
   def evaluate(weightedValues: Traversable[(Int, Double)]): Option[Double]
 
   /**
-   * Combines two indexes into one.
+    * Aggregates or manipulates the child indexes. The default implementation leaves the indexes as they are.
+    * @param indexes
+    * @return
+    */
+  def aggregateIndexes(indexes: Seq[Index]): Index = {
+    val preProcessedIndexes = preProcessIndexes(indexes)
+    if (preProcessedIndexes.isEmpty) {
+      Index.empty
+    } else {
+      preProcessedIndexes.reduceLeft(combineIndexes)
+    }
+  }
+
+  /** Pre-processes the child indexes before combining them. */
+  protected def preProcessIndexes(indexes: Seq[Index]): Seq[Index] = indexes
+
+  /**
+   * Combines two indexes into one. This is called after preProcessIndexes.
    */
-  def combineIndexes(index1: Index, index2: Index): Index
+  protected def combineIndexes(index1: Index, index2: Index): Index
 
   def computeThreshold(threshold: Double, weight: Double): Double = {
     threshold

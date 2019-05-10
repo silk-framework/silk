@@ -10,11 +10,13 @@ import {
     MAPPING_RULE_TYPE_URI,
     MAPPING_RULE_TYPE_COMPLEX_URI,
     SUGGESTION_TYPES,
+    MAPPING_RULE_TYPE_ROOT,
 } from './helpers';
 import {Suggestion} from './Suggestion';
 
 const hierarchicalMappingChannel = rxmq.channel('silk.hierarchicalMapping');
 const silkStore = rxmq.channel('silk.api');
+export const errorChannel = rxmq.channel('errors');
 
 // Set api details
 let apiDetails = {
@@ -711,5 +713,39 @@ hierarchicalMappingChannel
                 }
             );
     });
+
+hierarchicalMappingChannel
+    .subject('getApiDetails')
+    .subscribe(({replySubject}) => {
+        replySubject.onNext({
+            apiDetails: apiDetails,
+        });
+        replySubject.onCompleted();
+    });
+
+hierarchicalMappingChannel
+    .subject('rule.copy')
+    .subscribe(({data, replySubject}) => {
+        const copyingData = {
+            baseUrl: apiDetails.baseUrl,
+            project: apiDetails.project,
+            transformTask: apiDetails.transformTask,
+            id: data.id || MAPPING_RULE_TYPE_ROOT,
+            queryParameters: data.queryParameters,
+            appendTo: data.id, // the rule the copied rule should be appended to
+        };
+        silkStore
+            .request({
+                topic: 'transform.task.rule.copy',
+                data: {...copyingData},
+            })
+            .subscribe(
+                (returned) => {
+                    replySubject.onNext({
+                        id: returned.body.id
+                    });
+                    replySubject.onCompleted();
+            })
+    })
 
 export default hierarchicalMappingChannel;
