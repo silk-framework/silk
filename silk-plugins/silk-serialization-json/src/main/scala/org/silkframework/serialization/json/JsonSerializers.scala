@@ -876,6 +876,8 @@ object JsonSerializers {
     final val RULE = "rule"
     final val OUTPUTS = "outputs"
     final val REFERENCE_LINKS = "referenceLinks"
+    final val LINK_LIMIT = "linkLimit"
+    final val MATCHING_EXECUTION_TIMEOUT = "matchingExecutionTimeout"
 
     override def typeNames: Set[String] = Set("Linking")
 
@@ -888,7 +890,9 @@ object JsonSerializers {
           ),
         rule = optionalValue(value, RULE).map(fromJson[LinkageRule]).getOrElse(LinkageRule()),
         outputs = mustBeJsArray(mustBeDefined(value, OUTPUTS))(_.value.map(v => Identifier(v.as[JsString].value))),
-        referenceLinks = optionalValue(value, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty)
+        referenceLinks = optionalValue(value, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty),
+        linkLimit = numberValueOption(value, LINK_LIMIT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
+        matchingExecutionTimeout = numberValueOption(value, MATCHING_EXECUTION_TIMEOUT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
       )
     }
 
@@ -899,7 +903,9 @@ object JsonSerializers {
         TARGET -> toJson(value.dataSelections.target),
         RULE -> toJson(value.rule),
         OUTPUTS -> JsArray(value.outputs.map(id => JsString(id.toString))),
-        REFERENCE_LINKS -> toJson(value.referenceLinks)
+        REFERENCE_LINKS -> toJson(value.referenceLinks),
+        LINK_LIMIT -> JsNumber(value.linkLimit),
+        MATCHING_EXECUTION_TIMEOUT -> JsNumber(value.matchingExecutionTimeout)
       )
     }
   }
