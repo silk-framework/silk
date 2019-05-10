@@ -39,7 +39,10 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
                     outputs: Seq[Identifier] = Seq.empty,
                     referenceLinks: ReferenceLinks = ReferenceLinks.empty,
                     linkLimit: Int = LinkSpec.DEFAULT_LINK_LIMIT,
-                    timeout: Int = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS) extends TaskSpec {
+                    matchingExecutionTimeout: Int = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS) extends TaskSpec {
+
+  assert(linkLimit >= 0, "The link limit must be greater equal 0!")
+  assert(matchingExecutionTimeout >= 0, "The matching execution timeout must be greater equal 0!")
 
   def findSources(datasets: Traversable[Task[DatasetSpec[Dataset]]])
                  (implicit userContext: UserContext): DPair[DataSource] = {

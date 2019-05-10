@@ -29,7 +29,8 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
       entitySource(inputs.tail.head, task.dataSelections.target.typeUri)
     )
     val linkConfig = RuntimeLinkingConfig(
-      linkLimit = Some(LinkSpec.adaptLinkLimit(task.linkLimit))
+      linkLimit = Some(LinkSpec.adaptLinkLimit(task.linkLimit)),
+      executionTimeout = Some(task.matchingExecutionTimeout * 1000L).filter(_ > 0)
     )
     val activity = new GenerateLinks(task.id, sources, linkSpec, Seq(), linkConfig)
     val linking = context.child(activity).startBlockingAndGetValue()
