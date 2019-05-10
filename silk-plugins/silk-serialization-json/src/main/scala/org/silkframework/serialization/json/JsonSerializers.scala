@@ -19,6 +19,7 @@ import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{DPair, Identifier, Uri}
 import org.silkframework.util.StringUtils._
+import LinkingSerializers._
 import play.api.libs.json._
 
 /**
@@ -715,50 +716,6 @@ object JsonSerializers {
         RULES_PROPERTY -> toJson(value.mappingRule),
         OUTPUTS -> JsArray(value.outputs.map(id => JsString(id.toString))),
         TARGET_VOCABULARIES -> JsArray(value.targetVocabularies.toSeq.map(JsString))
-      )
-    }
-  }
-
-  implicit object LinkJsonFormat extends JsonFormat[Link] {
-    final val SOURCE = "source"
-    final val TARGET = "target"
-    final val CONFIDENCE = "confidence"
-
-    override def read(value: JsValue)(implicit readContext: ReadContext): Link = {
-      new Link(
-        source = stringValue(value, SOURCE),
-        target = stringValue(value, TARGET),
-        confidence = numberValueOption(value, CONFIDENCE).map(_.doubleValue)
-      )
-    }
-
-    override def write(value: Link)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        SOURCE -> value.source,
-        TARGET -> value.target,
-        CONFIDENCE -> value.confidence.map(JsNumber(_))
-      )
-    }
-  }
-
-  implicit object ReferenceLinksJsonFormat extends JsonFormat[ReferenceLinks] {
-    final val POSITIVE = "positive"
-    final val NEGATIVE = "negative"
-    final val UNLABELED = "unlabeled"
-
-    override def read(value: JsValue)(implicit readContext: ReadContext): ReferenceLinks = {
-      ReferenceLinks(
-        positive = mustBeJsArray(mustBeDefined(value, POSITIVE))(_.value.map(fromJson[Link])).toSet,
-        negative = mustBeJsArray(mustBeDefined(value, POSITIVE))(_.value.map(fromJson[Link])).toSet,
-        unlabeled = mustBeJsArray(mustBeDefined(value, POSITIVE))(_.value.map(fromJson[Link])).toSet
-      )
-    }
-
-    override def write(value: ReferenceLinks)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        POSITIVE -> JsArray(value.positive.toSeq.map(toJson(_))),
-        NEGATIVE -> JsArray(value.negative.toSeq.map(toJson(_))),
-        UNLABELED -> JsArray(value.unlabeled.toSeq.map(toJson(_)))
       )
     }
   }
