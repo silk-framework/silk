@@ -23,6 +23,8 @@ class EvaluateTransform(source: DataSource,
   @volatile
   private var cachedValues = Seq[DetailedEntity]()
 
+  // FIXME This is questionable for spark souces like the JdbcSource, it calls retrieve with a schema that may contain duplicate paths
+  // FOr now we can solve it in the source since there are only 2: JDBCSource and generic SparkSource
   def execute()(implicit userContext: UserContext): Seq[DetailedEntity] = {
     // Retrieve entities
     val entityDesc =
