@@ -184,11 +184,13 @@ case class Entity private(
       case _ => schema
     }
     val valsSize = values.size >= tps.typedPaths.size
-    val valsConform = tps.typedPaths.zipWithIndex.forall(tp =>{
-      if(tp._2 < values.size)
+    val valsConform = tps.typedPaths.zipWithIndex.forall(tp => {
+      if(tp._2 < values.size) {
         values(tp._2).forall(v => tp._1.valueType.validate(v))
-      else
-        throw new ArrayIndexOutOfBoundsException(tp._2)
+      }
+      else {
+        throw new ArrayIndexOutOfBoundsException(tp._2 + s" paths: ${tps.typedPaths.mkString(",")}")
+      }
     })
     val subEntsValid = schema match{
       case mes: MultiEntitySchema => subEntities.zip(mes.subSchemata).forall(se => se._1.isEmpty || se._2 == se._1.get.schema && se._1.get.validate)
