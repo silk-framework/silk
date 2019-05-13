@@ -92,7 +92,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
   }
 
   private def readTriples(dataset: Task[GenericDatasetSpec], rdfDataset: RdfDataset)
-                         (implicit userContext: UserContext)= {
+                         (implicit userContext: UserContext): TripleEntityTable = {
     val sparqlResult = rdfDataset.sparqlEndpoint.select("SELECT ?s ?p ?o WHERE {?s ?p ?o}")
     val tripleEntities = sparqlResult.bindings.view map { resultMap =>
       val s = resultMap("s").value
@@ -100,7 +100,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
       val (value, typ) = TripleEntityTable.convertToEncodedType(resultMap("o"))
       Entity(s, IndexedSeq(Seq(s), Seq(p), Seq(value), Seq(typ)), TripleEntityTable.schema)
     }
-    TripleEntityTable(tripleEntities, dataset)
+    new TripleEntityTable(tripleEntities, dataset)
   }
 
   override protected def write(data: LocalEntities, dataset: Task[DatasetSpec[Dataset]], execution: LocalExecution)
@@ -111,9 +111,9 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
         withLinkSink(dataset.data.plugin) { linkSink =>
           writeLinks(linkSink, links, linkType)
         }
-      case TripleEntityTable(entities, _) =>
+      case tripleEntityTable: TripleEntityTable =>
         withEntitySink(dataset) { entitySink =>
-          writeTriples(entitySink, entities)
+          writeTriples(entitySink, tripleEntityTable.entities)
         }
       case QuadEntityTable(entitiesFunc, _) =>
         withEntitySink(dataset) { entitySink =>

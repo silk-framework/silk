@@ -7,26 +7,24 @@ import _ from 'lodash';
 import {
     DisruptiveButton,
     DismissiveButton,
-    Card,
-    CardTitle,
-    CardContent,
-    CardMenu,
-    FloatingActionList,
-    ContextMenu,
-    MenuItem,
     ConfirmationDialog,
-    Info,
     Spinner,
 } from '@eccenca/gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
-import hierarchicalMappingChannel from '../store';
+import hierarchicalMappingChannel, { errorChannel } from '../store';
 import MappingsHeader from './MappingsHeader';
 import MappingsObject from './MappingsObject';
 import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm';
 import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm';
 import MappingsList from './MappingsList';
 import SuggestionsList from './SuggestionsList';
-import {MAPPING_RULE_TYPE_OBJECT} from '../helpers';
+import {
+    isObjectMappingRule,
+    MAPPING_RULE_TYPE_COMPLEX,
+    MAPPING_RULE_TYPE_DIRECT,
+    MAPPING_RULE_TYPE_OBJECT,
+    MAPPING_RULE_TYPE_ROOT,
+} from '../helpers';
 
 const MappingsWorkview = React.createClass({
     mixins: [UseMessageBus],
@@ -69,8 +67,10 @@ const MappingsWorkview = React.createClass({
             ruleData: {},
             ruleEditView: false,
             editing: [],
+            isCopying: !!sessionStorage.getItem('copyingData'),
             askForDiscard: false,
             showSuggestions: false,
+            askForChilds: false,
         };
     },
     componentDidMount() {
@@ -135,7 +135,7 @@ const MappingsWorkview = React.createClass({
             });
         }
     },
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState) {
         if (prevProps.currentRuleId !== this.props.currentRuleId) {
             this.loadData();
         }
@@ -271,6 +271,96 @@ const MappingsWorkview = React.createClass({
         return !_.isEmpty(nextState.ruleData);
     },
 
+    handleCopy(id, type) {
+        errorChannel.subject('message.info').onNext({
+            message: 'Mapping rule copied. Use "+" button to paste',
+        });
+        hierarchicalMappingChannel
+            .request({
+                topic: 'getApiDetails',
+            })
+            .subscribe(
+                ({apiDetails}) => {
+                    const copyingData = {
+                        baseUrl: apiDetails.baseUrl,
+                        project: apiDetails.project,
+                        transformTask: apiDetails.transformTask,
+                        id: id,
+                        type: type,
+                        cloning: false,
+                    };
+                    sessionStorage.setItem('copyingData',JSON.stringify(copyingData));
+                    this.setState({
+                        isCopying: !this.state.isCopying,
+                    });
+                }
+            );
+    },
+
+    handlePaste(cloning = false) {
+        const copyingData = JSON.parse(sessionStorage.getItem('copyingData')),
+            {breadcrumbs, id} =this.state.ruleData;
+        if (copyingData !== {}) {
+            const data = {
+                id: breadcrumbs.length > 0 && isObjectMappingRule(copyingData.type) && copyingData.cloning ? breadcrumbs[breadcrumbs.length - 1].id : id ,
+                queryParameters: {
+                    sourceProject: copyingData.project,
+                    sourceTask: copyingData.transformTask,
+                    sourceRule: copyingData.id,
+                    afterRuleId: copyingData.cloning ? copyingData.id : null,
+                }
+            };
+            hierarchicalMappingChannel
+                .request({
+                    topic: 'rule.copy',
+                    data: data,
+                })
+                .subscribe(
+                    (newRule) => {
+                        if (copyingData.type === MAPPING_RULE_TYPE_DIRECT ||
+                            copyingData.type === MAPPING_RULE_TYPE_COMPLEX) {
+                            sessionStorage.setItem('pastedId', newRule.id);
+                        } else if (copyingData.type === MAPPING_RULE_TYPE_OBJECT || copyingData.type === MAPPING_RULE_TYPE_ROOT) {
+                            hierarchicalMappingChannel
+                                .subject('ruleId.change')
+                                .onNext({
+                                    newRuleId: newRule.id,
+                                });
+                        }
+                        if (cloning) {
+                            sessionStorage.removeItem('copyingData');
+                        }
+                        hierarchicalMappingChannel.subject('reload').onNext(true);
+                    }
+                )
+        }
+    },
+
+    handleClone(id, type, parent = false) {
+        hierarchicalMappingChannel
+            .request({
+                topic: 'getApiDetails',
+            })
+            .subscribe(
+                ({apiDetails}) => {
+                    const copyingData = {
+                        baseUrl: apiDetails.baseUrl,
+                        project: apiDetails.project,
+                        transformTask: apiDetails.transformTask,
+                        id: id,
+                        type: type,
+                        cloning: true,
+                        parentId: parent ? parent : this.props.currentRuleId,
+                    };
+                    sessionStorage.setItem('copyingData',JSON.stringify(copyingData));
+                    this.setState({
+                        isCopying: !this.state.isCopying,
+                    });
+                    this.handlePaste(true);
+                }
+            );
+    },
+
     // template rendering
     render() {
         const {rules = {}, id} = this.state.ruleData;
@@ -377,6 +467,11 @@ const MappingsWorkview = React.createClass({
                 <MappingsList
                     currentRuleId={_.get(this.props, 'currentRuleId', 'root')}
                     rules={_.get(rules, 'propertyRules', [])}
+                    parentRuleId={id}
+                    handleCopy={this.handleCopy}
+                    handlePaste={this.handlePaste}
+                    handleClone={this.handleClone}
+                    isCopying={this.state.isCopying}
                 />
             ) : (
                 false
@@ -394,6 +489,8 @@ const MappingsWorkview = React.createClass({
                     <MappingsObject
                         rule={this.state.ruleData}
                         key={`objhead_${id}`}
+                        handleCopy={this.handleCopy}
+                        handleClone={this.handleClone}
                     />
                     {listSuggestions ? false : listMappings}
                 </div>

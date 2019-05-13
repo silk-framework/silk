@@ -195,7 +195,7 @@ object Silk {
   def executeProject(projectFile: File, taskName: Identifier): Project = {
     // Create workspace provider
     val projectId = Identifier("project")
-    val workspaceProvider = InMemoryWorkspaceProvider()
+    val workspaceProvider = new InMemoryWorkspaceProvider()
     val resourceRepository = FileRepository(".")
 
     // Import project
