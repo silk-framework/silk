@@ -21,8 +21,8 @@ import org.silkframework.runtime.plugin.Plugin
 @Plugin(
   id = "equality",
   categories = Array("Equality", "Recommended"),
-  label = "Equality",
-  description = "Returns success if values are equal, failure otherwise."
+  label = "String Equality",
+  description = "Returns success if string values are equal, failure otherwise."
 )
 case class EqualityMetric() extends SimpleDistanceMeasure {
 

@@ -11,7 +11,7 @@ import org.silkframework.runtime.plugin.{Param, Plugin}
   id = "numericEquality",
   categories = Array("Equality", "Recommended"),
   label = "Numeric Equality",
-  description = "Returns success if values are equal, failure otherwise."
+  description = "Compares values numerically instead of their string representation. Allows to set the needed precision of the comparison."
 )
 case class NumericEqualityMetric(@Param("The range of tolerance in floating point number comparisons. Must be 0 or a non-negative number smaller than 1.")
                                  precision: Double = 0.0) extends SimpleDistanceMeasure {
