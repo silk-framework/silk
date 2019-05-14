@@ -19,10 +19,10 @@ object ComparisonToRestrictionConverter {
   final val PUSH_FILTER_INTO_DATA_SOURCE_KEY = "optimizations.linking.execution.pushFilters.enabled"
   final val REMOVE_INEQUALITY_CLAUSES_FROM_CNF_KEY = "optimizations.linking.execution.pushFilters.removeDisjunctionsWithInEqualities"
 
-  val (pushFilterEnabled, removeInequalityClauses) = {
-    val cfg = DefaultConfig.instance()
-    (cfg.getBoolean(PUSH_FILTER_INTO_DATA_SOURCE_KEY), cfg.getBoolean(REMOVE_INEQUALITY_CLAUSES_FROM_CNF_KEY))
-  }
+  private val cfg = DefaultConfig.instance()
+
+  val pushFilterEnabled: Boolean = cfg.getBoolean(PUSH_FILTER_INTO_DATA_SOURCE_KEY)
+  def removeInequalityClauses: Boolean = cfg.getBoolean(REMOVE_INEQUALITY_CLAUSES_FROM_CNF_KEY)
 
   /** Turns a linkage rule into a SPARQL restriction if that is possible.
     *

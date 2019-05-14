@@ -2,6 +2,7 @@ package integration.test
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.rule.LinkSpec
+import org.silkframework.rule.execution.ComparisonToRestrictionConverter
 import org.silkframework.util.{ConfigTestTrait, DPair}
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
@@ -29,6 +30,10 @@ class BooleanFilterLinkSpecIntegrationTest extends FlatSpec
     "OrWithFilterFromBothSources" -> ExpectedStats(4, 4, 12), // Filters for both sources in the same CNF OR-clause will no be pushed into data source => no filtering
     "ComplexBooleanExpression2" -> ExpectedStats(3, 3, 9)
   )
+
+  it should "disable pushing inequality filters when configured so" in {
+    ComparisonToRestrictionConverter.removeInequalityClauses mustBe false
+  }
 
   override def workspaceProvider: String = "inMemory"
 
