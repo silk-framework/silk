@@ -162,7 +162,7 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
 
 sealed trait SparqlUpdateTemplatePart
 
-trait SparqlUpdateTemplatePlaceholder extends SparqlUpdateTemplatePart {
+sealed trait SparqlUpdateTemplatePlaceholder extends SparqlUpdateTemplatePart {
   def prop: String
 }
 

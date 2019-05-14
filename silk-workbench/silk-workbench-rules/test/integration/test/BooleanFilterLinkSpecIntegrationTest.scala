@@ -2,7 +2,7 @@ package integration.test
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.rule.LinkSpec
-import org.silkframework.util.DPair
+import org.silkframework.util.{ConfigTestTrait, DPair}
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
 
@@ -11,7 +11,10 @@ import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
   * If a linkage rule can be converted into a boolean [[org.silkframework.rule.BooleanLinkageRule]], specific
   * rule patterns can be turned into filters that can be applied on the data source.
   */
-class BooleanFilterLinkSpecIntegrationTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait with MustMatchers {
+class BooleanFilterLinkSpecIntegrationTest extends FlatSpec
+    with SingleProjectWorkspaceProviderTestTrait
+    with MustMatchers
+    with ConfigTestTrait{
   override def projectPathInClasspath: String = "diProjects/booleanFilterProject.zip"
 
   case class ExpectedStats(sourceEntities: Int, targetEntities: Int, nrLinks: Int)
@@ -42,4 +45,8 @@ class BooleanFilterLinkSpecIntegrationTest extends FlatSpec with SingleProjectWo
       nrLinks mustBe expectedNrLinks
     }
   }
+
+  override def propertyMap: Map[String, Option[String]] = Map(
+    "optimizations.linking.execution.pushFilters.removeDisjunctionsWithInEqualities" -> Some("false")
+  )
 }

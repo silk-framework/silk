@@ -8,7 +8,7 @@ import org.silkframework.rule.plugins.aggegrator.{MaximumAggregator, MinimumAggr
 import org.silkframework.rule.plugins.distance.equality.{EqualityMetric, InequalityMetric}
 import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
 import org.silkframework.rule.similarity.{Aggregation, Comparison, DistanceMeasure, SimilarityOperator}
-import org.silkframework.util.DPair
+import org.silkframework.util.{ConfigTestTrait, DPair}
 
 class ComparisonToRestrictionConverterTest extends FlatSpec with MustMatchers {
   behavior of "Comparison to Restriction Converter"
@@ -42,17 +42,24 @@ class ComparisonToRestrictionConverterTest extends FlatSpec with MustMatchers {
         not(targetInEqual("http://T2", "T2"))
       )
     )
-    convert(andOrMix, sourceOrTarget = true).get.serialize mustBe
+    convert(andOrMix, sourceOrTarget = true, removeInequalities = false).get.serialize mustBe
         """?a <http://P1> ?var_pref_0_0_Value .
           |?a <http://P3> ?var_pref_0_1_Value .
           |?a <http://P2> ?var_pref_1_0_Value .
           |
           |FILTER (((STR(?var_pref_0_0_Value) != "P1" || STR(?var_pref_0_1_Value) != "P3") && (STR(?var_pref_1_0_Value) = "P2")))""".stripMargin
-    convert(andOrMix, sourceOrTarget = false).get.serialize mustBe
+    convert(andOrMix, sourceOrTarget = false, removeInequalities = false).get.serialize mustBe
         """?a <http://T1> ?var_pref_2_0_Value .
           |?a <http://T2> ?var_pref_2_1_Value .
           |
           |FILTER (((STR(?var_pref_2_0_Value) = "T1" || STR(?var_pref_2_1_Value) != "T2")))""".stripMargin
+    // Inequalities should be removed by default
+    convert(andOrMix, sourceOrTarget = true).get.serialize mustBe
+        """?a <http://P2> ?var_pref_1_0_Value .
+          |
+          |FILTER (((STR(?var_pref_1_0_Value) = "P2")))""".stripMargin
+    // There will be nothing left for andOrMix when all inequalities are filtered out
+    convert(andOrMix, sourceOrTarget = false) mustBe empty
   }
 
   it should "not convert a linkage rule that cannot be fully satisfied by a filter" in {
@@ -95,9 +102,13 @@ class ComparisonToRestrictionConverterTest extends FlatSpec with MustMatchers {
     )
   }
 
-  private def convert(operator: SimilarityOperator, subject: String = "a", variablePrefix: String = "var_pref_", sourceOrTarget: Boolean): Option[Restriction.Operator] = {
-    ComparisonToRestrictionConverter.linkageRuleToSparqlFilter(
-      LinkageRule(Some(operator)), subject, variablePrefix, sourceOrTarget)
+  private def convert(operator: SimilarityOperator,
+                      subject: String = "a",
+                      variablePrefix: String = "var_pref_",
+                      sourceOrTarget: Boolean,
+                      removeInequalities: Boolean = true): Option[Restriction.Operator] = {
+    ComparisonToRestrictionConverter.linkageRuleToRestriction(
+      LinkageRule(Some(operator)), subject, variablePrefix, sourceOrTarget, removeInequalities = removeInequalities)
   }
 
   private def and(operators: SimilarityOperator*): Aggregation = Aggregation(aggregator = MinimumAggregator(), operators = operators)
