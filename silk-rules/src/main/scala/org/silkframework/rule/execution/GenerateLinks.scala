@@ -32,7 +32,7 @@ import scala.util.Try
 /**
  * Main task to generate links.
  */
-class GenerateLinks(id: Identifier,
+class GenerateLinks (id: Identifier,
                     inputs: DPair[DataSource],
                     linkSpec: LinkSpec,
                     outputs: Seq[LinkSink],
@@ -43,6 +43,8 @@ class GenerateLinks(id: Identifier,
   @volatile private var warningLog: Seq[LogRecord] = Seq.empty
 
   private var children: List[ActivityControl[_]] = Nil
+
+  private val comparisonToRestrictionConverter = new ComparisonToRestrictionConverter()
 
   /** The entity descriptions which define which entities are retrieved by this task */
   def entityDescs: DPair[EntitySchema] = linkSpec.entityDescriptions
@@ -154,8 +156,8 @@ class GenerateLinks(id: Identifier,
     val sourceIndexFunction = (entity: Entity) => runtimeConfig.executionMethod.indexEntity(entity, linkSpec.rule, sourceOrTarget = true)
     val targetIndexFunction = (entity: Entity) => runtimeConfig.executionMethod.indexEntity(entity, linkSpec.rule, sourceOrTarget = false)
 
-    val sourceSchema = ComparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entityDescs.source, linkSpec.rule, sourceOrTarget = true)
-    val targetSchema = ComparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entityDescs.target, linkSpec.rule, sourceOrTarget = false)
+    val sourceSchema = comparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entityDescs.source, linkSpec.rule, sourceOrTarget = true)
+    val targetSchema = comparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entityDescs.target, linkSpec.rule, sourceOrTarget = false)
     if (runtimeConfig.useFileCache) {
       val cacheDir = new File(runtimeConfig.homeDir + "/entityCache/" + id + UUID.randomUUID().toString)
 

@@ -18,6 +18,8 @@ class BooleanFilterLinkSpecIntegrationTest extends FlatSpec
     with ConfigTestTrait{
   override def projectPathInClasspath: String = "diProjects/booleanFilterProject.zip"
 
+  lazy private val comparisonToRestrictionConverter = new ComparisonToRestrictionConverter()
+
   case class ExpectedStats(sourceEntities: Int, targetEntities: Int, nrLinks: Int)
 
   private val testCases = Seq(
@@ -32,7 +34,7 @@ class BooleanFilterLinkSpecIntegrationTest extends FlatSpec
   )
 
   it should "disable pushing inequality filters when configured so" in {
-    ComparisonToRestrictionConverter.removeInequalityClauses mustBe false
+    comparisonToRestrictionConverter.removeInequalityClauses mustBe false
   }
 
   override def workspaceProvider: String = "inMemory"

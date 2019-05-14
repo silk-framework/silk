@@ -28,6 +28,8 @@ case class ExecuteLinkingFactory() extends TaskActivityFactory[LinkSpec, Execute
 
 class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
 
+  private val comparisonToRestrictionConverter = new ComparisonToRestrictionConverter()
+
   /**
     * Executes this activity.
     *
@@ -74,7 +76,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
                        (implicit execution: ExecutionType,
                         userContext: UserContext): ExecutionType#DataType = {
     val updatedEntitySchema = sourceOrTarget.map(sot =>
-      ComparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entitySchema, task.data.rule, sot)
+      comparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entitySchema, task.data.rule, sot)
     ).getOrElse(entitySchema)
     val result =
       task.project.taskOption[TransformSpec](selection.inputId) match {

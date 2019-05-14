@@ -2,16 +2,18 @@ package org.silkframework.rule.execution
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.entity.{Path, Restriction}
-import org.silkframework.rule.{BooleanLinkageRule, LinkageRule}
 import org.silkframework.rule.input.{PathInput, TransformInput}
 import org.silkframework.rule.plugins.aggegrator.{MaximumAggregator, MinimumAggregator, NegationAggregator}
 import org.silkframework.rule.plugins.distance.equality.{EqualityMetric, InequalityMetric}
 import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
 import org.silkframework.rule.similarity.{Aggregation, Comparison, DistanceMeasure, SimilarityOperator}
-import org.silkframework.util.{ConfigTestTrait, DPair}
+import org.silkframework.rule.{BooleanLinkageRule, LinkageRule}
+import org.silkframework.util.DPair
 
 class ComparisonToRestrictionConverterTest extends FlatSpec with MustMatchers {
   behavior of "Comparison to Restriction Converter"
+
+  private val comparisonToRestrictionConverter = new ComparisonToRestrictionConverter()
 
   it should "convert a linkage rule of a simple and" in {
     val notSatisfiable = and(
@@ -107,7 +109,7 @@ class ComparisonToRestrictionConverterTest extends FlatSpec with MustMatchers {
                       variablePrefix: String = "var_pref_",
                       sourceOrTarget: Boolean,
                       removeInequalities: Boolean = true): Option[Restriction.Operator] = {
-    ComparisonToRestrictionConverter.linkageRuleToRestriction(
+    comparisonToRestrictionConverter.linkageRuleToRestriction(
       LinkageRule(Some(operator)), subject, variablePrefix, sourceOrTarget, removeInequalities = removeInequalities)
   }
 

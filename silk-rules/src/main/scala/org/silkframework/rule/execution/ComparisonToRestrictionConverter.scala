@@ -18,11 +18,13 @@ import org.silkframework.rule.util.JenaSerializationUtil
 object ComparisonToRestrictionConverter {
   final val PUSH_FILTER_INTO_DATA_SOURCE_KEY = "optimizations.linking.execution.pushFilters.enabled"
   final val REMOVE_INEQUALITY_CLAUSES_FROM_CNF_KEY = "optimizations.linking.execution.pushFilters.removeDisjunctionsWithInEqualities"
+}
 
+class ComparisonToRestrictionConverter {
   private val cfg = DefaultConfig.instance()
 
-  val pushFilterEnabled: Boolean = cfg.getBoolean(PUSH_FILTER_INTO_DATA_SOURCE_KEY)
-  def removeInequalityClauses: Boolean = cfg.getBoolean(REMOVE_INEQUALITY_CLAUSES_FROM_CNF_KEY)
+  val pushFilterEnabled: Boolean = cfg.getBoolean(ComparisonToRestrictionConverter.PUSH_FILTER_INTO_DATA_SOURCE_KEY)
+  val removeInequalityClauses: Boolean = cfg.getBoolean(ComparisonToRestrictionConverter.REMOVE_INEQUALITY_CLAUSES_FROM_CNF_KEY)
 
   /** Turns a linkage rule into a SPARQL restriction if that is possible.
     *
@@ -157,7 +159,7 @@ object ComparisonToRestrictionConverter {
 
   private def generateSparqlRestriction(linkageRule: LinkageRule,
                                         sourceOrTarget: Boolean): Option[CustomOperator] = {
-    ComparisonToRestrictionConverter.linkageRuleToRestriction(
+    linkageRuleToRestriction(
       linkageRule,
       SparqlEntitySchema.variable,
       variablePrefix = "generatedFilterVar",
