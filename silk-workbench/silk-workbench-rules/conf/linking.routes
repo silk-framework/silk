@@ -59,4 +59,6 @@ PUT           /tasks/:project/:task/writeReferenceLinks                         
 PUT           /tasks/:project/:task/learningTask                                    controllers.linking.LinkingTaskApi.learningActivity(project: String, task: String)
 PUT           /tasks/:project/:task/activeLearningTask                              controllers.linking.LinkingTaskApi.activeLearningActivity(project: String, task: String)
 
+GET           /tasks/:project/:task/referenceLinksEvaluated                         controllers.linking.LinkingTaskApi.referenceLinksEvaluated(project: String, task: String)
+
 POST          /tasks/:project/:task/postLinkDatasource                              controllers.linking.LinkingTaskApi.postLinkDatasource(project: String, task: String)

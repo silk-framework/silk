@@ -16,7 +16,7 @@ package org.silkframework.rule
 
 import java.util.logging.Logger
 
-import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.config.{DefaultConfig, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.entity.{EntitySchema, Path, StringValueType, TypedPath}
 import org.silkframework.execution.local.LinksTable
@@ -37,7 +37,12 @@ import scala.xml.Node
 case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.emptyPair,
                     rule: LinkageRule = LinkageRule(),
                     outputs: Seq[Identifier] = Seq.empty,
-                    referenceLinks: ReferenceLinks = ReferenceLinks.empty ) extends TaskSpec {
+                    referenceLinks: ReferenceLinks = ReferenceLinks.empty,
+                    linkLimit: Int = LinkSpec.DEFAULT_LINK_LIMIT,
+                    matchingExecutionTimeout: Int = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS) extends TaskSpec {
+
+  assert(linkLimit >= 0, "The link limit must be greater equal 0!")
+  assert(matchingExecutionTimeout >= 0, "The matching execution timeout must be greater equal 0!")
 
   def findSources(datasets: Traversable[Task[DatasetSpec[Dataset]]])
                  (implicit userContext: UserContext): DPair[DataSource] = {
@@ -120,8 +125,33 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
 }
 
 object LinkSpec {
+  private val cfg = DefaultConfig.instance()
+  private val log: Logger = Logger.getLogger(this.getClass.getCanonicalName)
+  val MAX_LINK_LIMIT_CONFIG_KEY = "linking.execution.linkLimit.max"
 
-  private val logger = Logger.getLogger(LinkSpec.getClass.getName)
+  val DEFAULT_LINK_LIMIT: Int = {
+    cfg.getInt("linking.execution.linkLimit.default")
+  }
+
+  /** The absolute maximum of links that can be generated. This is necessary since the links are kept in-memory. */
+  val MAX_LINK_LIMIT: Int = {
+    cfg.getInt(MAX_LINK_LIMIT_CONFIG_KEY)
+  }
+
+  def adaptLinkLimit(requestedLinkLimit: Int): Int = {
+    if(requestedLinkLimit > LinkSpec.MAX_LINK_LIMIT) {
+      log.warning(s"Link limit of $requestedLinkLimit is higher than the configured max. link limit of $MAX_LINK_LIMIT. " +
+          s"Reducing link limit to $MAX_LINK_LIMIT. " +
+          s"Increase value of config parameter $MAX_LINK_LIMIT_CONFIG_KEY in order to allow a higher link limit.")
+      MAX_LINK_LIMIT
+    } else {
+      requestedLinkLimit
+    }
+  }
+
+  val DEFAULT_EXECUTION_TIMEOUT_SECONDS: Int = {
+    cfg.getInt("linking.execution.matching.timeout.seconds")
+  }
 
   /**
    * XML serialization format.
@@ -157,7 +187,9 @@ object LinkSpec {
             if(id.isEmpty)
               throw new ValidationException(s"Link specification $id contains an output that does not reference a predefined output by id")
             Identifier(id)
-          }
+          },
+        linkLimit = (node \ "@linkLimit").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
+        matchingExecutionTimeout = (node \ "@matchingExecutionTimeout").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
       )
     }
 
@@ -165,7 +197,7 @@ object LinkSpec {
      * Serialize a value to XML.
      */
     def write(spec: LinkSpec)(implicit writeContext: WriteContext[Node]): Node =
-      <Interlink>
+      <Interlink linkLimit={spec.linkLimit.toString} matchingExecutionTimeout={spec.matchingExecutionTimeout.toString}>
         {spec.dataSelections.source.toXML(asSource = true)}
         {spec.dataSelections.target.toXML(asSource = false)}
         {toXml(spec.rule)}

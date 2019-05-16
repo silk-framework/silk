@@ -38,9 +38,9 @@ case class EvaluateLinkingFactory(
         useFileCache = useFileCache,
         partitionSize = partitionSize,
         generateLinksWithEntities = generateLinksWithEntities,
-        linkLimit = Some(linkLimit),
-        executionTimeout = Some(timeout).filter(_ > 0L).map(_ * 1000L),
-        executionBackend = LinkingExecutionBackend.nativeExecution
+        linkLimit = Some(LinkSpec.adaptLinkLimit(linkLimit)),
+        executionTimeout = Some(timeout).filter(_ > 0L).map(_ * 1000L)
+//        executionBackend = LinkingExecutionBackend.nativeExecution // FIXME: CMEM-1408
       )
     new EvaluateLinkingActivity(task, runtimeConfig, writeOutputs)
   }

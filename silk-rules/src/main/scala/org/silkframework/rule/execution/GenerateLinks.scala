@@ -129,8 +129,8 @@ class GenerateLinks (id: Identifier,
 
   private def logStatistics(context: ActivityContext[Linking]): Unit = {
     val result = context.value()
-    log.info(s"Linking task $id finished generating ${result.links.size} after loading " +
-        s"${result.statistics.entityCount.source} source entities and ${result.statistics.entityCount.target} entities.")
+    log.info(s"Linking task '$id' finished generating ${result.links.size} link/s having loaded " +
+        s"${result.statistics.entityCount.source} source entities and ${result.statistics.entityCount.target} target entities.")
   }
 
   override def cancelExecution()(implicit userContext: UserContext): Unit = {
