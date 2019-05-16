@@ -175,12 +175,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   private def persistTask(implicit userContext: UserContext): Unit = {
     // Write task
     module.provider.putTask(project.name, ProjectTask.this)
-    // First cancel all autoRun activities. restart() would also do this, however restart() might block if not enough
-    // threads are available in the activity management thread pool, so this is an optimization to cancel activities earlier.
-    for (activity <- taskActivities if activity.autoRun) {
-      activity.control.cancel()
-    }
-    // Restart each activity. Start itself won't work if the activity is still running/cancelling.
+    // Restart each activity, don't wait for completion.
     for (activity <- taskActivities if activity.autoRun) {
       activity.control.restart()
     }
