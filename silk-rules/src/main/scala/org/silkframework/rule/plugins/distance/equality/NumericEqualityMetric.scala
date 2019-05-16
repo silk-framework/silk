@@ -22,6 +22,7 @@ case class NumericEqualityMetric(@Param("The range of tolerance in floating poin
   }
 
   /** The decimal place that can definitely lead to different values when changing it. */
+  @transient
   val significantDecimalPlace: Int = {
     val decimalPlace = math.ceil(math.abs(math.log10(precision))).toInt
     if(decimalPlace > MAX_SIGNIFICANT_DECIMAL_PLACE) {
@@ -32,10 +33,13 @@ case class NumericEqualityMetric(@Param("The range of tolerance in floating poin
   }
 
   // A double formatter that formats the number in a way that it can be indexed
-  private val indexFormat = {
-    val formatter = new DecimalFormat("#." + ("#" * significantDecimalPlace))
-    formatter.setRoundingMode(RoundingMode.DOWN)
-    formatter
+  @transient
+  private val indexFormat = new ThreadLocal[DecimalFormat]{
+    override def initialValue(): DecimalFormat = {
+      val formatter = new DecimalFormat("#." + ("#" * significantDecimalPlace))
+      formatter.setRoundingMode(RoundingMode.DOWN)
+      formatter
+    }
   }
 
   override def evaluate(str1: String, str2: String, threshold: Double): Double = {
@@ -49,7 +53,7 @@ case class NumericEqualityMetric(@Param("The range of tolerance in floating poin
   }
 
   private def hashFormattedDouble(double: Double): Int = {
-    val formatted = indexFormat.format(double)
+    val formatted = indexFormat.get().format(double)
     formatted.hashCode
   }
 
