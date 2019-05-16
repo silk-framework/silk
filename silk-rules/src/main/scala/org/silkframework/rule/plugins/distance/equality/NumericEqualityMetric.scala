@@ -11,11 +11,7 @@ import org.silkframework.runtime.plugin.{Param, Plugin}
   id = "numericEquality",
   categories = Array("Equality", "Recommended"),
   label = "Numeric Equality",
-  description = "Compares values numerically instead of their string representation as the 'String Equality' operator does. " +
-      "Allows to set the needed precision of the comparison. A value of 0.0 means that the values must represent exactly the same" +
-      " (floating point) value, values higher than that allow for a margin of tolerance. Example: With a precision of 0.1, the" +
-      " following pairs of values will be considered equal: (1.3, 1.35), (0.0, 0.9999), (0.0, -0.90001), but following pairs will NOT match:" +
-      " (1.2, 1.30001), (1.0, 1.10001), (1.0, 0.89999)."
+  description = NumericEqualityMetric.description
 )
 case class NumericEqualityMetric(@Param("The range of tolerance in floating point number comparisons. Must be 0 or a non-negative number smaller than 1.")
                                  precision: Double = 0.0) extends SimpleDistanceMeasure {
@@ -69,4 +65,12 @@ case class NumericEqualityMetric(@Param("The range of tolerance in floating poin
     }
     Index.oneDim(indexValues)
   }
+}
+
+object NumericEqualityMetric {
+  final val description = """Compares values numerically instead of their string representation as the 'String Equality' operator does.
+Allows to set the needed precision of the comparison. A value of 0.0 means that the values must represent exactly the same
+(floating point) value, values higher than that allow for a margin of tolerance. Example: With a precision of 0.1, the
+following pairs of values will be considered equal: (1.3, 1.35), (0.0, 0.9999), (0.0, -0.90001), but following pairs will NOT match:
+(1.2, 1.30001), (1.0, 1.10001), (1.0, 0.89999)."""
 }
