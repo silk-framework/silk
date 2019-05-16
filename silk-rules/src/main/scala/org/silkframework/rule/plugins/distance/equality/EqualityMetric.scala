@@ -31,7 +31,3 @@ case class EqualityMetric() extends SimpleDistanceMeasure {
 
   override def indexValue(str: String, threshold: Double, sourceOrTarget: Boolean): Index = Index.oneDim(Set(str.hashCode))
 }
-
-object EqualityMetric {
-  final val description =
-}
