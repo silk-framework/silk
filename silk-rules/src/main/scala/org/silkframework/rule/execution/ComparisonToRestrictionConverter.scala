@@ -1,16 +1,21 @@
 package org.silkframework.rule.execution
 
+import org.apache.jena.datatypes.DatatypeFormatException
+import org.apache.jena.datatypes.xsd.XSDDatatype
 import org.apache.jena.graph.NodeFactory
+import org.apache.jena.vocabulary.XSD
 import org.silkframework.config.DefaultConfig
 import org.silkframework.entity.Restriction.{And, CustomOperator}
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
 import org.silkframework.entity.{EntitySchema, Path, Restriction}
 import org.silkframework.rule._
 import org.silkframework.rule.input.{PathInput, TransformInput}
-import org.silkframework.rule.plugins.distance.equality.{EqualityMetric, InequalityMetric}
+import org.silkframework.rule.plugins.distance.equality.{EqualityMetric, InequalityMetric, NumericEqualityMetric}
 import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.rule.util.JenaSerializationUtil
+
+import scala.util.Try
 
 /**
   * Converts comparison rules trees to SPARQL filters.
@@ -136,6 +141,8 @@ class ComparisonToRestrictionConverter {
         Some(DataSourceEqualityRestriction(path, constant))
       case (_: InequalityMetric, PathInput(_, path), TransformInput(_, ConstantTransformer(constant), Seq())) =>
         Some(DataSourceInequalityRestriction(path, constant))
+      case (NumericEqualityMetric(precision), PathInput(_, path), TransformInput(_, ConstantTransformer(constant), Seq())) if Try(constant.toDouble).isSuccess =>
+        Some(NumericEqualityRestriction(path, constant.toDouble, precision))
       case _ =>
         None
     }
@@ -217,6 +224,26 @@ case class DataSourceInequalityRestriction(path: Path, value: String) extends Da
   }
 
   override def inverted: Option[DataSourceRestriction] = Some(DataSourceEqualityRestriction(path, value))
+}
+
+case class NumericEqualityRestriction(path: Path, value: Double, precision: Double) extends DataSourceRestriction {
+  override def toSparqlFilter(subjectVar: String, generatedVarPrefix: String): SparqlFilterRestriction = {
+    val (pathSparql, valueVar) = convertPath(subjectVar, path, generatedVarPrefix)
+    // Decrease precision to make up for rounding errors, this value does not need to be exact, since query result recall is important, not precision.
+    val decreasedPrecision = precision * 1.01
+    val filterExpression = if(precision == 0.0) {
+      s"<http://www.w3.org/2001/XMLSchema#double>(?$valueVar) = $value"
+    } else {
+      s"(<http://www.w3.org/2001/XMLSchema#double>(?$valueVar) <= ${value + decreasedPrecision} && " +
+          s"<http://www.w3.org/2001/XMLSchema#double>(?$valueVar) >= ${value - decreasedPrecision})"
+    }
+    SparqlFilterRestriction(
+      sparqlPattern = pathSparql,
+      filterExpression = filterExpression
+    )
+  }
+
+  override def inverted: Option[DataSourceRestriction] = None
 }
 
 /** A representation of a restriction in SPARQL.

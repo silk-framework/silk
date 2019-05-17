@@ -30,7 +30,9 @@ class BooleanFilterLinkSpecIntegrationTest extends FlatSpec
     "OrFilterUnionWithPathComparison" -> ExpectedStats(4, 4, 16), // with added path comparison in CNF OR-clause the filters cannot be pushed into the data source => no filtering
     "ComplexBooleanExpression1" -> ExpectedStats(4, 1, 4), // pure target entity filter that should leave entity :e3
     "OrWithFilterFromBothSources" -> ExpectedStats(4, 4, 12), // Filters for both sources in the same CNF OR-clause will no be pushed into data source => no filtering
-    "ComplexBooleanExpression2" -> ExpectedStats(3, 3, 9)
+    "ComplexBooleanExpression2" -> ExpectedStats(3, 3, 9),
+    "numericLinkingExact" -> ExpectedStats(1, 1, 1),
+    "numericLinkingLoose" -> ExpectedStats(2, 2, 4)
   )
 
   it should "disable pushing inequality filters when configured so" in {

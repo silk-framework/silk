@@ -43,12 +43,17 @@ case class NumericEqualityMetric(@Param("The range of tolerance in floating poin
   }
 
   override def evaluate(str1: String, str2: String, threshold: Double): Double = {
-    val d1 = str1.toDouble
-    val d2 = str2.toDouble
-    if (precision == 0.0) {
-      if (d1 == d2) 0.0 else 1.0
-    } else {
-      if (math.abs(d1 - d2) <= precision) 0.0 else 1.0
+    try {
+      val d1 = str1.toDouble
+      val d2 = str2.toDouble
+      if (precision == 0.0) {
+        if (d1 == d2) 0.0 else 1.0
+      } else {
+        if (math.abs(d1 - d2) <= precision) 0.0 else 1.0
+      }
+    } catch {
+      case _: NumberFormatException =>
+        1.0
     }
   }
 
@@ -58,16 +63,21 @@ case class NumericEqualityMetric(@Param("The range of tolerance in floating poin
   }
 
   override def indexValue(str: String, threshold: Double, sourceOrTarget: Boolean): Index = {
-    val doubleValue = str.toDouble
-    val indexValues = if(precision == 0.0) {
-      Set(doubleValue.hashCode())
-    } else {
-      val normalizedDoubleValue = doubleValue - (doubleValue % precision)
-      val oneLower = normalizedDoubleValue - 1.1 * precision
-      val oneHigher = normalizedDoubleValue + 1.1 * precision
-      Set(doubleValue, oneLower, oneHigher).map(hashFormattedDouble)
+    try {
+      val doubleValue = str.toDouble
+      val indexValues = if (precision == 0.0) {
+        Set(doubleValue.hashCode())
+      } else {
+        val normalizedDoubleValue = doubleValue - (doubleValue % precision)
+        val oneLower = normalizedDoubleValue - 1.1 * precision
+        val oneHigher = normalizedDoubleValue + 1.1 * precision
+        Set(doubleValue, oneLower, oneHigher).map(hashFormattedDouble)
+      }
+      Index.oneDim(indexValues)
+    } catch {
+      case _: NumberFormatException =>
+        Index.empty
     }
-    Index.oneDim(indexValues)
   }
 }
 
