@@ -38,8 +38,8 @@ class EvaluateLinkingController extends Controller {
     if(showLinks) {
       val referenceLinks = task.data.referenceLinks
       def links =
-        for (link <- linking.links.view;
-             detailedLink <- DetailedEvaluator(task.data.rule, link.entities.get)) yield {
+        for (link <- linking.links.view) yield {
+          val detailedLink = DetailedEvaluator(task.data.rule, link.entities.get)
           if (referenceLinks.positive.contains(link))
             new EvalLink(detailedLink, Correct, Generated)
           else if (referenceLinks.negative.contains(link))

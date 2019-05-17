@@ -38,7 +38,7 @@ case class EvaluateLinkingFactory(
         useFileCache = useFileCache,
         partitionSize = partitionSize,
         generateLinksWithEntities = generateLinksWithEntities,
-        linkLimit = Some(linkLimit),
+        linkLimit = Some(LinkSpec.adaptLinkLimit(linkLimit)),
         executionTimeout = Some(timeout).filter(_ > 0L).map(_ * 1000L)
       )
     new EvaluateLinkingActivity(task, runtimeConfig, writeOutputs)

@@ -105,7 +105,14 @@ class GenerateLinks(id: Identifier,
       // TODO dont commit links to context if the task is not configured to hold links
       val outputTask = new OutputWriter(context.value().links, linkSpec.rule.linkType, outputs)
       context.child(outputTask, 0.02).startBlocking()
+      logStatistics(context)
     }
+  }
+
+  private def logStatistics(context: ActivityContext[Linking]): Unit = {
+    val result = context.value()
+    log.info(s"Linking task $id finished generating ${result.links.size} link/s after loading " +
+        s"${result.statistics.entityCount.source} source entities and ${result.statistics.entityCount.target} entities.")
   }
 
   override def cancelExecution()(implicit userContext: UserContext): Unit = {
