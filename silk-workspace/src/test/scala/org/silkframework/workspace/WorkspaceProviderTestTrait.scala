@@ -85,7 +85,8 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
 
   val datasetUpdated = PlainTask(DATASET_ID, DatasetSpec(MockDataset("updated"), uriProperty = Some("uri")), metaData = MetaData(DATASET_ID))
 
-  val linkSpec = LinkSpec(rule = rule, dataSelections = DPair(DatasetSelection(DUMMY_DATASET, ""), DatasetSelection(DUMMY_DATASET, "")))
+  val linkSpec = LinkSpec(rule = rule, dataSelections = DPair(DatasetSelection(DUMMY_DATASET, ""), DatasetSelection(DUMMY_DATASET, "")),
+    linkLimit = LinkSpec.DEFAULT_LINK_LIMIT + 1, matchingExecutionTimeout = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS + 1)
 
   val linkTask = PlainTask(LINKING_TASK_ID, linkSpec, metaData)
 
@@ -419,12 +420,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
   /** Refreshes the project in the workspace, which usually means that it is reloaded from wherever its stored.
     * This should make sure that not only the possible cache version is up to date, but also the background model. */
   private def refreshProject(projectName: String): Unit = {
-    workspaceProvider match {
-      case w: RefreshableWorkspaceProvider =>
-        w.refresh()
-      case _ =>
-        // Not refreshable
-    }
+    workspaceProvider.refresh()
   }
 }
 

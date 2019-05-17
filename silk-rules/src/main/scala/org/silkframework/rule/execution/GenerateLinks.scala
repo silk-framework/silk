@@ -69,7 +69,7 @@ class GenerateLinks(id: Identifier,
       }
       if(context.status.isCanceling) return
       // Execute matching
-      val sourceEqualsTarget = linkSpec.dataSelections.source == linkSpec.dataSelections.target
+      val sourceEqualsTarget = false // FIXME: CMEM-1975: Fix heuristic for this particular matching optimization
       val matcher = context.child(new Matcher(loaders, linkSpec.rule, caches, runtimeConfig, sourceEqualsTarget), 0.95)
       val updateLinks = (links: Seq[Link]) => context.value.update(Linking(linkSpec.rule, links, LinkingStatistics(entityCount = caches.map(_.size))))
       matcher.value.subscribe(updateLinks)
@@ -105,7 +105,14 @@ class GenerateLinks(id: Identifier,
       // TODO dont commit links to context if the task is not configured to hold links
       val outputTask = new OutputWriter(context.value().links, linkSpec.rule.linkType, outputs)
       context.child(outputTask, 0.02).startBlocking()
+      logStatistics(context)
     }
+  }
+
+  private def logStatistics(context: ActivityContext[Linking]): Unit = {
+    val result = context.value()
+    log.info(s"Linking task $id finished generating ${result.links.size} link/s after loading " +
+        s"${result.statistics.entityCount.source} source entities and ${result.statistics.entityCount.target} entities.")
   }
 
   override def cancelExecution()(implicit userContext: UserContext): Unit = {

@@ -32,7 +32,7 @@ case class AggregationNode(aggregation: String, weight: Int, required: Boolean, 
       required = required,
       weight = weight,
       operators = operators.map(_.build),
-      aggregator = Aggregator(aggregation, Map.empty)(Prefixes.empty, EmptyResourceManager)
+      aggregator = Aggregator(aggregation, Map.empty)(Prefixes.empty, EmptyResourceManager())
     )
   }
 }

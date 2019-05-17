@@ -35,15 +35,11 @@ const mountSuggestionsList = (testCase1, testCase2) => mount(
 );
 
 describe('SuggestionsList render with correct responses ( both 200 )', () => {
-
-    // set spy on component did mount to check how oft it is called
-    sinon.spy(SuggestionsList.prototype, 'componentDidMount');
     // mount the SuggestionsList
     const component = mountSuggestionsList("200", "200");
 
     it('mounts once', async () => {
         await waitUntilReady(component);
-        expect(SuggestionsList.prototype.componentDidMount.calledOnce);
     });
 
     it('has a cancel button', () => {

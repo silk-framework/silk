@@ -60,8 +60,8 @@ class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
 
     // Advance the progress of the parent task
     for(p <- parent if progressContribution != 0.0) {
-      val progressDiff = newStatus.progress - status.progress
-      p.update(Status.Running(newStatus.message, p.status.progress + progressDiff * progressContribution), logStatus = false)
+      val progressDiff = newStatus.progress.getOrElse(0.0) - status.progress.getOrElse(0.0)
+      p.update(Status.Running(newStatus.message, Some(p.status.progress.getOrElse(0.0) + progressDiff * progressContribution)), logStatus = false)
     }
 
     // Publish status change
@@ -87,7 +87,7 @@ class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
    * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
    */
   def updateProgress(progress: Double, logStatus: Boolean = true) {
-    update(Status.Running(status.message, progress), logStatus)
+    update(Status.Running(status.message, Some(progress)), logStatus)
   }
 
   /**
@@ -97,7 +97,7 @@ class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
     */
   def increaseProgress(increase: Double, logStatus: Boolean = true): Unit = {
     val updatedStatus = synchronized {
-      Status.Running(status.message, status.progress + increase)
+      Status.Running(status.message, Some(status.progress.getOrElse(0.0) + increase))
     }
     update(updatedStatus, logStatus)
   }
@@ -109,7 +109,7 @@ class StatusHolder(log: Logger = Logger.getLogger(getClass.getName),
    * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
    */
   def update(message: String, progress: Double) {
-    update(Status.Running(message, progress))
+    update(Status.Running(message, Some(progress)))
   }
 }
 

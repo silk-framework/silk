@@ -10,7 +10,7 @@ import {
     RadioGroup,
     TextField,
     Spinner,
-    ScrollingMixin,
+    ScrollingHOC,
 } from '@eccenca/gui-elements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
@@ -30,7 +30,7 @@ import {
 } from '../../../helpers';
 
 const ObjectMappingRuleForm = React.createClass({
-    mixins: [UseMessageBus, ScrollingMixin],
+    mixins: [UseMessageBus],
 
     // define property types
     propTypes: {
@@ -50,7 +50,7 @@ const ObjectMappingRuleForm = React.createClass({
             prevState.loading === true &&
             _.get(this.state, 'loading', false) === false
         ) {
-            this.scrollIntoView({
+            this.props.scrollIntoView({
                 topOffset: 75,
             });
         }
@@ -427,4 +427,4 @@ const ObjectMappingRuleForm = React.createClass({
     },
 });
 
-export default ObjectMappingRuleForm;
+export default ScrollingHOC(ObjectMappingRuleForm);
