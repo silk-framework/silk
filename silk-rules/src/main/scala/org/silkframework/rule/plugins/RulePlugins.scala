@@ -161,6 +161,7 @@ class RulePlugins extends PluginModule {
         classOf[ConstantMetric] ::
         classOf[StartsWithDistance] ::
         classOf[IsSubstringDistance] ::
+        classOf[NumericEqualityMetric] ::
         Nil
 
   private def aggregators =
