@@ -175,18 +175,9 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   private def persistTask(implicit userContext: UserContext): Unit = {
     // Write task
     module.provider.putTask(project.name, ProjectTask.this)
-    // First cancel all autoRun activities
+    // Restart each activity, don't wait for completion.
     for (activity <- taskActivities if activity.autoRun) {
-      activity.control.cancel()
-    }
-    // Then restart all autoRun activities
-    for (activity <- taskActivities if activity.autoRun && !activity.status.isRunning) {
-      try {
-        Try(activity.control.waitUntilFinished()) // Ignore if the previous execution failed
-        activity.control.start()
-      } catch {
-        case _: IllegalStateException => // ignore possible race condition that the activity was started since the check
-      }
+      activity.control.restart()
     }
   }
 
