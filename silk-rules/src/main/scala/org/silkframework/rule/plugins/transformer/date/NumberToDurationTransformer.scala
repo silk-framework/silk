@@ -14,7 +14,7 @@ import NumberToDurationTransformer._
  )
 case class NumberToDurationTransformer(unit: DateUnit = DateUnit.day) extends SimpleTransformer {
 
-  override def evaluate(value: String) = {
+  override def evaluate(value: String): String = {
     val number = value match { case DoubleLiteral(d) => d }
     val duration = unit match {
       case DateUnit.day => datatypeFactory.newDuration((number * 24 * 60 * 60 * 1000).toLong)

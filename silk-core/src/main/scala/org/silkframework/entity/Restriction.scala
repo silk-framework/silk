@@ -15,7 +15,7 @@
 package org.silkframework.entity
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.rdf.SparqlRestriction
+import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 
 /**
  * A restriction for filtering datasets.
@@ -48,7 +48,7 @@ object Restriction {
 
   def custom(restriction: String)(implicit prefixes: Prefixes): Restriction = {
     if(restriction.trim.nonEmpty) {
-      val sparqlRestriction = SparqlRestriction.fromSparql("a", restriction).toSparql
+      val sparqlRestriction = SparqlRestriction.fromSparql(SparqlEntitySchema.variable, restriction).toSparql
       Restriction(Some(CustomOperator(sparqlRestriction)))
     } else {
       Restriction.empty

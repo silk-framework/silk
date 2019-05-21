@@ -15,7 +15,7 @@ class SparqlRestrictionBuilderTest extends FlatSpec with Matchers {
     "lgdo" -> "http://linkedgeodata.org/ontology/"
   )
 
-  val builder = new SparqlRestrictionBuilder("a")
+  val builder = new SparqlRestrictionBuilder(SparqlEntitySchema.variable)
 
   "SparqlRestrictionBuilder" should "convert single conditions" in {
     val restriction = Restriction(Some(Condition(Path.parse("?a/rdf:type"), prefixes.resolve("dbpedia:Settlement"))))
