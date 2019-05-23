@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.datasets
 
 import java.io.FileNotFoundException
+
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.config.{PlainTask, Task}
@@ -8,7 +9,7 @@ import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.dataset.rdf.{LinkFormatter, RdfDataset, SparqlParams}
 import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.entity.{Entity, EntitySchema, Path, TypedPath}
+import org.silkframework.entity.{Entity, EntitySchema, TypedPath}
 import org.silkframework.plugins.dataset.rdf.access.SparqlSource
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
 import org.silkframework.plugins.dataset.rdf.formatters._
@@ -99,7 +100,7 @@ case class RdfFileDataset(
 
   override def mergeSchemata: Boolean = true
 
-  override def createSource(resource: Resource): DataSource with TypedPathRetrieveDataSource = new FileSource(resource)
+  override def createSource(resource: Resource): DataSource = new FileSource(resource)
 
   override def linkSink(implicit userContext: UserContext): FormattedLinkSink = new FormattedLinkSink(file, formatter)
 

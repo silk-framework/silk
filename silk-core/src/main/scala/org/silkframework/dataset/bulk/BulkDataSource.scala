@@ -2,7 +2,7 @@ package org.silkframework.dataset.bulk
 
 import org.silkframework.config.Task
 import org.silkframework.dataset._
-import org.silkframework.entity.{Entity, EntitySchema, Path, TypedPath}
+import org.silkframework.entity.{Entity, EntitySchema, TypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
@@ -13,8 +13,8 @@ import org.silkframework.util.Uri
   * @param mergeSchemata If true, the types and paths of the underlying data sources are merged.
   *                      If false, the types and paths of the first data source are used.
   */
-class BulkDataSource(sources: Seq[DataSource with TypedPathRetrieveDataSource],
-                     mergeSchemata: Boolean) extends DataSource with TypedPathRetrieveDataSource with PeakDataSource {
+class BulkDataSource(sources: Seq[DataSource],
+                     mergeSchemata: Boolean) extends DataSource with PeakDataSource {
   require(sources.nonEmpty, "Tried to create a bulk data source with an empty list of sources.")
 
   override def retrieveTypes(limit: Option[Int])(implicit userContext: UserContext): Traversable[(String, Double)] = {
@@ -25,20 +25,11 @@ class BulkDataSource(sources: Seq[DataSource with TypedPathRetrieveDataSource],
     }
   }
 
-  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[Path] = {
+  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     if(mergeSchemata) {
       sources.flatMap(_.retrievePaths(typeUri, depth, limit)).distinct.toIndexedSeq
     } else {
       sources.head.retrievePaths(typeUri, depth, limit)
-    }
-  }
-
-  override def retrieveTypedPath(typeUri: Uri, depth: Int = Int.MaxValue, limit: Option[Int] = None)
-                       (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
-    if(mergeSchemata) {
-      sources.flatMap(_.retrieveTypedPath(typeUri, depth, limit)).distinct.toIndexedSeq
-    } else {
-      sources.head.retrieveTypedPath(typeUri, depth, limit)
     }
   }
 
