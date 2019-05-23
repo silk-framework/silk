@@ -52,7 +52,8 @@ case class RuntimeLinkingConfig(executionMethod: ExecutionMethod = ExecutionMeth
                                 logLevel: Level = Level.INFO,
                                 sampleSizeOpt: Option[Int] = None,
                                 linkLimit: Option[Int] = None,
-                                executionTimeout: Option[Long] = None) extends RuntimeConfig {
+                                executionTimeout: Option[Long] = None,
+                                executionBackend: LinkingExecutionBackend = LinkingExecutionBackend.nativeExecution) extends RuntimeConfig {
 
   require(partitionSize > 1, "partitionSize must be greater than 0 (partitionSize=" + partitionSize + ")")
 }
