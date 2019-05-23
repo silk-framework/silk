@@ -18,6 +18,8 @@ import org.silkframework.serialization.json.InputJsonSerializer._
 import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{DPair, Identifier, Uri}
+import org.silkframework.util.StringUtils._
+import LinkingSerializers._
 import play.api.libs.json._
 
 /**
@@ -427,7 +429,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): PatternUriMapping = {
       val name = identifier(value, "uri")
       val pattern = stringValue(value, PATTERN_PROPERTY)
-      PatternUriMapping(name, pattern.trim(), metaData(value, "uri"))(readContext.prefixes)
+      PatternUriMapping(name, pattern.trim(), metaData(value, "uri"), readContext.prefixes)
     }
 
     /**
@@ -554,7 +556,7 @@ object JsonSerializers {
       val mappingName = mappingTarget.flatMap(_.propertyUri.localName).getOrElse("ObjectMapping")
       val id = identifier(value, mappingName)
       val sourcePath = silkPath(id, stringValue(value, SOURCE_PATH))
-      ObjectMapping(id, sourcePath, mappingTarget, children, metaData(value, mappingName))(readContext.prefixes)
+      ObjectMapping(id, sourcePath, mappingTarget, children, metaData(value, mappingName), readContext.prefixes)
     }
 
     /**
@@ -718,50 +720,6 @@ object JsonSerializers {
     }
   }
 
-  implicit object LinkJsonFormat extends JsonFormat[Link] {
-    final val SOURCE = "source"
-    final val TARGET = "target"
-    final val CONFIDENCE = "confidence"
-
-    override def read(value: JsValue)(implicit readContext: ReadContext): Link = {
-      new Link(
-        source = stringValue(value, SOURCE),
-        target = stringValue(value, TARGET),
-        confidence = numberValueOption(value, CONFIDENCE).map(_.doubleValue)
-      )
-    }
-
-    override def write(value: Link)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        SOURCE -> value.source,
-        TARGET -> value.target,
-        CONFIDENCE -> value.confidence.map(JsNumber(_))
-      )
-    }
-  }
-
-  implicit object ReferenceLinksJsonFormat extends JsonFormat[ReferenceLinks] {
-    final val POSITIVE = "positive"
-    final val NEGATIVE = "negative"
-    final val UNLABELED = "unlabeled"
-
-    override def read(value: JsValue)(implicit readContext: ReadContext): ReferenceLinks = {
-      ReferenceLinks(
-        positive = mustBeJsArray(mustBeDefined(value, POSITIVE))(_.value.map(fromJson[Link])).toSet,
-        negative = mustBeJsArray(mustBeDefined(value, POSITIVE))(_.value.map(fromJson[Link])).toSet,
-        unlabeled = mustBeJsArray(mustBeDefined(value, POSITIVE))(_.value.map(fromJson[Link])).toSet
-      )
-    }
-
-    override def write(value: ReferenceLinks)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        POSITIVE -> JsArray(value.positive.toSeq.map(toJson(_))),
-        NEGATIVE -> JsArray(value.negative.toSeq.map(toJson(_))),
-        UNLABELED -> JsArray(value.unlabeled.toSeq.map(toJson(_)))
-      )
-    }
-  }
-
   implicit object ComparisonJsonFormat extends JsonFormat[Comparison] {
     final val REQUIRED = "required"
     final val WEIGHT = "weight"
@@ -918,6 +876,8 @@ object JsonSerializers {
     final val RULE = "rule"
     final val OUTPUTS = "outputs"
     final val REFERENCE_LINKS = "referenceLinks"
+    final val LINK_LIMIT = "linkLimit"
+    final val MATCHING_EXECUTION_TIMEOUT = "matchingExecutionTimeout"
 
     override def typeNames: Set[String] = Set("Linking")
 
@@ -930,7 +890,9 @@ object JsonSerializers {
           ),
         rule = optionalValue(value, RULE).map(fromJson[LinkageRule]).getOrElse(LinkageRule()),
         outputs = mustBeJsArray(mustBeDefined(value, OUTPUTS))(_.value.map(v => Identifier(v.as[JsString].value))),
-        referenceLinks = optionalValue(value, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty)
+        referenceLinks = optionalValue(value, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty),
+        linkLimit = numberValueOption(value, LINK_LIMIT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
+        matchingExecutionTimeout = numberValueOption(value, MATCHING_EXECUTION_TIMEOUT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
       )
     }
 
@@ -941,7 +903,9 @@ object JsonSerializers {
         TARGET -> toJson(value.dataSelections.target),
         RULE -> toJson(value.rule),
         OUTPUTS -> JsArray(value.outputs.map(id => JsString(id.toString))),
-        REFERENCE_LINKS -> toJson(value.referenceLinks)
+        REFERENCE_LINKS -> toJson(value.referenceLinks),
+        LINK_LIMIT -> JsNumber(value.linkLimit),
+        MATCHING_EXECUTION_TIMEOUT -> JsNumber(value.matchingExecutionTimeout)
       )
     }
   }

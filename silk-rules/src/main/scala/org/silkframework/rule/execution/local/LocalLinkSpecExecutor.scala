@@ -5,7 +5,7 @@ import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptyDataset
 import org.silkframework.entity.{Entity, EntitySchema, Path, TypedPath}
 import org.silkframework.execution.local.{LinksTable, LocalEntities, LocalExecution, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, Executor}
-import org.silkframework.rule.LinkSpec
+import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.rule.execution._
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
@@ -20,15 +20,19 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
                        inputs: Seq[LocalEntities],
                        outputSchema: Option[EntitySchema],
                        execution: LocalExecution,
-                       context: ActivityContext[ExecutionReport]
-                      )(implicit userContext: UserContext): Option[LocalEntities] = {
+                       context: ActivityContext[ExecutionReport])
+                      (implicit userContext: UserContext): Option[LocalEntities] = {
     assert(inputs.size == 2, "LinkSpecificationExecutor did not receive exactly two inputs (source, target).")
     val linkSpec = updateSelection(task.data, inputs.head, inputs.tail.head)
     val sources = DPair[DataSource](
       entitySource(inputs.head, task.dataSelections.source.typeUri),
       entitySource(inputs.tail.head, task.dataSelections.target.typeUri)
     )
-    val activity = new GenerateLinks(task.id, sources, linkSpec, Seq())
+    val linkConfig = RuntimeLinkingConfig(
+      linkLimit = Some(LinkSpec.adaptLinkLimit(task.linkLimit)),
+      executionTimeout = Some(task.matchingExecutionTimeout * 1000L).filter(_ > 0)
+    )
+    val activity = new GenerateLinks(task.id, sources, linkSpec, Seq(), linkConfig)
     val linking = context.child(activity).startBlockingAndGetValue()
     context.value() = linking
     Some(LinksTable(linking.links, linkSpec.rule.linkType, task))

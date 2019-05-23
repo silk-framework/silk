@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.linking
 
 import org.silkframework.rule.execution.{GenerateLinks, Linking}
-import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
+import org.silkframework.rule.{LinkSpec, LinkingExecutionBackend, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.workspace.ProjectTask
@@ -38,8 +38,9 @@ case class EvaluateLinkingFactory(
         useFileCache = useFileCache,
         partitionSize = partitionSize,
         generateLinksWithEntities = generateLinksWithEntities,
-        linkLimit = Some(linkLimit),
+        linkLimit = Some(LinkSpec.adaptLinkLimit(linkLimit)),
         executionTimeout = Some(timeout).filter(_ > 0L).map(_ * 1000L)
+//        executionBackend = LinkingExecutionBackend.nativeExecution // FIXME: CMEM-1408
       )
     new EvaluateLinkingActivity(task, runtimeConfig, writeOutputs)
   }

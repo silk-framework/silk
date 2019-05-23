@@ -5,7 +5,7 @@ import org.silkframework.rule.vocab.{Vocabulary, VocabularyManager}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.{RdfWorkspaceProvider, WorkspaceFactory}
+import org.silkframework.workspace.WorkspaceFactory
 
 @Plugin(
   id = "rdf",
@@ -21,9 +21,9 @@ case class RdfVocabularyManager() extends VocabularyManager {
   }
 
   private def workspaceSparqlEndpoint(implicit userContext: UserContext): SparqlEndpoint = {
-    WorkspaceFactory().workspace.provider match {
-      case w: RdfWorkspaceProvider =>
-        w.endpoint
+    WorkspaceFactory().workspace.provider.sparqlEndpoint match {
+      case Some(endpoint) =>
+        endpoint
       case _ =>
         throw new RuntimeException("Workspace has no SPARQL enabled storage backend.")
     }

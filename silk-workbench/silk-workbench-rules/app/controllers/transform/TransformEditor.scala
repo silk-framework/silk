@@ -74,7 +74,7 @@ class TransformEditor extends Controller with ControllerUtilsTrait {
     val sourceName = task.data.selection.inputId.toString
 
     if(pathsCache.status().isRunning) {
-      val loadingMsg = f"Cache loading (${pathsCache.status().progress * 100}%.1f%%)"
+      val loadingMsg = f"Cache loading (${pathsCache.status().progress.getOrElse(0.0) * 100}%.1f%%)"
       ServiceUnavailable(views.html.editor.paths(DPair(sourceName, ""), DPair.fill(Seq.empty), onlySource = true, loadingMsg = loadingMsg, project = project))
     } else if(pathsCache.status().failed) {
       Ok(views.html.editor.paths(DPair(sourceName, ""), DPair.fill(Seq.empty), onlySource = true, warning = pathsCache.status().message,  project = project))

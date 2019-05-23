@@ -2,25 +2,26 @@
  An individual Mapping Rule Line
  */
 
-import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
+import {Draggable} from 'react-beautiful-dnd';
 import React from 'react';
 import _ from 'lodash';
 
 import {
     Button,
-    ContextMenu,
-    MenuItem,
     ConfirmationDialog,
-    Spinner,
-    DisruptiveButton,
+    ContextMenu,
     DismissiveButton,
+    DisruptiveButton,
+    MenuItem,
+    ScrollingHOC,
+    Spinner,
 } from '@eccenca/gui-elements';
 import UseMessageBus from '../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
-import {RuleTypes, SourcePath, ThingName, ThingIcon} from './SharedComponents';
-import {isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT} from '../../helpers';
+import {RuleTypes, SourcePath, ThingIcon} from './SharedComponents';
+import {getRuleLabel, isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT,} from '../../helpers';
 import Navigation from '../../Mixins/Navigation';
 import className from 'classnames';
 
@@ -47,8 +48,13 @@ const MappingRule = React.createClass({
 
     // initilize state
     getInitialState() {
+        const pastedId = sessionStorage.getItem('pastedId');
+        const isPasted = (pastedId !== null) && (pastedId === this.props.id);
+        if (isPasted)
+            !sessionStorage.removeItem('pastedId');
         return {
-            expanded: false,
+            isPasted : isPasted,
+            expanded: isPasted || false,
             editing: false,
             askForDiscard: false,
             loading: false,
@@ -81,6 +87,8 @@ const MappingRule = React.createClass({
             hierarchicalMappingChannel.subject('ruleView.discardAll'),
             this.discardAll
         );
+        if (this.state.isPasted)
+            this.props.scrollIntoView()
     },
     onOpenEdit(obj) {
         if (_.isEqual(this.props.id, obj.id)) {
@@ -210,8 +218,9 @@ const MappingRule = React.createClass({
             />
         );
 
-        // TODO: enable real API structure
+        const ruleLabelData = getRuleLabel({ label, uri: mappingTarget.uri });
 
+        // TODO: enable real API structure
         const shortView = [
             <div
                 key={'hl1'}
@@ -221,7 +230,10 @@ const MappingRule = React.createClass({
                     status={_.get(this.props, 'status[0].type', false)}
                     message={_.get(this.props, 'status[0].message', false)}
                 />
-                {label || <ThingName id={mappingTarget.uri} />}
+				<div className="ecc-silk-mapping__ruleitem-label">
+					{ruleLabelData.displayLabel}
+				</div>
+				{ruleLabelData.uri && <div className="ecc-silk-mapping__ruleitem-extraline ecc-silk-mapping__ruleitem-url">{ruleLabelData.uri}</div>}
             </div>,
             <div
                 key={'sl3'}
@@ -256,6 +268,8 @@ const MappingRule = React.createClass({
                     type={type}
                     parentId={parentId}
                     edit={false}
+                    handleCopy={this.props.handleCopy}
+                    handleClone={this.props.handleClone}
                 />
             ) : (
                 <RuleValueEdit
@@ -264,6 +278,8 @@ const MappingRule = React.createClass({
                     type={type}
                     parentId={parentId}
                     edit={false}
+                    handleCopy={this.props.handleCopy}
+                    handleClone={this.props.handleClone}
                 />
             )
         ) : (
@@ -329,6 +345,7 @@ const MappingRule = React.createClass({
                             'ecc-silk-mapping__ruleitem--literal':
                                 type !== 'object',
                             'ecc-silk-mapping__ruleitem--defect': errorInfo,
+                            'mdl-layout_item--background-flash': this.state.isPasted,
                         })}>
                         <div
                             className={'ecc-silk-mapping__ruleitem--dnd'}
@@ -381,4 +398,4 @@ const MappingRule = React.createClass({
     },
 });
 
-export default MappingRule;
+export default ScrollingHOC(MappingRule);

@@ -14,23 +14,23 @@
 
 package org.silkframework.entity
 
-import scala.math.{max, min}
+import scala.math.max
 
 class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[Int]) {
 
   /** The number of index values in this index. */
-  def size = indices.size
+  def size: Int = indices.size
 
   /** The number of dimensions of this index. */
-  def dimensions = sizes.size
+  def dimensions: Int = sizes.size
 
   /** Tests whether this index is empty, i.e., does not contain any index value. */
-  def isEmpty = indices.isEmpty
+  def isEmpty: Boolean = indices.isEmpty
 
   /**
    * Returns a human-readable description of this index.
    */
-  override def toString = indices.toString
+  override def toString: String = indices.toString
 
   /**
    * True indices match if they share at least one index value.
@@ -40,22 +40,24 @@ class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[I
   /**
    * Tests if two indices are identical.
    */
-  override def equals(other: Any) = other match {
+  override def equals(other: Any): Boolean = other match {
     case o: Index => indices == o.indices
     case _ => false
+  }
+
+  override def hashCode(): Int = {
+    indices.hashCode()
   }
 
   /**
    * Flattens the index vectors to scalars in the range [0, Int.MaxValue].
    */
   def flatten: Set[Int] = {
-    //TODO allow negative values
     for (index <- indices) yield {
       val flatIndex = (index zip sizes).foldLeft(0) {
         case (iLeft, (iRight, blocks)) => iLeft * blocks + iRight
       }
-
-      if (flatIndex == Int.MinValue) 0 else flatIndex.abs
+      flatIndex
     }
   }
 
@@ -63,7 +65,7 @@ class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[I
    * Combines two indices disjunctively.
    * i.e. index1 matches index3 || index2 matches index4 <=> (index1 disjunction index2) matches (index3 disjunction index4)
    */
-  def disjunction(other: Index) = {
+  def disjunction(other: Index): Index = {
     val newIndexSet1 = indices.map(_.padTo(max(sizes.size, other.sizes.size), 0))
     val newIndexSet2 = other.indices.map(_.zipAll(sizes, 0, 1).map {
       case (indexValue, indexSize) => indexSize + indexValue
@@ -79,7 +81,7 @@ class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[I
    * Combines two indices conjunctively.
    * i.e. index1 matches index3 && index2 matches index4 <=> (index1 conjunction index2) matches (index3 conjunction index4)
    */
-  def conjunction(other: Index) = {
+  def conjunction(other: Index): Index = {
     val indexes1 = if (indices.isEmpty) Set(Seq.fill(sizes.size)(0)) else indices
     val indexes2 = if (other.indices.isEmpty) Set(Seq.fill(other.sizes.size)(0)) else other.indices
 
@@ -92,7 +94,7 @@ class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[I
   /**
    * Merges two indices of the same dimension.
    */
-  def merge(other: Index) = {
+  def merge(other: Index): Index = {
     require(sizes.size == other.sizes.size, "Indexes must have same number of dimensions")
 
     new Index(
@@ -101,39 +103,38 @@ class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[I
     )
   }
 
-  def crop(maxSize: Int) = new Index(indices.take(maxSize), sizes)
+  /** Take maxSize index entries */
+  def crop(maxSize: Int): Index = new Index(indices.take(maxSize), sizes)
 }
 
 object Index {
 
-  private val maxBlockCount = 10000
+  def empty: Index = new Index(Set.empty, Seq(1))
 
-  def empty = new Index(Set.empty, Seq(1))
+  def default: Index = new Index(Set(Seq(0)), Seq(1))
 
-  def default = new Index(Set(Seq(0)), Seq(1))
-
-  def blocks(blocks: Set[Int]) = {
+  def blocks(blocks: Set[Int]): Index = {
     new Index(
       indices = blocks.map(block => if(block == Int.MinValue) Seq(0) else if(block == Int.MaxValue) Seq(Int.MaxValue - 1) else Seq(block.abs)),
       sizes = Seq(Int.MaxValue))
   }
 
-  def multiDim(indices: Set[Seq[Int]], dimCount: Int) = {
+  def multiDim(indices: Set[Seq[Int]], dimCount: Int): Index = {
     new Index(
-      indices = indices.map(indexVector => indexVector.map(value => (value % maxBlockCount).abs)),
-      sizes = Seq.fill(dimCount)(maxBlockCount)
+      indices = indices,
+      sizes = Seq.fill(dimCount)(Int.MaxValue)
     )
   }
 
-  def multiDim(indices: Set[Seq[Int]], sizes: Seq[Int]) = new Index(indices, sizes)
+  def multiDim(indices: Set[Seq[Int]], sizes: Seq[Int]): Index = new Index(indices, sizes)
 
-  def oneDim(indices: Set[Int]) = new Index(indices.map(i => Seq((i % maxBlockCount).abs)), Seq(maxBlockCount))
+  def oneDim(indices: Set[Int]): Index = new Index(indices.map(i => Seq(i)), Seq(Int.MaxValue))
 
-  def oneDim(indices: Set[Int], size: Int) = new Index(indices.map(Seq(_)), Seq(size))
+  def oneDim(indices: Set[Int], size: Int): Index = new Index(indices.map(Seq(_)), Seq(size))
 
   @inline
   def continuous(value: Double, minValue: Double, maxValue: Double, limit: Double, overlap: Double = 0.5): Index = {
-    val blockCount = min(maxBlockCount, ((maxValue - minValue) / limit * overlap).toInt)
+    val blockCount = ((maxValue - minValue) / limit * overlap).toInt
     continuous(value, minValue, maxValue, blockCount, overlap)
   }
 

@@ -15,7 +15,7 @@ import {
     ContextMenu,
     MenuItem,
     Spinner,
-    ScrollingMixin,
+    ScrollingHOC,
     Checkbox,
     ProgressButton,
     Tooltip,
@@ -35,7 +35,7 @@ const SuggestionsListWrapper = props => (
 );
 
 const SuggestionsList = React.createClass({
-    mixins: [UseMessageBus, ScrollingMixin],
+    mixins: [UseMessageBus],
     defaultCheckValue: false,
     // define property types
     // FIXME: check propTypes
@@ -107,7 +107,7 @@ const SuggestionsList = React.createClass({
     componentDidUpdate() {
         if (_.get(this, 'state.data', false) && this.count++ === 0) {
             // Scroll should only happen once!
-            this.scrollIntoView({
+            this.props.scrollIntoView({
                 topOffset: 75,
             });
         }
@@ -459,4 +459,4 @@ const SuggestionsList = React.createClass({
     },
 });
 
-export default SuggestionsList;
+export default ScrollingHOC(SuggestionsList);

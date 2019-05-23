@@ -27,6 +27,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
 
 import scala.reflect.ClassTag
+import scala.util.Try
 import scala.util.control.NonFatal
 
 
@@ -174,15 +175,9 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   private def persistTask(implicit userContext: UserContext): Unit = {
     // Write task
     module.provider.putTask(project.name, ProjectTask.this)
-    // Update caches
+    // Restart each activity, don't wait for completion.
     for (activity <- taskActivities if activity.autoRun) {
-      if(!activity.control.status().isRunning) {
-        try {
-          activity.control.start()
-        } catch {
-          case _: IllegalStateException => // ignore possible race condition that the activity was started since the check
-        }
-      }
+      activity.control.restart()
     }
   }
 

@@ -15,6 +15,7 @@
 package org.silkframework.rule.evaluation
 
 import org.silkframework.entity.{UntypedValueType, Entity}
+import org.silkframework.rule.evaluation.DetailedEvaluator.evaluateOperator
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.rule.{LinkageRule, TransformRule}
@@ -28,7 +29,7 @@ object DetailedEvaluator {
   /**
    * Evaluates a linkage rule.
    */
-  def apply(rule: LinkageRule, entities: DPair[Entity], limit: Double = -1.0): Option[DetailedLink] = {
+  def apply(rule: LinkageRule, entities: DPair[Entity], limit: Double): Option[DetailedLink] = {
     rule.operator match {
       case Some(op) =>
         val confidence = evaluateOperator(op, entities, limit)
@@ -42,6 +43,19 @@ object DetailedEvaluator {
           Some(new DetailedLink(entities.source.uri, entities.target.uri, Some(entities), Some(SimpleConfidence(Some(-1.0)))))
         else
           None
+    }
+  }
+
+  /**
+    * Evaluates a linkage rule.
+    */
+  def apply(rule: LinkageRule, entities: DPair[Entity]): DetailedLink = {
+    rule.operator match {
+      case Some(op) =>
+        val confidence = evaluateOperator(op, entities, -1.0)
+        new DetailedLink(entities.source.uri, entities.target.uri, Some(entities), Some(confidence))
+      case None =>
+        new DetailedLink(entities.source.uri, entities.target.uri, Some(entities), Some(SimpleConfidence(Some(-1.0))))
     }
   }
 

@@ -30,6 +30,8 @@ class Link(source: String,
            target: String,
            val confidence: Option[Double] = None,
            val entities: Option[DPair[Entity]] = None) extends DPair[String](source, target) {
+  // FIXME: Link object needs 72 bytes of memory with entities being None and the confidence is defined.
+  //        In use cases where no entities are needed and a confidence is always set, the memory footprint could about be halved.
 
   def this(link: Link) = this(link.source, link.target, link.confidence, link.entities)
 
