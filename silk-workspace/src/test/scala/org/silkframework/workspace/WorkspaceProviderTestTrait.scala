@@ -85,7 +85,8 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
   val datasetUpdated = PlainTask(DATASET_ID, DatasetSpec(MockDataset("updated"), uriProperty = Some("uri")), metaData = MetaData(DATASET_ID))
 
-  val linkSpec = LinkSpec(rule = rule, dataSelections = DPair(DatasetSelection(DUMMY_DATASET, ""), DatasetSelection(DUMMY_DATASET, "")))
+  val linkSpec = LinkSpec(rule = rule, dataSelections = DPair(DatasetSelection(DUMMY_DATASET, ""), DatasetSelection(DUMMY_DATASET, "")),
+    linkLimit = LinkSpec.DEFAULT_LINK_LIMIT + 1, matchingExecutionTimeout = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS + 1)
 
   val linkTask = PlainTask(LINKING_TASK_ID, linkSpec, metaData)
 

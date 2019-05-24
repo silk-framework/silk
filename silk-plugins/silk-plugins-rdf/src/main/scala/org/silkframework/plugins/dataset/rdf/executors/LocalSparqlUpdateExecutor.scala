@@ -52,7 +52,7 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
       }
     }
 
-    Some(SparqlUpdateEntityTable(traversable, task))
+    Some(new SparqlUpdateEntityTable(traversable, task))
   }
 
   // Check that expected schema is subset of input schema

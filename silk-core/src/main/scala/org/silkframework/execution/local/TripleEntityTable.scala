@@ -3,12 +3,17 @@ package org.silkframework.execution.local
 import org.silkframework.config.{SilkVocab, Task, TaskSpec}
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
+import org.silkframework.execution.InterruptibleTraversable
 import org.silkframework.util.Uri
 
 /**
   * Holds RDF triples.
   */
-case class TripleEntityTable(entities: Traversable[Entity], task: Task[TaskSpec]) extends LocalEntities {
+class TripleEntityTable(tripleEntities: Traversable[Entity], val task: Task[TaskSpec]) extends LocalEntities {
+
+  override def entities: Traversable[Entity] = {
+    new InterruptibleTraversable(tripleEntities)
+  }
 
   override def entitySchema: EntitySchema = TripleEntityTable.schema
 }
