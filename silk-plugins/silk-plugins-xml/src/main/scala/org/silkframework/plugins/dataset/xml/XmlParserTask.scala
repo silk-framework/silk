@@ -5,9 +5,6 @@ import org.silkframework.entity.{Path, EntitySchema}
 import org.silkframework.runtime.plugin.{Plugin, Param}
 import org.silkframework.util.Uri
 
-/**
-  * Created on 8/22/16.
-  */
 @Plugin(
   id = "XmlParserOperator",
   label = "XML Parser Operator",
