@@ -11,7 +11,7 @@ import org.silkframework.util.Uri
   description = "Takes exactly one input and reads either the defined inputPath or the first value of the first entity as " +
       "a JSON document. Then executes incoming requests as if this were a JSON dataset, e.g. form a transformation task."
 )
-case class JsonParserTask(@Param("The Silk path expression of the input entity that contains the XML document. If " +
+case class JsonParserTask(@Param("The Silk path expression of the input entity that contains the JSON document. If " +
     "not set, the value of the first defined property will be taken.")
                           inputPath: String = "",
                           @Param("The path to the elements to be read, starting from the root element, " +
