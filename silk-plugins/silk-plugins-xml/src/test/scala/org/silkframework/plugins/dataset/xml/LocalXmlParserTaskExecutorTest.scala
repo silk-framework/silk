@@ -2,15 +2,12 @@ package org.silkframework.plugins.dataset.xml
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.PlainTask
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema, Path}
 import org.silkframework.execution.ExecutorRegistry
-import org.silkframework.execution.local.{GenericEntityTable, LocalExecution}
+import org.silkframework.execution.local.{GenericEntityTable, LocalExecution, MultiEntityTable}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Identifier, Uri}
 
-/**
-  * Created on 8/22/16.
-  */
 class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with ExecutorRegistry {
   implicit val userContext: UserContext = UserContext.Empty
 
@@ -19,8 +16,6 @@ class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with Exe
   val localExecutionContext = LocalExecution(false)
   val exec = LocalXmlParserTaskExecutor()
   val task = XmlParserTask(
-    inputPath = "",
-    basePath = "",
     uriSuffixPattern = "/someSuffix"
   )
   val inputEntitySchema = EntitySchema(Uri("http://type"), IndexedSeq(Path("http://prop1").asStringTypedPath, Path("http://prop2").asStringTypedPath))
@@ -59,6 +54,20 @@ class LocalXmlParserTaskExecutorTest extends FlatSpec with MustMatchers with Exe
     val entities = result.get.entities
     entities.size mustBe 1
     entities.head.values mustBe IndexedSeq(Seq("some value2"))
+  }
+
+  it should "support full dataset execution on the parsed XML" in {
+    val outputSchema = EntitySchema(Uri(""), IndexedSeq(Path("a").asStringTypedPath))
+    val result = exec.execute(PlainTask(Identifier("id"), task), inputs,
+      outputSchemaOpt = Some(new MultiEntitySchema(outputSchema, IndexedSeq(outputSchema))),
+      execution = LocalExecution(false)
+    )
+    result mustBe defined
+    result.get mustBe a[MultiEntityTable]
+    val multiEntityTable = result.get.asInstanceOf[MultiEntityTable]
+    multiEntityTable.entities.map(_.values.flatten.head) mustBe Seq("some value")
+    multiEntityTable.subTables.size mustBe 1
+    multiEntityTable.subTables.head.entities.map(_.values.flatten.head) mustBe Seq("some value")
   }
 
   it should "load from the registry" in {

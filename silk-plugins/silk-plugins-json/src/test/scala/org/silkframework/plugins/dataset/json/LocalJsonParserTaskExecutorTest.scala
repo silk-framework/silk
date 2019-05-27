@@ -3,13 +3,11 @@ package org.silkframework.plugins.dataset.json
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.PlainTask
-import org.silkframework.dataset.DatasetSpec
 import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema, Path}
 import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.execution.local.{GenericEntityTable, LocalDatasetExecutor, LocalExecution, MultiEntityTable}
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.InMemoryResourceManager
 
 class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with MockitoSugar with TestUserContextTrait with ExecutorRegistry {
   behavior of "Local JSON Parser Task Executor"
