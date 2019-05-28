@@ -29,9 +29,6 @@ lazy val commonSettings = Seq(
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports"),
 
   dependencyOverrides ++= Set(
-    // This overrides version 1.9.36 of async-http-client in Play 2.4.8, which has a bug. See Ticket #12089, TODO: Remove after next Play update
-    "com.ning" % "async-http-client" % "1.9.39",
-    "com.ning" % "async-http-client" % "1.9.39" % "test",
     "com.google.guava" % "guava" % "18.0",
     "com.google.inject" % "guice" % "4.0",
     "org.apache.thrift" % "libthrift" % "0.9.3",
