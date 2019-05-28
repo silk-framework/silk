@@ -1,8 +1,9 @@
 package org.silkframework.plugins.dataset.xml
 
-import org.silkframework.config.Task
+import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.dataset.DatasetSpec
 import org.silkframework.entity.EntitySchema
-import org.silkframework.execution.{ExecutionReport, TaskException}
+import org.silkframework.execution.{ExecutionReport, ExecutorRegistry, TaskException}
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
@@ -22,7 +23,7 @@ case class LocalXmlParserTaskExecutor() extends LocalExecutor[XmlParserTask] {
     if (inputs.size != 1) {
       throw TaskException("XmlParserTask takes exactly one input!")
     }
-    outputSchemaOpt map { os =>
+    outputSchemaOpt flatMap { outputSchema =>
       val entityTable = inputs.head
       val entities = entityTable.entities
 
@@ -42,8 +43,8 @@ case class LocalXmlParserTaskExecutor() extends LocalExecutor[XmlParserTask] {
                 val resource = InMemoryResourceManager().get("temp")
                 resource.writeBytes(xmlValue.getBytes)
                 val dataset = XmlDataset(resource, spec.basePath, entity.uri.toString + spec.uriSuffixPattern, streaming = false)
-                val entities = dataset.source.retrieve(os)
-                GenericEntityTable(entities, os, task)
+                ExecutorRegistry.execute(PlainTask(task.id, DatasetSpec(dataset)),
+                  Seq.empty, Some(outputSchema), LocalExecution(useLocalInternalDatasets = false))
               case None =>
                 throw TaskException("No value found for input path!")
             }

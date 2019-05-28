@@ -80,7 +80,7 @@ object BitsetIndex {
     val array = new Array[Long](Size)
 
     for (i <- index) {
-      val ci = i % (Size * 64)
+      val ci = math.abs(i % (Size * 64))
 
       array(ci >> 6) |= (1L << ci)
     }

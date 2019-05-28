@@ -29,7 +29,7 @@ class TransformedEntities(taskLabel: String,
 
   private var errorFlag = false
 
-  override def foreach[U](f: (Entity) => U): Unit = {
+  override def foreach[U](f: Entity => U): Unit = {
     // For each schema path, collect all rules that map to it
     val rulesPerPath =
       for(path <- outputSchema.typedPaths) yield {
