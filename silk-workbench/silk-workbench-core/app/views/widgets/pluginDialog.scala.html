@@ -69,6 +69,7 @@
     function addResourceAutocomplete(index, input) {
       var originalName = $(input).attr("value");
       $(input).autocomplete({
+        appendTo: "#plugintabs",
         source: function( request, response ) {
           const requestSearchTerm = request.term.toLowerCase();
           var searchTerm = requestSearchTerm;
@@ -101,6 +102,7 @@
                   value: originalName
                 });
               }
+
               response(data);
             });
         },
