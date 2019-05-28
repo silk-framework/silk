@@ -45,7 +45,9 @@ export default class ExecutionReport extends React.Component {
         </tr>
     );
     return <Card className="silk-report-card" fullWidth>
-             <div className="mdl-card__title">
+             <CardTitle>
+                 Execution Report
+              </CardTitle>
                <h2 className="mdl-card__title-text">Execution Report</h2>
              </div>
              <table className="silk-report-table">
