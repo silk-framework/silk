@@ -16,14 +16,15 @@ export default class ExecutionReport extends React.Component {
     this.state = {
       currentRuleId: null
     };
+  }
 
+  componentDidMount() {
     // MappingsTree uses the message bus, so we need to set required Silk properties
     hierarchicalMappingChannel.subject('setSilkDetails').onNext({
       baseUrl: this.props.baseUrl,
       project: this.props.project,
       transformTask: this.props.task
     });
-
     hierarchicalMappingChannel.subject('ruleId.change').subscribe(({newRuleId, parent})=> {
       this.setState({ currentRuleId: newRuleId });
     });
