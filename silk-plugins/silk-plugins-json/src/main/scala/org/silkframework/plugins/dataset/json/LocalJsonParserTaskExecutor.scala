@@ -1,9 +1,11 @@
 package org.silkframework.plugins.dataset.json
 
-import org.silkframework.config.Task
+import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.dataset.DatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.EntitySchema
-import org.silkframework.execution.{ExecutionReport, TaskException}
-import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
+import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
+import org.silkframework.execution.{ExecutionReport, ExecutorRegistry, TaskException}
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 /**
@@ -21,7 +23,7 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
     if (inputs.size != 1) {
       throw TaskException("JsonParserTask takes exactly one input!")
     }
-    outputSchemaOpt map { os =>
+    outputSchemaOpt flatMap { outputSchema =>
       val entityTable = inputs.head
       val entities = entityTable.entities
 
@@ -41,8 +43,8 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
                 val resource = InMemoryResourceManager().get("temp")
                 resource.writeBytes(jsonInputString.getBytes)
                 val dataset = JsonDataset(resource, spec.basePath, entity.uri.toString + spec.uriSuffixPattern)
-                val entities = dataset.source.retrieve(os)
-                GenericEntityTable(entities, os, task)
+                ExecutorRegistry.execute(PlainTask(task.id, DatasetSpec(dataset)),
+                  Seq.empty, Some(outputSchema), LocalExecution(useLocalInternalDatasets = false))
               case None =>
                 throw TaskException("No value found for input path!")
             }
