@@ -25,6 +25,10 @@ class TransformedEntities(entities: Traversable[Entity],
 
   private var errorFlag = false
 
+  private var lastLog = 0L
+
+  final val timeBetweenLogsInMs = 1000
+
   override def foreach[U](f: Entity => U): Unit = {
     // For each schema path, collect all rules that map to it
     val rulesPerPath =
@@ -62,10 +66,7 @@ class TransformedEntities(entities: Traversable[Entity],
         f(Entity(uri, values, outputSchema))
 
         count += 1
-        if (count % 1000 == 0) {
-          context.value.update(report.build())
-          context.status.updateMessage(s"Executing ($count Entities)")
-        }
+        logEntityCount(count)
       }
 
       report.incrementEntityCounter()
@@ -75,6 +76,14 @@ class TransformedEntities(entities: Traversable[Entity],
 
     }
     context.value() = report.build()
+  }
+
+  private def logEntityCount(count: Int): Unit = {
+    if (count % 1000 == 0 && (System.currentTimeMillis() - lastLog) > timeBetweenLogsInMs) {
+      context.value.update(report.build())
+      context.status.updateMessage(s"Executing ($count Entities)")
+      lastLog = System.currentTimeMillis()
+    }
   }
 
   private def evaluateRule(entity: Entity, rule: TransformRule): Seq[String] = {

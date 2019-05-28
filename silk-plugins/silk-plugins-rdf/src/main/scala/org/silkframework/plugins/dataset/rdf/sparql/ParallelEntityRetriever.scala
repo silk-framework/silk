@@ -118,7 +118,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
   }
 
   private class PathRetriever(entityUris: Seq[Uri], entityDesc: SparqlEntitySchema, path: Path, limit: Option[Int])
-                             (implicit userContext: UserContext)extends Thread {
+                             (implicit userContext: UserContext) extends Thread {
     private val queue = new ConcurrentLinkedQueue[PathValues]()
 
     @volatile private var exception: Throwable = null
