@@ -6,8 +6,7 @@ import config.WorkbenchConfig.Tabs
 import org.silkframework.buildInfo.BuildInfo
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.resource._
-import play.api.Play
-import play.api.Play.current
+import play.api.Configuration
 
 import scala.util.{Failure, Success, Try}
 
@@ -48,23 +47,23 @@ object WorkbenchConfig {
    * Retrieves the Workbench configuration.
    */
   lazy val get = {
-    val config = Play.configuration
+    val config = Configuration(DefaultConfig.instance())
     val resourceLoader = getResourceLoader
 
     WorkbenchConfig(
-      title = config.getString("workbench.title").getOrElse("Silk Workbench"),
+      title = config.getOptional[String]("workbench.title").getOrElse("Silk Workbench"),
       version = version,
-      showHeader = config.getBoolean("workbench.showHeader").getOrElse(true),
-      logo = resourceLoader.get(config.getString("workbench.logo").getOrElse("logo.png")),
-      welcome = resourceLoader.get(config.getString("workbench.welcome").getOrElse("welcome.html")),
-      about = resourceLoader.get(config.getString("workbench.about").getOrElse("about.html")),
-      mdlStyle = config.getString("workbench.mdlStyle").map(r=>resourceLoader.get(r)),
+      showHeader = config.getOptional[Boolean]("workbench.showHeader").getOrElse(true),
+      logo = resourceLoader.get(config.getOptional[String]("workbench.logo").getOrElse("logo.png")),
+      welcome = resourceLoader.get(config.getOptional[String]("workbench.welcome").getOrElse("welcome.html")),
+      about = resourceLoader.get(config.getOptional[String]("workbench.about").getOrElse("about.html")),
+      mdlStyle = config.getOptional[String]("workbench.mdlStyle").map(r=>resourceLoader.get(r)),
       tabs = Tabs(
-               config.getBoolean("workbench.tabs.editor").getOrElse(true),
-               config.getBoolean("workbench.tabs.generateLinks").getOrElse(true),
-               config.getBoolean("workbench.tabs.learn").getOrElse(true),
-               config.getBoolean("workbench.tabs.referenceLinks").getOrElse(true),
-               config.getBoolean("workbench.tabs.status").getOrElse(true)
+               config.getOptional[Boolean]("workbench.tabs.editor").getOrElse(true),
+               config.getOptional[Boolean]("workbench.tabs.generateLinks").getOrElse(true),
+               config.getOptional[Boolean]("workbench.tabs.learn").getOrElse(true),
+               config.getOptional[Boolean]("workbench.tabs.referenceLinks").getOrElse(true),
+               config.getOptional[Boolean]("workbench.tabs.status").getOrElse(true)
              ),
       loggedOut = resourceLoader.get("loggedOut.html")
     )

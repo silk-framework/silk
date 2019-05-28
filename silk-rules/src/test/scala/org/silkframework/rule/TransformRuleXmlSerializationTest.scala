@@ -1,12 +1,12 @@
 package org.silkframework.rule
 
-import org.scalatest.{FlatSpec, ShouldMatchers}
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.entity.{Path, StringValueType}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import TransformRule.TransformRuleFormat
 import org.silkframework.config.Prefixes
 
-class TransformRuleXmlSerializationTest extends FlatSpec with ShouldMatchers {
+class TransformRuleXmlSerializationTest extends FlatSpec with Matchers {
 
   behavior of "TransformRule.XmlFormat"
 

@@ -1,8 +1,7 @@
 package controllers.core.util
 
 import org.silkframework.runtime.validation.ValidationException
-import play.api.data.validation.ValidationError
-import play.api.libs.json.{JsError, JsPath, Json, Reads}
+import play.api.libs.json.{JsPath, Json, JsonValidationError, Reads}
 
 /**
   * Some utility methods to work with (Play) Json.
@@ -29,7 +28,7 @@ object JsonUtils {
     )
   }
 
-  def errorsToString(errors: Seq[(JsPath, Seq[ValidationError])]): String = {
+  def errorsToString(errors: Seq[(JsPath, Seq[JsonValidationError])]): String = {
     val errorStrings = errors map { case (path, validationErrors) =>
         "JSON Path \"" + path.toJsonString + "\" with error(s): " + validationErrors.map('"' + _.message + '"').mkString(", ")
     }

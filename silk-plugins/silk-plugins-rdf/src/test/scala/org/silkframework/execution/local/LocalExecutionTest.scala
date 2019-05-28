@@ -1,12 +1,12 @@
 package org.silkframework.execution.local
 
-import org.scalatest.{FlatSpec, ShouldMatchers}
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.util.InMemoryWorkspaceTestTrait
 
 /**
   * Created on 9/2/16.
   */
-class LocalExecutionTest extends FlatSpec with ShouldMatchers with InMemoryWorkspaceTestTrait {
+class LocalExecutionTest extends FlatSpec with Matchers with InMemoryWorkspaceTestTrait {
   behavior of "Local Execution"
 
   private val ID: String = "id"

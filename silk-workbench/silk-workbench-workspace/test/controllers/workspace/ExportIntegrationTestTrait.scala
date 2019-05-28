@@ -5,7 +5,7 @@ import java.util.UUID
 import java.util.zip.ZipInputStream
 
 import helper.IntegrationTestTrait
-import org.scalatest.{MustMatchers, Suite}
+import org.scalatest.{MustMatchers, TestSuite}
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
@@ -24,9 +24,11 @@ trait ExportIntegrationTestTrait
     extends IntegrationTestTrait
         with SingleProjectWorkspaceProviderTestTrait
         with MustMatchers {
-  this: Suite =>
+  this: TestSuite =>
 
   override def projectPathInClasspath: String = "controllers/workspace/miniProject.zip"
+
+  protected override def routes = Some(classOf[test.Routes])
 
   override def workspaceProvider: String = "mockableInMemoryWorkspace"
 
@@ -35,8 +37,6 @@ trait ExportIntegrationTestTrait
   private lazy val provider: WorkspaceProvider = workspace.provider
 
   private def workspaceId: UUID = provider.asInstanceOf[MockableWorkspaceProvider].id
-
-  override def routes: Option[String] = Some("test.Routes")
 
   protected def checkZipEntries(responseBody: Array[Byte], expectedFiles: Seq[String]): Unit = {
     val entries = zipEntries(responseBody)

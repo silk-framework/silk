@@ -4,7 +4,6 @@ import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import play.api.libs.json._
-import play.api.libs.ws.WS
 
 class EvaluateLinkingTest extends FlatSpec with IntegrationTestTrait with SingleProjectWorkspaceProviderTestTrait with MustMatchers {
 
@@ -14,7 +13,7 @@ class EvaluateLinkingTest extends FlatSpec with IntegrationTestTrait with Single
 
   def linkingTaskId: String = "movies"
 
-  override def routes: Option[String] = Some("test.Routes")
+  override def routes = Some(classOf[test.Routes])
 
   override def workspaceProvider: String = "inMemory"
 
@@ -24,8 +23,8 @@ class EvaluateLinkingTest extends FlatSpec with IntegrationTestTrait with Single
   }
 
   ignore should "return the generated links as JSON" in {
-    val response = WS.url(s"$baseUrl/workspace/projects/$projectId/tasks/$linkingTaskId/activities/EvaluateLinking/value")
-                     .withHeaders("Accept" -> "application/json")
+    val response = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$linkingTaskId/activities/EvaluateLinking/value")
+                     .addHttpHeaders("Accept" -> "application/json")
                      .get()
     val linkingResult = checkResponse(response).json
 

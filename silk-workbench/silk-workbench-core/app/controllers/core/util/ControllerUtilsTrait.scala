@@ -4,7 +4,7 @@ import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsError, JsValue, Json, Reads}
-import play.api.mvc.{Controller, Request, Result}
+import play.api.mvc.{BaseController, Request, Result}
 
 import scala.reflect.ClassTag
 
@@ -12,7 +12,7 @@ import scala.reflect.ClassTag
   * Utility methods useful in Controllers.
   */
 trait ControllerUtilsTrait {
-  this: Controller =>
+  this: BaseController =>
 
   def validateJson[T](body: T => Result)
                      (implicit request: Request[JsValue],

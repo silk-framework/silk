@@ -2,9 +2,9 @@ package org.silkframework.runtime.resource
 
 import java.util.zip.ZipFile
 
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, ShouldMatchers}
+import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 
-class ZipResourceLoaderTest extends FlatSpec with ShouldMatchers with BeforeAndAfterAll {
+class ZipResourceLoaderTest extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   behavior of "ZipResourceLoader"
 

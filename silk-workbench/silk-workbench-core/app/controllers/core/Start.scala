@@ -1,10 +1,11 @@
 package controllers.core
 
 import config.WorkbenchConfig
-import play.api.mvc.{Action, AnyContent, Controller}
+import javax.inject.Inject
+import play.api.mvc.{InjectedController, Action, AnyContent, ControllerComponents}
 import play.twirl.api.Html
 
-class Start extends Controller {
+class Start @Inject() () extends InjectedController {
 
   def index: Action[AnyContent] = RequestUserContextAction { implicit request =>implicit userContext =>
     val welcome = Html(WorkbenchConfig.get.welcome.loadAsString)

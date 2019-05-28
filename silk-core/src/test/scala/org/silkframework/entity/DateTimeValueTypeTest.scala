@@ -1,8 +1,8 @@
 package org.silkframework.entity
 
-import org.scalatest.{FlatSpec, ShouldMatchers}
+import org.scalatest.{FlatSpec, Matchers}
 
-class DateTimeValueTypeTest extends FlatSpec with ShouldMatchers {
+class DateTimeValueTypeTest extends FlatSpec with Matchers {
 
   behavior of "DateTimeValue"
 

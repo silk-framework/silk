@@ -1,7 +1,6 @@
 package controllers.workspace
 
 import org.scalatest.FlatSpec
-import play.api.libs.ws.WS
 
 /**
   * Tests the workspace and project export features.
@@ -12,7 +11,7 @@ class XmlWorkspaceExportIntegrationTest extends FlatSpec with ExportIntegrationT
   it should "export project with broken workspace provider" in {
     makeWorkspaceFail()
     val projectExportUri = baseUrl + s"/workspace/projects/$projectId/export/xmlZip"
-    val responseBody = checkResponse(WS.url(projectExportUri).get()).bodyAsBytes
+    val responseBody = checkResponse(client.url(projectExportUri).get()).bodyAsBytes.toArray
     checkZipEntries(responseBody, Seq(
       "singleProject/workflow/Workflow.xml",
       "singleProject/linking/miniLinking/alignment.xml",
@@ -28,7 +27,7 @@ class XmlWorkspaceExportIntegrationTest extends FlatSpec with ExportIntegrationT
   it should "export workspace with broken workspace provider" in {
     makeWorkspaceFail()
     val workspaceExportURI = baseUrl + "/workspace/export/xmlZip"
-    val responseBody = checkResponse(WS.url(workspaceExportURI).get()).bodyAsBytes
+    val responseBody = checkResponse(client.url(workspaceExportURI).get()).bodyAsBytes.toArray
     checkZipEntries(responseBody, Seq(
       "singleProject/workflow/Workflow.xml",
       "singleProject/linking/miniLinking/alignment.xml",

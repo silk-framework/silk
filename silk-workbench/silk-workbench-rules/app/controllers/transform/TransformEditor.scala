@@ -2,6 +2,7 @@ package controllers.transform
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.core.util.ControllerUtilsTrait
+import javax.inject.Inject
 import org.silkframework.entity.Path
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
@@ -11,9 +12,9 @@ import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workbench.Context
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
-import play.api.mvc.{Action, AnyContent, Controller}
+import play.api.mvc.{Action, AnyContent, InjectedController}
 
-class TransformEditor extends Controller with ControllerUtilsTrait {
+class TransformEditor @Inject() () extends InjectedController with ControllerUtilsTrait {
 
   def start(project: String, task: String, rule: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[TransformSpec](project, task, request.path)

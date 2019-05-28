@@ -1,26 +1,29 @@
 package controllers.workspace
 
-import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.core.util.ControllerUtilsTrait
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.SerializationUtils
+import javax.inject.Inject
 import org.silkframework.config.{MetaData, Task, TaskSpec}
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.ResourceBasedDataset
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.FileResource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.JsonSerializers._
-import org.silkframework.workspace.{Project, WorkspaceFactory}
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.ErrorResult
-import play.api.libs.iteratee.Enumerator
+import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{JsBoolean, JsObject, JsValue, Json}
-import play.api.mvc.{Action, AnyContent, BodyParsers, Controller}
+import play.api.mvc._
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.ExecutionContext
 
-class TaskApi extends Controller with ControllerUtilsTrait {
+class TaskApi @Inject() () extends InjectedController with ControllerUtilsTrait {
+
+  implicit private lazy val executionContext: ExecutionContext = controllerComponents.executionContext
 
   def postTask(projectName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
@@ -117,7 +120,7 @@ class TaskApi extends Controller with ControllerUtilsTrait {
   }
 
   def copyTask(projectName: String,
-               taskName: String): Action[JsValue] = RequestUserContextAction(BodyParsers.parse.json) { implicit request => implicit userContext =>
+               taskName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     implicit val jsonReader = Json.reads[CopyTaskRequest]
     implicit val jsonWriter = Json.writes[CopyTaskResponse]
     validateJson[CopyTaskRequest] { copyRequest =>
@@ -142,7 +145,12 @@ class TaskApi extends Controller with ControllerUtilsTrait {
       case Some(outputId) =>
         project.taskOption[GenericDatasetSpec](outputId).map(_.data.plugin) match {
           case Some(ds: ResourceBasedDataset) =>
-            Ok.stream(Enumerator.fromStream(ds.file.inputStream)).withHeaders("Content-Disposition" -> s"attachment; filename=${ds.file.name}")
+            ds.file match {
+              case FileResource(file) =>
+                Ok.sendFile(file)
+              case _ =>
+                ErrorResult(BAD_REQUEST, "Output resource is not a file", s"The specified output dataset '$outputId' is not based on a file resource.")
+            }
           case Some(_) =>
             ErrorResult(BAD_REQUEST, "No resource based output dataset", s"The specified output dataset '$outputId' is not based on a resource.")
           case None =>

@@ -2,7 +2,7 @@ package org.silkframework.workspace
 
 import java.io.{File, FileNotFoundException}
 
-import org.scalatest.{BeforeAndAfterAll, Suite}
+import org.scalatest.{BeforeAndAfterAll, Suite, TestSuite}
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
@@ -12,7 +12,7 @@ import org.silkframework.workspace.resources.FileRepository
 /**
   * Setups a test workspace with an in-memory workspace provider and temporary file based resource repository.
   */
-trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: Suite =>
+trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite =>
   var oldWorkspaceFactory: WorkspaceFactory = _
   private val tmpDir = File.createTempFile("di-resource-repository", "-tmp")
   tmpDir.delete()

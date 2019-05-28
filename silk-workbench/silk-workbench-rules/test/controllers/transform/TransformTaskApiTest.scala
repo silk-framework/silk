@@ -4,7 +4,6 @@ import org.silkframework.entity.UriValueType
 import org.silkframework.rule._
 import org.silkframework.workspace.ProjectTask
 import play.api.libs.json.{JsArray, JsString, Json}
-import play.api.libs.ws.WS
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
@@ -25,14 +24,14 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Add a new empty transform task" in {
-    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task")
+    val request = client.url(s"$baseUrl/transform/tasks/$project/$task")
     val response = request.put(Map("source" -> Seq("dataset")))
     checkResponse(response)
   }
 
   "Check that we can GET the transform task as JSON" in {
-    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task").
-        withHeaders("ACCEPT" -> "application/json")
+    val request = client.url(s"$baseUrl/transform/tasks/$project/$task").
+      addHttpHeaders("ACCEPT" -> "application/json")
     val response = Json.parse(checkResponse(request.get()).body)
     // A label has been generated for this transform
     (response \ "metadata" \ "label").as[String] mustBe "Test Transform"
@@ -42,8 +41,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Check that we can GET the transform task as XML" in {
-    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task").
-        withHeaders("ACCEPT" -> "application/xml")
+    val request = client.url(s"$baseUrl/transform/tasks/$project/$task").
+      addHttpHeaders("ACCEPT" -> "application/xml")
     val response = request.get()
     (XML.loadString(checkResponse(response).body) \ "RootMappingRule" \ "@id").toString mustBe ROOT_RULE_ID
   }
@@ -384,8 +383,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Return 400 if submitted mapping parameters are invalid" in {
-    var request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/root")
-    request = request.withHeaders("Accept" -> "application/json")
+    var request = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/root")
+    request = request.addHttpHeaders("Accept" -> "application/json")
 
     val json =
       """
@@ -407,8 +406,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Return 400 if an invalid rule should be appended" in {
-    var request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules")
-    request = request.withHeaders("Accept" -> "application/json")
+    var request = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules")
+    request = request.addHttpHeaders("Accept" -> "application/json")
 
     val json =
       """
@@ -430,8 +429,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Return 400 if an invalid rule json is provided" in {
-    var request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules")
-    request = request.withHeaders("Accept" -> "application/json")
+    var request = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules")
+    request = request.addHttpHeaders("Accept" -> "application/json")
 
     val json =
       """
@@ -494,16 +493,11 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val originalLabel = originalTransformRule.metaData.label
     val clonedLabel = clonedTransformRule.metaData.label
     clonedLabel mustBe s"Copy of $originalLabel"
-    clonedTransformRule.target mustBe Some(MappingTarget(new TransformTaskApi().ROOT_COPY_TARGET_PROPERTY, UriValueType))
+    clonedTransformRule.target mustBe Some(MappingTarget(TransformTaskApi.ROOT_COPY_TARGET_PROPERTY, UriValueType))
   }
 
   private def as[T](obj: Any): T = {
-    obj match {
-      case t: T =>
-        t
-      case _ =>
-        throw new RuntimeException("Object cannot be cast.")
-    }
+    obj.asInstanceOf[T]
   }
 
   private def rootPropertyRule(ruleId: String): TransformRule = {
@@ -542,14 +536,14 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
   }
 
   "Delete mapping rule" in {
-    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
+    val request = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
     val response = request.delete()
     checkResponse(response)
   }
 
   "Return 404 if a requested rule does not exist" in {
-    var request = WS.url(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
-    request = request.withHeaders("Accept" -> "application/json")
+    var request = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/objectRule")
+    request = request.addHttpHeaders("Accept" -> "application/json")
     val response = Await.result(request.get(), 100.seconds)
     response.status mustBe 404
   }

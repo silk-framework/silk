@@ -3,10 +3,10 @@ resolvers += Resolver.url("plugins", url("https://dl.bintray.com/scf37/sbt-plugi
 resolvers += "Scf37" at "https://dl.bintray.com/scf37/maven/"
 
 // The Play plugin
-addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.4.8")
+addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.23")
 
 // Plugin for generating WAR files.
-addSbtPlugin("com.github.play2war" % "play2-war-plugin" % "1.4-beta1")
+addSbtPlugin("com.github.play2war" % "play2-war-plugin" % "1.4.0")
 
 addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.13.0")
 

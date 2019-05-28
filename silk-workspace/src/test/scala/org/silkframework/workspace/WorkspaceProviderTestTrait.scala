@@ -3,7 +3,7 @@ package org.silkframework.workspace
 import java.time.Instant
 
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.{FlatSpec, ShouldMatchers}
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DatasetSpec, MockDataset}
@@ -19,7 +19,7 @@ import org.silkframework.util.DPair
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 
-trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with MockitoSugar {
+trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSugar {
 
   val PROJECT_NAME = "ProjectName"
   val PROJECT_NAME_OTHER = "ProjectNameOther"

@@ -3,7 +3,6 @@ package controllers.workspace
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.Json
-import play.api.libs.ws.WS
 
 class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
 
@@ -11,7 +10,7 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
 
   override def workspaceProvider: String = "inMemory"
 
-  protected override def routes = Some("test.Routes")
+  protected override def routes = Some(classOf[test.Routes])
 
   "setup" in {
     createProject(project)
@@ -19,7 +18,7 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
 
   "add datasets using XML" in {
     val dataset = "dataset1"
-    var request = WS.url(s"$baseUrl/workspace/projects/$project/datasets/dataset1")
+    var request = client.url(s"$baseUrl/workspace/projects/$project/datasets/dataset1")
     val response = request.put(
       <Dataset id={dataset} type="internal">
         <MetaData>
@@ -35,8 +34,8 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
 
   "add datasets using JSON" in {
     val dataset = "dataset2"
-    var request = WS.url(s"$baseUrl/workspace/projects/$project/datasets/$dataset")
-    request = request.withHeaders("Accept" -> "application/json")
+    var request = client.url(s"$baseUrl/workspace/projects/$project/datasets/$dataset")
+    request = request.addHttpHeaders("Accept" -> "application/json")
     val response = request.put(
       Json.obj(
         "taskType" -> "Dataset",
@@ -61,8 +60,8 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
 
   "get dataset using JSON" in {
     val dataset = "dataset1"
-    var request = WS.url(s"$baseUrl/workspace/projects/$project/datasets/$dataset")
-    request = request.withHeaders("Accept" -> "application/json")
+    var request = client.url(s"$baseUrl/workspace/projects/$project/datasets/$dataset")
+    request = request.addHttpHeaders("Accept" -> "application/json")
     val response = checkResponse(request.get())
     response.json mustBe
       Json.obj(
@@ -87,8 +86,8 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
 
   "get dataset using XML" in {
     val dataset = "dataset2"
-    var request = WS.url(s"$baseUrl/workspace/projects/$project/datasets/$dataset")
-    request = request.withHeaders("Accept" -> "application/xml")
+    var request = client.url(s"$baseUrl/workspace/projects/$project/datasets/$dataset")
+    request = request.addHttpHeaders("Accept" -> "application/xml")
     val response = checkResponse(request.get())
     val xml = response.xml
 

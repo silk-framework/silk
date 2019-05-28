@@ -3,16 +3,16 @@ package controllers.workflow
 import controllers.workflow.WorkflowClient.VariableDatasetPayload
 import controllers.workspace.ActivityClient
 import org.silkframework.util.Identifier
-import play.api.Application
 import play.api.http.Writeable
 import play.api.libs.json.{JsArray, JsObject, JsString, JsValue}
-import play.api.libs.ws.{WS, WSRequest, WSResponse}
+import play.api.libs.ws.{BodyWritable, WSClient, WSRequest, WSResponse}
 
+import scala.collection.AbstractIterable
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.xml.{Elem, Null}
+import scala.xml.{Elem, Equality, Null}
 
-class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identifier)(implicit app: Application) {
+class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identifier)(implicit client: WSClient) {
 
   def executeVariableWorkflowXml(datasetPayloads: Seq[VariableDatasetPayload], blocking: Boolean = true): WSResponse = {
     val requestXML = {
@@ -39,11 +39,11 @@ class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identif
 
   def executeVariableWorkflow[T](requestBody: T,
                                  accept: String = "application/xml",
-                                 blocking: Boolean = true)(implicit wrt: Writeable[T]): WSResponse = {
+                                 blocking: Boolean = true)(implicit wrt: BodyWritable[T]): WSResponse = {
 
     var request: WSRequest = executeOnPayloadUri(projectId, workflowId, blocking)
     if(blocking) {
-      request = request.withHeaders("Accept" -> accept)
+      request = request.addHttpHeaders("Accept" -> accept)
     }
     val response = request.post(requestBody)
     val result = checkResponse(response)
@@ -65,7 +65,7 @@ class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identif
 
   private def executeOnPayloadUri(projectId: String, workflowId: String, blocking: Boolean) = {
     val urlPostfix = if(blocking) "" else "Asynchronous"
-    val request = WS.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId/executeOnPayload$urlPostfix")
+    val request = client.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId/executeOnPayload$urlPostfix")
     request
   }
 

@@ -2,8 +2,6 @@
 
   <property name="elds.home" value="${ELDS_HOME:-${user.home}/.elds}"/>
 
-  <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel"/>
-
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
     <file>${elds.home}/var/log/dataintegration.log</file>
     <encoder>
@@ -13,7 +11,7 @@
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%date %coloredLevel %logger{15} %message%n%xException</pattern>
+      <pattern>%date %highlight(%-5level) %logger{15} %message%n%xException</pattern>
     </encoder>
   </appender>
 

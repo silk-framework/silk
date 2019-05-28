@@ -2,8 +2,11 @@ package controllers.workspace
 
 import java.util.logging.{LogRecord, Logger}
 
+import akka.stream.scaladsl.{Merge, Source}
+import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, Stream, UserContextAction, Widgets}
 import controllers.util.SerializationUtils
+import javax.inject.Inject
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.{Activity, ActivityControl, UserContext, _}
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationException}
@@ -11,13 +14,14 @@ import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
+import play.api.http.ContentTypes
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc._
 
 import scala.language.existentials
 
-class ActivityApi extends Controller {
+class ActivityApi @Inject() () extends InjectedController {
 
   def getProjectActivities(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
@@ -174,7 +178,9 @@ class ActivityApi extends Controller {
            activity <- taskActivities(task)) yield
         Widgets.statusStream(Enumerator(activity.status) andThen Stream.status(activity.control.status), project = project.name, task = task.id, activity = activity.name)
 
-    Ok.chunked(Enumerator.interleave(projectActivityStreams ++ taskActivityStreams))
+    val allSources = projectActivityStreams ++ taskActivityStreams
+
+    Ok.chunked(Source.combine(Source.empty, Source.empty, allSources: _*)(Merge(_))).as(ContentTypes.HTML)
   }
 
   private def activityControl(projectName: String, taskName: String, activityName: String)

@@ -3,6 +3,7 @@ package controllers.transform
 import controllers.core.RequestUserContextAction
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
+import javax.inject.Inject
 import org.silkframework.config.{PlainTask, Prefixes, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpointEntityTable}
@@ -23,7 +24,9 @@ import play.api.mvc._
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
-class PeakTransformApi extends Controller {
+import PeakTransformApi._
+
+class PeakTransformApi @Inject() () extends InjectedController {
 
   implicit private val peakStatusWrites: Writes[PeakStatus] = Json.writes[PeakStatus]
   implicit private val peakResultWrites: Writes[PeakResult] = Json.writes[PeakResult]
@@ -162,6 +165,22 @@ class PeakTransformApi extends Controller {
     }
   }
 
+  private def serializePath(path: Path)
+                           (implicit prefixes: Prefixes): Seq[String] = {
+    path.operators.map { op =>
+      op.serialize
+    }
+  }
+
+  private def projectAndTask(projectName: String, taskName: String)
+                            (implicit userContext: UserContext): (Project, ProjectTask[TransformSpec]) = {
+    getProjectAndTask[TransformSpec](projectName, taskName)
+  }
+
+}
+
+object PeakTransformApi {
+
   /**
     *
     * @param rule            The transformation rule to execute on the example entities.
@@ -198,18 +217,6 @@ class PeakTransformApi extends Controller {
       }
     }
     (tryCounter, errorCounter, errorMessage, resultBuffer)
-  }
-
-  private def serializePath(path: Path)
-                           (implicit prefixes: Prefixes): Seq[String] = {
-    path.operators.map { op =>
-      op.serialize
-    }
-  }
-
-  private def projectAndTask(projectName: String, taskName: String)
-                            (implicit userContext: UserContext): (Project, ProjectTask[TransformSpec]) = {
-    getProjectAndTask[TransformSpec](projectName, taskName)
   }
 
 }
