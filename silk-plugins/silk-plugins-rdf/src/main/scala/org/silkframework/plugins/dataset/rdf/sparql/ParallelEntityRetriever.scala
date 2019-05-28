@@ -14,7 +14,7 @@
 
 package org.silkframework.plugins.dataset.rdf.sparql
 
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.{ConcurrentLinkedQueue, LinkedBlockingQueue, TimeUnit}
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
@@ -119,27 +119,37 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
 
   private class PathRetriever(entityUris: Seq[Uri], entityDesc: SparqlEntitySchema, path: Path, limit: Option[Int])
                              (implicit userContext: UserContext) extends Thread {
-    private val queue = new ConcurrentLinkedQueue[PathValues]()
+    private val queue = new LinkedBlockingQueue[PathValues](maxQueueSize)
 
     @volatile private var exception: Throwable = null
+    private var nextElement: Option[PathValues] = None
 
     def hasNext: Boolean = {
-      //If the queue is empty, wait until an element has been read
-      while (queue.isEmpty && isAlive) {
-        Thread.sleep(100)
+      if(nextElement.isDefined) {
+        moreEntriesAvailable
+      } else {
+        nextElement = Option(queue.take())
+        //Throw exceptions which occurred during querying
+        if (exception != null) throw exception
+        moreEntriesAvailable
       }
+    }
 
-      //Throw exceptions which occurred during querying
-      if (exception != null) throw exception
-
-      !queue.isEmpty
+    private def moreEntriesAvailable: Boolean = nextElement match {
+      case Some(e) => e != EndPathValues
+      case _ => false
     }
 
     def next(): PathValues = {
       //Throw exceptions which occurred during querying
       if (exception != null) throw exception
-
-      queue.remove()
+      nextElement match {
+        case Some(e) if e != EndPathValues=>
+          nextElement = None
+          e
+        case _ =>
+          queue.take()
+      }
     }
 
     override def run() {
@@ -160,6 +170,9 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       endpoint.select(sparqlQuery, limit.getOrElse(Int.MaxValue))
     }
 
+    private val QUEUE_OFFER_TIMEOUT = 3600 // 1 hour, just a high number
+    private def queueElement(pathValues: PathValues): Boolean = queue.offer(pathValues, QUEUE_OFFER_TIMEOUT, TimeUnit.SECONDS)
+
     private def parseResults(sparqlResults: Traversable[Map[String, RdfNode]], fixedSubject: Option[Uri] = None): Unit = {
       var currentSubject: Option[String] = fixedSubject.map(_.uri)
       var currentValues: Seq[String] = Seq.empty
@@ -179,11 +192,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
           if (currentSubject.isEmpty) {
             currentSubject = subject
           } else if (subject.isDefined && subject != currentSubject) {
-            while (queue.size > maxQueueSize && !canceled) {
-              Thread.sleep(100)
-            }
-
-            queue.add(PathValues(currentSubject.get, currentValues))
+            queueElement(PathValues(currentSubject.get, currentValues))
 
             currentSubject = subject
             currentValues = Seq.empty
@@ -198,16 +207,19 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       }
 
       for (s <- currentSubject if sparqlResults.nonEmpty) {
-        queue.add(PathValues(s, currentValues))
+        queueElement(PathValues(s, currentValues))
       }
+      queueElement(EndPathValues)
     }
   }
 
   private case class PathValues(uri: String, values: Seq[String])
+  private val EndPathValues = PathValues("", Seq.empty) // Signals end
 
 }
 
 object ParallelEntityRetriever {
+
   /** Returns a query to access values of a single path of a resource.
     *
     * @param subjectVar  The variable name of the subject
