@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {AffirmativeButton, DismissiveButton, SelectBox, Info, Spinner, Error, Table} from '@eccenca/gui-elements';
+import {Card, CardTitle, CardContent, Table} from '@eccenca/gui-elements';
 import silkStore from "../api/silkStore";
 import MappingsTree from '../HierarchicalMapping/Components/MappingsTree';
 import hierarchicalMappingChannel from "../HierarchicalMapping/store";
@@ -16,15 +16,15 @@ export default class ExecutionReport extends React.Component {
     this.state = {
       currentRuleId: null
     };
-  }
-
-  componentDidMount() {
     // MappingsTree uses the message bus, so we need to set required Silk properties
     hierarchicalMappingChannel.subject('setSilkDetails').onNext({
       baseUrl: this.props.baseUrl,
       project: this.props.project,
       transformTask: this.props.task
     });
+  }
+
+  componentDidMount() {
     hierarchicalMappingChannel.subject('ruleId.change').subscribe(({newRuleId, parent})=> {
       this.setState({ currentRuleId: newRuleId });
     });
@@ -44,20 +44,20 @@ export default class ExecutionReport extends React.Component {
           <td>{v.value}</td>
         </tr>
     );
-    return <Card className="silk-report-card" fullWidth>
+    return <Card className="silk-report-card">
              <CardTitle>
-                 Execution Report
-              </CardTitle>
-               <h2 className="mdl-card__title-text">Execution Report</h2>
-             </div>
-             <table className="silk-report-table">
-               <thead>
-               </thead>
-               <tbody>
-               { summaryRows }
-               </tbody>
-             </table>
-           </div>
+               Execution Report
+             </CardTitle>
+             <CardContent>
+               <table className="silk-report-table">
+                 <thead>
+                 </thead>
+                 <tbody>
+                 { summaryRows }
+                 </tbody>
+               </table>
+             </CardContent>
+           </Card>
   }
 
   renderTransformReport() {
@@ -94,12 +94,12 @@ export default class ExecutionReport extends React.Component {
       title = "This mapping generated  " + ruleResults.errorCount + " validation issues during execution."
     }
     return <div className="ecc-silk-mapping__treenav">
-             <div className="mdl-card mdl-shadow--2dp mdl-card--stretch">
+             <Card className="mdl-card mdl-shadow--2dp mdl-card--stretch">
                <div className="mdl-card__supporting-text">
                  { title }
                </div>
                { ruleResults !== undefined && ruleResults.errorCount > 0 && this.renderRuleErrors(ruleResults) }
-             </div>
+             </Card>
            </div>
   }
 

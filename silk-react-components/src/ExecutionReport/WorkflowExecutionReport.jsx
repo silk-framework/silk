@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {AffirmativeButton, DismissiveButton, SelectBox, Info, Spinner, Error, Table, Icon} from '@eccenca/gui-elements';
+import {Card, CardContent, CardTitle, Icon} from '@eccenca/gui-elements';
 import silkStore from "../api/silkStore";
 import hierarchicalMappingChannel from "../HierarchicalMapping/store";
 import ExecutionReport from "./ExecutionReport";
@@ -39,11 +39,16 @@ export default class WorkflowExecutionReport extends React.Component {
   render() {
     return  <div className="mdl-grid mdl-grid--no-spacing">
               <div className="mdl-cell mdl-cell--2-col">
-                <div className="silk-report-card mdl-card mdl-shadow--2dp mdl-card--stretch">
-                  <ul className="mdl-list">
-                    { Object.entries(this.state.executionReport.taskReports).map(e => this.renderTaskItem(e[0], e[1])) }
-                  </ul>
-                </div>
+                <Card className="silk-report-card">
+                  <CardTitle>
+                    Tasks
+                  </CardTitle>
+                  <CardContent>
+                    <ul className="mdl-list">
+                      { Object.entries(this.state.executionReport.taskReports).map(e => this.renderTaskItem(e[0], e[1])) }
+                    </ul>
+                  </CardContent>
+                </Card>
               </div>
               <div className="mdl-cell mdl-cell--10-col">
                 { this.renderReport(this.state.selectedTask) }
