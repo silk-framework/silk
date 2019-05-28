@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Card, CardTitle, CardContent, Table} from '@eccenca/gui-elements';
+import {Card, CardTitle, CardContent, Table, TableHead, TableBody, TableRow, TableCell} from '@eccenca/gui-elements';
 import silkStore from "../api/silkStore";
 import MappingsTree from '../HierarchicalMapping/Components/MappingsTree';
 import hierarchicalMappingChannel from "../HierarchicalMapping/store";
@@ -104,26 +104,26 @@ export default class ExecutionReport extends React.Component {
   }
 
   renderRuleErrors(ruleResults) {
-    return  <table className="mdl-data-table mdl-js-data-table di-execution-report-table" style={{width: "100%"}}>
-              <thead>
-                <tr>
-                  <th>Entity</th>
-                  <th>Values</th>
-                  <th>Issue</th>
-                </tr>
-              </thead>
-              <tbody>
+    return  <Table className="di-execution-report-table" style={{width: "100%"}}>
+              <TableHead>
+                <TableRow>
+                  <TableCell isHead={true}>Entity</TableCell>
+                  <TableCell isHead={true}>Values</TableCell>
+                  <TableCell isHead={true}>Issue</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
               { ruleResults.sampleErrors.map(this.renderRuleError) }
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
   }
 
   renderRuleError(ruleError) {
-    return <tr key={ruleError.entity}>
-             <td>{ruleError.entity}</td>
-             <td>{ruleError.values.flat().join(', ')}</td>
-             <td>{ruleError.error}</td>
-           </tr>
+    return <TableRow key={ruleError.entity}>
+             <TableCell>{ruleError.entity}</TableCell>
+             <TableCell>{ruleError.values.flat().join(', ')}</TableCell>
+             <TableCell>{ruleError.error}</TableCell>
+           </TableRow>
   }
 }
 
