@@ -24,6 +24,10 @@ const MappingsTree = React.createClass({
 
     // define property types
     propTypes: {
+        // FIXME Instead of injecting baseUrl, project and task, we probably should share the rule tree using the state.
+        baseUrl: React.PropTypes.string,
+        project: React.PropTypes.string,
+        task: React.PropTypes.string,
         // currently selected rule id (tree highlighting)
         currentRuleId: React.PropTypes.string,
         // Show value mappings in the tree
@@ -56,6 +60,17 @@ const MappingsTree = React.createClass({
     },
     componentDidMount() {
         this.loadData();
+    },
+    componentDidUpdate(prevProps) {
+        // If the task changed, we need to reload the data
+        if (this.props.task !== prevProps.task) {
+            hierarchicalMappingChannel.subject('setSilkDetails').onNext({
+                baseUrl: this.props.baseUrl,
+                project: this.props.project,
+                transformTask: this.props.task
+            });
+            this.loadData();
+        }
     },
     expandElement({newRuleId, parentId}) {
         const expanded = this.state.expanded;

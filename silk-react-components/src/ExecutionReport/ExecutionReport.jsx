@@ -17,6 +17,8 @@ export default class ExecutionReport extends React.Component {
       currentRuleId: null
     };
     // MappingsTree uses the message bus, so we need to set required Silk properties
+    // This is in the constructor to make sure it's called before any usage of the bus
+    // FIXME We should get rid of this global state object altogether and use react props/state instead
     hierarchicalMappingChannel.subject('setSilkDetails').onNext({
       baseUrl: this.props.baseUrl,
       project: this.props.project,
@@ -63,7 +65,12 @@ export default class ExecutionReport extends React.Component {
   renderTransformReport() {
     return <div className="mdl-grid mdl-grid--no-spacing">
              <div className="mdl-cell mdl-cell--3-col">
-               <MappingsTree currentRuleId="root" showValueMappings={true} ruleValidation={this.generateIcons()} />
+               <MappingsTree baseUrl={this.props.baseUrl}
+                             project={this.props.project}
+                             task={this.props.task}
+                             currentRuleId="root"
+                             showValueMappings={true}
+                             ruleValidation={this.generateIcons()} />
              </div>
              <div className="mdl-cell mdl-cell--9-col">
                { this.renderRuleReport() }

@@ -218,7 +218,11 @@ const HierarchicalMapping = React.createClass({
     // template rendering
     render() {
         const navigationTree = this.state.showNavigation ? (
-            <MappingsTree currentRuleId={this.state.currentRuleId} />
+            <MappingsTree
+                baseUrl={this.props.baseUrl}
+                project={this.props.project}
+                task={this.props.transformTask}
+                currentRuleId={this.state.currentRuleId} />
         ) : (
             false
         );
