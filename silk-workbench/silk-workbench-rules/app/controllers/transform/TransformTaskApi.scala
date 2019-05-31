@@ -419,7 +419,7 @@ class TransformTaskApi @Inject() () extends InjectedController {
                                dataSource: DataSource,
                                errorEntitySinkOpt: Option[EntitySink])
                               (implicit userContext: UserContext): Unit = {
-    val transform = new ExecuteTransform((_) => dataSource, task.data, (_) => entitySink)
+    val transform = new ExecuteTransform(task.taskLabel(), (_) => dataSource, task.data, (_) => entitySink)
     Activity(transform).startBlocking()
   }
 

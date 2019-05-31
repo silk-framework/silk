@@ -9,7 +9,7 @@ import org.silkframework.util.Identifier
   * A builder for generating transform reports.
   * Not thread safe!
   */
-private class TransformReportBuilder(rules: Seq[TransformRule], previousReport: TransformReport) {
+private class TransformReportBuilder(label: String, rules: Seq[TransformRule], previousReport: TransformReport) {
 
   private var entityCounter = previousReport.entityCounter
 
@@ -45,7 +45,7 @@ private class TransformReportBuilder(rules: Seq[TransformRule], previousReport: 
   }
 
   def build(): TransformReport = {
-    TransformReport(entityCounter, entityErrorCounter, ruleResults)
+    TransformReport(label, entityCounter, entityErrorCounter, ruleResults)
   }
 
 }

@@ -32,7 +32,8 @@ import scala.util.Try
 /**
  * Main task to generate links.
  */
-class GenerateLinks (id: Identifier,
+class GenerateLinks(id: Identifier,
+                    label: String,
                     inputs: DPair[DataSource],
                     linkSpec: LinkSpec,
                     outputs: Seq[LinkSink],
@@ -54,12 +55,12 @@ class GenerateLinks (id: Identifier,
    */
   def warnings: Seq[LogRecord] = warningLog
 
-  override def initialValue = Some(Linking(rule = linkSpec.rule))
+  override def initialValue = Some(Linking(label, rule = linkSpec.rule))
 
   //noinspection ScalaStyle
   override def run(context: ActivityContext[Linking])
                   (implicit userContext: UserContext): Unit = {
-    context.value.update(Linking(rule = linkSpec.rule))
+    context.value.update(Linking(label, rule = linkSpec.rule))
 
     warningLog = CollectLogs() {
       if(RDBEntityIndex.configured() && runtimeConfig.executionBackend == LinkingExecutionBackend.rdb && false) { //FIXME CMEM-1408: Remove false to enable RDB feature
@@ -91,13 +92,12 @@ class GenerateLinks (id: Identifier,
     // Execute matching
     val sourceEqualsTarget = false // FIXME: CMEM-1975: Fix heuristic for this particular matching optimization
     val matcher = context.child(new Matcher(loaders, linkSpec.rule, caches, runtimeConfig, sourceEqualsTarget), 0.95)
-    val updateLinks = (links: Seq[Link]) => context.value.update(Linking(linkSpec.rule, links, LinkingStatistics(entityCount = caches.map(_.size))))
+    val updateLinks = (links: Seq[Link]) => context.value.update(Linking(label, linkSpec.rule, links, LinkingStatistics(entityCount = caches.map(_.size))))
     matcher.value.subscribe(updateLinks)
     children ::= matcher
     matcher.startBlocking()
 
-    val entityCounts = caches.map(_.size)
-    cleanUpCaches(caches)
+      cleanUpCaches(caches)
 
     if(context.status.isCanceling) return
 
@@ -118,7 +118,7 @@ class GenerateLinks (id: Identifier,
       }
       filteredLinks = filteredLinks.take(linkLimit)
     }
-    context.value.update(Linking(linkSpec.rule, filteredLinks, LinkingStatistics(entityCount = entityCounts)))
+    context.value.update(Linking(label, linkSpec.rule, filteredLinks, context.value().statistics))
 
     //Output links
     // TODO dont commit links to context if the task is not configured to hold links

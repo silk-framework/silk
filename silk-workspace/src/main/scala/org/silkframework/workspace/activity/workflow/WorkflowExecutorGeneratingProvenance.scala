@@ -47,7 +47,7 @@ object WorkflowExecutionReportWithProvenance {
   }
 
   val empty = WorkflowExecutionReportWithProvenance(
-    report = WorkflowExecutionReport(),
+    report = WorkflowExecutionReport("empty report"),
     workflowExecutionProvenance = WorkflowExecutionProvenanceData(ActivityExecutionMetaData())
   )
 }

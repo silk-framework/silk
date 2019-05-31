@@ -1,0 +1,51 @@
+
+.silk-report-card {
+  margin: 0.5rem;
+}
+
+.silk-report-table {
+  border: none;
+  float: left;
+  margin: 0.8rem;
+
+  tbody {
+    tr {
+      td {
+        border: none;
+        padding: 0.5rem;
+      }
+    }
+  }
+}
+
+.silk-report-table-bold {
+  font-weight: bold;
+}
+
+.silk-report-list-item {
+  flex-grow: 1;
+  flex-shrink: 1;
+  padding: 0.25rem 0.5rem;
+  @include typo-body-1();
+  cursor: pointer;
+  border: none;
+  text-align: left;
+  background-color: transparent;
+  outline: none;
+
+  &:hover, &:focus {
+    background-color: $button-hover-color;
+  }
+}
+
+.silk-report-list-item-icon-green {
+  color: to_color($palette-green-800);
+}
+
+.silk-report-list-item-icon-red {
+  color: to_color($palette-red-800);
+}
+
+table.di-execution-report-table td {
+  overflow: scroll;
+}

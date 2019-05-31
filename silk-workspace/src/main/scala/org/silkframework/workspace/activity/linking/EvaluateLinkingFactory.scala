@@ -53,7 +53,7 @@ class EvaluateLinkingActivity(task: ProjectTask[LinkSpec], runtimeConfig: Runtim
 
   override def name: String = "EvaluateLinking"
 
-  override def initialValue: Option[Linking] = Some(Linking(task.data.rule))
+  override def initialValue: Option[Linking] = Some(Linking(task.taskLabel(), task.data.rule))
 
   /**
     * Executes this activity.
@@ -71,6 +71,7 @@ class EvaluateLinkingActivity(task: ProjectTask[LinkSpec], runtimeConfig: Runtim
     generateLinks = Some(
       new GenerateLinks(
         task.id,
+        task.taskLabel(),
         inputs = inputs,
         linkSpec = linkSpec,
         outputs = outputs,
