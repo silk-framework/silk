@@ -2,10 +2,11 @@ package controllers.workspace
 
 import java.util.logging.{LogRecord, Logger}
 
+import akka.actor.ActorSystem
+import akka.stream.Materializer
 import akka.stream.scaladsl.{Merge, Source}
-import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, Stream, UserContextAction, Widgets}
-import controllers.util.SerializationUtils
+import controllers.util.{ObservableWebSocket, SerializationUtils}
 import javax.inject.Inject
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.{Activity, ActivityControl, UserContext, _}
@@ -18,10 +19,10 @@ import play.api.http.ContentTypes
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc._
-
+import org.silkframework.serialization.json.ActivitySerializers._
 import scala.language.existentials
 
-class ActivityApi @Inject() () extends InjectedController {
+class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) extends InjectedController {
 
   def getProjectActivities(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
@@ -181,6 +182,19 @@ class ActivityApi @Inject() () extends InjectedController {
     val allSources = projectActivityStreams ++ taskActivityStreams
 
     Ok.chunked(Source.combine(Source.empty, Source.empty, allSources: _*)(Merge(_))).as(ContentTypes.HTML)
+  }
+
+  def activityUpdatesWebSocket(projectName: String,
+                      taskName: String,
+                      activityName: String): WebSocket = {
+
+    implicit val userContext = UserContext.Empty
+
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val task = project.anyTask(taskName)
+    val activity = task.activity(activityName)
+
+    ObservableWebSocket.create(activity.control.status)
   }
 
   private def activityControl(projectName: String, taskName: String, activityName: String)
