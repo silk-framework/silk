@@ -11,7 +11,7 @@
  * Overview page of all activities and their status
  *@
 
-@()(implicit session: play.api.mvc.Session, userContext: UserContext)
+@()(implicit session: play.api.mvc.Session, userContext: UserContext, request: RequestHeader)
 
 @header = {
   <link rel="stylesheet" href="@CoreAssets.at("libs/jstree/dist/themes/default/style.css")" type="text/css" />
@@ -20,11 +20,7 @@
   <script src="@Assets.at("workspace.js")" type="text/javascript"></script>
   <script type="text/javascript">
     $( window ).on("load", function () {
-      $('#workspace_root').jstree()
-      .on('before_open.jstree', function (e, data) {
-        loadCometStream();
-      });
-      setTimeout(function() {loadCometStream();}, 1);
+      $('#workspace_root').jstree();
       // Restore scroll position on reload
       setTimeout(function() {
         const scrollTop = parseInt(sessionStorage.getItem("activityViewScrollPosition"));
@@ -34,11 +30,13 @@
         }
         sessionStorage.removeItem("activityViewScrollPosition");
       }, 1000);
+      // Register to status updates
+      connectWebSocket(
+      '@Html(ActivityApi.activityStatusUpdatesWebsocket("", "", "").webSocketURL())',
+      '@Html(ActivityApi.getActivityStatusUpdates("", "", "").url)',
+      updateStatus
+    )
     });
-
-    function loadCometStream() {
-      $('#statusCometIFrame').html('<iframe src="@ActivityApi.activityUpdates("", "", "").url" style="display:none" frameborder="0" height="0" width="0"></iframe>')
-    }
 
     function updateStatus(status) {
       // Get progress bar node

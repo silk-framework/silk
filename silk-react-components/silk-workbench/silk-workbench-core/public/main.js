@@ -210,3 +210,30 @@ function generateNewIdsForTooltips($parent) {
         }
     });
 }
+
+/**
+ * Connects to a WebSocket on window load and calls a provided function on every update.
+ *
+ * param websocketUrl Address of a WebSocket endpoint that supplies updates via JSON objects.
+ * param pollingUrl Address of a polling endpoint for fallback.
+ * param updateFunc Function to be called on every update. Receives a single argument, which is the received JSON object.
+ */
+function connectWebSocket(websocketUrl, pollingUrl, updateFunc) {
+    const websocket = new WebSocket(websocketUrl);
+    websocket.onmessage = function(evt) { updateFunc(JSON.parse(evt.data)) };
+    websocket.onerror = function(evt) {
+        console.log("Connecting to WebSocket at '" + websocketUrl + "' failed. Falling back to polling...");
+        let lastUpdate = 0;
+        setInterval(function() {
+            let currentTime = new Date().getTime();
+            $.getJSON(pollingUrl + "&timestamp=" + lastUpdate, function(data) {
+                lastUpdate = currentTime;
+                if(Array.isArray(data)) {
+                    data.forEach(updateFunc)
+                } else {
+                    updateFunc(data);
+                }
+            });
+        }, 500);
+    };
+}
