@@ -6,7 +6,7 @@
 @import org.silkframework.workbench.Context
 @import controllers.core.routes.{Assets => CoreAssets}
 
-@(context: Context[TransformSpec])(implicit session: play.api.mvc.Session)
+@(context: Context[TransformSpec])(implicit session: play.api.mvc.Session, request: RequestHeader)
 
 @header = {
   <script src="@CoreAssets.at("libs/silk-react-components/main.js")" type="text/javascript"></script>

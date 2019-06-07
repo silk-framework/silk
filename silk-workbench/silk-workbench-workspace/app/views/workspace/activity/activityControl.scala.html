@@ -3,7 +3,13 @@
 @import controllers.workspace.routes.WorkspaceController
 @import org.silkframework.workspace.activity.WorkspaceActivity
 
-@(project: String, task: Option[String], activity: WorkspaceActivity[_], showProgressBar: Boolean, showStartButton: Boolean, showRestartButton: Boolean, showConfigButton: Boolean)
+@(project: String,
+  task: Option[String],
+  activity: WorkspaceActivity[_],
+  showProgressBar: Boolean,
+  showStartButton: Boolean,
+  showRestartButton: Boolean,
+  showConfigButton: Boolean)(implicit request: RequestHeader)
 
 <div id="@id("progress_")" class="activity-control">
 
@@ -163,14 +169,34 @@
     });
   }
 
+  /**
+   * Connects to a WebSocket on window load and calls a provided function on every update.
+   *
+   * param websocketUrl Address of the WebSocket endpoint
+   * param pollingUrl Address of a polling endpoint for fallback
+   * param updateFunc Function to be called on every update. Receives a single argument, which is the received JSON object.
+   */
+  function connectWebSocket(websocketUrl, pollingUrl, updateFunc) {
+    var websocket = new WebSocket(websocketUrl);
+    websocket.onmessage = function(evt) { updateFunc(JSON.parse(evt.data)) };
+    websocket.onerror = function(evt) {
+      console.log("Connecting to WebSocket at '" + websocketUrl + "' failed. Falling back to polling...")
+      setInterval(function() {
+        $.getJSON(pollingUrl, function(data) {
+          updateFunc(data);
+        });
+      }, 500);
+    };
+  }
+
   $( window ).on("load", function() {
-    setTimeout(function () {
-      $("#activity_control_wrapper").append('<iframe src="@ActivityApi.activityUpdates(project, task.getOrElse(""), activity.name)" style="display:none" frameborder="0" height="0" width="0">');
-    }, 1);
+    connectWebSocket(
+      '@Html(ActivityApi.activityUpdates(project, task.getOrElse(""), activity.name).webSocketURL())',
+      '@Html(ActivityApi.getActivityStatus(project, task.getOrElse(""), activity.name).url)',
+      updateStatus
+    )
   });
 </script>
-
-<div id="activity_control_wrapper" style="display: none"/>
 
 @id(prefix: String) = @{
   prefix + project + "_" + task.getOrElse("") + "_" + helper.urlEncode(activity.name)

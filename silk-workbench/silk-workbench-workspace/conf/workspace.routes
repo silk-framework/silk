@@ -138,7 +138,6 @@ GET           /activities/status                                                
 GET           /activities/recent                                                controllers.workspace.ActivityApi.recentActivities(maxCount: Int ?= 10)
 GET           /activities/log                                                   controllers.workspace.ActivityApi.activityLog()
 GET           /activities/updates                                               controllers.workspace.ActivityApi.activityUpdates(project: String, task: String, activity: String)
-GET           /activities/updatesWebSocket                                      controllers.workspace.ActivityApi.activityUpdatesWebSocket(project: String, task: String, activity: String)
 
 ############################################################################################################################################
 # Assets

@@ -4,22 +4,24 @@ import java.util.logging.{LogRecord, Logger}
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
-import akka.stream.scaladsl.{Merge, Source}
+import akka.stream.scaladsl.{Flow, Merge, Sink, Source}
 import controllers.core.{RequestUserContextAction, Stream, UserContextAction, Widgets}
-import controllers.util.{ObservableWebSocket, SerializationUtils}
+import controllers.util.{AkkaUtils, SerializationUtils}
 import javax.inject.Inject
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.{Activity, ActivityControl, UserContext, _}
+import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationException}
+import org.silkframework.serialization.json.ActivitySerializers.ExtendedStatusJsonFormat
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.http.ContentTypes
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{JsArray, Json}
+import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc._
-import org.silkframework.serialization.json.ActivitySerializers._
+
 import scala.language.existentials
 
 class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) extends InjectedController {
@@ -115,7 +117,8 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
 
   def getActivityStatus(projectName: String, taskName: String, activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     val activity = activityControl(projectName, taskName, activityName)
-    Ok(JsonSerializer.activityStatus(projectName, taskName, activityName, activity.status(), activity.startTime))
+    implicit val writeContext = WriteContext[JsValue]()
+    Ok(new ExtendedStatusJsonFormat(projectName, taskName, activityName, activity.startTime).write(activity.status()))
   }
 
   def getActivityValue(projectName: String,
@@ -152,7 +155,11 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
 
   def activityUpdates(projectName: String,
                       taskName: String,
-                      activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+                      activityName: String): WebSocket = {
+
+    implicit val userContext = UserContext.Empty
+    implicit val writeContext = WriteContext[JsValue]()
+
     val projects =
       if (projectName.nonEmpty) WorkspaceFactory().workspace.project(projectName) :: Nil
       else WorkspaceFactory().workspace.projects
@@ -169,32 +176,26 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
       if (activityName.nonEmpty) task.activity(activityName) :: Nil
       else task.activities
 
-    val projectActivityStreams =
-      for (project <- projects; activity <- projectActivities(project)) yield
-        Widgets.statusStream(Enumerator(activity.status) andThen Stream.status(activity.control.status), project = project.name, task = "", activity = activity.name)
+    val projectActivitySources =
+      for (project <- projects; activity <- projectActivities(project)) yield {
+        implicit val format = new ExtendedStatusJsonFormat(project.name, "", activity.name, activity.startTime)
+        AkkaUtils.createSource(activity.control.status).map(format.write)
+      }
 
-    val taskActivityStreams =
+    val taskActivitySources =
       for (project <- projects;
            task <- tasks(project);
-           activity <- taskActivities(task)) yield
-        Widgets.statusStream(Enumerator(activity.status) andThen Stream.status(activity.control.status), project = project.name, task = task.id, activity = activity.name)
+           activity <- taskActivities(task)) yield {
+        implicit val format = new ExtendedStatusJsonFormat(project.name, task.id, activity.name, activity.startTime)
+        AkkaUtils.createSource(activity.control.status).map(format.write)
+      }
 
-    val allSources = projectActivityStreams ++ taskActivityStreams
+    // Combine all sources into a single flow
+    val allSources = projectActivitySources ++ taskActivitySources
+    val combinedSources = Source.combine(Source.empty, Source.empty, allSources :_*)(Merge(_))
+    val flow = Flow.fromSinkAndSource(Sink.ignore, combinedSources)
 
-    Ok.chunked(Source.combine(Source.empty, Source.empty, allSources: _*)(Merge(_))).as(ContentTypes.HTML)
-  }
-
-  def activityUpdatesWebSocket(projectName: String,
-                      taskName: String,
-                      activityName: String): WebSocket = {
-
-    implicit val userContext = UserContext.Empty
-
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val task = project.anyTask(taskName)
-    val activity = task.activity(activityName)
-
-    ObservableWebSocket.create(activity.control.status)
+    AkkaUtils.createWebSocket(flow)
   }
 
   private def activityControl(projectName: String, taskName: String, activityName: String)

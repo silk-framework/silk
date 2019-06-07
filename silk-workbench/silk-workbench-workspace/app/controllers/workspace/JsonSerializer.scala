@@ -10,7 +10,7 @@ import org.silkframework.runtime.activity.{HasValue, Status, UserContext}
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.WriteContext
-import org.silkframework.serialization.json.ActivitySerializers.StatusJsonFormat
+import org.silkframework.serialization.json.ActivitySerializers.{ExtendedStatusJsonFormat, StatusJsonFormat}
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, WorkspaceFactory}
@@ -131,28 +131,7 @@ object JsonSerializer {
 
   def activityStatus(activity: WorkspaceActivity[_ <: HasValue]): JsValue = {
     implicit val writeContext = WriteContext[JsValue]()
-    val statusJson = StatusJsonFormat.write(activity.status).as[JsObject]
-
-    statusJson +
-    ("project" -> JsString(activity.project.name)) +
-    ("task" -> JsString(activity.taskOption.map(_.id.toString).getOrElse(""))) +
-    ("activity" -> JsString(activity.name)) +
-    ("startTime" -> activity.startTime.map(JsNumber(_)).getOrElse(JsNull))
-  }
-
-  def activityStatus(project: String, task: String, activity: String, status: Status, startTime: Option[Long]): JsValue = {
-    JsObject(
-      ("project" -> JsString(project)) ::
-      ("task" -> JsString(task)) ::
-      ("activity" -> JsString(activity)) ::
-      ("statusName" -> JsString(status.name)) ::
-      ("isRunning" -> JsBoolean(status.isRunning)) ::
-      ("progress" -> status.progress.map(p => JsNumber(p * 100.0)).getOrElse(JsNull)) ::
-      ("message" -> JsString(status.toString)) ::
-      ("failed" -> JsBoolean(status.failed)) ::
-      ("lastUpdateTime" -> JsNumber(status.timestamp)) ::
-      ("startTime" -> startTime.map(JsNumber(_)).getOrElse(JsNull)) :: Nil
-    )
+    new ExtendedStatusJsonFormat(activity).write(activity.status)
   }
 
   def logRecords(records: Seq[LogRecord]) = {

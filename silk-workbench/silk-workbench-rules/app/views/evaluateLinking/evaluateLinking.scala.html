@@ -7,7 +7,7 @@
 @import views.html.workspace.activity.taskActivityControl
 @import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
 
-@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session)
+@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session, request: RequestHeader)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/table.css")" rel="stylesheet" />

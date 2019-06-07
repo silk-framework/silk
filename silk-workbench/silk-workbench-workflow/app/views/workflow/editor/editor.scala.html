@@ -6,7 +6,7 @@
 @import org.silkframework.workbench.Context
 @import org.silkframework.runtime.activity.UserContext
 
-@(context: Context[Workflow])(implicit session: play.api.mvc.Session, userContext: UserContext)
+@(context: Context[Workflow])(implicit session: Session, userContext: UserContext, request: RequestHeader)
 
 @header = {
   <link type="text/css" href="@Assets.at("editor/editor.css")" rel="stylesheet" />
