@@ -4,14 +4,14 @@ import java.util.logging.{LogRecord, Logger}
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
-import akka.stream.scaladsl.{Flow, Merge, Sink, Source}
+import akka.stream.scaladsl.{Merge, Source}
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.{AkkaUtils, SerializationUtils}
 import javax.inject.Inject
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.{Activity, UserContext, _}
 import org.silkframework.runtime.serialization.WriteContext
-import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationException}
 import org.silkframework.serialization.json.ActivitySerializers.ExtendedStatusJsonFormat
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.ErrorResult
@@ -63,7 +63,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
   }
 
   def cancelActivity(projectName: String, taskName: String, activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val activity = singleActivity(projectName, taskName, activityName).control
+    val activity = activityControl(projectName, taskName, activityName)
     activity.cancel()
     Ok
   }
@@ -72,7 +72,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                       taskName: String,
                       activityName: String,
                       blocking: Boolean): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val activity = singleActivity(projectName, taskName, activityName).control
+    val activity = activityControl(projectName, taskName, activityName)
     activity.reset()
     if(blocking) {
       activity.startBlocking()
@@ -114,17 +114,17 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
   }
 
   def getActivityStatus(projectName: String, taskName: String, activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val activity = singleActivity(projectName, taskName, activityName)
+    val activity = activityControl(projectName, taskName, activityName)
     implicit val writeContext = WriteContext[JsValue]()
 
-    Ok(new ExtendedStatusJsonFormat(activity).write(activity.status))
+    Ok(new ExtendedStatusJsonFormat(projectName, taskName, activityName, activity.startTime).write(activity.status()))
   }
 
   def getActivityValue(projectName: String,
                        taskName: String,
                        activityName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext: UserContext =>
     implicit val project: Project = WorkspaceFactory().workspace.project(projectName)
-    val activity = singleActivity(projectName, taskName, activityName).control
+    val activity = activityControl(projectName, taskName, activityName)
     val value = activity.value()
     SerializationUtils.serializeRuntime(value)
   }
@@ -168,9 +168,9 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     )
   }
 
-  def activityStatusUpdatesWebsocket(projectName: String,
-                      taskName: String,
-                      activityName: String): WebSocket = {
+  def activityStatusUpdatesWebSocket(projectName: String,
+                                     taskName: String,
+                                     activityName: String): WebSocket = {
 
     implicit val userContext = UserContext.Empty
     implicit val writeContext = WriteContext[JsValue]()
@@ -190,14 +190,19 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
   /**
     * Retrieves a single workspace activity.
     */
-  private def singleActivity(projectName: String, taskName: String, activityName: String)
-                            (implicit userContext: UserContext): WorkspaceActivity[_] = {
+  private def activityControl(projectName: String, taskName: String, activityName: String)
+                            (implicit userContext: UserContext): ActivityControl[_] = {
     val project = WorkspaceFactory().workspace.project(projectName)
     if (taskName.nonEmpty) {
       val task = project.anyTask(taskName)
-      task.activity(activityName)
+      val activities = task.activities.flatMap(_.allInstances.get(activityName).asInstanceOf[Option[ActivityControl[_]]].toSeq)
+      activities match {
+        case Seq(activity) => activity
+        case Seq() => throw new NotFoundException(s"Activity with id $activityName not found")
+        case _ => throw new ValidationException(s"Multiple activities with id $activityName found")
+      }
     } else {
-      project.activity(activityName)
+      project.activity(activityName).control
     }
   }
 
@@ -250,7 +255,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
   def removeActivityControl(projectName: String,
                             taskName: String,
                             activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val activity = singleActivity(projectName, taskName, activityName).control
+    val activity = activityControl(projectName, taskName, activityName)
     activity.cancel()
     Ok
   }

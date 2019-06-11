@@ -171,7 +171,7 @@
 
   $( window ).on("load", function() {
     connectWebSocket(
-      '@Html(ActivityApi.activityStatusUpdatesWebsocket(project, task.getOrElse(""), activity.name).webSocketURL())',
+      '@Html(ActivityApi.activityStatusUpdatesWebSocket(project, task.getOrElse(""), activity.name).webSocketURL())',
       '@Html(ActivityApi.getActivityStatusUpdates(project, task.getOrElse(""), activity.name).url)',
       updateStatus
     )

@@ -222,7 +222,7 @@ function connectWebSocket(webSocketUrl, pollingUrl, updateFunc) {
     const websocket = new WebSocket(webSocketUrl);
     websocket.onmessage = function(evt) { updateFunc(JSON.parse(evt.data)) };
     websocket.onerror = function(evt) {
-        console.log("Connecting to WebSocket at '" + websocketUrl + "' failed. Falling back to polling...");
+        console.log("Connecting to WebSocket at '" + webSocketUrl + "' failed. Falling back to polling...");
         let lastUpdate = 0;
         setInterval(function() {
             let currentTime = new Date().getTime();
