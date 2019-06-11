@@ -37,7 +37,8 @@ object AkkaUtils {
     Source.fromPublisher(publisher)
   }
 
-  def createWebSocket[T](flow: Flow[JsValue, JsValue, _]): WebSocket = {
+  def createWebSocket[T](source: Source[JsValue, _]): WebSocket = {
+    val flow = Flow.fromSinkAndSource(Sink.ignore, source)
     WebSocket.accept[JsValue, JsValue] { request => flow }
   }
 }

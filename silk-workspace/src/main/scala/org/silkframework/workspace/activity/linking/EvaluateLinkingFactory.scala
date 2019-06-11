@@ -10,7 +10,7 @@ import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 import EvaluateLinkingFactory._
 
 @Plugin(
-  id = "EvaluateLinking",
+  id = EvaluateLinkingFactory.ActivityId,
   label = "Evaluate Linking",
   categories = Array("LinkSpecification"),
   description = "Evaluates the linking task by generating links."
@@ -94,6 +94,8 @@ class EvaluateLinkingActivity(task: ProjectTask[LinkSpec], runtimeConfig: Runtim
 }
 
 object EvaluateLinkingFactory {
+
+  final val ActivityId = "EvaluateLinking"
 
   val DEFAULT_PARTITION_SIZE = 500
 

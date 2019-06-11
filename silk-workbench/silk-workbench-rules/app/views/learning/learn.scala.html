@@ -4,6 +4,9 @@
 @import org.silkframework.rule.LinkSpec
 @import org.silkframework.workbench.Context
 @import views.html.workspace.activity.taskActivityControl
+@import views.html.workspace.activity.autoReload
+@import controllers.linking.routes.Learning
+@import org.silkframework.learning.active.LearningFactory
 
 @(context: Context[LinkSpec])(implicit session: play.api.mvc.Session, request: RequestHeader)
 
@@ -50,7 +53,11 @@
   </div>
 		
   <div class="wrapper">
-    @widgets.autoReload("learn/rule", "learn/ruleStream")
+    @autoReload(
+      context = context,
+      contentPath = Learning.rule(context.project.name, context.task.id).url,
+      activityId = LearningFactory.pluginId
+    )
   </div>
 }
 

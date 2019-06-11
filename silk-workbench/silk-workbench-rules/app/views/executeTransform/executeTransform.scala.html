@@ -5,6 +5,8 @@
 @import controllers.workspace.routes.TaskApi
 @import org.silkframework.workbench.Context
 @import controllers.core.routes.{Assets => CoreAssets}
+@import org.silkframework.workspace.activity.transform.ExecuteTransformFactory
+@import views.html.workspace.activity.autoReload
 
 @(context: Context[TransformSpec])(implicit session: play.api.mvc.Session, request: RequestHeader)
 
@@ -26,9 +28,10 @@
 }
 
 @content = {
-  @widgets.autoReload(
+  @autoReload(
+    context = context,
     contentPath = ExecuteTransformTab.executionReport(context.project.name, context.task.id).url,
-    streamPath = ExecuteTransformTab.updateReportStream(context.project.name, context.task.id).url
+    activityId = ExecuteTransformFactory.pluginId
   )
 }
 

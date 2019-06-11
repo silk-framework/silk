@@ -184,16 +184,14 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
 
     // Combine all sources into a single flow
     val combinedSources = Source.combine(Source.empty, Source.empty, sources :_*)(Merge(_))
-    val flow = Flow.fromSinkAndSource(Sink.ignore, combinedSources)
-
-    AkkaUtils.createWebSocket(flow)
+    AkkaUtils.createWebSocket(combinedSources)
   }
 
   /**
     * Retrieves a single workspace activity.
     */
   private def singleActivity(projectName: String, taskName: String, activityName: String)
-                      (implicit userContext: UserContext): WorkspaceActivity[_] = {
+                            (implicit userContext: UserContext): WorkspaceActivity[_] = {
     val project = WorkspaceFactory().workspace.project(projectName)
     if (taskName.nonEmpty) {
       val task = project.anyTask(taskName)

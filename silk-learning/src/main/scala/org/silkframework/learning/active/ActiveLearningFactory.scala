@@ -8,7 +8,7 @@ import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
 
 @Plugin(
-  id = "ActiveLearning",
+  id = ActiveLearningFactory.pluginId,
   label = "Active Learning",
   categories = Array("LinkSpecification"),
   description = "Executes an active learning iteration."
@@ -22,5 +22,11 @@ case class ActiveLearningFactory() extends TaskActivityFactory[LinkSpec, ActiveL
       config = LearningConfiguration.default
     )
   }
+
+}
+
+object ActiveLearningFactory {
+
+  final val pluginId = "ActiveLearning"
 
 }

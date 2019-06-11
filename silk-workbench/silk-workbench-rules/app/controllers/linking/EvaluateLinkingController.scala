@@ -1,18 +1,21 @@
 package controllers.linking
 
-import controllers.core.{RequestUserContextAction, Stream, UserContextAction, Widgets}
+import akka.stream.Materializer
+import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.util.AkkaUtils
 import javax.inject.Inject
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking.{EvalLink, LinkSorter}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.DetailedEvaluator
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workbench.Context
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
-import play.api.http.ContentTypes
-import play.api.mvc.{Action, AnyContent, InjectedController}
+import play.api.libs.json.Json
+import play.api.mvc.{Action, AnyContent, InjectedController, WebSocket}
 
-class EvaluateLinkingController @Inject() () extends InjectedController {
+class EvaluateLinkingController @Inject() (implicit mat: Materializer) extends InjectedController {
 
   def generateLinks(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
@@ -58,18 +61,14 @@ class EvaluateLinkingController @Inject() () extends InjectedController {
     }
   }
 
-  def linksStream(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  def linksWebsocket(projectName: String, taskName: String): WebSocket = {
+    implicit val userContext = UserContext.Empty
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val stream = Stream.activityValue(task.activity[EvaluateLinkingActivity].control)
-    Ok.chunked(Widgets.autoReload("updateLinks", stream)).as(ContentTypes.HTML)
-  }
+    val activity = task.activity[EvaluateLinkingActivity].control
 
-  def statusStream(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val task = project.task[LinkSpec](taskName)
-    val stream = Stream.status(task.activity[EvaluateLinkingActivity].control.status)
-    Ok.chunked(Widgets.statusStream(stream)).as(ContentTypes.HTML)
+    // Create a source that sends an empty object on every update
+    val source = AkkaUtils.createSource(activity.value).map(_ => Json.obj())
+    AkkaUtils.createWebSocket(source)
   }
-
 }

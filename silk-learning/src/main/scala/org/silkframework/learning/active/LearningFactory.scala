@@ -9,7 +9,7 @@ import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 
 @Plugin(
-  id = "SupervisedLearning",
+  id = LearningFactory.pluginId,
   label = "Supervised Learning",
   categories = Array("LinkSpecification"),
   description = "Executes the supervised learning."
@@ -26,5 +26,11 @@ case class LearningFactory() extends TaskActivityFactory[LinkSpec, LearningActiv
       new LearningActivity(input, LearningConfiguration.default)
     }
   }
+
+}
+
+object LearningFactory {
+
+  final val pluginId = "SupervisedLearning"
 
 }
