@@ -1,5 +1,6 @@
 package controllers.linking
 
+import akka.actor.ActorSystem
 import akka.stream.Materializer
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.AkkaUtils
@@ -15,7 +16,7 @@ import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, InjectedController, WebSocket}
 
-class EvaluateLinkingController @Inject() (implicit mat: Materializer) extends InjectedController {
+class EvaluateLinkingController @Inject() (implicit system: ActorSystem, mat: Materializer) extends InjectedController {
 
   def generateLinks(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
@@ -26,7 +27,7 @@ class EvaluateLinkingController @Inject() (implicit mat: Materializer) extends I
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val linkSorter = LinkSorter.fromId(sorting)
-    val linking = task.activity[EvaluateLinkingActivity].value
+    val linking = task.activity[EvaluateLinkingActivity].value()
     val schemata = task.data.entityDescriptions
 
     // We only show links if entities have been attached to them. We check this by looking at the first link.
@@ -65,7 +66,7 @@ class EvaluateLinkingController @Inject() (implicit mat: Materializer) extends I
     implicit val userContext = UserContext.Empty
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val activity = task.activity[EvaluateLinkingActivity].control
+    val activity = task.activity[EvaluateLinkingActivity]
 
     // Create a source that sends an empty object on every update
     val source = AkkaUtils.createSource(activity.value).map(_ => Json.obj())

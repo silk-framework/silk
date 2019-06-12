@@ -46,7 +46,7 @@ class Learning @Inject() (implicit mat: Materializer) extends InjectedController
 
   def activeLearnDetails(project: String, task: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
-    val activeLearnState = context.task.activity[ActiveLearning].value
+    val activeLearnState = context.task.activity[ActiveLearning].value()
     Ok(views.html.learning.activeLearnDetails(activeLearnState, context.project.config.prefixes))
   }
 
@@ -225,7 +225,7 @@ class Learning @Inject() (implicit mat: Materializer) extends InjectedController
   def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val validLinks = task.activity[ActiveLearning].value.links
+    val validLinks = task.activity[ActiveLearning].value().links
     def refLinks = task.data.referenceLinks
     val linkSorter = LinkSorter.fromId(sorting)
 
@@ -258,12 +258,12 @@ class Learning @Inject() (implicit mat: Materializer) extends InjectedController
     val sortedIndividuals = individuals.sortBy(-_.fitness)
     val pageIndividuals = sortedIndividuals.view(page * pageSize, (page + 1) * pageSize)
 
-    Ok(views.html.learning.populationTable(projectName, taskName, pageIndividuals, task.activity[ReferenceEntitiesCache].value))
+    Ok(views.html.learning.populationTable(projectName, taskName, pageIndividuals, task.activity[ReferenceEntitiesCache].value()))
   }
 
   private def getPopulation(task: ProjectTask[LinkSpec]): Population = {
-    val population1 = task.activity[ActiveLearning].value.population
-    val population2 = task.activity[LearningActivity].value.population
+    val population1 = task.activity[ActiveLearning].value().population
+    val population2 = task.activity[LearningActivity].value().population
     if(population1.isEmpty)
       population2
     else if(population2.isEmpty)

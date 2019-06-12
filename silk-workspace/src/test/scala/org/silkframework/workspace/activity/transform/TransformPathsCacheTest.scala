@@ -16,7 +16,7 @@ class TransformPathsCacheTest extends FlatSpec with SingleProjectWorkspaceProvid
     val task = project.task[TransformSpec]("personJsonTransform")
     val cache = task.activity[TransformPathsCache]
     cache.control.waitUntilFinished()
-    val entitySchema = cache.value.configuredSchema
+    val entitySchema = cache.value().configuredSchema
     for((path, expectedValueType) <- Seq(
       "id" -> StringValueType,
       "name" -> StringValueType,

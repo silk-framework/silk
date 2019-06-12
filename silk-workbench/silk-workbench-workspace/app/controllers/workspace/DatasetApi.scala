@@ -140,7 +140,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
     implicit val prefixes: Prefixes = context.project.config.prefixes
 
-    val typesFull = context.task.activity[TypesCache].value.types
+    val typesFull = context.task.activity[TypesCache].value().types
     val typesResolved = typesFull.map(t => new Uri(t).serialize)
     val filteredTypes = typesResolved.filter(_.contains(search))
 
@@ -150,7 +150,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
   /** Get all types of the dataset */
   def getDatasetTypes(project: String, task: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
-    val types = context.task.activity[TypesCache].value.types
+    val types = context.task.activity[TypesCache].value().types
 
     Ok(JsArray(types.map(JsString)))
   }

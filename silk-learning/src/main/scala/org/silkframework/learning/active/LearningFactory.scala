@@ -20,7 +20,7 @@ case class LearningFactory() extends TaskActivityFactory[LinkSpec, LearningActiv
     Activity.regenerating {
       val input =
         LearningInput(
-          trainingEntities = task.activity[ReferenceEntitiesCache].value,
+          trainingEntities = task.activity[ReferenceEntitiesCache].value(),
           seedLinkageRules = task.data.rule :: Nil
         )
       new LearningActivity(input, LearningConfiguration.default)

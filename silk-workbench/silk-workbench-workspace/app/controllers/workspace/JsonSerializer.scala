@@ -131,7 +131,7 @@ object JsonSerializer {
 
   def activityStatus(activity: WorkspaceActivity[_ <: HasValue]): JsValue = {
     implicit val writeContext = WriteContext[JsValue]()
-    new ExtendedStatusJsonFormat(activity).write(activity.status)
+    new ExtendedStatusJsonFormat(activity).write(activity.status())
   }
 
   def logRecords(records: Seq[LogRecord]) = {

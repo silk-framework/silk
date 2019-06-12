@@ -49,7 +49,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
         project.activity(activityName)
       }
 
-    if (activity.isSingleton && activity.status.isRunning) {
+    if (activity.isSingleton && activity.status().isRunning) {
       ErrorResult(BAD_REQUEST, title = "Cannot start activity", detail = s"Cannot start activity '$activityName'. Already running.")
     } else {
       if (blocking) {
@@ -140,7 +140,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     val allActivities = projectActivities ++ taskActivities
 
     // Filter recent activities
-    val recentActivities = allActivities.sortBy(-_.status.timestamp).take(maxCount)
+    val recentActivities = allActivities.sortBy(-_.status().timestamp).take(maxCount)
 
     // Get all statuses
     val statuses = recentActivities.map(JsonSerializer.activityStatus)
@@ -161,8 +161,8 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
 
     Ok(
       JsArray(
-        for(activity <- activities if activity.status.timestamp >= timestamp) yield {
-          new ExtendedStatusJsonFormat(activity).write(activity.status)
+        for(activity <- activities if activity.status().timestamp >= timestamp) yield {
+          new ExtendedStatusJsonFormat(activity).write(activity.status())
         }
       )
     )
@@ -179,7 +179,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     val sources =
       for(activity <- activities) yield {
         implicit val format = new ExtendedStatusJsonFormat(activity)
-        AkkaUtils.createSource(activity.control.status).map(format.write)
+        AkkaUtils.createSource(activity.status).map(format.write)
       }
 
     // Combine all sources into a single flow
