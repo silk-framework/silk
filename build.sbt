@@ -221,7 +221,10 @@ lazy val reactComponents = (project in file("silk-react-components"))
         }
       }
     },
-    (compile in Compile) := ((compile in Compile) dependsOn buildSilkReact).value,
+    (compile in Compile) := {
+      buildSilkReact.value
+      (compile in Compile).value
+    },
     watchSources ++= { // Watch all files under the silk-react-components/src directory for changes
       val paths = for(path <- Path.allSubpaths(baseDirectory.value / "src")) yield {
         path._1
