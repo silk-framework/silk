@@ -57,7 +57,7 @@ object AkkaUtils {
     // We need to stop sending if the outActor terminates
     context.watch(outActor)
 
-    // Subscribe to observable and push current value
+    // Subscribe to observable
     private val subscriber = (value: T) => { outActor ! value }
     observable.subscribe(subscriber)
     // Push current value

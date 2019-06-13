@@ -1,7 +1,7 @@
 package org.silkframework.runtime.activity
 
 /**
-  * An observable that mirrors the value of an underlying observable
+  * An observable that mirrors the value of an underlying observable.
   */
 class ObservableMirror[T](initialObservable: Observable[T]) extends Observable[T] {
 
