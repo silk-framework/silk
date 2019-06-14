@@ -226,7 +226,8 @@ function connectWebSocket(webSocketUrl, pollingUrl, updateFunc) {
         let lastUpdate = 0;
         setInterval(function() {
             let currentTime = new Date().getTime();
-            $.getJSON(pollingUrl + "&timestamp=" + lastUpdate, function(data) {
+            let timestampedUrl = pollingUrl + (pollingUrl.indexOf('?') >= 0 ? "&" : '?') + lastUpdate;
+            $.getJSON(timestampedUrl, function(data) {
                 lastUpdate = currentTime;
                 if(Array.isArray(data)) {
                     data.forEach(updateFunc)
