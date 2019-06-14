@@ -12,6 +12,8 @@ class ObservableMirror[T](initialObservable: Observable[T]) extends Observable[T
     value => publish(value)
   }
 
+  observable.subscribe(subscriber)
+
   override def isDefined: Boolean = {
     observable.isDefined
   }
