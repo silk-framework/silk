@@ -45,7 +45,7 @@ case class CsvDataset (
 
   override def mergeSchemata: Boolean = false
 
-  override def createSource(resource: Resource): DataSource with TypedPathRetrieveDataSource = {
+  override def createSource(resource: Resource): DataSource = {
     csvSource(resource)
   }
 

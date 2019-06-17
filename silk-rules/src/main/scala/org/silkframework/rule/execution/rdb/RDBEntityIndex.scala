@@ -208,7 +208,7 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
           typedPath,
           throw new RuntimeException("Path profile for typed path " + typedPath.toString + " not found!")
         )
-        pathProfile.update(entity.valueOf(typedPath))
+        pathProfile.update(entity.valueOfTypedPath(typedPath))
       }
     }
     RdbIndexProfile(pathProfiles, indexProfiles)

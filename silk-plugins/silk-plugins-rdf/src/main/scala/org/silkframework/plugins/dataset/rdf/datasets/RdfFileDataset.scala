@@ -99,7 +99,7 @@ case class RdfFileDataset(
 
   override def mergeSchemata: Boolean = true
 
-  override def createSource(resource: Resource): DataSource with TypedPathRetrieveDataSource = new FileSource(resource)
+  override def createSource(resource: Resource): DataSource = new FileSource(resource)
 
   override def linkSink(implicit userContext: UserContext): FormattedLinkSink = new FormattedLinkSink(file, formatter)
 
@@ -109,7 +109,7 @@ case class RdfFileDataset(
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
 
   class FileSource(resource: Resource) extends DataSource with PeakDataSource with Serializable with SamplingDataSource
-    with SchemaExtractionSource with SparqlRestrictionDataSource with TypedPathRetrieveDataSource {
+    with SchemaExtractionSource with SparqlRestrictionDataSource {
 
     // Load dataset
     private var endpoint: JenaEndpoint = _
