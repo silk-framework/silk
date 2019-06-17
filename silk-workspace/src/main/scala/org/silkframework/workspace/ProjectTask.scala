@@ -15,7 +15,6 @@
 package org.silkframework.workspace
 
 import java.time.Instant
-import java.util.concurrent.{ScheduledFuture, TimeUnit}
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
@@ -27,7 +26,6 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
 
 import scala.reflect.ClassTag
-import scala.util.Try
 import scala.util.control.NonFatal
 
 
@@ -59,7 +57,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     implicit val resources: ResourceManager = module.project.resources
     val taskType = data.getClass
     val factories = PluginRegistry.availablePlugins[TaskActivityFactory[TaskType, _ <: HasValue]]
-        .map(_.apply()).filter(_.taskType.isAssignableFrom(taskType))
+                                  .map(_.apply())
+                                  .filter(a => a.taskType.isAssignableFrom(taskType) && a.generateForTask(data))
     var activities = List[TaskActivity[TaskType, _ <: HasValue]]()
     for (factory <- factories) {
       try {

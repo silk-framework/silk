@@ -4,6 +4,8 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 import org.silkframework.runtime.resource.Resource
 
+import scala.reflect.ClassTag
+
 /**
  * A specific dataset.
  */
