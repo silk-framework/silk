@@ -67,7 +67,7 @@ case class Entity private(
     * @return - the new value array
     */
   private def shiftProperties(es: EntitySchema): IndexedSeq[Seq[String]] ={
-    es.typedPaths.map(tp => this.schema.typedPaths.find(p => p.equalsUntyped(tp)) match{  //TODO TypedPath change:
+    es.typedPaths.map(tp => this.schema.typedPaths.find(p => p.equalsUntyped(tp)) match{
       case Some(fp) => this.evaluate(fp)
       case None => Seq()
     })
@@ -116,7 +116,7 @@ case class Entity private(
     */
   @deprecated("Use evaluate(path: TypedPath) instead, since uniqueness of paths are only guaranteed with provided ValueType.", "18.03")
   def evaluate(path: Path): Seq[String] = {
-    valueOfPath(path) //TODO TypedPath change:
+    valueOfPath(path)
   }
 
   /**
@@ -185,7 +185,7 @@ case class Entity private(
     * NOTE: there might be a chance that a given path exists twice with different value types, use [[valueOfTypedPath()]] instead
     * @param path - the property or path
     */
-  def valueOfPath(path: Path): Seq[String] ={ //TODO TypedPath change: new
+  def valueOfPath(path: Path): Seq[String] ={
     if(path.operators.isEmpty) {
       Seq(uri)
     } else {
@@ -211,14 +211,14 @@ case class Entity private(
     * @param property - the property name to query
     * @return
     */
-  def singleValue(property: String)(implicit prefixes: Prefixes = Prefixes.default): Option[String] = valueOfPath(Path.saveApply(property)).headOption //TODO TypedPath change: here we ignore the type
+  def singleValue(property: String)(implicit prefixes: Prefixes = Prefixes.default): Option[String] = valueOfPath(Path.saveApply(property)).headOption
 
   /**
     * returns the first value (of possibly many) for the property of the given name in this entity
     * @param path - the path to query
     * @return
     */
-  def singleValue(path: TypedPath): Option[String] = valueOfTypedPath(path).headOption //TODO TypedPath change: here we do not
+  def singleValue(path: TypedPath): Option[String] = valueOfTypedPath(path).headOption
 
   /**
     * Validates the complete value row against the given types of the schema

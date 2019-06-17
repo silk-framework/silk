@@ -78,7 +78,7 @@ sealed trait TransformRule extends Operator {
     def collectPaths(param: Input): Seq[TypedPath] = param match {
       case p: PathInput if p.path.operators.isEmpty => Seq()
       case PathInput(_, path: TypedPath) => Seq(path)
-      case PathInput(_, path: Path) => Seq(TypedPath(path, UntypedValueType, isAttribute = false)) //TODO TypedPath change: changed to UntypeValueType, else the select on arbitrary typed TypedPaths with StringValueType would fail
+      case PathInput(_, path: Path) => Seq(TypedPath(path, UntypedValueType, isAttribute = false))
       case p: TransformInput => p.inputs.flatMap(collectPaths)
     }
 

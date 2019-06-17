@@ -22,7 +22,7 @@ trait PathsCacheTrait {
       case dataset: DatasetSpec[Dataset] =>
         context.status.update("Retrieving frequent paths", 0.0)
         dataSelection match {
-          case Some(selection) => dataset.plugin.source.retrievePaths(selection.typeUri, Int.MaxValue)  //TODO TypedPath change: formerly converted all to AUtoDetects
+          case Some(selection) => dataset.plugin.source.retrievePaths(selection.typeUri, Int.MaxValue)
           case None => IndexedSeq()
         }
       case task: TaskSpec =>

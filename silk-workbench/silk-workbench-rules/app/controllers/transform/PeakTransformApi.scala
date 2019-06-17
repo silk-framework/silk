@@ -219,7 +219,7 @@ object PeakTransformApi {
     (tryCounter, errorCounter, errorMessage, resultBuffer)
   }
 
-  private def serializePath(path: TypedPath)    //TODO TypedPath change: now param is TypedPath
+  private def serializePath(path: TypedPath)
                            (implicit prefixes: Prefixes): Seq[String] = {
     path.operators.map { op =>
       op.serialize

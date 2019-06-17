@@ -47,7 +47,7 @@ case class TypedPath(ops: List[PathOperator],
     * Additional equals ignoring the ValueType if one of the paths feature an UntypedValueType
     * @param tp - the comparison object
     */
-  def equalsUntyped(tp: TypedPath): Boolean = {//TODO TypedPath change: new
+  def equalsUntyped(tp: TypedPath): Boolean = {
     tp match {
       case tp@TypedPath(_, otherValueType, _) =>
         // if one of the comparison objects are untyped, we ignore the type all together
@@ -59,7 +59,7 @@ case class TypedPath(ops: List[PathOperator],
     }
   }
 
-  override def equals(other: Any): Boolean = {//TODO TypedPath change: new
+  override def equals(other: Any): Boolean = {
     other match {
       case tp@TypedPath(_, otherValueType, _) =>
         valueType == otherValueType &&
@@ -125,7 +125,7 @@ object TypedPath {
     * Empty TypedPath (used as filler or duds)
     * @return
     */
-  def empty: TypedPath = TypedPath(Path.empty, UntypedValueType, isAttribute = false)//TODO TypedPath change:
+  def empty: TypedPath = TypedPath(Path.empty, UntypedValueType, isAttribute = false)
 
   /**
     * Will remove a given subpath prefix from the operator list of a TypedPath

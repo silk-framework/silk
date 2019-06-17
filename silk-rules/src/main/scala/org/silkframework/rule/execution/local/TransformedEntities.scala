@@ -33,7 +33,7 @@ class TransformedEntities(taskLabel: String,
     // For each schema path, collect all rules that map to it
     val rulesPerPath =
       for(path <- outputSchema.typedPaths) yield {
-        propertyRules.filter(_.target.get.asTypedPath() == path)    //TODO TypedPath change: new TypedPath equals!
+        propertyRules.filter(_.target.get.asTypedPath() == path)
       }
 
     var count = 0

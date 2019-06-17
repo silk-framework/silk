@@ -27,7 +27,7 @@ private class TransformReportBuilder(label: String, rules: Seq[TransformRule], p
 
     val updatedRuleResult =
       if(currentRuleResult.sampleErrors.size < maxSampleErrors) {
-        val values = rule.sourcePaths.map(p => entity.evaluate(Path(p.operators)))  //TODO TypedPath change:  why do source paths provide TypedPaths? PAY SPECIAL ATTENTION TO THIS SECTION!
+        val values = rule.sourcePaths.map(p => entity.evaluate(Path(p.operators)))
         currentRuleResult.withError(RuleError(entity.uri, values, ex))
       } else {
         currentRuleResult.withError()

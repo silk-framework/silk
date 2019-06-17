@@ -144,7 +144,6 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     }
   }
 
-  //TODO TypedPath change:  is the difference between String and Uri type so important for Xml?
   it should "retrieve typed paths" in {
     xmlSource("persons.xml", "").retrievePaths("Person").map(tp => tp.toSimplePath.normalizedSerialization -> tp.valueType -> tp.isAttribute) shouldBe IndexedSeq(
       "ID" -> StringValueType -> false,
