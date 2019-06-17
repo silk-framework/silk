@@ -6,6 +6,7 @@ import org.silkframework.entity.Restriction.CustomOperator
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{EntitySchema, Path, TypedPath}
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
+import org.silkframework.entity.{EntitySchema, Path, TypedPath}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.resource.WritableResource

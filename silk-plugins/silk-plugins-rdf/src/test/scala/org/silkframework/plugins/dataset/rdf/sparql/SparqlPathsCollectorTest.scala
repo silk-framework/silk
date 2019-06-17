@@ -20,8 +20,8 @@ import org.apache.jena.query.DatasetFactory
 import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 import org.silkframework.dataset.rdf.SparqlParams
-import org.silkframework.entity._
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
+import org.silkframework.entity._
 import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.runtime.activity.UserContext

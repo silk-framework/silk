@@ -7,9 +7,9 @@ import org.silkframework.config.DefaultConfig
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema, TypedPath}
 import org.silkframework.rule._
+import org.silkframework.rule.execution.rdb.RDBEntityIndex.executeUpdate
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.util.{DPair, Identifier}
-import RDBEntityIndex.{executeUpdate, executeQuery}
 
 /**
   * An entity index based on a relational database that is used to generate linking candidates based on a link specification.
