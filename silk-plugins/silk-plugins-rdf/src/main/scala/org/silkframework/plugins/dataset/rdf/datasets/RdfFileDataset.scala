@@ -1,19 +1,21 @@
 package org.silkframework.plugins.dataset.rdf.datasets
 
+import java.io.FileNotFoundException
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
+import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.dataset.rdf.{LinkFormatter, RdfDataset, SparqlParams}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema, Path, TypedPath}
 import org.silkframework.plugins.dataset.rdf.access.SparqlSource
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
 import org.silkframework.plugins.dataset.rdf.formatters._
-import org.silkframework.plugins.dataset.rdf.sparql.{EntityRetriever, SparqlAggregatePathsCollector, SparqlTypesCollector}
+import org.silkframework.plugins.dataset.rdf.sparql.EntityRetriever
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
-import org.silkframework.runtime.resource.WritableResource
+import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.util.{Identifier, Uri}
 
 @Plugin(
@@ -22,9 +24,9 @@ import org.silkframework.util.{Identifier, Uri}
   description =
 """Dataset which retrieves and writes all entities from/to an RDF file.
 The dataset is loaded in-memory and thus the size is restricted by the available memory.
-Large datasets should be loaded into an external RDF store and retrieved using the Sparql dataset instead.""")
+Large datasets should be loaded into an external RDF store and retrieved using the SPARQL dataset instead.""")
 case class RdfFileDataset(
-  @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
+  @Param("The RDF file. This may also be a zip archive of multiple RDF files.")
   file: WritableResource,
   @Param("""Supported input formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle". Supported output formats are: "N-Triples".""")
   format: String,
@@ -34,12 +36,14 @@ case class RdfFileDataset(
     value = "The maximum size of the RDF file resource for read operations. Since the whole dataset will be kept in-memory, this value should be kept low to guarantee stability.")
   maxReadSize: Long = 10,
   @Param("A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.")
-  entityList: MultilineStringParameter = MultilineStringParameter("")) extends RdfDataset with TripleSinkDataset with ResourceBasedDataset {
+  entityList: MultilineStringParameter = MultilineStringParameter("")) extends RdfDataset with TripleSinkDataset with BulkResourceBasedDataset {
+
+  implicit val userContext: UserContext = UserContext.INTERNAL_USER
 
   /** The RDF format of the given resource. */
-  private val lang = {
+  private def lang = {
     // If the format is not specified explicitly, we try to guess it
-    if(format.isEmpty) {
+    if (format.isEmpty) {
       val guessedLang = RDFLanguages.filenameToLang(file.name)
       require(guessedLang != null, "Cannot guess RDF format from resource name. Please specify it explicitly using the 'format' parameter.")
       guessedLang
@@ -52,33 +56,50 @@ case class RdfFileDataset(
 
   /** Currently RDF is written using custom formatters (instead of using an RDF writer from Jena). */
   private def formatter: LinkFormatter with EntityFormatter = {
-    if(lang == Lang.NTRIPLES) {
+    if (lang == Lang.NTRIPLES) {
       NTriplesLinkFormatter()
     } else {
       throw new IllegalArgumentException(s"Unsupported output format. Currently only N-Triples is supported.")
     }
   }
 
-  private val graphOpt = if(graph.trim.isEmpty) None else Some(graph)
+  private def graphOpt = if (graph.trim.isEmpty) None else Some(graph)
 
   override def sparqlEndpoint: JenaEndpoint = {
+    createSparqlEndpoint(allResources)
+  }
+
+  private def createSparqlEndpoint(resources: Seq[Resource]): JenaEndpoint = {
     // Load data set
     val dataset = DatasetFactory.createTxnMem()
-    if(file.exists) {
-      val inputStream = file.inputStream
-      RDFDataMgr.read(dataset, inputStream, lang)
-      inputStream.close()
+    for(resource <- resources) {
+      if (resource.exists) {
+        val inputStream = resource.inputStream
+        try {
+          RDFDataMgr.read(dataset, inputStream, lang)
+        } finally {
+          inputStream.close()
+        }
+      } else {
+        throw new FileNotFoundException(s"The file ${resource.path} could  note be found or read.")
+      }
     }
 
     // Retrieve model
     val model =
-      if (!graph.trim.isEmpty) { dataset.getNamedModel(graph) }
-      else { dataset.getDefaultModel }
+      if (!graph.trim.isEmpty) {
+        dataset.getNamedModel(graph)
+      }
+      else {
+        dataset.getDefaultModel
+      }
 
     new JenaModelEndpoint(model)
   }
 
-  override def source(implicit userContext: UserContext): FileSource.type = FileSource
+  override def mergeSchemata: Boolean = true
+
+  override def createSource(resource: Resource): DataSource with TypedPathRetrieveDataSource = new FileSource(resource)
 
   override def linkSink(implicit userContext: UserContext): FormattedLinkSink = new FormattedLinkSink(file, formatter)
 
@@ -87,11 +108,11 @@ case class RdfFileDataset(
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
 
-  object FileSource extends DataSource with PeakDataSource with Serializable with SamplingDataSource
-      with SchemaExtractionSource with SparqlRestrictionDataSource {
+  class FileSource(resource: Resource) extends DataSource with PeakDataSource with Serializable with SamplingDataSource
+    with SchemaExtractionSource with SparqlRestrictionDataSource with TypedPathRetrieveDataSource {
 
     // Load dataset
-    private var endpoint: JenaEndpoint = null
+    private var endpoint: JenaEndpoint = _
     private var lastModificationTime: Option[(Long, Int)] = None
 
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
@@ -134,7 +155,7 @@ case class RdfFileDataset(
         } else if (file.size.get > maxReadSize * 1000 * 1000) {
           throw new RuntimeException(s"File size (${file.size.get / 1000000.0} MB) is larger than configured max. read size ($maxReadSize MB).")
         } else {
-          endpoint = sparqlEndpoint
+          endpoint = createSparqlEndpoint(Seq(resource))
           lastModificationTime = modificationTime
         }
       }
@@ -144,7 +165,7 @@ case class RdfFileDataset(
       * The dataset task underlying the Datset this source belongs to
       */
     override def underlyingTask: Task[DatasetSpec[Dataset]] = {
-      PlainTask(Identifier.fromAllowed(RdfFileDataset.this.file.name), DatasetSpec(EmptyDataset))
+      PlainTask(Identifier.fromAllowed(file.name), DatasetSpec(EmptyDataset))
     } //FIXME CMEM 1352 replace with actual task
 
     override def retrievePathsSparqlRestriction(sparqlRestriction: SparqlRestriction,

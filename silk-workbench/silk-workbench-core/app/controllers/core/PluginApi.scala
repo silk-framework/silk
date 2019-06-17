@@ -1,10 +1,11 @@
 package controllers.core
 
 import controllers.util.SerializationUtils
+import javax.inject.Inject
 import org.silkframework.runtime.plugin._
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{InjectedController, ControllerComponents}
 
-class PluginApi extends Controller {
+class PluginApi @Inject() () extends InjectedController {
 
   def plugins() = Action { implicit request => {
     val pluginTypes = Seq(

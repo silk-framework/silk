@@ -24,7 +24,21 @@ const MappingsTree = React.createClass({
 
     // define property types
     propTypes: {
-        currentRuleId: React.PropTypes.string, // currently selected rule id (tree highlighting)
+        // FIXME Instead of injecting baseUrl, project and task, we probably should share the rule tree using the state.
+        baseUrl: React.PropTypes.string,
+        project: React.PropTypes.string,
+        task: React.PropTypes.string,
+        // currently selected rule id (tree highlighting)
+        currentRuleId: React.PropTypes.string,
+        // Show value mappings in the tree
+        showValueMappings: React.PropTypes.bool,
+        // For each rule id, contains one of the following: "ok", "warning"
+        ruleValidation: React.PropTypes.objectOf(React.PropTypes.oneOf(['ok', 'warning'])),
+    },
+
+    defaultProps: {
+        showValueMappings: false,
+        ruleValidation: {}
     },
 
     // initilize state
@@ -47,6 +61,17 @@ const MappingsTree = React.createClass({
     componentDidMount() {
         this.loadData();
     },
+    componentDidUpdate(prevProps) {
+        // If the task changed, we need to reload the data
+        if (this.props.task !== prevProps.task) {
+            hierarchicalMappingChannel.subject('setSilkDetails').onNext({
+                baseUrl: this.props.baseUrl,
+                project: this.props.project,
+                transformTask: this.props.task
+            });
+            this.loadData();
+        }
+    },
     expandElement({newRuleId, parentId}) {
         const expanded = this.state.expanded;
         expanded[newRuleId] = true;
@@ -68,7 +93,7 @@ const MappingsTree = React.createClass({
                     tree: hierarchy,
                     expanded:
                         _.isEmpty(this.state.expanded) && topLevelId
-                            ? {[topLevelId]: true}
+                            ? this.initialExpandedRules(hierarchy)
                             : this.state.expanded,
                 });
             },
@@ -77,6 +102,43 @@ const MappingsTree = React.createClass({
             }
         );
     },
+
+    initialExpandedRules(tree) {
+        let expanded = {};
+        if(this.props.hasOwnProperty('ruleValidation')) {
+            expanded = this.computeExpandedRules(tree)
+        }
+        expanded[_.get(tree, 'id')] = true;
+        return expanded;
+    },
+
+    /**
+     * Returns an object which contains a key for each rule that should be expanded because it contains a child with a warning.
+     * @param tree The rule tree
+     */
+    computeExpandedRules(tree) {
+        let expanded = {};
+
+        if (_.has(tree, 'rules.propertyRules')) {
+            // Iterate all children
+            _.forEach(tree.rules.propertyRules, rule => {
+                // Collect all children
+                expanded = {...expanded, ...this.computeExpandedRules(rule)};
+                // Expand if a child contains a warning
+                if (this.props.ruleValidation[rule.id] === "warning") {
+                    expanded[tree.id] = true;
+                }
+            });
+        }
+
+        // Expand this node if at least one child is expanded
+        if(!_.isEmpty(expanded)) {
+            expanded[tree.id] = true;
+        }
+
+        return expanded;
+    },
+
     // collapse / expand navigation children
     handleToggleExpanded(id) {
         const expanded = this.state.expanded;
@@ -137,7 +199,7 @@ const MappingsTree = React.createClass({
 
             // get expanded state
             const childs = _.chain(rules.propertyRules)
-                .filter(({type}) => type === MAPPING_RULE_TYPE_OBJECT)
+                .filter(({type}) => this.props.showValueMappings || type === MAPPING_RULE_TYPE_OBJECT)
                 .value();
 
             const element = () => (
@@ -146,6 +208,7 @@ const MappingsTree = React.createClass({
                     onClick={this.handleNavigate.bind(null, id, undefined)}>
                     <span className="ecc-silk-mapping__treenav--item-maintitle">
                         <RuleTreeTitle rule={parent} />
+                        { this.renderRuleIcon(id) }
                     </span>
                     {parentType === MAPPING_RULE_TYPE_OBJECT ? (
                         <small className="ecc-silk-mapping__treenav--item-subtitle">
@@ -223,6 +286,16 @@ const MappingsTree = React.createClass({
             </div>
         );
     },
+
+    renderRuleIcon(ruleId) {
+        if(!this.props.ruleValidation || !this.props.ruleValidation.hasOwnProperty(ruleId)) {
+            return (null);
+        } else if(this.props.ruleValidation[ruleId] === "ok") {
+            return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="done" />
+        } else {
+            return <Icon className="ecc-silk-mapping__ruleitem-icon-red" name="warning" />
+        }
+    }
 });
 
 export default MappingsTree;

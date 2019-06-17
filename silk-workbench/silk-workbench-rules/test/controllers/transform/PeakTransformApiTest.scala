@@ -14,9 +14,8 @@ import org.silkframework.util.Uri
   *
   */
 class PeakTransformApiTest extends FlatSpec with MustMatchers {
-  behavior of "TransformTask API"
 
-  val transformTaskApi = new PeakTransformApi()
+  behavior of "TransformTask API"
 
   implicit val schema = EntitySchema(Uri("type"), IndexedSeq(Path("a").asStringTypedPath, Path("b").asStringTypedPath))
 
@@ -29,7 +28,7 @@ class PeakTransformApiTest extends FlatSpec with MustMatchers {
       entity(Seq(), Seq("bValue2")),
       entity(Seq(), Seq())
     )
-    val (tries, errors, errorMsg, peakResult) =  transformTaskApi.collectTransformationExamples(rule, entities, limit = 3)
+    val (tries, errors, errorMsg, peakResult) =  PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3)
     tries mustBe 4
     errors mustBe 0
     errorMsg mustBe ""
@@ -56,7 +55,7 @@ class PeakTransformApiTest extends FlatSpec with MustMatchers {
       entity(Seq("aValue3"), Seq("bValue3")),
       entity(Seq(), Seq())
     )
-    val (tries, errors, errorMsg, peakResult) =  transformTaskApi.collectTransformationExamples(rule, entities, limit = 3)
+    val (tries, errors, errorMsg, peakResult) =  PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3)
     tries mustBe 6
     errors mustBe 0
     errorMsg mustBe ""
@@ -72,7 +71,7 @@ class PeakTransformApiTest extends FlatSpec with MustMatchers {
       entity(Seq("2015"), Seq("no date")),
       entity(Seq("123"), Seq("also no date"))
     )
-    val (tries, errors, errorMsg, peakResult) =  transformTaskApi.collectTransformationExamples(rule, entities, limit = 3)
+    val (tries, errors, errorMsg, peakResult) =  PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3)
     tries mustBe 2
     errors mustBe 2
     errorMsg mustBe "IllegalArgumentException: no date"
@@ -86,7 +85,7 @@ class PeakTransformApiTest extends FlatSpec with MustMatchers {
       counter += 1
       entity(Seq("UPPER" + i), Seq("UPPER" + i))
     }
-    val (tries, errors, _, peakResult) =  transformTaskApi.collectTransformationExamples(rule, entities, limit = 3)
+    val (tries, errors, _, peakResult) =  PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3)
     tries mustBe 3
     errors mustBe 0
     counter mustBe 3

@@ -1,11 +1,12 @@
 package controllers.core
 
+import javax.inject.Inject
 import org.silkframework.config.DefaultConfig
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{InjectedController, ControllerComponents}
 
-class ConfigController extends Controller {
+class ConfigController @Inject() () extends InjectedController {
 
-  private val ignoredPaths = Set("awt", "file", "jline", "line", "path", "promise", "sbt", "play.crypto.secret")
+  private val ignoredPaths = Set("awt", "file", "jline", "line", "path", "promise", "sbt", "play.http.secret.key")
 
   def index = Action { implicit request =>
     var config = DefaultConfig.instance()

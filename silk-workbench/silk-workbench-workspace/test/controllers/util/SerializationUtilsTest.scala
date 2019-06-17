@@ -2,8 +2,8 @@ package controllers.util
 
 import controllers.util.SerializationUtilsTest._
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.mockito.MockitoSugar
 import org.silkframework.rule.input.PathInput
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException

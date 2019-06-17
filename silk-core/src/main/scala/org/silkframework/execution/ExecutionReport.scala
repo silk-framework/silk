@@ -6,10 +6,20 @@ package org.silkframework.execution
 trait ExecutionReport {
 
   /**
+    * A user-friendly label for this report, usually just the task label.
+    */
+  def label: String
+
+  /**
     * Generates a short summary of this report.
     *
     * @return A sequence of key-value pairs representing the summary table.
     */
   def summary: Seq[(String, String)]
+
+  /**
+    * If issues occurred during execution, this contains a user-friendly message.
+    */
+  def warning: Option[String]
 
 }

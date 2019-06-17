@@ -5,6 +5,7 @@ import java.util.logging.Logger
 
 import controllers.core.UserContextAction
 import controllers.transform.AutoCompletionApi.Categories
+import javax.inject.Inject
 import org.silkframework.config.Prefixes
 import org.silkframework.entity._
 import org.silkframework.rule.TransformSpec
@@ -14,7 +15,7 @@ import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
-import play.api.mvc.{Action, AnyContent, Controller}
+import play.api.mvc.{InjectedController, Action, AnyContent, Controller, ControllerComponents}
 
 import scala.language.implicitConversions
 import scala.util.Try
@@ -22,7 +23,7 @@ import scala.util.Try
 /**
   * Generates auto completions for mapping paths and types.
   */
-class AutoCompletionApi extends Controller {
+class AutoCompletionApi @Inject() () extends InjectedController {
   val log: Logger = Logger.getLogger(this.getClass.getName)
 
   /**

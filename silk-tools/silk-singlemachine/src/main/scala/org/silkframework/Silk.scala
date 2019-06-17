@@ -167,6 +167,7 @@ object Silk {
     val generateLinks =
       new GenerateLinks(
         id = linkSpec.id,
+        label = linkSpec.id,
         inputs = linkSpec.findSources(config.sources),
         linkSpec = linkSpec,
         outputs = config.outputs.map(_.linkSink),
@@ -183,7 +184,7 @@ object Silk {
    */
   private def executeTransform(config: LinkingConfig, transform: Task[TransformSpec]): Unit = {
     val input = config.source(transform.selection.inputId).source
-    Activity(new ExecuteTransform((_) => input, transform.data, (_) => new CombinedEntitySink(config.outputs.map(_.entitySink)))).startBlocking() // TODO: Allow to set error output
+    Activity(new ExecuteTransform(transform.taskLabel(), (_) => input, transform.data, (_) => new CombinedEntitySink(config.outputs.map(_.entitySink)))).startBlocking() // TODO: Allow to set error output
   }
 
   /**
@@ -195,7 +196,7 @@ object Silk {
   def executeProject(projectFile: File, taskName: Identifier): Project = {
     // Create workspace provider
     val projectId = Identifier("project")
-    val workspaceProvider = InMemoryWorkspaceProvider()
+    val workspaceProvider = new InMemoryWorkspaceProvider()
     val resourceRepository = FileRepository(".")
 
     // Import project

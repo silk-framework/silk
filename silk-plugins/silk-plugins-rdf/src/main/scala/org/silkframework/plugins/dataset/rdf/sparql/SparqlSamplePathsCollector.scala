@@ -17,7 +17,7 @@ package org.silkframework.plugins.dataset.rdf.sparql
 import java.util.logging.Logger
 
 import org.silkframework.dataset.rdf.SparqlEndpoint
-import org.silkframework.entity.rdf.SparqlRestriction
+import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.entity.{ForwardOperator, Path, TypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
@@ -44,7 +44,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
            (implicit userContext: UserContext): Seq[TypedPath] = {
     val sampleEntities = {
       if (restrictions.isEmpty)
-        getEntities(endpoint, graph, SparqlRestriction.fromSparql("a", "?a ?p ?o"))
+        getEntities(endpoint, graph, SparqlRestriction.fromSparql(SparqlEntitySchema.variable, s"${SparqlEntitySchema.variable} ?p ?o"))
       else
         getEntities(endpoint, graph, restrictions)
     }

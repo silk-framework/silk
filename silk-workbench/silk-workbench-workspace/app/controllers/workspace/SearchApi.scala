@@ -1,22 +1,23 @@
 package controllers.workspace
 
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.core.RequestUserContextAction
 import controllers.core.util.ControllerUtilsTrait
+import javax.inject.Inject
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.WriteContext
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.serialization.json.JsonSerializers.{TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat}
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
-import play.api.mvc.{Action, BodyParsers, Controller}
+import play.api.mvc.{Action, BodyParsers, InjectedController}
 
 /**
   * API to search for tasks in the workspace.
   */
-class SearchApi extends Controller with ControllerUtilsTrait {
+class SearchApi @Inject() () extends InjectedController with ControllerUtilsTrait {
 
-  def search(): Action[JsValue] = RequestUserContextAction(BodyParsers.parse.json) { implicit request => implicit userContext =>
+
+  def search(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     implicit val responseOptionsReader = Json.reads[TaskFormatOptions]
     implicit val searchRequestReader = Json.reads[SearchRequest]
     validateJson[SearchRequest] { searchRequest =>

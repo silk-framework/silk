@@ -22,7 +22,7 @@ import org.silkframework.util.IdentifierGenerator
 case class FunctionNode[T <: AnyPlugin](id: String, parameters: List[ParameterNode], factory: PluginFactory[T]) extends Node {
 
   def build(implicit identifiers: IdentifierGenerator = new IdentifierGenerator) = {
-    factory(id, parameters.map(p => (p.key, p.value)).toMap)(Prefixes.empty, EmptyResourceManager)
+    factory(id, parameters.map(p => (p.key, p.value)).toMap)(Prefixes.empty, EmptyResourceManager())
   }
 }
 

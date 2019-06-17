@@ -4,14 +4,16 @@ import java.io.File
 import java.net.URL
 import java.util.logging.Logger
 
+import akka.stream.scaladsl.Source
+import akka.util.ByteString
 import controllers.core.{RequestUserContextAction, UserContextAction}
+import javax.inject.Inject
 import org.silkframework.config._
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
-import org.silkframework.runtime.activity.{Activity, UserContext}
+import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.{UrlResource, WritableResource}
+import org.silkframework.runtime.resource.{ResourceManager, UrlResource, WritableResource}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace._
@@ -19,12 +21,14 @@ import org.silkframework.workspace.activity.ProjectExecutor
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import play.api.libs.Files
 import play.api.libs.iteratee.Enumerator
+import play.api.libs.iteratee.streams.IterateeStreams
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.existentials
 
-class WorkspaceApi extends Controller {
+class WorkspaceApi  @Inject() () extends InjectedController {
+
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   def reload: Action[AnyContent] = UserContextAction { implicit userContext =>
@@ -42,7 +46,7 @@ class WorkspaceApi extends Controller {
   }
 
   def newProject(project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    if (WorkspaceFactory().workspace.projects.exists(_.name == project)) {
+    if (WorkspaceFactory().workspace.projects.exists(_.name.toString == project)) {
       ErrorResult(CONFLICT, "Conflict", s"Project with name '$project' already exists. Creation failed.")
     } else {
       val projectConfig = ProjectConfig(project)
@@ -74,8 +78,8 @@ class WorkspaceApi extends Controller {
 
   def executeProject(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    implicit val prefixes = project.config.prefixes
-    implicit val resources = project.resources
+    implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val resources: ResourceManager = project.resources
 
     val projectExecutors = PluginRegistry.availablePlugins[ProjectExecutor]
     if (projectExecutors.isEmpty) {
@@ -89,12 +93,12 @@ class WorkspaceApi extends Controller {
 
   def importLinkSpec(projectName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    implicit val readContext = ReadContext(project.resources)
+    implicit val readContext: ReadContext = ReadContext(project.resources)
 
     request.body match {
       case AnyContentAsMultipartFormData(data) =>
         for (file <- data.files) {
-          val config = XmlSerialization.fromXml[LinkingConfig](scala.xml.XML.loadFile(file.ref.file))
+          val config = XmlSerialization.fromXml[LinkingConfig](scala.xml.XML.loadFile(file.ref.path.toFile))
           SilkConfigImporter(config, project)
         }
         Ok
@@ -110,7 +114,7 @@ class WorkspaceApi extends Controller {
   def exportLinkSpec(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    implicit val prefixes = project.config.prefixes
+    implicit val prefixes: Prefixes = project.config.prefixes
 
     val silkConfig = SilkConfigExporter.build(project, task)
 
@@ -147,8 +151,9 @@ class WorkspaceApi extends Controller {
     val project = WorkspaceFactory().workspace.project(projectName)
     val resource = project.resources.get(resourceName, mustExist = true)
     val enumerator = Enumerator.fromStream(resource.inputStream)
+    val source = Source.fromPublisher(IterateeStreams.enumeratorToPublisher(enumerator))
 
-    Ok.chunked(enumerator).withHeaders("Content-Disposition" -> "attachment")
+    Ok.chunked(source).withHeaders("Content-Disposition" -> "attachment")
   }
 
   def putResource(projectName: String, resourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request =>implicit userContext =>
@@ -165,8 +170,8 @@ class WorkspaceApi extends Controller {
         resource.writeBytes(Array[Byte]())
         NoContent
       case AnyContentAsRaw(buffer) =>
-        val bytes = buffer.asBytes().getOrElse(Array[Byte]())
-        resource.writeBytes(bytes)
+        val bytes = buffer.asBytes().getOrElse(ByteString.empty)
+        resource.writeBytes(bytes.toArray)
         NoContent
       case AnyContentAsText(txt) =>
         resource.writeString(txt)
@@ -186,7 +191,7 @@ class WorkspaceApi extends Controller {
 
   private def putResourceFromMultipartFormData(resource: WritableResource, formData: MultipartFormData[Files.TemporaryFile]) = {
     try {
-      val file = formData.files.head.ref.file
+      val file = formData.files.head.ref.path.toFile
       resource.writeFile(file)
       NoContent
     } catch {

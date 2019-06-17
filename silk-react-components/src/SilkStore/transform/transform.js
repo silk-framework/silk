@@ -341,3 +341,20 @@ silkStore
             .multicast(replySubject)
             .connect();
     });
+
+silkStore
+    .subject('transform.task.rule.copy')
+    .subscribe(({data, replySubject}) => {
+        const { baseUrl, project, transformTask, appendTo, queryParameters } = data;
+        superagent
+            .post(
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${appendTo}/rules/copyFrom`
+            )
+            .accept('application/json')
+            .send(queryParameters)
+            .query(queryParameters)
+            .type('application/json')
+            .observe()
+            .multicast(replySubject)
+            .connect();
+    });

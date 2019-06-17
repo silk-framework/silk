@@ -287,6 +287,8 @@
 
             </xs:sequence>
             <xs:attribute name="id" type="xs:string" use="required"/>
+            <xs:attribute name="linkLimit" type="xs:string" />
+            <xs:attribute name="matchingExecutionTimeout" type="xs:string" />
         </xs:complexType>
     </xs:element>
 

@@ -28,6 +28,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
     val dataSourceMock = mock[DataSource]
     when(dataSourceMock.retrieve(any(), any())(any())).thenReturn(entities)
     val execute = new ExecuteTransform(
+      taskLabel = "transform task",
       input = _ => dataSourceMock,
       transform = TransformSpec(datasetSelection(), RootMappingRule(rules = MappingRules(mapping("propTransform", prop), mapping("prop2Transform", prop2)))),
       output = _ => outputMock

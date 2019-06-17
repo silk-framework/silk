@@ -5,6 +5,7 @@ import org.silkframework.dataset.{DataSource, DatasetSpec, SparqlRestrictionData
 import org.silkframework.entity.Restriction.CustomOperator
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{EntitySchema, Path, TypedPath}
+import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.resource.WritableResource
@@ -117,7 +118,7 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
         val typeRestriction = SparqlRestriction.forType(datasetSelection.typeUri)
         val sparqlRestriction = datasetSelection.restriction.operator match {
           case Some(CustomOperator(sparqlExpression)) =>
-            SparqlRestriction.fromSparql("a", sparqlExpression).merge(typeRestriction)
+            SparqlRestriction.fromSparql(SparqlEntitySchema.variable, sparqlExpression).merge(typeRestriction)
           case _ =>
             typeRestriction
         }

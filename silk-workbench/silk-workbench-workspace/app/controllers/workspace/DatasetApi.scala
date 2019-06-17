@@ -3,6 +3,7 @@ package controllers.workspace
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.SerializationUtils._
+import javax.inject.Inject
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
@@ -10,6 +11,7 @@ import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
 import org.silkframework.entity.{EntitySchema, Path}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Uri
@@ -20,7 +22,8 @@ import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
 
-class DatasetApi extends Controller with ControllerUtilsTrait {
+class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTrait {
+
   private implicit val partialPath = Json.format[PathCoverage]
   private implicit val valueCoverageMissFormat = Json.format[ValueCoverageMiss]
   private implicit val valueCoverageResultFormat = Json.format[ValueCoverageResult]
@@ -32,7 +35,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   }
 
   def getDatasetAutoConfigured(projectName: String, sourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    implicit val project = WorkspaceFactory().workspace.project(projectName)
+    implicit val project: Project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[GenericDatasetSpec](sourceName)
     val datasetPlugin = task.data.plugin
     datasetPlugin match {
@@ -46,7 +49,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
 
   def putDataset(projectName: String, datasetName: String, autoConfigure: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    implicit val readContext = ReadContext(project.resources, project.config.prefixes)
+    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
 
     try {
       deserializeCompileTime() { dataset: DatasetTask =>
@@ -87,8 +90,8 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
     val project = WorkspaceFactory().workspace.project(projectName)
     val createDialog = project.taskOption[DatasetSpec[Dataset]](datasetName).isEmpty
     val dialogTitle = if(createDialog) "Create Dataset" else "Edit Dataset"
-    implicit val prefixes = project.config.prefixes
-    implicit val resources = project.resources
+    implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val resources: ResourceManager = project.resources
     val datasetParams = request.queryString.mapValues(_.head)
     val datasetPlugin = Dataset.apply(pluginId, datasetParams)
     datasetPlugin match {
@@ -135,7 +138,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   /** Get types of a dataset including the search string */
   def types(project: String, task: String, search: String = ""): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
-    implicit val prefixes = context.project.config.prefixes
+    implicit val prefixes: Prefixes = context.project.config.prefixes
 
     val typesFull = context.task.activity[TypesCache].value.types
     val typesResolved = typesFull.map(t => new Uri(t).serialize)
@@ -153,7 +156,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   }
 
   def getMappingValueCoverage(projectName: String,
-                              datasetId: String): Action[JsValue] = RequestUserContextAction(BodyParsers.parse.json) { implicit request => implicit userContext =>
+                              datasetId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[MappingValueCoverageRequest] { mappingCoverageRequest =>
       val project = WorkspaceFactory().workspace.project(projectName)
       val datasetTask = project.task[GenericDatasetSpec](datasetId)
@@ -189,7 +192,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
 
     try {
       val project = WorkspaceFactory().workspace.project(projectName)
-      implicit val prefixes = project.config.prefixes
+      implicit val prefixes: Prefixes = project.config.prefixes
       val datasetTask = project.task[GenericDatasetSpec](datasetId)
       datasetTask.plugin.source match {
         case cd: PathCoverageDataSource =>
@@ -207,7 +210,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
     }
   }
 
-  private def getCoverageFromCoverageSource(filterPaths: (PathCoverageResult) => Seq[PathCoverage],
+  private def getCoverageFromCoverageSource(filterPaths: PathCoverageResult => Seq[PathCoverage],
                                             project: Project,
                                             cd: PathCoverageDataSource)
                                            (implicit prefixes: Prefixes,
@@ -233,7 +236,7 @@ class DatasetApi extends Controller with ControllerUtilsTrait {
   private def coveragePathFilterFn(request: Request[AnyContent]): PathCoverageResult => Seq[PathCoverage] = {
     val (mapped, partialMapped, unmapped) = coverageTypes(request)
 
-    val filteredPaths: (PathCoverageResult) => Seq[PathCoverage] = (result) => {
+    val filteredPaths: PathCoverageResult => Seq[PathCoverage] = result => {
       result.paths.filter(p =>
         p.covered && p.fully && mapped // fully mapped
             ||

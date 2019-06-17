@@ -112,7 +112,7 @@ case class TransformSpec(selection: DatasetSelection,
     schemata :+= RuleSchemata.create(rule, selection, subPath)
 
     // Add rule schemata of all child object rules
-    for(objectMapping @ ObjectMapping(_, relativePath, _, _, _) <- rule.rules.allRules) {
+    for(objectMapping @ ObjectMapping(_, relativePath, _, _, _, _) <- rule.rules.allRules) {
       schemata ++= collectSchemata(objectMapping.fillEmptyUriRule, subPath ++ relativePath)
     }
 

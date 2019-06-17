@@ -36,7 +36,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   private val log = Logger.getLogger(getClass.getName)
 
-  override def initialValue: Option[WorkflowExecutionReport] = Some(WorkflowExecutionReport())
+  override def initialValue: Option[WorkflowExecutionReport] = Some(WorkflowExecutionReport(workflowTask.taskLabel()))
 
   override def run(context: ActivityContext[WorkflowExecutionReport])
                   (implicit userContext: UserContext): Unit = {

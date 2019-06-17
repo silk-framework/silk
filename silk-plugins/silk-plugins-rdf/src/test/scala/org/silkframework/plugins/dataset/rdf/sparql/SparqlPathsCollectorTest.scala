@@ -18,16 +18,16 @@ import java.util.logging.Logger
 
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.rdf.model.{Model, ModelFactory}
-import org.scalatest.{BeforeAndAfterAll, FlatSpec, ShouldMatchers}
+import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 import org.silkframework.dataset.rdf.SparqlParams
-import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity._
+import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Timer
 
-class SparqlPathsCollectorTest extends FlatSpec with ShouldMatchers with BeforeAndAfterAll {
+class SparqlPathsCollectorTest extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   private val graphDBpedia = "http://example.org/dbpedia"
   private val graphSchemaOrg = "http://example.org/schemaOrg"
@@ -136,7 +136,7 @@ object SparqlPathsCollectorBenchmark {
       logger.info("Executing " + name + " test")
 
       val endpoint = RemoteSparqlEndpoint(SparqlParams(uri, retryCount = 100))
-      val sparqlRestriction = SparqlRestriction.fromSparql("a", restriction)
+      val sparqlRestriction = SparqlRestriction.fromSparql(SparqlEntitySchema.variable, restriction)
       val limit = Some(50)
 
       Timer("SparqlAggregatePathsCollector") {

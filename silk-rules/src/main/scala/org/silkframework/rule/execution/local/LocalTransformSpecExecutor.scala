@@ -46,10 +46,10 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
 
       val entities = inputTables.remove(0).entities
 
-      val transformedEntities = new TransformedEntities(entities, rules, outputSchema, context.asInstanceOf[ActivityContext[TransformReport]])
+      val transformedEntities = new TransformedEntities(task.taskLabel(), entities, rules, outputSchema, context.asInstanceOf[ActivityContext[TransformReport]])
       outputTables.append(GenericEntityTable(transformedEntities, outputSchema, task))
 
-      for(objectMapping @ ObjectMapping(_, relativePath, _, childRules, _) <- rules) {
+      for(objectMapping @ ObjectMapping(_, relativePath, _, childRules, _, _) <- rules) {
         val childOutputSchema =
           EntitySchema(
             typeUri = childRules.collectFirst { case tm: TypeMapping => tm.typeUri }.getOrElse(""),

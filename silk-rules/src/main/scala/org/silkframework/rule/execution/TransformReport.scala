@@ -11,7 +11,7 @@ import org.silkframework.util.Identifier
   * @param entityErrorCounter The number of entities that have been erroneous.
   * @param ruleResults The transformation statistics for each mapping rule by name.
   */
-case class TransformReport(
+case class TransformReport( label: String,
                             entityCounter: Long = 0L,
                             entityErrorCounter: Long = 0L,
                             ruleResults: Map[Identifier, RuleResult] = Map.empty
@@ -22,6 +22,14 @@ case class TransformReport(
       "number of entities" -> entityCounter.toString,
       "number of errors" -> entityErrorCounter.toString
     )
+  }
+
+  def warning: Option[String] = {
+    if(entityErrorCounter == 0) {
+      None
+    } else {
+      Some(s"Validation issues occurred on $entityErrorCounter entities.")
+    }
   }
 
 }

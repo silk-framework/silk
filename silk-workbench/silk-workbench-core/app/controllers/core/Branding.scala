@@ -1,10 +1,11 @@
 package controllers.core
 
 import config.WorkbenchConfig
-import play.api.mvc.{Action, Controller}
+import javax.inject.Inject
+import play.api.mvc.{InjectedController, ControllerComponents}
 import play.twirl.api.Html
 
-class Branding extends Controller {
+class Branding @Inject() () extends InjectedController {
 
   def logo = Action {
     val bytes = WorkbenchConfig.get.logo.loadAsBytes

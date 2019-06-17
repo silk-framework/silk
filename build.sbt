@@ -10,7 +10,7 @@ lazy val commonSettings = Seq(
   organization := "org.silkframework",
   version := "3.0.0-SNAPSHOT",
   // Building
-  scalaVersion := "2.11.11",
+  scalaVersion := "2.11.12",
   publishTo := {
     val artifactory = "https://artifactory.eccenca.com/"
     if (isSnapshot.value) {
@@ -20,7 +20,7 @@ lazy val commonSettings = Seq(
     }
   },
   // Testing
-  libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "test",
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.7" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "4.0.0" % "test",
   libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.11",
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
@@ -29,9 +29,6 @@ lazy val commonSettings = Seq(
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports"),
 
   dependencyOverrides ++= Set(
-    // This overrides version 1.9.36 of async-http-client in Play 2.4.8, which has a bug. See Ticket #12089, TODO: Remove after next Play update
-    "com.ning" % "async-http-client" % "1.9.39",
-    "com.ning" % "async-http-client" % "1.9.39" % "test",
     "com.google.guava" % "guava" % "18.0",
     "com.google.inject" % "guice" % "4.0",
     "org.apache.thrift" % "libthrift" % "0.9.3",
@@ -50,9 +47,9 @@ lazy val commonSettings = Seq(
     case other =>
       val oldStrategy = (assemblyMergeStrategy in assembly).value
       oldStrategy(other)
-  },
+  }
   // Use dependency injected routes in Play modules
-  routesGenerator := InjectedRoutesGenerator
+  //routesGenerator := InjectedRoutesGenerator
 )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -63,13 +60,13 @@ lazy val core = (project in file("silk-core"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Core",
-    libraryDependencies += "com.typesafe" % "config" % "1.3.0", // Should always use the same version as the Play Framework dependency
+    libraryDependencies += "com.typesafe" % "config" % "1.3.1", // Should always use the same version as the Play Framework dependency
     libraryDependencies += "com.rockymadden.stringmetric" % "stringmetric-core_2.11" % "0.27.4",
     libraryDependencies += "com.thoughtworks.paranamer" % "paranamer" % "2.7",
     // Additional scala standard libraries
-    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.0.5",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.1.0",
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1",
     libraryDependencies += "commons-io" % "commons-io" % "2.4"
   )
 
@@ -77,7 +74,10 @@ lazy val rules = (project in file("silk-rules"))
   .dependsOn(core % "test->test;compile->compile", pluginsCsv % "test->compile")
   .settings(commonSettings: _*)
   .settings(
-    name := "Silk Rules"
+    name := "Silk Rules",
+    libraryDependencies += "org.postgresql" % "postgresql" % "42.2.5",
+    libraryDependencies += "org.apache.jena" % "jena-core" % "3.7.0" exclude("org.slf4j", "slf4j-log4j12"),
+    libraryDependencies += "org.apache.jena" % "jena-arq" % "3.7.0" exclude("org.slf4j", "slf4j-log4j12")
   )
 
 lazy val learning = (project in file("silk-learning"))
@@ -93,7 +93,7 @@ lazy val workspace = (project in file("silk-workspace"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workspace",
-    libraryDependencies += "com.typesafe.play" % "play-ws_2.11" % "2.4.8"
+    libraryDependencies += "com.typesafe.play" % "play-ws_2.11" % "2.6.23"
   )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -105,8 +105,6 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins RDF",
-    libraryDependencies += "org.apache.jena" % "jena-core" % "3.7.0" exclude("org.slf4j", "slf4j-log4j12"),
-    libraryDependencies += "org.apache.jena" % "jena-arq" % "3.7.0" exclude("org.slf4j", "slf4j-log4j12"),
     libraryDependencies += "org.apache.jena" % "jena-fuseki-embedded" % "3.7.0" % "test"
   )
 
@@ -127,11 +125,11 @@ lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
   )
 
 lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
-  .dependsOn(core)
+  .dependsOn(core % "compile->compile;test->test")
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins JSON",
-    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.4.8",
+    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.6.12",
     libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.8.6"
   )
 
@@ -161,7 +159,7 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Serialization JSON",
-    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.4.8"
+    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.6.12"
   )
 
 // Aggregate all plugins
@@ -254,7 +252,10 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     buildInfoPackage := "org.silkframework.buildInfo",
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
-    libraryDependencies += "org.scalatestplus" % "play_2.11" % "1.4.0" % "test"
+    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % "test",
+    // We are still using Play iteratees, in the future we should migrate to Akka Streams and remove this dependency
+    libraryDependencies += "com.typesafe.play" %% "play-iteratees" % "2.6.1",
+    libraryDependencies += "com.typesafe.play" %% "play-iteratees-reactive-streams" % "2.6.1"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
@@ -263,7 +264,8 @@ lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-wo
   .aggregate(workbenchCore)
   .settings(commonSettings: _*)
   .settings(
-    name := "Silk Workbench Workspace"
+    name := "Silk Workbench Workspace",
+    libraryDependencies += ws % "test"
   )
 
 lazy val workbenchRules = (project in file("silk-workbench/silk-workbench-rules"))

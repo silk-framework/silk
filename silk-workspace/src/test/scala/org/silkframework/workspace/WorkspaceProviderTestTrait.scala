@@ -3,7 +3,7 @@ package org.silkframework.workspace
 import java.time.Instant
 
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.{FlatSpec, ShouldMatchers}
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DatasetSpec, MockDataset}
@@ -19,7 +19,7 @@ import org.silkframework.util.DPair
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 
-trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with MockitoSugar {
+trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSugar {
 
   val PROJECT_NAME = "ProjectName"
   val PROJECT_NAME_OTHER = "ProjectNameOther"
@@ -85,7 +85,8 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
 
   val datasetUpdated = PlainTask(DATASET_ID, DatasetSpec(MockDataset("updated"), uriProperty = Some("uri")), metaData = MetaData(DATASET_ID))
 
-  val linkSpec = LinkSpec(rule = rule, dataSelections = DPair(DatasetSelection(DUMMY_DATASET, ""), DatasetSelection(DUMMY_DATASET, "")))
+  val linkSpec = LinkSpec(rule = rule, dataSelections = DPair(DatasetSelection(DUMMY_DATASET, ""), DatasetSelection(DUMMY_DATASET, "")),
+    linkLimit = LinkSpec.DEFAULT_LINK_LIMIT + 1, matchingExecutionTimeout = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS + 1)
 
   val linkTask = PlainTask(LINKING_TASK_ID, linkSpec, metaData)
 
@@ -419,12 +420,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with ShouldMatchers with Mocki
   /** Refreshes the project in the workspace, which usually means that it is reloaded from wherever its stored.
     * This should make sure that not only the possible cache version is up to date, but also the background model. */
   private def refreshProject(projectName: String): Unit = {
-    workspaceProvider match {
-      case w: RefreshableWorkspaceProvider =>
-        w.refresh()
-      case _ =>
-        // Not refreshable
-    }
+    workspaceProvider.refresh()
   }
 }
 

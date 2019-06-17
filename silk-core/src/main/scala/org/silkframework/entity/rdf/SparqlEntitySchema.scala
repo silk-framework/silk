@@ -21,7 +21,7 @@ import org.silkframework.util.Uri
 
 import scala.xml.Node
 
-case class SparqlEntitySchema(variable: String = "a", restrictions: SparqlRestriction = SparqlRestriction.empty, paths: IndexedSeq[Path]) {
+case class SparqlEntitySchema(variable: String = SparqlEntitySchema.variable, restrictions: SparqlRestriction = SparqlRestriction.empty, paths: IndexedSeq[Path]) {
   require(paths.forall(_.operators.nonEmpty), "Entity description must not contain an empty path")
 
   /**
@@ -43,7 +43,7 @@ case class SparqlEntitySchema(variable: String = "a", restrictions: SparqlRestri
 
 object SparqlEntitySchema {
 
-  private final val variable = "a"
+  final val variable = "a"
 
   /**
    * Creates an empty entity description.

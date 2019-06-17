@@ -1,6 +1,7 @@
 package org.silkframework.workspace
 
 import org.silkframework.config.{MetaData, PlainTask, Task, TaskSpec}
+import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceManager}
@@ -14,7 +15,7 @@ import scala.util.{Success, Try}
   label = "In-memory workspace",
   description = "Workspace provider that holds all projects in memory. All contents will be gone on restart."
 )
-case class InMemoryWorkspaceProvider() extends WorkspaceProvider with RefreshableWorkspaceProvider {
+class InMemoryWorkspaceProvider() extends WorkspaceProvider {
 
   protected var projects = Map[Identifier, InMemoryProject]()
 
@@ -79,7 +80,7 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider with Refreshabl
   /**
     * No refresh needed.
     */
-  override def refresh(): Unit = {}
+  override def refresh()(implicit userContext: UserContext): Unit = {}
 
   protected class InMemoryProject(val config: ProjectConfig) {
 
@@ -95,4 +96,9 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider with Refreshabl
                           (implicit userContext: UserContext): Option[ProjectConfig] = {
     projects.get(projectId).map(_.config)
   }
+
+  /**
+    * Returns None, because the projects are not held as RDF.
+    */
+  override def sparqlEndpoint: Option[SparqlEndpoint] = None
 }

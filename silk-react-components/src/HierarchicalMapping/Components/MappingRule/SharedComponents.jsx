@@ -28,15 +28,13 @@ export const RuleTitle = ({rule, ...otherProps}) => {
             );
         case MAPPING_RULE_TYPE_DIRECT:
         case MAPPING_RULE_TYPE_OBJECT:
+        case MAPPING_RULE_TYPE_COMPLEX:
             uri = _.get(rule, 'mappingTarget.uri', false);
             return uri ? (
                 <ThingName id={uri} {...otherProps} />
             ) : (
                 NO_TARGET_PROPERTY
             );
-        case MAPPING_RULE_TYPE_COMPLEX:
-            // TODO: Complex Mappings need better titles
-            return <span {...otherProps}>Complex Mapping</span>;
     }
 };
 
@@ -226,7 +224,6 @@ export const ThingDescription = ({id}) => {
         <NotAvailable
             inline
             label="No description available."
-            description={false}
         />
     );
     return <URIInfo uri={id} field="description" fallback={fallbackInfo} />;

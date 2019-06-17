@@ -3,22 +3,22 @@ package controllers.workspace
 import java.io._
 import java.nio.charset.StandardCharsets
 
-import com.ning.http.client.multipart.FilePart
-import com.ning.http.client.{AsyncCompletionHandler, AsyncHttpClient, Request, Response => AHCResponse}
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource._
 import org.silkframework.workspace.WorkspaceFactory
-import play.api.libs.ws.WS
-import play.api.libs.ws.ning.NingWSResponse
+import play.api.libs.ws.WSResponse
+import play.api.libs.ws.ahc.AhcWSResponse
+import play.shaded.ahc.org.asynchttpclient.request.body.multipart.FilePart
+import play.shaded.ahc.org.asynchttpclient.{AsyncCompletionHandler, AsyncHttpClient, Request, Response}
 
 import scala.concurrent.{Future, Promise}
 import scala.util.Try
 
 class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
 
-  protected override def routes = Some("workspace.Routes")
+  protected override def routes = Some(classOf[workspace.Routes])
 
   override def workspaceProvider: String = "inMemory"
 
@@ -54,7 +54,7 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
   }
 
   private def importProject(projectId: String, xmlZipInputBytes: Array[Byte], expectedResponseCodePrefix: Char = '2'): Unit = {
-    val asyncHttpClient: AsyncHttpClient = WS.client.underlying
+    val asyncHttpClient = client.underlying[AsyncHttpClient]
     var postBuilder = asyncHttpClient.preparePost(s"$baseUrl/projects/$projectId/import")
     val tempFile = File.createTempFile("di_file_upload", ".zip")
     try {
@@ -78,16 +78,16 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
   }
 
   private def importWorkspace(workspaceBytes: Array[Byte]): Unit = {
-    val request = WS.url(s"$baseUrl/import/xmlZip")
+    val request = client.url(s"$baseUrl/import/xmlZip")
     val response = request.post(workspaceBytes)
     checkResponse(response)
   }
 
   private def exportWorkspace(): Array[Byte] = {
-    val request = WS.url(s"$baseUrl/export/xmlZip")
+    val request = client.url(s"$baseUrl/export/xmlZip")
     val response = request.get()
     val result = checkResponse(response)
-    result.bodyAsBytes
+    result.bodyAsBytes.toArray
   }
 
   private def clearWorkspace()
@@ -99,13 +99,14 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
   private def executeAsyncRequest(asyncHttpClient: AsyncHttpClient,
                                   request: Request,
                                   // To run when the request completed or failed
-                                  postProcessing: () => Unit): Future[NingWSResponse] = {
-    val result = Promise[NingWSResponse]()
-    asyncHttpClient.executeRequest(request, new AsyncCompletionHandler[AHCResponse]() {
-      override def onCompleted(response: AHCResponse) = {
-        result.success(NingWSResponse(response))
+                                  postProcessing: () => Unit): Future[WSResponse] = {
+    val result = Promise[WSResponse]()
+    asyncHttpClient.executeRequest(request, new AsyncCompletionHandler[WSResponse]() {
+      override def onCompleted(response: Response) = {
+        val wsResponse = new AhcWSResponse(response)
+        result.success(wsResponse)
         postProcessing()
-        response
+        wsResponse
       }
 
       override def onThrowable(t: Throwable) = {

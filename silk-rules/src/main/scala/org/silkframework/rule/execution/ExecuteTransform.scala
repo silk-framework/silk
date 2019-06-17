@@ -12,14 +12,15 @@ import scala.util.control.Breaks._
 /**
   * Executes a set of transformation rules.
   */
-class ExecuteTransform(input: UserContext => DataSource,
+class ExecuteTransform(taskLabel: String,
+                       input: UserContext => DataSource,
                        transform: TransformSpec,
                        output: UserContext => EntitySink,
                        limit: Option[Int] = None) extends Activity[TransformReport] {
 
   require(transform.rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
 
-  override val initialValue = Some(TransformReport())
+  override val initialValue = Some(TransformReport(taskLabel))
 
   def run(context: ActivityContext[TransformReport])
          (implicit userContext: UserContext): Unit = {
@@ -49,7 +50,7 @@ class ExecuteTransform(input: UserContext => DataSource,
     entitySink.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get))
 
     val entities = dataSource.retrieve(rule.inputSchema)
-    val transformedEntities = new TransformedEntities(entities, rule.transformRule.rules, rule.outputSchema, context)
+    val transformedEntities = new TransformedEntities(taskLabel, entities, rule.transformRule.rules, rule.outputSchema, context)
     var count = 0
     breakable {
       for (entity <- transformedEntities) {
