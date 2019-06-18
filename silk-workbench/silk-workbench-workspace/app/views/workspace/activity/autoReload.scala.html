@@ -1,5 +1,6 @@
 @import controllers.workspace.routes.ActivityApi
 @import org.silkframework.workbench.Context
+@import config.WorkbenchConfig
 
 @(context: Context[_], contentPath: String, activityId: String)(implicit request: RequestHeader)
 
@@ -18,7 +19,7 @@
 
   $( window ).on("load", function () {
     connectWebSocket(
-      '@Html(ActivityApi.activityStatusUpdatesWebSocket(context.project.name, context.task.id, activityId).webSocketURL())',
+      '@Html(ActivityApi.activityStatusUpdatesWebSocket(context.project.name, context.task.id, activityId).webSocketURL(WorkbenchConfig().useHttps))',
       '@Html(ActivityApi.getActivityStatusUpdates(context.project.name, context.task.id, activityId).url)',
       statusUpdated
     );

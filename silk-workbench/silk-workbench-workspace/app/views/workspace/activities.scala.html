@@ -6,11 +6,11 @@
 @import org.silkframework.workspace.activity.{CachedActivity, ProjectActivity, TaskActivity}
 @import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory, Workspace}
 @import org.silkframework.runtime.activity.UserContext
+@import config.WorkbenchConfig
 
 @**
  * Overview page of all activities and their status
  *@
-
 @()(implicit session: play.api.mvc.Session, userContext: UserContext, request: RequestHeader)
 
 @header = {
@@ -32,7 +32,7 @@
       }, 1000);
       // Register to status updates
       connectWebSocket(
-      '@Html(ActivityApi.activityStatusUpdatesWebSocket("", "", "").webSocketURL())',
+      '@Html(ActivityApi.activityStatusUpdatesWebSocket("", "", "").webSocketURL(WorkbenchConfig().useHttps))',
       '@Html(ActivityApi.getActivityStatusUpdates("", "", "").url)',
       updateStatus
     )
