@@ -8,8 +8,9 @@
 @import org.silkframework.workbench.Context
 @import views.html.workspace.activity.taskActivityControl
 @import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
-
 @import org.silkframework.workspace.activity.linking.EvaluateLinkingFactory
+@import config.WorkbenchConfig
+
 @(context: Context[LinkSpec])(implicit session: play.api.mvc.Session, request: RequestHeader)
 
 @header = {
@@ -29,7 +30,7 @@
 
     $( window ).on("load", function() {
       connectWebSocket(
-        '@Html(EvaluateLinkingController.linksWebsocket(context.project.name, context.task.id).webSocketURL())',
+        '@Html(EvaluateLinkingController.linksWebsocket(context.project.name, context.task.id).webSocketURL(WorkbenchConfig().useHttps))',
         '@Html(ActivityApi.getActivityStatusUpdates(context.project.name, context.task.id, EvaluateLinkingFactory.ActivityId).url)',
         updateLinks
       )
