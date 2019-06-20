@@ -294,19 +294,20 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     */
   private def resolveDataset(datasetTask: Task[GenericDatasetSpec],
                              replaceDatasets: Map[String, Dataset]): Task[GenericDatasetSpec] = {
-    val dataset = datasetTask.data.plugin match {
+    datasetTask.data.plugin match {
       case ds: VariableDataset =>
         replaceDatasets.get(datasetTask.id.toString) match {
           case Some(d) => d
           case None =>
             throw new IllegalArgumentException("No input found for variable dataset " + datasetTask.id.toString)
         }
+        PlainTask(datasetTask.id, datasetTask.data.copy(plugin = ds), metaData = datasetTask.metaData)
       case ds: InternalDataset =>
         executionContext.createInternalDataset(Some(datasetTask.id.toString))
-      case ds: Dataset =>
-        ds
+        PlainTask(datasetTask.id, datasetTask.data.copy(plugin = ds), metaData = datasetTask.metaData)
+      case _: Dataset =>
+        datasetTask
     }
-    PlainTask(datasetTask.id, datasetTask.data.copy(plugin = dataset), metaData = datasetTask.metaData)
   }
 
   override protected val executionContext: LocalExecution = LocalExecution(useLocalInternalDatasets)
