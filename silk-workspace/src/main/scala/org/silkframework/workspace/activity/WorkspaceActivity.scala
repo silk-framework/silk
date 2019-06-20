@@ -3,7 +3,7 @@ package org.silkframework.workspace.activity
 import java.util.logging.Logger
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.activity._
+import org.silkframework.runtime.activity.{ObservableMirror, _}
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.{Project, ProjectTask}
@@ -91,14 +91,14 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   final def control: ActivityControl[ActivityType#ValueType] = currentInstance
 
   /**
-    * Convenience method to retrieve the current activity status.
+    * Retrieves the activity status of the current control.
     */
-  final def status: Status = control.status()
+  final val status: Observable[Status] = new ObservableMirror(control.status)
 
   /**
-    * Convenience method to retrieve the current activity value.
+    * Retrieves the activity value of the current control.
     */
-  final def value: ActivityType#ValueType = control.value()
+  final val value: Observable[ActivityType#ValueType] = new ObservableMirror(control.value)
 
   /**
     * Holds the timestamp when the activity has been started.
@@ -158,13 +158,9 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     val identifier = if(isSingleton) name else identifierGenerator.generate("")
 
     if(isSingleton) {
-      // Keep subscribers
-      for (subscriber <- currentInstance.status.subscribers) {
-        newControl.status.subscribe(subscriber)
-      }
-      for (subscriber <- currentInstance.value.subscribers) {
-        newControl.value.subscribe(subscriber)
-      }
+      // Update the status and value mirrors to point to the new instance
+      status.asInstanceOf[ObservableMirror[Status]].updateObservable(newControl.status)
+      value.asInstanceOf[ObservableMirror[ActivityType#ValueType]].updateObservable(newControl.value)
     } else {
       if(instances.size >= WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY) {
         log.warning(s"In project ${project.name} activity $name: Dropping an activity control instance because the control " +

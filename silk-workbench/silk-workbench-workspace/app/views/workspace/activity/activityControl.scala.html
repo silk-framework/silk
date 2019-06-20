@@ -3,7 +3,13 @@
 @import controllers.workspace.routes.WorkspaceController
 @import org.silkframework.workspace.activity.WorkspaceActivity
 
-@(project: String, task: Option[String], activity: WorkspaceActivity[_], showProgressBar: Boolean, showStartButton: Boolean, showRestartButton: Boolean, showConfigButton: Boolean)
+@(project: String,
+  task: Option[String],
+  activity: WorkspaceActivity[_],
+  showProgressBar: Boolean,
+  showStartButton: Boolean,
+  showRestartButton: Boolean,
+  showConfigButton: Boolean)(implicit request: RequestHeader)
 
 <div id="@id("progress_")" class="activity-control">
 
@@ -164,13 +170,13 @@
   }
 
   $( window ).on("load", function() {
-    setTimeout(function () {
-      $("#activity_control_wrapper").append('<iframe src="@ActivityApi.activityUpdates(project, task.getOrElse(""), activity.name)" style="display:none" frameborder="0" height="0" width="0">');
-    }, 1);
+    connectWebSocket(
+      '@Html(ActivityApi.activityStatusUpdatesWebSocket(project, task.getOrElse(""), activity.name).webSocketURL())',
+      '@Html(ActivityApi.getActivityStatusUpdates(project, task.getOrElse(""), activity.name).url)',
+      updateStatus
+    )
   });
 </script>
-
-<div id="activity_control_wrapper" style="display: none"/>
 
 @id(prefix: String) = @{
   prefix + project + "_" + task.getOrElse("") + "_" + helper.urlEncode(activity.name)

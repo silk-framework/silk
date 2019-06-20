@@ -90,7 +90,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
 
   def init()(implicit userContext: UserContext): Unit = {
     // Start auto-run activities
-    for (activity <- taskActivities if activity.autoRun && activity.status == Status.Idle())
+    for (activity <- taskActivities if activity.autoRun && activity.status() == Status.Idle())
       activity.control.start()
   }
 
@@ -202,6 +202,4 @@ object ProjectTask {
 
   /* Do not persist updates more frequently than this (in seconds) */
   val writeInterval = 3
-
-  private val scheduledExecutor = Execution.createScheduledThreadPool(getClass.getSimpleName, 1)
 }

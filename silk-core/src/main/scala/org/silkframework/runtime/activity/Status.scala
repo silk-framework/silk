@@ -57,6 +57,7 @@ sealed trait Status {
 
   /**
     * The timestamp when the status has been updated.
+    * Milliseconds since midnight, January 1, 1970 UTC.
     */
   val timestamp: Long = System.currentTimeMillis()
 

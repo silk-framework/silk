@@ -31,7 +31,7 @@ class ReferenceLinksManager @Inject() () extends InjectedController {
     val referenceLinks = task.data.referenceLinks
     def linkSpec = task.data
     def linkageRule = linkSpec.rule
-    def entities = task.activity[ReferenceEntitiesCache].value
+    def entities = task.activity[ReferenceEntitiesCache].value()
     val linkSorter = LinkSorter.fromId(sorting)
 
     // Checks if a pair of entities provides values for all paths in the current linkage rule

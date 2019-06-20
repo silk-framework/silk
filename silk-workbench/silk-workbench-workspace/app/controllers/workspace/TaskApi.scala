@@ -132,7 +132,7 @@ class TaskApi @Inject() () extends InjectedController with ControllerUtilsTrait 
   def cachesLoaded(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
-    val cachesLoaded = task.activities.filter(_.autoRun).forall(!_.status.isRunning)
+    val cachesLoaded = task.activities.filter(_.autoRun).forall(!_.status().isRunning)
 
     Ok(JsBoolean(cachesLoaded))
   }
