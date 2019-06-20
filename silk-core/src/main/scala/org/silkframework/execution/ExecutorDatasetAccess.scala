@@ -6,6 +6,10 @@ import org.silkframework.execution.local.LocalExecution
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
 
+/**
+  * This trait provides sources and sinks based on the LocalExecutor of the base dataset.
+  * Can be removed as soon as Datasets no longer derive from DatasetAccess.
+  */
 trait ExecutorDatasetAccess[DatasetType <: Dataset] extends DatasetAccess {
 
   protected def datasetName: String
