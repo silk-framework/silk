@@ -1,6 +1,6 @@
 package org.silkframework.rule.execution.local
 
-import org.silkframework.execution.local.LocalDatasetExecutor
+import org.silkframework.execution.local.GenericLocalDatasetExecutor
 import org.silkframework.runtime.plugin.PluginModule
 
 /**
@@ -10,7 +10,7 @@ class LocalExecutionPlugins extends PluginModule {
   override def pluginClasses: Seq[Class[_]] = executors
 
   def executors = List(
-    classOf[LocalDatasetExecutor],
+    classOf[GenericLocalDatasetExecutor],
     classOf[LocalLinkSpecExecutor],
     classOf[LocalTransformSpecExecutor]
   )
