@@ -8,9 +8,9 @@
   dependencies:
     fs-extra "^5.0.0"
 
-"@eccenca/gui-elements@^4.4.0":
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/@eccenca/gui-elements/-/gui-elements-4.4.0.tgz#7a61583403fefefd1d8984241e07eee5fef3e681"
+"@eccenca/gui-elements@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@eccenca/gui-elements/-/gui-elements-5.0.0.tgz#06f7b4a4a997388c4a12433455186e10789de754"
   dependencies:
     "@eccenca/material-design-lite" "^2.0.0"
     classnames "^2.2.5"
