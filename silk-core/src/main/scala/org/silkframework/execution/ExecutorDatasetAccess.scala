@@ -27,7 +27,7 @@ trait ExecutorDatasetAccess[DatasetType <: Dataset] extends DatasetAccess {
   }
 
   val dummyTask: Task[DatasetSpec[DatasetType]] = {
-    PlainTask(Identifier.fromAllowed(datasetName), DatasetSpec(this.asInstanceOf[DatasetType]))
+    PlainTask(Identifier.fromAllowed("dataset_" + datasetName), DatasetSpec(this.asInstanceOf[DatasetType]))
   }
 
 }
