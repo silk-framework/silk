@@ -166,11 +166,25 @@ const MappingsList = React.createClass({
             </DragDropContext>
         );
 
+        const openToBottomFn = () => {
+            // Calculates if the floating menu list should be opened to the top or bottom depending on the space to the top.
+            let toBottom = false;
+            try {
+                const floatButtonRect = $('.ecc-floatingactionlist button.mdl-button')[0].getBoundingClientRect();
+                const navHeaderRect = $('.ecc-silk-mapping__navheader div.mdl-card--stretch')[0].getBoundingClientRect();
+                const availableSpace = floatButtonRect.top - navHeaderRect.bottom;
+                const spaceNeededForMenuList = 200; // This is not known before the menu list is rendered, so we assume at most 4 elements
+                toBottom = availableSpace < spaceNeededForMenuList;
+            } catch(error) {}
+            return toBottom;
+        };
+
         const listActions = (
             <FloatingActionList
                 fabSize="large"
                 fixed
                 iconName="add"
+                openToBottom={openToBottomFn}
                 actions={_.concat(
                     {
                         icon: 'insert_drive_file',
