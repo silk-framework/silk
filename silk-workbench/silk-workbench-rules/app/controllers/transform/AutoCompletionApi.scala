@@ -39,7 +39,7 @@ class AutoCompletionApi @Inject() () extends InjectedController {
         val simpleSourcePath = sourcePath.filter(op => op.isInstanceOf[ForwardOperator] || op.isInstanceOf[BackwardOperator])
         val forwardOnlySourcePath = forwardOnlyPath(simpleSourcePath)
         val allPaths = pathsCacheCompletions(task, simpleSourcePath)
-        val isRdfInput = task.activity[TransformPathsCache].value.isRdfInput(task)
+        val isRdfInput = task.activity[TransformPathsCache].value().isRdfInput(task)
         // FIXME: No only generate relative "forward" paths, but also generate paths that would be accessible by following backward paths.
         val relativeForwardPaths = relativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput)
         // Add known paths
@@ -172,13 +172,13 @@ class AutoCompletionApi @Inject() () extends InjectedController {
 
   private def fetchCachedPaths(task: ProjectTask[TransformSpec], sourcePath: List[PathOperator])
                               (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
-    val cachedSchemata = task.activity[TransformPathsCache].value
+    val cachedSchemata = task.activity[TransformPathsCache].value()
     cachedSchemata.fetchCachedPaths(task, sourcePath)
   }
 
   private def vocabularyTypeCompletions(task: ProjectTask[TransformSpec]): Completions = {
     val prefixes = task.project.config.prefixes
-    val vocabularyCache = task.activity[VocabularyCache].value
+    val vocabularyCache = task.activity[VocabularyCache].value()
 
     val typeCompletions =
       for(vocab <- vocabularyCache.vocabularies; vocabClass <- vocab.classes) yield {
@@ -196,7 +196,7 @@ class AutoCompletionApi @Inject() () extends InjectedController {
 
   private def vocabularyPropertyCompletions(task: ProjectTask[TransformSpec]): Completions = {
     val prefixes = task.project.config.prefixes
-    val vocabularyCache = task.activity[VocabularyCache].value
+    val vocabularyCache = task.activity[VocabularyCache].value()
 
     val propertyCompletions =
       for(vocab <- vocabularyCache.vocabularies; prop <- vocab.properties) yield {

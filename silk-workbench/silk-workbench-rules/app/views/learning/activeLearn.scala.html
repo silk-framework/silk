@@ -1,14 +1,17 @@
-
 @import controllers.core.routes.{Assets => CoreAssets}
 @import controllers.rules.routes.Assets
 @import controllers.linking.routes
+@import controllers.linking.routes.Learning
+@import controllers.workspace.routes.ActivityApi
 @import org.silkframework.learning.active.ActiveLearning
 @import views.html.workspace.activity.taskActivityControl
 @import models.linking.LinkCandidateDecision
 @import org.silkframework.rule.LinkSpec
-
 @import org.silkframework.workbench.Context
-@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session)
+@import org.silkframework.learning.active.ActiveLearningFactory
+@import views.html.workspace.activity.autoReload
+
+@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session, request: RequestHeader)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/table.css")" rel="stylesheet" />
@@ -51,8 +54,6 @@
     $(function() {
       showLinkCandidate();
     });
-
-
   </script>
 }
 
@@ -94,7 +95,11 @@
 
     <div class="wrapper">
       <div id="rule_view" class="clearfix">
-      @widgets.autoReload("learn/rule", "learn/ruleStream")
+        @autoReload(
+          context = context,
+          contentPath = Learning.rule(context.project.name, context.task.id).url,
+          activityId = ActiveLearningFactory.pluginId
+        )
       </div>
     </div>
     <script type="text/javascript">
@@ -107,8 +112,6 @@
         $("#rule_view").slideUp();
       });
     </script>
-
-
   </div>
 
   <div class="mdl-shadow--2dp">

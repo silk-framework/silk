@@ -18,11 +18,12 @@ import scala.collection.mutable
 
 /**
  * An observable value.
- * 
+ *
  * @tparam T The type of the value.
  */
 trait Observable[T] {
 
+  // Holds all subscribers. Access must be synchronized.
   private val subscriberMap = new mutable.WeakHashMap[T => _, Unit]()
 
   /**
@@ -38,7 +39,7 @@ trait Observable[T] {
   /**
     * Retrieves the value as Option
     */
-  def get: Option[T] = {
+  final def get: Option[T] = {
     if(isDefined) {
       Some(apply())
     } else {
@@ -52,21 +53,28 @@ trait Observable[T] {
    *
    * @return The provided function
    */
-  def subscribe[U](f: T => U): Unit = synchronized {
+  final def subscribe[U](f: T => U): Unit = subscriberMap.synchronized {
     subscriberMap.update(f, Unit)
   }
 
   /**
-   * Removes a function from the subscribers list.
+    * Removes a subscriber.
+    */
+  final def removeSubscription[U](f: T => U): Unit = subscriberMap.synchronized {
+    subscriberMap.remove(f)
+  }
+
+  /**
+   * Removes all subscribers.
    */
-  def removeSubscriptions(): Unit = synchronized {
+  final def removeSubscriptions(): Unit = subscriberMap.synchronized {
     subscriberMap.clear()
   }
 
   /**
     * Retrieves all subscribers.
     */
-  def subscribers: Traversable[(T => _)] = synchronized {
+  final def subscribers: Traversable[T => _] = subscriberMap.synchronized {
     subscriberMap.keys
   }
 
@@ -75,8 +83,9 @@ trait Observable[T] {
    *
    * @param newValue The new value.
    */
-  protected def publish(newValue: T) = {
-    for(subscriber <- subscriberMap.keys)
+  protected final def publish(newValue: T): Unit = subscriberMap.synchronized {
+    for(subscriber <- subscriberMap.keys) {
       subscriber(newValue)
+    }
   }
 }

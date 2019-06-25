@@ -46,7 +46,7 @@ class BooleanFilterLinkSpecIntegrationTest extends FlatSpec
       val linkingTask = project.task[LinkSpec](testCase)
       val evaluateLinkingActivity = linkingTask.activity[EvaluateLinkingActivity]
       evaluateLinkingActivity.control.startBlocking()
-      val linkingResult = evaluateLinkingActivity.value
+      val linkingResult = evaluateLinkingActivity.value()
       val DPair(sourceEntities, targetEntities) = linkingResult.statistics.entityCount
       val nrLinks = linkingResult.links.size
       sourceEntities mustBe expectedSourceEntities

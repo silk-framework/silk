@@ -2,26 +2,27 @@ package controllers.workspace
 
 import java.util.logging.{LogRecord, Logger}
 
+import akka.actor.ActorSystem
+import akka.stream.Materializer
 import akka.stream.scaladsl.{Merge, Source}
-import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, Stream, UserContextAction, Widgets}
-import controllers.util.SerializationUtils
+import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.util.{AkkaUtils, SerializationUtils}
 import javax.inject.Inject
 import org.silkframework.config.TaskSpec
-import org.silkframework.runtime.activity.{Activity, ActivityControl, UserContext, _}
+import org.silkframework.runtime.activity.{Activity, UserContext, _}
+import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationException}
+import org.silkframework.serialization.json.ActivitySerializers.ExtendedStatusJsonFormat
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
-import play.api.http.ContentTypes
-import play.api.libs.iteratee.Enumerator
-import play.api.libs.json.{JsArray, Json}
+import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc._
 
 import scala.language.existentials
 
-class ActivityApi @Inject() () extends InjectedController {
+class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) extends InjectedController {
 
   def getProjectActivities(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
@@ -48,7 +49,7 @@ class ActivityApi @Inject() () extends InjectedController {
         project.activity(activityName)
       }
 
-    if (activity.isSingleton && activity.status.isRunning) {
+    if (activity.isSingleton && activity.status().isRunning) {
       ErrorResult(BAD_REQUEST, title = "Cannot start activity", detail = s"Cannot start activity '$activityName'. Already running.")
     } else {
       if (blocking) {
@@ -114,7 +115,9 @@ class ActivityApi @Inject() () extends InjectedController {
 
   def getActivityStatus(projectName: String, taskName: String, activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     val activity = activityControl(projectName, taskName, activityName)
-    Ok(JsonSerializer.activityStatus(projectName, taskName, activityName, activity.status(), activity.startTime))
+    implicit val writeContext = WriteContext[JsValue]()
+
+    Ok(new ExtendedStatusJsonFormat(projectName, taskName, activityName, activity.startTime).write(activity.status()))
   }
 
   def getActivityValue(projectName: String,
@@ -137,7 +140,7 @@ class ActivityApi @Inject() () extends InjectedController {
     val allActivities = projectActivities ++ taskActivities
 
     // Filter recent activities
-    val recentActivities = allActivities.sortBy(-_.status.timestamp).take(maxCount)
+    val recentActivities = allActivities.sortBy(-_.status().timestamp).take(maxCount)
 
     // Get all statuses
     val statuses = recentActivities.map(JsonSerializer.activityStatus)
@@ -149,47 +152,50 @@ class ActivityApi @Inject() () extends InjectedController {
     Ok(JsonSerializer.logRecords(ActivityLog.records))
   }
 
-  def activityUpdates(projectName: String,
-                      taskName: String,
-                      activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val projects =
-      if (projectName.nonEmpty) WorkspaceFactory().workspace.project(projectName) :: Nil
-      else WorkspaceFactory().workspace.projects
+  def getActivityStatusUpdates(projectName: String,
+                               taskName: String,
+                               activityName: String,
+                               timestamp: Long): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+    val activities = allActivities(projectName, taskName, activityName)
+    implicit val writeContext = WriteContext[JsValue]()
 
-    def tasks(project: Project) =
-      if (taskName.nonEmpty) project.anyTask(taskName) :: Nil
-      else project.allTasks
-
-    def projectActivities(project: Project) =
-      if (taskName.nonEmpty) Nil
-      else project.activities
-
-    def taskActivities(task: ProjectTask[_ <: TaskSpec]) =
-      if (activityName.nonEmpty) task.activity(activityName) :: Nil
-      else task.activities
-
-    val projectActivityStreams =
-      for (project <- projects; activity <- projectActivities(project)) yield
-        Widgets.statusStream(Enumerator(activity.status) andThen Stream.status(activity.control.status), project = project.name, task = "", activity = activity.name)
-
-    val taskActivityStreams =
-      for (project <- projects;
-           task <- tasks(project);
-           activity <- taskActivities(task)) yield
-        Widgets.statusStream(Enumerator(activity.status) andThen Stream.status(activity.control.status), project = project.name, task = task.id, activity = activity.name)
-
-    val allSources = projectActivityStreams ++ taskActivityStreams
-
-    Ok.chunked(Source.combine(Source.empty, Source.empty, allSources: _*)(Merge(_))).as(ContentTypes.HTML)
+    Ok(
+      JsArray(
+        for(activity <- activities if activity.status().timestamp >= timestamp) yield {
+          new ExtendedStatusJsonFormat(activity).write(activity.status())
+        }
+      )
+    )
   }
 
+  def activityStatusUpdatesWebSocket(projectName: String,
+                                     taskName: String,
+                                     activityName: String): WebSocket = {
+
+    implicit val userContext = UserContext.Empty
+    implicit val writeContext = WriteContext[JsValue]()
+
+    val activities = allActivities(projectName, taskName, activityName)
+    val sources =
+      for(activity <- activities) yield {
+        implicit val format = new ExtendedStatusJsonFormat(activity)
+        AkkaUtils.createSource(activity.status).map(format.write)
+      }
+
+    // Combine all sources into a single flow
+    val combinedSources = Source.combine(Source.empty, Source.empty, sources :_*)(Merge(_))
+    AkkaUtils.createWebSocket(combinedSources)
+  }
+
+  /**
+    * Retrieves a single workspace activity.
+    */
   private def activityControl(projectName: String, taskName: String, activityName: String)
-                             (implicit userContext: UserContext): ActivityControl[_] = {
+                            (implicit userContext: UserContext): ActivityControl[_] = {
     val project = WorkspaceFactory().workspace.project(projectName)
-    val activityId: Identifier = activityName
     if (taskName.nonEmpty) {
       val task = project.anyTask(taskName)
-      val activities = task.activities.flatMap(_.allInstances.get(activityId).asInstanceOf[Option[ActivityControl[_]]].toSeq)
+      val activities = task.activities.flatMap(_.allInstances.get(activityName).asInstanceOf[Option[ActivityControl[_]]].toSeq)
       activities match {
         case Seq(activity) => activity
         case Seq() => throw new NotFoundException(s"Activity with id $activityName not found")
@@ -198,6 +204,51 @@ class ActivityApi @Inject() () extends InjectedController {
     } else {
       project.activity(activityName).control
     }
+  }
+
+  /**
+    * Retrieves all workspace activities that satisfy the filter conditions.
+    */
+  private def allActivities(projectName: String, taskName: String, activityName: String)
+                           (implicit userContext: UserContext): Seq[WorkspaceActivity[_]] = {
+    val projects: Seq[Project] =
+      if (projectName.nonEmpty) {
+        Seq(WorkspaceFactory().workspace.project(projectName))
+      } else {
+        WorkspaceFactory().workspace.projects
+      }
+
+    def tasks(project: Project): Seq[ProjectTask[_ <: TaskSpec]] =
+      if(taskName.nonEmpty) {
+        Seq(project.anyTask(taskName))
+      } else {
+        project.allTasks
+      }
+
+    def activities(task: ProjectTask[_ <: TaskSpec]): Seq[WorkspaceActivity[_]] = {
+      if (activityName.nonEmpty) {
+        Seq(task.activity(activityName))
+      } else {
+        task.activities
+      }
+    }
+
+    val projectActivities: Seq[WorkspaceActivity[_]] = {
+      if (taskName.nonEmpty) {
+        Seq.empty
+      } else {
+        for (project <- projects;
+             activity <- project.activities) yield activity
+      }
+    }
+
+    val taskActivities: Seq[WorkspaceActivity[_]] = {
+      for(project <- projects;
+          task <- tasks(project);
+          activity <- activities(task)) yield activity
+    }
+
+    projectActivities ++ taskActivities
   }
 
   /** Only affects activities with singleton==false setting, removes activity control instance */

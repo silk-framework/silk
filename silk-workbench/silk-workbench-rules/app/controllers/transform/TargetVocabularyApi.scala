@@ -25,7 +25,7 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with Controll
   /** Returns meta data for a vocabulary class */
   def getTypeInfo(projectName: String, transformTaskName: String, typeUri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = projectAndTask[TransformSpec](projectName, transformTaskName)
-    val vocabularies = task.activity[VocabularyCache].value
+    val vocabularies = task.activity[VocabularyCache].value()
     val fullTypeUri = Uri.parse(typeUri, project.config.prefixes)
 
     vocabularies.findClass(fullTypeUri.uri) match {
@@ -41,7 +41,7 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with Controll
                       transformTaskName: String,
                       propertyUri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = projectAndTask[TransformSpec](projectName, transformTaskName)
-    val vocabularies = task.activity[VocabularyCache].value
+    val vocabularies = task.activity[VocabularyCache].value()
     val fullPropertyUri = Uri.parse(propertyUri, project.config.prefixes)
 
     vocabularies.findProperty(fullPropertyUri.uri) match {
@@ -59,7 +59,7 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with Controll
                             transformTaskName: String,
                             uri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = projectAndTask[TransformSpec](projectName, transformTaskName)
-    val vocabularies = task.activity[VocabularyCache].value
+    val vocabularies = task.activity[VocabularyCache].value()
     val fullUri = Uri.parse(uri, project.config.prefixes)
 
     (vocabularies.findClass(fullUri.uri), vocabularies.findProperty(fullUri.uri)) match {
@@ -98,7 +98,7 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with Controll
                                          addBackwardRelations: Boolean)
                                         (implicit userContext: UserContext): (Seq[VocabularyProperty], Seq[VocabularyProperty]) = {
     val task = project.task[TransformSpec](taskName)
-    val vocabularies = task.activity[VocabularyCache].value
+    val vocabularies = task.activity[VocabularyCache].value()
     val vocabularyClasses = vocabularies.flatMap(v => v.getClass(classUri).map(c => (v, c)))
 
     def filterProperties(propFilter: (VocabularyProperty, List[String]) => Boolean): Seq[VocabularyProperty] = {

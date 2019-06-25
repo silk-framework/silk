@@ -2,7 +2,8 @@ package controllers.linking
 
 import java.util.logging.Logger
 
-import controllers.core.{RequestUserContextAction, Stream, UserContextAction, Widgets}
+import akka.stream.Materializer
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import javax.inject.Inject
 import models.learning.{PathValue, PathValues}
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
@@ -15,7 +16,6 @@ import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.rule.{LinkSpec, LinkageRule, RuleTraverser}
-import org.silkframework.runtime.activity.Status.Finished
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Identifier._
@@ -23,10 +23,9 @@ import org.silkframework.workbench.Context
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
-import play.api.http.ContentTypes
-import play.api.mvc.{InjectedController, Action, AnyContent, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, InjectedController}
 
-class Learning @Inject() () extends InjectedController {
+class Learning @Inject() (implicit mat: Materializer) extends InjectedController {
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -47,7 +46,7 @@ class Learning @Inject() () extends InjectedController {
 
   def activeLearnDetails(project: String, task: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
-    val activeLearnState = context.task.activity[ActiveLearning].value
+    val activeLearnState = context.task.activity[ActiveLearning].value()
     Ok(views.html.learning.activeLearnDetails(activeLearnState, context.project.config.prefixes))
   }
 
@@ -223,18 +222,10 @@ class Learning @Inject() () extends InjectedController {
     Ok
   }
 
-  def ruleStream(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val task = project.task[LinkSpec](taskName)
-    val stream1 = Stream.status(task.activity[LearningActivity].control.status)
-    val stream2 = Stream.status(task.activity[ActiveLearning].control.status, _.isInstanceOf[Finished])
-    Ok.chunked(Widgets.autoReload("reload", stream1 interleave stream2)).as(ContentTypes.HTML)
-  }
-
   def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val validLinks = task.activity[ActiveLearning].value.links
+    val validLinks = task.activity[ActiveLearning].value().links
     def refLinks = task.data.referenceLinks
     val linkSorter = LinkSorter.fromId(sorting)
 
@@ -252,23 +243,6 @@ class Learning @Inject() () extends InjectedController {
     Ok(views.html.widgets.linksTable(project, task, valLinks, None, linkSorter, filter, page, showStatus = true, showDetails = false, showEntities = true, rateButtons = true))
   }
 
-  def linksStream(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val task = project.task[LinkSpec](taskName)
-    val stream = Stream.activityValue(task.activity[ActiveLearning].control)
-    Ok.chunked(Widgets.autoReload("reload", stream)).as(ContentTypes.HTML)
-  }
-
-  def statusStream(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val task = project.task[LinkSpec](taskName)
-
-    val stream1 = Stream.status(task.activity[LearningActivity].control.status)
-    val stream2 = Stream.status(task.activity[ActiveLearning].control.status)
-
-    Ok.chunked(Widgets.statusStream(stream1 interleave stream2)).as(ContentTypes.HTML)
-  }
-
   def population(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
     Ok(views.html.learning.population(context))
@@ -284,12 +258,12 @@ class Learning @Inject() () extends InjectedController {
     val sortedIndividuals = individuals.sortBy(-_.fitness)
     val pageIndividuals = sortedIndividuals.view(page * pageSize, (page + 1) * pageSize)
 
-    Ok(views.html.learning.populationTable(projectName, taskName, pageIndividuals, task.activity[ReferenceEntitiesCache].value))
+    Ok(views.html.learning.populationTable(projectName, taskName, pageIndividuals, task.activity[ReferenceEntitiesCache].value()))
   }
 
   private def getPopulation(task: ProjectTask[LinkSpec]): Population = {
-    val population1 = task.activity[ActiveLearning].value.population
-    val population2 = task.activity[LearningActivity].value.population
+    val population1 = task.activity[ActiveLearning].value().population
+    val population2 = task.activity[LearningActivity].value().population
     if(population1.isEmpty)
       population2
     else if(population2.isEmpty)

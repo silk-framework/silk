@@ -1,7 +1,7 @@
 @import org.silkframework.workspace.activity.TaskActivity
 @import org.silkframework.workspace.activity.CachedActivity
 
-@(activity: TaskActivity[_, _], showButtons: Boolean = false)
+@(activity: TaskActivity[_, _], showButtons: Boolean = false)(implicit request: RequestHeader)
 
 @activityControl(
   project = activity.task.project.name,
