@@ -27,8 +27,10 @@ case class WorkbenchConfig(title: String = "Silk Workbench",
                            about: Resource,
                            mdlStyle: Option[Resource],
                            tabs: Tabs = Tabs(),
+                           protocol: String,
                            loggedOut: Resource) {
   var showLogoutButton: Boolean = false
+  val useHttps: Boolean = protocol == "https"
 }
 
 object WorkbenchConfig {
@@ -65,9 +67,12 @@ object WorkbenchConfig {
                config.getOptional[Boolean]("workbench.tabs.referenceLinks").getOrElse(true),
                config.getOptional[Boolean]("workbench.tabs.status").getOrElse(true)
              ),
+      protocol = config.getOptional[String]("workbench.protocol").getOrElse("http"),
       loggedOut = resourceLoader.get("loggedOut.html")
     )
   }
+
+  def apply(): WorkbenchConfig = get
 
   def getResourceLoader: ResourceLoader = {
     //Depending on the distribution method, the configuration resources may be located at different locations.
