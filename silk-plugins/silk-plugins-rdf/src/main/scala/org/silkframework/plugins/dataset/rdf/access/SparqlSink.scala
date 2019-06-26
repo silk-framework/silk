@@ -23,7 +23,7 @@ class SparqlSink(params: SparqlParams,
 
   private var properties = Seq[TypedProperty]()
 
-  override def sparqlEndpoint: SparqlEndpoint = sparqlEndpoint
+  override def sparqlEndpoint: SparqlEndpoint = endpoint
 
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
                         (implicit userContext: UserContext): Unit = {

@@ -25,6 +25,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFo
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.language.implicitConversions
+import scala.reflect.ClassTag
 import scala.xml.Node
 
 /**

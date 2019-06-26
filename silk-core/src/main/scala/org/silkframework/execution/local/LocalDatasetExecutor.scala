@@ -15,16 +15,16 @@ import org.silkframework.util.Uri
 /**
   * Local dataset executor that handles read and writes to [[Dataset]] tasks.
   */
-class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
+abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecutor[DatasetType, LocalExecution] {
   private val logger = Logger.getLogger(getClass.getName)
-
 
   /**
     * Reads data from a dataset.
     */
-  override def read(dataset: Task[DatasetSpec[Dataset]], schema: EntitySchema, execution: LocalExecution)
+  override def read(dataset: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: LocalExecution)
                    (implicit userContext: UserContext): LocalEntities = {
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
+    val source = access(dataset, execution).source
     schema match {
       case QuadEntityTable.schema =>
         handleTripleEntitySchema(dataset)
@@ -33,16 +33,16 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
       case SparqlEndpointEntitySchema.schema =>
         handleSparqlEndpointSchema(dataset)
       case multi: MultiEntitySchema =>
-        handleMultiEntitySchema(dataset, schema, multi)
+        handleMultiEntitySchema(dataset, source, schema, multi)
       case DatasetResourceEntitySchema.schema =>
         handleDatasetResourceEntitySchema(dataset)
       case _ =>
-        val entities = dataset.source.retrieve(entitySchema = schema)
+        val entities = source.retrieve(entitySchema = schema)
         GenericEntityTable(entities, entitySchema = schema, dataset)
     }
   }
 
-  private def handleDatasetResourceEntitySchema(dataset: Task[DatasetSpec[Dataset]]) = {
+  private def handleDatasetResourceEntitySchema(dataset: Task[DatasetSpec[DatasetType]]) = {
     dataset.data match {
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
@@ -57,14 +57,14 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def handleMultiEntitySchema(dataset: Task[DatasetSpec[Dataset]], schema: EntitySchema, multi: MultiEntitySchema)
+  private def handleMultiEntitySchema(dataset: Task[DatasetSpec[Dataset]], source: DataSource, schema: EntitySchema, multi: MultiEntitySchema)
                                      (implicit userContext: UserContext)= {
     MultiEntityTable(
-      entities = dataset.source.retrieve(entitySchema = schema),
+      entities = source.retrieve(entitySchema = schema),
       entitySchema = schema,
       subTables =
           for (subSchema <- multi.subSchemata) yield
-            GenericEntityTable(dataset.source.retrieve(entitySchema = subSchema), subSchema, dataset),
+            GenericEntityTable(source.retrieve(entitySchema = subSchema), subSchema, dataset),
       task = dataset
     )
   }
@@ -103,7 +103,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     new TripleEntityTable(tripleEntities, dataset)
   }
 
-  override protected def write(data: LocalEntities, dataset: Task[DatasetSpec[Dataset]], execution: LocalExecution)
+  override protected def write(data: LocalEntities, dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)
                               (implicit userContext: UserContext): Unit = {
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
     data match {
@@ -112,15 +112,15 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
           writeLinks(linkSink, links, linkType)
         }
       case tripleEntityTable: TripleEntityTable =>
-        withEntitySink(dataset) { entitySink =>
+        withEntitySink(dataset, execution) { entitySink =>
           writeTriples(entitySink, tripleEntityTable.entities)
         }
       case QuadEntityTable(entitiesFunc, _) =>
-        withEntitySink(dataset) { entitySink =>
+        withEntitySink(dataset, execution) { entitySink =>
           writeTriples(entitySink, entitiesFunc())
         }
       case tables: MultiEntityTable =>
-        withEntitySink(dataset) { entitySink =>
+        withEntitySink(dataset, execution) { entitySink =>
           writeMultiTables(entitySink, tables)
         }
       case datasetResource: DatasetResourceEntityTable =>
@@ -128,7 +128,7 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
       case sparqlUpdateTable: SparqlUpdateEntityTable =>
         executeSparqlUpdateQueries(dataset, sparqlUpdateTable)
       case et: LocalEntities =>
-        withEntitySink(dataset) { entitySink =>
+        withEntitySink(dataset, execution) { entitySink =>
           writeEntities(entitySink, et)
         }
     }
@@ -181,8 +181,8 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 
-  private def withEntitySink(dataset: DatasetSpec[Dataset])(f: EntitySink => Unit)(implicit userContext: UserContext): Unit = {
-    val sink = dataset.entitySink
+  private def withEntitySink(dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)(f: EntitySink => Unit)(implicit userContext: UserContext): Unit = {
+    val sink = access(dataset, execution).entitySink
     try {
       f(sink)
     } finally {
@@ -266,3 +266,6 @@ class LocalDatasetExecutor extends DatasetExecutor[Dataset, LocalExecution] {
     }
   }
 }
+
+// To be used in cases when no specific LocalDatasetExecutor has been implemented yet for a particular dataset type.
+class GenericLocalDatasetExecutor extends LocalDatasetExecutor[Dataset]
