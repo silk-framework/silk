@@ -228,7 +228,7 @@ case class DirectMapping(id: Identifier = "sourcePath",
                          mappingTarget: MappingTarget = MappingTarget("http://www.w3.org/2000/01/rdf-schema#label"),
                          metaData: MetaData = MetaData.empty) extends ValueTransformRule {
 
-  override val operator = PathInput(id, sourcePath)
+  override val operator = PathInput(id, sourcePath.asAutoDetectTypedPath)
 
   override val target = Some(mappingTarget)
 

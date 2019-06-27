@@ -78,17 +78,17 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
       }
 
     val sourceEntities = source.retrieve(inputSchema, limit)
-    def transformedUri: (Entity) => String = (entity: Entity) => subjectRule.flatMap(_ (entity).headOption).getOrElse(entity.uri.toString)
+    def transformedUri: Entity => String = (entity: Entity) => subjectRule.flatMap(_ (entity).headOption).getOrElse(entity.uri.toString)
     // True if the entity should be output, i.e. if entity URIs are defined the transformed entity URI should be included in that set
-    val filterEntity: (Entity) => Boolean = entities match {
+    val filterEntity: Entity => Boolean = entities match {
       case Some(uris) =>
         val uriSet = uris.map(_.uri.toString).toSet
-        (entity) =>  {
+        entity =>  {
           val uri = transformedUri(entity)
           uriSet.contains(uri)
         }
       case None =>
-        (_) => true
+        _ => true
     }
 
     new Traversable[Entity] {
