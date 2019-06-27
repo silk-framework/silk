@@ -147,6 +147,15 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     cachedProjects = loadProjects()
   }
 
+  /** Reloads the registered prefixes if the workspace provider supports this operation. */
+  def reloadPrefixes()(implicit userContext: UserContext): Unit = {
+    loadUserProjects()
+    val additionalPrefixes = provider.fetchRegisteredPrefixes()
+    cachedProjects foreach { project =>
+      project.setAdditionalPrefixes(additionalPrefixes)
+    }
+  }
+
   /** Reload a project from the backend */
   private def reloadProject(id: Identifier)
                            (implicit userContext: UserContext): Unit = synchronized {
