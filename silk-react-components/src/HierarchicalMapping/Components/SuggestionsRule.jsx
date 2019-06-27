@@ -79,6 +79,7 @@ const SuggestionsRule = React.createClass({
                                 onClick={this.preventPropagation}>
                                 <SelectBox
                                     disabled={!suggestion.checked}
+                                    reducedSize
                                     options={LABELED_SUGGESTION_TYPES}
                                     onChange={this.onChangeType}
                                     value={{
