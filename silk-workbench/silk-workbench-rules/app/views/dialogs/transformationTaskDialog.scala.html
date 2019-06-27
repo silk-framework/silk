@@ -42,22 +42,11 @@
     </div>
   </div>
   @widgets.multilineParameter("source", currentInput.map(_.restriction.serialize).getOrElse(""), label = "Source Restriction", tooltip = restrictionTooltip)
-  <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
-    <select class="mdl-selectfield__select" id="output_dataset" name="output_dataset">
-      <option value=""></option>
-      @for(dataset <- datasets) {
-        @if(currentOutput.isDefined && dataset.id == currentOutput.get) {
-          <option value="@dataset.id" selected="selected">@dataset.id</option>
-        } else {
-          <option value="@dataset.id">@dataset.id</option>
-        }
-      }
-    </select>
-    <label class="mdl-selectfield__label" for="output_dataset">Output</label>
-    <div class="mdl-tooltip mdl-tooltip--right" for="target_vocabularies">
-      Transformed entities are written to this dataset.
-    </div>
-  </div>
+  @if(currentOutput.isDefined) {
+    @widgets.datasetSelect(project, "output", Some(currentOutput.get))
+  } else {
+    @widgets.datasetSelect(project, "output", None)
+  }
   @widgets.multilineParameter("target_vocabularies", transformationTask.map(_.targetVocabularies.mkString(", ")).getOrElse(""), label = "Target Vocabularies", tooltip = "Comma-separated list of target vocabularies.")
 </div>
 }
