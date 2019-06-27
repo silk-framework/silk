@@ -225,7 +225,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
       case Some(task) =>
         task.update(taskData, metaData)
       case None =>
-        addTask[T](name, taskData, metaData.getOrElse(MetaData.empty))
+        addTask[T](name, taskData, metaData.getOrElse(MetaData(MetaData.labelFromId(name))))
     }
   }
 
