@@ -271,13 +271,16 @@ object Entity {
 
   /**
     * Instantiates a new Entity and fails it with the given Throwable
-    * NOTE: values are not recorded
+    * NOTE: values are all set to empty.
     * @param uri - uri of the entity
     * @param schema - the EntitySchema pertaining to the Entity
     * @param failure - the Throwable which failed this Enity as [[FailureClass]]
     * @return - the failed Entity
     */
-  def apply(uri: Uri, schema: EntitySchema, failure: FailureClass): Entity = Entity(uri, IndexedSeq(), schema, IndexedSeq(), Some(failure))
+  def apply(uri: Uri, schema: EntitySchema, failure: FailureClass): Entity = {
+    val emptyValues = schema.typedPaths.map(_ => Seq.empty)
+    Entity(uri, emptyValues, schema, IndexedSeq(), Some(failure))
+  }
 
   /**
     * Instantiates a new Entity and fails it with the given Throwable
