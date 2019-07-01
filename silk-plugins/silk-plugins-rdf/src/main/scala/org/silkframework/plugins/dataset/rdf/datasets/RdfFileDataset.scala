@@ -21,6 +21,7 @@ import org.silkframework.util.{Identifier, Uri}
 @Plugin(
   id = "file",
   label = "RDF file",
+  categories = Array(DatasetCategories.file),
   description =
 """Dataset which retrieves and writes all entities from/to an RDF file.
 The dataset is loaded in-memory and thus the size is restricted by the available memory.

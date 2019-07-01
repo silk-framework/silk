@@ -9,6 +9,7 @@ import org.silkframework.runtime.resource._
 @Plugin(
   id = "csv",
   label = "CSV file",
+  categories = Array(DatasetCategories.file),
   description =
       """Retrieves all entities from a csv file."""
 )

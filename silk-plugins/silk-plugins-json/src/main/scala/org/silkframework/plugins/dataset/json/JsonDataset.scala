@@ -10,6 +10,7 @@ import scala.io.Codec
 @Plugin(
   id = "json",
   label = "JSON file",
+  categories = Array(DatasetCategories.file),
   description =
 """Retrieves all entities from an JSON file."""
 )
