@@ -17,7 +17,7 @@ import WorkflowWithPayloadExecutorFactory._
 
 @Plugin(
   id = "ExecuteWorkflowWithPayload",
-  label = "Execute Workflow with payload",
+  label = "Execute with Payload",
   categories = Array("WorkflowExecution"),
   description = "Executes a workflow with custom payload."
 )

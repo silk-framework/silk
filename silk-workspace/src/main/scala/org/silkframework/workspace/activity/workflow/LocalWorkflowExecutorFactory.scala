@@ -10,7 +10,7 @@ import org.silkframework.workspace.activity.TaskActivityFactory
   */
 @Plugin(
   id = "ExecuteLocalWorkflow",
-  label = "Execute local Workflow",
+  label = "Execute locally",
   categories = Array("Workflow"),
   description = "Executes the workflow locally."
 )
