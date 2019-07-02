@@ -10,7 +10,7 @@ import org.silkframework.runtime.plugin.{Param, Plugin}
 
 @Plugin(
   id = "inMemory",
-  label = "In-memory Dataset",
+  label = "In-memory dataset",
   categories = Array(DatasetCategories.embedded),
   description = "A Dataset that holds all data in-memory."
 )
