@@ -111,7 +111,7 @@ object ValueType {
                                   nodeType: String,
                                   prefixes: Prefixes): ValueType = {
     nodeType.replace("$", "") match {
-      case OUTDATED_AUTO_DETECT => UntypedValueType //for backward compatibility
+      case OUTDATED_AUTO_DETECT => StringValueType //for backward compatibility
       case CUSTOM_VALUE_TYPE =>
         (value \ "@uri").headOption match {
           case Some(typeUri) =>
@@ -136,7 +136,7 @@ object ValueType {
     Left((LANGUAGE_VALUE_TYPE, classOf[LanguageValueType])),
     // this type string is a left over from the previous name of UntypedValueType.
     // Since many project configs in tests still feature the old type, this is a valid workaround.
-    Left((OUTDATED_AUTO_DETECT, UntypedValueType.getClass.asInstanceOf[Class[_ <: ValueType]])),
+    Left((OUTDATED_AUTO_DETECT, StringValueType.getClass.asInstanceOf[Class[_ <: ValueType]])),
     Right(IntValueType),
     Right(LongValueType),
     Right(StringValueType),
