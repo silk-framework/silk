@@ -24,16 +24,16 @@ class SparqlSelectIntegrationTest extends FlatSpec with SingleProjectWorkspacePr
     executeActivity.control.startBlocking()
     val expectedResult = """s,v
       |urn:instance:unemploymentcsv#14,6.5
-      |urn:instance:unemploymentcsv#17,6.9
+      |urn:instance:unemploymentcsv#18,7.1
+      |urn:instance:unemploymentcsv#5,6.1
       |urn:instance:unemploymentcsv#6,5.8
-      |urn:instance:unemploymentcsv#10,6.1
-      |urn:instance:unemploymentcsv#2,6.2""".stripMargin
+      |urn:instance:unemploymentcsv#8,5.8""".stripMargin
     checkOutputResource("sparqlOutput.csv", expectedResult)
   }
 
   private def checkOutputResource(name: String, expectedResult: String): Unit = {
     val outputResource = project.resources.getInPath(name)
-    val loaded = outputResource.loadAsString("UTF-8")
-    loaded mustBe expectedResult
+    val loaded = outputResource.loadLines.sorted
+    loaded.mkString("\r\n") mustBe expectedResult
   }
 }
