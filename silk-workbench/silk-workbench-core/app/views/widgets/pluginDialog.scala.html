@@ -20,7 +20,7 @@
     <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
       <select class="mdl-selectfield__select" id="resource_type_select" name="resource_type_select">
         @for(plugin <- sortPlugins(plugins)) {
-          <option value="@plugin.id">@plugin.label (@plugin.categories.mkString(", "))</option>
+          <option value="@plugin.id">@pluginLabel(plugin)</option>
         }
       </select>
       <label class="mdl-selectfield__label" for="resource_type_select">Type</label>
@@ -142,6 +142,14 @@
   plugins.filterNot(_.categories.contains(PluginCategories.deprecated))
          .sortBy(_.label)
          .sortBy(_.categories.headOption.getOrElse("").toLowerCase)
+}
+
+@pluginLabel(plugin: PluginDescription[_]) = {
+  @if(plugin.categories == Seq(PluginCategories.uncategorized)) {
+    @plugin.label
+  } else {
+    @plugin.label (@plugin.categories.mkString(", "))
+  }
 }
 
 @createTab(plugin: PluginDescription[_]) = {
