@@ -36,7 +36,7 @@ import scala.util.control.NonFatal
   * @param constructor The constructor for creating a new instance of this plugin.
   * @tparam T The class that implements this plugin.
   */
-class PluginDescription[+T](val id: Identifier, val categories: Set[String], val label: String, val description: String,
+class PluginDescription[+T](val id: Identifier, val categories: Seq[String], val label: String, val description: String,
                             val documentation: String, val parameters: Seq[Parameter], constructor: Constructor[T]) {
 
   /**
@@ -108,7 +108,7 @@ object PluginDescription {
     new PluginDescription(
       id = annotation.id,
       label = annotation.label,
-      categories = annotation.categories.toSet,
+      categories = annotation.categories,
       description = annotation.description.stripMargin,
       documentation = addTransformDocumentation(annotation.documentation, pluginClass),
       parameters = getParameters(pluginClass),
@@ -120,7 +120,7 @@ object PluginDescription {
     new PluginDescription(
       id = Identifier.fromAllowed(pluginClass.getSimpleName),
       label = pluginClass.getSimpleName,
-      categories = Set("Uncategorized"),
+      categories = Seq(PluginCategories.uncategorized),
       description = "",
       documentation = addTransformDocumentation("", pluginClass),
       parameters = getParameters(pluginClass),

@@ -23,7 +23,7 @@ object PluginDocumentation {
                            pluginParameterDisplay: PluginParameterDisplay): Unit = {
     sb ++= "## " + title + "\n\n"
     sb ++= description + "\n\n"
-    val categories = PluginRegistry.availablePlugins[T].flatMap(_.categories).filter(_ != "Recommended").distinct.sorted
+    val categories = PluginRegistry.availablePlugins[T].flatMap(_.categories).filter(_ != PluginCategories.recommended).distinct.sorted
     for (category <- categories) {
       if (categories.size > 1)
         sb ++= "### " + category + "\n\n"

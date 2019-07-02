@@ -20,7 +20,7 @@ import org.silkframework.util.{Identifier, Uri}
 
 @Plugin(
   id = "file",
-  label = "RDF file",
+  label = "RDF",
   categories = Array(DatasetCategories.file),
   description =
 """Dataset which retrieves and writes all entities from/to an RDF file.

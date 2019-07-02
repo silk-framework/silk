@@ -8,7 +8,12 @@ import org.silkframework.plugins.dataset.rdf.access.{SparqlSink, SparqlSource}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{Param, Plugin}
 
-@Plugin(id = "inMemory", label = "in-memory", description = "A Dataset that holds all data in-memory.")
+@Plugin(
+  id = "inMemory",
+  label = "In-memory Dataset",
+  categories = Array(DatasetCategories.embedded),
+  description = "A Dataset that holds all data in-memory."
+)
 case class InMemoryDataset(@Param(label = "Clear graph before workflow execution",
                                   value = "If set to true this will clear this dataset before it is used in a workflow execution.")
                            clearGraphBeforeExecution: Boolean = true) extends RdfDataset with TripleSinkDataset {

@@ -10,7 +10,8 @@ import org.silkframework.runtime.plugin.Plugin
   */
 @Plugin(
   id = "variableDataset",
-  label = "Variable Dataset",
+  label = "Variable dataset",
+  categories = Array(DatasetCategories.embedded),
   description = "Dataset that acts as a placeholder in Silk workflows and is replaced at request time.")
 final class VariableDataset extends Dataset {
   /**

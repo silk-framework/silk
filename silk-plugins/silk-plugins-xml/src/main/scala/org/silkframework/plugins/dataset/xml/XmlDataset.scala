@@ -12,7 +12,7 @@ import scala.xml._
 
 @Plugin(
   id = "xml",
-  label = "XML file",
+  label = "XML",
   categories = Array(DatasetCategories.file),
   description =
     """Retrieves all entities from an xml file.""",

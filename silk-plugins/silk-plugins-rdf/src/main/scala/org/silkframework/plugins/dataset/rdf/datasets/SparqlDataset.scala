@@ -1,13 +1,17 @@
 package org.silkframework.plugins.dataset.rdf.datasets
 
 import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, RdfDataset, SparqlParams}
-import org.silkframework.dataset.{TripleSink, TripleSinkDataset}
+import org.silkframework.dataset.{DatasetCategories, TripleSink, TripleSinkDataset}
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.plugins.dataset.rdf.access.{SparqlSink, SparqlSource}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, PasswordParameter, Plugin}
 
-@Plugin(id = "sparqlEndpoint", label = "SPARQL endpoint (remote)", description = "Dataset which retrieves all entities from a SPARQL endpoint")
+@Plugin(
+  id = "sparqlEndpoint",
+  label = "SPARQL endpoint",
+  categories = Array(DatasetCategories.remote),
+  description = "Dataset which retrieves all entities from a SPARQL endpoint")
 case class SparqlDataset(
   @Param(label = "endpoint URI", value = "The URI of the SPARQL endpoint e.g. http://dbpedia.org/sparql")
   endpointURI: String,
