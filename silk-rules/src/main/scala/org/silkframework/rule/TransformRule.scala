@@ -78,7 +78,7 @@ sealed trait TransformRule extends Operator {
     def collectPaths(param: Input): Seq[TypedPath] = param match {
       case p: PathInput if p.path.operators.isEmpty => Seq()
       case PathInput(_, path: TypedPath) => Seq(path)
-      case PathInput(_, path: Path) => Seq(TypedPath(path, UntypedValueType, isAttribute = false))
+      case PathInput(_, path: Path) => Seq(TypedPath(path, StringValueType, isAttribute = false))
       case p: TransformInput => p.inputs.flatMap(collectPaths)
     }
 
@@ -228,7 +228,7 @@ case class DirectMapping(id: Identifier = "sourcePath",
                          mappingTarget: MappingTarget = MappingTarget("http://www.w3.org/2000/01/rdf-schema#label"),
                          metaData: MetaData = MetaData.empty) extends ValueTransformRule {
 
-  override val operator = PathInput(id, sourcePath.asAutoDetectTypedPath)
+  override val operator = PathInput(id, sourcePath.asStringTypedPath)
 
   override val target = Some(mappingTarget)
 

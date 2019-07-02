@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf.tasks
 import org.apache.jena.query.QueryFactory
 import org.silkframework.config.CustomTask
 import org.silkframework.dataset.rdf.{SparqlEndpointDatasetParameter, SparqlEndpointEntitySchema}
-import org.silkframework.entity.{UntypedValueType, EntitySchema, Path, TypedPath}
+import org.silkframework.entity._
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
@@ -42,7 +42,7 @@ case class SparqlSelectCustomTask(@Param(label = "Select query", value = "A SPAR
       throw new ValidationException("Query is not a SELECT query!")
     }
     val typedPaths = query.getResultVars.asScala map { v =>
-      TypedPath(Path(v), UntypedValueType, isAttribute = false)
+      TypedPath(Path(v), StringValueType, isAttribute = false)
     }
     EntitySchema(
       typeUri = Uri(""),

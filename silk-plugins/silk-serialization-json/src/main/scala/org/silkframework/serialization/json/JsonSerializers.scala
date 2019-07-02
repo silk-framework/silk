@@ -260,7 +260,7 @@ object JsonSerializers {
       ValueType.valueTypeById(nodeType) match {
         case Left(_) =>
           nodeType match {
-            case ValueType.OUTDATED_AUTO_DETECT => UntypedValueType
+            case ValueType.OUTDATED_AUTO_DETECT => StringValueType
             case ValueType.CUSTOM_VALUE_TYPE =>
               val uriString = stringValue(value, URI)
               val uri = Uri.parse(uriString, readContext.prefixes)
