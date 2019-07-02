@@ -17,7 +17,7 @@ import org.silkframework.runtime.plugin.{Param, Plugin}
   * - '''data''': The RDf data
   * - '''format''': The format of the RDF file. Allowed values: "RDF/XML", "N-Triples", "Turtle"
   */
-@Plugin(id = "rdf", label = "RDF", description = "A Dataset where all entities are given directly in the configuration.")
+@Plugin(id = "rdf", label = "RDF in-memory", description = "A Dataset where all entities are given directly in the configuration.")
 case class RdfInMemoryDataset(data: String,
                               format: String,
                               @Param(label = "Clear graph before workflow execution",
