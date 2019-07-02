@@ -156,14 +156,19 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                                taskName: String,
                                activityName: String,
                                timestamp: Long): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val activities = allActivities(projectName, taskName, activityName)
     implicit val writeContext = WriteContext[JsValue]()
+    val activities = allActivities(projectName, taskName, activityName)
+    val startTime = System.currentTimeMillis()
 
     Ok(
-      JsArray(
-        for(activity <- activities if activity.status().timestamp >= timestamp) yield {
-          new ExtendedStatusJsonFormat(activity).write(activity.status())
-        }
+      Json.obj(
+        "timestamp" -> startTime,
+        "updates" ->
+          JsArray(
+            for(activity <- activities if activity.status().timestamp > timestamp) yield {
+              new ExtendedStatusJsonFormat(activity).write(activity.status())
+            }
+          )
       )
     )
   }

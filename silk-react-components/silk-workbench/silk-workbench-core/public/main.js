@@ -216,6 +216,8 @@ function generateNewIdsForTooltips($parent) {
  *
  * param webSocketUrl Address of a WebSocket endpoint that supplies updates via JSON objects.
  * param pollingUrl Address of a polling endpoint for fallback.
+ *                  The polling endpoint must accept a parameter 'timestamp' and only return updates after the given time.
+ *                  It must return a JSON of the format { "timestamp": Server timestamp, "updates": [ update1, update2, ...] }
  * param updateFunc Function to be called on every update. Receives a single argument, which is the received JSON object.
  */
 function connectWebSocket(webSocketUrl, pollingUrl, updateFunc) {
@@ -225,14 +227,13 @@ function connectWebSocket(webSocketUrl, pollingUrl, updateFunc) {
         console.log("Connecting to WebSocket at '" + webSocketUrl + "' failed. Falling back to polling...");
         let lastUpdate = 0;
         setInterval(function() {
-            let currentTime = new Date().getTime();
             let timestampedUrl = pollingUrl + (pollingUrl.indexOf('?') >= 0 ? "&" : '?') + 'timestamp=' + lastUpdate;
             $.getJSON(timestampedUrl, function(data) {
-                lastUpdate = currentTime;
-                if(Array.isArray(data)) {
-                    data.forEach(updateFunc)
+                if(data.timestamp === undefined || data.updates === undefined) {
+                    console.log("Invalid JSON returned by polling endpoint.")
                 } else {
-                    updateFunc(data);
+                    lastUpdate = data.timestamp;
+                    data.updates.forEach(updateFunc);
                 }
             });
         }, 500);
