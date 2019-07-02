@@ -18,7 +18,7 @@ class TransformEditor @Inject() () extends InjectedController with ControllerUti
 
   def start(project: String, task: String, rule: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[TransformSpec](project, task, request.path)
-    val vocabularies = context.task.activity[VocabularyCache].value
+    val vocabularies = context.task.activity[VocabularyCache].value()
 
     // TODO: We should check whether the rule exists
     Ok(views.html.editor.transformRules(context, vocabularies, rule))
@@ -37,7 +37,7 @@ class TransformEditor @Inject() () extends InjectedController with ControllerUti
 
   def propertyDetails(project: String, task: String, property: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[TransformSpec](project, task, request.path)
-    val vocabularies = context.task.activity[VocabularyCache].value
+    val vocabularies = context.task.activity[VocabularyCache].value()
     val uri = Uri.parse(property, context.project.config.prefixes)
 
     Ok(views.html.editor.propertyDetails(property, vocabularies.findProperty(uri.uri), context.project.config.prefixes))
@@ -52,11 +52,11 @@ class TransformEditor @Inject() () extends InjectedController with ControllerUti
       case Some((_, sourcePath)) =>
         val pathsCache = transformTask.activity[TransformPathsCache]
         pathsCache.control.waitUntilFinished()
-        if(pathsCache.status.failed) {
+        if(pathsCache.status().failed) {
           Ok(views.html.editor.paths(DPair(sourceName, ""), DPair.fill(Seq.empty), onlySource = true,
-            warning = pathsCache.status.message,  project = project))
+            warning = pathsCache.status().message,  project = project))
         } else {
-          val relativePaths = pathsCache.value.configuredSchema.typedPaths. // FIXME: This won't work inside nested object rules for RDF datasets
+          val relativePaths = pathsCache.value().configuredSchema.typedPaths. // FIXME: This won't work inside nested object rules for RDF datasets
               filter(tp => tp.operators.startsWith(sourcePath) && tp.operators.size > sourcePath.size).
               map(tp => Path(tp.operators.drop(sourcePath.size)))
           val paths = DPair(relativePaths.map(_.serialize()(prefixes)), Seq.empty)

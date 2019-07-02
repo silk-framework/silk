@@ -1,11 +1,11 @@
 package org.silkframework.workspace.activity.dataset
 
-import org.silkframework.dataset.DatasetSpec
+import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.workspace.ProjectTask
-import org.silkframework.workspace.activity.TaskActivityFactory
+import org.silkframework.workspace.activity.DatasetActivityFactory
 
 @Plugin(
   id = "TypesCache",
@@ -13,7 +13,7 @@ import org.silkframework.workspace.activity.TaskActivityFactory
   categories = Array("Dataset"),
   description = "Holds the most frequent types in a dataset."
 )
-class TypesCacheFactory extends TaskActivityFactory[GenericDatasetSpec, TypesCache] {
+class TypesCacheFactory extends DatasetActivityFactory[Dataset, TypesCache] {
 
   override def autoRun: Boolean = true
 

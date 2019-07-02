@@ -98,7 +98,8 @@ case class TransformSpec(selection: DatasetSelection,
     Seq(
       ("Source", selection.inputId.toString),
       ("Type", selection.typeUri.toString),
-      ("Restriction", selection.restriction.toString)
+      ("Restriction", selection.restriction.toString),
+      ("Outputs", outputs.mkString(", "))
     )
   }
 

@@ -440,8 +440,8 @@ class TransformTaskApi @Inject() () extends InjectedController {
       case Some((_, sourcePath)) =>
         val pathCache = task.activity[TransformPathsCache]
         pathCache.control.waitUntilFinished()
-        val cachedPaths = pathCache.value.fetchCachedPaths(task, sourcePath)
-        val isRdfInput = pathCache.value.isRdfInput(task)
+        val cachedPaths = pathCache.value().fetchCachedPaths(task, sourcePath)
+        val isRdfInput = pathCache.value().isRdfInput(task)
         val matchingPaths = cachedPaths filter { p =>
           val pathSize = p.operators.size
           isRdfInput ||

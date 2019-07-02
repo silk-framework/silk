@@ -5,7 +5,7 @@ import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.PlainTask
 import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema, Path}
 import org.silkframework.execution.ExecutorRegistry
-import org.silkframework.execution.local.{GenericEntityTable, LocalDatasetExecutor, LocalExecution, MultiEntityTable}
+import org.silkframework.execution.local.{GenericEntityTable, GenericLocalDatasetExecutor, LocalDatasetExecutor, LocalExecution, MultiEntityTable}
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.plugin.PluginRegistry
 
@@ -37,7 +37,7 @@ class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with Mo
   private val task = PlainTask("JsonParser", jsonParserTask)
   private val inputEntities = GenericEntityTable(entities, entitySchema, task)
 
-  PluginRegistry.registerPlugin(classOf[LocalDatasetExecutor])
+  PluginRegistry.registerPlugin(classOf[GenericLocalDatasetExecutor])
 
   it should "parse the JSON and allow entity schema requests against it" in {
     val result = executor.execute(task, Seq(inputEntities),

@@ -19,7 +19,7 @@ class WorkflowEditorController @Inject() () extends InjectedController {
   def report(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[Workflow](project, task, request.path)
     try {
-      val report = context.task.activity[LocalWorkflowExecutorGeneratingProvenance].value
+      val report = context.task.activity[LocalWorkflowExecutorGeneratingProvenance].value()
       Ok(views.html.workflow.executionReport(report.report, context.project.config.prefixes, context))
     } catch {
       case _: NoSuchElementException =>

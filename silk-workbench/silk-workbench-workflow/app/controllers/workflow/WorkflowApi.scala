@@ -75,7 +75,7 @@ class WorkflowApi @Inject() () extends InjectedController {
   def status(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
-    val report = workflow.activity[LocalWorkflowExecutorGeneratingProvenance].value
+    val report = workflow.activity[LocalWorkflowExecutorGeneratingProvenance].value()
 
     var lines = Seq[String]()
     lines :+= "Dataset;EntityCount;EntityErrorCount;Column;ColumnErrorCount"
