@@ -139,11 +139,7 @@
 
 @taskActivities(project: Project, task: ProjectTask[_ <: TaskSpec]) = {
   <li id="task_@{project.name}_@task.id" class="jstree-open">
-    @if(task.metaData.label.trim != "") {
-      @task.metaData.label.trim (@task.id)
-    } else {
-      @task.id
-    }
+    @task.taskLabel()
     <ul>
     @for(activity <- task.activities) {
       @taskActivityStatus(project, task, activity)
@@ -153,8 +149,8 @@
 }
 
 @projectActivityStatus(project: Project, activity: ProjectActivity[_ <: HasValue]) = {
-  <li id="@id(project.name, "", activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
-    @activity.name
+  <li id="@id(project.name, "", activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}' title="@activity.description">
+    @activity.label
     <div class="activity-progress-small">
       <div class="activity-progress-small-text"></div>
       <img class="activity-progress-small-help" src="@Assets.at("img/help.png")"/>
@@ -174,8 +170,8 @@
 }
 
 @taskActivityStatus(project: Project, task: ProjectTask[_ <: TaskSpec], activity: TaskActivity[_, _]) = {
-  <li id="@id(project.name, task.id, activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
-    @activity.name
+  <li id="@id(project.name, task.id, activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}' title="@activity.description">
+    @activity.label
     <div class="activity-progress-small">
       <div class="activity-progress-small-text"></div>
       <img class="activity-progress-small-help" src="@Assets.at("img/help.png")"/>

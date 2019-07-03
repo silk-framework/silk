@@ -17,6 +17,7 @@ package org.silkframework.workspace
 import java.io._
 import java.util.logging.{Level, Logger}
 
+import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
@@ -39,12 +40,16 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   @volatile
   private var cachedProjects: Seq[Project] = Seq.empty
 
+  @volatile
+  // Additional prefixes loaded from the workspace provider that will be added to every project
+  private var additionalPrefixes: Prefixes = Prefixes.empty
+
   /** Load the projects of a user into the workspace. At the moment all users have access to all projects, so this is only,
     * executed once. */
   private def loadUserProjects()(implicit userContext: UserContext): Unit = synchronized {
     // FIXME: Extension for access control should happen here.
     if (!initialized) {
-      cachedProjects = loadProjects()
+      loadProjects()
       initialized = true
     }
   }
@@ -80,6 +85,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     provider.putProject(config)
     val newProject = new Project(config, provider, repository.get(config.id))
     cachedProjects :+= newProject
+    newProject.setAdditionalPrefixes(additionalPrefixes)
     log.info(s"Created new project '${config.id}'. " + userContext.logInfo)
     newProject
   }
@@ -144,7 +150,15 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     provider.refresh()
 
     // Reload projects
-    cachedProjects = loadProjects()
+    loadProjects()
+  }
+
+  /** Reloads the registered prefixes if the workspace provider supports this operation. */
+  def reloadPrefixes()(implicit userContext: UserContext): Unit = {
+    additionalPrefixes = provider.fetchRegisteredPrefixes()
+    cachedProjects foreach { project =>
+      project.setAdditionalPrefixes(additionalPrefixes)
+    }
   }
 
   /** Reload a project from the backend */
@@ -173,12 +187,13 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     }
   }
 
-  private def loadProjects()(implicit userContext: UserContext): Seq[Project] = {
-    for(projectConfig <- provider.readProjects()) yield {
+  private def loadProjects()(implicit userContext: UserContext): Unit = {
+    cachedProjects = for(projectConfig <- provider.readProjects()) yield {
       log.info("Loading project: " + projectConfig.id)
       val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
       project.initTasks()
       project
     }
+    reloadPrefixes()
   }
 }
