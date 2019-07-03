@@ -8,8 +8,8 @@ import javax.inject.Inject
 import models.learning.{PathValue, PathValues}
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.entity.{Link, TypedPath}
+import org.silkframework.entity.Link
+import org.silkframework.entity.paths.{Path, TypedPath, UntypedPath}
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.learning.individual.Population
@@ -59,7 +59,7 @@ class Learning @Inject() (implicit mat: Materializer) extends InjectedController
     /**
       * Collects all paths of a single linkage rule.
       */
-    def collectPaths(rule: LinkageRule, sourceOrTarget: Boolean): Iterator[UntypedPath] = {
+    def collectPaths(rule: LinkageRule, sourceOrTarget: Boolean): Iterator[Path] = {
       val comparisons = RuleTraverser(rule.operator.get).iterateAllChildren.filter(_.operator.isInstanceOf[Comparison])
       val inputs = comparisons.map(c => if (sourceOrTarget) c.iterateChildren.next() else c.iterateChildren.drop(1).next())
       val paths = inputs.flatMap(_.iterateAllChildren.map(_.operator)).collect { case PathInput(_, path) => path }

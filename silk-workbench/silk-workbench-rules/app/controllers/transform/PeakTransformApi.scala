@@ -24,7 +24,7 @@ import play.api.mvc._
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 import PeakTransformApi._
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.paths.{Path, TypedPath}
 
 class PeakTransformApi @Inject() () extends InjectedController {
 
@@ -165,7 +165,7 @@ class PeakTransformApi @Inject() () extends InjectedController {
     }
   }
 
-  private def serializePath(path: UntypedPath)
+  private def serializePath(path: Path)
                            (implicit prefixes: Prefixes): Seq[String] = {
     path.operators.map { op =>
       op.serialize

@@ -4,7 +4,7 @@ import java.net.URLEncoder
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.paths._
 
 import scala.xml.{Node, Text}
 

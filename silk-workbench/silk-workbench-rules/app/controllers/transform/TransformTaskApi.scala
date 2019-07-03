@@ -24,6 +24,7 @@ import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
 import TransformTaskApi._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 
 class TransformTaskApi @Inject() () extends InjectedController {
 

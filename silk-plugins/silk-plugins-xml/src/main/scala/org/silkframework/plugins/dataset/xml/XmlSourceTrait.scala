@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.paths.TypedPath
-import org.silkframework.entity.{Entity, EntitySchema, TypedPath}
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 

@@ -2,10 +2,10 @@ package org.silkframework.plugins.dataset.xml
 
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{DefaultConfig, PlainTask, Task}
+import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException

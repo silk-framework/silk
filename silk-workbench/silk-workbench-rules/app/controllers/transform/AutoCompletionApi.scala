@@ -7,16 +7,14 @@ import controllers.core.UserContextAction
 import controllers.transform.AutoCompletionApi.Categories
 import javax.inject.Inject
 import org.silkframework.config.Prefixes
-import org.silkframework.entity._
-import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.paths._
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
-import play.api.mvc.{Action, AnyContent, Controller, ControllerComponents, InjectedController}
+import play.api.mvc._
 
 import scala.language.implicitConversions
 import scala.util.Try

@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.xml
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.entity._
-import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 
 class XmlTraverserTest extends FlatSpec with MustMatchers {
   behavior of "XML Traverser"
