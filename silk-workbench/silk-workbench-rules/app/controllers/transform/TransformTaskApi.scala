@@ -459,7 +459,7 @@ class TransformTaskApi @Inject() () extends InjectedController {
         val filteredPaths = if(unusedOnly) {
           val sourcePaths = task.data.valueSourcePaths(ruleId, maxDepth)
           matchingPaths.filterNot { path =>
-            sourcePaths.contains(path)
+            sourcePaths.contains(path.asUntypedPath)
           }
         } else {
           matchingPaths

@@ -154,9 +154,10 @@ case class EntitySchema(
     //we have to delete any duplicate path first the selected paths have to be unique
     EntitySchema.deleteDuplicatePaths(this) match{
       case mes: MultiEntitySchema =>
+        val newPivot = mes.pivotSchema.selectTypedPaths(tps:_*)
         new MultiEntitySchema(
-          mes.pivotSchema.selectTypedPaths(tps:_*),
-          mes.subSchemata.map(ss => ss.selectTypedPaths(tps:_*))
+          newPivot,
+          mes.subSchemata.map(ss => ss.selectTypedPaths(tps.diff(newPivot.typedPaths):_*))
         )
       case es: EntitySchema =>
         EntitySchema(
