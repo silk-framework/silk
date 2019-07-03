@@ -36,6 +36,11 @@ class WorkspaceApi  @Inject() () extends InjectedController {
     Ok
   }
 
+  def reloadPrefixes: Action[AnyContent] = UserContextAction { implicit userContext =>
+    WorkspaceFactory().workspace.reloadPrefixes()
+    Ok
+  }
+
   def projects: Action[AnyContent] = UserContextAction { implicit userContext =>
     Ok(JsonSerializer.projectsJson)
   }

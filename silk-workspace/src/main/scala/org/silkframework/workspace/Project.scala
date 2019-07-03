@@ -125,6 +125,15 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   }
 
   /**
+    * Adds additional prefixes that are not persisted with the project. The additional prefixes will overwrite
+    * existing prefixes with the same prefix name.
+    * @param additionalPrefixes The prefixes that should be added to the project config.
+    */
+  def setAdditionalPrefixes(additionalPrefixes: Prefixes) {
+    cachedConfig = cachedConfig.copy(prefixes = cachedConfig.prefixes ++ additionalPrefixes)
+  }
+
+  /**
    * Retrieves all tasks in this project.
    */
   def allTasks(implicit userContext: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
