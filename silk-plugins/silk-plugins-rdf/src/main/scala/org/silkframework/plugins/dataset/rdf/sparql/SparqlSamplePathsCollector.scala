@@ -20,7 +20,6 @@ import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.entity.{ForwardOperator, Path, TypedPath}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.Uri
 
 /**
  * Retrieves the most frequent paths of a number of random sample entities.
@@ -89,7 +88,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
 
     logger.info("Found " + relevantProperties.size + " relevant properties in " + endpoint)
 
-    relevantProperties.map(_.asUntypedValueType) // No path type here, since the sample path collector is a fallback only
+    relevantProperties.map(_.asStringTypedPath) // No path type here, since the sample path collector is a fallback only
   }
 
   private def getEntityProperties(endpoint: SparqlEndpoint, graph: Option[String], entityUri: String, variable: String, limit: Int)

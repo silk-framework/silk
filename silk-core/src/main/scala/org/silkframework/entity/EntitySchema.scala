@@ -76,7 +76,8 @@ case class EntitySchema(
   def indexOfPath(path: Path): Int = {
     typedPaths.zipWithIndex.find(pi => path.operators == pi._1.operators) match{
       case Some((_, ind)) => ind
-      case None => throw new NoSuchElementException(s"Path $path not found on entity. Available paths: ${typedPaths.mkString(", ")}.")
+      case None =>
+        throw new NoSuchElementException(s"Path $path not found on entity. Available paths: ${typedPaths.mkString(", ")}.")
     }
   }
 
@@ -145,7 +146,7 @@ case class EntitySchema(
 
   /**
     * Will create a new EntitySchema only containing the given TypedPaths
-    * @param tps - the TypedPaths to drop
+    * @param tps - the TypedPaths
     * @return
     */
   def selectTypedPaths(tps: TypedPath*): EntitySchema ={
@@ -159,9 +160,10 @@ case class EntitySchema(
       case es: EntitySchema =>
         EntitySchema(
           es.typeUri,
-          tps.flatMap(tp => es.findTypedPath(tp) match{
+          tps.flatMap(tp => if(tp.valueType == UntypedValueType) es.findPath(tp) else es.findTypedPath(tp) match{
             case Some(_) => Some(tp)
-            case None => None
+            case None =>
+              throw new IllegalArgumentException(tp + " was not found in EntitySchema: " + this.typedPaths.mkString(", "))
           }).toIndexedSeq,
           es.filter,
           es.subPath
