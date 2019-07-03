@@ -66,6 +66,11 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   final def label: String = factory.pluginSpec.label
 
   /**
+    * Human-readable description for this activity.
+    */
+  final def description: String = factory.pluginSpec.description
+
+  /**
     * Retrieves all held instances of this activity type.
     * Instances are ordered from oldest to newest.
     */
