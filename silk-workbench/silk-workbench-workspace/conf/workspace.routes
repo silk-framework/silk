@@ -65,6 +65,7 @@ DELETE        /projects/:project/customTasks/:name                              
 
 # Reload Workspace
 POST          /reload                                                           controllers.workspace.WorkspaceApi.reload
+POST          /reloadPrefixes                                                   controllers.workspace.WorkspaceApi.reloadPrefixes
 POST          /import/:importPlugin                                             controllers.workspace.ProjectMarshalingApi.importWorkspaceViaPlugin(importPlugin: String)
 GET           /export/:exportPlugin                                             controllers.workspace.ProjectMarshalingApi.exportWorkspaceViaPlugin(exportPlugin: String)
 GET           /marshallingPlugins                                               controllers.workspace.ProjectMarshalingApi.availableMarshallingPlugins()
