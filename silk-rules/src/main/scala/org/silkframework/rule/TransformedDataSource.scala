@@ -3,7 +3,8 @@ package org.silkframework.rule
 import org.silkframework.config.Task
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.entity.metadata.GenericExecutionFailure
-import org.silkframework.entity.{Entity, EntitySchema, TypedPath}
+import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.failures.FailureClass
 import org.silkframework.util.Uri
@@ -74,7 +75,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     val subjectRule = transformRule.rules.allRules.find(_.target.isEmpty)
     val pathRules =
       for (typedPath <- entitySchema.typedPaths) yield {
-        transformRule.rules.allRules.filter(_.target.map(_.asPath()).contains(typedPath))
+        transformRule.rules.allRules.filter(_.target.map(_.asTypedPath()).contains(typedPath))
       }
 
     val sourceEntities = source.retrieve(inputSchema, limit)

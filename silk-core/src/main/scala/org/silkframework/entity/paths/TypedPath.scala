@@ -1,22 +1,26 @@
-package org.silkframework.entity
+package org.silkframework.entity.paths
 
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.TypedProperty
+import org.silkframework.entity.{UntypedValueType, ValueType}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 
 import scala.util.Try
 import scala.xml.Node
 
 /**
-  * Constitutes a path with type information.
+  * A [[Path]] with an expected type statement. It describes the sequence of properties necessary to arrive at the
+  * destination object and supplies an expected type of the object found at the destination (and optional additional metadata).
   *
-  * @param ops the path operators
+  * @param operators the path operators
   * @param valueType the type that has to be considered during processing.
   * @param metadata an immutable map that stores metadata object
   */
-case class TypedPath(ops: List[PathOperator],
-                     valueType: ValueType,
-                     metadata: Map[String, Any]) extends Path(ops) {
+case class TypedPath(
+    operators: List[PathOperator],
+    valueType: ValueType,
+    metadata: Map[String, Any]
+  ) extends Path {
 
   /**
     * checks metadata for an positive entry for the IS_ATTRIBUTE_KEY key
@@ -31,7 +35,7 @@ case class TypedPath(ops: List[PathOperator],
     */
   def getOriginalName: Option[String] = metadata.get(TypedPath.META_FIELD_ORIGIN_NAME).map(_.toString)
 
-  lazy val toSimplePath: Path = Path(operators)
+  lazy val toSimplePath: UntypedPath = UntypedPath(operators)
 
   /**
     * Returns a typed property if this is a path of length one.
@@ -70,7 +74,7 @@ case class TypedPath(ops: List[PathOperator],
     }
   }
 
-  override def hashCode(): Int = {
+  override def hashCode: Int = {
     var code = toSimplePath.hashCode
     code += isAttribute.hashCode() + 113 * code
     code += valueType.hashCode() + 113 * code
@@ -98,7 +102,7 @@ object TypedPath {
     * @param valueType - the ValueType
     * @param metadata - an immutable map that stores metadata objects
     */
-  def apply(path: Path, valueType: ValueType,  metadata: Map[String, Any]): TypedPath = apply(path.operators, valueType, metadata)
+  def apply(path: Path, valueType: ValueType, metadata: Map[String, Any]): TypedPath = apply(path.operators, valueType, metadata)
 
   /**
     * @param path - the unparsed, untyped path
@@ -110,7 +114,7 @@ object TypedPath {
       META_FIELD_XML_ATTRIBUTE -> isAttribute,
       META_FIELD_ORIGIN_NAME -> path
     )
-    apply(Path.saveApply(path)(prefixes).operators, valueType, metadata)
+    apply(UntypedPath.saveApply(path)(prefixes).operators, valueType, metadata)
   }
 
   /**
@@ -125,7 +129,7 @@ object TypedPath {
     * Empty TypedPath (used as filler or duds)
     * @return
     */
-  def empty: TypedPath = TypedPath(Path.empty, UntypedValueType, isAttribute = false)
+  def empty: TypedPath = TypedPath(UntypedPath.empty, UntypedValueType, isAttribute = false)
 
   /**
     * Will remove a given subpath prefix from the operator list of a TypedPath
@@ -135,7 +139,7 @@ object TypedPath {
     */
   def removePathPrefix(typedPath: TypedPath, subPath: Path): TypedPath = {
     if(typedPath.operators.startsWith(subPath.operators)){
-      typedPath.copy(ops = typedPath.operators.drop(subPath.operators.size))
+      typedPath.copy(operators = typedPath.operators.drop(subPath.operators.size))
     } else {
       typedPath
     }

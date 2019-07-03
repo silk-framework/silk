@@ -2,13 +2,15 @@ package org.silkframework.workspace.activity.transform
 
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.RdfDataset
-import org.silkframework.entity.{EntitySchema, PathOperator, TypedPath}
+import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.paths.{PathOperator, TypedPath}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
-import scala.xml.{Node, Null}
+
+import scala.xml.Node
 
 /**
   * The cached schemata of the input tasks

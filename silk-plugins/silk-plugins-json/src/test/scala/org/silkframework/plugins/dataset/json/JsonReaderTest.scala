@@ -15,7 +15,7 @@
 package org.silkframework.plugins.dataset.json
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.entity.Path
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 
 
@@ -51,6 +51,6 @@ class JsonReaderTest extends FlatSpec with Matchers {
   }
 
   private def evaluate(values: Seq[JsonTraverser], path: String): Seq[String] = {
-    values.flatMap(value => value.evaluate(Path.parse(path)))
+    values.flatMap(value => value.evaluate(UntypedPath.parse(path)))
   }
 }

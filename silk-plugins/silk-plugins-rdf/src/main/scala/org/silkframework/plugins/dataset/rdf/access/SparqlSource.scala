@@ -6,6 +6,7 @@ import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{Resource, SparqlEndpoint, SparqlParams}
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{BackwardOperator, TypedPath, UntypedPath}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.plugins.dataset.rdf.sparql._
 import org.silkframework.runtime.activity.UserContext
@@ -87,7 +88,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
       val pathQuery = ParallelEntityRetriever.pathQuery(
         "a",
         typeUri.map(SparqlRestriction.forType).getOrElse(SparqlRestriction.empty),
-        Path(typedPath.operators),
+        UntypedPath(typedPath.operators),
         useDistinct = false,
         graphUri = params.graph,
         useOrderBy = false,
@@ -108,7 +109,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
                                 sampleLimit: Option[Int],
                                 progressFN: Double => Unit)
                                (implicit userContext: UserContext): ExtractedSchema[T] = {
-    val classProperties = mutable.HashMap[String, List[Path]]()
+    val classProperties = mutable.HashMap[String, List[UntypedPath]]()
     addForwardPaths(classProperties)
     addBackwardPaths(classProperties)
     val schemaClasses = for((classUri, classProperties) <- classProperties) yield {
@@ -120,7 +121,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
     ExtractedSchema(schemaClasses.toSeq)
   }
 
-  private def addBackwardPaths[T](classProperties: mutable.HashMap[String, List[Path]])
+  private def addBackwardPaths[T](classProperties: mutable.HashMap[String, List[UntypedPath]])
                                  (implicit userContext: UserContext): Unit = {
     val backwardResults = sparqlEndpoint.select(
       """
@@ -135,11 +136,11 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
       val classUri = binding("class").value
       val propertyUri = binding("property").value
       val currentProperties = classProperties.getOrElseUpdate(classUri, Nil)
-      classProperties.put(classUri, Path(BackwardOperator(propertyUri) :: Nil) :: currentProperties)
+      classProperties.put(classUri, UntypedPath(BackwardOperator(propertyUri) :: Nil) :: currentProperties)
     }
   }
 
-  private def addForwardPaths[T](classProperties: mutable.HashMap[String, List[Path]])
+  private def addForwardPaths[T](classProperties: mutable.HashMap[String, List[UntypedPath]])
                                 (implicit userContext: UserContext): Unit = {
     val forwardResults = sparqlEndpoint.select(
       """
@@ -154,7 +155,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
       val classUri = binding("class").value
       val propertyUri = binding("property").value
       val currentProperties = classProperties.getOrElseUpdate(classUri, Nil)
-      classProperties.put(classUri, Path(propertyUri) :: currentProperties)
+      classProperties.put(classUri, UntypedPath(propertyUri) :: currentProperties)
     }
   }
 

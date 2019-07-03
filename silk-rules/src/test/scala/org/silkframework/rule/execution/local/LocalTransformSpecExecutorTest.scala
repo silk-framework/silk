@@ -2,8 +2,9 @@ package org.silkframework.rule.execution.local
 
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.config.PlainTask
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.ExecutorRegistry
 import org.silkframework.execution.local.{GenericEntityTable, LocalExecution}
 import org.silkframework.rule._
@@ -28,21 +29,21 @@ class LocalTransformSpecExecutorTest extends FlatSpec with MustMatchers with Exe
       DatasetSelection.empty,
       RootMappingRule(MappingRules(
         propertyRules = Seq(
-          DirectMapping(id= "sp1", sourcePath = Path("pathA"), mappingTarget = enMappingTarget),
-          DirectMapping(id= "sp2", sourcePath = Path("pathB"), mappingTarget = deMappingTarget),
-          DirectMapping(id= "sp3", sourcePath = Path("pathD"), mappingTarget = deMappingTarget),
-          DirectMapping(id= "sp4", sourcePath = Path("pathC"), mappingTarget = plainMappingTarget),
-          DirectMapping(id= "sp5", sourcePath = Path("pathE"), mappingTarget = plainMappingTarget)
+          DirectMapping(id= "sp1", sourcePath = UntypedPath("pathA"), mappingTarget = enMappingTarget),
+          DirectMapping(id= "sp2", sourcePath = UntypedPath("pathB"), mappingTarget = deMappingTarget),
+          DirectMapping(id= "sp3", sourcePath = UntypedPath("pathD"), mappingTarget = deMappingTarget),
+          DirectMapping(id= "sp4", sourcePath = UntypedPath("pathC"), mappingTarget = plainMappingTarget),
+          DirectMapping(id= "sp5", sourcePath = UntypedPath("pathE"), mappingTarget = plainMappingTarget)
         )
       ))
     ))
-    val es = EntitySchema("es", IndexedSeq(Path("pathA"), Path("pathB"), Path("pathC"), Path("pathD"), Path("pathE")).map(_.asStringTypedPath))
+    val es = EntitySchema("es", IndexedSeq(UntypedPath("pathA"), UntypedPath("pathB"), UntypedPath("pathC"), UntypedPath("pathD"), UntypedPath("pathE")).map(_.asStringTypedPath))
     val entities = Seq(Entity("uri1", IndexedSeq(Seq("A"), Seq("B"), Seq("C"), Seq("D"), Seq("E")), es))
     val result = executor.execute(transformTask, Seq(GenericEntityTable(entities, es, transformTask)), None, LocalExecution(true))
     result.get.entitySchema.typedPaths mustBe IndexedSeq(
-      TypedPath(Path("urn:prop:label"), enVT, isAttribute = false),
-      TypedPath(Path("urn:prop:label"), deVT, isAttribute = false),
-      TypedPath(Path("urn:prop:label"), StringValueType, isAttribute = false)
+      TypedPath(UntypedPath("urn:prop:label"), enVT, isAttribute = false),
+      TypedPath(UntypedPath("urn:prop:label"), deVT, isAttribute = false),
+      TypedPath(UntypedPath("urn:prop:label"), StringValueType, isAttribute = false)
     )
     result.get.entities.map(_.values) mustBe Seq(IndexedSeq(Seq("A"), Seq("B", "D"), Seq("C", "E")))
   }

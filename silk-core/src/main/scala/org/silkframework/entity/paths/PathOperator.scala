@@ -12,9 +12,10 @@
  * limitations under the License.
  */
 
-package org.silkframework.entity
+package org.silkframework.entity.paths
 
 import org.silkframework.config.Prefixes
+import org.silkframework.entity.SparkCompatibleEncoding
 import org.silkframework.util.Uri
 
 
@@ -32,7 +33,7 @@ sealed abstract class PathOperator {
 
 sealed abstract class DirectionalPathOperator extends PathOperator{
 
-  private def encode(str: String) = SparkCompatibleEncoding.encode(str, "UTF-8")
+  private def encode(str: String) = SparkCompatibleEncoding.encode(str)
 
   /**
     * the property name or uri
@@ -85,7 +86,7 @@ case class BackwardOperator(property: Uri) extends DirectionalPathOperator {
  * @param language The language.
  */
 case class LanguageFilter(operator: String, language: String) extends PathOperator {
-  override def serialize(implicit prefixes: Prefixes) = "[@lang " + operator + " " + language + "]"
+  override def serialize(implicit prefixes: Prefixes): String = "[@lang " + operator + " " + language + "]"
 }
 
 /**
@@ -98,7 +99,7 @@ case class LanguageFilter(operator: String, language: String) extends PathOperat
  *              String values must be enclosed in quotes, e.g., "Value"
  */
 case class PropertyFilter(property: Uri, operator: String, value: String) extends PathOperator {
-  override def serialize(implicit prefixes: Prefixes) = "[" + property.serialize + " " + operator + " " + value + "]"
+  override def serialize(implicit prefixes: Prefixes): String = "[" + property.serialize + " " + operator + " " + value + "]"
 
   def evaluate(v: String): Boolean = {
     operator match {

@@ -15,19 +15,20 @@
 package org.silkframework.entity.rdf
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Uri
 
 import scala.xml.Node
 
-case class SparqlEntitySchema(variable: String = SparqlEntitySchema.variable, restrictions: SparqlRestriction = SparqlRestriction.empty, paths: IndexedSeq[Path]) {
+case class SparqlEntitySchema(variable: String = SparqlEntitySchema.variable, restrictions: SparqlRestriction = SparqlRestriction.empty, paths: IndexedSeq[UntypedPath]) {
   require(paths.forall(_.operators.nonEmpty), "Entity description must not contain an empty path")
 
   /**
    * Retrieves the index of a given path.
    */
-  def pathIndex(path: Path): Int = {
+  def pathIndex(path: UntypedPath): Int = {
     var index = 0
     while(path != paths(index)) {
       index += 1
@@ -57,7 +58,7 @@ object SparqlEntitySchema {
     }
     val subPath = entitySchema.subPath
 
-    def rewriteRestrictionWithParentProperty(subPath: Path): String = {
+    def rewriteRestrictionWithParentProperty(subPath: UntypedPath): String = {
       val rootEntity = "?root"
       val sparql = SparqlPathBuilder.path(subPath, rootEntity, "?" + variable, "?st", "?sf")
       sparqlRestriction = SparqlRestriction.fromSparql(variable, sparqlRestriction.toSparql.replace(s"?$variable", rootEntity) + sparql)
@@ -90,7 +91,7 @@ object SparqlEntitySchema {
       new SparqlEntitySchema(
         variable = variable,
         restrictions = SparqlRestriction.fromSparql(variable, (node \ "Restrictions").text),
-        paths = for (pathNode <- (node \ "Paths" \ "Path").toIndexedSeq) yield Path.parse(pathNode.text.trim)
+        paths = for (pathNode <- (node \ "Paths" \ "Path").toIndexedSeq) yield UntypedPath.parse(pathNode.text.trim)
       )
     }
 

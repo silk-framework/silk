@@ -19,7 +19,8 @@ import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.Task
 import org.silkframework.dataset.DatasetSpec
-import org.silkframework.entity.{Link, Path}
+import org.silkframework.entity.Link
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.evaluation.ReferenceLinksReader
 import org.silkframework.rule.execution.methods._
 import org.silkframework.rule.plugins.transformer.linguistic.{MetaphoneTransformer, NysiisTransformer, SoundexTransformer}
@@ -46,8 +47,8 @@ object GenerateLinksTest {
   /** Directory of the data set */
   private val dataset = Dataset("Names", "config.xml", "links.nt")
 
-  private val sourceKey = Path.parse("?a/<label>")
-  private val targetKey = Path.parse("?b/<label>")
+  private val sourceKey = UntypedPath.parse("?a/<label>")
+  private val targetKey = UntypedPath.parse("?b/<label>")
   private implicit val userContext: UserContext = UserContext.Empty
 
   private val tests =

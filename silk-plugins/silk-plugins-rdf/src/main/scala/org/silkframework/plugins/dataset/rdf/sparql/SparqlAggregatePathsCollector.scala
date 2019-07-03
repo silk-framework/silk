@@ -17,10 +17,11 @@ package org.silkframework.plugins.dataset.rdf.sparql
 import java.util.logging.Logger
 
 import org.silkframework.dataset.rdf.{Resource, SparqlEndpoint}
-import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{BackwardOperator, ForwardOperator, TypedPath, UntypedPath}
+import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.{Timer, Uri}
+import org.silkframework.util.Timer
 
 /**
  * Retrieves the most frequent property paths by issuing a SPARQL 1.1 aggregation query.
@@ -73,7 +74,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
           val sampleValue = result.get("objectNodeSampleSAPC")
           // Only set value or object type if value available, if not set to auto-detect which is interpreted as unknown
           val valueType = sampleValue.map(v => if(v.isInstanceOf[Resource]) UriValueType else StringValueType).getOrElse(UntypedValueType)
-          val path = Path(ForwardOperator(result("propertyToAggregateBySAPC").value) :: Nil)
+          val path = UntypedPath(ForwardOperator(result("propertyToAggregateBySAPC").value) :: Nil)
           val typedPath = TypedPath(path, valueType, isAttribute = false)
           (typedPath, result("count").value.toDouble / maxCount)
         }
@@ -108,7 +109,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
       if (results.nonEmpty) {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("propertyToAggregateBySAPC")) yield {
-          val path = Path(BackwardOperator(result("propertyToAggregateBySAPC").value) :: Nil)
+          val path = UntypedPath(BackwardOperator(result("propertyToAggregateBySAPC").value) :: Nil)
           val typedPath = TypedPath(path, UriValueType, isAttribute = false) // backward paths are always object paths
           (typedPath, result("count").value.toDouble / maxCount)
         }

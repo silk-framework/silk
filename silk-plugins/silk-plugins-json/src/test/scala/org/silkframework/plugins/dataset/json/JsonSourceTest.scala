@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.json
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.dataset._
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager}
 import org.silkframework.util.Uri
@@ -58,14 +59,14 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   }
 
   it should "return peak results" in {
-    val result = jsonExampleSource.peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(Path.parse("/persons/phoneNumbers/number").asStringTypedPath)), 3).toSeq
+    val result = jsonExampleSource.peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath.parse("/persons/phoneNumbers/number").asStringTypedPath)), 3).toSeq
     result.size mustBe 1
     result.head.values mustBe IndexedSeq(Seq("123", "456", "789"))
   }
 
   it should "return peak results with sub path set" in {
-    val result = jsonExampleSource.peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(Path.parse("/number").asStringTypedPath),
-      subPath = Path.parse("/persons/phoneNumbers")), 3).toSeq
+    val result = jsonExampleSource.peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath.parse("/number").asStringTypedPath),
+      subPath = UntypedPath.parse("/persons/phoneNumbers")), 3).toSeq
     result.size mustBe 3
     result.map(_.values) mustBe Seq(IndexedSeq(Seq("123")), IndexedSeq(Seq("456")), IndexedSeq(Seq("789")))
   }
@@ -73,7 +74,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   it should "return all paths including intermediate paths for retrieve paths" in {
     val paths = jsonExampleSource.retrievePaths(Uri(""), depth = Int.MaxValue)
     paths.size mustBe 8
-    paths must contain allOf(TypedPath("/persons", UriValueType, false), TypedPath("/persons/phoneNumbers", UriValueType, false))
+    paths must contain allOf(TypedPath("/persons", UriValueType), TypedPath("/persons/phoneNumbers", UriValueType))
   }
 
   it should "return all paths of depth 1" in {
@@ -117,7 +118,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   }
 
   it should "return valid URIs for resource paths" in {
-    val result = jsonExampleSource.retrieve(EntitySchema(Uri(""), typedPaths = IndexedSeq(Path.parse("/persons").asStringTypedPath)))
+    val result = jsonExampleSource.retrieve(EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath.parse("/persons").asStringTypedPath)))
     val uris = result.flatMap(_.values.flatten).toSeq
     for(uri <- uris) {
       assert(Uri(uri).isValidUri, s"URI $uri was not valid!")
@@ -129,7 +130,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
 
   it should "return JSON null values as missing values" in {
     val source: DataSource = jsonSource(jsonWithNull)
-    val entities = source.retrieve(EntitySchema("", typedPaths = IndexedSeq(Path("values").asStringTypedPath)))
+    val entities = source.retrieve(EntitySchema("", typedPaths = IndexedSeq(UntypedPath("values").asStringTypedPath)))
     entities.map(_.values) mustBe Seq(Seq(Seq("val")))
   }
 
@@ -143,7 +144,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   it should "be able to ignore null JSON objects in the middle of longer paths" in {
     val source: DataSource = jsonSource(jsonWithNullObject)
 
-    val entities = source.retrieve(EntitySchema("", typedPaths = IndexedSeq(Path.parse("objects/value").asStringTypedPath)))
+    val entities = source.retrieve(EntitySchema("", typedPaths = IndexedSeq(UntypedPath.parse("objects/value").asStringTypedPath)))
     entities.map(_.values) mustBe Seq(Seq(Seq("val", "val2")))
   }
 
@@ -195,13 +196,13 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   it should "ignore nulls for objects on base path" in {
     val source: DataSource = jsonSource(jsonWithNullObject)
 
-    val entities = source.retrieve(EntitySchema("objects", typedPaths = IndexedSeq(Path.parse("value").asStringTypedPath)))
+    val entities = source.retrieve(EntitySchema("objects", typedPaths = IndexedSeq(UntypedPath.parse("value").asStringTypedPath)))
     entities.map(_.values) mustBe Seq(Seq(Seq("val")), Seq(Seq("val2")))
   }
 
   it should "handle entity schema with sub paths and type URI" in {
     val source: DataSource = jsonSource(jsonWithNullObject)
-    val entities = source.retrieve(EntitySchema("objects", typedPaths = IndexedSeq(Path.parse("nestedValue").asStringTypedPath), subPath = Path("nestedObject")))
+    val entities = source.retrieve(EntitySchema("objects", typedPaths = IndexedSeq(UntypedPath.parse("nestedValue").asStringTypedPath), subPath = UntypedPath("nestedObject")))
     entities.map(_.values) mustBe Seq(Seq(Seq("nested")))
   }
 
@@ -227,9 +228,9 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
     schema.classes.size mustBe 4
     val classes = schema.classes
     classes.head mustBe ExtractedSchemaClass("", Seq())
-    classes(1) mustBe ExtractedSchemaClass("persons", Seq(ExtractedSchemaProperty(Path("id"),Some("1")), ExtractedSchemaProperty(Path("name"),Some("Max"))))
-    classes(2) mustBe ExtractedSchemaClass("persons/phoneNumbers", Seq(ExtractedSchemaProperty(Path("type"),Some("office")), ExtractedSchemaProperty(Path("number"),Some("789"))))
-    classes(3) mustBe ExtractedSchemaClass("organizations", Seq(ExtractedSchemaProperty(Path("name"),Some("John Inc"))))
+    classes(1) mustBe ExtractedSchemaClass("persons", Seq(ExtractedSchemaProperty(UntypedPath("id"),Some("1")), ExtractedSchemaProperty(UntypedPath("name"),Some("Max"))))
+    classes(2) mustBe ExtractedSchemaClass("persons/phoneNumbers", Seq(ExtractedSchemaProperty(UntypedPath("type"),Some("office")), ExtractedSchemaProperty(UntypedPath("number"),Some("789"))))
+    classes(3) mustBe ExtractedSchemaClass("organizations", Seq(ExtractedSchemaProperty(UntypedPath("name"),Some("John Inc"))))
   }
 
   it should "extract schema with value sample limit" in {
@@ -237,9 +238,9 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
     schema.classes.size mustBe 4
     val classes = schema.classes
     classes.head mustBe ExtractedSchemaClass("", Seq())
-    classes(1) mustBe ExtractedSchemaClass("persons", Seq(ExtractedSchemaProperty(Path("id"),Some("0")), ExtractedSchemaProperty(Path("name"),Some("John"))))
-    classes(2) mustBe ExtractedSchemaClass("persons/phoneNumbers", Seq(ExtractedSchemaProperty(Path("type"),Some("home")), ExtractedSchemaProperty(Path("number"),Some("123"))))
-    classes(3) mustBe ExtractedSchemaClass("organizations", Seq(ExtractedSchemaProperty(Path("name"),Some("John Inc"))))
+    classes(1) mustBe ExtractedSchemaClass("persons", Seq(ExtractedSchemaProperty(UntypedPath("id"),Some("0")), ExtractedSchemaProperty(UntypedPath("name"),Some("John"))))
+    classes(2) mustBe ExtractedSchemaClass("persons/phoneNumbers", Seq(ExtractedSchemaProperty(UntypedPath("type"),Some("home")), ExtractedSchemaProperty(UntypedPath("number"),Some("123"))))
+    classes(3) mustBe ExtractedSchemaClass("organizations", Seq(ExtractedSchemaProperty(UntypedPath("name"),Some("John Inc"))))
   }
 
   it should "extract schema with base path set" in {
@@ -247,9 +248,9 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
       val schema = jsonExampleSource.copy(basePath = basePath).extractSchema(new TestAnalyzerFactory(), Int.MaxValue, sampleLimit = None)
       schema.classes.size mustBe 2
       val classes = schema.classes
-      classes.head mustBe ExtractedSchemaClass("", Seq(ExtractedSchemaProperty(Path("id"),Some("1")), ExtractedSchemaProperty(Path("name"),Some("Max"))))
+      classes.head mustBe ExtractedSchemaClass("", Seq(ExtractedSchemaProperty(UntypedPath("id"),Some("1")), ExtractedSchemaProperty(UntypedPath("name"),Some("Max"))))
       classes(1) mustBe ExtractedSchemaClass("phoneNumbers",
-        Seq(ExtractedSchemaProperty(Path("type"),Some("office")), ExtractedSchemaProperty(Path("number"),Some("789"))))
+        Seq(ExtractedSchemaProperty(UntypedPath("type"),Some("office")), ExtractedSchemaProperty(UntypedPath("number"),Some("789"))))
     }
   }
 
@@ -269,7 +270,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
 
   it should "test string based apply method" in {
     val str = resources.get("example.json").loadAsString(Codec.UTF8)
-    val result = JsonSource(str, "", "#id").peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(Path.parse("/persons/phoneNumbers/number").asStringTypedPath)), 3).toSeq
+    val result = JsonSource(str, "", "#id").peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath.parse("/persons/phoneNumbers/number").asStringTypedPath)), 3).toSeq
     result.size mustBe 1
     result.head.values mustBe IndexedSeq(Seq("123", "456", "789"))
   }

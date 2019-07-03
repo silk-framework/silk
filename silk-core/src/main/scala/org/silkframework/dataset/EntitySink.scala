@@ -1,6 +1,7 @@
 package org.silkframework.dataset
 
-import org.silkframework.entity.{Entity, TypedPath, ValueType}
+import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.{Entity, ValueType}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 

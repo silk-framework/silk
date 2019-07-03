@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset.xml
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.entity._
+import org.silkframework.entity.paths.TypedPath
 
 class XmlTraverserTest extends FlatSpec with MustMatchers {
   behavior of "XML Traverser"
@@ -33,5 +34,5 @@ class XmlTraverserTest extends FlatSpec with MustMatchers {
     traverser.evaluatePathAsString(typedPath(pathStr, valueType), "")
   }
 
-  def typedPath(path: String, valueType: ValueType): TypedPath = TypedPath(Path.parse(path), valueType, isAttribute = false)
+  def typedPath(path: String, valueType: ValueType): TypedPath = TypedPath(UntypedPath.parse(path), valueType, isAttribute = false)
 }

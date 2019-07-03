@@ -2,11 +2,12 @@ package org.silkframework.plugins.dataset.xml
 
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicInteger
-import javax.xml.stream.{XMLInputFactory, XMLStreamConstants, XMLStreamReader}
 
+import javax.xml.stream.{XMLInputFactory, XMLStreamConstants, XMLStreamReader}
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
@@ -36,7 +37,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     if(file.nonEmpty) {
       val schema = extractSchema(PathCategorizerValueAnalyzerFactory(), pathLimit = schemaElementLimit, sampleLimit = Some(1))
       for(schemaClass <- schema.classes) yield {
-        val operators = Path.parse(schemaClass.sourceType)
+        val operators = UntypedPath.parse(schemaClass.sourceType)
         (schemaClass.sourceType, pathRank(operators.size))
       }
     } else {
@@ -82,12 +83,12 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     val normalizedTypeUri = typeUri.toString.dropWhile(_ == '/')
     for(schemaClass <- schema.classes if schemaClass.sourceType.startsWith(normalizedTypeUri)) {
       val relativeClass = schemaClass.sourceType.drop(normalizedTypeUri.length).dropWhile(_ == '/')
-      val classPath = Path.parse(relativeClass)
+      val classPath = UntypedPath.parse(relativeClass)
       if(classPath.size > 0 && classPath.size <= depth) {
         pathBuffer.append(TypedPath(classPath, UriValueType, isAttribute = false))
       }
       for(schemaPath <- schemaClass.properties) {
-        val typedPath = TypedPath(Path.parse(relativeClass + "/" + schemaPath.path.normalizedSerialization), StringValueType,
+        val typedPath = TypedPath(UntypedPath.parse(relativeClass + "/" + schemaPath.path.normalizedSerialization), StringValueType,
           isAttribute = schemaPath.path.normalizedSerialization.startsWith("@"))
         if(typedPath.size <= depth) {
           pathBuffer.append(typedPath)
@@ -103,8 +104,8 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     val inputStream = file.inputStream
     try {
       val reader: XMLStreamReader = initStreamReader(inputStream)
-      goToPath(reader, Path.parse(typeUri.uri))
-      val paths = collectPaths(reader, Path.empty, onlyLeafNodes = onlyLeafNodes, onlyInnerNodes = onlyInnerNodes, depth).toIndexedSeq
+      goToPath(reader, UntypedPath.parse(typeUri.uri))
+      val paths = collectPaths(reader, UntypedPath.empty, onlyLeafNodes = onlyLeafNodes, onlyInnerNodes = onlyInnerNodes, depth).toIndexedSeq
       limit match {
         case Some(value) => paths.take(value)
         case None => paths
@@ -132,7 +133,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
         val inputStream = file.inputStream
         try {
           val reader: XMLStreamReader = initStreamReader(inputStream)
-          goToPath(reader, Path.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath)
+          goToPath(reader, UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath)
           var count = 0
           do {
             val node = buildNode(reader)
@@ -159,8 +160,8 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * On return, the parser will be positioned on the first start element with the given path.
     * If the path is empty, the base path will be used.
     */
-  private def goToPath(reader: XMLStreamReader, rootPath: Path): Unit = {
-    val path = if(rootPath.isEmpty) Path.parse(basePath) else rootPath
+  private def goToPath(reader: XMLStreamReader, rootPath: UntypedPath): Unit = {
+    val path = if(rootPath.isEmpty) UntypedPath.parse(basePath) else rootPath
     assert(path.operators.forall(_.isInstanceOf[ForwardOperator]), "Only forward operators are supported.")
 
     var remainingOperators = path.operators
@@ -209,7 +210,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * The parser must be positioned on the start element when calling this method.
     * On return, the parser will be positioned on the element that directly follows the element.
     */
-  private def collectPaths(reader: XMLStreamReader, path: Path, onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, depth: Int): Seq[TypedPath] = {
+  private def collectPaths(reader: XMLStreamReader, path: UntypedPath, onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, depth: Int): Seq[TypedPath] = {
     assert(reader.isStartElement)
     assert(!(onlyInnerNodes && onlyLeafNodes), "onlyInnerNodes and onlyLeafNodes cannot be set to true at the same time")
 
@@ -226,7 +227,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
       if (reader.isStartElement && !startElements.contains(reader.getLocalName)) {
         // Get paths from children
         val localName = reader.getLocalName
-        val tagPath = path ++ Path(localName)
+        val tagPath = path ++ UntypedPath(localName)
         val childPaths = collectPaths(reader, tagPath, onlyLeafNodes, onlyInnerNodes, depth - 1)
 
         // The depth check has to be done after collecting paths of the child, because all tags must be consumed by the reader
@@ -282,9 +283,9 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     }
   }
 
-  private def fetchAttributePaths(reader: XMLStreamReader, path: Path) = {
+  private def fetchAttributePaths(reader: XMLStreamReader, path: UntypedPath) = {
     for (attributeIndex <- 0 until reader.getAttributeCount) yield {
-      TypedPath(path ++ Path("@" + reader.getAttributeLocalName(attributeIndex)), StringValueType, isAttribute = true)
+      TypedPath(path ++ UntypedPath("@" + reader.getAttributeLocalName(attributeIndex)), StringValueType, isAttribute = true)
     }
   }
 
@@ -364,13 +365,13 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     } while(!reader.isStartElement && !reader.isEndElement)
   }
 
-  override def combinedPath(typeUri: String, inputPath: Path): Path = {
-    val typePath = Path.parse(typeUri)
-    Path(typePath.operators ++ inputPath.operators)
+  override def combinedPath(typeUri: String, inputPath: UntypedPath): UntypedPath = {
+    val typePath = UntypedPath.parse(typeUri)
+    UntypedPath(typePath.operators ++ inputPath.operators)
   }
 
-  override def convertToIdPath(path: Path): Option[Path] = {
-    Some(Path(path.operators ::: List(ForwardOperator("#id"))))
+  override def convertToIdPath(path: UntypedPath): Option[UntypedPath] = {
+    Some(UntypedPath(path.operators ::: List(ForwardOperator("#id"))))
   }
 
   private def basePathMatches(currentPath: List[String]) = {

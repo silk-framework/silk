@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
-import org.silkframework.entity.TypedPath
+import org.silkframework.entity.paths.TypedPath
 import org.silkframework.rule.DatasetSelection
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.util.Identifier

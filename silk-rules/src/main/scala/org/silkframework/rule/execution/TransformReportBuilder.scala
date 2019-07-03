@@ -1,6 +1,7 @@
 package org.silkframework.rule.execution
 
-import org.silkframework.entity.{Entity, Path}
+import org.silkframework.entity.Entity
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.TransformRule
 import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
 import org.silkframework.util.Identifier
@@ -27,7 +28,7 @@ private class TransformReportBuilder(label: String, rules: Seq[TransformRule], p
 
     val updatedRuleResult =
       if(currentRuleResult.sampleErrors.size < maxSampleErrors) {
-        val values = rule.sourcePaths.map(p => entity.evaluate(Path(p.operators)))
+        val values = rule.sourcePaths.map(p => entity.evaluate(UntypedPath(p.operators)))
         currentRuleResult.withError(RuleError(entity.uri, values, ex))
       } else {
         currentRuleResult.withError()

@@ -2,11 +2,10 @@ package org.silkframework.workspace.activity.linking
 
 import org.silkframework.config.DefaultConfig
 import org.silkframework.dataset.{DataSource, DatasetSpec, SparqlRestrictionDataSource}
+import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.Restriction.CustomOperator
-import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.entity.{EntitySchema, Path, TypedPath}
+import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
-import org.silkframework.entity.{EntitySchema, Path, TypedPath}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.resource.WritableResource
@@ -38,10 +37,10 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
 
   /** The purpose of this value is to store the change notify callback function
     * because it will be in a WeakHashMap in the Observable and would else be garbage collected */
-  private var transformSpecObserverFunctions: Option[(TransformSpec) => Unit] = None
+  private var transformSpecObserverFunctions: Option[TransformSpec => Unit] = None
 
   private def setTransformSpecObserverFunction()(implicit userContext: UserContext) {
-    val fn: (TransformSpec) => Unit = (_) => {
+    val fn: TransformSpec => Unit = _ => {
       this.startDirty(task.activity[LinkingPathsCache].control)
     }
     for(selection <- task.data.dataSelections) {

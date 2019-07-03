@@ -19,13 +19,13 @@ import java.util.logging.Logger
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.language.implicitConversions
-import scala.reflect.ClassTag
 import scala.xml.Node
 
 /**
@@ -131,7 +131,7 @@ object DatasetSpec {
     private def adaptSchema(entitySchema: EntitySchema): EntitySchema = {
       datasetSpec.uriProperty match {
         case Some(property) =>
-          entitySchema.copy(typedPaths = entitySchema.typedPaths :+ TypedPath(Path.parse(property.uri), UriValueType, isAttribute = false))
+          entitySchema.copy(typedPaths = entitySchema.typedPaths :+ TypedPath(UntypedPath.parse(property.uri), UriValueType, isAttribute = false))
         case None =>
           entitySchema
       }
@@ -145,7 +145,7 @@ object DatasetSpec {
         case Some(property) =>
           for (entity <- entities) yield {
             Entity(
-              uri = new Uri(entity.singleValue(TypedPath(Path.parse(property.uri), UriValueType, isAttribute = false)).getOrElse(entity.uri.toString)),
+              uri = new Uri(entity.singleValue(TypedPath(UntypedPath.parse(property.uri), UriValueType, isAttribute = false)).getOrElse(entity.uri.toString)),
               values = entity.values,
               schema = entity.schema
             )

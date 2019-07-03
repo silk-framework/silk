@@ -1,22 +1,23 @@
 package org.silkframework.entity
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.util.Uri
 
 class EntitySchemaTest extends FlatSpec with Matchers {
 
   private val entityTest = new EntityTest
-  val schema = EntitySchema(typeUri = Uri("name"), typedPaths = IndexedSeq(Path("path1").asStringTypedPath, Path("path2").asStringTypedPath), filter = Restriction.empty)
+  val schema = EntitySchema(typeUri = Uri("name"), typedPaths = IndexedSeq(UntypedPath("path1").asStringTypedPath, UntypedPath("path2").asStringTypedPath), filter = Restriction.empty)
 
-  val subSchema1 = EntitySchema(typeUri = Uri("sub1"), typedPaths = IndexedSeq(Path("path3").asUntypedValueType, Path("path4").asStringTypedPath), filter = Restriction.empty, Path("sub1"))
-  val subSchema2 = EntitySchema(typeUri = Uri("sub2"), typedPaths = IndexedSeq(Path("path5").asStringTypedPath, Path("path6").asStringTypedPath), filter = Restriction.empty, Path("sub2"))
+  val subSchema1 = EntitySchema(typeUri = Uri("sub1"), typedPaths = IndexedSeq(UntypedPath("path3").asUntypedValueType, UntypedPath("path4").asStringTypedPath), filter = Restriction.empty, UntypedPath("sub1"))
+  val subSchema2 = EntitySchema(typeUri = Uri("sub2"), typedPaths = IndexedSeq(UntypedPath("path5").asStringTypedPath, UntypedPath("path6").asStringTypedPath), filter = Restriction.empty, UntypedPath("sub2"))
 
   val complexSchema = new MultiEntitySchema(
-    EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(Path("path1").asUntypedValueType, Path("path2").asStringTypedPath), filter = Restriction.empty)
+    EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("path1").asUntypedValueType, UntypedPath("path2").asStringTypedPath), filter = Restriction.empty)
     , IndexedSeq(subSchema1, subSchema2))
 
   val complexSchemaDifferentType = new MultiEntitySchema(
-    EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(TypedPath(Path("path1"), IntegerValueType, false), Path("path2").asStringTypedPath), filter = Restriction.empty)
+    EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(TypedPath(UntypedPath("path1"), IntegerValueType, isAttribute = false), UntypedPath("path2").asStringTypedPath), filter = Restriction.empty)
     , IndexedSeq(subSchema1, subSchema2))
 
 

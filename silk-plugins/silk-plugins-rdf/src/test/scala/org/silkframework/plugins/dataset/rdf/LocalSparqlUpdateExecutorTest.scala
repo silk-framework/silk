@@ -53,7 +53,7 @@ class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with Mock
   }
 
   it should "throw validation exception if an invalid input schema is found" in {
-    val invalidSchema = EntitySchema("", typedPaths = IndexedSeq("s", "wrong").map(Path(_).asUntypedValueType))
+    val invalidSchema = EntitySchema("", typedPaths = IndexedSeq("s", "wrong").map(UntypedPath(_).asUntypedValueType))
     val input = Seq(GenericEntityTable(inputEntities, invalidSchema, inputTask))
     intercept[ValidationException] {
       executor.execute(task, input, None, LocalExecution(true), context).get.entities.head

@@ -3,7 +3,8 @@ package org.silkframework.rule.execution
 import java.util.logging.Logger
 
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.{EntitySchema, StringValueType, TypedPath}
+import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.{EntitySchema, StringValueType}
 import org.silkframework.rule.{DatasetSelection, TransformRule}
 import org.silkframework.rule.evaluation.{DetailedEntity, DetailedEvaluator}
 import org.silkframework.runtime.activity.UserContext

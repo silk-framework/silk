@@ -8,7 +8,7 @@ import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
-import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
@@ -161,7 +161,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
       val project = WorkspaceFactory().workspace.project(projectName)
       val datasetTask = project.task[GenericDatasetSpec](datasetId)
       val inputPaths = transformationInputPaths(project)
-      val dataSourcePath = Path.parse(mappingCoverageRequest.dataSourcePath)
+      val dataSourcePath = UntypedPath.parse(mappingCoverageRequest.dataSourcePath)
       datasetTask.plugin.source match {
         case vd: PathCoverageDataSource with ValueCoverageDataSource =>
           val matchingInputPaths = for (coveragePathInput <- inputPaths;

@@ -1,7 +1,8 @@
 package org.silkframework.rule.execution.methods
 
 import org.silkframework.cache.Partition
-import org.silkframework.entity.{Entity, Index, Path}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.execution.ExecutionMethod
 import org.silkframework.rule.execution.methods.StringMap.Mapper
 import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistance
@@ -9,7 +10,7 @@ import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.similarity.DistanceMeasure
 import org.silkframework.util.DPair
 
-case class StringMap(sourceKey: Path, targetKey: Path, distThreshold: Int = 2, thresholdPercentage: Double = 0.5) extends ExecutionMethod {
+case class StringMap(sourceKey: UntypedPath, targetKey: UntypedPath, distThreshold: Int = 2, thresholdPercentage: Double = 0.5) extends ExecutionMethod {
 
   /**
    * Generates an index for a single entity.

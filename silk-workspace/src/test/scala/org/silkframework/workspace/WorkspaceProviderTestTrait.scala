@@ -7,7 +7,8 @@ import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DatasetSpec, MockDataset}
-import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule._
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.characterbased.QGramsMetric
@@ -60,8 +61,8 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
           id = "compareNames",
           threshold = 0.1,
           metric = QGramsMetric(q = 3),
-          inputs = PathInput("foafName", Path("http://xmlns.com/foaf/0.1/name")) ::
-              PathInput("foafName2", Path("http://xmlns.com/foaf/0.1/name")) :: Nil
+          inputs = PathInput("foafName", UntypedPath("http://xmlns.com/foaf/0.1/name")) ::
+              PathInput("foafName2", UntypedPath("http://xmlns.com/foaf/0.1/name")) :: Nil
         )
       ),
       linkType = "http://www.w3.org/2002/07/owl#sameAs"
@@ -104,7 +105,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
               rules =
                 MappingRules(DirectMapping(
                   id = TRANSFORM_ID,
-                  sourcePath = Path("prop1"),
+                  sourcePath = UntypedPath("prop1"),
                   metaData = MetaData("Direct Rule Label", Some("Direct Rule Description"))
                 )),
               metaData = MetaData("Root Rule Label", Some("Root Rule Description")))
@@ -121,7 +122,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
           rules =
             MappingRules(DirectMapping(
               id = TRANSFORM_ID + 2,
-              sourcePath = Path("prop5"),
+              sourcePath = UntypedPath("prop5"),
               metaData = MetaData("Direct Rule New Label", Some("Direct Rule New Description"))
             )),
           metaData = MetaData("Root Rule New Label", Some("Root Rule New Description"))
@@ -140,16 +141,16 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
               uriRule = None,
               typeRules = Seq(TypeMapping(typeUri = "Person", metaData = MetaData("type"))),
               propertyRules = Seq(
-                DirectMapping("name", sourcePath = Path("name"), mappingTarget = MappingTarget("name"), MetaData("name")),
+                DirectMapping("name", sourcePath = UntypedPath("name"), mappingTarget = MappingTarget("name"), MetaData("name")),
                 ObjectMapping(
-                  sourcePath = Path.empty,
+                  sourcePath = UntypedPath.empty,
                   target = Some(MappingTarget("address")),
                   rules = MappingRules(
                     uriRule = Some(PatternUriMapping(pattern = s"https://silkframework.org/ex/Address_{city}_{country}", metaData = MetaData("uri"))),
                     typeRules = Seq.empty,
                     propertyRules = Seq(
-                      DirectMapping("city", sourcePath = Path("city"), mappingTarget = MappingTarget("city"), MetaData("city")),
-                      DirectMapping("country", sourcePath = Path("country"), mappingTarget = MappingTarget("country"), MetaData("country"))
+                      DirectMapping("city", sourcePath = UntypedPath("city"), mappingTarget = MappingTarget("city"), MetaData("city")),
+                      DirectMapping("country", sourcePath = UntypedPath("country"), mappingTarget = MappingTarget("country"), MetaData("country"))
                     )
                   ),
                   metaData = MetaData("object")

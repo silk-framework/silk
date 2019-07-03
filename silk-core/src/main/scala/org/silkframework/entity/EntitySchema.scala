@@ -1,5 +1,6 @@
 package org.silkframework.entity
 
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Uri
 
@@ -17,7 +18,7 @@ case class EntitySchema(
   typeUri: Uri,
   typedPaths: IndexedSeq[TypedPath],
   filter: Restriction = Restriction.empty,
-  subPath: Path = Path.empty
+  subPath: UntypedPath = UntypedPath.empty
  ) extends Serializable {
 
   /**
@@ -25,11 +26,11 @@ case class EntitySchema(
     * NOTE: providing subSchemata will automatically transform this schema in a MultiEntitySchema
     */
   def copy(
-    typeUri: Uri = this.typeUri,
-    typedPaths: IndexedSeq[TypedPath] = this.typedPaths,
-    filter: Restriction = this.filter,
-    subPath: Path = this.subPath,
-    subSchemata: IndexedSeq[EntitySchema] = IndexedSeq.empty
+            typeUri: Uri = this.typeUri,
+            typedPaths: IndexedSeq[TypedPath] = this.typedPaths,
+            filter: Restriction = this.filter,
+            subPath: UntypedPath = this.subPath,
+            subSchemata: IndexedSeq[EntitySchema] = IndexedSeq.empty
   ): EntitySchema ={
     val pivotSchema = EntitySchema(typeUri, typedPaths, filter, subPath)
     subSchemata match{
@@ -73,7 +74,7 @@ case class EntitySchema(
     * @return - the index of the path in question
     * @throws NoSuchElementException If the path could not be found in the schema.
     */
-  def indexOfPath(path: Path): Int = {
+  def indexOfPath(path: UntypedPath): Int = {
     typedPaths.zipWithIndex.find(pi => path.operators == pi._1.operators) match{
       case Some((_, ind)) => ind
       case None =>
@@ -98,7 +99,7 @@ case class EntitySchema(
     * @param path - ether a Path or a TypedPath
     * @return - an element of the typedPath collection (if any)
     */
-  def findPath(path: Path): Option[TypedPath] = {
+  def findPath(path: UntypedPath): Option[TypedPath] = {
     this.typedPaths.find(tp => tp.toSimplePath.equals(path)) //we make sure to use a Path using its equals
   }
 
@@ -120,14 +121,14 @@ case class EntitySchema(
     * NOTE: has to be overwritten in MultiEntitySchema
     * @param tp - the untyped path
     */
-  def getSchemaOfPropertyIgnoreType(tp: Path): Option[EntitySchema] = this.typedPaths.find(tt => tt.toSimplePath.equals(tp)) match{
+  def getSchemaOfPropertyIgnoreType(tp: UntypedPath): Option[EntitySchema] = this.typedPaths.find(tt => tt.toSimplePath.equals(tp)) match{
     case Some(_) => Some(this)
     case None => None
   }
 
   lazy val propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.toSimplePath.normalizedSerialization)
 
-  def child(path: Path): EntitySchema = copy(subPath = Path(subPath.operators ::: path.operators))
+  def child(path: UntypedPath): EntitySchema = copy(subPath = UntypedPath(subPath.operators ::: path.operators))
 
   /**
     * Will replace the property uris of selects paths of a given EntitySchema, using a Map[oldUri, newUri].
@@ -160,7 +161,7 @@ case class EntitySchema(
       case es: EntitySchema =>
         EntitySchema(
           es.typeUri,
-          tps.flatMap(tp => if(tp.valueType == UntypedValueType) es.findPath(tp) else es.findTypedPath(tp) match{
+          tps.flatMap(tp => if(tp.valueType == UntypedValueType) es.findPath(tp.toSimplePath) else es.findTypedPath(tp) match{
             case Some(_) => Some(tp)
             case None =>
               throw new IllegalArgumentException(tp + " was not found in EntitySchema: " + this.typedPaths.mkString(", "))
@@ -222,7 +223,7 @@ case class EntitySchema(
 
 object EntitySchema {
 
-  def empty: EntitySchema = EntitySchema(Uri(""), IndexedSeq[TypedPath](), subPath = Path.empty, filter = Restriction.empty)
+  def empty: EntitySchema = EntitySchema(Uri(""), IndexedSeq[TypedPath](), subPath = UntypedPath.empty, filter = Restriction.empty)
 
   /**
     * Will delete any typed path already occurring before in the indexed sequence.
@@ -260,7 +261,7 @@ object EntitySchema {
     }
     val paths = if(typedPaths.isEmpty) {
       for (pathNode <- (node \ "Paths" \ "Path").toIndexedSeq) yield {
-        TypedPath(Path.parse(pathNode.text.trim), StringValueType, isAttribute = false)
+        TypedPath(UntypedPath.parse(pathNode.text.trim), StringValueType, isAttribute = false)
       }
     } else {
       typedPaths

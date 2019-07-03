@@ -2,7 +2,8 @@ package org.silkframework.dataset.bulk
 
 import org.silkframework.config.Task
 import org.silkframework.dataset._
-import org.silkframework.entity.{Entity, EntitySchema, TypedPath}
+import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 

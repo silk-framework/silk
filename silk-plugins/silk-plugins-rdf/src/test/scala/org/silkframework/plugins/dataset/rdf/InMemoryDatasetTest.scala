@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.dataset.rdf.Resource
-import org.silkframework.entity.{Path, TypedPath, UriValueType}
+import org.silkframework.entity.UriValueType
 import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.runtime.activity.UserContext
 
@@ -21,7 +21,7 @@ class InMemoryDatasetTest extends FlatSpec with MustMatchers with MockitoSugar {
     val subject = "http://subject.com/uri"
     val entities = Seq("http://domain.com/entity/1", "http://domain.com/entity/2")
     val paths = IndexedSeq(
-      TypedPath(Path.parse(s"\\$propertyUri"), UriValueType, isAttribute = false)
+      TypedPath(UntypedPath.parse(s"\\$propertyUri"), UriValueType, isAttribute = false)
     )
     val entitySink = dataset.entitySink
     entitySink.openTableWithPaths("", paths)

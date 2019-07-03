@@ -15,7 +15,7 @@
 package org.silkframework.learning.active
 
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.TypedPath
+import org.silkframework.entity.paths.TypedPath
 import org.silkframework.learning.LearningConfiguration
 import org.silkframework.learning.active.linkselector.WeightedLinkageRule
 import org.silkframework.learning.cleaning.CleanPopulationTask

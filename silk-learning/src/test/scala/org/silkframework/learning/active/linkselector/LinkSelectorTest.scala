@@ -15,6 +15,7 @@
 package org.silkframework.learning.active.linkselector
 
 import org.silkframework.entity._
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.evaluation.ReferenceEntities
 import org.silkframework.rule.plugins.aggegrator.MinimumAggregator
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
@@ -47,13 +48,13 @@ object LinkSelectorTest extends App {
     def labelComparison =
       Comparison(
         metric = EqualityMetric(),
-        inputs = DPair(PathInput(path = Path.parse("?a/<label>")), PathInput(path = Path.parse("?b/<label>")))
+        inputs = DPair(PathInput(path = UntypedPath.parse("?a/<label>")), PathInput(path = UntypedPath.parse("?b/<label>")))
       )
 
     def dateComparison =
       Comparison(
         metric = EqualityMetric(),
-        inputs = DPair(PathInput(path = Path.parse("?a/<date>")), PathInput(path = Path.parse("?b/<date>")))
+        inputs = DPair(PathInput(path = UntypedPath.parse("?a/<date>")), PathInput(path = UntypedPath.parse("?b/<date>")))
       )
 
     val operator = (matchLabel, matchDate) match {
@@ -82,8 +83,8 @@ object LinkSelectorTest extends App {
   }
 
   def entities(label1: String, date1: String, label2: String, date2: String): DPair[Entity] = {
-    val sourceEntityDesc = EntitySchema(typeUri = Uri(""), IndexedSeq(Path.parse("?a/<label>").asStringTypedPath, Path.parse("?a/<date>").asStringTypedPath))
-    val targetEntityDesc = EntitySchema(typeUri = Uri(""), IndexedSeq(Path.parse("?b/<label>").asStringTypedPath, Path.parse("?b/<date>").asStringTypedPath))
+    val sourceEntityDesc = EntitySchema(typeUri = Uri(""), IndexedSeq(UntypedPath.parse("?a/<label>").asStringTypedPath, UntypedPath.parse("?a/<date>").asStringTypedPath))
+    val targetEntityDesc = EntitySchema(typeUri = Uri(""), IndexedSeq(UntypedPath.parse("?b/<label>").asStringTypedPath, UntypedPath.parse("?b/<date>").asStringTypedPath))
 
     DPair(
       source = Entity(label1 + date1, IndexedSeq(Seq(label1), Seq(date1)), sourceEntityDesc),

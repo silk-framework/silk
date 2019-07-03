@@ -1,7 +1,7 @@
 package org.silkframework.rule.execution.local
 
 import org.silkframework.config.Task
-import org.silkframework.entity.{EntitySchema, TypedPath}
+import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, Executor, TaskException}
 import org.silkframework.rule._

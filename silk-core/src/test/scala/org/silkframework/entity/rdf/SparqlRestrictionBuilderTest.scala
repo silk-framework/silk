@@ -4,7 +4,8 @@ package org.silkframework.entity.rdf
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.Restriction.Condition
-import org.silkframework.entity.{Path, Restriction}
+import org.silkframework.entity.Restriction
+import org.silkframework.entity.paths.UntypedPath
 
 
 class SparqlRestrictionBuilderTest extends FlatSpec with Matchers {
@@ -18,7 +19,7 @@ class SparqlRestrictionBuilderTest extends FlatSpec with Matchers {
   val builder = new SparqlRestrictionBuilder(SparqlEntitySchema.variable)
 
   "SparqlRestrictionBuilder" should "convert single conditions" in {
-    val restriction = Restriction(Some(Condition(Path.parse("?a/rdf:type"), prefixes.resolve("dbpedia:Settlement"))))
+    val restriction = Restriction(Some(Condition(UntypedPath.parse("?a/rdf:type"), prefixes.resolve("dbpedia:Settlement"))))
     builder(restriction).toSparqlQualified should equal("{?a rdf:type dbpedia:Settlement} .")
   }
 }

@@ -1,6 +1,7 @@
 package org.silkframework.entity
 
 import MultiEntitySchema._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 
 class MultiEntitySchema(private val pivot: EntitySchema, private val subs: IndexedSeq[EntitySchema])
   extends EntitySchema(
@@ -59,12 +60,12 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
     * NOTE: there might be a chance that a given path exists twice with different value types, use [[getSchemaOfPropertyIgnoreType]] instead
     * @param tp - the untyped path
     */
-  override def getSchemaOfPropertyIgnoreType(tp: Path): Option[EntitySchema] =
+  override def getSchemaOfPropertyIgnoreType(tp: UntypedPath): Option[EntitySchema] =
     this.pivotSchema.getSchemaOfPropertyIgnoreType(tp) match{
       case Some(es) => Some(es)
       case None =>
         this.subSchemata.find(es => {
-          es.typedPaths.map(_.toSimplePath).contains(Path.removePathPrefix(tp, es.subPath))
+          es.typedPaths.map(_.toSimplePath).contains(UntypedPath.removePathPrefix(tp, es.subPath))
         })
     }
 

@@ -5,6 +5,7 @@ import java.util.NoSuchElementException
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
+import org.silkframework.entity.paths._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.runtime.serialization.XmlSerialization._
@@ -75,7 +76,7 @@ case class TransformSpec(selection: DatasetSelection,
     * Input and output schemata of all object rules in the tree.
     */
   lazy val ruleSchemata: Seq[RuleSchemata] = {
-    collectSchemata(mappingRule, Path.empty)
+    collectSchemata(mappingRule, UntypedPath.empty)
   }
 
   /**
@@ -106,7 +107,7 @@ case class TransformSpec(selection: DatasetSelection,
   /**
     * Collects the input and output schemata of all rules recursively.
     */
-  private def collectSchemata(rule: TransformRule, subPath: Path): Seq[RuleSchemata] = {
+  private def collectSchemata(rule: TransformRule, subPath: UntypedPath): Seq[RuleSchemata] = {
     var schemata = Seq[RuleSchemata]()
 
     // Add rule schemata for this rule
@@ -173,7 +174,7 @@ case class TransformSpec(selection: DatasetSelection,
     * create a property value. Also, source paths from complex rules are only considered if they are the only source paths
     * in that rule. */
   def valueSourcePaths(ruleName: Identifier,
-                       maxPathDepth: Int = Int.MaxValue): Seq[Path] = {
+                       maxPathDepth: Int = Int.MaxValue): Seq[UntypedPath] = {
     nestedRuleAndSourcePath(ruleName) match {
       case Some((rule, _)) =>
         rule.children flatMap (child => valueSourcePathsRecursive(child, List.empty, maxPathDepth))
@@ -184,7 +185,7 @@ case class TransformSpec(selection: DatasetSelection,
 
   private def valueSourcePathsRecursive(rule: Operator,
                                         basePath: List[PathOperator],
-                                        maxPathDepth: Int): Seq[Path] = {
+                                        maxPathDepth: Int): Seq[UntypedPath] = {
     rule match {
       case transformRule: TransformRule =>
         transformRule match {
@@ -210,7 +211,7 @@ case class TransformSpec(selection: DatasetSelection,
     }
   }
 
-  private def listPath(pathOperators: List[PathOperator]) =  List(Path(pathOperators))
+  private def listPath(pathOperators: List[PathOperator]) =  List(UntypedPath(pathOperators))
 }
 
 case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty) extends Task[TransformSpec]
@@ -235,7 +236,7 @@ object TransformSpec {
       } else {
         for(childRule <- transformRule.rules.allRules.find(c => c.isInstanceOf[ValueTransformRule] && c.id == ruleId)) yield {
           val inputPaths = childRule.sourcePaths.map(p => TypedPath(p.operators, StringValueType, isAttribute = false)).toIndexedSeq
-          val outputPaths = childRule.target.map(t => Path(t.propertyUri).asStringTypedPath).toIndexedSeq
+          val outputPaths = childRule.target.map(t => UntypedPath(t.propertyUri).asStringTypedPath).toIndexedSeq
           RuleSchemata(
             transformRule = childRule,
             inputSchema = inputSchema.copy(typedPaths = inputPaths),
@@ -247,7 +248,7 @@ object TransformSpec {
   }
 
   object RuleSchemata {
-    def create(rule: TransformRule, selection: DatasetSelection, subPath: Path): RuleSchemata = {
+    def create(rule: TransformRule, selection: DatasetSelection, subPath: UntypedPath): RuleSchemata = {
       val inputSchema = EntitySchema(
         typeUri = selection.typeUri,
         typedPaths = extractTypedPaths(rule),
@@ -259,7 +260,7 @@ object TransformSpec {
         typeUri = rule.rules.typeRules.headOption.map(_.typeUri).getOrElse(selection.typeUri),
         typedPaths = rule.rules.allRules.flatMap(_.target).map { mt =>
           val path = if (mt.isBackwardProperty) BackwardOperator(mt.propertyUri) else ForwardOperator(mt.propertyUri)
-          TypedPath(Path(List(path)), mt.valueType, mt.isAttribute)
+          TypedPath(UntypedPath(List(path)), mt.valueType, mt.isAttribute)
         }.distinct.toIndexedSeq
       )
 

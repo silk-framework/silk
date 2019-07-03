@@ -2,6 +2,7 @@ package org.silkframework.execution.local
 
 import org.silkframework.config.{SilkVocab, Task, TaskSpec}
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.InterruptibleTraversable
 import org.silkframework.util.Uri
 
@@ -16,11 +17,11 @@ object QuadEntityTable {
   final val schema = EntitySchema(
     typeUri = Uri(SilkVocab.QuadSchemaType),
     typedPaths = IndexedSeq(
-      TypedPath(Path(SilkVocab.tripleSubject), UriValueType, isAttribute = false),
-      TypedPath(Path(SilkVocab.triplePredicate), UriValueType, isAttribute = false),
-      TypedPath(Path(SilkVocab.tripleObject), StringValueType, isAttribute = false),
-      TypedPath(Path(SilkVocab.tripleObjectValueType), StringValueType, isAttribute = false),
-      TypedPath(Path(SilkVocab.quadContext), StringValueType, isAttribute = false)
+      TypedPath(UntypedPath(SilkVocab.tripleSubject), UriValueType, isAttribute = false),
+      TypedPath(UntypedPath(SilkVocab.triplePredicate), UriValueType, isAttribute = false),
+      TypedPath(UntypedPath(SilkVocab.tripleObject), StringValueType, isAttribute = false),
+      TypedPath(UntypedPath(SilkVocab.tripleObjectValueType), StringValueType, isAttribute = false),
+      TypedPath(UntypedPath(SilkVocab.quadContext), StringValueType, isAttribute = false)
     )
   )
 }

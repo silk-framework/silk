@@ -1,6 +1,7 @@
 package org.silkframework.entity
 
 import org.scalatest.FlatSpec
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.util.{Uri, XmlSerializationHelperTrait}
 
 class TypedPathTest extends FlatSpec with XmlSerializationHelperTrait {
@@ -8,7 +9,7 @@ class TypedPathTest extends FlatSpec with XmlSerializationHelperTrait {
 
   it should "serialize and deserialize correctly" in {
     val typedPath = TypedPath(
-      path = Path("http://prop"),
+      path = UntypedPath("http://prop"),
       valueType = CustomValueType("http://someType"),
       isAttribute = true
     )
@@ -17,7 +18,7 @@ class TypedPathTest extends FlatSpec with XmlSerializationHelperTrait {
 
   it should "serialize and deserialize non uris with slashes correctly" in {
     val typedPath = TypedPath(
-      path = Path("fdshsdj//Português"),
+      path = UntypedPath("fdshsdj//Português"),
       valueType = CustomValueType("http://someType"),
       isAttribute = true
     )
@@ -25,12 +26,12 @@ class TypedPathTest extends FlatSpec with XmlSerializationHelperTrait {
   }
 
   it should "equal paths with all kind of different serializations" in{
-    val basePath = Path("http://example.org/file?query")
+    val basePath = UntypedPath("http://example.org/file?query")
 
-    Path(Uri.parse("<http://example.org/file?query>")).equals(basePath) mustBe true
-    Path(Uri.parse("http://example.org/file?query")).equals(basePath) mustBe true
-    Path.parse("<http://example.org/file?query>").equals(basePath) mustBe true
-    Path.parse("/<http://example.org/file?query>").equals(basePath) mustBe true
+    UntypedPath(Uri.parse("<http://example.org/file?query>")).equals(basePath) mustBe true
+    UntypedPath(Uri.parse("http://example.org/file?query")).equals(basePath) mustBe true
+    UntypedPath.parse("<http://example.org/file?query>").equals(basePath) mustBe true
+    UntypedPath.parse("/<http://example.org/file?query>").equals(basePath) mustBe true
   }
 
   it should "equal paths ignoring the value type if equalsUntyped is used with one of the value types being the UntypedValueType" in {

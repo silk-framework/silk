@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.xml
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
+import org.silkframework.entity.paths.TypedPath
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.util.Uri
@@ -199,7 +200,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     }
 
     def valuesAt(pathStr: String): Seq[Seq[String]] = {
-      val path = Path.parse(pathStr).asStringTypedPath
+      val path = UntypedPath.parse(pathStr).asStringTypedPath
       retrieve(IndexedSeq(path)).map(_.evaluate(path))
     }
 
@@ -213,7 +214,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     }
 
     def entityURIsAt(pathStr: String): Seq[Seq[String]] = {
-      val path = TypedPath(Path.parse(pathStr), UriValueType, isAttribute = false)
+      val path = TypedPath(UntypedPath.parse(pathStr), UriValueType, isAttribute = false)
       retrieve(IndexedSeq(path)).map(_.evaluate(path))
     }
 

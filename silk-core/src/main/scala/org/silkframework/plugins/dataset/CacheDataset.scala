@@ -20,6 +20,7 @@ import org.silkframework.cache.FileEntityCache
 import org.silkframework.config.{PlainTask, RuntimeConfig, Task}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.entity._
+import org.silkframework.entity.paths.TypedPath
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.util.Uri

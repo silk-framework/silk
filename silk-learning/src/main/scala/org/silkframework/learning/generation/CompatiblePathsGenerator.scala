@@ -14,7 +14,8 @@
 
 package org.silkframework.learning.generation
 
-import org.silkframework.entity.{Entity, Path, TypedPath}
+import org.silkframework.entity.Entity
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.learning.LearningConfiguration.Components
 import org.silkframework.learning.individual.FunctionNode
 import org.silkframework.rule.evaluation.ReferenceEntities
@@ -23,8 +24,6 @@ import org.silkframework.rule.plugins.transformer.substring.StripUriPrefixTransf
 import org.silkframework.rule.plugins.transformer.tokenization.Tokenizer
 import org.silkframework.rule.similarity.DistanceMeasure
 import org.silkframework.util.DPair
-
-import scala.collection.immutable
 
 /**
   * Analyses the reference entities and generates pairs of paths.
@@ -57,7 +56,7 @@ class CompatiblePathsGenerator(components: Components) {
     }
   }
 
-  private def createGenerators(pathPair: DPair[Path]): Seq[ComparisonGenerator] = {
+  private def createGenerators(pathPair: DPair[UntypedPath]): Seq[ComparisonGenerator] = {
     ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("levenshteinDistance", Nil, DistanceMeasure), 3.0) ::
     ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("jaccard", Nil, DistanceMeasure), 1.0) ::
     // Substring is currently too slow ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("substring", Nil, DistanceMeasure), 0.6) ::

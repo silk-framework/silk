@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset.json
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
+import org.silkframework.entity.paths._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
 import play.api.libs.json._
@@ -163,7 +164,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
     nodeToString(value).hashCode.toString
   }
 
-  def evaluate(path: Path): Seq[String] = evaluate(path.operators)
+  def evaluate(path: UntypedPath): Seq[String] = evaluate(path.operators)
 
   /**
     * Converts a simple json node, such as a number, to a string.

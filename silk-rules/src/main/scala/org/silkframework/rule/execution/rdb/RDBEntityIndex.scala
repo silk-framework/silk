@@ -5,7 +5,8 @@ import java.util.logging.Logger
 
 import org.silkframework.config.DefaultConfig
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.{Entity, EntitySchema, TypedPath}
+import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.rule._
 import org.silkframework.rule.execution.rdb.RDBEntityIndex.executeUpdate
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}

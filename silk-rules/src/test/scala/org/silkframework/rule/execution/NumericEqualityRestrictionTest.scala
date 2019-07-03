@@ -1,13 +1,13 @@
 package org.silkframework.rule.execution
 
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.entity.Path
+import org.silkframework.entity.paths.UntypedPath
 
 class NumericEqualityRestrictionTest extends FlatSpec with MustMatchers {
   behavior of "Numeric Equality Restriction"
 
-  private val oneHopPath = Path.parse("<http://prop1>")
-  private val twoHopPath = Path.parse("\\<http://prop1>/<http://prop2>")
+  private val oneHopPath = UntypedPath.parse("<http://prop1>")
+  private val twoHopPath = UntypedPath.parse("\\<http://prop1>/<http://prop2>")
 
   it should "serialize correct SPARQL filter expressions for exact precision" in {
     sparqlFilterExpression(oneHopPath, 2.3) mustBe
@@ -36,7 +36,7 @@ class NumericEqualityRestrictionTest extends FlatSpec with MustMatchers {
           |FILTER ((<http://www.w3.org/2001/XMLSchema#double>(?generatedVarValue) <= 1.101E-11 && <http://www.w3.org/2001/XMLSchema#double>(?generatedVarValue) >= 8.99E-12))""".stripMargin
   }
 
-  private def sparqlFilterExpression(path: Path, value: Double, precision: Double = 0.0): String = {
+  private def sparqlFilterExpression(path: UntypedPath, value: Double, precision: Double = 0.0): String = {
     NumericEqualityRestriction(path, value, precision).toSparqlFilter("s", "generatedVar").toSparql
   }
 }

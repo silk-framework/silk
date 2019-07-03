@@ -3,7 +3,8 @@ package org.silkframework.plugins.dataset.xml
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.CoveragePathInput
-import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.util.Uri
@@ -46,7 +47,7 @@ class XmlSourceCoverageTest extends FlatSpec with MustMatchers {
   it should "return correct value coverage" in {
     val source = xmlSource
     implicit val prefixes = Prefixes.empty
-    val result = source.valueCoverage(Path.parse("Person/Name"), paths("""Person[ID="1"]/Name"""))
+    val result = source.valueCoverage(UntypedPath.parse("Person/Name"), paths("""Person[ID="1"]/Name"""))
     result.overallValues mustBe 2
     result.coveredValues mustBe 1
     val missedValue = result.missedValues.head
@@ -57,7 +58,7 @@ class XmlSourceCoverageTest extends FlatSpec with MustMatchers {
   it should "return correct value coverage for more complicated path" in {
     val source = xmlSource
     implicit val prefixes = Prefixes.empty
-    val result = source.valueCoverage(Path.parse("Person/Properties/Property/Value"), paths("""Person/Properties/Property[Key!="2"]/Value"""))
+    val result = source.valueCoverage(UntypedPath.parse("Person/Properties/Property/Value"), paths("""Person/Properties/Property[Key!="2"]/Value"""))
     result.overallValues mustBe 3
     result.coveredValues mustBe 2
     result.missedValues.size mustBe 1
@@ -70,7 +71,7 @@ class XmlSourceCoverageTest extends FlatSpec with MustMatchers {
     val source = xmlSource
     implicit val prefixes = Prefixes.empty
     val result = source.valueCoverage(
-      Path.parse("Person/Properties/Property/Value"),
+      UntypedPath.parse("Person/Properties/Property/Value"),
       paths("""Person/*/Property[Key="2"]/Value""", """**/Property[Key="1"]/Value"""))
     result.overallValues mustBe 3
     result.coveredValues mustBe 2
@@ -106,14 +107,14 @@ class XmlSourceCoverageTest extends FlatSpec with MustMatchers {
   }
 
   it should "return peak result" in {
-    val result = xmlSource.peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(Path.parse("/Person/Properties/Property/Value").asStringTypedPath)), 3).toSeq
+    val result = xmlSource.peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath.parse("/Person/Properties/Property/Value").asStringTypedPath)), 3).toSeq
     result.size mustBe 1
     result.head.values mustBe IndexedSeq(Seq("V1", "V2", "V3"))
   }
 
   it should "return peak results with sub path set" in {
-    val result = xmlSource.peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(Path.parse("/Value").asStringTypedPath),
-      subPath = Path.parse("/Person/Properties/Property")), 3).toSeq
+    val result = xmlSource.peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath.parse("/Value").asStringTypedPath),
+      subPath = UntypedPath.parse("/Person/Properties/Property")), 3).toSeq
     result.size mustBe 3
     result.map(_.values) mustBe Seq(IndexedSeq(Seq("V1")), IndexedSeq(Seq("V2")), IndexedSeq(Seq("V3")))
   }
@@ -132,9 +133,9 @@ class XmlSourceCoverageTest extends FlatSpec with MustMatchers {
     assert(!xmlSource.matchPath(typePath, path(inputPath), path(sourcePath)), s"$sourcePath did match $inputPath with type '$typePath'")
   }
 
-  private def path(pathStr: String): Path = Path.parse(pathStr)
+  private def path(pathStr: String): UntypedPath = UntypedPath.parse(pathStr)
 
-  private def paths(paths: String*): Seq[Path] = {
+  private def paths(paths: String*): Seq[UntypedPath] = {
     paths map path
   }
 }

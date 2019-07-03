@@ -8,8 +8,9 @@ import java.util.regex.Pattern
 
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
-import org.silkframework.entity.Path.IDX_PATH_IDX
+import org.silkframework.entity.paths.UntypedPath.IDX_PATH_IDX
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
@@ -98,7 +99,7 @@ class CsvSource(file: Resource,
                             (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     try {
       for (property <- propertyList) yield {
-        Path(ForwardOperator(Uri.parse(property)) :: Nil).asStringTypedPath
+        UntypedPath(ForwardOperator(Uri.parse(property)) :: Nil).asStringTypedPath
       }
     } catch {
       case e: MalformedInputException =>
@@ -336,7 +337,7 @@ class CsvSource(file: Resource,
   /**
     * returns the combined path. Depending on the data source the input path may or may not be modified based on the type URI.
     */
-  override def combinedPath(typeUri: String, inputPath: Path): Path = inputPath
+  override def combinedPath(typeUri: String, inputPath: UntypedPath): UntypedPath = inputPath
 
   def autoConfigure(): CsvAutoconfiguredParameters = {
     val csvSource = new CsvSource(file, csvSettings, properties, uriPattern, regexFilter, codec,

@@ -452,7 +452,7 @@ class TransformTaskApi @Inject() () extends InjectedController {
             if(isRdfInput) {
               p
             } else {
-              TypedPath.removePathPrefix(p, Path(sourcePath))
+              TypedPath.removePathPrefix(p, UntypedPath(sourcePath))
             }
         }
         val filteredPaths = if(unusedOnly) {

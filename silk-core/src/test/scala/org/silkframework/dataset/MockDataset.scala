@@ -1,6 +1,7 @@
 package org.silkframework.dataset
 import org.silkframework.config.Task
 import org.silkframework.entity._
+import org.silkframework.entity.paths.TypedPath
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 

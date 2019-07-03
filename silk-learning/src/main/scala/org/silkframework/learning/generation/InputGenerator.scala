@@ -14,7 +14,7 @@
 
 package org.silkframework.learning.generation
 
-import org.silkframework.entity.Path
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.learning.individual.{FunctionNode, InputNode, PathInputNode, TransformNode}
 import org.silkframework.rule.input.Transformer
 import org.silkframework.util.DPair
@@ -61,7 +61,7 @@ case class InputGenerator(input: InputNode, useTransformations: Boolean) {
 
 object InputGenerator {
 
-  def fromPathPair(pathPair: DPair[Path], useTransformations: Boolean) = {
+  def fromPathPair(pathPair: DPair[UntypedPath], useTransformations: Boolean) = {
     DPair(
       source = new InputGenerator(PathInputNode(pathPair.source, true), useTransformations),
       target = new InputGenerator(PathInputNode(pathPair.target, false), useTransformations)

@@ -1,7 +1,7 @@
 package controllers.transform
 
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.rule.ComplexMapping
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
@@ -17,7 +17,7 @@ class PeakTransformApiTest extends FlatSpec with MustMatchers {
 
   behavior of "TransformTask API"
 
-  implicit val schema = EntitySchema(Uri("type"), IndexedSeq(Path("a").asStringTypedPath, Path("b").asStringTypedPath))
+  implicit val schema = EntitySchema(Uri("type"), IndexedSeq(UntypedPath("a").asStringTypedPath, UntypedPath("b").asStringTypedPath))
 
   it should "collect transformation examples" in {
     val rule = transformRule(CamelCaseTokenizer())
@@ -41,7 +41,7 @@ class PeakTransformApiTest extends FlatSpec with MustMatchers {
 
   private def transformRule(transformer: Transformer): ComplexMapping = {
     val transformation = TransformInput(transformer = transformer,
-      inputs = Seq(PathInput("p", Path("a")), PathInput("p", Path("b"))))
+      inputs = Seq(PathInput("p", UntypedPath("a")), PathInput("p", UntypedPath("b"))))
     ComplexMapping(operator = transformation)
   }
 

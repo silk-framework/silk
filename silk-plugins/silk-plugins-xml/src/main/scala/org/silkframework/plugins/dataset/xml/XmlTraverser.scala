@@ -4,6 +4,7 @@ import java.net.URLEncoder
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 
 import scala.xml.{Node, Text}
 
@@ -57,7 +58,7 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     } else {
       XmlTraverser.uriRegex.replaceAllIn(uriPattern, m => {
         val pattern = m.group(1)
-        val value = evaluatePath(Path.parse(pattern)).map(_.node.text).mkString("")
+        val value = evaluatePath(UntypedPath.parse(pattern)).map(_.node.text).mkString("")
         URLEncoder.encode(value, "UTF8")
       })
     }
@@ -72,7 +73,7 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
   def collectPaths(onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, depth: Int): Seq[TypedPath] = {
     assert(!(onlyInnerNodes && onlyLeafNodes), "onlyInnerNodes and onlyLeafNodes cannot be set to true at the same time")
     val ret = for(typedPath <- collectPathsRecursive(onlyLeafNodes, onlyInnerNodes, prefix = Seq.empty, depth) if typedPath.operators.size > 1) yield {
-      TypedPath(Path(typedPath.operators.tail), typedPath.valueType, typedPath.isAttribute)
+      TypedPath(UntypedPath(typedPath.operators.tail), typedPath.valueType, typedPath.isAttribute)
     }
     ret.distinct
   }
@@ -120,7 +121,7 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     * @param path A path relative to the given XML node.
     * @return A sequence of nodes that are matching the path.
     */
-  def evaluatePath(path: Path): Seq[XmlTraverser] = {
+  def evaluatePath(path: UntypedPath): Seq[XmlTraverser] = {
     evaluateOperators(path.operators)
   }
 

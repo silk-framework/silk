@@ -5,7 +5,8 @@ import org.mockito.Matchers._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset.{DataSource, EntitySink}
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.rule.execution.{ExecuteTransform, TransformReport}
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
 import org.silkframework.rule._
@@ -64,7 +65,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
   }
 
   private def mapping(id: String, prop: String) = {
-    val transformation = TransformInput(inputs = Seq(PathInput(path = Path(prop))), transformer = transformerWithExceptions())
+    val transformation = TransformInput(inputs = Seq(PathInput(path = UntypedPath(prop))), transformer = transformerWithExceptions())
     ComplexMapping(id = Identifier(id), operator = transformation, target = Some(MappingTarget(Uri(prop + "Target"))))
   }
 
@@ -76,7 +77,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
   }
 
   private def entity(values: IndexedSeq[String], properties: IndexedSeq[String]): Entity = {
-    Entity("", values map (v => Seq(v)), EntitySchema(Uri("entity"), typedPaths = properties.map(Path.saveApply).map(_.asStringTypedPath)))
+    Entity("", values map (v => Seq(v)), EntitySchema(Uri("entity"), typedPaths = properties.map(UntypedPath.saveApply).map(_.asStringTypedPath)))
   }
 
   private def entity(value: String, propertyUri: String): Entity = {

@@ -1,7 +1,8 @@
 package org.silkframework.rule
 
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
 import org.silkframework.rule.similarity.Comparison
@@ -13,7 +14,7 @@ class LinkageRuleIndexTest extends FlatSpec with MustMatchers {
 
   private val sourcePath = "pathSource"
   private val targetPath = "pathTarget"
-  private val inputs = DPair(PathInput(path = Path(sourcePath)), PathInput(path = Path(targetPath)))
+  private val inputs = DPair(PathInput(path = UntypedPath(sourcePath)), PathInput(path = UntypedPath(targetPath)))
   private val comparison = Comparison(metric = EqualityMetric(), inputs = inputs)
   private val linkingRule = new LinkageRule(Some(comparison))
   private val sourceEntitySchema = entitySchema(Seq(sourcePath))
@@ -21,7 +22,7 @@ class LinkageRuleIndexTest extends FlatSpec with MustMatchers {
 
   private def entitySchema(paths: Seq[String],
                            typeUri: Identifier = Identifier.random): EntitySchema = {
-    EntitySchema(typeUri.toString, paths.map(p => Path(p).asStringTypedPath).toIndexedSeq)
+    EntitySchema(typeUri.toString, paths.map(p => UntypedPath(p).asStringTypedPath).toIndexedSeq)
   }
 
   private def entity(entitySchema: EntitySchema, values: Seq[String]): Entity = {

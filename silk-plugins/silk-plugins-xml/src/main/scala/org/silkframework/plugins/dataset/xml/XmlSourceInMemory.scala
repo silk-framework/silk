@@ -5,6 +5,7 @@ import java.util.logging.{Level, Logger}
 import org.silkframework.config.{DefaultConfig, PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
@@ -65,7 +66,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     val xml = file.read(XML.load)
     val rootTraverser = XmlTraverser(xml)
     // Move to base path
-    rootTraverser.evaluatePath(Path.parse(pathStr))
+    rootTraverser.evaluatePath(UntypedPath.parse(pathStr))
   }
 
   private class Entities(xml: Seq[XmlTraverser], entityDesc: EntitySchema) extends Traversable[Entity] {
@@ -79,13 +80,13 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     }
   }
 
-  override def combinedPath(typeUri: String, inputPath: Path): Path = {
-    val typePath = Path.parse(typeUri)
-    Path(typePath.operators ++ inputPath.operators)
+  override def combinedPath(typeUri: String, inputPath: UntypedPath): UntypedPath = {
+    val typePath = UntypedPath.parse(typeUri)
+    UntypedPath(typePath.operators ++ inputPath.operators)
   }
 
-  override def convertToIdPath(path: Path): Option[Path] = {
-    Some(Path(path.operators ::: List(ForwardOperator("#id"))))
+  override def convertToIdPath(path: UntypedPath): Option[UntypedPath] = {
+    Some(UntypedPath(path.operators ::: List(ForwardOperator("#id"))))
   }
 
   override def peak(entitySchema: EntitySchema, limit: Int)

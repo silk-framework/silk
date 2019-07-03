@@ -15,7 +15,7 @@
 package org.silkframework.plugins.dataset.rdf.sparql
 
 import org.silkframework.dataset.rdf.SparqlEndpoint
-import org.silkframework.entity.{Path, TypedPath}
+import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.runtime.activity.UserContext
 

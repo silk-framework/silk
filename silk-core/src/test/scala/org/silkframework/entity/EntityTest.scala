@@ -3,12 +3,13 @@ package org.silkframework.entity
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.util.Uri
 
 
 class EntityTest extends FlatSpec with Matchers {
 
-  val schema = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(Path("path1").asStringTypedPath, Path("path2").asStringTypedPath), filter = Restriction.empty)
+  val schema = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("path1").asStringTypedPath, UntypedPath("path2").asStringTypedPath), filter = Restriction.empty)
 
   val entity1 = Entity("http://silk-framework.com/example", IndexedSeq(Seq("value1", "value2"), Seq("value3")), schema)
 
@@ -39,8 +40,8 @@ class EntityTest extends FlatSpec with Matchers {
 
   /* COMPLEX ENTITIES */
 
-  val subSchema1 = EntitySchema(typeUri = Uri("sub1"), typedPaths = IndexedSeq(Path("path3").asStringTypedPath, Path("path4").asStringTypedPath), filter = Restriction.empty, Path("sub1"))
-  val subSchema2 = EntitySchema(typeUri = Uri("sub2"), typedPaths = IndexedSeq(Path("path5").asStringTypedPath, Path("path6").asStringTypedPath), filter = Restriction.empty, Path("sub2"))
+  val subSchema1 = EntitySchema(typeUri = Uri("sub1"), typedPaths = IndexedSeq(UntypedPath("path3").asStringTypedPath, UntypedPath("path4").asStringTypedPath), filter = Restriction.empty, UntypedPath("sub1"))
+  val subSchema2 = EntitySchema(typeUri = Uri("sub2"), typedPaths = IndexedSeq(UntypedPath("path5").asStringTypedPath, UntypedPath("path6").asStringTypedPath), filter = Restriction.empty, UntypedPath("sub2"))
 
   val complexSchema = new MultiEntitySchema( schema, IndexedSeq(subSchema1, subSchema2))
 
@@ -56,11 +57,11 @@ class EntityTest extends FlatSpec with Matchers {
   }
 
   "Complex Entity" should "be evaluated correctly" in {
-    complexEntity.evaluate(1) shouldBe complexEntity.evaluate(Path("path2").asStringTypedPath)
-    complexEntity.evaluate(3) shouldBe complexEntity.evaluate(Path("path4").asStringTypedPath)
-    complexEntity.evaluate(4) shouldBe complexEntity.evaluate(Path("path5").asStringTypedPath)
-    complexEntity.evaluate(3) shouldBe complexEntity.evaluate(Path.parse("sub1/path4").asStringTypedPath)
-    complexEntity.evaluate(4) shouldBe complexEntity.evaluate(Path.parse("sub2/path5").asStringTypedPath)
+    complexEntity.evaluate(1) shouldBe complexEntity.evaluate(UntypedPath("path2").asStringTypedPath)
+    complexEntity.evaluate(3) shouldBe complexEntity.evaluate(UntypedPath("path4").asStringTypedPath)
+    complexEntity.evaluate(4) shouldBe complexEntity.evaluate(UntypedPath("path5").asStringTypedPath)
+    complexEntity.evaluate(3) shouldBe complexEntity.evaluate(UntypedPath.parse("sub1/path4").asStringTypedPath)
+    complexEntity.evaluate(4) shouldBe complexEntity.evaluate(UntypedPath.parse("sub2/path5").asStringTypedPath)
   }
 
 }

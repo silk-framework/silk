@@ -15,6 +15,7 @@
 package org.silkframework.rule.input
 
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{Path, TypedPath, UntypedPath}
 import org.silkframework.rule.Operator
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationException
@@ -60,7 +61,10 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
     } else {
       var index = cachedPathIndex
       if(index < 0 || index >= entity.schema.typedPaths.size || entity.schema.typedPaths(index) != path) {
-        index = entity.schema.indexOfPath(path)
+        index = path match{
+          case u: UntypedPath => entity.schema.indexOfPath(u)
+          case t: TypedPath => entity.schema.indexOfTypedPath(t)
+        }
         cachedPathIndex = index
       }
       entity.evaluate(index)
@@ -79,7 +83,7 @@ object PathInput {
       val id = Operator.readId(node)
       try {
         val pathStr = (node \ "@path").text
-        val path = Path.parse(pathStr)(readContext.prefixes)
+        val path = UntypedPath.parse(pathStr)(readContext.prefixes)
         PathInput(id, path)
       } catch {
         case ex: Exception => throw new ValidationException(ex.getMessage, id, "Path")

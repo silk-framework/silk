@@ -4,6 +4,7 @@ import org.apache.jena.graph.NodeFactory
 import org.apache.jena.update.UpdateFactory
 import org.silkframework.config.CustomTask
 import org.silkframework.entity._
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.local.SparqlUpdateEntitySchema
 import org.silkframework.plugins.dataset.rdf.RdfFormatUtil
 import org.silkframework.rule.util.JenaSerializationUtil
@@ -154,7 +155,7 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
         filter(_.isInstanceOf[SparqlUpdateTemplatePlaceholder]).
         map(_.asInstanceOf[SparqlUpdateTemplatePlaceholder].prop).
         distinct
-    EntitySchema("", properties.map(p => Path(p).asUntypedValueType).toIndexedSeq)
+    EntitySchema("", properties.map(p => UntypedPath(p).asUntypedValueType).toIndexedSeq)
   }
 
   override def outputSchemaOpt: Option[EntitySchema] = Some(SparqlUpdateEntitySchema.schema)

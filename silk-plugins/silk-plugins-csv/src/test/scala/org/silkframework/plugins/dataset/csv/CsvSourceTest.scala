@@ -4,7 +4,8 @@ import java.io.StringReader
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset.{DataSource, DatasetSpec}
-import org.silkframework.entity.{Entity, EntitySchema, Path, StringValueType}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.{Entity, EntitySchema, StringValueType}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager, ReadOnlyResource}
 import org.silkframework.util.Uri
@@ -53,7 +54,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
   }
 
   "For persons.csv, CsvParser" should "extract all columns" in {
-    val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(Path("ID").asStringTypedPath, Path("Name").asStringTypedPath, Path("Age").asStringTypedPath))
+    val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("ID").asStringTypedPath, UntypedPath("Name").asStringTypedPath, UntypedPath("Age").asStringTypedPath))
     val persons = source.retrieve(entityDesc).toIndexedSeq
     persons(0).values should equal(IndexedSeq(Seq("1"), Seq("Max Mustermann"), Seq("30")))
     persons(1).values should equal(IndexedSeq(Seq("2"), Seq("Markus G."), Seq("24")))
@@ -61,7 +62,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
   }
 
   "For persons.csv, CsvParser" should "extract selected columns" in {
-    val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(Path("Name").asStringTypedPath, Path("Age").asStringTypedPath))
+    val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("Name").asStringTypedPath, UntypedPath("Age").asStringTypedPath))
     val persons = source.retrieveEntities(entityDesc).toIndexedSeq
     persons(0).values should equal(IndexedSeq(Seq("Max Mustermann"), Seq("30")))
     persons(1).values should equal(IndexedSeq(Seq("Markus G."), Seq("24")))
@@ -186,12 +187,12 @@ class CsvSourceTest extends FlatSpec with Matchers {
     entities.size shouldBe 4                        //in this case number of entities is the same as number of lines in csv
     val top = entities.head
     top.schema.propertyNames shouldBe IndexedSeq("vals1", "vals2", "vals3")
-    top.valueOfPath(Path("vals2")).head shouldBe "val2"
+    top.valueOfPath(UntypedPath("vals2")).head shouldBe "val2"
   }
 
   it should "support #idx special forward path" in {
     val s = source
-    val schema = EntitySchema("", typedPaths = IndexedSeq(Path("#idx").asStringTypedPath))
+    val schema = EntitySchema("", typedPaths = IndexedSeq(UntypedPath("#idx").asStringTypedPath))
     val entities = s.retrieve(schema, limitOpt = Some(3))
     entities.map(_.values.flatten.head) shouldBe Seq("1", "2", "3")
   }

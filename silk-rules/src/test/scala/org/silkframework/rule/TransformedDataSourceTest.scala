@@ -1,7 +1,8 @@
 package org.silkframework.rule
 
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.plugins.dataset.csv.CsvDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{InMemoryResourceManager, WritableResource}
@@ -21,11 +22,11 @@ class TransformedDataSourceTest extends FlatSpec with MustMatchers {
 
   it should "retrieve by URI on the transformed entities" in {
     val csvDataset = CsvDataset(inMemoryResource)
-    val entitySchema = EntitySchema(Uri(""), typedPaths = IndexedSeq(Path("ID")).map(_.asStringTypedPath))
+    val entitySchema = EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath("ID")).map(_.asStringTypedPath))
     val entities = csvDataset.source.retrieve(entitySchema)
     val entityUris = entities.map(_.uri.toString).toSet
     val mappingRule = RootMappingRule(MappingRules(PatternUriMapping(pattern = "http://entity/{ID}"),
-      DirectMapping(sourcePath = Path("ID"), mappingTarget = MappingTarget("ID"))))
+      DirectMapping(sourcePath = UntypedPath("ID"), mappingTarget = MappingTarget("ID"))))
     val transformedDataSource = new TransformedDataSource(csvDataset.source, entitySchema, mappingRule)
     val transformedEntities = transformedDataSource.retrieve(entitySchema)
     val transformedUris = transformedEntities.map(_.uri.toString).toSet

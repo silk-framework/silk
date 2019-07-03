@@ -1,11 +1,11 @@
 @import org.silkframework.workspace.{PrefixRegistry, Project}
 @import models.linking.EvalLink._
 @import models.linking._
-@import org.silkframework.entity.Path
 @import org.silkframework.entity.Entity
 @import org.silkframework.util.DPair
 @import org.silkframework.rule.evaluation._
 @import controllers.rules.routes.Assets
+@import org.silkframework.entity.paths.UntypedPath
 @import org.silkframework.workspace.ProjectTask
 @import org.silkframework.rule.execution.LinkingStatistics
 @import org.silkframework.rule.LinkSpec
@@ -195,7 +195,7 @@
   </li>
 }
 
-@renderValues(path: Path, values: Seq[String], divClassPrefix: String) = {
+@renderValues(path: UntypedPath, values: Seq[String], divClassPrefix: String) = {
   <li>
     @path.serialize()(project.config.prefixes)
     @values.take(10).map(v => <span class={divClassPrefix + "-value"}>{project.config.prefixes.shorten(v)}</span>)

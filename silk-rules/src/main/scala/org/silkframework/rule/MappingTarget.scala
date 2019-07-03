@@ -2,6 +2,7 @@ package org.silkframework.rule
 
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{BackwardOperator, ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Uri
 
@@ -37,9 +38,9 @@ case class MappingTarget(propertyUri: Uri,
   }
 
   /** Representation of the mapping target as Silk Path */
-  def asPath(): Path = {
+  def asPath(): UntypedPath = {
     val op = if (isBackwardProperty) BackwardOperator(propertyUri.uri) else ForwardOperator(propertyUri.uri)
-    Path(List(op))
+    UntypedPath(List(op))
   }
 
   def asTypedPath(): TypedPath = {
