@@ -16,14 +16,14 @@ package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.{Param, Plugin, PluginCategories}
 import org.silkframework.util.StringUtils._
 
 import scala.math.{abs, max, min}
 
 @Plugin(
   id = "levenshteinDistance",
-  categories = Array("Characterbased", "Recommended"),
+  categories = Array("Characterbased", PluginCategories.recommended),
   label = "Levenshtein distance",
   description = "Levenshtein distance. Returns a distance value between zero and the size of the string."
 )

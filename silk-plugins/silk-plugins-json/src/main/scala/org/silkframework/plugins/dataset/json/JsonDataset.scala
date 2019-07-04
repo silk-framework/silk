@@ -9,9 +9,10 @@ import scala.io.Codec
 
 @Plugin(
   id = "json",
-  label = "JSON file",
+  label = "JSON",
+  categories = Array(DatasetCategories.file),
   description =
-"""Retrieves all entities from an JSON file."""
+"""Read from or write to a JSON file."""
 )
 case class JsonDataset(
   @Param("Json file.")

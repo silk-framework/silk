@@ -24,6 +24,7 @@ object PluginSerializers {
     private def serializePlugin(plugin: PluginDescription[_]) = {
       Json.obj(
         "title" -> JsString(plugin.label),
+        "categories" -> plugin.categories.map(JsString),
         "description" -> JsString(plugin.description),
         "type" -> "object",
         "properties" -> JsObject(serializeParams(plugin.parameters)),

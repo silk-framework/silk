@@ -12,9 +12,10 @@ import scala.xml._
 
 @Plugin(
   id = "xml",
-  label = "XML file",
-  description = "Retrieves all entities from an xml file.",
-  documentationFile = "XmlDatasetDocumentation.md"
+  label = "XML",
+  categories = Array(DatasetCategories.file),
+  description = "Read from or write to an XML file."
+  documentation = "XmlDatasetDocumentation.md"
 )
 case class XmlDataset( @Param("The XML file. This may also be a zip archive of multiple XML files that share the same schema.")
                        file: WritableResource,

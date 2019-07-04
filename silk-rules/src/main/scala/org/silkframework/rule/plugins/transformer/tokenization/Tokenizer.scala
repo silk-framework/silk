@@ -15,11 +15,11 @@
 package org.silkframework.rule.plugins.transformer.tokenization
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Param, Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.{Param, Plugin, PluginCategories, TransformExample, TransformExamples}
 
 @Plugin(
   id = "tokenize",
-  categories = Array("Tokenization", "Recommended"),
+  categories = Array("Tokenization", PluginCategories.recommended),
   label = "Tokenize",
   description = "Tokenizes all input values.")
 @TransformExamples(Array(

@@ -16,11 +16,11 @@ package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.Aggregator
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Plugin, PluginCategories}
 
 @Plugin(
   id = "min",
-  categories = Array("All", "Recommended"),
+  categories = Array("All", PluginCategories.recommended),
   label = "And",
   description = "All input scores must be within the threshold. Selects the minimum score."
 )
