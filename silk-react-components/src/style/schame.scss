@@ -3,3 +3,10 @@
   height: 20px!important;
   overflow: hidden;
 }
+
+// FIXME Overrides the style coming from https://github.com/eccenca/ecc-gui-elements/blob/8c31e6e73382fa1c7187871c55250687a8306ed6/src/elements/Card/_card.scss#L75
+.ecc-silk-mapping__ruleslist.ecc-silk-mapping__suggestionlist {
+  .mdl-card__actions.mdl-card--border.mdl-card__actions--fixed {
+    margin-top: 0;
+  }
+}
