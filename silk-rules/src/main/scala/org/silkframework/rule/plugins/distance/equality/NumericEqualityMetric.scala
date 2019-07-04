@@ -5,11 +5,11 @@ import java.text.DecimalFormat
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.{Param, Plugin, PluginCategories}
 
 @Plugin(
   id = "numericEquality",
-  categories = Array("Equality", "Recommended"),
+  categories = Array("Equality", PluginCategories.recommended),
   label = "Numeric Equality",
   description = NumericEqualityMetric.description
 )

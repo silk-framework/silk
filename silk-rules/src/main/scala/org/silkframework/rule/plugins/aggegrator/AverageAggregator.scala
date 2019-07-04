@@ -16,11 +16,11 @@ package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.Aggregator
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Plugin, PluginCategories}
 
 @Plugin(
   id = "average",
-  categories = Array("All", "Recommended"),
+  categories = Array("All", PluginCategories.recommended),
   label = "Average",
   description = "Computes the weighted average."
 )

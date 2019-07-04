@@ -8,9 +8,10 @@ import org.silkframework.runtime.resource.WritableResource
 
 @Plugin(
   id = "alignment",
-  label = "Alignment file",
+  label = "Alignment",
+  categories = Array(DatasetCategories.file),
   description =
-    """ Writes the alignment format specified at http://alignapi.gforge.inria.fr/format.html."""
+    """Writes the alignment format specified at http://alignapi.gforge.inria.fr/format.html."""
 )
 case class AlignmentDataset(
   @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")

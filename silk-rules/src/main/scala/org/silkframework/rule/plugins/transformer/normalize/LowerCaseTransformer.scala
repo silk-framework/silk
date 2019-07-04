@@ -15,11 +15,11 @@
 package org.silkframework.rule.plugins.transformer.normalize
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Plugin, PluginCategories}
 
 @Plugin(
   id = "lowerCase",
-  categories = Array("Normalize", "Recommended"),
+  categories = Array("Normalize", PluginCategories.recommended),
   label = "Lower case",
   description = "Converts a string to lower case."
 )
