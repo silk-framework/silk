@@ -14,8 +14,8 @@ import scala.xml._
   id = "xml",
   label = "XML",
   categories = Array(DatasetCategories.file),
-  description = "Read from or write to an XML file."
-  documentation = "XmlDatasetDocumentation.md"
+  description = "Read from or write to an XML file.",
+  documentationFile = "XmlDatasetDocumentation.md"
 )
 case class XmlDataset( @Param("The XML file. This may also be a zip archive of multiple XML files that share the same schema.")
                        file: WritableResource,
