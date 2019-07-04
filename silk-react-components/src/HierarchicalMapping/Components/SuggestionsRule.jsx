@@ -75,11 +75,11 @@ const SuggestionsRule = React.createClass({
                                 {targetProperty}
                             </div>
                             <div
-                                className={`ecc-silk-mapping__suggestitem-typeselect`}
                                 onClick={this.preventPropagation}>
                                 <SelectBox
                                     disabled={!suggestion.checked}
                                     reducedSize
+                                    className="ecc-silk-mapping__rules-suggestion-list-suggestion-type"
                                     options={LABELED_SUGGESTION_TYPES}
                                     onChange={this.onChangeType}
                                     value={{
