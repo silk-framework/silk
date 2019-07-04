@@ -62,7 +62,7 @@ object PluginDocumentation {
     }
     sb ++= s"The identifier for this plugin is `${plugin.id}`.\n\n"
     sb ++= s"It can be found in the package `${plugin.pluginClass.getPackage.getName}`.\n\n"
-    sb ++= plugin.documentation + "\n"
+    sb ++= plugin.documentation + "\n\n"
   }
 
   def formatDefaultValue(value: Option[AnyRef]): String = {

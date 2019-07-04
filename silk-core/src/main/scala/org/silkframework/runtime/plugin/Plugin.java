@@ -36,6 +36,11 @@ public @interface Plugin {
   /** A short (few sentence) description of this plugin. */
   String description() default "No description";
 
-  /** Documentation for this plugin in Markdown. */
-  String documentation() default "";
+  /**
+   * Optional further documentation for this plugin.
+   * Classpath to a Markdown file.
+   * Typically the Markdown file is at the same classpath as the documented plugin,
+   * in which case the local file name can be provided instead of the full classpath.
+   */
+  String documentationFile() default "";
 }
