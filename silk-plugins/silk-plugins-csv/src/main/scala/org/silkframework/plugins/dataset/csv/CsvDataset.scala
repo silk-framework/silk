@@ -11,7 +11,7 @@ import org.silkframework.runtime.resource._
   label = "CSV",
   categories = Array(DatasetCategories.file),
   description =
-      """Retrieves all entities from a csv file."""
+      """Read from or write to an CSV file."""
 )
 case class CsvDataset (
   @Param("The CSV file. This may also be a zip archive of multiple CSV files that share the same schema.")

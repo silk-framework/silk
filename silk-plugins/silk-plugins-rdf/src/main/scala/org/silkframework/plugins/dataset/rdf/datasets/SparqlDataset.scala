@@ -11,7 +11,7 @@ import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Passwo
   id = "sparqlEndpoint",
   label = "SPARQL endpoint",
   categories = Array(DatasetCategories.remote),
-  description = "Dataset which retrieves all entities from a SPARQL endpoint")
+  description = "Connect to an existing SPARQL endpoint.")
 case class SparqlDataset(
   @Param(label = "endpoint URI", value = "The URI of the SPARQL endpoint e.g. http://dbpedia.org/sparql")
   endpointURI: String,

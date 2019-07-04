@@ -15,7 +15,7 @@ import scala.xml._
   label = "XML",
   categories = Array(DatasetCategories.file),
   description =
-    """Retrieves all entities from an xml file.""",
+    """Read from or write to an XML file.""",
   documentation =
     """Typically, this dataset is used to transform an XML file to another format, e.g., to RDF.
 When this dataset is used as an input for another task (e.g., a transformation task), the input type of the consuming task selects the path where the entities to be read are located.
