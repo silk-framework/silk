@@ -2,6 +2,8 @@
 @import org.silkframework.workspace.Project
 
 @import org.silkframework.runtime.activity.UserContext
+@import org.silkframework.runtime.plugin.PluginCategories
+
 @(name: String,
   opType: String,
   pluginsByCategory: Map[String, Seq[org.silkframework.runtime.plugin.PluginDescription[_]]],
@@ -62,7 +64,7 @@ function initOperators() {
     <div class="mdl-selectfield mdl-js-selectfield">
       <select id="@{opType}_category_selector" class="mdl-selectfield__select" name="category" style="font-size:0.9em;">
        @for(category <- pluginsByCategory.keys.toSeq.sorted) {
-          <option value="@category" @if(category == "Recommended"){ selected="selected" } >
+          <option value="@category" @if(category == PluginCategories.recommended){ selected="selected" } >
             @category
           </option>
         }

@@ -27,11 +27,11 @@ public @interface Plugin {
   /** A human-readable label of the annotated plugin */
   String label();
 
-  /** A list of categories. Special values are:
-   * - "Uncategorized": This plugin does not belong to a category (default).
-   * - "Recommended": A special category that can be shown at first to the user.
-   * */
-  String[] categories() default { "Uncategorized" };
+  /**
+   * A list of categories.
+   * See {@link PluginCategories for special values}.
+   */
+  String[] categories() default { PluginCategories.uncategorized };
 
   /** A short (few sentence) description of this plugin. */
   String description() default "No description";
