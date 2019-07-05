@@ -10,3 +10,8 @@
     margin-top: 0;
   }
 }
+
+// FIXME: dirty but it works. As most of the CSS in the world
+.ecc-silk-mapping__rules .ecc-silk-mapping__ruleitem-headline.ecc-silk-mapping__ruleitem-info-targetstructure div {
+  float: left;
+}
