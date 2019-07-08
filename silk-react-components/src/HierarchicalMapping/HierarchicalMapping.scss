@@ -336,6 +336,10 @@ ul.ecc-hierarchical-mapping-error-list {
 
 .ecc-silk-mapping__suggestitem-typeselect {
     @include typo-caption();
+
+    & > .mdl-textfield {
+        display: block;
+    }
 }
 
 .ecc-silk-mapping__ruleitem-summary {
@@ -360,6 +364,8 @@ ul.ecc-hierarchical-mapping-error-list {
         overflow: visible;
     }
 
+    /*
+    // probably not necessary anymore, just comment it out for the moment
     .Select-input,
     .Select-control {
         height: calc(48px - #{2 * $ecc-size-block-whitespace});
@@ -368,6 +374,7 @@ ul.ecc-hierarchical-mapping-error-list {
     .Select-placeholder, .Select--single > .Select-control .Select-value {
         line-height: calc(48px - #{2 * $ecc-size-block-whitespace});
     }
+    */
 
     .Select.is-disabled .Select-value {
         opacity: 0.61;
