@@ -14,13 +14,15 @@
 
 package org.silkframework.runtime.plugin
 
-import java.lang.reflect.{Constructor, InvocationTargetException, ParameterizedType}
+import java.lang.reflect.{Constructor, InvocationTargetException}
 
 import com.thoughtworks.paranamer.BytecodeReadingParanamer
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager, ResourceNotFoundException}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
+
+import scala.io.Source
 import scala.language.existentials
 import scala.util.control.NonFatal
 
@@ -36,7 +38,7 @@ import scala.util.control.NonFatal
   * @param constructor The constructor for creating a new instance of this plugin.
   * @tparam T The class that implements this plugin.
   */
-class PluginDescription[+T](val id: Identifier, val categories: Set[String], val label: String, val description: String,
+class PluginDescription[+T](val id: Identifier, val categories: Seq[String], val label: String, val description: String,
                             val documentation: String, val parameters: Seq[Parameter], constructor: Constructor[T]) {
 
   /**
@@ -108,9 +110,9 @@ object PluginDescription {
     new PluginDescription(
       id = annotation.id,
       label = annotation.label,
-      categories = annotation.categories.toSet,
+      categories = annotation.categories,
       description = annotation.description.stripMargin,
-      documentation = addTransformDocumentation(annotation.documentation, pluginClass),
+      documentation = loadMarkdownDocumentation(pluginClass, annotation.documentationFile) + addTransformDocumentation(pluginClass),
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass)
     )
@@ -120,16 +122,33 @@ object PluginDescription {
     new PluginDescription(
       id = Identifier.fromAllowed(pluginClass.getSimpleName),
       label = pluginClass.getSimpleName,
-      categories = Set("Uncategorized"),
+      categories = Seq(PluginCategories.uncategorized),
       description = "",
-      documentation = addTransformDocumentation("", pluginClass),
+      documentation = addTransformDocumentation(pluginClass),
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass)
     )
   }
 
-  private def addTransformDocumentation(documentation: String, pluginClass: Class[_]) = {
-    val sb = new StringBuilder(documentation)
+  private def loadMarkdownDocumentation(pluginClass: Class[_], classpath: String): String = {
+    if(classpath.trim.isEmpty) {
+      ""
+    } else {
+      val inputStream = pluginClass.getResourceAsStream(classpath)
+      if (inputStream == null) {
+        throw new ResourceNotFoundException(s"The documentation file for plugin $pluginClass has not been found at '$classpath'.")
+      }
+      val source = Source.fromInputStream(inputStream)
+      try {
+        source.getLines.mkString("\n")
+      } finally {
+        source.close()
+      }
+    }
+  }
+
+  private def addTransformDocumentation(pluginClass: Class[_]) = {
+    val sb = new StringBuilder()
 
     val transformExamples = TransformExampleValue.retrieve(pluginClass)
     if(transformExamples.nonEmpty) {

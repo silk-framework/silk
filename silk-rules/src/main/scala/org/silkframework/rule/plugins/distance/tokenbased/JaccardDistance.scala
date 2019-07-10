@@ -16,11 +16,11 @@ package org.silkframework.rule.plugins.distance.tokenbased
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.DistanceMeasure
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Plugin, PluginCategories}
 
 @Plugin(
   id = "jaccard",
-  categories = Array("Tokenbased", "Recommended"),
+  categories = Array("Tokenbased", PluginCategories.recommended),
   label = "Jaccard",
   description = "Jaccard similarity coefficient."
 )

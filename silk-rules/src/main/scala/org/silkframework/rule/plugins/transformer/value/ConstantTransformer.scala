@@ -1,12 +1,12 @@
 package org.silkframework.rule.plugins.transformer.value
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.{Param, Plugin, PluginCategories}
 
 @Plugin(
   id = "constant",
   label = "Constant",
-  categories = Array("Recommended", "Value"),
+  categories = Array("Value", PluginCategories.recommended),
   description = "Generates a constant value."
 )
 case class ConstantTransformer(

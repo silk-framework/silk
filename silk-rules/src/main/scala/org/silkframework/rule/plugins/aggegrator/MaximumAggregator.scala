@@ -16,11 +16,11 @@ package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.Aggregator
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.{Plugin, PluginCategories}
 
 @Plugin(
   id = "max",
-  categories = Array("All", "Recommended"),
+  categories = Array("All", PluginCategories.recommended),
   label = "Or",
   description = "At least one input score must be within the threshold. Selects the maximum score."
 )

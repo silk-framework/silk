@@ -284,7 +284,7 @@ ul.ecc-hierarchical-mapping-error-list {
     font-size: 1.39em;
     vertical-align: bottom;
     margin-right: 0.1em;
-    
+
     &-red {
         color: to_color($palette-red-800);
     }
@@ -319,6 +319,10 @@ ul.ecc-hierarchical-mapping-error-list {
     text-overflow: ellipsis;
 }
 
+.ecc-silk-mapping__ruleitem-label {
+    display: inline;
+}
+
 .ecc-silk-mapping__ruleitem-url {
     direction: rtl;
     text-align: left;
@@ -332,6 +336,10 @@ ul.ecc-hierarchical-mapping-error-list {
 
 .ecc-silk-mapping__suggestitem-typeselect {
     @include typo-caption();
+
+    & > .mdl-textfield {
+        display: block;
+    }
 }
 
 .ecc-silk-mapping__ruleitem-summary {
@@ -356,6 +364,8 @@ ul.ecc-hierarchical-mapping-error-list {
         overflow: visible;
     }
 
+    /*
+    // probably not necessary anymore, just comment it out for the moment
     .Select-input,
     .Select-control {
         height: calc(48px - #{2 * $ecc-size-block-whitespace});
@@ -364,6 +374,7 @@ ul.ecc-hierarchical-mapping-error-list {
     .Select-placeholder, .Select--single > .Select-control .Select-value {
         line-height: calc(48px - #{2 * $ecc-size-block-whitespace});
     }
+    */
 
     .Select.is-disabled .Select-value {
         opacity: 0.61;
