@@ -100,7 +100,7 @@ case class EntitySchema(
     * @return - an element of the typedPath collection (if any)
     */
   def findPath(path: UntypedPath): Option[TypedPath] = {
-    this.typedPaths.find(tp => tp.toSimplePath.equals(path)) //we make sure to use a Path using its equals
+    this.typedPaths.find(tp => tp.toUntypedPath.equals(path)) //we make sure to use a Path using its equals
   }
 
 
@@ -121,12 +121,12 @@ case class EntitySchema(
     * NOTE: has to be overwritten in MultiEntitySchema
     * @param tp - the untyped path
     */
-  def getSchemaOfPropertyIgnoreType(tp: UntypedPath): Option[EntitySchema] = this.typedPaths.find(tt => tt.toSimplePath.equals(tp)) match{
+  def getSchemaOfPropertyIgnoreType(tp: UntypedPath): Option[EntitySchema] = this.typedPaths.find(tt => tt.toUntypedPath.equals(tp)) match{
     case Some(_) => Some(this)
     case None => None
   }
 
-  lazy val propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.toSimplePath.normalizedSerialization)
+  lazy val propertyNames: IndexedSeq[String] = this.typedPaths.map(p => p.toUntypedPath.normalizedSerialization)
 
   def child(path: UntypedPath): EntitySchema = copy(subPath = UntypedPath(subPath.operators ::: path.operators))
 
@@ -162,7 +162,7 @@ case class EntitySchema(
       case es: EntitySchema =>
         EntitySchema(
           es.typeUri,
-          tps.flatMap(tp => if(tp.valueType == UntypedValueType) es.findPath(tp.toSimplePath) else es.findTypedPath(tp) match{
+          tps.flatMap(tp => if(tp.valueType == UntypedValueType) es.findPath(tp.toUntypedPath) else es.findTypedPath(tp) match{
             case Some(_) => Some(tp)
             case None =>
               throw new IllegalArgumentException(tp + " was not found in EntitySchema: " + this.typedPaths.mkString(", "))

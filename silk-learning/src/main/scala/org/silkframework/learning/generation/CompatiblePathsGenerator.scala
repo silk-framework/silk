@@ -43,14 +43,14 @@ class CompatiblePathsGenerator(components: Components) {
         //Remove paths which hold the same values (e.g. rdfs:label and drugbank:drugName)
         val distinctPaths = DuplicateRemover(paths, entities)
         //Return all path pairs
-        val pathPairs = PairGenerator(distinctPaths, entities).map(_.map(_.toSimplePath))
+        val pathPairs = PairGenerator(distinctPaths, entities).map(_.map(_.toUntypedPath))
 
         pathPairs.flatMap(createGenerators)
       }
       else {
         for (s <- paths.source;
              t <- paths.target;
-             generator <- createGenerators(DPair(s.toSimplePath, t.toSimplePath)))
+             generator <- createGenerators(DPair(s.toUntypedPath, t.toUntypedPath)))
           yield generator
       }
     }

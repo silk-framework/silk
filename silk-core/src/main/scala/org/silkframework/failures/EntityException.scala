@@ -18,7 +18,7 @@ class EntityException(msg: String, ex: Throwable, taskId: Identifier, property: 
 
   def this(msg: String, taskId: Identifier, property: UntypedPath) = this(msg, null, taskId, Some(property))
 
-  def this(msg: String, taskId: Identifier, property: TypedPath) = this(msg, null, taskId, Some(property.toSimplePath))
+  def this(msg: String, taskId: Identifier, property: TypedPath) = this(msg, null, taskId, Some(property.toUntypedPath))
 
   private val exception = if(ex == null) this else ex
 

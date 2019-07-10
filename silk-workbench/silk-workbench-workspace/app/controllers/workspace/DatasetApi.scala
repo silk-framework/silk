@@ -117,7 +117,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
     val entityDesc = EntitySchema(firstTypes, paths)
     val entities = source.retrieve(entityDesc).take(maxEntities).toList
 
-    Ok(views.html.workspace.dataset.table(context, paths.map(_.toSimplePath), entities))
+    Ok(views.html.workspace.dataset.table(context, paths.map(_.toUntypedPath), entities))
   }
 
   def sparql(project: String, task: String, query: String = ""): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
@@ -229,7 +229,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
       val typeUri = transformation.selection.typeUri
       // TODO: Filter by mapping type, e.g. no URI mapping?
       val paths = transformation.rules.flatMap(_.sourcePaths).distinct
-      CoveragePathInput(typeUri.uri, paths.map(_.toSimplePath))
+      CoveragePathInput(typeUri.uri, paths.map(_.toUntypedPath))
     }
   }
 

@@ -146,7 +146,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
   }
 
   it should "retrieve typed paths" in {
-    xmlSource("persons.xml", "").retrievePaths("Person").map(tp => tp.toSimplePath.normalizedSerialization -> tp.valueType -> tp.isAttribute) shouldBe IndexedSeq(
+    xmlSource("persons.xml", "").retrievePaths("Person").map(tp => tp.toUntypedPath.normalizedSerialization -> tp.valueType -> tp.isAttribute) shouldBe IndexedSeq(
       "ID" -> StringValueType -> false,
       "Name" -> StringValueType -> false,
       "Events" -> UriValueType -> false,
@@ -224,11 +224,11 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
     def typedSubPaths: Seq[(String, ValueType)] = {
       val typedPaths = xmlSource.retrievePaths(basePath, depth = Int.MaxValue)
-      typedPaths.map(tp => (tp.toSimplePath.serialize(), tp.valueType))
+      typedPaths.map(tp => (tp.toUntypedPath.serialize(), tp.valueType))
     }
 
     def subPathsDepth(depth: Int): Seq[String] = {
-      xmlSource.retrievePaths(basePath, depth = depth).map(_.toSimplePath.serialize())
+      xmlSource.retrievePaths(basePath, depth = depth).map(_.toUntypedPath.serialize())
     }
 
     private def retrieve(paths: IndexedSeq[TypedPath]): Seq[Entity] = {

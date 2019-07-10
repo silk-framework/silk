@@ -29,7 +29,7 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
       val inputProperties = getInputProperties(input.entitySchema).distinct
       checkInputSchema(expectedProperties, inputProperties.toSet)
       for (entity <- input.entities;
-           values = expectedSchema.typedPaths.map(tp => entity.valueOfPath(tp.toSimplePath)) if values.forall(_.nonEmpty)) {
+           values = expectedSchema.typedPaths.map(tp => entity.valueOfPath(tp.toUntypedPath)) if values.forall(_.nonEmpty)) {
         val it = CrossProductIterator(values, expectedProperties)
         while (it.hasNext) {
           batchEmitter.update(updateTask.generate(it.next()))

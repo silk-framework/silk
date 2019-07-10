@@ -464,7 +464,7 @@ class TransformTaskApi @Inject() () extends InjectedController {
         } else {
           matchingPaths
         }
-        Ok(Json.toJson(filteredPaths.map(_.toSimplePath.serialize())))
+        Ok(Json.toJson(filteredPaths.map(_.toUntypedPath.serialize())))
       case None =>
         NotFound("No rule found with ID " + ruleId)
     }

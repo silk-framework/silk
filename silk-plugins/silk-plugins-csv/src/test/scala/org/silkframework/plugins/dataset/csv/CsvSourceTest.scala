@@ -41,7 +41,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
   }
 
   it should "type all source paths as value typed paths" in {
-    source.retrievePaths("") map (tp => tp.toSimplePath.normalizedSerialization -> tp.valueType) shouldBe IndexedSeq(
+    source.retrievePaths("") map (tp => tp.toUntypedPath.normalizedSerialization -> tp.valueType) shouldBe IndexedSeq(
       "ID" -> StringValueType,
       "Name" -> StringValueType,
       "Age" -> StringValueType

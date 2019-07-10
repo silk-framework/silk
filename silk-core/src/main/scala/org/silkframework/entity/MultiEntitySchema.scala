@@ -65,7 +65,7 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
       case Some(es) => Some(es)
       case None =>
         this.subSchemata.find(es => {
-          es.typedPaths.map(_.toSimplePath).contains(UntypedPath.removePathPrefix(tp, es.subPath))
+          es.typedPaths.map(_.toUntypedPath).contains(UntypedPath.removePathPrefix(tp, es.subPath))
         })
     }
 

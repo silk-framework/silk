@@ -25,6 +25,6 @@ class XmlSourceStreamingTest extends XmlSourceTestBase {
     xmlResource.writeString(xml)
     val xmlDataset = XmlDataset(xmlResource)
     val paths = xmlDataset.source.retrievePaths("")
-    paths.map(_.toSimplePath.normalizedSerialization) shouldBe Seq("AdditionalAttribute")
+    paths.map(_.toUntypedPath.normalizedSerialization) shouldBe Seq("AdditionalAttribute")
   }
 }

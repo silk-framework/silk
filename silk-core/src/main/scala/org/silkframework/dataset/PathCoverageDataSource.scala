@@ -22,14 +22,14 @@ trait PathCoverageDataSource {
       var fullyCovered = false
       for (pathInput <- pathInputs;
            inputPath <- pathInput.paths) {
-        if(matchPath(pathInput.typeUri, inputPath, sourcePath.toSimplePath)) {
+        if(matchPath(pathInput.typeUri, inputPath, sourcePath.toUntypedPath)) {
           covered = true
           if(fullCoveragePath(inputPath)) {
             fullyCovered = true
           }
         }
       }
-      PathCoverage(sourcePath.toSimplePath.serialize(), covered, fullyCovered)
+      PathCoverage(sourcePath.toUntypedPath.serialize(), covered, fullyCovered)
     }
     PathCoverageResult(pathCoverages)
   }

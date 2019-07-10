@@ -154,7 +154,7 @@ class AutoCompletionApi @Inject() () extends InjectedController {
                                    (implicit userContext: UserContext): Completions = {
     if (Option(task.activity[TransformPathsCache].value).isDefined) {
       val paths = fetchCachedPaths(task, sourcePath)
-      val serializedPaths = paths.map(_.toSimplePath.serialize()(task.project.config.prefixes)).sorted.distinct
+      val serializedPaths = paths.map(_.toUntypedPath.serialize()(task.project.config.prefixes)).sorted.distinct
       for(pathStr <- serializedPaths) yield {
         Completion(
           value = pathStr,

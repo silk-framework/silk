@@ -188,7 +188,7 @@
     </span>
     <ul>
       @for(typedPath <- entity.schema.typedPaths;
-           path = typedPath.toSimplePath) {
+           path = typedPath.toUntypedPath) {
         @renderValues(path, entity.evaluate(path), divClassPrefix)
       }
     </ul>

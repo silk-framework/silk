@@ -79,27 +79,27 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
 
   it should "return all paths of depth 1" in {
     val paths = jsonExampleSource.retrievePaths(Uri(""), depth = 1)
-    paths.map(_.toSimplePath.normalizedSerialization) mustBe Seq("persons", "organizations")
+    paths.map(_.toUntypedPath.normalizedSerialization) mustBe Seq("persons", "organizations")
   }
 
   it should "return all paths of depth 2" in {
     val paths = jsonExampleSource.retrievePaths(Uri(""), depth = 2)
-    paths.map(_.toSimplePath.normalizedSerialization) mustBe Seq("persons", "persons/id", "persons/name", "persons/phoneNumbers", "organizations", "organizations/name")
+    paths.map(_.toUntypedPath.normalizedSerialization) mustBe Seq("persons", "persons/id", "persons/name", "persons/phoneNumbers", "organizations", "organizations/name")
   }
 
   it should "return all paths of depth 1 of sub path" in {
     val paths = jsonExampleSource.retrievePaths(Uri("/persons"), depth = 1)
-    paths.map(_.toSimplePath.normalizedSerialization) mustBe Seq("id", "name", "phoneNumbers")
+    paths.map(_.toUntypedPath.normalizedSerialization) mustBe Seq("id", "name", "phoneNumbers")
   }
 
   it should "return all paths of depth 2 of sub path" in {
     val paths = jsonExampleSource.retrievePaths(Uri("/persons"), depth = 2)
-    paths.map(_.toSimplePath.normalizedSerialization) mustBe Seq("id", "name", "phoneNumbers", "phoneNumbers/type", "phoneNumbers/number")
+    paths.map(_.toUntypedPath.normalizedSerialization) mustBe Seq("id", "name", "phoneNumbers", "phoneNumbers/type", "phoneNumbers/number")
   }
 
   it should "return all paths of depth 1 of sub path of length 2" in {
     val paths = jsonExampleSource.retrievePaths(Uri("/persons/phoneNumbers"), depth = 1)
-    paths.map(_.toSimplePath.normalizedSerialization) mustBe Seq("type", "number")
+    paths.map(_.toUntypedPath.normalizedSerialization) mustBe Seq("type", "number")
   }
 
   it should "list all leaf paths of the root" in {
@@ -256,7 +256,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
 
   it should "return typed paths" in {
     val typedPaths = jsonExampleSource.retrievePaths("")
-    typedPaths.map(tp => (tp.toSimplePath.normalizedSerialization, tp.valueType)) mustBe IndexedSeq(
+    typedPaths.map(tp => (tp.toUntypedPath.normalizedSerialization, tp.valueType)) mustBe IndexedSeq(
       "persons" -> UriValueType,
       "persons/id" -> StringValueType,
       "persons/name" -> StringValueType,

@@ -132,9 +132,9 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
       val indexing = true
 
-      private val sourceInputs = paths.map(_.source).distinct.map(p => PathInput(path = p.toSimplePath))
+      private val sourceInputs = paths.map(_.source).distinct.map(p => PathInput(path = p.toUntypedPath))
 
-      private val targetInputs = paths.map(_.target).distinct.map(p => PathInput(path = p.toSimplePath))
+      private val targetInputs = paths.map(_.target).distinct.map(p => PathInput(path = p.toUntypedPath))
 
       def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index = {
         val inputs = if(sourceOrTarget) sourceInputs else targetInputs

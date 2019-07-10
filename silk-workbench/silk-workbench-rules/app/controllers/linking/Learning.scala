@@ -79,7 +79,7 @@ class Learning @Inject() (implicit mat: Materializer) extends InjectedController
 
     def values(link: Link)(sourceOrTarget: Boolean) = {
       val paths = sortedPaths(sourceOrTarget)
-      for(path <- paths) yield (path.toSimplePath.serialize()(prefixes), link.entities.get.select(sourceOrTarget).evaluate(path))
+      for(path <- paths) yield (path.toUntypedPath.serialize()(prefixes), link.entities.get.select(sourceOrTarget).evaluate(path))
     }
 
     request.body.asFormUrlEncoded match {

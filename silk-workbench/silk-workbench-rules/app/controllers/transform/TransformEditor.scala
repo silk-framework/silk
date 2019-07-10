@@ -80,7 +80,7 @@ class TransformEditor @Inject() () extends InjectedController with ControllerUti
     } else if(pathsCache.status().failed) {
       Ok(views.html.editor.paths(DPair(sourceName, ""), DPair.fill(Seq.empty), onlySource = true, warning = pathsCache.status().message,  project = project))
     } else {
-      val paths = DPair(pathsCache.value().configuredSchema.typedPaths.map(_.toSimplePath.serialize()(prefixes)), Seq.empty)
+      val paths = DPair(pathsCache.value().configuredSchema.typedPaths.map(_.toUntypedPath.serialize()(prefixes)), Seq.empty)
       Ok(views.html.editor.paths(DPair(sourceName, ""), paths, onlySource = true,  project = project))
     }
   }

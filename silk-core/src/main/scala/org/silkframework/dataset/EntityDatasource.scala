@@ -22,7 +22,7 @@ case class EntityDatasource(underlyingTask: Task[DatasetSpec[Dataset]], entities
       val matchingPathMap = matchingPaths.toMap
       if(matchingPaths.size != requestSchema.typedPaths.size) {
         val missingPath = requestSchema.typedPaths.find(tp => !matchingPathMap.contains(tp))
-        throw new ValidationException("Some requested paths do not exist in data source, e.g. " + missingPath.get.toSimplePath.normalizedSerialization + "!")
+        throw new ValidationException("Some requested paths do not exist in data source, e.g. " + missingPath.get.toUntypedPath.normalizedSerialization + "!")
       } else {
         val matchingPathMap = matchingPaths.toMap
         val valuesIndexes = requestSchema.typedPaths.map ( tp => matchingPathMap(tp) )

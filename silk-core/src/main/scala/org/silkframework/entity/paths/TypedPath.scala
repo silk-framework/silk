@@ -35,7 +35,7 @@ case class TypedPath(
     */
   def getOriginalName: Option[String] = metadata.get(TypedPath.META_FIELD_ORIGIN_NAME).map(_.toString)
 
-  lazy val toSimplePath: UntypedPath = UntypedPath(operators)
+  lazy val toUntypedPath: UntypedPath = UntypedPath(operators)
 
   /**
     * Returns a typed property if this is a path of length one.
@@ -56,7 +56,7 @@ case class TypedPath(
       case tp@TypedPath(_, otherValueType, _) =>
         // if one of the comparison objects are untyped, we ignore the type all together
         valueType.equalsOrIndifferentTo(otherValueType) &&
-          tp.toSimplePath.normalizedSerialization == toSimplePath.normalizedSerialization &&
+          tp.toUntypedPath.normalizedSerialization == toUntypedPath.normalizedSerialization &&
           tp.isAttribute == isAttribute
       case _ =>
         false
@@ -67,7 +67,7 @@ case class TypedPath(
     other match {
       case tp@TypedPath(_, otherValueType, _) =>
         valueType == otherValueType &&
-        tp.toSimplePath.normalizedSerialization == toSimplePath.normalizedSerialization &&
+        tp.toUntypedPath.normalizedSerialization == toUntypedPath.normalizedSerialization &&
         tp.isAttribute == isAttribute
       case _ =>
         false
@@ -75,7 +75,7 @@ case class TypedPath(
   }
 
   override def hashCode: Int = {
-    var code = toSimplePath.hashCode
+    var code = toUntypedPath.hashCode
     code += isAttribute.hashCode() + 113 * code
     code += valueType.hashCode() + 113 * code
     code
@@ -168,10 +168,9 @@ object TypedPath {
     override def write(typedPath: TypedPath)(implicit writeContext: WriteContext[Node]): Node = {
       implicit val p: Prefixes = writeContext.prefixes
       <TypedPath isAttribute={typedPath.isAttribute.toString} >
-        <Path>{typedPath.toSimplePath.normalizedSerialization}</Path>
+        <Path>{typedPath.toUntypedPath.normalizedSerialization}</Path>
         {XmlSerialization.toXml(typedPath.valueType)}
       </TypedPath>
     }
   }
-
 }
