@@ -25,7 +25,7 @@
   "license": "Apache-2.0",
   "private": true,
   "dependencies": {
-    "@eccenca/gui-elements": "^5.0.0",
+    "@eccenca/gui-elements": "^5.1.1",
     "@eccenca/superagent": "^1.4.1",
     "babel-polyfill": "^6.26.0",
     "babel-runtime": "^6.26.0",
