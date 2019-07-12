@@ -8,7 +8,7 @@ import org.silkframework.plugins.dataset.rdf.access.SparqlSink
 
 class SparqlSinkTest extends FlatSpec with Matchers with MockitoSugar {
   behavior of "Sparql Sink"
-  
+
   val SUBJ = "http://a"
   val PROP = "http://b"
 

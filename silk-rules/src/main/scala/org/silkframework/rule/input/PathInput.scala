@@ -60,7 +60,7 @@ case class PathInput(id: Identifier = Operator.generateId, path: Path) extends I
       Seq(entity.uri.toString)
     } else {
       var index = cachedPathIndex
-      if(index < 0 || index >= entity.schema.typedPaths.size || entity.schema.typedPaths(index) != path) {
+      if(index < 0 || index >= entity.schema.typedPaths.size || entity.schema.typedPaths(index).asUntypedPath != path) {
         index = path match{
           case u: UntypedPath => entity.schema.indexOfPath(u)
           case t: TypedPath => entity.schema.indexOfTypedPath(t)
