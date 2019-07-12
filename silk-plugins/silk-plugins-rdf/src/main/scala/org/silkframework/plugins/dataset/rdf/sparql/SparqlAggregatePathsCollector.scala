@@ -72,7 +72,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("propertyToAggregateBySAPC")) yield {
           val sampleValue = result.get("objectNodeSampleSAPC")
-          // Only set value or object type if value available, if not set to auto-detect which is interpreted as unknown
+          // Only set value or object type if value available, if not set to untyped value type which represents an unknown type
           val valueType = sampleValue.map(v => if(v.isInstanceOf[Resource]) UriValueType else StringValueType).getOrElse(UntypedValueType)
           val path = UntypedPath(ForwardOperator(result("propertyToAggregateBySAPC").value) :: Nil)
           val typedPath = TypedPath(path, valueType, isAttribute = false)

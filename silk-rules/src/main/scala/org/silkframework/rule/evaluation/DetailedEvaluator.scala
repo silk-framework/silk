@@ -82,7 +82,7 @@ object DetailedEvaluator {
     val result = evaluateInput(rule.operator, entity)
     // Validate values
     for {
-      valueType <- rule.target.map(_.valueType) if valueType != UntypedValueType
+      valueType <- rule.target.map(_.valueType)
       value <- result.values
       if !valueType.validate(value)
     } {

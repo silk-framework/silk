@@ -9,11 +9,6 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
   final val NL = "\n"
   final val S_P = "<s> <p>"
 
-  it should "serialize object property triples" in {
-    format("http://testurl") mustBe
-        s"$S_P <http://testurl> .\n"
-  }
-
   private def format(objectValue: String, valueType: ValueType = UntypedValueType): String = {
     RdfFormatUtil.tripleValuesToNTriplesSyntax("s", "p", objectValue, valueType)
   }
@@ -23,19 +18,19 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
   }
 
   it should "serialize double literal triples" in {
-    format("3.14") mustBe
+    format("3.14", valueType = DoubleValueType) mustBe
         s"""$S_P "3.14"^^<http://www.w3.org/2001/XMLSchema#double> .$NL"""
-    format("12e3") mustBe expectedTriple("\"12e3\"^^<http://www.w3.org/2001/XMLSchema#double>")
-    format("0.0e2") mustBe expectedTriple("\"0.0e2\"^^<http://www.w3.org/2001/XMLSchema#double>")
+    format("12e3", valueType = DoubleValueType) mustBe expectedTriple("\"12e3\"^^<http://www.w3.org/2001/XMLSchema#double>")
+    format("0.0e2", valueType = DoubleValueType) mustBe expectedTriple("\"0.0e2\"^^<http://www.w3.org/2001/XMLSchema#double>")
     // Whitespace allowed before and after
-    format("42.1 ") mustBe expectedTriple("\"42.1 \"^^<http://www.w3.org/2001/XMLSchema#double>")
-    format(" 42.1") mustBe expectedTriple("\" 42.1\"^^<http://www.w3.org/2001/XMLSchema#double>")
+    format("42.1 ", valueType = DoubleValueType) mustBe expectedTriple("\"42.1 \"^^<http://www.w3.org/2001/XMLSchema#double>")
+    format(" 42.1", valueType = DoubleValueType) mustBe expectedTriple("\" 42.1\"^^<http://www.w3.org/2001/XMLSchema#double>")
   }
 
   it should "serialize integer literal triples" in {
-    format("33563267326578325683257832") mustBe
+    format("33563267326578325683257832", valueType = IntValueType) mustBe
         s"""$S_P "33563267326578325683257832"^^<http://www.w3.org/2001/XMLSchema#integer> .$NL"""
-    format("0") mustBe expectedTriple("\"0\"^^<http://www.w3.org/2001/XMLSchema#integer>")
+    format("0", valueType = IntValueType) mustBe expectedTriple("\"0\"^^<http://www.w3.org/2001/XMLSchema#integer>")
   }
 
   it should "serialize all other to plain literal triples" in {
@@ -91,7 +86,7 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
 
   it should "serialize triples with IntValueType" in {
     format("42", IntValueType) mustBe
-        s"""$S_P "42"^^<http://www.w3.org/2001/XMLSchema#int> .$NL"""
+        s"""$S_P "42"^^<http://www.w3.org/2001/XMLSchema#integer> .$NL"""
   }
 
   it should "serialize triples with IntegerValueType" in {
@@ -114,18 +109,10 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
       s"""$S_P "2002-05-30T09:00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .$NL"""
   }
 
-  it should "serialize triples with UntypedValueType as Integer if the value is a whole number" in {
+  it should "serialize triples with UntypedValueType always as plain literal" in {
     format("1024", UntypedValueType) mustBe
-      s"""$S_P "1024"^^<http://www.w3.org/2001/XMLSchema#integer> .$NL"""
-  }
-
-  it should "serialize triples with UntypedValueType as URI if the value is a valid URI" in {
+      s"""$S_P "1024" .$NL"""
     format("http://example.org/resource", UntypedValueType) mustBe
-      s"""$S_P <http://example.org/resource> .$NL"""
-  }
-
-  it should "serialize triples with UntypedValueType as String if the value is an invalid URI" in {
-    format("example.org/resource", UntypedValueType) mustBe
-      s"""$S_P "example.org/resource" .$NL"""
+        s"""$S_P "http://example.org/resource" .$NL"""
   }
 }

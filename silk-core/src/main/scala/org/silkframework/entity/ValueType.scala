@@ -165,8 +165,7 @@ object ValueType {
 }
 
 /**
-  * If this value type is set, then the values can be transformed to any valid value that can be inferred from the
-  * lexical form, e.g. "1" can be an Int, but also a String.
+  * Special type that signals that the actual type is unknown.
   */
 case object UntypedValueType extends ValueType with Serializable {//renamed from AutoDetectValueType
 

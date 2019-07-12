@@ -62,7 +62,7 @@ sealed trait TransformRule extends Operator {
     val values = operator(entity)
     // Validate values
     for {
-      valueType <- target.map(_.valueType) if valueType != UntypedValueType
+      valueType <- target.map(_.valueType)
       value <- values
     } {
       if(!valueType.validate(value)) {

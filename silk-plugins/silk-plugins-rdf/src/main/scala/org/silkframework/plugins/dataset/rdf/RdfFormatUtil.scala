@@ -16,7 +16,6 @@ object RdfFormatUtil {
   final val BOOLEAN_JENA_TYPE = NodeFactory.getType(XSD.xboolean.getURI)
   final val DOUBLE_JENA_TYPE = NodeFactory.getType(XSD.xdouble.getURI)
   final val FLOAT_JENA_TYPE = NodeFactory.getType(XSD.xfloat.getURI)
-  final val INT_JENA_TYPE = NodeFactory.getType(XSD.xint.getURI)
   final val INTEGER_JENA_TYPE = NodeFactory.getType(XSD.integer.getURI)
   final val LONG_JENA_TYPE = NodeFactory.getType(XSD.xlong.getURI)
 
@@ -123,31 +122,13 @@ object RdfFormatUtil {
     }
   }
 
-  private def untypedValueType(value: String): Node = {
-    value match {
-      // Check if value is an URI
-      case v: String if (value.startsWith("http") || value.startsWith("urn")) && new Uri(v).isValidUri =>
-        NodeFactory.createURI(v)
-      // Check if value is a number
-      case StringUtils.integerNumber() =>
-        model.createTypedLiteral(value, XSD.integer.getURI).asNode
-      case StringUtils.simpleDoubleNumber() =>
-        model.createTypedLiteral(value, XSD.xdouble.getURI).asNode
-      // Write string values
-      case _ =>
-        NodeFactory.createLiteral(value)
-    }
-  }
-
   def resolveObjectValue(lexicalValue: String, valueType: ValueType): Node = {
     valueType match {
-      case UntypedValueType =>
-        untypedValueType(lexicalValue)
       case CustomValueType(typeUri) if UriValueType.validate(typeUri) =>
         model.createLiteral(lexicalValue).asNode() // Hack: Jena needs an implementation for each type URI, so serialize as String and attach datatype later
       case UriValueType if UriValueType.validate(lexicalValue) =>
         model.createResource(lexicalValue).asNode
-      case StringValueType =>
+      case StringValueType|UntypedValueType =>
         model.createLiteral(lexicalValue).asNode
       case LanguageValueType(lang) =>
         model.createLiteral(lexicalValue, lang).asNode
@@ -160,7 +141,7 @@ object RdfFormatUtil {
       case FloatValueType =>
         model.createTypedLiteral(lexicalValue, FLOAT_JENA_TYPE).asNode()
       case IntValueType =>
-        model.createTypedLiteral(lexicalValue, INT_JENA_TYPE).asNode()
+        model.createTypedLiteral(lexicalValue, INTEGER_JENA_TYPE).asNode()
       case IntegerValueType =>
         model.createTypedLiteral(lexicalValue, INTEGER_JENA_TYPE).asNode()
       case LongValueType =>
