@@ -16,7 +16,7 @@ package org.silkframework.entity
 
 import org.silkframework.util.DPair
 
-import scala.xml.Node
+import scala.xml.{Elem, Node}
 
 /**
  * Represents a link between two entities.
@@ -38,15 +38,15 @@ class Link(source: String,
   /**
    * Reverses the source and the target of this link.
    */
-  override def reverse = new Link(target, source, confidence, entities)
+  override def reverse: Link = new Link(target, source, confidence, entities)
 
-  override def toString = "<" + source + ">  <" + target + ">"
+  override def toString: String = "<" + source + ">  <" + target + ">"
 
   /**
    * Compares two Links for equality.
    * Two Links are considered equal if their source and target URIs match.
    */
-  override def equals(other: Any) = other match {
+  override def equals(other: Any): Boolean = other match {
     case otherLink: Link => otherLink.source == source && otherLink.target == target
     case _ => false
   }
@@ -56,9 +56,9 @@ class Link(source: String,
   def update(source: String = source,
             target: String = target,
             confidence: Option[Double] = confidence,
-            entities: Option[DPair[Entity]] = entities) = new Link(source, target, confidence, entities)
+            entities: Option[DPair[Entity]] = entities): Link = new Link(source, target, confidence, entities)
 
-  def toXML = {
+  def toXML: Elem = {
     <LinkCandidate>
       <Source>{source}</Source>
       <Target>{target}</Target>
@@ -83,7 +83,7 @@ object Link {
     new Link(source, target, confidence, entities)
   }
 
-  def fromXML(node: Node, entityDescription: Option[EntitySchema]) = {
+  def fromXML(node: Node, entityDescription: Option[EntitySchema]): Link = {
     new Link(
       source = (node \ "Source").text,
       target = (node \ "Target").text,

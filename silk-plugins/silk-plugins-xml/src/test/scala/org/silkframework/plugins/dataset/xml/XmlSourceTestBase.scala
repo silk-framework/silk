@@ -1,8 +1,9 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.dataset.{DataSource, TypedPathRetrieveDataSource}
+import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.util.Uri
@@ -13,7 +14,7 @@ import scala.languageFeature.postfixOps
 abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
   implicit val userContext: UserContext = UserContext.Empty
-  def xmlSource(name: String, uriPattern: String): DataSource with XmlSourceTrait with TypedPathRetrieveDataSource
+  def xmlSource(name: String, uriPattern: String): DataSource with XmlSourceTrait
 
   behavior of "XML Dataset"
 
@@ -103,7 +104,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
       (persons atPath "").subPaths shouldBe
         Seq("Person", "Person/ID", "Person/Name", "Person/Events", "Person/Events/@count", "Person/Events/Birth",
           "Person/Events/Death", "Person/Properties", "Person/Properties/Property", "Person/Properties/Property/Key",
-          "Person/Properties/Property/Key/@id", "Person/Properties/Property/Value")
+          "Person/Properties/Property/Value", "Person/Properties/Property/Key", "Person/Properties/Property/Key/@id")
     }
 
     it should s"list all paths of the root node of depth 1 ($fileName)" in {
@@ -119,7 +120,8 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     it should s"list all paths, given a base path ($fileName)" in {
       (persons atPath "Person").subPaths shouldBe
         Seq("ID", "Name", "Events", "Events/@count", "Events/Birth", "Events/Death", "Properties",
-          "Properties/Property", "Properties/Property/Key", "Properties/Property/Key/@id", "Properties/Property/Value")
+          "Properties/Property", "Properties/Property/Key", "Properties/Property/Value", "Properties/Property/Key",
+          "Properties/Property/Key/@id")
     }
 
     it should s"list all paths of depth 1, given a base path ($fileName)" in {
@@ -133,18 +135,6 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
           "Properties/Property")
     }
 
-    it should s"list all leaf paths of the root ($fileName)" in {
-      (persons atPath "").leafPaths(Int.MaxValue) shouldBe
-        Seq("Person/ID", "Person/Name", "Person/Events/@count", "Person/Events/Birth", "Person/Events/Death",
-          "Person/Properties/Property/Key", "Person/Properties/Property/Key/@id", "Person/Properties/Property/Value")
-    }
-
-    it should s"list all leaf paths of a subpath ($fileName)" in {
-      (persons atPath "Person/Properties").leafPaths(Int.MaxValue) shouldBe
-        Seq("Property/Key", "Property/Key/@id", "Property/Value")
-    }
-
-
     it should s"respect the limit when reading entities ($fileName)" in {
       (persons atPath "Person" limit 1 valuesAt "Name") shouldBe Seq(Seq("Max Doe"))
       (persons atPath "Person" limit 2 valuesAt "Name") shouldBe Seq(Seq("Max Doe"), Seq("Max Noe"))
@@ -156,7 +146,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
   }
 
   it should "retrieve typed paths" in {
-    xmlSource("persons.xml", "").retrieveTypedPath("Person").map(tp => tp.normalizedSerialization -> tp.valueType -> tp.isAttribute) shouldBe IndexedSeq(
+    xmlSource("persons.xml", "").retrievePaths("Person").map(tp => tp.toUntypedPath.normalizedSerialization -> tp.valueType -> tp.isAttribute) shouldBe IndexedSeq(
       "ID" -> StringValueType -> false,
       "Name" -> StringValueType -> false,
       "Events" -> UriValueType -> false,
@@ -165,9 +155,10 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
       "Events/Death" -> StringValueType -> false,
       "Properties" -> UriValueType -> false,
       "Properties/Property" -> UriValueType -> false,
+      "Properties/Property/Key" -> StringValueType ->false,
+      "Properties/Property/Value" -> StringValueType -> false,
       "Properties/Property/Key" -> UriValueType -> false,
-      "Properties/Property/Key/@id" -> StringValueType -> true,
-      "Properties/Property/Value" -> StringValueType -> false
+      "Properties/Property/Key/@id" -> StringValueType -> true
     )
   }
 
@@ -209,7 +200,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     }
 
     def valuesAt(pathStr: String): Seq[Seq[String]] = {
-      val path = Path.parse(pathStr).asStringTypedPath
+      val path = UntypedPath.parse(pathStr).asStringTypedPath
       retrieve(IndexedSeq(path)).map(_.evaluate(path))
     }
 
@@ -223,20 +214,21 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     }
 
     def entityURIsAt(pathStr: String): Seq[Seq[String]] = {
-      val path = TypedPath(Path.parse(pathStr), UriValueType, isAttribute = false)
+      val path = TypedPath(UntypedPath.parse(pathStr), UriValueType, isAttribute = false)
       retrieve(IndexedSeq(path)).map(_.evaluate(path))
     }
 
     def subPaths: Seq[String] = {
-      xmlSource.retrievePaths(basePath, depth = Int.MaxValue).map(_.serialize())
+      typedSubPaths.map(_._1)
+    }
+
+    def typedSubPaths: Seq[(String, ValueType)] = {
+      val typedPaths = xmlSource.retrievePaths(basePath, depth = Int.MaxValue)
+      typedPaths.map(tp => (tp.toUntypedPath.serialize(), tp.valueType))
     }
 
     def subPathsDepth(depth: Int): Seq[String] = {
-      xmlSource.retrievePaths(basePath, depth = depth).map(_.serialize())
-    }
-
-    def leafPaths(depth: Int): Seq[String] = {
-      xmlSource.retrieveXmlPaths(basePath, depth, None, onlyLeafNodes = true, onlyInnerNodes = false).map(_.normalizedSerialization)
+      xmlSource.retrievePaths(basePath, depth = depth).map(_.toUntypedPath.serialize())
     }
 
     private def retrieve(paths: IndexedSeq[TypedPath]): Seq[Entity] = {

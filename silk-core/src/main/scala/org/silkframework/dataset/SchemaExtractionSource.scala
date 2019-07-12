@@ -1,6 +1,6 @@
 package org.silkframework.dataset
 
-import org.silkframework.entity.Path
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.activity.UserContext
 
 /**
@@ -45,7 +45,7 @@ case class ExtractedSchemaClass[T](sourceType: String, properties: Seq[Extracted
   * @param valueAnalysis  A caller defined analysis of the values found if this is a value path, e.g. profiling information.
   * @tparam T             The type of the called defined analysis.
   */
-case class ExtractedSchemaProperty[T](path: Path, valueAnalysis: Option[T])
+case class ExtractedSchemaProperty[T](path: UntypedPath, valueAnalysis: Option[T])
 
 trait ValueAnalyzer[T] {
   /** The result of the analyzed values. None if no meaningful result can be returned. */

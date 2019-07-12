@@ -8,7 +8,8 @@ import javax.inject.Inject
 import models.learning.{PathValue, PathValues}
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
-import org.silkframework.entity.{Link, Path, TypedPath}
+import org.silkframework.entity.Link
+import org.silkframework.entity.paths.{Path, TypedPath, UntypedPath}
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.learning.individual.Population
@@ -78,7 +79,7 @@ class Learning @Inject() (implicit mat: Materializer) extends InjectedController
 
     def values(link: Link)(sourceOrTarget: Boolean) = {
       val paths = sortedPaths(sourceOrTarget)
-      for(path <- paths) yield (path.serialize()(prefixes), link.entities.get.select(sourceOrTarget).evaluate(path))
+      for(path <- paths) yield (path.toUntypedPath.serialize()(prefixes), link.entities.get.select(sourceOrTarget).evaluate(path))
     }
 
     request.body.asFormUrlEncoded match {

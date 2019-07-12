@@ -16,6 +16,7 @@ package org.silkframework.learning.active.poolgenerator
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
+import org.silkframework.entity.paths.TypedPath
 import org.silkframework.learning.active.UnlabeledLinkPool
 import org.silkframework.rule.execution.{GenerateLinks, Linking}
 import org.silkframework.rule.input.PathInput
@@ -53,8 +54,8 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
                     (implicit userContext: UserContext): Unit = {
       val entitySchemata =
         DPair(
-          source = linkSpec.entityDescriptions.source.copy(typedPaths = paths.map(_.source.asStringTypedPath).distinct.toIndexedSeq),
-          target = linkSpec.entityDescriptions.target.copy(typedPaths = paths.map(_.target.asStringTypedPath).distinct.toIndexedSeq)
+          source = linkSpec.entityDescriptions.source.copy(typedPaths = paths.map(_.source).distinct.toIndexedSeq),
+          target = linkSpec.entityDescriptions.target.copy(typedPaths = paths.map(_.target).distinct.toIndexedSeq)
         )
       val op = new SampleOperator()
       val linkSpec2 = linkSpec.copy(rule = LinkageRule(op))
@@ -131,9 +132,9 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
       val indexing = true
 
-      private val sourceInputs = paths.map(_.source).distinct.map(p => PathInput(path = p))
+      private val sourceInputs = paths.map(_.source).distinct.map(p => PathInput(path = p.toUntypedPath))
 
-      private val targetInputs = paths.map(_.target).distinct.map(p => PathInput(path = p))
+      private val targetInputs = paths.map(_.target).distinct.map(p => PathInput(path = p.toUntypedPath))
 
       def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index = {
         val inputs = if(sourceOrTarget) sourceInputs else targetInputs

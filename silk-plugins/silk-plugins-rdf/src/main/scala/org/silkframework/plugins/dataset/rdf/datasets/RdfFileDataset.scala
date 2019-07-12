@@ -1,14 +1,16 @@
 package org.silkframework.plugins.dataset.rdf.datasets
 
 import java.io.FileNotFoundException
+
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.dataset.rdf.{LinkFormatter, RdfDataset, SparqlParams}
+import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.entity.{Entity, EntitySchema, Path, TypedPath}
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.plugins.dataset.rdf.access.SparqlSource
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
 import org.silkframework.plugins.dataset.rdf.formatters._
@@ -100,7 +102,7 @@ case class RdfFileDataset(
 
   override def mergeSchemata: Boolean = true
 
-  override def createSource(resource: Resource): DataSource with TypedPathRetrieveDataSource = new FileSource(resource)
+  override def createSource(resource: Resource): DataSource = new FileSource(resource)
 
   override def linkSink(implicit userContext: UserContext): FormattedLinkSink = new FormattedLinkSink(file, formatter)
 
@@ -110,7 +112,7 @@ case class RdfFileDataset(
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
 
   class FileSource(resource: Resource) extends DataSource with PeakDataSource with Serializable with SamplingDataSource
-    with SchemaExtractionSource with SparqlRestrictionDataSource with TypedPathRetrieveDataSource {
+    with SchemaExtractionSource with SparqlRestrictionDataSource {
 
     // Load dataset
     private var endpoint: JenaEndpoint = _
@@ -132,10 +134,10 @@ case class RdfFileDataset(
       }
     }
 
-    override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
-                              (implicit userContext: UserContext): IndexedSeq[Path] = {
+    override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
+                              (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
       load()
-      sparqlSource.retrievePaths(t, depth, limit)
+      sparqlSource.retrievePaths(typeUri, depth, limit)
     }
 
     override def retrieveTypes(limit: Option[Int])
@@ -169,7 +171,9 @@ case class RdfFileDataset(
       PlainTask(Identifier.fromAllowed(file.name), DatasetSpec(EmptyDataset))
     } //FIXME CMEM 1352 replace with actual task
 
-    override def retrievePathsSparqlRestriction(sparqlRestriction: SparqlRestriction, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[Path] = {
+    override def retrievePathsSparqlRestriction(sparqlRestriction: SparqlRestriction,
+                                                limit: Option[Int])
+                                               (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
       load()
       sparqlSource.retrievePathsSparqlRestriction(sparqlRestriction, limit)
     }
@@ -189,11 +193,6 @@ case class RdfFileDataset(
                                  (implicit userContext: UserContext): ExtractedSchema[T] = {
       load()
       sparqlSource.extractSchema(analyzerFactory, pathLimit, sampleLimit, progressFN)
-    }
-
-    override def retrieveTypedPath(typeUri: Uri, depth: Int, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[TypedPath] = {
-      load()
-      sparqlSource.retrieveTypedPath(typeUri, depth, limit)
     }
 
     private def sparqlSource = new SparqlSource(SparqlParams(graph = graphOpt), endpoint)

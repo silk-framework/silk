@@ -4,6 +4,7 @@ import java.net.URLEncoder
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
+import org.silkframework.entity.paths._
 
 import scala.xml.{Node, Text}
 
@@ -57,7 +58,7 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     } else {
       XmlTraverser.uriRegex.replaceAllIn(uriPattern, m => {
         val pattern = m.group(1)
-        val value = evaluatePath(Path.parse(pattern)).map(_.node.text).mkString("")
+        val value = evaluatePath(UntypedPath.parse(pattern)).map(_.node.text).mkString("")
         URLEncoder.encode(value, "UTF8")
       })
     }
@@ -71,10 +72,11 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     */
   def collectPaths(onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, depth: Int): Seq[TypedPath] = {
     assert(!(onlyInnerNodes && onlyLeafNodes), "onlyInnerNodes and onlyLeafNodes cannot be set to true at the same time")
-    for(typedPath <- collectPathsRecursive(onlyLeafNodes, onlyInnerNodes, prefix = Seq.empty, depth) if typedPath.operators.size > 1) yield {
-      TypedPath(Path(typedPath.operators.tail), typedPath.valueType, typedPath.isAttribute)
+    val ret = for(typedPath <- collectPathsRecursive(onlyLeafNodes, onlyInnerNodes, prefix = Seq.empty, depth) if typedPath.operators.size > 1) yield {
+      TypedPath(UntypedPath(typedPath.operators.tail), typedPath.valueType, typedPath.isAttribute)
     }
-  }.distinct
+    ret.distinct
+  }
 
   /**
     * Recursively collects all direct and indirect paths for this node.
@@ -96,6 +98,7 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     // Generate paths for all attributes
     val attributes = if(depth == 0) Seq() else node.attributes.asAttrMap.keys.toSeq
     val attributesPaths = attributes.map(attribute => TypedPath((path :+ ForwardOperator("@" + attribute)).toList, StringValueType, isAttribute = true))
+    // Paths to inner nodes become object paths (URI), else value paths (string)
     val pathValueType: ValueType = if(children.nonEmpty || node.attributes.nonEmpty) UriValueType else StringValueType
     val typedPath = TypedPath(path.toList, pathValueType, isAttribute = false)
 
@@ -118,7 +121,7 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     * @param path A path relative to the given XML node.
     * @return A sequence of nodes that are matching the path.
     */
-  def evaluatePath(path: Path): Seq[XmlTraverser] = {
+  def evaluatePath(path: UntypedPath): Seq[XmlTraverser] = {
     evaluateOperators(path.operators)
   }
 
@@ -130,7 +133,7 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     */
   def evaluatePathAsString(path: TypedPath, uriPattern: String): Seq[String] = {
     val fetchEntityUri = path.valueType == UriValueType
-    val xml = evaluatePath(path)
+    val xml = evaluatePath(path.toUntypedPath)
     xml.flatMap(_.formatNode(uriPattern, fetchEntityUri))
   }
 

@@ -6,6 +6,7 @@ import org.silkframework.config.MetaData.MetaDataXmlFormat
 import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.MappingTarget.MappingTargetFormat
 import org.silkframework.rule.TransformRule.RDF_TYPE
@@ -61,7 +62,7 @@ sealed trait TransformRule extends Operator {
     val values = operator(entity)
     // Validate values
     for {
-      valueType <- target.map(_.valueType) if valueType != AutoDetectValueType
+      valueType <- target.map(_.valueType)
       value <- values
     } {
       if(!valueType.validate(value)) {
@@ -78,7 +79,7 @@ sealed trait TransformRule extends Operator {
     def collectPaths(param: Input): Seq[TypedPath] = param match {
       case p: PathInput if p.path.operators.isEmpty => Seq()
       case PathInput(_, path: TypedPath) => Seq(path)
-      case PathInput(_, path: Path) => Seq(TypedPath(path, AutoDetectValueType, isAttribute = false))
+      case PathInput(_, path: UntypedPath) => Seq(TypedPath(path, UntypedValueType, isAttribute = false))
       case p: TransformInput => p.inputs.flatMap(collectPaths)
     }
 
@@ -224,11 +225,11 @@ object RootMappingRule {
   * @param mappingTarget  The target property
   */
 case class DirectMapping(id: Identifier = "sourcePath",
-                         sourcePath: Path = Path(Nil),
+                         sourcePath: UntypedPath = UntypedPath(Nil),
                          mappingTarget: MappingTarget = MappingTarget("http://www.w3.org/2000/01/rdf-schema#label"),
                          metaData: MetaData = MetaData.empty) extends ValueTransformRule {
 
-  override val operator = PathInput(id, sourcePath.asAutoDetectTypedPath)
+  override val operator = PathInput(id, sourcePath.asUntypedPath)
 
   override val target = Some(mappingTarget)
 
@@ -329,20 +330,20 @@ case class ComplexMapping(id: Identifier = "mapping",
   * @param rules The child rules.
   */
 case class ObjectMapping(id: Identifier = "mapping",
-                         sourcePath: Path = Path(Nil),
+                         sourcePath: UntypedPath = UntypedPath(Nil),
                          target: Option[MappingTarget] = Some(MappingTarget("http://www.w3.org/2002/07/owl#sameAs", UriValueType)),
                          override val rules: MappingRules,
                          metaData: MetaData = MetaData.empty,
                          prefixes: Prefixes = Prefixes.empty) extends ContainerTransformRule {
   override val typeString = "Object"
 
-  def uriRule(pathPrefix: Path = Path.empty): Option[UriMapping] = {
+  def uriRule(pathPrefix: UntypedPath = UntypedPath.empty): Option[UriMapping] = {
     target match {
       case Some(prop) =>
         rules.uriRule match {
           case Some (rule) => {
             val rewrittenInput = Input.rewriteSourcePaths(rule.operator, path => {
-              Path(sourcePath.operators ++ path.operators)
+              UntypedPath(sourcePath.operators ++ path.operators)
             })
             Some(ComplexUriMapping(rule.id, rewrittenInput, rule.metaData))
           }
@@ -361,7 +362,7 @@ case class ObjectMapping(id: Identifier = "mapping",
       case Some(rule) =>
         rule.operator
       case None =>
-        PathInput(path = Path.empty)
+        PathInput(path = UntypedPath.empty)
     }
   }
 
@@ -407,7 +408,7 @@ object TransformRule {
     private def readObjectMapping(node: Node)(implicit readContext: ReadContext): ObjectMapping = {
       ObjectMapping(
         id = (node \ "@name").text,
-        sourcePath = Path.parse((node \ "@relativePath").text),
+        sourcePath = UntypedPath.parse((node \ "@relativePath").text),
         target = (node \ "MappingTarget").headOption.map(fromXml[MappingTarget]),
         rules = MappingRules.fromSeq((node \ "MappingRules" \ "_").map(read)),
         metaData = (node \ "MetaData").headOption.map(MetaDataXmlFormat.read).getOrElse(MetaData.empty),
@@ -463,7 +464,7 @@ object TransformRule {
   def simplify(complexMapping: ComplexMapping)(implicit prefixes: Prefixes): TransformRule = complexMapping match {
     // Direct Mapping
     case ComplexMapping(id, PathInput(_, path), Some(target), metaData) =>
-      DirectMapping(id, path, target, metaData)
+      DirectMapping(id, path.asUntypedPath, target, metaData)
     // Pattern URI Mapping
     case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), None, metaData) if UriPattern.isPattern(inputs) =>
       PatternUriMapping(id, UriPattern.build(inputs), metaData, prefixes = prefixes)
@@ -472,7 +473,7 @@ object TransformRule {
       ComplexUriMapping(id, operator, metaData)
     // Object Mapping (old style, to be removed)
     case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), Some(target), metaData) if UriPattern.isPattern(inputs) && target.valueType == UriValueType =>
-      ObjectMapping(id, Path.empty, Some(target), MappingRules(uriRule = Some(PatternUriMapping(id + "uri", UriPattern.build(inputs)))), metaData, prefixes = prefixes)
+      ObjectMapping(id, UntypedPath.empty, Some(target), MappingRules(uriRule = Some(PatternUriMapping(id + "uri", UriPattern.build(inputs)))), metaData, prefixes = prefixes)
     // Type Mapping
     case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData) =>
       TypeMapping(id, typeUri, metaData)
@@ -495,7 +496,7 @@ private object UriPattern {
     // FIXME we should write a real parser for this
     val inputs = {
       if(pattern == "{}") {
-        Seq(TransformInput("uri", UriFixTransformer(), Seq(PathInput("path", Path.empty))))
+        Seq(TransformInput("uri", UriFixTransformer(), Seq(PathInput("path", UntypedPath.empty))))
       } else {
         var firstConstant: String = ""
         for ((str, i) <- pattern.split("[\\{\\}]").toList.zipWithIndex) yield {
@@ -507,9 +508,9 @@ private object UriPattern {
           } else {
             if(i == 1 && firstConstant == "") {
               // There is a path at the start of the URI pattern, this value needs to become a valid URI
-              TransformInput("fixUri" + i, UriFixTransformer(), Seq(PathInput("path" + i, Path.parse(str))))
+              TransformInput("fixUri" + i, UriFixTransformer(), Seq(PathInput("path" + i, UntypedPath.parse(str))))
             } else {
-              TransformInput("encode" + i, UrlEncodeTransformer(), Seq(PathInput("path" + i, Path.parse(str))))
+              TransformInput("encode" + i, UrlEncodeTransformer(), Seq(PathInput("path" + i, UntypedPath.parse(str))))
             }
           }
         }

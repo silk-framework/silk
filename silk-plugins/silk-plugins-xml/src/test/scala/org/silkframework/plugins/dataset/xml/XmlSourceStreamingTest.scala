@@ -1,11 +1,11 @@
 package org.silkframework.plugins.dataset.xml
 
-import org.silkframework.dataset.{DataSource, TypedPathRetrieveDataSource}
+import org.silkframework.dataset.DataSource
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager}
 
 class XmlSourceStreamingTest extends XmlSourceTestBase {
 
-  override def xmlSource(name: String, uriPattern: String): DataSource with XmlSourceTrait with TypedPathRetrieveDataSource = {
+  override def xmlSource(name: String, uriPattern: String): DataSource with XmlSourceTrait = {
     val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/xml/")
     val source = new XmlSourceStreaming(resources.get(name), "", uriPattern)
     source
@@ -25,6 +25,6 @@ class XmlSourceStreamingTest extends XmlSourceTestBase {
     xmlResource.writeString(xml)
     val xmlDataset = XmlDataset(xmlResource)
     val paths = xmlDataset.source.retrievePaths("")
-    paths.map(_.normalizedSerialization) shouldBe Seq("AdditionalAttribute")
+    paths.map(_.toUntypedPath.normalizedSerialization) shouldBe Seq("AdditionalAttribute")
   }
 }

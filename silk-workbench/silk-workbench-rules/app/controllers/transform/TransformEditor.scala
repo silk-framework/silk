@@ -3,7 +3,7 @@ package controllers.transform
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.core.util.ControllerUtilsTrait
 import javax.inject.Inject
-import org.silkframework.entity.Path
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.users.WebUserManager
@@ -58,7 +58,7 @@ class TransformEditor @Inject() () extends InjectedController with ControllerUti
         } else {
           val relativePaths = pathsCache.value().configuredSchema.typedPaths. // FIXME: This won't work inside nested object rules for RDF datasets
               filter(tp => tp.operators.startsWith(sourcePath) && tp.operators.size > sourcePath.size).
-              map(tp => Path(tp.operators.drop(sourcePath.size)))
+              map(tp => UntypedPath(tp.operators.drop(sourcePath.size)))
           val paths = DPair(relativePaths.map(_.serialize()(prefixes)), Seq.empty)
           Ok(views.html.editor.paths(DPair(sourceName, ""), paths, onlySource = true,  project = project))
         }
@@ -80,7 +80,7 @@ class TransformEditor @Inject() () extends InjectedController with ControllerUti
     } else if(pathsCache.status().failed) {
       Ok(views.html.editor.paths(DPair(sourceName, ""), DPair.fill(Seq.empty), onlySource = true, warning = pathsCache.status().message,  project = project))
     } else {
-      val paths = DPair(pathsCache.value().configuredSchema.typedPaths.map(_.serialize()(prefixes)), Seq.empty)
+      val paths = DPair(pathsCache.value().configuredSchema.typedPaths.map(_.toUntypedPath.serialize()(prefixes)), Seq.empty)
       Ok(views.html.editor.paths(DPair(sourceName, ""), paths, onlySource = true,  project = project))
     }
   }

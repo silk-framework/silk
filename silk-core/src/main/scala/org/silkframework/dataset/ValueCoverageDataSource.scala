@@ -1,6 +1,7 @@
 package org.silkframework.dataset
 
-import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
@@ -16,7 +17,7 @@ trait ValueCoverageDataSource {
     * @param inputPaths The actual input paths that when normalized match the dataSourcePath
     * @return
     */
-  def valueCoverage(dataSourcePath: Path, inputPaths: Traversable[Path])
+  def valueCoverage(dataSourcePath: UntypedPath, inputPaths: Traversable[UntypedPath])
                    (implicit userContext: UserContext): ValueCoverageResult = {
     val completeValues: Set[(String, Option[String])] = valuesForDataSourcePath(dataSourcePath)
     val collectedValues: Set[(String, Option[String])] = valuesForInputPaths(inputPaths)
@@ -31,9 +32,9 @@ trait ValueCoverageDataSource {
 
   /** Converts a path into the same path, but getting the ID of the value that would be fetched. If unique IDs are not
     * supported for this data source it should return None. */
-  def convertToIdPath(path: Path): Option[Path]
+  def convertToIdPath(path: UntypedPath): Option[UntypedPath]
 
-  def valuesForDataSourcePath(dataSourcePath: Path)
+  def valuesForDataSourcePath(dataSourcePath: UntypedPath)
                              (implicit userContext: UserContext): Set[(String, Option[String])] = {
     val dataSourceValuePath = dataSourcePath
     val dataSourceIdPath = convertToIdPath(dataSourcePath).map(_.asStringTypedPath)
@@ -53,7 +54,7 @@ trait ValueCoverageDataSource {
 
   private def noneStream = Stream.continually(None)
 
-  def valuesForInputPaths(inputPaths: Traversable[Path])
+  def valuesForInputPaths(inputPaths: Traversable[UntypedPath])
                          (implicit userContext: UserContext): Set[(String, Option[String])] = {
     val idInputPaths = inputPaths flatMap convertToIdPath
     val entitySchemaForInputPaths = EntitySchema(Uri(""), typedPaths = (inputPaths ++ idInputPaths).toIndexedSeq.map(_.asStringTypedPath))

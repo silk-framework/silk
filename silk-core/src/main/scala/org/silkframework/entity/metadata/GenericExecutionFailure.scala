@@ -48,10 +48,6 @@ case class GenericExecutionFailure(message: Option[String],
   */
 object GenericExecutionFailure {
 
-  def apply(message: String, className: String): GenericExecutionFailure = {
-    GenericExecutionFailure(Some(message), className, None, None)
-  }
-
   /**
     * Get the Throwable that is represented byy the [[GenericExecutionFailure]].
     *

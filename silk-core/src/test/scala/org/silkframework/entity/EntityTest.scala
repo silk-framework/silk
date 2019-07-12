@@ -3,12 +3,13 @@ package org.silkframework.entity
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, DataInputStream, DataOutputStream}
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.util.Uri
 
 
 class EntityTest extends FlatSpec with Matchers {
 
-  val schema = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(Path("path1").asStringTypedPath, Path("path2").asStringTypedPath), filter = Restriction.empty)
+  val schema = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("path1").asStringTypedPath, UntypedPath("path2").asStringTypedPath), filter = Restriction.empty)
 
   val entity1 = Entity("http://silk-framework.com/example", IndexedSeq(Seq("value1", "value2"), Seq("value3")), schema)
 
@@ -36,4 +37,31 @@ class EntityTest extends FlatSpec with Matchers {
     val inputStream = new ByteArrayInputStream(outputStream.toByteArray)
     Entity.deserialize(new DataInputStream(inputStream), entity.schema)
   }
+
+  /* COMPLEX ENTITIES */
+
+  val subSchema1 = EntitySchema(typeUri = Uri("sub1"), typedPaths = IndexedSeq(UntypedPath("path3").asStringTypedPath, UntypedPath("path4").asStringTypedPath), filter = Restriction.empty, UntypedPath("sub1"))
+  val subSchema2 = EntitySchema(typeUri = Uri("sub2"), typedPaths = IndexedSeq(UntypedPath("path5").asStringTypedPath, UntypedPath("path6").asStringTypedPath), filter = Restriction.empty, UntypedPath("sub2"))
+
+  val complexSchema = new MultiEntitySchema( schema, IndexedSeq(subSchema1, subSchema2))
+
+  val se1 = Entity("http://silk-framework.com/example/subE1", IndexedSeq(Seq("value3", "value4"), Seq("value11")), subSchema1)
+  val se2 = Entity("http://silk-framework.com/example/subE2", IndexedSeq(Seq("value5", "value6"), Seq()), subSchema2)
+
+  val complexEntity = Entity("http://silk-framework.com/example/complex", IndexedSeq(Seq("value1", "value2"), Seq("value3")), complexSchema, IndexedSeq(Some(se1), Some(se2)))
+  val complexEntity2 = Entity("http://silk-framework.com/example/complex2", IndexedSeq(Seq("value1", "value2"), Seq("value3")), complexSchema, IndexedSeq(None, Some(se2)))
+
+  "Complex Entity" should "be serializable" in {
+    serialized(complexEntity) should be (complexEntity)
+    serialized(complexEntity2) should be (complexEntity2)
+  }
+
+  "Complex Entity" should "be evaluated correctly" in {
+    complexEntity.evaluate(1) shouldBe complexEntity.evaluate(UntypedPath("path2").asStringTypedPath)
+    complexEntity.evaluate(3) shouldBe complexEntity.evaluate(UntypedPath("path4").asStringTypedPath)
+    complexEntity.evaluate(4) shouldBe complexEntity.evaluate(UntypedPath("path5").asStringTypedPath)
+    complexEntity.evaluate(3) shouldBe complexEntity.evaluate(UntypedPath.parse("sub1/path4").asStringTypedPath)
+    complexEntity.evaluate(4) shouldBe complexEntity.evaluate(UntypedPath.parse("sub2/path5").asStringTypedPath)
+  }
+
 }

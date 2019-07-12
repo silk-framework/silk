@@ -1,13 +1,14 @@
 package org.silkframework.rule.execution.methods
 
-import org.silkframework.entity.{Entity, Index, Path}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.execution.ExecutionMethod
 import org.silkframework.rule.LinkageRule
 
 /**
   * Blocking using a composite key built from two single keys.
   */
-class CompositeBlocking(blockingKey1: Path, blockingKey2: Path) extends ExecutionMethod {
+class CompositeBlocking(blockingKey1: UntypedPath, blockingKey2: UntypedPath) extends ExecutionMethod {
 
    override def indexEntity(entity: Entity, rule: LinkageRule, sourceOrTarget: Boolean): Index = {
      val blocks =

@@ -7,15 +7,14 @@ import controllers.core.UserContextAction
 import controllers.transform.AutoCompletionApi.Categories
 import javax.inject.Inject
 import org.silkframework.config.Prefixes
-import org.silkframework.entity._
+import org.silkframework.entity.paths._
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
-import play.api.mvc.{InjectedController, Action, AnyContent, Controller, ControllerComponents}
+import play.api.mvc._
 
 import scala.language.implicitConversions
 import scala.util.Try
@@ -59,12 +58,12 @@ class AutoCompletionApi @Inject() () extends InjectedController {
                             isRdfInput: Boolean)
                            (implicit prefixes: Prefixes): Seq[Completion] = {
     pathCacheCompletions.values.filter { p =>
-      val path = Path.parse(p.value)
+      val path = UntypedPath.parse(p.value)
       isRdfInput || // FIXME: Currently there are no paths longer 1 in cache, that why return full path
       path.operators.startsWith(forwardOnlySourcePath) && path.operators.size > forwardOnlySourcePath.size ||
       path.operators.startsWith(simpleSourcePath) && path.operators.size > simpleSourcePath.size
     } map { completion =>
-      val path = Path.parse(completion.value)
+      val path = UntypedPath.parse(completion.value)
       val truncatedOps = if (path.operators.startsWith(forwardOnlySourcePath)) {
         path.operators.drop(forwardOnlySourcePath.size)
       } else if(isRdfInput) {
@@ -72,7 +71,7 @@ class AutoCompletionApi @Inject() () extends InjectedController {
       } else {
         path.operators.drop(simpleSourcePath.size)
       }
-      completion.copy(value = Path(truncatedOps).serialize())
+      completion.copy(value = UntypedPath(truncatedOps).serialize())
     }
   }
 
@@ -155,7 +154,7 @@ class AutoCompletionApi @Inject() () extends InjectedController {
                                    (implicit userContext: UserContext): Completions = {
     if (Option(task.activity[TransformPathsCache].value).isDefined) {
       val paths = fetchCachedPaths(task, sourcePath)
-      val serializedPaths = paths.map(_.serialize()(task.project.config.prefixes)).sorted.distinct
+      val serializedPaths = paths.map(_.toUntypedPath.serialize()(task.project.config.prefixes)).sorted.distinct
       for(pathStr <- serializedPaths) yield {
         Completion(
           value = pathStr,

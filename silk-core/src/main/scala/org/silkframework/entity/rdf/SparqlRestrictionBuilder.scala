@@ -1,8 +1,9 @@
 package org.silkframework.entity.rdf
 
 import org.silkframework.config.Prefixes
+import org.silkframework.entity.Restriction
 import org.silkframework.entity.Restriction._
-import org.silkframework.entity.{ForwardOperator, Restriction}
+import org.silkframework.entity.paths.ForwardOperator
 
 /**
  * Builds a SPARQL restriction from a Silk restriction.

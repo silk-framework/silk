@@ -1,7 +1,7 @@
 package org.silkframework.dataset
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.{BackwardOperator, ForwardOperator, Path, PathOperator}
+import org.silkframework.entity.paths.{BackwardOperator, ForwardOperator, PathOperator, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 import org.silkframework.util.Uri._
@@ -22,21 +22,21 @@ trait PathCoverageDataSource {
       var fullyCovered = false
       for (pathInput <- pathInputs;
            inputPath <- pathInput.paths) {
-        if(matchPath(pathInput.typeUri, inputPath, sourcePath)) {
+        if(matchPath(pathInput.typeUri, inputPath, sourcePath.toUntypedPath)) {
           covered = true
           if(fullCoveragePath(inputPath)) {
             fullyCovered = true
           }
         }
       }
-      PathCoverage(sourcePath.serialize(), covered, fullyCovered)
+      PathCoverage(sourcePath.toUntypedPath.serialize(), covered, fullyCovered)
     }
     PathCoverageResult(pathCoverages)
   }
 
   /** Only paths that only have forward paths are considered to fully cover the input values. This assumption is true for
     * all nested types like XML and JSON, it may not be true for other data models. */
-  def fullCoveragePath(path: Path): Boolean = {
+  def fullCoveragePath(path: UntypedPath): Boolean = {
     path.operators.forall {
       case _: ForwardOperator =>
         true
@@ -70,10 +70,10 @@ trait PathCoverageDataSource {
   /**
     * returns the combined path. Depending on the data source the input path may or may not be modified based on the type URI.
     */
-  def combinedPath(typeUri: String, inputPath: Path): Path
+  def combinedPath(typeUri: String, inputPath: UntypedPath): UntypedPath
 
   /** Returns true if the given input path matches the source path else false. */
-  def matchPath(typeUri: String, inputPath: Path, sourcePath: Path): Boolean = {
+  def matchPath(typeUri: String, inputPath: UntypedPath, sourcePath: UntypedPath): Boolean = {
     assert(sourcePath.operators.forall(_.isInstanceOf[ForwardOperator]), "Error in matching paths in XML source: Not all operators were forward operators!")
     val operators = combinedPath(typeUri, inputPath).operators
     normalizeInputPath(operators) match {
@@ -117,4 +117,4 @@ case class PathCoverageResult(paths: Seq[PathCoverage])
 
 case class PathCoverage(path: String, covered: Boolean, fully: Boolean)
 
-case class CoveragePathInput(typeUri: String, paths: Seq[Path])
+case class CoveragePathInput(typeUri: String, paths: Seq[UntypedPath])

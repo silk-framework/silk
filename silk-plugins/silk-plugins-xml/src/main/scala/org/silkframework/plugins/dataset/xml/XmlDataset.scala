@@ -33,7 +33,7 @@ case class XmlDataset( @Param("The XML file. This may also be a zip archive of m
 
   override def mergeSchemata: Boolean = true
 
-  override def createSource(resource: Resource): DataSource with TypedPathRetrieveDataSource = {
+  override def createSource(resource: Resource): DataSource = {
     if(streaming) {
       new XmlSourceStreaming(resource, basePath, uriPattern)
     }

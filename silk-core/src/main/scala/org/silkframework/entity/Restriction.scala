@@ -15,6 +15,7 @@
 package org.silkframework.entity
 
 import org.silkframework.config.Prefixes
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 
 /**
@@ -29,7 +30,7 @@ case class Restriction(operator: Option[Restriction.Operator]) {
   def isEmpty: Boolean = operator.isEmpty
 
   /** Retrieves all paths that are used by this restriction. */
-  def paths: Set[Path] = operator.map(_.paths).getOrElse(Set.empty)
+  def paths: Set[UntypedPath] = operator.map(_.paths).getOrElse(Set.empty)
 
   def serialize: String = operator.map(_.serialize).mkString
 
@@ -72,7 +73,7 @@ object Restriction {
    */
   sealed trait Operator {
 
-    def paths: Set[Path]
+    def paths: Set[UntypedPath]
 
     def serialize: String
   }
@@ -85,7 +86,7 @@ object Restriction {
    */
   case class CustomOperator(expression: String) extends Operator {
 
-    def paths: Set[Path] = Set.empty
+    def paths: Set[UntypedPath] = Set.empty
 
     def serialize: String = expression
   }
@@ -98,9 +99,9 @@ object Restriction {
   /**
    * A condition which evaluates to true if the provided path contains the given value.
    */
-  case class Condition(path: Path, value: String) extends LogicalOperator {
+  case class Condition(path: UntypedPath, value: String) extends LogicalOperator {
 
-    def paths: Set[Path] = Set(path)
+    def paths: Set[UntypedPath] = Set(path)
 
     def serialize: String = s"$path = $value"
   }
@@ -111,7 +112,7 @@ object Restriction {
    */
   case class Not(op: Operator) extends LogicalOperator {
 
-    def paths: Set[Path] = op.paths
+    def paths: Set[UntypedPath] = op.paths
 
     def serialize: String = "!" + op.serialize
   }
@@ -121,7 +122,7 @@ object Restriction {
    */
   case class And(children: Traversable[Operator]) extends LogicalOperator {
 
-    def paths: Set[Path] = children.flatMap(_.paths).toSet
+    def paths: Set[UntypedPath] = children.flatMap(_.paths).toSet
 
     def serialize: String = children.mkString(" & ")
   }
@@ -131,7 +132,7 @@ object Restriction {
    */
   case class Or(children: Traversable[Operator]) extends LogicalOperator {
 
-    def paths: Set[Path] = children.flatMap(_.paths).toSet
+    def paths: Set[UntypedPath] = children.flatMap(_.paths).toSet
 
     def serialize: String = children.mkString(" ' ")
 

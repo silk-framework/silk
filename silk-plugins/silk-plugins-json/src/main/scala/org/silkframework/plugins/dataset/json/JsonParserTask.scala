@@ -1,7 +1,8 @@
 package org.silkframework.plugins.dataset.json
 
 import org.silkframework.config.CustomTask
-import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.util.Uri
 
@@ -20,9 +21,9 @@ case class JsonParserTask(@Param("The Silk path expression of the input entity t
                           @Param("A URI pattern that is relative to the base URI of the input entity, e.g., /{ID}, " +
                               "where {path} may contain relative paths to elements. This relative part is appended to the input entity URI to construct the full URI pattern.")
                           uriSuffixPattern: String = "") extends CustomTask {
-  val parsedInputPath: Option[Path] = {
+  val parsedInputPath: Option[UntypedPath] = {
     if (inputPath != "") {
-      Some(Path.parse(inputPath))
+      Some(UntypedPath.parse(inputPath))
     } else {
       None
     }

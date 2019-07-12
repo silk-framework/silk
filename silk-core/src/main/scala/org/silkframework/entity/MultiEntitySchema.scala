@@ -1,6 +1,7 @@
 package org.silkframework.entity
 
 import MultiEntitySchema._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 
 class MultiEntitySchema(private val pivot: EntitySchema, private val subs: IndexedSeq[EntitySchema])
   extends EntitySchema(
@@ -32,7 +33,7 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
     this.getSchemaOfProperty(oldName) match{
       case Some(_) => new MultiEntitySchema(
         this.pivotSchema.renameProperty(oldName, newName),
-        this.subSchemata.map(_.renameProperty(oldName, newName))
+        this.subSchemata.map(es => es.renameProperty(TypedPath.removePathPrefix(oldName, es.subPath).asInstanceOf[TypedPath], newName))
       )
       case None => this
     }
@@ -47,8 +48,26 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
   override def getSchemaOfProperty(tp: TypedPath): Option[EntitySchema] =
     this.pivotSchema.getSchemaOfProperty(tp) match{
       case Some(es) => Some(es)
-      case None => this.subSchemata.find(es => es.typedPaths.contains(tp))
+      case None => this.subSchemata.find(es => {
+        es.typedPaths.contains(TypedPath.removePathPrefix(tp, es.subPath))
+      })
   }
+
+
+  /**
+    * this will return the EntitySchema containing the given untyped path
+    * NOTE: has to be overwritten in MultiEntitySchema
+    * NOTE: there might be a chance that a given path exists twice with different value types, use [[getSchemaOfPropertyIgnoreType]] instead
+    * @param tp - the untyped path
+    */
+  override def getSchemaOfPropertyIgnoreType(tp: UntypedPath): Option[EntitySchema] =
+    this.pivotSchema.getSchemaOfPropertyIgnoreType(tp) match{
+      case Some(es) => Some(es)
+      case None =>
+        this.subSchemata.find(es => {
+          es.typedPaths.map(_.toUntypedPath).contains(UntypedPath.removePathPrefix(tp, es.subPath))
+        })
+    }
 
   /**
     * Returns the index of a given path in the pivot schema.
@@ -57,7 +76,23 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
     * @param path - the path to find
     * @return - the index of the path in question
     */
-  override def pathIndex(path: Path): Int = pivotSchema.pathIndex(path)
+  override def indexOfTypedPath(path: TypedPath): Int = pivotSchema.indexOfTypedPath(path)
+
+  override def equals(obj: Any): Boolean = obj match{
+    case mes: MultiEntitySchema =>
+      mes.pivotSchema.equals(this.pivotSchema) &&
+      mes.subSchemata.size == this.subSchemata.size &&
+      mes.subSchemata.zip(this.subSchemata).forall(x => x._1.equals(x._2))
+    case _ => false
+  }
+
+  override def equalsUntyped(obj: Any): Boolean = obj match{
+    case mes: MultiEntitySchema =>
+      mes.pivotSchema.equalsUntyped(this.pivotSchema) &&
+        mes.subSchemata.size == this.subSchemata.size &&
+        mes.subSchemata.zip(this.subSchemata).forall(x => x._1.equalsUntyped(x._2))
+    case _ => false
+  }
 }
 
 object MultiEntitySchema{

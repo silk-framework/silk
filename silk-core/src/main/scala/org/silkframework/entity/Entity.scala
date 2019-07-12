@@ -18,11 +18,12 @@ import java.io.{DataInput, DataOutput}
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.metadata.{EntityMetadata, EntityMetadataXml, GenericExecutionFailure}
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.failures.FailureClass
 import org.silkframework.util.Uri
 
-import scala.xml.Node
 import scala.language.existentials
+import scala.xml.Node
 
 /**
   * An Entity can represent an instance of any given concept
@@ -67,7 +68,7 @@ case class Entity private(
     * @return - the new value array
     */
   private def shiftProperties(es: EntitySchema): IndexedSeq[Seq[String]] ={
-    es.typedPaths.map(tp => this.schema.typedPaths.find(t => t == tp) match{
+    es.typedPaths.map(tp => this.schema.typedPaths.find(p => p.equalsUntyped(tp)) match{
       case Some(fp) => this.evaluate(fp)
       case None => Seq()
     })
@@ -86,17 +87,16 @@ case class Entity private(
   val values: IndexedSeq[Seq[String]] = vals.map(Entity.handleNullsInValueSeq)
 
   val failure: Option[GenericExecutionFailure] = {
-    val illegalArgumentException = classOf[IllegalArgumentException].getCanonicalName
     if(metadata.failure.metadata.isEmpty) {                                                    // if no failure has occurred yet
       if(schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].subSchemata.size < subEntities.size){
         // if sub entities size is not equal to sub schemata size
-        Some(GenericExecutionFailure("Number of sub-entities is not equal to the number of sub-schemata for: " + uri, illegalArgumentException))
+        Some(GenericExecutionFailure(new IllegalArgumentException("Number of sub-entities is not equal to the number of sub-schemata for: " + uri)))
       }
       else if(uri.uri.trim.isEmpty){
-        Some(GenericExecutionFailure("Entity with an empty URI is not allowed.", illegalArgumentException))
+        Some(GenericExecutionFailure(new IllegalArgumentException("Entity with an empty URI is not allowed.")))
       }
       else if (! this.validate) { // if entity is not valid
-        Some(GenericExecutionFailure("Provided schema does not fit entity values or sub-entities.", illegalArgumentException))
+        Some(GenericExecutionFailure(new IllegalArgumentException("Provided schema does not fit entity values or sub-entities.")))
       }
       else{
         None
@@ -106,41 +106,62 @@ case class Entity private(
     }
   }
 
+  /**
+    * Signals if the given [[Entity]] is marked as having failed to evaluate
+    */
   def hasFailed: Boolean = failure.isDefined
 
   /**
     * Will retrieve the values of a given path (if available)
-    * @param path
-    * @return
+    * @param path - the property or path
     */
   @deprecated("Use evaluate(path: TypedPath) instead, since uniqueness of paths are only guaranteed with provided ValueType.", "18.03")
-  def evaluate(path: Path): Seq[String] = {
-    valueOf(path.asAutoDetectTypedPath)
+  def evaluate(path: UntypedPath): Seq[String] = {
+    valueOfPath(path)
   }
 
   /**
     * Will retrieve the values of a given path (if available)
-    * @param path
-    * @return
+    * @param path - the property or path
     */
-  def evaluate(path: TypedPath): Seq[String] = valueOf(path)
+  def evaluate(path: TypedPath): Seq[String] = valueOfTypedPath(path)
 
   /**
     * returns the all values for the column index of the row representing this entity
     * @param pathIndex - the index in the value array
-    * @return
     */
-  def evaluate(pathIndex: Int): Seq[String] = values(pathIndex)
-
-
-  def valueOf(property: String): Seq[String] = valueOf(Path.saveApply(property.trim).asAutoDetectTypedPath)
+  def evaluate(pathIndex: Int): Seq[String] = {
+    this.schema match {
+      case mes: MultiEntitySchema =>
+        val schemata = Seq(mes.pivotSchema) ++ mes.subSchemata
+        val pivotSize = mes.pivotSchema.typedPaths.size
+        // create range sequence where the first entry is the EntitySchema belonging to the value of the index (and the second is out of range)
+        val rangeMap = (schemata.zip(Seq(0) ++ mes.subSchemata.zipWithIndex.map(x => mes.subSchemata.
+            splitAt(x._2)._1
+            .foldLeft(pivotSize)((i, s) => s.typedPaths.size + i))
+        ) ++ Seq((EntitySchema.empty, mes.typedPaths.size))).sliding(2)
+        // now find the correct range and EntitySchema
+        val zw = rangeMap.find(x => x.head._2 <= pathIndex && (x.tail.headOption match {
+          case Some(o) => o._2 > pathIndex
+          case None => true
+        })).map(_.head)
+        zw.flatMap(x =>
+          if (x._1 == mes.pivotSchema) {
+            Some(this.values(pathIndex))
+          }
+          else {
+            this.subEntities.flatten.find(se => se.schema == x._1).map(e => e.evaluate(pathIndex - x._2))
+          }
+        ).getOrElse(Seq())
+      case _: EntitySchema => this.values(pathIndex)
+    }
+  }
 
   /**
     * returns all values of a given property in the entity
-    * @param path - the path you want values of
-    * @return
+    * @param path - the property or path
     */
-  def valueOf(path: TypedPath): Seq[String] ={
+  def valueOfTypedPath(path: TypedPath): Seq[String] ={
     if(path.operators.isEmpty) {
       Seq(uri)
     } else {
@@ -154,7 +175,32 @@ case class Entity private(
             subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
           }
           //now find the pertaining index and get values
-          ent.evaluate(es.pathIndex(path))
+          ent.evaluate(es.indexOfTypedPath(TypedPath.removePathPrefix(path, es.subPath)))
+        case None => Seq()
+      }
+    }
+  }
+
+  /**
+    * returns all values of a given property in the entity
+    * NOTE: there might be a chance that a given path exists twice with different value types, use [[valueOfTypedPath()]] instead
+    * @param path - the property or path
+    */
+  def valueOfPath(path: UntypedPath): Seq[String] ={
+    if(path.operators.isEmpty) {
+      Seq(uri)
+    } else {
+      schema.getSchemaOfPropertyIgnoreType(path) match {
+        case Some(es) =>
+          //if pertaining schema is this schema or its the pivot schema of a MultiEntitySchema
+          val ent = if (es == schema || schema.isInstanceOf[MultiEntitySchema] && schema.asInstanceOf[MultiEntitySchema].pivotSchema == es) {
+            this
+          }
+          else {
+            subEntities.flatten.find(e => e.schema == es).getOrElse(return Seq())
+          }
+          //now find the pertaining index and get values
+          ent.evaluate(es.indexOfPath(UntypedPath.removePathPrefix(path, es.subPath)))
         case None => Seq()
       }
     }
@@ -162,23 +208,24 @@ case class Entity private(
 
   /**
     * returns the first value (of possibly many) for the property of the given name in this entity
+    * NOTE: there might be a chance that a given path exists twice with different value types, use TypedPath based version instead
     * @param property - the property name to query
     * @return
     */
-  def singleValue(property: String)(implicit prefixes: Prefixes = Prefixes.default): Option[String] = valueOf(Path.saveApply(property).asAutoDetectTypedPath).headOption
+  def singleValue(property: String)(implicit prefixes: Prefixes = Prefixes.default): Option[String] = valueOfPath(UntypedPath.saveApply(property)).headOption
 
   /**
     * returns the first value (of possibly many) for the property of the given name in this entity
     * @param path - the path to query
     * @return
     */
-  def singleValue(path: TypedPath): Option[String] = valueOf(path).headOption
+  def singleValue(path: TypedPath): Option[String] = valueOfTypedPath(path).headOption
 
   /**
     * Validates the complete value row against the given types of the schema
     * @return - the result of the validation matrix (where all values are valid)
     */
-  def validate: Boolean = {
+  private def validate: Boolean = {
     val tps = schema match {
       case mes: MultiEntitySchema => mes.pivotSchema
       case _ => schema
@@ -198,16 +245,24 @@ case class Entity private(
   }
 
   def toXML: Node = {
-    <Entity uri={uri.toString}> {
-      for (valueSet <- values) yield {
-        <Val> {
-          for (value <- valueSet) yield {
-            <e>{value}</e>
-          }
+    <Entity uri={uri.toString}>
+      <Values>      {
+        for (valueSet <- values) yield {
+          <Val> {
+            for (value <- valueSet) yield {
+              <e>{value}</e>
+            }
+            }
+          </Val>
         }
-        </Val>
-      }
-    }
+        }
+      </Values>
+      <SubEntities>{
+        for (sub <- subEntities) yield {
+          <Sub>{sub.foreach(e => e.toXML)}</Sub>
+          // NOTE: at the moment metadata is lost when serializing to XML
+        }}
+      </SubEntities>
     </Entity>
   }
 
@@ -217,6 +272,16 @@ case class Entity private(
       stream.writeInt(valueSet.size)
       for (value <- valueSet) {
         stream.writeUTF(value)
+      }
+    }
+    stream.writeInt(subEntities.size)
+    for (sub <- subEntities) {
+      sub match{
+        case Some(e) =>
+          stream.writeBoolean(true)
+          e.serialize(stream)
+        case None =>
+          stream.writeBoolean(false)
       }
     }
   }
@@ -294,14 +359,23 @@ object Entity {
 
 
   def fromXML(node: Node, desc: EntitySchema): Entity = {
+    if(node == null)
+      return null
     new Entity(
       uri = (node \ "@uri").text.trim,
       vals = {
-        for (valNode <- node \ "Val") yield {
+        for (valNode <- node \ "Values" \ "Val") yield {
           for (e <- valNode \ "e") yield e.text
         }
       }.toIndexedSeq,
-      schema = desc
+      schema = desc,
+      subEntities = {
+        var ind = -1
+        for (valNode <- node \ "SubEntities" \ "Sub") yield {
+          ind = ind + 1
+          Option(fromXML(valNode, desc.asInstanceOf[MultiEntitySchema].subSchemata(ind)))
+        }
+      }.toIndexedSeq
     )
   }
 
@@ -311,8 +385,20 @@ object Entity {
 
     //Read Values
     def readValue = Seq.fill(stream.readInt)(stream.readUTF)
-    val values = IndexedSeq.fill(desc.typedPaths.size)(readValue)
 
-    new Entity(uri, values, desc)
+    desc match{
+      case mes: MultiEntitySchema =>
+        val values = IndexedSeq.fill(mes.pivotSchema.typedPaths.size)(readValue)
+        val subs = mes.subSchemata.map(se => {
+          if(stream.readBoolean())
+            Some(deserialize(stream, se))
+          else
+            None
+        })
+        Entity(uri, values, mes, subs)
+      case es: EntitySchema =>
+        val values = IndexedSeq.fill(desc.typedPaths.size)(readValue)
+        Entity(uri, values, es)
+    }
   }
 }

@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, _}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
@@ -17,8 +18,8 @@ class XmlSinkTest extends FlatSpec with Matchers {
         typeUri = "",
         typedPaths =
           IndexedSeq(
-            TypedPath(Path("FirstTag"), StringValueType, isAttribute = false),
-            TypedPath(Path("SecondTag"), StringValueType, isAttribute = false)
+            TypedPath(UntypedPath("FirstTag"), StringValueType, isAttribute = false),
+            TypedPath(UntypedPath("SecondTag"), StringValueType, isAttribute = false)
           )
       )
 
@@ -43,8 +44,8 @@ class XmlSinkTest extends FlatSpec with Matchers {
         typeUri = "",
         typedPaths =
             IndexedSeq(
-              TypedPath(Path("FirstTag"), StringValueType, isAttribute = false),
-              TypedPath(Path("SecondTag"), StringValueType, isAttribute = false)
+              TypedPath(UntypedPath("FirstTag"), StringValueType, isAttribute = false),
+              TypedPath(UntypedPath("SecondTag"), StringValueType, isAttribute = false)
             )
       )
 
@@ -73,8 +74,8 @@ class XmlSinkTest extends FlatSpec with Matchers {
         typeUri = "",
         typedPaths =
           IndexedSeq(
-            TypedPath(Path("FirstTag"), StringValueType, isAttribute = false),
-            TypedPath(Path("SecondTag"), StringValueType, isAttribute = false)
+            TypedPath(UntypedPath("FirstTag"), StringValueType, isAttribute = false),
+            TypedPath(UntypedPath("SecondTag"), StringValueType, isAttribute = false)
           )
       )
 
@@ -97,8 +98,8 @@ class XmlSinkTest extends FlatSpec with Matchers {
         typeUri = "",
         typedPaths =
           IndexedSeq(
-            TypedPath(Path("http://example1.org/id"), StringValueType, isAttribute = true),
-            TypedPath(Path("http://example2.org/id"), StringValueType, isAttribute = true)
+            TypedPath(UntypedPath("http://example1.org/id"), StringValueType, isAttribute = true),
+            TypedPath(UntypedPath("http://example2.org/id"), StringValueType, isAttribute = true)
           )
       )
 
@@ -120,9 +121,9 @@ class XmlSinkTest extends FlatSpec with Matchers {
         typeUri = "",
         typedPaths =
           IndexedSeq(
-            TypedPath(Path("http://example1.org/id"), StringValueType, isAttribute = true),
-            TypedPath(Path("http://example2.org/id"), StringValueType, isAttribute = true),
-            TypedPath(Path("#text"), StringValueType, isAttribute = false)
+            TypedPath(UntypedPath("http://example1.org/id"), StringValueType, isAttribute = true),
+            TypedPath(UntypedPath("http://example2.org/id"), StringValueType, isAttribute = true),
+            TypedPath(UntypedPath("#text"), StringValueType, isAttribute = false)
           )
       )
 
@@ -144,8 +145,8 @@ class XmlSinkTest extends FlatSpec with Matchers {
         typeUri = "",
         typedPaths =
           IndexedSeq(
-            TypedPath(Path("http://example1.org/FirstTag"), StringValueType, isAttribute = false),
-            TypedPath(Path("http://example1.org/SecondTag"), StringValueType, isAttribute = false)
+            TypedPath(UntypedPath("http://example1.org/FirstTag"), StringValueType, isAttribute = false),
+            TypedPath(UntypedPath("http://example1.org/SecondTag"), StringValueType, isAttribute = false)
           )
       )
 
@@ -171,9 +172,9 @@ class XmlSinkTest extends FlatSpec with Matchers {
         typeUri = "",
         typedPaths =
           IndexedSeq(
-            TypedPath(Path("id"), StringValueType, isAttribute = true),
-            TypedPath(Path("Name"), UriValueType, isAttribute = false),
-            TypedPath(Path("Year"), StringValueType, isAttribute = false)
+            TypedPath(UntypedPath("id"), StringValueType, isAttribute = true),
+            TypedPath(UntypedPath("Name"), UriValueType, isAttribute = false),
+            TypedPath(UntypedPath("Year"), StringValueType, isAttribute = false)
           )
       )
 
@@ -187,8 +188,8 @@ class XmlSinkTest extends FlatSpec with Matchers {
         typeUri = "",
         typedPaths =
           IndexedSeq(
-            TypedPath(Path("FirstName"), StringValueType, isAttribute = false),
-            TypedPath(Path("LastName"), StringValueType, isAttribute = false)
+            TypedPath(UntypedPath("FirstName"), StringValueType, isAttribute = false),
+            TypedPath(UntypedPath("LastName"), StringValueType, isAttribute = false)
           )
       )
 
@@ -231,9 +232,9 @@ class XmlSinkTest extends FlatSpec with Matchers {
         typeUri = "",
         typedPaths =
           IndexedSeq(
-            TypedPath(Path("id"), StringValueType, isAttribute = true),
-            TypedPath(Path("Name"), UriValueType, isAttribute = false),
-            TypedPath(Path("Year"), StringValueType, isAttribute = false)
+            TypedPath(UntypedPath("id"), StringValueType, isAttribute = true),
+            TypedPath(UntypedPath("Name"), UriValueType, isAttribute = false),
+            TypedPath(UntypedPath("Year"), StringValueType, isAttribute = false)
           )
       )
 
@@ -246,8 +247,8 @@ class XmlSinkTest extends FlatSpec with Matchers {
         typeUri = "",
         typedPaths =
           IndexedSeq(
-            TypedPath(Path("FirstName"), StringValueType, isAttribute = false),
-            TypedPath(Path("LastName"), StringValueType, isAttribute = false)
+            TypedPath(UntypedPath("FirstName"), StringValueType, isAttribute = false),
+            TypedPath(UntypedPath("LastName"), StringValueType, isAttribute = false)
           )
       )
 

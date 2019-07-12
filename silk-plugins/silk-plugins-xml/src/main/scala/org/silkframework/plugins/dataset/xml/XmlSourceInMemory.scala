@@ -2,9 +2,10 @@ package org.silkframework.plugins.dataset.xml
 
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{DefaultConfig, PlainTask, Task}
+import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
@@ -13,31 +14,18 @@ import org.silkframework.util.{Identifier, Uri}
 import scala.xml.XML
 
 class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) extends DataSource
-    with PathCoverageDataSource with ValueCoverageDataSource with PeakDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource
-    with TypedPathRetrieveDataSource {
+    with PathCoverageDataSource with ValueCoverageDataSource with PeakDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
-  private val maxFileSizeForPeak = DefaultConfig.instance().getInt(MAX_SIZE_CONFIG_KEY)
-
   override def retrieveTypes(limit: Option[Int])
                             (implicit userContext: UserContext): Traversable[(String, Double)] = {
-    val xml = file.read(XML.load)
-    for (path <- Path.empty +: XmlTraverser(xml).collectPaths(onlyLeafNodes = false, onlyInnerNodes = true, depth = Int.MaxValue)) yield {
-      (path.normalizedSerialization, 1.0 / path.operators.size)
-    }
+    new XmlSourceStreaming(file, basePath, uriPattern).retrieveTypes(limit)
   }
 
-  override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
-                            (implicit userContext: UserContext): IndexedSeq[Path] = {
-    retrieveXmlPaths(t, depth, limit, onlyLeafNodes = false, onlyInnerNodes = false) map (tp => Path(tp.operators))
-  }
-
-  override def retrieveTypedPath(typeUri: Uri,
-                                 depth: Int,
-                                 limit: Option[Int])
-                                (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
-    retrieveXmlPaths(typeUri, depth, limit, onlyLeafNodes = false, onlyInnerNodes = false)
+  override def retrievePaths(typeUri: Uri, depth: Int = Int.MaxValue, limit: Option[Int] = None)
+                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+    new XmlSourceStreaming(file, basePath, uriPattern).retrievePaths(typeUri, depth, limit)
   }
 
   override def retrieveXmlPaths(typeUri: Uri, depth: Int, limit: Option[Int], onlyLeafNodes: Boolean, onlyInnerNodes: Boolean): IndexedSeq[TypedPath] = {
@@ -78,7 +66,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     val xml = file.read(XML.load)
     val rootTraverser = XmlTraverser(xml)
     // Move to base path
-    rootTraverser.evaluatePath(Path.parse(pathStr))
+    rootTraverser.evaluatePath(UntypedPath.parse(pathStr))
   }
 
   private class Entities(xml: Seq[XmlTraverser], entityDesc: EntitySchema) extends Traversable[Entity] {
@@ -92,13 +80,13 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     }
   }
 
-  override def combinedPath(typeUri: String, inputPath: Path): Path = {
-    val typePath = Path.parse(typeUri)
-    Path(typePath.operators ++ inputPath.operators)
+  override def combinedPath(typeUri: String, inputPath: UntypedPath): UntypedPath = {
+    val typePath = UntypedPath.parse(typeUri)
+    UntypedPath(typePath.operators ++ inputPath.operators)
   }
 
-  override def convertToIdPath(path: Path): Option[Path] = {
-    Some(Path(path.operators ::: List(ForwardOperator("#id"))))
+  override def convertToIdPath(path: UntypedPath): Option[UntypedPath] = {
+    Some(UntypedPath(path.operators ::: List(ForwardOperator("#id"))))
   }
 
   override def peak(entitySchema: EntitySchema, limit: Int)

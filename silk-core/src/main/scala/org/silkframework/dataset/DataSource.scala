@@ -16,6 +16,7 @@ package org.silkframework.dataset
 
 import org.silkframework.config.Task
 import org.silkframework.entity._
+import org.silkframework.entity.paths.TypedPath
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Identifier, SampleUtil, Uri}
 
@@ -56,7 +57,7 @@ trait DataSource {
    * @return A Sequence of the found paths sorted by their frequency (most frequent first).
    */
   def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None)
-                   (implicit userContext: UserContext): IndexedSeq[Path]
+                   (implicit userContext: UserContext): IndexedSeq[TypedPath]
 
   /**
    * Retrieves entities from this source which satisfy a specific entity schema.

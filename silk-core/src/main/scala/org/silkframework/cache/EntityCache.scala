@@ -81,23 +81,6 @@ trait EntityCache {
   def size: Int
 
   /**
-   * Serializes the complete Cache as XML
-   */
-  def toXML = {
-    <EntityCache>
-      {for (block <- 0 until blockCount) yield {
-      <Block id={block.toString}>
-        {for (partition <- 0 until partitionCount(block)) yield {
-        <Partition>
-          {for (entity <- read(block, partition).entities) yield entity.toXML}
-        </Partition>
-      }}
-      </Block>
-    }}
-    </EntityCache>
-  }
-
-  /**
    * Reads entities from XML
    */
   def fromXML(node: Node, entityDesc: EntitySchema) {

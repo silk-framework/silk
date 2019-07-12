@@ -1,7 +1,7 @@
 package org.silkframework.failures
 
-import org.silkframework.entity.Path
 import org.silkframework.entity.metadata.GenericExecutionFailure
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.util.Identifier
 
 import scala.language.implicitConversions
@@ -14,9 +14,11 @@ import scala.language.implicitConversions
   * @param taskId - the ID of the currently running task
   * @param property - an optional property path pointer (e.g. [[org.silkframework.entity.EntitySchema.typedPaths.headOption]]))
   */
-class EntityException(msg: String, ex: Throwable, taskId: Identifier, property: Option[Path] = None) extends Exception(msg, ex){
+class EntityException(msg: String, ex: Throwable, taskId: Identifier, property: Option[UntypedPath] = None) extends Exception(msg, ex){
 
-  def this(msg: String, taskId: Identifier, property: Path) = this(msg, null, taskId, Some(property))
+  def this(msg: String, taskId: Identifier, property: UntypedPath) = this(msg, null, taskId, Some(property))
+
+  def this(msg: String, taskId: Identifier, property: TypedPath) = this(msg, null, taskId, Some(property.toUntypedPath))
 
   private val exception = if(ex == null) this else ex
 

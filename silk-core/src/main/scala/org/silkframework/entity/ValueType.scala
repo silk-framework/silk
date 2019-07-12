@@ -8,6 +8,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFo
 import org.silkframework.util.Uri
 
 import scala.util.Try
+import scala.util.matching.Regex
 import scala.xml.Node
 
 /**
@@ -32,12 +33,22 @@ sealed trait ValueType {
 
   /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
   def ordering: Ordering[String]
+
+  /**
+    * Extends equals to return true if either one of the comparators is an UntypedValueType
+    * @param vt - the other ValueType
+    */
+  def equalsOrIndifferentTo(vt: ValueType): Boolean = {
+    Set(this, vt).contains(UntypedValueType) ||
+        vt == this
+  }
 }
 
 object ValueType {
   final val XSD = "http://www.w3.org/2001/XMLSchema#"
   final val CUSTOM_VALUE_TYPE = "CustomValueType"
   final val LANGUAGE_VALUE_TYPE = "LanguageValueType"
+  final val OUTDATED_AUTO_DETECT = "AutoDetectValueType"
 
   val DefaultOrdering: Ordering[String] = Ordering.String
   val GregorianCalendarOrdering: Ordering[XMLGregorianCalendar] = Ordering.fromLessThan[XMLGregorianCalendar]((date1: XMLGregorianCalendar, date2: XMLGregorianCalendar) =>{
@@ -69,12 +80,9 @@ object ValueType {
     override def write(value: ValueType)(implicit writeContext: WriteContext[Node]): Node = {
       val typeId = valueTypeId(value)
       value match {
-        case CustomValueType(typeUri) =>
-            <ValueType nodeType={typeId} uri={typeUri}/>
-        case LanguageValueType(lang) =>
-            <ValueType nodeType={typeId} lang={lang}/>
-        case objValueType: ValueType =>
-            <ValueType nodeType={typeId}/>
+        case CustomValueType(typeUri) => <ValueType nodeType={typeId} uri={typeUri}/>
+        case LanguageValueType(lang) => <ValueType nodeType={typeId} lang={lang}/>
+        case objValueType: ValueType => <ValueType nodeType={typeId}/>
       }
     }
   }
@@ -102,7 +110,8 @@ object ValueType {
   private def readClassValueTypes(value: Node,
                                   nodeType: String,
                                   prefixes: Prefixes): ValueType = {
-    nodeType match {
+    nodeType.replace("$", "") match {
+      case OUTDATED_AUTO_DETECT => StringValueType //for backward compatibility
       case CUSTOM_VALUE_TYPE =>
         (value \ "@uri").headOption match {
           case Some(typeUri) =>
@@ -125,6 +134,9 @@ object ValueType {
   val allValueType: Seq[Either[(String, Class[_ <: ValueType]), ValueType]] = Seq(
     Left((CUSTOM_VALUE_TYPE, classOf[CustomValueType])),
     Left((LANGUAGE_VALUE_TYPE, classOf[LanguageValueType])),
+    // this type string is a left over from the previous name of UntypedValueType.
+    // Since many project configs in tests still feature the old type, this is a valid workaround.
+    Left((OUTDATED_AUTO_DETECT, StringValueType.getClass.asInstanceOf[Class[_ <: ValueType]])),
     Right(IntValueType),
     Right(LongValueType),
     Right(StringValueType),
@@ -133,7 +145,7 @@ object ValueType {
     Right(BooleanValueType),
     Right(IntegerValueType),
     Right(UriValueType),
-    Right(AutoDetectValueType),
+    Right(UntypedValueType),
     Right(BlankNodeValueType),
     Right(DateValueType),
     Right(DateTimeValueType)
@@ -144,7 +156,7 @@ object ValueType {
     case Right(obj) => (obj.id, Right(obj))
   }.toMap
 
-  val valueTypeIdMapByClass: Map[Class[_], String] = valueTypeMapByStringId.map(ei =>
+  val valueTypeIdMapByClass: Map[Class[_], String] = valueTypeMapByStringId.filterNot(x => x._1 == OUTDATED_AUTO_DETECT).map(ei =>  // we have to remove the outdated name
     ei._2 match {
       case Left(clazz) => (clazz, ei._1)
       case Right(obj) => (obj.getClass, ei._1)
@@ -153,12 +165,11 @@ object ValueType {
 }
 
 /**
-  * If this value type is set, then the values can be transformed to any valid value that can be inferred from the
-  * lexical form, e.g. "1" can be an Int, but also a String.
+  * Special type that signals that the actual type is unknown.
   */
-case object AutoDetectValueType extends ValueType with Serializable {
+case object UntypedValueType extends ValueType with Serializable {//renamed from AutoDetectValueType
 
-  override def label = "Autodetect"
+  override def label = "Untyped"
 
   /** returns true if the lexical string is a representation of this type */
   override def validate(lexicalString: String): Boolean = true
@@ -166,7 +177,7 @@ case object AutoDetectValueType extends ValueType with Serializable {
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
   override def uri: Option[String] = None
 
-  override def id: String = "AutoDetectValueType"
+  override def id: String = "UntypedValueType"
 
   /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
   override def ordering: Ordering[String] = ValueType.DefaultOrdering
@@ -192,7 +203,7 @@ case class CustomValueType(typeUri: String) extends ValueType {
 /** Represents language tagged strings. */
 case class LanguageValueType(language: String) extends ValueType {
 
-  override def label = "@" + language
+  override def label: String = "@" + language
 
   override def validate(lexicalString: String): Boolean = true // No validation needed
 
@@ -309,7 +320,7 @@ case object IntegerValueType extends ValueType with Serializable {
 
   override def label = "Integer"
 
-  val integerRegex = """^[+-]?(([1-9][0-9]*)|(0))$""".r
+  val integerRegex: Regex = """^[+-]?(([1-9][0-9]*)|(0))$""".r
 
   override def validate(lexicalString: String): Boolean = {
     integerRegex.findFirstMatchIn(lexicalString).isDefined

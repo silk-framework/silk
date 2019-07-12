@@ -1,6 +1,7 @@
 package org.silkframework.dataset
 import org.silkframework.config.Task
-import org.silkframework.entity.{Entity, EntitySchema, Link, Path}
+import org.silkframework.entity._
+import org.silkframework.entity.paths.TypedPath
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
@@ -13,7 +14,7 @@ case class MockDataset(name: String = "dummy") extends Dataset {
   var writeLinkFn: (Link, String) => Unit = (_, _) => {}
   var writeEntityFn: (String, Seq[Seq[String]]) => Unit = (_, _) => {}
   var clearFn: () => Unit = () => {}
-  var retrievePathsFn: (Uri, Int, Option[Int]) => IndexedSeq[Path] = (_, _, _) => { IndexedSeq.empty }
+  var retrievePathsFn: (Uri, Int, Option[Int]) => IndexedSeq[TypedPath] = (_, _, _) => { IndexedSeq.empty }
 
   override def source(implicit userContext: UserContext): DataSource = DummyDataSource(retrieveFn, retrieveByUriFn, retrievePathsFn)
 
@@ -24,7 +25,7 @@ case class MockDataset(name: String = "dummy") extends Dataset {
 
 case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => Traversable[Entity],
                            retrieveByUriFn: (EntitySchema, Seq[Uri]) => Seq[Entity],
-                           retrievePathsFn: (Uri, Int, Option[Int]) => IndexedSeq[Path]) extends DataSource {
+                           retrievePathsFn: (Uri, Int, Option[Int]) => IndexedSeq[TypedPath]) extends DataSource {
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
                        (implicit userContext: UserContext): Traversable[Entity] = {
     retrieveFn(entitySchema, limit)
@@ -36,7 +37,7 @@ case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => Traversabl
   }
 
   override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
-                            (implicit userContext: UserContext): IndexedSeq[Path] = {
+                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     retrievePathsFn(typeUri, depth, limit)
   }
 

@@ -3,16 +3,17 @@ package org.silkframework.plugins.dataset.json
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.PlainTask
-import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema, Path}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
 import org.silkframework.execution.ExecutorRegistry
-import org.silkframework.execution.local.{GenericEntityTable, GenericLocalDatasetExecutor, LocalDatasetExecutor, LocalExecution, MultiEntityTable}
+import org.silkframework.execution.local.{GenericEntityTable, GenericLocalDatasetExecutor, LocalExecution, MultiEntityTable}
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.plugin.PluginRegistry
 
 class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with MockitoSugar with TestUserContextTrait with ExecutorRegistry {
   behavior of "Local JSON Parser Task Executor"
 
-  private val entitySchema = EntitySchema("type", IndexedSeq(Path("id"), Path("jsonContent")).map(_.asStringTypedPath))
+  private val entitySchema = EntitySchema("type", IndexedSeq(UntypedPath("id"), UntypedPath("jsonContent")).map(_.asStringTypedPath))
 
   private val jsonContent =
     """{
@@ -41,7 +42,7 @@ class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with Mo
 
   it should "parse the JSON and allow entity schema requests against it" in {
     val result = executor.execute(task, Seq(inputEntities),
-      outputSchemaOpt = Some(EntitySchema("", IndexedSeq(Path("name")).map(_.asStringTypedPath))),
+      outputSchemaOpt = Some(EntitySchema("", IndexedSeq(UntypedPath("name")).map(_.asStringTypedPath))),
       execution = LocalExecution(false)
     )
     result mustBe defined
@@ -49,7 +50,7 @@ class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with Mo
   }
 
   it should "produce multi schema entities" in {
-    val outputSchema = EntitySchema("", IndexedSeq(Path("name")).map(_.asStringTypedPath))
+    val outputSchema = EntitySchema("", IndexedSeq(UntypedPath("name")).map(_.asStringTypedPath))
     val result = executor.execute(task, Seq(inputEntities),
       outputSchemaOpt = Some(new MultiEntitySchema(outputSchema, IndexedSeq(outputSchema))),
       execution = LocalExecution(false)

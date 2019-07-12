@@ -4,9 +4,10 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.PlainTask
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.execution.local.{GenericEntityTable, LocalExecution, SparqlUpdateEntitySchema}
-import org.silkframework.plugins.dataset.rdf.executors.{LocalSparqlCopyExecutor, LocalSparqlUpdateExecutor}
+import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlUpdateExecutor
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
@@ -24,10 +25,10 @@ class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with Mock
   private val schema = EntitySchema("", typedPaths = IndexedSeq(TypedPath("s", UriValueType), TypedPath("v", StringValueType)))
   private val notIncluded = "NOT_INCLUDED"
   private val inputEntities: Seq[Entity] = Seq(
-    Entity("", IndexedSeq(Seq("http://s1"), Seq("s1a", "s1b")), schema),
-    Entity("", IndexedSeq(Seq(s"http://$notIncluded"), Seq()), schema),
-    Entity("", IndexedSeq(Seq(), Seq(notIncluded)), schema),
-    Entity("", IndexedSeq(Seq("http://s2a", "http://s2b"), Seq("s2a", "s2b", "s2c")), schema)
+    Entity("http://example.org/entity/1", IndexedSeq(Seq("http://s1"), Seq("s1a", "s1b")), schema),
+    Entity("http://example.org/entity/2", IndexedSeq(Seq(s"http://$notIncluded"), Seq()), schema),
+    Entity("http://example.org/entity/3", IndexedSeq(Seq(), Seq(notIncluded)), schema),
+    Entity("http://example.org/entity/4", IndexedSeq(Seq("http://s2a", "http://s2b"), Seq("s2a", "s2b", "s2c")), schema)
   )
   private val inputTask = mock[PlainTask[TransformSpec]]
   private val context = mock[ActivityContext[ExecutionReport]]
@@ -39,7 +40,8 @@ class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with Mock
     result.get.entitySchema mustBe SparqlUpdateEntitySchema.schema
     val entities = result.get.entities.toSeq
     entities.size mustBe 2
-    entities.map(_.values.flatten.head) mustBe Seq(
+    val list = entities.map(_.values.flatten.head).toList
+    val comp = Seq(
       """INSERT DATA { <http://s1> <urn:prop> "s1a" } ;
         |INSERT DATA { <http://s1> <urn:prop> "s1b" } ;
         |INSERT DATA { <http://s2a> <urn:prop> "s2a" } ;
@@ -48,10 +50,11 @@ class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with Mock
       """INSERT DATA { <http://s2b> <urn:prop> "s2a" } ;
         |INSERT DATA { <http://s2b> <urn:prop> "s2b" } ;
         |INSERT DATA { <http://s2b> <urn:prop> "s2c" } ;""".stripMargin)
+    list mustBe comp.map(_.replace("\r\n", "\n"))
   }
 
   it should "throw validation exception if an invalid input schema is found" in {
-    val invalidSchema = EntitySchema("", typedPaths = IndexedSeq("s", "wrong").map(Path(_).asAutoDetectTypedPath))
+    val invalidSchema = EntitySchema("", typedPaths = IndexedSeq("s", "wrong").map(UntypedPath(_).asUntypedValueType))
     val input = Seq(GenericEntityTable(inputEntities, invalidSchema, inputTask))
     intercept[ValidationException] {
       executor.execute(task, input, None, LocalExecution(true), context).get.entities.head

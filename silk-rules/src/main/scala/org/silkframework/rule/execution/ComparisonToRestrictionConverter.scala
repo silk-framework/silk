@@ -1,13 +1,11 @@
 package org.silkframework.rule.execution
 
-import org.apache.jena.datatypes.DatatypeFormatException
-import org.apache.jena.datatypes.xsd.XSDDatatype
 import org.apache.jena.graph.NodeFactory
-import org.apache.jena.vocabulary.XSD
 import org.silkframework.config.DefaultConfig
 import org.silkframework.entity.Restriction.{And, CustomOperator}
+import org.silkframework.entity.paths.Path
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
-import org.silkframework.entity.{EntitySchema, Path, Restriction}
+import org.silkframework.entity.{EntitySchema, Restriction}
 import org.silkframework.rule._
 import org.silkframework.rule.input.{PathInput, TransformInput}
 import org.silkframework.rule.plugins.distance.equality.{EqualityMetric, InequalityMetric, NumericEqualityMetric}

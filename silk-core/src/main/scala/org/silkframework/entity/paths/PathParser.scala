@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.silkframework.entity
+package org.silkframework.entity.paths
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.validation.ValidationException
@@ -24,12 +24,11 @@ import scala.util.parsing.input.CharSequenceReader
 /**
  * Parser for the Silk RDF path language.
  */
-//TODO variables have been removed from paths
-private class PathParser(prefixes: Prefixes) extends RegexParsers {
+private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
 
-  def parse(pathStr: String): Path = {
+  def parse(pathStr: String): UntypedPath = {
     if(pathStr.isEmpty) {
-      Path(Nil)
+      UntypedPath(Nil)
     } else {
       // Complete path if a simplified syntax is used
       val completePath = pathStr.head match {
@@ -46,7 +45,7 @@ private class PathParser(prefixes: Prefixes) extends RegexParsers {
   }
 
   private def path = variable ~ rep(forwardOperator | backwardOperator | filterOperator) ^^ {
-    case variable ~ operators => Path(operators)
+    case variable ~ operators => UntypedPath(operators)
   }
 
   private def variable = "?" ~> identifier

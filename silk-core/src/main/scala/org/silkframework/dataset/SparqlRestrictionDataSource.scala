@@ -1,6 +1,6 @@
 package org.silkframework.dataset
 
-import org.silkframework.entity.Path
+import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.runtime.activity.UserContext
 
@@ -11,5 +11,5 @@ trait SparqlRestrictionDataSource { this: DataSource =>
   /** Returns the direct paths, i.e. of length 1, that comply with the SPARQL restriction */
   def retrievePathsSparqlRestriction(sparqlRestriction: SparqlRestriction,
                                      limit: Option[Int] = None)
-                                    (implicit userContext: UserContext): IndexedSeq[Path]
+                                    (implicit userContext: UserContext): IndexedSeq[TypedPath]
 }

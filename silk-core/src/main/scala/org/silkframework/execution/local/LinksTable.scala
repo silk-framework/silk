@@ -2,6 +2,7 @@ package org.silkframework.execution.local
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.InterruptibleTraversable
 import org.silkframework.util.Uri
 
@@ -33,8 +34,8 @@ class LinkEntityIterator(links: Seq[Link], entitySchema: EntitySchema) extends I
 object LinksTable {
 
   val linkEntitySchema = EntitySchema("", IndexedSeq(
-    TypedPath(Path("targetUri"), UriValueType, isAttribute = false),
-    TypedPath(Path("confidence"), DoubleValueType, isAttribute = false)))
+    TypedPath(UntypedPath("targetUri"), UriValueType, isAttribute = false),
+    TypedPath(UntypedPath("confidence"), DoubleValueType, isAttribute = false)))
 
   def convertLinkToEntity(link: Link, entitySchema: EntitySchema): Entity = {
     Entity(
