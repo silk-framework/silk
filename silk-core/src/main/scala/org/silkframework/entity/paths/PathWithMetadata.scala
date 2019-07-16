@@ -3,7 +3,6 @@ package org.silkframework.entity.paths
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.PathWithMetadata.requiredMetadataKeys
 import org.silkframework.entity.{PlainValueTypeSerialization, ValueType}
-import org.silkframework.entity.paths.TypedPath._
 import org.silkframework.runtime.serialization.WriteContext
 
 import scala.language.implicitConversions
@@ -29,7 +28,7 @@ class PathWithMetadata (
     * Returns the original input String
     * @return
     */
-  def getOriginalName: Option[String] = metadata.get(TypedPath.META_FIELD_ORIGIN_NAME).map(_.toString)
+  def getOriginalName: Option[String] = metadata.get(PathWithMetadata.META_FIELD_ORIGIN_NAME).map(_.toString)
 
   def putMetadata(kVs: (String, Any)*): PathWithMetadata = {
     val keys = kVs.map(_._1).distinct
@@ -38,6 +37,10 @@ class PathWithMetadata (
 }
 
 object PathWithMetadata{
+
+  val META_FIELD_XML_ATTRIBUTE: String = "isXmlAttribute"
+  val META_FIELD_ORIGIN_NAME: String = "originalName"
+  val META_FIELD_VALUE_TYPE = "valueType"
 
   implicit def fromTypedPath(tp: TypedPath): PathWithMetadata = tp match {
     case pwm: PathWithMetadata => pwm
@@ -79,14 +82,15 @@ object PathWithMetadata{
   def apply(path: String, valueType: ValueType, metadata: Map[String, Any])(implicit prefixes: Prefixes = Prefixes.empty): PathWithMetadata = {
     val m = Map(
       META_FIELD_XML_ATTRIBUTE -> metadata.getOrElse(META_FIELD_XML_ATTRIBUTE, false),
-      META_FIELD_ORIGIN_NAME -> path.trim,
-      META_FIELD_VALUE_TYPE -> PlainValueTypeSerialization.write(valueType)(vtwc)
-    ) ++ metadata.filterKeys(k => ! requiredMetadataKeys.contains(k))
-    apply(UntypedPath.saveApply(path)(prefixes).operators, valueType, m)
+      META_FIELD_ORIGIN_NAME -> metadata.getOrElse(META_FIELD_ORIGIN_NAME, path.trim),
+      META_FIELD_VALUE_TYPE -> metadata.getOrElse(META_FIELD_VALUE_TYPE, PlainValueTypeSerialization.write(valueType)(vtwc))
+    )
+    val oldM = metadata.filterKeys(k => ! requiredMetadataKeys.contains(k))
+    apply(UntypedPath.saveApply(path)(prefixes).operators, valueType, m ++ oldM)
   }
 
   def isXmlAttribute(path: PathWithMetadata): Boolean = isXmlAttribute(path.metadata)
 
-  private def isXmlAttribute(metadata: Map[String, Any]): Boolean = metadata.get(TypedPath.META_FIELD_XML_ATTRIBUTE).exists(x =>
-    Try(x.asInstanceOf[Boolean]).getOrElse(throw new IllegalArgumentException(TypedPath.META_FIELD_XML_ATTRIBUTE + " needs a boolean value")))
+  private def isXmlAttribute(metadata: Map[String, Any]): Boolean = metadata.get(META_FIELD_XML_ATTRIBUTE).exists(x =>
+    Try(x.asInstanceOf[Boolean]).getOrElse(throw new IllegalArgumentException(META_FIELD_XML_ATTRIBUTE + " needs a boolean value")))
 }

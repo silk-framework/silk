@@ -77,10 +77,6 @@ case class TypedPath(
 
 object TypedPath {
 
-  val META_FIELD_XML_ATTRIBUTE: String = "isXmlAttribute"
-  val META_FIELD_ORIGIN_NAME: String = "originalName"
-  val META_FIELD_VALUE_TYPE = "valueType"
-
   /**
     * @param path - the untyped path
     * @param valueType - the ValueType
