@@ -42,7 +42,12 @@ object PathWithMetadata{
   val META_FIELD_ORIGIN_NAME: String = "originalName"
   val META_FIELD_VALUE_TYPE = "valueType"
 
-  implicit def fromTypedPath(tp: TypedPath): PathWithMetadata = tp match {
+  /**
+    * converts TypedPath  to PathWIthMetadata
+    * ATTENTION: since this will not guarantee the origin column name, it should be used with care
+    * @param tp - the TypedPath to convert
+    */
+  def fromTypedPath(tp: TypedPath): PathWithMetadata = tp match {
     case pwm: PathWithMetadata => pwm
     case tp: TypedPath => apply(tp.operators, tp.valueType, Map[String, Any](
         META_FIELD_XML_ATTRIBUTE -> tp.isAttribute,
