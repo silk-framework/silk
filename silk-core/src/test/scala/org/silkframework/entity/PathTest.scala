@@ -152,7 +152,7 @@ class PathTest extends FlatSpec with Matchers {
 
   it should "be convertable to a string typed path" in {
     val ops = ForwardOperator("http://www.example.org/p") :: Nil
-    UntypedPath(ops).asStringTypedPath shouldBe TypedPath(ops, StringValueType, isAttribute = false)
+    UntypedPath(ops).asStringTypedPath shouldBe TypedPath(ops, StringValueType, xmlAttribute = false)
   }
 
   it should "be usable in a pattern matching case" in {

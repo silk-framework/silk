@@ -1,6 +1,7 @@
 package org.silkframework.entity.paths
 
 import org.silkframework.config.Prefixes
+import org.silkframework.entity.paths.PathWithMetadata.requiredMetadataKeys
 import org.silkframework.entity.{PlainValueTypeSerialization, ValueType}
 import org.silkframework.entity.paths.TypedPath._
 import org.silkframework.runtime.serialization.WriteContext
@@ -16,11 +17,13 @@ import scala.util.Try
   * @param valueType the type that has to be considered during processing.
   * @param metadata an immutable map that stores metadata object
   */
-class PathWithMetadata(
+class PathWithMetadata (
   operators: List[PathOperator],
   valueType: ValueType,
   val metadata: Map[String, Any]
 ) extends TypedPath(operators, valueType, PathWithMetadata.isXmlAttribute(metadata)){
+
+  assert(requiredMetadataKeys.flatMap(metadata.get).size == requiredMetadataKeys.size, "A PathWithMetadata con only be initialized with the following metadata: " + requiredMetadataKeys.mkString(", "))
 
   /**
     * Returns the original input String
@@ -28,7 +31,10 @@ class PathWithMetadata(
     */
   def getOriginalName: Option[String] = metadata.get(TypedPath.META_FIELD_ORIGIN_NAME).map(_.toString)
 
-
+  def putMetadata(kVs: (String, Any)*): PathWithMetadata = {
+    val keys = kVs.map(_._1).distinct
+    PathWithMetadata(this.operators, this.valueType, metadata = this.metadata.filterNot(x => keys.contains(x._1)) ++ kVs)
+  }
 }
 
 object PathWithMetadata{
@@ -42,41 +48,42 @@ object PathWithMetadata{
       ))
   }
 
+  private val requiredMetadataKeys = Seq(META_FIELD_XML_ATTRIBUTE, META_FIELD_ORIGIN_NAME, META_FIELD_VALUE_TYPE)
   private val vtwc: WriteContext[String] = WriteContext[String]()
   /**
     * the default apply method
     */
-  def apply(operators: List[PathOperator], valueType: ValueType, metadata: Map[String, Any]): PathWithMetadata = new PathWithMetadata(operators, valueType, metadata)
+  def apply(operators: List[PathOperator], valueType: ValueType, metadata: Map[String, Any]): PathWithMetadata = {
+    new PathWithMetadata(operators, valueType, metadata)
+  }
 
   /**
     * @param path - the unparsed, untyped path
     * @param valueType - the ValueType
     * @param isAttribute - indicates whether this is an XML attribute
     */
-  def apply(path: String, valueType: ValueType, isAttribute: Boolean = false)(implicit prefixes: Prefixes = Prefixes.empty): PathWithMetadata = {
+  def apply(path: String, valueType: ValueType, isAttribute: Boolean)(implicit prefixes: Prefixes): PathWithMetadata = {
     val metadata = Map(
       META_FIELD_XML_ATTRIBUTE -> isAttribute,
-      META_FIELD_ORIGIN_NAME -> path,
+      META_FIELD_ORIGIN_NAME -> path.trim,
       META_FIELD_VALUE_TYPE -> PlainValueTypeSerialization.write(valueType)(vtwc)
     )
-    PathWithMetadata.apply(UntypedPath.saveApply(path)(prefixes).operators, valueType, metadata)
+    apply(UntypedPath.saveApply(path)(prefixes).operators, valueType, metadata)
   }
 
   /**
-    * @param path - the untyped path
+    * @param path - the unparsed, untyped path
     * @param valueType - the ValueType
     * @param metadata - an immutable map that stores metadata objects
     */
-  def apply(path: Path, valueType: ValueType, metadata: Map[String, Any]): PathWithMetadata = apply(path.operators, valueType, metadata)
-
-  /**
-    * @param ops - the path operators
-    * @param valueType - the ValueType
-    * @param isAttribute - indicates whether this is an XML attribute
-    */
-  def apply(ops: List[PathOperator], valueType: ValueType, isAttribute: Boolean): PathWithMetadata =
-    apply(ops, valueType, if(isAttribute) Map(META_FIELD_XML_ATTRIBUTE -> true) else Map.empty[String, Any]) //if not an attribute, we can leave map empty, false is assumed
-
+  def apply(path: String, valueType: ValueType, metadata: Map[String, Any])(implicit prefixes: Prefixes = Prefixes.empty): PathWithMetadata = {
+    val m = Map(
+      META_FIELD_XML_ATTRIBUTE -> metadata.getOrElse(META_FIELD_XML_ATTRIBUTE, false),
+      META_FIELD_ORIGIN_NAME -> path.trim,
+      META_FIELD_VALUE_TYPE -> PlainValueTypeSerialization.write(valueType)(vtwc)
+    ) ++ metadata.filterKeys(k => ! requiredMetadataKeys.contains(k))
+    apply(UntypedPath.saveApply(path)(prefixes).operators, valueType, m)
+  }
 
   def isXmlAttribute(path: PathWithMetadata): Boolean = isXmlAttribute(path.metadata)
 
