@@ -9,8 +9,11 @@ import scala.language.implicitConversions
 import scala.util.Try
 
 /**
-  * A [[Path]] with an expected type statement. It describes the sequence of properties necessary to arrive at the
-  * destination object and supplies an expected type of the object found at the destination (and optional additional metadata).
+  * A [[Path]] with an expected type statement and a metadata map, containing a minimum of metadata
+  * (i.e. the fields original name, type and whether or not is is an XML attribute).
+  * This class should be used instead of [[TypedPath]] whenever it is important to keep the origin name
+  * or type of a column or when additional metadata needs to be transported.
+  * DataIntegration uses this class to transport all necessary metadata of a FieldMetadata object.
   *
   * @param operators the path operators
   * @param valueType the type that has to be considered during processing.
@@ -22,25 +25,21 @@ class PathWithMetadata (
   val metadata: Map[String, Any]
 ) extends TypedPath(operators, valueType, PathWithMetadata.isXmlAttribute(metadata)){
 
-  assert(requiredMetadataKeys.flatMap(metadata.get).size == requiredMetadataKeys.size, "A PathWithMetadata con only be initialized with the following metadata: " + requiredMetadataKeys.mkString(", "))
+  assert(requiredMetadataKeys.flatMap(metadata.get).size == requiredMetadataKeys.size,
+    "A PathWithMetadata con only be initialized with the following metadata: " + requiredMetadataKeys.mkString(", "))
 
   /**
     * Returns the original input String
-    * @return
     */
-  def getOriginalName: Option[String] = metadata.get(PathWithMetadata.META_FIELD_ORIGIN_NAME).map(_.toString)
+  def getOriginalName: String = metadata(PathWithMetadata.META_FIELD_ORIGIN_NAME).toString
 
-  def putMetadata(kVs: (String, Any)*): PathWithMetadata = {
-    val keys = kVs.map(_._1).distinct
-    PathWithMetadata(this.operators, this.valueType, metadata = this.metadata.filterNot(x => keys.contains(x._1)) ++ kVs)
-  }
 }
 
 object PathWithMetadata{
 
   val META_FIELD_XML_ATTRIBUTE: String = "isXmlAttribute"
   val META_FIELD_ORIGIN_NAME: String = "originalName"
-  val META_FIELD_VALUE_TYPE = "valueType"
+  val META_FIELD_VALUE_TYPE: String = "valueType"
 
   /**
     * converts TypedPath  to PathWIthMetadata
@@ -94,6 +93,10 @@ object PathWithMetadata{
     apply(UntypedPath.saveApply(path)(prefixes).operators, valueType, m ++ oldM)
   }
 
+  /**
+    * determines whether or not the given PathWithMetadata is an XML attribute, based on the provided metadata.
+    * @param path - the PathWithMetadata
+    */
   def isXmlAttribute(path: PathWithMetadata): Boolean = isXmlAttribute(path.metadata)
 
   private def isXmlAttribute(metadata: Map[String, Any]): Boolean = metadata.get(META_FIELD_XML_ATTRIBUTE).exists(x =>
