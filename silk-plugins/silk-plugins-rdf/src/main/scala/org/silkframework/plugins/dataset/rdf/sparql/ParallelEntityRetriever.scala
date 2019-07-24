@@ -18,8 +18,9 @@ import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder, SparqlRestriction}
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
@@ -65,7 +66,9 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       var counter = 0
       val startTime = System.currentTimeMillis()
 
-      val pathRetrievers = for (path <- entitySchema.typedPaths) yield new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema, entityUris), path, limit)
+      val pathRetrievers = for (typedPath <- entitySchema.typedPaths) yield {
+        new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema, entityUris), typedPath.toUntypedPath, limit)
+      }
 
       pathRetrievers.foreach(_.start())
 
@@ -100,7 +103,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       }
     }
 
-    private def handleInconsistentOrder[U](f: (Entity) => U, counter: Int): Unit = {
+    private def handleInconsistentOrder[U](f: Entity => U, counter: Int): Unit = {
       if (!useOrderBy) {
         logger.info("Querying endpoint '" + endpoint + "' without order-by failed. Using order-by.")
         val entityRetriever = new ParallelEntityRetriever(endpoint, pageSize, graphUri, true)
@@ -117,11 +120,11 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
     }
   }
 
-  private class PathRetriever(entityUris: Seq[Uri], entityDesc: SparqlEntitySchema, path: Path, limit: Option[Int])
+  private class PathRetriever(entityUris: Seq[Uri], entityDesc: SparqlEntitySchema, path: UntypedPath, limit: Option[Int])
                              (implicit userContext: UserContext)extends Thread {
     private val queue = new ConcurrentLinkedQueue[PathValues]()
 
-    @volatile private var exception: Throwable = null
+    @volatile private var exception: Throwable = _
 
     def hasNext: Boolean = {
       //If the queue is empty, wait until an element has been read
@@ -220,7 +223,7 @@ object ParallelEntityRetriever {
     */
   def pathQuery(subjectVar: String,
                 restriction: SparqlRestriction,
-                path: Path,
+                path: UntypedPath,
                 useDistinct: Boolean,
                 graphUri: Option[String],
                 useOrderBy: Boolean,

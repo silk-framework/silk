@@ -18,7 +18,8 @@ import java.util.logging.Logger
 
 import org.silkframework.config.{DefaultConfig, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset._
-import org.silkframework.entity.{EntitySchema, Path, StringValueType, TypedPath}
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.{EntitySchema, StringValueType}
 import org.silkframework.execution.local.LinksTable
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
@@ -68,8 +69,8 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
       case None => Set[TypedPath]()
     }
 
-    val sourceEntityDesc = EntitySchema(dataSelections.source.typeUri, sourcePaths.toIndexedSeq.distinct, sourceRestriction, Path.empty)
-    val targetEntityDesc = EntitySchema(dataSelections.target.typeUri, targetPaths.toIndexedSeq.distinct, targetRestriction, Path.empty)
+    val sourceEntityDesc = EntitySchema(dataSelections.source.typeUri, sourcePaths.toIndexedSeq.distinct, sourceRestriction, UntypedPath.empty)
+    val targetEntityDesc = EntitySchema(dataSelections.target.typeUri, targetPaths.toIndexedSeq.distinct, targetRestriction, UntypedPath.empty)
 
     DPair(sourceEntityDesc, targetEntityDesc)
   }

@@ -14,7 +14,8 @@
 
 package org.silkframework.rule.input
 
-import org.silkframework.entity.{Entity, Path}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.Entity
 import org.silkframework.rule.Operator
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 
@@ -57,12 +58,12 @@ object Input {
     }
   }
 
-  def rewriteSourcePaths(input: Input, rewriteFn: Path => Path): Input = {
+  def rewriteSourcePaths(input: Input, rewriteFn: UntypedPath => UntypedPath): Input = {
     input match {
       case TransformInput(id, transformer, inputs) =>
         TransformInput(id, transformer, inputs.map(rewriteSourcePaths(_, rewriteFn)))
       case PathInput(id, path) =>
-        PathInput(id, rewriteFn(path))
+        PathInput(id, rewriteFn(path.asUntypedPath))
     }
   }
 }

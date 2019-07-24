@@ -6,8 +6,8 @@ import controllers.util.SerializationUtils._
 import javax.inject.Inject
 import org.silkframework.config.{PlainTask, Prefixes, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpointEntityTable}
 import org.silkframework.dataset._
+import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpointEntityTable}
 import org.silkframework.entity._
 import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlSelectExecutor
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
@@ -23,8 +23,8 @@ import play.api.mvc._
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
-
 import PeakTransformApi._
+import org.silkframework.entity.paths.{Path, TypedPath}
 
 class PeakTransformApi @Inject() () extends InjectedController {
 
@@ -217,6 +217,18 @@ object PeakTransformApi {
       }
     }
     (tryCounter, errorCounter, errorMessage, resultBuffer)
+  }
+
+  private def serializePath(path: TypedPath)
+                           (implicit prefixes: Prefixes): Seq[String] = {
+    path.operators.map { op =>
+      op.serialize
+    }
+  }
+
+  private def projectAndTask(projectName: String, taskName: String)
+                            (implicit userContext: UserContext): (Project, ProjectTask[TransformSpec]) = {
+    getProjectAndTask[TransformSpec](projectName, taskName)
   }
 
 }

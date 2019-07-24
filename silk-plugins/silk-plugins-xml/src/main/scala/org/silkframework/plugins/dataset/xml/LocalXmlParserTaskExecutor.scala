@@ -4,7 +4,7 @@ import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.{ExecutionReport, ExecutorRegistry, TaskException}
-import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
+import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 
@@ -28,7 +28,7 @@ case class LocalXmlParserTaskExecutor() extends LocalExecutor[XmlParserTask] {
       val entities = entityTable.entities
 
       val pathIndex = spec.parsedInputPath match {
-        case Some(path) => entityTable.entitySchema.pathIndex(path)  //FIXME path Index should be called with ValueType (TypedPath)
+        case Some(path) => entityTable.entitySchema.indexOfPath(path)
         case None => 0 // Take the value of the first path
       }
 

@@ -1,8 +1,9 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.config.CustomTask
-import org.silkframework.entity.{Path, EntitySchema}
-import org.silkframework.runtime.plugin.{Plugin, Param}
+import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.util.Uri
 
 @Plugin(
@@ -19,7 +20,7 @@ case class XmlParserTask(@Param(XmlParserTask.INPUT_PATH_PARAM_DESCRIPTION)
                          uriSuffixPattern: String = "") extends CustomTask {
   val parsedInputPath = {
     if (inputPath != "") {
-      Some(Path.parse(inputPath))
+      Some(UntypedPath.parse(inputPath))
     } else {
       None
     }

@@ -3,7 +3,8 @@ package org.silkframework.rule
 import org.silkframework.config.Task
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.entity.metadata.GenericExecutionFailure
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.failures.FailureClass
 import org.silkframework.util.Uri
@@ -24,7 +25,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     */
   override def retrieveTypes(limit: Option[Int] = None)
                             (implicit userContext: UserContext): Traversable[(String, Double)] = {
-    for(TypeMapping(name, typeUri, _) <- transformRule.rules.typeRules) yield {
+    for(TypeMapping(_, typeUri, _) <- transformRule.rules.typeRules) yield {
       (typeUri.toString, 1.0)
     }
   }
@@ -37,8 +38,8 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @param limit Restricts the number of paths to be retrieved. No effect on this data source.
     */
   override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None)
-                            (implicit userContext: UserContext): IndexedSeq[Path] = {
-    transformRule.rules.allRules.flatMap(_.target).map(_.asPath()).distinct.toIndexedSeq
+                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+    transformRule.rules.allRules.flatMap(_.target).map(_.asTypedPath()).distinct.toIndexedSeq
   }
 
   /**
@@ -74,7 +75,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     val subjectRule = transformRule.rules.allRules.find(_.target.isEmpty)
     val pathRules =
       for (typedPath <- entitySchema.typedPaths) yield {
-        transformRule.rules.allRules.filter(_.target.map(_.asPath()).contains(typedPath))
+        transformRule.rules.allRules.filter(_.target.map(_.asTypedPath()).contains(typedPath))
       }
 
     val sourceEntities = source.retrieve(inputSchema, limit)

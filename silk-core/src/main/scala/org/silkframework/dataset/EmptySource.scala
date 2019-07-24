@@ -1,6 +1,7 @@
 package org.silkframework.dataset
 import org.silkframework.config.{PlainTask, Task}
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
@@ -15,7 +16,7 @@ object EmptySource extends DataSource {
   }
 
   override def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None)
-                            (implicit userContext: UserContext): IndexedSeq[Path] = {
+                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     IndexedSeq.empty
   }
 

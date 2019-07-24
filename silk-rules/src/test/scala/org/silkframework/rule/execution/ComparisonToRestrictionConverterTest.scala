@@ -1,7 +1,8 @@
 package org.silkframework.rule.execution
 
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.entity.{Path, Restriction}
+import org.silkframework.entity.Restriction
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.input.{PathInput, TransformInput}
 import org.silkframework.rule.plugins.aggegrator.{MaximumAggregator, MinimumAggregator, NegationAggregator}
 import org.silkframework.rule.plugins.distance.equality.{EqualityMetric, InequalityMetric}
@@ -131,7 +132,7 @@ class ComparisonToRestrictionConverterTest extends FlatSpec with MustMatchers {
   private def sourceComparison(sourcePath: String, constant: String, metric: DistanceMeasure): Comparison = Comparison(
     metric = metric,
     inputs = DPair(
-      PathInput(path = Path(sourcePath)),
+      PathInput(path = UntypedPath(sourcePath)),
       TransformInput(transformer = ConstantTransformer(constant))
     )
   )

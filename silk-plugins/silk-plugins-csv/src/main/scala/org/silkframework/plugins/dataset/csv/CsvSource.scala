@@ -8,8 +8,9 @@ import java.util.regex.Pattern
 
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
-import org.silkframework.entity.Path.IDX_PATH_IDX
+import org.silkframework.entity.paths.UntypedPath.IDX_PATH_IDX
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
@@ -32,8 +33,7 @@ class CsvSource(file: Resource,
                 ignoreMalformedInputExceptionInPropertyList: Boolean = false)
     extends DataSource
         with PathCoverageDataSource
-        with PeakDataSource
-        with TypedPathRetrieveDataSource {
+        with PeakDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -96,22 +96,15 @@ class CsvSource(file: Resource,
   override def toString: String = file.toString
 
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
-                            (implicit userContext: UserContext): IndexedSeq[Path] = {
+                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     try {
       for (property <- propertyList) yield {
-        Path(ForwardOperator(Uri.parse(property)) :: Nil)
+        UntypedPath(ForwardOperator(Uri.parse(property)) :: Nil).asStringTypedPath
       }
     } catch {
       case e: MalformedInputException =>
         throw new RuntimeException("Exception in CsvSource " + file.name, e)
     }
-  }
-
-  override def retrieveTypedPath(typeUri: Uri,
-                                 depth: Int,
-                                 limit: Option[Int])
-                                (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
-    retrievePaths(typeUri, depth, limit).map(_.asStringTypedPath)
   }
 
   override def retrieve(entitySchema: EntitySchema, limitOpt: Option[Int] = None)
@@ -344,7 +337,7 @@ class CsvSource(file: Resource,
   /**
     * returns the combined path. Depending on the data source the input path may or may not be modified based on the type URI.
     */
-  override def combinedPath(typeUri: String, inputPath: Path): Path = inputPath
+  override def combinedPath(typeUri: String, inputPath: UntypedPath): UntypedPath = inputPath
 
   def autoConfigure(): CsvAutoconfiguredParameters = {
     val csvSource = new CsvSource(file, csvSettings, properties, uriPattern, regexFilter, codec,

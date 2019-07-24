@@ -15,7 +15,7 @@
 package org.silkframework.learning.generation
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.Path
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.learning.LearningConfiguration.Components
 import org.silkframework.learning.individual._
 import org.silkframework.rule.input.Transformer
@@ -28,12 +28,12 @@ class PatternGenerator(components: Components) {
 
   private val handlers = LabelHandler :: Wgs84Handler :: Nil
 
-  def apply(paths: DPair[Traversable[Path]]): Traversable[ComparisonGenerator] = {
+  def apply(paths: DPair[Traversable[UntypedPath]]): Traversable[ComparisonGenerator] = {
     handlers.flatMap(_.apply(paths))
   }
 
-  private trait Handler extends (DPair[Traversable[Path]] => Option[ComparisonGenerator]) {
-    protected def getProperty(paths: DPair[Traversable[Path]], property: String): Option[DPair[Path]] = {
+  private trait Handler extends (DPair[Traversable[UntypedPath]] => Option[ComparisonGenerator]) {
+    protected def getProperty(paths: DPair[Traversable[UntypedPath]], property: String): Option[DPair[UntypedPath]] = {
       (paths.source.find(_.serialize().contains(property)), paths.target.find(_.serialize().contains(property))) match {
         case (Some(sourcePath), Some(targetPath)) => Some(DPair(sourcePath, targetPath))
         case _ => None
@@ -44,12 +44,12 @@ class PatternGenerator(components: Components) {
   private object LabelHandler extends Handler {
     private val labelProperty = "http://www.w3.org/2000/01/rdf-schema#label"
 
-    def apply(paths: DPair[Traversable[Path]]) = {
+    def apply(paths: DPair[Traversable[UntypedPath]]) = {
       getProperty(paths, labelProperty).map(createGenerator)
     }
 
     //TODO create measures other than levensthein
-    private def createGenerator(pathPair: DPair[Path]) = {
+    private def createGenerator(pathPair: DPair[UntypedPath]) = {
       new ComparisonGenerator(
         inputGenerators = InputGenerator.fromPathPair(pathPair, components.transformations),
         measure = FunctionNode("levenshteinDistance", Nil, DistanceMeasure),
@@ -62,14 +62,14 @@ class PatternGenerator(components: Components) {
     private val latProperty = "http://www.w3.org/2003/01/geo/wgs84_pos#lat"
     private val longProperty = "http://www.w3.org/2003/01/geo/wgs84_pos#long"
 
-    def apply(paths: DPair[Traversable[Path]]) = {
+    def apply(paths: DPair[Traversable[UntypedPath]]) = {
       (getProperty(paths, latProperty), getProperty(paths, longProperty)) match {
         case (Some(latPaths), Some(longPaths)) => Some(createGenerator(latPaths, longPaths))
         case _ => None
       }
     }
 
-    private def createGenerator(latPaths: DPair[Path], longPaths: DPair[Path]) = {
+    private def createGenerator(latPaths: DPair[UntypedPath], longPaths: DPair[UntypedPath]) = {
       val inputs =
         DPair(
           TransformNode(

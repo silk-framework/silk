@@ -1,11 +1,11 @@
 package org.silkframework.rule
 
-import org.silkframework.entity.TypedPath
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.aggegrator.{MaximumAggregator, MinimumAggregator, NegationAggregator}
 import org.silkframework.rule.similarity.{Aggregation, Aggregator, Comparison, SimilarityOperator}
 import org.silkframework.util.Identifier
 import BooleanLinkageRule.MAX_COMPARISONS_IN_LINKAGE_RULE_FOR_CNF_CONVERSION
+import org.silkframework.entity.paths.TypedPath
 
 /**
   * A link spec as a boolean rule. This representation is only applicable to a subset of linking rules.
@@ -207,7 +207,7 @@ object BooleanLinkageRule {
   def convert(input: Input): ValueOutputOperator = {
     input match {
       case pi: PathInput =>
-        InputPathOperator(pi.path.asStringTypedPath, pi)
+        InputPathOperator(pi.path.asUntypedPath.asStringTypedPath, pi)
       case ti: TransformInput =>
         TransformationOperator(ti.inputs.map(convert), ti)
     }

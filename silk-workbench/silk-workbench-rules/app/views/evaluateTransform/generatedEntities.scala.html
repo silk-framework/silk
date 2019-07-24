@@ -1,6 +1,6 @@
 @import org.silkframework.config.Prefixes
 @import org.silkframework.rule.evaluation.{DetailedEntity, Value, TransformedValue, InputValue}
-@import org.silkframework.entity.AutoDetectValueType
+@import org.silkframework.entity.UntypedValueType
 @import controllers.core.routes.{Assets => CoreAssets}
 @import controllers.rules.routes.Assets
 @import java.util.UUID
@@ -55,7 +55,7 @@
             <span class="property">
               @for(target <- rule.target) {
                 @target.propertyUri.serialize(prefixes)
-                @if(target.valueType != AutoDetectValueType) {
+                @if(target.valueType != UntypedValueType) {
                   (@target.valueType.label)
                 }
               }

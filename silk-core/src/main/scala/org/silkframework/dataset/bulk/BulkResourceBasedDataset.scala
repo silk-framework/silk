@@ -4,7 +4,7 @@ import java.io.File
 import java.util.logging.Logger
 import java.util.zip.{ZipException, ZipFile}
 
-import org.silkframework.dataset.{DataSource, Dataset, ResourceBasedDataset, TypedPathRetrieveDataSource}
+import org.silkframework.dataset.{DataSource, Dataset, ResourceBasedDataset}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ReadOnlyResource, Resource, ZipResourceLoader}
 import org.silkframework.runtime.validation.ValidationException
@@ -30,12 +30,12 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
   /**
     * Creates a data source for a particular resource inside the bulk file.
     */
-  def createSource(resource: Resource): DataSource with TypedPathRetrieveDataSource
+  def createSource(resource: Resource): DataSource
 
   /**
     * Returns a data source for reading entities from the data set.
     */
-  override final def source(implicit userContext: UserContext): DataSource with TypedPathRetrieveDataSource = {
+  override final def source(implicit userContext: UserContext): DataSource = {
     allResources match {
       case Seq(singleResource) =>
         createSource(singleResource)

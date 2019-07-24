@@ -1,8 +1,8 @@
 package org.silkframework.workspace.activity
 
 import org.silkframework.config.TaskSpec
-import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, TypedPathRetrieveDataSource}
-import org.silkframework.entity.TypedPath
+import org.silkframework.dataset.{Dataset, DatasetSpec}
+import org.silkframework.entity.paths.TypedPath
 import org.silkframework.rule.DatasetSelection
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.util.Identifier
@@ -22,17 +22,8 @@ trait PathsCacheTrait {
       case dataset: DatasetSpec[Dataset] =>
         context.status.update("Retrieving frequent paths", 0.0)
         dataSelection match {
-          case Some(selection) =>
-            dataset.plugin.source match {
-              case typedDataSource: TypedPathRetrieveDataSource =>
-                // Return typed path, i.e. either UriValueType or StringValueType
-                typedDataSource.retrieveTypedPath(selection.typeUri)
-              case ds: DataSource =>
-                // Always return AutoDetectValueType because we don't know the value type
-                ds.retrievePaths(selection.typeUri, Int.MaxValue).map(_.asAutoDetectTypedPath)
-            }
-          case None =>
-            IndexedSeq()
+          case Some(selection) => dataset.plugin.source.retrievePaths(selection.typeUri, Int.MaxValue)
+          case None => IndexedSeq()
         }
       case task: TaskSpec =>
         task.outputSchemaOpt match {

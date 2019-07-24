@@ -2,6 +2,7 @@ package org.silkframework.execution.local
 
 import org.silkframework.config.{SilkVocab, Task, TaskSpec}
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.InterruptibleTraversable
 import org.silkframework.util.Uri
 
@@ -19,7 +20,7 @@ object SparqlUpdateEntitySchema {
   final val schema = EntitySchema(
     typeUri = Uri(SilkVocab.SparqlUpdateSchemaType),
     typedPaths = IndexedSeq(
-      TypedPath(Path(SilkVocab.sparqlUpdateQuery), StringValueType, isAttribute = false)
+      TypedPath(UntypedPath(SilkVocab.sparqlUpdateQuery), StringValueType, isAttribute = false)
     )
   )
 }

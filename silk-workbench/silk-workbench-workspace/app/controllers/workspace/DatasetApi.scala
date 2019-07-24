@@ -8,7 +8,8 @@ import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
-import org.silkframework.entity.{EntitySchema, Path}
+import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
@@ -113,10 +114,10 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
 
     val firstTypes = source.retrieveTypes().head._1
     val paths = source.retrievePaths(firstTypes).toIndexedSeq
-    val entityDesc = EntitySchema(firstTypes, paths.map(_.asStringTypedPath))
+    val entityDesc = EntitySchema(firstTypes, paths)
     val entities = source.retrieve(entityDesc).take(maxEntities).toList
 
-    Ok(views.html.workspace.dataset.table(context, paths, entities))
+    Ok(views.html.workspace.dataset.table(context, paths.map(_.toUntypedPath), entities))
   }
 
   def sparql(project: String, task: String, query: String = ""): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
@@ -161,7 +162,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
       val project = WorkspaceFactory().workspace.project(projectName)
       val datasetTask = project.task[GenericDatasetSpec](datasetId)
       val inputPaths = transformationInputPaths(project)
-      val dataSourcePath = Path.parse(mappingCoverageRequest.dataSourcePath)
+      val dataSourcePath = UntypedPath.parse(mappingCoverageRequest.dataSourcePath)
       datasetTask.plugin.source match {
         case vd: PathCoverageDataSource with ValueCoverageDataSource =>
           val matchingInputPaths = for (coveragePathInput <- inputPaths;
@@ -228,7 +229,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
       val typeUri = transformation.selection.typeUri
       // TODO: Filter by mapping type, e.g. no URI mapping?
       val paths = transformation.rules.flatMap(_.sourcePaths).distinct
-      CoveragePathInput(typeUri.uri, paths)
+      CoveragePathInput(typeUri.uri, paths.map(_.toUntypedPath))
     }
   }
 

@@ -1,7 +1,7 @@
 package org.silkframework.rule.execution.local
 
 import org.silkframework.config.Task
-import org.silkframework.entity.{EntitySchema, TypedPath}
+import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, MultiEntityTable}
 import org.silkframework.execution.{ExecutionReport, Executor, TaskException}
 import org.silkframework.rule._
@@ -53,7 +53,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
         val childOutputSchema =
           EntitySchema(
             typeUri = childRules.collectFirst { case tm: TypeMapping => tm.typeUri }.getOrElse(""),
-            typedPaths = childRules.flatMap(_.target).map(mt => TypedPath(mt.asPath(), mt.valueType, mt.isAttribute)).toIndexedSeq
+            typedPaths = childRules.flatMap(_.target).map(mt => mt.asTypedPath()).toIndexedSeq
           )
 
         val updatedChildRules = childRules.copy(uriRule = childRules.uriRule.orElse(objectMapping.uriRule()))

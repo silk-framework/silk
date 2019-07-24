@@ -19,7 +19,8 @@ import java.net.URLDecoder
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.{EntitySchema, Path, StringValueType, UriValueType}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.{EntitySchema, StringValueType, UriValueType}
 import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.FileResourceManager
@@ -45,7 +46,7 @@ class FileDataSourceTest extends FlatSpec with Matchers {
   val entityDescCity =
     EntitySchema(
       typeUri = Uri("http://dbpedia.org/ontology/City"),
-      typedPaths = IndexedSeq(Path.parse("?a/rdfs:label").asStringTypedPath)
+      typedPaths = IndexedSeq(UntypedPath.parse("?a/rdfs:label").asStringTypedPath)
     )
 
   it should "return all cities" in {
@@ -56,16 +57,16 @@ class FileDataSourceTest extends FlatSpec with Matchers {
     dataset.source.retrieveByUri(entityDescCity, "http://dbpedia.org/resource/Berlin" :: Nil).size should equal (1)
   }
 
-  private val pathPlaces = Path.parse("?a/do:place/rdfs:label")
+  private val pathPlaces = UntypedPath.parse("?a/do:place/rdfs:label").asStringTypedPath
 
-  private val pathPlacesCalledMunich = Path.parse("""?a/do:place[rdfs:label = "Munich"]/rdfs:label""")
+  private val pathPlacesCalledMunich = UntypedPath.parse("""?a/do:place[rdfs:label = "Munich"]/rdfs:label""").asStringTypedPath
 
-  private val pathCities = Path.parse("""?a/do:place[rdf:type = do:City]/rdfs:label""")
+  private val pathCities = UntypedPath.parse("""?a/do:place[rdf:type = do:City]/rdfs:label""").asStringTypedPath
 
   private val entityDescPerson =
     EntitySchema(
       typeUri = Uri("http://dbpedia.org/ontology/Person"),
-      typedPaths = IndexedSeq(pathPlaces, pathPlacesCalledMunich, pathCities).map(_.asStringTypedPath)
+      typedPaths = IndexedSeq(pathPlaces, pathPlacesCalledMunich, pathCities)
     )
 
   private val persons = dataset.source.retrieve(entityDescPerson).toList
@@ -78,8 +79,8 @@ class FileDataSourceTest extends FlatSpec with Matchers {
   }
 
   it should "return typed paths" in {
-    dataset.source.retrieveTypedPath("http://dbpedia.org/ontology/City").
-        map(tp => tp.normalizedSerialization -> tp.valueType) shouldBe IndexedSeq(
+    dataset.source.retrievePaths("http://dbpedia.org/ontology/City").
+        map(tp => tp.toUntypedPath.normalizedSerialization -> tp.valueType) shouldBe IndexedSeq(
           "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>" -> UriValueType,
           "<http://www.w3.org/2000/01/rdf-schema#label>" -> StringValueType,
           "\\<http://dbpedia.org/ontology/place>" -> UriValueType

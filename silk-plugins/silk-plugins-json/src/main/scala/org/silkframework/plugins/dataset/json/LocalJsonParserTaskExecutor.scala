@@ -2,7 +2,6 @@ package org.silkframework.plugins.dataset.json
 
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.DatasetSpec
-import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.{ExecutionReport, ExecutorRegistry, TaskException}
@@ -28,7 +27,7 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
       val entities = entityTable.entities
 
       val pathIndex = spec.parsedInputPath match {
-        case Some(path) => entityTable.entitySchema.pathIndex(path)
+        case Some(path) => entityTable.entitySchema.indexOfPath(path)
         case None => 0 // Take the value of the first path
       }
 

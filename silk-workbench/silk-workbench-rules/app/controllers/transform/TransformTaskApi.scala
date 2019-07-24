@@ -24,6 +24,7 @@ import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
 import TransformTaskApi._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 
 class TransformTaskApi @Inject() () extends InjectedController {
 
@@ -452,18 +453,18 @@ class TransformTaskApi @Inject() () extends InjectedController {
             if(isRdfInput) {
               p
             } else {
-              Path(p.operators.drop(sourcePath.size))
+              TypedPath.removePathPrefix(p, UntypedPath(sourcePath))
             }
         }
         val filteredPaths = if(unusedOnly) {
           val sourcePaths = task.data.valueSourcePaths(ruleId, maxDepth)
           matchingPaths.filterNot { path =>
-            sourcePaths.contains(path)
+            sourcePaths.contains(path.asUntypedPath)
           }
         } else {
           matchingPaths
         }
-        Ok(Json.toJson(filteredPaths.map(_.serialize())))
+        Ok(Json.toJson(filteredPaths.map(_.toUntypedPath.serialize())))
       case None =>
         NotFound("No rule found with ID " + ruleId)
     }
