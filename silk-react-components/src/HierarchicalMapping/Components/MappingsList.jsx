@@ -3,21 +3,19 @@ import _ from 'lodash';
 import {
     Card,
     CardTitle,
-    CardMenu,
     CardContent,
     FloatingActionList,
     Info,
 } from '@eccenca/gui-elements';
 import MappingRule from './MappingRule/MappingRule';
-import Navigation from '../Mixins/Navigation';
 import {MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT} from '../helpers';
 import UseMessageBus from '../UseMessageBusMixin';
-import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
+import {DragDropContext, Droppable} from 'react-beautiful-dnd';
 import hierarchicalMappingChannel from '../store';
 import { MESSAGES } from '../constants';
 
 const MappingsList = React.createClass({
-    mixins: [Navigation, UseMessageBus],
+    mixins: [UseMessageBus],
     // define property types
     propTypes: {
         rules: React.PropTypes.array.isRequired,
@@ -98,6 +96,17 @@ const MappingsList = React.createClass({
             toPos,
             reload,
         });
+    },
+    handleCreate(infoCreation) {
+        hierarchicalMappingChannel
+            .subject(MESSAGES.MAPPING.CREATE)
+            .onNext(infoCreation);
+    },
+    handleShowSuggestions(event) {
+        event.persist();
+        hierarchicalMappingChannel
+            .subject(MESSAGES.MAPPING.SHOW_SUGGESTIONS)
+            .onNext(event);
     },
     getItems(rules) {
         return _.map(rules, (rule, i) => ({

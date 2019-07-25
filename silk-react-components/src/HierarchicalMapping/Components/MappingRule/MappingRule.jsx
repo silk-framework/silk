@@ -22,12 +22,11 @@ import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
 import {RuleTypes, SourcePath, ThingIcon} from './SharedComponents';
 import {getRuleLabel, isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT,} from '../../helpers';
-import Navigation from '../../Mixins/Navigation';
 import className from 'classnames';
 import { MESSAGES } from '../../constants';
 
 const MappingRule = React.createClass({
-    mixins: [UseMessageBus, Navigation],
+    mixins: [UseMessageBus],
 
     // define property types
     propTypes: {
@@ -141,6 +140,14 @@ const MappingRule = React.createClass({
         hierarchicalMappingChannel
             .subject(MESSAGES.RULE.REQUEST_ORDER)
             .onNext({toPos, fromPos, reload: true});
+    },
+    // jumps to selected rule as new center of view
+    handleNavigate(id, parent, event) {
+        hierarchicalMappingChannel
+            .subject(MESSAGES.RULE_ID.CHANGE)
+            .onNext({newRuleId: id, parentId: parent});
+        
+        event.stopPropagation();
     },
     // template rendering
     render() {

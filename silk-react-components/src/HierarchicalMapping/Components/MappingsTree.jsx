@@ -9,11 +9,9 @@ import {
     Button,
     Icon,
     Card,
-    CardTitle,
     CardContent,
 } from '@eccenca/gui-elements';
 
-import Navigation from '../Mixins/Navigation';
 import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../store';
 import {RuleTreeTitle, RuleTreeTypes} from './MappingRule/SharedComponents';
@@ -21,7 +19,7 @@ import {MAPPING_RULE_TYPE_OBJECT, MAPPING_RULE_TYPE_ROOT} from '../helpers';
 import { MESSAGES } from '../constants';
 
 const MappingsTree = React.createClass({
-    mixins: [UseMessageBus, Navigation],
+    mixins: [UseMessageBus],
 
     // define property types
     propTypes: {
@@ -184,6 +182,14 @@ const MappingsTree = React.createClass({
 
         return tree;
     },
+    // jumps to selected rule as new center of view
+    handleNavigate(id, parent, event) {
+        hierarchicalMappingChannel
+            .subject(MESSAGES.RULE_ID.CHANGE)
+            .onNext({newRuleId: id, parentId: parent});
+        
+        event.stopPropagation();
+    },
     // template rendering
     render() {
         const tree = this.markTree(_.cloneDeep(this.state.tree));
@@ -206,7 +212,7 @@ const MappingsTree = React.createClass({
             const element = () => (
                 <button
                     className="ecc-silk-mapping__treenav--item-handler"
-                    onClick={this.handleNavigate.bind(null, id, undefined)}>
+                    onClick={(e) => this.handleNavigate(id, undefined, e)}>
                     <span className="ecc-silk-mapping__treenav--item-maintitle">
                         <RuleTreeTitle rule={parent} />
                         { this.renderRuleIcon(id) }

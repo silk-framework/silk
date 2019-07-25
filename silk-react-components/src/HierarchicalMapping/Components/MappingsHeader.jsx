@@ -19,14 +19,13 @@ import {
 import Navigation from '../Mixins/Navigation';
 import {
     RuleTitle,
-    RuleTypes,
-    ParentElement,
     ParentStructure,
 } from './MappingRule/SharedComponents';
+import hierarchicalMappingChannel from '../store';
+import { MESSAGES } from '../constants';
+
 
 const MappingsHeader = React.createClass({
-    mixins: [Navigation],
-
     // define property types
     propTypes: {
         // currentRuleId: React.PropTypes.string, // selected rule id
@@ -45,12 +44,33 @@ const MappingsHeader = React.createClass({
         //     this.discardAll
         // );
     },
-
+    
+    handleToggleRuleDetails(stateExpand) {
+        hierarchicalMappingChannel
+            .subject(MESSAGES.TOGGLE_DETAILS)
+            .onNext(stateExpand);
+    },
+    
+    promoteToggleTreenavigation(stateVisibility) {
+        hierarchicalMappingChannel
+            .subject(MESSAGES.TREE_NAV.TOGGLE_VISIBILITY)
+            .onNext(stateVisibility);
+    },
+    
+    
     handleToggleTreenavigation() {
         this.promoteToggleTreenavigation(!this.state.showTreenavigation);
         this.setState({
             showTreenavigation: !this.state.showTreenavigation,
         });
+    },
+    // jumps to selected rule as new center of view
+    handleNavigate(id, parent, event) {
+        hierarchicalMappingChannel
+            .subject(MESSAGES.RULE_ID.CHANGE)
+            .onNext({newRuleId: id, parentId: parent});
+        
+        event.stopPropagation();
     },
 
     // template rendering

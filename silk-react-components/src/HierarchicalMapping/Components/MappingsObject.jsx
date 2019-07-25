@@ -19,7 +19,7 @@ import {MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI} from '../helpers';
 import { MESSAGES } from '../constants';
 
 const MappingsObject = React.createClass({
-    mixins: [UseMessageBus, Navigation],
+    mixins: [UseMessageBus],
     getInitialState() {
         return {
             expanded: false,
