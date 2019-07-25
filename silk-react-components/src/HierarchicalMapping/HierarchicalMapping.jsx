@@ -20,6 +20,7 @@ import MappingsTree from './Components/MappingsTree';
 import MappingsWorkview from './Components/MappingsWorkview';
 import MessageHandler from './Components/MessageHandler';
 import {MAPPING_RULE_TYPE_OBJECT} from './helpers';
+import { MESSAGES } from './constants';
 
 const HierarchicalMapping = React.createClass({
     mixins: [UseMessageBus],
@@ -32,33 +33,32 @@ const HierarchicalMapping = React.createClass({
         initialRule: React.PropTypes.string,
     },
     componentDidMount() {
-        // listen to rule id changes
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleId.change'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_ID.CHANGE),
             this.onRuleNavigation
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('removeClick'),
+            hierarchicalMappingChannel.subject(MESSAGES.BUTTON.REMOVE_CLICK),
             this.handleClickRemove
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleView.change'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CHANGE),
             this.onOpenEdit
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleView.unchanged'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.UNCHANGED),
             this.onCloseEdit
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleView.close'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE),
             this.onCloseEdit
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleView.discardAll'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.DISCARD_ALL),
             this.discardAll
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('treenav.toggleVisibility'),
+            hierarchicalMappingChannel.subject(MESSAGES.TREE_NAV.TOGGLE_VISIBILITY),
             this.handleToggleNavigation
         );
     },
@@ -66,7 +66,7 @@ const HierarchicalMapping = React.createClass({
     getInitialState() {
         const {baseUrl, project, transformTask, initialRule} = this.props;
 
-        hierarchicalMappingChannel.subject('setSilkDetails').onNext({
+        hierarchicalMappingChannel.subject(MESSAGES.SILK.SET_DETAILS).onNext({
             baseUrl,
             project,
             transformTask,
@@ -117,7 +117,7 @@ const HierarchicalMapping = React.createClass({
         });
         hierarchicalMappingChannel
             .request({
-                topic: 'rule.removeRule',
+                topic: MESSAGES.RULE.REMOVE,
                 data: {...this.state.elementToDelete},
             })
             .subscribe(
@@ -197,7 +197,7 @@ const HierarchicalMapping = React.createClass({
     handleDiscardChanges() {
         if (_.includes(this.state.editingElements, 0)) {
             hierarchicalMappingChannel
-                .subject('ruleView.unchanged')
+                .subject(MESSAGES.RULE_VIEW.UNCHANGED)
                 .onNext({id: 0});
         }
         this.setState({
@@ -205,7 +205,7 @@ const HierarchicalMapping = React.createClass({
             currentRuleId: this.state.askForDiscard,
             askForDiscard: false,
         });
-        hierarchicalMappingChannel.subject('ruleView.discardAll').onNext();
+        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.DISCARD_ALL).onNext();
     },
     discardAll() {
         this.setState({
@@ -308,7 +308,7 @@ const HierarchicalMapping = React.createClass({
                 <Button
                     onClick={() => {
                         hierarchicalMappingChannel
-                            .subject('reload')
+                            .subject(MESSAGES.RELOAD)
                             .onNext(true);
                     }}>
                     RELOAD

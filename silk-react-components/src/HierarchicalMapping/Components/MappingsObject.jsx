@@ -16,6 +16,7 @@ import hierarchicalMappingChannel from '../store';
 import UseMessageBus from '../UseMessageBusMixin';
 import Navigation from '../Mixins/Navigation';
 import {MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI} from '../helpers';
+import { MESSAGES } from '../constants';
 
 const MappingsObject = React.createClass({
     mixins: [UseMessageBus, Navigation],
@@ -28,7 +29,7 @@ const MappingsObject = React.createClass({
     },
     componentDidMount() {
         this.subscribe(
-            hierarchicalMappingChannel.subject('rulesView.toggle'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.TOGGLE),
             ({expanded, id}) => {
                 // only trigger state / render change if necessary
                 if (
@@ -40,15 +41,15 @@ const MappingsObject = React.createClass({
             }
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleView.change'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CHANGE),
             this.onOpenEdit
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleView.unchanged'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.UNCHANGED),
             this.onCloseEdit
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleView.discardAll'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.DISCARD_ALL),
             this.discardAll
         );
     },
@@ -72,7 +73,7 @@ const MappingsObject = React.createClass({
             askForDiscard: false,
         });
         hierarchicalMappingChannel
-            .subject('ruleView.unchanged')
+            .subject(MESSAGES.RULE_VIEW.UNCHANGED)
             .onNext({id: this.props.rule.id});
     },
     handleCancelDiscard() {

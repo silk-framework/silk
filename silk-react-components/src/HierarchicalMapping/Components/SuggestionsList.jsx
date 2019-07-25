@@ -27,6 +27,7 @@ import SuggestionsRule from './SuggestionsRule';
 import hierarchicalMappingChannel from '../store';
 import {ParentElement} from './MappingRule/SharedComponents';
 import {SUGGESTION_TYPES} from '../helpers';
+import { MESSAGES } from '../constants';
 
 const SuggestionsListWrapper = props => (
     <div className="ecc-silk-mapping__ruleslist ecc-silk-mapping__suggestionlist">
@@ -66,7 +67,7 @@ const SuggestionsList = React.createClass({
         });
         hierarchicalMappingChannel
             .request({
-                topic: 'rule.suggestions',
+                topic: MESSAGES.RULE.SUGGESTIONS.INDEX,
                 data: {
                     targetClassUris: this.props.targetClassUris,
                     ruleId: this.props.ruleId,
@@ -148,7 +149,7 @@ const SuggestionsList = React.createClass({
             }));
         hierarchicalMappingChannel
             .request({
-                topic: 'rules.generate',
+                topic: MESSAGES.RULE.GENERATE,
                 data: {
                     correspondences,
                     parentId: this.props.ruleId,
@@ -157,9 +158,9 @@ const SuggestionsList = React.createClass({
             .subscribe(
                 () => {
                     hierarchicalMappingChannel
-                        .subject('ruleView.close')
+                        .subject(MESSAGES.RULE_VIEW.CLOSE)
                         .onNext({id: 0});
-                    hierarchicalMappingChannel.subject('reload').onNext(true);
+                    hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext(true);
                     this.props.onClose();
                 },
                 err => {
@@ -171,7 +172,7 @@ const SuggestionsList = React.createClass({
 
                     this.setState({saving: false, error});
 
-                    hierarchicalMappingChannel.subject('reload').onNext(true);
+                    hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext(true);
                 }
             );
     },
@@ -245,7 +246,7 @@ const SuggestionsList = React.createClass({
                             progress={0}
                             id="suggestion-save-btn"
                             progressTopic={hierarchicalMappingChannel.subject(
-                                'rule.suggestions.progress'
+                                MESSAGES.RULE.SUGGESTIONS.PROGRESS
                             )}
                             tooltip={'Progress'}>
                             Save

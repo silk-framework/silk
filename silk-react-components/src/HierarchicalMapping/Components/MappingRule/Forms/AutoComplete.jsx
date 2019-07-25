@@ -1,6 +1,7 @@
 import React from 'react';
 import {AutoCompleteBox} from '@eccenca/gui-elements';
 import hierarchicalMappingChannel from '../../../store';
+import { MESSAGES } from '../../../constants';
 
 const AutoComplete = React.createClass({
     render() {
@@ -9,7 +10,7 @@ const AutoComplete = React.createClass({
         const loadOptionsRaw = (input, callback) => {
             hierarchicalMappingChannel
                 .request({
-                    topic: 'autocomplete',
+                    topic: MESSAGES.AUTOCOMPLETE,
                     data: {
                         entity,
                         input,

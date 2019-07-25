@@ -11,6 +11,7 @@ import {
     MAPPING_RULE_TYPE_OBJECT,
     MAPPING_RULE_TYPE_ROOT,
 } from '../../helpers';
+import { MESSAGES } from '../../constants';
 
 export const RuleTitle = ({rule, ...otherProps}) => {
     let uri;
@@ -112,7 +113,7 @@ const URIInfo = React.createClass({
 
         hierarchicalMappingChannel
             .request({
-                topic: 'vocabularyInfo.get',
+                topic: MESSAGES.VOCABULARY_INFO.GET,
                 data: {
                     uri,
                     field,
@@ -169,7 +170,7 @@ const PropertyTypeInfo = React.createClass({
 
         hierarchicalMappingChannel
             .request({
-                topic: 'autocomplete',
+                topic: MESSAGES.AUTOCOMPLETE,
                 data: {
                     entity: 'propertyType',
                     input: this.props.name,

@@ -25,6 +25,7 @@ import {
     MAPPING_RULE_TYPE_OBJECT,
     MAPPING_RULE_TYPE_ROOT,
 } from '../helpers';
+import { MESSAGES } from '../constants';
 
 const MappingsWorkview = React.createClass({
     mixins: [UseMessageBus],
@@ -76,39 +77,39 @@ const MappingsWorkview = React.createClass({
     componentDidMount() {
         this.loadData({initialLoad: true});
         this.subscribe(
-            hierarchicalMappingChannel.subject('reload'),
+            hierarchicalMappingChannel.subject(MESSAGES.RELOAD),
             this.loadData
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleId.create'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_ID.CREATE),
             this.onRuleCreate
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('mapping.create'),
+            hierarchicalMappingChannel.subject(MESSAGES.MAPPING.CREATE),
             this.handleCreate
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('mapping.showSuggestions'),
+            hierarchicalMappingChannel.subject(MESSAGES.MAPPING.SHOW_SUGGESTIONS),
             this.handleShowSuggestions
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('list.toggleDetails'),
+            hierarchicalMappingChannel.subject(MESSAGES.TOGGLE_DETAILS),
             this.handleToggleRuleDetails
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleView.unchanged'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.UNCHANGED),
             this.handleRuleEditClose
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleView.close'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE),
             this.handleRuleEditClose
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleView.change'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CHANGE),
             this.handleRuleEditOpen
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleView.discardAll'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.DISCARD_ALL),
             this.discardAll
         );
     },
@@ -125,7 +126,7 @@ const MappingsWorkview = React.createClass({
                 showSuggestions: true,
             });
             hierarchicalMappingChannel
-                .subject('ruleView.change')
+                .subject(MESSAGES.RULE_VIEW.CHANGE)
                 .onNext({id: 0});
         } else {
             this.setState({
@@ -153,7 +154,7 @@ const MappingsWorkview = React.createClass({
 
         hierarchicalMappingChannel
             .request({
-                topic: 'rule.get',
+                topic: MESSAGES.RULE.GET,
                 data: {
                     id: this.props.currentRuleId,
                     isObjectMapping: true,
@@ -180,7 +181,7 @@ const MappingsWorkview = React.createClass({
                         }
 
                         hierarchicalMappingChannel
-                            .subject('rulesView.toggle')
+                            .subject(MESSAGES.RULE_VIEW.TOGGLE)
                             .onNext({
                                 expanded: true,
                                 id: toBeOpened,
@@ -208,18 +209,18 @@ const MappingsWorkview = React.createClass({
         const expanded = _.get(this.state.askForDiscard, 'expanded', false);
 
         if (type) {
-            hierarchicalMappingChannel.subject('ruleId.create').onNext({type});
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_ID.CREATE).onNext({type});
         } else if (suggestions) {
             this.setState({
                 showSuggestions: true,
             });
         } else {
-            hierarchicalMappingChannel.subject('rulesView.toggle').onNext({
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.TOGGLE).onNext({
                 expanded,
                 id: true,
             });
         }
-        hierarchicalMappingChannel.subject('ruleView.discardAll').onNext();
+        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.DISCARD_ALL).onNext();
         this.setState({
             askForDiscard: false,
         });
@@ -234,7 +235,7 @@ const MappingsWorkview = React.createClass({
     handleToggleRuleDetails({expanded}) {
         if (this.state.editing.length === 0 || expanded) {
             hierarchicalMappingChannel
-                .subject('rulesView.toggle')
+                .subject(MESSAGES.RULE_VIEW.TOGGLE)
                 .onNext({expanded, id: true});
         } else {
             this.setState({
@@ -248,7 +249,7 @@ const MappingsWorkview = React.createClass({
     // jumps to selected rule as new center of view
     handleCreate({type}) {
         if (this.state.editing.length === 0) {
-            hierarchicalMappingChannel.subject('ruleId.create').onNext({
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_ID.CREATE).onNext({
                 type,
             });
         } else {
@@ -262,7 +263,7 @@ const MappingsWorkview = React.createClass({
 
     handleCloseSuggestions() {
         this.setState({showSuggestions: false});
-        hierarchicalMappingChannel.subject('ruleView.close').onNext({id: 0});
+        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE).onNext({id: 0});
     },
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -277,7 +278,7 @@ const MappingsWorkview = React.createClass({
         });
         hierarchicalMappingChannel
             .request({
-                topic: 'getApiDetails',
+                topic: MESSAGES.GET_API_DETAILS,
             })
             .subscribe(
                 ({apiDetails}) => {
@@ -312,7 +313,7 @@ const MappingsWorkview = React.createClass({
             };
             hierarchicalMappingChannel
                 .request({
-                    topic: 'rule.copy',
+                    topic: MESSAGES.RULE.COPY,
                     data: data,
                 })
                 .subscribe(
@@ -322,7 +323,7 @@ const MappingsWorkview = React.createClass({
                             sessionStorage.setItem('pastedId', newRule.id);
                         } else if (copyingData.type === MAPPING_RULE_TYPE_OBJECT || copyingData.type === MAPPING_RULE_TYPE_ROOT) {
                             hierarchicalMappingChannel
-                                .subject('ruleId.change')
+                                .subject(MESSAGES.RULE_ID.CHANGE)
                                 .onNext({
                                     newRuleId: newRule.id,
                                 });
@@ -330,7 +331,7 @@ const MappingsWorkview = React.createClass({
                         if (cloning) {
                             sessionStorage.removeItem('copyingData');
                         }
-                        hierarchicalMappingChannel.subject('reload').onNext(true);
+                        hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext(true);
                     }
                 )
         }
@@ -339,7 +340,7 @@ const MappingsWorkview = React.createClass({
     handleClone(id, type, parent = false) {
         hierarchicalMappingChannel
             .request({
-                topic: 'getApiDetails',
+                topic: MESSAGES.GET_API_DETAILS,
             })
             .subscribe(
                 ({apiDetails}) => {

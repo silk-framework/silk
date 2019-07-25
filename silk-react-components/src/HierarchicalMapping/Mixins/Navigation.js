@@ -1,12 +1,13 @@
 // import _ from 'lodash';
 
 import hierarchicalMappingChannel from '../store';
+import { MESSAGES } from '../constants';
 
 const Navigation = {
     // jumps to selected rule as new center of view
     handleNavigate(id, parent, event) {
         hierarchicalMappingChannel
-            .subject('ruleId.change')
+            .subject(MESSAGES.RULE_ID.CHANGE)
             .onNext({newRuleId: id, parentId: parent});
 
         event.stopPropagation();
@@ -14,26 +15,26 @@ const Navigation = {
 
     handleCreate(infoCreation) {
         hierarchicalMappingChannel
-            .subject('mapping.create')
+            .subject(MESSAGES.MAPPING.CREATE)
             .onNext(infoCreation);
     },
 
     handleShowSuggestions(event) {
         event.persist();
         hierarchicalMappingChannel
-            .subject('mapping.showSuggestions')
+            .subject(MESSAGES.MAPPING.SHOW_SUGGESTIONS)
             .onNext(event);
     },
 
     handleToggleRuleDetails(stateExpand) {
         hierarchicalMappingChannel
-            .subject('list.toggleDetails')
+            .subject(MESSAGES.TOGGLE_DETAILS)
             .onNext(stateExpand);
     },
 
     promoteToggleTreenavigation(stateVisibility) {
         hierarchicalMappingChannel
-            .subject('treenav.toggleVisibility')
+            .subject(MESSAGES.TREE_NAV.TOGGLE_VISIBILITY)
             .onNext(stateVisibility);
     },
 };

@@ -13,6 +13,7 @@ import {
     MAPPING_RULE_TYPE_ROOT,
 } from './helpers';
 import {Suggestion} from './Suggestion';
+import { MESSAGES } from './constants';
 
 const hierarchicalMappingChannel = rxmq.channel('silk.hierarchicalMapping');
 const silkStore = rxmq.channel('silk.api');
@@ -26,7 +27,7 @@ let apiDetails = {
 };
 
 // Set Api details
-hierarchicalMappingChannel.subject('setSilkDetails').subscribe(data => {
+hierarchicalMappingChannel.subject(MESSAGES.SILK.SET_DETAILS).subscribe(data => {
     apiDetails = {...data};
 });
 
@@ -237,7 +238,7 @@ const prepareObjectMappingPayload = data => {
 const generateRule = (rule, parentId) =>
     hierarchicalMappingChannel
         .request({
-            topic: 'rule.createGeneratedMapping',
+            topic: MESSAGES.RULE.CREATE_GENERATED_MAPPING,
             data: {...rule, parentId},
         })
         .catch(e => Rx.Observable.return({error: e, rule}));
@@ -252,7 +253,7 @@ const createGeneratedRules = ({rules, parentId}) =>
             const count = idx + 1;
 
             hierarchicalMappingChannel
-                .subject('rule.suggestions.progress')
+                .subject(MESSAGES.RULE.SUGGESTIONS.PROGRESS)
                 .onNext({
                     progressNumber: _.round(count / total * 100, 0),
                     lastUpdate: `Saved ${count} of ${total} rules.`,
@@ -279,7 +280,7 @@ let rootId = null;
 const vocabularyCache = {};
 
 hierarchicalMappingChannel
-    .subject('rule.orderRule')
+    .subject(MESSAGES.RULE.ORDER_RULE)
     .subscribe(({data, replySubject}) => {
         const {childrenRules, id} = data;
         silkStore
@@ -292,7 +293,7 @@ hierarchicalMappingChannel
     });
 
 hierarchicalMappingChannel
-    .subject('rules.generate')
+    .subject(MESSAGES.RULE.GENERATE)
     .subscribe(({data, replySubject}) => {
         const {correspondences, parentId} = data;
         silkStore
@@ -310,7 +311,7 @@ hierarchicalMappingChannel
     });
 
 hierarchicalMappingChannel
-    .subject('vocabularyInfo.get')
+    .subject(MESSAGES.VOCABULARY_INFO.GET)
     .subscribe(({data, replySubject}) => {
         const {uri, field} = data;
 
@@ -347,7 +348,7 @@ hierarchicalMappingChannel
     });
 
 hierarchicalMappingChannel
-    .subject('rule.suggestions')
+    .subject(MESSAGES.RULE.SUGGESTIONS.INDEX)
     .subscribe(({data, replySubject}) => {
         Rx.Observable.forkJoin(
             silkStore
@@ -454,7 +455,7 @@ function mapPeakResult(returned) {
 }
 
 hierarchicalMappingChannel
-    .subject('rule.child.example')
+    .subject(MESSAGES.RULE.CHILD_EXAMPLE)
     .subscribe(({data, replySubject}) => {
         const {ruleType, rawRule, id} = data;
         const getRule = (rawRule, type) => {
@@ -493,7 +494,7 @@ hierarchicalMappingChannel
     });
 
 hierarchicalMappingChannel
-    .subject('rule.example')
+    .subject(MESSAGES.RULE.EXAMPLE)
     .subscribe(({data, replySubject}) => {
         const {id} = data;
         if (id) {
@@ -515,7 +516,7 @@ hierarchicalMappingChannel
     });
 
 hierarchicalMappingChannel
-    .subject('hierarchy.get')
+    .subject(MESSAGES.HIERARCHY.GET)
     .subscribe(({replySubject}) => {
         silkStore
             .request({
@@ -538,7 +539,7 @@ hierarchicalMappingChannel
     });
 
 hierarchicalMappingChannel
-    .subject('rule.getEditorHref')
+    .subject(MESSAGES.RULE.GET_EDITOR_HREF)
     .subscribe(({data, replySubject}) => {
         const {id: ruleId} = data;
 
@@ -558,7 +559,7 @@ hierarchicalMappingChannel
     });
 
 hierarchicalMappingChannel
-    .subject('rule.get')
+    .subject(MESSAGES.RULE.GET)
     .subscribe(({data, replySubject}) => {
         const {id, isObjectMapping} = data;
 
@@ -590,7 +591,7 @@ hierarchicalMappingChannel
     });
 
 hierarchicalMappingChannel
-    .subject('autocomplete')
+    .subject(MESSAGES.AUTOCOMPLETE)
     .subscribe(({data, replySubject}) => {
         const {entity, input, ruleId = rootId} = data;
 
@@ -648,7 +649,7 @@ const editMappingRule = (payload, id, parent) => {
 };
 
 hierarchicalMappingChannel
-    .subject('rule.createValueMapping')
+    .subject(MESSAGES.RULE.CREATE_VALUE_MAPPING)
     .subscribe(({data, replySubject}) => {
         const payload = prepareValueMappingPayload(data);
         const parent = data.parentId ? data.parentId : rootId;
@@ -659,7 +660,7 @@ hierarchicalMappingChannel
     });
 
 hierarchicalMappingChannel
-    .subject('rule.createObjectMapping')
+    .subject(MESSAGES.RULE.CREATE_OBJECT_MAPPING)
     .subscribe(({data, replySubject}) => {
         const payload = prepareObjectMappingPayload(data);
         const parent = data.parentId ? data.parentId : rootId;
@@ -670,7 +671,7 @@ hierarchicalMappingChannel
     });
 
 hierarchicalMappingChannel
-    .subject('rule.updateObjectMapping')
+    .subject(MESSAGES.RULE.UPDATE_OBJECT_MAPPING)
     .subscribe(({data, replySubject}) => {
         editMappingRule(data, data.id, parent)
             .multicast(replySubject)
@@ -678,7 +679,7 @@ hierarchicalMappingChannel
     });
 
 hierarchicalMappingChannel
-    .subject('rule.createGeneratedMapping')
+    .subject(MESSAGES.RULE.CREATE_GENERATED_MAPPING)
     .subscribe(({data, replySubject}) => {
         const payload = data;
         const parent = data.parentId ? data.parentId : rootId;
@@ -689,7 +690,7 @@ hierarchicalMappingChannel
     });
 
 hierarchicalMappingChannel
-    .subject('rule.removeRule')
+    .subject(MESSAGES.RULE.REMOVE)
     .subscribe(({data, replySubject}) => {
         const {id} = data;
         silkStore
@@ -705,7 +706,7 @@ hierarchicalMappingChannel
                     replySubject.onNext();
                     replySubject.onCompleted();
                     hierarchicalMappingChannel
-                        .subject('reload')
+                        .subject(MESSAGES.RELOAD)
                         .onNext(true);
                 },
                 err => {
@@ -715,7 +716,7 @@ hierarchicalMappingChannel
     });
 
 hierarchicalMappingChannel
-    .subject('getApiDetails')
+    .subject(MESSAGES.GET_API_DETAILS)
     .subscribe(({replySubject}) => {
         replySubject.onNext({
             apiDetails: apiDetails,
@@ -724,7 +725,7 @@ hierarchicalMappingChannel
     });
 
 hierarchicalMappingChannel
-    .subject('rule.copy')
+    .subject(MESSAGES.RULE.COPY)
     .subscribe(({data, replySubject}) => {
         const copyingData = {
             baseUrl: apiDetails.baseUrl,

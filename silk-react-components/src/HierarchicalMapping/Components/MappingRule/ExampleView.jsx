@@ -6,6 +6,7 @@ import _ from 'lodash';
 import UseMessageBus from '../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../store';
 import {InfoBox} from './SharedComponents';
+import { MESSAGES } from '../../constants';
 
 const ExampleView = React.createClass({
     mixins: [UseMessageBus],
@@ -19,7 +20,7 @@ const ExampleView = React.createClass({
         if (!this.props.rawRule) {
             hierarchicalMappingChannel
                 .request({
-                    topic: 'rule.example',
+                    topic: MESSAGES.RULE.EXAMPLE,
                     data: {
                         id: this.props.id,
                     },
@@ -42,7 +43,7 @@ const ExampleView = React.createClass({
         } else {
             hierarchicalMappingChannel
                 .request({
-                    topic: 'rule.child.example',
+                    topic: MESSAGES.RULE.CHILD_EXAMPLE,
                     data: {
                         id: this.props.id,
                         rawRule: this.props.rawRule,

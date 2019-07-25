@@ -28,6 +28,7 @@ import {
     trimValueLabelObject,
     trimUriPattern,
 } from '../../../helpers';
+import { MESSAGES } from '../../../constants';
 
 const ObjectMappingRuleForm = React.createClass({
     mixins: [UseMessageBus],
@@ -60,7 +61,7 @@ const ObjectMappingRuleForm = React.createClass({
         if (this.props.id) {
             hierarchicalMappingChannel
                 .request({
-                    topic: 'rule.get',
+                    topic: MESSAGES.RULE.GET,
                     data: {
                         id: this.props.id,
                     },
@@ -116,7 +117,7 @@ const ObjectMappingRuleForm = React.createClass({
                 );
         } else {
             hierarchicalMappingChannel
-                .subject('ruleView.change')
+                .subject(MESSAGES.RULE_VIEW.CHANGE)
                 .onNext({id: 0});
             this.setState({
                 create: true,
@@ -133,7 +134,7 @@ const ObjectMappingRuleForm = React.createClass({
         });
         hierarchicalMappingChannel
             .request({
-                topic: 'rule.createObjectMapping',
+                topic: MESSAGES.RULE.CREATE_OBJECT_MAPPING,
                 data: {
                     id: this.props.id,
                     parentId: this.props.parentId,
@@ -154,7 +155,7 @@ const ObjectMappingRuleForm = React.createClass({
             .subscribe(
                 () => {
                     this.handleClose(event);
-                    hierarchicalMappingChannel.subject('reload').onNext(true);
+                    hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext(true);
                 },
                 err => {
                     this.setState({
@@ -184,11 +185,11 @@ const ObjectMappingRuleForm = React.createClass({
         if (id !== 0) {
             if (touched) {
                 hierarchicalMappingChannel
-                    .subject('ruleView.change')
+                    .subject(MESSAGES.RULE_VIEW.CHANGE)
                     .onNext({id});
             } else {
                 hierarchicalMappingChannel
-                    .subject('ruleView.unchanged')
+                    .subject(MESSAGES.RULE_VIEW.UNCHANGED)
                     .onNext({id});
             }
         }
@@ -201,8 +202,8 @@ const ObjectMappingRuleForm = React.createClass({
     handleClose(event) {
         event.stopPropagation();
         const id = _.get(this.props, 'id', 0);
-        hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id});
-        hierarchicalMappingChannel.subject('ruleView.close').onNext({id});
+        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.UNCHANGED).onNext({id});
+        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE).onNext({id});
     },
     getExampleView() {
         if (this.state.pattern) {

@@ -29,6 +29,7 @@ import {
     MAPPING_RULE_TYPE_ROOT,
     MAPPING_RULE_TYPE_URI,
 } from '../../helpers';
+import { MESSAGES } from '../../constants';
 
 const ObjectRule = React.createClass({
     mixins: [UseMessageBus],
@@ -45,13 +46,13 @@ const ObjectRule = React.createClass({
     },
     componentDidMount() {
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleView.close'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE),
             this.handleCloseEdit
         );
         if (_.has(this.props, 'rules.uriRule.id')) {
             this.subscribe(
                 hierarchicalMappingChannel.request({
-                    topic: 'rule.getEditorHref',
+                    topic: MESSAGES.RULE.GET_EDITOR_HREF,
                     data: {id: this.props.rules.uriRule.id},
                 }),
                 ({href}) => this.setState({href})
@@ -114,14 +115,14 @@ const ObjectRule = React.createClass({
         };
         hierarchicalMappingChannel
             .request({
-                topic: 'rule.updateObjectMapping',
+                topic: MESSAGES.RULE.UPDATE_OBJECT_MAPPING,
                 data: rule,
             })
             .subscribe(
                 data => {
                     hierarchicalMappingChannel
                         .request({
-                            topic: 'rule.getEditorHref',
+                            topic: MESSAGES.RULE.GET_EDITOR_HREF,
                             data: {
                                 id: data.body.rules.uriRule.id,
                             },
@@ -154,12 +155,12 @@ const ObjectRule = React.createClass({
         rule.rules.uriRule = null;
         hierarchicalMappingChannel
             .request({
-                topic: 'rule.updateObjectMapping',
+                topic: MESSAGES.RULE.UPDATE_OBJECT_MAPPING,
                 data: rule,
             })
             .subscribe(
                 data => {
-                    hierarchicalMappingChannel.subject('reload').onNext(true);
+                    hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext(true);
                 },
                 err => {
                     console.error(err);
@@ -187,7 +188,7 @@ const ObjectRule = React.createClass({
         if (_.has(nextProps, 'rules.uriRule.id')) {
             this.subscribe(
                 hierarchicalMappingChannel.request({
-                    topic: 'rule.getEditorHref',
+                    topic: MESSAGES.RULE.GET_EDITOR_HREF,
                     data: {id: _.get(nextProps, 'rules.uriRule.id', '')},
                 }),
                 ({href}) => this.setState({href})
@@ -390,7 +391,7 @@ const ObjectRule = React.createClass({
                     raised
                     onClick={() =>
                         hierarchicalMappingChannel
-                            .subject('removeClick')
+                            .subject(MESSAGES.BUTTON.REMOVE_CLICK)
                             .onNext({
                                 id: this.props.id,
                                 uri: this.props.mappingTarget.uri,

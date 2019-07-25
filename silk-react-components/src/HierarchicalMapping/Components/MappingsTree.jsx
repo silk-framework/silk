@@ -18,6 +18,7 @@ import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../store';
 import {RuleTreeTitle, RuleTreeTypes} from './MappingRule/SharedComponents';
 import {MAPPING_RULE_TYPE_OBJECT, MAPPING_RULE_TYPE_ROOT} from '../helpers';
+import { MESSAGES } from '../constants';
 
 const MappingsTree = React.createClass({
     mixins: [UseMessageBus, Navigation],
@@ -44,11 +45,11 @@ const MappingsTree = React.createClass({
     // initilize state
     getInitialState() {
         this.subscribe(
-            hierarchicalMappingChannel.subject('reload'),
+            hierarchicalMappingChannel.subject(MESSAGES.RELOAD),
             this.loadData
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleId.change'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_ID.CHANGE),
             this.expandElement
         );
         return {
@@ -64,7 +65,7 @@ const MappingsTree = React.createClass({
     componentDidUpdate(prevProps) {
         // If the task changed, we need to reload the data
         if (this.props.task !== prevProps.task) {
-            hierarchicalMappingChannel.subject('setSilkDetails').onNext({
+            hierarchicalMappingChannel.subject(MESSAGES.SILK.SET_DETAILS).onNext({
                 baseUrl: this.props.baseUrl,
                 project: this.props.project,
                 transformTask: this.props.task
@@ -84,7 +85,7 @@ const MappingsTree = React.createClass({
         }
 
         // get navigation tree data
-        hierarchicalMappingChannel.request({topic: 'hierarchy.get'}).subscribe(
+        hierarchicalMappingChannel.request({topic: MESSAGES.HIERARCHY.GET}).subscribe(
             ({hierarchy}) => {
                 // expand root level
                 const topLevelId = _.get(hierarchy, 'id');

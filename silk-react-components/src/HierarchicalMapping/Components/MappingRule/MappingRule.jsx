@@ -24,6 +24,7 @@ import {RuleTypes, SourcePath, ThingIcon} from './SharedComponents';
 import {getRuleLabel, isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT,} from '../../helpers';
 import Navigation from '../../Mixins/Navigation';
 import className from 'classnames';
+import { MESSAGES } from '../../constants';
 
 const MappingRule = React.createClass({
     mixins: [UseMessageBus, Navigation],
@@ -63,7 +64,7 @@ const MappingRule = React.createClass({
     componentDidMount() {
         // listen for event to expand / collapse mapping rule
         this.subscribe(
-            hierarchicalMappingChannel.subject('rulesView.toggle'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.TOGGLE),
             ({expanded, id}) => {
                 // only trigger state / render change if necessary
                 if (
@@ -76,15 +77,15 @@ const MappingRule = React.createClass({
             }
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleView.change'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CHANGE),
             this.onOpenEdit
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleView.close'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE),
             this.onCloseEdit
         );
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleView.discardAll'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.DISCARD_ALL),
             this.discardAll
         );
         if (this.state.isPasted)
@@ -124,7 +125,7 @@ const MappingRule = React.createClass({
             askForDiscard: false,
         });
         hierarchicalMappingChannel
-            .subject('ruleView.unchanged')
+            .subject(MESSAGES.RULE_VIEW.UNCHANGED)
             .onNext({id: this.props.id});
     },
     handleCancelDiscard() {
@@ -138,7 +139,7 @@ const MappingRule = React.createClass({
             return;
         }
         hierarchicalMappingChannel
-            .subject('request.rule.orderRule')
+            .subject(MESSAGES.RULE.REQUEST_ORDER)
             .onNext({toPos, fromPos, reload: true});
     },
     // template rendering

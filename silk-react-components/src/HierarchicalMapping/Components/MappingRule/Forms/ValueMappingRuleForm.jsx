@@ -25,6 +25,7 @@ import {
     MAPPING_RULE_TYPE_DIRECT,
     trimValueLabelObject,
 } from '../../../helpers';
+import { MESSAGES } from '../../../constants';
 
 const ValueMappingRuleForm = React.createClass({
     mixins: [UseMessageBus],
@@ -56,7 +57,7 @@ const ValueMappingRuleForm = React.createClass({
         if (this.props.id) {
             hierarchicalMappingChannel
                 .request({
-                    topic: 'rule.get',
+                    topic: MESSAGES.RULE.GET,
                     data: {
                         id: this.props.id,
                     },
@@ -97,7 +98,7 @@ const ValueMappingRuleForm = React.createClass({
                 );
         } else {
             hierarchicalMappingChannel
-                .subject('ruleView.change')
+                .subject(MESSAGES.RULE_VIEW.CHANGE)
                 .onNext({id: 0});
             this.setState({
                 create: true,
@@ -118,7 +119,7 @@ const ValueMappingRuleForm = React.createClass({
         });
         hierarchicalMappingChannel
             .request({
-                topic: 'rule.createValueMapping',
+                topic: MESSAGES.RULE.CREATE_VALUE_MAPPING,
                 data: {
                     id: this.props.id,
                     parentId: this.props.parentId,
@@ -138,7 +139,7 @@ const ValueMappingRuleForm = React.createClass({
             .subscribe(
                 () => {
                     this.handleClose(event);
-                    hierarchicalMappingChannel.subject('reload').onNext(true);
+                    hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext(true);
                 },
                 err => {
                     this.setState({
@@ -177,11 +178,11 @@ const ValueMappingRuleForm = React.createClass({
         if (id !== 0) {
             if (touched) {
                 hierarchicalMappingChannel
-                    .subject('ruleView.change')
+                    .subject(MESSAGES.RULE_VIEW.CHANGE)
                     .onNext({id});
             } else {
                 hierarchicalMappingChannel
-                    .subject('ruleView.unchanged')
+                    .subject(MESSAGES.RULE_VIEW.UNCHANGED)
                     .onNext({id});
             }
         }
@@ -194,8 +195,8 @@ const ValueMappingRuleForm = React.createClass({
     handleClose(event) {
         event.stopPropagation();
         const id = _.get(this.props, 'id', 0);
-        hierarchicalMappingChannel.subject('ruleView.unchanged').onNext({id});
-        hierarchicalMappingChannel.subject('ruleView.close').onNext({id});
+        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.UNCHANGED).onNext({id});
+        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE).onNext({id});
     },
     allowConfirmation() {
         const targetPropertyNotEmpty = !_.isEmpty(this.state.targetProperty);

@@ -14,6 +14,7 @@ import {MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT} from '../helpers';
 import UseMessageBus from '../UseMessageBusMixin';
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
 import hierarchicalMappingChannel from '../store';
+import { MESSAGES } from '../constants';
 
 const MappingsList = React.createClass({
     mixins: [Navigation, UseMessageBus],
@@ -31,7 +32,7 @@ const MappingsList = React.createClass({
     componentDidMount() {
         // process reorder requests from single MappingRules
         this.subscribe(
-            hierarchicalMappingChannel.subject('request.rule.orderRule'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE.REQUEST_ORDER),
             this.orderRules
         );
     },
@@ -58,7 +59,7 @@ const MappingsList = React.createClass({
         );
         hierarchicalMappingChannel
             .request({
-                topic: 'rule.orderRule',
+                topic: MESSAGES.RULE.ORDER_RULE,
                 data: {
                     reload,
                     childrenRules,
@@ -69,7 +70,7 @@ const MappingsList = React.createClass({
             })
             .subscribe(() => {
                 // reload mapping tree
-                hierarchicalMappingChannel.subject('reload').onNext();
+                hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext();
             });
         // FIXME: this should be in success part of request in case of error but results in content flickering than
         // manage ordering local

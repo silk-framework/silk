@@ -20,6 +20,7 @@ import {
     PropertyTypeDescription,
 } from './SharedComponents';
 import {MAPPING_RULE_TYPE_DIRECT} from '../../helpers';
+import { MESSAGES } from '../../constants';
 
 const RuleValueView = React.createClass({
     mixins: [UseMessageBus],
@@ -38,14 +39,14 @@ const RuleValueView = React.createClass({
     },
     componentDidMount() {
         this.subscribe(
-            hierarchicalMappingChannel.subject('ruleView.close'),
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE),
             this.handleCloseEdit
         );
     },
     getInitialState() {
         this.subscribe(
             hierarchicalMappingChannel.request({
-                topic: 'rule.getEditorHref',
+                topic: MESSAGES.RULE.GET_EDITOR_HREF,
                 data: {id: this.props.id},
             }),
             ({href}) => this.setState({href})
@@ -75,7 +76,7 @@ const RuleValueView = React.createClass({
     handleClose(event) {
         event.stopPropagation();
         hierarchicalMappingChannel
-            .subject('ruleView.unchanged')
+            .subject(MESSAGES.RULE_VIEW.UNCHANGED)
             .onNext({id: this.props.id});
     },
     getOperators(operator, accumulator) {
@@ -342,7 +343,7 @@ const RuleValueView = React.createClass({
                             raised
                             onClick={() =>
                                 hierarchicalMappingChannel
-                                    .subject('removeClick')
+                                    .subject(MESSAGES.BUTTON.REMOVE_CLICK)
                                     .onNext({
                                         id: this.props.id,
                                         uri: this.props.mappingTarget.uri,
