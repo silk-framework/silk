@@ -122,6 +122,7 @@ object Aggregation {
         case Aggregator(plugin, params) =>
           <Aggregate id={value.id} required={value.required.toString} weight={value.weight.toString} type={plugin.id}>
             {value.operators.map(toXml[SimilarityOperator])}
+            {XmlSerialization.serializeParameter(params)}
           </Aggregate>
       }
     }

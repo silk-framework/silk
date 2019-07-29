@@ -170,7 +170,9 @@ class RulePlugins extends PluginModule {
         classOf[MinimumAggregator] ::
         classOf[QuadraticMeanAggregator] ::
         classOf[GeometricMeanAggregator] ::
-      classOf[NegationAggregator] :: Nil
+        classOf[NegationAggregator] ::
+        classOf[OptionalAggregator] ::
+        Nil
 
   private def serializers =
     TransformSpecFormat.getClass ::
