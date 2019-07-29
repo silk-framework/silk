@@ -25,9 +25,7 @@ export const MESSAGES = {
         CREATE_OBJECT_MAPPING: 'rule.createObjectMapping',
         CREATE_VALUE_MAPPING: 'rule.createValueMapping',
         CREATE_GENERATED_MAPPING: 'rule.createGeneratedMapping',
-        GENERATE: 'rule.generate',
         REQUEST_ORDER: 'rule.requestOrder',
-        ORDER_RULE: 'rule.orderRule',
     },
     TREE_NAV: {
         TOGGLE_VISIBILITY: 'toggleVisibility'

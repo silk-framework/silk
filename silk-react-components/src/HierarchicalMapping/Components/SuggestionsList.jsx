@@ -24,7 +24,7 @@ import _ from 'lodash';
 import ErrorView from './MappingRule/ErrorView';
 import UseMessageBus from '../UseMessageBusMixin';
 import SuggestionsRule from './SuggestionsRule';
-import hierarchicalMappingChannel from '../store';
+import hierarchicalMappingChannel, { generateRuleAsync } from '../store';
 import {ParentElement} from './MappingRule/SharedComponents';
 import {SUGGESTION_TYPES} from '../helpers';
 import { MESSAGES } from '../constants';
@@ -139,7 +139,7 @@ const SuggestionsList = React.createClass({
         this.setState({
             saving: true,
         });
-
+        
         const correspondences = this.state.data
             .filter(v => v.checked)
             .map(v => ({
@@ -147,20 +147,12 @@ const SuggestionsList = React.createClass({
                 targetProperty: v.targetProperty,
                 type: v.type,
             }));
-        hierarchicalMappingChannel
-            .request({
-                topic: MESSAGES.RULE.GENERATE,
-                data: {
-                    correspondences,
-                    parentId: this.props.ruleId,
-                },
-            })
-            .subscribe(
+        
+        generateRuleAsync({
+            correspondences,
+            parentId: this.props.ruleId,
+        }).subscribe(
                 () => {
-                    hierarchicalMappingChannel
-                        .subject(MESSAGES.RULE_VIEW.CLOSE)
-                        .onNext({id: 0});
-                    hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext(true);
                     this.props.onClose();
                 },
                 err => {
@@ -169,10 +161,7 @@ const SuggestionsList = React.createClass({
                     const error = err.failedRules
                         ? err.failedRules
                         : [{error: err}];
-
                     this.setState({saving: false, error});
-
-                    hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext(true);
                 }
             );
     },

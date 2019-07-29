@@ -279,36 +279,40 @@ let rootId = null;
 
 const vocabularyCache = {};
 
-hierarchicalMappingChannel
-    .subject(MESSAGES.RULE.ORDER_RULE)
-    .subscribe(({data, replySubject}) => {
-        const {childrenRules, id} = data;
-        silkStore
-            .request({
-                topic: 'transform.task.rule.rules.reorder',
-                data: {id, childrenRules, ...apiDetails},
-            })
-            .multicast(replySubject)
-            .connect();
-    });
+export const orderRulesAsync = ({
+    id,
+    childrenRules,
+}) => {
+    silkStore
+        .request({
+            topic: 'transform.task.rule.rules.reorder',
+            data: {id, childrenRules, ...apiDetails},
+        })
+        .subscribe(() => {
+            hierarchicalMappingChannel
+                .subject(MESSAGES.RELOAD)
+                .onNext();
+        })
+};
 
-hierarchicalMappingChannel
-    .subject(MESSAGES.RULE.GENERATE)
-    .subscribe(({data, replySubject}) => {
-        const {correspondences, parentId} = data;
-        silkStore
-            .request({
-                topic: 'transform.task.rule.generate',
-                data: {...apiDetails, correspondences, parentId},
-            })
-            .map(returned => ({
+export const generateRuleAsync = ({correspondences, parentId}) => {
+    return silkStore
+        .request({
+            topic: 'transform.task.rule.generate',
+            data: {...apiDetails, correspondences, parentId},
+        })
+        .map(returned => {
+            hierarchicalMappingChannel
+                .subject(MESSAGES.RULE_VIEW.CLOSE)
+                .onNext({id: 0});
+            hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext(true);
+            return {
                 rules: _.get(returned, ['body'], []),
                 parentId,
-            }))
-            .flatMap(createGeneratedRules)
-            .multicast(replySubject)
-            .connect();
-    });
+            }
+        })
+        .flatMap(createGeneratedRules)
+};
 
 hierarchicalMappingChannel
     .subject(MESSAGES.VOCABULARY_INFO.GET)

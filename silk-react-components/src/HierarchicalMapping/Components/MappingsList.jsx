@@ -11,7 +11,7 @@ import MappingRule from './MappingRule/MappingRule';
 import {MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT} from '../helpers';
 import UseMessageBus from '../UseMessageBusMixin';
 import {DragDropContext, Droppable} from 'react-beautiful-dnd';
-import hierarchicalMappingChannel from '../store';
+import hierarchicalMappingChannel, { orderRulesAsync } from '../store';
 import { MESSAGES } from '../constants';
 
 const MappingsList = React.createClass({
@@ -49,27 +49,17 @@ const MappingsList = React.createClass({
     shouldComponentUpdate(nextProps) {
         return !_.isEqual(this.props, nextProps);
     },
-    orderRules({fromPos, toPos, reload}) {
+    orderRules({fromPos, toPos}) {
         const childrenRules = this.reorder(
             this.state.items.map(a => a.key),
             fromPos,
             toPos
         );
-        hierarchicalMappingChannel
-            .request({
-                topic: MESSAGES.RULE.ORDER_RULE,
-                data: {
-                    reload,
-                    childrenRules,
-                    fromPos,
-                    toPos,
-                    id: this.props.parentRuleId,
-                },
-            })
-            .subscribe(() => {
-                // reload mapping tree
-                hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext();
-            });
+        orderRulesAsync({
+            childrenRules,
+            id: this.props.parentRuleId,
+        });
+        
         // FIXME: this should be in success part of request in case of error but results in content flickering than
         // manage ordering local
         const items = this.reorder(this.state.items, fromPos, toPos);
