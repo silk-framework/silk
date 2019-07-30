@@ -55,14 +55,17 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
   private def createEntities(taskData: SparqlSelectCustomTask,
                              results: SparqlResults,
                              vars: IndexedSeq[String]): Traversable[Entity] = {
-    var count = 0
-    val entities: Traversable[Entity] = results.bindings map { binding =>
-      count += 1
-      val values = vars map { v =>
-        binding.get(v).toSeq.map(_.value)
+    new Traversable[Entity] {
+      override def foreach[U](f: Entity => U): Unit = {
+        var count = 0
+        results.bindings foreach { binding =>
+          count += 1
+          val values = vars map { v =>
+            binding.get(v).toSeq.map(_.value)
+          }
+          f(Entity(DataSource.URN_NID_PREFIX + count, values = values, schema = taskData.outputSchema))
+        }
       }
-      Entity(DataSource.URN_NID_PREFIX + count, values = values, schema = taskData.outputSchema)
     }
-    entities
   }
 }
