@@ -140,7 +140,8 @@ case class EntitySchema(
   def renameProperty(oldName: TypedPath, newName: TypedPath): EntitySchema ={
     val sourceSchema = getSchemaOfProperty(oldName)
     val targetSchema = sourceSchema.map(sa => sa.copy(
-      typedPaths = sa.typedPaths.map(tp => if(tp.equals(oldName)) TypedPath(newName.operators, tp.valueType, tp.isAttribute) else tp)
+      typedPaths = sa.typedPaths.map(tp => if(tp.equals(oldName)) TypedPath(newName.operators, tp.valueType, tp.isAttribute) else tp),
+      subSchemata = IndexedSeq.empty
     ))
     targetSchema.getOrElse(this)
   }
