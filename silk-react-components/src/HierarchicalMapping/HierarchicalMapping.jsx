@@ -204,8 +204,9 @@ const HierarchicalMapping = React.createClass({
             editingElements: [],
             currentRuleId: this.state.askForDiscard,
             askForDiscard: false,
+        }, () => {
+            hierarchicalMappingChannel.subject('ruleView.discardAll').onNext();
         });
-        hierarchicalMappingChannel.subject('ruleView.discardAll').onNext();
     },
     discardAll() {
         this.setState({

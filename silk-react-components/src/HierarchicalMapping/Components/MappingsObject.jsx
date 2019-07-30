@@ -70,10 +70,11 @@ const MappingsObject = React.createClass({
         this.setState({
             expanded: !this.state.expanded,
             askForDiscard: false,
+        }, () => {
+            hierarchicalMappingChannel
+                .subject('ruleView.unchanged')
+                .onNext({id: this.props.rule.id});
         });
-        hierarchicalMappingChannel
-            .subject('ruleView.unchanged')
-            .onNext({id: this.props.rule.id});
     },
     handleCancelDiscard() {
         this.setState({

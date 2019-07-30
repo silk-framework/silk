@@ -219,9 +219,10 @@ const MappingsWorkview = React.createClass({
                 id: true,
             });
         }
-        hierarchicalMappingChannel.subject('ruleView.discardAll').onNext();
         this.setState({
             askForDiscard: false,
+        }, () => {
+            hierarchicalMappingChannel.subject('ruleView.discardAll').onNext();
         });
     },
     handleCancelDiscard(event) {
