@@ -36,6 +36,6 @@ class LocalSparqlSelectExecutorTest extends FlatSpec with MustMatchers with Test
     val start = System.currentTimeMillis()
     val entities = LocalSparqlSelectExecutor().executeOnSparqlEndpointEntityTable(task, entityTable)
     entities.head.values.flatten.head mustBe "subject 0"
-    System.currentTimeMillis() - start mustBe < (quickReactionTime)
+    (System.currentTimeMillis() - start).toInt must be < quickReactionTime
   }
 }
