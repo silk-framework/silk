@@ -31,6 +31,23 @@ hierarchicalMappingChannel.subject(MESSAGES.SILK.SET_DETAILS).subscribe(data => 
     apiDetails = {...data};
 });
 
+function mapPeakResult(returned) {
+    if (_.get(returned, 'body.status.id') !== 'success') {
+        return {
+            title: 'Could not load preview',
+            detail: _.get(
+                returned,
+                'body.status.msg',
+                'No details available'
+            ),
+        };
+    }
+    
+    return {
+        example: returned.body,
+    };
+}
+
 const datatypes = _.map(
     [
         {
@@ -314,233 +331,190 @@ export const generateRuleAsync = ({correspondences, parentId}) => {
         .flatMap(createGeneratedRules)
 };
 
-hierarchicalMappingChannel
-    .subject(MESSAGES.VOCABULARY_INFO.GET)
-    .subscribe(({data, replySubject}) => {
-        const {uri, field} = data;
-
-        const path = [uri, field];
-
-        if (_.has(vocabularyCache, path)) {
-            replySubject.onNext({
-                info: _.get(vocabularyCache, path),
-            });
-            replySubject.onCompleted();
-        } else {
-            silkStore
-                .request({
-                    topic: 'transform.task.targetVocabulary.typeOrProperty',
-                    data: {...apiDetails, uri},
-                })
-                .catch(() => Rx.Observable.just({}))
-                .map(returned => {
-                    const info = _.get(
-                        returned,
-                        ['body', 'genericInfo', field],
-                        null
-                    );
-
-                    _.set(vocabularyCache, path, info);
-
-                    return {
-                        info,
-                    };
-                })
-                .multicast(replySubject)
-                .connect();
-        }
-    });
-
-hierarchicalMappingChannel
-    .subject(MESSAGES.RULE.SUGGESTIONS.INDEX)
-    .subscribe(({data, replySubject}) => {
-        Rx.Observable.forkJoin(
-            silkStore
-                .request({
-                    // call the DI matchVocabularyClassDataset endpoint
-                    topic: 'transform.task.rule.suggestions',
-                    data: {...apiDetails, ...data},
-                })
-                .catch(err => {
-
-                    // It comes always {title: "Not Found", detail: "Not Found"} when the endpoint is not found.
-                    // see: SilkErrorHandler.scala
-                    const errorBody = _.get(err, 'response.body')
-
-                    if (err.status === 404 && errorBody.title === "Not Found" && errorBody.detail === "Not Found") {
-                        return Rx.Observable.return(null);
-                    }
-                    errorBody.code = err.status;
-                    return Rx.Observable.return({error: errorBody})
-                })
-                .map(returned => {
-                    const body = _.get(returned, 'body', []);
-                    const error = _.get(returned, 'error', []);
-
-                    if (error) {
-                        return {
-                            error,
-                        }
-                    }
-                    const suggestions = [];
-
-                    _.forEach(body, (sources, sourcePathOrUri) => {
-                        _.forEach(sources, ({uri: candidateUri, type, confidence}) => {
-                            let mapFrom = sourcePathOrUri; // By default we map from the dataset to the vocabulary, which fits
-                            let mapTo = candidateUri;
-                            if(!data.matchFromDataset) {
-                                mapFrom = candidateUri; // In this case the vocabulary is the source, so we have to switch direction
-                                mapTo = sourcePathOrUri;
-                            }
-                            suggestions.push(
-                                new Suggestion(
-                                    mapFrom,
-                                    type,
-                                    mapTo,
-                                    confidence
-                                )
-                            );
-                        });
-                    });
-                    return {
-                        data: suggestions,
-                    };
-                }),
-            silkStore
-                .request({
-                    // call the silk endpoint valueSourcePaths
-                    topic: 'transform.task.rule.valueSourcePaths',
-                    data: {unusedOnly: true, ...apiDetails, ...data},
-                })
-                .catch(err => {
-                    const errorBody = _.get(err, 'response.body');
-                    errorBody.code = err.status;
-                    return Rx.Observable.return({error: errorBody});
-
-                })
-                .map(returned => {
-                    const body = _.get(returned, 'body', []);
-                    const error = _.get(returned, 'error', []);
-                    if (error) {
-                        return {
-                            error,
-                        }
-                    }
-                    return {
-                        data: _.map(body, path => new Suggestion(path))
-                    }
-                }),
-            (arg1, arg2) => {
-                return {
-                    suggestions: _.filter(_.concat([], arg1.data, arg2.data), d => !_.isUndefined(d)),
-                    warnings: _.filter([arg1.error, arg2.error], e => !_.isUndefined(e))
-                };
-            }
-        )
-            .multicast(replySubject)
-            .connect();
-    });
-
-function mapPeakResult(returned) {
-    if (_.get(returned, 'body.status.id') !== 'success') {
-        return {
-            title: 'Could not load preview',
-            detail: _.get(
-                returned,
-                'body.status.msg',
-                'No details available'
-            ),
-        };
+export const getVocabInfoAsync = (uri, field) => {
+    const path = [uri, field];
+    
+    if (_.has(vocabularyCache, path)) {
+        return Rx.Observable.just({
+            info: _.get(vocabularyCache, path),
+        });
     }
+    return silkStore
+        .request({
+            topic: 'transform.task.targetVocabulary.typeOrProperty',
+            data: {...apiDetails, uri},
+        })
+        .catch(() => Rx.Observable.just({}))
+        .map(returned => {
+            const info = _.get(
+                returned,
+                ['body', 'genericInfo', field],
+                null
+            );
+            
+            _.set(vocabularyCache, path, info);
+            
+            return {
+                info,
+            };
+        })
+};
 
-    return {
-        example: returned.body,
-    };
-}
-
-hierarchicalMappingChannel
-    .subject(MESSAGES.RULE.CHILD_EXAMPLE)
-    .subscribe(({data, replySubject}) => {
-        const {ruleType, rawRule, id} = data;
-        const getRule = (rawRule, type) => {
-            switch (type) {
-                case MAPPING_RULE_TYPE_DIRECT:
-                case MAPPING_RULE_TYPE_COMPLEX:
-                    return prepareValueMappingPayload(rawRule);
-                case MAPPING_RULE_TYPE_OBJECT:
-                    return prepareObjectMappingPayload(rawRule);
-                case MAPPING_RULE_TYPE_URI:
-                case MAPPING_RULE_TYPE_COMPLEX_URI:
-                    return rawRule;
-                default:
-                    throw new Error(
-                        'Rule send to rule.child.example type must be in ("value","object","uri","complexURI")'
-                    );
-            }
-        };
-        const rule = getRule(rawRule, ruleType);
-        if (rule && id) {
-            silkStore
-                .request({
-                    topic: 'transform.task.rule.child.peak',
-                    data: {...apiDetails, id, rule},
-                })
-                .subscribe(returned => {
-                    const result = mapPeakResult(returned);
-                    if (result.title) {
-                        replySubject.onError(result);
-                    } else {
-                        replySubject.onNext(result);
-                    }
-                    replySubject.onCompleted();
-                });
-        }
-    });
-
-hierarchicalMappingChannel
-    .subject(MESSAGES.RULE.EXAMPLE)
-    .subscribe(({data, replySubject}) => {
-        const {id} = data;
-        if (id) {
-            silkStore
-                .request({
-                    topic: 'transform.task.rule.peak',
-                    data: {...apiDetails, id},
-                })
-                .subscribe(returned => {
-                    const result = mapPeakResult(returned);
-                    if (result.title) {
-                        replySubject.onError(result);
-                    } else {
-                        replySubject.onNext(result);
-                    }
-                    replySubject.onCompleted();
-                });
-        }
-    });
-
-hierarchicalMappingChannel
-    .subject(MESSAGES.HIERARCHY.GET)
-    .subscribe(({replySubject}) => {
+export const getSuggestionsAsync = (data) => {
+    return Rx.Observable.forkJoin(
         silkStore
             .request({
-                topic: 'transform.task.rules.get',
-                data: {...apiDetails},
+                // call the DI matchVocabularyClassDataset endpoint
+                topic: 'transform.task.rule.suggestions',
+                data: {...apiDetails, ...data},
+            })
+            .catch(err => {
+                
+                // It comes always {title: "Not Found", detail: "Not Found"} when the endpoint is not found.
+                // see: SilkErrorHandler.scala
+                const errorBody = _.get(err, 'response.body');
+                
+                if (err.status === 404 && errorBody.title === "Not Found" && errorBody.detail === "Not Found") {
+                    return Rx.Observable.return(null);
+                }
+                errorBody.code = err.status;
+                return Rx.Observable.return({error: errorBody})
             })
             .map(returned => {
-                const rules = returned.body;
-
-                if (!_.isString(rootId)) {
-                    rootId = rules.id;
+                const body = _.get(returned, 'body', []);
+                const error = _.get(returned, 'error', []);
+                
+                if (error) {
+                    return {
+                        error,
+                    }
                 }
-
+                const suggestions = [];
+                
+                _.forEach(body, (sources, sourcePathOrUri) => {
+                    _.forEach(sources, ({uri: candidateUri, type, confidence}) => {
+                        let mapFrom = sourcePathOrUri; // By default we map from the dataset to the vocabulary, which fits
+                        let mapTo = candidateUri;
+                        if(!data.matchFromDataset) {
+                            mapFrom = candidateUri; // In this case the vocabulary is the source, so we have to switch direction
+                            mapTo = sourcePathOrUri;
+                        }
+                        suggestions.push(
+                            new Suggestion(
+                                mapFrom,
+                                type,
+                                mapTo,
+                                confidence
+                            )
+                        );
+                    });
+                });
                 return {
-                    hierarchy: rules,
+                    data: suggestions,
                 };
+            }),
+        silkStore
+            .request({
+                // call the silk endpoint valueSourcePaths
+                topic: 'transform.task.rule.valueSourcePaths',
+                data: {unusedOnly: true, ...apiDetails, ...data},
             })
-            .multicast(replySubject)
-            .connect();
-    });
+            .catch(err => {
+                const errorBody = _.get(err, 'response.body');
+                errorBody.code = err.status;
+                return Rx.Observable.return({error: errorBody});
+                
+            })
+            .map(returned => {
+                const body = _.get(returned, 'body', []);
+                const error = _.get(returned, 'error', []);
+                if (error) {
+                    return {
+                        error,
+                    }
+                }
+                return {
+                    data: _.map(body, path => new Suggestion(path))
+                }
+            }),
+        (arg1, arg2) => {
+            return {
+                suggestions: _.filter(_.concat([], arg1.data, arg2.data), d => !_.isUndefined(d)),
+                warnings: _.filter([arg1.error, arg2.error], e => !_.isUndefined(e))
+            };
+        }
+    )
+};
+
+export const childExampleAsync = (data) => {
+    const {ruleType, rawRule, id} = data;
+    const getRule = (rawRule, type) => {
+        switch (type) {
+            case MAPPING_RULE_TYPE_DIRECT:
+            case MAPPING_RULE_TYPE_COMPLEX:
+                return prepareValueMappingPayload(rawRule);
+            case MAPPING_RULE_TYPE_OBJECT:
+                return prepareObjectMappingPayload(rawRule);
+            case MAPPING_RULE_TYPE_URI:
+            case MAPPING_RULE_TYPE_COMPLEX_URI:
+                return rawRule;
+            default:
+                throw new Error(
+                    'Rule send to rule.child.example type must be in ("value","object","uri","complexURI")'
+                );
+        }
+    };
+    
+    const rule = getRule(rawRule, ruleType);
+    
+    if (rule && id) {
+        return silkStore
+            .request({
+                topic: 'transform.task.rule.child.peak',
+                data: {...apiDetails, id, rule},
+            })
+            .map(mapPeakResult);
+    }
+    
+    return Rx.Observable();
+};
+
+export const ruleExampleAsync = (data) => {
+    const {id} = data;
+    if (id) {
+        return silkStore
+            .request({
+                topic: 'transform.task.rule.peak',
+                data: {...apiDetails, id},
+            })
+            .map(mapPeakResult);
+    }
+    return Rx.Observable();
+};
+
+export const getHierarchyAsync = ({ baseUrl, project, transformTask }) => {
+    return silkStore
+        .request({
+            topic: 'transform.task.rules.get',
+            data: {
+                ...apiDetails,
+                baseUrl,
+                project,
+                transformTask
+            },
+        })
+        .map(returned => {
+            const rules = returned.body;
+        
+            if (!_.isString(rootId)) {
+                rootId = rules.id;
+            }
+        
+            return {
+                hierarchy: rules,
+            };
+        });
+};
 
 hierarchicalMappingChannel
     .subject(MESSAGES.RULE.GET_EDITOR_HREF)

@@ -4,7 +4,7 @@ import ErrorView from './ErrorView';
 import _ from 'lodash';
 
 import UseMessageBus from '../../UseMessageBusMixin';
-import hierarchicalMappingChannel from '../../store';
+import hierarchicalMappingChannel, { childExampleAsync, ruleExampleAsync } from '../../store';
 import {InfoBox} from './SharedComponents';
 import { MESSAGES } from '../../constants';
 
@@ -17,55 +17,22 @@ const ExampleView = React.createClass({
         ruleType: React.PropTypes.object,
     },
     componentDidMount() {
-        if (!this.props.rawRule) {
-            hierarchicalMappingChannel
-                .request({
-                    topic: MESSAGES.RULE.EXAMPLE,
-                    data: {
-                        id: this.props.id,
-                    },
-                })
-                .subscribe(
-                    ({example}) => {
-                        this.setState({example});
-                    },
-                    error => {
-                        if (__DEBUG__) {
-                            console.warn(
-                                'err MappingRuleOverview: rule.example'
-                            );
-                        }
-                        this.setState({
-                            error,
-                        });
-                    }
-                );
-        } else {
-            hierarchicalMappingChannel
-                .request({
-                    topic: MESSAGES.RULE.CHILD_EXAMPLE,
-                    data: {
-                        id: this.props.id,
-                        rawRule: this.props.rawRule,
-                        ruleType: this.props.ruleType,
-                    },
-                })
-                .subscribe(
-                    ({example}) => {
-                        this.setState({example});
-                    },
-                    error => {
-                        if (__DEBUG__) {
-                            console.warn(
-                                'err MappingRuleOverview: rule.example'
-                            );
-                        }
-                        this.setState({
-                            error,
-                        });
-                    }
-                );
-        }
+        const ruleExampleFunc = this.props.rawRule ? childExampleAsync : ruleExampleAsync;
+        ruleExampleFunc({
+            id: this.props.id,
+            rawRule: this.props.rawRule,
+            ruleType: this.props.ruleType,
+        }).subscribe(
+            ({ example }) => {
+                this.setState({ example });
+            },
+            error => {
+                if (__DEBUG__) {
+                    console.warn('err MappingRuleOverview: rule.example');
+                }
+                this.setState({ error });
+            }
+        );
     },
     getInitialState() {
         return {

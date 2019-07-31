@@ -12,11 +12,8 @@ export const MESSAGES = {
     },
     RULE: {
         SUGGESTIONS: {
-            INDEX: 'rule.suggestions',
             PROGRESS: 'rule.suggestions.progress',
         },
-        EXAMPLE: 'rule.example',
-        CHILD_EXAMPLE: 'rule.child.example',
         GET: 'rule.get',
         GET_EDITOR_HREF: 'rule.getEditorHref',
         COPY: 'rule.copy',
@@ -41,12 +38,6 @@ export const MESSAGES = {
     TOGGLE_DETAILS: 'toggleDetails',
     GET_API_DETAILS: 'getApiDetails',
     AUTOCOMPLETE: 'autocomplete',
-    VOCABULARY_INFO: {
-        GET: 'vocabularyInfo.get'
-    },
-    HIERARCHY: {
-        GET: 'hierarchy.get'
-    },
     SILK: {
         SET_DETAILS: 'setSilkDetails'
     }

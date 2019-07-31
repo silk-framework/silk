@@ -13,7 +13,7 @@ import {
 } from '@eccenca/gui-elements';
 
 import UseMessageBus from '../UseMessageBusMixin';
-import hierarchicalMappingChannel from '../store';
+import hierarchicalMappingChannel, { getHierarchyAsync } from '../store';
 import {RuleTreeTitle, RuleTreeTypes} from './MappingRule/SharedComponents';
 import {MAPPING_RULE_TYPE_OBJECT, MAPPING_RULE_TYPE_ROOT} from '../helpers';
 import { MESSAGES } from '../constants';
@@ -63,11 +63,6 @@ const MappingsTree = React.createClass({
     componentDidUpdate(prevProps) {
         // If the task changed, we need to reload the data
         if (this.props.task !== prevProps.task) {
-            hierarchicalMappingChannel.subject(MESSAGES.SILK.SET_DETAILS).onNext({
-                baseUrl: this.props.baseUrl,
-                project: this.props.project,
-                transformTask: this.props.task
-            });
             this.loadData();
         }
     },
@@ -81,25 +76,29 @@ const MappingsTree = React.createClass({
         if (__DEBUG__) {
             console.warn('TREE RELOAD');
         }
-
-        // get navigation tree data
-        hierarchicalMappingChannel.request({topic: MESSAGES.HIERARCHY.GET}).subscribe(
-            ({hierarchy}) => {
-                // expand root level
-                const topLevelId = _.get(hierarchy, 'id');
-                this.setState({
-                    loading: false,
-                    tree: hierarchy,
-                    expanded:
-                        _.isEmpty(this.state.expanded) && topLevelId
-                            ? this.initialExpandedRules(hierarchy)
-                            : this.state.expanded,
-                });
-            },
-            err => {
-                this.setState({loading: false});
-            }
-        );
+        
+        getHierarchyAsync({
+            baseUrl: this.props.baseUrl,
+            project: this.props.project,
+            transformTask: this.props.task
+        })
+            .subscribe(
+                ({hierarchy}) => {
+                    // expand root level
+                    const topLevelId = _.get(hierarchy, 'id');
+                    this.setState({
+                        loading: false,
+                        tree: hierarchy,
+                        expanded:
+                            _.isEmpty(this.state.expanded) && topLevelId
+                                ? this.initialExpandedRules(hierarchy)
+                                : this.state.expanded,
+                    });
+                },
+                () => {
+                    this.setState({loading: false});
+                }
+            );
     },
 
     initialExpandedRules(tree) {

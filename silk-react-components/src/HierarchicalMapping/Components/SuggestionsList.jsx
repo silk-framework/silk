@@ -24,7 +24,7 @@ import _ from 'lodash';
 import ErrorView from './MappingRule/ErrorView';
 import UseMessageBus from '../UseMessageBusMixin';
 import SuggestionsRule from './SuggestionsRule';
-import hierarchicalMappingChannel, { generateRuleAsync } from '../store';
+import hierarchicalMappingChannel, { generateRuleAsync, getSuggestionsAsync } from '../store';
 import {ParentElement} from './MappingRule/SharedComponents';
 import {SUGGESTION_TYPES} from '../helpers';
 import { MESSAGES } from '../constants';
@@ -65,35 +65,30 @@ const SuggestionsList = React.createClass({
         this.setState({
             loading: true,
         });
-        hierarchicalMappingChannel
-            .request({
-                topic: MESSAGES.RULE.SUGGESTIONS.INDEX,
-                data: {
-                    targetClassUris: this.props.targetClassUris,
-                    ruleId: this.props.ruleId,
-                    matchFromDataset: this.state.matchFromDataset,
-                },
-            })
-            .subscribe(
-                response => {
-                    const rawData = _.map(response.suggestions, v => ({
-                        ...v,
-                        checked: this.defaultCheckValue,
-                        type: v.type || SUGGESTION_TYPES[0],
-                    }));
-                    this.setState({
-                        warnings: response.warnings.filter(w => !_.isEmpty(w)),
-                        loading: false,
-                        rawData,
-                        data: this.state.showDefaultProperties
-                            ? rawData
-                            : rawData.filter(v => !!v.targetProperty),
-                    });
-                },
-                err => {
-                    this.setState({loading: false, error: [{error: err}]});
-                }
-            );
+        getSuggestionsAsync({
+            targetClassUris: this.props.targetClassUris,
+            ruleId: this.props.ruleId,
+            matchFromDataset: this.state.matchFromDataset,
+        }).subscribe(
+            response => {
+                const rawData = _.map(response.suggestions, v => ({
+                    ...v,
+                    checked: this.defaultCheckValue,
+                    type: v.type || SUGGESTION_TYPES[0],
+                }));
+                this.setState({
+                    warnings: response.warnings.filter(w => !_.isEmpty(w)),
+                    loading: false,
+                    rawData,
+                    data: this.state.showDefaultProperties
+                        ? rawData
+                        : rawData.filter(v => !!v.targetProperty),
+                });
+            },
+            err => {
+                this.setState({loading: false, error: [{error: err}]});
+            }
+        );
     },
     onTypeChanged(v) {
         const data = this.state.data;

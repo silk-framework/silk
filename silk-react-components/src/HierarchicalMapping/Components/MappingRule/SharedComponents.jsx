@@ -4,7 +4,7 @@ import {Icon, Button, NotAvailable} from '@eccenca/gui-elements';
 
 const NO_TARGET_TYPE = <NotAvailable />;
 const NO_TARGET_PROPERTY = <NotAvailable />;
-import hierarchicalMappingChannel from '../../store';
+import hierarchicalMappingChannel, { getVocabInfoAsync } from '../../store';
 import {
     MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_DIRECT,
@@ -110,20 +110,10 @@ const URIInfo = React.createClass({
     },
     loadData(props) {
         const {uri, field} = props;
-
-        hierarchicalMappingChannel
-            .request({
-                topic: MESSAGES.VOCABULARY_INFO.GET,
-                data: {
-                    uri,
-                    field,
-                },
-            })
+        getVocabInfoAsync(uri, field)
             .subscribe(
                 ({info}) => {
-                    this.setState({
-                        info,
-                    });
+                    this.setState({ info, });
                 },
                 () => {
                     if (__DEBUG__) {
@@ -131,9 +121,7 @@ const URIInfo = React.createClass({
                             `Could not get any info for ${uri}@${field}`
                         );
                     }
-                    this.setState({
-                        info: false,
-                    });
+                    this.setState({ info: false, });
                 }
             );
     },
