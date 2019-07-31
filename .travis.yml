@@ -1,8 +1,7 @@
 sudo: false
 language: scala
 jdk:
-  - oraclejdk8
-#  - openjdk8 not supported, see https://github.com/travis-ci/travis-ci/issues/1647
+  - openjdk8
 scala:
   - 2.11.11
 
