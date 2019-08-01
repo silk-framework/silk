@@ -56,6 +56,7 @@ class BooleanFilterLinkSpecIntegrationTest extends FlatSpec
   }
 
   override def propertyMap: Map[String, Option[String]] = Map(
-    "optimizations.linking.execution.pushFilters.removeDisjunctionsWithInEqualities" -> Some("false")
+    "optimizations.linking.execution.pushFilters.removeDisjunctionsWithInEqualities" -> Some("false"),
+    "optimizations.linking.execution.pushFilters.enabled" -> Some("true")
   )
 }
