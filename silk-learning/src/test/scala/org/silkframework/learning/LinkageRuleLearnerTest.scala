@@ -11,6 +11,7 @@ class LinkageRuleLearnerTest extends FunSuite with MustMatchers {
 
   test ("must get current and parent package") {
     ScalaReflectUtils.getPackageName(this.getClass) mustBe "org.silkframework.learning"
+
     val zw = ScalaReflectUtils.getEnclosingPackage(this.getClass)
     zw.fullName mustBe "org.silkframework.learning"
     ScalaReflectUtils.getEnclosingPackage(zw.owner).fullName mustBe "org.silkframework"
