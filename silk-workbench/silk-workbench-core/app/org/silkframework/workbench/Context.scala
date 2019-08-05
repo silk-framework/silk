@@ -1,5 +1,6 @@
 package org.silkframework.workbench
 
+import org.silkframework.buildInfo.BuildInfo
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}

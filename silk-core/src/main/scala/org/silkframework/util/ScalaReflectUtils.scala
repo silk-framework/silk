@@ -2,6 +2,7 @@ package org.silkframework.util
 
 import scala.reflect._
 import scala.reflect.runtime.{universe => ru}
+import scala.reflect.runtime.{currentMirror => cm}
 import scala.reflect.runtime.universe._
 import scala.reflect.api
 import scala.util.{Failure, Success, Try}
@@ -97,7 +98,7 @@ object ScalaReflectUtils {
     classToTypeTag(obj.getClass) match {
       case Success(typeTag) =>
         typeTag.tpe.members.collect{
-          case m: TermSymbol if m.isVal => Try{mi.reflect(obj).reflectField(m.asTerm)}.map(x => (m.name.decodedName.toString, x.get)).toOption
+          case m: TermSymbol if m.isVal => Try{mi.reflect(obj).reflectField(m.asTerm)}.map(x => (m.name.decodedName.toString.trim, x.get)).toOption
         }.flatten.toMap
       case Failure(f) => throw f
     }
@@ -142,4 +143,40 @@ object ScalaReflectUtils {
     val res = mirror.reflectMethod(func)(args: _*).asInstanceOf[Option[_]]
     res.map(_.asInstanceOf[Res])
   }
+
+  def getEnclosingPackage(sym: Symbol): Symbol = {
+    if (sym == NoSymbol) NoSymbol
+    else if (sym.isPackage) sym
+    else getEnclosingPackage(sym.owner)
+  }
+
+  def getEnclosingPackage(cls: Class[_]): Symbol = {
+    val typeSymbol = cm.classSymbol(cls)
+    getEnclosingPackage(typeSymbol)
+  }
+
+  def getPackageName(sym: Symbol): String = {
+    val pkg = getEnclosingPackage(sym)
+    if (pkg == cm.EmptyPackageClass) ""
+    else pkg.fullName
+  }
+
+  def getPackageName(cls: Class[_]): String = {
+    val typeSymbol = cm.classSymbol(cls)
+    getPackageName(typeSymbol)
+  }
+
+  def findClosestBuildInfo(clas: Class[_]): Option[Any] = {
+    val typeSymbol = cm.classSymbol(clas)
+    val packageName = getPackageName(typeSymbol).split("\\.")
+
+    val buildInfoSymbol = packageName.reverse
+      .map(r => packageName.span(_ == r)._1)
+      .map(_.mkString(".") + ".buildinfo.BuildInfo")
+      .flatMap(x => Try(cm.staticModule(x)).toOption)
+      .headOption
+
+    buildInfoSymbol.map(c => ru.runtimeMirror(getClass.getClassLoader).reflectModule(c.asModule).instance)
+  }
+
 }

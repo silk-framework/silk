@@ -15,6 +15,7 @@
 package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
+import org.silkframework.util.{ClassUtil, Uri}
 
 /**
  * Plugin interface.
@@ -31,7 +32,12 @@ trait AnyPlugin {
    */
   @transient lazy val parameters: Map[String, String] = pluginSpec.parameterValues(this)(Prefixes.empty)
 
-  override def toString = {
+  /**
+    * The unique iri of this plugin for this version and git commit
+    */
+  lazy val pluginIri: Uri = ClassUtil.getClassVersionUri(this.getClass)
+
+  override def toString: String = {
     getClass.getSimpleName + "(" + parameters.map { case (key, value) => key + "=" + value }.mkString(" ") + ")"
   }
 }

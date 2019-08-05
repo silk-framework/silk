@@ -1,10 +1,12 @@
 import sbt._
+import sbtbuildinfo.BuildInfoPlugin.autoImport.buildInfoKeys
 
 //////////////////////////////////////////////////////////////////////////////
 // Common Settings
 //////////////////////////////////////////////////////////////////////////////
 
 concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
+val buildInfoSettings = Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion, git.gitHeadCommit)
 
 lazy val commonSettings = Seq(
   organization := "org.silkframework",
@@ -57,9 +59,12 @@ lazy val commonSettings = Seq(
 //////////////////////////////////////////////////////////////////////////////
 
 lazy val core = (project in file("silk-core"))
+  .enablePlugins(GitVersioning)
+  .enablePlugins(BuildInfoPlugin)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Core",
+    buildInfoKeys := buildInfoSettings,
     libraryDependencies += "com.typesafe" % "config" % "1.3.1", // Should always use the same version as the Play Framework dependency
     libraryDependencies += "com.rockymadden.stringmetric" % "stringmetric-core_2.11" % "0.27.4",
     libraryDependencies += "com.thoughtworks.paranamer" % "paranamer" % "2.7",
@@ -81,10 +86,12 @@ lazy val rules = (project in file("silk-rules"))
   )
 
 lazy val learning = (project in file("silk-learning"))
+  .enablePlugins(BuildInfoPlugin)
   .dependsOn(rules, workspace)
   .settings(commonSettings: _*)
   .settings(
-    name := "Silk Learning"
+    name := "Silk Learning",
+      buildInfoKeys := buildInfoSettings
   )
 
 lazy val workspace = (project in file("silk-workspace"))
