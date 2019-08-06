@@ -17,10 +17,8 @@ import {
 } from '@eccenca/gui-elements';
 
 import Navigation from '../Mixins/Navigation';
-import {
-    RuleTitle,
-    ParentStructure,
-} from './MappingRule/SharedComponents';
+import { ParentStructure } from './MappingRule/SharedComponents';
+import RuleTitle from '../elements/RuleTitle/RuleTitle';
 import hierarchicalMappingChannel from '../store';
 import { MESSAGES } from '../constants';
 

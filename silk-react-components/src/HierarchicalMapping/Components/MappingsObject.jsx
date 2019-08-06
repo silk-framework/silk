@@ -10,7 +10,8 @@ import {
     DismissiveButton,
     NotAvailable,
 } from '@eccenca/gui-elements';
-import { ThingIcon, RuleTitle, RuleTypes } from './MappingRule/SharedComponents';
+import { ThingIcon, RuleTypes } from './MappingRule/SharedComponents';
+import RuleTitle from '../elements/RuleTitle/RuleTitle';
 import ObjectRule from './MappingRule/ObjectMappingRule';
 import hierarchicalMappingChannel from '../store';
 import UseMessageBus from '../UseMessageBusMixin';
