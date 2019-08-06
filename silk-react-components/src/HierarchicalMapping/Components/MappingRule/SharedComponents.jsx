@@ -1,9 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
-import {Icon, Button, NotAvailable} from '@eccenca/gui-elements';
-
-const NO_TARGET_TYPE = <NotAvailable />;
-const NO_TARGET_PROPERTY = <NotAvailable />;
+import { Icon, Button, NotAvailable } from '@eccenca/gui-elements';
 import hierarchicalMappingChannel, { getVocabInfoAsync } from '../../store';
 import {
     MAPPING_RULE_TYPE_COMPLEX,
@@ -13,71 +10,74 @@ import {
 } from '../../helpers';
 import { MESSAGES } from '../../constants';
 
-export const RuleTitle = ({rule, ...otherProps}) => {
+const NO_TARGET_TYPE = <NotAvailable />;
+const NO_TARGET_PROPERTY = <NotAvailable />;
+
+export const RuleTitle = ({ rule, ...otherProps }) => {
     let uri;
     const label = _.get(rule, 'metadata.label', '');
     if (label) {
         return <span>{label}</span>;
     }
     switch (rule.type) {
-        case MAPPING_RULE_TYPE_ROOT:
-            uri = _.get(rule, 'rules.typeRules[0].typeUri', false);
-            return uri ? (
-                <ThingName id={uri} {...otherProps} />
-            ) : (
-                NO_TARGET_TYPE
-            );
-        case MAPPING_RULE_TYPE_DIRECT:
-        case MAPPING_RULE_TYPE_OBJECT:
-        case MAPPING_RULE_TYPE_COMPLEX:
-            uri = _.get(rule, 'mappingTarget.uri', false);
-            return uri ? (
-                <ThingName id={uri} {...otherProps} />
-            ) : (
-                NO_TARGET_PROPERTY
-            );
+    case MAPPING_RULE_TYPE_ROOT:
+        uri = _.get(rule, 'rules.typeRules[0].typeUri', false);
+        return uri ? (
+            <ThingName id={uri} {...otherProps} />
+        ) : (
+            NO_TARGET_TYPE
+        );
+    case MAPPING_RULE_TYPE_DIRECT:
+    case MAPPING_RULE_TYPE_OBJECT:
+    case MAPPING_RULE_TYPE_COMPLEX:
+        uri = _.get(rule, 'mappingTarget.uri', false);
+        return uri ? (
+            <ThingName id={uri} {...otherProps} />
+        ) : (
+            NO_TARGET_PROPERTY
+        );
     }
 };
 
-export const RuleTypes = ({rule, ...otherProps}) => {
+export const RuleTypes = ({ rule, ...otherProps }) => {
     switch (rule.type) {
-        case MAPPING_RULE_TYPE_OBJECT:
-            let types = _.get(rule, 'rules.typeRules', []);
-            types = _.isEmpty(types)
-                ? NO_TARGET_TYPE
-                : types
-                      .map(({typeUri}) => (
-                          <ThingName id={typeUri} key={typeUri} />
-                      ))
-                      .reduce((prev, curr) => [prev, ', ', curr]);
-            return <span {...otherProps}>{types}</span>;
-        case MAPPING_RULE_TYPE_DIRECT:
-        case MAPPING_RULE_TYPE_COMPLEX:
-            let appendText = _.get(rule, 'mappingTarget.valueType.lang', '');
-            if(appendText !== '') { // add language tag if available
-                appendText = ' (' + appendText + ')';
-            }
-            return (
-                <span {...otherProps}>
-                    {_.get(
-                        rule,
-                        'mappingTarget.valueType.nodeType',
-                        NO_TARGET_TYPE
-                    ) + appendText}
-                </span>
-            );
-        case MAPPING_RULE_TYPE_ROOT:
-            return <span />;
+    case MAPPING_RULE_TYPE_OBJECT:
+        let types = _.get(rule, 'rules.typeRules', []);
+        types = _.isEmpty(types)
+            ? NO_TARGET_TYPE
+            : types
+                .map(({ typeUri }) => (
+                    <ThingName id={typeUri} key={typeUri} />
+                ))
+                .reduce((prev, curr) => [prev, ', ', curr]);
+        return <span {...otherProps}>{types}</span>;
+    case MAPPING_RULE_TYPE_DIRECT:
+    case MAPPING_RULE_TYPE_COMPLEX:
+        let appendText = _.get(rule, 'mappingTarget.valueType.lang', '');
+        if (appendText !== '') { // add language tag if available
+            appendText = ` (${appendText})`;
+        }
+        return (
+            <span {...otherProps}>
+                {_.get(
+                    rule,
+                    'mappingTarget.valueType.nodeType',
+                    NO_TARGET_TYPE
+                ) + appendText}
+            </span>
+        );
+    case MAPPING_RULE_TYPE_ROOT:
+        return <span />;
     }
 };
 
-export const SourcePath = ({rule}) => {
+export const SourcePath = ({ rule }) => {
     const path = _.get(rule, 'sourcePath', <NotAvailable inline />);
 
     return <span>{_.isArray(path) ? path.join(', ') : path}</span>;
 };
 
-export const RuleTreeTitle = ({rule}) => {
+export const RuleTreeTitle = ({ rule }) => {
     const childCount = _.get(rule, 'rules.propertyRules', []).length;
 
     return (
@@ -87,7 +87,7 @@ export const RuleTreeTitle = ({rule}) => {
     );
 };
 
-export const RuleTreeTypes = ({rule}) => <RuleTypes rule={rule} />;
+export const RuleTreeTypes = ({ rule }) => <RuleTypes rule={rule} />;
 
 const URIInfo = React.createClass({
     getInitialState() {
@@ -109,30 +109,30 @@ const URIInfo = React.createClass({
         );
     },
     loadData(props) {
-        const {uri, field} = props;
+        const { uri, field } = props;
         getVocabInfoAsync(uri, field)
             .subscribe(
-                ({info}) => {
-                    this.setState({ info, });
+                ({ info }) => {
+                    this.setState({ info });
                 },
                 () => {
                     if (__DEBUG__) {
-                        console.warn(
-                            `Could not get any info for ${uri}@${field}`
-                        );
+                        console.warn(`Could not get any info for ${uri}@${field}`);
                     }
-                    this.setState({ info: false, });
+                    this.setState({ info: false });
                 }
             );
     },
     render() {
-        const {info} = this.state;
+        const { info } = this.state;
 
         if (info) {
             return <span>{info}</span>;
         }
 
-        const {uri, fallback, field, ...otherProps} = this.props;
+        const {
+            uri, fallback, field, ...otherProps
+        } = this.props;
 
         let noInfo = false;
 
@@ -177,11 +177,9 @@ const PropertyTypeInfo = React.createClass({
                 },
                 () => {
                     if (__DEBUG__) {
-                        console.warn(
-                            `No ${
-                                this.props.option
-                            } found for the property type ${this.props.name}`
-                        );
+                        console.warn(`No ${
+                            this.props.option
+                        } found for the property type ${this.props.name}`);
                     }
                     this.setState({
                         result: this.props.name,
@@ -197,18 +195,18 @@ const PropertyTypeInfo = React.createClass({
     },
     render() {
         let text = this.state.result;
-        if(this.props.appendedText) {
-            text = text + this.props.appendedText;
+        if (this.props.appendedText) {
+            text += this.props.appendedText;
         }
         return <div>{text}</div>;
     },
 });
 
-export const ThingName = ({id, ...otherProps}) => (
+export const ThingName = ({ id, ...otherProps }) => (
     <URIInfo uri={id} {...otherProps} field="label" />
 );
 
-export const ThingDescription = ({id}) => {
+export const ThingDescription = ({ id }) => {
     const fallbackInfo = (
         <NotAvailable
             inline
@@ -218,29 +216,29 @@ export const ThingDescription = ({id}) => {
     return <URIInfo uri={id} field="description" fallback={fallbackInfo} />;
 };
 
-export const PropertyTypeLabel = ({name, appendedText}) => (
+export const PropertyTypeLabel = ({ name, appendedText }) => (
     <PropertyTypeInfo name={name} option="label" appendedText={appendedText} />
 );
 
-export const PropertyTypeDescription = ({name}) => (
+export const PropertyTypeDescription = ({ name }) => (
     <PropertyTypeInfo name={name} option="description" />
 );
 
-export const ThingIcon = ({type, status, message}) => {
+export const ThingIcon = ({ type, status, message }) => {
     let iconName = 'help_outline';
     let tooltip = '';
     switch (type) {
-        case MAPPING_RULE_TYPE_DIRECT:
-        case MAPPING_RULE_TYPE_COMPLEX:
-            tooltip = 'Value mapping';
-            iconName = 'insert_drive_file';
-            break;
-        case MAPPING_RULE_TYPE_OBJECT:
-            tooltip = 'Object mapping';
-            iconName = 'folder';
-            break;
-        default:
-            iconName = 'help_outline';
+    case MAPPING_RULE_TYPE_DIRECT:
+    case MAPPING_RULE_TYPE_COMPLEX:
+        tooltip = 'Value mapping';
+        iconName = 'insert_drive_file';
+        break;
+    case MAPPING_RULE_TYPE_OBJECT:
+        tooltip = 'Object mapping';
+        iconName = 'folder';
+        break;
+    default:
+        iconName = 'help_outline';
     }
 
     return (
@@ -252,19 +250,19 @@ export const ThingIcon = ({type, status, message}) => {
     );
 };
 
-export const ParentElement = ({parent, ...otherProps}) =>
-    _.get(parent, 'type') ? (
+export const ParentElement = ({ parent, ...otherProps }) =>
+    (_.get(parent, 'type') ? (
         <ThingName id={parent.type} {...otherProps} />
     ) : (
         <span {...otherProps}>parent element</span>
-    );
+    ));
 
-export const ParentStructure = ({parent, ...otherProps}) =>
-    _.get(parent, 'property') ? (
+export const ParentStructure = ({ parent, ...otherProps }) =>
+    (_.get(parent, 'property') ? (
         <ThingName id={parent.property} {...otherProps} />
     ) : (
         <ParentElement parent={parent} {...otherProps} />
-    );
+    ));
 
 export const InfoBox = React.createClass({
     getInitialState() {
@@ -285,7 +283,8 @@ export const InfoBox = React.createClass({
             <div
                 className={`ecc-silk-mapping__rulesviewer__infobox${
                     !this.state.expanded ? ' is-narrowed' : ''
-                }`}>
+                }`}
+            >
                 <Button
                     className="ecc-silk-mapping__rulesviewer__infobox-toggler"
                     iconName={

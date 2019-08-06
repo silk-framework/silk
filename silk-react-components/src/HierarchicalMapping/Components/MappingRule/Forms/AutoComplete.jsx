@@ -1,11 +1,11 @@
 import React from 'react';
-import {AutoCompleteBox} from '@eccenca/gui-elements';
+import { AutoCompleteBox } from '@eccenca/gui-elements';
 import hierarchicalMappingChannel from '../../../store';
 import { MESSAGES } from '../../../constants';
 
 const AutoComplete = React.createClass({
     render() {
-        const {entity, ruleId, ...otherProps} = this.props;
+        const { entity, ruleId, ...otherProps } = this.props;
 
         const loadOptionsRaw = (input, callback) => {
             hierarchicalMappingChannel
@@ -18,14 +18,13 @@ const AutoComplete = React.createClass({
                     },
                 })
                 .subscribe(
-                    ({options}) => {
+                    ({ options }) => {
                         callback(null, {
                             options,
                             complete: false,
-                        },
-                        );
+                        }, );
                     },
-                    (error) => {
+                    error => {
                     }
                 );
         };

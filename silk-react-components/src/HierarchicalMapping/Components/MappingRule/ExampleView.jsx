@@ -1,11 +1,11 @@
 import React from 'react';
-import {Spinner, Chip} from '@eccenca/gui-elements';
+import { Spinner, Chip } from '@eccenca/gui-elements';
 import ErrorView from './ErrorView';
 import _ from 'lodash';
 
 import UseMessageBus from '../../UseMessageBusMixin';
 import hierarchicalMappingChannel, { childExampleAsync, ruleExampleAsync } from '../../store';
-import {InfoBox} from './SharedComponents';
+import { InfoBox } from './SharedComponents';
 import { MESSAGES } from '../../constants';
 
 const ExampleView = React.createClass({
@@ -81,10 +81,12 @@ const ExampleView = React.createClass({
                             {_.map(sourcePaths, (sourcePath, i) => (
                                 <tr
                                     key={`${index}_${sourcePath}_${i}`}
-                                    id={`${index}_${sourcePath}_${i}`}>
+                                    id={`${index}_${sourcePath}_${i}`}
+                                >
                                     <td
                                         key="path"
-                                        className="ecc-silk-mapping__rulesviewer__examples-table__path">
+                                        className="ecc-silk-mapping__rulesviewer__examples-table__path"
+                                    >
                                         {sourcePath ? (
                                             <Chip>&lrm;{sourcePath}</Chip>
                                         ) : (
@@ -93,12 +95,14 @@ const ExampleView = React.createClass({
                                     </td>
                                     <td
                                         key="value"
-                                        className="ecc-silk-mapping__rulesviewer__examples-table__value">
+                                        className="ecc-silk-mapping__rulesviewer__examples-table__value"
+                                    >
                                         {_.map(
                                             result.sourceValues[i],
                                             (value, valueIndex) => (
                                                 <Chip
-                                                    key={`${index}_${sourcePath}_${i}_${valueIndex}`}>
+                                                    key={`${index}_${sourcePath}_${i}_${valueIndex}`}
+                                                >
                                                     {value}
                                                 </Chip>
                                             )
@@ -110,7 +114,8 @@ const ExampleView = React.createClass({
                                         <td
                                             key="result"
                                             className="ecc-silk-mapping__rulesviewer__examples-table__result"
-                                            rowSpan={pathsCount}>
+                                            rowSpan={pathsCount}
+                                        >
                                             {_.map(
                                                 this.state.example.results[
                                                     index
@@ -118,7 +123,8 @@ const ExampleView = React.createClass({
                                                 (transformedValue, row) => (
                                                     <Chip
                                                         key={`value_${index}_${i}_${row}`}
-                                                        id={`value_${index}_${i}_${row}`}>
+                                                        id={`value_${index}_${i}_${row}`}
+                                                    >
                                                         {transformedValue}
                                                     </Chip>
                                                 )

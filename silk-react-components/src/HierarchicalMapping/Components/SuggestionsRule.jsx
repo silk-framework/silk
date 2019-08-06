@@ -1,7 +1,7 @@
 import React from 'react';
-import {SelectBox, Checkbox, NotAvailable} from '@eccenca/gui-elements';
+import { SelectBox, Checkbox, NotAvailable } from '@eccenca/gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
-import {SUGGESTION_TYPES, LABELED_SUGGESTION_TYPES} from '../helpers';
+import { SUGGESTION_TYPES, LABELED_SUGGESTION_TYPES } from '../helpers';
 import _ from 'lodash';
 
 const SuggestionsRule = React.createClass({
@@ -23,7 +23,7 @@ const SuggestionsRule = React.createClass({
             checked: !this.props.suggestion.checked,
         });
     },
-    onChangeType({value, label}) {
+    onChangeType({ value, label }) {
         this.props.onTypeChanged({
             id: this.props.suggestion.id,
             type: value,
@@ -31,7 +31,7 @@ const SuggestionsRule = React.createClass({
     },
     // template rendering
     render() {
-        const {suggestion} = this.props;
+        const { suggestion } = this.props;
         let title = `Click to add the suggested value mapping:\n\nValue path: ${
             suggestion.sourcePath
         }`;
@@ -43,7 +43,7 @@ const SuggestionsRule = React.createClass({
             title += `\nTarget property: ${suggestion.targetProperty}`;
         } else {
             targetProperty = <NotAvailable label="(default mapping)" inline />;
-            title += `\nTarget property: default mapping`;
+            title += '\nTarget property: default mapping';
         }
 
         if (suggestion.confidence) {
@@ -54,7 +54,8 @@ const SuggestionsRule = React.createClass({
             <li
                 className={`ecc-silk-mapping__ruleitem ecc-silk-mapping__ruleitem--literal ${
                     suggestion.checked ? 'selected' : 'unselected'
-                }`}>
+                }`}
+            >
                 <div className="ecc-silk-mapping__ruleitem-summary">
                     <div className="mdl-list__item">
                         <div className="ecc-silk-mapping__suggestitem-checkbox">
@@ -67,7 +68,8 @@ const SuggestionsRule = React.createClass({
                         <div
                             className="mdl-list__item-primary-content clickable"
                             title={title}
-                            onClick={this.onChangeChecked}>
+                            onClick={this.onChangeChecked}
+                        >
                             <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline">
                                 {suggestion.sourcePath}
                             </div>
@@ -75,8 +77,9 @@ const SuggestionsRule = React.createClass({
                                 {targetProperty}
                             </div>
                             <div
-                                className={`ecc-silk-mapping__suggestitem-typeselect`}
-                                onClick={this.preventPropagation}>
+                                className="ecc-silk-mapping__suggestitem-typeselect"
+                                onClick={this.preventPropagation}
+                            >
                                 <SelectBox
                                     reducedSize
                                     disabled={!suggestion.checked}
@@ -84,9 +87,7 @@ const SuggestionsRule = React.createClass({
                                     onChange={this.onChangeType}
                                     value={{
                                         value: suggestion.type,
-                                        label: LABELED_SUGGESTION_TYPES.filter(
-                                            v => v.value === suggestion.type
-                                        )[0].label,
+                                        label: LABELED_SUGGESTION_TYPES.filter(v => v.value === suggestion.type)[0].label,
                                     }}
                                     clearable={false}
                                 />

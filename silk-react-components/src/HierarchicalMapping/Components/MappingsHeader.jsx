@@ -44,20 +44,20 @@ const MappingsHeader = React.createClass({
         //     this.discardAll
         // );
     },
-    
+
     handleToggleRuleDetails(stateExpand) {
         hierarchicalMappingChannel
             .subject(MESSAGES.TOGGLE_DETAILS)
             .onNext(stateExpand);
     },
-    
+
     promoteToggleTreenavigation(stateVisibility) {
         hierarchicalMappingChannel
             .subject(MESSAGES.TREE_NAV.TOGGLE_VISIBILITY)
             .onNext(stateVisibility);
     },
-    
-    
+
+
     handleToggleTreenavigation() {
         this.promoteToggleTreenavigation(!this.state.showTreenavigation);
         this.setState({
@@ -68,8 +68,8 @@ const MappingsHeader = React.createClass({
     handleNavigate(id, parent, event) {
         hierarchicalMappingChannel
             .subject(MESSAGES.RULE_ID.CHANGE)
-            .onNext({newRuleId: id, parentId: parent});
-        
+            .onNext({ newRuleId: id, parentId: parent });
+
         event.stopPropagation();
     },
 
@@ -85,7 +85,7 @@ const MappingsHeader = React.createClass({
         const navBack = _.has(parent, 'id') ? (
             <div className="mdl-card__title-back">
                 <Button
-                    iconName={'arrow_back'}
+                    iconName="arrow_back"
                     tooltip="Navigate back to parent"
                     onClick={event => {
                         this.handleNavigate(
@@ -106,19 +106,20 @@ const MappingsHeader = React.createClass({
             <BreadcrumbList>
                 {breadcrumbs.length > 0
                     ? breadcrumbs.map((crumb, idx) => (
-                          <BreadcrumbItem
-                              key={idx}
-                              onClick={event => {
-                                  self.handleNavigate(
-                                      crumb.id,
-                                      self.props.rule.id,
-                                      event
-                                  );
-                              }}
-                              separationChar="/">
-                              <ParentStructure parent={crumb} />
-                          </BreadcrumbItem>
-                      ))
+                        <BreadcrumbItem
+                            key={idx}
+                            onClick={event => {
+                                self.handleNavigate(
+                                    crumb.id,
+                                    self.props.rule.id,
+                                    event
+                                );
+                            }}
+                            separationChar="/"
+                        >
+                            <ParentStructure parent={crumb} />
+                        </BreadcrumbItem>
+                    ))
                     : false}
                 <BreadcrumbItem key={breadcrumbs.length}>
                     <RuleTitle rule={_.get(this.props, 'rule', {})} />
@@ -130,10 +131,12 @@ const MappingsHeader = React.createClass({
             <CardMenu>
                 <ContextMenu
                     className="ecc-silk-mapping__ruleslistmenu"
-                    iconName="tune">
+                    iconName="tune"
+                >
                     <MenuItem
                         className="ecc-silk-mapping__ruleslistmenu__item-toggletree"
-                        onClick={this.handleToggleTreenavigation}>
+                        onClick={this.handleToggleTreenavigation}
+                    >
                         {this.state.showTreenavigation
                             ? 'Hide tree navigation'
                             : 'Show tree navigation'}
@@ -144,7 +147,8 @@ const MappingsHeader = React.createClass({
                             this.handleToggleRuleDetails({
                                 expanded: true,
                             });
-                        }}>
+                        }}
+                    >
                         Expand all
                     </MenuItem>
                     <MenuItem
@@ -153,7 +157,8 @@ const MappingsHeader = React.createClass({
                             this.handleToggleRuleDetails({
                                 expanded: false,
                             });
-                        }}>
+                        }}
+                    >
                         Reduce all
                     </MenuItem>
                 </ContextMenu>

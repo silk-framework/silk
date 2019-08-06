@@ -14,8 +14,8 @@ import {
 
 import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel, { getHierarchyAsync } from '../store';
-import {RuleTreeTitle, RuleTreeTypes} from './MappingRule/SharedComponents';
-import {MAPPING_RULE_TYPE_OBJECT, MAPPING_RULE_TYPE_ROOT} from '../helpers';
+import { RuleTreeTitle, RuleTreeTypes } from './MappingRule/SharedComponents';
+import { MAPPING_RULE_TYPE_OBJECT, MAPPING_RULE_TYPE_ROOT } from '../helpers';
 import { MESSAGES } from '../constants';
 
 const MappingsTree = React.createClass({
@@ -37,7 +37,7 @@ const MappingsTree = React.createClass({
 
     defaultProps: {
         showValueMappings: false,
-        ruleValidation: {}
+        ruleValidation: {},
     },
 
     // initilize state
@@ -66,24 +66,24 @@ const MappingsTree = React.createClass({
             this.loadData();
         }
     },
-    expandElement({newRuleId, parentId}) {
+    expandElement({ newRuleId, parentId }) {
         const expanded = this.state.expanded;
         expanded[newRuleId] = true;
         expanded[parentId] = true;
-        this.setState({expanded});
+        this.setState({ expanded });
     },
     loadData() {
         if (__DEBUG__) {
             console.warn('TREE RELOAD');
         }
-        
+
         getHierarchyAsync({
             baseUrl: this.props.baseUrl,
             project: this.props.project,
-            transformTask: this.props.task
+            transformTask: this.props.task,
         })
             .subscribe(
-                ({hierarchy}) => {
+                ({ hierarchy }) => {
                     // expand root level
                     const topLevelId = _.get(hierarchy, 'id');
                     this.setState({
@@ -96,15 +96,15 @@ const MappingsTree = React.createClass({
                     });
                 },
                 () => {
-                    this.setState({loading: false});
+                    this.setState({ loading: false });
                 }
             );
     },
 
     initialExpandedRules(tree) {
         let expanded = {};
-        if(this.props.hasOwnProperty('ruleValidation')) {
-            expanded = this.computeExpandedRules(tree)
+        if (this.props.hasOwnProperty('ruleValidation')) {
+            expanded = this.computeExpandedRules(tree);
         }
         expanded[_.get(tree, 'id')] = true;
         return expanded;
@@ -121,16 +121,16 @@ const MappingsTree = React.createClass({
             // Iterate all children
             _.forEach(tree.rules.propertyRules, rule => {
                 // Collect all children
-                expanded = {...expanded, ...this.computeExpandedRules(rule)};
+                expanded = { ...expanded, ...this.computeExpandedRules(rule) };
                 // Expand if a child contains a warning
-                if (this.props.ruleValidation[rule.id] === "warning") {
+                if (this.props.ruleValidation[rule.id] === 'warning') {
                     expanded[tree.id] = true;
                 }
             });
         }
 
         // Expand this node if at least one child is expanded
-        if(!_.isEmpty(expanded)) {
+        if (!_.isEmpty(expanded)) {
             expanded[tree.id] = true;
         }
 
@@ -141,7 +141,7 @@ const MappingsTree = React.createClass({
     handleToggleExpanded(id) {
         const expanded = this.state.expanded;
         expanded[id] = !expanded[id];
-        this.setState({expanded});
+        this.setState({ expanded });
     },
     markTree(curr) {
         if (_.isEmpty(curr)) {
@@ -150,7 +150,7 @@ const MappingsTree = React.createClass({
 
         const tree = _.cloneDeep(curr);
 
-        const {id, type} = tree;
+        const { id, type } = tree;
 
         let expanded = _.get(this.state, ['expanded', id], false);
         let isHighlighted =
@@ -185,8 +185,8 @@ const MappingsTree = React.createClass({
     handleNavigate(id, parent, event) {
         hierarchicalMappingChannel
             .subject(MESSAGES.RULE_ID.CHANGE)
-            .onNext({newRuleId: id, parentId: parent});
-        
+            .onNext({ newRuleId: id, parentId: parent });
+
         event.stopPropagation();
     },
     // template rendering
@@ -194,7 +194,7 @@ const MappingsTree = React.createClass({
         const tree = this.markTree(_.cloneDeep(this.state.tree));
 
         // construct parent-child tree
-        const navigationList = ({parent}) => {
+        const navigationList = ({ parent }) => {
             const {
                 id,
                 type: parentType,
@@ -205,13 +205,14 @@ const MappingsTree = React.createClass({
 
             // get expanded state
             const childs = _.chain(rules.propertyRules)
-                .filter(({type}) => this.props.showValueMappings || type === MAPPING_RULE_TYPE_OBJECT)
+                .filter(({ type }) => this.props.showValueMappings || type === MAPPING_RULE_TYPE_OBJECT)
                 .value();
 
             const element = () => (
                 <button
                     className="ecc-silk-mapping__treenav--item-handler"
-                    onClick={(e) => this.handleNavigate(id, undefined, e)}>
+                    onClick={e => this.handleNavigate(id, undefined, e)}
+                >
                     <span className="ecc-silk-mapping__treenav--item-maintitle">
                         <RuleTreeTitle rule={parent} />
                         { this.renderRuleIcon(id) }
@@ -233,7 +234,8 @@ const MappingsTree = React.createClass({
                             isHighlighted
                                 ? ' ecc-silk-mapping__treenav--item-active'
                                 : ''
-                        }`}>
+                        }`}
+                    >
                         {!_.isEmpty(childs) ? (
                             <Button
                                 className="ecc-silk-mapping__treenav--item-toggler"
@@ -260,7 +262,7 @@ const MappingsTree = React.createClass({
                         <ul className="ecc-silk-mapping__treenav--subtree">
                             {_.map(childs, child => (
                                 <li key={child.id}>
-                                    {navigationList({parent: child})}
+                                    {navigationList({ parent: child })}
                                 </li>
                             ))}
                         </ul>
@@ -273,7 +275,7 @@ const MappingsTree = React.createClass({
 
         const content = !_.isEmpty(tree) ? (
             <ul className="ecc-silk-mapping__treenav--maintree">
-                <li>{navigationList({parent: tree})}</li>
+                <li>{navigationList({ parent: tree })}</li>
             </ul>
         ) : (
             false
@@ -294,14 +296,13 @@ const MappingsTree = React.createClass({
     },
 
     renderRuleIcon(ruleId) {
-        if(!this.props.ruleValidation || !this.props.ruleValidation.hasOwnProperty(ruleId)) {
+        if (!this.props.ruleValidation || !this.props.ruleValidation.hasOwnProperty(ruleId)) {
             return (null);
-        } else if(this.props.ruleValidation[ruleId] === "ok") {
-            return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="done" />
-        } else {
-            return <Icon className="ecc-silk-mapping__ruleitem-icon-red" name="warning" />
+        } else if (this.props.ruleValidation[ruleId] === 'ok') {
+            return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="done" />;
         }
-    }
+        return <Icon className="ecc-silk-mapping__ruleitem-icon-red" name="warning" />;
+    },
 });
 
 export default MappingsTree;

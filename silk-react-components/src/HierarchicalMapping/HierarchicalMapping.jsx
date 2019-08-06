@@ -11,7 +11,7 @@ import {
     ConfirmationDialog,
     Spinner,
 } from '@eccenca/gui-elements';
-import {URI} from 'ecc-utils';
+import { URI } from 'ecc-utils';
 
 import UseMessageBus from './UseMessageBusMixin';
 import hierarchicalMappingChannel from './store';
@@ -19,7 +19,7 @@ import hierarchicalMappingChannel from './store';
 import MappingsTree from './Components/MappingsTree';
 import MappingsWorkview from './Components/MappingsWorkview';
 import MessageHandler from './Components/MessageHandler';
-import {MAPPING_RULE_TYPE_OBJECT} from './helpers';
+import { MAPPING_RULE_TYPE_OBJECT } from './helpers';
 import { MESSAGES } from './constants';
 
 const HierarchicalMapping = React.createClass({
@@ -64,7 +64,9 @@ const HierarchicalMapping = React.createClass({
     },
     // initilize state
     getInitialState() {
-        const {baseUrl, project, transformTask, initialRule} = this.props;
+        const {
+            baseUrl, project, transformTask, initialRule,
+        } = this.props;
 
         hierarchicalMappingChannel.subject(MESSAGES.SILK.SET_DETAILS).onNext({
             baseUrl,
@@ -103,22 +105,26 @@ const HierarchicalMapping = React.createClass({
             });
         }
     },
-    handleClickRemove({id, uri, type, parent}) {
+    handleClickRemove({
+        id, uri, type, parent,
+    }) {
         this.setState({
             editingElements: [],
-            elementToDelete: {id, uri, type, parent},
+            elementToDelete: {
+                id, uri, type, parent,
+            },
         });
     },
     handleConfirmRemove(event) {
         event.stopPropagation();
-        const {parent, type} = this.state.elementToDelete;
+        const { parent, type } = this.state.elementToDelete;
         this.setState({
             loading: true,
         });
         hierarchicalMappingChannel
             .request({
                 topic: MESSAGES.RULE.REMOVE,
-                data: {...this.state.elementToDelete},
+                data: { ...this.state.elementToDelete },
             })
             .subscribe(
                 () => {
@@ -151,7 +157,7 @@ const HierarchicalMapping = React.createClass({
         });
     },
     // react to rule id changes
-    onRuleNavigation({newRuleId}) {
+    onRuleNavigation({ newRuleId }) {
         if (newRuleId === this.state.currentRuleId) {
             // Do nothing!
         } else if (this.state.editingElements.length === 0) {
@@ -182,9 +188,7 @@ const HierarchicalMapping = React.createClass({
                 uriTemplate.segment(-1, this.state.currentRuleId);
                 history.pushState(null, '', uriTemplate.toString());
             } catch (e) {
-                console.debug(
-                    `HierarchicalMapping: ${href} is not an URI, cannot update the window state`
-                );
+                console.debug(`HierarchicalMapping: ${href} is not an URI, cannot update the window state`);
             }
         }
     },
@@ -198,7 +202,7 @@ const HierarchicalMapping = React.createClass({
         if (_.includes(this.state.editingElements, 0)) {
             hierarchicalMappingChannel
                 .subject(MESSAGES.RULE_VIEW.UNCHANGED)
-                .onNext({id: 0});
+                .onNext({ id: 0 });
         }
         this.setState({
             editingElements: [],
@@ -213,7 +217,7 @@ const HierarchicalMapping = React.createClass({
         });
     },
     handleCancelDiscard() {
-        this.setState({askForDiscard: false});
+        this.setState({ askForDiscard: false });
     },
     // template rendering
     render() {
@@ -222,7 +226,8 @@ const HierarchicalMapping = React.createClass({
                 baseUrl={this.props.baseUrl}
                 project={this.props.project}
                 task={this.props.transformTask}
-                currentRuleId={this.state.currentRuleId} />
+                currentRuleId={this.state.currentRuleId}
+            />
         ) : (
             false
         );
@@ -237,17 +242,20 @@ const HierarchicalMapping = React.createClass({
                     <DisruptiveButton
                         className="ecc-hm-delete-accept"
                         disabled={false}
-                        onClick={this.handleConfirmRemove}>
+                        onClick={this.handleConfirmRemove}
+                    >
                         Remove
                     </DisruptiveButton>
                 }
                 cancelButton={
                     <DismissiveButton
                         className="ecc-hm-delete-cancel"
-                        onClick={this.handleCancelRemove}>
+                        onClick={this.handleCancelRemove}
+                    >
                         Cancel
                     </DismissiveButton>
-                }>
+                }
+            >
                 <p>
                     When you click REMOVE the mapping rule
                     {this.state.elementToDelete.type ===
@@ -271,24 +279,27 @@ const HierarchicalMapping = React.createClass({
                     <DisruptiveButton
                         disabled={false}
                         className="ecc-hm-accept-discard"
-                        onClick={this.handleDiscardChanges}>
+                        onClick={this.handleDiscardChanges}
+                    >
                         Discard
                     </DisruptiveButton>
                 }
                 cancelButton={
                     <DismissiveButton
                         className="ecc-hm-cancel-discard"
-                        onClick={this.handleCancelDiscard}>
+                        onClick={this.handleCancelDiscard}
+                    >
                         Cancel
                     </DismissiveButton>
-                }>
+                }
+            >
                 <p>
                     You currently have unsaved changes{this.state
                         .editingElements.length === 1
                         ? ''
                         : ` in ${
-                              this.state.editingElements.length
-                          } mapping rules`}.
+                            this.state.editingElements.length
+                        } mapping rules`}.
                 </p>
             </ConfirmationDialog>
         ) : (
@@ -302,7 +313,8 @@ const HierarchicalMapping = React.createClass({
                     onClick={() => {
                         localStorage.setItem('mockStore', null);
                         location.reload();
-                    }}>
+                    }}
+                >
                     RESET
                 </DisruptiveButton>
                 <Button
@@ -310,7 +322,8 @@ const HierarchicalMapping = React.createClass({
                         hierarchicalMappingChannel
                             .subject(MESSAGES.RELOAD)
                             .onNext(true);
-                    }}>
+                    }}
+                >
                     RELOAD
                 </Button>
                 <hr />

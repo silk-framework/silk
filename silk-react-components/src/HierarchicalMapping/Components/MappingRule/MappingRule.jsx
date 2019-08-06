@@ -2,7 +2,7 @@
  An individual Mapping Rule Line
  */
 
-import {Draggable} from 'react-beautiful-dnd';
+import { Draggable } from 'react-beautiful-dnd';
 import React from 'react';
 import _ from 'lodash';
 
@@ -20,8 +20,8 @@ import UseMessageBus from '../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
-import {RuleTypes, SourcePath, ThingIcon} from './SharedComponents';
-import {getRuleLabel, isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT,} from '../../helpers';
+import { RuleTypes, SourcePath, ThingIcon } from './SharedComponents';
+import { getRuleLabel, isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT } from '../../helpers';
 import className from 'classnames';
 import { MESSAGES } from '../../constants';
 
@@ -50,10 +50,9 @@ const MappingRule = React.createClass({
     getInitialState() {
         const pastedId = sessionStorage.getItem('pastedId');
         const isPasted = (pastedId !== null) && (pastedId === this.props.id);
-        if (isPasted)
-            !sessionStorage.removeItem('pastedId');
+        if (isPasted) { !sessionStorage.removeItem('pastedId'); }
         return {
-            isPasted : isPasted,
+            isPasted,
             expanded: isPasted || false,
             editing: false,
             askForDiscard: false,
@@ -64,14 +63,14 @@ const MappingRule = React.createClass({
         // listen for event to expand / collapse mapping rule
         this.subscribe(
             hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.TOGGLE),
-            ({expanded, id}) => {
+            ({ expanded, id }) => {
                 // only trigger state / render change if necessary
                 if (
                     expanded !== this.state.expanded &&
                     this.props.type !== MAPPING_RULE_TYPE_OBJECT &&
                     (id === true || id === this.props.id)
                 ) {
-                    this.setState({expanded});
+                    this.setState({ expanded });
                 }
             }
         );
@@ -87,8 +86,7 @@ const MappingRule = React.createClass({
             hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.DISCARD_ALL),
             this.discardAll
         );
-        if (this.state.isPasted)
-            this.props.scrollIntoView()
+        if (this.state.isPasted) { this.props.scrollIntoView(); }
     },
     onOpenEdit(obj) {
         if (_.isEqual(this.props.id, obj.id)) {
@@ -111,7 +109,7 @@ const MappingRule = React.createClass({
             this.setState({
                 askForDiscard: true,
             });
-        } else this.setState({expanded: !this.state.expanded});
+        } else this.setState({ expanded: !this.state.expanded });
     },
     discardAll() {
         this.setState({
@@ -125,7 +123,7 @@ const MappingRule = React.createClass({
         });
         hierarchicalMappingChannel
             .subject(MESSAGES.RULE_VIEW.UNCHANGED)
-            .onNext({id: this.props.id});
+            .onNext({ id: this.props.id });
     },
     handleCancelDiscard() {
         this.setState({
@@ -133,20 +131,22 @@ const MappingRule = React.createClass({
         });
     },
 
-    handleMoveElement({toPos, fromPos, parentId, id}, event) {
+    handleMoveElement({
+        toPos, fromPos, parentId, id,
+    }, event) {
         if (fromPos === toPos) {
             return;
         }
         hierarchicalMappingChannel
             .subject(MESSAGES.RULE.REQUEST_ORDER)
-            .onNext({toPos, fromPos, reload: true});
+            .onNext({ toPos, fromPos, reload: true });
     },
     // jumps to selected rule as new center of view
     handleNavigate(id, parent, event) {
         hierarchicalMappingChannel
             .subject(MESSAGES.RULE_ID.CHANGE)
-            .onNext({newRuleId: id, parentId: parent});
-        
+            .onNext({ newRuleId: id, parentId: parent });
+
         event.stopPropagation();
     },
     // template rendering
@@ -186,7 +186,8 @@ const MappingRule = React.createClass({
                 confirmButton={
                     <DisruptiveButton
                         disabled={false}
-                        onClick={this.handleDiscardChanges}>
+                        onClick={this.handleDiscardChanges}
+                    >
                         Discard
                     </DisruptiveButton>
                 }
@@ -194,7 +195,8 @@ const MappingRule = React.createClass({
                     <DismissiveButton onClick={this.handleCancelDiscard}>
                         Cancel
                     </DismissiveButton>
-                }>
+                }
+            >
                 <p>You currently have unsaved changes.</p>
             </ConfirmationDialog>
         ) : (
@@ -205,13 +207,13 @@ const MappingRule = React.createClass({
             if (type === MAPPING_RULE_TYPE_OBJECT) {
                 this.handleNavigate(this.props.id, this.props.parentId, event);
             } else {
-                this.handleToggleExpand({force: true});
+                this.handleToggleExpand({ force: true });
             }
             event.stopPropagation();
         };
         const action = (
             <Button
-                className={"silk" + this.props.id}
+                className={`silk${this.props.id}`}
                 iconName={
                     type === MAPPING_RULE_TYPE_OBJECT
                         ? 'arrow_nextpage'
@@ -231,21 +233,23 @@ const MappingRule = React.createClass({
         // TODO: enable real API structure
         const shortView = [
             <div
-                key={'hl1'}
-                className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__ruleitem-info-targetstructure">
+                key="hl1"
+                className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__ruleitem-info-targetstructure"
+            >
                 <ThingIcon
                     type={type}
                     status={_.get(this.props, 'status[0].type', false)}
                     message={_.get(this.props, 'status[0].message', false)}
                 />
-				<div className="ecc-silk-mapping__ruleitem-label">
-					{ruleLabelData.displayLabel}
-				</div>
-				{ruleLabelData.uri && <div className="ecc-silk-mapping__ruleitem-extraline ecc-silk-mapping__ruleitem-url">{ruleLabelData.uri}</div>}
+                <div className="ecc-silk-mapping__ruleitem-label">
+                    {ruleLabelData.displayLabel}
+                </div>
+                {ruleLabelData.uri && <div className="ecc-silk-mapping__ruleitem-extraline ecc-silk-mapping__ruleitem-url">{ruleLabelData.uri}</div>}
             </div>,
             <div
-                key={'sl3'}
-                className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-editinfo">
+                key="sl3"
+                className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-editinfo"
+            >
                 <span className="hide-in-table">DataType:</span>{' '}
                 <RuleTypes
                     rule={{
@@ -256,8 +260,9 @@ const MappingRule = React.createClass({
                 />
             </div>,
             <div
-                key={'sl2'}
-                className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-sourcestructure">
+                key="sl2"
+                className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__ruleitem-info-sourcestructure"
+            >
                 <span className="hide-in-table">from</span>{' '}
                 <SourcePath
                     rule={{
@@ -303,7 +308,8 @@ const MappingRule = React.createClass({
                             fromPos: pos,
                             toPos: 0,
                             id,
-                        })}>
+                        })}
+                    >
                         Move to top
                     </MenuItem>
                     <MenuItem
@@ -312,7 +318,8 @@ const MappingRule = React.createClass({
                             fromPos: pos,
                             toPos: Math.max(0, pos - 1),
                             id,
-                        })}>
+                        })}
+                    >
                         Move up
                     </MenuItem>
                     <MenuItem
@@ -321,7 +328,8 @@ const MappingRule = React.createClass({
                             fromPos: pos,
                             toPos: Math.min(pos + 1, count - 1),
                             id,
-                        })}>
+                        })}
+                    >
                         Move down
                     </MenuItem>
                     <MenuItem
@@ -330,7 +338,8 @@ const MappingRule = React.createClass({
                             fromPos: pos,
                             toPos: count - 1,
                             id,
-                        })}>
+                        })}
+                    >
                         Move to bottom
                     </MenuItem>
                 </ContextMenu>
@@ -342,9 +351,10 @@ const MappingRule = React.createClass({
         return (
             <Draggable
                 isDragDisabled={this.state.expanded}
-                style={{width: '15'}}
+                style={{ width: '15' }}
                 key={id}
-                draggableId={id}>
+                draggableId={id}
+            >
                 {(provided, snapshot) => (
                     <li
                         className={className('ecc-silk-mapping__ruleitem', {
@@ -354,15 +364,17 @@ const MappingRule = React.createClass({
                                 type !== 'object',
                             'ecc-silk-mapping__ruleitem--defect': errorInfo,
                             'mdl-layout_item--background-flash': this.state.isPasted,
-                        })}>
+                        })}
+                    >
                         <div
-                            className={'ecc-silk-mapping__ruleitem--dnd'}
+                            className="ecc-silk-mapping__ruleitem--dnd"
                             ref={provided.innerRef}
                             style={getItemStyle(
                                 provided.draggableStyle,
                                 snapshot.isDragging
                             )}
-                            {...provided.dragHandleProps}>
+                            {...provided.dragHandleProps}
+                        >
                             {discardView}
                             {loading}
                             <div
@@ -372,20 +384,22 @@ const MappingRule = React.createClass({
                                         'ecc-silk-mapping__ruleitem-summary--expanded': this
                                             .state.expanded,
                                     }
-                                )}>
+                                )}
+                            >
                                 {reorderHandleButton}
                                 <div
-                                    className={'mdl-list__item clickable'}
-                                    onClick={mainAction}>
+                                    className="mdl-list__item clickable"
+                                    onClick={mainAction}
+                                >
                                     <div
-                                        className={
-                                            'mdl-list__item-primary-content'
-                                        }>
+                                        className="mdl-list__item-primary-content"
+                                    >
                                         {shortView}
                                     </div>
                                     <div
                                         className="mdl-list__item-secondary-content"
-                                        key="action">
+                                        key="action"
+                                    >
                                         {action}
                                     </div>
                                 </div>

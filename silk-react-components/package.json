@@ -9,7 +9,7 @@
     "testBamboo": "mocha -R mocha-bamboo-reporter --require babel-core/register --require ./test/test_helper.js \"test/**/*@(.js|.jsx)\"",
     "test:watch": "npm run test -- --watch",
     "eslint-check": "eslint --print-config .eslintrc.yml && eslint --print-config .eslintrc.yml | eslint-config-prettier-check",
-    "lint": "node_modules/.bin/eslint '{src,silk-workbench}/**/*.{js,jsx}' --fix",
+    "lint": "node_modules/.bin/eslint 'src/HierarchicalMapping/**/*.{js,jsx}' --fix",
     "start": "gulp",
     "build": "gulp build",
     "deploy": "gulp deploy",

@@ -10,12 +10,12 @@ import {
     DismissiveButton,
     NotAvailable,
 } from '@eccenca/gui-elements';
-import {ThingIcon, RuleTitle, RuleTypes} from './MappingRule/SharedComponents';
+import { ThingIcon, RuleTitle, RuleTypes } from './MappingRule/SharedComponents';
 import ObjectRule from './MappingRule/ObjectMappingRule';
 import hierarchicalMappingChannel from '../store';
 import UseMessageBus from '../UseMessageBusMixin';
 import Navigation from '../Mixins/Navigation';
-import {MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI} from '../helpers';
+import { MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI } from '../helpers';
 import { MESSAGES } from '../constants';
 
 const MappingsObject = React.createClass({
@@ -30,13 +30,13 @@ const MappingsObject = React.createClass({
     componentDidMount() {
         this.subscribe(
             hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.TOGGLE),
-            ({expanded, id}) => {
+            ({ expanded, id }) => {
                 // only trigger state / render change if necessary
                 if (
                     (id === true || id === this.props.rule.id) &&
                     expanded !== this.state.expanded
                 ) {
-                    this.setState({expanded});
+                    this.setState({ expanded });
                 }
             }
         );
@@ -74,7 +74,7 @@ const MappingsObject = React.createClass({
         });
         hierarchicalMappingChannel
             .subject(MESSAGES.RULE_VIEW.UNCHANGED)
-            .onNext({id: this.props.rule.id});
+            .onNext({ id: this.props.rule.id });
     },
     handleCancelDiscard() {
         this.setState({
@@ -110,7 +110,8 @@ const MappingsObject = React.createClass({
                 confirmButton={
                     <DisruptiveButton
                         disabled={false}
-                        onClick={this.handleDiscardChanges}>
+                        onClick={this.handleDiscardChanges}
+                    >
                         Discard
                     </DisruptiveButton>
                 }
@@ -118,7 +119,8 @@ const MappingsObject = React.createClass({
                     <DismissiveButton onClick={this.handleCancelDiscard}>
                         Cancel
                     </DismissiveButton>
-                }>
+                }
+            >
                 <p>You currently have unsaved changes.</p>
             </ConfirmationDialog>
         ) : (
@@ -170,16 +172,17 @@ const MappingsObject = React.createClass({
                                         'ecc-silk-mapping__ruleitem-summary--expanded': this
                                             .state.expanded,
                                     }
-                                )}>
+                                )}
+                            >
                                 <div
-                                    className={'mdl-list__item clickable'}
-                                    onClick={this.handleToggleExpand}>
+                                    className="mdl-list__item clickable"
+                                    onClick={this.handleToggleExpand}
+                                >
                                     <div
-                                        className={
-                                            'mdl-list__item-primary-content'
-                                        }>
+                                        className="mdl-list__item-primary-content"
+                                    >
                                         <div className="ecc-silk-mapping__ruleitem-headline">
-                                            <ThingIcon type={'object'} />
+                                            <ThingIcon type="object" />
                                             <RuleTitle
                                                 rule={this.props.rule}
                                                 className="ecc-silk-mapping__rulesobject__title-property"
@@ -195,9 +198,10 @@ const MappingsObject = React.createClass({
                                     </div>
                                     <div
                                         className="mdl-list__item-secondary-content"
-                                        key="action">
+                                        key="action"
+                                    >
                                         <Button
-                                            className={"silk"+this.props.rule.id}
+                                            className={`silk${this.props.rule.id}`}
                                             iconName={
                                                 this.state.expanded
                                                     ? 'expand_less'

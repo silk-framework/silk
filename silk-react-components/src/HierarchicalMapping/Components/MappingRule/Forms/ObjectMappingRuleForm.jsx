@@ -15,9 +15,9 @@ import {
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import UseMessageBus from '../../../UseMessageBusMixin';
-import {ParentElement} from '../SharedComponents';
+import { ParentElement } from '../SharedComponents';
 import hierarchicalMappingChannel from '../../../store';
-import {newValueIsIRI, wasTouched, convertToUri} from './helpers';
+import { newValueIsIRI, wasTouched, convertToUri } from './helpers';
 import ErrorView from '../ErrorView';
 import AutoComplete from './AutoComplete';
 import {
@@ -67,7 +67,7 @@ const ObjectMappingRuleForm = React.createClass({
                     },
                 })
                 .subscribe(
-                    ({rule}) => {
+                    ({ rule }) => {
                         const initialValues = {
                             targetProperty: _.get(
                                 rule,
@@ -118,7 +118,7 @@ const ObjectMappingRuleForm = React.createClass({
         } else {
             hierarchicalMappingChannel
                 .subject(MESSAGES.RULE_VIEW.CHANGE)
-                .onNext({id: 0});
+                .onNext({ id: 0 });
             this.setState({
                 create: true,
                 loading: false,
@@ -141,12 +141,8 @@ const ObjectMappingRuleForm = React.createClass({
                     type: this.state.type,
                     comment: this.state.comment,
                     label: this.state.label,
-                    sourceProperty: trimValueLabelObject(
-                        this.state.sourceProperty
-                    ),
-                    targetProperty: trimValueLabelObject(
-                        this.state.targetProperty
-                    ),
+                    sourceProperty: trimValueLabelObject(this.state.sourceProperty),
+                    targetProperty: trimValueLabelObject(this.state.targetProperty),
                     targetEntityType: this.state.targetEntityType,
                     pattern: trimUriPattern(this.state.pattern),
                     entityConnection: this.state.entityConnection === 'to',
@@ -168,14 +164,14 @@ const ObjectMappingRuleForm = React.createClass({
     handleChangeSelectBox(state, value) {
         this.handleChangeValue(state, value);
     },
-    handleChangeTextfield(state, {value}) {
+    handleChangeTextfield(state, { value }) {
         this.handleChangeValue(state, value);
     },
-    handleChangeRadio(state, {value}) {
+    handleChangeRadio(state, { value }) {
         this.handleChangeValue(state, value);
     },
     handleChangeValue(name, value) {
-        const {initialValues, create, ...currValues} = this.state;
+        const { initialValues, create, ...currValues } = this.state;
 
         currValues[name] = value;
 
@@ -186,11 +182,11 @@ const ObjectMappingRuleForm = React.createClass({
             if (touched) {
                 hierarchicalMappingChannel
                     .subject(MESSAGES.RULE_VIEW.CHANGE)
-                    .onNext({id});
+                    .onNext({ id });
             } else {
                 hierarchicalMappingChannel
                     .subject(MESSAGES.RULE_VIEW.UNCHANGED)
-                    .onNext({id});
+                    .onNext({ id });
             }
         }
 
@@ -202,8 +198,8 @@ const ObjectMappingRuleForm = React.createClass({
     handleClose(event) {
         event.stopPropagation();
         const id = _.get(this.props, 'id', 0);
-        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.UNCHANGED).onNext({id});
-        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE).onNext({id});
+        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.UNCHANGED).onNext({ id });
+        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE).onNext({ id });
     },
     getExampleView() {
         if (this.state.pattern) {
@@ -231,11 +227,11 @@ const ObjectMappingRuleForm = React.createClass({
     },
     // template rendering
     render() {
-        const {id, parentId} = this.props;
+        const { id, parentId } = this.props;
 
         const autoCompleteRuleId = id || parentId;
 
-        const {error} = this.state;
+        const { error } = this.state;
 
         const type = this.state.type;
 
@@ -267,7 +263,7 @@ const ObjectMappingRuleForm = React.createClass({
             // TODO: where to get get list of target properties
             targetPropertyInput = (
                 <AutoComplete
-                    placeholder={'Target property'}
+                    placeholder="Target property"
                     className="ecc-silk-mapping__ruleseditor__targetProperty"
                     entity="targetProperty"
                     newOptionCreator={convertToUri}
@@ -293,7 +289,8 @@ const ObjectMappingRuleForm = React.createClass({
                             : 'from'
                     }
                     name=""
-                    disabled={false}>
+                    disabled={false}
+                >
                     <Radio
                         value="from"
                         label={
@@ -317,7 +314,7 @@ const ObjectMappingRuleForm = React.createClass({
 
             sourcePropertyInput = (
                 <AutoComplete
-                    placeholder={'Value path'}
+                    placeholder="Value path"
                     key={this.state.sourceProperty}
                     className="ecc-silk-mapping__ruleseditor__sourcePath"
                     entity="sourcePath"
@@ -369,10 +366,8 @@ const ObjectMappingRuleForm = React.createClass({
                         {targetPropertyInput}
                         {entityRelationInput}
                         <AutoComplete
-                            placeholder={'Target entity type'}
-                            className={
-                                'ecc-silk-mapping__ruleseditor__targetEntityType'
-                            }
+                            placeholder="Target entity type"
+                            className="ecc-silk-mapping__ruleseditor__targetEntityType"
                             entity="targetEntityType"
                             isValidNewOption={newValueIsIRI}
                             ruleId={autoCompleteRuleId}
@@ -412,13 +407,15 @@ const ObjectMappingRuleForm = React.createClass({
                             className="ecc-silk-mapping__ruleseditor__actionrow-save"
                             raised
                             onClick={this.handleConfirm}
-                            disabled={!allowConfirm || !this.state.changed}>
+                            disabled={!allowConfirm || !this.state.changed}
+                        >
                             Save
                         </AffirmativeButton>
                         <DismissiveButton
                             className="ecc-silk-mapping__ruleseditor__actionrow-cancel"
                             raised
-                            onClick={this.handleClose}>
+                            onClick={this.handleClose}
+                        >
                             Cancel
                         </DismissiveButton>
                     </CardActions>

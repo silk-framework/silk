@@ -1,7 +1,7 @@
 export const MESSAGES = {
     RULE_ID: {
         CHANGE: 'ruleId.change',
-        CREATE: 'ruleId.create'
+        CREATE: 'ruleId.create',
     },
     RULE_VIEW: {
         CHANGE: 'ruleView.change',
@@ -25,20 +25,20 @@ export const MESSAGES = {
         REQUEST_ORDER: 'rule.requestOrder',
     },
     TREE_NAV: {
-        TOGGLE_VISIBILITY: 'toggleVisibility'
+        TOGGLE_VISIBILITY: 'toggleVisibility',
     },
     BUTTON: {
-        REMOVE_CLICK: 'removeClick'
+        REMOVE_CLICK: 'removeClick',
     },
     MAPPING: {
         CREATE: 'mapping.create',
-        SHOW_SUGGESTIONS: 'showSuggestions'
+        SHOW_SUGGESTIONS: 'showSuggestions',
     },
     RELOAD: 'reload',
     TOGGLE_DETAILS: 'toggleDetails',
     GET_API_DETAILS: 'getApiDetails',
     AUTOCOMPLETE: 'autocomplete',
     SILK: {
-        SET_DETAILS: 'setSilkDetails'
-    }
+        SET_DETAILS: 'setSilkDetails',
+    },
 };

@@ -12,12 +12,12 @@ import {
     Checkbox,
     SelectBox,
 } from '@eccenca/gui-elements';
-import {URI} from 'ecc-utils';
+import { URI } from 'ecc-utils';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import UseMessageBus from '../../../UseMessageBusMixin';
 import hierarchicalMappingChannel from '../../../store';
-import {newValueIsIRI, wasTouched, convertToUri} from './helpers';
+import { newValueIsIRI, wasTouched, convertToUri } from './helpers';
 import ErrorView from '../ErrorView';
 import AutoComplete from './AutoComplete';
 import {
@@ -63,7 +63,7 @@ const ValueMappingRuleForm = React.createClass({
                     },
                 })
                 .subscribe(
-                    ({rule}) => {
+                    ({ rule }) => {
                         const initialValues = {
                             type: _.get(rule, 'type', MAPPING_RULE_TYPE_DIRECT),
                             comment: _.get(rule, 'metadata.description', ''),
@@ -93,13 +93,13 @@ const ValueMappingRuleForm = React.createClass({
                         });
                     },
                     err => {
-                        this.setState({loading: false});
+                        this.setState({ loading: false });
                     }
                 );
         } else {
             hierarchicalMappingChannel
                 .subject(MESSAGES.RULE_VIEW.CHANGE)
-                .onNext({id: 0});
+                .onNext({ id: 0 });
             this.setState({
                 create: true,
                 loading: false,
@@ -126,13 +126,9 @@ const ValueMappingRuleForm = React.createClass({
                     type: this.state.type,
                     comment: this.state.comment,
                     label: this.state.label,
-                    targetProperty: trimValueLabelObject(
-                        this.state.targetProperty
-                    ),
+                    targetProperty: trimValueLabelObject(this.state.targetProperty),
                     valueType: this.state.valueType,
-                    sourceProperty: trimValueLabelObject(
-                        this.state.sourceProperty
-                    ),
+                    sourceProperty: trimValueLabelObject(this.state.sourceProperty),
                     isAttribute: this.state.isAttribute,
                 },
             })
@@ -150,7 +146,7 @@ const ValueMappingRuleForm = React.createClass({
             );
     },
     // remove rule
-    handleChangeTextfield(state, {value}) {
+    handleChangeTextfield(state, { value }) {
         this.handleChangeValue(state, value);
     },
     handleChangeSelectBox(state, value) {
@@ -158,18 +154,18 @@ const ValueMappingRuleForm = React.createClass({
     },
     handleChangePropertyType(value) {
         const valueType = { nodeType: value.value };
-        this.handleChangeValue('valueType', valueType)
+        this.handleChangeValue('valueType', valueType);
     },
     handleChangeLanguageTag(value) {
         let lang = value;
-        if(typeof lang === 'object') {
+        if (typeof lang === 'object') {
             lang = value.value;
         }
-        const valueType = { nodeType: "LanguageValueType", lang: lang};
+        const valueType = { nodeType: 'LanguageValueType', lang };
         this.handleChangeValue('valueType', valueType);
     },
     handleChangeValue(name, value) {
-        const {initialValues, create, ...currValues} = this.state;
+        const { initialValues, create, ...currValues } = this.state;
         currValues[name] = value;
 
         const touched = create || wasTouched(initialValues, currValues);
@@ -179,11 +175,11 @@ const ValueMappingRuleForm = React.createClass({
             if (touched) {
                 hierarchicalMappingChannel
                     .subject(MESSAGES.RULE_VIEW.CHANGE)
-                    .onNext({id});
+                    .onNext({ id });
             } else {
                 hierarchicalMappingChannel
                     .subject(MESSAGES.RULE_VIEW.UNCHANGED)
-                    .onNext({id});
+                    .onNext({ id });
             }
         }
 
@@ -195,22 +191,22 @@ const ValueMappingRuleForm = React.createClass({
     handleClose(event) {
         event.stopPropagation();
         const id = _.get(this.props, 'id', 0);
-        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.UNCHANGED).onNext({id});
-        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE).onNext({id});
+        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.UNCHANGED).onNext({ id });
+        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE).onNext({ id });
     },
     allowConfirmation() {
         const targetPropertyNotEmpty = !_.isEmpty(this.state.targetProperty);
         const valueType = this.state.valueType;
-        const languageTagSet = valueType.nodeType !== "LanguageValueType" || typeof valueType.lang === "string";
+        const languageTagSet = valueType.nodeType !== 'LanguageValueType' || typeof valueType.lang === 'string';
         return targetPropertyNotEmpty && languageTagSet;
     },
     // template rendering
     render() {
-        const {id, parentId} = this.props;
+        const { id, parentId } = this.props;
 
         const autoCompleteRuleId = id || parentId;
 
-        const {type, error} = this.state;
+        const { type, error } = this.state;
 
         if (this.state.loading) {
             return <Spinner />;
@@ -232,7 +228,7 @@ const ValueMappingRuleForm = React.createClass({
         if (type === MAPPING_RULE_TYPE_DIRECT) {
             sourcePropertyInput = (
                 <AutoComplete
-                    placeholder={'Value path'}
+                    placeholder="Value path"
                     className="ecc-silk-mapping__ruleseditor__sourcePath"
                     entity="sourcePath"
                     creatable
@@ -273,7 +269,7 @@ const ValueMappingRuleForm = React.createClass({
                     <CardContent>
                         {errorMessage}
                         <AutoComplete
-                            placeholder={'Target property'}
+                            placeholder="Target property"
                             className="ecc-silk-mapping__ruleseditor__targetProperty"
                             entity="targetProperty"
                             newOptionCreator={convertToUri}
@@ -293,12 +289,13 @@ const ValueMappingRuleForm = React.createClass({
                                 null,
                                 'isAttribute',
                                 !this.state.isAttribute
-                            )}>
+                            )}
+                        >
                             Write values as attributes (if supported by the
                             target dataset)
                         </Checkbox>
                         <AutoComplete
-                            placeholder={'Data type'}
+                            placeholder="Data type"
                             className="ecc-silk-mapping__ruleseditor__propertyType"
                             entity="propertyType"
                             ruleId={autoCompleteRuleId}
@@ -347,12 +344,12 @@ const ValueMappingRuleForm = React.createClass({
                                 optionsOnTop={true} // option list opens up on top of select input (default: false)
                                 value={this.state.valueType.lang}
                                 onChange={this.handleChangeLanguageTag}
-                                isValidNewOption={({label = ''}) =>
+                                isValidNewOption={({ label = '' }) =>
                                     !_.isNull(label.match(/^[a-z]{2}(-[A-Z]{2})?$/))
                                 }
                                 creatable={true} // allow creation of new values
                                 noResultsText="Not a valid language tag"
-                                promptTextCreator={(newLabel) => ('Create language tag: ' + newLabel)}
+                                promptTextCreator={newLabel => (`Create language tag: ${newLabel}`)}
                                 multi={false} // allow multi selection
                                 clearable={false} // hide 'remove all selected values' button
                                 searchable={true} // whether to behave like a type-ahead or not
@@ -385,13 +382,15 @@ const ValueMappingRuleForm = React.createClass({
                             className="ecc-silk-mapping__ruleseditor__actionrow-save"
                             raised
                             onClick={this.handleConfirm}
-                            disabled={!allowConfirm || !this.state.changed}>
+                            disabled={!allowConfirm || !this.state.changed}
+                        >
                             Save
                         </AffirmativeButton>
                         <DismissiveButton
                             className="ecc-silk-mapping__ruleseditor___actionrow-cancel"
                             raised
-                            onClick={this.handleClose}>
+                            onClick={this.handleClose}
+                        >
                             Cancel
                         </DismissiveButton>
                     </CardActions>
