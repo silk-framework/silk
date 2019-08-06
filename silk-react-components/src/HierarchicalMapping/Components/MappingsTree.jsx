@@ -14,7 +14,7 @@ import {
 
 import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel, { getHierarchyAsync } from '../store';
-import { RuleTreeTypes } from './MappingRule/SharedComponents';
+import RuleTypes from '../elements/RuleTypes/RuleTypes';
 import RuleTitle from '../elements/RuleTitle/RuleTitle';
 import { MAPPING_RULE_TYPE_OBJECT, MAPPING_RULE_TYPE_ROOT } from '../helpers';
 import { MESSAGES } from '../constants';
@@ -223,7 +223,7 @@ const MappingsTree = React.createClass({
                     </span>
                     {parentType === MAPPING_RULE_TYPE_OBJECT ? (
                         <small className="ecc-silk-mapping__treenav--item-subtitle">
-                            {<RuleTreeTypes rule={parent} />}
+                            <RuleTypes rule={parent} />
                         </small>
                     ) : (
                         false
