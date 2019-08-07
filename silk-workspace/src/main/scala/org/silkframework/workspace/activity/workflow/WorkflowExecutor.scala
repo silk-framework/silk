@@ -8,7 +8,7 @@ import org.silkframework.runtime.activity._
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
 
-import scala.collection.mutable
+import scala.collection.{immutable, mutable}
 
 /**
   * Created by robert on 9/21/2016.
@@ -36,7 +36,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
                                               outputSchema: Option[EntitySchema])
                                              (implicit workflowRunContext: WorkflowRunContext): Option[ExecType#DataType] = {
     implicit val userContext: UserContext = workflowRunContext.userContext
-    ExecutorRegistry.execute(task, inputs, outputSchema, executionContext, workflowRunContext.taskContexts(task.id))
+    ExecutorRegistry.execute(task, inputs, outputSchema, executionContext, workflowRunContext.taskContext(task.id))
   }
 
   /** Return error if VariableDataset is used in output and input */
@@ -62,29 +62,28 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
                               workflow: Workflow,
                               userContext: UserContext,
                               alreadyExecuted: mutable.Set[WorkflowNode] = mutable.Set()) {
-
   /**
-    * Holds the execution reports for each task.
+    * Listeners for updates to task reports.
+    * We need to hold them to prevent their garbage collection.
     */
-  val taskContexts: Map[Identifier, ActivityContext[ExecutionReport]] = {
-    for(node <- workflow.nodes) yield {
-      val projectAndTaskString = activityContext.status.projectAndTaskId.map(ids => ids.copy(ids.projectId, ids.taskId.map(_ + " -> " + node.task)))
-      val taskMonitor = new ActivityMonitor[ExecutionReport](node.task, Some(activityContext), projectAndTaskId = projectAndTaskString)
-      (node.task, taskMonitor)
-    }
-  }.toMap
+  private var reportListeners: List[TaskReportListener] = List.empty
 
-    /**
-      * Listeners for updates to task reports.
-      * We need to hold them to prevent their garbage collection.
-      */
-    private val taskReportListeners = {
-      for((task, context) <- taskContexts) yield {
-        val listener = new TaskReportListener(task)
-        context.value.subscribe(listener)
-        listener
-      }
-    }
+  /** Creates an activity context for a specific task that will be executed in the workflow.
+    * Also wires the task execution report to the workflow execution report. */
+  def taskContext(taskId: Identifier): ActivityContext[ExecutionReport] = {
+    val projectAndTaskString = activityContext.status.projectAndTaskId.map(ids => ids.copy(ids.projectId, ids.taskId.map(_ + " -> " + taskId)))
+    val taskContext = new ActivityMonitor[ExecutionReport](taskId, Some(activityContext), projectAndTaskId = projectAndTaskString)
+    listenForTaskReports(taskId, taskContext)
+    taskContext
+  }
+
+  // Creates a task report listener that will add that task report to the overall workflow report
+  private def listenForTaskReports(taskId: Identifier,
+                                   taskContext: ActivityMonitor[ExecutionReport]): Unit = {
+    val listener = new TaskReportListener(taskId)
+    taskContext.value.subscribe(listener)
+    reportListeners ::= listener
+  }
 
   /**
     * Updates the workflow execution report on each update of a task report.
