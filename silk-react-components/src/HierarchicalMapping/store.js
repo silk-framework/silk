@@ -482,6 +482,13 @@ export const ruleExampleAsync = data => {
     return Rx.Observable();
 };
 
+/**
+ * Request the full mapping tree
+ * @param baseUrl
+ * @param project
+ * @param transformTask
+ * @returns {*}
+ */
 export const getHierarchyAsync = ({ baseUrl, project, transformTask }) => {
     return silkStore
         .request({
@@ -493,15 +500,12 @@ export const getHierarchyAsync = ({ baseUrl, project, transformTask }) => {
                 transformTask,
             },
         })
-        .map(returned => {
-            const rules = returned.body;
-
+        .map(({ body: rules }) => {
             if (!_.isString(rootId)) {
                 rootId = rules.id;
             }
-
             return {
-                hierarchy: rules,
+                rulesTree: rules,
             };
         });
 };

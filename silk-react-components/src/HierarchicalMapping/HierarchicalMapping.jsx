@@ -14,7 +14,7 @@ import {
 import { URI } from 'ecc-utils';
 
 import UseMessageBus from './UseMessageBusMixin';
-import hierarchicalMappingChannel from './store';
+import hierarchicalMappingChannel, { getHierarchyAsync } from './store';
 
 import MappingsTree from './Components/MappingsTree';
 import MappingsWorkview from './Components/MappingsWorkview';
@@ -61,6 +61,15 @@ const HierarchicalMapping = React.createClass({
             hierarchicalMappingChannel.subject(MESSAGES.TREE_NAV.TOGGLE_VISIBILITY),
             this.handleToggleNavigation
         );
+        this.subscribe(
+            hierarchicalMappingChannel.subject(MESSAGES.RELOAD),
+            this.loadNavigationTree
+        );
+        this.subscribe(
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_ID.CHANGE),
+            this.expandNavigationTreeElement
+        );
+        this.loadNavigationTree();
     },
     // initilize state
     getInitialState() {
@@ -84,8 +93,52 @@ const HierarchicalMapping = React.createClass({
             elementToDelete: false,
             editingElements: [],
             askForDiscard: false,
+
+            // navigationTree
+            navigationLoading: true,
+            navigationTree: undefined,
+            navigationExpanded: {},
         };
     },
+    loadNavigationTree() {
+        const { baseUrl, project, transformTask } = this.props;
+        const { navigationExpanded } = this.state;
+        this.setState({ navigationLoading: true });
+
+        getHierarchyAsync({
+            baseUrl,
+            project,
+            transformTask,
+        })
+            .subscribe(
+                ({ rulesTree }) => {
+                    const topLevelId = rulesTree.id;
+                    this.setState({
+                        navigationLoading: false,
+                        navigationTree: rulesTree,
+                        navigationExpanded: (_.isEmpty(navigationExpanded) && topLevelId)
+                            ? { [topLevelId]: true }
+                            : navigationExpanded,
+                    });
+                },
+                () => {
+                    this.setState({ navigationLoading: false });
+                }
+            );
+    },
+    expandNavigationTreeElement({ newRuleId, parentId }) {
+        const expanded = { ...this.state.navigationExpanded };
+        expanded[newRuleId] = true;
+        expanded[parentId] = true;
+        this.setState({ navigationExpanded: expanded });
+    },
+    // collapse / expand navigation children
+    handleToggleExpandNavigationTree(id) {
+        const expanded = { ...this.state.navigationExpanded };
+        expanded[id] = !expanded[id];
+        this.setState({ navigationExpanded: expanded });
+    },
+
     onOpenEdit(obj) {
         const id = _.get(obj, 'id', 0);
         if (!_.includes(this.state.editingElements, id)) {
@@ -191,6 +244,9 @@ const HierarchicalMapping = React.createClass({
                 console.debug(`HierarchicalMapping: ${href} is not an URI, cannot update the window state`);
             }
         }
+        if (prevProps.task !== this.props.task) {
+            this.loadNavigationTree();
+        }
     },
     // show / hide navigation
     handleToggleNavigation(stateVisibility) {
@@ -221,16 +277,14 @@ const HierarchicalMapping = React.createClass({
     },
     // template rendering
     render() {
-        const navigationTree = this.state.showNavigation ? (
-            <MappingsTree
-                baseUrl={this.props.baseUrl}
-                project={this.props.project}
-                task={this.props.transformTask}
-                currentRuleId={this.state.currentRuleId}
-            />
-        ) : (
-            false
-        );
+        const { transformTask } = this.props;
+        const {
+            navigationLoading,
+            navigationTree,
+            navigationExpanded,
+            currentRuleId,
+            showNavigation,
+        } = this.state;
         const loading = this.state.loading ? <Spinner /> : false;
         const deleteView = this.state.elementToDelete ? (
             <ConfirmationDialog
@@ -345,7 +399,18 @@ const HierarchicalMapping = React.createClass({
                 {loading}
                 {pseudotoasts}
                 <div className="ecc-silk-mapping__content">
-                    {navigationTree}
+                    {
+                        showNavigation && (
+                            <MappingsTree
+                                currentRuleId={currentRuleId}
+                                navigationLoading={navigationLoading}
+                                navigationTree={navigationTree}
+                                navigationExpanded={navigationExpanded}
+                                handleRuleNavigation={this.onRuleNavigation}
+                                handleToggleExpanded={this.handleToggleExpandNavigationTree}
+                            />
+                        )
+                    }
                     {
                         <MappingsWorkview
                             currentRuleId={this.state.currentRuleId}
