@@ -2,13 +2,7 @@ import React from 'react';
 import _ from 'lodash';
 import {
     Button,
-    DismissiveButton,
     DisruptiveButton,
-    Card,
-    CardTitle,
-    ContextMenu,
-    MenuItem,
-    ConfirmationDialog,
     Spinner,
 } from '@eccenca/gui-elements';
 import { URI } from 'ecc-utils';
@@ -22,6 +16,7 @@ import MessageHandler from './Components/MessageHandler';
 import { MAPPING_RULE_TYPE_OBJECT } from './helpers';
 import { MESSAGES } from './constants';
 import RemoveMappingRuleDialog from './elements/RemoveMappingRuleDialog/RemoveMappingRuleDialog';
+import DiscardChangesDialog from './elements/DiscardChangesDialog/DiscardChangesDialog';
 
 const HierarchicalMapping = React.createClass({
     mixins: [UseMessageBus],
@@ -278,53 +273,12 @@ const HierarchicalMapping = React.createClass({
     },
     // template rendering
     render() {
-        const { transformTask } = this.props;
         const {
-            navigationLoading,
-            navigationTree,
-            navigationExpanded,
-            currentRuleId,
-            showNavigation,
-            elementToDelete,
+            navigationLoading, navigationTree, navigationExpanded, currentRuleId, showNavigation,
+            elementToDelete, askForDiscard, editingElements,
         } = this.state;
         const loading = this.state.loading ? <Spinner /> : false;
 
-        const discardView = this.state.askForDiscard ? (
-            <ConfirmationDialog
-                active
-                modal
-                className="ecc-hm-discard-dialog"
-                title="Discard changes?"
-                confirmButton={
-                    <DisruptiveButton
-                        disabled={false}
-                        className="ecc-hm-accept-discard"
-                        onClick={this.handleDiscardChanges}
-                    >
-                        Discard
-                    </DisruptiveButton>
-                }
-                cancelButton={
-                    <DismissiveButton
-                        className="ecc-hm-cancel-discard"
-                        onClick={this.handleCancelDiscard}
-                    >
-                        Cancel
-                    </DismissiveButton>
-                }
-            >
-                <p>
-                    You currently have unsaved changes{this.state
-                        .editingElements.length === 1
-                        ? ''
-                        : ` in ${
-                            this.state.editingElements.length
-                        } mapping rules`}.
-                </p>
-            </ConfirmationDialog>
-        ) : (
-            false
-        );
         // render mapping edit / create view of value and object
         const debugOptions = __DEBUG__ ? (
             <div>
@@ -368,7 +322,15 @@ const HierarchicalMapping = React.createClass({
                         />
                     )
                 }
-                {discardView}
+                {
+                    askForDiscard && (
+                        <DiscardChangesDialog
+                            handleDiscardConfirm={this.handleDiscardChanges}
+                            handleDiscardCancel={this.handleCancelDiscard}
+                            numberEditingElements={editingElements.length}
+                        />
+                    )
+                }
                 {loading}
                 {pseudotoasts}
                 <div className="ecc-silk-mapping__content">
