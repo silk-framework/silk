@@ -91,7 +91,6 @@ const MappingsTree = props => {
                 <span className="ecc-silk-mapping__treenav--item-maintitle">
                     <span>
                         <RuleTitle rule={parent} />
-                        { _.get(parent, 'rules.propertyRules', []).length }
                     </span>
                 </span>
                 {parentType === MAPPING_RULE_TYPE_OBJECT && (
