@@ -21,6 +21,7 @@ import MappingsWorkview from './Components/MappingsWorkview';
 import MessageHandler from './Components/MessageHandler';
 import { MAPPING_RULE_TYPE_OBJECT } from './helpers';
 import { MESSAGES } from './constants';
+import RemoveMappingRuleDialog from './elements/RemoveMappingRuleDialog/RemoveMappingRuleDialog';
 
 const HierarchicalMapping = React.createClass({
     mixins: [UseMessageBus],
@@ -284,44 +285,9 @@ const HierarchicalMapping = React.createClass({
             navigationExpanded,
             currentRuleId,
             showNavigation,
+            elementToDelete,
         } = this.state;
         const loading = this.state.loading ? <Spinner /> : false;
-        const deleteView = this.state.elementToDelete ? (
-            <ConfirmationDialog
-                className="ecc-hm-delete-dialog"
-                active
-                modal
-                title="Remove mapping rule?"
-                confirmButton={
-                    <DisruptiveButton
-                        className="ecc-hm-delete-accept"
-                        disabled={false}
-                        onClick={this.handleConfirmRemove}
-                    >
-                        Remove
-                    </DisruptiveButton>
-                }
-                cancelButton={
-                    <DismissiveButton
-                        className="ecc-hm-delete-cancel"
-                        onClick={this.handleCancelRemove}
-                    >
-                        Cancel
-                    </DismissiveButton>
-                }
-            >
-                <p>
-                    When you click REMOVE the mapping rule
-                    {this.state.elementToDelete.type ===
-                    MAPPING_RULE_TYPE_OBJECT
-                        ? ' including all child rules '
-                        : ' '}
-                    will be deleted permanently.
-                </p>
-            </ConfirmationDialog>
-        ) : (
-            false
-        );
 
         const discardView = this.state.askForDiscard ? (
             <ConfirmationDialog
@@ -359,7 +325,6 @@ const HierarchicalMapping = React.createClass({
         ) : (
             false
         );
-
         // render mapping edit / create view of value and object
         const debugOptions = __DEBUG__ ? (
             <div>
@@ -394,7 +359,15 @@ const HierarchicalMapping = React.createClass({
         return (
             <section className="ecc-silk-mapping">
                 {debugOptions}
-                {deleteView}
+                {
+                    elementToDelete && (
+                        <RemoveMappingRuleDialog
+                            mappingType={elementToDelete.type}
+                            handleConfirmRemove={this.handleConfirmRemove}
+                            handleCancelRemove={this.handleCancelRemove}
+                        />
+                    )
+                }
                 {discardView}
                 {loading}
                 {pseudotoasts}
