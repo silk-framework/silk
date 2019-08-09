@@ -274,7 +274,6 @@ case class Entity private(
         stream.writeUTF(value)
       }
     }
-    stream.writeInt(subEntities.size)
     for (sub <- subEntities) {
       sub match{
         case Some(e) =>
