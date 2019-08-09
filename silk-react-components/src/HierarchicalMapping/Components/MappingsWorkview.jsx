@@ -4,12 +4,7 @@
 
 import React from 'react';
 import _ from 'lodash';
-import {
-    DisruptiveButton,
-    DismissiveButton,
-    ConfirmationDialog,
-    Spinner,
-} from '@eccenca/gui-elements';
+import { Spinner } from '@eccenca/gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel, { errorChannel } from '../store';
 import MappingsHeader from './MappingsHeader';
@@ -26,6 +21,7 @@ import {
     MAPPING_RULE_TYPE_ROOT,
 } from '../helpers';
 import { MESSAGES } from '../constants';
+import DiscardChangesDialog from '../elements/DiscardChangesDialog/DiscardChangesDialog';
 
 const MappingsWorkview = React.createClass({
     mixins: [UseMessageBus],
@@ -358,40 +354,12 @@ const MappingsWorkview = React.createClass({
 
     // template rendering
     render() {
+        const {
+            askForDiscard, editing,
+        } = this.state;
         const { rules = {}, id } = this.state.ruleData;
 
         const loading = this.state.loading ? <Spinner /> : false;
-
-        const discardView =
-            this.state.askForDiscard !== false ? (
-                <ConfirmationDialog
-                    active
-                    modal
-                    title="Discard changes?"
-                    confirmButton={
-                        <DisruptiveButton
-                            disabled={false}
-                            onClick={this.handleDiscardChanges}
-                        >
-                            Discard
-                        </DisruptiveButton>
-                    }
-                    cancelButton={
-                        <DismissiveButton onClick={this.handleCancelDiscard}>
-                            Cancel
-                        </DismissiveButton>
-                    }
-                >
-                    <p>
-                        You currently have unsaved changes{this.state.editing
-                            .length === 1
-                            ? ''
-                            : ` in ${this.state.editing.length} mapping rules`}.
-                    </p>
-                </ConfirmationDialog>
-            ) : (
-                false
-            );
 
         const createType = _.get(this.state, 'ruleEditView.type', false);
 
@@ -476,7 +444,15 @@ const MappingsWorkview = React.createClass({
         return (
             <div className="ecc-silk-mapping__rules">
                 {loading}
-                {discardView}
+                {
+                    askForDiscard && (
+                        <DiscardChangesDialog
+                            numberEditingElements={editing.length}
+                            handleDiscardCancel={this.handleCancelDiscard}
+                            handleDiscardConfirm={this.handleDiscardChanges}
+                        />
+                    )
+                }
                 <MappingsHeader
                     rule={this.state.ruleData}
                     key={`navhead_${id}`}
