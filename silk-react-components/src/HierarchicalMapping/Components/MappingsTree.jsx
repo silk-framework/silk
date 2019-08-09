@@ -111,6 +111,7 @@ const MappingsTree = props => {
                 >
                     {!_.isEmpty(childs) ? (
                         <Button
+                            data-test-id={`ecc-silk-mapping__treenav--item-toggler-${id}`}
                             className="ecc-silk-mapping__treenav--item-toggler"
                             iconName={expanded ? 'expand_more' : 'arrow_nextpage'}
                             tooltip={expanded ? 'Hide sub tree' : 'Open sub tree'}
@@ -118,6 +119,7 @@ const MappingsTree = props => {
                         />
                     ) : (
                         <Icon
+                            data-test-id={`ecc-silk-mapping__treenav--item-toggler-${id}`}
                             className="ecc-silk-mapping__treenav--item-toggler"
                             name="radio_button_unchecked"
                             tooltip=""
@@ -143,8 +145,12 @@ const MappingsTree = props => {
             <Card>
                 <CardContent>
                     {navigationLoading && <Spinner />}
-                    {navigationLoading && _.isUndefined(navigationTree) && <Info>Loading rules</Info>}
-                    {!navigationLoading && _.isEmpty(navigationTree) && <Info>No rules found</Info>}
+                    {navigationLoading && _.isUndefined(navigationTree) && (
+                        <Info data-test-id="ecc-silk-mapping__treenav-loading">Loading rules</Info>
+                    )}
+                    {!navigationLoading && _.isEmpty(navigationTree) && (
+                        <Info data-test-id="ecc-silk-mapping__treenav-norules">No rules found</Info>
+                    )}
                     {
                         !_.isEmpty(navigationTree) && (
                             <ul className="ecc-silk-mapping__treenav--maintree">
