@@ -16,14 +16,13 @@ import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import UseMessageBus from '../../../UseMessageBusMixin';
 import { ParentElement } from '../SharedComponents';
-import hierarchicalMappingChannel from '../../../store';
+import hierarchicalMappingChannel, { getRuleAsync } from '../../../store';
 import { newValueIsIRI, wasTouched, convertToUri } from './helpers';
 import ErrorView from '../ErrorView';
 import AutoComplete from './AutoComplete';
 import {
     MAPPING_RULE_TYPE_OBJECT,
     MAPPING_RULE_TYPE_ROOT,
-    MAPPING_RULE_TYPE_COMPLEX_URI,
     MAPPING_RULE_TYPE_URI,
     trimValueLabelObject,
     trimUriPattern,
@@ -58,47 +57,24 @@ const ObjectMappingRuleForm = React.createClass({
     },
 
     loadData() {
-        if (this.props.id) {
-            hierarchicalMappingChannel
-                .request({
-                    topic: MESSAGES.RULE.GET,
-                    data: {
-                        id: this.props.id,
-                    },
-                })
+        const { id } = this.props;
+        if (id) {
+            getRuleAsync({ id })
                 .subscribe(
                     ({ rule }) => {
                         const initialValues = {
-                            targetProperty: _.get(
-                                rule,
-                                'mappingTarget.uri',
-                                undefined
-                            ),
-                            sourceProperty: _.get(
-                                rule,
-                                'sourcePath',
-                                undefined
-                            ),
+                            targetProperty: _.get(rule, 'mappingTarget.uri', undefined),
+                            sourceProperty: _.get(rule, 'sourcePath', undefined),
                             comment: _.get(rule, 'metadata.description', ''),
                             label: _.get(rule, 'metadata.label', ''),
                             targetEntityType: _.chain(rule)
                                 .get('rules.typeRules', [])
                                 .map('typeUri')
                                 .value(),
-                            entityConnection: _.get(
-                                rule,
-                                'mappingTarget.isBackwardProperty',
-                                false
-                            )
-                                ? 'to'
-                                : 'from',
+                            entityConnection: _.get(rule, 'mappingTarget.isBackwardProperty', false) ? 'to' : 'from',
                             pattern: _.get(rule, 'rules.uriRule.pattern', ''),
                             type: _.get(rule, 'type'),
-                            uriRuleType: _.get(
-                                rule,
-                                'rules.uriRule.type',
-                                MAPPING_RULE_TYPE_URI
-                            ),
+                            uriRuleType: _.get(rule, 'rules.uriRule.type', MAPPING_RULE_TYPE_URI),
                             uriRule: _.get(rule, 'rules.uriRule'),
                         };
 

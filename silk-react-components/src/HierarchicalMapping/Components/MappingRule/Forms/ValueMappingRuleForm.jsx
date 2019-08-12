@@ -16,7 +16,7 @@ import { URI } from 'ecc-utils';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import UseMessageBus from '../../../UseMessageBusMixin';
-import hierarchicalMappingChannel from '../../../store';
+import hierarchicalMappingChannel, { getRuleAsync } from '../../../store';
 import { newValueIsIRI, wasTouched, convertToUri } from './helpers';
 import ErrorView from '../ErrorView';
 import AutoComplete from './AutoComplete';
@@ -54,14 +54,9 @@ const ValueMappingRuleForm = React.createClass({
     },
 
     loadData() {
-        if (this.props.id) {
-            hierarchicalMappingChannel
-                .request({
-                    topic: MESSAGES.RULE.GET,
-                    data: {
-                        id: this.props.id,
-                    },
-                })
+        const { id } = this.props;
+        if (id) {
+            getRuleAsync({ id })
                 .subscribe(
                     ({ rule }) => {
                         const initialValues = {

@@ -539,37 +539,34 @@ hierarchicalMappingChannel
         replySubject.onCompleted();
     });
 
-hierarchicalMappingChannel
-    .subject(MESSAGES.RULE.GET)
-    .subscribe(({ data, replySubject }) => {
-        const { id, isObjectMapping } = data;
+/**
+ * Request all rule data
+ * @param id
+ * @param isObjectMapping
+ * @returns {*}
+ */
+export const getRuleAsync = ({ id, isObjectMapping }) => {
+    return silkStore
+        .request({
+            topic: 'transform.task.rules.get',
+            data: { ...apiDetails },
+        })
+        .map(({ body: rules }) => {
+            const searchId = id || rules.id;
 
-        silkStore
-            .request({
-                topic: 'transform.task.rules.get',
-                data: { ...apiDetails },
-            })
-            .map(returned => {
-                const rules = returned.body;
+            if (!_.isString(rootId)) {
+                rootId = rules.id;
+            }
 
-                const searchId = id || rules.id;
-
-                if (!_.isString(rootId)) {
-                    rootId = rules.id;
-                }
-
-                const rule = findRule(
-                    _.cloneDeep(rules),
-                    searchId,
-                    isObjectMapping,
-                    []
-                );
-
-                return { rule: rule || rules };
-            })
-            .multicast(replySubject)
-            .connect();
-    });
+            const rule = findRule(
+                _.cloneDeep(rules),
+                searchId,
+                isObjectMapping,
+                []
+            );
+            return { rule: rule || rules };
+        });
+};
 
 hierarchicalMappingChannel
     .subject(MESSAGES.AUTOCOMPLETE)

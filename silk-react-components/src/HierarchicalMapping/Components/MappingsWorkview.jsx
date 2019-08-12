@@ -6,7 +6,7 @@ import React from 'react';
 import _ from 'lodash';
 import { Spinner } from '@eccenca/gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
-import hierarchicalMappingChannel, { errorChannel } from '../store';
+import hierarchicalMappingChannel, {errorChannel, getRuleAsync} from '../store';
 import MappingsHeader from './MappingsHeader';
 import MappingsObject from './MappingsObject';
 import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm';
@@ -147,15 +147,10 @@ const MappingsWorkview = React.createClass({
         if (__DEBUG__) {
             console.warn('DATA RELOAD');
         }
-
-        hierarchicalMappingChannel
-            .request({
-                topic: MESSAGES.RULE.GET,
-                data: {
-                    id: this.props.currentRuleId,
-                    isObjectMapping: true,
-                },
-            })
+        getRuleAsync({
+            id: this.props.currentRuleId,
+            isObjectMapping: true,
+        })
             .subscribe(
                 ({ rule }) => {
                     if (
