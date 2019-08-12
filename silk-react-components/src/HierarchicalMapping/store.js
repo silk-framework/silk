@@ -20,16 +20,25 @@ const silkStore = rxmq.channel('silk.api');
 export const errorChannel = rxmq.channel('errors');
 
 // Set api details
-let apiDetails = {
+const apiDetails = {
     transformTask: 'test',
     baseUrl: 'http://test.url',
     project: 'test',
 };
 
-// Set Api details
-hierarchicalMappingChannel.subject(MESSAGES.SILK.SET_DETAILS).subscribe(data => {
-    apiDetails = { ...data };
-});
+/**
+ * Basic store configuration
+ * @param transformTask
+ * @param baseUrl
+ * @param project
+ */
+export const initializeStore = ({
+    transformTask, baseUrl, project,
+}) => {
+    apiDetails.transformTask = transformTask;
+    apiDetails.baseUrl = baseUrl;
+    apiDetails.project = project;
+};
 
 function mapPeakResult(returned) {
     if (_.get(returned, 'body.status.id') !== 'success') {

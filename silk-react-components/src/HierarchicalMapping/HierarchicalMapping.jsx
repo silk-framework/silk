@@ -8,7 +8,7 @@ import {
 import { URI } from 'ecc-utils';
 
 import UseMessageBus from './UseMessageBusMixin';
-import hierarchicalMappingChannel, { getHierarchyAsync } from './store';
+import hierarchicalMappingChannel, { getHierarchyAsync, initializeStore } from './store';
 
 import MappingsTree from './Components/MappingsTree';
 import MappingsWorkview from './Components/MappingsWorkview';
@@ -73,7 +73,7 @@ const HierarchicalMapping = React.createClass({
             baseUrl, project, transformTask, initialRule,
         } = this.props;
 
-        hierarchicalMappingChannel.subject(MESSAGES.SILK.SET_DETAILS).onNext({
+        initializeStore({
             baseUrl,
             project,
             transformTask,
