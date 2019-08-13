@@ -30,7 +30,7 @@ package org.silkframework.plugins.dataset.rdf
     override def projectPathInClasspath: String = "org/silkframework/plugins/dataset/rdf/sparqlCopyProject.zip"
 
     /** The workspace provider that is used for holding the test workspace. */
-    override def workspaceProvider: String = "inMemory"
+    override def workspaceProviderName: String = "inMemory"
 
     // execution data
     private val execution = LocalExecution(true)

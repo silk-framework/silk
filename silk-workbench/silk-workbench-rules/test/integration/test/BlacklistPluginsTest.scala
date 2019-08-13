@@ -9,7 +9,7 @@ import org.silkframework.util.ConfigTestTrait
 class BlacklistPluginsTest extends FlatSpec with MustMatchers with ConfigTestTrait with IntegrationTestTrait {
   behavior of "Plugin blacklist parameter"
 
-  override def workspaceProvider: String = "inMemory"
+  override def workspaceProviderName: String = "inMemory"
 
   override def propertyMap: Map[String, Option[String]] = Map(
     "plugin.blacklist" -> Some(" sparqlSelectOperator , xsltOperator ")

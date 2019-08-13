@@ -15,7 +15,7 @@
 package org.silkframework.workspace
 
 import java.io._
-import java.util.logging.{Level, Logger}
+import java.util.logging.Logger
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
@@ -23,13 +23,12 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
 
 import scala.util.Try
-import scala.util.control.NonFatal
 
 /**
   * The workspace that manages loading of and access to workspace projects.
   *
-  * @param provider
-  * @param repository
+  * @param provider - thw workspace provide
+  * @param repository - the repository
   */
 class Workspace(val provider: WorkspaceProvider, val repository: ResourceRepository) {
 
@@ -64,14 +63,11 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
    *
    * @throws java.util.NoSuchElementException If no project with the given name has been found
    */
-  def project(name: Identifier)
-             (implicit userContext: UserContext): Project = {
-    loadUserProjects()
+  def project(name: Identifier)(implicit userContext: UserContext): Project = {
     findProject(name).getOrElse(throw ProjectNotFoundException(name))
   }
 
-  private def findProject(name: Identifier)
-                         (implicit userContext: UserContext): Option[Project] = {
+  def findProject(name: Identifier)(implicit userContext: UserContext): Option[Project] = {
     loadUserProjects()
     projects.find(_.name == name)
   }

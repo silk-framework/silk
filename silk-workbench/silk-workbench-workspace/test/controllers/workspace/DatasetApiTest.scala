@@ -8,7 +8,7 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
 
   private val project = "project"
 
-  override def workspaceProvider: String = "inMemory"
+  override def workspaceProviderName: String = "inMemory"
 
   protected override def routes = Some(classOf[test.Routes])
 
