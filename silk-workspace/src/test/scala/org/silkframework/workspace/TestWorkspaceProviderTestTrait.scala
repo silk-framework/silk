@@ -10,8 +10,6 @@ import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.FileRepository
 
-import scala.util.{Failure, Success, Try}
-
 /**
   * Setups a test workspace with an in-memory workspace provider and temporary file based resource repository.
   */
