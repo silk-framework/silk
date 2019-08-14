@@ -30,6 +30,7 @@ import {
     MAPPING_RULE_TYPE_URI,
 } from '../../helpers';
 import { MESSAGES } from '../../constants';
+import transformRuleOfObjectMapping from '../../utils/transformRuleOfObjectMapping';
 
 const ObjectRule = React.createClass({
     mixins: [UseMessageBus],
@@ -43,6 +44,7 @@ const ObjectRule = React.createClass({
         type: React.PropTypes.string,
         rules: React.PropTypes.object,
         edit: React.PropTypes.bool.isRequired,
+        ruleData: React.PropTypes.object.isRequired,
     },
     componentDidMount() {
         this.subscribe(
@@ -199,15 +201,17 @@ const ObjectRule = React.createClass({
     },
     // template rendering
     render() {
-        const { type } = this.props;
+        const { type, ruleData } = this.props;
         const { edit } = this.state;
 
         if (edit) {
             return (
                 <ObjectMappingRuleForm
+                    key={this.props.id}
                     id={this.props.id}
                     parent={this.props.parent}
                     parentId={this.props.parentId}
+                    ruleData={transformRuleOfObjectMapping(ruleData)}
                 />
             );
         }

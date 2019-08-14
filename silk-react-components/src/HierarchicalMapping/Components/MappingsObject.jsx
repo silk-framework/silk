@@ -137,7 +137,11 @@ const MappingsObject = React.createClass({
         if (this.state.expanded) {
             content = (
                 <ObjectRule
+                    // TODO: values are injected twice atm, one can be removed later.
+                    //  Since descructering here is a bad patten for readability
+                    //  and ruleData is passed to childs remove first one
                     {...this.props.rule}
+                    ruleData={this.props.rule}
                     parentId={_.get(parent, 'id', '')}
                     parent={parent}
                     edit={false}

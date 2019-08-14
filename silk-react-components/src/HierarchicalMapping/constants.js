@@ -19,7 +19,6 @@ export const MESSAGES = {
         COPY: 'rule.copy',
         REMOVE: 'rule.remove',
         UPDATE_OBJECT_MAPPING: 'rule.updateObjectMapping',
-        CREATE_OBJECT_MAPPING: 'rule.createObjectMapping',
         CREATE_VALUE_MAPPING: 'rule.createValueMapping',
         CREATE_GENERATED_MAPPING: 'rule.createGeneratedMapping',
         REQUEST_ORDER: 'rule.requestOrder',

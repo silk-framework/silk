@@ -637,16 +637,15 @@ hierarchicalMappingChannel
             .connect();
     });
 
-hierarchicalMappingChannel
-    .subject(MESSAGES.RULE.CREATE_OBJECT_MAPPING)
-    .subscribe(({ data, replySubject }) => {
-        const payload = prepareObjectMappingPayload(data);
-        const parent = data.parentId ? data.parentId : rootId;
-
-        editMappingRule(payload, data.id, parent)
-            .multicast(replySubject)
-            .connect();
-    });
+/**
+ * Send request to create an object mapping
+ * @param data
+ */
+export const createObjectMappingAsync = data => {
+    const payload = prepareObjectMappingPayload(data);
+    const parent = data.parentId ? data.parentId : rootId;
+    return editMappingRule(payload, data.id, parent);
+};
 
 hierarchicalMappingChannel
     .subject(MESSAGES.RULE.UPDATE_OBJECT_MAPPING)

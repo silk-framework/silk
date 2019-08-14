@@ -6,7 +6,7 @@ import React from 'react';
 import _ from 'lodash';
 import { Spinner } from '@eccenca/gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
-import hierarchicalMappingChannel, {errorChannel, getRuleAsync} from '../store';
+import hierarchicalMappingChannel, { errorChannel, getRuleAsync } from '../store';
 import MappingsHeader from './MappingsHeader';
 import MappingsObject from './MappingsObject';
 import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm';
@@ -366,16 +366,10 @@ const MappingsWorkview = React.createClass({
                         parentId={this.state.ruleData.id}
                         parent={{
                             id: this.state.ruleData.id,
-                            property: _.get(
-                                this,
-                                'state.ruleData.mappingTarget.uri'
-                            ),
-                            type: _.get(
-                                this,
-                                'state.ruleData.rules.typeRules[0].typeUri'
-                            ),
+                            property: _.get(this, 'state.ruleData.mappingTarget.uri'),
+                            type: _.get(this, 'state.ruleData.rules.typeRules[0].typeUri'),
                         }}
-                        edit
+                        ruleData={{ type: MAPPING_RULE_TYPE_OBJECT }}
                     />
                 ) : (
                     <ValueMappingRuleForm
