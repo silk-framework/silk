@@ -19,7 +19,7 @@ trait TransformTaskApiTestBase extends PlaySpec with IntegrationTestTrait with C
   protected val project = "TransformTestProject"
   protected val task = "TestTransform"
 
-  override def workspaceProvider = "inMemory"
+  override def workspaceProviderId = "inMemory"
 
   override def propertyMap = Map("vocabulary.manager.plugin" -> Some("rdfFiles"))
 
