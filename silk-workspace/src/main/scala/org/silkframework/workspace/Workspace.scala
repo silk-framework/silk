@@ -27,8 +27,8 @@ import scala.util.Try
 /**
   * The workspace that manages loading of and access to workspace projects.
   *
-  * @param provider - thw workspace provide
-  * @param repository - the repository
+  * @param provider    the workspace provider
+  * @param repository  the resource repository
   */
 class Workspace(val provider: WorkspaceProvider, val repository: ResourceRepository) {
 
@@ -64,6 +64,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
    * @throws java.util.NoSuchElementException If no project with the given name has been found
    */
   def project(name: Identifier)(implicit userContext: UserContext): Project = {
+    loadUserProjects()
     findProject(name).getOrElse(throw ProjectNotFoundException(name))
   }
 

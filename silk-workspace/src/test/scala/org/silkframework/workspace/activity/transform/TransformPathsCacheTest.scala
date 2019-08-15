@@ -10,7 +10,7 @@ class TransformPathsCacheTest extends FlatSpec with SingleProjectWorkspaceProvid
 
   override def projectPathInClasspath: String = "diProjects/hierarchicalPersonJson.zip"
 
-  override def workspaceProviderName: String = "inMemory"
+  override def workspaceProviderId: String = "inMemory"
 
   it should "cache typed paths for JSON data source" in {
     val task = project.task[TransformSpec]("personJsonTransform")

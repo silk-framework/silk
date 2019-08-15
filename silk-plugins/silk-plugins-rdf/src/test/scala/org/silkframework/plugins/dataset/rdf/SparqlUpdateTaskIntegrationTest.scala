@@ -10,7 +10,7 @@ import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGener
 class SparqlUpdateTaskIntegrationTest extends FlatSpec with MustMatchers with SingleProjectWorkspaceProviderTestTrait {
   behavior of "SPARQL Update Task in a Workflow"
 
-  override def workspaceProviderName: String = "inMemory"
+  override def workspaceProviderId: String = "inMemory"
 
   it should "generate the correct result" in {
     project.task[Workflow]("workflow").activity[LocalWorkflowExecutorGeneratingProvenance].control.startBlocking()

@@ -20,7 +20,7 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
   tmpDir.mkdirs()
 
   /** The workspace provider that is used for holding the test workspace. */
-  def workspaceProviderName: String = "inMemoryRdfWorkspace"
+  def workspaceProviderId: String = "inMemoryRdfWorkspace"
 
   def deleteRecursively(f: File): Unit = {
     if (f.isDirectory) {
@@ -38,7 +38,7 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
   lazy val workspaceProvider: WorkspaceProvider = {
     implicit val resourceManager: InMemoryResourceManager = InMemoryResourceManager()
     implicit val prefixes: Prefixes = Prefixes.empty
-    PluginRegistry.create[WorkspaceProvider](workspaceProviderName, Map.empty)
+    PluginRegistry.create[WorkspaceProvider](workspaceProviderId, Map.empty)
   }
 
   // Workaround for config problem, this should make sure that the workspace is a fresh in-memory RDF workspace

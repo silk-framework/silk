@@ -10,7 +10,7 @@ import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGener
 class SparqlSelectIntegrationTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait with MustMatchers {
   override def projectPathInClasspath: String = "org/silkframework/execution/SPARQLselect.zip"
 
-  override def workspaceProviderName: String = "inMemory"
+  override def workspaceProviderId: String = "inMemory"
 
   private val workflow = "sparqlSelectWorkflow"
 

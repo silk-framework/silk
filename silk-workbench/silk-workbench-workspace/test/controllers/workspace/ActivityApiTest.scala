@@ -72,7 +72,7 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait {
     runningControlIds mustBe createdControlIds.drop(1)
   }
 
-  override def workspaceProviderName: String = "inMemory"
+  override def workspaceProviderId: String = "inMemory"
 
   protected override def routes = Some(classOf[test.Routes])
 }

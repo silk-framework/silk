@@ -15,7 +15,7 @@ class EvaluateLinkingTest extends FlatSpec with IntegrationTestTrait with Single
 
   override def routes = Some(classOf[test.Routes])
 
-  override def workspaceProviderName: String = "inMemory"
+  override def workspaceProviderId: String = "inMemory"
 
   // TODO this tests run standalone, but let other tests fail. Disabling for now
   ignore should "generate evaluation links" in {
