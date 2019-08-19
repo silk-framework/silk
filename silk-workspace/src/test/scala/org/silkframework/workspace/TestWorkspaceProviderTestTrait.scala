@@ -2,11 +2,12 @@ package org.silkframework.workspace
 
 import java.io.{File, FileNotFoundException}
 
-import org.scalatest.{BeforeAndAfterAll, Suite, TestSuite}
+import org.scalatest.{BeforeAndAfterAll, TestSuite}
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.InMemoryResourceManager
+import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.FileRepository
 
 /**
@@ -19,7 +20,7 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
   tmpDir.mkdirs()
 
   /** The workspace provider that is used for holding the test workspace. */
-  def workspaceProvider: String = "inMemoryRdfWorkspace"
+  def workspaceProviderId: String = "inMemoryRdfWorkspace"
 
   def deleteRecursively(f: File): Unit = {
     if (f.isDirectory) {
@@ -31,13 +32,19 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
     }
   }
 
+  /**
+    * The WorkspaceProvide instance
+    */
+  lazy val workspaceProvider: WorkspaceProvider = {
+    implicit val resourceManager: InMemoryResourceManager = InMemoryResourceManager()
+    implicit val prefixes: Prefixes = Prefixes.empty
+    PluginRegistry.create[WorkspaceProvider](workspaceProviderId, Map.empty)
+  }
+
   // Workaround for config problem, this should make sure that the workspace is a fresh in-memory RDF workspace
   override protected def beforeAll(): Unit = {
     super.beforeAll()
-    implicit val resourceManager: InMemoryResourceManager = InMemoryResourceManager()
-    implicit val prefixes: Prefixes = Prefixes.empty
-    val provider = PluginRegistry.create[WorkspaceProvider](workspaceProvider, Map.empty)
-    val replacementWorkspace = new Workspace(provider, FileRepository(tmpDir.getAbsolutePath))
+    val replacementWorkspace = new Workspace(workspaceProvider, FileRepository(tmpDir.getAbsolutePath))
     val rdfWorkspaceFactory = new WorkspaceFactory {
       /**
         * The current workspace of this user.
@@ -53,5 +60,12 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
     WorkspaceFactory.factory = oldWorkspaceFactory
     deleteRecursively(tmpDir)
     super.afterAll()
+  }
+
+  def retrieveOrCreateProject(projectId: Identifier)(implicit userContext: UserContext): Project = {
+    WorkspaceFactory().workspace(userContext).findProject(projectId) match{
+      case Some(p) => p
+      case None => WorkspaceFactory().workspace(userContext).createProject(new ProjectConfig(projectId))
+    }
   }
 }

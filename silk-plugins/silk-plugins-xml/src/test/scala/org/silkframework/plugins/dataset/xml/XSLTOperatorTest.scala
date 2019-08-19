@@ -11,7 +11,7 @@ class XSLTOperatorTest extends FlatSpec with MustMatchers with SingleProjectWork
   private final val WORKFLOW = "xsltWorkflow"
   private final val OUTPUT_RESOURCE = "output.xml"
 
-  override def workspaceProvider: String = "inMemory"
+  override def workspaceProviderId: String = "inMemory"
 
   private val expectedOutput: Elem = {
     <GroupedPerson>

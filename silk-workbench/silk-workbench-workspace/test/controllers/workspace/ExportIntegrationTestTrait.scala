@@ -30,7 +30,7 @@ trait ExportIntegrationTestTrait
 
   protected override def routes = Some(classOf[test.Routes])
 
-  override def workspaceProvider: String = "mockableInMemoryWorkspace"
+  override def workspaceProviderId: String = "mockableInMemoryWorkspace"
 
   private lazy val workspace: Workspace = WorkspaceFactory().workspace
 
