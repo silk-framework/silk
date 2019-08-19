@@ -257,7 +257,7 @@ object TransformSpec {
       )
 
       val outputSchema = EntitySchema(
-        typeUri = rule.rules.typeRules.headOption.map(_.typeUri).getOrElse(selection.typeUri),
+        typeUri = rule.rules.typeRules.headOption.map(_.typeUri).getOrElse(""),
         typedPaths = rule.rules.allRules.flatMap(_.target).map { mt =>
           val path = if (mt.isBackwardProperty) BackwardOperator(mt.propertyUri) else ForwardOperator(mt.propertyUri)
           TypedPath(UntypedPath(List(path)), mt.valueType, mt.isAttribute)
