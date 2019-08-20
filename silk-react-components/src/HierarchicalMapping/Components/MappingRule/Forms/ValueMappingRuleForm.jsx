@@ -16,7 +16,7 @@ import {URI} from 'ecc-utils';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import UseMessageBus from '../../../UseMessageBusMixin';
-import hierarchicalMappingChannel from '../../../store';
+import hierarchicalMappingChannel, { createMappingAsync, getRuleAsync } from '../../../store';
 import {newValueIsIRI, wasTouched, convertToUri} from './helpers';
 import ErrorView from '../ErrorView';
 import AutoComplete from './AutoComplete';
@@ -55,13 +55,7 @@ const ValueMappingRuleForm = React.createClass({
 
     loadData() {
         if (this.props.id) {
-            hierarchicalMappingChannel
-                .request({
-                    topic: MESSAGES.RULE.GET,
-                    data: {
-                        id: this.props.id,
-                    },
-                })
+            getRuleAsync(this.props.id)
                 .subscribe(
                     ({rule}) => {
                         const initialValues = {
@@ -117,26 +111,21 @@ const ValueMappingRuleForm = React.createClass({
         this.setState({
             loading: true,
         });
-        hierarchicalMappingChannel
-            .request({
-                topic: MESSAGES.RULE.CREATE_VALUE_MAPPING,
-                data: {
-                    id: this.props.id,
-                    parentId: this.props.parentId,
-                    type: this.state.type,
-                    comment: this.state.comment,
-                    label: this.state.label,
-                    targetProperty: trimValueLabelObject(
-                        this.state.targetProperty
-                    ),
-                    valueType: this.state.valueType,
-                    sourceProperty: trimValueLabelObject(
-                        this.state.sourceProperty
-                    ),
-                    isAttribute: this.state.isAttribute,
-                },
-            })
-            .subscribe(
+        createMappingAsync({
+            id: this.props.id,
+            parentId: this.props.parentId,
+            type: this.state.type,
+            comment: this.state.comment,
+            label: this.state.label,
+            targetProperty: trimValueLabelObject(
+                this.state.targetProperty
+            ),
+            valueType: this.state.valueType,
+            sourceProperty: trimValueLabelObject(
+                this.state.sourceProperty
+            ),
+            isAttribute: this.state.isAttribute,
+        }).subscribe(
                 () => {
                     this.handleClose(event);
                     hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext(true);

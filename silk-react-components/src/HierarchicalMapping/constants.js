@@ -14,14 +14,7 @@ export const MESSAGES = {
         SUGGESTIONS: {
             PROGRESS: 'rule.suggestions.progress',
         },
-        GET: 'rule.get',
-        GET_EDITOR_HREF: 'rule.getEditorHref',
         COPY: 'rule.copy',
-        REMOVE: 'rule.remove',
-        UPDATE_OBJECT_MAPPING: 'rule.updateObjectMapping',
-        CREATE_OBJECT_MAPPING: 'rule.createObjectMapping',
-        CREATE_VALUE_MAPPING: 'rule.createValueMapping',
-        CREATE_GENERATED_MAPPING: 'rule.createGeneratedMapping',
         REQUEST_ORDER: 'rule.requestOrder',
     },
     TREE_NAV: {
@@ -36,9 +29,4 @@ export const MESSAGES = {
     },
     RELOAD: 'reload',
     TOGGLE_DETAILS: 'toggleDetails',
-    GET_API_DETAILS: 'getApiDetails',
-    AUTOCOMPLETE: 'autocomplete',
-    SILK: {
-        SET_DETAILS: 'setSilkDetails'
-    }
 };

@@ -10,7 +10,7 @@ import {
 import _ from 'lodash';
 import UseMessageBus from '../../UseMessageBusMixin';
 import ExampleView from './ExampleView';
-import hierarchicalMappingChannel from '../../store';
+import hierarchicalMappingChannel, { getEditorHref } from '../../store';
 import ValueMappingRuleForm from './Forms/ValueMappingRuleForm';
 import {
     ThingName,
@@ -44,17 +44,9 @@ const RuleValueView = React.createClass({
         );
     },
     getInitialState() {
-        this.subscribe(
-            hierarchicalMappingChannel.request({
-                topic: MESSAGES.RULE.GET_EDITOR_HREF,
-                data: {id: this.props.id},
-            }),
-            ({href}) => this.setState({href})
-        );
-
         return {
             edit: this.props.edit,
-            href: null,
+            href: getEditorHref(this.props.id),
         };
     },
     handleComplexEdit(event) {

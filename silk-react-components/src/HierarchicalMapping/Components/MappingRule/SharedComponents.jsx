@@ -4,7 +4,7 @@ import {Icon, Button, NotAvailable} from '@eccenca/gui-elements';
 
 const NO_TARGET_TYPE = <NotAvailable />;
 const NO_TARGET_PROPERTY = <NotAvailable />;
-import hierarchicalMappingChannel, { getVocabInfoAsync } from '../../store';
+import hierarchicalMappingChannel, { autocompleteAsync, getVocabInfoAsync } from '../../store';
 import {
     MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_DIRECT,
@@ -155,17 +155,11 @@ const PropertyTypeInfo = React.createClass({
         if (__DEBUG__) {
             console.log(this.props);
         }
-
-        hierarchicalMappingChannel
-            .request({
-                topic: MESSAGES.AUTOCOMPLETE,
-                data: {
-                    entity: 'propertyType',
-                    input: this.props.name,
-                    ruleId: null,
-                },
-            })
-            .subscribe(
+        autocompleteAsync({
+            entity: 'propertyType',
+            input: this.props.name,
+            ruleId: null,
+        }).subscribe(
                 response => {
                     this.setState({
                         result: _.get(

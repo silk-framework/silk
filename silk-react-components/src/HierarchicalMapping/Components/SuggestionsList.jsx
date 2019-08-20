@@ -143,10 +143,7 @@ const SuggestionsList = React.createClass({
                 type: v.type,
             }));
         
-        generateRuleAsync({
-            correspondences,
-            parentId: this.props.ruleId,
-        }).subscribe(
+        generateRuleAsync(correspondences, this.props.ruleId).subscribe(
                 () => {
                     this.props.onClose();
                 },

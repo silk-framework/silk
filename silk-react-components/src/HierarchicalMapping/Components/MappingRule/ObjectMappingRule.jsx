@@ -10,7 +10,7 @@ import {
 } from '@eccenca/gui-elements';
 import _ from 'lodash';
 import UseMessageBus from '../../UseMessageBusMixin';
-import hierarchicalMappingChannel from '../../store';
+import hierarchicalMappingChannel, { getEditorHref, updateObjectMappingAsync } from '../../store';
 import ExampleView from './ExampleView';
 import ObjectMappingRuleForm from './Forms/ObjectMappingRuleForm';
 
@@ -50,13 +50,9 @@ const ObjectRule = React.createClass({
             this.handleCloseEdit
         );
         if (_.has(this.props, 'rules.uriRule.id')) {
-            this.subscribe(
-                hierarchicalMappingChannel.request({
-                    topic: MESSAGES.RULE.GET_EDITOR_HREF,
-                    data: {id: this.props.rules.uriRule.id},
-                }),
-                ({href}) => this.setState({href})
-            );
+            this.setState({
+                href: getEditorHref(this.props.rules.uriRule.id)
+            });
         }
     },
     editUriRule(event) {
@@ -113,28 +109,13 @@ const ObjectRule = React.createClass({
             type: 'uri',
             pattern: '/',
         };
-        hierarchicalMappingChannel
-            .request({
-                topic: MESSAGES.RULE.UPDATE_OBJECT_MAPPING,
-                data: rule,
-            })
+        updateObjectMappingAsync(rule)
             .subscribe(
                 data => {
-                    hierarchicalMappingChannel
-                        .request({
-                            topic: MESSAGES.RULE.GET_EDITOR_HREF,
-                            data: {
-                                id: data.body.rules.uriRule.id,
-                            },
-                        })
-                        .subscribe(
-                            ({href}) => {
-                                window.location.href = href;
-                            },
-                            err => {
-                                console.error(err);
-                            }
-                        );
+                    const href = getEditorHref(data.body.rules.uriRule.id);
+                    if (href) {
+                        window.location.href = href;
+                    }
                 },
                 err => {
                     console.error(err);
@@ -153,11 +134,7 @@ const ObjectRule = React.createClass({
 
         const rule = _.cloneDeep(this.props);
         rule.rules.uriRule = null;
-        hierarchicalMappingChannel
-            .request({
-                topic: MESSAGES.RULE.UPDATE_OBJECT_MAPPING,
-                data: rule,
-            })
+        updateObjectMappingAsync(rule)
             .subscribe(
                 data => {
                     hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext(true);
@@ -186,13 +163,9 @@ const ObjectRule = React.createClass({
     },
     componentWillReceiveProps(nextProps) {
         if (_.has(nextProps, 'rules.uriRule.id')) {
-            this.subscribe(
-                hierarchicalMappingChannel.request({
-                    topic: MESSAGES.RULE.GET_EDITOR_HREF,
-                    data: {id: _.get(nextProps, 'rules.uriRule.id', '')},
-                }),
-                ({href}) => this.setState({href})
-            );
+            this.setState({
+                href: getEditorHref(_.get(nextProps, 'rules.uriRule.id', ''))
+            })
         }
     },
     handleCopy(){

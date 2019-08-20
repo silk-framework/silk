@@ -14,7 +14,7 @@ import {
 import {URI} from 'ecc-utils';
 
 import UseMessageBus from './UseMessageBusMixin';
-import hierarchicalMappingChannel from './store';
+import hierarchicalMappingChannel, { ruleRemoveAsync, setApiDetails } from './store';
 
 import MappingsTree from './Components/MappingsTree';
 import MappingsWorkview from './Components/MappingsWorkview';
@@ -65,8 +65,7 @@ const HierarchicalMapping = React.createClass({
     // initilize state
     getInitialState() {
         const {baseUrl, project, transformTask, initialRule} = this.props;
-
-        hierarchicalMappingChannel.subject(MESSAGES.SILK.SET_DETAILS).onNext({
+        setApiDetails({
             baseUrl,
             project,
             transformTask,
@@ -115,11 +114,7 @@ const HierarchicalMapping = React.createClass({
         this.setState({
             loading: true,
         });
-        hierarchicalMappingChannel
-            .request({
-                topic: MESSAGES.RULE.REMOVE,
-                data: {...this.state.elementToDelete},
-            })
+        ruleRemoveAsync(this.state.elementToDelete.id)
             .subscribe(
                 () => {
                     // FIXME: let know the user which element is gone!

@@ -1,52 +1,27 @@
 // Store specific to hierarchical mappings, will use silk-store internally
 
 import _ from 'lodash';
-import rxmq, {Rx} from 'ecc-messagebus';
+import rxmq, { Rx } from 'ecc-messagebus';
 import {
     isObjectMappingRule,
+    MAPPING_RULE_TYPE_COMPLEX,
+    MAPPING_RULE_TYPE_COMPLEX_URI,
     MAPPING_RULE_TYPE_DIRECT,
     MAPPING_RULE_TYPE_OBJECT,
-    MAPPING_RULE_TYPE_COMPLEX,
-    MAPPING_RULE_TYPE_URI,
-    MAPPING_RULE_TYPE_COMPLEX_URI,
-    SUGGESTION_TYPES,
     MAPPING_RULE_TYPE_ROOT,
+    MAPPING_RULE_TYPE_URI,
 } from './helpers';
-import {Suggestion} from './Suggestion';
+
+import { Suggestion } from './Suggestion';
 import { MESSAGES } from './constants';
 
 const hierarchicalMappingChannel = rxmq.channel('silk.hierarchicalMapping');
 const silkStore = rxmq.channel('silk.api');
 export const errorChannel = rxmq.channel('errors');
 
-// Set api details
-let apiDetails = {
-    transformTask: 'test',
-    baseUrl: 'http://test.url',
-    project: 'test',
-};
+let rootId = null;
 
-// Set Api details
-hierarchicalMappingChannel.subject(MESSAGES.SILK.SET_DETAILS).subscribe(data => {
-    apiDetails = {...data};
-});
-
-function mapPeakResult(returned) {
-    if (_.get(returned, 'body.status.id') !== 'success') {
-        return {
-            title: 'Could not load preview',
-            detail: _.get(
-                returned,
-                'body.status.msg',
-                'No details available'
-            ),
-        };
-    }
-    
-    return {
-        example: returned.body,
-    };
-}
+const vocabularyCache = {};
 
 const datatypes = _.map(
     [
@@ -121,23 +96,58 @@ const datatypes = _.map(
     })
 );
 
-function filterPropertyType(input, replySubject) {
-    const search = _.deburr(input).toLocaleLowerCase();
+let _apiDetails = {};
+export const setApiDetails = (data) => {
+    _apiDetails = {...data};
+};
 
-    replySubject.onNext({
-        options: _.filter(datatypes, datatype =>
-            _.includes(datatype.$search, search)
-        ),
-    });
-    replySubject.onCompleted();
+export const getApiDetails = () => _apiDetails;
+
+function mapPeakResult(returned) {
+    if (_.get(returned, 'body.status.id') !== 'success') {
+        return {
+            title: 'Could not load preview',
+            detail: _.get(
+                returned,
+                'body.status.msg',
+                'No details available'
+            ),
+        };
+    }
+    
+    return {
+        example: returned.body,
+    };
 }
+
+const editMappingRule = (payload, id, parent) => {
+    if (id) {
+        return silkStore.request({
+            topic: 'transform.task.rule.put',
+            data: {
+                ...getApiDetails(),
+                ruleId: id,
+                payload,
+            },
+        });
+    }
+    
+    return silkStore.request({
+        topic: 'transform.task.rule.rules.append',
+        data: {
+            ...getApiDetails(),
+            ruleId: parent,
+            payload,
+        },
+    });
+};
 
 function findRule(curr, id, isObjectMapping, breadcrumbs) {
     const element = {
         ...curr,
         breadcrumbs,
     };
-
+    
     if (element.id === id || _.get(element, 'rules.uriRule.id') === id) {
         return element;
     } else if (_.has(element, 'rules.propertyRules')) {
@@ -155,7 +165,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
                 result = findRule(child, id, isObjectMapping, bc);
             }
         });
-
+        
         if (
             isObjectMapping &&
             result !== null &&
@@ -163,7 +173,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
         ) {
             result = element;
         }
-
+        
         return result;
     }
     return null;
@@ -178,7 +188,7 @@ const handleCreatedSelectBoxValue = (data, path) => {
     if (_.isEmpty(_.get(data, [path]))) {
         return '';
     }
-
+    
     return _.get(data, [path]);
 };
 
@@ -194,30 +204,30 @@ const prepareValueMappingPayload = data => {
             isAttribute: data.isAttribute,
         },
     };
-
+    
     if (data.type === MAPPING_RULE_TYPE_DIRECT) {
         payload.sourcePath = data.sourceProperty
             ? handleCreatedSelectBoxValue(data, 'sourceProperty')
             : '';
     }
-
+    
     if (!data.id) {
         payload.type = data.type;
     }
-
+    
     return payload;
 };
 
 const prepareObjectMappingPayload = data => {
     const typeRules = _.map(data.targetEntityType, typeRule => {
         const value = _.get(typeRule, 'value', typeRule);
-
+        
         return {
             type: 'type',
             typeUri: value,
         };
     });
-
+    
     const payload = {
         metadata: {
             description: data.comment,
@@ -236,29 +246,27 @@ const prepareObjectMappingPayload = data => {
         rules: {
             uriRule: data.pattern
                 ? {
-                      type: MAPPING_RULE_TYPE_URI,
-                      pattern: data.pattern,
-                  }
+                    type: MAPPING_RULE_TYPE_URI,
+                    pattern: data.pattern,
+                }
                 : undefined,
             typeRules,
         },
     };
-
+    
     if (!data.id) {
         payload.type = MAPPING_RULE_TYPE_OBJECT;
         payload.rules.propertyRules = [];
     }
-
+    
     return payload;
 };
 
 const generateRule = (rule, parentId) =>
-    hierarchicalMappingChannel
-        .request({
-            topic: MESSAGES.RULE.CREATE_GENERATED_MAPPING,
-            data: {...rule, parentId},
-        })
-        .catch(e => Rx.Observable.return({error: e, rule}));
+    createGeneratedMappingAsync({
+        ...rule,
+        parentId
+    }).catch(e => Rx.Observable.return({error: e, rule}));
 
 const createGeneratedRules = ({rules, parentId}) =>
     Rx.Observable.from(rules)
@@ -268,55 +276,48 @@ const createGeneratedRules = ({rules, parentId}) =>
         .reduce((all, result, idx) => {
             const total = _.size(rules);
             const count = idx + 1;
-
+            
             hierarchicalMappingChannel
                 .subject(MESSAGES.RULE.SUGGESTIONS.PROGRESS)
                 .onNext({
                     progressNumber: _.round(count / total * 100, 0),
                     lastUpdate: `Saved ${count} of ${total} rules.`,
                 });
-
+            
             all.push(result);
-
+            
             return all;
         }, [])
         .map(createdRules => {
             const failedRules = _.filter(createdRules, 'error');
-
+            
             if (_.size(failedRules)) {
                 const error = new Error('Could not create rules.');
                 error.failedRules = failedRules;
                 throw error;
             }
-
+            
             return createdRules;
         });
 
-let rootId = null;
-
-const vocabularyCache = {};
-
-export const orderRulesAsync = ({
-    id,
-    childrenRules,
-}) => {
+export const orderRulesAsync = ({id, childrenRules}) => {
     silkStore
         .request({
             topic: 'transform.task.rule.rules.reorder',
-            data: {id, childrenRules, ...apiDetails},
+            data: {id, childrenRules, ...getApiDetails()},
         })
-        .subscribe(() => {
+        .map(() => {
             hierarchicalMappingChannel
                 .subject(MESSAGES.RELOAD)
                 .onNext();
         })
 };
 
-export const generateRuleAsync = ({correspondences, parentId}) => {
+export const generateRuleAsync = (correspondences, parentId) => {
     return silkStore
         .request({
             topic: 'transform.task.rule.generate',
-            data: {...apiDetails, correspondences, parentId},
+            data: {...getApiDetails(), correspondences, parentId},
         })
         .map(returned => {
             hierarchicalMappingChannel
@@ -342,7 +343,7 @@ export const getVocabInfoAsync = (uri, field) => {
     return silkStore
         .request({
             topic: 'transform.task.targetVocabulary.typeOrProperty',
-            data: {...apiDetails, uri},
+            data: {...getApiDetails(), uri},
         })
         .catch(() => Rx.Observable.just({}))
         .map(returned => {
@@ -366,7 +367,7 @@ export const getSuggestionsAsync = (data) => {
             .request({
                 // call the DI matchVocabularyClassDataset endpoint
                 topic: 'transform.task.rule.suggestions',
-                data: {...apiDetails, ...data},
+                data: {...getApiDetails(), ...data},
             })
             .catch(err => {
                 
@@ -395,7 +396,7 @@ export const getSuggestionsAsync = (data) => {
                     _.forEach(sources, ({uri: candidateUri, type, confidence}) => {
                         let mapFrom = sourcePathOrUri; // By default we map from the dataset to the vocabulary, which fits
                         let mapTo = candidateUri;
-                        if(!data.matchFromDataset) {
+                        if (!data.matchFromDataset) {
                             mapFrom = candidateUri; // In this case the vocabulary is the source, so we have to switch direction
                             mapTo = sourcePathOrUri;
                         }
@@ -417,7 +418,7 @@ export const getSuggestionsAsync = (data) => {
             .request({
                 // call the silk endpoint valueSourcePaths
                 topic: 'transform.task.rule.valueSourcePaths',
-                data: {unusedOnly: true, ...apiDetails, ...data},
+                data: {unusedOnly: true, ...getApiDetails(), ...data},
             })
             .catch(err => {
                 const errorBody = _.get(err, 'response.body');
@@ -471,7 +472,7 @@ export const childExampleAsync = (data) => {
         return silkStore
             .request({
                 topic: 'transform.task.rule.child.peak',
-                data: {...apiDetails, id, rule},
+                data: {...getApiDetails(), id, rule},
             })
             .map(mapPeakResult);
     }
@@ -485,19 +486,19 @@ export const ruleExampleAsync = (data) => {
         return silkStore
             .request({
                 topic: 'transform.task.rule.peak',
-                data: {...apiDetails, id},
+                data: {...getApiDetails(), id},
             })
             .map(mapPeakResult);
     }
     return Rx.Observable();
 };
 
-export const getHierarchyAsync = ({ baseUrl, project, transformTask }) => {
+export const getHierarchyAsync = ({baseUrl, project, transformTask}) => {
     return silkStore
         .request({
             topic: 'transform.task.rules.get',
             data: {
-                ...apiDetails,
+                ...getApiDetails(),
                 baseUrl,
                 project,
                 transformTask
@@ -505,226 +506,128 @@ export const getHierarchyAsync = ({ baseUrl, project, transformTask }) => {
         })
         .map(returned => {
             const rules = returned.body;
-        
+            
             if (!_.isString(rootId)) {
                 rootId = rules.id;
             }
-        
+            
             return {
                 hierarchy: rules,
             };
         });
 };
 
-hierarchicalMappingChannel
-    .subject(MESSAGES.RULE.GET_EDITOR_HREF)
-    .subscribe(({data, replySubject}) => {
-        const {id: ruleId} = data;
-
-        if (ruleId) {
-            const {transformTask, baseUrl, project} = apiDetails;
-
-            replySubject.onNext({
-                href: `${baseUrl}/transform/${project}/${transformTask}/editor/${ruleId}`,
-            });
-        } else {
-            replySubject.onNext({
-                href: null,
-            });
-        }
-
-        replySubject.onCompleted();
-    });
-
-hierarchicalMappingChannel
-    .subject(MESSAGES.RULE.GET)
-    .subscribe(({data, replySubject}) => {
-        const {id, isObjectMapping} = data;
-
-        silkStore
-            .request({
-                topic: 'transform.task.rules.get',
-                data: {...apiDetails},
-            })
-            .map(returned => {
-                const rules = returned.body;
-
-                const searchId = id || rules.id;
-
-                if (!_.isString(rootId)) {
-                    rootId = rules.id;
-                }
-
-                const rule = findRule(
-                    _.cloneDeep(rules),
-                    searchId,
-                    isObjectMapping,
-                    []
-                );
-
-                return {rule: rule || rules};
-            })
-            .multicast(replySubject)
-            .connect();
-    });
-
-hierarchicalMappingChannel
-    .subject(MESSAGES.AUTOCOMPLETE)
-    .subscribe(({data, replySubject}) => {
-        const {entity, input, ruleId = rootId} = data;
-
-        let channel = 'transform.task.rule.completions.';
-
-        switch (entity) {
-            case 'propertyType':
-                filterPropertyType(input, replySubject);
-                return;
-            case 'targetProperty':
-                channel += 'targetProperties';
-                break;
-            case 'targetEntityType':
-                channel += 'targetTypes';
-                break;
-            case 'sourcePath':
-                channel += 'sourcePaths';
-                break;
-            default:
-                if (__DEBUG__) {
-                    console.error(`No autocomplete defined for ${entity}`);
-                }
-        }
-
-        silkStore
-            .request({
-                topic: channel,
-                data: {...apiDetails, term: input, ruleId},
-            })
-            .map(returned => ({options: returned.body}))
-            .multicast(replySubject)
-            .connect();
-    });
-
-const editMappingRule = (payload, id, parent) => {
-    if (id) {
-        return silkStore.request({
-            topic: 'transform.task.rule.put',
-            data: {
-                ...apiDetails,
-                ruleId: id,
-                payload,
-            },
-        });
-    }
-
-    return silkStore.request({
-        topic: 'transform.task.rule.rules.append',
-        data: {
-            ...apiDetails,
-            ruleId: parent,
-            payload,
-        },
-    });
+export const getEditorHref = (ruleId) => {
+    const {transformTask, baseUrl, project} = getApiDetails();
+    return ruleId ? `${baseUrl}/transform/${project}/${transformTask}/editor/${ruleId}` : null;
 };
 
-hierarchicalMappingChannel
-    .subject(MESSAGES.RULE.CREATE_VALUE_MAPPING)
-    .subscribe(({data, replySubject}) => {
-        const payload = prepareValueMappingPayload(data);
-        const parent = data.parentId ? data.parentId : rootId;
-
-        editMappingRule(payload, data.id, parent)
-            .multicast(replySubject)
-            .connect();
-    });
-
-hierarchicalMappingChannel
-    .subject(MESSAGES.RULE.CREATE_OBJECT_MAPPING)
-    .subscribe(({data, replySubject}) => {
-        const payload = prepareObjectMappingPayload(data);
-        const parent = data.parentId ? data.parentId : rootId;
-
-        editMappingRule(payload, data.id, parent)
-            .multicast(replySubject)
-            .connect();
-    });
-
-hierarchicalMappingChannel
-    .subject(MESSAGES.RULE.UPDATE_OBJECT_MAPPING)
-    .subscribe(({data, replySubject}) => {
-        editMappingRule(data, data.id, parent)
-            .multicast(replySubject)
-            .connect();
-    });
-
-hierarchicalMappingChannel
-    .subject(MESSAGES.RULE.CREATE_GENERATED_MAPPING)
-    .subscribe(({data, replySubject}) => {
-        const payload = data;
-        const parent = data.parentId ? data.parentId : rootId;
-
-        editMappingRule(payload, false, parent)
-            .multicast(replySubject)
-            .connect();
-    });
-
-hierarchicalMappingChannel
-    .subject(MESSAGES.RULE.REMOVE)
-    .subscribe(({data, replySubject}) => {
-        const {id} = data;
-        silkStore
-            .request({
-                topic: 'transform.task.rule.delete',
-                data: {
-                    ...apiDetails,
-                    ruleId: id,
-                },
-            })
-            .subscribe(
-                () => {
-                    replySubject.onNext();
-                    replySubject.onCompleted();
-                    hierarchicalMappingChannel
-                        .subject(MESSAGES.RELOAD)
-                        .onNext(true);
-                },
-                err => {
-                    // TODO: Beautify
-                }
+export const getRuleAsync = (id, isObjectMapping = false) => {
+    return silkStore
+        .request({
+            topic: 'transform.task.rules.get',
+            data: {...getApiDetails()},
+        })
+        .map(returned => {
+            const rules = returned.body;
+            const searchId = id || rules.id;
+            if (!_.isString(rootId)) {
+                rootId = rules.id;
+            }
+            const rule = findRule(
+                _.cloneDeep(rules),
+                searchId,
+                isObjectMapping,
+                []
             );
-    });
+            return {rule: rule || rules};
+        })
+};
 
-hierarchicalMappingChannel
-    .subject(MESSAGES.GET_API_DETAILS)
-    .subscribe(({replySubject}) => {
-        replySubject.onNext({
-            apiDetails: apiDetails,
-        });
-        replySubject.onCompleted();
-    });
+export const autocompleteAsync = (data) => {
+    const {entity, input, ruleId = rootId} = data;
+    
+    let channel = 'transform.task.rule.completions.';
+    switch (entity) {
+        case 'propertyType':
+            const search = _.deburr(input).toLocaleLowerCase();
+            return Rx.Observable.just({
+                options: _.filter(datatypes, datatype =>
+                    _.includes(datatype.$search, search)
+                ),
+            });
+        case 'targetProperty':
+            channel += 'targetProperties';
+            break;
+        case 'targetEntityType':
+            channel += 'targetTypes';
+            break;
+        case 'sourcePath':
+            channel += 'sourcePaths';
+            break;
+        default:
+            if (__DEBUG__) {
+                console.error(`No autocomplete defined for ${entity}`);
+            }
+    }
+    
+    return silkStore
+        .request({
+            topic: channel,
+            data: {...getApiDetails(), term: input, ruleId},
+        })
+        .map(returned => ({options: returned.body}))
+};
 
-hierarchicalMappingChannel
-    .subject(MESSAGES.RULE.COPY)
-    .subscribe(({data, replySubject}) => {
-        const copyingData = {
-            baseUrl: apiDetails.baseUrl,
-            project: apiDetails.project,
-            transformTask: apiDetails.transformTask,
-            id: data.id || MAPPING_RULE_TYPE_ROOT,
-            queryParameters: data.queryParameters,
-            appendTo: data.id, // the rule the copied rule should be appended to
-        };
-        silkStore
-            .request({
-                topic: 'transform.task.rule.copy',
-                data: {...copyingData},
-            })
-            .subscribe(
-                (returned) => {
-                    replySubject.onNext({
-                        id: returned.body.id
-                    });
-                    replySubject.onCompleted();
-            })
-    })
+export const createMappingAsync = (data, isObject = false) => {
+    const payload = isObject ? prepareValueMappingPayload(data) : prepareObjectMappingPayload(data);
+    return editMappingRule(payload, data.id, data.parentId || rootId);
+};
+
+export const updateObjectMappingAsync = (data) => {
+    return editMappingRule(data, data.id, data.parentId || rootId);
+};
+
+export const createGeneratedMappingAsync = (data) => {
+    return editMappingRule(data, false, data.parentId || rootId)
+};
+
+export const ruleRemoveAsync = (id) => {
+    return silkStore
+        .request({
+            topic: 'transform.task.rule.delete',
+            data: {
+                ...getApiDetails(),
+                ruleId: id,
+            },
+        })
+        .map(
+            () => {
+                hierarchicalMappingChannel
+                    .subject(MESSAGES.RELOAD)
+                    .onNext(true);
+            },
+            err => {
+                // TODO: Beautify
+            }
+        );
+};
+
+export const copyRuleAsync = (data) => {
+    const {baseUrl, project, transformTask} = getApiDetails();
+    return silkStore
+        .request({
+            topic: 'transform.task.rule.copy',
+            data: {
+                baseUrl,
+                project,
+                transformTask,
+                id: data.id || MAPPING_RULE_TYPE_ROOT,
+                queryParameters: data.queryParameters,
+                appendTo: data.id, // the rule the copied rule should be appended to
+            },
+        })
+        .map(returned => returned.body.id)
+};
 
 export default hierarchicalMappingChannel;

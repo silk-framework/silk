@@ -16,7 +16,7 @@ import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import UseMessageBus from '../../../UseMessageBusMixin';
 import {ParentElement} from '../SharedComponents';
-import hierarchicalMappingChannel from '../../../store';
+import hierarchicalMappingChannel, { createMappingAsync, getRuleAsync } from '../../../store';
 import {newValueIsIRI, wasTouched, convertToUri} from './helpers';
 import ErrorView from '../ErrorView';
 import AutoComplete from './AutoComplete';
@@ -59,13 +59,7 @@ const ObjectMappingRuleForm = React.createClass({
 
     loadData() {
         if (this.props.id) {
-            hierarchicalMappingChannel
-                .request({
-                    topic: MESSAGES.RULE.GET,
-                    data: {
-                        id: this.props.id,
-                    },
-                })
+            getRuleAsync(this.props.id)
                 .subscribe(
                     ({rule}) => {
                         const initialValues = {
@@ -132,26 +126,22 @@ const ObjectMappingRuleForm = React.createClass({
         this.setState({
             loading: true,
         });
-        hierarchicalMappingChannel
-            .request({
-                topic: MESSAGES.RULE.CREATE_OBJECT_MAPPING,
-                data: {
-                    id: this.props.id,
-                    parentId: this.props.parentId,
-                    type: this.state.type,
-                    comment: this.state.comment,
-                    label: this.state.label,
-                    sourceProperty: trimValueLabelObject(
-                        this.state.sourceProperty
-                    ),
-                    targetProperty: trimValueLabelObject(
-                        this.state.targetProperty
-                    ),
-                    targetEntityType: this.state.targetEntityType,
-                    pattern: trimUriPattern(this.state.pattern),
-                    entityConnection: this.state.entityConnection === 'to',
-                },
-            })
+        createMappingAsync({
+            id: this.props.id,
+            parentId: this.props.parentId,
+            type: this.state.type,
+            comment: this.state.comment,
+            label: this.state.label,
+            sourceProperty: trimValueLabelObject(
+                this.state.sourceProperty
+            ),
+            targetProperty: trimValueLabelObject(
+                this.state.targetProperty
+            ),
+            targetEntityType: this.state.targetEntityType,
+            pattern: trimUriPattern(this.state.pattern),
+            entityConnection: this.state.entityConnection === 'to',
+        }, true)
             .subscribe(
                 () => {
                     this.handleClose(event);

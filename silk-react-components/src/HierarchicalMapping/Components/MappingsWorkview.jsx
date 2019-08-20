@@ -11,7 +11,7 @@ import {
     Spinner,
 } from '@eccenca/gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
-import hierarchicalMappingChannel, { errorChannel } from '../store';
+import hierarchicalMappingChannel, { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from '../store';
 import MappingsHeader from './MappingsHeader';
 import MappingsObject from './MappingsObject';
 import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm';
@@ -151,15 +151,7 @@ const MappingsWorkview = React.createClass({
         if (__DEBUG__) {
             console.warn('DATA RELOAD');
         }
-
-        hierarchicalMappingChannel
-            .request({
-                topic: MESSAGES.RULE.GET,
-                data: {
-                    id: this.props.currentRuleId,
-                    isObjectMapping: true,
-                },
-            })
+        getRuleAsync(this.props.currentRuleId, true)
             .subscribe(
                 ({rule}) => {
                     if (
@@ -276,26 +268,19 @@ const MappingsWorkview = React.createClass({
         errorChannel.subject('message.info').onNext({
             message: 'Mapping rule copied. Use "+" button to paste',
         });
-        hierarchicalMappingChannel
-            .request({
-                topic: MESSAGES.GET_API_DETAILS,
-            })
-            .subscribe(
-                ({apiDetails}) => {
-                    const copyingData = {
-                        baseUrl: apiDetails.baseUrl,
-                        project: apiDetails.project,
-                        transformTask: apiDetails.transformTask,
-                        id: id,
-                        type: type,
-                        cloning: false,
-                    };
-                    sessionStorage.setItem('copyingData',JSON.stringify(copyingData));
-                    this.setState({
-                        isCopying: !this.state.isCopying,
-                    });
-                }
-            );
+        const apiDetails = getApiDetails();
+        const copyingData = {
+            baseUrl: apiDetails.baseUrl,
+            project: apiDetails.project,
+            transformTask: apiDetails.transformTask,
+            id: id,
+            type: type,
+            cloning: false,
+        };
+        sessionStorage.setItem('copyingData',JSON.stringify(copyingData));
+        this.setState({
+            isCopying: !this.state.isCopying,
+        });
     },
 
     handlePaste(cloning = false) {
@@ -311,21 +296,17 @@ const MappingsWorkview = React.createClass({
                     afterRuleId: copyingData.cloning ? copyingData.id : null,
                 }
             };
-            hierarchicalMappingChannel
-                .request({
-                    topic: MESSAGES.RULE.COPY,
-                    data: data,
-                })
+           copyRuleAsync(data)
                 .subscribe(
-                    (newRule) => {
+                    (newRuleId) => {
                         if (copyingData.type === MAPPING_RULE_TYPE_DIRECT ||
                             copyingData.type === MAPPING_RULE_TYPE_COMPLEX) {
-                            sessionStorage.setItem('pastedId', newRule.id);
+                            sessionStorage.setItem('pastedId', newRuleId);
                         } else if (copyingData.type === MAPPING_RULE_TYPE_OBJECT || copyingData.type === MAPPING_RULE_TYPE_ROOT) {
                             hierarchicalMappingChannel
                                 .subject(MESSAGES.RULE_ID.CHANGE)
                                 .onNext({
-                                    newRuleId: newRule.id,
+                                    newRuleId,
                                 });
                         }
                         if (cloning) {
@@ -338,28 +319,21 @@ const MappingsWorkview = React.createClass({
     },
 
     handleClone(id, type, parent = false) {
-        hierarchicalMappingChannel
-            .request({
-                topic: MESSAGES.GET_API_DETAILS,
-            })
-            .subscribe(
-                ({apiDetails}) => {
-                    const copyingData = {
-                        baseUrl: apiDetails.baseUrl,
-                        project: apiDetails.project,
-                        transformTask: apiDetails.transformTask,
-                        id: id,
-                        type: type,
-                        cloning: true,
-                        parentId: parent ? parent : this.props.currentRuleId,
-                    };
-                    sessionStorage.setItem('copyingData',JSON.stringify(copyingData));
-                    this.setState({
-                        isCopying: !this.state.isCopying,
-                    });
-                    this.handlePaste(true);
-                }
-            );
+        const apiDetails = getApiDetails();
+        const copyingData = {
+            baseUrl: apiDetails.baseUrl,
+            project: apiDetails.project,
+            transformTask: apiDetails.transformTask,
+            id: id,
+            type: type,
+            cloning: true,
+            parentId: parent ? parent : this.props.currentRuleId,
+        };
+        sessionStorage.setItem('copyingData',JSON.stringify(copyingData));
+        this.setState({
+            isCopying: !this.state.isCopying,
+        });
+        this.handlePaste(true);
     },
 
     // template rendering
