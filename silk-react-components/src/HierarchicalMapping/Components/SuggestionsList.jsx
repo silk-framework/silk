@@ -25,8 +25,8 @@ import ErrorView from './MappingRule/ErrorView';
 import UseMessageBus from '../UseMessageBusMixin';
 import SuggestionsRule from './SuggestionsRule';
 import hierarchicalMappingChannel, { generateRuleAsync, getSuggestionsAsync } from '../store';
-import {ParentElement} from './MappingRule/SharedComponents';
-import {SUGGESTION_TYPES} from '../helpers';
+import { ParentElement } from './MappingRule/SharedComponents';
+import { SUGGESTION_TYPES } from '../helpers';
 import { MESSAGES } from '../constants';
 
 const SuggestionsListWrapper = props => (
@@ -59,7 +59,7 @@ const SuggestionsList = React.createClass({
         const data = this.state.data;
         const index = _.findIndex(data, d => d.id === v.id);
         data[index].checked = !data[index].checked;
-        this.setState({data});
+        this.setState({ data });
     },
     loadData() {
         this.setState({
@@ -86,7 +86,7 @@ const SuggestionsList = React.createClass({
                 });
             },
             err => {
-                this.setState({loading: false, error: [{error: err}]});
+                this.setState({ loading: false, error: [{ error: err }] });
             }
         );
     },
@@ -94,7 +94,7 @@ const SuggestionsList = React.createClass({
         const data = this.state.data;
         const index = _.findIndex(data, d => d.id === v.id);
         data[index].type = v.type;
-        this.setState({data});
+        this.setState({ data });
     },
     componentDidMount() {
         this.loadData();
@@ -123,7 +123,8 @@ const SuggestionsList = React.createClass({
                     <DismissiveButton onClick={this.onCancelDiscard}>
                         Cancel
                     </DismissiveButton>
-                }>
+                }
+            >
                 <p>You currently selection will be lost.</p>
             </ConfirmationDialog>
         );
@@ -134,7 +135,7 @@ const SuggestionsList = React.createClass({
         this.setState({
             saving: true,
         });
-        
+
         const correspondences = this.state.data
             .filter(v => v.checked)
             .map(v => ({
@@ -150,16 +151,16 @@ const SuggestionsList = React.createClass({
                 err => {
                     // If we have a list of failedRules, we want to show them, otherwise something
                     // else failed
-                    const error = err.failedRules
-                        ? err.failedRules
-                        : [{error: err}];
-                    this.setState({saving: false, error});
-                }
-            );
+                const error = err.failedRules
+                    ? err.failedRules
+                    : [{ error: err }];
+                this.setState({ saving: false, error });
+            }
+        );
     },
     toggleDefaultProperties() {
         if (this.state.data.filter(v => v.checked).length !== 0) {
-            this.setState({askForDiscard: true});
+            this.setState({ askForDiscard: true });
         } else {
             this.setState({
                 data: !this.state.showDefaultProperties
@@ -203,11 +204,10 @@ const SuggestionsList = React.createClass({
         });
     },
     onCancelDiscard() {
-        this.setState({askForDiscard: false});
+        this.setState({ askForDiscard: false });
     },
     // template rendering
     render() {
-
         if (this.state.loading) {
             return <Spinner />;
         }
@@ -226,16 +226,16 @@ const SuggestionsList = React.createClass({
                         <ProgressButton
                             progress={0}
                             id="suggestion-save-btn"
-                            progressTopic={hierarchicalMappingChannel.subject(
-                                MESSAGES.RULE.SUGGESTIONS.PROGRESS
-                            )}
-                            tooltip={'Progress'}>
+                            progressTopic={hierarchicalMappingChannel.subject(MESSAGES.RULE.SUGGESTIONS.PROGRESS)}
+                            tooltip="Progress"
+                        >
                             Save
                         </ProgressButton>
                         <DismissiveButton
                             raised
                             disabled
-                            className="ecc-hm-suggestions-cancel">
+                            className="ecc-hm-suggestions-cancel"
+                        >
                             Cancel
                         </DismissiveButton>
                     </CardActions>
@@ -268,7 +268,8 @@ const SuggestionsList = React.createClass({
                         <DismissiveButton
                             raised
                             onClick={this.props.onClose}
-                            className="ecc-hm-suggestions-cancel">
+                            className="ecc-hm-suggestions-cancel"
+                        >
                             Cancel
                         </DismissiveButton>
                     </CardActions>
@@ -283,13 +284,15 @@ const SuggestionsList = React.createClass({
 
         const errorsComponent = !_.isEmpty(errors) && (
             <Error
-                className={"ecc-hm-suggestions__errors-container"}>
+                className="ecc-hm-suggestions__errors-container"
+            >
                 {_.map(
                     errors,
                     error => (
                         <div
-                            key={error.code+error.detail+error.title}
-                            className="ecc-hm-suggestions-error">
+                            key={error.code + error.detail + error.title}
+                            className="ecc-hm-suggestions-error"
+                        >
                             <b>{error.title} ({error.code})</b>
                             <div>{error.detail}</div>
                         </div>
@@ -300,13 +303,15 @@ const SuggestionsList = React.createClass({
 
         const warningsComponent = !_.isEmpty(warnings) && (
             <Warning
-                className={"ecc-hm-suggestions__warnings-container"}>
+                className="ecc-hm-suggestions__warnings-container"
+            >
                 {_.map(
                     warnings,
                     warning => (
                         <div
-                            key={warning.code+warning.detail+warning.title}
-                            className="ecc-hm-suggestions-warning">
+                            key={warning.code + warning.detail + warning.title}
+                            className="ecc-hm-suggestions-warning"
+                        >
                             <b>{warning.title} ({warning.code})</b>
                             <div>{warning.detail}</div>
                         </div>
@@ -398,7 +403,8 @@ const SuggestionsList = React.createClass({
                         <ContextMenu className="ecc-silk-mapping__ruleslistmenu">
                             <MenuItem
                                 className="ecc-silk-mapping__ruleslistmenu__item-select-all"
-                                onClick={this.toggleDefaultProperties}>
+                                onClick={this.toggleDefaultProperties}
+                            >
                                 {this.state.showDefaultProperties
                                     ? 'Hide'
                                     : 'Show'}{' '}
@@ -406,12 +412,14 @@ const SuggestionsList = React.createClass({
                             </MenuItem>
                             <MenuItem
                                 className="ecc-silk-mapping__ruleslistmenu__item-select-all"
-                                onClick={this.checkAll}>
+                                onClick={this.checkAll}
+                            >
                                 Select all
                             </MenuItem>
                             <MenuItem
                                 className="ecc-silk-mapping__ruleslistmenu__item-select-none"
-                                onClick={this.checkNone}>
+                                onClick={this.checkNone}
+                            >
                                 Select none
                             </MenuItem>
                         </ContextMenu>
@@ -426,13 +434,15 @@ const SuggestionsList = React.createClass({
                         id="suggestion-save-btn"
                         className="ecc-hm-suggestions-save"
                         onClick={this.handleAddSuggestions}
-                        disabled={_.size(suggestionsToBeSave) === 0}>
+                        disabled={_.size(suggestionsToBeSave) === 0}
+                    >
                         Save
                     </AffirmativeButton>
                     <DismissiveButton
                         raised
                         onClick={this.props.onClose}
-                        className="ecc-hm-suggestions-cancel">
+                        className="ecc-hm-suggestions-cancel"
+                    >
                         Cancel
                     </DismissiveButton>
                 </CardActions>

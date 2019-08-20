@@ -19,7 +19,7 @@ import {
     PropertyTypeLabel,
     PropertyTypeDescription,
 } from './SharedComponents';
-import {MAPPING_RULE_TYPE_DIRECT} from '../../helpers';
+import { MAPPING_RULE_TYPE_DIRECT } from '../../helpers';
 import { MESSAGES } from '../../constants';
 
 const RuleValueView = React.createClass({
@@ -35,7 +35,7 @@ const RuleValueView = React.createClass({
         edit: React.PropTypes.bool.isRequired,
     },
     handleCloseEdit(obj) {
-        if (obj.id === this.props.id) this.setState({edit: false});
+        if (obj.id === this.props.id) this.setState({ edit: false });
     },
     componentDidMount() {
         this.subscribe(
@@ -52,9 +52,7 @@ const RuleValueView = React.createClass({
     handleComplexEdit(event) {
         if (__DEBUG__) {
             event.stopPropagation();
-            alert(
-                'Normally this would open the complex editor (aka jsplumb view)'
-            );
+            alert('Normally this would open the complex editor (aka jsplumb view)');
             return false;
         }
     },
@@ -69,7 +67,7 @@ const RuleValueView = React.createClass({
         event.stopPropagation();
         hierarchicalMappingChannel
             .subject(MESSAGES.RULE_VIEW.UNCHANGED)
-            .onNext({id: this.props.id});
+            .onNext({ id: this.props.id });
     },
     getOperators(operator, accumulator) {
         if (_.has(operator, 'function')) {
@@ -90,21 +88,20 @@ const RuleValueView = React.createClass({
     },
     propertyTypeLabel(valueType) {
         // Adds optional properties of the property type to the label, e.g. language tag
-        if(typeof valueType.lang === 'string') {
-            return ' (' + valueType.lang + ')';
-        } else {
-            return '';
+        if (typeof valueType.lang === 'string') {
+            return ` (${valueType.lang})`;
         }
+        return '';
     },
-    handleCopy(){
+    handleCopy() {
         this.props.handleCopy(this.props.id, this.props.type);
     },
-    handleClone(){
+    handleClone() {
         this.props.handleClone(this.props.id, this.props.type);
     },
     // template rendering
     render() {
-        const {edit} = this.state;
+        const { edit } = this.state;
         const paths = _.get(this, 'props.sourcePaths', []);
         const operators = this.getOperators(this.props.operator, []);
 
@@ -168,14 +165,14 @@ const RuleValueView = React.createClass({
                                             'mappingTarget.isAttribute',
                                             false
                                         ) ? (
-                                            <div>
+                                                <div>
                                                 Values will be written as
                                                 attributes if the target dataset
                                                 supports it.
-                                            </div>
-                                        ) : (
-                                            false
-                                        )}
+                                                </div>
+                                            ) : (
+                                                false
+                                            )}
                                     </dd>
                                 </dl>
                             </div>
@@ -189,7 +186,8 @@ const RuleValueView = React.createClass({
                                         Data type
                                     </dt>
                                     <dd
-                                        key={nodeType}>
+                                        key={nodeType}
+                                    >
                                         <InfoBox>
                                             <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
                                                 <PropertyTypeLabel
@@ -211,59 +209,59 @@ const RuleValueView = React.createClass({
                         )}
                         {this.props.type === MAPPING_RULE_TYPE_DIRECT &&
                         _.get(this.props, 'sourcePath', false) ? (
-                            <div className="ecc-silk-mapping__rulesviewer__sourcePath">
-                                <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                    <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                <div className="ecc-silk-mapping__rulesviewer__sourcePath">
+                                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
                                         Value path
-                                    </dt>
-                                    <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                        <code>{this.props.sourcePath}</code>
-                                        <Button
-                                            raised
-                                            iconName="edit"
-                                            className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
-                                            onClick={this.handleComplexEdit}
-                                            href={this.state.href}
-                                            tooltip="Convert value path to value formula"
-                                        />
-                                    </dd>
-                                </dl>
-                            </div>
-                        ) : (
-                            false
-                        )}
+                                        </dt>
+                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                            <code>{this.props.sourcePath}</code>
+                                            <Button
+                                                raised
+                                                iconName="edit"
+                                                className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
+                                                onClick={this.handleComplexEdit}
+                                                href={this.state.href}
+                                                tooltip="Convert value path to value formula"
+                                            />
+                                        </dd>
+                                    </dl>
+                                </div>
+                            ) : (
+                                false
+                            )}
                         {this.props.type !== MAPPING_RULE_TYPE_DIRECT &&
                         _.get(this.props, 'sourcePaths', false) ? (
-                            <div className="ecc-silk-mapping__rulesviewer__sourcePath">
-                                <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                    <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                <div className="ecc-silk-mapping__rulesviewer__sourcePath">
+                                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
                                         Value formula
-                                    </dt>
-                                    <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                        </dt>
+                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                                         Formula uses {paths.length} value path{paths.length >
                                         1
-                                            ? 's'
-                                            : ''}:&nbsp;
-                                        <code>{paths.join(', ')}</code>
+                                                ? 's'
+                                                : ''}:&nbsp;
+                                            <code>{paths.join(', ')}</code>
                                         &nbsp;and {operators.length} operator
                                         function{operators.length > 1
-                                            ? 's'
-                                            : ''}:&nbsp;
-                                        <code>{operators.join(', ')}</code>.
-                                        <Button
-                                            raised
-                                            iconName="edit"
-                                            className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
-                                            onClick={this.handleComplexEdit}
-                                            href={this.state.href}
-                                            tooltip="Edit value formula"
-                                        />
-                                    </dd>
-                                </dl>
-                            </div>
-                        ) : (
-                            false
-                        )}
+                                                ? 's'
+                                                : ''}:&nbsp;
+                                            <code>{operators.join(', ')}</code>.
+                                            <Button
+                                                raised
+                                                iconName="edit"
+                                                className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
+                                                onClick={this.handleComplexEdit}
+                                                href={this.state.href}
+                                                tooltip="Edit value formula"
+                                            />
+                                        </dd>
+                                    </dl>
+                                </div>
+                            ) : (
+                                false
+                            )}
                         {_.get(this.props, 'id', false) ? (
                             <div className="ecc-silk-mapping__rulesviewer__examples">
                                 <dl className="ecc-silk-mapping__rulesviewer__attribute">
@@ -315,19 +313,22 @@ const RuleValueView = React.createClass({
                         <Button
                             className="ecc-silk-mapping__ruleseditor__actionrow-edit"
                             raised
-                            onClick={this.handleEdit}>
+                            onClick={this.handleEdit}
+                        >
                             Edit
                         </Button>
                         <Button
                             className="ecc-silk-mapping__ruleseditor__actionrow-copy"
                             raised
-                            onClick={this.handleCopy}>
+                            onClick={this.handleCopy}
+                        >
                             Copy
                         </Button>
                         <Button
                             className="ecc-silk-mapping__ruleseditor__actionrow-clone"
                             raised
-                            onClick={this.handleClone}>
+                            onClick={this.handleClone}
+                        >
                             Clone
                         </Button>
                         <DisruptiveButton
@@ -343,7 +344,8 @@ const RuleValueView = React.createClass({
                                         parent: this.props.parentId,
                                     })
                             }
-                            disabled={false}>
+                            disabled={false}
+                        >
                             Remove
                         </DisruptiveButton>
                     </CardActions>

@@ -13,23 +13,21 @@ const UseMessageBus = {
             const subjName = subject.subject || subject.name;
 
             switch (action) {
-                case 'onNext':
-                    console.log(
-                        `UseMessageBus: ${
-                            this.constructor.displayName
-                        } sent on ${channel}:${subjName}`,
-                        ...args
-                    );
-                    break;
-                case 'subscribe':
-                    console.log(
-                        `UseMessageBus: ${
-                            this.constructor.displayName
-                        } subscribed on ${channel}:${subjName}`
-                    );
-                    break;
-                default:
-                    throw new Error(`UseMessageBus ${action} not defined`);
+            case 'onNext':
+                console.log(
+                    `UseMessageBus: ${
+                        this.constructor.displayName
+                    } sent on ${channel}:${subjName}`,
+                    ...args
+                );
+                break;
+            case 'subscribe':
+                console.log(`UseMessageBus: ${
+                    this.constructor.displayName
+                } subscribed on ${channel}:${subjName}`);
+                break;
+            default:
+                throw new Error(`UseMessageBus ${action} not defined`);
             }
         }
     },

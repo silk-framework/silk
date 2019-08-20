@@ -1,18 +1,17 @@
 import _ from 'lodash';
-import {URI} from 'ecc-utils';
+import { URI } from 'ecc-utils';
 
 export const wasTouched = (initialValues, currentState) =>
     _.some(initialValues, (value, key) => value !== currentState[key]);
 
 /** Tests if the value is a relative or absolute IRI or URN? */
-export const newValueIsIRI = ({label}) => {
+export const newValueIsIRI = ({ label }) => {
     try {
-        if(label.length > 0) {
+        if (label.length > 0) {
             const uri = new URI(label.replace(/^<|>$/g, ''));
             return uri.is('resourceURI') || uri.is('url') && uri.is('relative');
-        } else {
-            return false;
         }
+        return false;
     } catch (e) {
         // If the URI constructor throws an Error,
         // we can be sure that the entered string is not an URI
@@ -28,21 +27,20 @@ export const convertToUri = ({ label, labelKey, valueKey }) => {
     try {
         const regex = /^Create option "(.*)"$/;
         const match = regex.exec(label);
-        if(match !== null && match.length > 1) {
+        if (match !== null && match.length > 1) {
             // Handle prompt, this is a hack, since newOptionCreator is also run on the prompt for some unknown reason
             const normalized = new URI(match[1]).normalize().toString();
-            if(normalized !== match[1]) {
+            if (normalized !== match[1]) {
                 value = `Normalizing URI to "${normalized}"`;
             }
         } else {
             value = new URI(label).normalize().toString();
         }
-
-    } catch(e) {}
+    } catch (e) {}
 
     return {
         [label]: value,
         [labelKey]: label,
-        [valueKey]: value
+        [valueKey]: value,
     };
 };

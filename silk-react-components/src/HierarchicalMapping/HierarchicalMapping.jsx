@@ -2,16 +2,10 @@ import React from 'react';
 import _ from 'lodash';
 import {
     Button,
-    DismissiveButton,
     DisruptiveButton,
-    Card,
-    CardTitle,
-    ContextMenu,
-    MenuItem,
-    ConfirmationDialog,
     Spinner,
 } from '@eccenca/gui-elements';
-import {URI} from 'ecc-utils';
+import { URI } from 'ecc-utils';
 
 import UseMessageBus from './UseMessageBusMixin';
 import hierarchicalMappingChannel, { ruleRemoveAsync, setApiDetails } from './store';
@@ -19,8 +13,10 @@ import hierarchicalMappingChannel, { ruleRemoveAsync, setApiDetails } from './st
 import MappingsTree from './Components/MappingsTree';
 import MappingsWorkview from './Components/MappingsWorkview';
 import MessageHandler from './Components/MessageHandler';
-import {MAPPING_RULE_TYPE_OBJECT} from './helpers';
+import { MAPPING_RULE_TYPE_OBJECT } from './helpers';
 import { MESSAGES } from './constants';
+import RemoveMappingRuleDialog from './elements/RemoveMappingRuleDialog/RemoveMappingRuleDialog';
+import DiscardChangesDialog from './elements/DiscardChangesDialog/DiscardChangesDialog';
 
 const HierarchicalMapping = React.createClass({
     mixins: [UseMessageBus],
@@ -61,6 +57,15 @@ const HierarchicalMapping = React.createClass({
             hierarchicalMappingChannel.subject(MESSAGES.TREE_NAV.TOGGLE_VISIBILITY),
             this.handleToggleNavigation
         );
+        this.subscribe(
+            hierarchicalMappingChannel.subject(MESSAGES.RELOAD),
+            this.loadNavigationTree
+        );
+        this.subscribe(
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_ID.CHANGE),
+            this.expandNavigationTreeElement
+        );
+        this.loadNavigationTree();
     },
     // initilize state
     getInitialState() {
@@ -81,8 +86,52 @@ const HierarchicalMapping = React.createClass({
             elementToDelete: false,
             editingElements: [],
             askForDiscard: false,
+
+            // navigationTree
+            navigationLoading: true,
+            navigationTree: undefined,
+            navigationExpanded: {},
         };
     },
+    loadNavigationTree() {
+        const { baseUrl, project, transformTask } = this.props;
+        const { navigationExpanded } = this.state;
+        this.setState({ navigationLoading: true });
+
+        getHierarchyAsync({
+            baseUrl,
+            project,
+            transformTask,
+        })
+            .subscribe(
+                ({ rulesTree }) => {
+                    const topLevelId = rulesTree.id;
+                    this.setState({
+                        navigationLoading: false,
+                        navigationTree: rulesTree,
+                        navigationExpanded: (_.isEmpty(navigationExpanded) && topLevelId)
+                            ? { [topLevelId]: true }
+                            : navigationExpanded,
+                    });
+                },
+                () => {
+                    this.setState({ navigationLoading: false });
+                }
+            );
+    },
+    expandNavigationTreeElement({ newRuleId, parentId }) {
+        const expanded = { ...this.state.navigationExpanded };
+        expanded[newRuleId] = true;
+        expanded[parentId] = true;
+        this.setState({ navigationExpanded: expanded });
+    },
+    // collapse / expand navigation children
+    handleToggleExpandNavigationTree(id) {
+        const expanded = { ...this.state.navigationExpanded };
+        expanded[id] = !expanded[id];
+        this.setState({ navigationExpanded: expanded });
+    },
+
     onOpenEdit(obj) {
         const id = _.get(obj, 'id', 0);
         if (!_.includes(this.state.editingElements, id)) {
@@ -102,15 +151,19 @@ const HierarchicalMapping = React.createClass({
             });
         }
     },
-    handleClickRemove({id, uri, type, parent}) {
+    handleClickRemove({
+        id, uri, type, parent,
+    }) {
         this.setState({
             editingElements: [],
-            elementToDelete: {id, uri, type, parent},
+            elementToDelete: {
+                id, uri, type, parent,
+            },
         });
     },
     handleConfirmRemove(event) {
         event.stopPropagation();
-        const {parent, type} = this.state.elementToDelete;
+        const { parent, type } = this.state.elementToDelete;
         this.setState({
             loading: true,
         });
@@ -146,7 +199,7 @@ const HierarchicalMapping = React.createClass({
         });
     },
     // react to rule id changes
-    onRuleNavigation({newRuleId}) {
+    onRuleNavigation({ newRuleId }) {
         if (newRuleId === this.state.currentRuleId) {
             // Do nothing!
         } else if (this.state.editingElements.length === 0) {
@@ -177,10 +230,11 @@ const HierarchicalMapping = React.createClass({
                 uriTemplate.segment(-1, this.state.currentRuleId);
                 history.pushState(null, '', uriTemplate.toString());
             } catch (e) {
-                console.debug(
-                    `HierarchicalMapping: ${href} is not an URI, cannot update the window state`
-                );
+                console.debug(`HierarchicalMapping: ${href} is not an URI, cannot update the window state`);
             }
+        }
+        if (prevProps.task !== this.props.task) {
+            this.loadNavigationTree();
         }
     },
     // show / hide navigation
@@ -193,7 +247,7 @@ const HierarchicalMapping = React.createClass({
         if (_.includes(this.state.editingElements, 0)) {
             hierarchicalMappingChannel
                 .subject(MESSAGES.RULE_VIEW.UNCHANGED)
-                .onNext({id: 0});
+                .onNext({ id: 0 });
         }
         this.setState({
             editingElements: [],
@@ -208,87 +262,15 @@ const HierarchicalMapping = React.createClass({
         });
     },
     handleCancelDiscard() {
-        this.setState({askForDiscard: false});
+        this.setState({ askForDiscard: false });
     },
     // template rendering
     render() {
-        const navigationTree = this.state.showNavigation ? (
-            <MappingsTree
-                baseUrl={this.props.baseUrl}
-                project={this.props.project}
-                task={this.props.transformTask}
-                currentRuleId={this.state.currentRuleId} />
-        ) : (
-            false
-        );
+        const {
+            navigationLoading, navigationTree, navigationExpanded, currentRuleId, showNavigation,
+            elementToDelete, askForDiscard, editingElements,
+        } = this.state;
         const loading = this.state.loading ? <Spinner /> : false;
-        const deleteView = this.state.elementToDelete ? (
-            <ConfirmationDialog
-                className="ecc-hm-delete-dialog"
-                active
-                modal
-                title="Remove mapping rule?"
-                confirmButton={
-                    <DisruptiveButton
-                        className="ecc-hm-delete-accept"
-                        disabled={false}
-                        onClick={this.handleConfirmRemove}>
-                        Remove
-                    </DisruptiveButton>
-                }
-                cancelButton={
-                    <DismissiveButton
-                        className="ecc-hm-delete-cancel"
-                        onClick={this.handleCancelRemove}>
-                        Cancel
-                    </DismissiveButton>
-                }>
-                <p>
-                    When you click REMOVE the mapping rule
-                    {this.state.elementToDelete.type ===
-                    MAPPING_RULE_TYPE_OBJECT
-                        ? ' including all child rules '
-                        : ' '}
-                    will be deleted permanently.
-                </p>
-            </ConfirmationDialog>
-        ) : (
-            false
-        );
-
-        const discardView = this.state.askForDiscard ? (
-            <ConfirmationDialog
-                active
-                modal
-                className="ecc-hm-discard-dialog"
-                title="Discard changes?"
-                confirmButton={
-                    <DisruptiveButton
-                        disabled={false}
-                        className="ecc-hm-accept-discard"
-                        onClick={this.handleDiscardChanges}>
-                        Discard
-                    </DisruptiveButton>
-                }
-                cancelButton={
-                    <DismissiveButton
-                        className="ecc-hm-cancel-discard"
-                        onClick={this.handleCancelDiscard}>
-                        Cancel
-                    </DismissiveButton>
-                }>
-                <p>
-                    You currently have unsaved changes{this.state
-                        .editingElements.length === 1
-                        ? ''
-                        : ` in ${
-                              this.state.editingElements.length
-                          } mapping rules`}.
-                </p>
-            </ConfirmationDialog>
-        ) : (
-            false
-        );
 
         // render mapping edit / create view of value and object
         const debugOptions = __DEBUG__ ? (
@@ -297,7 +279,8 @@ const HierarchicalMapping = React.createClass({
                     onClick={() => {
                         localStorage.setItem('mockStore', null);
                         location.reload();
-                    }}>
+                    }}
+                >
                     RESET
                 </DisruptiveButton>
                 <Button
@@ -305,7 +288,8 @@ const HierarchicalMapping = React.createClass({
                         hierarchicalMappingChannel
                             .subject(MESSAGES.RELOAD)
                             .onNext(true);
-                    }}>
+                    }}
+                >
                     RELOAD
                 </Button>
                 <hr />
@@ -322,12 +306,39 @@ const HierarchicalMapping = React.createClass({
         return (
             <section className="ecc-silk-mapping">
                 {debugOptions}
-                {deleteView}
-                {discardView}
+                {
+                    elementToDelete && (
+                        <RemoveMappingRuleDialog
+                            mappingType={elementToDelete.type}
+                            handleConfirmRemove={this.handleConfirmRemove}
+                            handleCancelRemove={this.handleCancelRemove}
+                        />
+                    )
+                }
+                {
+                    askForDiscard && (
+                        <DiscardChangesDialog
+                            handleDiscardConfirm={this.handleDiscardChanges}
+                            handleDiscardCancel={this.handleCancelDiscard}
+                            numberEditingElements={editingElements.length}
+                        />
+                    )
+                }
                 {loading}
                 {pseudotoasts}
                 <div className="ecc-silk-mapping__content">
-                    {navigationTree}
+                    {
+                        showNavigation && (
+                            <MappingsTree
+                                currentRuleId={currentRuleId}
+                                navigationLoading={navigationLoading}
+                                navigationTree={navigationTree}
+                                navigationExpanded={navigationExpanded}
+                                handleRuleNavigation={this.onRuleNavigation}
+                                handleToggleExpanded={this.handleToggleExpandNavigationTree}
+                            />
+                        )
+                    }
                     {
                         <MappingsWorkview
                             currentRuleId={this.state.currentRuleId}

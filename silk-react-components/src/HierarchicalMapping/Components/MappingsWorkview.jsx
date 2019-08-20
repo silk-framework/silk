@@ -4,12 +4,7 @@
 
 import React from 'react';
 import _ from 'lodash';
-import {
-    DisruptiveButton,
-    DismissiveButton,
-    ConfirmationDialog,
-    Spinner,
-} from '@eccenca/gui-elements';
+import { Spinner } from '@eccenca/gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
 import hierarchicalMappingChannel, { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from '../store';
 import MappingsHeader from './MappingsHeader';
@@ -26,6 +21,7 @@ import {
     MAPPING_RULE_TYPE_ROOT,
 } from '../helpers';
 import { MESSAGES } from '../constants';
+import DiscardChangesDialog from '../elements/DiscardChangesDialog/DiscardChangesDialog';
 
 const MappingsWorkview = React.createClass({
     mixins: [UseMessageBus],
@@ -34,21 +30,21 @@ const MappingsWorkview = React.createClass({
     propTypes: {
         currentRuleId: React.PropTypes.string, // selected rule id
     },
-    onRuleCreate({type}) {
+    onRuleCreate({ type }) {
         this.setState({
             ruleEditView: {
                 type,
             },
         });
     },
-    handleRuleEditOpen({id}) {
+    handleRuleEditOpen({ id }) {
         if (!_.includes(this.state.editing, id)) {
             this.setState({
                 editing: _.concat(this.state.editing, [id]),
             });
         }
     },
-    handleRuleEditClose({id}) {
+    handleRuleEditClose({ id }) {
         if (id === 0) {
             this.setState({
                 ruleEditView: false,
@@ -75,7 +71,7 @@ const MappingsWorkview = React.createClass({
         };
     },
     componentDidMount() {
-        this.loadData({initialLoad: true});
+        this.loadData({ initialLoad: true });
         this.subscribe(
             hierarchicalMappingChannel.subject(MESSAGES.RELOAD),
             this.loadData
@@ -127,7 +123,7 @@ const MappingsWorkview = React.createClass({
             });
             hierarchicalMappingChannel
                 .subject(MESSAGES.RULE_VIEW.CHANGE)
-                .onNext({id: 0});
+                .onNext({ id: 0 });
         } else {
             this.setState({
                 askForDiscard: {
@@ -142,7 +138,7 @@ const MappingsWorkview = React.createClass({
         }
     },
     loadData(params = {}) {
-        const {initialLoad = false} = params;
+        const { initialLoad = false } = params;
 
         this.setState({
             loading: true,
@@ -153,7 +149,7 @@ const MappingsWorkview = React.createClass({
         }
         getRuleAsync(this.props.currentRuleId, true)
             .subscribe(
-                ({rule}) => {
+                ({ rule }) => {
                     if (
                         initialLoad &&
                         this.props.currentRuleId &&
@@ -186,7 +182,7 @@ const MappingsWorkview = React.createClass({
                     });
                 },
                 err => {
-                    this.setState({loading: false});
+                    this.setState({ loading: false });
                 }
             );
     },
@@ -201,7 +197,7 @@ const MappingsWorkview = React.createClass({
         const expanded = _.get(this.state.askForDiscard, 'expanded', false);
 
         if (type) {
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_ID.CREATE).onNext({type});
+            hierarchicalMappingChannel.subject(MESSAGES.RULE_ID.CREATE).onNext({ type });
         } else if (suggestions) {
             this.setState({
                 showSuggestions: true,
@@ -224,11 +220,11 @@ const MappingsWorkview = React.createClass({
         });
     },
     // sends event to expand / collapse all mapping rules
-    handleToggleRuleDetails({expanded}) {
+    handleToggleRuleDetails({ expanded }) {
         if (this.state.editing.length === 0 || expanded) {
             hierarchicalMappingChannel
                 .subject(MESSAGES.RULE_VIEW.TOGGLE)
-                .onNext({expanded, id: true});
+                .onNext({ expanded, id: true });
         } else {
             this.setState({
                 askForDiscard: {
@@ -239,7 +235,7 @@ const MappingsWorkview = React.createClass({
     },
 
     // jumps to selected rule as new center of view
-    handleCreate({type}) {
+    handleCreate({ type }) {
         if (this.state.editing.length === 0) {
             hierarchicalMappingChannel.subject(MESSAGES.RULE_ID.CREATE).onNext({
                 type,
@@ -254,8 +250,8 @@ const MappingsWorkview = React.createClass({
     },
 
     handleCloseSuggestions() {
-        this.setState({showSuggestions: false});
-        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE).onNext({id: 0});
+        this.setState({ showSuggestions: false });
+        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE).onNext({ id: 0 });
     },
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -285,16 +281,16 @@ const MappingsWorkview = React.createClass({
 
     handlePaste(cloning = false) {
         const copyingData = JSON.parse(sessionStorage.getItem('copyingData')),
-            {breadcrumbs, id} =this.state.ruleData;
+            { breadcrumbs, id } = this.state.ruleData;
         if (copyingData !== {}) {
             const data = {
-                id: breadcrumbs.length > 0 && isObjectMappingRule(copyingData.type) && copyingData.cloning ? breadcrumbs[breadcrumbs.length - 1].id : id ,
+                id: breadcrumbs.length > 0 && isObjectMappingRule(copyingData.type) && copyingData.cloning ? breadcrumbs[breadcrumbs.length - 1].id : id,
                 queryParameters: {
                     sourceProject: copyingData.project,
                     sourceTask: copyingData.transformTask,
                     sourceRule: copyingData.id,
                     afterRuleId: copyingData.cloning ? copyingData.id : null,
-                }
+                },
             };
            copyRuleAsync(data)
                 .subscribe(
@@ -338,38 +334,12 @@ const MappingsWorkview = React.createClass({
 
     // template rendering
     render() {
-        const {rules = {}, id} = this.state.ruleData;
+        const {
+            askForDiscard, editing,
+        } = this.state;
+        const { rules = {}, id } = this.state.ruleData;
 
         const loading = this.state.loading ? <Spinner /> : false;
-
-        const discardView =
-            this.state.askForDiscard !== false ? (
-                <ConfirmationDialog
-                    active
-                    modal
-                    title="Discard changes?"
-                    confirmButton={
-                        <DisruptiveButton
-                            disabled={false}
-                            onClick={this.handleDiscardChanges}>
-                            Discard
-                        </DisruptiveButton>
-                    }
-                    cancelButton={
-                        <DismissiveButton onClick={this.handleCancelDiscard}>
-                            Cancel
-                        </DismissiveButton>
-                    }>
-                    <p>
-                        You currently have unsaved changes{this.state.editing
-                            .length === 1
-                            ? ''
-                            : ` in ${this.state.editing.length} mapping rules`}.
-                    </p>
-                </ConfirmationDialog>
-            ) : (
-                false
-            );
 
         const createType = _.get(this.state, 'ruleEditView.type', false);
 
@@ -381,16 +351,10 @@ const MappingsWorkview = React.createClass({
                         parentId={this.state.ruleData.id}
                         parent={{
                             id: this.state.ruleData.id,
-                            property: _.get(
-                                this,
-                                'state.ruleData.mappingTarget.uri'
-                            ),
-                            type: _.get(
-                                this,
-                                'state.ruleData.rules.typeRules[0].typeUri'
-                            ),
+                            property: _.get(this, 'state.ruleData.mappingTarget.uri'),
+                            type: _.get(this, 'state.ruleData.rules.typeRules[0].typeUri'),
                         }}
-                        edit
+                        ruleData={{ type: MAPPING_RULE_TYPE_OBJECT }}
                     />
                 ) : (
                     <ValueMappingRuleForm
@@ -409,34 +373,33 @@ const MappingsWorkview = React.createClass({
             this.state.showSuggestions &&
             _.has(this.state, 'ruleData.rules.typeRules')
                 ? _.map(this.state.ruleData.rules.typeRules, v =>
-                      v.typeUri.replace('<', '').replace('>', '')
-                  )
+                    v.typeUri.replace('<', '').replace('>', ''))
                 : [];
 
         const listSuggestions =
             !createRuleForm &&
             this.state.showSuggestions &&
             _.has(this.state, 'ruleData.rules.typeRules') ? (
-                <SuggestionsList
-                    key={_.join(types, ',')}
-                    ruleId={_.get(this, 'state.ruleData.id', 'root')}
-                    onClose={this.handleCloseSuggestions}
-                    parent={{
-                        id: this.state.ruleData.id,
-                        property: _.get(
-                            this,
-                            'state.ruleData.mappingTarget.uri'
-                        ),
-                        type: _.get(
-                            this,
-                            'state.ruleData.rules.typeRules[0].typeUri'
-                        ),
-                    }}
-                    targetClassUris={types}
-                />
-            ) : (
-                false
-            );
+                    <SuggestionsList
+                        key={_.join(types, ',')}
+                        ruleId={_.get(this, 'state.ruleData.id', 'root')}
+                        onClose={this.handleCloseSuggestions}
+                        parent={{
+                            id: this.state.ruleData.id,
+                            property: _.get(
+                                this,
+                                'state.ruleData.mappingTarget.uri'
+                            ),
+                            type: _.get(
+                                this,
+                                'state.ruleData.rules.typeRules[0].typeUri'
+                            ),
+                        }}
+                        targetClassUris={types}
+                    />
+                ) : (
+                    false
+                );
         const listMappings =
             !createRuleForm && !listSuggestions ? (
                 <MappingsList
@@ -455,7 +418,15 @@ const MappingsWorkview = React.createClass({
         return (
             <div className="ecc-silk-mapping__rules">
                 {loading}
-                {discardView}
+                {
+                    askForDiscard && (
+                        <DiscardChangesDialog
+                            numberEditingElements={editing.length}
+                            handleDiscardCancel={this.handleCancelDiscard}
+                            handleDiscardConfirm={this.handleDiscardChanges}
+                        />
+                    )
+                }
                 <MappingsHeader
                     rule={this.state.ruleData}
                     key={`navhead_${id}`}

@@ -8,9 +8,9 @@ import {
     Info,
 } from '@eccenca/gui-elements';
 import MappingRule from './MappingRule/MappingRule';
-import {MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT} from '../helpers';
+import { MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT } from '../helpers';
 import UseMessageBus from '../UseMessageBusMixin';
-import {DragDropContext, Droppable} from 'react-beautiful-dnd';
+import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import hierarchicalMappingChannel, { orderRulesAsync } from '../store';
 import { MESSAGES } from '../constants';
 
@@ -49,7 +49,7 @@ const MappingsList = React.createClass({
     shouldComponentUpdate(nextProps) {
         return !_.isEqual(this.props, nextProps);
     },
-    orderRules({fromPos, toPos}) {
+    orderRules({ fromPos, toPos }) {
         const childrenRules = this.reorder(
             this.state.items.map(a => a.key),
             fromPos,
@@ -59,7 +59,7 @@ const MappingsList = React.createClass({
             childrenRules,
             id: this.props.parentRuleId,
         });
-        
+
         // FIXME: this should be in success part of request in case of error but results in content flickering than
         // manage ordering local
         const items = this.reorder(this.state.items, fromPos, toPos);
@@ -123,7 +123,7 @@ const MappingsList = React.createClass({
         return result;
     },
     render() {
-        const {rules} = this.props;
+        const { rules } = this.props;
 
         const listTitle = (
             <CardTitle>
@@ -134,7 +134,10 @@ const MappingsList = React.createClass({
         );
 
         const listItem = (index, item, provided, snapshot) => (
-            <MappingRule {...item.props} provided snapshot
+            <MappingRule
+                {...item.props}
+                provided
+                snapshot
                 handleCopy={this.props.handleCopy}
                 handleClone={this.props.handleClone}
             />
@@ -152,13 +155,13 @@ const MappingsList = React.createClass({
         ) : (
             <DragDropContext
                 onDragStart={this.onDragStart}
-                onDragEnd={this.onDragEnd}>
+                onDragEnd={this.onDragEnd}
+            >
                 <Droppable droppableId="droppable">
                     {(provided, snapshot) => (
                         <ol className="mdl-list" ref={provided.innerRef}>
                             {_.map(this.state.items, (item, index) =>
-                                listItem(index, item, provided, snapshot)
-                            )}
+                                listItem(index, item, provided, snapshot))}
                             {provided.placeholder}
                         </ol>
                     )}
@@ -175,7 +178,7 @@ const MappingsList = React.createClass({
                 const availableSpace = floatButtonRect.top - navHeaderRect.bottom;
                 const spaceNeededForMenuList = 200; // This is not known before the menu list is rendered, so we assume at most 4 elements
                 toBottom = availableSpace < spaceNeededForMenuList;
-            } catch(error) {}
+            } catch (error) {}
             return toBottom;
         };
 

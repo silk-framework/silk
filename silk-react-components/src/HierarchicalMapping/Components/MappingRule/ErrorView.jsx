@@ -1,10 +1,10 @@
 import React from 'react';
-import {Error} from '@eccenca/gui-elements';
+import { Error } from '@eccenca/gui-elements';
 import _ from 'lodash';
 
-const ErrorCause = ({errorCause}) => (
+const ErrorCause = ({ errorCause }) => (
     <ul className="ecc-hierarchical-mapping-error-list">
-        {_.map(errorCause, ({title, detail, cause}) => {
+        {_.map(errorCause, ({ title, detail, cause }) => {
             let renderedCause = false;
 
             if (_.isArray(cause)) {
@@ -22,9 +22,9 @@ const ErrorCause = ({errorCause}) => (
     </ul>
 );
 
-const ErrorIssue = ({errorCause}) => (
+const ErrorIssue = ({ errorCause }) => (
     <ul className="ecc-hierarchical-mapping-error-list">
-        {_.map(errorCause, ({message}) => (
+        {_.map(errorCause, ({ message }) => (
             <li>
                 <p>{message}</p>
             </li>
@@ -84,7 +84,8 @@ const ErrorView = React.createClass({
                 }
                 iconDismiss={
                     this.state.errorExpanded ? 'expand_less' : 'expand_more'
-                }>
+                }
+            >
                 <strong>{this.props.title}</strong>
                 {detail}
                 {causes}
