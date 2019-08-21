@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import Enzyme from 'enzyme/build';
 import Adapter from 'enzyme-adapter-react-15/build';
 import DiscardChangesDialog
-    from '../../../../src/HierarchicalMapping/elements/DiscardChangesDialog/DiscardChangesDialog';
+    from '../../../../src/HierarchicalMapping/elements/DiscardChangesDialog';
 
 Enzyme.configure({ adapter: new Adapter() });
 

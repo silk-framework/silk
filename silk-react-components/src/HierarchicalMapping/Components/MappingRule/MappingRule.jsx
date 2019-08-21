@@ -21,7 +21,7 @@ import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
 import { SourcePath, ThingIcon } from './SharedComponents';
-import RuleTypes from '../../elements/RuleTypes/RuleTypes';
+import RuleTypes from '../../elements/RuleTypes';
 import { getRuleLabel, isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT } from '../../helpers';
 import className from 'classnames';
 import { MESSAGES } from '../../constants';

@@ -27,21 +27,21 @@ import {
 } from '../../../helpers';
 import { MESSAGES } from '../../../constants';
 
-const ValueMappingRuleForm = React.createClass({
-    mixins: [UseMessageBus],
-    // define property types
-    propTypes: {
-        id: React.PropTypes.string,
-    },
-    getInitialState() {
-        return {
-            loading: true,
-            changed: false,
-        };
-    },
+const languagesList = [
+    'en','de','es','fr','bs','bg','ca','ce','zh','hr','cs','da','nl','eo','fi','ka','el','hu','ga','is','it',
+    'ja','kn','ko','lb','no','pl','pt','ru','sk','sl','sv','tr','uk'
+];
+
+class ValueMappingRuleForm extends React.Component {
+    state = {
+        loading: true,
+        changed: false,
+    };
+    
     componentDidMount() {
         this.loadData();
-    },
+    }
+    
     componentDidUpdate(prevProps, prevState) {
         if (
             prevState.loading === true &&
@@ -51,8 +51,8 @@ const ValueMappingRuleForm = React.createClass({
                 topOffset: 75,
             });
         }
-    },
-
+    }
+    
     loadData() {
         if (this.props.id) {
             getRuleAsync(this.props.id)
@@ -79,7 +79,7 @@ const ValueMappingRuleForm = React.createClass({
                                 false
                             ),
                         };
-
+                        
                         this.setState({
                             loading: false,
                             ...initialValues,
@@ -104,8 +104,9 @@ const ValueMappingRuleForm = React.createClass({
                 initialValues: {},
             });
         }
-    },
-    handleConfirm(event) {
+    }
+    
+    handleConfirm = (event) => {
         event.stopPropagation();
         event.persist();
         this.setState({
@@ -126,44 +127,49 @@ const ValueMappingRuleForm = React.createClass({
             ),
             isAttribute: this.state.isAttribute,
         }).subscribe(
-                () => {
-                    this.handleClose(event);
-                    hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext(true);
-                },
-                err => {
-                    this.setState({
-                        error: err,
-                        loading: false,
-                    });
-                }
-            );
-    },
+            () => {
+                this.handleClose(event);
+                hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext(true);
+            },
+            err => {
+                this.setState({
+                    error: err,
+                    loading: false,
+                });
+            }
+        );
+    }
+    
     // remove rule
-    handleChangeTextfield(state, {value}) {
+    handleChangeTextfield = (state, {value}) => {
         this.handleChangeValue(state, value);
-    },
-    handleChangeSelectBox(state, value) {
+    };
+    
+    handleChangeSelectBox = (state, value) => {
         this.handleChangeValue(state, value);
-    },
-    handleChangePropertyType(value) {
+    };
+    
+    handleChangePropertyType = (value) => {
         const valueType = { nodeType: value.value };
         this.handleChangeValue('valueType', valueType)
-    },
-    handleChangeLanguageTag(value) {
+    };
+    
+    handleChangeLanguageTag = (value) => {
         let lang = value;
         if(typeof lang === 'object') {
             lang = value.value;
         }
         const valueType = { nodeType: "LanguageValueType", lang: lang};
         this.handleChangeValue('valueType', valueType);
-    },
-    handleChangeValue(name, value) {
+    };
+    
+    handleChangeValue = (name, value) => {
         const {initialValues, create, ...currValues} = this.state;
         currValues[name] = value;
-
+        
         const touched = create || wasTouched(initialValues, currValues);
         const id = _.get(this.props, 'id', 0);
-
+        
         if (id !== 0) {
             if (touched) {
                 hierarchicalMappingChannel
@@ -175,49 +181,52 @@ const ValueMappingRuleForm = React.createClass({
                     .onNext({id});
             }
         }
-
+        
         this.setState({
             [name]: value,
             changed: touched,
         });
-    },
-    handleClose(event) {
+    };
+    
+    handleClose = (event) => {
         event.stopPropagation();
         const id = _.get(this.props, 'id', 0);
         hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.UNCHANGED).onNext({id});
         hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE).onNext({id});
-    },
+    };
+    
     allowConfirmation() {
         const targetPropertyNotEmpty = !_.isEmpty(this.state.targetProperty);
         const valueType = this.state.valueType;
         const languageTagSet = valueType.nodeType !== "LanguageValueType" || typeof valueType.lang === "string";
         return targetPropertyNotEmpty && languageTagSet;
-    },
+    }
+    
     // template rendering
     render() {
         const {id, parentId} = this.props;
-
+        
         const autoCompleteRuleId = id || parentId;
-
+        
         const {type, error} = this.state;
-
+        
         if (this.state.loading) {
             return <Spinner />;
         }
-
+        
         const errorMessage = error ? (
             <ErrorView {...error.response.body} />
         ) : (
             false
         );
-
+        
         const allowConfirm = this.allowConfirmation();
-
+        
         const title = !id ? <CardTitle>Add value mapping</CardTitle> : false;
-
+        
         // TODO: Unfold complex mapping
         let sourcePropertyInput = false;
-
+        
         if (type === MAPPING_RULE_TYPE_DIRECT) {
             sourcePropertyInput = (
                 <AutoComplete
@@ -254,7 +263,7 @@ const ValueMappingRuleForm = React.createClass({
         ) : (
             false
         );
-
+        
         return (
             <div className="ecc-silk-mapping__ruleseditor">
                 <Card shadow={!id ? 1 : 0}>
@@ -278,11 +287,7 @@ const ValueMappingRuleForm = React.createClass({
                         <Checkbox
                             checked={this.state.isAttribute}
                             className="ecc-silk-mapping__ruleseditor__isAttribute"
-                            onChange={this.handleChangeValue.bind(
-                                null,
-                                'isAttribute',
-                                !this.state.isAttribute
-                            )}>
+                            onChange={() => this.handleChangeValue('isAttribute', !this.state.isAttribute)}>
                             Write values as attributes (if supported by the
                             target dataset)
                         </Checkbox>
@@ -296,56 +301,22 @@ const ValueMappingRuleForm = React.createClass({
                             onChange={this.handleChangePropertyType}
                         />
                         { (this.state.valueType.nodeType === 'LanguageValueType') &&
-                            <SelectBox
-                                placeholder="Language Tag"
-                                options={[
-                                    'en',
-                                    'de',
-                                    'es',
-                                    'fr',
-                                    'bs',
-                                    'bg',
-                                    'ca',
-                                    'ce',
-                                    'zh',
-                                    'hr',
-                                    'cs',
-                                    'da',
-                                    'nl',
-                                    'eo',
-                                    'fi',
-                                    'ka',
-                                    'el',
-                                    'hu',
-                                    'ga',
-                                    'is',
-                                    'it',
-                                    'ja',
-                                    'kn',
-                                    'ko',
-                                    'lb',
-                                    'no',
-                                    'pl',
-                                    'pt',
-                                    'ru',
-                                    'sk',
-                                    'sl',
-                                    'sv',
-                                    'tr',
-                                    'uk']}
-                                optionsOnTop={true} // option list opens up on top of select input (default: false)
-                                value={this.state.valueType.lang}
-                                onChange={this.handleChangeLanguageTag}
-                                isValidNewOption={({label = ''}) =>
-                                    !_.isNull(label.match(/^[a-z]{2}(-[A-Z]{2})?$/))
-                                }
-                                creatable={true} // allow creation of new values
-                                noResultsText="Not a valid language tag"
-                                promptTextCreator={(newLabel) => ('Create language tag: ' + newLabel)}
-                                multi={false} // allow multi selection
-                                clearable={false} // hide 'remove all selected values' button
-                                searchable={true} // whether to behave like a type-ahead or not
-                            />
+                        <SelectBox
+                            placeholder="Language Tag"
+                            options={languagesList}
+                            optionsOnTop={true} // option list opens up on top of select input (default: false)
+                            value={this.state.valueType.lang}
+                            onChange={this.handleChangeLanguageTag}
+                            isValidNewOption={({label = ''}) =>
+                                !_.isNull(label.match(/^[a-z]{2}(-[A-Z]{2})?$/))
+                            }
+                            creatable={true} // allow creation of new values
+                            noResultsText="Not a valid language tag"
+                            promptTextCreator={(newLabel) => ('Create language tag: ' + newLabel)}
+                            multi={false} // allow multi selection
+                            clearable={false} // hide 'remove all selected values' button
+                            searchable={true} // whether to behave like a type-ahead or not
+                        />
                         }
                         {sourcePropertyInput}
                         {exampleView}
@@ -387,7 +358,6 @@ const ValueMappingRuleForm = React.createClass({
                 </Card>
             </div>
         );
-    },
-});
-
+    }
+}
 export default ScrollingHOC(ValueMappingRuleForm);

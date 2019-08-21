@@ -1,33 +1,33 @@
 import React from 'react';
 import {
     AffirmativeButton,
+    Card,
+    CardActions,
+    CardContent,
+    CardMenu,
+    CardTitle,
+    Checkbox,
+    ConfirmationDialog,
+    ContextMenu,
     DismissiveButton,
     DisruptiveButton,
-    Card,
-    CardTitle,
-    CardMenu,
-    CardContent,
-    CardActions,
-    ConfirmationDialog,
-    Info,
     Error,
-    Warning,
-    ContextMenu,
+    Info,
     MenuItem,
-    Spinner,
-    ScrollingHOC,
-    Checkbox,
     ProgressButton,
+    ScrollingHOC,
+    Spinner,
     Tooltip,
+    Warning,
 } from '@eccenca/gui-elements';
 import _ from 'lodash';
 import ErrorView from './MappingRule/ErrorView';
-import UseMessageBus from '../UseMessageBusMixin';
 import SuggestionsRule from './SuggestionsRule';
 import hierarchicalMappingChannel, { generateRuleAsync, getSuggestionsAsync } from '../store';
 import { ParentElement } from './MappingRule/SharedComponents';
 import { SUGGESTION_TYPES } from '../helpers';
 import { MESSAGES } from '../constants';
+import PropTypes from 'prop-types';
 
 const SuggestionsListWrapper = props => (
     <div className="ecc-silk-mapping__ruleslist ecc-silk-mapping__suggestionlist">
@@ -35,32 +35,31 @@ const SuggestionsListWrapper = props => (
     </div>
 );
 
-const SuggestionsList = React.createClass({
-    mixins: [UseMessageBus],
-    defaultCheckValue: false,
-    // define property types
-    // FIXME: check propTypes
-    propTypes: {
-        targetClassUris: React.PropTypes.array,
-    },
-    getInitialState() {
-        return {
-            data: undefined,
-            error: false,
-            showDefaultProperties: true,
-            rawData: undefined,
-            askForDiscard: false,
-            checked: this.defaultCheckValue,
-            matchFromDataset: true,
-            warnings: [],
-        };
-    },
-    onChecked(v) {
+class SuggestionsList extends React.Component {
+    static propTypes = {
+        targetClassUris: PropTypes.array
+    };
+    
+    state = {
+        data: undefined,
+        error: false,
+        showDefaultProperties: true,
+        rawData: undefined,
+        askForDiscard: false,
+        checked: this.defaultCheckValue,
+        matchFromDataset: true,
+        warnings: [],
+    };
+    
+    count = 0;
+    
+    onChecked = (v) => {
         const data = this.state.data;
         const index = _.findIndex(data, d => d.id === v.id);
         data[index].checked = !data[index].checked;
-        this.setState({ data });
-    },
+        this.setState({data});
+    }
+    
     loadData() {
         this.setState({
             loading: true,
@@ -86,20 +85,22 @@ const SuggestionsList = React.createClass({
                 });
             },
             err => {
-                this.setState({ loading: false, error: [{ error: err }] });
+                this.setState({loading: false, error: [{error: err}]});
             }
         );
-    },
-    onTypeChanged(v) {
+    }
+    
+    onTypeChanged = (v) => {
         const data = this.state.data;
         const index = _.findIndex(data, d => d.id === v.id);
         data[index].type = v.type;
-        this.setState({ data });
-    },
+        this.setState({data});
+    }
+    
     componentDidMount() {
         this.loadData();
-    },
-    count: 0,
+    }
+    
     componentDidUpdate() {
         if (_.get(this, 'state.data', false) && this.count++ === 0) {
             // Scroll should only happen once!
@@ -107,7 +108,8 @@ const SuggestionsList = React.createClass({
                 topOffset: 75,
             });
         }
-    },
+    }
+    
     discardDialog() {
         return (
             <ConfirmationDialog
@@ -128,14 +130,15 @@ const SuggestionsList = React.createClass({
                 <p>You currently selection will be lost.</p>
             </ConfirmationDialog>
         );
-    },
-    handleAddSuggestions(event) {
+    }
+    
+    handleAddSuggestions = (event) => {
         event.stopPropagation();
-
+        
         this.setState({
             saving: true,
         });
-
+        
         const correspondences = this.state.data
             .filter(v => v.checked)
             .map(v => ({
@@ -145,22 +148,23 @@ const SuggestionsList = React.createClass({
             }));
         
         generateRuleAsync(correspondences, this.props.ruleId).subscribe(
-                () => {
-                    this.props.onClose();
-                },
-                err => {
-                    // If we have a list of failedRules, we want to show them, otherwise something
-                    // else failed
+            () => {
+                this.props.onClose();
+            },
+            err => {
+                // If we have a list of failedRules, we want to show them, otherwise something
+                // else failed
                 const error = err.failedRules
                     ? err.failedRules
-                    : [{ error: err }];
-                this.setState({ saving: false, error });
+                    : [{error: err}];
+                this.setState({saving: false, error});
             }
         );
-    },
-    toggleDefaultProperties() {
+    }
+    
+    toggleDefaultProperties = () => {
         if (this.state.data.filter(v => v.checked).length !== 0) {
-            this.setState({ askForDiscard: true });
+            this.setState({askForDiscard: true});
         } else {
             this.setState({
                 data: !this.state.showDefaultProperties
@@ -169,8 +173,9 @@ const SuggestionsList = React.createClass({
                 showDefaultProperties: !this.state.showDefaultProperties,
             });
         }
-    },
-    checkAll(event) {
+    }
+    
+    checkAll = (event) => {
         if (event.stopPropagation) {
             event.stopPropagation();
         }
@@ -181,8 +186,9 @@ const SuggestionsList = React.createClass({
             })),
             checked: true,
         });
-    },
-    checkNone(event) {
+    }
+    
+    checkNone = (event) => {
         if (event.stopPropagation) {
             event.stopPropagation();
         }
@@ -193,8 +199,9 @@ const SuggestionsList = React.createClass({
             })),
             checked: false,
         });
-    },
-    onDiscard() {
+    }
+    
+    onDiscard = () => {
         this.setState({
             data: !this.state.showDefaultProperties
                 ? this.state.rawData
@@ -202,14 +209,16 @@ const SuggestionsList = React.createClass({
             showDefaultProperties: !this.state.showDefaultProperties,
             askForDiscard: false,
         });
-    },
-    onCancelDiscard() {
-        this.setState({ askForDiscard: false });
-    },
+    }
+    
+    onCancelDiscard = () => {
+        this.setState({askForDiscard: false});
+    }
+    
     // template rendering
     render() {
         if (this.state.loading) {
-            return <Spinner />;
+            return <Spinner/>;
         }
         if (this.state.saving) {
             return (
@@ -242,7 +251,7 @@ const SuggestionsList = React.createClass({
                 </SuggestionsListWrapper>
             );
         }
-
+        
         if (this.state.error) {
             const errorsList = _.map(this.state.error, err => (
                 <li className="ecc-silk-mapping__ruleitem mdl-list__item ecc-silk-mapping__ruleitem--literal ecc-silk-mapping__ruleitem--summary ">
@@ -259,7 +268,7 @@ const SuggestionsList = React.createClass({
                     </div>
                 </li>
             ));
-
+            
             return (
                 <SuggestionsListWrapper>
                     <CardTitle>Saving suggestions returned errors</CardTitle>
@@ -276,12 +285,12 @@ const SuggestionsList = React.createClass({
                 </SuggestionsListWrapper>
             );
         }
-
+        
         let suggestionsList = false;
         const hasChecks = _.get(this.state, 'checked');
         const errors = _.filter(this.state.warnings, warning => warning.code !== 404);
         const warnings = _.filter(this.state.warnings, warning => warning.code === 404);
-
+        
         const errorsComponent = !_.isEmpty(errors) && (
             <Error
                 className="ecc-hm-suggestions__errors-container"
@@ -300,7 +309,7 @@ const SuggestionsList = React.createClass({
                 )}
             </Error>
         );
-
+        
         const warningsComponent = !_.isEmpty(warnings) && (
             <Warning
                 className="ecc-hm-suggestions__warnings-container"
@@ -324,7 +333,7 @@ const SuggestionsList = React.createClass({
                 <CardContent>
                     <Info vertSpacing border>
                         No suggestions found for{' '}
-                        <ParentElement parent={this.props.parent} />.
+                        <ParentElement parent={this.props.parent}/>.
                     </Info>
                 </CardContent>
             );
@@ -334,7 +343,7 @@ const SuggestionsList = React.createClass({
                 ['sourcePath', 'order'],
                 ['asc', 'desc']
             );
-
+            
             suggestionsList = (
                 <ol className="mdl-list">
                     <li className="ecc-silk-mapping__ruleitem">
@@ -355,10 +364,12 @@ const SuggestionsList = React.createClass({
                                     </Tooltip>
                                 </div>
                                 <div className="mdl-list__item-primary-content">
-                                    <div className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline">
+                                    <div
+                                        className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline">
                                         Value path
                                     </div>
-                                    <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">
+                                    <div
+                                        className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">
                                         Target property
                                     </div>
                                     <div className="ecc-silk-mapping__suggestitem-typeselect">
@@ -384,7 +395,7 @@ const SuggestionsList = React.createClass({
                 </ol>
             );
         }
-
+        
         const suggestionsToBeSave = _.filter(
             this.state.data,
             entry => entry.checked
@@ -448,7 +459,7 @@ const SuggestionsList = React.createClass({
                 </CardActions>
             </SuggestionsListWrapper>
         );
-    },
-});
+    }
+}
 
 export default ScrollingHOC(SuggestionsList);

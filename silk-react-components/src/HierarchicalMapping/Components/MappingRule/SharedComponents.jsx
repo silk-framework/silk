@@ -2,15 +2,12 @@ import React from 'react';
 import _ from 'lodash';
 import {Icon, Button, NotAvailable} from '@eccenca/gui-elements';
 
-const NO_TARGET_TYPE = <NotAvailable />;
-const NO_TARGET_PROPERTY = <NotAvailable />;
-import hierarchicalMappingChannel, { autocompleteAsync, getVocabInfoAsync } from '../../store';
+import { autocompleteAsync, getVocabInfoAsync } from '../../store';
 import {
     MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_DIRECT,
     MAPPING_RULE_TYPE_OBJECT,
 } from '../../helpers';
-import { MESSAGES } from '../../constants';
 
 export const SourcePath = ({ rule }) => {
     const path = _.get(rule, 'sourcePath', <NotAvailable inline />);
@@ -18,25 +15,27 @@ export const SourcePath = ({ rule }) => {
     return <span>{_.isArray(path) ? path.join(', ') : path}</span>;
 };
 
-const URIInfo = React.createClass({
-    getInitialState() {
+class URIInfo extends React.Component {
+    state = {
+        info: false
+    };
+    
+    componentDidMount() {
         this.loadData(this.props);
-
-        return {
-            info: false,
-        };
-    },
+    }
     componentWillReceiveProps(nextProps) {
         if (!_.isEqual(this.props, nextProps)) {
             this.loadData(nextProps);
         }
-    },
+    }
+    
     shouldComponentUpdate(nextProps, nextState) {
         return (
             !_.isEqual(nextState, this.state) ||
             !_.isEqual(nextProps, this.props)
         );
-    },
+    }
+    
     loadData(props) {
         const { uri, field } = props;
         getVocabInfoAsync(uri, field)
@@ -51,20 +50,21 @@ const URIInfo = React.createClass({
                     this.setState({ info: false });
                 }
             );
-    },
+    }
+    
     render() {
         const { info } = this.state;
-
+        
         if (info) {
             return <span>{info}</span>;
         }
-
+        
         const {
             uri, fallback, field, ...otherProps
         } = this.props;
-
+        
         let noInfo = false;
-
+        
         if (fallback !== undefined) {
             noInfo = fallback;
         } else if (!_.isString(uri)) {
@@ -74,56 +74,54 @@ const URIInfo = React.createClass({
             const lastSlash = lastHash === -1 ? uri.lastIndexOf('/') : lastHash;
             noInfo = uri.substring(lastSlash + 1).replace(/[<>]/g, '');
         }
-
+        
         return <span {...otherProps}>{noInfo}</span>;
-    },
-});
+    }
+}
 
-const PropertyTypeInfo = React.createClass({
-    getInitialState() {
-        if (__DEBUG__) {
-            console.log(this.props);
-        }
+class PropertyTypeInfo extends React.Component {
+    state = {
+        name: this.props.name,
+        option: this.props.option,
+        result: false,
+    };
+    
+    componentDidMount() {
         autocompleteAsync({
             entity: 'propertyType',
             input: this.props.name,
             ruleId: null,
         }).subscribe(
-                response => {
-                    this.setState({
-                        result: _.get(
-                            response,
-                            ['options', '0', this.props.option],
-                            this.props.name
-                        ),
-                    });
-                },
-                () => {
-                    if (__DEBUG__) {
-                        console.warn(`No ${
-                            this.props.option
+            response => {
+                this.setState({
+                    result: _.get(
+                        response,
+                        ['options', '0', this.props.option],
+                        this.props.name
+                    ),
+                });
+            },
+            () => {
+                if (__DEBUG__) {
+                    console.warn(`No ${
+                        this.props.option
                         } found for the property type ${this.props.name}`);
-                    }
-                    this.setState({
-                        result: this.props.name,
-                    });
                 }
-            );
-
-        return {
-            name: this.props.name,
-            option: this.props.option,
-            result: false,
-        };
-    },
+                this.setState({
+                    result: this.props.name,
+                });
+            }
+        );
+    }
+    
     render() {
         let text = this.state.result;
         if (this.props.appendedText) {
             text += this.props.appendedText;
         }
         return <div>{text}</div>;
-    },
-});
+    }
+}
 
 export const ThingName = ({ id, ...otherProps }) => (
     <URIInfo uri={id} {...otherProps} field="label" />
@@ -187,26 +185,24 @@ export const ParentStructure = ({ parent, ...otherProps }) =>
         <ParentElement parent={parent} {...otherProps} />
     ));
 
-export const InfoBox = React.createClass({
-    getInitialState() {
-        return {
-            expanded: false,
-        };
-    },
-
+export class InfoBox extends React.Component {
+    state = {
+        expanded: false
+    };
+    
     toggleExpander(event) {
         event.stopPropagation();
         this.setState({
             expanded: !this.state.expanded,
         });
-    },
-
+    }
+    
     render() {
         return (
             <div
                 className={`ecc-silk-mapping__rulesviewer__infobox${
                     !this.state.expanded ? ' is-narrowed' : ''
-                }`}
+                    }`}
             >
                 <Button
                     className="ecc-silk-mapping__rulesviewer__infobox-toggler"
@@ -221,5 +217,5 @@ export const InfoBox = React.createClass({
                 </div>
             </div>
         );
-    },
-});
+    }
+}

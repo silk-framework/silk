@@ -1,43 +1,41 @@
 import React from 'react';
 import { SelectBox, Checkbox, NotAvailable } from '@eccenca/gui-elements';
-import UseMessageBus from '../UseMessageBusMixin';
-import { SUGGESTION_TYPES, LABELED_SUGGESTION_TYPES } from '../helpers';
+import { LABELED_SUGGESTION_TYPES } from '../helpers';
 import _ from 'lodash';
 
-const SuggestionsRule = React.createClass({
-    mixins: [UseMessageBus],
-
-    // define property types
-    // FIXME: check propTypes
-    propTypes: {},
-    componentDidMount() {},
+class SuggestionsRule extends React.Component {
+    
     shouldComponentUpdate(nextProps, nextState) {
         return !_.isEqual(nextProps.suggestion, this.props.suggestion);
-    },
-    preventPropagation(event) {
+    }
+    
+    preventPropagation = (event) => {
         event.stopPropagation();
-    },
-    onChangeChecked() {
+    }
+    
+    onChangeChecked = () => {
         this.props.onChecked({
             id: this.props.suggestion.id,
             checked: !this.props.suggestion.checked,
         });
-    },
-    onChangeType({ value, label }) {
+    }
+    
+    onChangeType = ({ value, label }) => {
         this.props.onTypeChanged({
             id: this.props.suggestion.id,
             type: value,
         });
-    },
+    }
+    
     // template rendering
     render() {
         const { suggestion } = this.props;
         let title = `Click to add the suggested value mapping:\n\nValue path: ${
             suggestion.sourcePath
-        }`;
-
+            }`;
+        
         let targetProperty;
-
+        
         if (suggestion.targetProperty) {
             targetProperty = suggestion.targetProperty;
             title += `\nTarget property: ${suggestion.targetProperty}`;
@@ -45,16 +43,16 @@ const SuggestionsRule = React.createClass({
             targetProperty = <NotAvailable label="(default mapping)" inline />;
             title += '\nTarget property: default mapping';
         }
-
+        
         if (suggestion.confidence) {
             title += `\nConfidence: ${suggestion.confidence}`;
         }
-
+        
         return (
             <li
                 className={`ecc-silk-mapping__ruleitem ecc-silk-mapping__ruleitem--literal ${
                     suggestion.checked ? 'selected' : 'unselected'
-                }`}
+                    }`}
             >
                 <div className="ecc-silk-mapping__ruleitem-summary">
                     <div className="mdl-list__item">
@@ -97,7 +95,7 @@ const SuggestionsRule = React.createClass({
                 </div>
             </li>
         );
-    },
-});
+    }
+}
 
 export default SuggestionsRule;

@@ -11,12 +11,11 @@ import {
     NotAvailable,
 } from '@eccenca/gui-elements';
 import { ThingIcon } from './MappingRule/SharedComponents';
-import RuleTitle from '../elements/RuleTitle/RuleTitle';
-import RuleTypes from '../elements/RuleTypes/RuleTypes';
+import RuleTitle from '../elements/RuleTitle';
+import RuleTypes from '../elements/RuleTypes';
 import ObjectRule from './MappingRule/ObjectMappingRule';
 import hierarchicalMappingChannel from '../store';
 import UseMessageBus from '../UseMessageBusMixin';
-import Navigation from '../Mixins/Navigation';
 import { MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI } from '../helpers';
 import { MESSAGES } from '../constants';
 

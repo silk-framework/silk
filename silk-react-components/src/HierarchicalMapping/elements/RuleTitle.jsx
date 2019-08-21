@@ -1,14 +1,14 @@
 import React from 'react';
 import _ from 'lodash';
 import { NotAvailable } from '@eccenca/gui-elements';
-import { ThingName } from '../../Components/MappingRule/SharedComponents';
+import { ThingName } from '../Components/MappingRule/SharedComponents';
 
 import {
     MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_DIRECT,
     MAPPING_RULE_TYPE_OBJECT,
     MAPPING_RULE_TYPE_ROOT,
-} from '../../helpers';
+} from '../helpers';
 
 const RuleTitle = ({ rule, ...otherProps }) => {
     let uri;

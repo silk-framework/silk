@@ -16,70 +16,53 @@ import {
     BreadcrumbItem,
 } from '@eccenca/gui-elements';
 
-import Navigation from '../Mixins/Navigation';
 import { ParentStructure } from './MappingRule/SharedComponents';
-import RuleTitle from '../elements/RuleTitle/RuleTitle';
+import RuleTitle from '../elements/RuleTitle';
 import hierarchicalMappingChannel from '../store';
 import { MESSAGES } from '../constants';
 
-
-const MappingsHeader = React.createClass({
-    // define property types
-    propTypes: {
-        // currentRuleId: React.PropTypes.string, // selected rule id
-    },
-
-    // initilize state
-    getInitialState() {
-        return {
-            showTreenavigation: true,
-        };
-    },
-
-    componentDidMount() {
-        // this.subscribe(
-        //     hierarchicalMappingChannel.subject('ruleView.discardAll'),
-        //     this.discardAll
-        // );
-    },
-
-    handleToggleRuleDetails(stateExpand) {
+class MappingsHeader extends React.Component {
+    state = {
+        showTreenavigation: true,
+    };
+    
+    handleToggleRuleDetails = (stateExpand) => {
         hierarchicalMappingChannel
             .subject(MESSAGES.TOGGLE_DETAILS)
             .onNext(stateExpand);
-    },
-
-    promoteToggleTreenavigation(stateVisibility) {
+    }
+    
+    promoteToggleTreenavigation = (stateVisibility) => {
         hierarchicalMappingChannel
             .subject(MESSAGES.TREE_NAV.TOGGLE_VISIBILITY)
             .onNext(stateVisibility);
-    },
-
-
-    handleToggleTreenavigation() {
+    }
+    
+    handleToggleTreenavigation = () => {
         this.promoteToggleTreenavigation(!this.state.showTreenavigation);
         this.setState({
             showTreenavigation: !this.state.showTreenavigation,
         });
-    },
+    }
+    
     // jumps to selected rule as new center of view
-    handleNavigate(id, parent, event) {
+    handleNavigate = (id, parent, event) => {
         hierarchicalMappingChannel
             .subject(MESSAGES.RULE_ID.CHANGE)
             .onNext({ newRuleId: id, parentId: parent });
-
+        
         event.stopPropagation();
-    },
-
+    }
+    
     // template rendering
     render() {
         if (_.isEmpty(this.props.rule)) {
             return false;
         }
-
+        
         const breadcrumbs = _.get(this.props, 'rule.breadcrumbs', []);
         const parent = _.last(breadcrumbs);
-
+        
         const navBack = _.has(parent, 'id') ? (
             <div className="mdl-card__title-back">
                 <Button
@@ -97,9 +80,9 @@ const MappingsHeader = React.createClass({
         ) : (
             false
         );
-
+        
         const self = this;
-
+        
         const navBreadcrumbs = (
             <BreadcrumbList>
                 {breadcrumbs.length > 0
@@ -124,7 +107,7 @@ const MappingsHeader = React.createClass({
                 </BreadcrumbItem>
             </BreadcrumbList>
         );
-
+        
         const navMenu = (
             <CardMenu>
                 <ContextMenu
@@ -162,7 +145,7 @@ const MappingsHeader = React.createClass({
                 </ContextMenu>
             </CardMenu>
         );
-
+        
         return (
             <header className="ecc-silk-mapping__navheader">
                 <Card shadow={2}>
@@ -174,7 +157,7 @@ const MappingsHeader = React.createClass({
                 </Card>
             </header>
         );
-    },
-});
+    }
+}
 
 export default MappingsHeader;

@@ -21,7 +21,7 @@ import {
     MAPPING_RULE_TYPE_ROOT,
 } from '../helpers';
 import { MESSAGES } from '../constants';
-import DiscardChangesDialog from '../elements/DiscardChangesDialog/DiscardChangesDialog';
+import DiscardChangesDialog from '../elements/DiscardChangesDialog';
 
 const MappingsWorkview = React.createClass({
     mixins: [UseMessageBus],

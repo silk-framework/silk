@@ -46,9 +46,6 @@ class ObjectMappingRuleForm extends Component {
         scrollElementIntoView: PropTypes.func.isRequired,
         ruleData: PropTypes.object.isRequired,
     };
-    static defaultProps = {
-        id: undefined,
-    };
 
     /**
      * React's lifecycle method
@@ -81,71 +78,6 @@ class ObjectMappingRuleForm extends Component {
         if (!id) {
             hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CHANGE).onNext({ id: 0 });
         }
-    },
-
-    loadData() {
-        if (this.props.id) {
-            getRuleAsync(this.props.id)
-                .subscribe(
-                    ({rule}) => {
-                        const initialValues = {
-                            targetProperty: _.get(
-                                rule,
-                                'mappingTarget.uri',
-                                undefined
-                            ),
-                            sourceProperty: _.get(
-                                rule,
-                                'sourcePath',
-                                undefined
-                            ),
-                            comment: _.get(rule, 'metadata.description', ''),
-                            label: _.get(rule, 'metadata.label', ''),
-                            targetEntityType: _.chain(rule)
-                                .get('rules.typeRules', [])
-                                .map('typeUri')
-                                .value(),
-                            entityConnection: _.get(
-                                rule,
-                                'mappingTarget.isBackwardProperty',
-                                false
-                            )
-                                ? 'to'
-                                : 'from',
-                            pattern: _.get(rule, 'rules.uriRule.pattern', ''),
-                            type: _.get(rule, 'type'),
-                            uriRuleType: _.get(
-                                rule,
-                                'rules.uriRule.type',
-                                MAPPING_RULE_TYPE_URI
-                            ),
-                            uriRule: _.get(rule, 'rules.uriRule'),
-                        };
-
-                        this.setState({
-                            loading: false,
-                            initialValues,
-                            ...initialValues,
-                        });
-                    },
-                    err => {
-                        this.setState({
-                            loading: false,
-                            initialValues: {},
-                        });
-                    }
-                );
-        } else {
-            hierarchicalMappingChannel
-                .subject(MESSAGES.RULE_VIEW.CHANGE)
-                .onNext({id: 0});
-            this.setState({
-                create: true,
-                loading: false,
-                type: MAPPING_RULE_TYPE_OBJECT,
-            });
-        }
-    },
     }
 
     /**

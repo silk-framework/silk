@@ -8,15 +8,15 @@ import {
 import { URI } from 'ecc-utils';
 
 import UseMessageBus from './UseMessageBusMixin';
-import hierarchicalMappingChannel, { ruleRemoveAsync, setApiDetails } from './store';
+import hierarchicalMappingChannel, { getHierarchyAsync, ruleRemoveAsync, setApiDetails } from './store';
 
 import MappingsTree from './Components/MappingsTree';
 import MappingsWorkview from './Components/MappingsWorkview';
 import MessageHandler from './Components/MessageHandler';
 import { MAPPING_RULE_TYPE_OBJECT } from './helpers';
 import { MESSAGES } from './constants';
-import RemoveMappingRuleDialog from './elements/RemoveMappingRuleDialog/RemoveMappingRuleDialog';
-import DiscardChangesDialog from './elements/DiscardChangesDialog/DiscardChangesDialog';
+import RemoveMappingRuleDialog from './elements/RemoveMappingRuleDialog';
+import DiscardChangesDialog from './elements/DiscardChangesDialog';
 
 const HierarchicalMapping = React.createClass({
     mixins: [UseMessageBus],
@@ -104,11 +104,11 @@ const HierarchicalMapping = React.createClass({
             transformTask,
         })
             .subscribe(
-                ({ rulesTree }) => {
-                    const topLevelId = rulesTree.id;
+                ({ hierarchy }) => {
+                    const topLevelId = hierarchy.id;
                     this.setState({
                         navigationLoading: false,
-                        navigationTree: rulesTree,
+                        navigationTree: hierarchy,
                         navigationExpanded: (_.isEmpty(navigationExpanded) && topLevelId)
                             ? { [topLevelId]: true }
                             : navigationExpanded,

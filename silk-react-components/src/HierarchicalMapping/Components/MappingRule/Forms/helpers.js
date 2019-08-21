@@ -23,7 +23,6 @@ export const newValueIsIRI = ({ label }) => {
  * Usable in auto complete widget as newOptionCreator function. */
 export const convertToUri = ({ label, labelKey, valueKey }) => {
     let value = label;
-    const before = `${label} ${labelKey} ${valueKey}`;
     try {
         const regex = /^Create option "(.*)"$/;
         const match = regex.exec(label);

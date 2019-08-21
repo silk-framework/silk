@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import Enzyme from 'enzyme/build';
 import Adapter from 'enzyme-adapter-react-15/build';
 import RemoveMappingRuleDialog
-    from '../../../../src/HierarchicalMapping/elements/RemoveMappingRuleDialog/RemoveMappingRuleDialog';
+    from '../../../../src/HierarchicalMapping/elements/RemoveMappingRuleDialog';
 
 Enzyme.configure({ adapter: new Adapter() });
 

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {
     DismissiveButton, DisruptiveButton, ConfirmationDialog,
 } from '@eccenca/gui-elements';
-import { MAPPING_RULE_TYPE_OBJECT } from '../../helpers';
+import { MAPPING_RULE_TYPE_OBJECT } from '../helpers';
 
 const RemoveMappingRuleDialog = props => {
     const {

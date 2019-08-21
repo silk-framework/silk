@@ -10,8 +10,8 @@ import {
     Info,
 } from '@eccenca/gui-elements';
 
-import RuleTypes from '../elements/RuleTypes/RuleTypes';
-import RuleTitle from '../elements/RuleTitle/RuleTitle';
+import RuleTypes from '../elements/RuleTypes';
+import RuleTitle from '../elements/RuleTitle';
 import { MAPPING_RULE_TYPE_OBJECT, MAPPING_RULE_TYPE_ROOT } from '../helpers';
 
 /**
