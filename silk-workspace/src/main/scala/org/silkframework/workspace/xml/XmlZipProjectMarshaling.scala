@@ -1,7 +1,7 @@
 package org.silkframework.workspace.xml
 
 import java.io.{File, OutputStream}
-import java.util.zip.{ZipFile, ZipOutputStream}
+import java.util.zip.ZipFile
 
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.Plugin
@@ -9,7 +9,8 @@ import org.silkframework.runtime.resource._
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
-import org.silkframework.workspace.{Project, ProjectConfig, ProjectMarshallingTrait, WorkspaceProvider}
+import org.silkframework.workspace.zip.ZipOutputStreamResourceManager
+import org.silkframework.workspace.{Project, ProjectMarshallingTrait, WorkspaceProvider}
 
 /**
   * Created on 6/27/16.
@@ -37,16 +38,13 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
                               outputStream: OutputStream,
                               resourceManager: ResourceManager)
                              (implicit userContext: UserContext): String = {
-    // Open ZIP
-    val zip = new ZipOutputStream(outputStream)
+    val zipResourceManager = new ZipOutputStreamResourceManager(outputStream)
     try {
-      val zipResourceManager = ZipOutputStreamResourceManager(zip)
       val outputWorkspaceProvider = new XmlWorkspaceProvider(zipResourceManager)
 
       exportProject(project, outputWorkspaceProvider, resourceManager, Some(getProjectResources(outputWorkspaceProvider, project.config.id)))
     } finally {
-      // Close ZIP
-      zip.close()
+      zipResourceManager.close()
     }
 
     //Return proposed file name
@@ -56,7 +54,7 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
   /**
     * Unmarshals the project
     *
-    * @param projectName
+    * @param projectName - name of the project
     * @param workspaceProvider The workspace provider the project should be imported into.
     * @param file       The marshaled project file.
     */
@@ -91,10 +89,8 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
                                 projects: Seq[Project],
                                 resourceRepository: ResourceRepository)
                                (implicit userContext: UserContext): String = {
-    // Open ZIP
-    val zip = new ZipOutputStream(outputStream)
+    val zipResourceManager = new ZipOutputStreamResourceManager(outputStream)
     try {
-      val zipResourceManager = ZipOutputStreamResourceManager(zip)
       val xmlWorkspaceProvider = new XmlWorkspaceProvider(zipResourceManager)
 
       // Load all projects into temporary XML workspace provider
@@ -104,7 +100,7 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
       }
     } finally {
       // Close ZIP
-      zip.close()
+      zipResourceManager.close()
     }
 
     //Return proposed file name
