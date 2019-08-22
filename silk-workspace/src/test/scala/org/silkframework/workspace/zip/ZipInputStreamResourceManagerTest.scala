@@ -47,12 +47,10 @@ class ZipInputStreamResourceManagerTest extends FlatSpec with MustMatchers {
     readManager.child("someDir").list mustBe child1.list
   }
 
-  //TODO path canonical check not yet implemented
-  ignore should "not allow access below its base path" in {
+  it should "not allow access below its base path" in {
     val zipFile = File.createTempFile(tempDir + "outZip", ".zip")
     val manager = new ZipOutputStreamResourceManager(zipFile, "", true)
     manager.get("someDir/../allowedAccess")
-    manager.get(s"someDir/../../${zipFile.getName}/allowedAccess")
     intercept[IllegalArgumentException] {
       manager.get("../../etc/passwd")
     }

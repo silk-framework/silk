@@ -1,12 +1,13 @@
 package org.silkframework.runtime.resource.zip
 
 import java.io.{BufferedOutputStream, File, FileOutputStream, OutputStream}
-
-import scala.collection.JavaConverters._
+import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.{Deflater, ZipEntry, ZipOutputStream}
 
-import org.silkframework.runtime.resource.{Resource, ResourceManager, WritableResource}
+import org.silkframework.runtime.resource.{ResourceManager, WritableResource}
+
+import scala.collection.JavaConverters._
 
 /**
   * A resource manager that writes all data to a ZIP output stream.
@@ -39,13 +40,27 @@ class ZipOutputStreamResourceManager(zip: OutputStream, val basePath: String = "
   }
 
   override def child(name: String): ResourceManager = synchronized {
-    val rm = new ZipOutputStreamResourceManager(zipOutput, base + name, closeEntriesAutomatically)
+    val resolvedPath = reolvePath(base + name)
+    val rm = new ZipOutputStreamResourceManager(zipOutput, resolvedPath, closeEntriesAutomatically)
     children.put(name, rm)
     rm
   }
 
+  private val testUrl = new URL("http://ex.org/test/path/")
+
+  private def reolvePath(path: String): String = {
+    val resolvedUrl = new URL(testUrl, path).toString
+    if(resolvedUrl.startsWith(testUrl.toString)){
+      resolvedUrl.substring(testUrl.toString.length)
+    }
+    else{
+      throw new IllegalArgumentException("The path requested would be outside the Zip resource.")
+    }
+  }
+
   override def get(name: String, mustExist: Boolean): WritableResource = synchronized {
-    val res = ZipWritableResource(name, base + name, zipOutput, closeEntriesAutomatically)
+    val resolvedPath = reolvePath(base + name)
+    val res = ZipWritableResource(name, resolvedPath, zipOutput, closeEntriesAutomatically)
     resources.put(name, res)
     res
   }

@@ -24,7 +24,4 @@ class ZipResourceLoaderTest extends FlatSpec with Matchers with BeforeAndAfterAl
     child.get("childFile.txt").loadAsString shouldBe "child"
   }
 
-  override def afterAll(): Unit = {
-  }
-
 }
