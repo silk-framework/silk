@@ -339,7 +339,17 @@ class CsvSource(file: Resource,
     Seq((typeUri, 1.0))
   }
 
-  private lazy val typeUri = UntypedPath.saveApply(specificTypeName.getOrElse(file.name)).propertyUri.getOrElse(throw new IllegalArgumentException)
+  private lazy val typeUri = {
+    val uri = Uri(specificTypeName.getOrElse(file.name))
+    if(uri.isValidUri)
+      uri
+    else{
+      val segments = uri.uri.split("/")
+        .map(_.trim)
+        .map(seg => URLEncoder.encode(seg, "UTF-8"))
+      Uri(segments.mkString("/"))
+    }
+  }
 
   /**
     * returns the combined path. Depending on the data source the input path may or may not be modified based on the type URI.
