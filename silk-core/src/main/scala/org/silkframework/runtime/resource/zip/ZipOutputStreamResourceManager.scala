@@ -1,4 +1,4 @@
-package org.silkframework.workspace.zip
+package org.silkframework.runtime.resource.zip
 
 import java.io.{BufferedOutputStream, File, FileOutputStream, OutputStream}
 
@@ -6,7 +6,7 @@ import scala.collection.JavaConverters._
 import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.{Deflater, ZipEntry, ZipOutputStream}
 
-import org.silkframework.runtime.resource.{ResourceManager, WritableResource}
+import org.silkframework.runtime.resource.{Resource, ResourceManager, WritableResource}
 
 /**
   * A resource manager that writes all data to a ZIP output stream.

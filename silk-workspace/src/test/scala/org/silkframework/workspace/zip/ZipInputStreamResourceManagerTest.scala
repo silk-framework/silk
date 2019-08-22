@@ -3,6 +3,8 @@ package org.silkframework.workspace.zip
 import java.io.File
 
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.runtime.resource.FileResource
+import org.silkframework.runtime.resource.zip.{ZipInputStreamResourceManager, ZipOutputStreamResourceManager}
 
 class ZipInputStreamResourceManagerTest extends FlatSpec with MustMatchers {
 
@@ -11,8 +13,8 @@ class ZipInputStreamResourceManagerTest extends FlatSpec with MustMatchers {
   private val tempDir = "temp/"
 
   it should "zip and unzip files" in {
-    val zipFile = File.createTempFile(tempDir + "outZip", ".zip")
-    val outputResourceManager = new ZipOutputStreamResourceManager(zipFile, "", true)
+    val zipFile = FileResource(File.createTempFile(tempDir + "outZip", ".zip"))
+    val outputResourceManager = new ZipOutputStreamResourceManager(zipFile.file, "", true)
 
     val pseudoFiles = Map("first"-> "a,b,c", "second"-> "d,e,f", "third"->"g,h,i")
     pseudoFiles.foreach(fileContent => {
@@ -21,7 +23,7 @@ class ZipInputStreamResourceManagerTest extends FlatSpec with MustMatchers {
     })
     outputResourceManager.close()
 
-    val zipIn = new ZipInputStreamResourceManager(zipFile.toPath)
+    val zipIn = new ZipInputStreamResourceManager(zipFile, "")
     pseudoFiles.foreach(file =>{
       val resource = zipIn.get(file._1)
       resource.loadLines.head mustBe file._2
@@ -30,18 +32,19 @@ class ZipInputStreamResourceManagerTest extends FlatSpec with MustMatchers {
   }
 
   it should "deal with hierarchical read and write requests" in {
-    val zipFile = File.createTempFile(tempDir + "outZip", ".zip")
-    val manager = new ZipOutputStreamResourceManager(zipFile, "", true)
+    val zipFile = FileResource(File.createTempFile(tempDir + "outZip", ".zip"))
+    val manager = new ZipOutputStreamResourceManager(zipFile.file, "", true)
     val res = manager.getInPath("someDir/another/test.txt")
     res.writeString("some tests")
     manager.close()
 
-    val readManager = new ZipInputStreamResourceManager(zipFile.toPath)
+    val readManager = new ZipInputStreamResourceManager(zipFile, "")
     val child1 = readManager.child("someDir")
     val child2 = child1.child("another")
     child2.get("test.txt").loadLines.head mustBe "some tests"
     readManager.listChildren mustBe List("someDir")
-    readManager.child("someDir") == child1 mustBe true
+    readManager.child("someDir").basePath mustBe child1.basePath
+    readManager.child("someDir").list mustBe child1.list
   }
 
   //TODO path canonical check not yet implemented

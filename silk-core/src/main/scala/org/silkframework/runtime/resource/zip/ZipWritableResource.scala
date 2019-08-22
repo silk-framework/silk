@@ -1,4 +1,4 @@
-package org.silkframework.workspace.zip
+package org.silkframework.runtime.resource.zip
 
 import java.io.{InputStream, OutputStream}
 import java.time.Instant

@@ -1,15 +1,15 @@
 package org.silkframework.workspace.xml
 
-import java.io.{File, OutputStream}
-import java.util.zip.ZipFile
+import java.io.{BufferedInputStream, File, FileInputStream, OutputStream}
+import java.util.zip.ZipInputStream
 
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.runtime.resource._
+import org.silkframework.runtime.resource.zip.{ZipOutputStreamResourceManager, ZipResourceLoader}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
-import org.silkframework.workspace.zip.ZipOutputStreamResourceManager
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, WorkspaceProvider}
 
 /**
@@ -64,8 +64,8 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
                                 file: File)
                                 (implicit userContext: UserContext): Unit = {
 
-    val zip = new ZipFile(file)
     try {
+      def zip() = new ZipInputStream(new BufferedInputStream(new FileInputStream(file)))
       var resourceLoader: ResourceLoader = ZipResourceLoader(zip)
       if(!resourceLoader.list.contains("config.xml")) {
         if (resourceLoader.listChildren.nonEmpty) {
@@ -81,7 +81,6 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
       val projectResources = getProjectResources(xmlWorkspaceProvider, projectName)
       importProject(projectName, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider, Some(projectResources), importResources = Some(resourceManager))
     } finally {
-      zip.close()
     }
   }
 
@@ -111,8 +110,8 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
                                   resourceRepository: ResourceRepository,
                                   file: File)
                                  (implicit userContext: UserContext): Unit = {
-    val zip = new ZipFile(file)
     try {
+      def zip() = new ZipInputStream(new BufferedInputStream(new FileInputStream(file)))
       val resourceManager: ResourceManager = ReadOnlyResourceManager(ZipResourceLoader(zip))
       val xmlWorkspaceProvider = new XmlWorkspaceProvider(resourceManager)
       val projects = xmlWorkspaceProvider.readProjects()
@@ -122,7 +121,6 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
         importProject(project.id, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider, Some(projectResources), importResources = Some(resourceRepository.get(project.id)))
       }
     } finally {
-      zip.close()
     }
   }
 
