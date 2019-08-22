@@ -1,7 +1,6 @@
 package org.silkframework.workspace.xml
 
-import java.io.{BufferedInputStream, File, FileInputStream, OutputStream}
-import java.util.zip.ZipInputStream
+import java.io.{File, OutputStream}
 
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.Plugin
@@ -65,8 +64,7 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
                                 (implicit userContext: UserContext): Unit = {
 
     try {
-      def zip() = new ZipInputStream(new BufferedInputStream(new FileInputStream(file)))
-      var resourceLoader: ResourceLoader = ZipResourceLoader(zip)
+      var resourceLoader: ResourceLoader = ZipResourceLoader(file, "")
       if(!resourceLoader.list.contains("config.xml")) {
         if (resourceLoader.listChildren.nonEmpty) {
           resourceLoader = resourceLoader.child(resourceLoader.listChildren.head)
@@ -111,8 +109,7 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
                                   file: File)
                                  (implicit userContext: UserContext): Unit = {
     try {
-      def zip() = new ZipInputStream(new BufferedInputStream(new FileInputStream(file)))
-      val resourceManager: ResourceManager = ReadOnlyResourceManager(ZipResourceLoader(zip))
+      val resourceManager: ResourceManager = ReadOnlyResourceManager(ZipResourceLoader(file, ""))
       val xmlWorkspaceProvider = new XmlWorkspaceProvider(resourceManager)
       val projects = xmlWorkspaceProvider.readProjects()
 
