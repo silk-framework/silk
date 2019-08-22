@@ -4,13 +4,13 @@ import java.io.InputStream
 import java.time.Instant
 import java.util.zip.ZipEntry
 
-import org.silkframework.runtime.resource.Resource
-
+import org.silkframework.runtime.resource.{ReadOnlyResource, Resource, ResourceWithKnownTypes}
 
 /**
   * A resource that represents a Zip file entry.
   */
-class ZipEntryResource private[zip](zipEntry: ZipEntry, resourceLoader: ZipResourceLoader) extends Resource {
+class ZipEntryResource private[zip](zipEntry: ZipEntry, resourceLoader: ZipResourceLoader)
+  extends ResourceWithKnownTypes(ReadOnlyResource(new Resource{
 
   /**
     * The local name of this resource.
@@ -55,12 +55,10 @@ class ZipEntryResource private[zip](zipEntry: ZipEntry, resourceLoader: ZipResou
     while(z.getNextEntry.getName != zipEntry.getName && z.available() > 0){}
     z
   }
-
-  /**
-    * Provides an optional, overriding type name or uri
-    */
-  def typeName: Option[String] = ZipEntryResource.getTypeAnnotation(zipEntry)
-}
+}),
+  // add known types here
+  ZipEntryResource.getTypeAnnotation(zipEntry).toIndexedSeq
+)
 
 object ZipEntryResource{
   final val TYPE_URI_PREAMBLE = "Type URI: "

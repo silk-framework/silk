@@ -54,10 +54,17 @@ case class CsvDataset (
 
   override def entitySink(implicit userContext: UserContext): EntitySink = new CsvEntitySink(file, csvSettings)
 
-  private def csvSource(resource: Resource, ignoreMalformed: Boolean = false) = new CsvSource(resource, csvSettings, properties, uri,
-    regexFilter, codec, skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines,
-    ignoreMalformedInputExceptionInPropertyList = ignoreMalformed
-  )
+  private def csvSource(resource: Resource, ignoreMalformed: Boolean = false): CsvSource = resource match{
+    case ror: ReadOnlyResource => csvSource(ror.resource, ignoreMalformed)
+    case rkt: ResourceWithKnownTypes => new CsvSource(resource, csvSettings, properties, uri,
+      regexFilter, codec, skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines,
+      ignoreMalformedInputExceptionInPropertyList = ignoreMalformed, specificTypeName = rkt.knownTypes.headOption
+    )
+    case _ => new CsvSource(resource, csvSettings, properties, uri,
+      regexFilter, codec, skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines,
+      ignoreMalformedInputExceptionInPropertyList = ignoreMalformed
+    )
+  }
 
   /**
     * returns an auto-configured version of this plugin
@@ -103,5 +110,4 @@ object CsvDataset {
       ignoreBadLines = ignoreBadLines
     )
   }
-
 }
