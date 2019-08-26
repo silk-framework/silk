@@ -24,8 +24,10 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   override def read(dataset: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: LocalExecution)
                    (implicit userContext: UserContext): LocalEntities = {
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
-    val source = access(dataset, execution).source
+    lazy val source = access(dataset, execution).source
     schema match {
+      case EmptyEntityTable.schema =>
+        EmptyEntityTable(dataset)
       case QuadEntityTable.schema =>
         handleTripleEntitySchema(dataset)
       case TripleEntityTable.schema =>

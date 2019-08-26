@@ -46,7 +46,11 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
 
   override def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None)
                             (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
-    val restrictions = SparqlRestriction.forType(typeUri)
+    val restrictions = if(typeUri.isEmpty) {
+      SparqlRestriction.empty
+    } else {
+      SparqlRestriction.forType(typeUri)
+    }
     retrievePathsSparqlRestriction(restrictions, limit)
   }
 
