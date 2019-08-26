@@ -14,10 +14,10 @@ import { ThingIcon } from './MappingRule/SharedComponents';
 import RuleTitle from '../elements/RuleTitle';
 import RuleTypes from '../elements/RuleTypes';
 import ObjectRule from './MappingRule/ObjectMappingRule';
-import hierarchicalMappingChannel from '../store';
 import UseMessageBus from '../UseMessageBusMixin';
 import { MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI } from '../helpers';
 import { MESSAGES } from '../constants';
+import EventEmitter from '../utils/EventEmitter';
 
 const MappingsObject = React.createClass({
     mixins: [UseMessageBus],
@@ -29,30 +29,19 @@ const MappingsObject = React.createClass({
         };
     },
     componentDidMount() {
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.TOGGLE),
-            ({ expanded, id }) => {
-                // only trigger state / render change if necessary
-                if (
-                    (id === true || id === this.props.rule.id) &&
-                    expanded !== this.state.expanded
-                ) {
-                    this.setState({ expanded });
-                }
+        EventEmitter.on(MESSAGES.RULE_VIEW.TOGGLE,  ({ expanded, id }) => {
+            // only trigger state / render change if necessary
+            if (
+                (id === true || id === this.props.rule.id) &&
+                expanded !== this.state.expanded
+            ) {
+                this.setState({ expanded });
             }
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CHANGE),
-            this.onOpenEdit
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.UNCHANGED),
-            this.onCloseEdit
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.DISCARD_ALL),
-            this.discardAll
-        );
+        });
+        
+        EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
+        EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
+        EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
     },
     onOpenEdit(obj) {
         if (this.props.rule.id === obj.id) {
@@ -73,9 +62,7 @@ const MappingsObject = React.createClass({
             expanded: !this.state.expanded,
             askForDiscard: false,
         });
-        hierarchicalMappingChannel
-            .subject(MESSAGES.RULE_VIEW.UNCHANGED)
-            .onNext({ id: this.props.rule.id });
+        EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: this.props.rule.id });
     },
     handleCancelDiscard() {
         this.setState({

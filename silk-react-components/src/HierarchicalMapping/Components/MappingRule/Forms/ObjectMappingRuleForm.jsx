@@ -15,9 +15,8 @@ import {
 } from '@eccenca/gui-elements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
-import UseMessageBus from '../../../UseMessageBusMixin';
 import {ParentElement} from '../SharedComponents';
-import hierarchicalMappingChannel, { createMappingAsync, getRuleAsync } from '../../../store';
+import { createMappingAsync } from '../../../store';
 import {newValueIsIRI, wasTouched, convertToUri} from './helpers';
 import ErrorView from '../ErrorView';
 import AutoComplete from './AutoComplete';
@@ -28,6 +27,7 @@ import {
     trimUriPattern,
 } from '../../../helpers';
 import { MESSAGES } from '../../../constants';
+import EventEmitter from '../../../utils/EventEmitter';
 
 /**
  * Provides the editable form for object mappings.
@@ -76,7 +76,7 @@ class ObjectMappingRuleForm extends Component {
         // set screen focus to this element
         scrollIntoView({ topOffset: 75 });
         if (!id) {
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CHANGE).onNext({ id: 0 });
+            EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id: 0 });
         }
     }
 
@@ -109,7 +109,7 @@ class ObjectMappingRuleForm extends Component {
             .subscribe(
                 () => {
                     this.handleClose(event);
-                    hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext(true);
+                    EventEmitter.emit(MESSAGES.RELOAD, true);
                 },
                 err => {
                     this.setState({
@@ -135,9 +135,9 @@ class ObjectMappingRuleForm extends Component {
 
         if (id) {
             if (changed) {
-                hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CHANGE).onNext({ id });
+                EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id });
             } else {
-                hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.UNCHANGED).onNext({ id });
+                EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id });
             }
         }
         this.setState({
@@ -153,8 +153,8 @@ class ObjectMappingRuleForm extends Component {
     handleClose(event) {
         event.stopPropagation();
         const { id = 0 } = this.props;
-        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.UNCHANGED).onNext({ id });
-        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE).onNext({ id });
+        EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id });
+        EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id });
     }
 
     /**

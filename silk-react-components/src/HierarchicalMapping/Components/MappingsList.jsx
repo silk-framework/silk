@@ -11,8 +11,9 @@ import MappingRule from './MappingRule/MappingRule';
 import { MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT } from '../helpers';
 import UseMessageBus from '../UseMessageBusMixin';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd';
-import hierarchicalMappingChannel, { orderRulesAsync } from '../store';
+import { orderRulesAsync } from '../store';
 import { MESSAGES } from '../constants';
+import EventEmitter from '../utils/EventEmitter';
 
 const MappingsList = React.createClass({
     mixins: [UseMessageBus],
@@ -29,10 +30,7 @@ const MappingsList = React.createClass({
     },
     componentDidMount() {
         // process reorder requests from single MappingRules
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE.REQUEST_ORDER),
-            this.orderRules
-        );
+        EventEmitter.on(MESSAGES.RULE.REQUEST_ORDER, this.orderRules);
     },
     getDefaultProps() {
         return {
@@ -88,15 +86,11 @@ const MappingsList = React.createClass({
         });
     },
     handleCreate(infoCreation) {
-        hierarchicalMappingChannel
-            .subject(MESSAGES.MAPPING.CREATE)
-            .onNext(infoCreation);
+        EventEmitter.emit(MESSAGES.MAPPING.CREATE, infoCreation);
     },
     handleShowSuggestions(event) {
         event.persist();
-        hierarchicalMappingChannel
-            .subject(MESSAGES.MAPPING.SHOW_SUGGESTIONS)
-            .onNext(event);
+        EventEmitter.emit(MESSAGES.MAPPING.SHOW_SUGGESTIONS, event);
     },
     getItems(rules) {
         return _.map(rules, (rule, i) => ({

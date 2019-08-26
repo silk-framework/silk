@@ -14,6 +14,7 @@ import {
 
 import { Suggestion } from './Suggestion';
 import { MESSAGES } from './constants';
+import EventEmitter from './utils/EventEmitter';
 
 const hierarchicalMappingChannel = rxmq.channel('silk.hierarchicalMapping');
 const silkStore = rxmq.channel('silk.api');
@@ -276,13 +277,10 @@ const createGeneratedRules = ({rules, parentId}) =>
         .reduce((all, result, idx) => {
             const total = _.size(rules);
             const count = idx + 1;
-            
-            hierarchicalMappingChannel
-                .subject(MESSAGES.RULE.SUGGESTIONS.PROGRESS)
-                .onNext({
-                    progressNumber: _.round(count / total * 100, 0),
-                    lastUpdate: `Saved ${count} of ${total} rules.`,
-                });
+            EventEmitter.emit(MESSAGES.RULE.SUGGESTIONS.PROGRESS, {
+                progressNumber: _.round(count / total * 100, 0),
+                lastUpdate: `Saved ${count} of ${total} rules.`,
+            });
             
             all.push(result);
             
@@ -307,9 +305,7 @@ export const orderRulesAsync = ({id, childrenRules}) => {
             data: {id, childrenRules, ...getApiDetails()},
         })
         .map(() => {
-            hierarchicalMappingChannel
-                .subject(MESSAGES.RELOAD)
-                .onNext();
+            EventEmitter.emit(MESSAGES.RELOAD);
         })
 };
 
@@ -320,10 +316,9 @@ export const generateRuleAsync = (correspondences, parentId) => {
             data: {...getApiDetails(), correspondences, parentId},
         })
         .map(returned => {
-            hierarchicalMappingChannel
-                .subject(MESSAGES.RULE_VIEW.CLOSE)
-                .onNext({id: 0});
-            hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext(true);
+            EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, {id: 0});
+            EventEmitter.emit(MESSAGES.RELOAD, true);
+            
             return {
                 rules: _.get(returned, ['body'], []),
                 parentId,
@@ -603,9 +598,7 @@ export const ruleRemoveAsync = (id) => {
         })
         .map(
             () => {
-                hierarchicalMappingChannel
-                    .subject(MESSAGES.RELOAD)
-                    .onNext(true);
+                EventEmitter.emit(MESSAGES.RELOAD, true);
             },
             err => {
                 // TODO: Beautify

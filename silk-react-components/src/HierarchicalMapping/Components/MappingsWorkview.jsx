@@ -6,7 +6,7 @@ import React from 'react';
 import _ from 'lodash';
 import { Spinner } from '@eccenca/gui-elements';
 import UseMessageBus from '../UseMessageBusMixin';
-import hierarchicalMappingChannel, { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from '../store';
+import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from '../store';
 import MappingsHeader from './MappingsHeader';
 import MappingsObject from './MappingsObject';
 import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm';
@@ -22,6 +22,7 @@ import {
 } from '../helpers';
 import { MESSAGES } from '../constants';
 import DiscardChangesDialog from '../elements/DiscardChangesDialog';
+import EventEmitter from '../utils/EventEmitter';
 
 const MappingsWorkview = React.createClass({
     mixins: [UseMessageBus],
@@ -72,42 +73,15 @@ const MappingsWorkview = React.createClass({
     },
     componentDidMount() {
         this.loadData({ initialLoad: true });
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RELOAD),
-            this.loadData
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_ID.CREATE),
-            this.onRuleCreate
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.MAPPING.CREATE),
-            this.handleCreate
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.MAPPING.SHOW_SUGGESTIONS),
-            this.handleShowSuggestions
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.TOGGLE_DETAILS),
-            this.handleToggleRuleDetails
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.UNCHANGED),
-            this.handleRuleEditClose
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE),
-            this.handleRuleEditClose
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CHANGE),
-            this.handleRuleEditOpen
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.DISCARD_ALL),
-            this.discardAll
-        );
+        EventEmitter.on(MESSAGES.RELOAD, this.loadData);
+        EventEmitter.on(MESSAGES.RULE_ID.CREATE, this.onRuleCreate);
+        EventEmitter.on(MESSAGES.MAPPING.CREATE, this.handleCreate);
+        EventEmitter.on(MESSAGES.MAPPING.SHOW_SUGGESTIONS, this.handleShowSuggestions);
+        EventEmitter.on(MESSAGES.TOGGLE_DETAILS, this.handleToggleRuleDetails);
+        EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.handleRuleEditClose);
+        EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.handleRuleEditClose);
+        EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.handleRuleEditOpen);
+        EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
     },
     discardAll() {
         this.setState({
@@ -121,9 +95,7 @@ const MappingsWorkview = React.createClass({
             this.setState({
                 showSuggestions: true,
             });
-            hierarchicalMappingChannel
-                .subject(MESSAGES.RULE_VIEW.CHANGE)
-                .onNext({ id: 0 });
+            EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id: 0 });
         } else {
             this.setState({
                 askForDiscard: {
@@ -167,13 +139,10 @@ const MappingsWorkview = React.createClass({
                             // otherwise we want to expand the value mapping
                             toBeOpened = this.props.currentRuleId;
                         }
-
-                        hierarchicalMappingChannel
-                            .subject(MESSAGES.RULE_VIEW.TOGGLE)
-                            .onNext({
-                                expanded: true,
-                                id: toBeOpened,
-                            });
+                        EventEmitter.emit(MESSAGES.RULE_VIEW.TOGGLE, {
+                            expanded: true,
+                            id: toBeOpened,
+                        });
                     }
 
                     this.setState({
@@ -197,18 +166,20 @@ const MappingsWorkview = React.createClass({
         const expanded = _.get(this.state.askForDiscard, 'expanded', false);
 
         if (type) {
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_ID.CREATE).onNext({ type });
+            EventEmitter.emit(MESSAGES.RULE_ID.CREATE, { type });
         } else if (suggestions) {
             this.setState({
                 showSuggestions: true,
             });
         } else {
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.TOGGLE).onNext({
+            EventEmitter.emit(MESSAGES.RULE_VIEW.TOGGLE, {
                 expanded,
                 id: true,
             });
+    
         }
-        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.DISCARD_ALL).onNext();
+        EventEmitter.emit(MESSAGES.RULE_VIEW.DISCARD_ALL);
+        
         this.setState({
             askForDiscard: false,
         });
@@ -222,9 +193,8 @@ const MappingsWorkview = React.createClass({
     // sends event to expand / collapse all mapping rules
     handleToggleRuleDetails({ expanded }) {
         if (this.state.editing.length === 0 || expanded) {
-            hierarchicalMappingChannel
-                .subject(MESSAGES.RULE_VIEW.TOGGLE)
-                .onNext({ expanded, id: true });
+            EventEmitter.emit(MESSAGES.RULE_VIEW.TOGGLE, { expanded, id: true });
+    
         } else {
             this.setState({
                 askForDiscard: {
@@ -237,9 +207,8 @@ const MappingsWorkview = React.createClass({
     // jumps to selected rule as new center of view
     handleCreate({ type }) {
         if (this.state.editing.length === 0) {
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_ID.CREATE).onNext({
-                type,
-            });
+            EventEmitter.emit(MESSAGES.RULE_ID.CREATE, { type });
+         
         } else {
             this.setState({
                 askForDiscard: {
@@ -251,7 +220,7 @@ const MappingsWorkview = React.createClass({
 
     handleCloseSuggestions() {
         this.setState({ showSuggestions: false });
-        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE).onNext({ id: 0 });
+        EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id: 0 });
     },
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -299,16 +268,12 @@ const MappingsWorkview = React.createClass({
                             copyingData.type === MAPPING_RULE_TYPE_COMPLEX) {
                             sessionStorage.setItem('pastedId', newRuleId);
                         } else if (copyingData.type === MAPPING_RULE_TYPE_OBJECT || copyingData.type === MAPPING_RULE_TYPE_ROOT) {
-                            hierarchicalMappingChannel
-                                .subject(MESSAGES.RULE_ID.CHANGE)
-                                .onNext({
-                                    newRuleId,
-                                });
+                            EventEmitter.emit(MESSAGES.RULE_ID.CHANGE, { newRuleId });
                         }
                         if (cloning) {
                             sessionStorage.removeItem('copyingData');
                         }
-                        hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext(true);
+                        EventEmitter.emit(MESSAGES.RELOAD, true);
                     }
                 )
         }

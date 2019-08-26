@@ -12,11 +12,9 @@ import {
     Checkbox,
     SelectBox,
 } from '@eccenca/gui-elements';
-import {URI} from 'ecc-utils';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
-import UseMessageBus from '../../../UseMessageBusMixin';
-import hierarchicalMappingChannel, { createMappingAsync, getRuleAsync } from '../../../store';
+import { createMappingAsync, getRuleAsync } from '../../../store';
 import {newValueIsIRI, wasTouched, convertToUri} from './helpers';
 import ErrorView from '../ErrorView';
 import AutoComplete from './AutoComplete';
@@ -26,6 +24,7 @@ import {
     trimValueLabelObject,
 } from '../../../helpers';
 import { MESSAGES } from '../../../constants';
+import EventEmitter from '../../../utils/EventEmitter';
 
 const languagesList = [
     'en','de','es','fr','bs','bg','ca','ce','zh','hr','cs','da','nl','eo','fi','ka','el','hu','ga','is','it',
@@ -91,9 +90,7 @@ class ValueMappingRuleForm extends React.Component {
                     }
                 );
         } else {
-            hierarchicalMappingChannel
-                .subject(MESSAGES.RULE_VIEW.CHANGE)
-                .onNext({id: 0});
+            EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, {id: 0});
             this.setState({
                 create: true,
                 loading: false,
@@ -129,7 +126,7 @@ class ValueMappingRuleForm extends React.Component {
         }).subscribe(
             () => {
                 this.handleClose(event);
-                hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext(true);
+                EventEmitter.emit(MESSAGES.RELOAD, true)
             },
             err => {
                 this.setState({
@@ -172,13 +169,9 @@ class ValueMappingRuleForm extends React.Component {
         
         if (id !== 0) {
             if (touched) {
-                hierarchicalMappingChannel
-                    .subject(MESSAGES.RULE_VIEW.CHANGE)
-                    .onNext({id});
+                EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, {id});
             } else {
-                hierarchicalMappingChannel
-                    .subject(MESSAGES.RULE_VIEW.UNCHANGED)
-                    .onNext({id});
+                EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, {id});
             }
         }
         
@@ -191,8 +184,8 @@ class ValueMappingRuleForm extends React.Component {
     handleClose = (event) => {
         event.stopPropagation();
         const id = _.get(this.props, 'id', 0);
-        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.UNCHANGED).onNext({id});
-        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE).onNext({id});
+        EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, {id});
+        EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, {id});
     };
     
     allowConfirmation() {

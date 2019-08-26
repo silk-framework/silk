@@ -10,7 +10,7 @@ import {
 } from '@eccenca/gui-elements';
 import _ from 'lodash';
 import UseMessageBus from '../../UseMessageBusMixin';
-import hierarchicalMappingChannel, { getEditorHref, updateObjectMappingAsync } from '../../store';
+import { getEditorHref, updateObjectMappingAsync } from '../../store';
 import ExampleView from './ExampleView';
 import ObjectMappingRuleForm from './Forms/ObjectMappingRuleForm';
 
@@ -31,6 +31,7 @@ import {
 } from '../../helpers';
 import { MESSAGES } from '../../constants';
 import transformRuleOfObjectMapping from '../../utils/transformRuleOfObjectMapping';
+import EventEmitter from '../../utils/EventEmitter';
 
 const ObjectRule = React.createClass({
     mixins: [UseMessageBus],
@@ -47,10 +48,7 @@ const ObjectRule = React.createClass({
         ruleData: React.PropTypes.object.isRequired,
     },
     componentDidMount() {
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE),
-            this.handleCloseEdit
-        );
+        EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.handleCloseEdit);
         if (_.has(this.props, 'rules.uriRule.id')) {
             this.setState({
                 href: getEditorHref(this.props.rules.uriRule.id)
@@ -135,7 +133,7 @@ const ObjectRule = React.createClass({
         updateObjectMappingAsync(rule)
             .subscribe(
                 data => {
-                    hierarchicalMappingChannel.subject(MESSAGES.RELOAD).onNext(true);
+                    EventEmitter.emit(MESSAGES.RELOAD, true);
                 },
                 err => {
                     console.error(err);
@@ -366,14 +364,12 @@ const ObjectRule = React.createClass({
                     className="ecc-silk-mapping__rulesviewer__actionrow-remove"
                     raised
                     onClick={() =>
-                        hierarchicalMappingChannel
-                            .subject(MESSAGES.BUTTON.REMOVE_CLICK)
-                            .onNext({
-                                id: this.props.id,
-                                uri: this.props.mappingTarget.uri,
-                                type: this.props.type,
-                                parent: this.props.parentId,
-                            })
+                        EventEmitter.emit(MESSAGES.BUTTON.REMOVE_CLICK, {
+                            id: this.props.id,
+                            uri: this.props.mappingTarget.uri,
+                            type: this.props.type,
+                            parent: this.props.parentId,
+                        })
                     }
                 >
                     Remove

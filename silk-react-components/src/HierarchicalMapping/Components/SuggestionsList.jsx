@@ -23,11 +23,12 @@ import {
 import _ from 'lodash';
 import ErrorView from './MappingRule/ErrorView';
 import SuggestionsRule from './SuggestionsRule';
-import hierarchicalMappingChannel, { generateRuleAsync, getSuggestionsAsync } from '../store';
+import { generateRuleAsync, getSuggestionsAsync } from '../store';
 import { ParentElement } from './MappingRule/SharedComponents';
 import { SUGGESTION_TYPES } from '../helpers';
 import { MESSAGES } from '../constants';
 import PropTypes from 'prop-types';
+import EventEmitter from '../utils/EventEmitter';
 
 const SuggestionsListWrapper = props => (
     <div className="ecc-silk-mapping__ruleslist ecc-silk-mapping__suggestionlist">
@@ -235,7 +236,10 @@ class SuggestionsList extends React.Component {
                         <ProgressButton
                             progress={0}
                             id="suggestion-save-btn"
-                            progressTopic={hierarchicalMappingChannel.subject(MESSAGES.RULE.SUGGESTIONS.PROGRESS)}
+                            progressTopic={
+                                EventEmitter.emit(MESSAGES.RULE.SUGGESTIONS.PROGRESS)
+                                // hierarchicalMappingChannel.subject(MESSAGES.RULE.SUGGESTIONS.PROGRESS)
+                            }
                             tooltip="Progress"
                         >
                             Save

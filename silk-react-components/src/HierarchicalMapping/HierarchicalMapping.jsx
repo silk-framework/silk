@@ -8,7 +8,7 @@ import {
 import { URI } from 'ecc-utils';
 
 import UseMessageBus from './UseMessageBusMixin';
-import hierarchicalMappingChannel, { getHierarchyAsync, ruleRemoveAsync, setApiDetails } from './store';
+import { getHierarchyAsync, ruleRemoveAsync, setApiDetails } from './store';
 
 import MappingsTree from './Components/MappingsTree';
 import MappingsWorkview from './Components/MappingsWorkview';
@@ -17,6 +17,7 @@ import { MAPPING_RULE_TYPE_OBJECT } from './helpers';
 import { MESSAGES } from './constants';
 import RemoveMappingRuleDialog from './elements/RemoveMappingRuleDialog';
 import DiscardChangesDialog from './elements/DiscardChangesDialog';
+import EventEmitter from './utils/EventEmitter';
 
 const HierarchicalMapping = React.createClass({
     mixins: [UseMessageBus],
@@ -29,42 +30,16 @@ const HierarchicalMapping = React.createClass({
         initialRule: React.PropTypes.string,
     },
     componentDidMount() {
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_ID.CHANGE),
-            this.onRuleNavigation
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.BUTTON.REMOVE_CLICK),
-            this.handleClickRemove
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CHANGE),
-            this.onOpenEdit
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.UNCHANGED),
-            this.onCloseEdit
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE),
-            this.onCloseEdit
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.DISCARD_ALL),
-            this.discardAll
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.TREE_NAV.TOGGLE_VISIBILITY),
-            this.handleToggleNavigation
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RELOAD),
-            this.loadNavigationTree
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_ID.CHANGE),
-            this.expandNavigationTreeElement
-        );
+        EventEmitter.on(MESSAGES.RULE_ID.CHANGE, this.onRuleNavigation);
+        EventEmitter.on(MESSAGES.BUTTON.REMOVE_CLICK, this.handleClickRemove);
+        EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
+        EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
+        EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
+        EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
+        EventEmitter.on(MESSAGES.TREE_NAV.TOGGLE_VISIBILITY, this.handleToggleNavigation);
+        EventEmitter.on(MESSAGES.RELOAD, this.loadNavigationTree);
+        EventEmitter.on(MESSAGES.RULE_ID.CHANGE, this.expandNavigationTreeElement);
+        
         this.loadNavigationTree();
     },
     // initilize state
@@ -245,16 +220,14 @@ const HierarchicalMapping = React.createClass({
     },
     handleDiscardChanges() {
         if (_.includes(this.state.editingElements, 0)) {
-            hierarchicalMappingChannel
-                .subject(MESSAGES.RULE_VIEW.UNCHANGED)
-                .onNext({ id: 0 });
+            EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: 0 })
         }
         this.setState({
             editingElements: [],
             currentRuleId: this.state.askForDiscard,
             askForDiscard: false,
         });
-        hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.DISCARD_ALL).onNext();
+        EventEmitter.emit(MESSAGES.RULE_VIEW.DISCARD_ALL);
     },
     discardAll() {
         this.setState({
@@ -285,9 +258,7 @@ const HierarchicalMapping = React.createClass({
                 </DisruptiveButton>
                 <Button
                     onClick={() => {
-                        hierarchicalMappingChannel
-                            .subject(MESSAGES.RELOAD)
-                            .onNext(true);
+                        EventEmitter.emit(MESSAGES.RELOAD, true);
                     }}
                 >
                     RELOAD

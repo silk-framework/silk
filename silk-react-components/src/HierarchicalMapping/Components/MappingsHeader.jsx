@@ -18,8 +18,8 @@ import {
 
 import { ParentStructure } from './MappingRule/SharedComponents';
 import RuleTitle from '../elements/RuleTitle';
-import hierarchicalMappingChannel from '../store';
 import { MESSAGES } from '../constants';
+import EventEmitter from '../utils/EventEmitter';
 
 class MappingsHeader extends React.Component {
     state = {
@@ -27,15 +27,11 @@ class MappingsHeader extends React.Component {
     };
     
     handleToggleRuleDetails = (stateExpand) => {
-        hierarchicalMappingChannel
-            .subject(MESSAGES.TOGGLE_DETAILS)
-            .onNext(stateExpand);
+        EventEmitter.emit(MESSAGES.TOGGLE_DETAILS, stateExpand);
     }
     
     promoteToggleTreenavigation = (stateVisibility) => {
-        hierarchicalMappingChannel
-            .subject(MESSAGES.TREE_NAV.TOGGLE_VISIBILITY)
-            .onNext(stateVisibility);
+        EventEmitter.emit(MESSAGES.TREE_NAV.TOGGLE_VISIBILITY, stateVisibility);
     }
     
     handleToggleTreenavigation = () => {
@@ -47,10 +43,7 @@ class MappingsHeader extends React.Component {
     
     // jumps to selected rule as new center of view
     handleNavigate = (id, parent, event) => {
-        hierarchicalMappingChannel
-            .subject(MESSAGES.RULE_ID.CHANGE)
-            .onNext({ newRuleId: id, parentId: parent });
-        
+        EventEmitter.emit(MESSAGES.RULE_ID.CHANGE, { newRuleId: id, parentId: parent })
         event.stopPropagation();
     }
     

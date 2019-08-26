@@ -17,7 +17,6 @@ import {
     Spinner,
 } from '@eccenca/gui-elements';
 import UseMessageBus from '../../UseMessageBusMixin';
-import hierarchicalMappingChannel from '../../store';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
 import { SourcePath, ThingIcon } from './SharedComponents';
@@ -25,6 +24,7 @@ import RuleTypes from '../../elements/RuleTypes';
 import { getRuleLabel, isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT } from '../../helpers';
 import className from 'classnames';
 import { MESSAGES } from '../../constants';
+import EventEmitter from '../../utils/EventEmitter';
 
 const MappingRule = React.createClass({
     mixins: [UseMessageBus],
@@ -62,31 +62,20 @@ const MappingRule = React.createClass({
     },
     componentDidMount() {
         // listen for event to expand / collapse mapping rule
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.TOGGLE),
-            ({ expanded, id }) => {
-                // only trigger state / render change if necessary
-                if (
-                    expanded !== this.state.expanded &&
-                    this.props.type !== MAPPING_RULE_TYPE_OBJECT &&
-                    (id === true || id === this.props.id)
-                ) {
-                    this.setState({ expanded });
-                }
+        EventEmitter.on(MESSAGES.RULE_VIEW.TOGGLE, ({ expanded, id }) => {
+            // only trigger state / render change if necessary
+            if (
+                expanded !== this.state.expanded &&
+                this.props.type !== MAPPING_RULE_TYPE_OBJECT &&
+                (id === true || id === this.props.id)
+            ) {
+                this.setState({ expanded });
             }
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CHANGE),
-            this.onOpenEdit
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.CLOSE),
-            this.onCloseEdit
-        );
-        this.subscribe(
-            hierarchicalMappingChannel.subject(MESSAGES.RULE_VIEW.DISCARD_ALL),
-            this.discardAll
-        );
+        });
+        EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
+        EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
+        EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
+        
         if (this.state.isPasted) { this.props.scrollIntoView(); }
     },
     onOpenEdit(obj) {
@@ -122,9 +111,7 @@ const MappingRule = React.createClass({
             expanded: !this.state.expanded,
             askForDiscard: false,
         });
-        hierarchicalMappingChannel
-            .subject(MESSAGES.RULE_VIEW.UNCHANGED)
-            .onNext({ id: this.props.id });
+        EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: this.props.id });
     },
     handleCancelDiscard() {
         this.setState({
@@ -138,16 +125,11 @@ const MappingRule = React.createClass({
         if (fromPos === toPos) {
             return;
         }
-        hierarchicalMappingChannel
-            .subject(MESSAGES.RULE.REQUEST_ORDER)
-            .onNext({ toPos, fromPos, reload: true });
+        EventEmitter.emit(MESSAGES.RULE.REQUEST_ORDER, { toPos, fromPos, reload: true });
     },
     // jumps to selected rule as new center of view
     handleNavigate(id, parent, event) {
-        hierarchicalMappingChannel
-            .subject(MESSAGES.RULE_ID.CHANGE)
-            .onNext({ newRuleId: id, parentId: parent });
-
+        EventEmitter.emit(MESSAGES.RULE_ID.CHANGE, { newRuleId: id, parentId: parent });
         event.stopPropagation();
     },
     // template rendering
