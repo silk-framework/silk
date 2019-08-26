@@ -1,10 +1,13 @@
 package org.silkframework.plugins.dataset.rdf.executors
 
+import java.time.Duration
+
+import org.apache.commons.lang3.time.DateFormatUtils
 import org.silkframework.config.Task
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.execution.ExecutionReport
 import org.silkframework.execution.local._
+import org.silkframework.execution.{ExecutionReport, SimpleExecutionReport}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
@@ -21,11 +24,10 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
                       (implicit userContext: UserContext): Option[LocalEntities] = {
     val updateTask = task.data
     val expectedSchema = updateTask.expectedInputSchema
+    val reportUpdater = ExecutionReportUpdater(task.taskLabel(), context)
 
     // Generate SPARQL Update queries for input entities
-    def executeOnInput[U](batchEmitter: BatchSparqlUpdateEmitter[U],
-                          expectedProperties: IndexedSeq[String],
-                          input: LocalEntities): Unit = {
+    def executeOnInput[U](batchEmitter: BatchSparqlUpdateEmitter[U], expectedProperties: IndexedSeq[String], input: LocalEntities): Unit = {
       val inputProperties = getInputProperties(input.entitySchema).distinct
       checkInputSchema(expectedProperties, inputProperties.toSet)
       for (entity <- input.entities;
@@ -33,6 +35,7 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
         val it = CrossProductIterator(values, expectedProperties)
         while (it.hasNext) {
           batchEmitter.update(updateTask.generate(it.next()))
+          reportUpdater.increaseQueryCounter()
         }
       }
     }
@@ -44,15 +47,16 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
         if (expectedProperties.isEmpty) {
           // Static template needs only to be executed once
           batchEmitter.update(updateTask.generate(Map.empty))
+          reportUpdater.increaseQueryCounter()
         } else {
           for (input <- inputs) {
             executeOnInput(batchEmitter, expectedProperties, input)
           }
         }
+        reportUpdater.update(force = true, addEndTime = true)
         batchEmitter.close()
       }
     }
-
     Some(new SparqlUpdateEntityTable(traversable, task))
   }
 
@@ -67,6 +71,30 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
 
   private def getInputProperties(entitySchema: EntitySchema): IndexedSeq[String] = {
     entitySchema.typedPaths.flatMap(_.property).map(_.propertyUri)
+  }
+}
+
+case class ExecutionReportUpdater(taskLabel: String, context: ActivityContext[ExecutionReport]) {
+  private val start = System.currentTimeMillis()
+  private var lastUpdate = 0L
+  private var queriesEmitted = 0
+
+  def increaseQueryCounter(): Unit = {
+    queriesEmitted += 1
+  }
+
+  def update(force: Boolean, addEndTime: Boolean = false): Unit = {
+    if(force || System.currentTimeMillis() - lastUpdate > 1000) {
+      val runtime = System.currentTimeMillis() - start
+      val stats = Seq(
+        "Started" -> DateFormatUtils.ISO_8601_EXTENDED_DATETIME_FORMAT.format(start),
+        "Runtime" -> s"${runtime.toDouble / 1000} seconds",
+        "Queries / second" -> (if(runtime <= 0) "-" else (1000 * queriesEmitted.toDouble / (runtime)).formatted("%.3f")),
+        "Nr. of queries generated" -> queriesEmitted.toString
+      ) ++ Seq("Finished" -> DateFormatUtils.ISO_8601_EXTENDED_DATETIME_FORMAT.format(System.currentTimeMillis())).filter(_ => addEndTime)
+      context.value.update(SimpleExecutionReport(taskLabel, stats, None))
+      lastUpdate = System.currentTimeMillis()
+    }
   }
 }
 
