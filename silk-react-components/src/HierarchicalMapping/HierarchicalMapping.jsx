@@ -30,7 +30,6 @@ const HierarchicalMapping = React.createClass({
         initialRule: React.PropTypes.string,
     },
     componentDidMount() {
-        EventEmitter.on(MESSAGES.RULE_ID.CHANGE, this.handleRuleIdChange);
         EventEmitter.on(MESSAGES.BUTTON.REMOVE_CLICK, this.handleClickRemove);
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);

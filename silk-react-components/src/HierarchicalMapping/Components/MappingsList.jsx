@@ -134,6 +134,7 @@ const MappingsList = React.createClass({
                 snapshot
                 handleCopy={this.props.handleCopy}
                 handleClone={this.props.handleClone}
+                onRuleIdChange={this.props.onRuleIdChange}
             />
         );
 

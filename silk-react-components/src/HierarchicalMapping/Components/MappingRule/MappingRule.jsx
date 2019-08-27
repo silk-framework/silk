@@ -129,7 +129,7 @@ const MappingRule = React.createClass({
     },
     // jumps to selected rule as new center of view
     handleNavigate(id, parent, event) {
-        EventEmitter.emit(MESSAGES.RULE_ID.CHANGE, { newRuleId: id, parentId: parent });
+        this.props.onRuleIdChange({ newRuleId: id, parentId: parent });
         event.stopPropagation();
     },
     // template rendering

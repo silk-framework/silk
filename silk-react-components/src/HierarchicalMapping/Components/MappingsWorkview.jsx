@@ -269,7 +269,7 @@ const MappingsWorkview = React.createClass({
                             copyingData.type === MAPPING_RULE_TYPE_COMPLEX) {
                             sessionStorage.setItem('pastedId', newRuleId);
                         } else if (copyingData.type === MAPPING_RULE_TYPE_OBJECT || copyingData.type === MAPPING_RULE_TYPE_ROOT) {
-                            EventEmitter.emit(MESSAGES.RULE_ID.CHANGE, { newRuleId });
+                            this.props.onRuleIdChange( { newRuleId })
                         }
                         if (cloning) {
                             sessionStorage.removeItem('copyingData');
@@ -376,6 +376,7 @@ const MappingsWorkview = React.createClass({
                     handlePaste={this.handlePaste}
                     handleClone={this.handleClone}
                     isCopying={this.state.isCopying}
+                    onRuleIdChange={this.props.onRuleIdChange}
                 />
             ) : (
                 false

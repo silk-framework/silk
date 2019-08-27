@@ -1,6 +1,5 @@
 export const MESSAGES = {
     RULE_ID: {
-        CHANGE: 'ruleId.change',
         CREATE: 'ruleId.create'
     },
     RULE_VIEW: {
