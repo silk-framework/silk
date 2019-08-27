@@ -29,6 +29,8 @@ const MappingsWorkview = React.createClass({
 
     // define property types
     propTypes: {
+        onToggleTreeNav: React.PropTypes.func,
+        onRuleIdChange: React.PropTypes.func,
         currentRuleId: React.PropTypes.string, // selected rule id
     },
     onRuleCreate({ type }) {
@@ -77,7 +79,6 @@ const MappingsWorkview = React.createClass({
         EventEmitter.on(MESSAGES.RULE_ID.CREATE, this.onRuleCreate);
         EventEmitter.on(MESSAGES.MAPPING.CREATE, this.handleCreate);
         EventEmitter.on(MESSAGES.MAPPING.SHOW_SUGGESTIONS, this.handleShowSuggestions);
-        EventEmitter.on(MESSAGES.TOGGLE_DETAILS, this.handleToggleRuleDetails);
         EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.handleRuleEditClose);
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.handleRuleEditClose);
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.handleRuleEditOpen);
@@ -395,6 +396,9 @@ const MappingsWorkview = React.createClass({
                 <MappingsHeader
                     rule={this.state.ruleData}
                     key={`navhead_${id}`}
+                    onToggleTreeNav={this.props.onToggleTreeNav}
+                    onToggleDetails={this.handleToggleRuleDetails}
+                    onRuleIdChange={this.props.onRuleIdChange}
                 />
                 <div className="mdl-shadow--2dp">
                     <MappingsObject

@@ -18,34 +18,24 @@ import {
 
 import { ParentStructure } from './MappingRule/SharedComponents';
 import RuleTitle from '../elements/RuleTitle';
-import { MESSAGES } from '../constants';
-import EventEmitter from '../utils/EventEmitter';
 
 class MappingsHeader extends React.Component {
     state = {
         showTreenavigation: true,
     };
     
-    handleToggleRuleDetails = (stateExpand) => {
-        EventEmitter.emit(MESSAGES.TOGGLE_DETAILS, stateExpand);
-    }
-    
-    promoteToggleTreenavigation = (stateVisibility) => {
-        EventEmitter.emit(MESSAGES.TREE_NAV.TOGGLE_VISIBILITY, stateVisibility);
-    }
-    
     handleToggleTreenavigation = () => {
-        this.promoteToggleTreenavigation(!this.state.showTreenavigation);
+        this.props.onToggleTreeNav(!this.state.showTreenavigation);
         this.setState({
             showTreenavigation: !this.state.showTreenavigation,
         });
-    }
+    };
     
     // jumps to selected rule as new center of view
     handleNavigate = (id, parent, event) => {
-        EventEmitter.emit(MESSAGES.RULE_ID.CHANGE, { newRuleId: id, parentId: parent })
+        this.props.onRuleIdChange({ newRuleId: id, parentId: parent });
         event.stopPropagation();
-    }
+    };
     
     // template rendering
     render() {
@@ -118,9 +108,9 @@ class MappingsHeader extends React.Component {
                     <MenuItem
                         className="ecc-silk-mapping__ruleslistmenu__item-expand"
                         onClick={() => {
-                            this.handleToggleRuleDetails({
-                                expanded: true,
-                            });
+                            this.props.onToggleDetails({
+                                expanded: true
+                            })
                         }}
                     >
                         Expand all
@@ -128,9 +118,9 @@ class MappingsHeader extends React.Component {
                     <MenuItem
                         className="ecc-silk-mapping__ruleslistmenu__item-reduce"
                         onClick={() => {
-                            this.handleToggleRuleDetails({
-                                expanded: false,
-                            });
+                            this.props.onToggleDetails({
+                                expanded: false
+                            })
                         }}
                     >
                         Reduce all

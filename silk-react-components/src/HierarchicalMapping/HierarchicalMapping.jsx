@@ -36,7 +36,6 @@ const HierarchicalMapping = React.createClass({
         EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
-        EventEmitter.on(MESSAGES.TREE_NAV.TOGGLE_VISIBILITY, this.handleToggleNavigation);
         EventEmitter.on(MESSAGES.RELOAD, this.loadNavigationTree);
         EventEmitter.on(MESSAGES.RULE_ID.CHANGE, this.expandNavigationTreeElement);
         
@@ -237,6 +236,10 @@ const HierarchicalMapping = React.createClass({
     handleCancelDiscard() {
         this.setState({ askForDiscard: false });
     },
+    handleRuleIdChange(rule) {
+        this.onRuleNavigation(rule);
+        this.expandNavigationTreeElement(rule);
+    },
     // template rendering
     render() {
         const {
@@ -313,6 +316,8 @@ const HierarchicalMapping = React.createClass({
                     {
                         <MappingsWorkview
                             currentRuleId={this.state.currentRuleId}
+                            onToggleTreeNav={this.handleToggleNavigation}
+                            onRuleIdChange={this.handleRuleIdChange}
                         />
                     }
                 </div>

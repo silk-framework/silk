@@ -190,12 +190,12 @@ export class InfoBox extends React.Component {
         expanded: false
     };
     
-    toggleExpander(event) {
+    toggleExpander = (event) => {
         event.stopPropagation();
         this.setState({
             expanded: !this.state.expanded,
         });
-    }
+    };
     
     render() {
         return (
