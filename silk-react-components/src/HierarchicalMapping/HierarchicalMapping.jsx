@@ -6,8 +6,8 @@ import {
     Spinner,
 } from '@eccenca/gui-elements';
 import { URI } from 'ecc-utils';
+import PropTypes from 'prop-types';
 
-import UseMessageBus from './UseMessageBusMixin';
 import { getHierarchyAsync, ruleRemoveAsync, setApiDetails } from './store';
 
 import MappingsTree from './Components/MappingsTree';
@@ -19,16 +19,42 @@ import RemoveMappingRuleDialog from './elements/RemoveMappingRuleDialog';
 import DiscardChangesDialog from './elements/DiscardChangesDialog';
 import EventEmitter from './utils/EventEmitter';
 
-const HierarchicalMapping = React.createClass({
-    mixins: [UseMessageBus],
-
+class HierarchicalMapping extends React.Component {
     // define property types
-    propTypes: {
-        baseUrl: React.PropTypes.string.isRequired, // DI API Base
-        project: React.PropTypes.string.isRequired, // Current DI Project
-        transformTask: React.PropTypes.string.isRequired, // Current Transformation
-        initialRule: React.PropTypes.string,
-    },
+    propTypes = {
+        baseUrl: PropTypes.string.isRequired, // DI API Base
+        project: PropTypes.string.isRequired, // Current DI Project
+        transformTask: PropTypes.string.isRequired, // Current Transformation
+        initialRule: PropTypes.string,
+    };
+    
+    constructor(props) {
+        super(props);
+        const {baseUrl, project, transformTask, initialRule} = this.props;
+        setApiDetails({
+            baseUrl,
+            project,
+            transformTask,
+        });
+    
+        // TODO: Use initialRule
+        this.state = {
+            // currently selected rule id
+            currentRuleId: _.isEmpty(initialRule) ? undefined : initialRule,
+            // show / hide navigation
+            showNavigation: true,
+            // which edit view are we viewing
+            elementToDelete: false,
+            editingElements: [],
+            askForDiscard: false,
+        
+            // navigationTree
+            navigationLoading: true,
+            navigationTree: undefined,
+            navigationExpanded: {},
+        };
+    }
+    
     componentDidMount() {
         EventEmitter.on(MESSAGES.BUTTON.REMOVE_CLICK, this.handleClickRemove);
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
@@ -38,38 +64,40 @@ const HierarchicalMapping = React.createClass({
         EventEmitter.on(MESSAGES.RELOAD, this.loadNavigationTree);
         
         this.loadNavigationTree();
-    },
+    };
+    
+    componentDidUpdate(prevProps, prevState) {
+        if (
+            prevState.currentRuleId !== this.state.currentRuleId &&
+            !_.isEmpty(this.state.currentRuleId)
+        ) {
+            const href = window.location.href;
+            
+            try {
+                const uriTemplate = new URI(href);
+                
+                if (uriTemplate.segment(-2) !== 'rule') {
+                    uriTemplate.segment('rule');
+                    uriTemplate.segment('rule');
+                }
+                
+                uriTemplate.segment(-1, this.state.currentRuleId);
+                history.pushState(null, '', uriTemplate.toString());
+            } catch (e) {
+                console.debug(`HierarchicalMapping: ${href} is not an URI, cannot update the window state`);
+            }
+        }
+        if (prevProps.task !== this.props.task) {
+            this.loadNavigationTree();
+        }
+    };
+    
     // initilize state
-    getInitialState() {
-        const {baseUrl, project, transformTask, initialRule} = this.props;
-        setApiDetails({
-            baseUrl,
-            project,
-            transformTask,
-        });
-
-        // TODO: Use initialRule
-        return {
-            // currently selected rule id
-            currentRuleId: _.isEmpty(initialRule) ? undefined : initialRule,
-            // show / hide navigation
-            showNavigation: true,
-            // which edit view are we viewing
-            elementToDelete: false,
-            editingElements: [],
-            askForDiscard: false,
-
-            // navigationTree
-            navigationLoading: true,
-            navigationTree: undefined,
-            navigationExpanded: {},
-        };
-    },
     loadNavigationTree() {
         const { baseUrl, project, transformTask } = this.props;
         const { navigationExpanded } = this.state;
         this.setState({ navigationLoading: true });
-
+        
         getHierarchyAsync({
             baseUrl,
             project,
@@ -90,20 +118,21 @@ const HierarchicalMapping = React.createClass({
                     this.setState({ navigationLoading: false });
                 }
             );
-    },
+    }
+    
     expandNavigationTreeElement({ newRuleId, parentId }) {
         const expanded = { ...this.state.navigationExpanded };
         expanded[newRuleId] = true;
         expanded[parentId] = true;
         this.setState({ navigationExpanded: expanded });
-    },
+    }
     // collapse / expand navigation children
     handleToggleExpandNavigationTree(id) {
         const expanded = { ...this.state.navigationExpanded };
         expanded[id] = !expanded[id];
         this.setState({ navigationExpanded: expanded });
-    },
-
+    }
+    
     onOpenEdit(obj) {
         const id = _.get(obj, 'id', 0);
         if (!_.includes(this.state.editingElements, id)) {
@@ -111,7 +140,8 @@ const HierarchicalMapping = React.createClass({
                 editingElements: _.concat(this.state.editingElements, [id]),
             });
         }
-    },
+    }
+    
     onCloseEdit(obj) {
         const id = _.get(obj, 'id', 0);
         if (_.includes(this.state.editingElements, id)) {
@@ -122,18 +152,18 @@ const HierarchicalMapping = React.createClass({
                 ),
             });
         }
-    },
-    handleClickRemove({
-        id, uri, type, parent,
-    }) {
+    }
+    
+    handleClickRemove = ({ id, uri, type, parent }) => {
         this.setState({
             editingElements: [],
             elementToDelete: {
                 id, uri, type, parent,
             },
         });
-    },
-    handleConfirmRemove(event) {
+    };
+    
+    handleConfirmRemove = (event) => {
         event.stopPropagation();
         const { parent, type } = this.state.elementToDelete;
         this.setState({
@@ -164,14 +194,16 @@ const HierarchicalMapping = React.createClass({
                     });
                 }
             );
-    },
-    handleCancelRemove() {
+    };
+    
+    handleCancelRemove = () => {
         this.setState({
             elementToDelete: false,
         });
-    },
+    };
+    
     // react to rule id changes
-    onRuleNavigation({ newRuleId }) {
+    onRuleNavigation = ({ newRuleId }) => {
         if (newRuleId === this.state.currentRuleId) {
             // Do nothing!
         } else if (this.state.editingElements.length === 0) {
@@ -183,39 +215,16 @@ const HierarchicalMapping = React.createClass({
                 askForDiscard: newRuleId,
             });
         }
-    },
-    componentDidUpdate(prevProps, prevState) {
-        if (
-            prevState.currentRuleId !== this.state.currentRuleId &&
-            !_.isEmpty(this.state.currentRuleId)
-        ) {
-            const href = window.location.href;
-
-            try {
-                const uriTemplate = new URI(href);
-
-                if (uriTemplate.segment(-2) !== 'rule') {
-                    uriTemplate.segment('rule');
-                    uriTemplate.segment('rule');
-                }
-
-                uriTemplate.segment(-1, this.state.currentRuleId);
-                history.pushState(null, '', uriTemplate.toString());
-            } catch (e) {
-                console.debug(`HierarchicalMapping: ${href} is not an URI, cannot update the window state`);
-            }
-        }
-        if (prevProps.task !== this.props.task) {
-            this.loadNavigationTree();
-        }
-    },
+    };
+    
     // show / hide navigation
-    handleToggleNavigation(stateVisibility) {
+    handleToggleNavigation = (stateVisibility) => {
         this.setState({
             showNavigation: stateVisibility,
         });
-    },
-    handleDiscardChanges() {
+    };
+    
+    handleDiscardChanges = () => {
         if (_.includes(this.state.editingElements, 0)) {
             EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: 0 })
         }
@@ -225,19 +234,23 @@ const HierarchicalMapping = React.createClass({
             askForDiscard: false,
         });
         EventEmitter.emit(MESSAGES.RULE_VIEW.DISCARD_ALL);
-    },
-    discardAll() {
+    };
+    
+    discardAll = () => {
         this.setState({
             editingElements: [],
         });
-    },
-    handleCancelDiscard() {
+    };
+    
+    handleCancelDiscard = () => {
         this.setState({ askForDiscard: false });
-    },
-    handleRuleIdChange(rule) {
+    };
+    
+    handleRuleIdChange = (rule) => {
         this.onRuleNavigation(rule);
         this.expandNavigationTreeElement(rule);
-    },
+    };
+    
     // template rendering
     render() {
         const {
@@ -245,7 +258,7 @@ const HierarchicalMapping = React.createClass({
             elementToDelete, askForDiscard, editingElements,
         } = this.state;
         const loading = this.state.loading ? <Spinner /> : false;
-
+        
         // render mapping edit / create view of value and object
         const debugOptions = __DEBUG__ ? (
             <div>
@@ -321,7 +334,7 @@ const HierarchicalMapping = React.createClass({
                 </div>
             </section>
         );
-    },
-});
+    }
+}
 
 export default HierarchicalMapping;
