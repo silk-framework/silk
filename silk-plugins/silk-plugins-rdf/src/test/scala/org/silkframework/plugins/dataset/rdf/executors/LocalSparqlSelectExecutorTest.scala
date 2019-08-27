@@ -9,6 +9,7 @@ import org.silkframework.execution.ExecutionReport
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, TestUserContextTrait, UserContext, ValueHolder}
 import org.silkframework.runtime.plugin.MultilineStringParameter
+import org.silkframework.util.TestMocks
 
 import scala.collection.immutable.SortedMap
 
@@ -17,8 +18,7 @@ class LocalSparqlSelectExecutorTest extends FlatSpec with MustMatchers with Test
 
   it should "not run out of memory and fetch first entity immediately on large result sets" in {
     val quickReactionTime = 500 // quick in the sense that it won't take too long even on a heavy-loaded CI system
-    val activityContextMock = mock[ActivityContext[ExecutionReport]]
-    when(activityContextMock.value).thenReturn(new ValueHolder[ExecutionReport](None))
+    val activityContextMock = TestMocks.activityContextMock()
     val reportUpdater = SparqlSelectExecutionReportUpdater("task", activityContextMock)
     val task = SparqlSelectCustomTask(MultilineStringParameter("SELECT * WHERE {?s ?p ?o}"))
     val sparqlEndpoint = new SparqlEndpoint {

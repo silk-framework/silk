@@ -13,6 +13,7 @@ import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{ActivityContext, UserContext, ValueHolder}
 import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.util.TestMocks
 
 class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with MockitoSugar {
   behavior of "Local SPARQL Update Executor"
@@ -32,8 +33,7 @@ class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with Mock
     Entity("http://example.org/entity/4", IndexedSeq(Seq("http://s2a", "http://s2b"), Seq("s2a", "s2b", "s2c")), schema)
   )
   private val inputTask = mock[PlainTask[TransformSpec]]
-  private val context = mock[ActivityContext[ExecutionReport]]
-  when(context.value).thenReturn(new ValueHolder[ExecutionReport](None))
+  private val context = TestMocks.activityContextMock()
   private val input = Seq(GenericEntityTable(inputEntities, schema, inputTask))
 
   it should "generate the correct batches" in {

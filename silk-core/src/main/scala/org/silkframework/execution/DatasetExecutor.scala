@@ -23,10 +23,10 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
   }
 
   protected def read(task: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: ExecType)
-                    (implicit userContext: UserContext): ExecType#DataType
+                    (implicit userContext: UserContext, context: ActivityContext[ExecutionReport]): ExecType#DataType
 
   protected def write(data: ExecType#DataType, task: Task[DatasetSpec[DatasetType]], execution: ExecType)
-                     (implicit userContext: UserContext): Unit
+                     (implicit userContext: UserContext, context: ActivityContext[ExecutionReport]): Unit
 
   /**
     * Writes all inputs into dataset first and then reads from it if an output schema is defined.
@@ -44,7 +44,7 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     execution: ExecType,
     context: ActivityContext[ExecutionReport]
   )(implicit userContext: UserContext): Option[ExecType#DataType] = {
-
+    implicit val c = context
     for (input <- inputs) {
       write(input, task, execution)
     }

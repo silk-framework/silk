@@ -29,6 +29,8 @@ trait ExecutionReportUpdater {
   private var lastUpdate = 0L
   private var entitiesEmitted = 0
 
+  def additionalFields(): Seq[(String, String)] = Seq.empty
+
   /** Increases the number of entities that were processed/generated. */
   def increaseEntityCounter(): Unit = {
     if(entitiesEmitted == 0) {
@@ -44,6 +46,12 @@ trait ExecutionReportUpdater {
     dateTimeFormatter.format(OffsetDateTime.ofInstant(instant, ZoneOffset.UTC))
   }
 
+  // Runtime in ms
+  final protected def runtime: Long = System.currentTimeMillis() - start
+
+  // Throughput per second
+  final protected def throughput: Double = 1000 * entitiesEmitted.toDouble / runtime
+
   /**
     * Updates the execution report. Does not update the report if the last update was not longer ago than updateDelay.
     *
@@ -56,14 +64,15 @@ trait ExecutionReportUpdater {
       val stats = Seq(
         "Started" -> formatDateTime(start),
         "Runtime" -> s"${runtime.toDouble / 1000} seconds",
-        s"$entityLabelPlural / second" -> (if (runtime <= 0) "-" else (1000 * entitiesEmitted.toDouble / (runtime)).formatted("%.3f")),
+        s"$entityLabelPlural / second" -> (if (runtime <= 0) "-" else throughput.formatted("%.3f")),
         s"Nr. of ${entityLabelPlural.toLowerCase} $entityProcessVerb" -> entitiesEmitted.toString
       ) ++
           Seq("Finished" -> formatDateTime(System.currentTimeMillis())).filter(_ => addEndTime) ++
           startFirstEntity.toSeq.map(firstEntityStart =>
             s"First ${entityLabelSingle.toLowerCase} $entityProcessVerb at" -> formatDateTime(firstEntityStart)) ++
           startFirstEntity.toSeq.map(firstEntityStart =>
-            s"Runtime since first ${entityLabelSingle.toLowerCase} $entityProcessVerb" -> s"${(firstEntityStart - start).toDouble / 1000} seconds")
+            s"Runtime since first ${entityLabelSingle.toLowerCase} $entityProcessVerb" -> s"${(firstEntityStart - start).toDouble / 1000} seconds") ++
+          additionalFields()
       context.value.update(SimpleExecutionReport(taskLabel, stats, None))
       lastUpdate = System.currentTimeMillis()
     }

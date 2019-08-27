@@ -1,5 +1,6 @@
 package org.silkframework.execution.local
 
+import java.util
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.Task
@@ -7,8 +8,8 @@ import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetS
 import org.silkframework.dataset.rdf._
 import org.silkframework.dataset._
 import org.silkframework.entity._
-import org.silkframework.execution.{DatasetExecutor, TaskException}
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.execution.{DatasetExecutor, ExecutionReport, ExecutionReportUpdater, TaskException}
+import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -22,7 +23,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     * Reads data from a dataset.
     */
   override def read(dataset: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: LocalExecution)
-                   (implicit userContext: UserContext): LocalEntities = {
+                   (implicit userContext: UserContext, context: ActivityContext[ExecutionReport]): LocalEntities = {
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
     lazy val source = access(dataset, execution).source
     schema match {
@@ -106,7 +107,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   override protected def write(data: LocalEntities, dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)
-                              (implicit userContext: UserContext): Unit = {
+                              (implicit userContext: UserContext, context: ActivityContext[ExecutionReport]): Unit = {
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
     data match {
       case LinksTable(links, linkType, _) =>
@@ -136,19 +137,92 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
+  final val remainingSparqlUpdateQueryBufferSize = 1000
+
+  case class SparqlUpdateExecutionReportUpdater(taskLabel: String, context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    var remainingQueries = 0
+
+    override def entityProcessVerb: String = "executed"
+
+    override def entityLabelSingle: String = "Update query"
+
+    override def entityLabelPlural: String = "Update queries"
+
+    override def additionalFields(): Seq[(String, String)] = {
+      if(remainingQueries > 0) {
+        Seq(
+          "Remaining queries" -> remainingQueriesStat,
+          "Estimated runtime" -> estimatedRuntimeStat
+        )
+      } else {
+        Seq.empty
+      }
+    }
+
+    private def remainingQueriesStat: String = {
+      if (remainingQueries >= remainingSparqlUpdateQueryBufferSize) {
+        "> " + remainingSparqlUpdateQueryBufferSize
+      } else {
+        remainingQueries.toString
+      }
+    }
+
+    private def estimatedRuntimeStat: String = {
+      if (runtime > 0) {
+        val estimation = (remainingQueries / throughput).formatted("%.2f") + " seconds"
+        if (remainingQueries >= remainingSparqlUpdateQueryBufferSize) {
+          "> " + estimation
+        } else {
+          estimation
+        }
+      } else {
+        "-"
+      }
+    }
+  }
+
   private def executeSparqlUpdateQueries(dataset: Task[DatasetSpec[Dataset]],
                                          sparqlUpdateTable: SparqlUpdateEntityTable)
-                                        (implicit userContext: UserContext): Unit = {
+                                        (implicit userContext: UserContext, context: ActivityContext[ExecutionReport]): Unit = {
     dataset.plugin match {
       case rdfDataset: RdfDataset =>
         val endpoint = rdfDataset.sparqlEndpoint
-        for (entity <- sparqlUpdateTable.entities) {
-          assert(entity.values.size == 1 && entity.values.head.size == 1)
-          endpoint.update(entity.values.head.head)
+        val executionReport = SparqlUpdateExecutionReportUpdater(dataset.taskLabel(), context)
+        val queryBuffer = SparqlQueryBuffer(remainingSparqlUpdateQueryBufferSize, sparqlUpdateTable.entities)
+        for (updateQuery <- queryBuffer) {
+          endpoint.update(updateQuery)
+          executionReport.increaseEntityCounter()
+          executionReport.remainingQueries = queryBuffer.bufferedQuerySize
+          executionReport.update()
         }
+        executionReport.update(force = true, addEndTime = true)
       case _ =>
         throw new ValidationException(s"Dataset task ${dataset.id} is not an RDF dataset!")
     }
+  }
+
+  /** Buffers queries to make prediction about how many queries will be executed.
+    *
+    * @param bufferSize max size of queries that should be buffered
+    */
+  case class SparqlQueryBuffer(bufferSize: Int, entities: Traversable[Entity]) extends Traversable[String] {
+    private val queryBuffer = new util.LinkedList[String]()
+
+    override def foreach[U](f: String => U): Unit = {
+      entities foreach { entity =>
+        assert(entity.values.size == 1 && entity.values.head.size == 1)
+        val query = entity.values.head.head
+        queryBuffer.push(query)
+        if(queryBuffer.size() > bufferSize) {
+          f(queryBuffer.remove())
+        }
+      }
+      while(!queryBuffer.isEmpty) {
+        f(queryBuffer.remove())
+      }
+    }
+
+    def bufferedQuerySize: Int = queryBuffer.size()
   }
 
   // Write the resource from the resource entity table to the dataset's resource
