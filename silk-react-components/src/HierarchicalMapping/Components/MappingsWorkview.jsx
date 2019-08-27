@@ -5,7 +5,7 @@
 import React from 'react';
 import _ from 'lodash';
 import { Spinner } from '@eccenca/gui-elements';
-import UseMessageBus from '../UseMessageBusMixin';
+import PropTypes from 'prop-types';
 import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from '../store';
 import MappingsHeader from './MappingsHeader';
 import MappingsObject from './MappingsObject';
@@ -24,55 +24,26 @@ import { MESSAGES } from '../constants';
 import DiscardChangesDialog from '../elements/DiscardChangesDialog';
 import EventEmitter from '../utils/EventEmitter';
 
-const MappingsWorkview = React.createClass({
-    mixins: [UseMessageBus],
-
+class MappingsWorkview extends React.Component {
+    
     // define property types
-    propTypes: {
-        onToggleTreeNav: React.PropTypes.func,
-        onRuleIdChange: React.PropTypes.func,
-        currentRuleId: React.PropTypes.string, // selected rule id
-    },
-    onRuleCreate({ type }) {
-        this.setState({
-            ruleEditView: {
-                type,
-            },
-        });
-    },
-    handleRuleEditOpen({ id }) {
-        if (!_.includes(this.state.editing, id)) {
-            this.setState({
-                editing: _.concat(this.state.editing, [id]),
-            });
-        }
-    },
-    handleRuleEditClose({ id }) {
-        if (id === 0) {
-            this.setState({
-                ruleEditView: false,
-                editing: _.filter(this.state.editing, e => e !== id),
-            });
-        } else {
-            this.setState({
-                editing: _.filter(this.state.editing, e => e !== id),
-            });
-        }
-    },
-
-    // initilize state
-    getInitialState() {
-        return {
-            loading: true,
-            ruleData: {},
-            ruleEditView: false,
-            editing: [],
-            isCopying: !!sessionStorage.getItem('copyingData'),
-            askForDiscard: false,
-            showSuggestions: false,
-            askForChilds: false,
-        };
-    },
+    static propTypes = {
+        onToggleTreeNav: PropTypes.func,
+        onRuleIdChange: PropTypes.func,
+        currentRuleId: PropTypes.string, // selected rule id
+    };
+    
+    state = {
+        loading: true,
+        ruleData: {},
+        ruleEditView: false,
+        editing: [],
+        isCopying: !!sessionStorage.getItem('copyingData'),
+        askForDiscard: false,
+        showSuggestions: false,
+        askForChilds: false,
+    };
+    
     componentDidMount() {
         this.loadData({ initialLoad: true });
         EventEmitter.on(MESSAGES.RELOAD, this.loadData);
@@ -83,14 +54,57 @@ const MappingsWorkview = React.createClass({
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.handleRuleEditClose);
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.handleRuleEditOpen);
         EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
-    },
-    discardAll() {
+    }
+    
+    componentDidUpdate(prevProps, prevState) {
+        if (prevProps.currentRuleId !== this.props.currentRuleId) {
+            this.loadData();
+        }
+    }
+    
+    shouldComponentUpdate(nextProps, nextState) {
+        // Required to prevent empty redraws while not all data is there.
+        // The issue is due to bad use of React ...
+        return !_.isEmpty(nextState.ruleData);
+    }
+    
+    onRuleCreate = ({ type }) => {
+        this.setState({
+            ruleEditView: {
+                type,
+            },
+        });
+    };
+    
+    handleRuleEditOpen = ({ id }) => {
+        if (!_.includes(this.state.editing, id)) {
+            this.setState({
+                editing: _.concat(this.state.editing, [id]),
+            });
+        }
+    };
+    
+    handleRuleEditClose = ({ id }) => {
+        if (id === 0) {
+            this.setState({
+                ruleEditView: false,
+                editing: _.filter(this.state.editing, e => e !== id),
+            });
+        } else {
+            this.setState({
+                editing: _.filter(this.state.editing, e => e !== id),
+            });
+        }
+    };
+    
+    discardAll = () => {
         this.setState({
             editing: [],
             showSuggestions: false,
         });
-    },
-    handleShowSuggestions(event) {
+    };
+    
+    handleShowSuggestions = (event) => {
         event.stopPropagation();
         if (this.state.editing.length === 0) {
             this.setState({
@@ -104,13 +118,9 @@ const MappingsWorkview = React.createClass({
                 },
             });
         }
-    },
-    componentDidUpdate(prevProps, prevState) {
-        if (prevProps.currentRuleId !== this.props.currentRuleId) {
-            this.loadData();
-        }
-    },
-    loadData(params = {}) {
+    };
+    
+    loadData = (params = {}) => {
         const { initialLoad = false } = params;
 
         this.setState({
@@ -155,8 +165,9 @@ const MappingsWorkview = React.createClass({
                     this.setState({ loading: false });
                 }
             );
-    },
-    handleDiscardChanges(event) {
+    };
+    
+    handleDiscardChanges = (event) => {
         event.stopPropagation();
         const type = _.get(this.state.askForDiscard, 'type', false);
         const suggestions = _.get(
@@ -184,15 +195,17 @@ const MappingsWorkview = React.createClass({
         this.setState({
             askForDiscard: false,
         });
-    },
-    handleCancelDiscard(event) {
+    };
+    
+    handleCancelDiscard = (event) => {
         event.stopPropagation();
         this.setState({
             askForDiscard: false,
         });
-    },
+    };
+    
     // sends event to expand / collapse all mapping rules
-    handleToggleRuleDetails({ expanded }) {
+    handleToggleRuleDetails = ({ expanded }) => {
         if (this.state.editing.length === 0 || expanded) {
             EventEmitter.emit(MESSAGES.RULE_VIEW.TOGGLE, { expanded, id: true });
     
@@ -203,10 +216,10 @@ const MappingsWorkview = React.createClass({
                 },
             });
         }
-    },
+    }
 
     // jumps to selected rule as new center of view
-    handleCreate({ type }) {
+    handleCreate = ({ type }) => {
         if (this.state.editing.length === 0) {
             EventEmitter.emit(MESSAGES.RULE_ID.CREATE, { type });
          
@@ -217,20 +230,14 @@ const MappingsWorkview = React.createClass({
                 },
             });
         }
-    },
+    };
 
-    handleCloseSuggestions() {
+    handleCloseSuggestions = () => {
         this.setState({ showSuggestions: false });
         EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id: 0 });
-    },
+    };
 
-    shouldComponentUpdate(nextProps, nextState) {
-        // Required to prevent empty redraws while not all data is there.
-        // The issue is due to bad use of React ...
-        return !_.isEmpty(nextState.ruleData);
-    },
-
-    handleCopy(id, type) {
+    handleCopy = (id, type) => {
         errorChannel.subject('message.info').onNext({
             message: 'Mapping rule copied. Use "+" button to paste',
         });
@@ -247,9 +254,9 @@ const MappingsWorkview = React.createClass({
         this.setState({
             isCopying: !this.state.isCopying,
         });
-    },
+    };
 
-    handlePaste(cloning = false) {
+    handlePaste = (cloning = false) => {
         const copyingData = JSON.parse(sessionStorage.getItem('copyingData')),
             { breadcrumbs, id } = this.state.ruleData;
         if (copyingData !== {}) {
@@ -278,9 +285,9 @@ const MappingsWorkview = React.createClass({
                     }
                 )
         }
-    },
+    };
 
-    handleClone(id, type, parent = false) {
+    handleClone = (id, type, parent = false) => {
         const apiDetails = getApiDetails();
         const copyingData = {
             baseUrl: apiDetails.baseUrl,
@@ -296,9 +303,8 @@ const MappingsWorkview = React.createClass({
             isCopying: !this.state.isCopying,
         });
         this.handlePaste(true);
-    },
+    };
 
-    // template rendering
     render() {
         const {
             askForDiscard, editing,
@@ -414,7 +420,7 @@ const MappingsWorkview = React.createClass({
                 {createRuleForm}
             </div>
         );
-    },
-});
+    }
+}
 
 export default MappingsWorkview;

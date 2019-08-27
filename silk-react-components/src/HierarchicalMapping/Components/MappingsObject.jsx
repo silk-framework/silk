@@ -19,15 +19,13 @@ import { MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI } from '../helpers
 import { MESSAGES } from '../constants';
 import EventEmitter from '../utils/EventEmitter';
 
-const MappingsObject = React.createClass({
-    mixins: [UseMessageBus],
-    getInitialState() {
-        return {
+class MappingsObject extends React.Component {
+    state = {
             expanded: false,
             editing: false,
             askForDiscard: false,
-        };
-    },
+    };
+    
     componentDidMount() {
         EventEmitter.on(MESSAGES.RULE_VIEW.TOGGLE,  ({ expanded, id }) => {
             // only trigger state / render change if necessary
@@ -42,34 +40,39 @@ const MappingsObject = React.createClass({
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
-    },
-    onOpenEdit(obj) {
+    }
+    
+    onOpenEdit = (obj) => {
         if (this.props.rule.id === obj.id) {
             this.setState({
                 editing: true,
             });
         }
-    },
-    onCloseEdit(obj) {
+    };
+    
+    onCloseEdit = (obj) => {
         if (this.props.rule.id === obj.id) {
             this.setState({
                 editing: false,
             });
         }
-    },
-    handleDiscardChanges() {
+    };
+    
+    handleDiscardChanges = () => {
         this.setState({
             expanded: !this.state.expanded,
             askForDiscard: false,
         });
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: this.props.rule.id });
-    },
-    handleCancelDiscard() {
+    };
+    
+    handleCancelDiscard = () => {
         this.setState({
             askForDiscard: false,
         });
-    },
-    handleToggleExpand() {
+    };
+    
+    handleToggleExpand = () => {
         if (this.state.editing) {
             this.setState({
                 askForDiscard: true,
@@ -79,12 +82,14 @@ const MappingsObject = React.createClass({
                 expanded: !this.state.expanded,
             });
         }
-    },
-    discardAll() {
+    };
+    
+    discardAll = () => {
         this.setState({
             editing: false,
         });
-    },
+    };
+    
     render() {
         if (_.isEmpty(this.props.rule)) {
             return false;
@@ -212,7 +217,7 @@ const MappingsObject = React.createClass({
                 </Card>
             </div>
         );
-    },
-});
+    }
+}
 
 export default MappingsObject;

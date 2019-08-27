@@ -9,44 +9,43 @@ import {
 } from '@eccenca/gui-elements';
 import MappingRule from './MappingRule/MappingRule';
 import { MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT } from '../helpers';
-import UseMessageBus from '../UseMessageBusMixin';
+import PropTypes from 'prop-types';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import { orderRulesAsync } from '../store';
 import { MESSAGES } from '../constants';
 import EventEmitter from '../utils/EventEmitter';
 
-const MappingsList = React.createClass({
-    mixins: [UseMessageBus],
-    // define property types
-    propTypes: {
-        rules: React.PropTypes.array.isRequired,
-        parentRuleId: React.PropTypes.string,
-        // currentRuleId actually the current object mapping rule id we are viewing
-    },
-    getInitialState() {
-        return {
-            items: this.getItems(this.props.rules),
-        };
-    },
+class MappingsList extends React.Component {
+    static propTypes = {
+        rules: PropTypes.array.isRequired,
+        parentRuleId: PropTypes.string,
+    };
+    
+    static defaultProps = {
+        rules: [],
+    };
+    
+    state = {
+        items: this.getItems(this.props.rules),
+    };
+    
     componentDidMount() {
         // process reorder requests from single MappingRules
         EventEmitter.on(MESSAGES.RULE.REQUEST_ORDER, this.orderRules);
-    },
-    getDefaultProps() {
-        return {
-            rules: [],
-        };
-    },
+    }
+    
     componentWillReceiveProps(nextProps) {
         if (_.isEqual(this.props, nextProps)) return;
-
+        
         this.setState({
             items: this.getItems(nextProps.rules),
         });
-    },
-    shouldComponentUpdate(nextProps) {
-        return !_.isEqual(this.props, nextProps);
-    },
+    }
+    
+    // shouldComponentUpdate(nextProps) {
+    //     return !_.isEqual(this.props, nextProps);
+    // }
+    
     orderRules({ fromPos, toPos }) {
         const childrenRules = this.reorder(
             this.state.items.map(a => a.key),
@@ -57,17 +56,19 @@ const MappingsList = React.createClass({
             childrenRules,
             id: this.props.parentRuleId,
         });
-
+        
         // FIXME: this should be in success part of request in case of error but results in content flickering than
         // manage ordering local
         const items = this.reorder(this.state.items, fromPos, toPos);
         this.setState({
             items,
         });
-    },
-    onDragStart(result) {},
+    }
+    
+    onDragStart(result) {}
+    
     // template rendering
-    onDragEnd(result) {
+    onDragEnd = (result) => {
         // dropped outside the list
         if (!result.destination) {
             return;
@@ -84,14 +85,17 @@ const MappingsList = React.createClass({
             toPos,
             reload,
         });
-    },
-    handleCreate(infoCreation) {
+    };
+    
+    handleCreate = (infoCreation) => {
         EventEmitter.emit(MESSAGES.MAPPING.CREATE, infoCreation);
-    },
-    handleShowSuggestions(event) {
+    };
+    
+    handleShowSuggestions = (event) => {
         event.persist();
         EventEmitter.emit(MESSAGES.MAPPING.SHOW_SUGGESTIONS, event);
-    },
+    };
+    
     getItems(rules) {
         return _.map(rules, (rule, i) => ({
             id: i,
@@ -108,17 +112,19 @@ const MappingsList = React.createClass({
                     ? _.get(rule, 'status[0].message', false)
                     : false,
         }));
-    },
+    }
+    
     reorder(list, startIndex, endIndex) {
         const result = Array.from(list);
         const [removed] = result.splice(startIndex, 1);
         result.splice(endIndex, 0, removed);
-
+        
         return result;
-    },
+    }
+    
     render() {
         const { rules } = this.props;
-
+        
         const listTitle = (
             <CardTitle>
                 <div className="mdl-card__title-text">
@@ -126,8 +132,8 @@ const MappingsList = React.createClass({
                 </div>
             </CardTitle>
         );
-
-        const listItem = (index, item, provided, snapshot) => (
+        
+        const listItem = (index, item) => (
             <MappingRule
                 {...item.props}
                 provided
@@ -137,7 +143,7 @@ const MappingsList = React.createClass({
                 onRuleIdChange={this.props.onRuleIdChange}
             />
         );
-
+        
         const listItems = _.isEmpty(rules) ? (
             <CardContent>
                 <Info vertSpacing border>
@@ -163,7 +169,7 @@ const MappingsList = React.createClass({
                 </Droppable>
             </DragDropContext>
         );
-
+        
         const openToBottomFn = () => {
             // Calculates if the floating menu list should be opened to the top or bottom depending on the space to the top.
             let toBottom = false;
@@ -176,7 +182,7 @@ const MappingsList = React.createClass({
             } catch (error) {}
             return toBottom;
         };
-
+        
         const listActions = (
             <FloatingActionList
                 fabSize="large"
@@ -215,7 +221,7 @@ const MappingsList = React.createClass({
                 )}
             />
         );
-
+        
         return (
             <div className="ecc-silk-mapping__ruleslist">
                 <Card shadow={0}>
@@ -225,7 +231,7 @@ const MappingsList = React.createClass({
                 </Card>
             </div>
         );
-    },
-});
+    }
+}
 
 export default MappingsList;

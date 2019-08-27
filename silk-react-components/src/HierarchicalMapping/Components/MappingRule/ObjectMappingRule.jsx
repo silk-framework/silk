@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
     Button,
     DisruptiveButton,
@@ -9,7 +10,6 @@ import {
     NotAvailable,
 } from '@eccenca/gui-elements';
 import _ from 'lodash';
-import UseMessageBus from '../../UseMessageBusMixin';
 import { getEditorHref, updateObjectMappingAsync } from '../../store';
 import ExampleView from './ExampleView';
 import ObjectMappingRuleForm from './Forms/ObjectMappingRuleForm';
@@ -33,20 +33,23 @@ import { MESSAGES } from '../../constants';
 import transformRuleOfObjectMapping from '../../utils/transformRuleOfObjectMapping';
 import EventEmitter from '../../utils/EventEmitter';
 
-const ObjectRule = React.createClass({
-    mixins: [UseMessageBus],
-
+class ObjectRule extends React.Component {
+    state = {
+        edit: !!this.props.edit,
+    };
+    
     // define property types
     // FIXME: check propTypes
-    propTypes: {
-        comment: React.PropTypes.string,
-        id: React.PropTypes.string,
-        parentId: React.PropTypes.string.isRequired,
-        type: React.PropTypes.string,
-        rules: React.PropTypes.object,
-        edit: React.PropTypes.bool.isRequired,
-        ruleData: React.PropTypes.object.isRequired,
-    },
+    static propTypes = {
+        comment: PropTypes.string,
+        id: PropTypes.string,
+        parentId: PropTypes.string.isRequired,
+        type: PropTypes.string,
+        rules: PropTypes.object,
+        edit: PropTypes.bool.isRequired,
+        ruleData: PropTypes.object.isRequired,
+    };
+    
     componentDidMount() {
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.handleCloseEdit);
         if (_.has(this.props, 'rules.uriRule.id')) {
@@ -54,8 +57,17 @@ const ObjectRule = React.createClass({
                 href: getEditorHref(this.props.rules.uriRule.id)
             });
         }
-    },
-    editUriRule(event) {
+    }
+    
+    componentWillReceiveProps(nextProps) {
+        if (_.has(nextProps, 'rules.uriRule.id')) {
+            this.setState({
+                href: getEditorHref(_.get(nextProps, 'rules.uriRule.id', ''))
+            })
+        }
+    }
+    
+    editUriRule = (event) => {
         if (__DEBUG__) {
             event.stopPropagation();
             alert('Normally this would open the complex editor (aka jsplumb view)');
@@ -66,7 +78,8 @@ const ObjectRule = React.createClass({
         } else {
             this.createUriRule();
         }
-    },
+    };
+    
     getOperators(operator, accumulator) {
         if (_.has(operator, 'function')) {
             if (_.has(operator, 'inputs')) {
@@ -81,9 +94,10 @@ const ObjectRule = React.createClass({
             }
             accumulator.push(operator.function);
         }
-
+        
         return accumulator;
-    },
+    }
+    
     getPaths(operator, accumulator) {
         if (_.has(operator, 'path')) {
             accumulator.push(operator.path);
@@ -98,9 +112,10 @@ const ObjectRule = React.createClass({
                     ))
             );
         }
-
+        
         return accumulator;
-    },
+    }
+    
     createUriRule() {
         const rule = _.cloneDeep(this.props);
         rule.rules.uriRule = {
@@ -120,14 +135,15 @@ const ObjectRule = React.createClass({
                 }
             );
         return false;
-    },
-    removeUriRule() {
+    }
+    
+    removeUriRule = () => {
         if (__DEBUG__) {
             event.stopPropagation();
             alert('Normally this would open the complex editor (aka jsplumb view)');
             return false;
         }
-
+        
         const rule = _.cloneDeep(this.props);
         rule.rules.uriRule = null;
         updateObjectMappingAsync(rule)
@@ -140,41 +156,34 @@ const ObjectRule = React.createClass({
                 }
             );
         return false;
-    },
-    getInitialState() {
-        return {
-            edit: !!this.props.edit,
-        };
-    },
+    };
+    
     // open view in edit mode
-    handleEdit() {
+    handleEdit = () => {
         this.setState({
             edit: !this.state.edit,
         });
-    },
-    handleCloseEdit(obj) {
+    };
+    
+    handleCloseEdit = (obj) => {
         if (obj.id === this.props.id) {
             this.setState({ edit: false });
         }
-    },
-    componentWillReceiveProps(nextProps) {
-        if (_.has(nextProps, 'rules.uriRule.id')) {
-            this.setState({
-                href: getEditorHref(_.get(nextProps, 'rules.uriRule.id', ''))
-            })
-        }
-    },
-    handleCopy() {
+    };
+    
+    handleCopy = () => {
         this.props.handleCopy(this.props.id, this.props.type);
-    },
-    handleClone() {
+    };
+    
+    handleClone = () => {
         this.props.handleClone(this.props.id, this.props.type, this.props.parentId);
-    },
+    };
+    
     // template rendering
     render() {
         const { type, ruleData } = this.props;
         const { edit } = this.state;
-
+        
         if (edit) {
             return (
                 <ObjectMappingRuleForm
@@ -186,11 +195,11 @@ const ObjectRule = React.createClass({
                 />
             );
         }
-
+        
         let uriPattern = false;
-
+        
         const uriRuleType = _.get(this, 'props.rules.uriRule.type', false);
-
+        
         let uriPatternLabel = 'URI pattern';
         let tooltipText;
         let removeButton = (
@@ -202,7 +211,7 @@ const ObjectRule = React.createClass({
                 tooltip="Reset to default pattern"
             />
         );
-
+        
         if (uriRuleType === MAPPING_RULE_TYPE_URI) {
             uriPattern = (
                 <code>{_.get(this, 'props.rules.uriRule.pattern')}</code>
@@ -236,7 +245,7 @@ const ObjectRule = React.createClass({
             tooltipText = 'Create URI formula';
             removeButton = false;
         }
-
+        
         uriPattern = (
             <div className="ecc-silk-mapping__rulesviewer__idpattern">
                 <div className="ecc-silk-mapping__rulesviewer__comment">
@@ -259,11 +268,11 @@ const ObjectRule = React.createClass({
                 </div>
             </div>
         );
-
+        
         let targetProperty = false;
         let entityRelation = false;
         let deleteButton = false;
-
+        
         const copyButton = isCopiableRule(this.props.type) &&
             <Button
                 className="ecc-silk-mapping__rulesviewer__actionrow-copy"
@@ -272,7 +281,7 @@ const ObjectRule = React.createClass({
             >
                 Copy
             </Button>;
-
+        
         const cloneButton = isClonableRule(this.props.type) &&
             <Button
                 className="ecc-silk-mapping__rulesviewer__actionrow-clone"
@@ -281,7 +290,7 @@ const ObjectRule = React.createClass({
             >
                 Clone
             </Button>;
-
+        
         if (type !== MAPPING_RULE_TYPE_ROOT) {
             targetProperty = (
                 <div className="ecc-silk-mapping__rulesviewer__targetProperty">
@@ -323,7 +332,7 @@ const ObjectRule = React.createClass({
                     </dl>
                 </div>
             );
-
+            
             entityRelation = (
                 <RadioGroup
                     value={
@@ -358,7 +367,7 @@ const ObjectRule = React.createClass({
                     />
                 </RadioGroup>
             );
-
+            
             deleteButton = (
                 <DisruptiveButton
                     className="ecc-silk-mapping__rulesviewer__actionrow-remove"
@@ -376,9 +385,9 @@ const ObjectRule = React.createClass({
                 </DisruptiveButton>
             );
         }
-
+        
         // TODO: Move up
-
+        
         return (
             <div>
                 <div className="ecc-silk-mapping__rulesviewer">
@@ -390,66 +399,66 @@ const ObjectRule = React.createClass({
                             'rules.typeRules[0].typeUri',
                             false
                         ) ? (
-                                <div className="ecc-silk-mapping__rulesviewer__targetEntityType">
-                                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                            {this.props.rules.typeRules.length > 1
-                                                ? 'Target entity types'
-                                                : 'Target entity type'}
-                                        </dt>
-                                        {this.props.rules.typeRules.map((typeRule, idx) => (
-                                            <dd key={`TargetEntityType_${idx}`}>
-                                                <InfoBox>
-                                                    <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
-                                                        <ThingName
-                                                            id={
-                                                                typeRule.typeUri
-                                                            }
-                                                        />
-                                                    </div>
-                                                    <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-main">
-                                                        <code>
-                                                            {typeRule.typeUri}
-                                                        </code>
-                                                    </div>
-                                                    <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-sub">
-                                                        <ThingDescription
-                                                            id={
-                                                                typeRule.typeUri
-                                                            }
-                                                        />
-                                                    </div>
-                                                </InfoBox>
-                                            </dd>
-                                        ))}
-                                    </dl>
-                                </div>
-                            ) : (
-                                false
-                            )}
-
+                            <div className="ecc-silk-mapping__rulesviewer__targetEntityType">
+                                <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                    <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                                        {this.props.rules.typeRules.length > 1
+                                            ? 'Target entity types'
+                                            : 'Target entity type'}
+                                    </dt>
+                                    {this.props.rules.typeRules.map((typeRule, idx) => (
+                                        <dd key={`TargetEntityType_${idx}`}>
+                                            <InfoBox>
+                                                <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
+                                                    <ThingName
+                                                        id={
+                                                            typeRule.typeUri
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-main">
+                                                    <code>
+                                                        {typeRule.typeUri}
+                                                    </code>
+                                                </div>
+                                                <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-sub">
+                                                    <ThingDescription
+                                                        id={
+                                                            typeRule.typeUri
+                                                        }
+                                                    />
+                                                </div>
+                                            </InfoBox>
+                                        </dd>
+                                    ))}
+                                </dl>
+                            </div>
+                        ) : (
+                            false
+                        )}
+                        
                         {uriPattern}
                         {this.props.type === MAPPING_RULE_TYPE_OBJECT &&
                         _.get(this.props, 'sourcePath', false) ? (
-                                <div className="ecc-silk-mapping__rulesviewer__sourcePath">
-                                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
+                            <div className="ecc-silk-mapping__rulesviewer__sourcePath">
+                                <dl className="ecc-silk-mapping__rulesviewer__attribute">
+                                    <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
                                         Value path
-                                        </dt>
-                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                            <SourcePath
-                                                rule={{
-                                                    type: this.props.type,
-                                                    sourcePath: this.props
-                                                        .sourcePath,
-                                                }}
-                                            />
-                                        </dd>
-                                    </dl>
-                                </div>
-                            ) : (
-                                false
-                            )}
+                                    </dt>
+                                    <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
+                                        <SourcePath
+                                            rule={{
+                                                type: this.props.type,
+                                                sourcePath: this.props
+                                                    .sourcePath,
+                                            }}
+                                        />
+                                    </dd>
+                                </dl>
+                            </div>
+                        ) : (
+                            false
+                        )}
                         {_.get(this.props, 'rules.uriRule.id', false) ? (
                             <div className="ecc-silk-mapping__rulesviewer__examples">
                                 <dl className="ecc-silk-mapping__rulesviewer__attribute">
@@ -518,7 +527,7 @@ const ObjectRule = React.createClass({
                 </div>
             </div>
         );
-    },
-});
+    }
+}
 
 export default ObjectRule;

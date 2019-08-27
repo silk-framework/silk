@@ -21,7 +21,7 @@ import EventEmitter from './utils/EventEmitter';
 
 class HierarchicalMapping extends React.Component {
     // define property types
-    propTypes = {
+    static propTypes = {
         baseUrl: PropTypes.string.isRequired, // DI API Base
         project: PropTypes.string.isRequired, // Current DI Project
         transformTask: PropTypes.string.isRequired, // Current Transformation

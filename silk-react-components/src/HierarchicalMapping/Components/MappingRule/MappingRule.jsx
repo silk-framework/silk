@@ -26,11 +26,9 @@ import className from 'classnames';
 import { MESSAGES } from '../../constants';
 import EventEmitter from '../../utils/EventEmitter';
 
-const MappingRule = React.createClass({
-    mixins: [UseMessageBus],
-
+class MappingRule extends React.Component {
     // define property types
-    propTypes: {
+    static propTypes = {
         comment: React.PropTypes.string,
         id: React.PropTypes.string,
         type: React.PropTypes.string, // mapping type
@@ -45,21 +43,23 @@ const MappingRule = React.createClass({
         count: React.PropTypes.number.isRequired,
         // provided,
         // snapshot,
-    },
+    };
 
     // initilize state
-    getInitialState() {
+    constructor(props) {
+        super(props);
         const pastedId = sessionStorage.getItem('pastedId');
         const isPasted = (pastedId !== null) && (pastedId === this.props.id);
         if (isPasted) { !sessionStorage.removeItem('pastedId'); }
-        return {
+        this.state = {
             isPasted,
             expanded: isPasted || false,
             editing: false,
             askForDiscard: false,
             loading: false,
         };
-    },
+    }
+    
     componentDidMount() {
         // listen for event to expand / collapse mapping rule
         EventEmitter.on(MESSAGES.RULE_VIEW.TOGGLE, ({ expanded, id }) => {
@@ -77,61 +77,66 @@ const MappingRule = React.createClass({
         EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
         
         if (this.state.isPasted) { this.props.scrollIntoView(); }
-    },
-    onOpenEdit(obj) {
+    }
+    
+    onOpenEdit = (obj) => {
         if (_.isEqual(this.props.id, obj.id)) {
             this.setState({
                 editing: true,
             });
         }
-    },
-    onCloseEdit(obj) {
+    };
+    
+    onCloseEdit = (obj) => {
         if (_.isEqual(this.props.id, obj.id)) {
             this.setState({
                 editing: false,
             });
         }
-    },
+    };
 
     // show / hide additional row details
-    handleToggleExpand() {
+    handleToggleExpand = () => {
         if (this.state.editing) {
             this.setState({
                 askForDiscard: true,
             });
         } else this.setState({ expanded: !this.state.expanded });
-    },
-    discardAll() {
+    };
+    
+    discardAll = () => {
         this.setState({
             editing: false,
         });
-    },
-    handleDiscardChanges() {
+    };
+    
+    handleDiscardChanges = () => {
         this.setState({
             expanded: !this.state.expanded,
             askForDiscard: false,
         });
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: this.props.id });
-    },
-    handleCancelDiscard() {
+    };
+    
+    handleCancelDiscard = () => {
         this.setState({
             askForDiscard: false,
         });
-    },
+    };
 
-    handleMoveElement({
-        toPos, fromPos, parentId, id,
-    }, event) {
+    handleMoveElement = ({toPos, fromPos})  => {
         if (fromPos === toPos) {
             return;
         }
         EventEmitter.emit(MESSAGES.RULE.REQUEST_ORDER, { toPos, fromPos, reload: true });
-    },
+    };
+    
     // jumps to selected rule as new center of view
-    handleNavigate(id, parent, event) {
+    handleNavigate = (id, parent, event) => {
         this.props.onRuleIdChange({ newRuleId: id, parentId: parent });
         event.stopPropagation();
-    },
+    };
+    
     // template rendering
     render() {
         const getItemStyle = (draggableStyle, isDragging) => ({
@@ -400,7 +405,7 @@ const MappingRule = React.createClass({
                 )}
             </Draggable>
         );
-    },
-});
+    }
+}
 
 export default ScrollingHOC(MappingRule);

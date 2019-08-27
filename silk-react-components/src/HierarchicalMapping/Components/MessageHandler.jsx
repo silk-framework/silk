@@ -17,29 +17,23 @@ const renderClasses = {
 
 const errorChannel = rxmq.channel('errors');
 
-
-const MessageHandler = React.createClass({
-    mixins: [UseMessageBus],
-
-	// initilize state
-    getInitialState() {
-		// return state
-        return {
-            errorMessages: [],
-        };
-    },
+class MessageHandler extends React.Component {
+    state = {
+        errorMessages: []
+    };
+    
     componentDidMount() {
 		// listen for graphs loading
-        this.subscribe(errorChannel.subject('message'), this.onError.bind(this, 'alert'));
-        this.subscribe(errorChannel.subject('message.alert'), this.onError.bind(this, 'alert'));
-        this.subscribe(errorChannel.subject('message.error'), this.onError.bind(this, 'error'));
-        this.subscribe(errorChannel.subject('message.info'), this.onError.bind(this, 'info'));
-        this.subscribe(errorChannel.subject('message.success'), this.onError.bind(this, 'success'));
-        this.subscribe(errorChannel.subject('message.warning'), this.onError.bind(this, 'warning'));
-    },
+        this.subscribe(errorChannel.subject('message'), this.onError('alert'));
+        this.subscribe(errorChannel.subject('message.alert'), this.onError('alert'));
+        this.subscribe(errorChannel.subject('message.error'), this.onError('error'));
+        this.subscribe(errorChannel.subject('message.info'), this.onError('info'));
+        this.subscribe(errorChannel.subject('message.success'), this.onError('success'));
+        this.subscribe(errorChannel.subject('message.warning'), this.onError('warning'));
+    }
 
 	// handle graphs loaded
-    onError(errorType, data) {
+    onError = (errorType, data) => {
 		// get current messages
         const { errorMessages } = this.state;
         const messageKey = _.uniqueId('messageHandler--message-');
@@ -68,19 +62,19 @@ const MessageHandler = React.createClass({
                 errorMessages,
             });
         }
-    },
+    };
 
     removeAfterDelay(type, key) {
         setTimeout(() => {
             this.removeMessage(key);
         }, 3000);
-    },
+    };
 
-    removeMessage(key) {
+    removeMessage = (key) => {
         const errorMessages = _.reject(this.state.errorMessages, ['key', key]);
 		// apply to state
         this.setState({ errorMessages });
-    },
+    };
 
     render() {
         const messages = this.state.errorMessages.map(({ message, errorType, key }, index) => {
@@ -103,7 +97,7 @@ const MessageHandler = React.createClass({
                 {messages}
             </div>
         ) : false;
-    },
-});
+    }
+}
 
 export default MessageHandler;

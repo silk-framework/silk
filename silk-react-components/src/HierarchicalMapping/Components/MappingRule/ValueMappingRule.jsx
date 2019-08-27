@@ -3,12 +3,11 @@ import {
     Button,
     DisruptiveButton,
     Card,
-    CardTitle,
     CardContent,
     CardActions,
 } from '@eccenca/gui-elements';
 import _ from 'lodash';
-import UseMessageBus from '../../UseMessageBusMixin';
+import PropTypes from 'prop-types';
 import ExampleView from './ExampleView';
 import { getEditorHref } from '../../store';
 import ValueMappingRuleForm from './Forms/ValueMappingRuleForm';
@@ -23,48 +22,62 @@ import { MAPPING_RULE_TYPE_DIRECT } from '../../helpers';
 import { MESSAGES } from '../../constants';
 import EventEmitter from '../../utils/EventEmitter';
 
-const RuleValueView = React.createClass({
-    mixins: [UseMessageBus],
+const propertyTypeLabel = (valueType) => {
+    // Adds optional properties of the property type to the label, e.g. language tag
+    if (typeof valueType.lang === 'string') {
+        return ` (${valueType.lang})`;
+    }
+    return '';
+};
+
+class RuleValueView extends React.Component {
     // define property types
-    propTypes: {
-        comment: React.PropTypes.string,
-        id: React.PropTypes.string,
-        // operator: React.PropTypes.object,
-        type: React.PropTypes.string,
-        sourcePath: React.PropTypes.string,
-        mappingTarget: React.PropTypes.object,
-        edit: React.PropTypes.bool.isRequired,
-    },
-    handleCloseEdit(obj) {
-        if (obj.id === this.props.id) this.setState({ edit: false });
-    },
+    static propTypes = {
+        comment: PropTypes.string,
+        id: PropTypes.string,
+        // operator: PropTypes.object,
+        type: PropTypes.string,
+        sourcePath: PropTypes.string,
+        mappingTarget: PropTypes.object,
+        edit: PropTypes.bool.isRequired,
+    };
+    
+    state = {
+        edit: this.props.edit,
+        href: getEditorHref(this.props.id),
+    };
+    
     componentDidMount() {
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.handleCloseEdit);
-    },
-    getInitialState() {
-        return {
-            edit: this.props.edit,
-            href: getEditorHref(this.props.id),
-        };
-    },
-    handleComplexEdit(event) {
+    }
+    
+    handleCloseEdit = (obj) => {
+        if (obj.id === this.props.id) {
+            this.setState({ edit: false });
+        }
+    };
+    
+    handleComplexEdit = (event) => {
         if (__DEBUG__) {
             event.stopPropagation();
             alert('Normally this would open the complex editor (aka jsplumb view)');
             return false;
         }
-    },
+    };
+    
     // open view in edit mode
-    handleEdit(event) {
+    handleEdit = (event) => {
         event.stopPropagation();
         this.setState({
             edit: !this.state.edit,
         });
-    },
-    handleClose(event) {
+    };
+    
+    handleClose = (event) => {
         event.stopPropagation();
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: this.props.id });
-    },
+    };
+    
     getOperators(operator, accumulator) {
         if (_.has(operator, 'function')) {
             if (_.has(operator, 'inputs')) {
@@ -81,20 +94,16 @@ const RuleValueView = React.createClass({
         }
 
         return accumulator;
-    },
-    propertyTypeLabel(valueType) {
-        // Adds optional properties of the property type to the label, e.g. language tag
-        if (typeof valueType.lang === 'string') {
-            return ` (${valueType.lang})`;
-        }
-        return '';
-    },
-    handleCopy() {
+    }
+    
+    handleCopy = () => {
         this.props.handleCopy(this.props.id, this.props.type);
-    },
-    handleClone() {
+    };
+    
+    handleClone = () => {
         this.props.handleClone(this.props.id, this.props.type);
-    },
+    };
+    
     // template rendering
     render() {
         const { edit } = this.state;
@@ -188,7 +197,7 @@ const RuleValueView = React.createClass({
                                             <div className="ecc-silk-mapping__rulesviewer__attribute-title ecc-silk-mapping__rulesviewer__infobox-main">
                                                 <PropertyTypeLabel
                                                     name={nodeType}
-                                                    appendedText={this.propertyTypeLabel(this.props.mappingTarget.valueType)}
+                                                    appendedText={propertyTypeLabel(this.props.mappingTarget.valueType)}
                                                 />
                                             </div>
                                             <div className="ecc-silk-mapping__rulesviewer__attribute-info ecc-silk-mapping__rulesviewer__infobox-sub">
@@ -346,7 +355,7 @@ const RuleValueView = React.createClass({
                 </Card>
             </div>
         );
-    },
-});
+    }
+}
 
 export default RuleValueView;
