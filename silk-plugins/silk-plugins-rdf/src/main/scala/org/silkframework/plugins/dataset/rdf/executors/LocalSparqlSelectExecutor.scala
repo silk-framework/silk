@@ -4,9 +4,9 @@ import org.silkframework.config.Task
 import org.silkframework.dataset.DataSource
 import org.silkframework.dataset.rdf.{SparqlEndpointEntityTable, SparqlResults}
 import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.execution.{ExecutionReport, TaskException}
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
-import org.silkframework.plugins.dataset.rdf.tasks.{SparqlCopyCustomTask, SparqlSelectCustomTask}
+import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, TaskException}
+import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 
 /**
@@ -23,7 +23,8 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
 
     inputs match {
       case Seq(sparql: SparqlEndpointEntityTable) =>
-        val entities = executeOnSparqlEndpointEntityTable(taskData, sparql)
+        implicit val executionReportUpdater: SparqlSelectExecutionReportUpdater = SparqlSelectExecutionReportUpdater(task.taskLabel(), context)
+        val entities = executeOnSparqlEndpointEntityTable(taskData, sparql, executionReportUpdater = Some(executionReportUpdater))
         Some(GenericEntityTable(entities, entitySchema = taskData.outputSchema, task))
       case _ =>
         throw TaskException("SPARQL select executor did not receive a SPARQL endpoint as requested!")
@@ -32,15 +33,16 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
 
   def executeOnSparqlEndpointEntityTable(sparqlSelectTask: SparqlSelectCustomTask,
                                          sparql: SparqlEndpointEntityTable,
-                                         limit: Int = Integer.MAX_VALUE)
+                                         limit: Int = Integer.MAX_VALUE,
+                                         executionReportUpdater: Option[SparqlSelectExecutionReportUpdater])
                                         (implicit userContext: UserContext): Traversable[Entity] = {
     val selectLimit = math.min(sparqlSelectTask.intLimit.getOrElse(Integer.MAX_VALUE), limit)
     val results = sparql.select(sparqlSelectTask.selectQuery.str, selectLimit)
     val vars: IndexedSeq[String] = getSparqlVars(sparqlSelectTask)
-    createEntities(sparqlSelectTask, results, vars)
+    createEntities(sparqlSelectTask, results, vars, executionReportUpdater)
   }
 
-  private def getSparqlVars(taskData: SparqlSelectCustomTask) = {
+  private def getSparqlVars(taskData: SparqlSelectCustomTask): IndexedSeq[String] = {
     val vars = taskData.outputSchema.typedPaths map { v =>
       v.propertyUri match {
         case Some(prop) =>
@@ -54,7 +56,14 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
 
   private def createEntities(taskData: SparqlSelectCustomTask,
                              results: SparqlResults,
-                             vars: IndexedSeq[String]): Traversable[Entity] = {
+                             vars: IndexedSeq[String],
+                             executionReportUpdater: Option[SparqlSelectExecutionReportUpdater]): Traversable[Entity] = {
+    val increase: () => Unit = executionReportUpdater match {
+      case Some(updater) => () =>
+        updater.increaseEntityCounter()
+        updater.update()
+      case None => () => {} // no-op
+    }
     new Traversable[Entity] {
       override def foreach[U](f: Entity => U): Unit = {
         var count = 0
@@ -64,8 +73,17 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
             binding.get(v).toSeq.map(_.value)
           }
           f(Entity(DataSource.URN_NID_PREFIX + count, values = values, schema = taskData.outputSchema))
+          increase()
         }
+        executionReportUpdater.foreach(updater => updater.update(force = true, addEndTime = true))
       }
     }
   }
+}
+
+case class SparqlSelectExecutionReportUpdater(taskLabel: String,
+                                              context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  override def entityLabelSingle: String = "Row"
+
+  override def entityLabelPlural: String = "Rows"
 }

@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf
 
-import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito._
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.PlainTask
 import org.silkframework.entity._
