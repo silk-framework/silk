@@ -57,5 +57,11 @@ class ZipInputStreamResourceManagerTest extends FlatSpec with MustMatchers {
     intercept[IllegalArgumentException] {
       manager.get("somePath/morePath/./../../../etc/passwd")
     }
+
+    val managerWithBaseDir = new ZipOutputStreamResourceManager(zipFile, "base/Path", true)
+    managerWithBaseDir.get("someDir/../allowedAccess")
+    intercept[IllegalArgumentException] {
+      managerWithBaseDir.get("../../etc/passwd")
+    }
   }
 }
