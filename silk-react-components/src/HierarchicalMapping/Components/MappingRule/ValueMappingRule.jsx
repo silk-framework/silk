@@ -51,6 +51,10 @@ class RuleValueView extends React.Component {
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.handleCloseEdit);
     }
     
+    componentWillUnmount() {
+        EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.handleCloseEdit);
+    }
+    
     handleCloseEdit = (obj) => {
         if (obj.id === this.props.id) {
             this.setState({ edit: false });

@@ -34,6 +34,11 @@ class MappingsList extends React.Component {
         EventEmitter.on(MESSAGES.RULE.REQUEST_ORDER, this.orderRules);
     }
     
+    componentWillUnmount() {
+        // process reorder requests from single MappingRules
+        EventEmitter.off(MESSAGES.RULE.REQUEST_ORDER, this.orderRules);
+    }
+    
     componentWillReceiveProps(nextProps) {
         if (_.isEqual(this.props, nextProps)) return;
         
@@ -46,7 +51,7 @@ class MappingsList extends React.Component {
     //     return !_.isEqual(this.props, nextProps);
     // }
     
-    orderRules({ fromPos, toPos }) {
+    orderRules = ({ fromPos, toPos }) => {
         const childrenRules = this.reorder(
             this.state.items.map(a => a.key),
             fromPos,

@@ -66,6 +66,15 @@ class HierarchicalMapping extends React.Component {
         this.loadNavigationTree();
     };
     
+    componentWillUnmount() {
+        EventEmitter.off(MESSAGES.BUTTON.REMOVE_CLICK, this.handleClickRemove);
+        EventEmitter.off(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
+        EventEmitter.off(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
+        EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
+        EventEmitter.off(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
+        EventEmitter.off(MESSAGES.RELOAD, this.loadNavigationTree);
+    }
+    
     componentDidUpdate(prevProps, prevState) {
         if (
             prevState.currentRuleId !== this.state.currentRuleId &&
@@ -93,7 +102,7 @@ class HierarchicalMapping extends React.Component {
     };
     
     // initilize state
-    loadNavigationTree() {
+    loadNavigationTree = () => {
         const { baseUrl, project, transformTask } = this.props;
         const { navigationExpanded } = this.state;
         this.setState({ navigationLoading: true });
@@ -133,7 +142,7 @@ class HierarchicalMapping extends React.Component {
         this.setState({ navigationExpanded: expanded });
     }
     
-    onOpenEdit(obj) {
+    onOpenEdit = (obj) => {
         const id = _.get(obj, 'id', 0);
         if (!_.includes(this.state.editingElements, id)) {
             this.setState({
@@ -142,7 +151,7 @@ class HierarchicalMapping extends React.Component {
         }
     }
     
-    onCloseEdit(obj) {
+    onCloseEdit = (obj) => {
         const id = _.get(obj, 'id', 0);
         if (_.includes(this.state.editingElements, id)) {
             this.setState({

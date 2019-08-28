@@ -62,22 +62,31 @@ class MappingRule extends React.Component {
     
     componentDidMount() {
         // listen for event to expand / collapse mapping rule
-        EventEmitter.on(MESSAGES.RULE_VIEW.TOGGLE, ({ expanded, id }) => {
-            // only trigger state / render change if necessary
-            if (
-                expanded !== this.state.expanded &&
-                this.props.type !== MAPPING_RULE_TYPE_OBJECT &&
-                (id === true || id === this.props.id)
-            ) {
-                this.setState({ expanded });
-            }
-        });
+        EventEmitter.on(MESSAGES.RULE_VIEW.TOGGLE, this.handleToggleRule);
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
         
         if (this.state.isPasted) { this.props.scrollIntoView(); }
     }
+    
+    componentWillUnmount() {
+        EventEmitter.off(MESSAGES.RULE_VIEW.TOGGLE, this.handleToggleRule);
+        EventEmitter.off(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
+        EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
+        EventEmitter.off(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
+    }
+    
+    handleToggleRule = ({ expanded, id }) => {
+        // only trigger state / render change if necessary
+        if (
+            expanded !== this.state.expanded &&
+            this.props.type !== MAPPING_RULE_TYPE_OBJECT &&
+            (id === true || id === this.props.id)
+        ) {
+            this.setState({ expanded });
+        }
+    };
     
     onOpenEdit = (obj) => {
         if (_.isEqual(this.props.id, obj.id)) {

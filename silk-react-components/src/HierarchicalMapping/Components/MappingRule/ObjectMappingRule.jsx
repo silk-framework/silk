@@ -59,6 +59,10 @@ class ObjectRule extends React.Component {
         }
     }
     
+    componentWillUnmount() {
+        EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.handleCloseEdit);
+    }
+    
     componentWillReceiveProps(nextProps) {
         if (_.has(nextProps, 'rules.uriRule.id')) {
             this.setState({

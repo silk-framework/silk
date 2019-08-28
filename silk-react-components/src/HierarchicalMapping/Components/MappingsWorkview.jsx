@@ -56,6 +56,17 @@ class MappingsWorkview extends React.Component {
         EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
     }
     
+    componentWillUnmount() {
+        EventEmitter.off(MESSAGES.RELOAD, this.loadData);
+        EventEmitter.off(MESSAGES.RULE_ID.CREATE, this.onRuleCreate);
+        EventEmitter.off(MESSAGES.MAPPING.CREATE, this.handleCreate);
+        EventEmitter.off(MESSAGES.MAPPING.SHOW_SUGGESTIONS, this.handleShowSuggestions);
+        EventEmitter.off(MESSAGES.RULE_VIEW.UNCHANGED, this.handleRuleEditClose);
+        EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.handleRuleEditClose);
+        EventEmitter.off(MESSAGES.RULE_VIEW.CHANGE, this.handleRuleEditOpen);
+        EventEmitter.off(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
+    }
+    
     componentDidUpdate(prevProps, prevState) {
         if (prevProps.currentRuleId !== this.props.currentRuleId) {
             this.loadData();

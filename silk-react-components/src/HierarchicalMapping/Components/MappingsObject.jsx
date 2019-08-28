@@ -27,20 +27,28 @@ class MappingsObject extends React.Component {
     };
     
     componentDidMount() {
-        EventEmitter.on(MESSAGES.RULE_VIEW.TOGGLE,  ({ expanded, id }) => {
-            // only trigger state / render change if necessary
-            if (
-                (id === true || id === this.props.rule.id) &&
-                expanded !== this.state.expanded
-            ) {
-                this.setState({ expanded });
-            }
-        });
-        
+        EventEmitter.on(MESSAGES.RULE_VIEW.TOGGLE, this.handleRuleToggle);
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
     }
+    
+    componentWillUnmount() {
+        EventEmitter.off(MESSAGES.RULE_VIEW.TOGGLE, this.handleRuleToggle);
+        EventEmitter.off(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
+        EventEmitter.off(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
+        EventEmitter.off(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
+    }
+    
+    handleRuleToggle = ({ expanded, id }) => {
+        // only trigger state / render change if necessary
+        if (
+            (id === true || id === this.props.rule.id) &&
+            expanded !== this.state.expanded
+        ) {
+            this.setState({ expanded });
+        }
+    };
     
     onOpenEdit = (obj) => {
         if (this.props.rule.id === obj.id) {

@@ -24,12 +24,12 @@ class MessageHandler extends React.Component {
     
     componentDidMount() {
 		// listen for graphs loading
-        this.subscribe(errorChannel.subject('message'), this.onError('alert'));
-        this.subscribe(errorChannel.subject('message.alert'), this.onError('alert'));
-        this.subscribe(errorChannel.subject('message.error'), this.onError('error'));
-        this.subscribe(errorChannel.subject('message.info'), this.onError('info'));
-        this.subscribe(errorChannel.subject('message.success'), this.onError('success'));
-        this.subscribe(errorChannel.subject('message.warning'), this.onError('warning'));
+        errorChannel.subject('message').subscribe((data) => this.onError('alert', data));
+        errorChannel.subject('message.alert').subscribe((data) => this.onError('alert', data));
+        errorChannel.subject('message.error').subscribe((data) => this.onError('error', data));
+        errorChannel.subject('message.info').subscribe((data) => this.onError('info', data));
+        errorChannel.subject('message.success').subscribe((data) => this.onError('success', data));
+        errorChannel.subject('message.warning').subscribe((data) => this.onError('warning', data));
     }
 
 	// handle graphs loaded
