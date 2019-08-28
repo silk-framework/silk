@@ -6,7 +6,6 @@ import org.silkframework.config.CustomTask
 import org.silkframework.entity._
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.local.{EmptyEntityTable, SparqlUpdateEntitySchema}
-import org.silkframework.plugins.dataset.rdf.RdfFormatUtil
 import org.silkframework.rule.util.JenaSerializationUtil
 import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
 import org.silkframework.runtime.validation.ValidationException

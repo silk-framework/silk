@@ -105,8 +105,9 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins RDF",
-    libraryDependencies += "org.apache.jena" % "jena-fuseki-embedded" % "3.7.0" % "test"
-  )
+    libraryDependencies += "org.apache.jena" % "jena-fuseki-embedded" % "3.7.0" % "test",
+    libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.1"
+)
 
 lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
   .dependsOn(core)

@@ -2,12 +2,10 @@ package org.silkframework.plugins.dataset.rdf.executors
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.scalatestplus.mockito.MockitoSugar
-import org.mockito.Mockito._
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.rdf._
-import org.silkframework.execution.ExecutionReport
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
-import org.silkframework.runtime.activity.{ActivityContext, TestUserContextTrait, UserContext, ValueHolder}
+import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
 import org.silkframework.runtime.plugin.MultilineStringParameter
 import org.silkframework.util.TestMocks
 
@@ -39,7 +37,8 @@ class LocalSparqlSelectExecutorTest extends FlatSpec with MustMatchers with Test
     val entityTable = new SparqlEndpointEntityTable(sparqlEndpoint, mock[Task[TaskSpec]])
     val start = System.currentTimeMillis()
     val entities = LocalSparqlSelectExecutor().executeOnSparqlEndpointEntityTable(task, entityTable, executionReportUpdater = Some(reportUpdater))
-    entities.head.values.flatten.head mustBe "subject 0"
+    val entity = entities.head
+    entity.values.flatten.head mustBe "subject 0"
     (System.currentTimeMillis() - start).toInt must be < quickReactionTime
   }
 }
