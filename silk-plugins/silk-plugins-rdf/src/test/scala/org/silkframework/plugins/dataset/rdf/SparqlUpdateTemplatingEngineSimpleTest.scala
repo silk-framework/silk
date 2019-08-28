@@ -2,10 +2,11 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.plugins.dataset.rdf.tasks._
+import org.silkframework.plugins.dataset.rdf.tasks.templating._
 import org.silkframework.runtime.validation.ValidationException
 
-class SparqlUpdateCustomTaskTest extends FlatSpec with MustMatchers {
-  behavior of "SPARQL Update Custom Task"
+class SparqlUpdateTemplatingEngineSimpleTest extends FlatSpec with MustMatchers {
+  behavior of "SPARQL Update Simple Templating Engine"
 
   private val sparqlUpdateTemplate =
     """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -75,6 +76,8 @@ class SparqlUpdateCustomTaskTest extends FlatSpec with MustMatchers {
   }
 
   def parse(sparqlUpdateTemplate: String, batchSize: Int = SparqlUpdateCustomTask.defaultBatchSize): Seq[SparqlUpdateTemplatePart] = {
-    SparqlUpdateCustomTask(sparqlUpdateTemplate, batchSize).sparqlUpdateTemplateParts
+    val engine = SparqlUpdateTemplatingEngineSimple(sparqlUpdateTemplate, batchSize)
+    engine.validate()
+    engine.sparqlUpdateTemplateParts
   }
 }
