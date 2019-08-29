@@ -19,7 +19,7 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
                                   @Param(label = "Batch size", value = "How many entities should be handled in a single update request.")
                                   batchSize: Int = SparqlUpdateCustomTask.defaultBatchSize,
                                   @Param("The templating mode. 'Simple' only allows simple URI and literal insertions, whereas 'Velocity Engine' supports complex templating." +
-                                      " See operator description for examples and http://velocity.apache.org for details on Velocity templates.")
+                                      " See 'Sparql Update Template' parameter description for examples and http://velocity.apache.org for details on the Velocity templates.")
                                   templatingMode: SparqlUpdateTemplatingMode = SparqlUpdateTemplatingMode.simple) extends CustomTask {
   assert(batchSize >= 1, "Batch size must be greater zero!")
 
@@ -51,15 +51,36 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
 object SparqlUpdateCustomTask {
   final val sparqlUpdateTemplateDescription =
     """
-This operator takes a SPARQL Update Query Template, with placeholders for either URI or plain literal nodes.
-Example:
+This operator takes a SPARQL Update Query Template that depending on the templating mode (Simple/Velocity Engine) supports
+a set of templating features, e.g. filling in input values via placeholders in the template.
+
+Example for the 'Simple' mode:
+
   DELETE DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA2"} }
   INSERT DATA { ${<PROP_FROM_ENTITY_SCHEMA1>} rdf:label ${"PROP_FROM_ENTITY_SCHEMA3"} }
   
-This will insert the URI serialization of the property value PROP_FROM_ENTITY_SCHEMA1 for the ${<PROP_FROM_ENTITY_SCHEMA1>} expression.
-And it will insert a plain literal serialization for the property values PROP_FROM_ENTITY_SCHEMA2/3 for the template literal expressions.
+  This will insert the URI serialization of the property value PROP_FROM_ENTITY_SCHEMA1 for the ${<PROP_FROM_ENTITY_SCHEMA1>} expression.
+  And it will insert a plain literal serialization for the property values PROP_FROM_ENTITY_SCHEMA2/3 for the template literal expressions.
 
-It is be possible to write something like ${"PROP"}^^<http://someDatatype> or ${"PROP"}@en.
+  It is be possible to write something like ${"PROP"}^^<http://someDatatype> or ${"PROP"}@en.
+
+Example for the 'Velocity Engine' mode:
+
+  DELETE DATA { $row.asUri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $row.asPlainLiteral("PROP_FROM_ENTITY_SCHEMA2") }
+  #if ( $row.exists("PROP_FROM_ENTITY_SCHEMA1") )
+    INSERT DATA { $row.asUri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $row.asPlainLiteral("PROP_FROM_ENTITY_SCHEMA3") }
+  #end
+
+  Input values are accessible via various methods of the 'row' variable:
+
+  - asUri(inputPath: String): Renders an input value as URI. Throws exception if the value is no valid URI.
+  - asPlainLiteral(inputPath: String): Renders an input value as plain literal, i.e. escapes problematic characters etc.
+  - asRawUnsafe(inputPath: String): Renders an input value as is, i.e. no escaping is done. This should only be used – better never – if the input values can be trusted.
+  - exists(inputPath: String): Returns true if a value for the input path exists, else false.
+
+  The methods asUri, asPlainLiteral and asRawUnsafe throw an exception if no input value is available for the given input path.
+
+  For more information about the Velocity Engine visit http://velocity.apache.org.
     """
 
   final val defaultBatchSize = 10

@@ -22,7 +22,7 @@ object SparqlTemplating {
   /** Creates a Velocity template based on the given template string. */
   def createTemplate(sparqlTemplate: String): Template = {
     val service = RuntimeSingleton.getRuntimeServices
-    service.addProperty("runtime.references.strict", true)
+    service.addProperty("runtime.strict_mode.enable", true)
     val reader = new StringReader(sparqlTemplate)
     val template = new Template()
     template.setRuntimeServices(service)

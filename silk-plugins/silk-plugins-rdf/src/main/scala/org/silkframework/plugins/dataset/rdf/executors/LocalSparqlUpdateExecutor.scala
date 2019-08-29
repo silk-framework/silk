@@ -1,13 +1,10 @@
 package org.silkframework.plugins.dataset.rdf.executors
 
-import java.time.Duration
-
-import org.apache.commons.lang3.time.DateFormatUtils
 import org.silkframework.config.Task
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local._
-import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, SimpleExecutionReport}
+import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
@@ -86,6 +83,7 @@ case class SparqlUpdateExecutionReportUpdater(taskLabel: String,
 
 case class CrossProductIterator(values: IndexedSeq[Seq[String]],
                                 properties: IndexedSeq[String]) extends Iterator[Map[String, String]] {
+  // TODO: Add optional values
   assert(values.nonEmpty)
   private val sizes = values.map(_.size).toArray
   // Holds the current index combination
