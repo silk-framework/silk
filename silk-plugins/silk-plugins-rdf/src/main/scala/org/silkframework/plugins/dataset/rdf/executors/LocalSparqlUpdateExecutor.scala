@@ -83,30 +83,33 @@ case class SparqlUpdateExecutionReportUpdater(taskLabel: String,
 
 case class CrossProductIterator(values: IndexedSeq[Seq[String]],
                                 properties: IndexedSeq[String]) extends Iterator[Map[String, String]] {
-  // TODO: Add optional values
   assert(values.nonEmpty)
   private val sizes = values.map(_.size).toArray
   // Holds the current index combination
   private val indexes = new Array[Int](values.size)
+  private val firstNonEmptyIdx = sizes.zipWithIndex.filter(_._1 > 0).map(_._2).headOption.getOrElse(-1) // -1 if all are empty
   private val lastIndex = values.size - 1
-  private val emptyIndexExists = sizes.contains(0)
+  private var first: Boolean = true // This makes sure that at least one assignment is always generated
 
-  override def hasNext: Boolean = indexes(0) < sizes(0) && !emptyIndexExists
+  override def hasNext: Boolean = first || firstNonEmptyIdx > -1 && (indexes(firstNonEmptyIdx) < sizes(firstNonEmptyIdx))
 
   override def next(): Map[String, String] = {
     if(!hasNext) {
       throw new IllegalStateException("Iterator is fully consumed and has no more values!")
     }
-    val nextValue = properties.zip(indexes.zipWithIndex.map { case (valueIdx, valuesIdx) => values(valuesIdx)(valueIdx) }).toMap
+    val nextAssignment = indexes.zipWithIndex.collect {
+      case (valueIdx, propertyIndex) if sizes(propertyIndex) > 0 => properties(propertyIndex) -> values(propertyIndex)(valueIdx)
+    }.toMap
     setNextIndexCombinations()
-    nextValue
+    first = false
+    nextAssignment
   }
 
   private def setNextIndexCombinations(): Unit = {
     var idx = lastIndex
     while(idx > -1) {
       indexes(idx) += 1
-      if(indexes(idx) >= sizes(idx) && idx != 0) { // Do not reset the first index, because of hasNext check
+      if(indexes(idx) >= sizes(idx) && idx != firstNonEmptyIdx) { // Do not reset the first index, because of hasNext check
         indexes(idx) = 0
         idx -= 1
       } else if(idx > 0) {

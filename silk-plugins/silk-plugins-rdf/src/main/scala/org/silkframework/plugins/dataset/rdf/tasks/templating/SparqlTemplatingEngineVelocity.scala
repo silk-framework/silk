@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.tasks.templating
 import org.apache.jena.update.UpdateFactory
-import org.apache.velocity.runtime.parser.node.{ASTExpression, ASTIdentifier, ASTMethod, ASTReference, ASTStringLiteral, Node, SimpleNode}
+import org.apache.velocity.runtime.parser.node._
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.local.EmptyEntityTable
