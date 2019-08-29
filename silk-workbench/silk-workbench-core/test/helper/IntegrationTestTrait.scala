@@ -31,7 +31,7 @@ import scala.xml.{Elem, XML}
 /**
   * Basis for integration tests.
   */
-trait IntegrationTestTrait extends TaskApiClient with GuiceOneServerPerSuite with TestWorkspaceProviderTestTrait with TestUserContextTrait {
+trait IntegrationTestTrait extends TaskApiClient with ActivityApiClient with GuiceOneServerPerSuite with TestWorkspaceProviderTestTrait with TestUserContextTrait {
   this: TestSuite =>
 
   final val APPLICATION_JSON: String = "application/json"
@@ -423,11 +423,9 @@ trait IntegrationTestTrait extends TaskApiClient with GuiceOneServerPerSuite wit
     checkResponse(response)
   }
 
-  def executeWorkflow(projectId: String, workflowId: String, sparkExecution: Boolean = false): WSResponse = {
+  def executeWorkflow(projectId: String, workflowId: String, sparkExecution: Boolean = false): Unit = {
     val executorName = if(sparkExecution) "ExecuteSparkWorkflow" else "ExecuteLocalWorkflow"
-    val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$workflowId/activities/$executorName/startBlocking")
-    val response = request.post("")
-    checkResponse(response)
+    runTaskActivity(projectId, workflowId, executorName)
   }
 
   def activitiesLog(): WSResponse = {
