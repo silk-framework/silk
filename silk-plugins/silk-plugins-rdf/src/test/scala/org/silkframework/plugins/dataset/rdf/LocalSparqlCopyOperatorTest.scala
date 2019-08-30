@@ -8,7 +8,7 @@ package org.silkframework.plugins.dataset.rdf
   import org.silkframework.dataset.DatasetSpec
   import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
   import org.silkframework.dataset.rdf.SparqlEndpointEntityTable
-  import org.silkframework.execution.ExecutionReport
+  import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
   import org.silkframework.execution.local.LocalExecution
   import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
   import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlCopyExecutor
@@ -50,7 +50,7 @@ package org.silkframework.plugins.dataset.rdf
       val task = PlainTask("task", SparqlCopyCustomTask(constructQuery, withTempfile))
 
       it should "copy correct triples and store them optionally in a temp file " + withTempfile in {
-        val result = executor.execute(task, input, None, execution, context)
+        val result = executor.execute(task, input, ExecutorOutput.empty, execution, context)
         result match{
           case Some(copy) =>
             copy.entities.size mustBe 5                    // number of triples in source

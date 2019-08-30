@@ -33,14 +33,13 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     *
     * @param task
     * @param inputs
-    * @param outputSchema
     * @param execution
     * @return
     */
   final override def execute(
     task: Task[DatasetSpec[DatasetType]],
     inputs: Seq[ExecType#DataType],
-    outputSchema: Option[EntitySchema],
+    output: ExecutorOutput,
     execution: ExecType,
     context: ActivityContext[ExecutionReport]
   )(implicit userContext: UserContext): Option[ExecType#DataType] = {
@@ -48,7 +47,7 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     for (input <- inputs) {
       write(input, task, execution)
     }
-    outputSchema map {
+    output.requestedSchema.map {
       read(task, _, execution)
     }
   }

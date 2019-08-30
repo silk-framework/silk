@@ -4,11 +4,14 @@ import sbt._
 // Common Settings
 //////////////////////////////////////////////////////////////////////////////
 
+val NEXT_VERSION = "3.0.0"
+val silkVersion = sys.env.getOrElse("GIT_DESCRIBE", NEXT_VERSION + "-SNAPSHOT")
+
 concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
 
 lazy val commonSettings = Seq(
   organization := "org.silkframework",
-  version := "3.0.0-SNAPSHOT",
+  version := silkVersion,
   // Building
   scalaVersion := "2.11.12",
   publishTo := {

@@ -5,6 +5,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.silkframework.config.PlainTask
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.execution.ExecutorOutput
 import org.silkframework.execution.local.{GenericEntityTable, LocalExecution, SparqlUpdateEntitySchema}
 import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlUpdateExecutor
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
@@ -35,7 +36,7 @@ class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with Mock
   private val input = Seq(GenericEntityTable(inputEntities, schema, inputTask))
 
   it should "generate the correct batches" in {
-    val result = executor.execute(task, input, None, LocalExecution(true), context)
+    val result = executor.execute(task, input, ExecutorOutput.empty, LocalExecution(true), context)
     result mustBe defined
     result.get.entitySchema mustBe SparqlUpdateEntitySchema.schema
     val entities = result.get.entities.toSeq
@@ -57,14 +58,14 @@ class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with Mock
     val invalidSchema = EntitySchema("", typedPaths = IndexedSeq("s", "wrong").map(UntypedPath(_).asUntypedValueType))
     val input = Seq(GenericEntityTable(inputEntities, invalidSchema, inputTask))
     intercept[ValidationException] {
-      executor.execute(task, input, None, LocalExecution(true), context).get.entities.head
+      executor.execute(task, input, ExecutorOutput.empty, LocalExecution(true), context).get.entities.head
     }
   }
 
   it should "output only one UPDATE query when the template contains no placeholders" in {
     val staticTemplate = """INSERT DATA { <urn:s> <urn:prop> "" } ;"""
     val staticTemplateTask = PlainTask("task", SparqlUpdateCustomTask(staticTemplate, batchSize = batchSize))
-    val entities = executor.execute(staticTemplateTask, input, None, LocalExecution(true), context).get.entities
+    val entities = executor.execute(staticTemplateTask, input, ExecutorOutput.empty, LocalExecution(true), context).get.entities
     entities.size mustBe 1
     entities.head.values mustBe IndexedSeq(Seq(staticTemplate))
   }

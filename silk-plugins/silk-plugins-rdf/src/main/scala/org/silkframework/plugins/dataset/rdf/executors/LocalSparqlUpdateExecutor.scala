@@ -4,7 +4,7 @@ import org.silkframework.config.Task
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local._
-import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater}
+import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
@@ -15,7 +15,7 @@ import org.silkframework.runtime.validation.ValidationException
 case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomTask] {
   override def execute(task: Task[SparqlUpdateCustomTask],
                        inputs: Seq[LocalEntities],
-                       outputSchema: Option[EntitySchema],
+                       output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport])
                       (implicit userContext: UserContext): Option[LocalEntities] = {

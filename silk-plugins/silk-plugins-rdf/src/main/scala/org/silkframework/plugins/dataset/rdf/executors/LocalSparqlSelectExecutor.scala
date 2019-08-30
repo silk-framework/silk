@@ -5,7 +5,7 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.dataset.rdf.{SparqlEndpointEntityTable, SparqlResults}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
-import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, TaskException}
+import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput, TaskException}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 
@@ -15,7 +15,7 @@ import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomTask] {
   override def execute(task: Task[SparqlSelectCustomTask],
                        inputs: Seq[LocalEntities],
-                       outputSchema: Option[EntitySchema],
+                       output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport])
                       (implicit userContext: UserContext): Option[LocalEntities] = {

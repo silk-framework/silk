@@ -7,7 +7,7 @@ import net.sf.saxon.s9api.SaxonApiException
 import org.silkframework.config.Task
 import org.silkframework.dataset.{DatasetResourceEntityTable, LocalDatasetResourceEntityTable}
 import org.silkframework.entity.EntitySchema
-import org.silkframework.execution.ExecutionReport
+import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
@@ -21,7 +21,7 @@ import org.silkframework.runtime.validation.ValidationException
 case class LocalXSLTOperatorExecutor() extends LocalExecutor[XSLTOperator] {
   override def execute(task: Task[XSLTOperator],
                        inputs: Seq[LocalEntities],
-                       outputSchema: Option[EntitySchema],
+                       output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport])
                       (implicit userContext: UserContext): Option[LocalEntities] = {
