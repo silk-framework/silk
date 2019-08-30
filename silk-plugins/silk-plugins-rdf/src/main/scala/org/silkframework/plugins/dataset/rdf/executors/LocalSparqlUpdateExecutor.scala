@@ -1,11 +1,12 @@
 package org.silkframework.plugins.dataset.rdf.executors
 
-import org.silkframework.config.Task
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local._
 import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
+import org.silkframework.plugins.dataset.rdf.tasks.templating.TaskProperties
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
 
@@ -21,17 +22,18 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
                       (implicit userContext: UserContext): Option[LocalEntities] = {
     val updateTask = task.data
     val expectedSchema = updateTask.expectedInputSchema
-    val reportUpdater = new SparqlUpdateExecutionReportUpdater(task.taskLabel(), context)
+    val reportUpdater = SparqlUpdateExecutionReportUpdater(task.taskLabel(), context)
 
     // Generate SPARQL Update queries for input entities
     def executeOnInput[U](batchEmitter: BatchSparqlUpdateEmitter[U], expectedProperties: IndexedSeq[String], input: LocalEntities): Unit = {
       val inputProperties = getInputProperties(input.entitySchema).distinct
+      val taskProperties = createTaskProperties(Some(input.task), output.task)
       checkInputSchema(expectedProperties, inputProperties.toSet)
       for (entity <- input.entities;
            values = expectedSchema.typedPaths.map(tp => entity.valueOfPath(tp.toUntypedPath)) if values.forall(_.nonEmpty)) {
         val it = CrossProductIterator(values, expectedProperties)
         while (it.hasNext) {
-          batchEmitter.update(updateTask.generate(it.next()))
+          batchEmitter.update(updateTask.generate(it.next(), taskProperties))
           reportUpdater.increaseEntityCounter()
           reportUpdater.update()
         }
@@ -42,13 +44,17 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
       override def foreach[U](f: Entity => U): Unit = {
         val batchEmitter = BatchSparqlUpdateEmitter(f, updateTask.batchSize)
         val expectedProperties = getInputProperties(expectedSchema)
-        if (expectedProperties.isEmpty) {
-          // Static template needs only to be executed once
-          batchEmitter.update(updateTask.generate(Map.empty))
-          reportUpdater.increaseEntityCounter()
+        if (inputs.isEmpty && expectedProperties.isEmpty) {
+          // Static template without inputs needs to be executed once
+          executeTemplate(batchEmitter, reportUpdater, updateTask, outputTask = output.task)
         } else {
           for (input <- inputs) {
-            executeOnInput(batchEmitter, expectedProperties, input)
+            if(expectedProperties.isEmpty) {
+              // Static template should be executed once per input
+              executeTemplate(batchEmitter, reportUpdater, updateTask, inputTask = Some(input.task), outputTask = output.task)
+            } else {
+              executeOnInput(batchEmitter, expectedProperties, input)
+            }
           }
         }
         reportUpdater.update(force = true, addEndTime = true)
@@ -56,6 +62,24 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
       }
     }
     Some(new SparqlUpdateEntityTable(traversable, task))
+  }
+
+  private def executeTemplate[U](batchEmitter: BatchSparqlUpdateEmitter[U],
+                                 reportUpdater: SparqlUpdateExecutionReportUpdater,
+                                 updateTask: SparqlUpdateCustomTask,
+                                 inputTask: Option[Task[_ <: TaskSpec]] = None,
+                                 outputTask: Option[Task[_ <: TaskSpec]] = None): Unit = {
+    val taskProperties = createTaskProperties(inputTask = inputTask, outputTask = outputTask)
+    batchEmitter.update(updateTask.generate(Map.empty, taskProperties))
+    reportUpdater.increaseEntityCounter()
+  }
+
+  private def createTaskProperties(inputTask: Option[Task[_ <: TaskSpec]],
+                                   outputTask: Option[Task[_ <: TaskSpec]]): TaskProperties = {
+    implicit val prefixes: Prefixes = Prefixes.empty // It's obligatory to have empty prefixes here, since we do not want to have prefixed URIs for URI parameters
+    val inputProperties = inputTask.toSeq.flatMap(_.properties).toMap
+    val outputProperties = outputTask.toSeq.flatMap(_.properties).toMap
+    TaskProperties(inputProperties, outputProperties)
   }
 
   // Check that expected schema is subset of input schema

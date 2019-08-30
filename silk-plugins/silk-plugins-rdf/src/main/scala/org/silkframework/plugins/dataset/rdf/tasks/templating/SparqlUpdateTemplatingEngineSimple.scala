@@ -50,7 +50,7 @@ case class SparqlUpdateTemplatingEngineSimple(sparqlUpdateTemplate: String, batc
     * @param placeholderAssignments For each placeholder in the query template
     * @return
     */
-  override def generate(placeholderAssignments: Map[String, String]): String = {
+  override def generate(placeholderAssignments: Map[String, String], taskProperties: TaskProperties): String = {
     def assignmentValue(prop: String): String = placeholderAssignments.get(prop) match {
       case Some(value) => value
       case None => throw new ValidationException(s"No value assignment for placeholder property $prop")

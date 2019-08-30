@@ -35,8 +35,8 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
     * @param placeholderAssignments For each placeholder in the query template
     * @return
     */
-  def generate(placeholderAssignments: Map[String, String]): String = {
-    templatingEngine.generate(placeholderAssignments)
+  def generate(placeholderAssignments: Map[String, String], taskProperties: TaskProperties): String = {
+    templatingEngine.generate(placeholderAssignments, taskProperties)
   }
 
   override def inputSchemataOpt: Option[Seq[EntitySchema]] = {
@@ -79,6 +79,11 @@ Example for the 'Velocity Engine' mode:
   - exists(inputPath: String): Returns true if a value for the input path exists, else false.
 
   The methods asUri, asPlainLiteral and asRawUnsafe throw an exception if no input value is available for the given input path.
+
+  In addition to input values, properties of the input and output tasks can be accessed via the inputProperties and outputProperties objects
+  in the same way as the row object, e.g.
+
+    $inputProperties.asUri("graph")
 
   For more information about the Velocity Engine visit http://velocity.apache.org.
     """

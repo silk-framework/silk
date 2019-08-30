@@ -43,7 +43,7 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
                 resource.writeBytes(jsonInputString.getBytes)
                 val dataset = JsonDataset(resource, spec.basePath, entity.uri.toString + spec.uriSuffixPattern)
                 ExecutorRegistry.execute(PlainTask(task.id, DatasetSpec(dataset)),
-                  Seq.empty, output, LocalExecution(useLocalInternalDatasets = false))
+                  Seq.empty, output, execution)
               case None =>
                 throw TaskException("No value found for input path!")
             }

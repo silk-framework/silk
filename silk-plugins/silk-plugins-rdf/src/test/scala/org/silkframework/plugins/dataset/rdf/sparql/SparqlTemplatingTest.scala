@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.sparql
 
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.plugins.dataset.rdf.tasks.templating.{Row, SparqlVelocityTemplating, TaskProperties, TemplateExecutionException}
 
 class SparqlTemplatingTest extends FlatSpec with MustMatchers {
   behavior of "SPARQL Templating"
@@ -10,9 +11,10 @@ class SparqlTemplatingTest extends FlatSpec with MustMatchers {
       """SELECT * WHERE {
         |  $row.asUri("uriProp") rdfs:label $row.asPlainLiteral("stringProp")
         |}""".stripMargin
-    val template = SparqlTemplating.createTemplate(stringTemplate)
+    val template = SparqlVelocityTemplating.createTemplate(stringTemplate)
     for(i <- 1 to 10) {
-      val rendered = SparqlTemplating.renderTemplate(template, Row(Map("uriProp" -> s"http://entity$i", "stringProp" -> s"some label $i")))
+      val rendered = SparqlVelocityTemplating.renderTemplate(
+        template, Row(Map("uriProp" -> s"http://entity$i", "stringProp" -> s"some label $i")), TaskProperties(Map.empty, Map.empty))
       rendered mustBe
           s"""SELECT * WHERE {
              |  <http://entity$i> rdfs:label "some label $i"
@@ -48,7 +50,7 @@ class SparqlTemplatingTest extends FlatSpec with MustMatchers {
   }
 
   private def executeTemplate(templateString: String, bindings: Map[String, String]): String = {
-    val template = SparqlTemplating.createTemplate(templateString)
-    SparqlTemplating.renderTemplate(template, Row(bindings))
+    val template = SparqlVelocityTemplating.createTemplate(templateString)
+    SparqlVelocityTemplating.renderTemplate(template, Row(bindings), TaskProperties(Map.empty, Map.empty))
   }
 }

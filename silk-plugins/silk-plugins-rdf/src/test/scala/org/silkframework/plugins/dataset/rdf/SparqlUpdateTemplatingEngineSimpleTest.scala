@@ -69,7 +69,7 @@ class SparqlUpdateTemplatingEngineSimpleTest extends FlatSpec with MustMatchers 
       "PROP_FROM_ENTITY_SCHEMA3" ->
         """The new
           |label with some "'weird characters""".stripMargin
-    )) mustBe
+    ), TaskProperties(Map.empty, Map.empty)) mustBe
       """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         |DELETE DATA { <urn:some:uri> rdf:label "the old label" } ;
         |  INSERT DATA { <urn:some:uri> rdf:label "The new\nlabel with some \"'weird characters" } ;""".stripMargin

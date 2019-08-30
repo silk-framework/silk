@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.scalatestplus.mockito.MockitoSugar
-import org.silkframework.config.PlainTask
+import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.ExecutorOutput

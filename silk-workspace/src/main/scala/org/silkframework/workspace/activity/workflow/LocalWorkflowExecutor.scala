@@ -200,7 +200,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     if (!workflowRunContext.alreadyExecuted.contains(datasetNode.workflowNode)) {
       // Execute all input nodes and write to this dataset
       datasetNode.precedingNodes foreach { pNode =>
-        executeWorkflowNode(pNode, output) match {
+        executeWorkflowNode(pNode, ExecutorOutput(Some(datasetTask(datasetNode.workflowNode.task)), None)) match {
           case Some(entityTable) =>
             writeEntityTableToDataset(dataset, entityTable)
           case None =>
