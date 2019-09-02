@@ -10,16 +10,16 @@ class SparqlTemplatingEngineVelocityTest extends FlatSpec with MustMatchers {
   private val sparqlUpdateTemplate =
     s"""PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
        |PREFIX xsd: <${XSD.getURI}>
-       |DELETE DATA { $$row.asUri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $$row.asPlainLiteral("PROP_FROM_ENTITY_SCHEMA2") } ;
-       |INSERT DATA { $$row.asUri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $$row.asPlainLiteral("PROP_FROM_ENTITY_SCHEMA3")^^xsd:int } ;""".stripMargin
+       |DELETE DATA { $$row.uri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $$row.plainLiteral("PROP_FROM_ENTITY_SCHEMA2") } ;
+       |INSERT DATA { $$row.uri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $$row.plainLiteral("PROP_FROM_ENTITY_SCHEMA3")^^xsd:int } ;""".stripMargin
 
   it should "output the correct input paths of the template" in {
     val templateString =
       """
-        |$row.asUri("subject")
+        |$row.uri("subject")
         |#if ( $row.exists("somePath") )
-        |  Plain: $row.asPlainLiteral("somePath")
-        |  Raw: $row.asRawUnsafe("trustedValuePath")
+        |  Plain: $row.plainLiteral("somePath")
+        |  Raw: $row.rawUnsafe("trustedValuePath")
         |#end
         |""".stripMargin
     val engine = SparqlTemplatingEngineVelocity(templateString, 1)
@@ -30,7 +30,7 @@ class SparqlTemplatingEngineVelocityTest extends FlatSpec with MustMatchers {
                                     |INSERT DATA {
                                     |  <urn:entity:1> <urn:prop:1> "entity 1" .
                                     |  #if ($$row.exists("input1"))
-                                    |    $$row.asUri("input1") <urn:prop:2> $$row.asPlainLiteral("input2")^^xsd:string
+                                    |    $$row.uri("input1") <urn:prop:2> $$row.plainLiteral("input2")^^xsd:string
                                     |  #end
                                     |};
                                     |""".stripMargin
@@ -41,21 +41,21 @@ class SparqlTemplatingEngineVelocityTest extends FlatSpec with MustMatchers {
     validate(templateWithLogic)
   }
 
-  it should "always validate templates as correct if asRawUnsafe() is used, because there is no way to generate meaningful examples to validate" in {
-    validate("""Completely broken SPARQL Update query with $row.asRawUnsafe("something")""")
+  it should "always validate templates as correct if rawUnsafe() is used, because there is no way to generate meaningful examples to validate" in {
+    validate("""Completely broken SPARQL Update query with $row.rawUnsafe("something")""")
   }
 
   it should "raise a validation error when the template is invalid" in {
     intercept[ValidationException] {
-      validate("""DELETE DATA { $row.asUri("test") rdf:label } ;""")
+      validate("""DELETE DATA { $row.uri("test") rdf:label } ;""")
     }
     intercept[ValidationException] {
-      validate("""DELETE DATA { <urn:a:b> rdf:label $row.asUri(3) ;""")
+      validate("""DELETE DATA { <urn:a:b> rdf:label $row.uri(3) ;""")
     }
     intercept[ValidationException] {
       // No rdf prefix defined
-      validate("""DELETE DATA { $row.asUri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $row.asPlainLiteral("PROP_FROM_ENTITY_SCHEMA2") } ;
-              |  INSERT DATA { $row.asUri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $row.asPlainLiteral("PROP_FROM_ENTITY_SCHEMA3") } ;""".stripMargin)
+      validate("""DELETE DATA { $row.uri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $row.plainLiteral("PROP_FROM_ENTITY_SCHEMA2") } ;
+              |  INSERT DATA { $row.uri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $row.plainLiteral("PROP_FROM_ENTITY_SCHEMA3") } ;""".stripMargin)
     }
     intercept[ValidationException] {
       validate("""PREFIX foaf:  <http://xmlns.com/foaf/0.1/>

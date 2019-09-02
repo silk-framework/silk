@@ -9,7 +9,7 @@ class SparqlTemplatingTest extends FlatSpec with MustMatchers {
   it should "render a simple Velocity template" in {
     val stringTemplate =
       """SELECT * WHERE {
-        |  $row.asUri("uriProp") rdfs:label $row.asPlainLiteral("stringProp")
+        |  $row.uri("uriProp") rdfs:label $row.plainLiteral("stringProp")
         |}""".stripMargin
     val template = SparqlVelocityTemplating.createTemplate(stringTemplate)
     for(i <- 1 to 10) {
@@ -23,13 +23,13 @@ class SparqlTemplatingTest extends FlatSpec with MustMatchers {
   }
 
   it should "render templates safely as long as safe methods are used, no injection attack possible" in {
-    val template = executeTemplate("""$row.asPlainLiteral("var")""", Map("var" -> "\"Delete everything!!!\""))
+    val template = executeTemplate("""$row.plainLiteral("var")""", Map("var" -> "\"Delete everything!!!\""))
     template mustBe "\"\\\"Delete everything!!!\\\"\""
   }
 
-  it should "fail if the value for asUri() is not an URI" in {
+  it should "fail if the value for uri() is not an URI" in {
     intercept[TemplateExecutionException] {
-      executeTemplate("""$row.asUri("uri")""", Map("uri" -> "http:// broken Uri >"))
+      executeTemplate("""$row.uri("uri")""", Map("uri" -> "http:// broken Uri >"))
     }
   }
 
@@ -45,7 +45,7 @@ class SparqlTemplatingTest extends FlatSpec with MustMatchers {
       executeTemplate("""Not existing $row.notExisting("blah")""", Map("a" -> "A"))
     }
     intercept[TemplateExecutionException] {
-      executeTemplate("""Not existing $row.asUri("notExists")""", Map("a" -> "A"))
+      executeTemplate("""Not existing $row.uri("notExists")""", Map("a" -> "A"))
     }
   }
 

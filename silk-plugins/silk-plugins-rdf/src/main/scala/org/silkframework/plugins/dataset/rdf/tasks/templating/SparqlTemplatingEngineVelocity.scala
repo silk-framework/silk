@@ -19,8 +19,8 @@ case class SparqlTemplatingEngineVelocity(sparqlUpdateTemplate: String, batchSiz
   }
 
   override def validate(): Unit = {
-    // We cannot generate meaningful example values for the template if $row.asRawUnsafe() is used, because it could generate arbitrary SPARQL syntax.
-    if(!usesAsRawUnsafe()) {
+    // We cannot generate meaningful example values for the template if $row.rawUnsafe() is used, because it could generate arbitrary SPARQL syntax.
+    if(!usesRawUnsafe()) {
       // Generate example input assignments
       val genericUri = "urn:generic:1" // Valid URI string is valid in URI and literal position, so use always the same URI
       val assignments = inputPaths().map(p => (p, genericUri)).toMap
@@ -72,15 +72,15 @@ case class SparqlTemplatingEngineVelocity(sparqlUpdateTemplate: String, batchSiz
     }
   }
 
-  private def usesAsRawUnsafe(): Boolean = {
+  private def usesRawUnsafe(): Boolean = {
     SparqlVelocityTemplating.templatingVariables.exists { variableName =>
-      variableMethodUsages(variableName).exists(_.rowMethod == asRawUnsafeMethodName)
+      variableMethodUsages(variableName).exists(_.rowMethod == rawUnsafeMethodName)
     }
   }
 
-  private val asRawUnsafeMethodName = "asRawUnsafe"
+  private val rawUnsafeMethodName = "rawUnsafe"
 
-  final val rowMethodsWithPathParameter = Set("asUri", "asPlainLiteral", asRawUnsafeMethodName, "exists")
+  final val rowMethodsWithPathParameter = Set("uri", "plainLiteral", rawUnsafeMethodName, "exists")
   /** Retrieves the input paths that are used via the [[Row]] API. */
   private def retrieveRowMethodUsages(simpleNode: Node, varName: String): List[TemplateVariableMethodUsage] = {
     simpleNode match {

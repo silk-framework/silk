@@ -74,4 +74,8 @@ class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with Mock
     entities.size mustBe 1
     entities.head.values mustBe IndexedSeq(Seq(staticTemplate))
   }
+
+  it should "output one UPDATE query per input task when the template contains input property placeholders" in {
+    val templateWithInputPropertyPlaceholders = """INSERT DATA { $inputProperties }"""
+  }
 }

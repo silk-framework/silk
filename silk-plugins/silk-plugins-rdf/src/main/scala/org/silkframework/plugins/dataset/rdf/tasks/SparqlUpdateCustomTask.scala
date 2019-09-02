@@ -66,24 +66,24 @@ Example for the 'Simple' mode:
 
 Example for the 'Velocity Engine' mode:
 
-  DELETE DATA { $row.asUri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $row.asPlainLiteral("PROP_FROM_ENTITY_SCHEMA2") }
+  DELETE DATA { $row.uri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $row.plainLiteral("PROP_FROM_ENTITY_SCHEMA2") }
   #if ( $row.exists("PROP_FROM_ENTITY_SCHEMA1") )
-    INSERT DATA { $row.asUri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $row.asPlainLiteral("PROP_FROM_ENTITY_SCHEMA3") }
+    INSERT DATA { $row.uri("PROP_FROM_ENTITY_SCHEMA1") rdf:label $row.plainLiteral("PROP_FROM_ENTITY_SCHEMA3") }
   #end
 
   Input values are accessible via various methods of the 'row' variable:
 
-  - asUri(inputPath: String): Renders an input value as URI. Throws exception if the value is no valid URI.
-  - asPlainLiteral(inputPath: String): Renders an input value as plain literal, i.e. escapes problematic characters etc.
-  - asRawUnsafe(inputPath: String): Renders an input value as is, i.e. no escaping is done. This should only be used – better never – if the input values can be trusted.
+  - uri(inputPath: String): Renders an input value as URI. Throws exception if the value is no valid URI.
+  - plainLiteral(inputPath: String): Renders an input value as plain literal, i.e. escapes problematic characters etc.
+  - rawUnsafe(inputPath: String): Renders an input value as is, i.e. no escaping is done. This should only be used – better never – if the input values can be trusted.
   - exists(inputPath: String): Returns true if a value for the input path exists, else false.
 
-  The methods asUri, asPlainLiteral and asRawUnsafe throw an exception if no input value is available for the given input path.
+  The methods uri, plainLiteral and rawUnsafe throw an exception if no input value is available for the given input path.
 
   In addition to input values, properties of the input and output tasks can be accessed via the inputProperties and outputProperties objects
   in the same way as the row object, e.g.
 
-    $inputProperties.asUri("graph")
+    $inputProperties.uri("graph")
 
   For more information about the Velocity Engine visit http://velocity.apache.org.
     """

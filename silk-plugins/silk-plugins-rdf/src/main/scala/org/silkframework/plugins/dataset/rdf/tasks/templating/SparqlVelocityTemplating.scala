@@ -78,11 +78,11 @@ object SparqlVelocityTemplating {
   * Examples:
   *
   * <pre>
-  *   $row.asUri("urn:prop:uriProp") ## Renders the value of the input path as URI, e.g. <http://...>
-  *   $row.asPlainLiteral("urn:prop:stringProp") ## Renders the value of the input paths as plain string, e.g. "Quotes \" are escaped"
-  *   $row.asRawUnsafe("urn:prop:trustedValuesOnly") ## Puts the value as it is into the rendered template. This is UNSAFE and prone to injection attacks.
+  *   $row.uri("urn:prop:uriProp") ## Renders the value of the input path as URI, e.g. <http://...>
+  *   $row.plainLiteral("urn:prop:stringProp") ## Renders the value of the input paths as plain string, e.g. "Quotes \" are escaped"
+  *   $row.rawUnsafe("urn:prop:trustedValuesOnly") ## Puts the value as it is into the rendered template. This is UNSAFE and prone to injection attacks.
   *   #if ( $row.exists("urn:prop:valueMightNotExist") ) ## Checks if a value exists for the input path, i.e. values can always be optional.
-  *     $row.asPlainLiteral("urn:prop:valueMightNotExist") ## If no value exists for the input path then this would throw an exception
+  *     $row.plainLiteral("urn:prop:valueMightNotExist") ## If no value exists for the input path then this would throw an exception
   *   #end
   * </pre>
   *
@@ -113,7 +113,7 @@ trait TemplateValueAccessApi {
   def templateVarName: String
 
   /** Returns the value for a specific input path as URI, i.e. <...> */
-  def asUri(inputPath: String): String = {
+  def uri(inputPath: String): String = {
     val value = objectValue(inputPath)
     if(Try(new URI(value)).isFailure) {
       throw TemplateExecutionException(s"Value for input path '$inputPath' is not a valid URI: '$value'")
@@ -137,7 +137,7 @@ trait TemplateValueAccessApi {
   }
 
   /** Returns the value for a specific input path as SPARQL plain literal, i.e. "..." */
-  def asPlainLiteral(inputPath: String): String = {
+  def plainLiteral(inputPath: String): String = {
     val value = objectValue(inputPath)
     val uriNode = NodeFactory.createLiteral(value)
     JenaSerializationUtil.serializeSingleNode(uriNode)
@@ -145,7 +145,7 @@ trait TemplateValueAccessApi {
 
   /** Puts the value of the input path as raw string into the rendered template.
     * This can be UNSAFE and should never be used when the input data comes from untrusted sources. */
-  def asRawUnsafe(inputPath: String): String = {
+  def rawUnsafe(inputPath: String): String = {
     objectValue(inputPath)
   }
 }
