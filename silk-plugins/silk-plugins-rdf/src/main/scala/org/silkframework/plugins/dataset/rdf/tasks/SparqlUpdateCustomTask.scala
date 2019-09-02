@@ -194,5 +194,5 @@ And it will insert a plain literal serialization for the property values PROP_FR
 It is be possible to write something like ${"PROP"}^^<http://someDatatype> or ${"PROP"}@en.
     """
 
-  final val defaultBatchSize = 10
+  final val defaultBatchSize = 1
 }
