@@ -128,4 +128,10 @@ case class SparqlTemplatingEngineVelocity(sparqlUpdateTemplate: String, batchSiz
     }
     childPaths.fold(List.empty[TemplateVariableMethodUsage])((a, b) => a ::: b)
   }
+
+  override def isStaticTemplate: Boolean = {
+    SparqlVelocityTemplating.templatingVariables.forall { variableName =>
+      variableMethodUsages(variableName).isEmpty
+    }
+  }
 }

@@ -46,6 +46,8 @@ case class SparqlUpdateCustomTask(@Param(label = "SPARQL update query", value = 
   def expectedInputSchema: EntitySchema = templatingEngine.inputSchema
 
   override def outputSchemaOpt: Option[EntitySchema] = Some(SparqlUpdateEntitySchema.schema)
+
+  def isStaticTemplate: Boolean = templatingEngine.isStaticTemplate
 }
 
 object SparqlUpdateCustomTask {

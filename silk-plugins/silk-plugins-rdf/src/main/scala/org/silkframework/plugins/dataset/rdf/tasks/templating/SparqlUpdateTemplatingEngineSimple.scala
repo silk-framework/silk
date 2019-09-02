@@ -135,15 +135,20 @@ case class SparqlUpdateTemplatingEngineSimple(sparqlUpdateTemplate: String, batc
   }
 
   override def inputSchema: EntitySchema = {
-    val properties = sparqlUpdateTemplateParts.
-        filter(_.isInstanceOf[SparqlUpdateTemplatePlaceholder]).
-        map(_.asInstanceOf[SparqlUpdateTemplatePlaceholder].prop).
-        distinct
-    if (properties.isEmpty) {
+    if (isStaticTemplate) {
       EmptyEntityTable.schema // Static template, no input data needed
     } else {
       EntitySchema("", properties.map(p => UntypedPath(p).asUntypedValueType).toIndexedSeq)
     }
+  }
+
+  private val properties: Seq[String] = sparqlUpdateTemplateParts.
+      filter(_.isInstanceOf[SparqlUpdateTemplatePlaceholder]).
+      map(_.asInstanceOf[SparqlUpdateTemplatePlaceholder].prop).
+      distinct
+
+  override def isStaticTemplate: Boolean = {
+    properties.isEmpty
   }
 }
 

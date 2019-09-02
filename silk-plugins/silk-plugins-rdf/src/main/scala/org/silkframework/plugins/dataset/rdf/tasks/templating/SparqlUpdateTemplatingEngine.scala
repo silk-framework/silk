@@ -16,6 +16,12 @@ trait SparqlUpdateTemplatingEngine {
 
   /** The input entity schema that is expected by the template. */
   def inputSchema: EntitySchema
+
+  /** The SPARQL Update template that will be rendered on every generate call */
+  def sparqlUpdateTemplate: String
+
+  /** True is the given template is static, i.e. contains no placeholder variables */
+  def isStaticTemplate: Boolean
 }
 
 /** Makes properties of the input and output task of a SPARQL Update operator execution available. */
