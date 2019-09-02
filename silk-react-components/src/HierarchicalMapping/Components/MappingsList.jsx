@@ -14,6 +14,7 @@ import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import { orderRulesAsync } from '../store';
 import { MESSAGES } from '../constants';
 import EventEmitter from '../utils/EventEmitter';
+import MappingsObject from './MappingsWorkview';
 
 class MappingsList extends React.Component {
     static propTypes = {
@@ -146,6 +147,7 @@ class MappingsList extends React.Component {
                 handleCopy={this.props.handleCopy}
                 handleClone={this.props.handleClone}
                 onRuleIdChange={this.props.onRuleIdChange}
+                onAskDiscardChanges={this.props.onAskDiscardChanges}
             />
         );
         

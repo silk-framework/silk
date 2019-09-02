@@ -60,7 +60,6 @@ class HierarchicalMapping extends React.Component {
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
-        EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
         EventEmitter.on(MESSAGES.RELOAD, this.loadNavigationTree);
         
         this.loadNavigationTree();
@@ -71,7 +70,6 @@ class HierarchicalMapping extends React.Component {
         EventEmitter.off(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.off(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
-        EventEmitter.off(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
         EventEmitter.off(MESSAGES.RELOAD, this.loadNavigationTree);
     }
     
@@ -211,6 +209,12 @@ class HierarchicalMapping extends React.Component {
         });
     };
     
+    toggleAskForDiscard = (boolOrData) => {
+      this.setState({
+          askForDiscard: boolOrData
+      })
+    };
+    
     // react to rule id changes
     onRuleNavigation = ({ newRuleId }) => {
         if (newRuleId === this.state.currentRuleId) {
@@ -220,9 +224,7 @@ class HierarchicalMapping extends React.Component {
                 currentRuleId: newRuleId,
             });
         } else {
-            this.setState({
-                askForDiscard: newRuleId,
-            });
+            this.toggleAskForDiscard(newRuleId);
         }
     };
     
@@ -240,19 +242,9 @@ class HierarchicalMapping extends React.Component {
         this.setState({
             editingElements: [],
             currentRuleId: this.state.askForDiscard,
-            askForDiscard: false,
         });
+        this.toggleAskForDiscard(false);
         EventEmitter.emit(MESSAGES.RULE_VIEW.DISCARD_ALL);
-    };
-    
-    discardAll = () => {
-        this.setState({
-            editingElements: [],
-        });
-    };
-    
-    handleCancelDiscard = () => {
-        this.setState({ askForDiscard: false });
     };
     
     handleRuleIdChange = (rule) => {
@@ -313,7 +305,7 @@ class HierarchicalMapping extends React.Component {
                     askForDiscard && (
                         <DiscardChangesDialog
                             handleDiscardConfirm={this.handleDiscardChanges}
-                            handleDiscardCancel={this.handleCancelDiscard}
+                            handleDiscardCancel={() => this.toggleAskForDiscard(false)}
                             numberEditingElements={editingElements.length}
                         />
                     )
@@ -338,6 +330,8 @@ class HierarchicalMapping extends React.Component {
                             currentRuleId={this.state.currentRuleId}
                             onToggleTreeNav={this.handleToggleNavigation}
                             onRuleIdChange={this.handleRuleIdChange}
+                            askForDiscardData={this.state.askForDiscard}
+                            onAskDiscardChanges={this.toggleAskForDiscard}
                         />
                     }
                 </div>

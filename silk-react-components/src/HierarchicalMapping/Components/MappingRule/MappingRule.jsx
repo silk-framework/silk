@@ -16,7 +16,6 @@ import {
     ScrollingHOC,
     Spinner,
 } from '@eccenca/gui-elements';
-import UseMessageBus from '../../UseMessageBusMixin';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
 import { SourcePath, ThingIcon } from './SharedComponents';
@@ -55,7 +54,6 @@ class MappingRule extends React.Component {
             isPasted,
             expanded: isPasted || false,
             editing: false,
-            askForDiscard: false,
             loading: false,
         };
     }
@@ -107,10 +105,10 @@ class MappingRule extends React.Component {
     // show / hide additional row details
     handleToggleExpand = () => {
         if (this.state.editing) {
-            this.setState({
-                askForDiscard: true,
-            });
-        } else this.setState({ expanded: !this.state.expanded });
+            this.props.onAskDiscardChanges(true);
+        } else {
+            this.setState({ expanded: !this.state.expanded });
+        }
     };
     
     discardAll = () => {
@@ -122,17 +120,11 @@ class MappingRule extends React.Component {
     handleDiscardChanges = () => {
         this.setState({
             expanded: !this.state.expanded,
-            askForDiscard: false,
         });
+        this.props.onAskDiscardChanges(false);
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: this.props.id });
     };
     
-    handleCancelDiscard = () => {
-        this.setState({
-            askForDiscard: false,
-        });
-    };
-
     handleMoveElement = ({toPos, fromPos})  => {
         if (fromPos === toPos) {
             return;
@@ -175,30 +167,6 @@ class MappingRule extends React.Component {
 
         const label = _.get(metadata, 'label', '');
         const loading = this.state.loading ? <Spinner /> : false;
-        const discardView = this.state.askForDiscard ? (
-            <ConfirmationDialog
-                active
-                modal
-                title="Discard changes?"
-                confirmButton={
-                    <DisruptiveButton
-                        disabled={false}
-                        onClick={this.handleDiscardChanges}
-                    >
-                        Discard
-                    </DisruptiveButton>
-                }
-                cancelButton={
-                    <DismissiveButton onClick={this.handleCancelDiscard}>
-                        Cancel
-                    </DismissiveButton>
-                }
-            >
-                <p>You currently have unsaved changes.</p>
-            </ConfirmationDialog>
-        ) : (
-            false
-        );
 
         const mainAction = event => {
             if (type === MAPPING_RULE_TYPE_OBJECT) {
@@ -372,7 +340,6 @@ class MappingRule extends React.Component {
                             )}
                             {...provided.dragHandleProps}
                         >
-                            {discardView}
                             {loading}
                             <div
                                 className={className(

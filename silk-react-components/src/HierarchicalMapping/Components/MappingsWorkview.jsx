@@ -21,7 +21,6 @@ import {
     MAPPING_RULE_TYPE_ROOT,
 } from '../helpers';
 import { MESSAGES } from '../constants';
-import DiscardChangesDialog from '../elements/DiscardChangesDialog';
 import EventEmitter from '../utils/EventEmitter';
 
 class MappingsWorkview extends React.Component {
@@ -30,7 +29,9 @@ class MappingsWorkview extends React.Component {
     static propTypes = {
         onToggleTreeNav: PropTypes.func,
         onRuleIdChange: PropTypes.func,
+        onAskDiscardChanges: PropTypes.func,
         currentRuleId: PropTypes.string, // selected rule id
+        askForDiscardData: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]), // selected rule id
     };
     
     state = {
@@ -39,7 +40,6 @@ class MappingsWorkview extends React.Component {
         ruleEditView: false,
         editing: [],
         isCopying: !!sessionStorage.getItem('copyingData'),
-        askForDiscard: false,
         showSuggestions: false,
         askForChilds: false,
     };
@@ -123,10 +123,8 @@ class MappingsWorkview extends React.Component {
             });
             EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id: 0 });
         } else {
-            this.setState({
-                askForDiscard: {
-                    suggestions: true,
-                },
+            this.props.onAskDiscardChanges({
+                suggestions: true,
             });
         }
     };
@@ -180,13 +178,13 @@ class MappingsWorkview extends React.Component {
     
     handleDiscardChanges = (event) => {
         event.stopPropagation();
-        const type = _.get(this.state.askForDiscard, 'type', false);
+        const type = _.get(this.props.askForDiscardData, 'type', false);
         const suggestions = _.get(
-            this.state.askForDiscard,
+            this.props.askForDiscardData,
             'suggestions',
             false
         );
-        const expanded = _.get(this.state.askForDiscard, 'expanded', false);
+        const expanded = _.get(this.props.askForDiscardData, 'expanded', false);
 
         if (type) {
             EventEmitter.emit(MESSAGES.RULE_ID.CREATE, { type });
@@ -202,17 +200,12 @@ class MappingsWorkview extends React.Component {
     
         }
         EventEmitter.emit(MESSAGES.RULE_VIEW.DISCARD_ALL);
-        
-        this.setState({
-            askForDiscard: false,
-        });
+        this.props.onAskDiscardChanges(false);
     };
     
     handleCancelDiscard = (event) => {
         event.stopPropagation();
-        this.setState({
-            askForDiscard: false,
-        });
+        this.props.onAskDiscardChanges(false);
     };
     
     // sends event to expand / collapse all mapping rules
@@ -221,10 +214,8 @@ class MappingsWorkview extends React.Component {
             EventEmitter.emit(MESSAGES.RULE_VIEW.TOGGLE, { expanded, id: true });
     
         } else {
-            this.setState({
-                askForDiscard: {
-                    expanded,
-                },
+            this.props.onAskDiscardChanges({
+                expanded,
             });
         }
     }
@@ -235,11 +226,9 @@ class MappingsWorkview extends React.Component {
             EventEmitter.emit(MESSAGES.RULE_ID.CREATE, { type });
          
         } else {
-            this.setState({
-                askForDiscard: {
-                    type,
-                },
-            });
+            this.props.onAskDiscardChanges({
+                type,
+            })
         }
     };
 
@@ -317,9 +306,6 @@ class MappingsWorkview extends React.Component {
     };
 
     render() {
-        const {
-            askForDiscard, editing,
-        } = this.state;
         const { rules = {}, id } = this.state.ruleData;
 
         const loading = this.state.loading ? <Spinner /> : false;
@@ -379,6 +365,7 @@ class MappingsWorkview extends React.Component {
                             ),
                         }}
                         targetClassUris={types}
+                        onAskDiscardChanges={this.props.onAskDiscardChanges}
                     />
                 ) : (
                     false
@@ -394,6 +381,7 @@ class MappingsWorkview extends React.Component {
                     handleClone={this.handleClone}
                     isCopying={this.state.isCopying}
                     onRuleIdChange={this.props.onRuleIdChange}
+                    onAskDiscardChanges={this.props.onAskDiscardChanges}
                 />
             ) : (
                 false
@@ -402,15 +390,6 @@ class MappingsWorkview extends React.Component {
         return (
             <div className="ecc-silk-mapping__rules">
                 {loading}
-                {
-                    askForDiscard && (
-                        <DiscardChangesDialog
-                            numberEditingElements={editing.length}
-                            handleDiscardCancel={this.handleCancelDiscard}
-                            handleDiscardConfirm={this.handleDiscardChanges}
-                        />
-                    )
-                }
                 <MappingsHeader
                     rule={this.state.ruleData}
                     key={`navhead_${id}`}
@@ -424,6 +403,7 @@ class MappingsWorkview extends React.Component {
                         key={`objhead_${id}`}
                         handleCopy={this.handleCopy}
                         handleClone={this.handleClone}
+                        onAskDiscardChanges={this.props.onAskDiscardChanges}
                     />
                     {listSuggestions ? false : listMappings}
                 </div>

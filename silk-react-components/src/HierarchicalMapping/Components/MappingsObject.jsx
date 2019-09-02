@@ -23,7 +23,6 @@ class MappingsObject extends React.Component {
     state = {
             expanded: false,
             editing: false,
-            askForDiscard: false,
     };
     
     componentDidMount() {
@@ -69,22 +68,14 @@ class MappingsObject extends React.Component {
     handleDiscardChanges = () => {
         this.setState({
             expanded: !this.state.expanded,
-            askForDiscard: false,
         });
+        this.props.onAskDiscardChanges(false);
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: this.props.rule.id });
-    };
-    
-    handleCancelDiscard = () => {
-        this.setState({
-            askForDiscard: false,
-        });
     };
     
     handleToggleExpand = () => {
         if (this.state.editing) {
-            this.setState({
-                askForDiscard: true,
-            });
+            this.props.onAskDiscardChanges(true);
         } else {
             this.setState({
                 expanded: !this.state.expanded,
@@ -102,31 +93,6 @@ class MappingsObject extends React.Component {
         if (_.isEmpty(this.props.rule)) {
             return false;
         }
-
-        const discardView = this.state.askForDiscard ? (
-            <ConfirmationDialog
-                active
-                modal
-                title="Discard changes?"
-                confirmButton={
-                    <DisruptiveButton
-                        disabled={false}
-                        onClick={this.handleDiscardChanges}
-                    >
-                        Discard
-                    </DisruptiveButton>
-                }
-                cancelButton={
-                    <DismissiveButton onClick={this.handleCancelDiscard}>
-                        Cancel
-                    </DismissiveButton>
-                }
-            >
-                <p>You currently have unsaved changes.</p>
-            </ConfirmationDialog>
-        ) : (
-            false
-        );
 
         const breadcrumbs = _.get(this.props, 'rule.breadcrumbs', []);
         const parent = _.last(breadcrumbs);
@@ -166,7 +132,6 @@ class MappingsObject extends React.Component {
 
         return (
             <div className="ecc-silk-mapping__rulesobject">
-                {discardView}
                 <Card shadow={0}>
                     <CardTitle>
                         <div className="ecc-silk-mapping__ruleitem">

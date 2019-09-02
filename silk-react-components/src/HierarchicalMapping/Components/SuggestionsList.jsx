@@ -36,7 +36,8 @@ const SuggestionsListWrapper = props => (
 
 class SuggestionsList extends React.Component {
     static propTypes = {
-        targetClassUris: PropTypes.array
+        targetClassUris: PropTypes.array,
+        onAskDiscardChanges: PropTypes.func
     };
     
     state = {
@@ -44,7 +45,6 @@ class SuggestionsList extends React.Component {
         error: false,
         showDefaultProperties: true,
         rawData: undefined,
-        askForDiscard: false,
         checked: this.defaultCheckValue,
         matchFromDataset: true,
         warnings: [],
@@ -109,28 +109,6 @@ class SuggestionsList extends React.Component {
         }
     }
     
-    discardDialog() {
-        return (
-            <ConfirmationDialog
-                active
-                modal
-                title="Discard selection?"
-                confirmButton={
-                    <DisruptiveButton disabled={false} onClick={this.onDiscard}>
-                        Discard
-                    </DisruptiveButton>
-                }
-                cancelButton={
-                    <DismissiveButton onClick={this.onCancelDiscard}>
-                        Cancel
-                    </DismissiveButton>
-                }
-            >
-                <p>You currently selection will be lost.</p>
-            </ConfirmationDialog>
-        );
-    }
-    
     handleAddSuggestions = (event) => {
         event.stopPropagation();
         
@@ -163,7 +141,7 @@ class SuggestionsList extends React.Component {
     
     toggleDefaultProperties = () => {
         if (this.state.data.filter(v => v.checked).length !== 0) {
-            this.setState({askForDiscard: true});
+            this.props.onAskDiscardChanges(true);
         } else {
             this.setState({
                 data: !this.state.showDefaultProperties
@@ -200,19 +178,15 @@ class SuggestionsList extends React.Component {
         });
     }
     
-    onDiscard = () => {
-        this.setState({
-            data: !this.state.showDefaultProperties
-                ? this.state.rawData
-                : this.state.rawData.filter(v => !!v.targetProperty),
-            showDefaultProperties: !this.state.showDefaultProperties,
-            askForDiscard: false,
-        });
-    }
-    
-    onCancelDiscard = () => {
-        this.setState({askForDiscard: false});
-    }
+    // onDiscard = () => {
+    //     this.setState({
+    //         data: !this.state.showDefaultProperties
+    //             ? this.state.rawData
+    //             : this.state.rawData.filter(v => !!v.targetProperty),
+    //         showDefaultProperties: !this.state.showDefaultProperties,
+    //     });
+    //     this.props.onAskDiscardChanges(false);
+    // }
     
     // template rendering
     render() {
@@ -398,12 +372,8 @@ class SuggestionsList extends React.Component {
             this.state.data,
             entry => entry.checked
         );
-        const confirmDialog = this.state.askForDiscard
-            ? this.discardDialog()
-            : false;
         return (
             <SuggestionsListWrapper>
-                {confirmDialog}
                 <CardTitle>
                     <div className="mdl-card__title-text">
                         Add suggested mapping rules
