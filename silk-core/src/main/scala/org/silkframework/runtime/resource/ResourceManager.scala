@@ -3,7 +3,7 @@ package org.silkframework.runtime.resource
 /**
  * Reads and writes resources.
  */
-trait ResourceManager extends ResourceLoader with ResourceWriter {
+trait ResourceManager extends ResourceLoader with ResourceWriter with AutoCloseable {
 
   /**
     * Gets a child resource manager
@@ -27,5 +27,10 @@ trait ResourceManager extends ResourceLoader with ResourceWriter {
       loader = loader.child(segment)
     }
     loader.get(segments.last)
+  }
+
+  override def close(): Unit = {
+    // close all child managers
+    listChildren.foreach(child => this.child(child).close())
   }
 }

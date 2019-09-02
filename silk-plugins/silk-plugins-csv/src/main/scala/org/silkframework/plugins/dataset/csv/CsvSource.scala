@@ -27,6 +27,7 @@ class CsvSource(file: Resource,
                 ignoreBadLines: Boolean = false,
                 detectSeparator: Boolean = false,
                 detectSkipLinesBeginning: Boolean = false,
+                specificTypeName: Option[String] = None,    // if the csv file represents a specific type which is not or can not be written as the file name
                 // If the text file fails to be read because of a MalformedInputException, try other codecs
                 fallbackCodecs: List[Codec] = List(),
                 maxLinesToDetectCodec: Option[Int] = None,
@@ -97,6 +98,9 @@ class CsvSource(file: Resource,
 
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
                             (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+    if(t.toString.nonEmpty && t != typeUri)
+      return IndexedSeq.empty
+
     try {
       for (property <- propertyList) yield {
         UntypedPath(ForwardOperator(Uri.parse(property)) :: Nil).asStringTypedPath
@@ -135,6 +139,9 @@ class CsvSource(file: Resource,
 
 
   def retrieveEntities(entityDesc: EntitySchema, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
+
+    if(entityDesc.typeUri.toString.nonEmpty && entityDesc.typeUri != Uri(typeUri))
+      return Traversable.empty
 
     logger.log(Level.FINE, "Retrieving data from CSV.")
 
@@ -329,10 +336,20 @@ class CsvSource(file: Resource,
 
   override def retrieveTypes(limit: Option[Int] = None)
                             (implicit userContext: UserContext): Traversable[(String, Double)] = {
-    Seq((classUri, 1.0))
+    Seq((typeUri, 1.0))
   }
 
-  private def classUri = file.name
+  private lazy val typeUri = {
+    val uri = Uri(specificTypeName.getOrElse(file.name))
+    if(uri.isValidUri)
+      uri
+    else{
+      val segments = uri.uri.split("/")
+        .map(_.trim)
+        .map(seg => URLEncoder.encode(seg, "UTF-8"))
+      Uri(segments.mkString("/"))
+    }
+  }
 
   /**
     * returns the combined path. Depending on the data source the input path may or may not be modified based on the type URI.
