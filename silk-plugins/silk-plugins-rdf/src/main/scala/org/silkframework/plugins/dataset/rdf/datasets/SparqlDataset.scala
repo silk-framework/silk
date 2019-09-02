@@ -39,7 +39,7 @@ case class SparqlDataset(
   useOrderBy: Boolean = true,
   @Param(label = "Clear graph before workflow execution",
     value = "If set to true this will clear the specified graph before executing a workflow that writes to it.")
-  clearGraphBeforeExecution: Boolean = true) extends RdfDataset with TripleSinkDataset {
+  clearGraphBeforeExecution: Boolean = false) extends RdfDataset with TripleSinkDataset {
 
   private val params =
     SparqlParams(
