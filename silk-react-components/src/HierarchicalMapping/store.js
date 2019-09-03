@@ -16,7 +16,6 @@ import { Suggestion } from './Suggestion';
 import { MESSAGES } from './constants';
 import EventEmitter from './utils/EventEmitter';
 
-const hierarchicalMappingChannel = rxmq.channel('silk.hierarchicalMapping');
 const silkStore = rxmq.channel('silk.api');
 export const errorChannel = rxmq.channel('errors');
 
@@ -622,5 +621,3 @@ export const copyRuleAsync = (data) => {
         })
         .map(returned => returned.body.id)
 };
-
-export default hierarchicalMappingChannel;
