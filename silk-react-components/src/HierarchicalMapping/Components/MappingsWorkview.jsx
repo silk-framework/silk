@@ -30,6 +30,7 @@ class MappingsWorkview extends React.Component {
         onToggleTreeNav: PropTypes.func,
         onRuleIdChange: PropTypes.func,
         onAskDiscardChanges: PropTypes.func,
+        onClickedRemove: PropTypes.func,
         currentRuleId: PropTypes.string, // selected rule id
         askForDiscardData: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]), // selected rule id
     };
@@ -382,6 +383,7 @@ class MappingsWorkview extends React.Component {
                     isCopying={this.state.isCopying}
                     onRuleIdChange={this.props.onRuleIdChange}
                     onAskDiscardChanges={this.props.onAskDiscardChanges}
+                    onClickedRemove={this.props.onClickedRemove}
                 />
             ) : (
                 false
@@ -404,6 +406,7 @@ class MappingsWorkview extends React.Component {
                         handleCopy={this.handleCopy}
                         handleClone={this.handleClone}
                         onAskDiscardChanges={this.props.onAskDiscardChanges}
+                        onClickedRemove={this.props.onClickedRemove}
                     />
                     {listSuggestions ? false : listMappings}
                 </div>

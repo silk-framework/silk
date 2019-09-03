@@ -344,7 +344,7 @@ class RuleValueView extends React.Component {
                             className="ecc-silk-mapping__ruleseditor__actionrow-remove"
                             raised
                             onClick={() =>
-                                EventEmitter.emit(MESSAGES.BUTTON.REMOVE_CLICK, {
+                                this.props.onClickedRemove({
                                     id: this.props.id,
                                     uri: this.props.mappingTarget.uri,
                                     type: this.props.type,

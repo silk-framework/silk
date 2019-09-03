@@ -41,6 +41,7 @@ class MappingRule extends React.Component {
         parentId: PropTypes.string,
         pos: PropTypes.number.isRequired,
         count: PropTypes.number.isRequired,
+        onClickedRemove: PropTypes.func,
         // provided,
         // snapshot,
     };
@@ -249,6 +250,7 @@ class MappingRule extends React.Component {
                     edit={false}
                     handleCopy={this.props.handleCopy}
                     handleClone={this.props.handleClone}
+                    onClickedRemove={this.props.onClickedRemove}
                 />
             ) : (
                 <RuleValueEdit
@@ -259,6 +261,7 @@ class MappingRule extends React.Component {
                     edit={false}
                     handleCopy={this.props.handleCopy}
                     handleClone={this.props.handleClone}
+                    onClickedRemove={this.props.onClickedRemove}
                 />
             )
         ) : (

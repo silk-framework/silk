@@ -56,7 +56,6 @@ class HierarchicalMapping extends React.Component {
     }
     
     componentDidMount() {
-        EventEmitter.on(MESSAGES.BUTTON.REMOVE_CLICK, this.handleClickRemove);
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
@@ -66,7 +65,6 @@ class HierarchicalMapping extends React.Component {
     };
     
     componentWillUnmount() {
-        EventEmitter.off(MESSAGES.BUTTON.REMOVE_CLICK, this.handleClickRemove);
         EventEmitter.off(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.off(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
@@ -332,6 +330,7 @@ class HierarchicalMapping extends React.Component {
                             onRuleIdChange={this.handleRuleIdChange}
                             askForDiscardData={this.state.askForDiscard}
                             onAskDiscardChanges={this.toggleAskForDiscard}
+                            onClickedRemove={this.handleClickRemove}
                         />
                     }
                 </div>

@@ -19,9 +19,6 @@ export const MESSAGES = {
     TREE_NAV: {
         TOGGLE_VISIBILITY: 'toggleVisibility'
     },
-    BUTTON: {
-        REMOVE_CLICK: 'removeClick'
-    },
     MAPPING: {
         CREATE: 'mapping.create',
         SHOW_SUGGESTIONS: 'showSuggestions'
