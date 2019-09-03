@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Card, CardContent, CardTitle, Table, TableBody, TableCell, TableHead, TableRow } from '@eccenca/gui-elements';
 import MappingsTree from '../HierarchicalMapping/Components/MappingsTree';
-import { getHierarchyAsync, setApiDetails } from "../HierarchicalMapping/store";
+import { getHierarchyAsync } from "../HierarchicalMapping/store";
 import _ from 'lodash';
 
 /**

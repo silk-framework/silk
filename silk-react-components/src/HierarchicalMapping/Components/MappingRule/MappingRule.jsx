@@ -24,22 +24,23 @@ import { getRuleLabel, isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT } from '../
 import className from 'classnames';
 import { MESSAGES } from '../../constants';
 import EventEmitter from '../../utils/EventEmitter';
+import PropTypes from 'prop-types';
 
 class MappingRule extends React.Component {
     // define property types
     static propTypes = {
-        comment: React.PropTypes.string,
-        id: React.PropTypes.string,
-        type: React.PropTypes.string, // mapping type
-        typeRules: React.PropTypes.array,
-        mappingTarget: React.PropTypes.object,
-        // sourcePath: React.PropTypes.string, // it can be array or single string ...
-        targetProperty: React.PropTypes.string,
-        pattern: React.PropTypes.string,
-        uriRule: React.PropTypes.object,
-        parentId: React.PropTypes.string,
-        pos: React.PropTypes.number.isRequired,
-        count: React.PropTypes.number.isRequired,
+        comment: PropTypes.string,
+        id: PropTypes.string,
+        type: PropTypes.string, // mapping type
+        typeRules: PropTypes.array,
+        mappingTarget: PropTypes.object,
+        // sourcePath: PropTypes.string, // it can be array or single string ...
+        targetProperty: PropTypes.string,
+        pattern: PropTypes.string,
+        uriRule: PropTypes.object,
+        parentId: PropTypes.string,
+        pos: PropTypes.number.isRequired,
+        count: PropTypes.number.isRequired,
         // provided,
         // snapshot,
     };
