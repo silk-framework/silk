@@ -20,8 +20,9 @@ import { MAPPING_RULE_TYPE_OBJECT, MAPPING_RULE_TYPE_ROOT } from '../helpers';
  */
 const MappingsTree = props => {
     const {
-        currentRuleId, handleRuleNavigation, navigationTree, navigationExpanded, navigationLoading,
+        currentRuleId, navigationTree, navigationExpanded, navigationLoading, showValueMappings,
         handleToggleExpanded,
+        handleRuleNavigation
     } = props;
     /**
      * Returns an object which contains a key for each rule
@@ -79,7 +80,7 @@ const MappingsTree = props => {
 
         // get expanded state
         const childs = _.chain(rules.propertyRules)
-            .filter(({ type }) => type === MAPPING_RULE_TYPE_OBJECT)
+            .filter(({ type }) => showValueMappings || type === MAPPING_RULE_TYPE_OBJECT)
             .value();
 
         const element = () => (
@@ -168,17 +169,20 @@ const MappingsTree = props => {
 MappingsTree.propTypes = {
     // selected rule id (tree highlighting)
     currentRuleId: PropTypes.string,
-    handleRuleNavigation: PropTypes.func.isRequired,
-    handleToggleExpanded: PropTypes.func.isRequired,
+    handleRuleNavigation: PropTypes.func,
+    handleToggleExpanded: PropTypes.func,
     navigationTree: PropTypes.object,
     navigationExpanded: PropTypes.objectOf(PropTypes.bool.isRequired),
     navigationLoading: PropTypes.bool.isRequired,
+    showValueMappings: PropTypes.bool,
 };
 
 MappingsTree.defaultProps = {
     navigationTree: undefined,
     currentRuleId: undefined,
     navigationExpanded: {},
+    handleToggleExpanded: () => {},
+    handleRuleNavigation: () => {}
 };
 
 export default MappingsTree;
