@@ -74,7 +74,7 @@ class SparqlUpdateCustomTaskTest extends FlatSpec with MustMatchers {
         |  INSERT DATA { <urn:some:uri> rdf:label "The new\nlabel with some \"'weird characters" } ;""".stripMargin
   }
 
-  def parse(sparqlUpdateTemplate: String, batchSize: Int = SparqlUpdateCustomTask.defaultBatchSize): Seq[SparqlUpdateTemplatePart] = {
+  def parse(sparqlUpdateTemplate: String, batchSize: Int = 2): Seq[SparqlUpdateTemplatePart] = {
     SparqlUpdateCustomTask(sparqlUpdateTemplate, batchSize).sparqlUpdateTemplateParts
   }
 }
