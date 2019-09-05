@@ -39,8 +39,7 @@ case class SparqlDataset(
   useOrderBy: Boolean = true,
   @Param(label = "Clear graph before workflow execution",
     value = "If set to true this will clear the specified graph before executing a workflow that writes to it.")
-  clearGraphBeforeExecution: Boolean = false) extends RdfDataset with TripleSinkDataset {
-  clearGraphBeforeExecution: Boolean = true,
+  clearGraphBeforeExecution: Boolean = false,
   @Param(
     label = "SPARQL query timeout (ms)",
     value = "SPARQL query timeout (select/update) in milliseconds. A value of zero means that the configured default timeout is used." +
