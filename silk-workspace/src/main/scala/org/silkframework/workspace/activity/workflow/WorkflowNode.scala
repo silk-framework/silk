@@ -27,7 +27,6 @@ sealed trait WorkflowNode {
   /**
     * The position in the visual representation. (x, y) coordinates.
     */
-  //TODO extract to separate class
   def position: (Int, Int)
 
   /**
@@ -36,6 +35,9 @@ sealed trait WorkflowNode {
     */
   def nodeId: NodeReference
 
+  /**
+    * Operators with a smaller priority are executed first.
+    */
   def outputPriority: Option[Double]
 
   def copyNode(task: Identifier = task,

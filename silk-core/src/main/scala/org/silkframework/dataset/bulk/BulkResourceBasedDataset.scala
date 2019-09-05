@@ -2,11 +2,12 @@ package org.silkframework.dataset.bulk
 
 import java.io.File
 import java.util.logging.Logger
-import java.util.zip.{ZipException, ZipFile}
+import java.util.zip.ZipException
 
 import org.silkframework.dataset.{DataSource, Dataset, ResourceBasedDataset}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.{ReadOnlyResource, Resource, ZipResourceLoader}
+import org.silkframework.runtime.resource.zip.ZipResourceLoader
+import org.silkframework.runtime.resource.{ReadOnlyResource, Resource}
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.control.NonFatal
@@ -96,7 +97,7 @@ object BulkResourceBasedDataset {
     if (resource.name.endsWith(".zip") && !new File(resource.path).isDirectory) {
       log info s"Zip file Resource found: ${resource.name}"
       try {
-        val zipLoader = ZipResourceLoader(new ZipFile(resource.path))
+        val zipLoader = ZipResourceLoader(resource, "")
         zipLoader.list.sorted.map(f => ReadOnlyResource(zipLoader.get(f)))
       } catch {
         case NonFatal(t) =>

@@ -279,7 +279,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       }
       catch {
         case ex: Exception =>  if(!cancelled) {
-          log.log(Level.WARNING, "Could not execute match task", ex)
+          log.log(Level.WARNING, s"Could not execute match task for block $blockIndex, source partition $sourcePartitionIndex, target partition $targetPartitionIndex", ex)
         }
       }
 

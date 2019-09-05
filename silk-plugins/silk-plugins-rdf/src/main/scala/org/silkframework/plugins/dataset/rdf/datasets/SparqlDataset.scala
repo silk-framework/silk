@@ -18,7 +18,7 @@ case class SparqlDataset(
   @Param("Login required for authentication")
   login: String = null,
   @Param("Password required for authentication")
-  password: PasswordParameter = PasswordParameter(null),
+  password: PasswordParameter = PasswordParameter.empty,
   @Param("Only retrieve entities from a specific graph")
   graph: String = null,
   @Param("The number of solutions to be retrieved per SPARQL query.")
@@ -39,7 +39,7 @@ case class SparqlDataset(
   useOrderBy: Boolean = true,
   @Param(label = "Clear graph before workflow execution",
     value = "If set to true this will clear the specified graph before executing a workflow that writes to it.")
-  clearGraphBeforeExecution: Boolean = true) extends RdfDataset with TripleSinkDataset {
+  clearGraphBeforeExecution: Boolean = false) extends RdfDataset with TripleSinkDataset {
 
   private val params =
     SparqlParams(

@@ -97,10 +97,10 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     val childPaths = if(depth == 0) Seq() else children.flatMap(_.collectPathsRecursive(onlyLeafNodes, onlyInnerNodes, path, depth - 1))
     // Generate paths for all attributes
     val attributes = if(depth == 0) Seq() else node.attributes.asAttrMap.keys.toSeq
-    val attributesPaths = attributes.map(attribute => TypedPath((path :+ ForwardOperator("@" + attribute)).toList, StringValueType, isAttribute = true))
+    val attributesPaths = attributes.map(attribute => TypedPath((path :+ ForwardOperator("@" + attribute)).toList, StringValueType, xmlAttribute = true))
     // Paths to inner nodes become object paths (URI), else value paths (string)
     val pathValueType: ValueType = if(children.nonEmpty || node.attributes.nonEmpty) UriValueType else StringValueType
-    val typedPath = TypedPath(path.toList, pathValueType, isAttribute = false)
+    val typedPath = TypedPath(path.toList, pathValueType, xmlAttribute = false)
 
     if(onlyInnerNodes && children.isEmpty && node.attributes.isEmpty) {
       Seq() // An inner node has at least an attribute or child elements

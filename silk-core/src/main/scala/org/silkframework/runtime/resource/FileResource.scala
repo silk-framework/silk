@@ -11,18 +11,26 @@ import java.time.Instant
   */
 case class FileResource(file: File) extends WritableResource {
 
-  val name = file.getName
+  val name: String = file.getName
 
-  val path = file.getAbsolutePath
+  val path: String = file.getAbsolutePath
 
-  def exists = file.exists()
+  def exists: Boolean = file.exists()
 
-  def size = Some(file.length)
+  def size: Option[Long] = Some(file.length)
 
   def modificationTime = Some(Instant.ofEpochMilli(file.lastModified()))
 
-  override def inputStream = {
+  override def inputStream: BufferedInputStream = {
     new BufferedInputStream(new FileInputStream(file))
+  }
+
+  /**
+    * Creates an empty file, overriding any existing and creating the required directories
+    */
+  def createEmpty(): Unit ={
+    createDirectory()
+    file.createNewFile()
   }
 
   /**
@@ -30,7 +38,7 @@ case class FileResource(file: File) extends WritableResource {
    * after it returns.
    * @param write A function that accepts an output stream and writes to it.
    */
-  override def write(append: Boolean = false)(write: (OutputStream) => Unit): Unit = {
+  override def write(append: Boolean = false)(write: OutputStream => Unit): Unit = {
     createDirectory()
     val outputStream = new BufferedOutputStream(new FileOutputStream(file, append))
     try {

@@ -55,7 +55,7 @@ object ValueType {
     date1.compare(date2) < 0
   })
 
-  implicit object ValueTypeFormat extends XmlFormat[ValueType] {
+  implicit object ValueTypeXmlFormat extends XmlFormat[ValueType] {
     /**
       * Deserializes a value.
       */

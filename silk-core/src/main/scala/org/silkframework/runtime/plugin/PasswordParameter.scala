@@ -24,3 +24,9 @@ case class PasswordParameter(str: String) {
     }
   }
 }
+
+object PasswordParameter {
+
+  def empty: PasswordParameter = PasswordParameter("")
+
+}

@@ -102,9 +102,9 @@ class SparqlPathsCollectorTest extends FlatSpec with Matchers with BeforeAndAfte
     model
   }
 
-  private def forward(property: String, typ: ValueType) = TypedPath(ForwardOperator(property) :: Nil, typ, isAttribute = false)
+  private def forward(property: String, typ: ValueType) = TypedPath(ForwardOperator(property) :: Nil, typ, xmlAttribute = false)
 
-  private def backward(property: String, typ: ValueType) = TypedPath(BackwardOperator(property) :: Nil, typ, isAttribute = false)
+  private def backward(property: String, typ: ValueType) = TypedPath(BackwardOperator(property) :: Nil, typ, xmlAttribute = false)
 
 }
 

@@ -44,5 +44,4 @@ object ClassUtil {
         actualType.headOption.getOrElse(throw new Exception("Type variable " + tv.getName + " could not be resolved!"))
     }
   }
-
 }

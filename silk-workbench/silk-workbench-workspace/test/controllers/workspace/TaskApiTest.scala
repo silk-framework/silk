@@ -11,7 +11,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   private val project = "project"
 
-  override def workspaceProvider: String = "inMemory"
+  override def workspaceProviderId: String = "inMemory"
 
   protected override def routes = Some(classOf[test.Routes])
 
