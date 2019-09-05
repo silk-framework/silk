@@ -8,7 +8,7 @@ import {
 import { URI } from 'ecc-utils';
 import PropTypes from 'prop-types';
 
-import { getHierarchyAsync, ruleRemoveAsync, setApiDetails } from './store';
+import { ruleRemoveAsync, setApiDetails } from './store';
 
 import MappingsTree from './Components/MappingsTree';
 import MappingsWorkview from './Components/MappingsWorkview';
@@ -47,11 +47,6 @@ class HierarchicalMapping extends React.Component {
             elementToDelete: false,
             editingElements: [],
             askForDiscard: false,
-        
-            // navigationTree
-            navigationLoading: true,
-            navigationTree: undefined,
-            navigationExpanded: {},
         };
     }
     
@@ -59,16 +54,12 @@ class HierarchicalMapping extends React.Component {
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
-        EventEmitter.on(MESSAGES.RELOAD, this.loadNavigationTree);
-        
-        this.loadNavigationTree();
     };
     
     componentWillUnmount() {
         EventEmitter.off(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.off(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
-        EventEmitter.off(MESSAGES.RELOAD, this.loadNavigationTree);
     }
     
     componentDidUpdate(prevProps, prevState) {
@@ -83,7 +74,6 @@ class HierarchicalMapping extends React.Component {
                 
                 if (uriTemplate.segment(-2) !== 'rule') {
                     uriTemplate.segment('rule');
-                    uriTemplate.segment('rule');
                 }
                 
                 uriTemplate.segment(-1, this.state.currentRuleId);
@@ -97,47 +87,6 @@ class HierarchicalMapping extends React.Component {
         }
     };
     
-    // initilize state
-    loadNavigationTree = () => {
-        const { baseUrl, project, transformTask } = this.props;
-        const { navigationExpanded } = this.state;
-        this.setState({ navigationLoading: true });
-        
-        getHierarchyAsync({
-            baseUrl,
-            project,
-            transformTask,
-        })
-            .subscribe(
-                ({ hierarchy }) => {
-                    const topLevelId = hierarchy.id;
-                    this.setState({
-                        navigationLoading: false,
-                        navigationTree: hierarchy,
-                        navigationExpanded: (_.isEmpty(navigationExpanded) && topLevelId)
-                            ? { [topLevelId]: true }
-                            : navigationExpanded,
-                    });
-                },
-                () => {
-                    this.setState({ navigationLoading: false });
-                }
-            );
-    }
-    
-    expandNavigationTreeElement({ newRuleId, parentId }) {
-        const expanded = { ...this.state.navigationExpanded };
-        expanded[newRuleId] = true;
-        expanded[parentId] = true;
-        this.setState({ navigationExpanded: expanded });
-    }
-    // collapse / expand navigation children
-    handleToggleExpandNavigationTree(id) {
-        const expanded = { ...this.state.navigationExpanded };
-        expanded[id] = !expanded[id];
-        this.setState({ navigationExpanded: expanded });
-    }
-    
     onOpenEdit = (obj) => {
         const id = _.get(obj, 'id', 0);
         if (!_.includes(this.state.editingElements, id)) {
@@ -145,7 +94,7 @@ class HierarchicalMapping extends React.Component {
                 editingElements: _.concat(this.state.editingElements, [id]),
             });
         }
-    }
+    };
     
     onCloseEdit = (obj) => {
         const id = _.get(obj, 'id', 0);
@@ -157,7 +106,7 @@ class HierarchicalMapping extends React.Component {
                 ),
             });
         }
-    }
+    };
     
     handleClickRemove = ({ id, uri, type, parent }) => {
         this.setState({
@@ -247,13 +196,13 @@ class HierarchicalMapping extends React.Component {
     
     handleRuleIdChange = (rule) => {
         this.onRuleNavigation(rule);
-        this.expandNavigationTreeElement(rule);
+        // this.expandNavigationTreeElement(rule);
     };
     
     // template rendering
     render() {
         const {
-            navigationLoading, navigationTree, navigationExpanded, currentRuleId, showNavigation,
+            currentRuleId, showNavigation,
             elementToDelete, askForDiscard, editingElements,
         } = this.state;
         const loading = this.state.loading ? <Spinner /> : false;
@@ -315,11 +264,7 @@ class HierarchicalMapping extends React.Component {
                         showNavigation && (
                             <MappingsTree
                                 currentRuleId={currentRuleId}
-                                navigationLoading={navigationLoading}
-                                navigationTree={navigationTree}
-                                navigationExpanded={navigationExpanded}
                                 handleRuleNavigation={this.onRuleNavigation}
-                                handleToggleExpanded={this.handleToggleExpandNavigationTree}
                             />
                         )
                     }

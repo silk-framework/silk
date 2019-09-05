@@ -20,8 +20,8 @@ import EventEmitter from '../utils/EventEmitter';
 
 class MappingsObject extends React.Component {
     state = {
-            expanded: false,
-            editing: false,
+        expanded: false,
+        editing: false,
     };
     
     componentDidMount() {
@@ -139,8 +139,7 @@ class MappingsObject extends React.Component {
                                 className={className(
                                     'ecc-silk-mapping__ruleitem-summary',
                                     {
-                                        'ecc-silk-mapping__ruleitem-summary--expanded': this
-                                            .state.expanded,
+                                        'ecc-silk-mapping__ruleitem-summary--expanded': this.state.expanded,
                                     }
                                 )}
                             >

@@ -13,63 +13,133 @@ import {
 import RuleTypes from '../elements/RuleTypes';
 import RuleTitle from '../elements/RuleTitle';
 import { MAPPING_RULE_TYPE_OBJECT, MAPPING_RULE_TYPE_ROOT } from '../helpers';
+import { getHierarchyAsync } from '../store';
+import EventEmitter from '../utils/EventEmitter';
+import { MESSAGES } from '../constants';
 
 /**
  * Navigation tree of all mappings
  * @param props
  */
-const MappingsTree = props => {
-    const {
-        currentRuleId, navigationTree, navigationExpanded, navigationLoading, showValueMappings,
-        handleToggleExpanded,
-        handleRuleNavigation
-    } = props;
+class MappingsTree extends React.Component {
+    state = {
+        navigationLoading: false,
+        navigationExpanded: {},
+        data: {}
+    };
+    
+    componentDidMount() {
+        EventEmitter.on(MESSAGES.RELOAD, this.loadNavigationTree);
+        
+        this.loadNavigationTree();
+    }
+    
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (prevProps.currentRuleId !== this.props.currentRuleId) {
+            this.expandNavigationTreeElement()
+        }
+    }
+    
+    componentWillUnmount() {
+        EventEmitter.off(MESSAGES.RELOAD, this.loadNavigationTree);
+    }
+    
+    loadNavigationTree = () => {
+        const { navigationExpanded } = this.state;
+        this.setState({
+            navigationLoading: true
+        });
+        
+        getHierarchyAsync()
+            .subscribe(
+                ({ hierarchy }) => {
+                    const topLevelId = hierarchy.id;
+                    this.setState({
+                        navigationLoading: false,
+                        data: hierarchy,
+                        navigationExpanded: (_.isEmpty(navigationExpanded) && topLevelId)
+                            ? { [topLevelId]: true }
+                            : navigationExpanded,
+                    });
+                },
+                () => {
+                    this.setState({
+                        navigationLoading: false
+                    });
+                }
+            );
+    };
+    
+    // collapse / expand navigation children
+    handleToggleExpandNavigationTree(id) {
+        const expanded = {
+            ...this.state.navigationExpanded
+        };
+        expanded[id] = !expanded[id];
+        this.setState({
+            navigationExpanded: expanded
+        });
+    }
+    
+    expandNavigationTreeElement() {
+        const expanded = {
+            ...this.state.navigationExpanded
+        };
+        expanded[this.props.currentRuleId] = true;
+        // @NOTE: we should pass the parent id by another way
+        // expanded[parentId] = true;
+        
+        this.setState({
+            navigationExpanded: expanded
+        });
+    }
+    
     /**
      * Returns an object which contains a key for each rule
      * that should be expanded because it contains a child with a warning.
-     * @param tree The rule tree
+     * @param originTreeElement The rule tree
      */
-    const markTree = originTreeElement => {
+    markTree = (originTreeElement) => {
         if (_.isEmpty(originTreeElement)) {
             return originTreeElement;
         }
-
+        
         const tree = _.cloneDeep(originTreeElement);
-
+        
         const { id, type } = tree;
-
-        let expanded = navigationExpanded[id] || false;
+        
+        let expanded = this.state.navigationExpanded[id] || false;
         let isHighlighted =
-            id === currentRuleId ||
-            (_.get(tree, 'rules.uriRule.id') === currentRuleId &&
-                !_.isUndefined(currentRuleId)) ||
+            id === this.state.currentRuleId ||
+            (_.get(tree, 'rules.uriRule.id') === this.state.currentRuleId &&
+                !_.isUndefined(this.state.currentRuleId)) ||
             (type === MAPPING_RULE_TYPE_ROOT &&
-                _.isUndefined(currentRuleId));
-
+                _.isUndefined(this.state.currentRuleId));
+        
         if (_.has(tree, 'rules.propertyRules')) {
             tree.rules.propertyRules = _.map(tree.rules.propertyRules, rule => {
-                const subtree = markTree(rule);
-
+                const subtree = this.markTree(rule);
+                
                 if (
                     subtree.type !== MAPPING_RULE_TYPE_OBJECT &&
-                    subtree.id === currentRuleId
+                    subtree.id === this.state.currentRuleId
                 ) {
                     isHighlighted = true;
                     expanded = true;
                 }
-
+                
                 return subtree;
             });
         }
-
+        
         tree.expanded = expanded;
         tree.isHighlighted = isHighlighted;
-
+        
         return tree;
     };
-
+    
     // construct parent-child tree
-    const navigationList = ({ parent }) => {
+    navigationList = (parent) => {
         const {
             id,
             type: parentType,
@@ -77,12 +147,14 @@ const MappingsTree = props => {
             isHighlighted,
             expanded,
         } = parent;
-
+        
+        const {showValueMappings, handleRuleNavigation} = this.props;
+        
         // get expanded state
         const childs = _.chain(rules.propertyRules)
             .filter(({ type }) => showValueMappings || type === MAPPING_RULE_TYPE_OBJECT)
             .value();
-
+        
         const element = () => (
             <button
                 className="ecc-silk-mapping__treenav--item-handler"
@@ -101,13 +173,13 @@ const MappingsTree = props => {
                 )}
             </button>
         );
-
+        
         return (
             <div>
                 <div
                     className={`ecc-silk-mapping__treenav--item${
                         isHighlighted ? ' ecc-silk-mapping__treenav--item-active' : ''
-                    }`}
+                        }`}
                 >
                     {!_.isEmpty(childs) ? (
                         <Button
@@ -115,7 +187,7 @@ const MappingsTree = props => {
                             className="ecc-silk-mapping__treenav--item-toggler"
                             iconName={expanded ? 'expand_more' : 'arrow_nextpage'}
                             tooltip={expanded ? 'Hide sub tree' : 'Open sub tree'}
-                            onClick={() => { handleToggleExpanded(id); }}
+                            onClick={() => { this.handleToggleExpandNavigationTree(id); }}
                         />
                     ) : (
                         <Icon
@@ -131,7 +203,7 @@ const MappingsTree = props => {
                     <ul className="ecc-silk-mapping__treenav--subtree">
                         {_.map(childs, child => (
                             <li key={child.id}>
-                                {navigationList({ parent: child })}
+                                {this.navigationList(child)}
                             </li>
                         ))}
                     </ul>
@@ -139,49 +211,48 @@ const MappingsTree = props => {
             </div>
         );
     };
-
-    return (
-        <div className="ecc-silk-mapping__treenav">
-            <Card>
-                <CardContent>
-                    {navigationLoading && <Spinner />}
-                    {navigationLoading && _.isUndefined(navigationTree) && (
-                        <Info data-test-id="ecc-silk-mapping__treenav-loading">Loading rules</Info>
-                    )}
-                    {!navigationLoading && _.isEmpty(navigationTree) && (
-                        <Info data-test-id="ecc-silk-mapping__treenav-norules">No rules found</Info>
-                    )}
-                    {
-                        !_.isEmpty(navigationTree) && (
-                            <ul className="ecc-silk-mapping__treenav--maintree">
-                                <li>
-                                    {navigationList({ parent: markTree(navigationTree) })}
-                                </li>
-                            </ul>
-                        )
-                    }
-                </CardContent>
-            </Card>
-        </div>
-    );
-};
+    
+    render() {
+        const { data, navigationLoading } = this.state;
+        
+        const tree = this.markTree(data);
+        const NavigationList = this.navigationList(tree);
+        
+        return (
+            <div className="ecc-silk-mapping__treenav">
+                <Card>
+                    <CardContent>
+                        {navigationLoading && <Spinner />}
+                        {navigationLoading && _.isUndefined(data) && (
+                            <Info data-test-id="ecc-silk-mapping__treenav-loading">Loading rules</Info>
+                        )}
+                        {!navigationLoading && _.isEmpty(data) && (
+                            <Info data-test-id="ecc-silk-mapping__treenav-norules">No rules found</Info>
+                        )}
+                        {
+                            !_.isEmpty(data) && (
+                                <ul className="ecc-silk-mapping__treenav--maintree">
+                                    <li>
+                                        {NavigationList}
+                                    </li>
+                                </ul>
+                            )
+                        }
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+}
 
 MappingsTree.propTypes = {
-    // selected rule id (tree highlighting)
     currentRuleId: PropTypes.string,
     handleRuleNavigation: PropTypes.func,
-    handleToggleExpanded: PropTypes.func,
-    navigationTree: PropTypes.object,
-    navigationExpanded: PropTypes.objectOf(PropTypes.bool.isRequired),
-    navigationLoading: PropTypes.bool.isRequired,
     showValueMappings: PropTypes.bool,
 };
 
 MappingsTree.defaultProps = {
-    navigationTree: undefined,
     currentRuleId: undefined,
-    navigationExpanded: {},
-    handleToggleExpanded: () => {},
     handleRuleNavigation: () => {}
 };
 

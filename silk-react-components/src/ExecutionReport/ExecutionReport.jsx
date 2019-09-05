@@ -2,59 +2,30 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Card, CardContent, CardTitle, Table, TableBody, TableCell, TableHead, TableRow } from '@eccenca/gui-elements';
 import MappingsTree from '../HierarchicalMapping/Components/MappingsTree';
-import { getHierarchyAsync } from "../HierarchicalMapping/store";
-import _ from 'lodash';
+import { setApiDetails } from "../HierarchicalMapping/store";
 
 /**
  * Displays a task execution report.
  */
 export default class ExecutionReport extends React.Component {
-    
     constructor(props) {
         super(props);
         this.displayName = 'ExecutionReport';
         this.state = {
             currentRuleId: null,
-            navigationLoading: false
         };
-        this.loadNavigationTree();
+        
+        const {baseUrl, project, task} = this.props;
+        setApiDetails({
+            baseUrl,
+            project,
+            transformTask: task,
+        });
     }
     
     onRuleNavigation = ({newRuleId}) => {
         this.setState({currentRuleId: newRuleId});
     };
-    
-    loadNavigationTree = () => {
-        const {baseUrl, project, task} = this.props;
-        this.setState({navigationLoading: true});
-        getHierarchyAsync({
-            baseUrl,
-            project,
-            transformTask: task,
-        })
-            .subscribe(
-                ({hierarchy}) => {
-                    const topLevelId = hierarchy.id;
-                    this.setState({
-                        navigationLoading: false,
-                        navigationTree: hierarchy,
-                        navigationExpanded: (_.isEmpty(this.state.navigationExpanded) && topLevelId)
-                            ? { [topLevelId]: true }
-                            : this.state.navigationExpanded,
-                    });
-                },
-                () => {
-                    this.setState({navigationLoading: false});
-                }
-            );
-    }
-    
-    render() {
-        return <div>
-            {this.renderSummary()}
-            {'ruleResults' in this.props.executionReport && this.renderTransformReport()}
-        </div>
-    }
     
     renderSummary() {
         const summaryRows = this.props.executionReport.summary.map(v =>
@@ -84,10 +55,7 @@ export default class ExecutionReport extends React.Component {
             <div className="mdl-cell mdl-cell--3-col">
                 <MappingsTree
                     currentRuleId="root"
-                    navigationLoading={this.state.navigationLoading}
-                    navigationExpanded={this.state.navigationExpanded}
                     showValueMappings={true}
-                    navigationTree={this.state.navigationTree}
                     handleRuleNavigation={this.onRuleNavigation}
                 />
             </div>
@@ -150,6 +118,13 @@ export default class ExecutionReport extends React.Component {
             <TableCell>{ruleError.values.flat().join(', ')}</TableCell>
             <TableCell>{ruleError.error}</TableCell>
         </TableRow>
+    }
+    
+    render() {
+        return <div>
+            {this.renderSummary()}
+            {'ruleResults' in this.props.executionReport && this.renderTransformReport()}
+        </div>
     }
 }
 

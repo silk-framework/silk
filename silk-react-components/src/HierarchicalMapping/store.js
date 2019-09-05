@@ -487,15 +487,12 @@ export const ruleExampleAsync = (data) => {
     return Rx.Observable();
 };
 
-export const getHierarchyAsync = ({baseUrl, project, transformTask}) => {
+export const getHierarchyAsync = () => {
     return silkStore
         .request({
             topic: 'transform.task.rules.get',
             data: {
                 ...getApiDetails(),
-                baseUrl,
-                project,
-                transformTask
             },
         })
         .map(returned => {
