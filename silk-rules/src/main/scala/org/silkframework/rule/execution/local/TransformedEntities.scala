@@ -22,6 +22,8 @@ class TransformedEntities(taskLabel: String,
 
   private val propertyRules = rules.filter(_.target.nonEmpty).toIndexedSeq
 
+  private val updateIntervalInMS = 1000
+
   private val report = {
     val prevReport = context.value.get.getOrElse(TransformReport(taskLabel))
     new TransformReportBuilder(prevReport.label, rules, prevReport)
@@ -37,6 +39,7 @@ class TransformedEntities(taskLabel: String,
       }
 
     var count = 0
+    var lastUpdateTime = System.currentTimeMillis()
     for(entity <- entities) {
       errorFlag = false
       val uris = subjectRule match {
@@ -66,9 +69,10 @@ class TransformedEntities(taskLabel: String,
         f(Entity(uri, values, outputSchema))
 
         count += 1
-        if (count % 1000 == 0) {
+        if (count % 1000 == 0 && (System.currentTimeMillis() - lastUpdateTime) > updateIntervalInMS) {
           context.value.update(report.build())
           context.status.updateMessage(s"Executing ($count Entities)")
+          lastUpdateTime = System.currentTimeMillis()
         }
       }
 
@@ -79,6 +83,7 @@ class TransformedEntities(taskLabel: String,
 
     }
     context.value() = report.build()
+    context.status.updateMessage(s"Finished Executing ($count Entities)")
   }
 
   private def evaluateRule(entity: Entity, rule: TransformRule): Seq[String] = {
