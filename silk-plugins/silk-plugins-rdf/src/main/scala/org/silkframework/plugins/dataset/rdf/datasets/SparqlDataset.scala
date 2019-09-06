@@ -42,8 +42,8 @@ case class SparqlDataset(
   clearGraphBeforeExecution: Boolean = false,
   @Param(
     label = "SPARQL query timeout (ms)",
-    value = "SPARQL query timeout (select/update) in milliseconds. A value of zero means that the configured default timeout is used." +
-        " If a value greater zero is specified, it overwrites the default timeouts, e.g. configured via silk.remoteSparqlEndpoint.defaults.read.timeout.ms.")
+    value = "SPARQL query timeout (select/update) in milliseconds. A value of zero means that the timeout configured via " +
+        "property is used (e.g. configured via silk.remoteSparqlEndpoint.defaults.read.timeout.ms). To overwrite the configured value specify a value greater than zero.")
   sparqlTimeout: Int = 0) extends RdfDataset with TripleSinkDataset {
 
   private val params =
