@@ -139,7 +139,7 @@ case class Entity(
         val rangeMap = (schemata.zip(Seq(0) ++ mes.subSchemata.zipWithIndex.map(x => mes.subSchemata.
             splitAt(x._2)._1
             .foldLeft(pivotSize)((i, s) => s.typedPaths.size + i))
-        ) ++ Seq((EntitySchema.empty, mes.typedPaths.size))).sliding(2)
+        ) ++ Seq((EntitySchema.empty, mes.allPaths.size))).sliding(2)
         // now find the correct range and EntitySchema
         val zw = rangeMap.find(x => x.head._2 <= pathIndex && (x.tail.headOption match {
           case Some(o) => o._2 > pathIndex
