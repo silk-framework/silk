@@ -17,9 +17,8 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
   lazy val subSchemata: IndexedSeq[EntitySchema] = getNonPivotSchemata(this)
   //NOTE: ----------------------------------------------------------------------------
 
-  // TypedPaths of pivot and typedPaths of subSchemata (prepended with their sub-paths)
-  override val typedPaths: IndexedSeq[TypedPath] = pivotSchema.typedPaths ++
-    subSchemata.flatMap(ses => ses.typedPaths.map(tp => TypedPath(ses.subPath.operators ++ tp.operators, tp.valueType, tp.isAttribute)))
+  // TypedPaths of pivot table
+  override val typedPaths: IndexedSeq[TypedPath] = pivotSchema.typedPaths
 
   /**
     * Will replace the property uris of selects paths of a given EntitySchema, using a Map[oldUri, newUri].
