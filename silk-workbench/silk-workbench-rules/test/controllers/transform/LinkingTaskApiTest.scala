@@ -101,17 +101,13 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
   "Execute with alternative linking rule" in {
     evaluateLinkageRule()
     evaluateLinkageRule(linkLimit = Some(2), expectedLinks = 2)
-    /* Timeout cannot be tested, since the matcher finishes before the timeout is checked, also it does not fail on timeout,
-       but returns the links that were matched. Also cannot be tested if cancelled since we cannot access the activity control. */
-    evaluateLinkageRule(timeoutInMs = Some(1))
   }
 
   // Alternative linkage rule returns 4 links, the original rule only returns 2
   private val csvLinkingNrOfLinks = 4
   // Executes the evaluateLinkageRule with alternative linkage rule and checks results
   private def evaluateLinkageRule(linkLimit: Option[Int] = None,
-                                  expectedLinks: Int = csvLinkingNrOfLinks,
-                                  timeoutInMs: Option[Int] = None): Unit = {
+                                  expectedLinks: Int = csvLinkingNrOfLinks): Unit = {
     // Alternative linkage rule
     val inputPath = () => PathInput(path = UntypedPath("group"))
     val alternativeLinkingRule = LinkageRule(Some(
@@ -121,8 +117,7 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
     implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
     val linkageRuleJson = LinkageRuleJsonFormat.write(alternativeLinkingRule)
     val linkLimitQuery = linkLimit.map(ll => s"?linkLimit=$ll").getOrElse("")
-    val queryString = linkLimitQuery + timeoutInMs.map(to => linkLimit.map(_ => "&").getOrElse("?") + s"timeoutInMs=$to").getOrElse("")
-    val request = client.url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/evaluateLinkageRule" + queryString)
+    val request = client.url(s"$baseUrl/linking/tasks/$project/$csvLinkingTask/evaluateLinkageRule" + linkLimitQuery)
     val response = request.
         withHttpHeaders("Content-Type"-> SerializationUtils.APPLICATION_JSON).
         post(linkageRuleJson)
