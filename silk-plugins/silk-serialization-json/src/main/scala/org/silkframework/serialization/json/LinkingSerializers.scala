@@ -34,12 +34,12 @@ object LinkingSerializers {
     }
   }
 
+  final val RULE_VALUES = "ruleValues"
   class LinkJsonFormat(rule: Option[LinkageRule]) extends JsonFormat[Link] {
     final val SOURCE = "source"
     final val TARGET = "target"
     final val CONFIDENCE = "confidence"
     final val ENTITIES = "entities"
-    final val RULE_VALUES = "ruleValues"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Link = {
       new Link(

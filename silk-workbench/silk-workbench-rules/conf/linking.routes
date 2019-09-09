@@ -58,3 +58,4 @@ PUT           /tasks/:project/:task/activeLearningTask                          
 GET           /tasks/:project/:task/referenceLinksEvaluated                         controllers.linking.LinkingTaskApi.referenceLinksEvaluated(project: String, task: String)
 
 POST          /tasks/:project/:task/postLinkDatasource                              controllers.linking.LinkingTaskApi.postLinkDatasource(project: String, task: String)
+POST          /tasks/:project/:linkingTaskName/evaluateLinkageRule                  controllers.linking.LinkingTaskApi.evaluateLinkageRule(project: String, linkingTaskName: String, linkLimit: Int ?= 1000, timeoutInMs: Int ?= 30000, includeReferenceLinks ?= false)
