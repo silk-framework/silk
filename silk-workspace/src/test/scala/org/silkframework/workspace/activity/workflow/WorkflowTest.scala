@@ -1,8 +1,8 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.mockito.MockitoSugar
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
@@ -59,11 +59,11 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
     val dag = testWorkflow.workflowDependencyGraph
     dag mustBe WorkflowDependencyGraph(
       startNodes = Set(
-        WorkflowDependencyNode(WorkflowDataset(List(), DS_A1, List(TRANSFORM_1), (0, 0), DS_A1, None)),
-        WorkflowDependencyNode(WorkflowDataset(List(), DS_A2, List(TRANSFORM_2), (0, 0), DS_A2, None))),
+        WorkflowDependencyNode(WorkflowDataset(List(), DS_A1, List(TRANSFORM_1), (0, 0), DS_A1, None, None)),
+        WorkflowDependencyNode(WorkflowDataset(List(), DS_A2, List(TRANSFORM_2), (0, 0), DS_A2, None, None))),
       endNodes = Seq(
-        WorkflowDependencyNode(WorkflowDataset(List(), DS_B, List(), (0, 0), DS_B2, None)),
-        WorkflowDependencyNode(WorkflowDataset(List(GENERATE_OUTPUT), OUTPUT, List(), (0, 0), OUTPUT, None))
+        WorkflowDependencyNode(WorkflowDataset(List(), DS_B, List(), (0, 0), DS_B2, None, None)),
+        WorkflowDependencyNode(WorkflowDataset(List(GENERATE_OUTPUT), OUTPUT, List(), (0, 0), OUTPUT, None, None))
       ))
     val dsA1 = dag.startNodes.filter(_.workflowNode.nodeId == DS_A1).head
     intercept[IllegalStateException] {
@@ -185,15 +185,23 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
     )
   }
 
-  def operator(task: String, inputs: Seq[String], outputs: Seq[String], nodeId: String, outputPriority: Option[Double] = None): WorkflowOperator = {
-    WorkflowOperator(inputs = inputs, task = task, outputs = outputs, Seq(), (0, 0), nodeId, outputPriority)
+  def operator(
+                task: String,
+                inputs: Seq[String],
+                outputs: Seq[String],
+                nodeId: String,
+                outputPriority: Option[Double] = None,
+                contribution: Option[Double] = None
+              ): WorkflowOperator = {
+    WorkflowOperator(inputs = inputs, task = task, outputs = outputs, Seq(), (0, 0), nodeId, outputPriority, contribution)
   }
 
   def dataset(task: String,
               nodeId: String,
               outputPriority: Option[Double] = None,
               inputs: Seq[String] = Seq(),
-              outputs: Seq[String] = Seq()): WorkflowDataset = {
-    WorkflowDataset(inputs, task, outputs, (0, 0), nodeId, outputPriority)
+              outputs: Seq[String] = Seq(),
+              contribution: Option[Double] = None): WorkflowDataset = {
+    WorkflowDataset(inputs, task, outputs, (0, 0), nodeId, outputPriority, contribution)
   }
 }

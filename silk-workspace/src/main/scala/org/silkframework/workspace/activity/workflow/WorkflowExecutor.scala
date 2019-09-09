@@ -6,9 +6,9 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.{ExecutionReport, ExecutionType, ExecutorRegistry}
 import org.silkframework.runtime.activity._
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.{Project, ProjectTask}
 
-import scala.collection.{immutable, mutable}
+import scala.collection.mutable
 
 /**
   * Created by robert on 9/21/2016.
@@ -26,10 +26,10 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   /** Returns a map of datasets that can replace variable datasets used as data sinks in a workflow */
   protected def replaceSinks: Map[String, Dataset]
 
-  protected def currentWorkflow = workflowTask.data
+  protected def currentWorkflow: Workflow = workflowTask.data
 
-  protected def project = workflowTask.project
-  protected def workflowNodes = currentWorkflow.nodes
+  protected def project: Project = workflowTask.project
+  protected def workflowNodes: Seq[WorkflowNode] = currentWorkflow.nodes
 
   protected def execute[TaskType <: TaskSpec](task: Task[TaskType],
                                               inputs: Seq[ExecType#DataType],
@@ -71,8 +71,9 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
   /** Creates an activity context for a specific task that will be executed in the workflow.
     * Also wires the task execution report to the workflow execution report. */
   def taskContext(taskId: Identifier): ActivityContext[ExecutionReport] = {
+    val contribution = workflow.effectiveWorkflowContributionByNodes(taskId)
     val projectAndTaskString = activityContext.status.projectAndTaskId.map(ids => ids.copy(ids.projectId, ids.taskId.map(_ + " -> " + taskId)))
-    val taskContext = new ActivityMonitor[ExecutionReport](taskId, Some(activityContext), projectAndTaskId = projectAndTaskString)
+    val taskContext = new ActivityMonitor[ExecutionReport](taskId, Some(activityContext), projectAndTaskId = projectAndTaskString, progressContribution = contribution)
     listenForTaskReports(taskId, taskContext)
     taskContext
   }

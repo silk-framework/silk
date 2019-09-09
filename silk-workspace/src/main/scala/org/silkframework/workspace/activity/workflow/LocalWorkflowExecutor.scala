@@ -251,8 +251,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   /** Update the progress of this activity. */
   private def updateProgress(currentTask: String)
                             (implicit workflowRunContext: WorkflowRunContext): Unit = {
-    val progress = workflowRunContext.alreadyExecuted.size.toDouble / workflowNodes.size
-    workflowRunContext.activityContext.status.update(s"$currentTask (${workflowRunContext.alreadyExecuted.size} / ${workflowNodes.size})", progress)
+    val progressAddition = workflowRunContext.workflow.effectiveWorkflowContributionByNodes(currentTask)
+    workflowRunContext.activityContext.status.increaseProgress(progressAddition, logStatus = false)
+    workflowRunContext.activityContext.status.updateMessage(s"$currentTask (${workflowRunContext.alreadyExecuted.size} / ${workflowNodes.size})")
   }
 
   /** NOT USED ANYMORE, only here for documentation reasons, should be deleted after everything in here is supported. */

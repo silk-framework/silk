@@ -89,6 +89,24 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
     }
   }
 
+  private val maxContributionOfPredefined = 0.9
+  /**
+    * Calculates the workflow contribution in % for each node in the workflow, depending whether or not a contribution was predefined.
+    */
+  lazy val effectiveWorkflowContributionByNodes: Map[Identifier, Double] ={
+    val (nodesWithDefinedContribution, nodesWithoutContribution) = nodes.partition(n => n.workflowContribution.nonEmpty)
+    val predefinedContributionSum = nodesWithDefinedContribution.foldLeft(0d)((in, n) => in + n.workflowContribution.get)
+
+    val rest = if(nodesWithDefinedContribution.nonEmpty) 1d - math.min(predefinedContributionSum, maxContributionOfPredefined) else 1d
+    val scaledContribution = if(predefinedContributionSum > maxContributionOfPredefined){
+      nodesWithDefinedContribution.map(n => n.task -> (n.workflowContribution.get / predefinedContributionSum) * maxContributionOfPredefined)
+    }
+    else{
+      nodesWithDefinedContribution.map(n => n.task -> n.workflowContribution.get)
+    }
+    (scaledContribution ++ nodesWithoutContribution.map(n => n.task -> (1d / nodesWithoutContribution.size) * rest)).toMap
+  }
+
   private def constructNodeMap: Map[String, WorkflowDependencyNode] = {
     val workflowNodeMap = nodes.map(n => (n.nodeId, WorkflowDependencyNode(n))).toMap
     for (node <- nodes) {
@@ -263,7 +281,8 @@ object Workflow {
             errorOutputs = if (errorOutputStr.trim.isEmpty) Seq() else errorOutputStr.split(',').toSeq,
             position = (Math.round((op \ "@posX").text.toDouble).toInt, Math.round((op \ "@posY").text.toDouble).toInt),
             nodeId = parseNodeId(op, task),
-            outputPriority = parseOutputPriority(op)
+            outputPriority = parseOutputPriority(op),
+            workflowContribution = parseWorkflowContribution(op)
           )
         }
 
@@ -278,7 +297,8 @@ object Workflow {
             outputs = if (outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
             position = (Math.round((ds \ "@posX").text.toDouble).toInt, Math.round((ds \ "@posY").text.toDouble).toInt),
             nodeId = parseNodeId(ds, task),
-            outputPriority = parseOutputPriority(ds)
+            outputPriority = parseOutputPriority(ds),
+            workflowContribution = parseWorkflowContribution(ds)
           )
         }
 
@@ -316,6 +336,15 @@ object Workflow {
 
     private def parseOutputPriority(op: Node): Option[Double] = {
       val node = op \ "@outputPriority"
+      if (node.isEmpty) {
+        None
+      } else {
+        Some(node.text.toDouble)
+      }
+    }
+
+    private def parseWorkflowContribution(op: Node): Option[Double] = {
+      val node = op \ "@workflowContribution"
       if (node.isEmpty) {
         None
       } else {

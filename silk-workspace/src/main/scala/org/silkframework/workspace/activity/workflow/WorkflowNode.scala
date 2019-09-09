@@ -40,6 +40,13 @@ sealed trait WorkflowNode {
     */
   def outputPriority: Option[Double]
 
+  /**
+    * Defines the percentage of the workflow progress report used up by a given node
+    * This is a percentage value, therefore the value has to be in the range of [0,1]
+    */
+  def workflowContribution: Option[Double]
+  assert(workflowContribution.forall(v => v >= 0 && v <= 1), "The following workflow node has a workflowContribution value outside the allowed range of [0,1]: " + this.nodeId)
+
   def copyNode(task: Identifier = task,
                inputs: Seq[NodeReference] = inputs,
                outputs: Seq[NodeReference] = outputs,
@@ -61,11 +68,13 @@ case class WorkflowOperator(inputs: Seq[WorkflowNode#NodeReference],
                             errorOutputs: Seq[String],
                             position: (Int, Int),
                             nodeId: WorkflowNode#NodeReference,
-                            outputPriority: Option[Double]) extends WorkflowNode
+                            outputPriority: Option[Double],
+                            workflowContribution: Option[Double]) extends WorkflowNode
 
 case class WorkflowDataset(inputs: Seq[WorkflowNode#NodeReference],
                            task: Identifier,
                            outputs: Seq[WorkflowNode#NodeReference],
                            position: (Int, Int),
                            nodeId: WorkflowNode#NodeReference,
-                           outputPriority: Option[Double]) extends WorkflowNode
+                           outputPriority: Option[Double],
+                           workflowContribution: Option[Double]) extends WorkflowNode
