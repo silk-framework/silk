@@ -361,8 +361,8 @@ class LinkingTaskApi @Inject() () extends InjectedController {
           val acceptedContentType = request.acceptedTypes.headOption.map(_.mediaType).getOrElse("application/n-triples")
           result(model, acceptedContentType, "Successfully generated links")
         } catch {
-          case _: NoSuchElementException =>
-            throw new NotFoundException("Not found")
+          case ex: NoSuchElementException =>
+            throw new NotFoundException("Not found", Some(ex))
         }
       case _ =>
         throw UnsupportedMediaTypeException.supportedFormats("application/xml")
@@ -402,7 +402,7 @@ class LinkingTaskApi @Inject() () extends InjectedController {
             }
           ))
         case None =>
-          InternalServerError
+          ErrorResult(INTERNAL_SERVER_ERROR, "No value generated", "The linking tasks did not generate any value.")
       }
     }
   }

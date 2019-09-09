@@ -34,8 +34,9 @@ object LinkingSerializers {
     }
   }
 
-  final val RULE_VALUES = "ruleValues"
   class LinkJsonFormat(rule: Option[LinkageRule]) extends JsonFormat[Link] {
+    import LinkJsonFormat._
+
     final val SOURCE = "source"
     final val TARGET = "target"
     final val CONFIDENCE = "confidence"
@@ -62,7 +63,9 @@ object LinkingSerializers {
     }
   }
 
-  implicit object LinkJsonFormat extends LinkJsonFormat(None)
+  implicit object LinkJsonFormat extends LinkJsonFormat(None) {
+    final val RULE_VALUES = "ruleValues"
+  }
 
   implicit object ConfidenceJsonFormat extends WriteOnlyJsonFormat[Confidence] {
     final val SCORE = "score"

@@ -13,7 +13,7 @@ import org.silkframework.rule.plugins.distance.equality.EqualityMetric
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
-import org.silkframework.serialization.json.LinkingSerializers
+import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.util.DPair
 import play.api.libs.json.{JsArray, JsValue}
 
@@ -126,7 +126,7 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
     implicit val readContext: ReadContext = ReadContext()
     val jsLinks = json.as[JsArray].value
     jsLinks.size mustBe expectedLinks
-    val ruleValues = (jsLinks.head \ LinkingSerializers.RULE_VALUES).toOption
+    val ruleValues = (jsLinks.head \ LinkJsonFormat.RULE_VALUES).toOption
     ruleValues mustBe defined
     (ruleValues.get \ "sourceValue" \ "values").as[JsArray].value.map(_.as[String]) mustBe Seq("group 1")
   }
