@@ -27,7 +27,13 @@ case class SparqlSelectCustomTask(@Param(label = "Select query", value = "A SPAR
                                   limit: String = "",
                                  @Param(label = "Optional SPARQL dataset",
                                    value = "An optional SPARQL dataset that can be used for example data, so e.g. the transformation editor shows mapping examples.")
-                                  optionalInputDataset: SparqlEndpointDatasetParameter = SparqlEndpointDatasetParameter("")) extends CustomTask {
+                                  optionalInputDataset: SparqlEndpointDatasetParameter = SparqlEndpointDatasetParameter(""),
+                                  @Param(
+                                    label = "SPARQL query timeout (ms)",
+                                    value = "SPARQL query timeout (select/update) in milliseconds. A value of zero means that there is no timeout set explicitly." +
+                                        " If a value greater zero is specified this overwrites possible default timeouts.")
+                                  sparqlTimeout: Int = 0
+                                 ) extends CustomTask {
   val intLimit: Option[Int] = {
     // Only allow positive ints
     Try(limit.toInt).filter(_ > 0).toOption

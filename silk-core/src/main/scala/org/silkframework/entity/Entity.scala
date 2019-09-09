@@ -34,7 +34,7 @@ import scala.xml.Node
   * @param metadata    - metadata object containing all available metadata information about this object
   *                    an Entity is marked as 'failed' if [[org.silkframework.entity.metadata.EntityMetadata.failure]] is set. It becomes sealed.
   */
-case class Entity private(
+case class Entity(
     uri: Uri,
     private val vals: IndexedSeq[Seq[String]],
     schema: EntitySchema,
