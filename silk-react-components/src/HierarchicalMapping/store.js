@@ -100,7 +100,6 @@ let _apiDetails = {};
 export const setApiDetails = (data) => {
     _apiDetails = {...data};
 };
-
 export const getApiDetails = () => _apiDetails;
 
 function mapPeakResult(returned) {

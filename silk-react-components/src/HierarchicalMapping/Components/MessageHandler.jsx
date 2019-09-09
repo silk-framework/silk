@@ -3,8 +3,6 @@ import React from 'react';
 import _ from 'lodash';
 import rxmq from 'ecc-messagebus';
 
-import UseMessageBus from '../UseMessageBusMixin';
-
 import { Alert, Error, Info, Success, Warning } from '@eccenca/gui-elements';
 
 const renderClasses = {
