@@ -33,7 +33,7 @@ object SerializationUtils {
                                         project: Option[Project],
                                         defaultMimeTypes: Seq[String] = defaultMimeTypes)
                                        (implicit request: Request[AnyContent]): Result = {
-    implicit val writeContext = createWriteContext(project)
+    implicit val writeContext: WriteContext[Any] = createWriteContext(project)
     val valueType = implicitly[ClassTag[T]].runtimeClass
 
     applySerializationFormat[T](request.acceptedTypes, defaultMimeTypes, valueType) { (serializationFormat, mimeType) =>
