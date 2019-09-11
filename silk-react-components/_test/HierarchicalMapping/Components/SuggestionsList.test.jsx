@@ -1,7 +1,6 @@
 import React from 'react';
 import {expect, assert} from 'chai';
 import { mount } from 'enzyme';
-import sinon from "sinon";
 import chai from "chai";
 import chaiEnzyme from "chai-enzyme";
 import Enzyme from "enzyme/build";
@@ -9,7 +8,6 @@ import Adapter from "enzyme-adapter-react-15/build";
 import SuggestionsList from '../../../src/HierarchicalMapping/Components/SuggestionsList';
 import './SuggestionsList.server';
 // Required for the store to work!
-import SilkStore from './../../../src/SilkStore/silkStore';
 import waitUntilReady from '../../test_helper'
 
 chai.use(chaiEnzyme());
