@@ -46,9 +46,13 @@ const RemoveMappingRuleDialog = props => {
 };
 
 RemoveMappingRuleDialog.propTypes = {
-    mappingType: PropTypes.string.isRequired,
+    mappingType: PropTypes.string,
     handleConfirmRemove: PropTypes.func.isRequired,
     handleCancelRemove: PropTypes.func.isRequired,
+};
+
+RemoveMappingRuleDialog.defaultProps = {
+    mappingType: '',
 };
 
 export default RemoveMappingRuleDialog;

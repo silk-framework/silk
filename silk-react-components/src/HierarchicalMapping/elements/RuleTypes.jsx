@@ -25,13 +25,13 @@ const RuleTypes = ({rule, ...otherProps}) => {
         case MAPPING_RULE_TYPE_DIRECT:
         case MAPPING_RULE_TYPE_COMPLEX:
             let appendText = _.get(rule, 'mappingTarget.valueType.lang', '');
-            if (appendText !== '') { // add language tag if available
+            if (appendText) { // add language tag if available
                 appendText = ` (${appendText})`;
             }
             return (
                 <span {...otherProps}>
-                {_.get(rule, 'mappingTarget.valueType.nodeType', <NotAvailable/>) + appendText}
-            </span>
+                    {_.get(rule, 'mappingTarget.valueType.nodeType', <NotAvailable/>) + appendText}
+                </span>
             );
         case MAPPING_RULE_TYPE_ROOT:
             return <span/>;

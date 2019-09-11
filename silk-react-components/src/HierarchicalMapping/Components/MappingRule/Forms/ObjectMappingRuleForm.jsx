@@ -23,8 +23,7 @@ import AutoComplete from './AutoComplete';
 import {
     MAPPING_RULE_TYPE_ROOT,
     MAPPING_RULE_TYPE_URI,
-    trimValueLabelObject,
-    trimUriPattern,
+    trimValue,
 } from '../../../helpers';
 import { MESSAGES } from '../../../constants';
 import EventEmitter from '../../../utils/EventEmitter';
@@ -96,14 +95,14 @@ class ObjectMappingRuleForm extends Component {
             type: this.state.type,
             comment: this.state.comment,
             label: this.state.label,
-            sourceProperty: trimValueLabelObject(
+            sourceProperty: trimValue(
                 this.state.sourceProperty
             ),
-            targetProperty: trimValueLabelObject(
+            targetProperty: trimValue(
                 this.state.targetProperty
             ),
             targetEntityType: this.state.targetEntityType,
-            pattern: trimUriPattern(this.state.pattern),
+            pattern: trimValue(this.state.pattern),
             entityConnection: this.state.entityConnection === 'to',
         }, true)
             .subscribe(

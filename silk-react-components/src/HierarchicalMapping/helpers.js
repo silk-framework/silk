@@ -29,25 +29,19 @@ export const LABELED_SUGGESTION_TYPES = [
     },
 ];
 
-export const trimValueLabelObject = object => {
-    if (_.has(object, 'value') && _.isString(object.value)) {
-        object.value = _.trim(object.value);
+export const trimValue = arg => {
+    if (_.isObject(arg)) {
+        if (_.has(arg, 'value') && _.isString(arg.value)) {
+            arg.value = _.trim(arg.value);
+        }
+        if (_.has(arg, 'label')) {
+            arg.label = _.trim(arg.label);
+        }
+    } else if (_.isString(arg)) {
+        return _.trim(arg);
     }
-    if (_.has(object, 'label')) {
-        object.label = _.trim(object.label);
-    }
-    return object;
-};
-
-export const trimUriPattern = pattern => {
-    return _.trim(pattern);
-};
-
-export const uriToLabel = uri => {
-    const cleanUri = uri.replace(/(^<+|>+$)/g, '');
-    const cutIndex = Math.max(cleanUri.lastIndexOf('#'), cleanUri.lastIndexOf('/'), cleanUri.lastIndexOf(':'), 0);
-    const label = _.startCase(cleanUri.substr(cutIndex, cleanUri.length));
-    return uri.toLowerCase() === label.toLowerCase() ? uri : label;
+   
+    return arg;
 };
 
 /**
@@ -57,8 +51,12 @@ export const uriToLabel = uri => {
  * @returns {{displayLabel: string, uri: null||string}}
  */
 export const getRuleLabel = ({ label, uri }) => {
-    const cleanUri = uri.replace(/(^<+|>+$)/g, ''),
-        uriLabel = uriToLabel(uri);
+    const cleanUri = uri.replace(/(^<+|>+$)/g, '');
+    const cutIndex = Math.max(cleanUri.lastIndexOf('#'), cleanUri.lastIndexOf('/'), cleanUri.lastIndexOf(':'), 0);
+    
+    const _label = _.startCase(cleanUri.substr(cutIndex, cleanUri.length));
+    const uriLabel =  uri.toLowerCase() === _label.toLowerCase() ? uri : _label;
+    
     return {
         displayLabel: label
             ? uri.toLowerCase() === label.toLowerCase() ? uri : label

@@ -194,9 +194,9 @@ class MappingRule extends React.Component {
                 onClick={mainAction}
             />
         );
-
+        
         const ruleLabelData = getRuleLabel({ label, uri: mappingTarget.uri });
-
+        
         // TODO: enable real API structure
         const shortView = [
             <div

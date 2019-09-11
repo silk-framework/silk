@@ -43,9 +43,13 @@ const DiscardChangesDialog = props => {
 };
 
 DiscardChangesDialog.propTypes = {
-    numberEditingElements: PropTypes.number.isRequired,
+    numberEditingElements: PropTypes.number,
     handleDiscardCancel: PropTypes.func.isRequired,
     handleDiscardConfirm: PropTypes.func.isRequired,
+};
+
+DiscardChangesDialog.defaultProps = {
+    numberEditingElements: 0
 };
 
 export default DiscardChangesDialog;

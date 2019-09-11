@@ -21,7 +21,7 @@ import AutoComplete from './AutoComplete';
 import {
     MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_DIRECT,
-    trimValueLabelObject,
+    trimValue,
 } from '../../../helpers';
 import { MESSAGES } from '../../../constants';
 import EventEmitter from '../../../utils/EventEmitter';
@@ -115,11 +115,11 @@ class ValueMappingRuleForm extends React.Component {
             type: this.state.type,
             comment: this.state.comment,
             label: this.state.label,
-            targetProperty: trimValueLabelObject(
+            targetProperty: trimValue(
                 this.state.targetProperty
             ),
             valueType: this.state.valueType,
-            sourceProperty: trimValueLabelObject(
+            sourceProperty: trimValue(
                 this.state.sourceProperty
             ),
             isAttribute: this.state.isAttribute,

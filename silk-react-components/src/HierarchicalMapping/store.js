@@ -292,10 +292,10 @@ const createGeneratedRules = ({rules, parentId}) =>
                 error.failedRules = failedRules;
                 throw error;
             }
-            
             return createdRules;
         });
 
+// PUBLIC API
 export const orderRulesAsync = ({id, childrenRules}) => {
     silkStore
         .request({
