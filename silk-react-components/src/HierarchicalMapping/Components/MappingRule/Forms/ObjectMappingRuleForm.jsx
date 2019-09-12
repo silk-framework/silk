@@ -31,7 +31,7 @@ import EventEmitter from '../../../utils/EventEmitter';
 /**
  * Provides the editable form for object mappings.
  */
-class ObjectMappingRuleForm extends Component {
+export class ObjectMappingRuleForm extends Component {
     // define property types
     static propTypes = {
         id: PropTypes.string,
@@ -84,6 +84,7 @@ class ObjectMappingRuleForm extends Component {
      * @param event
      */
     handleConfirm(event) {
+        console.log('HELLLLLLLLLOOOOOOO');
         event.stopPropagation();
         event.persist();
         this.setState({
@@ -198,6 +199,7 @@ class ObjectMappingRuleForm extends Component {
                     isValidNewOption={newValueIsIRI}
                     creatable
                     ruleId={autoCompleteRuleId}
+                    data-id='autocomplete_target_prop'
                     value={modifiedValues.targetProperty}
                     onChange={value => { this.handleChangeValue('targetProperty', value); }}
                 />
@@ -212,6 +214,7 @@ class ObjectMappingRuleForm extends Component {
                     }
                     name=""
                     disabled={false}
+                    data-id='entity_radio_group'
                 >
                     <Radio
                         value="from"
@@ -244,6 +247,7 @@ class ObjectMappingRuleForm extends Component {
                     value={modifiedValues.sourceProperty}
                     ruleId={parentId}
                     onChange={value => { this.handleChangeValue('sourceProperty', value); }}
+                    data-id="autocomplete_source_prop"
                 />
             );
         }
