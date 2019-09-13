@@ -104,6 +104,20 @@ object Status {
   object Running {
     def apply(message: String, progress: Double): Running = Running(message, Some(progress))
   }
+
+  case class WithErrors(message: String, override val progress: Option[Double], override val exception: Option[Throwable]) extends Status {
+    override def isRunning: Boolean = true
+    override def toString: String = {
+      progress match {
+        case Some(p) =>
+          message + " (" + "%3.1f".format(p * 100.0) + "% encountered error!)"
+        case None =>
+          message
+      }
+    }
+    override def succeeded: Boolean = false
+    override def failed: Boolean = false
+  }
   
   /**
    * Indicating that the task has been requested to stop but has not stopped yet.
@@ -123,10 +137,11 @@ object Status {
    * @param exception The exception, if the task failed.
    */
   case class Finished(success: Boolean, runtime: Long, cancelled: Boolean, override val exception: Option[Throwable] = None) extends Status {
-    override def message: String = (exception, cancelled) match {
-      case (None, false) => "Finished in " + formattedTime
-      case (_, true) => "Cancelled after " + formattedTime
-      case (Some(ex), _) => "Failed after " + formattedTime + ": " + ex.getMessage
+    override def message: String = (success, exception, cancelled) match {
+      case (true, None, false) => "Finished in " + formattedTime
+      case (_, _, true) => "Cancelled after " + formattedTime
+      case (false, Some(ex), _) => "Failed after " + formattedTime + ": " + ex.getMessage
+      case (true, Some(ex), _) => "Errors occurred after " + formattedTime + ": " + ex.getMessage
     }
 
     private def formattedTime = {
