@@ -15,10 +15,13 @@
 package org.silkframework.workspace
 
 import java.io._
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.Logger
 
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{DefaultConfig, Prefixes}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.validation.ServiceUnavailableException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
 
@@ -34,6 +37,12 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
 
   private val log = Logger.getLogger(classOf[Workspace].getName)
 
+  private val cfg = DefaultConfig.instance()
+  // Time in milliseconds to wait for the workspace to be loaded
+  private val waitForWorkspaceInitialization = cfg.getLong("workspace.timeouts.waitForWorkspaceInitialization")
+  private val loadProjectsLock = new ReentrantLock()
+
+  @volatile
   private var initialized = false
 
   @volatile
@@ -45,11 +54,18 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
 
   /** Load the projects of a user into the workspace. At the moment all users have access to all projects, so this is only,
     * executed once. */
-  private def loadUserProjects()(implicit userContext: UserContext): Unit = synchronized {
+  private def loadUserProjects()(implicit userContext: UserContext): Unit = {
     // FIXME: Extension for access control should happen here.
-    if (!initialized) {
-      loadProjects()
-      initialized = true
+    if (!initialized) { // Avoid lock
+      if(loadProjectsLock.tryLock(waitForWorkspaceInitialization, TimeUnit.MILLISECONDS)) {
+        if(!initialized) { // Should have changed by now, but loadProjects() could also have failed, so double-check
+          loadProjects()
+          initialized = true
+        }
+      } else {
+        // Timeout
+        throw ServiceUnavailableException("The DataIntegration workspace is currently being initialized. The request has timed out. Please try again later.")
+      }
     }
   }
 

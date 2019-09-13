@@ -14,6 +14,7 @@ package org.silkframework.dataset.rdf
  * @param queryParameters Additional parameters to be appended to every request e.g. &soft-limit=1
  * @param strategy Strategy used for retrieving entities.
  * @param useOrderBy Enforce ordering by using ORDER BY in SPARQL select queries. May slow down reading.
+ * @param timeout The timeout in milliseconds or no timeout if not specified.
 */
 case class SparqlParams(
    uri: String = "",
@@ -27,7 +28,8 @@ case class SparqlParams(
   retryPause: Int = 1000,
   queryParameters: String = "",
   strategy: EntityRetrieverStrategy = EntityRetrieverStrategy.parallel,
-  useOrderBy: Boolean = true
+  useOrderBy: Boolean = true,
+  timeout: Option[Int] = None
  ) {
 
   /**

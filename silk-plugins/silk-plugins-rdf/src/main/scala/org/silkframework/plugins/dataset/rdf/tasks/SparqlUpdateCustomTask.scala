@@ -90,5 +90,5 @@ Example for the 'Velocity Engine' mode:
   For more information about the Velocity Engine visit http://velocity.apache.org.
     """
 
-  final val defaultBatchSize = 10
+  final val defaultBatchSize = 1
 }
