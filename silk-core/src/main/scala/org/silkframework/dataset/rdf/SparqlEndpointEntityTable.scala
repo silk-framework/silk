@@ -14,8 +14,26 @@ class SparqlEndpointEntityTable(sparqlEndpoint: SparqlEndpoint, val task: Task[T
 
   override def entities: Traversable[Entity] = Traversable.empty
 
-  def select(query: String, limit: Int = Integer.MAX_VALUE)
-            (implicit userContext: UserContext): SparqlResults = sparqlEndpoint.select(query, limit)
+  /**
+    * Executes the select query on the SPARQL endpoint.
+    *
+    * @param query   The SELECT query to execute
+    * @param limit   The max. number of rows to fetch
+    * @param timeout An optional timeout in ms for the query execution. If defined it should have an positive value, else it will be ignored.
+    *                This timeout is passed to the underlying SPARQL endpoint implementation.
+    */
+  def select(query: String,
+             limit: Int = Integer.MAX_VALUE,
+             timeout: Option[Int] = None)
+            (implicit userContext: UserContext): SparqlResults = {
+    timeout match {
+      case Some(timeoutInMs) if timeoutInMs > 0 =>
+        val updatedParams = sparqlEndpoint.sparqlParams.copy(timeout = timeout)
+        sparqlEndpoint.withSparqlParams(updatedParams).select(query, limit)
+      case _ =>
+        sparqlEndpoint.select(query, limit)
+    }
+  }
 
   def construct(query: String)(implicit userContext: UserContext): QuadIterator = sparqlEndpoint.construct(query)
 }

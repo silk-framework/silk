@@ -97,6 +97,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController{
 
   private def enumerateOutputStream(serializeFunc: java.io.OutputStream => Unit): Enumerator[Array[Byte]] = {
     val outputStream = new PipedOutputStream
+    val pipedInputStream = new PipedInputStream(outputStream)
 
     exportExecutionContext.execute(new Runnable {
       override def run(): Unit = {
@@ -109,7 +110,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController{
       }
     })
 
-    Enumerator.fromStream(new PipedInputStream(outputStream))(exportExecutionContext)
+    Enumerator.fromStream(pipedInputStream)(exportExecutionContext)
   }
 
   private def bodyAsFile(implicit request: Request[AnyContent]): File = {

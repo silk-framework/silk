@@ -10,50 +10,68 @@ object ActivitySerializers {
 
   implicit object StatusJsonFormat extends JsonFormat[Status] {
 
+    private final val STATUS_NAME = "statusName"
+    private final val IS_RUNNING = "isRunning"
+    private final val PROGRESS = "progress"
+    private final val MESSAGE = "message"
+    private final val FAILED = "failed"
+    private final val LAST_UPDATE_TIME = "lastUpdateTime"
+    private final val RUNTIME = "runtime"
+    private final val CANCELLED = "cancelled"
+    private final val EXCEPTION_MESSAGE = "exceptionMessage"
+
+    private final val IDLE_TYPE = classOf[Idle].getSimpleName
+    private final val WAITING_TYPE = classOf[Waiting].getSimpleName
+    private final val RUNNING_TYPE = classOf[Running].getSimpleName
+    private final val CANCELING_TYPE = classOf[Canceling].getSimpleName
+    private final val FINISHED_TYPE = classOf[Finished].getSimpleName
+
     override def write(status: Status)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       val basicParameters =
         JsObject(
-          ("statusName" -> JsString(status.name)) ::
-          ("isRunning" -> JsBoolean(status.isRunning)) ::
-          ("progress" -> status.progress.map(p => JsNumber(p * 100.0)).getOrElse(JsNull)) ::
-          ("message" -> JsString(status.toString)) ::
-          ("failed" -> JsBoolean(status.failed)) ::
-          ("lastUpdateTime" -> JsNumber(status.timestamp)) :: Nil
+          (STATUS_NAME -> JsString(status.name)) ::
+          (IS_RUNNING -> JsBoolean(status.isRunning)) ::
+          (PROGRESS -> status.progress.map(p => JsNumber(p * 100.0)).getOrElse(JsNull)) ::
+          (MESSAGE -> JsString(status.toString)) ::
+          (FAILED -> JsBoolean(status.failed)) ::
+          (LAST_UPDATE_TIME -> JsNumber(status.timestamp)) :: Nil
         )
       status match {
         case Finished(success, runtime, cancelled, exception) =>
           basicParameters +
-            ("runtime" -> JsNumber(runtime)) +
-            ("cancelled" -> JsBoolean(cancelled)) +
-            ("exceptionMessage" -> exception.map(_.getMessage).map(JsString).getOrElse(JsNull))
+            (RUNTIME -> JsNumber(runtime)) +
+            (CANCELLED -> JsBoolean(cancelled)) +
+            (EXCEPTION_MESSAGE -> exception.map(_.getMessage).map(JsString).getOrElse(JsNull))
         case _ =>
           basicParameters
       }
     }
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Status = {
-      (value \ "statusName").as[String] match {
-        case "Idle" =>
+        (value \ STATUS_NAME).as[String] match {
+        case IDLE_TYPE =>
           Idle()
-        case "Waiting" =>
+        case WAITING_TYPE =>
           Waiting()
-        case "Running" =>
+        case RUNNING_TYPE =>
           Running(
-            message = (value \ "message").as[String],
-            progress = (value \ "progress").toOption.map(_.as[Double])
+            message = (value \ MESSAGE).as[String],
+            progress = (value \ PROGRESS).asOpt[Double]
           )
-        case "Canceling" =>
+        case CANCELING_TYPE =>
           Canceling(
-            progress = (value \ "progress").toOption.map(_.as[Double])
+            progress = (value \ PROGRESS).asOpt[Double]
           )
-        case "Finished" =>
+        case FINISHED_TYPE =>
           Finished(
-            success = !(value \ "failed").as[Boolean],
-            runtime = (value \ "runtime").as[Long],
-            cancelled = (value \ "cancelled").as[Boolean],
+            success = !(value \ FAILED).as[Boolean],
+            runtime = (value \ RUNTIME).as[Long],
+            cancelled = (value \ CANCELLED).as[Boolean],
             // At the moment the stack trace gets lost during serialization:
-            exception = (value \ "exceptionMessage").asOpt[String].map(msg => new Exception(msg))
+            exception = (value \ EXCEPTION_MESSAGE).asOpt[String].map(msg => new Exception(msg))
           )
+        case statusName: String =>
+            throw new IllegalArgumentException("Unknown status type: " + statusName)
       }
     }
   }

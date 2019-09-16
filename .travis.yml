@@ -3,7 +3,7 @@ language: scala
 jdk:
   - openjdk8
 scala:
-  - 2.11.11
+  - 2.11.12
 
 notifications:
   email:
