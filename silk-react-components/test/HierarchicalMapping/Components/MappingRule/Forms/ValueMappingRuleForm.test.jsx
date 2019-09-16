@@ -1,65 +1,61 @@
 import React from "react";
 import { mount, shallow } from 'enzyme';
-import { ObjectMappingRuleForm } from '../../../../../src/HierarchicalMapping/Components/MappingRule/Forms/ObjectMappingRuleForm';
 import { CardTitle, Spinner } from '@eccenca/gui-elements';
 import ErrorView from '../../../../../src/HierarchicalMapping/Components/MappingRule/ErrorView';
 import ExampleView from '../../../../../src/HierarchicalMapping/Components/MappingRule/ExampleView';
 import * as Store from '../../../../../src/HierarchicalMapping/store';
 import EventEmitter from '../../../../../src/HierarchicalMapping/utils/EventEmitter';
+import { ValueMappingRuleForm } from '../../../../../src/HierarchicalMapping/Components/MappingRule/Forms/ValueMappingRuleForm';
 
 const props = {
     id: '1',
     parentId: '2',
-    parent: {
-        id: '2',
-        type: 'object',
-    },
     scrollIntoView: jest.fn(),
     scrollElementIntoView: jest.fn(),
-    ruleData: {
-        type: 'object',
-        targetProperty: '',
-        entityConnection: '',
-        uriRuleType: 'uri',
-        pattern: "pattern"
-    },
 };
 
 const selectors = {
-    TARGET_PROP_AUTOCOMPLETE: '[data-id="autocomplete_target_prop"]',
-    ENTITY_CON_RADIO: '[data-id="entity_radio_group"]',
-    SOURCE_PROP_AUTOCOMPLETE: '[data-id="autocomplete_source_prop"]',
-    URI_INPUT: '.ecc-silk-mapping__ruleseditor__pattern',
+    SOURCE_PROP_AUTOCOMPLETE: '.ecc-silk-mapping__ruleseditor__sourcePath',
+    TARGET_PROP_AUTOCOMPLETE: '.ecc-silk-mapping__ruleseditor__targetProperty',
+    DATA_TYPE_AUTOCOMPLETE: '.ecc-silk-mapping__ruleseditor__propertyType',
+    CHECKBOX: '.ecc-silk-mapping__ruleseditor__isAttribute',
+    INPUT_COMPLEX: '[data-id="test-complex-input"]',
+    LNG_SELECT_BOX: '[data-id="lng-select-box"]',
     RULE_LABEL_INPUT: '.ecc-silk-mapping__ruleseditor__label',
     RULE_DESC_INPUT: '.ecc-silk-mapping__ruleseditor__comment',
     CONFIRM_BUTTON: 'button.ecc-silk-mapping__ruleseditor__actionrow-save',
-    CANCEL_BUTTON: 'button.ecc-silk-mapping__ruleseditor__actionrow-cancel',
+    CANCEL_BUTTON: 'button.ecc-silk-mapping__ruleseditor___actionrow-cancel',
 };
 
 
 
 const getWrapper = (renderer = shallow, arg = props) => renderer(
-    <ObjectMappingRuleForm {...arg} />
+    <ValueMappingRuleForm {...arg} />
 );
 
-describe("ObjectMappingRuleForm Component", () => {
+describe("ValueMappingRuleForm Component", () => {
     describe("on component mounted, ", () => {
         let wrapper;
         beforeEach(() => {
             wrapper = getWrapper(shallow);
+            wrapper.setState({
+                loading: false
+            })
         });
         
         it("should loading indicator present if data still loading", () => {
             wrapper.setState({
                 loading: true
-            });
+            })
             expect(wrapper.find(Spinner)).toHaveLength(1);
         });
         
         it("should show the error message, when it's happened", () => {
             wrapper.setState({
-                saveObjectError: {
-                    title: 'Error',
+                error: {
+                    response:  {
+                        body: 'Error'
+                    },
                 }
             });
             expect(wrapper.find(ErrorView)).toHaveLength(1);
@@ -72,29 +68,54 @@ describe("ObjectMappingRuleForm Component", () => {
             });
             expect(wrapper.find(CardTitle)).toHaveLength(1);
         });
-        
-        describe('when `ruleData.type` Not equal to `root` ', () => {
-            it('should render Target property Autocomplete box', () => {
-                expect(wrapper.find(selectors.TARGET_PROP_AUTOCOMPLETE)).toHaveLength(1);
+    
+        it('should render Source property Autocomplete box, when rule type equal to `direct` ', () => {
+            wrapper.setState({
+                type: 'direct',
+                loading: false
             });
-        
-            it('should render Radio group of entity connections', () => {
-                expect(wrapper.find(selectors.ENTITY_CON_RADIO)).toHaveLength(1);
-            });
-        
-            it('should render Source property Autocomplete box', () => {
-                expect(wrapper.find(selectors.SOURCE_PROP_AUTOCOMPLETE)).toHaveLength(1);
-            });
+            expect(wrapper.find(selectors.SOURCE_PROP_AUTOCOMPLETE)).toHaveLength(1);
         });
     
-        it('should render URI pattern input box, when `id` presented', () => {
-            expect(wrapper.find(selectors.URI_INPUT)).toHaveLength(1);
+        it('should render TextField, when rule type equal to `complex` ', () => {
+            wrapper.setState({
+                type: 'complex',
+                loading: false
+            });
+            expect(wrapper.find(selectors.INPUT_COMPLEX)).toHaveLength(1);
         });
     
-        it('should render ExampleView component, when pattern or uriRule presented', () => {
+        it('should render ExampleView, when sourceProperty not empty', () => {
+            wrapper.setState({
+                sourceProperty: [
+                    '1'
+                ],
+                loading: false
+            });
             expect(wrapper.find(ExampleView)).toHaveLength(1);
         });
     
+        it('should render Target property autocomplete', () => {
+            expect(wrapper.find(selectors.TARGET_PROP_AUTOCOMPLETE)).toHaveLength(1);
+        });
+    
+        it('should render the checkbox', () => {
+            expect(wrapper.find(selectors.CHECKBOX)).toHaveLength(1);
+        });
+    
+        it('should render the autocomplete for data types', () => {
+            expect(wrapper.find(selectors.DATA_TYPE_AUTOCOMPLETE)).toHaveLength(1);
+        });
+    
+        it('should render the language select box, when nodeType equal to `LanguageValueType`', () => {
+            wrapper.setState({
+                valueType: {
+                    nodeType: 'LanguageValueType'
+                }
+            });
+            expect(wrapper.find(selectors.LNG_SELECT_BOX)).toHaveLength(1);
+        });
+        
         it('should render input for editing label of rule', () => {
             expect(wrapper.find(selectors.RULE_LABEL_INPUT)).toHaveLength(1);
         });
@@ -114,7 +135,7 @@ describe("ObjectMappingRuleForm Component", () => {
             emitMock = jest.spyOn(EventEmitter, 'emit');
         });
         
-        it("should save button call createMapping function, when value changed", () => {
+        it("should save button call createMapping function, when value changed and targetProperty presented with language tag", () => {
             const createMappingAsyncMock = jest.spyOn(Store, 'createMappingAsync');
             const wrapper = getWrapper(mount, {
                 ...props,
@@ -124,14 +145,26 @@ describe("ObjectMappingRuleForm Component", () => {
                 }
             });
             wrapper.setState({
-                changed: true
+                loading: false,
+                changed: true,
+                valueType: {
+                    nodeType: 'en'
+                },
+                targetProperty: '2'
             });
-            wrapper.find(selectors.CONFIRM_BUTTON).first().simulate("click");
+            wrapper.find(selectors.CONFIRM_BUTTON).first().simulate("click", {
+                stopPropagation: jest.fn(),
+                persist: jest.fn()
+            });
             expect(createMappingAsyncMock).toBeCalled();
         });
         
         it("should cancel button emit the event which will discard the form", () => {
             const wrapper = getWrapper(mount);
+            wrapper.setState({
+                loading: false
+            });
+            
             wrapper.find(selectors.CANCEL_BUTTON).first().simulate("click", {
                 stopPropagation: jest.fn()
             });

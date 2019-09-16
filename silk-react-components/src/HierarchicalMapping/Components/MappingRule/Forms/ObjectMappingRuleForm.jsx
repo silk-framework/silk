@@ -84,7 +84,6 @@ export class ObjectMappingRuleForm extends Component {
      * @param event
      */
     handleConfirm(event) {
-        console.log('HELLLLLLLLLOOOOOOO');
         event.stopPropagation();
         event.persist();
         this.setState({
@@ -126,6 +125,7 @@ export class ObjectMappingRuleForm extends Component {
      * @param value
      */
     handleChangeValue(name, value) {
+        console.log(name, value);
         const { id, ruleData } = this.props;
         const { create, modifiedValues } = this.state;
 
@@ -135,6 +135,7 @@ export class ObjectMappingRuleForm extends Component {
 
         if (id) {
             if (changed) {
+                console.log('called');
                 EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id });
             } else {
                 EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id });
@@ -176,7 +177,6 @@ export class ObjectMappingRuleForm extends Component {
         // FIXME: also check if data really has changed before allow saving
         const allowConfirm =
             modifiedValues.type === MAPPING_RULE_TYPE_ROOT || !_.isEmpty(modifiedValues.targetProperty);
-
         const errorMessage = saveObjectError && (
             <ErrorView {...saveObjectError} />
         );
@@ -261,7 +261,10 @@ export class ObjectMappingRuleForm extends Component {
                         label="URI pattern"
                         className="ecc-silk-mapping__ruleseditor__pattern"
                         value={modifiedValues.pattern}
-                        onChange={({ value }) => { this.handleChangeValue('pattern', value); }}
+                        onChange={({ value }) => {
+                            console.log(value);
+                            this.handleChangeValue('pattern', value);
+                        }}
                     />
                 );
             } else {

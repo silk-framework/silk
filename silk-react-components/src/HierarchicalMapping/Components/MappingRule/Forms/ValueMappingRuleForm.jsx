@@ -31,10 +31,17 @@ const languagesList = [
     'ja','kn','ko','lb','no','pl','pt','ru','sk','sl','sv','tr','uk'
 ];
 
-class ValueMappingRuleForm extends React.Component {
+export class ValueMappingRuleForm extends React.Component {
     state = {
-        loading: true,
+        loading: false,
         changed: false,
+        create: true,
+        type: MAPPING_RULE_TYPE_DIRECT,
+        valueType: { nodeType: 'StringValueType' },
+        sourceProperty: '',
+        isAttribute: false,
+        initialValues: {},
+        error: null
     };
     
     componentDidMount() {
@@ -53,6 +60,9 @@ class ValueMappingRuleForm extends React.Component {
     }
     
     loadData() {
+        this.setState({
+            loading: true
+        });
         if (this.props.id) {
             getRuleAsync(this.props.id)
                 .subscribe(
@@ -90,16 +100,10 @@ class ValueMappingRuleForm extends React.Component {
                     }
                 );
         } else {
-            EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, {id: 0});
             this.setState({
-                create: true,
-                loading: false,
-                type: MAPPING_RULE_TYPE_DIRECT,
-                valueType: { nodeType: 'StringValueType' },
-                sourceProperty: '',
-                isAttribute: false,
-                initialValues: {},
+                loading: false
             });
+            EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, {id: 0});
         }
     }
     
@@ -201,12 +205,10 @@ class ValueMappingRuleForm extends React.Component {
         
         const autoCompleteRuleId = id || parentId;
         
-        const {type, error} = this.state;
-        
-        if (this.state.loading) {
+        const {type, error, loading} = this.state;
+        if (loading) {
             return <Spinner />;
         }
-        
         const errorMessage = error ? (
             <ErrorView {...error.response.body} />
         ) : (
@@ -238,6 +240,7 @@ class ValueMappingRuleForm extends React.Component {
         } else if (type === MAPPING_RULE_TYPE_COMPLEX) {
             sourcePropertyInput = (
                 <TextField
+                    data-id='test-complex-input'
                     disabled
                     label="Value formula"
                     value="The value formula cannot be modified in the edit form."
@@ -256,7 +259,6 @@ class ValueMappingRuleForm extends React.Component {
         ) : (
             false
         );
-        
         return (
             <div className="ecc-silk-mapping__ruleseditor">
                 <Card shadow={!id ? 1 : 0}>
@@ -295,6 +297,7 @@ class ValueMappingRuleForm extends React.Component {
                         />
                         { (this.state.valueType.nodeType === 'LanguageValueType') &&
                         <SelectBox
+                            data-id={'lng-select-box'}
                             placeholder="Language Tag"
                             options={languagesList}
                             optionsOnTop={true} // option list opens up on top of select input (default: false)
