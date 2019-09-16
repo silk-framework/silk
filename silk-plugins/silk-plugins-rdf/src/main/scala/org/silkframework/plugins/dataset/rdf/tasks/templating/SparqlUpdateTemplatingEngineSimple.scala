@@ -13,6 +13,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 import scala.util.matching.Regex
 
+
 /**
   * A simple templating engine that can only render plain literals and URIs.
   * Example:
