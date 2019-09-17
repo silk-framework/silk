@@ -5,11 +5,12 @@ import org.silkframework.runtime.activity.UserContext
 /**
   * Generic link sink that write links to a table with two columns.
   * The columns are named ''source'' and ''target''.
+  * At the moment, all links are written to the same type ''links''.
   */
 class TableLinkSink(entitySink: EntitySink) extends LinkSink {
 
   override def init()(implicit userContext: UserContext): Unit = {
-    entitySink.openTable("", Seq(
+    entitySink.openTable("links", Seq(
       TypedProperty("source", StringValueType, isBackwardProperty = false),
       TypedProperty("target", StringValueType, isBackwardProperty = false)))
   }
