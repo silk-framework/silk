@@ -8,6 +8,8 @@ import org.silkframework.runtime.plugin.MultilineStringParameter
 import org.silkframework.runtime.resource.{ClasspathResource, InMemoryResourceManager, ReadOnlyResource}
 import org.silkframework.runtime.validation.ValidationException
 
+import scala.util.Try
+
 class XmlDatasetTest extends FlatSpec with MustMatchers with TestUserContextTrait {
   behavior of "XML dataset"
 
@@ -42,6 +44,14 @@ class XmlDatasetTest extends FlatSpec with MustMatchers with TestUserContextTrai
   it should "read all files defined by the file regex" in {
     retrieveIDs(zipDataset(fileRegex = Some("\\.xml"))).flatMap(_.values.flatten) mustBe Seq("1", "2", "3")
     retrieveIDs(zipDataset(fileRegex = Some("\\.xml.bak$"))).flatMap(_.values.flatten) mustBe Seq("3")
+  }
+
+  it should "generate an understandable error message if a file could not be read inside the ZIP file" in {
+    val failedExecution = Try(retrieveIDs(zipDataset(fileRegex = Some(".*"))))
+    failedExecution.isFailure mustBe true
+    val errorMessage = failedExecution.failed.get.getMessage
+    errorMessage must include ("brokenXml.broken")
+    errorMessage must include ("persons.zip")
   }
 
   private def retrieveIDs(dataset: XmlDataset) = {

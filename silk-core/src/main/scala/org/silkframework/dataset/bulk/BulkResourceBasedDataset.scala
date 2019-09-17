@@ -38,6 +38,10 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
     */
   def createSource(resource: Resource): DataSource
 
+  private def createSourceWithName(resource: Resource): DataSourceWithName = {
+    DataSourceWithName(resource.name, createSource(resource))
+  }
+
   /**
     * Returns a data source for reading entities from the data set.
     */
@@ -46,7 +50,7 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
       case Seq(singleResource) =>
         createSource(singleResource)
       case _ =>
-        new BulkDataSource(allResources.map(createSource), mergeSchemata)
+        new BulkDataSource(file.name, allResources.map(createSourceWithName), mergeSchemata)
     }
   }
 
@@ -125,3 +129,6 @@ object BulkResourceBasedDataset {
   }
 
 }
+
+/** A data source with a named resource */
+protected case class DataSourceWithName(resourceName: String, source: DataSource)
