@@ -106,7 +106,12 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   def removeProject(name: Identifier)
                    (implicit userContext: UserContext): Unit = synchronized {
     loadUserProjects()
+    // Cancel all project and task activities
     project(name).activities.foreach(_.control.cancel())
+    for(task <- project(name).allTasks;
+        activity <- task.activities) {
+      activity.control.cancel()
+    }
     provider.deleteProject(name)
     cachedProjects = cachedProjects.filterNot(_.name == name)
     log.info(s"Removed project '$name'. " + userContext.logInfo)
