@@ -3,7 +3,7 @@ package org.silkframework.execution.local
 import java.util
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.Task
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetSpec}
 import org.silkframework.dataset.rdf._
 import org.silkframework.dataset._
@@ -23,7 +23,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     * Reads data from a dataset.
     */
   override def read(dataset: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: LocalExecution)
-                   (implicit userContext: UserContext, context: ActivityContext[ExecutionReport]): LocalEntities = {
+                   (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): LocalEntities = {
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
     lazy val source = access(dataset, execution).source
     schema match {
@@ -107,7 +107,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   override protected def write(data: LocalEntities, dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)
-                              (implicit userContext: UserContext, context: ActivityContext[ExecutionReport]): Unit = {
+                              (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit = {
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
     data match {
       case LinksTable(links, linkType, _) =>
@@ -267,7 +267,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def writeEntities(sink: EntitySink, entityTable: LocalEntities)
-                           (implicit userContext: UserContext): Unit = {
+                           (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     var entityCount = 0
     val startTime = System.currentTimeMillis()
     var lastLog = startTime
@@ -335,7 +335,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def writeMultiTables(sink: EntitySink, tables: MultiEntityTable)
-                              (implicit userContext: UserContext): Unit = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     writeEntities(sink, tables)
     for(table <- tables.subTables) {
       writeEntities(sink, table)

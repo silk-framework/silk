@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.csv
 
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{LinkSink, TypedProperty}
 import org.silkframework.entity.{Link, StringValueType}
 import org.silkframework.runtime.activity.UserContext
@@ -14,6 +15,7 @@ class CsvLinkSink(file: WritableResource, settings: CsvSettings) extends CsvSink
     * Initialize the link sink
     */
   override def init()(implicit userContext: UserContext): Unit = {
+    implicit val prefixes = Prefixes.empty
     openTable("",
       Seq(TypedProperty("link_source", StringValueType, isBackwardProperty = false),
         TypedProperty("link_target", StringValueType, isBackwardProperty = false)))

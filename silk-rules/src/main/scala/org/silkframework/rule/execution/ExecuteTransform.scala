@@ -1,5 +1,6 @@
 package org.silkframework.rule.execution
 
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.execution.{AbortExecutionException, ExecutionReport}
 import org.silkframework.rule.TransformSpec.RuleSchemata
@@ -16,7 +17,7 @@ class ExecuteTransform(taskLabel: String,
                        input: UserContext => DataSource,
                        transform: TransformSpec,
                        output: UserContext => EntitySink,
-                       limit: Option[Int] = None) extends Activity[TransformReport] {
+                       limit: Option[Int] = None)(implicit prefixes: Prefixes) extends Activity[TransformReport] {
 
   require(transform.rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
 
@@ -46,7 +47,7 @@ class ExecuteTransform(taskLabel: String,
                                 rule: RuleSchemata,
                                 entitySink: EntitySink,
                                 context: ActivityContext[TransformReport])
-                               (implicit userContext: UserContext): Unit = {
+                               (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     entitySink.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get))
 
     val entities = dataSource.retrieve(rule.inputSchema)

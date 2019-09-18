@@ -1,6 +1,6 @@
 package org.silkframework.execution
 
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
 
@@ -14,7 +14,7 @@ trait Executor[TaskType <: TaskSpec, ExecType <: ExecutionType] {
 
   def execute(task: Task[TaskType], inputs: Seq[ExecType#DataType], output: ExecutorOutput,
               execution: ExecType, context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName))
-             (implicit userContext: UserContext): Option[ExecType#DataType]
+             (implicit userContext: UserContext, prefixes: Prefixes): Option[ExecType#DataType]
 
 }
 

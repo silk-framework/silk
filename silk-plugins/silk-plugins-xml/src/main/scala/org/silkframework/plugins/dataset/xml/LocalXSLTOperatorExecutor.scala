@@ -4,7 +4,7 @@ import javax.xml.transform.TransformerConfigurationException
 import javax.xml.transform.stream.{StreamResult, StreamSource}
 import net.sf.saxon.TransformerFactoryImpl
 import net.sf.saxon.s9api.SaxonApiException
-import org.silkframework.config.Task
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.{DatasetResourceEntityTable, LocalDatasetResourceEntityTable}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
@@ -24,7 +24,7 @@ case class LocalXSLTOperatorExecutor() extends LocalExecutor[XSLTOperator] {
                        output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport])
-                      (implicit userContext: UserContext): Option[LocalEntities] = {
+                      (implicit userContext: UserContext, prefixes: Prefixes): Option[LocalEntities] = {
     inputs.headOption match {
       case Some(et: DatasetResourceEntityTable) =>
         val xSLTOperator = task.data

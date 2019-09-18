@@ -1,5 +1,5 @@
 package org.silkframework.dataset
-import org.silkframework.config.Task
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.runtime.activity.UserContext
@@ -64,7 +64,7 @@ case class DummyLinkSink(writeLinkFn: (Link, String) => Unit,
 case class DummyEntitySink(writeEntityFn: (String, Seq[Seq[String]]) => Unit,
                            clearFn: () => Unit) extends EntitySink {
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
-                        (implicit userContext: UserContext): Unit = {}
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {}
 
   override def writeEntity(subject: String, values: Seq[Seq[String]])
                           (implicit userContext: UserContext): Unit = {

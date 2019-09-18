@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.rdf.Resource
 import org.silkframework.entity.UriValueType
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
@@ -12,7 +13,9 @@ import org.silkframework.runtime.activity.UserContext
   *
   */
 class InMemoryDatasetTest extends FlatSpec with MustMatchers with MockitoSugar {
+
   private implicit val userContext: UserContext = UserContext.Empty
+  private implicit val prefixes: Prefixes = Prefixes.empty
 
   behavior of "In-memory Dataset"
 

@@ -28,7 +28,7 @@ case class ExecuteTransformFactory(
         task.data,
         (userContext: UserContext) => new CombinedEntitySink(task.entitySinks(userContext)),
         limit
-      )
+      )(task.project.config.prefixes)
     }
   }
 }
