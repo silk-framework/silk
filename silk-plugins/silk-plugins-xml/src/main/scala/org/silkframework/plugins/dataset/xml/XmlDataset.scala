@@ -27,7 +27,9 @@ case class XmlDataset( @Param("The XML file. This may also be a zip archive of m
                        @Param(value = "The output template used for writing XML. Must be valid XML. The generated entity is identified through a processing instruction of the form <?MyEntity?>.")
                        outputTemplate: MultilineStringParameter = "<Root><?Entity?></Root>",
                        @Param(value = "Streaming allows for reading large XML files.", advanced = true)
-                       streaming: Boolean = true) extends Dataset with BulkResourceBasedDataset {
+                       streaming: Boolean = true,
+                       @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
+                       override val zipFileRegex: String = ".*\\.xml$") extends Dataset with BulkResourceBasedDataset {
 
   validateOutputTemplate()
 

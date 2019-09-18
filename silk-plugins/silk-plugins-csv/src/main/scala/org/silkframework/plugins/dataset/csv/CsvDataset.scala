@@ -39,7 +39,9 @@ case class CsvDataset (
     ignoreBadLines: Boolean = false,
   @Param(label = "Quote escape character",
     value = "Escape character to be used inside quotes, used to escape the quote character. It must also be used to escape itself, e.g. by doubling it, e.g. \"\". If left empty, it defaults to quote.")
-  quoteEscapeCharacter: String = "\"") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset]
+  quoteEscapeCharacter: String = "\"",
+  @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
+  override val zipFileRegex: String = ".*\\.csv$") extends Dataset with DatasetPluginAutoConfigurable[CsvDataset]
                                        with CsvDatasetTrait with BulkResourceBasedDataset with WritableResourceDataset {
 
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
