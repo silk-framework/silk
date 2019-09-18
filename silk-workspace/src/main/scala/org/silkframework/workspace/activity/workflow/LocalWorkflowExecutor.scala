@@ -223,8 +223,14 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   private def writeEntityTableToDataset(workflowDataset: WorkflowDataset,
                                         entityTable: LocalEntities)
                                        (implicit workflowRunContext: WorkflowRunContext): Unit = {
-    val resolvedDataset = resolveDataset(datasetTask(workflowDataset.task), replaceSinks)
-    execute(resolvedDataset, Seq(entityTable), ExecutorOutput.empty)
+    try {
+      val resolvedDataset = resolveDataset(datasetTask(workflowDataset.task), replaceSinks)
+      execute(resolvedDataset, Seq(entityTable), ExecutorOutput.empty)
+    } catch {
+      case NonFatal(ex) =>
+        throw WorkflowException("Exception occurred while writing to workflow dataset operator " + workflowDataset.nodeId +
+            ". Cause: " + ex.getMessage, Some(ex))
+    }
   }
 
   def readFromDataset(workflowDataset: WorkflowDataset,

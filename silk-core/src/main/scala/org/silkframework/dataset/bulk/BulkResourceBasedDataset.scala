@@ -28,10 +28,19 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
     */
   def mergeSchemata: Boolean
 
+  /** A file regex specifying the files in the zip file that are part of the dataset, e.g. '.*\.csv$', '.*\.xml$'. */
+  def zipFileRegex: String = ".*" // by default all files in the archive
+
+  private val internalRegex = zipFileRegex.trim.r
+
   /**
     * Creates a data source for a particular resource inside the bulk file.
     */
   def createSource(resource: Resource): DataSource
+
+  private def createSourceWithName(resource: Resource): DataSourceWithName = {
+    DataSourceWithName(resource.name, createSource(resource))
+  }
 
   /**
     * Returns a data source for reading entities from the data set.
@@ -41,7 +50,13 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
       case Seq(singleResource) =>
         createSource(singleResource)
       case _ =>
-        new BulkDataSource(allResources.map(createSource), mergeSchemata)
+        new BulkDataSource(file.name, allResources.map(createSourceWithName), mergeSchemata)
+    }
+  }
+
+  private def filterResourcesByGlob(resources: Seq[Resource]): Seq[Resource] = {
+    resources.filter { r =>
+      internalRegex.findFirstIn(r.path).isDefined
     }
   }
 
@@ -57,7 +72,7 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
     */
   def allResources: Seq[Resource] = {
     if (BulkResourceBasedDataset.isBulkResource(file)) {
-      BulkResourceBasedDataset.retrieveSubResources(file)
+      filterResourcesByGlob(BulkResourceBasedDataset.retrieveSubResources(file))
     } else {
       Seq(file)
     }
@@ -114,3 +129,6 @@ object BulkResourceBasedDataset {
   }
 
 }
+
+/** A data source with a named resource */
+protected case class DataSourceWithName(resourceName: String, source: DataSource)
