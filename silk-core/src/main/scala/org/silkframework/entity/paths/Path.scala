@@ -11,7 +11,7 @@ trait Path extends Serializable {
   /**
     * The sequence of [[PathOperator]] defining the path.
     */
-  val operators: List[PathOperator]
+  def operators: List[PathOperator]
 
 
   /**
