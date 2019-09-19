@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "init": "ecc-link-dotfiles && rm .editorconfig && rm -r .gitlab",
-    "test": "export TEST_REPORT_PATH='./test/reports/' && jest --no-cache --detectOpenHandles --silent",
-    "testBamboo": "export TEST_REPORT_PATH='./test/reports/' && jest --no-cache --detectOpenHandles",
+    "test": "jest --no-cache --detectOpenHandles",
+    "test-coverage": "export TEST_REPORT_PATH='./test/reports/' && jest --no-cache --detectOpenHandles --coverage",
+    "testBamboo": "npm run test-coverage",
     "test:watch": "npm run test -- --watch",
     "eslint-check": "eslint --print-config .eslintrc.yml && eslint --print-config .eslintrc.yml | eslint-config-prettier-check",
     "lint": "node_modules/.bin/eslint 'src/HierarchicalMapping/**/*.{js,jsx}' --fix",
