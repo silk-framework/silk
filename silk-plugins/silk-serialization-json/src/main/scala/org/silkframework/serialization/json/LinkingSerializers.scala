@@ -35,11 +35,12 @@ object LinkingSerializers {
   }
 
   class LinkJsonFormat(rule: Option[LinkageRule]) extends JsonFormat[Link] {
+    import LinkJsonFormat._
+
     final val SOURCE = "source"
     final val TARGET = "target"
     final val CONFIDENCE = "confidence"
     final val ENTITIES = "entities"
-    final val RULE_VALUES = "ruleValues"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Link = {
       new Link(
@@ -62,7 +63,9 @@ object LinkingSerializers {
     }
   }
 
-  implicit object LinkJsonFormat extends LinkJsonFormat(None)
+  implicit object LinkJsonFormat extends LinkJsonFormat(None) {
+    final val RULE_VALUES = "ruleValues"
+  }
 
   implicit object ConfidenceJsonFormat extends WriteOnlyJsonFormat[Confidence] {
     final val SCORE = "score"

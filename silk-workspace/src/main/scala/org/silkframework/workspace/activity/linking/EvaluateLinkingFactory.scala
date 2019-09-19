@@ -1,13 +1,13 @@
 package org.silkframework.workspace.activity.linking
 
 import org.silkframework.rule.execution.{GenerateLinks, Linking}
-import org.silkframework.rule.{LinkSpec, LinkingExecutionBackend, RuntimeLinkingConfig}
+import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.{Param, Plugin}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
+import org.silkframework.workspace.activity.linking.EvaluateLinkingFactory._
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
-import EvaluateLinkingFactory._
 
 @Plugin(
   id = EvaluateLinkingFactory.ActivityId,
@@ -62,24 +62,25 @@ class EvaluateLinkingActivity(task: ProjectTask[LinkSpec], runtimeConfig: Runtim
     */
   override def run(context: ActivityContext[Linking])
                   (implicit userContext: UserContext): Unit = {
-    val linkSpec = task.data
-
-    val inputs = task.dataSources
-
-    val outputs = if (writeOutputs) task.linkSinks else Nil
-
-    generateLinks = Some(
-      new GenerateLinks(
-        task.id,
-        task.taskLabel(),
-        inputs = inputs,
-        linkSpec = linkSpec,
-        outputs = outputs,
-        runtimeConfig = runtimeConfig
-      )
-    )
+    generateLinks = Some(createGenerateLinksActivity(task.data))
     generateLinks.get.run(context)
     generateLinks = None
+  }
+
+  /** Create the corresponding [[GenerateLinks]] activity. */
+  private def createGenerateLinksActivity(linkSpec: LinkSpec)
+                                         (implicit userContext: UserContext): GenerateLinks = {
+    val inputs = task.dataSources
+    val outputs = if (writeOutputs) task.linkSinks else Nil
+
+    new GenerateLinks(
+      task.id,
+      task.taskLabel(),
+      inputs = inputs,
+      linkSpec = linkSpec,
+      outputs = outputs,
+      runtimeConfig = runtimeConfig
+    )
   }
 
   override def cancelExecution()(implicit userContext: UserContext): Unit = {

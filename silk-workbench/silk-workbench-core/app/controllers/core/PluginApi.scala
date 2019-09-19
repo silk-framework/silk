@@ -3,11 +3,11 @@ package controllers.core
 import controllers.util.SerializationUtils
 import javax.inject.Inject
 import org.silkframework.runtime.plugin._
-import play.api.mvc.{InjectedController, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, InjectedController}
 
 class PluginApi @Inject() () extends InjectedController {
 
-  def plugins() = Action { implicit request => {
+  def plugins(addMarkdownDocumentation: Boolean): Action[AnyContent] = Action { implicit request => {
     val pluginTypes = Seq(
       "org.silkframework.workspace.WorkspaceProvider",
       "org.silkframework.workspace.resources.ResourceRepository",
@@ -17,14 +17,14 @@ class PluginApi @Inject() () extends InjectedController {
       "org.silkframework.rule.input.Transformer",
       "org.silkframework.rule.similarity.Aggregator"
     )
-    val pluginList = PluginList.load(pluginTypes)
+    val pluginList = PluginList.load(pluginTypes, addMarkdownDocumentation)
 
     SerializationUtils.serializeCompileTime(pluginList, None)
   }}
 
-  def pluginsForTypes(pluginType: String) = Action { implicit request => {
+  def pluginsForTypes(pluginType: String, addMarkdownDocumentation: Boolean): Action[AnyContent] = Action { implicit request => {
     val pluginTypes = pluginType.split("\\s*,\\s*")
-    val pluginList = PluginList.load(pluginTypes)
+    val pluginList = PluginList.load(pluginTypes, addMarkdownDocumentation)
 
     SerializationUtils.serializeCompileTime(pluginList, None)
   }}
