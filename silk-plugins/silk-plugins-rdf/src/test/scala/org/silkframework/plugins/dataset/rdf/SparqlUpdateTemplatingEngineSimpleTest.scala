@@ -2,10 +2,11 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.plugins.dataset.rdf.tasks._
+import org.silkframework.plugins.dataset.rdf.tasks.templating._
 import org.silkframework.runtime.validation.ValidationException
 
-class SparqlUpdateCustomTaskTest extends FlatSpec with MustMatchers {
-  behavior of "SPARQL Update Custom Task"
+class SparqlUpdateTemplatingEngineSimpleTest extends FlatSpec with MustMatchers {
+  behavior of "SPARQL Update Simple Templating Engine"
 
   private val sparqlUpdateTemplate =
     """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -68,13 +69,15 @@ class SparqlUpdateCustomTaskTest extends FlatSpec with MustMatchers {
       "PROP_FROM_ENTITY_SCHEMA3" ->
         """The new
           |label with some "'weird characters""".stripMargin
-    )) mustBe
+    ), TaskProperties(Map.empty, Map.empty)) mustBe
       """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
         |DELETE DATA { <urn:some:uri> rdf:label "the old label" } ;
         |  INSERT DATA { <urn:some:uri> rdf:label "The new\nlabel with some \"'weird characters" } ;""".stripMargin
   }
 
   def parse(sparqlUpdateTemplate: String, batchSize: Int = 2): Seq[SparqlUpdateTemplatePart] = {
-    SparqlUpdateCustomTask(sparqlUpdateTemplate, batchSize).sparqlUpdateTemplateParts
+    val engine = SparqlUpdateTemplatingEngineSimple(sparqlUpdateTemplate, batchSize)
+    engine.validate()
+    engine.sparqlUpdateTemplateParts
   }
 }

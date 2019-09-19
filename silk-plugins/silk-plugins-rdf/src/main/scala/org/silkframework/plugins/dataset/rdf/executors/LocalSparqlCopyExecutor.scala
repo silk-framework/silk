@@ -8,7 +8,7 @@ import org.silkframework.config.Task
 import org.silkframework.dataset.rdf.{IteratorFormatter, QuadIterator, SparqlEndpointEntityTable}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local._
-import org.silkframework.execution.{ExecutionReport, TaskException}
+import org.silkframework.execution.{ExecutionReport, ExecutorOutput, TaskException}
 import org.silkframework.plugins.dataset.rdf.datasets.FileBasedQuadEntityTable
 import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlCopyCustomTask
@@ -20,7 +20,7 @@ import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 class LocalSparqlCopyExecutor() extends LocalExecutor[SparqlCopyCustomTask] {
     override def execute(task: Task[SparqlCopyCustomTask],
                          inputs: Seq[LocalEntities],
-                         outputSchema: Option[EntitySchema],
+                         output: ExecutorOutput,
                          execution: LocalExecution,
                          context: ActivityContext[ExecutionReport])
                         (implicit userContext: UserContext): Option[LocalEntities] = {

@@ -5,7 +5,7 @@ import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptyDataset
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.{LinksTable, LocalEntities, LocalExecution, MultiEntityTable}
-import org.silkframework.execution.{ExecutionReport, Executor}
+import org.silkframework.execution.{ExecutionReport, Executor, ExecutorOutput}
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.rule.execution._
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
@@ -19,7 +19,7 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
 
   override def execute(task: Task[LinkSpec],
                        inputs: Seq[LocalEntities],
-                       outputSchema: Option[EntitySchema],
+                       output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport])
                       (implicit userContext: UserContext): Option[LocalEntities] = {

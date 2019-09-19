@@ -4,11 +4,14 @@ import sbt._
 // Common Settings
 //////////////////////////////////////////////////////////////////////////////
 
+val NEXT_VERSION = "3.0.0"
+val silkVersion = sys.env.getOrElse("GIT_DESCRIBE", NEXT_VERSION + "-SNAPSHOT")
+
 concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
 
 lazy val commonSettings = Seq(
   organization := "org.silkframework",
-  version := "3.0.0-SNAPSHOT",
+  version := silkVersion,
   // Building
   scalaVersion := "2.11.12",
   publishTo := {
@@ -105,8 +108,9 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins RDF",
-    libraryDependencies += "org.apache.jena" % "jena-fuseki-embedded" % "3.7.0" % "test"
-  )
+    libraryDependencies += "org.apache.jena" % "jena-fuseki-embedded" % "3.7.0" % "test",
+    libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.1"
+)
 
 lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
   .dependsOn(core)
@@ -243,7 +247,7 @@ lazy val reactComponents = (project in file("silk-react-components"))
 lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
   .enablePlugins(PlayScala)
   .enablePlugins(BuildInfoPlugin)
-  .dependsOn(workspace, workspace % "test -> test", core % "test->test", serializationJson, reactComponents)
+  .dependsOn(workspace, workspace % "test -> test", core % "test->test", serializationJson, reactComponents, pluginsXml % "test->compile")
   .aggregate(workspace, reactComponents)
   .settings(commonSettings: _*)
   .settings(

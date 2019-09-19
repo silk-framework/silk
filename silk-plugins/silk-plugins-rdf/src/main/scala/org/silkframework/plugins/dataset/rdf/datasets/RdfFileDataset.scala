@@ -39,7 +39,9 @@ case class RdfFileDataset(
     value = "The maximum size of the RDF file resource for read operations. Since the whole dataset will be kept in-memory, this value should be kept low to guarantee stability.")
   maxReadSize: Long = 10,
   @Param("A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.")
-  entityList: MultilineStringParameter = MultilineStringParameter("")) extends RdfDataset with TripleSinkDataset with BulkResourceBasedDataset {
+  entityList: MultilineStringParameter = MultilineStringParameter(""),
+  @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
+  override val zipFileRegex: String = ".*") extends RdfDataset with TripleSinkDataset with BulkResourceBasedDataset {
 
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
 

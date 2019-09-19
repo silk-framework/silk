@@ -5,7 +5,7 @@ import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.PlainTask
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.execution.ExecutorRegistry
+import org.silkframework.execution.{ExecutorOutput, ExecutorRegistry}
 import org.silkframework.execution.local.{GenericEntityTable, LocalExecution}
 import org.silkframework.rule._
 import org.silkframework.runtime.activity.TestUserContextTrait
@@ -39,7 +39,7 @@ class LocalTransformSpecExecutorTest extends FlatSpec with MustMatchers with Exe
     ))
     val es = EntitySchema("es", IndexedSeq(UntypedPath("pathA"), UntypedPath("pathB"), UntypedPath("pathC"), UntypedPath("pathD"), UntypedPath("pathE")).map(_.asStringTypedPath))
     val entities = Seq(Entity("uri1", IndexedSeq(Seq("A"), Seq("B"), Seq("C"), Seq("D"), Seq("E")), es))
-    val result = executor.execute(transformTask, Seq(GenericEntityTable(entities, es, transformTask)), None, LocalExecution(true))
+    val result = executor.execute(transformTask, Seq(GenericEntityTable(entities, es, transformTask)), ExecutorOutput.empty, LocalExecution(true))
     result.get.entitySchema.typedPaths mustBe IndexedSeq(
       TypedPath(UntypedPath("urn:prop:label"), enVT, isAttribute = false),
       TypedPath(UntypedPath("urn:prop:label"), deVT, isAttribute = false),
