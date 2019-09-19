@@ -26,7 +26,7 @@ import { MESSAGES } from '../../constants';
 import EventEmitter from '../../utils/EventEmitter';
 import PropTypes from 'prop-types';
 
-class MappingRule extends React.Component {
+export class MappingRule extends React.Component {
     // define property types
     static propTypes = {
         comment: PropTypes.string,
@@ -67,7 +67,9 @@ class MappingRule extends React.Component {
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
         
-        if (this.state.isPasted) { this.props.scrollIntoView(); }
+        if (this.state.isPasted) {
+            this.props.scrollIntoView();
+        }
     }
     
     componentWillUnmount() {
@@ -327,10 +329,8 @@ class MappingRule extends React.Component {
                 {(provided, snapshot) => (
                     <li
                         className={className('ecc-silk-mapping__ruleitem', {
-                            'ecc-silk-mapping__ruleitem--object':
-                                type === 'object',
-                            'ecc-silk-mapping__ruleitem--literal':
-                                type !== 'object',
+                            'ecc-silk-mapping__ruleitem--object': type === 'object',
+                            'ecc-silk-mapping__ruleitem--literal': type !== 'object',
                             'ecc-silk-mapping__ruleitem--defect': errorInfo,
                             'mdl-layout_item--background-flash': this.state.isPasted,
                         })}

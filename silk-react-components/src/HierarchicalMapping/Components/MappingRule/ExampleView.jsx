@@ -1,14 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import { Spinner, Chip } from '@eccenca/gui-elements';
+import { Chip, Spinner } from '@eccenca/gui-elements';
 import ErrorView from './ErrorView';
 import _ from 'lodash';
 
 import { childExampleAsync, ruleExampleAsync } from '../../store';
 import { InfoBox } from './SharedComponents';
 
-class ExampleView extends React.Component {
+export class ExampleView extends React.Component {
     static propTypes = {
         id: PropTypes.string,
         rawRule: PropTypes.object,
@@ -27,17 +27,18 @@ class ExampleView extends React.Component {
             rawRule: this.props.rawRule,
             ruleType: this.props.ruleType,
         }).subscribe(
-            ({ example }) => {
-                this.setState({ example });
+            ({example}) => {
+                this.setState({example});
             },
             error => {
                 if (__DEBUG__) {
                     console.warn('err MappingRuleOverview: rule.example');
                 }
-                this.setState({ error });
+                this.setState({error});
             }
         );
     }
+    
     // template rendering
     render() {
         if (this.state.error) {
@@ -45,7 +46,7 @@ class ExampleView extends React.Component {
         }
         
         if (_.isUndefined(this.state.example)) {
-            return <div />;
+            return <div/>;
         }
         
         const pathsCount = _.size(this.state.example.sourcePaths);

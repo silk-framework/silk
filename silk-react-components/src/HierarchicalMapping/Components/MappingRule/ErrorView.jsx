@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { Error } from '@eccenca/gui-elements';
 import _ from 'lodash';
 
-const ErrorCause = ({ errorCause }) => (
+export const ErrorCause = ({ errorCause }) => (
     <ul className="ecc-hierarchical-mapping-error-list">
         {_.map(errorCause, ({ title, detail, cause }) => {
             let renderedCause = false;
@@ -24,7 +24,7 @@ const ErrorCause = ({ errorCause }) => (
     </ul>
 );
 
-const ErrorIssue = ({ errorCause }) => (
+export const ErrorIssue = ({ errorCause }) => (
     <ul className="ecc-hierarchical-mapping-error-list">
         {_.map(errorCause, ({ message }) => (
             <li>
@@ -34,12 +34,12 @@ const ErrorIssue = ({ errorCause }) => (
     </ul>
 );
 
-class ErrorView extends React.Component {
+export class ErrorView extends React.Component {
     static propTypes = {
         title: PropTypes.string,
         detail: PropTypes.string,
-        cause: PropTypes.object, // it may contain a list for errors with title and detail itself
-        issues: PropTypes.object, // it may contain a list for errors with title and detail itself, too
+        cause: PropTypes.array, // it may contain a list for errors with title and detail itself
+        issues: PropTypes.array, // it may contain a list for errors with title and detail itself, too
     };
     
     state = {
