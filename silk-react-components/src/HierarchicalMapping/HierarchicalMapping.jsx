@@ -44,9 +44,11 @@ class HierarchicalMapping extends React.Component {
             // show / hide navigation
             showNavigation: true,
             // which edit view are we viewing
-            elementToDelete: false,
+            elementToDelete: {},
             editingElements: [],
             askForDiscard: false,
+            askForRemove: false,
+            removeFunction: this.handleConfirmRemove
         };
     }
     
@@ -108,13 +110,39 @@ class HierarchicalMapping extends React.Component {
         }
     };
     
-    handleClickRemove = ({ id, uri, type, parent }) => {
-        this.setState({
-            editingElements: [],
-            elementToDelete: {
-                id, uri, type, parent,
-            },
-        });
+    handleClickRemove = (args, removeFn) => {
+        /**
+         * This scenario is default for most of cases
+         * @TODO: move this functionality to RemoveConfirmDialog component and refacor this component which will work as a portal
+         */
+        if (args) {
+            const { id, uri, type, parent } = args;
+            this.setState({
+                editingElements: [],
+                elementToDelete: {
+                    id, uri, type, parent,
+                },
+                askForRemove: true,
+                removeFunction: this.handleConfirmRemove
+            });
+        } else if (_.isFunction(removeFn)) {
+            // This scenario is for ObjectMappingRule, when we want to remove URI from complex
+            const removeFunction = () => {
+                removeFn();
+                this.setState({
+                    askForRemove: false
+                });
+            };
+            
+            this.setState({
+                askForRemove: true,
+                removeFunction
+            });
+        } else {
+            if (__DEBUG__) {
+                console.error('Wrong arguments passed to handleClickRemove Function')
+            }
+        }
     };
     
     handleConfirmRemove = (event) => {
@@ -130,12 +158,14 @@ class HierarchicalMapping extends React.Component {
                     if (type === MAPPING_RULE_TYPE_OBJECT) {
                         this.setState({
                             currentRuleId: parent,
-                            elementToDelete: false,
+                            elementToDelete: {},
+                            askForRemove: false,
                             loading: false,
                         });
                     } else {
                         this.setState({
-                            elementToDelete: false,
+                            elementToDelete: {},
+                            askForRemove: false,
                             loading: false,
                         });
                     }
@@ -143,7 +173,8 @@ class HierarchicalMapping extends React.Component {
                 err => {
                     // FIXME: let know the user what have happened!
                     this.setState({
-                        elementToDelete: false,
+                        elementToDelete: {},
+                        askForRemove: false,
                         loading: false,
                     });
                 }
@@ -152,7 +183,8 @@ class HierarchicalMapping extends React.Component {
     
     handleCancelRemove = () => {
         this.setState({
-            elementToDelete: false,
+            elementToDelete: {},
+            askForRemove: false,
         });
     };
     
@@ -202,7 +234,7 @@ class HierarchicalMapping extends React.Component {
     // template rendering
     render() {
         const {
-            currentRuleId, showNavigation,
+            currentRuleId, showNavigation, askForRemove,
             elementToDelete, askForDiscard, editingElements,
         } = this.state;
         const loading = this.state.loading ? <Spinner /> : false;
@@ -240,10 +272,10 @@ class HierarchicalMapping extends React.Component {
             <section className="ecc-silk-mapping">
                 {debugOptions}
                 {
-                    elementToDelete && (
+                    askForRemove && (
                         <RemoveMappingRuleDialog
                             mappingType={elementToDelete.type}
-                            handleConfirmRemove={this.handleConfirmRemove}
+                            handleConfirmRemove={this.state.removeFunction}
                             handleCancelRemove={this.handleCancelRemove}
                         />
                     )

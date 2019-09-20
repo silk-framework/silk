@@ -149,16 +149,20 @@ class ObjectRule extends React.Component {
         }
         
         const rule = _.cloneDeep(this.props);
-        rule.rules.uriRule = null;
-        updateObjectMappingAsync(rule)
-            .subscribe(
-                data => {
-                    EventEmitter.emit(MESSAGES.RELOAD, true);
-                },
-                err => {
-                    console.error(err);
-                }
-            );
+        const callbackFn =  () => {
+            rule.rules.uriRule = null;
+            updateObjectMappingAsync(rule)
+                .subscribe(
+                    () => {
+                        EventEmitter.emit(MESSAGES.RELOAD, true);
+                    },
+                    err => {
+                        console.error(err);
+                    }
+                );
+        };
+        
+        this.props.onClickedRemove(null, callbackFn);
         return false;
     };
     
