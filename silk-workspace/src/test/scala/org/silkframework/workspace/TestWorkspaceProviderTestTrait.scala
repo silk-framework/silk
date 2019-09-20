@@ -54,6 +54,8 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
     }
     oldWorkspaceFactory = WorkspaceFactory.factory
     WorkspaceFactory.factory = rdfWorkspaceFactory
+    implicit val testUserContext: UserContext.Empty.type = UserContext.Empty
+    WorkspaceFactory().workspace.projects // Initialize workspace before starting tests
   }
 
   override protected def afterAll(): Unit = {
