@@ -49,5 +49,5 @@ trait CsvDatasetTrait {
   val codec: Codec = Codec(charset)
 
   protected val csvSettings: CsvSettings = CsvSettings(separatorChar, arraySeparatorChar, quoteChar,
-    maxCharsPerColumn = Some(maxCharsPerColumn), quoteEscapeChar = quoteEscapeChar)
+    maxCharsPerColumn = Some(maxCharsPerColumn), quoteEscapeChar = quoteEscapeChar, linesToSkip = linesToSkip)
 }
