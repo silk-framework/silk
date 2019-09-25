@@ -97,7 +97,7 @@ class GenerateLinks(id: Identifier,
     children ::= matcher
     matcher.startBlocking()
 
-      cleanUpCaches(caches)
+    cleanUpCaches(caches)
 
     if(context.status.isCanceling) return
 

@@ -75,7 +75,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     val subjectRule = transformRule.rules.allRules.find(_.target.isEmpty)
     val pathRules =
       for (typedPath <- entitySchema.typedPaths) yield {
-        transformRule.rules.allRules.filter(_.target.map(_.asTypedPath()).contains(typedPath))
+        transformRule.rules.allRules.filter(_.target.map(_.asPath()).contains(typedPath.asUntypedPath))
       }
 
     val sourceEntities = source.retrieve(inputSchema, limit)

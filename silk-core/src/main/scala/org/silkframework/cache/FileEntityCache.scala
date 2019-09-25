@@ -86,9 +86,11 @@ class FileEntityCache(val entitySchema: EntitySchema,
   override def close() {
     logger.log(Level.FINER, s"Closing file cache [ size :: ${blocks.length} ].")
 
-    for (block <- blocks) {
+    val blockWrittenFlag = for (block <- blocks) yield {
       block.close()
     }
+    val blocksWritten = blockWrittenFlag.count(written => written)
+    logger.log(Level.FINE, s"$blocksWritten block(s) written to file cache directory ${dir.getCanonicalPath}.")
   }
 
   private class Block(block: Int) {
@@ -156,9 +158,12 @@ class FileEntityCache(val entitySchema: EntitySchema,
       count = 0
     }
 
-    def close() {
+    def close(): Boolean = {
       if (count > 0) {
         writePartitionToFile()
+        true
+      } else {
+        false
       }
     }
 

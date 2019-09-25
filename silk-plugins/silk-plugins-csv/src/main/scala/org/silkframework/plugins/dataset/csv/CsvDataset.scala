@@ -59,11 +59,11 @@ case class CsvDataset (
   private def csvSource(resource: Resource, ignoreMalformed: Boolean = false): CsvSource = resource match{
     case ror: ReadOnlyResource => csvSource(ror.resource, ignoreMalformed)
     case rkt: ResourceWithKnownTypes => new CsvSource(resource, csvSettings, properties, uri,
-      regexFilter, codec, skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines,
+      regexFilter, codec, ignoreBadLines = ignoreBadLines,
       ignoreMalformedInputExceptionInPropertyList = ignoreMalformed, specificTypeName = rkt.knownTypes.headOption
     )
     case _ => new CsvSource(resource, csvSettings, properties, uri,
-      regexFilter, codec, skipLinesBeginning = linesToSkip, ignoreBadLines = ignoreBadLines,
+      regexFilter, codec, ignoreBadLines = ignoreBadLines,
       ignoreMalformedInputExceptionInPropertyList = ignoreMalformed
     )
   }
@@ -109,7 +109,8 @@ object CsvDataset {
       quote = settings.quote.map(_.toString).getOrElse(""),
       maxCharsPerColumn = settings.maxCharsPerColumn.getOrElse(DEFAULT_MAX_CHARS_PER_COLUMN),
       quoteEscapeCharacter = settings.quoteEscapeChar.toString,
-      ignoreBadLines = ignoreBadLines
+      ignoreBadLines = ignoreBadLines,
+      linesToSkip = settings.linesToSkip
     )
   }
 }
