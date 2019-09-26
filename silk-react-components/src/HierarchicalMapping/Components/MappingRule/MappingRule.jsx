@@ -253,9 +253,11 @@ export class MappingRule extends React.Component {
         const expandedView = this.state.expanded ? (
             isObjectMappingRule(type) ? (
                 <RuleObjectEdit
-                    {...this.props}
+                    ruleData={{
+                        ...this.props,
+                        type
+                    }}
                     handleToggleExpand={this.handleToggleExpand}
-                    type={type}
                     parentId={parentId}
                     edit={false}
                     handleCopy={this.props.handleCopy}
