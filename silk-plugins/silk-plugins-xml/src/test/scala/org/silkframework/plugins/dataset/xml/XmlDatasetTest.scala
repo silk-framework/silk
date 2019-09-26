@@ -38,11 +38,12 @@ class XmlDatasetTest extends FlatSpec with MustMatchers with TestUserContextTrai
   }
 
   it should "only read from files with 'xml' suffix from bulk zip files" in {
-    retrieveIDs(zipDataset()).flatMap(_.values.flatten) mustBe Seq("1", "2")
+    retrieveIDs(zipDataset()).flatMap(_.values.flatten) mustBe Seq("4", "1", "2")
   }
 
   it should "read all files defined by the file regex" in {
-    retrieveIDs(zipDataset(fileRegex = Some("\\.xml"))).flatMap(_.values.flatten) mustBe Seq("1", "2", "3")
+    retrieveIDs(zipDataset(fileRegex = Some("\\.xml"))).flatMap(_.values.flatten) mustBe Seq("4", "1", "2", "3")
+    retrieveIDs(zipDataset(fileRegex = Some("^[^/]*\\.xml$"))).flatMap(_.values.flatten) mustBe Seq("1", "2")
     retrieveIDs(zipDataset(fileRegex = Some("\\.xml.bak$"))).flatMap(_.values.flatten) mustBe Seq("3")
   }
 

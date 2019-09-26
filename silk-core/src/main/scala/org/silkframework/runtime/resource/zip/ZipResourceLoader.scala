@@ -1,6 +1,7 @@
 package org.silkframework.runtime.resource.zip
 
-import java.io.{BufferedInputStream, File, FileInputStream}
+import java.io.{BufferedInputStream, File, FileInputStream, InputStream}
+import java.time.Instant
 import java.util.zip.{ZipEntry, ZipInputStream}
 
 import org.silkframework.runtime.resource.{Resource, ResourceLoader, ResourceNotFoundException}
@@ -66,6 +67,55 @@ case class ZipResourceLoader(private[zip] val zip: () => ZipInputStream, basePat
       name
     } else {
       basePath + "/" + name
+    }
+  }
+
+  /** Iterate over all resource, but only allow reading of each resource only once. Reading a resource more than once
+    * will lead to an [[IllegalStateException]] being thrown. */
+  def iterateReadOnceResources(): Traversable[ReadOnceZipResource] = {
+    val thisResourceLoader = this
+    new Traversable[ReadOnceZipResource] {
+      override def foreach[U](f: ReadOnceZipResource => U): Unit = {
+        val z = zip()
+        try {
+          ZipResourceLoader.listEntries(z) foreach { entry =>
+            f(new ReadOnceZipResource(new ZipEntryResource(entry, thisResourceLoader), entry, z))
+          }
+        } finally {
+          z.close()
+        }
+      }
+    }
+  }
+
+  /** Version of ZipEntryResource that can only be read once. This only reads the ZIP file once and should be used when performance matters. */
+  class ReadOnceZipResource(zipEntryResource: ZipEntryResource, zipEntry: ZipEntry, is: ZipInputStream) extends Resource {
+    override def name: String = zipEntryResource.name
+
+    override def path: String = zipEntryResource.path
+
+    override def exists: Boolean = zipEntryResource.exists
+
+    override def size: Option[Long] = zipEntryResource.size
+
+    override def modificationTime: Option[Instant] = zipEntryResource.modificationTime
+
+    private var inputStreamFetched = false
+
+    override def inputStream: InputStream = {
+      // Optimization to the ZipEntryResource.inputStream method which reads the whole ZIP file. This will use the ZipInputStream directly, but only once.
+      if(inputStreamFetched) {
+        throw new IllegalStateException("InputStream has already been consumed!")
+      } else {
+        inputStreamFetched = true
+        new InputStream {
+          override def read(): Int = is.read()
+
+          override def available(): Int = is.available()
+
+          override def close(): Unit = { }
+        }
+      }
     }
   }
 }
