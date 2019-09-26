@@ -69,9 +69,7 @@ class MappingsHeader extends React.Component {
         ) : (
             false
         );
-
-        const self = this;
-
+        
         const navBreadcrumbs = (
             <BreadcrumbList>
                 {breadcrumbs.length > 0
@@ -79,9 +77,9 @@ class MappingsHeader extends React.Component {
                         <BreadcrumbItem
                             key={idx}
                             onClick={event => {
-                                self.handleNavigate(
+                                this.handleNavigate(
                                     crumb.id,
-                                    self.props.rule.id,
+                                    this.props.rule.id,
                                     event
                                 );
                             }}

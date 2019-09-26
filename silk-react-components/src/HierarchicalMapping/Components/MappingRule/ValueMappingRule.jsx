@@ -35,7 +35,6 @@ class RuleValueView extends React.Component {
     static propTypes = {
         comment: PropTypes.string,
         id: PropTypes.string,
-        // operator: PropTypes.object,
         type: PropTypes.string,
         sourcePath: PropTypes.string,
         mappingTarget: PropTypes.object,

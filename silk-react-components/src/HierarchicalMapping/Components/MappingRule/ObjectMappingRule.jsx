@@ -46,6 +46,7 @@ class ObjectRule extends React.Component {
     
     state = {
         edit: !!this.props.edit,
+        href: '',
     };
     
     constructor(props) {

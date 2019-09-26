@@ -35,7 +35,6 @@ function eventEmitter(all) {
          * @memberOf mitt
          */
         emit(type, evt) {
-            console.info(`Emitted ${type}`);
             (all[type] || []).slice().map(handler => { handler(evt); });
             (all['*'] || []).slice().map(handler => { handler(type, evt); });
         },

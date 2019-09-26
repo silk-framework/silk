@@ -100,7 +100,7 @@ export const setApiDetails = data => {
 };
 export const getApiDetails = () => _apiDetails;
 
-function mapPeakResult(returned) {
+const mapPeakResult = (returned) => {
     if (_.get(returned, 'body.status.id') !== 'success') {
         return {
             title: 'Could not load preview',
@@ -115,7 +115,7 @@ function mapPeakResult(returned) {
     return {
         example: returned.body,
     };
-}
+};
 
 const editMappingRule = (payload, id, parent) => {
     if (id) {

@@ -45,7 +45,7 @@ class SuggestionsList extends React.Component {
         error: false,
         showDefaultProperties: true,
         rawData: undefined,
-        checked: this.defaultCheckValue,
+        checked: false,
         matchFromDataset: true,
         warnings: [],
     };
@@ -79,18 +79,18 @@ class SuggestionsList extends React.Component {
             matchFromDataset: this.state.matchFromDataset,
         }).subscribe(
             response => {
-                const rawData = _.map(response.suggestions, v => ({
-                    ...v,
-                    checked: this.defaultCheckValue,
-                    type: v.type || SUGGESTION_TYPES[0],
+                const rawData = _.map(response.suggestions, value => ({
+                    ...value,
+                    checked: false,
+                    type: value.type || SUGGESTION_TYPES[0],
                 }));
                 this.setState({
-                    warnings: response.warnings.filter(w => !_.isEmpty(w)),
+                    warnings: response.warnings.filter(value => !_.isEmpty(value)),
                     loading: false,
                     rawData,
                     data: this.state.showDefaultProperties
                         ? rawData
-                        : rawData.filter(v => !!v.targetProperty),
+                        : rawData.filter(value => !!value.targetProperty),
                 });
             },
             err => {
@@ -151,13 +151,13 @@ class SuggestionsList extends React.Component {
     }
 
     toggleDefaultProperties() {
-        if (this.state.data.filter(v => v.checked).length !== 0) {
+        if (this.state.data.filter(value => value.checked).length !== 0) {
             this.props.onAskDiscardChanges(true);
         } else {
             this.setState({
                 data: !this.state.showDefaultProperties
                     ? this.state.rawData
-                    : this.state.rawData.filter(v => !!v.targetProperty),
+                    : this.state.rawData.filter(value => !!value.targetProperty),
                 showDefaultProperties: !this.state.showDefaultProperties,
             });
         }
@@ -188,18 +188,7 @@ class SuggestionsList extends React.Component {
             checked: false,
         });
     }
-
-    // onDiscard = () => {
-    //     this.setState({
-    //         data: !this.state.showDefaultProperties
-    //             ? this.state.rawData
-    //             : this.state.rawData.filter(v => !!v.targetProperty),
-    //         showDefaultProperties: !this.state.showDefaultProperties,
-    //     });
-    //     this.props.onAskDiscardChanges(false);
-    // }
-
-    // template rendering
+    
     render() {
         if (this.state.loading) {
             return <Spinner />;

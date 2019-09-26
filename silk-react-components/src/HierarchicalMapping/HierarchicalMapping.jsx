@@ -230,7 +230,6 @@ class HierarchicalMapping extends React.Component {
 
     handleRuleIdChange = rule => {
         this.onRuleNavigation(rule);
-        // this.expandNavigationTreeElement(rule);
     };
 
     // template rendering
