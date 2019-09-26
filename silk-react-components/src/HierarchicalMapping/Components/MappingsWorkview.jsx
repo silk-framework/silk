@@ -90,13 +90,7 @@ class MappingsWorkview extends React.Component {
             this.loadData();
         }
     }
-
-    shouldComponentUpdate(nextProps, nextState) {
-        // Required to prevent empty redraws while not all data is there.
-        // The issue is due to bad use of React ...
-        return !_.isEmpty(nextState.ruleData);
-    }
-
+    
     onRuleCreate({ type }) {
         this.setState({
             ruleEditView: {
