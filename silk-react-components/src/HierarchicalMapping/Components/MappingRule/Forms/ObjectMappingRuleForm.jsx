@@ -15,9 +15,9 @@ import {
 } from '@eccenca/gui-elements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
-import {ParentElement} from '../SharedComponents';
+import { ParentElement } from '../SharedComponents';
 import { createMappingAsync } from '../../../store';
-import {newValueIsIRI, wasTouched, convertToUri} from './helpers';
+import { newValueIsIRI, wasTouched, convertToUri } from './helpers';
 import ErrorView from '../ErrorView';
 import AutoComplete from './AutoComplete';
 import {
@@ -95,12 +95,8 @@ export class ObjectMappingRuleForm extends Component {
             type: this.state.type,
             comment: this.state.comment,
             label: this.state.label,
-            sourceProperty: trimValue(
-                this.state.sourceProperty
-            ),
-            targetProperty: trimValue(
-                this.state.targetProperty
-            ),
+            sourceProperty: trimValue(this.state.sourceProperty),
+            targetProperty: trimValue(this.state.targetProperty),
             targetEntityType: this.state.targetEntityType,
             pattern: trimValue(this.state.pattern),
             entityConnection: this.state.entityConnection === 'to',
@@ -199,7 +195,7 @@ export class ObjectMappingRuleForm extends Component {
                     isValidNewOption={newValueIsIRI}
                     creatable
                     ruleId={autoCompleteRuleId}
-                    data-id='autocomplete_target_prop'
+                    data-id="autocomplete_target_prop"
                     value={modifiedValues.targetProperty}
                     onChange={value => { this.handleChangeValue('targetProperty', value); }}
                 />
@@ -214,7 +210,7 @@ export class ObjectMappingRuleForm extends Component {
                     }
                     name=""
                     disabled={false}
-                    data-id='entity_radio_group'
+                    data-id="entity_radio_group"
                 >
                     <Radio
                         value="from"
@@ -240,7 +236,7 @@ export class ObjectMappingRuleForm extends Component {
             sourcePropertyInput = (
                 <AutoComplete
                     placeholder="Value path"
-                    //key={modifiedValues.sourceProperty}
+                    // key={modifiedValues.sourceProperty}
                     className="ecc-silk-mapping__ruleseditor__sourcePath"
                     entity="sourcePath"
                     creatable

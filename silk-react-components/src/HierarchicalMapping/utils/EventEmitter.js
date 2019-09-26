@@ -1,6 +1,6 @@
 function eventEmitter(all) {
     all = all || Object.create(null);
-    
+
     return {
         /**
          * Register an event handler for the given type.
@@ -12,7 +12,7 @@ function eventEmitter(all) {
         on(type, handler) {
             (all[type] || (all[type] = [])).push(handler);
         },
-        
+
         /**
          * Remove an event handler for the given type.
          *
@@ -25,7 +25,7 @@ function eventEmitter(all) {
                 all[type].splice(all[type].indexOf(handler) >>> 0, 1);
             }
         },
-        
+
         /**
          * Invoke all handlers for the given type.
          * If present, `"*"` handlers are invoked after type-matched handlers.
@@ -35,10 +35,10 @@ function eventEmitter(all) {
          * @memberOf mitt
          */
         emit(type, evt) {
-            console.info('Emitted ' + type);
-            (all[type] || []).slice().map((handler) => { handler(evt); });
-            (all['*'] || []).slice().map((handler) => { handler(type, evt); });
-        }
+            console.info(`Emitted ${type}`);
+            (all[type] || []).slice().map(handler => { handler(evt); });
+            (all['*'] || []).slice().map(handler => { handler(type, evt); });
+        },
     };
 }
 

@@ -1,24 +1,23 @@
 import React from 'react';
-import {AutoCompleteBox} from '@eccenca/gui-elements';
+import { AutoCompleteBox } from '@eccenca/gui-elements';
 import { autocompleteAsync } from '../../../store';
 
-const loadOptionsRaw = ({input, callback, ruleId, entity}) => {
+const loadOptionsRaw = ({
+    input, callback, ruleId, entity,
+}) => {
     autocompleteAsync({
         entity,
         input,
         ruleId,
-    }).subscribe(
-        ({options}) => {
-            callback(null, {
-                    options,
-                    complete: false,
-                },
-            );
-        }
-    );
+    }).subscribe(({ options }) => {
+        callback(null, {
+            options,
+            complete: false,
+        }, );
+    });
 };
 
-const AutoComplete = ({entity, ruleId, ...otherProps}) => {
+const AutoComplete = ({ entity, ruleId, ...otherProps }) => {
     return (
         <AutoCompleteBox
             {...otherProps}
@@ -28,7 +27,7 @@ const AutoComplete = ({entity, ruleId, ...otherProps}) => {
                 input,
                 callback,
                 entity,
-                ruleId
+                ruleId,
             })}
         />
     );

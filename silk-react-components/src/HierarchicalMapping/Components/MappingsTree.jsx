@@ -25,31 +25,31 @@ class MappingsTree extends React.Component {
     state = {
         navigationLoading: false,
         navigationExpanded: {},
-        data: {}
+        data: {},
     };
-    
+
     componentDidMount() {
         EventEmitter.on(MESSAGES.RELOAD, this.loadNavigationTree);
-        
+
         this.loadNavigationTree();
     }
-    
+
     componentDidUpdate(prevProps, prevState, snapshot) {
         if (prevProps.currentRuleId !== this.props.currentRuleId) {
-            this.expandNavigationTreeElement()
+            this.expandNavigationTreeElement();
         }
     }
-    
+
     componentWillUnmount() {
         EventEmitter.off(MESSAGES.RELOAD, this.loadNavigationTree);
     }
-    
+
     loadNavigationTree = () => {
         const { navigationExpanded } = this.state;
         this.setState({
-            navigationLoading: true
+            navigationLoading: true,
         });
-        
+
         getHierarchyAsync()
             .subscribe(
                 ({ hierarchy }) => {
@@ -64,50 +64,50 @@ class MappingsTree extends React.Component {
                 },
                 () => {
                     this.setState({
-                        navigationLoading: false
+                        navigationLoading: false,
                     });
                 }
             );
     };
-    
+
     // collapse / expand navigation children
     handleToggleExpandNavigationTree(id) {
         const expanded = {
-            ...this.state.navigationExpanded
+            ...this.state.navigationExpanded,
         };
         expanded[id] = !expanded[id];
         this.setState({
-            navigationExpanded: expanded
+            navigationExpanded: expanded,
         });
     }
-    
+
     expandNavigationTreeElement() {
         const expanded = {
-            ...this.state.navigationExpanded
+            ...this.state.navigationExpanded,
         };
         expanded[this.props.currentRuleId] = true;
         // @NOTE: we should pass the parent id by another way
         // expanded[parentId] = true;
-        
+
         this.setState({
-            navigationExpanded: expanded
+            navigationExpanded: expanded,
         });
     }
-    
+
     /**
      * Returns an object which contains a key for each rule
      * that should be expanded because it contains a child with a warning.
      * @param originTreeElement The rule tree
      */
-    markTree = (originTreeElement) => {
+    markTree = originTreeElement => {
         if (_.isEmpty(originTreeElement)) {
             return originTreeElement;
         }
-        
+
         const tree = _.cloneDeep(originTreeElement);
-        
+
         const { id, type } = tree;
-        
+
         let expanded = this.state.navigationExpanded[id] || false;
         let isHighlighted =
             id === this.state.currentRuleId ||
@@ -115,11 +115,11 @@ class MappingsTree extends React.Component {
                 !_.isUndefined(this.state.currentRuleId)) ||
             (type === MAPPING_RULE_TYPE_ROOT &&
                 _.isUndefined(this.state.currentRuleId));
-        
+
         if (_.has(tree, 'rules.propertyRules')) {
             tree.rules.propertyRules = _.map(tree.rules.propertyRules, rule => {
                 const subtree = this.markTree(rule);
-                
+
                 if (
                     subtree.type !== MAPPING_RULE_TYPE_OBJECT &&
                     subtree.id === this.state.currentRuleId
@@ -127,19 +127,19 @@ class MappingsTree extends React.Component {
                     isHighlighted = true;
                     expanded = true;
                 }
-                
+
                 return subtree;
             });
         }
-        
+
         tree.expanded = expanded;
         tree.isHighlighted = isHighlighted;
-        
+
         return tree;
     };
-    
+
     // construct parent-child tree
-    navigationList = (parent) => {
+    navigationList = parent => {
         const {
             id,
             type: parentType,
@@ -147,14 +147,14 @@ class MappingsTree extends React.Component {
             isHighlighted,
             expanded,
         } = parent;
-        
-        const {showValueMappings, handleRuleNavigation} = this.props;
-        
+
+        const { showValueMappings, handleRuleNavigation } = this.props;
+
         // get expanded state
         const childs = _.chain(rules.propertyRules)
             .filter(({ type }) => showValueMappings || type === MAPPING_RULE_TYPE_OBJECT)
             .value();
-        
+
         const element = () => (
             <button
                 className="ecc-silk-mapping__treenav--item-handler"
@@ -173,13 +173,13 @@ class MappingsTree extends React.Component {
                 )}
             </button>
         );
-        
+
         return (
             <div>
                 <div
                     className={`ecc-silk-mapping__treenav--item${
                         isHighlighted ? ' ecc-silk-mapping__treenav--item-active' : ''
-                        }`}
+                    }`}
                 >
                     {!_.isEmpty(childs) ? (
                         <Button
@@ -211,13 +211,13 @@ class MappingsTree extends React.Component {
             </div>
         );
     };
-    
+
     render() {
         const { data, navigationLoading } = this.state;
-        
+
         const tree = this.markTree(data);
         const NavigationList = this.navigationList(tree);
-        
+
         return (
             <div className="ecc-silk-mapping__treenav">
                 <Card>
@@ -253,7 +253,7 @@ MappingsTree.propTypes = {
 
 MappingsTree.defaultProps = {
     currentRuleId: undefined,
-    handleRuleNavigation: () => {}
+    handleRuleNavigation: () => {},
 };
 
 export default MappingsTree;

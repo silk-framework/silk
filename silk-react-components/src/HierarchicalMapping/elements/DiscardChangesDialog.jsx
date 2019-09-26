@@ -1,8 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {
-    DismissiveButton, DisruptiveButton, ConfirmationDialog,
-} from '@eccenca/gui-elements';
+import { DismissiveButton, DisruptiveButton, ConfirmationDialog } from '@eccenca/gui-elements';
 
 const DiscardChangesDialog = props => {
     const {
@@ -49,7 +47,7 @@ DiscardChangesDialog.propTypes = {
 };
 
 DiscardChangesDialog.defaultProps = {
-    numberEditingElements: 0
+    numberEditingElements: 0,
 };
 
 export default DiscardChangesDialog;

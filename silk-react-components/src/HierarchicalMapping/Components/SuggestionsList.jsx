@@ -37,9 +37,9 @@ const SuggestionsListWrapper = props => (
 class SuggestionsList extends React.Component {
     static propTypes = {
         targetClassUris: PropTypes.array,
-        onAskDiscardChanges: PropTypes.func
+        onAskDiscardChanges: PropTypes.func,
     };
-    
+
     state = {
         data: undefined,
         error: false,
@@ -49,16 +49,16 @@ class SuggestionsList extends React.Component {
         matchFromDataset: true,
         warnings: [],
     };
-    
+
     count = 0;
-    
-    onChecked = (v) => {
+
+    onChecked = v => {
         const data = this.state.data;
         const index = _.findIndex(data, d => d.id === v.id);
         data[index].checked = !data[index].checked;
-        this.setState({data});
+        this.setState({ data });
     }
-    
+
     loadData() {
         this.setState({
             loading: true,
@@ -84,22 +84,22 @@ class SuggestionsList extends React.Component {
                 });
             },
             err => {
-                this.setState({loading: false, error: [{error: err}]});
+                this.setState({ loading: false, error: [{ error: err }] });
             }
         );
     }
-    
-    onTypeChanged = (v) => {
+
+    onTypeChanged = v => {
         const data = this.state.data;
         const index = _.findIndex(data, d => d.id === v.id);
         data[index].type = v.type;
-        this.setState({data});
+        this.setState({ data });
     }
-    
+
     componentDidMount() {
         this.loadData();
     }
-    
+
     componentDidUpdate() {
         if (_.get(this, 'state.data', false) && this.count++ === 0) {
             // Scroll should only happen once!
@@ -108,14 +108,14 @@ class SuggestionsList extends React.Component {
             });
         }
     }
-    
-    handleAddSuggestions = (event) => {
+
+    handleAddSuggestions = event => {
         event.stopPropagation();
-        
+
         this.setState({
             saving: true,
         });
-        
+
         const correspondences = this.state.data
             .filter(v => v.checked)
             .map(v => ({
@@ -123,7 +123,7 @@ class SuggestionsList extends React.Component {
                 targetProperty: v.targetProperty,
                 type: v.type,
             }));
-        
+
         generateRuleAsync(correspondences, this.props.ruleId).subscribe(
             () => {
                 this.props.onClose();
@@ -133,12 +133,12 @@ class SuggestionsList extends React.Component {
                 // else failed
                 const error = err.failedRules
                     ? err.failedRules
-                    : [{error: err}];
-                this.setState({saving: false, error});
+                    : [{ error: err }];
+                this.setState({ saving: false, error });
             }
         );
     }
-    
+
     toggleDefaultProperties = () => {
         if (this.state.data.filter(v => v.checked).length !== 0) {
             this.props.onAskDiscardChanges(true);
@@ -151,8 +151,8 @@ class SuggestionsList extends React.Component {
             });
         }
     }
-    
-    checkAll = (event) => {
+
+    checkAll = event => {
         if (event.stopPropagation) {
             event.stopPropagation();
         }
@@ -164,8 +164,8 @@ class SuggestionsList extends React.Component {
             checked: true,
         });
     }
-    
-    checkNone = (event) => {
+
+    checkNone = event => {
         if (event.stopPropagation) {
             event.stopPropagation();
         }
@@ -177,7 +177,7 @@ class SuggestionsList extends React.Component {
             checked: false,
         });
     }
-    
+
     // onDiscard = () => {
     //     this.setState({
     //         data: !this.state.showDefaultProperties
@@ -187,11 +187,11 @@ class SuggestionsList extends React.Component {
     //     });
     //     this.props.onAskDiscardChanges(false);
     // }
-    
+
     // template rendering
     render() {
         if (this.state.loading) {
-            return <Spinner/>;
+            return <Spinner />;
         }
         if (this.state.saving) {
             return (
@@ -223,7 +223,7 @@ class SuggestionsList extends React.Component {
                 </SuggestionsListWrapper>
             );
         }
-        
+
         if (this.state.error) {
             const errorsList = _.map(this.state.error, err => (
                 <li className="ecc-silk-mapping__ruleitem mdl-list__item ecc-silk-mapping__ruleitem--literal ecc-silk-mapping__ruleitem--summary ">
@@ -240,7 +240,7 @@ class SuggestionsList extends React.Component {
                     </div>
                 </li>
             ));
-            
+
             return (
                 <SuggestionsListWrapper>
                     <CardTitle>Saving suggestions returned errors</CardTitle>
@@ -257,12 +257,12 @@ class SuggestionsList extends React.Component {
                 </SuggestionsListWrapper>
             );
         }
-        
+
         let suggestionsList = false;
         const hasChecks = _.get(this.state, 'checked');
         const errors = _.filter(this.state.warnings, warning => warning.code !== 404);
         const warnings = _.filter(this.state.warnings, warning => warning.code === 404);
-        
+
         const errorsComponent = !_.isEmpty(errors) && (
             <Error
                 className="ecc-hm-suggestions__errors-container"
@@ -281,7 +281,7 @@ class SuggestionsList extends React.Component {
                 )}
             </Error>
         );
-        
+
         const warningsComponent = !_.isEmpty(warnings) && (
             <Warning
                 className="ecc-hm-suggestions__warnings-container"
@@ -305,7 +305,7 @@ class SuggestionsList extends React.Component {
                 <CardContent>
                     <Info vertSpacing border>
                         No suggestions found for{' '}
-                        <ParentElement parent={this.props.parent}/>.
+                        <ParentElement parent={this.props.parent} />.
                     </Info>
                 </CardContent>
             );
@@ -315,7 +315,7 @@ class SuggestionsList extends React.Component {
                 ['sourcePath', 'order'],
                 ['asc', 'desc']
             );
-            
+
             suggestionsList = (
                 <ol className="mdl-list">
                     <li className="ecc-silk-mapping__ruleitem">
@@ -337,11 +337,13 @@ class SuggestionsList extends React.Component {
                                 </div>
                                 <div className="mdl-list__item-primary-content">
                                     <div
-                                        className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline">
+                                        className="ecc-silk-mapping__ruleitem-headline ecc-silk-mapping__suggestitem-headline"
+                                    >
                                         Value path
                                     </div>
                                     <div
-                                        className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline">
+                                        className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__suggestitem-subline"
+                                    >
                                         Target property
                                     </div>
                                     <div className="ecc-silk-mapping__suggestitem-typeselect">
@@ -367,7 +369,7 @@ class SuggestionsList extends React.Component {
                 </ol>
             );
         }
-        
+
         const suggestionsToBeSave = _.filter(
             this.state.data,
             entry => entry.checked

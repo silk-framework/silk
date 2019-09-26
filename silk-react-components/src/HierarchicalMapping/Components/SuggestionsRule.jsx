@@ -4,38 +4,37 @@ import { LABELED_SUGGESTION_TYPES } from '../helpers';
 import _ from 'lodash';
 
 class SuggestionsRule extends React.Component {
-    
     shouldComponentUpdate(nextProps, nextState) {
         return !_.isEqual(nextProps.suggestion, this.props.suggestion);
     }
-    
-    preventPropagation = (event) => {
+
+    preventPropagation = event => {
         event.stopPropagation();
     }
-    
+
     onChangeChecked = () => {
         this.props.onChecked({
             id: this.props.suggestion.id,
             checked: !this.props.suggestion.checked,
         });
     }
-    
+
     onChangeType = ({ value, label }) => {
         this.props.onTypeChanged({
             id: this.props.suggestion.id,
             type: value,
         });
     }
-    
+
     // template rendering
     render() {
         const { suggestion } = this.props;
         let title = `Click to add the suggested value mapping:\n\nValue path: ${
             suggestion.sourcePath
-            }`;
-        
+        }`;
+
         let targetProperty;
-        
+
         if (suggestion.targetProperty) {
             targetProperty = suggestion.targetProperty;
             title += `\nTarget property: ${suggestion.targetProperty}`;
@@ -43,16 +42,16 @@ class SuggestionsRule extends React.Component {
             targetProperty = <NotAvailable label="(default mapping)" inline />;
             title += '\nTarget property: default mapping';
         }
-        
+
         if (suggestion.confidence) {
             title += `\nConfidence: ${suggestion.confidence}`;
         }
-        
+
         return (
             <li
                 className={`ecc-silk-mapping__ruleitem ecc-silk-mapping__ruleitem--literal ${
                     suggestion.checked ? 'selected' : 'unselected'
-                    }`}
+                }`}
             >
                 <div className="ecc-silk-mapping__ruleitem-summary">
                     <div className="mdl-list__item">

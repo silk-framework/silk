@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
-import {Icon, Button, NotAvailable} from '@eccenca/gui-elements';
+import { Icon, Button, NotAvailable } from '@eccenca/gui-elements';
 
 import { autocompleteAsync, getVocabInfoAsync } from '../../store';
 import {
@@ -17,9 +17,9 @@ export const SourcePath = ({ rule }) => {
 
 class URIInfo extends React.Component {
     state = {
-        info: false
+        info: false,
     };
-    
+
     componentDidMount() {
         this.loadData(this.props);
     }
@@ -28,14 +28,14 @@ class URIInfo extends React.Component {
             this.loadData(nextProps);
         }
     }
-    
+
     shouldComponentUpdate(nextProps, nextState) {
         return (
             !_.isEqual(nextState, this.state) ||
             !_.isEqual(nextProps, this.props)
         );
     }
-    
+
     loadData(props) {
         const { uri, field } = props;
         getVocabInfoAsync(uri, field)
@@ -51,20 +51,20 @@ class URIInfo extends React.Component {
                 }
             );
     }
-    
+
     render() {
         const { info } = this.state;
-        
+
         if (info) {
             return <span>{info}</span>;
         }
-        
+
         const {
             uri, fallback, field, ...otherProps
         } = this.props;
-        
+
         let noInfo = false;
-        
+
         if (fallback !== undefined) {
             noInfo = fallback;
         } else if (!_.isString(uri)) {
@@ -74,7 +74,7 @@ class URIInfo extends React.Component {
             const lastSlash = lastHash === -1 ? uri.lastIndexOf('/') : lastHash;
             noInfo = uri.substring(lastSlash + 1).replace(/[<>]/g, '');
         }
-        
+
         return <span {...otherProps}>{noInfo}</span>;
     }
 }
@@ -85,7 +85,7 @@ class PropertyTypeInfo extends React.Component {
         option: this.props.option,
         result: false,
     };
-    
+
     componentDidMount() {
         autocompleteAsync({
             entity: 'propertyType',
@@ -105,7 +105,7 @@ class PropertyTypeInfo extends React.Component {
                 if (__DEBUG__) {
                     console.warn(`No ${
                         this.props.option
-                        } found for the property type ${this.props.name}`);
+                    } found for the property type ${this.props.name}`);
                 }
                 this.setState({
                     result: this.props.name,
@@ -113,7 +113,7 @@ class PropertyTypeInfo extends React.Component {
             }
         );
     }
-    
+
     render() {
         let text = this.state.result;
         if (this.props.appendedText) {
@@ -187,22 +187,22 @@ export const ParentStructure = ({ parent, ...otherProps }) =>
 
 export class InfoBox extends React.Component {
     state = {
-        expanded: false
+        expanded: false,
     };
-    
-    toggleExpander = (event) => {
+
+    toggleExpander = event => {
         event.stopPropagation();
         this.setState({
             expanded: !this.state.expanded,
         });
     };
-    
+
     render() {
         return (
             <div
                 className={`ecc-silk-mapping__rulesviewer__infobox${
                     !this.state.expanded ? ' is-narrowed' : ''
-                    }`}
+                }`}
             >
                 <Button
                     className="ecc-silk-mapping__rulesviewer__infobox-toggler"

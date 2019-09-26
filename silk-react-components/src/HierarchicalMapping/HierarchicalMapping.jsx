@@ -27,16 +27,18 @@ class HierarchicalMapping extends React.Component {
         transformTask: PropTypes.string.isRequired, // Current Transformation
         initialRule: PropTypes.string,
     };
-    
+
     constructor(props) {
         super(props);
-        const {baseUrl, project, transformTask, initialRule} = this.props;
+        const {
+            baseUrl, project, transformTask, initialRule,
+        } = this.props;
         setApiDetails({
             baseUrl,
             project,
             transformTask,
         });
-    
+
         // TODO: Use initialRule
         this.state = {
             // currently selected rule id
@@ -48,36 +50,36 @@ class HierarchicalMapping extends React.Component {
             editingElements: [],
             askForDiscard: false,
             askForRemove: false,
-            removeFunction: this.handleConfirmRemove
+            removeFunction: this.handleConfirmRemove,
         };
     }
-    
+
     componentDidMount() {
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
-    };
-    
+    }
+
     componentWillUnmount() {
         EventEmitter.off(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.off(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
     }
-    
+
     componentDidUpdate(prevProps, prevState) {
         if (
             prevState.currentRuleId !== this.state.currentRuleId &&
             !_.isEmpty(this.state.currentRuleId)
         ) {
             const href = window.location.href;
-            
+
             try {
                 const uriTemplate = new URI(href);
-                
+
                 if (uriTemplate.segment(-2) !== 'rule') {
                     uriTemplate.segment('rule');
                 }
-                
+
                 uriTemplate.segment(-1, this.state.currentRuleId);
                 history.pushState(null, '', uriTemplate.toString());
             } catch (e) {
@@ -87,9 +89,9 @@ class HierarchicalMapping extends React.Component {
         if (prevProps.task !== this.props.task) {
             this.loadNavigationTree();
         }
-    };
-    
-    onOpenEdit = (obj) => {
+    }
+
+    onOpenEdit = obj => {
         const id = _.get(obj, 'id', 0);
         if (!_.includes(this.state.editingElements, id)) {
             this.setState({
@@ -97,8 +99,8 @@ class HierarchicalMapping extends React.Component {
             });
         }
     };
-    
-    onCloseEdit = (obj) => {
+
+    onCloseEdit = obj => {
         const id = _.get(obj, 'id', 0);
         if (_.includes(this.state.editingElements, id)) {
             this.setState({
@@ -109,43 +111,43 @@ class HierarchicalMapping extends React.Component {
             });
         }
     };
-    
+
     handleClickRemove = (args, removeFn) => {
         /**
          * This scenario is default for most of cases
          * @TODO: move this functionality to RemoveConfirmDialog component and refacor this component which will work as a portal
          */
         if (args) {
-            const { id, uri, type, parent } = args;
+            const {
+                id, uri, type, parent,
+            } = args;
             this.setState({
                 editingElements: [],
                 elementToDelete: {
                     id, uri, type, parent,
                 },
                 askForRemove: true,
-                removeFunction: this.handleConfirmRemove
+                removeFunction: this.handleConfirmRemove,
             });
         } else if (_.isFunction(removeFn)) {
             // This scenario is for ObjectMappingRule, when we want to remove URI from complex
             const removeFunction = () => {
                 removeFn();
                 this.setState({
-                    askForRemove: false
+                    askForRemove: false,
                 });
             };
-            
+
             this.setState({
                 askForRemove: true,
-                removeFunction
+                removeFunction,
             });
-        } else {
-            if (__DEBUG__) {
-                console.error('Wrong arguments passed to handleClickRemove Function')
-            }
+        } else if (__DEBUG__) {
+            console.error('Wrong arguments passed to handleClickRemove Function');
         }
     };
-    
-    handleConfirmRemove = (event) => {
+
+    handleConfirmRemove = event => {
         event.stopPropagation();
         const { parent, type } = this.state.elementToDelete;
         this.setState({
@@ -180,20 +182,20 @@ class HierarchicalMapping extends React.Component {
                 }
             );
     };
-    
+
     handleCancelRemove = () => {
         this.setState({
             elementToDelete: {},
             askForRemove: false,
         });
     };
-    
-    toggleAskForDiscard = (boolOrData) => {
-      this.setState({
-          askForDiscard: boolOrData
-      })
+
+    toggleAskForDiscard = boolOrData => {
+        this.setState({
+            askForDiscard: boolOrData,
+        });
     };
-    
+
     // react to rule id changes
     onRuleNavigation = ({ newRuleId }) => {
         if (newRuleId === this.state.currentRuleId) {
@@ -206,17 +208,17 @@ class HierarchicalMapping extends React.Component {
             this.toggleAskForDiscard(newRuleId);
         }
     };
-    
+
     // show / hide navigation
-    handleToggleNavigation = (stateVisibility) => {
+    handleToggleNavigation = stateVisibility => {
         this.setState({
             showNavigation: stateVisibility,
         });
     };
-    
+
     handleDiscardChanges = () => {
         if (_.includes(this.state.editingElements, 0)) {
-            EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: 0 })
+            EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: 0 });
         }
         this.setState({
             editingElements: [],
@@ -225,12 +227,12 @@ class HierarchicalMapping extends React.Component {
         this.toggleAskForDiscard(false);
         EventEmitter.emit(MESSAGES.RULE_VIEW.DISCARD_ALL);
     };
-    
-    handleRuleIdChange = (rule) => {
+
+    handleRuleIdChange = rule => {
         this.onRuleNavigation(rule);
         // this.expandNavigationTreeElement(rule);
     };
-    
+
     // template rendering
     render() {
         const {
@@ -238,7 +240,7 @@ class HierarchicalMapping extends React.Component {
             elementToDelete, askForDiscard, editingElements,
         } = this.state;
         const loading = this.state.loading ? <Spinner /> : false;
-        
+
         // render mapping edit / create view of value and object
         const debugOptions = __DEBUG__ ? (
             <div>

@@ -1,6 +1,6 @@
 export const MESSAGES = {
     RULE_ID: {
-        CREATE: 'ruleId.create'
+        CREATE: 'ruleId.create',
     },
     RULE_VIEW: {
         CHANGE: 'ruleView.change',
@@ -17,11 +17,11 @@ export const MESSAGES = {
         REQUEST_ORDER: 'rule.requestOrder',
     },
     TREE_NAV: {
-        TOGGLE_VISIBILITY: 'toggleVisibility'
+        TOGGLE_VISIBILITY: 'toggleVisibility',
     },
     MAPPING: {
         CREATE: 'mapping.create',
-        SHOW_SUGGESTIONS: 'showSuggestions'
+        SHOW_SUGGESTIONS: 'showSuggestions',
     },
     RELOAD: 'reload',
     TOGGLE_DETAILS: 'toggleDetails',

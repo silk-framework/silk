@@ -41,11 +41,11 @@ export class ErrorView extends React.Component {
         cause: PropTypes.array, // it may contain a list for errors with title and detail itself
         issues: PropTypes.array, // it may contain a list for errors with title and detail itself, too
     };
-    
+
     state = {
-        errorExpanded: false
+        errorExpanded: false,
     };
-    
+
     toggleExpansion() {
         this.setState({
             errorExpanded: !this.state.errorExpanded,
@@ -56,25 +56,25 @@ export class ErrorView extends React.Component {
         const errorClassName = this.state.errorExpanded
             ? ''
             : 'mdl-alert--narrowed';
-        
+
         let causes = false;
         let issues = false;
-        
+
         if (this.state.errorExpanded && _.isArray(this.props.cause)) {
             causes = <ErrorCause errorCause={this.props.cause} />;
         }
-        
+
         if (this.state.errorExpanded && _.isArray(this.props.issues)) {
             issues = <ErrorIssue errorCause={this.props.issues} />;
         }
-        
+
         const detail =
             this.props.title !== this.props.detail ? (
                 <p>{this.props.detail}</p>
             ) : (
                 false
             );
-        
+
         return (
             <Error
                 border

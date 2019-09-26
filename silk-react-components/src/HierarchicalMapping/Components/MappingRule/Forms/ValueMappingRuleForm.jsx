@@ -15,7 +15,7 @@ import {
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import { createMappingAsync, getRuleAsync } from '../../../store';
-import {newValueIsIRI, wasTouched, convertToUri} from './helpers';
+import { newValueIsIRI, wasTouched, convertToUri } from './helpers';
 import ErrorView from '../ErrorView';
 import AutoComplete from './AutoComplete';
 import {
@@ -27,8 +27,8 @@ import { MESSAGES } from '../../../constants';
 import EventEmitter from '../../../utils/EventEmitter';
 
 const languagesList = [
-    'en','de','es','fr','bs','bg','ca','ce','zh','hr','cs','da','nl','eo','fi','ka','el','hu','ga','is','it',
-    'ja','kn','ko','lb','no','pl','pt','ru','sk','sl','sv','tr','uk'
+    'en', 'de', 'es', 'fr', 'bs', 'bg', 'ca', 'ce', 'zh', 'hr', 'cs', 'da', 'nl', 'eo', 'fi', 'ka', 'el', 'hu', 'ga', 'is', 'it',
+    'ja', 'kn', 'ko', 'lb', 'no', 'pl', 'pt', 'ru', 'sk', 'sl', 'sv', 'tr', 'uk',
 ];
 
 export class ValueMappingRuleForm extends React.Component {
@@ -41,13 +41,13 @@ export class ValueMappingRuleForm extends React.Component {
         sourceProperty: '',
         isAttribute: false,
         initialValues: {},
-        error: null
+        error: null,
     };
-    
+
     componentDidMount() {
         this.loadData();
     }
-    
+
     componentDidUpdate(prevProps, prevState) {
         if (
             prevState.loading === true &&
@@ -58,15 +58,15 @@ export class ValueMappingRuleForm extends React.Component {
             });
         }
     }
-    
+
     loadData() {
         this.setState({
-            loading: true
+            loading: true,
         });
         if (this.props.id) {
             getRuleAsync(this.props.id)
                 .subscribe(
-                    ({rule}) => {
+                    ({ rule }) => {
                         const initialValues = {
                             type: _.get(rule, 'type', MAPPING_RULE_TYPE_DIRECT),
                             comment: _.get(rule, 'metadata.description', ''),
@@ -88,7 +88,7 @@ export class ValueMappingRuleForm extends React.Component {
                                 false
                             ),
                         };
-                        
+
                         this.setState({
                             loading: false,
                             ...initialValues,
@@ -96,18 +96,18 @@ export class ValueMappingRuleForm extends React.Component {
                         });
                     },
                     err => {
-                        this.setState({loading: false});
+                        this.setState({ loading: false });
                     }
                 );
         } else {
             this.setState({
-                loading: false
+                loading: false,
             });
-            EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, {id: 0});
+            EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id: 0 });
         }
     }
-    
-    handleConfirm = (event) => {
+
+    handleConfirm = event => {
         event.stopPropagation();
         event.persist();
         this.setState({
@@ -119,18 +119,14 @@ export class ValueMappingRuleForm extends React.Component {
             type: this.state.type,
             comment: this.state.comment,
             label: this.state.label,
-            targetProperty: trimValue(
-                this.state.targetProperty
-            ),
+            targetProperty: trimValue(this.state.targetProperty),
             valueType: this.state.valueType,
-            sourceProperty: trimValue(
-                this.state.sourceProperty
-            ),
+            sourceProperty: trimValue(this.state.sourceProperty),
             isAttribute: this.state.isAttribute,
         }).subscribe(
             () => {
                 this.handleClose(event);
-                EventEmitter.emit(MESSAGES.RELOAD, true)
+                EventEmitter.emit(MESSAGES.RELOAD, true);
             },
             err => {
                 this.setState({
@@ -140,72 +136,72 @@ export class ValueMappingRuleForm extends React.Component {
             }
         );
     }
-    
+
     // remove rule
-    handleChangeTextfield = (state, {value}) => {
+    handleChangeTextfield = (state, { value }) => {
         this.handleChangeValue(state, value);
     };
-    
+
     handleChangeSelectBox = (state, value) => {
         this.handleChangeValue(state, value);
     };
-    
-    handleChangePropertyType = (value) => {
+
+    handleChangePropertyType = value => {
         const valueType = { nodeType: value.value };
-        this.handleChangeValue('valueType', valueType)
-    };
-    
-    handleChangeLanguageTag = (value) => {
-        let lang = value;
-        if(typeof lang === 'object') {
-            lang = value.value;
-        }
-        const valueType = { nodeType: "LanguageValueType", lang: lang};
         this.handleChangeValue('valueType', valueType);
     };
-    
+
+    handleChangeLanguageTag = value => {
+        let lang = value;
+        if (typeof lang === 'object') {
+            lang = value.value;
+        }
+        const valueType = { nodeType: 'LanguageValueType', lang };
+        this.handleChangeValue('valueType', valueType);
+    };
+
     handleChangeValue = (name, value) => {
-        const {initialValues, create, ...currValues} = this.state;
+        const { initialValues, create, ...currValues } = this.state;
         currValues[name] = value;
-        
+
         const touched = create || wasTouched(initialValues, currValues);
         const id = _.get(this.props, 'id', 0);
-        
+
         if (id !== 0) {
             if (touched) {
-                EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, {id});
+                EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id });
             } else {
-                EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, {id});
+                EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id });
             }
         }
-        
+
         this.setState({
             [name]: value,
             changed: touched,
         });
     };
-    
-    handleClose = (event) => {
+
+    handleClose = event => {
         event.stopPropagation();
         const id = _.get(this.props, 'id', 0);
-        EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, {id});
-        EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, {id});
+        EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id });
+        EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id });
     };
-    
+
     allowConfirmation() {
         const targetPropertyNotEmpty = !_.isEmpty(this.state.targetProperty);
         const valueType = this.state.valueType;
-        const languageTagSet = valueType.nodeType !== "LanguageValueType" || typeof valueType.lang === "string";
+        const languageTagSet = valueType.nodeType !== 'LanguageValueType' || typeof valueType.lang === 'string';
         return targetPropertyNotEmpty && languageTagSet;
     }
-    
+
     // template rendering
     render() {
-        const {id, parentId} = this.props;
-        
+        const { id, parentId } = this.props;
+
         const autoCompleteRuleId = id || parentId;
-        
-        const {type, error, loading} = this.state;
+
+        const { type, error, loading } = this.state;
         if (loading) {
             return <Spinner />;
         }
@@ -214,18 +210,18 @@ export class ValueMappingRuleForm extends React.Component {
         ) : (
             false
         );
-        
+
         const allowConfirm = this.allowConfirmation();
-        
+
         const title = !id ? <CardTitle>Add value mapping</CardTitle> : false;
-        
+
         // TODO: Unfold complex mapping
         let sourcePropertyInput = false;
-        
+
         if (type === MAPPING_RULE_TYPE_DIRECT) {
             sourcePropertyInput = (
                 <AutoComplete
-                    placeholder={'Value path'}
+                    placeholder="Value path"
                     className="ecc-silk-mapping__ruleseditor__sourcePath"
                     entity="sourcePath"
                     creatable
@@ -240,7 +236,7 @@ export class ValueMappingRuleForm extends React.Component {
         } else if (type === MAPPING_RULE_TYPE_COMPLEX) {
             sourcePropertyInput = (
                 <TextField
-                    data-id='test-complex-input'
+                    data-id="test-complex-input"
                     disabled
                     label="Value formula"
                     value="The value formula cannot be modified in the edit form."
@@ -266,7 +262,7 @@ export class ValueMappingRuleForm extends React.Component {
                     <CardContent>
                         {errorMessage}
                         <AutoComplete
-                            placeholder={'Target property'}
+                            placeholder="Target property"
                             className="ecc-silk-mapping__ruleseditor__targetProperty"
                             entity="targetProperty"
                             newOptionCreator={convertToUri}
@@ -282,12 +278,13 @@ export class ValueMappingRuleForm extends React.Component {
                         <Checkbox
                             checked={this.state.isAttribute}
                             className="ecc-silk-mapping__ruleseditor__isAttribute"
-                            onChange={() => this.handleChangeValue('isAttribute', !this.state.isAttribute)}>
+                            onChange={() => this.handleChangeValue('isAttribute', !this.state.isAttribute)}
+                        >
                             Write values as attributes (if supported by the
                             target dataset)
                         </Checkbox>
                         <AutoComplete
-                            placeholder={'Data type'}
+                            placeholder="Data type"
                             className="ecc-silk-mapping__ruleseditor__propertyType"
                             entity="propertyType"
                             ruleId={autoCompleteRuleId}
@@ -297,18 +294,18 @@ export class ValueMappingRuleForm extends React.Component {
                         />
                         { (this.state.valueType.nodeType === 'LanguageValueType') &&
                         <SelectBox
-                            data-id={'lng-select-box'}
+                            data-id="lng-select-box"
                             placeholder="Language Tag"
                             options={languagesList}
                             optionsOnTop={true} // option list opens up on top of select input (default: false)
                             value={this.state.valueType.lang}
                             onChange={this.handleChangeLanguageTag}
-                            isValidNewOption={({label = ''}) =>
+                            isValidNewOption={({ label = '' }) =>
                                 !_.isNull(label.match(/^[a-z]{2}(-[A-Z]{2})?$/))
                             }
                             creatable={true} // allow creation of new values
                             noResultsText="Not a valid language tag"
-                            promptTextCreator={(newLabel) => ('Create language tag: ' + newLabel)}
+                            promptTextCreator={newLabel => (`Create language tag: ${newLabel}`)}
                             multi={false} // allow multi selection
                             clearable={false} // hide 'remove all selected values' button
                             searchable={true} // whether to behave like a type-ahead or not
@@ -341,13 +338,15 @@ export class ValueMappingRuleForm extends React.Component {
                             className="ecc-silk-mapping__ruleseditor__actionrow-save"
                             raised
                             onClick={this.handleConfirm}
-                            disabled={!allowConfirm || !this.state.changed}>
+                            disabled={!allowConfirm || !this.state.changed}
+                        >
                             Save
                         </AffirmativeButton>
                         <DismissiveButton
                             className="ecc-silk-mapping__ruleseditor___actionrow-cancel"
                             raised
-                            onClick={this.handleClose}>
+                            onClick={this.handleClose}
+                        >
                             Cancel
                         </DismissiveButton>
                     </CardActions>

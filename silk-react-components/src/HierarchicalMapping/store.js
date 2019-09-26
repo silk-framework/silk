@@ -90,15 +90,13 @@ const datatypes = _.map(
     ],
     datatype => ({
         ...datatype,
-        $search: _.deburr(
-            `${datatype.value}|${datatype.label}|${datatype.description}`
-        ).toLocaleLowerCase(),
+        $search: _.deburr(`${datatype.value}|${datatype.label}|${datatype.description}`).toLocaleLowerCase(),
     })
 );
 
 let _apiDetails = {};
-export const setApiDetails = (data) => {
-    _apiDetails = {...data};
+export const setApiDetails = data => {
+    _apiDetails = { ...data };
 };
 export const getApiDetails = () => _apiDetails;
 
@@ -113,7 +111,7 @@ function mapPeakResult(returned) {
             ),
         };
     }
-    
+
     return {
         example: returned.body,
     };
@@ -130,7 +128,7 @@ const editMappingRule = (payload, id, parent) => {
             },
         });
     }
-    
+
     return silkStore.request({
         topic: 'transform.task.rule.rules.append',
         data: {
@@ -146,7 +144,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
         ...curr,
         breadcrumbs,
     };
-    
+
     if (element.id === id || _.get(element, 'rules.uriRule.id') === id) {
         return element;
     } else if (_.has(element, 'rules.propertyRules')) {
@@ -164,7 +162,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
                 result = findRule(child, id, isObjectMapping, bc);
             }
         });
-        
+
         if (
             isObjectMapping &&
             result !== null &&
@@ -172,7 +170,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
         ) {
             result = element;
         }
-        
+
         return result;
     }
     return null;
@@ -187,7 +185,7 @@ const handleCreatedSelectBoxValue = (data, path) => {
     if (_.isEmpty(_.get(data, [path]))) {
         return '';
     }
-    
+
     return _.get(data, [path]);
 };
 
@@ -203,30 +201,30 @@ const prepareValueMappingPayload = data => {
             isAttribute: data.isAttribute,
         },
     };
-    
+
     if (data.type === MAPPING_RULE_TYPE_DIRECT) {
         payload.sourcePath = data.sourceProperty
             ? handleCreatedSelectBoxValue(data, 'sourceProperty')
             : '';
     }
-    
+
     if (!data.id) {
         payload.type = data.type;
     }
-    
+
     return payload;
 };
 
 const prepareObjectMappingPayload = data => {
     const typeRules = _.map(data.targetEntityType, typeRule => {
         const value = _.get(typeRule, 'value', typeRule);
-        
+
         return {
             type: 'type',
             typeUri: value,
         };
     });
-    
+
     const payload = {
         metadata: {
             description: data.comment,
@@ -252,26 +250,25 @@ const prepareObjectMappingPayload = data => {
             typeRules,
         },
     };
-    
+
     if (!data.id) {
         payload.type = MAPPING_RULE_TYPE_OBJECT;
         payload.rules.propertyRules = [];
     }
-    
+
     return payload;
 };
 
 const generateRule = (rule, parentId) =>
     createGeneratedMappingAsync({
         ...rule,
-        parentId
-    }).catch(e => Rx.Observable.return({error: e, rule}));
+        parentId,
+    }).catch(e => Rx.Observable.return({ error: e, rule }));
 
-const createGeneratedRules = ({rules, parentId}) =>
+const createGeneratedRules = ({ rules, parentId }) =>
     Rx.Observable.from(rules)
         .flatMapWithMaxConcurrent(5, rule =>
-            Rx.Observable.defer(() => generateRule(rule, parentId))
-        )
+            Rx.Observable.defer(() => generateRule(rule, parentId)))
         .reduce((all, result, idx) => {
             const total = _.size(rules);
             const count = idx + 1;
@@ -279,14 +276,14 @@ const createGeneratedRules = ({rules, parentId}) =>
                 progressNumber: _.round(count / total * 100, 0),
                 lastUpdate: `Saved ${count} of ${total} rules.`,
             });
-            
+
             all.push(result);
-            
+
             return all;
         }, [])
         .map(createdRules => {
             const failedRules = _.filter(createdRules, 'error');
-            
+
             if (_.size(failedRules)) {
                 const error = new Error('Could not create rules.');
                 error.failedRules = failedRules;
@@ -296,38 +293,38 @@ const createGeneratedRules = ({rules, parentId}) =>
         });
 
 // PUBLIC API
-export const orderRulesAsync = ({id, childrenRules}) => {
+export const orderRulesAsync = ({ id, childrenRules }) => {
     silkStore
         .request({
             topic: 'transform.task.rule.rules.reorder',
-            data: {id, childrenRules, ...getApiDetails()},
+            data: { id, childrenRules, ...getApiDetails() },
         })
         .map(() => {
             EventEmitter.emit(MESSAGES.RELOAD);
-        })
+        });
 };
 
 export const generateRuleAsync = (correspondences, parentId) => {
     return silkStore
         .request({
             topic: 'transform.task.rule.generate',
-            data: {...getApiDetails(), correspondences, parentId},
+            data: { ...getApiDetails(), correspondences, parentId },
         })
         .map(returned => {
-            EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, {id: 0});
+            EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id: 0 });
             EventEmitter.emit(MESSAGES.RELOAD, true);
-            
+
             return {
                 rules: _.get(returned, ['body'], []),
                 parentId,
-            }
+            };
         })
-        .flatMap(createGeneratedRules)
+        .flatMap(createGeneratedRules);
 };
 
 export const getVocabInfoAsync = (uri, field) => {
     const path = [uri, field];
-    
+
     if (_.has(vocabularyCache, path)) {
         return Rx.Observable.just({
             info: _.get(vocabularyCache, path),
@@ -336,7 +333,7 @@ export const getVocabInfoAsync = (uri, field) => {
     return silkStore
         .request({
             topic: 'transform.task.targetVocabulary.typeOrProperty',
-            data: {...getApiDetails(), uri},
+            data: { ...getApiDetails(), uri },
         })
         .catch(() => Rx.Observable.just({}))
         .map(returned => {
@@ -345,62 +342,59 @@ export const getVocabInfoAsync = (uri, field) => {
                 ['body', 'genericInfo', field],
                 null
             );
-            
+
             _.set(vocabularyCache, path, info);
-            
+
             return {
                 info,
             };
-        })
+        });
 };
 
-export const getSuggestionsAsync = (data) => {
+export const getSuggestionsAsync = data => {
     return Rx.Observable.forkJoin(
         silkStore
             .request({
                 // call the DI matchVocabularyClassDataset endpoint
                 topic: 'transform.task.rule.suggestions',
-                data: {...getApiDetails(), ...data},
+                data: { ...getApiDetails(), ...data },
             })
             .catch(err => {
-                
                 // It comes always {title: "Not Found", detail: "Not Found"} when the endpoint is not found.
                 // see: SilkErrorHandler.scala
                 const errorBody = _.get(err, 'response.body');
-                
-                if (err.status === 404 && errorBody.title === "Not Found" && errorBody.detail === "Not Found") {
+
+                if (err.status === 404 && errorBody.title === 'Not Found' && errorBody.detail === 'Not Found') {
                     return Rx.Observable.return(null);
                 }
                 errorBody.code = err.status;
-                return Rx.Observable.return({error: errorBody})
+                return Rx.Observable.return({ error: errorBody });
             })
             .map(returned => {
                 const body = _.get(returned, 'body', []);
                 const error = _.get(returned, 'error', []);
-                
+
                 if (error) {
                     return {
                         error,
-                    }
+                    };
                 }
                 const suggestions = [];
-                
+
                 _.forEach(body, (sources, sourcePathOrUri) => {
-                    _.forEach(sources, ({uri: candidateUri, type, confidence}) => {
+                    _.forEach(sources, ({ uri: candidateUri, type, confidence }) => {
                         let mapFrom = sourcePathOrUri; // By default we map from the dataset to the vocabulary, which fits
                         let mapTo = candidateUri;
                         if (!data.matchFromDataset) {
                             mapFrom = candidateUri; // In this case the vocabulary is the source, so we have to switch direction
                             mapTo = sourcePathOrUri;
                         }
-                        suggestions.push(
-                            new Suggestion(
-                                mapFrom,
-                                type,
-                                mapTo,
-                                confidence
-                            )
-                        );
+                        suggestions.push(new Suggestion(
+                            mapFrom,
+                            type,
+                            mapTo,
+                            confidence
+                        ));
                     });
                 });
                 return {
@@ -411,13 +405,12 @@ export const getSuggestionsAsync = (data) => {
             .request({
                 // call the silk endpoint valueSourcePaths
                 topic: 'transform.task.rule.valueSourcePaths',
-                data: {unusedOnly: true, ...getApiDetails(), ...data},
+                data: { unusedOnly: true, ...getApiDetails(), ...data },
             })
             .catch(err => {
                 const errorBody = _.get(err, 'response.body');
                 errorBody.code = err.status;
-                return Rx.Observable.return({error: errorBody});
-                
+                return Rx.Observable.return({ error: errorBody });
             })
             .map(returned => {
                 const body = _.get(returned, 'body', []);
@@ -425,61 +418,59 @@ export const getSuggestionsAsync = (data) => {
                 if (error) {
                     return {
                         error,
-                    }
+                    };
                 }
                 return {
-                    data: _.map(body, path => new Suggestion(path))
-                }
+                    data: _.map(body, path => new Suggestion(path)),
+                };
             }),
         (arg1, arg2) => {
             return {
                 suggestions: _.filter(_.concat([], arg1.data, arg2.data), d => !_.isUndefined(d)),
-                warnings: _.filter([arg1.error, arg2.error], e => !_.isUndefined(e))
+                warnings: _.filter([arg1.error, arg2.error], e => !_.isUndefined(e)),
             };
         }
-    )
+    );
 };
 
-export const childExampleAsync = (data) => {
-    const {ruleType, rawRule, id} = data;
+export const childExampleAsync = data => {
+    const { ruleType, rawRule, id } = data;
     const getRule = (rawRule, type) => {
         switch (type) {
-            case MAPPING_RULE_TYPE_DIRECT:
-            case MAPPING_RULE_TYPE_COMPLEX:
-                return prepareValueMappingPayload(rawRule);
-            case MAPPING_RULE_TYPE_OBJECT:
-                return prepareObjectMappingPayload(rawRule);
-            case MAPPING_RULE_TYPE_URI:
-            case MAPPING_RULE_TYPE_COMPLEX_URI:
-                return rawRule;
-            default:
-                throw new Error(
-                    'Rule send to rule.child.example type must be in ("value","object","uri","complexURI")'
-                );
+        case MAPPING_RULE_TYPE_DIRECT:
+        case MAPPING_RULE_TYPE_COMPLEX:
+            return prepareValueMappingPayload(rawRule);
+        case MAPPING_RULE_TYPE_OBJECT:
+            return prepareObjectMappingPayload(rawRule);
+        case MAPPING_RULE_TYPE_URI:
+        case MAPPING_RULE_TYPE_COMPLEX_URI:
+            return rawRule;
+        default:
+            throw new Error('Rule send to rule.child.example type must be in ("value","object","uri","complexURI")');
         }
     };
-    
+
     const rule = getRule(rawRule, ruleType);
-    
+
     if (rule && id) {
         return silkStore
             .request({
                 topic: 'transform.task.rule.child.peak',
-                data: {...getApiDetails(), id, rule},
+                data: { ...getApiDetails(), id, rule },
             })
             .map(mapPeakResult);
     }
-    
+
     return Rx.Observable();
 };
 
-export const ruleExampleAsync = (data) => {
-    const {id} = data;
+export const ruleExampleAsync = data => {
+    const { id } = data;
     if (id) {
         return silkStore
             .request({
                 topic: 'transform.task.rule.peak',
-                data: {...getApiDetails(), id},
+                data: { ...getApiDetails(), id },
             })
             .map(mapPeakResult);
     }
@@ -496,19 +487,19 @@ export const getHierarchyAsync = () => {
         })
         .map(returned => {
             const rules = returned.body;
-            
+
             if (!_.isString(rootId)) {
                 rootId = rules.id;
             }
-            
+
             return {
                 hierarchy: rules,
             };
         });
 };
 
-export const getEditorHref = (ruleId) => {
-    const {transformTask, baseUrl, project} = getApiDetails();
+export const getEditorHref = ruleId => {
+    const { transformTask, baseUrl, project } = getApiDetails();
     return ruleId ? `${baseUrl}/transform/${project}/${transformTask}/editor/${ruleId}` : null;
 };
 
@@ -516,7 +507,7 @@ export const getRuleAsync = (id, isObjectMapping = false) => {
     return silkStore
         .request({
             topic: 'transform.task.rules.get',
-            data: {...getApiDetails()},
+            data: { ...getApiDetails() },
         })
         .map(returned => {
             const rules = returned.body;
@@ -530,43 +521,42 @@ export const getRuleAsync = (id, isObjectMapping = false) => {
                 isObjectMapping,
                 []
             );
-            return {rule: rule || rules};
-        })
+            return { rule: rule || rules };
+        });
 };
 
-export const autocompleteAsync = (data) => {
-    const {entity, input, ruleId = rootId} = data;
-    
+export const autocompleteAsync = data => {
+    const { entity, input, ruleId = rootId } = data;
+
     let channel = 'transform.task.rule.completions.';
     switch (entity) {
-        case 'propertyType':
-            const search = _.deburr(input).toLocaleLowerCase();
-            return Rx.Observable.just({
-                options: _.filter(datatypes, datatype =>
-                    _.includes(datatype.$search, search)
-                ),
-            });
-        case 'targetProperty':
-            channel += 'targetProperties';
-            break;
-        case 'targetEntityType':
-            channel += 'targetTypes';
-            break;
-        case 'sourcePath':
-            channel += 'sourcePaths';
-            break;
-        default:
-            if (__DEBUG__) {
-                console.error(`No autocomplete defined for ${entity}`);
-            }
+    case 'propertyType':
+        const search = _.deburr(input).toLocaleLowerCase();
+        return Rx.Observable.just({
+            options: _.filter(datatypes, datatype =>
+                _.includes(datatype.$search, search)),
+        });
+    case 'targetProperty':
+        channel += 'targetProperties';
+        break;
+    case 'targetEntityType':
+        channel += 'targetTypes';
+        break;
+    case 'sourcePath':
+        channel += 'sourcePaths';
+        break;
+    default:
+        if (__DEBUG__) {
+            console.error(`No autocomplete defined for ${entity}`);
+        }
     }
-    
+
     return silkStore
         .request({
             topic: channel,
-            data: {...getApiDetails(), term: input, ruleId},
+            data: { ...getApiDetails(), term: input, ruleId },
         })
-        .map(returned => ({options: returned.body}))
+        .map(returned => ({ options: returned.body }));
 };
 
 export const createMappingAsync = (data, isObject = false) => {
@@ -574,15 +564,15 @@ export const createMappingAsync = (data, isObject = false) => {
     return editMappingRule(payload, data.id, data.parentId || rootId);
 };
 
-export const updateObjectMappingAsync = (data) => {
+export const updateObjectMappingAsync = data => {
     return editMappingRule(data, data.id, data.parentId || rootId);
 };
 
-export const createGeneratedMappingAsync = (data) => {
-    return editMappingRule(data, false, data.parentId || rootId)
+export const createGeneratedMappingAsync = data => {
+    return editMappingRule(data, false, data.parentId || rootId);
 };
 
-export const ruleRemoveAsync = (id) => {
+export const ruleRemoveAsync = id => {
     return silkStore
         .request({
             topic: 'transform.task.rule.delete',
@@ -601,8 +591,8 @@ export const ruleRemoveAsync = (id) => {
         );
 };
 
-export const copyRuleAsync = (data) => {
-    const {baseUrl, project, transformTask} = getApiDetails();
+export const copyRuleAsync = data => {
+    const { baseUrl, project, transformTask } = getApiDetails();
     return silkStore
         .request({
             topic: 'transform.task.rule.copy',
@@ -615,5 +605,5 @@ export const copyRuleAsync = (data) => {
                 appendTo: data.id, // the rule the copied rule should be appended to
             },
         })
-        .map(returned => returned.body.id)
+        .map(returned => returned.body.id);
 };

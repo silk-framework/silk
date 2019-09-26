@@ -17,17 +17,17 @@ const errorChannel = rxmq.channel('errors');
 
 class MessageHandler extends React.Component {
     state = {
-        errorMessages: []
+        errorMessages: [],
     };
-    
+
     componentDidMount() {
 		// listen for graphs loading
-        errorChannel.subject('message').subscribe((data) => this.onError('alert', data));
-        errorChannel.subject('message.alert').subscribe((data) => this.onError('alert', data));
-        errorChannel.subject('message.error').subscribe((data) => this.onError('error', data));
-        errorChannel.subject('message.info').subscribe((data) => this.onError('info', data));
-        errorChannel.subject('message.success').subscribe((data) => this.onError('success', data));
-        errorChannel.subject('message.warning').subscribe((data) => this.onError('warning', data));
+        errorChannel.subject('message').subscribe(data => this.onError('alert', data));
+        errorChannel.subject('message.alert').subscribe(data => this.onError('alert', data));
+        errorChannel.subject('message.error').subscribe(data => this.onError('error', data));
+        errorChannel.subject('message.info').subscribe(data => this.onError('info', data));
+        errorChannel.subject('message.success').subscribe(data => this.onError('success', data));
+        errorChannel.subject('message.warning').subscribe(data => this.onError('warning', data));
     }
 
 	// handle graphs loaded
@@ -66,9 +66,9 @@ class MessageHandler extends React.Component {
         setTimeout(() => {
             this.removeMessage(key);
         }, 3000);
-    };
+    }
 
-    removeMessage = (key) => {
+    removeMessage = key => {
         const errorMessages = _.reject(this.state.errorMessages, ['key', key]);
 		// apply to state
         this.setState({ errorMessages });

@@ -21,37 +21,37 @@ class MappingsList extends React.Component {
         parentRuleId: PropTypes.string,
         onClickedRemove: PropTypes.func,
     };
-    
+
     static defaultProps = {
         rules: [],
     };
-    
+
     state = {
         items: this.getItems(this.props.rules),
     };
-    
+
     componentDidMount() {
         // process reorder requests from single MappingRules
         EventEmitter.on(MESSAGES.RULE.REQUEST_ORDER, this.orderRules);
     }
-    
+
     componentWillUnmount() {
         // process reorder requests from single MappingRules
         EventEmitter.off(MESSAGES.RULE.REQUEST_ORDER, this.orderRules);
     }
-    
+
     componentWillReceiveProps(nextProps) {
         if (_.isEqual(this.props, nextProps)) return;
-        
+
         this.setState({
             items: this.getItems(nextProps.rules),
         });
     }
-    
+
     // shouldComponentUpdate(nextProps) {
     //     return !_.isEqual(this.props, nextProps);
     // }
-    
+
     orderRules = ({ fromPos, toPos }) => {
         const childrenRules = this.reorder(
             this.state.items.map(a => a.key),
@@ -62,7 +62,7 @@ class MappingsList extends React.Component {
             childrenRules,
             id: this.props.parentRuleId,
         });
-        
+
         // FIXME: this should be in success part of request in case of error but results in content flickering than
         // manage ordering local
         const items = this.reorder(this.state.items, fromPos, toPos);
@@ -70,11 +70,11 @@ class MappingsList extends React.Component {
             items,
         });
     }
-    
+
     onDragStart(result) {}
-    
+
     // template rendering
-    onDragEnd = (result) => {
+    onDragEnd = result => {
         // dropped outside the list
         if (!result.destination) {
             return;
@@ -92,16 +92,16 @@ class MappingsList extends React.Component {
             reload,
         });
     };
-    
-    handleCreate = (infoCreation) => {
+
+    handleCreate = infoCreation => {
         EventEmitter.emit(MESSAGES.MAPPING.CREATE, infoCreation);
     };
-    
-    handleShowSuggestions = (event) => {
+
+    handleShowSuggestions = event => {
         event.persist();
         EventEmitter.emit(MESSAGES.MAPPING.SHOW_SUGGESTIONS, event);
     };
-    
+
     getItems(rules) {
         return _.map(rules, (rule, i) => ({
             id: i,
@@ -119,18 +119,18 @@ class MappingsList extends React.Component {
                     : false,
         }));
     }
-    
+
     reorder(list, startIndex, endIndex) {
         const result = Array.from(list);
         const [removed] = result.splice(startIndex, 1);
         result.splice(endIndex, 0, removed);
-        
+
         return result;
     }
-    
+
     render() {
         const { rules } = this.props;
-        
+
         const listTitle = (
             <CardTitle>
                 <div className="mdl-card__title-text">
@@ -138,7 +138,7 @@ class MappingsList extends React.Component {
                 </div>
             </CardTitle>
         );
-        
+
         const listItem = (index, item) => (
             <MappingRule
                 {...item.props}
@@ -151,7 +151,7 @@ class MappingsList extends React.Component {
                 onClickedRemove={this.props.onClickedRemove}
             />
         );
-        
+
         const listItems = _.isEmpty(rules) ? (
             <CardContent>
                 <Info vertSpacing border>
@@ -177,7 +177,7 @@ class MappingsList extends React.Component {
                 </Droppable>
             </DragDropContext>
         );
-        
+
         const openToBottomFn = () => {
             // Calculates if the floating menu list should be opened to the top or bottom depending on the space to the top.
             let toBottom = false;
@@ -190,7 +190,7 @@ class MappingsList extends React.Component {
             } catch (error) {}
             return toBottom;
         };
-        
+
         const listActions = (
             <FloatingActionList
                 fabSize="large"
@@ -229,7 +229,7 @@ class MappingsList extends React.Component {
                 )}
             />
         );
-        
+
         return (
             <div className="ecc-silk-mapping__ruleslist">
                 <Card shadow={0}>

@@ -23,21 +23,21 @@ class MappingsObject extends React.Component {
         expanded: false,
         editing: false,
     };
-    
+
     componentDidMount() {
         EventEmitter.on(MESSAGES.RULE_VIEW.TOGGLE, this.handleRuleToggle);
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
     }
-    
+
     componentWillUnmount() {
         EventEmitter.off(MESSAGES.RULE_VIEW.TOGGLE, this.handleRuleToggle);
         EventEmitter.off(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.off(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.off(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
     }
-    
+
     handleRuleToggle = ({ expanded, id }) => {
         // only trigger state / render change if necessary
         if (
@@ -47,23 +47,23 @@ class MappingsObject extends React.Component {
             this.setState({ expanded });
         }
     };
-    
-    onOpenEdit = (obj) => {
+
+    onOpenEdit = obj => {
         if (this.props.rule.id === obj.id) {
             this.setState({
                 editing: true,
             });
         }
     };
-    
-    onCloseEdit = (obj) => {
+
+    onCloseEdit = obj => {
         if (this.props.rule.id === obj.id) {
             this.setState({
                 editing: false,
             });
         }
     };
-    
+
     handleDiscardChanges = () => {
         this.setState({
             expanded: !this.state.expanded,
@@ -71,7 +71,7 @@ class MappingsObject extends React.Component {
         this.props.onAskDiscardChanges(false);
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: this.props.rule.id });
     };
-    
+
     handleToggleExpand = () => {
         if (this.state.editing) {
             this.props.onAskDiscardChanges(true);
@@ -81,13 +81,13 @@ class MappingsObject extends React.Component {
             });
         }
     };
-    
+
     discardAll = () => {
         this.setState({
             editing: false,
         });
     };
-    
+
     render() {
         if (_.isEmpty(this.props.rule)) {
             return false;

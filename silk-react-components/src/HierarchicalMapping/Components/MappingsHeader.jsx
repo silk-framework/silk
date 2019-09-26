@@ -23,29 +23,29 @@ class MappingsHeader extends React.Component {
     state = {
         showTreenavigation: true,
     };
-    
+
     handleToggleTreenavigation = () => {
         this.props.onToggleTreeNav(!this.state.showTreenavigation);
         this.setState({
             showTreenavigation: !this.state.showTreenavigation,
         });
     };
-    
+
     // jumps to selected rule as new center of view
     handleNavigate = (id, parent, event) => {
         this.props.onRuleIdChange({ newRuleId: id, parentId: parent });
         event.stopPropagation();
     };
-    
+
     // template rendering
     render() {
         if (_.isEmpty(this.props.rule)) {
             return false;
         }
-        
+
         const breadcrumbs = _.get(this.props, 'rule.breadcrumbs', []);
         const parent = _.last(breadcrumbs);
-        
+
         const navBack = _.has(parent, 'id') ? (
             <div className="mdl-card__title-back">
                 <Button
@@ -63,9 +63,9 @@ class MappingsHeader extends React.Component {
         ) : (
             false
         );
-        
+
         const self = this;
-        
+
         const navBreadcrumbs = (
             <BreadcrumbList>
                 {breadcrumbs.length > 0
@@ -90,7 +90,7 @@ class MappingsHeader extends React.Component {
                 </BreadcrumbItem>
             </BreadcrumbList>
         );
-        
+
         const navMenu = (
             <CardMenu>
                 <ContextMenu
@@ -109,8 +109,8 @@ class MappingsHeader extends React.Component {
                         className="ecc-silk-mapping__ruleslistmenu__item-expand"
                         onClick={() => {
                             this.props.onToggleDetails({
-                                expanded: true
-                            })
+                                expanded: true,
+                            });
                         }}
                     >
                         Expand all
@@ -119,8 +119,8 @@ class MappingsHeader extends React.Component {
                         className="ecc-silk-mapping__ruleslistmenu__item-reduce"
                         onClick={() => {
                             this.props.onToggleDetails({
-                                expanded: false
-                            })
+                                expanded: false,
+                            });
                         }}
                     >
                         Reduce all
@@ -128,7 +128,7 @@ class MappingsHeader extends React.Component {
                 </ContextMenu>
             </CardMenu>
         );
-        
+
         return (
             <header className="ecc-silk-mapping__navheader">
                 <Card shadow={2}>

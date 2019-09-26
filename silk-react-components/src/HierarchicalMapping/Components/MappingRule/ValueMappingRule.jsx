@@ -22,7 +22,7 @@ import { MAPPING_RULE_TYPE_DIRECT } from '../../helpers';
 import { MESSAGES } from '../../constants';
 import EventEmitter from '../../utils/EventEmitter';
 
-const propertyTypeLabel = (valueType) => {
+const propertyTypeLabel = valueType => {
     // Adds optional properties of the property type to the label, e.g. language tag
     if (typeof valueType.lang === 'string') {
         return ` (${valueType.lang})`;
@@ -41,47 +41,47 @@ class RuleValueView extends React.Component {
         mappingTarget: PropTypes.object,
         edit: PropTypes.bool.isRequired,
     };
-    
+
     state = {
         edit: this.props.edit,
         href: getEditorHref(this.props.id),
     };
-    
+
     componentDidMount() {
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.handleCloseEdit);
     }
-    
+
     componentWillUnmount() {
         EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.handleCloseEdit);
     }
-    
-    handleCloseEdit = (obj) => {
+
+    handleCloseEdit = obj => {
         if (obj.id === this.props.id) {
             this.setState({ edit: false });
         }
     };
-    
-    handleComplexEdit = (event) => {
+
+    handleComplexEdit = event => {
         if (__DEBUG__) {
             event.stopPropagation();
             alert('Normally this would open the complex editor (aka jsplumb view)');
             return false;
         }
     };
-    
+
     // open view in edit mode
-    handleEdit = (event) => {
+    handleEdit = event => {
         event.stopPropagation();
         this.setState({
             edit: !this.state.edit,
         });
     };
-    
-    handleClose = (event) => {
+
+    handleClose = event => {
         event.stopPropagation();
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: this.props.id });
     };
-    
+
     getOperators(operator, accumulator) {
         if (_.has(operator, 'function')) {
             if (_.has(operator, 'inputs')) {
@@ -99,15 +99,15 @@ class RuleValueView extends React.Component {
 
         return accumulator;
     }
-    
+
     handleCopy = () => {
         this.props.handleCopy(this.props.id, this.props.type);
     };
-    
+
     handleClone = () => {
         this.props.handleClone(this.props.id, this.props.type);
     };
-    
+
     // template rendering
     render() {
         const { edit } = this.state;

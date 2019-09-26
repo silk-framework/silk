@@ -24,7 +24,6 @@ import { MESSAGES } from '../constants';
 import EventEmitter from '../utils/EventEmitter';
 
 class MappingsWorkview extends React.Component {
-    
     // define property types
     static propTypes = {
         onToggleTreeNav: PropTypes.func,
@@ -34,7 +33,7 @@ class MappingsWorkview extends React.Component {
         currentRuleId: PropTypes.string, // selected rule id
         askForDiscardData: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]), // selected rule id
     };
-    
+
     state = {
         loading: true,
         ruleData: {},
@@ -44,7 +43,7 @@ class MappingsWorkview extends React.Component {
         showSuggestions: false,
         askForChilds: false,
     };
-    
+
     componentDidMount() {
         this.loadData({ initialLoad: true });
         EventEmitter.on(MESSAGES.RELOAD, this.loadData);
@@ -56,7 +55,7 @@ class MappingsWorkview extends React.Component {
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.handleRuleEditOpen);
         EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
     }
-    
+
     componentWillUnmount() {
         EventEmitter.off(MESSAGES.RELOAD, this.loadData);
         EventEmitter.off(MESSAGES.RULE_ID.CREATE, this.onRuleCreate);
@@ -67,19 +66,19 @@ class MappingsWorkview extends React.Component {
         EventEmitter.off(MESSAGES.RULE_VIEW.CHANGE, this.handleRuleEditOpen);
         EventEmitter.off(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
     }
-    
+
     componentDidUpdate(prevProps, prevState) {
         if (prevProps.currentRuleId !== this.props.currentRuleId) {
             this.loadData();
         }
     }
-    
+
     shouldComponentUpdate(nextProps, nextState) {
         // Required to prevent empty redraws while not all data is there.
         // The issue is due to bad use of React ...
         return !_.isEmpty(nextState.ruleData);
     }
-    
+
     onRuleCreate = ({ type }) => {
         this.setState({
             ruleEditView: {
@@ -87,7 +86,7 @@ class MappingsWorkview extends React.Component {
             },
         });
     };
-    
+
     handleRuleEditOpen = ({ id }) => {
         if (!_.includes(this.state.editing, id)) {
             this.setState({
@@ -95,7 +94,7 @@ class MappingsWorkview extends React.Component {
             });
         }
     };
-    
+
     handleRuleEditClose = ({ id }) => {
         if (id === 0) {
             this.setState({
@@ -108,15 +107,15 @@ class MappingsWorkview extends React.Component {
             });
         }
     };
-    
+
     discardAll = () => {
         this.setState({
             editing: [],
             showSuggestions: false,
         });
     };
-    
-    handleShowSuggestions = (event) => {
+
+    handleShowSuggestions = event => {
         event.stopPropagation();
         if (this.state.editing.length === 0) {
             this.setState({
@@ -129,7 +128,7 @@ class MappingsWorkview extends React.Component {
             });
         }
     };
-    
+
     loadData = (params = {}) => {
         const { initialLoad = false } = params;
 
@@ -176,8 +175,8 @@ class MappingsWorkview extends React.Component {
                 }
             );
     };
-    
-    handleDiscardChanges = (event) => {
+
+    handleDiscardChanges = event => {
         event.stopPropagation();
         const type = _.get(this.props.askForDiscardData, 'type', false);
         const suggestions = _.get(
@@ -198,22 +197,20 @@ class MappingsWorkview extends React.Component {
                 expanded,
                 id: true,
             });
-    
         }
         EventEmitter.emit(MESSAGES.RULE_VIEW.DISCARD_ALL);
         this.props.onAskDiscardChanges(false);
     };
-    
-    handleCancelDiscard = (event) => {
+
+    handleCancelDiscard = event => {
         event.stopPropagation();
         this.props.onAskDiscardChanges(false);
     };
-    
+
     // sends event to expand / collapse all mapping rules
     handleToggleRuleDetails = ({ expanded }) => {
         if (this.state.editing.length === 0 || expanded) {
             EventEmitter.emit(MESSAGES.RULE_VIEW.TOGGLE, { expanded, id: true });
-    
         } else {
             this.props.onAskDiscardChanges({
                 expanded,
@@ -225,11 +222,10 @@ class MappingsWorkview extends React.Component {
     handleCreate = ({ type }) => {
         if (this.state.editing.length === 0) {
             EventEmitter.emit(MESSAGES.RULE_ID.CREATE, { type });
-         
         } else {
             this.props.onAskDiscardChanges({
                 type,
-            })
+            });
         }
     };
 
@@ -247,11 +243,11 @@ class MappingsWorkview extends React.Component {
             baseUrl: apiDetails.baseUrl,
             project: apiDetails.project,
             transformTask: apiDetails.transformTask,
-            id: id,
-            type: type,
+            id,
+            type,
             cloning: false,
         };
-        sessionStorage.setItem('copyingData',JSON.stringify(copyingData));
+        sessionStorage.setItem('copyingData', JSON.stringify(copyingData));
         this.setState({
             isCopying: !this.state.isCopying,
         });
@@ -270,21 +266,19 @@ class MappingsWorkview extends React.Component {
                     afterRuleId: copyingData.cloning ? copyingData.id : null,
                 },
             };
-           copyRuleAsync(data)
-                .subscribe(
-                    (newRuleId) => {
-                        if (copyingData.type === MAPPING_RULE_TYPE_DIRECT ||
+            copyRuleAsync(data)
+                .subscribe(newRuleId => {
+                    if (copyingData.type === MAPPING_RULE_TYPE_DIRECT ||
                             copyingData.type === MAPPING_RULE_TYPE_COMPLEX) {
-                            sessionStorage.setItem('pastedId', newRuleId);
-                        } else if (copyingData.type === MAPPING_RULE_TYPE_OBJECT || copyingData.type === MAPPING_RULE_TYPE_ROOT) {
-                            this.props.onRuleIdChange( { newRuleId })
-                        }
-                        if (cloning) {
-                            sessionStorage.removeItem('copyingData');
-                        }
-                        EventEmitter.emit(MESSAGES.RELOAD, true);
+                        sessionStorage.setItem('pastedId', newRuleId);
+                    } else if (copyingData.type === MAPPING_RULE_TYPE_OBJECT || copyingData.type === MAPPING_RULE_TYPE_ROOT) {
+                        this.props.onRuleIdChange({ newRuleId });
                     }
-                )
+                    if (cloning) {
+                        sessionStorage.removeItem('copyingData');
+                    }
+                    EventEmitter.emit(MESSAGES.RELOAD, true);
+                });
         }
     };
 
@@ -294,12 +288,12 @@ class MappingsWorkview extends React.Component {
             baseUrl: apiDetails.baseUrl,
             project: apiDetails.project,
             transformTask: apiDetails.transformTask,
-            id: id,
-            type: type,
+            id,
+            type,
             cloning: true,
-            parentId: parent ? parent : this.props.currentRuleId,
+            parentId: parent || this.props.currentRuleId,
         };
-        sessionStorage.setItem('copyingData',JSON.stringify(copyingData));
+        sessionStorage.setItem('copyingData', JSON.stringify(copyingData));
         this.setState({
             isCopying: !this.state.isCopying,
         });

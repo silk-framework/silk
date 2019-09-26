@@ -59,26 +59,26 @@ export class MappingRule extends React.Component {
             loading: false,
         };
     }
-    
+
     componentDidMount() {
         // listen for event to expand / collapse mapping rule
         EventEmitter.on(MESSAGES.RULE_VIEW.TOGGLE, this.handleToggleRule);
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
-        
+
         if (this.state.isPasted) {
             this.props.scrollIntoView();
         }
     }
-    
+
     componentWillUnmount() {
         EventEmitter.off(MESSAGES.RULE_VIEW.TOGGLE, this.handleToggleRule);
         EventEmitter.off(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
         EventEmitter.off(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
     }
-    
+
     handleToggleRule = ({ expanded, id }) => {
         // only trigger state / render change if necessary
         if (
@@ -89,16 +89,16 @@ export class MappingRule extends React.Component {
             this.setState({ expanded });
         }
     };
-    
-    onOpenEdit = (obj) => {
+
+    onOpenEdit = obj => {
         if (_.isEqual(this.props.id, obj.id)) {
             this.setState({
                 editing: true,
             });
         }
     };
-    
-    onCloseEdit = (obj) => {
+
+    onCloseEdit = obj => {
         if (_.isEqual(this.props.id, obj.id)) {
             this.setState({
                 editing: false,
@@ -114,13 +114,13 @@ export class MappingRule extends React.Component {
             this.setState({ expanded: !this.state.expanded });
         }
     };
-    
+
     discardAll = () => {
         this.setState({
             editing: false,
         });
     };
-    
+
     handleDiscardChanges = () => {
         this.setState({
             expanded: !this.state.expanded,
@@ -128,20 +128,20 @@ export class MappingRule extends React.Component {
         this.props.onAskDiscardChanges(false);
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: this.props.id });
     };
-    
-    handleMoveElement = ({toPos, fromPos})  => {
+
+    handleMoveElement = ({ toPos, fromPos }) => {
         if (fromPos === toPos) {
             return;
         }
         EventEmitter.emit(MESSAGES.RULE.REQUEST_ORDER, { toPos, fromPos, reload: true });
     };
-    
+
     // jumps to selected rule as new center of view
     handleNavigate = (id, parent, event) => {
         this.props.onRuleIdChange({ newRuleId: id, parentId: parent });
         event.stopPropagation();
     };
-    
+
     // template rendering
     render() {
         const getItemStyle = (draggableStyle, isDragging) => ({
@@ -196,9 +196,9 @@ export class MappingRule extends React.Component {
                 onClick={mainAction}
             />
         );
-        
+
         const ruleLabelData = getRuleLabel({ label, uri: mappingTarget.uri });
-        
+
         // TODO: enable real API structure
         const shortView = [
             <div

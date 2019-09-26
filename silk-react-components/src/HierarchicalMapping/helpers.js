@@ -40,7 +40,7 @@ export const trimValue = arg => {
     } else if (_.isString(arg)) {
         return _.trim(arg);
     }
-   
+
     return arg;
 };
 
@@ -53,10 +53,10 @@ export const trimValue = arg => {
 export const getRuleLabel = ({ label, uri }) => {
     const cleanUri = uri.replace(/(^<+|>+$)/g, '');
     const cutIndex = Math.max(cleanUri.lastIndexOf('#'), cleanUri.lastIndexOf('/'), cleanUri.lastIndexOf(':'), 0);
-    
+
     const _label = _.startCase(cleanUri.substr(cutIndex, cleanUri.length));
-    const uriLabel =  uri.toLowerCase() === _label.toLowerCase() ? uri : _label;
-    
+    const uriLabel = uri.toLowerCase() === _label.toLowerCase() ? uri : _label;
+
     return {
         displayLabel: label
             ? uri.toLowerCase() === label.toLowerCase() ? uri : label
