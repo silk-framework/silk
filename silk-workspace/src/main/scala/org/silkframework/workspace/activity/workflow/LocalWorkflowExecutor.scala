@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity.workflow
 
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{PlainTask, Task, TaskSpec}
+import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.entity.EntitySchema
@@ -37,6 +37,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     extends WorkflowExecutor[LocalExecution] {
 
   private val log = Logger.getLogger(getClass.getName)
+
+  private implicit val prefixes: Prefixes = workflowTask.project.config.prefixes
 
   override def initialValue: Option[WorkflowExecutionReport] = Some(WorkflowExecutionReport(workflowTask.taskLabel()))
 

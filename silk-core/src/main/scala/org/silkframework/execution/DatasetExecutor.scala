@@ -1,6 +1,6 @@
 package org.silkframework.execution
 
-import org.silkframework.config.Task
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.{Dataset, DatasetAccess, DatasetSpec}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
@@ -23,10 +23,10 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
   }
 
   protected def read(task: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: ExecType)
-                    (implicit userContext: UserContext, context: ActivityContext[ExecutionReport]): ExecType#DataType
+                    (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): ExecType#DataType
 
   protected def write(data: ExecType#DataType, task: Task[DatasetSpec[DatasetType]], execution: ExecType)
-                     (implicit userContext: UserContext, context: ActivityContext[ExecutionReport]): Unit
+                     (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit
 
   /**
     * Writes all inputs into dataset first and then reads from it if an output schema is defined.
@@ -42,7 +42,7 @@ trait DatasetExecutor[DatasetType <: Dataset, ExecType <: ExecutionType] extends
     output: ExecutorOutput,
     execution: ExecType,
     context: ActivityContext[ExecutionReport]
-  )(implicit userContext: UserContext): Option[ExecType#DataType] = {
+  )(implicit userContext: UserContext, prefixes: Prefixes): Option[ExecType#DataType] = {
     implicit val c = context
     for (input <- inputs) {
       write(input, task, execution)

@@ -1,6 +1,7 @@
 package org.silkframework.dataset
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.StringValueType
 import org.silkframework.runtime.activity.UserContext
 
@@ -14,6 +15,7 @@ class DatasetSpecTest extends FlatSpec with Matchers {
     dataset.writeEntityFn = (uri: String, values: Seq[Seq[String]]) => entities += ((uri, values))
     val datasetSpec = DatasetSpec(dataset, uriProperty = Some("urn:schema:URI"))
     implicit val userContext: UserContext = UserContext.Empty
+    implicit val prefixes: Prefixes = Prefixes.empty
     val sink = datasetSpec.entitySink
     sink.openTable("someType", Seq(TypedProperty("existingProperty", StringValueType, isBackwardProperty = false)))
     sink.writeEntity("entityUri", Seq(Seq("someValue")))

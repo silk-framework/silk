@@ -18,6 +18,7 @@ import java.io.File
 import java.util.logging.{Level, Logger}
 
 import javax.inject.Inject
+import org.silkframework
 import org.silkframework.config._
 import org.silkframework.dataset.CombinedEntitySink
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
@@ -184,6 +185,7 @@ object Silk {
    */
   private def executeTransform(config: LinkingConfig, transform: Task[TransformSpec]): Unit = {
     val input = config.source(transform.selection.inputId).source
+    implicit val prefixes: Prefixes = config.prefixes
     Activity(new ExecuteTransform(transform.taskLabel(), (_) => input, transform.data, (_) => new CombinedEntitySink(config.outputs.map(_.entitySink)))).startBlocking() // TODO: Allow to set error output
   }
 

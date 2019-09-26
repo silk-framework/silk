@@ -4,7 +4,7 @@ import java.io.File
 
 import org.apache.commons.io.FileUtils
 import org.apache.jena.riot.Lang
-import org.silkframework.config.Task
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.rdf.{IteratorFormatter, QuadIterator, SparqlEndpointEntityTable}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local._
@@ -23,7 +23,7 @@ class LocalSparqlCopyExecutor() extends LocalExecutor[SparqlCopyCustomTask] {
                          output: ExecutorOutput,
                          execution: LocalExecution,
                          context: ActivityContext[ExecutionReport])
-                        (implicit userContext: UserContext): Option[LocalEntities] = {
+                        (implicit userContext: UserContext, prefixes: Prefixes): Option[LocalEntities] = {
         inputs match {
             case Seq(sparql: SparqlEndpointEntityTable) =>
                 val internalTaskId = "counstruct_copy_tmp"

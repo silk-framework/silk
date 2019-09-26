@@ -4,7 +4,7 @@ package org.silkframework.plugins.dataset.rdf
 
   import org.scalatest.mock.MockitoSugar
   import org.scalatest.{FlatSpec, MustMatchers}
-  import org.silkframework.config.PlainTask
+  import org.silkframework.config.{PlainTask, Prefixes}
   import org.silkframework.dataset.DatasetSpec
   import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
   import org.silkframework.dataset.rdf.SparqlEndpointEntityTable
@@ -23,6 +23,7 @@ package org.silkframework.plugins.dataset.rdf
     behavior of "Local SPARQL Copy Executor"
 
     implicit val uc: UserContext = UserContext.Empty
+    implicit val prefixes: Prefixes = Prefixes.empty
 
     private lazy val resources = ReadOnlyResourceManager(ClasspathResourceLoader(getClass.getPackage.getName.replace('.', '/')))
 

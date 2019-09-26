@@ -1,5 +1,6 @@
 package org.silkframework.workspace.activity.linking
 
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.{AbortExecutionException, ExecutionType, ExecutorOutput, ExecutorRegistry}
@@ -29,6 +30,8 @@ case class ExecuteLinkingFactory() extends TaskActivityFactory[LinkSpec, Execute
 class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
 
   private val comparisonToRestrictionConverter = new ComparisonToRestrictionConverter()
+
+  implicit val prefixes: Prefixes = task.project.config.prefixes
 
   /**
     * Executes this activity.

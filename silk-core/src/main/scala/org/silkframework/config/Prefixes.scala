@@ -29,11 +29,6 @@ case class Prefixes(prefixMap: immutable.HashMap[String, String]) extends Serial
 
   override def toString: String = "Prefixes(" + prefixMap.toString + ")"
 
-  override def equals(other: Any): Boolean = other match {
-    case o: Prefixes => this.prefixMap == o.prefixMap
-    case _ => false
-  }
-
   /**
    * Combines two prefix objects.
    */

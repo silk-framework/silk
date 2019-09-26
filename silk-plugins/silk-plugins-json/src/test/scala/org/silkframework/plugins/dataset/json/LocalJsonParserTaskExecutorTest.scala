@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.json
 
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.config.PlainTask
+import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema, MultiEntitySchema}
 import org.silkframework.execution.{ExecutorOutput, ExecutorRegistry}
@@ -37,6 +37,7 @@ class LocalJsonParserTaskExecutorTest extends FlatSpec with MustMatchers with Mo
   private val jsonParserTask = JsonParserTask("jsonContent", "persons")
   private val task = PlainTask("JsonParser", jsonParserTask)
   private val inputEntities = GenericEntityTable(entities, entitySchema, task)
+  private implicit val prefixes = Prefixes.empty
 
   PluginRegistry.registerPlugin(classOf[GenericLocalDatasetExecutor])
 

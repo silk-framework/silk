@@ -2,7 +2,7 @@ package org.silkframework.rule.execution.local
 
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.config.PlainTask
+import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.{ExecutorOutput, ExecutorRegistry}
@@ -11,6 +11,9 @@ import org.silkframework.rule._
 import org.silkframework.runtime.activity.TestUserContextTrait
 
 class LocalTransformSpecExecutorTest extends FlatSpec with MustMatchers with ExecutorRegistry with MockitoSugar with TestUserContextTrait {
+
+  private implicit val prefixes: Prefixes = Prefixes.empty
+
   behavior of "Local Transform Specification Executor"
 
   it should "load from the registry" in {

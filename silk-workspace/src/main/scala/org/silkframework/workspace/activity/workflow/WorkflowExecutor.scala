@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.EntitySchema
@@ -35,7 +35,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   protected def execute[TaskType <: TaskSpec](task: Task[TaskType],
                                               inputs: Seq[ExecType#DataType],
                                               output: ExecutorOutput)
-                                             (implicit workflowRunContext: WorkflowRunContext): Option[ExecType#DataType] = {
+                                             (implicit workflowRunContext: WorkflowRunContext, prefixes: Prefixes): Option[ExecType#DataType] = {
     implicit val userContext: UserContext = workflowRunContext.userContext
     ExecutorRegistry.execute(task, inputs, output, executionContext, workflowRunContext.taskContext(task.id))
   }
