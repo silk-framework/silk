@@ -41,17 +41,17 @@ class ActivityExecutionTest extends FlatSpec with MustMatchers {
   }
 
   it should "maintain parallelism if activities are blocking" in {
-    val parallism = Activity.forkJoinPool.getParallelism
+    val parallelism = Activity.forkJoinPool.getParallelism
 
     val blockingActivities =
-      for(i <- 0 until parallism) yield {
+      for(_ <- 0 until parallelism) yield {
         val running = new AtomicBoolean(false)
         Activity(new BlockingActivity(running)).start()
         running
       }
 
     val sleepingActivities =
-      for(i <- 0 until (parallism - 1)) yield {
+      for(_ <- 0 until (parallelism - 1)) yield {
         val running = new AtomicBoolean(false)
         Activity(new SleepingActivity(running)).start()
         running
