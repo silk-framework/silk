@@ -46,7 +46,17 @@ class RuleValueView extends React.Component {
         edit: this.props.edit,
         href: getEditorHref(this.props.id),
     };
-
+    
+    constructor(props) {
+        super(props);
+        this.handleCloseEdit = this.handleCloseEdit.bind(this);
+        this.handleComplexEdit = this.handleComplexEdit.bind(this);
+        this.handleEdit = this.handleEdit.bind(this);
+        this.handleClose = this.handleClose.bind(this);
+        this.handleCopy = this.handleCopy.bind(this);
+        this.handleClone = this.handleClone.bind(this);
+    }
+    
     componentDidMount() {
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.handleCloseEdit);
     }
@@ -55,13 +65,13 @@ class RuleValueView extends React.Component {
         EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.handleCloseEdit);
     }
 
-    handleCloseEdit = obj => {
+    handleCloseEdit(obj) {
         if (obj.id === this.props.id) {
             this.setState({ edit: false });
         }
     };
 
-    handleComplexEdit = event => {
+    handleComplexEdit(event) {
         if (__DEBUG__) {
             event.stopPropagation();
             alert('Normally this would open the complex editor (aka jsplumb view)');
@@ -70,14 +80,14 @@ class RuleValueView extends React.Component {
     };
 
     // open view in edit mode
-    handleEdit = event => {
+    handleEdit(event) {
         event.stopPropagation();
         this.setState({
             edit: !this.state.edit,
         });
     };
 
-    handleClose = event => {
+    handleClose(event) {
         event.stopPropagation();
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: this.props.id });
     };
@@ -100,11 +110,11 @@ class RuleValueView extends React.Component {
         return accumulator;
     }
 
-    handleCopy = () => {
+    handleCopy() {
         this.props.handleCopy(this.props.id, this.props.type);
     };
 
-    handleClone = () => {
+    handleClone() {
         this.props.handleClone(this.props.id, this.props.type);
     };
 

@@ -49,10 +49,20 @@ class SuggestionsList extends React.Component {
         matchFromDataset: true,
         warnings: [],
     };
-
     count = 0;
+    
+    constructor(props) {
+        super(props);
+        this.onChecked = this.onChecked.bind(this);
+        this.onTypeChanged = this.onTypeChanged.bind(this);
+        this.handleAddSuggestions = this.handleAddSuggestions.bind(this);
+        this.toggleDefaultProperties = this.toggleDefaultProperties.bind(this);
+        this.checkAll = this.checkAll.bind(this);
+        this.checkNone = this.checkNone.bind(this);
+    }
+    
 
-    onChecked = v => {
+    onChecked(v) {
         const data = this.state.data;
         const index = _.findIndex(data, d => d.id === v.id);
         data[index].checked = !data[index].checked;
@@ -89,7 +99,8 @@ class SuggestionsList extends React.Component {
         );
     }
 
-    onTypeChanged = v => {
+    onTypeChanged(v) {
+        
         const data = this.state.data;
         const index = _.findIndex(data, d => d.id === v.id);
         data[index].type = v.type;
@@ -109,7 +120,7 @@ class SuggestionsList extends React.Component {
         }
     }
 
-    handleAddSuggestions = event => {
+    handleAddSuggestions(event) {
         event.stopPropagation();
 
         this.setState({
@@ -139,7 +150,7 @@ class SuggestionsList extends React.Component {
         );
     }
 
-    toggleDefaultProperties = () => {
+    toggleDefaultProperties() {
         if (this.state.data.filter(v => v.checked).length !== 0) {
             this.props.onAskDiscardChanges(true);
         } else {
@@ -152,7 +163,7 @@ class SuggestionsList extends React.Component {
         }
     }
 
-    checkAll = event => {
+    checkAll(event) {
         if (event.stopPropagation) {
             event.stopPropagation();
         }
@@ -165,7 +176,7 @@ class SuggestionsList extends React.Component {
         });
     }
 
-    checkNone = event => {
+    checkNone(event) {
         if (event.stopPropagation) {
             event.stopPropagation();
         }

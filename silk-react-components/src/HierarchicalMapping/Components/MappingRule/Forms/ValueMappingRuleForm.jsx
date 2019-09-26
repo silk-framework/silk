@@ -26,7 +26,7 @@ import {
 import { MESSAGES } from '../../../constants';
 import EventEmitter from '../../../utils/EventEmitter';
 
-const languagesList = [
+const LANGUAGES_LIST = [
     'en', 'de', 'es', 'fr', 'bs', 'bg', 'ca', 'ce', 'zh', 'hr', 'cs', 'da', 'nl', 'eo', 'fi', 'ka', 'el', 'hu', 'ga', 'is', 'it',
     'ja', 'kn', 'ko', 'lb', 'no', 'pl', 'pt', 'ru', 'sk', 'sl', 'sv', 'tr', 'uk',
 ];
@@ -181,8 +181,7 @@ export class ValueMappingRuleForm extends React.Component {
         });
     };
 
-    handleClose = event => {
-        event.stopPropagation();
+    handleClose = () => {
         const id = _.get(this.props, 'id', 0);
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id });
         EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id });
@@ -296,7 +295,7 @@ export class ValueMappingRuleForm extends React.Component {
                         <SelectBox
                             data-id="lng-select-box"
                             placeholder="Language Tag"
-                            options={languagesList}
+                            options={LANGUAGES_LIST}
                             optionsOnTop={true} // option list opens up on top of select input (default: false)
                             value={this.state.valueType.lang}
                             onChange={this.handleChangeLanguageTag}

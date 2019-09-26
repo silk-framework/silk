@@ -23,8 +23,14 @@ class MappingsHeader extends React.Component {
     state = {
         showTreenavigation: true,
     };
-
-    handleToggleTreenavigation = () => {
+    
+    constructor(props) {
+        super(props);
+        this.handleToggleTreenavigation = this.handleToggleTreenavigation.bind(this);
+        this.handleNavigate = this.handleNavigate.bind(this);
+    }
+    
+    handleToggleTreenavigation() {
         this.props.onToggleTreeNav(!this.state.showTreenavigation);
         this.setState({
             showTreenavigation: !this.state.showTreenavigation,
@@ -32,7 +38,7 @@ class MappingsHeader extends React.Component {
     };
 
     // jumps to selected rule as new center of view
-    handleNavigate = (id, parent, event) => {
+    handleNavigate(id, parent, event) {
         this.props.onRuleIdChange({ newRuleId: id, parentId: parent });
         event.stopPropagation();
     };

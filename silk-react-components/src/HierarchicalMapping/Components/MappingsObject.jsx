@@ -23,7 +23,17 @@ class MappingsObject extends React.Component {
         expanded: false,
         editing: false,
     };
-
+    
+    constructor(props) {
+        super(props);
+        this.handleRuleToggle = this.handleRuleToggle.bind(this);
+        this.onOpenEdit = this.onOpenEdit.bind(this);
+        this.onCloseEdit = this.onCloseEdit.bind(this);
+        this.handleDiscardChanges = this.handleDiscardChanges.bind(this);
+        this.handleToggleExpand = this.handleToggleExpand.bind(this);
+        this.discardAll = this.discardAll.bind(this);
+    }
+    
     componentDidMount() {
         EventEmitter.on(MESSAGES.RULE_VIEW.TOGGLE, this.handleRuleToggle);
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
@@ -38,7 +48,7 @@ class MappingsObject extends React.Component {
         EventEmitter.off(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
     }
 
-    handleRuleToggle = ({ expanded, id }) => {
+    handleRuleToggle({ expanded, id }) {
         // only trigger state / render change if necessary
         if (
             (id === true || id === this.props.rule.id) &&
@@ -48,7 +58,7 @@ class MappingsObject extends React.Component {
         }
     };
 
-    onOpenEdit = obj => {
+    onOpenEdit(obj) {
         if (this.props.rule.id === obj.id) {
             this.setState({
                 editing: true,
@@ -56,7 +66,7 @@ class MappingsObject extends React.Component {
         }
     };
 
-    onCloseEdit = obj => {
+    onCloseEdit(obj) {
         if (this.props.rule.id === obj.id) {
             this.setState({
                 editing: false,
@@ -64,7 +74,7 @@ class MappingsObject extends React.Component {
         }
     };
 
-    handleDiscardChanges = () => {
+    handleDiscardChanges() {
         this.setState({
             expanded: !this.state.expanded,
         });
@@ -72,7 +82,7 @@ class MappingsObject extends React.Component {
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: this.props.rule.id });
     };
 
-    handleToggleExpand = () => {
+    handleToggleExpand() {
         if (this.state.editing) {
             this.props.onAskDiscardChanges(true);
         } else {
@@ -82,7 +92,7 @@ class MappingsObject extends React.Component {
         }
     };
 
-    discardAll = () => {
+    discardAll() {
         this.setState({
             editing: false,
         });

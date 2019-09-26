@@ -121,7 +121,6 @@ export class ObjectMappingRuleForm extends Component {
      * @param value
      */
     handleChangeValue(name, value) {
-        console.log(name, value);
         const { id, ruleData } = this.props;
         const { create, modifiedValues } = this.state;
 
@@ -131,7 +130,6 @@ export class ObjectMappingRuleForm extends Component {
 
         if (id) {
             if (changed) {
-                console.log('called');
                 EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id });
             } else {
                 EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id });
@@ -236,7 +234,6 @@ export class ObjectMappingRuleForm extends Component {
             sourcePropertyInput = (
                 <AutoComplete
                     placeholder="Value path"
-                    // key={modifiedValues.sourceProperty}
                     className="ecc-silk-mapping__ruleseditor__sourcePath"
                     entity="sourcePath"
                     creatable
@@ -258,7 +255,6 @@ export class ObjectMappingRuleForm extends Component {
                         className="ecc-silk-mapping__ruleseditor__pattern"
                         value={modifiedValues.pattern}
                         onChange={({ value }) => {
-                            console.log(value);
                             this.handleChangeValue('pattern', value);
                         }}
                     />

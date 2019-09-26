@@ -58,6 +58,14 @@ export class MappingRule extends React.Component {
             editing: false,
             loading: false,
         };
+        this.handleToggleRule = this.handleToggleRule.bind(this);
+        this.onOpenEdit = this.onOpenEdit.bind(this);
+        this.onCloseEdit = this.onCloseEdit.bind(this);
+        this.handleToggleExpand = this.handleToggleExpand.bind(this);
+        this.discardAll = this.discardAll.bind(this);
+        this.handleDiscardChanges = this.handleDiscardChanges.bind(this);
+        this.handleMoveElement = this.handleMoveElement.bind(this);
+        this.handleNavigate = this.handleNavigate.bind(this);
     }
 
     componentDidMount() {
@@ -79,7 +87,7 @@ export class MappingRule extends React.Component {
         EventEmitter.off(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
     }
 
-    handleToggleRule = ({ expanded, id }) => {
+    handleToggleRule({ expanded, id }) {
         // only trigger state / render change if necessary
         if (
             expanded !== this.state.expanded &&
@@ -90,7 +98,7 @@ export class MappingRule extends React.Component {
         }
     };
 
-    onOpenEdit = obj => {
+    onOpenEdit(obj) {
         if (_.isEqual(this.props.id, obj.id)) {
             this.setState({
                 editing: true,
@@ -98,7 +106,7 @@ export class MappingRule extends React.Component {
         }
     };
 
-    onCloseEdit = obj => {
+    onCloseEdit(obj) {
         if (_.isEqual(this.props.id, obj.id)) {
             this.setState({
                 editing: false,
@@ -107,7 +115,7 @@ export class MappingRule extends React.Component {
     };
 
     // show / hide additional row details
-    handleToggleExpand = () => {
+    handleToggleExpand () {
         if (this.state.editing) {
             this.props.onAskDiscardChanges(true);
         } else {
@@ -115,13 +123,13 @@ export class MappingRule extends React.Component {
         }
     };
 
-    discardAll = () => {
+    discardAll () {
         this.setState({
             editing: false,
         });
     };
 
-    handleDiscardChanges = () => {
+    handleDiscardChanges() {
         this.setState({
             expanded: !this.state.expanded,
         });
@@ -129,7 +137,7 @@ export class MappingRule extends React.Component {
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: this.props.id });
     };
 
-    handleMoveElement = ({ toPos, fromPos }) => {
+    handleMoveElement({ toPos, fromPos }) {
         if (fromPos === toPos) {
             return;
         }
@@ -137,7 +145,7 @@ export class MappingRule extends React.Component {
     };
 
     // jumps to selected rule as new center of view
-    handleNavigate = (id, parent, event) => {
+    handleNavigate(id, parent, event) {
         this.props.onRuleIdChange({ newRuleId: id, parentId: parent });
         event.stopPropagation();
     };

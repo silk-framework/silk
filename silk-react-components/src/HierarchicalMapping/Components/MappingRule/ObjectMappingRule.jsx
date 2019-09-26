@@ -49,7 +49,17 @@ class ObjectRule extends React.Component {
         edit: PropTypes.bool.isRequired,
         ruleData: PropTypes.object.isRequired,
     };
-
+    
+    constructor(props) {
+        super(props);
+        this.editUriRule = this.editUriRule.bind(this);
+        this.removeUriRule = this.removeUriRule.bind(this);
+        this.handleEdit = this.handleEdit.bind(this);
+        this.handleCloseEdit = this.handleCloseEdit.bind(this);
+        this.handleCopy = this.handleCopy.bind(this);
+        this.handleClone = this.handleClone.bind(this);
+    }
+    
     componentDidMount() {
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.handleCloseEdit);
         if (_.has(this.props, 'rules.uriRule.id')) {
@@ -71,7 +81,7 @@ class ObjectRule extends React.Component {
         }
     }
 
-    editUriRule = event => {
+    editUriRule(event) {
         if (__DEBUG__) {
             event.stopPropagation();
             alert('Normally this would open the complex editor (aka jsplumb view)');
@@ -141,7 +151,7 @@ class ObjectRule extends React.Component {
         return false;
     }
 
-    removeUriRule = () => {
+    removeUriRule() {
         if (__DEBUG__) {
             event.stopPropagation();
             alert('Normally this would open the complex editor (aka jsplumb view)');
@@ -167,23 +177,23 @@ class ObjectRule extends React.Component {
     };
 
     // open view in edit mode
-    handleEdit = () => {
+    handleEdit() {
         this.setState({
             edit: !this.state.edit,
         });
     };
 
-    handleCloseEdit = obj => {
+    handleCloseEdit(obj) {
         if (obj.id === this.props.id) {
             this.setState({ edit: false });
         }
     };
 
-    handleCopy = () => {
+    handleCopy() {
         this.props.handleCopy(this.props.id, this.props.type);
     };
 
-    handleClone = () => {
+    handleClone() {
         this.props.handleClone(this.props.id, this.props.type, this.props.parentId);
     };
 

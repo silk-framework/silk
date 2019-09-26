@@ -21,11 +21,12 @@ export default class ExecutionReport extends React.Component {
             project,
             transformTask: task,
         });
+        this.onRuleNavigation = this.onRuleNavigation.bind(this);
     }
     
-    onRuleNavigation = ({newRuleId}) => {
+    onRuleNavigation({newRuleId}) {
         this.setState({currentRuleId: newRuleId});
-    };
+    }
     
     renderSummary() {
         const summaryRows = this.props.executionReport.summary.map(v =>

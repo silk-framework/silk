@@ -43,7 +43,25 @@ class MappingsWorkview extends React.Component {
         showSuggestions: false,
         askForChilds: false,
     };
-
+    
+    constructor(props) {
+        super(props);
+        this.onRuleCreate = this.onRuleCreate.bind(this);
+        this.handleRuleEditOpen = this.handleRuleEditOpen.bind(this);
+        this.handleRuleEditClose = this.handleRuleEditClose.bind(this);
+        this.discardAll = this.discardAll.bind(this);
+        this.handleShowSuggestions = this.handleShowSuggestions.bind(this);
+        this.loadData = this.loadData.bind(this);
+        this.handleDiscardChanges = this.handleDiscardChanges.bind(this);
+        this.handleCancelDiscard = this.handleCancelDiscard.bind(this);
+        this.handleToggleRuleDetails = this.handleToggleRuleDetails.bind(this);
+        this.handleCreate = this.handleCreate.bind(this);
+        this.handleCloseSuggestions = this.handleCloseSuggestions.bind(this);
+        this.handleCopy = this.handleCopy.bind(this);
+        this.handlePaste = this.handlePaste.bind(this);
+        this.handleClone = this.handleClone.bind(this);
+    }
+    
     componentDidMount() {
         this.loadData({ initialLoad: true });
         EventEmitter.on(MESSAGES.RELOAD, this.loadData);
@@ -79,7 +97,7 @@ class MappingsWorkview extends React.Component {
         return !_.isEmpty(nextState.ruleData);
     }
 
-    onRuleCreate = ({ type }) => {
+    onRuleCreate({ type }) {
         this.setState({
             ruleEditView: {
                 type,
@@ -87,7 +105,7 @@ class MappingsWorkview extends React.Component {
         });
     };
 
-    handleRuleEditOpen = ({ id }) => {
+    handleRuleEditOpen({ id }) {
         if (!_.includes(this.state.editing, id)) {
             this.setState({
                 editing: _.concat(this.state.editing, [id]),
@@ -95,7 +113,7 @@ class MappingsWorkview extends React.Component {
         }
     };
 
-    handleRuleEditClose = ({ id }) => {
+    handleRuleEditClose({ id }) {
         if (id === 0) {
             this.setState({
                 ruleEditView: false,
@@ -108,14 +126,14 @@ class MappingsWorkview extends React.Component {
         }
     };
 
-    discardAll = () => {
+    discardAll() {
         this.setState({
             editing: [],
             showSuggestions: false,
         });
     };
 
-    handleShowSuggestions = event => {
+    handleShowSuggestions(event) {
         event.stopPropagation();
         if (this.state.editing.length === 0) {
             this.setState({
@@ -129,7 +147,7 @@ class MappingsWorkview extends React.Component {
         }
     };
 
-    loadData = (params = {}) => {
+    loadData(params = {}) {
         const { initialLoad = false } = params;
 
         this.setState({
@@ -176,7 +194,7 @@ class MappingsWorkview extends React.Component {
             );
     };
 
-    handleDiscardChanges = event => {
+    handleDiscardChanges(event) {
         event.stopPropagation();
         const type = _.get(this.props.askForDiscardData, 'type', false);
         const suggestions = _.get(
@@ -202,13 +220,13 @@ class MappingsWorkview extends React.Component {
         this.props.onAskDiscardChanges(false);
     };
 
-    handleCancelDiscard = event => {
+    handleCancelDiscard(event) {
         event.stopPropagation();
         this.props.onAskDiscardChanges(false);
     };
 
     // sends event to expand / collapse all mapping rules
-    handleToggleRuleDetails = ({ expanded }) => {
+    handleToggleRuleDetails({ expanded }) {
         if (this.state.editing.length === 0 || expanded) {
             EventEmitter.emit(MESSAGES.RULE_VIEW.TOGGLE, { expanded, id: true });
         } else {
@@ -219,7 +237,7 @@ class MappingsWorkview extends React.Component {
     }
 
     // jumps to selected rule as new center of view
-    handleCreate = ({ type }) => {
+    handleCreate({ type }) {
         if (this.state.editing.length === 0) {
             EventEmitter.emit(MESSAGES.RULE_ID.CREATE, { type });
         } else {
@@ -229,12 +247,12 @@ class MappingsWorkview extends React.Component {
         }
     };
 
-    handleCloseSuggestions = () => {
+    handleCloseSuggestions() {
         this.setState({ showSuggestions: false });
         EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id: 0 });
     };
 
-    handleCopy = (id, type) => {
+    handleCopy(id, type) {
         errorChannel.subject('message.info').onNext({
             message: 'Mapping rule copied. Use "+" button to paste',
         });
@@ -253,7 +271,7 @@ class MappingsWorkview extends React.Component {
         });
     };
 
-    handlePaste = (cloning = false) => {
+    handlePaste(cloning = false) {
         const copyingData = JSON.parse(sessionStorage.getItem('copyingData')),
             { breadcrumbs, id } = this.state.ruleData;
         if (copyingData !== {}) {
@@ -282,7 +300,7 @@ class MappingsWorkview extends React.Component {
         }
     };
 
-    handleClone = (id, type, parent = false) => {
+    handleClone(id, type, parent = false) {
         const apiDetails = getApiDetails();
         const copyingData = {
             baseUrl: apiDetails.baseUrl,

@@ -29,7 +29,15 @@ class MappingsList extends React.Component {
     state = {
         items: this.getItems(this.props.rules),
     };
-
+    
+    constructor(props) {
+        super(props);
+        this.orderRules = this.orderRules.bind(this);
+        this.onDragEnd = this.onDragEnd.bind(this);
+        this.handleCreate = this.handleCreate.bind(this);
+        this.handleShowSuggestions = this.handleShowSuggestions.bind(this);
+    }
+    
     componentDidMount() {
         // process reorder requests from single MappingRules
         EventEmitter.on(MESSAGES.RULE.REQUEST_ORDER, this.orderRules);
@@ -52,7 +60,7 @@ class MappingsList extends React.Component {
     //     return !_.isEqual(this.props, nextProps);
     // }
 
-    orderRules = ({ fromPos, toPos }) => {
+    orderRules({ fromPos, toPos }) {
         const childrenRules = this.reorder(
             this.state.items.map(a => a.key),
             fromPos,
@@ -74,7 +82,7 @@ class MappingsList extends React.Component {
     onDragStart(result) {}
 
     // template rendering
-    onDragEnd = result => {
+    onDragEnd(result) {
         // dropped outside the list
         if (!result.destination) {
             return;
@@ -93,11 +101,11 @@ class MappingsList extends React.Component {
         });
     };
 
-    handleCreate = infoCreation => {
+    handleCreate(infoCreation) {
         EventEmitter.emit(MESSAGES.MAPPING.CREATE, infoCreation);
     };
 
-    handleShowSuggestions = event => {
+    handleShowSuggestions(event) {
         event.persist();
         EventEmitter.emit(MESSAGES.MAPPING.SHOW_SUGGESTIONS, event);
     };
