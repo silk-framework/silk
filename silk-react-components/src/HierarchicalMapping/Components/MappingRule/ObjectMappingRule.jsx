@@ -34,12 +34,6 @@ import transformRuleOfObjectMapping from '../../utils/transformRuleOfObjectMappi
 import EventEmitter from '../../utils/EventEmitter';
 
 class ObjectRule extends React.Component {
-    state = {
-        edit: !!this.props.edit,
-    };
-
-    // define property types
-    // FIXME: check propTypes
     static propTypes = {
         comment: PropTypes.string,
         id: PropTypes.string,
@@ -48,6 +42,10 @@ class ObjectRule extends React.Component {
         rules: PropTypes.object,
         edit: PropTypes.bool.isRequired,
         ruleData: PropTypes.object.isRequired,
+    };
+    
+    state = {
+        edit: !!this.props.edit,
     };
     
     constructor(props) {
