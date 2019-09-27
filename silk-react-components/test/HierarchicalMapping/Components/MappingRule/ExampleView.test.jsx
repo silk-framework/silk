@@ -1,7 +1,7 @@
 import React from "react";
 import { shallow } from 'enzyme';
-import ExampleView from '../../../../src/HierarchicalMapping/Components/MappingRule/ExampleView';
-import { ErrorView } from '../../../../src/HierarchicalMapping/Components/MappingRule/ErrorView';
+import ExampleView from '../../../../src/HierarchicalMapping/Containers/MappingRule/ExampleView';
+import { ErrorView } from '../../../../src/HierarchicalMapping/Components/ErrorView';
 
 const props = {
     id: 'id',

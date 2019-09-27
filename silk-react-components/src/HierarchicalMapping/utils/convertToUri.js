@@ -1,27 +1,8 @@
-import _ from 'lodash';
 import { URI } from 'ecc-utils';
-
-export const wasTouched = (initialValues, currentState) =>
-    _.some(initialValues, (value, key) => value !== currentState[key]);
-
-/** Tests if the value is a relative or absolute IRI or URN? */
-export const newValueIsIRI = ({ label }) => {
-    try {
-        if (label.length > 0) {
-            const uri = new URI(label.replace(/^<|>$/g, ''));
-            return uri.is('resourceURI') || uri.is('url') && uri.is('relative');
-        }
-        return false;
-    } catch (e) {
-        // If the URI constructor throws an Error,
-        // we can be sure that the entered string is not an URI
-        return false;
-    }
-};
 
 /** Converts a string to a normalized URI. Used when the user is expected to enter a valid (possibly relative) URI.
  * Usable in auto complete widget as newOptionCreator function. */
-export const convertToUri = ({ label, labelKey, valueKey }) => {
+export const convertToUri = ({label, labelKey, valueKey}) => {
     let value = label;
     try {
         const regex = /^Create option "(.*)"$/;
@@ -35,8 +16,9 @@ export const convertToUri = ({ label, labelKey, valueKey }) => {
         } else {
             value = new URI(label).normalize().toString();
         }
-    } catch (e) {}
-
+    } catch (e) {
+    }
+    
     return {
         [label]: value,
         [labelKey]: label,

@@ -10,12 +10,12 @@ import {
     DismissiveButton,
     NotAvailable,
 } from '@eccenca/gui-elements';
-import { ThingIcon } from './MappingRule/SharedComponents';
+import { ThingIcon } from '../Components/ThingIcon';
 import RuleTitle from '../elements/RuleTitle';
 import RuleTypes from '../elements/RuleTypes';
 import ObjectRule from './MappingRule/ObjectMappingRule';
-import { MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI } from '../helpers';
-import { MESSAGES } from '../constants';
+import { MAPPING_RULE_TYPE_URI } from '../utils/constants';
+import { MAPPING_RULE_TYPE_COMPLEX_URI, MESSAGES } from '../utils/constants';
 import EventEmitter from '../utils/EventEmitter';
 
 class MappingsObject extends React.Component {

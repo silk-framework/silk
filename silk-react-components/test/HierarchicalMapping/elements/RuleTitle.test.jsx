@@ -2,7 +2,7 @@ import React from "react";
 import { shallow } from 'enzyme';
 import RuleTitle from '../../../src/HierarchicalMapping/elements/RuleTitle';
 import { NotAvailable } from '@eccenca/gui-elements';
-import { ThingName } from '../../../src/HierarchicalMapping/Components/MappingRule/SharedComponents';
+import { ThingName } from '../../../src/HierarchicalMapping/Components/ThingName';
 
 const getWrapper = (renderer = shallow, props = {}) => renderer(
     <RuleTitle {...props} />

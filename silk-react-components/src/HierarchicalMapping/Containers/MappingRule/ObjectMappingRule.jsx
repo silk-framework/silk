@@ -12,32 +12,36 @@ import {
 import _ from 'lodash';
 import { getEditorHref, updateObjectMappingAsync } from '../../store';
 import ExampleView from './ExampleView';
-import ObjectMappingRuleForm from './Forms/ObjectMappingRuleForm';
+import ObjectMappingRuleForm from './ObjectMappingRuleForm';
 
 import {
-    SourcePath,
-    ThingName,
-    ThingDescription,
     ParentElement,
-    InfoBox,
-} from './SharedComponents';
+    } from '../../Components/ParentElement';
 import {
-    isCopiableRule,
-    isClonableRule,
-    MAPPING_RULE_TYPE_COMPLEX_URI,
-    MAPPING_RULE_TYPE_OBJECT,
     MAPPING_RULE_TYPE_ROOT,
+    } from '../../utils/constants';
+import {
+    isClonableRule,
+    isCopiableRule,
+    MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_OBJECT,
     MAPPING_RULE_TYPE_URI,
-} from '../../helpers';
-import { MESSAGES } from '../../constants';
+    MESSAGES
+} from '../../utils/constants';
 import transformRuleOfObjectMapping from '../../utils/transformRuleOfObjectMapping';
 import EventEmitter from '../../utils/EventEmitter';
+import { ThingName } from '../../Components/ThingName';
+import { ThingDescription } from '../../Components/ThingDescription';
+import { InfoBox } from '../../Components/InfoBox';
+import { SourcePath } from '../../Components/SourcePath';
 
 class ObjectRule extends React.Component {
     static propTypes = {
         parentId: PropTypes.string.isRequired,
         parent: PropTypes.object,
-        edit: PropTypes.bool.isRequired,
+        edit: PropTypes.oneOfType([
+            PropTypes.bool,
+            PropTypes.object
+        ]).isRequired,
         ruleData: PropTypes.object.isRequired,
     };
     

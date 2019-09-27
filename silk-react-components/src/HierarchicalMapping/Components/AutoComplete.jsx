@@ -1,6 +1,6 @@
 import React from 'react';
 import { AutoCompleteBox } from '@eccenca/gui-elements';
-import { autocompleteAsync } from '../../../store';
+import { autocompleteAsync } from '../store';
 
 const loadOptionsRaw = ({
     input, callback, ruleId, entity,

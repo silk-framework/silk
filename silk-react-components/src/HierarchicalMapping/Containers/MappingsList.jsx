@@ -8,11 +8,11 @@ import {
     Info,
 } from '@eccenca/gui-elements';
 import MappingRule from './MappingRule/MappingRule';
-import { MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT } from '../helpers';
+import { MAPPING_RULE_TYPE_OBJECT } from '../utils/constants';
 import PropTypes from 'prop-types';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import { orderRulesAsync } from '../store';
-import { MESSAGES } from '../constants';
+import { MAPPING_RULE_TYPE_DIRECT, MESSAGES } from '../utils/constants';
 import EventEmitter from '../utils/EventEmitter';
 
 class MappingsList extends React.Component {

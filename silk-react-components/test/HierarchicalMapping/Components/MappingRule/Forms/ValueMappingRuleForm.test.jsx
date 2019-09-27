@@ -1,11 +1,11 @@
 import React from "react";
 import { mount, shallow } from 'enzyme';
 import { CardTitle, Spinner } from '@eccenca/gui-elements';
-import ErrorView from '../../../../../src/HierarchicalMapping/Components/MappingRule/ErrorView';
-import ExampleView from '../../../../../src/HierarchicalMapping/Components/MappingRule/ExampleView';
+import ErrorView from '../../../../../src/HierarchicalMapping/Components/ErrorView';
+import ExampleView from '../../../../../src/HierarchicalMapping/Containers/MappingRule/ExampleView';
 import * as Store from '../../../../../src/HierarchicalMapping/store';
 import EventEmitter from '../../../../../src/HierarchicalMapping/utils/EventEmitter';
-import { ValueMappingRuleForm } from '../../../../../src/HierarchicalMapping/Components/MappingRule/Forms/ValueMappingRuleForm';
+import { ValueMappingRuleForm } from '../../../../../src/HierarchicalMapping/Containers/MappingRule/ValueMappingRuleForm';
 
 const props = {
     id: '1',

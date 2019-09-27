@@ -1,6 +1,6 @@
 import React from 'react';
 import { SelectBox, Checkbox, NotAvailable } from '@eccenca/gui-elements';
-import { LABELED_SUGGESTION_TYPES } from '../helpers';
+import { LABELED_SUGGESTION_TYPES } from '../utils/constants';
 import _ from 'lodash';
 
 class SuggestionsRule extends React.Component {

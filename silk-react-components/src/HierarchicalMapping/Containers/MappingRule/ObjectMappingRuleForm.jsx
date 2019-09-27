@@ -14,19 +14,20 @@ import {
     ScrollingHOC,
 } from '@eccenca/gui-elements';
 import _ from 'lodash';
-import ExampleView from '../ExampleView';
-import { ParentElement } from '../SharedComponents';
-import { createMappingAsync } from '../../../store';
-import { newValueIsIRI, wasTouched, convertToUri } from './helpers';
-import ErrorView from '../ErrorView';
-import AutoComplete from './AutoComplete';
+import ExampleView from './ExampleView';
+import { ParentElement } from '../../Components/ParentElement';
+import { createMappingAsync } from '../../store';
+import { convertToUri } from '../../utils/convertToUri';
+import ErrorView from '../../Components/ErrorView';
+import AutoComplete from '../../Components/AutoComplete';
 import {
     MAPPING_RULE_TYPE_ROOT,
-    MAPPING_RULE_TYPE_URI,
-    trimValue,
-} from '../../../helpers';
-import { MESSAGES } from '../../../constants';
-import EventEmitter from '../../../utils/EventEmitter';
+    } from '../../utils/constants';
+import { MAPPING_RULE_TYPE_URI, MESSAGES } from '../../utils/constants';
+import EventEmitter from '../../utils/EventEmitter';
+import { trimValue } from '../../utils/trimValue';
+import { wasTouched } from '../../utils/wasTouched';
+import { newValueIsIRI } from '../../utils/newValueIsIRI';
 
 /**
  * Provides the editable form for object mappings.

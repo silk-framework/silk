@@ -1,10 +1,7 @@
 import {
-    getRuleLabel,
-    isClonableRule,
-    isCopiableRule,
-    isObjectMappingRule,
-    trimValue
-} from '../../src/HierarchicalMapping/helpers';
+    getRuleLabel} from '../../src/HierarchicalMapping/utils/getRuleLabel';
+import { isClonableRule, isCopiableRule, isObjectMappingRule } from '../../src/HierarchicalMapping/utils/constants';
+import { trimValue } from '../../src/HierarchicalMapping/utils/trimValue';
 
 describe('helpers.js', () => {
     describe('should isCopiableRule function working', () => {

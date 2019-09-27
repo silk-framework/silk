@@ -18,13 +18,15 @@ import {
 } from '@eccenca/gui-elements';
 import RuleValueEdit from './ValueMappingRule';
 import RuleObjectEdit from './ObjectMappingRule';
-import { SourcePath, ThingIcon } from './SharedComponents';
+import { SourcePath} from '../../Components/SourcePath';
 import RuleTypes from '../../elements/RuleTypes';
-import { getRuleLabel, isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT } from '../../helpers';
+import { MAPPING_RULE_TYPE_OBJECT } from '../../utils/constants';
 import className from 'classnames';
-import { MESSAGES } from '../../constants';
+import { isObjectMappingRule, MESSAGES } from '../../utils/constants';
 import EventEmitter from '../../utils/EventEmitter';
 import PropTypes from 'prop-types';
+import { getRuleLabel } from '../../utils/getRuleLabel';
+import { ThingIcon } from '../../Components/ThingIcon';
 
 export class MappingRule extends React.Component {
     // define property types

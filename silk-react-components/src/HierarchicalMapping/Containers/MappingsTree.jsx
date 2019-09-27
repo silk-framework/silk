@@ -12,10 +12,10 @@ import {
 
 import RuleTypes from '../elements/RuleTypes';
 import RuleTitle from '../elements/RuleTitle';
-import { MAPPING_RULE_TYPE_OBJECT, MAPPING_RULE_TYPE_ROOT } from '../helpers';
+import { MAPPING_RULE_TYPE_ROOT } from '../utils/constants';
 import { getHierarchyAsync } from '../store';
 import EventEmitter from '../utils/EventEmitter';
-import { MESSAGES } from '../constants';
+import { MAPPING_RULE_TYPE_OBJECT, MESSAGES } from '../utils/constants';
 
 /**
  * Navigation tree of all mappings

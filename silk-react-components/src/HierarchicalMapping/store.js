@@ -3,17 +3,17 @@
 import _ from 'lodash';
 import rxmq, { Rx } from 'ecc-messagebus';
 import {
+    MAPPING_RULE_TYPE_ROOT,
+    } from './utils/constants';
+
+import { Suggestion } from './utils/Suggestion';
+import {
     isObjectMappingRule,
     MAPPING_RULE_TYPE_COMPLEX,
-    MAPPING_RULE_TYPE_COMPLEX_URI,
-    MAPPING_RULE_TYPE_DIRECT,
-    MAPPING_RULE_TYPE_OBJECT,
-    MAPPING_RULE_TYPE_ROOT,
+    MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT,
     MAPPING_RULE_TYPE_URI,
-} from './helpers';
-
-import { Suggestion } from './Suggestion';
-import { MESSAGES } from './constants';
+    MESSAGES
+} from './utils/constants';
 import EventEmitter from './utils/EventEmitter';
 
 const silkStore = rxmq.channel('silk.api');

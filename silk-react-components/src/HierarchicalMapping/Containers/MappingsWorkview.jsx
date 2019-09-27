@@ -9,18 +9,20 @@ import PropTypes from 'prop-types';
 import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from '../store';
 import MappingsHeader from './MappingsHeader';
 import MappingsObject from './MappingsObject';
-import ObjectMappingRuleForm from './MappingRule/Forms/ObjectMappingRuleForm';
-import ValueMappingRuleForm from './MappingRule/Forms/ValueMappingRuleForm';
+import ObjectMappingRuleForm from './MappingRule/ObjectMappingRuleForm';
+import ValueMappingRuleForm from './MappingRule/ValueMappingRuleForm';
 import MappingsList from './MappingsList';
 import SuggestionsList from './SuggestionsList';
+import {
+    MAPPING_RULE_TYPE_ROOT,
+} from '../utils/constants';
 import {
     isObjectMappingRule,
     MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_DIRECT,
     MAPPING_RULE_TYPE_OBJECT,
-    MAPPING_RULE_TYPE_ROOT,
-} from '../helpers';
-import { MESSAGES } from '../constants';
+    MESSAGES
+} from '../utils/constants';
 import EventEmitter from '../utils/EventEmitter';
 
 class MappingsWorkview extends React.Component {

@@ -5,7 +5,7 @@ import rxmq from 'ecc-messagebus';
 
 import { Alert, Error, Info, Success, Warning } from '@eccenca/gui-elements';
 
-const renderClasses = {
+const RENDER_CLASSES = {
     alert: Alert,
     error: Error,
     info: Info,
@@ -76,7 +76,7 @@ class MessageHandler extends React.Component {
 
     render() {
         const messages = this.state.errorMessages.map(({ message, errorType, key }, index) => {
-            const Class = renderClasses[errorType];
+            const Class = RENDER_CLASSES[errorType];
 
             return (
                 <Class

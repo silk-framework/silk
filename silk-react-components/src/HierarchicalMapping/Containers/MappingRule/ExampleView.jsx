@@ -2,11 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import { Chip, Spinner } from '@eccenca/gui-elements';
-import ErrorView from './ErrorView';
+import ErrorView from '../../Components/ErrorView';
 import _ from 'lodash';
 
 import { childExampleAsync, ruleExampleAsync } from '../../store';
-import { InfoBox } from './SharedComponents';
+import { InfoBox } from '../../Components/InfoBox';
 
 export class ExampleView extends React.Component {
     static propTypes = {

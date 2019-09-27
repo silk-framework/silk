@@ -21,11 +21,11 @@ import {
     Warning,
 } from '@eccenca/gui-elements';
 import _ from 'lodash';
-import ErrorView from './MappingRule/ErrorView';
+import ErrorView from '../Components/ErrorView';
 import SuggestionsRule from './SuggestionsRule';
 import { generateRuleAsync, getSuggestionsAsync } from '../store';
-import { ParentElement } from './MappingRule/SharedComponents';
-import { SUGGESTION_TYPES } from '../helpers';
+import { ParentElement } from '../Components/ParentElement';
+import { SUGGESTION_TYPES } from '../utils/constants';
 import PropTypes from 'prop-types';
 
 const SuggestionsListWrapper = props => (

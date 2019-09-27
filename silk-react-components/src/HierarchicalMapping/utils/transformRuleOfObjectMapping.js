@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { MAPPING_RULE_TYPE_URI } from '../helpers';
+import { MAPPING_RULE_TYPE_URI } from './constants';
 
 /**
  * extract needed object mapping data from given rules

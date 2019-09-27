@@ -10,17 +10,17 @@ import _ from 'lodash';
 import PropTypes from 'prop-types';
 import ExampleView from './ExampleView';
 import { getEditorHref } from '../../store';
-import ValueMappingRuleForm from './Forms/ValueMappingRuleForm';
+import ValueMappingRuleForm from './ValueMappingRuleForm';
 import {
-    ThingName,
-    ThingDescription,
-    InfoBox,
-    PropertyTypeLabel,
     PropertyTypeDescription,
-} from './SharedComponents';
-import { MAPPING_RULE_TYPE_DIRECT } from '../../helpers';
-import { MESSAGES } from '../../constants';
+} from '../../Components/PropertyTypeDescription';
+import { MAPPING_RULE_TYPE_DIRECT } from '../../utils/constants';
+import { MESSAGES } from '../../utils/constants';
 import EventEmitter from '../../utils/EventEmitter';
+import { ThingName } from '../../Components/ThingName';
+import { ThingDescription } from '../../Components/ThingDescription';
+import { InfoBox } from '../../Components/InfoBox';
+import { PropertyTypeLabel } from '../../Components/PropertyTypeLabel';
 
 const propertyTypeLabel = valueType => {
     // Adds optional properties of the property type to the label, e.g. language tag

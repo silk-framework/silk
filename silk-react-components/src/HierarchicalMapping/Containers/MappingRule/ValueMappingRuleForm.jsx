@@ -13,18 +13,18 @@ import {
     SelectBox,
 } from '@eccenca/gui-elements';
 import _ from 'lodash';
-import ExampleView from '../ExampleView';
-import { createMappingAsync, getRuleAsync } from '../../../store';
-import { newValueIsIRI, wasTouched, convertToUri } from './helpers';
-import ErrorView from '../ErrorView';
-import AutoComplete from './AutoComplete';
+import ExampleView from './ExampleView';
+import { createMappingAsync, getRuleAsync } from '../../store';
+import { convertToUri } from '../../utils/convertToUri';
+import ErrorView from '../../Components/ErrorView';
+import AutoComplete from '../../Components/AutoComplete';
 import {
-    MAPPING_RULE_TYPE_COMPLEX,
-    MAPPING_RULE_TYPE_DIRECT,
     trimValue,
-} from '../../../helpers';
-import { MESSAGES } from '../../../constants';
-import EventEmitter from '../../../utils/EventEmitter';
+} from '../../utils/trimValue';
+import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES } from '../../utils/constants';
+import EventEmitter from '../../utils/EventEmitter';
+import { wasTouched } from '../../utils/wasTouched';
+import { newValueIsIRI } from '../../utils/newValueIsIRI';
 
 const LANGUAGES_LIST = [
     'en', 'de', 'es', 'fr', 'bs', 'bg', 'ca', 'ce', 'zh', 'hr', 'cs', 'da', 'nl', 'eo', 'fi', 'ka', 'el', 'hu', 'ga', 'is', 'it',

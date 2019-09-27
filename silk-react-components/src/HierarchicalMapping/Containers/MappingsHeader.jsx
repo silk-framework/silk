@@ -16,7 +16,7 @@ import {
     BreadcrumbItem,
 } from '@eccenca/gui-elements';
 
-import { ParentStructure } from './MappingRule/SharedComponents';
+import { ParentStructure } from '../Components/ParentStructure';
 import RuleTitle from '../elements/RuleTitle';
 
 class MappingsHeader extends React.Component {
