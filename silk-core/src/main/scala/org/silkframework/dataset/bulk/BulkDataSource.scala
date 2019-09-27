@@ -26,7 +26,7 @@ class BulkDataSource(bulkContainerName: String,
   override def retrieveTypes(limit: Option[Int])(implicit userContext: UserContext): Traversable[(String, Double)] = {
     if(mergeSchemata) {
       mergePaths[(String, Double), String](
-        sourcesWithErrorHandler(_.retrieveTypes(limit)),
+        _.retrieveTypes(limit),
         indexFn = weightedPath => weightedPath._1 // Make distinct by path name only
       )
     } else {
@@ -37,7 +37,7 @@ class BulkDataSource(bulkContainerName: String,
   override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     if(mergeSchemata) {
       mergePaths[TypedPath, TypedPath](
-        sourcesWithErrorHandler(_.retrievePaths(typeUri, depth, limit)),
+        _.retrievePaths(typeUri, depth, limit),
         indexFn = a => a
       ).toIndexedSeq
     } else {
@@ -47,36 +47,28 @@ class BulkDataSource(bulkContainerName: String,
 
   // Merge the paths with memory foot print max. the size of the number of paths in the result.
   // indexFn extracts the part of the element that should be distinguished by.
-  private def mergePaths[T, U](pathsTraversable: Traversable[Traversable[T]],
+  private def mergePaths[T, U](dataSourcePathFn: DataSource => Traversable[T],
                                indexFn: T => U): Traversable[T] = {
     new Traversable[T] {
       override def foreach[V](f: T => V): Unit = {
         val entrySet = new mutable.HashSet[U]()
-        var count = 0
-        for (elements <- pathsTraversable) {
-          count += 1
-          println(count)
-          val start = System.currentTimeMillis()
-          for (elem <- elements) {
-            // Only emit path once, do not distinguish the same path with different weight
-            val valueToIndex = indexFn(elem)
-            if (!entrySet.contains(valueToIndex)) {
-              entrySet.add(valueToIndex)
-              f(elem)
+        sources foreach { source =>
+          handleSourceError(source) { dataSource =>
+            for (elem <- dataSourcePathFn(dataSource)) {
+              // Only emit path once, do not distinguish the same path with different weight
+              val valueToIndex = indexFn(elem)
+              if (!entrySet.contains(valueToIndex)) {
+                entrySet.add(valueToIndex)
+                f(elem)
+              }
             }
           }
-          println(System.currentTimeMillis() - start)
         }
       }
     }
   }
 
-  private def sourcesWithErrorHandler[T](dataSourceFn: DataSource => T): Traversable[T] = {
-    new MappedTraversable[DataSourceWithName, T](sources, source => {
-      handleSourceError(source)(dataSourceFn)
-    })
-  }
-
+  // Report errors from a data source that happen inside the given block with useful information
   private def handleSourceError[T](source: DataSourceWithName)(dataSourceFn: DataSource => T): T = {
     try {
       dataSourceFn(source.source)
@@ -102,9 +94,11 @@ class BulkDataSource(bulkContainerName: String,
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])(implicit userContext: UserContext): Traversable[Entity] = {
     new Traversable[Entity] {
       override def foreach[U](f: Entity => U): Unit = {
-        sourcesWithErrorHandler { source =>
-          for(entity <- source.retrieveByUri(entitySchema, entities)) {
-            f(entity)
+        sources foreach { dataSource =>
+          handleSourceError(dataSource) { source =>
+            for(entity <- source.retrieveByUri(entitySchema, entities)) {
+              f(entity)
+            }
           }
         }
       }

@@ -1,14 +1,13 @@
 package org.silkframework.dataset.bulk
 
-import java.io.{File, InputStream}
-import java.time.Instant
+import java.io.File
 import java.util.logging.Logger
-import java.util.zip.{ZipEntry, ZipException}
+import java.util.zip.ZipException
 
 import org.silkframework.dataset.{DataSource, Dataset, ResourceBasedDataset}
 import org.silkframework.execution.{InterruptibleTraversable, MappedInterruptibleTraversable}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.zip.{ZipEntryResource, ZipResourceLoader}
+import org.silkframework.runtime.resource.zip.ZipResourceLoader
 import org.silkframework.runtime.resource.{ReadOnlyResource, Resource}
 import org.silkframework.runtime.validation.ValidationException
 
@@ -107,19 +106,15 @@ object BulkResourceBasedDataset {
     *
     * Filters the name of the resource via the given filter regex.
     */
-  private def retrieveSubResources(resource: Resource, filterRegex: Regex): Traversable[ReadOnlyResource] = {
+  private def retrieveSubResources(resource: Resource, filterRegex: Regex): Traversable[Resource] = {
     if (resource.name.endsWith(".zip") && !new File(resource.path).isDirectory) {
       log fine s"Zip file Resource found: ${resource.name}"
       try {
         new InterruptibleTraversable(
-          new Traversable[ReadOnlyResource] {
-            override def foreach[U](f: ReadOnlyResource => U): Unit = {
+          new Traversable[Resource] {
+            override def foreach[U](f: Resource => U): Unit = {
               val zipLoader = ZipResourceLoader(resource, "")
-              zipLoader.iterateReadOnceResources() foreach { resource =>
-                if (filterRegex.findFirstIn(resource.path).isDefined) {
-                  f(ReadOnlyResource(resource))
-                }
-              }
+              zipLoader.iterateReadOnceResources(filterRegex) foreach f
             }
           }
         )
@@ -128,11 +123,10 @@ object BulkResourceBasedDataset {
           log warning s"Exception for zip resource ${resource.path}: " + t.getMessage
           throw new ZipException(t.getMessage)
       }
-    }
-    else if (new File(resource.path).isDirectory) {
+    } else if (new File(resource.path).isDirectory) {
       log fine s"Resource Folder found: ${resource.name}"
-      throw new NotImplementedError("The bulk resource support does not work for non-zip files for now")    }
-    else {
+      throw new NotImplementedError("The bulk resource support does not work for non-zip files for now")
+    } else {
       throw new IllegalArgumentException(resource.path + " is not a bulk resource.")
     }
   }
