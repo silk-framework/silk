@@ -5,10 +5,10 @@ import java.util.logging.Logger
 import java.util.zip.ZipException
 
 import org.silkframework.dataset.{DataSource, Dataset, ResourceBasedDataset}
-import org.silkframework.execution.{InterruptibleTraversable, MappedInterruptibleTraversable}
+import org.silkframework.execution.{InterruptibleTraversable, MappedTraversable}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.resource.zip.ZipResourceLoader
-import org.silkframework.runtime.resource.{ReadOnlyResource, Resource}
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.control.NonFatal
@@ -52,7 +52,7 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
       case Seq(singleResource) =>
         createSource(singleResource)
       case _ =>
-        new BulkDataSource(file.name, new MappedInterruptibleTraversable(allResources, createSourceWithName), mergeSchemata)
+        new BulkDataSource(file.name, new MappedTraversable(new InterruptibleTraversable(allResources), createSourceWithName), mergeSchemata)
     }
   }
 

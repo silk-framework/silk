@@ -14,16 +14,6 @@ class InterruptibleTraversable[T](traversable: Traversable[T]) extends Traversab
   }
 }
 
-/** Mix of interruptible and mapped traversable. */
-class MappedInterruptibleTraversable[T, U](traversable: Traversable[T], mappingFn: T => U) extends Traversable[U] {
-  override def foreach[V](f: U => V): Unit = {
-    val interruptibleTraversable = new InterruptibleTraversable(traversable)
-    interruptibleTraversable foreach { entry =>
-      f(mappingFn(entry))
-    }
-  }
-}
-
 /** Wraps a traversable with a traversable that maps the entries of the wrapped traversables to other values. */
 class MappedTraversable[T, U](traversable: Traversable[T], mappingFn: T => U) extends Traversable[U] {
   override def foreach[V](f: U => V): Unit = {
