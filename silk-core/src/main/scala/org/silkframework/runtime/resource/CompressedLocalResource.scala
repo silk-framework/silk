@@ -4,6 +4,8 @@ import java.time.Instant
 
 import net.jpountz.lz4.{LZ4BlockInputStream, LZ4BlockOutputStream, LZ4Factory, LZ4FrameInputStream, LZ4FrameOutputStream}
 
+import scala.util.Try
+
 /**
   * A resource that's held in-memory and is being compressed.
   */
@@ -65,8 +67,19 @@ case class CompressedMultiByteArraysInputStream(byteArrays: IndexedSeq[Array[Byt
   }
 }
 
-/** Resource that is held in a compressed file. */
-case class CompressedFileResource(file: File, name: String, path: String, knownTypes: IndexedSeq[String])
+/**
+  * Resource that is held in a compressed file.
+ *
+  * @param file The file that holds the compressed resource data.
+  * @param name The name of the resource.
+  * @param path The path of the resource.
+  * @param knownTypes Known types that should be returned, leave empty if types should be automatically determined.
+  * @param deleteOnGC Deletes the given file when the resource object is garbage collected.
+  *                   This should be used when the file has no use after the resource gets garbage collected and
+  *                   it cannot be determined when to delete before the GC.
+  */
+//noinspection ScalaStyle because of finalize() method
+case class CompressedFileResource(file: File, name: String, path: String, knownTypes: IndexedSeq[String], deleteOnGC: Boolean)
     extends WritableResource
     with ResourceWithKnownTypes {
   override def write(append: Boolean)(write: OutputStream => Unit): Unit = {
@@ -97,4 +110,11 @@ case class CompressedFileResource(file: File, name: String, path: String, knownT
   override def exists: Boolean = file.exists()
 
   override def size: Option[Long] = Some(file.length())
+
+  override def finalize(): Unit = {
+    super.finalize()
+    if(deleteOnGC) {
+      Try(delete())
+    }
+  }
 }

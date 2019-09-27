@@ -100,7 +100,6 @@ case class ZipResourceLoader(private[zip] val zip: () => ZipInputStream, basePat
           }
         } finally {
           zipInputStream.close()
-//          currentResource.foreach(_.delete())  TODO: How to handle last resource if it is a file?
         }
       }
     }
@@ -113,7 +112,8 @@ case class ZipResourceLoader(private[zip] val zip: () => ZipInputStream, basePat
     } else {
       val tempFile = File.createTempFile("zipResource", ".bin")
       tempFile.deleteOnExit()
-      CompressedFileResource(tempFile, entry.getName, entry.getName, ZipEntryResource.getTypeAnnotation(entry).toIndexedSeq)
+      // Since there is no way to know when the last resource will not be used anymore, we set the deleteOnGC flag, so it gets eventually deleted.
+      CompressedFileResource(tempFile, entry.getName, entry.getName, ZipEntryResource.getTypeAnnotation(entry).toIndexedSeq, deleteOnGC = true)
     }
     r.writeStream(z)
     r

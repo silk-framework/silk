@@ -24,6 +24,6 @@ class CompressedFileResourceTest extends WritableResourceTestBase {
   override def freshResource(): WritableResource = {
     val file = File.createTempFile("CompressedFileResourceTest", "lz4")
     file.deleteOnExit()
-    CompressedFileResource(file, resourceName, resourceName, IndexedSeq.empty)
+    CompressedFileResource(file, resourceName, resourceName, IndexedSeq.empty, deleteOnGC = false)
   }
 }
