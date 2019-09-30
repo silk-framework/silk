@@ -74,7 +74,7 @@ case class RdfFileDataset(
     createSparqlEndpoint(allResources)
   }
 
-  private def createSparqlEndpoint(resources: Seq[Resource]): JenaEndpoint = {
+  private def createSparqlEndpoint(resources: Traversable[Resource]): JenaEndpoint = {
     // Load data set
     val dataset = DatasetFactory.createTxnMem()
     for(resource <- resources) {

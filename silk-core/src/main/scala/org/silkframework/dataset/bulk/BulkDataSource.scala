@@ -1,13 +1,14 @@
 package org.silkframework.dataset.bulk
 
-import org.silkframework.config.Task
+import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.execution.ExecutionException
+import org.silkframework.execution.{ExecutionException, MappedTraversable}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 
+import scala.collection.mutable
 import scala.util.control.NonFatal
 
 /**
@@ -19,32 +20,55 @@ import scala.util.control.NonFatal
   *                      If false, the types and paths of the first data source are used.
   */
 class BulkDataSource(bulkContainerName: String,
-                     sources: Seq[DataSourceWithName],
+                     sources: Traversable[DataSourceWithName],
                      mergeSchemata: Boolean) extends DataSource with PeakDataSource {
-  require(sources.nonEmpty, "Tried to create a bulk data source with an empty list of sources.")
 
   override def retrieveTypes(limit: Option[Int])(implicit userContext: UserContext): Traversable[(String, Double)] = {
     if(mergeSchemata) {
-      sourcesWithErrorHandler(_.retrieveTypes(limit)).flatten.distinct.toIndexedSeq
+      mergePaths[(String, Double), String](
+        _.retrieveTypes(limit),
+        indexFn = weightedPath => weightedPath._1 // Make distinct by path name only
+      )
     } else {
-      handleSourceError(sources.head)(_.retrieveTypes(limit))
+      sources.headOption.map(handleSourceError(_)(_.retrieveTypes(limit))).getOrElse(Seq.empty)
     }
   }
 
   override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     if(mergeSchemata) {
-      sourcesWithErrorHandler(_.retrievePaths(typeUri, depth, limit)).flatten.distinct.toIndexedSeq
+      mergePaths[TypedPath, TypedPath](
+        _.retrievePaths(typeUri, depth, limit),
+        indexFn = a => a
+      ).toIndexedSeq
     } else {
-      handleSourceError(sources.head)(_.retrievePaths(typeUri, depth, limit))
+      sources.headOption.map(handleSourceError(_)(_.retrievePaths(typeUri, depth, limit))).getOrElse(IndexedSeq.empty)
     }
   }
 
-  private def sourcesWithErrorHandler[T](dataSourceFn: DataSource => T): Seq[T] = {
-    for (source <- sources) yield {
-      handleSourceError(source)(dataSourceFn)
+  // Merge the paths with memory foot print max. the size of the number of paths in the result.
+  // indexFn extracts the part of the element that should be distinguished by.
+  private def mergePaths[T, U](dataSourcePathFn: DataSource => Traversable[T],
+                               indexFn: T => U): Traversable[T] = {
+    new Traversable[T] {
+      override def foreach[V](f: T => V): Unit = {
+        val entrySet = new mutable.HashSet[U]()
+        sources foreach { source =>
+          handleSourceError(source) { dataSource =>
+            for (elem <- dataSourcePathFn(dataSource)) {
+              // Only emit path once, do not distinguish the same path with different weight
+              val valueToIndex = indexFn(elem)
+              if (!entrySet.contains(valueToIndex)) {
+                entrySet.add(valueToIndex)
+                f(elem)
+              }
+            }
+          }
+        }
+      }
     }
   }
 
+  // Report errors from a data source that happen inside the given block with useful information
   private def handleSourceError[T](source: DataSourceWithName)(dataSourceFn: DataSource => T): T = {
     try {
       dataSourceFn(source.source)
@@ -57,10 +81,10 @@ class BulkDataSource(bulkContainerName: String,
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])(implicit userContext: UserContext): Traversable[Entity] = {
     new Traversable[Entity] {
-      override def foreach[U](f: Entity => U): Unit = {
-        sourcesWithErrorHandler { source =>
-          for (entity <- source.retrieve(entitySchema, limit)) {
-            f(entity)
+      override def foreach[U](emitEntity: Entity => U): Unit = {
+        sources foreach { dataSource =>
+          handleSourceError(dataSource) { source =>
+            source.retrieve(entitySchema, limit) foreach emitEntity
           }
         }
       }
@@ -70,14 +94,16 @@ class BulkDataSource(bulkContainerName: String,
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])(implicit userContext: UserContext): Traversable[Entity] = {
     new Traversable[Entity] {
       override def foreach[U](f: Entity => U): Unit = {
-        sourcesWithErrorHandler { source =>
-          for(entity <- source.retrieveByUri(entitySchema, entities)) {
-            f(entity)
+        sources foreach { dataSource =>
+          handleSourceError(dataSource) { source =>
+            for(entity <- source.retrieveByUri(entitySchema, entities)) {
+              f(entity)
+            }
           }
         }
       }
     }
   }
 
-  override def underlyingTask: Task[DatasetSpec[Dataset]] = sources.head.source.underlyingTask
+  override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(bulkContainerName), DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with actual task
 }

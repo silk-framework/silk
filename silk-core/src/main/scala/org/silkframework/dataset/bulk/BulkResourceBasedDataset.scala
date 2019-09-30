@@ -5,12 +5,14 @@ import java.util.logging.Logger
 import java.util.zip.ZipException
 
 import org.silkframework.dataset.{DataSource, Dataset, ResourceBasedDataset}
+import org.silkframework.execution.{InterruptibleTraversable, MappedTraversable}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.resource.zip.ZipResourceLoader
-import org.silkframework.runtime.resource.{ReadOnlyResource, Resource}
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.control.NonFatal
+import scala.util.matching.Regex
 
 /**
   * A resource based data source for which the resource could also be a zip archive.
@@ -50,13 +52,7 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
       case Seq(singleResource) =>
         createSource(singleResource)
       case _ =>
-        new BulkDataSource(file.name, allResources.map(createSourceWithName), mergeSchemata)
-    }
-  }
-
-  private def filterResourcesByGlob(resources: Seq[Resource]): Seq[Resource] = {
-    resources.filter { r =>
-      internalRegex.findFirstIn(r.path).isDefined
+        new BulkDataSource(file.name, new MappedTraversable(new InterruptibleTraversable(allResources), createSourceWithName), mergeSchemata)
     }
   }
 
@@ -70,9 +66,9 @@ trait BulkResourceBasedDataset extends ResourceBasedDataset { this: Dataset =>
     * If the dataset is based on a bulk file, this returns all sub resources.
     * Otherwise, returns the file itself.
     */
-  def allResources: Seq[Resource] = {
+  def allResources: Traversable[Resource] = {
     if (BulkResourceBasedDataset.isBulkResource(file)) {
-      filterResourcesByGlob(BulkResourceBasedDataset.retrieveSubResources(file))
+      BulkResourceBasedDataset.retrieveSubResources(file, internalRegex)
     } else {
       Seq(file)
     }
@@ -107,27 +103,33 @@ object BulkResourceBasedDataset {
 
   /**
     * Returns all sub resources inside a bulk resource.
+    *
+    * Filters the name of the resource via the given filter regex.
     */
-  private def retrieveSubResources(resource: Resource): Seq[Resource] = {
+  private def retrieveSubResources(resource: Resource, filterRegex: Regex): Traversable[Resource] = {
     if (resource.name.endsWith(".zip") && !new File(resource.path).isDirectory) {
-      log info s"Zip file Resource found: ${resource.name}"
+      log fine s"Zip file Resource found: ${resource.name}"
       try {
-        val zipLoader = ZipResourceLoader(resource, "")
-        zipLoader.list.sorted.map(f => ReadOnlyResource(zipLoader.get(f)))
+        new InterruptibleTraversable(
+          new Traversable[Resource] {
+            override def foreach[U](f: Resource => U): Unit = {
+              val zipLoader = ZipResourceLoader(resource, "")
+              zipLoader.iterateReadOnceResources(filterRegex) foreach f
+            }
+          }
+        )
       } catch {
         case NonFatal(t) =>
           log warning s"Exception for zip resource ${resource.path}: " + t.getMessage
           throw new ZipException(t.getMessage)
       }
-    }
-    else if (new File(resource.path).isDirectory) {
-      log info s"Resource Folder found: ${resource.name}"
-      throw new NotImplementedError("The bulk resource support does not work for non-zip files for now")    }
-    else {
+    } else if (new File(resource.path).isDirectory) {
+      log fine s"Resource Folder found: ${resource.name}"
+      throw new NotImplementedError("The bulk resource support does not work for non-zip files for now")
+    } else {
       throw new IllegalArgumentException(resource.path + " is not a bulk resource.")
     }
   }
-
 }
 
 /** A data source with a named resource */
