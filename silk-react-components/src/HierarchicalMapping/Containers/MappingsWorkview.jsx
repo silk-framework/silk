@@ -77,6 +77,7 @@ class MappingsWorkview extends React.Component {
     }
 
     componentWillUnmount() {
+        console.log('unmounted');
         EventEmitter.off(MESSAGES.RELOAD, this.loadData);
         EventEmitter.off(MESSAGES.RULE_ID.CREATE, this.onRuleCreate);
         EventEmitter.off(MESSAGES.MAPPING.CREATE, this.handleCreate);
@@ -325,7 +326,6 @@ class MappingsWorkview extends React.Component {
             <div className="ecc-silk-mapping__createrule">
                 {createType === MAPPING_RULE_TYPE_OBJECT ? (
                     <ObjectMappingRuleForm
-                        type={createType}
                         parentId={this.state.ruleData.id}
                         parent={{
                             id: this.state.ruleData.id,

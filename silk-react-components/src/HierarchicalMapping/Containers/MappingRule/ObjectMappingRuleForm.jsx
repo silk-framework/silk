@@ -90,17 +90,18 @@ export class ObjectMappingRuleForm extends Component {
         this.setState({
             loading: true,
         });
+        const { modifiedValues } = this.state;
         createMappingAsync({
             id: this.props.id,
             parentId: this.props.parentId,
-            type: this.state.type,
-            comment: this.state.comment,
-            label: this.state.label,
-            sourceProperty: trimValue(this.state.sourceProperty),
-            targetProperty: trimValue(this.state.targetProperty),
-            targetEntityType: this.state.targetEntityType,
-            pattern: trimValue(this.state.pattern),
-            entityConnection: this.state.entityConnection === 'to',
+            type: modifiedValues.type,
+            comment: modifiedValues.comment,
+            label: modifiedValues.label,
+            sourceProperty: trimValue(modifiedValues.sourceProperty),
+            targetProperty: trimValue(modifiedValues.targetProperty),
+            targetEntityType: modifiedValues.targetEntityType,
+            pattern: trimValue(modifiedValues.pattern),
+            entityConnection: modifiedValues.entityConnection === 'to',
         }, true)
             .subscribe(
                 () => {
@@ -125,7 +126,10 @@ export class ObjectMappingRuleForm extends Component {
         const { id, ruleData } = this.props;
         const { create, modifiedValues } = this.state;
 
-        const newModifiedValues = { ...modifiedValues, [name]: value };
+        const newModifiedValues = {
+            ...modifiedValues,
+            [name]: value
+        };
 
         const changed = create || wasTouched(ruleData, newModifiedValues);
 

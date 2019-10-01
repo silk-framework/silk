@@ -204,7 +204,6 @@ class ObjectRule extends React.Component {
         if (edit) {
             return (
                 <ObjectMappingRuleForm
-                    key={this.props.ruleData.id}
                     id={this.props.ruleData.id}
                     parent={this.props.parent}
                     parentId={this.props.parentId}

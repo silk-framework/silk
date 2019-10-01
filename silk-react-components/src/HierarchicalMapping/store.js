@@ -311,15 +311,16 @@ export const generateRuleAsync = (correspondences, parentId) => {
             data: { ...getApiDetails(), correspondences, parentId },
         })
         .map(returned => {
-            EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id: 0 });
-            EventEmitter.emit(MESSAGES.RELOAD, true);
-
             return {
                 rules: _.get(returned, ['body'], []),
                 parentId,
             };
         })
-        .flatMap(createGeneratedRules);
+        .flatMap(createGeneratedRules)
+        .map(() => {
+            EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id: 0 });
+            EventEmitter.emit(MESSAGES.RELOAD, true);
+        });
 };
 
 export const getVocabInfoAsync = (uri, field) => {
@@ -560,7 +561,7 @@ export const autocompleteAsync = data => {
 };
 
 export const createMappingAsync = (data, isObject = false) => {
-    const payload = isObject ? prepareValueMappingPayload(data) : prepareObjectMappingPayload(data);
+    const payload = isObject ? prepareObjectMappingPayload(data) : prepareValueMappingPayload(data);
     return editMappingRule(payload, data.id, data.parentId || rootId);
 };
 
