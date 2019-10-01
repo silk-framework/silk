@@ -59,10 +59,14 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   registerModule[Workflow]()
   registerModule[CustomTask]()
 
+  /** Can be called optionally to trigger early loading of tasks. */
+  def loadTasks()(implicit userContext: UserContext): Unit = {
+    modules.foreach(_.load())
+  }
+
   /** This must be executed once when the project was loaded into the workspace */
-  def initTasks()(implicit userContext: UserContext) {
-    // Initialize Tasks
-    allTasks.foreach(_.init())
+  def startActivities()(implicit userContext: UserContext) {
+    allTasks.foreach(_.startActivities())
   }
 
   /**
