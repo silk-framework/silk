@@ -92,10 +92,19 @@ class PluginDescription[+T](val id: Identifier, val categories: Seq[String], val
  * Factory for plugin description.
  */
 object PluginDescription {
+
   /**
-   * Creates a new plugin description from a class.
-   */
+    * Returns a plugin description for a given class.
+    * If available, returns an already registered plugin description.
+    */
   def apply[T](pluginClass: Class[T]): PluginDescription[T] = {
+    PluginRegistry.pluginDescription(pluginClass).getOrElse(create(pluginClass))
+  }
+
+  /**
+    * Creates a new plugin description from a class.
+    */
+  def create[T](pluginClass: Class[T]): PluginDescription[T] = {
     getAnnotation(pluginClass) match {
       case Some(annotation) => createFromAnnotation(pluginClass, annotation)
       case None => createFromClass(pluginClass)
