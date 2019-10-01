@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset.rdf.formatters
 
 import java.io._
 
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{EntitySink, TripleSink, TypedProperty}
 import org.silkframework.entity.ValueType
 import org.silkframework.runtime.activity.UserContext
@@ -24,7 +25,7 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
   private var writer: Writer = _
 
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
-                        (implicit userContext: UserContext){
+                        (implicit userContext: UserContext, prefixes: Prefixes){
     this.properties = properties
     if(writer == null) {
       // If we got a java file, we write directly to it, otherwise we write to a temporary string
@@ -71,6 +72,7 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
   }
 
   override def init()(implicit userContext: UserContext): Unit = {
+    implicit val prefixes: Prefixes = Prefixes.empty
     openTable(typeUri = "", properties = Seq())
   }
 

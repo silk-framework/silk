@@ -40,6 +40,11 @@ case class EntitySchema(
   }
 
   /**
+    * Retrieves all paths including the paths of sub schemata.
+    */
+  def allPaths: IndexedSeq[TypedPath] = typedPaths
+
+  /**
     * Simplifies the acquisition of path ranges. No indices needed.
     * @param fromPath - range starts with path
     * @param toPath - range ends with path

@@ -23,7 +23,6 @@ class CsvSource(file: Resource,
                 uriPattern: String = "",
                 regexFilter: String = "",
                 codec: Codec = Codec.UTF8,
-                skipLinesBeginning: Int = 0,
                 ignoreBadLines: Boolean = false,
                 detectSeparator: Boolean = false,
                 detectSkipLinesBeginning: Boolean = false,
@@ -282,7 +281,7 @@ class CsvSource(file: Resource,
 
   // Skip lines that are not part of the CSV file, headers may be included
   private def initBufferedReader(reader: BufferedReader): Unit = {
-    val nrLinesToSkip = skipLinesAutomatic getOrElse skipLinesBeginning
+    val nrLinesToSkip = skipLinesAutomatic getOrElse csvSettings.linesToSkip
     for (_ <- 1 to nrLinesToSkip) {
       reader.readLine() // Skip line
     }

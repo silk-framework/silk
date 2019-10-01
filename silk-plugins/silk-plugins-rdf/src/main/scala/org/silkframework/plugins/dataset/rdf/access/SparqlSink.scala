@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.access
 
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
 import org.silkframework.dataset.{EntitySink, LinkSink, TripleSink, TypedProperty}
 import org.silkframework.entity.{Link, ValueType}
@@ -26,7 +27,7 @@ class SparqlSink(params: SparqlParams,
   override def sparqlEndpoint: SparqlEndpoint = endpoint
 
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
-                        (implicit userContext: UserContext): Unit = {
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     this.properties = properties
   }
 

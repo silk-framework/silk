@@ -2,6 +2,7 @@ package org.silkframework.workspace.activity.workflow
 
 import java.util.logging.Logger
 
+import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.workspace.ProjectTask
@@ -22,6 +23,11 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
     val control = context.child(workflowExecutor, 0.95)
     try {
       log.fine("Start child workflow executor activity")
+      // Propagate workflow execution report
+      val listener = (executionReport: WorkflowExecutionReport) => {
+        context.value.update(WorkflowExecutionReportWithProvenance(executionReport, WorkflowExecutionProvenanceData(ActivityExecutionMetaData())))
+      }
+      control.value.subscribe(listener)
       control.start()
       control.waitUntilFinished()
     } finally {

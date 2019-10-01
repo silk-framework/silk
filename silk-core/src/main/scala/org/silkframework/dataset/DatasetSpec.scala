@@ -173,7 +173,7 @@ object DatasetSpec {
       * Initializes this writer.
       */
     override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
-                          (implicit userContext: UserContext){
+                          (implicit userContext: UserContext, prefixes: Prefixes){
       if (isOpen) {
         entitySink.close()
         isOpen = false

@@ -1,8 +1,9 @@
 package org.silkframework.workspace.activity.linking
 
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.EntitySchema
-import org.silkframework.execution.{AbortExecutionException, ExecutionType, ExecutorRegistry}
+import org.silkframework.execution.{AbortExecutionException, ExecutionType, ExecutorOutput, ExecutorRegistry}
 import org.silkframework.rule.execution.ComparisonToRestrictionConverter
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityMonitor, UserContext}
@@ -30,6 +31,8 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
 
   private val comparisonToRestrictionConverter = new ComparisonToRestrictionConverter()
 
+  implicit val prefixes: Prefixes = task.project.config.prefixes
+
   /**
     * Executes this activity.
     *
@@ -45,7 +48,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
 
     // Generate links
     context.status.update("Generating links", 0.4)
-    val links = ExecutorRegistry.execute(task, inputs, None, execution,
+    val links = ExecutorRegistry.execute(task, inputs, ExecutorOutput.empty, execution,
       new ActivityMonitor(getClass.getSimpleName, projectAndTaskId = context.status.projectAndTaskId)) match {
       case Some(result) => result
       case None => throw AbortExecutionException("Linking task did not generate any links")
@@ -56,7 +59,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
     for(output <- task.data.outputs) {
       val outputTask = task.project.task[GenericDatasetSpec](output)
       outputTask.data.linkSink.clear() // Clear link sink before writing in single execution mode
-      ExecutorRegistry.execute(outputTask, Seq(links), None, execution)
+      ExecutorRegistry.execute(outputTask, Seq(links), ExecutorOutput.empty, execution)
     }
   }
 
@@ -82,10 +85,11 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
       task.project.taskOption[TransformSpec](selection.inputId) match {
         case Some(transformTask) =>
           val input = loadInput(transformTask.data.selection, transformTask.data.inputSchema, None)
-          ExecutorRegistry.execute[TransformSpec, ExecutionType](transformTask, Seq(input), Some(entitySchema), execution)
+          ExecutorRegistry.execute[TransformSpec, ExecutionType](transformTask, Seq(input),
+            ExecutorOutput(None, Some(entitySchema)), execution)
         case None =>
           val datasetTask = task.project.task[GenericDatasetSpec](selection.inputId)
-          ExecutorRegistry.execute(datasetTask, Seq.empty, Some(updatedEntitySchema), execution)
+          ExecutorRegistry.execute(datasetTask, Seq.empty, ExecutorOutput(None, Some(updatedEntitySchema)), execution)
       }
 
     result.getOrElse(throw AbortExecutionException(s"The input task ${selection.inputId} did not generate any result"))

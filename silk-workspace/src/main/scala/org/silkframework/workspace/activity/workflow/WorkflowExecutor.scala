@@ -1,9 +1,10 @@
 package org.silkframework.workspace.activity.workflow
 
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.Dataset
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.EntitySchema
-import org.silkframework.execution.{ExecutionReport, ExecutionType, ExecutorRegistry}
+import org.silkframework.execution.{ExecutionReport, ExecutionType, ExecutorOutput, ExecutorRegistry}
 import org.silkframework.runtime.activity._
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
@@ -33,10 +34,10 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
 
   protected def execute[TaskType <: TaskSpec](task: Task[TaskType],
                                               inputs: Seq[ExecType#DataType],
-                                              outputSchema: Option[EntitySchema])
-                                             (implicit workflowRunContext: WorkflowRunContext): Option[ExecType#DataType] = {
+                                              output: ExecutorOutput)
+                                             (implicit workflowRunContext: WorkflowRunContext, prefixes: Prefixes): Option[ExecType#DataType] = {
     implicit val userContext: UserContext = workflowRunContext.userContext
-    ExecutorRegistry.execute(task, inputs, outputSchema, executionContext, workflowRunContext.taskContext(task.id))
+    ExecutorRegistry.execute(task, inputs, output, executionContext, workflowRunContext.taskContext(task.id))
   }
 
   /** Return error if VariableDataset is used in output and input */
@@ -56,6 +57,28 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   }
 
   protected def workflow(implicit workflowRunContext: WorkflowRunContext): Workflow = workflowRunContext.workflow
+
+  protected def datasetTask(datasetTaskId: Identifier)
+                         (implicit workflowRunContext: WorkflowRunContext): ProjectTask[GenericDatasetSpec] = {
+    implicit val userContext: UserContext = workflowRunContext.userContext
+    project.taskOption[GenericDatasetSpec](datasetTaskId) match {
+      case Some(datasetTask) =>
+        datasetTask
+      case None =>
+        throw WorkflowException(s"No dataset task found in project ${project.name} with id " + datasetTaskId)
+    }
+  }
+
+  protected def projectTask(taskId: Identifier)
+                         (implicit workflowRunContext: WorkflowRunContext): ProjectTask[_ <: TaskSpec] = {
+    implicit val userContext: UserContext = workflowRunContext.userContext
+    project.anyTaskOption(taskId) match {
+      case Some(task) =>
+        task
+      case None =>
+        throw WorkflowException(s"No task found in project ${project.name} with id " + taskId)
+    }
+  }
 }
 
 case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecutionReport],

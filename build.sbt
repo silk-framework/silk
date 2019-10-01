@@ -4,11 +4,14 @@ import sbt._
 // Common Settings
 //////////////////////////////////////////////////////////////////////////////
 
+val NEXT_VERSION = "3.0.0"
+val silkVersion = sys.env.getOrElse("GIT_DESCRIBE", NEXT_VERSION + "-SNAPSHOT")
+
 concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
 
 lazy val commonSettings = Seq(
   organization := "org.silkframework",
-  version := "3.0.0-SNAPSHOT",
+  version := silkVersion,
   // Building
   scalaVersion := "2.11.12",
   publishTo := {
@@ -67,7 +70,8 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.1.0",
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1",
-    libraryDependencies += "commons-io" % "commons-io" % "2.4"
+    libraryDependencies += "commons-io" % "commons-io" % "2.4",
+    libraryDependencies += "org.lz4" % "lz4-java" % "1.4.0"
   )
 
 lazy val rules = (project in file("silk-rules"))
@@ -88,7 +92,7 @@ lazy val learning = (project in file("silk-learning"))
   )
 
 lazy val workspace = (project in file("silk-workspace"))
-  .dependsOn(rules, core % "test->test", pluginsJson % "test->compile;test->test")
+  .dependsOn(rules, core % "test->test", pluginsJson % "test->compile;test->test", pluginsCsv % "test->compile")
   .aggregate(rules)
   .settings(commonSettings: _*)
   .settings(
@@ -105,8 +109,9 @@ lazy val pluginsRdf = (project in file("silk-plugins/silk-plugins-rdf"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins RDF",
-    libraryDependencies += "org.apache.jena" % "jena-fuseki-embedded" % "3.7.0" % "test"
-  )
+    libraryDependencies += "org.apache.jena" % "jena-fuseki-embedded" % "3.7.0" % "test",
+    libraryDependencies += "org.apache.velocity" % "velocity-engine-core" % "2.1"
+)
 
 lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
   .dependsOn(core)

@@ -4,6 +4,7 @@ import org.mockito.Mockito._
 import org.mockito.Matchers._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
@@ -20,6 +21,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
   behavior of "ExecuteTransform"
 
   implicit val userContext: UserContext = UserContext.Empty
+  implicit val prefixes: Prefixes = Prefixes.empty
 
   it should "output faulty entities to error output" in {
     val prop = "http://prop"

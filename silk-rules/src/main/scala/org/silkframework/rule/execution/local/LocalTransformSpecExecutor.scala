@@ -1,9 +1,9 @@
 package org.silkframework.rule.execution.local
 
-import org.silkframework.config.Task
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, MultiEntityTable}
-import org.silkframework.execution.{ExecutionReport, Executor, TaskException}
+import org.silkframework.execution.{ExecutionReport, Executor, ExecutorOutput, TaskException}
 import org.silkframework.rule._
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
@@ -17,10 +17,10 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
 
   override def execute(task: Task[TransformSpec],
                        inputs: Seq[LocalEntities],
-                       outputSchema: Option[EntitySchema],
+                       output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport])
-                      (implicit userContext: UserContext): Option[LocalEntities] = {
+                      (implicit userContext: UserContext, prefixes: Prefixes): Option[LocalEntities] = {
     val input = inputs.headOption.getOrElse {
       throw TaskException("No input given to transform specification executor " + task.id + "!")
     }
