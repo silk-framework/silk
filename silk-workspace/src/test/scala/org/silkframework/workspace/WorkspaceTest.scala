@@ -55,7 +55,7 @@ class WorkspaceTest extends FlatSpec with MustMatchers with ConfigTestTrait with
   }
 
   it should "load caches after all projects have been loaded" in {
-    val workspaceProvider = new TestWorkspaceProvider()
+    val workspaceProvider = new TestWorkspaceProvider(loadTimePause = 1000)
     PluginRegistry.registerPlugin(classOf[TestActivityFactory])
 
     val project1 = Identifier("project1")
@@ -98,8 +98,12 @@ class WorkspaceTest extends FlatSpec with MustMatchers with ConfigTestTrait with
 
 object WorkspaceTest {
 
-  // Workspace provider that keeps track on when projects and tasks have been loaded.
-  class TestWorkspaceProvider extends InMemoryWorkspaceProvider {
+  /**
+    * Workspace provider that keeps track on when projects and tasks have been loaded.
+    *
+    * @param loadTimePause After loading tasks, sleep for this many milliseconds.
+    */
+  class TestWorkspaceProvider(loadTimePause: Int) extends InMemoryWorkspaceProvider {
 
     // The timestamp when projects have been loaded the last time
     var projectTime: Long = 0
@@ -114,15 +118,17 @@ object WorkspaceTest {
 
     override def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
                                                     (implicit user: UserContext): Seq[Task[T]] = {
+      val tasks = super.readTasks(project, projectResources)
+      Thread.sleep(loadTimePause)
       taskReadTimes += ((project, System.currentTimeMillis()))
-      Thread.sleep(1000)
-      super.readTasks(project, projectResources)
+      tasks
     }
     override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
                                                         (implicit user: UserContext): Seq[Try[Task[T]]] = {
+      val tasks = super.readTasksSafe(project, projectResources)
+      Thread.sleep(loadTimePause)
       taskReadTimes += ((project, System.currentTimeMillis()))
-      Thread.sleep(1000)
-      super.readTasksSafe(project, projectResources)
+      tasks
     }
   }
 
