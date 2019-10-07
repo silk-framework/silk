@@ -21,8 +21,10 @@ import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.language.implicitConversions
@@ -62,6 +64,18 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty
       properties :+= ("URI Property", uriProperty.uri)
     }
     properties
+  }
+
+  override def withProperties(updatedProperties: Map[String, String])(implicit prefixes: Prefixes): DatasetSpec[DatasetType] = {
+    val (pluginDesc, parameters) = PluginRegistry.reflect(plugin)
+
+    val invalidParameters = updatedProperties.keySet -- parameters.keySet
+    if(invalidParameters.nonEmpty) {
+      throw new ValidationException("The following properties cannot be updated on dataset $this because they are no valid plugin parameters: " + invalidParameters)
+    }
+
+    val updatedParameters = parameters ++ updatedProperties
+    copy(plugin = pluginDesc.apply(updatedParameters).asInstanceOf[DatasetType])
   }
 
   override def toString: String = DatasetSpec.toString

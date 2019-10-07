@@ -55,6 +55,16 @@ trait TaskSpec {
     */
   def properties(implicit prefixes: Prefixes): Seq[(String, String)] = Seq.empty
 
+  /**
+    * Creates a new instance of this task with updated properties.
+    *
+    * @param updatedProperties A list of property values to be updated.
+    *                          This can be a subset of all available properties.
+    *                          Property values that are not part of the map remain unchanged.
+    */
+  def withProperties(updatedProperties: Map[String, String])(implicit prefixes: Prefixes): TaskSpec = {
+    throw new ValidationException("Tasks of type " + getClass.getSimpleName + " cannot be reconfigured.")
+  }
 }
 
 object TaskSpec {
