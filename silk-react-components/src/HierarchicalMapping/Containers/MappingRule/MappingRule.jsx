@@ -27,6 +27,7 @@ import EventEmitter from '../../utils/EventEmitter';
 import PropTypes from 'prop-types';
 import { getRuleLabel } from '../../utils/getRuleLabel';
 import { ThingIcon } from '../../Components/ThingIcon';
+import { URI } from 'ecc-utils';
 
 export class MappingRule extends React.Component {
     // define property types
@@ -56,9 +57,16 @@ export class MappingRule extends React.Component {
         if (isPasted) {
             !sessionStorage.removeItem('pastedId');
         }
+        let expanded = isPasted;
+    
+        const uriTemplate = new URI(window.location.href);
+        if (uriTemplate.segment(-2) === 'rule') {
+            expanded = uriTemplate.segment(-1) === this.props.id
+        }
+        
         this.state = {
             isPasted,
-            expanded: isPasted || false,
+            expanded,
             editing: false,
             loading: false,
         };
@@ -78,7 +86,6 @@ export class MappingRule extends React.Component {
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
-
         if (this.state.isPasted) {
             this.props.scrollIntoView();
         }
@@ -92,6 +99,7 @@ export class MappingRule extends React.Component {
     }
 
     handleToggleRule({ expanded, id }) {
+        console.log(expanded, id);
         // only trigger state / render change if necessary
         if (
             expanded !== this.state.expanded &&
@@ -253,7 +261,6 @@ export class MappingRule extends React.Component {
                 />
             </div>,
         ];
-
         const expandedView = this.state.expanded ? (
             isObjectMappingRule(type) ? (
                 <RuleObjectEdit

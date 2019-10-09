@@ -72,7 +72,6 @@ class HierarchicalMapping extends React.Component {
             !_.isEmpty(this.state.currentRuleId)
         ) {
             const href = window.location.href;
-
             try {
                 const uriTemplate = new URI(href);
 
