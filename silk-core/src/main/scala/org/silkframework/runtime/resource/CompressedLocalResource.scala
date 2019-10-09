@@ -78,10 +78,10 @@ case class CompressedMultiByteArraysInputStream(byteArrays: IndexedSeq[Array[Byt
   *                   This should be used when the file has no use after the resource gets garbage collected and
   *                   it cannot be determined when to delete before the GC.
   */
-//noinspection ScalaStyle because of finalize() method
 case class CompressedFileResource(file: File, name: String, path: String, knownTypes: IndexedSeq[String], deleteOnGC: Boolean)
     extends WritableResource
-    with ResourceWithKnownTypes {
+    with ResourceWithKnownTypes
+    with DeleteUnderlyingResourceOnGC {
   override def write(append: Boolean)(write: OutputStream => Unit): Unit = {
     val os = outputStream(append)
     write(os)
@@ -110,11 +110,4 @@ case class CompressedFileResource(file: File, name: String, path: String, knownT
   override def exists: Boolean = file.exists()
 
   override def size: Option[Long] = Some(file.length())
-
-  override def finalize(): Unit = {
-    super.finalize()
-    if(deleteOnGC) {
-      Try(delete())
-    }
-  }
 }

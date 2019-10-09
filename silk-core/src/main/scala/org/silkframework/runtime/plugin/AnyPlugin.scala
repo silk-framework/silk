@@ -31,7 +31,7 @@ trait AnyPlugin {
    */
   @transient lazy val parameters: Map[String, String] = pluginSpec.parameterValues(this)(Prefixes.empty)
 
-  override def toString = {
+  override def toString: String = {
     getClass.getSimpleName + "(" + parameters.map { case (key, value) => key + "=" + value }.mkString(" ") + ")"
   }
 }

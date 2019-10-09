@@ -39,6 +39,9 @@ object PluginRegistry {
   /** Map from plugin base types to an instance holding all plugins of that type.  */
   private var pluginTypes = Map[String, PluginType]()
 
+  /** Map holding all plugins by their class name */
+  private var plugins = Map[String, PluginDescription[_]]()
+
   // Register all plugins at instantiation of this singleton object.
   if(configMgr().hasPath("pluginRegistry.pluginFolder")) {
     registerJars(new File(configMgr().getString("pluginRegistry.pluginFolder")))
@@ -139,6 +142,15 @@ object PluginRegistry {
   }
 
   /**
+    * Returns the plugin description of a single class.
+    *
+    * @return The plugin description or None, if this class has not been registered as a plugin.
+    */
+  def pluginDescription[T](pluginClass: Class[_]): Option[PluginDescription[T]] = {
+    plugins.get(pluginClass.getName).map(_.asInstanceOf[PluginDescription[T]])
+  }
+
+  /**
    * Finds and registers all plugins in the classpath.
    */
   def registerFromClasspath(classLoader: ClassLoader = Thread.currentThread.getContextClassLoader): Unit = {
@@ -148,7 +160,7 @@ object PluginRegistry {
     val pluginClasses = for(module <- modules; pluginClass <- module.pluginClasses) yield pluginClass
 
     // Create a plugin description for each plugin class (can be done in parallel)
-    val pluginDescs = for(pluginClass <- pluginClasses.par) yield PluginDescription(pluginClass)
+    val pluginDescs = for(pluginClass <- pluginClasses.par) yield PluginDescription.create(pluginClass)
 
     // Register plugins (must currently be done sequentially as registerPlugin is not thread safe)
     for(pluginDesc <- pluginDescs.seq)
@@ -192,6 +204,7 @@ object PluginRegistry {
         pluginTypes += ((superType.getName, pluginType))
         pluginType.register(pluginDesc)
       }
+      plugins += ((pluginDesc.pluginClass.getName, pluginDesc))
     }
   }
 
@@ -199,7 +212,7 @@ object PluginRegistry {
    * Registers a single plugin.
    */
   def registerPlugin(implementingClass: Class[_]): Unit = {
-    val pluginDesc = PluginDescription(implementingClass)
+    val pluginDesc = PluginDescription.create(implementingClass)
     registerPlugin(pluginDesc)
     log.fine(s"Loaded plugin " + pluginDesc.id)
   }

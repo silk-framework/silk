@@ -9,7 +9,12 @@ import java.time.Instant
   *
   * @param file The file
   */
-case class FileResource(file: File) extends WritableResource {
+case class FileResource(file: File)
+    extends WritableResource
+        with DeleteUnderlyingResourceOnGC {
+
+  @volatile
+  private var _deleteOnGC = false
 
   val name: String = file.getName
 
@@ -24,6 +29,10 @@ case class FileResource(file: File) extends WritableResource {
   override def inputStream: BufferedInputStream = {
     new BufferedInputStream(new FileInputStream(file))
   }
+
+  override def deleteOnGC: Boolean = _deleteOnGC
+
+  def setDeleteOnGC(value: Boolean): Unit = { _deleteOnGC = value }
 
   /**
     * Creates an empty file, overriding any existing and creating the required directories
