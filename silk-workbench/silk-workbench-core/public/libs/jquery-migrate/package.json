@@ -39,7 +39,7 @@
 		"grunt-git-authors": "3.2.0",
 		"grunt-npmcopy": "0.1.0",
 		"grunt-qunit-istanbul": "1.0.0",
-		"jquery": "3.1.1",
+		"jquery": "3.4.1",
 		"load-grunt-tasks": "3.5.2",
 		"qunitjs": "2.0.1",
 		"testswarm": "1.1.0"
