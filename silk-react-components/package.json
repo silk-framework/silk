@@ -36,7 +36,7 @@
     "ecc-utils": "^1.4.0",
     "jquery": "3.3.1",
     "jquery-migrate": "3.0.1",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.13",
     "mark.js": "^8.11.1",
     "mdl-selectfield": "1.0.3",
     "react": "^15.6.1",
