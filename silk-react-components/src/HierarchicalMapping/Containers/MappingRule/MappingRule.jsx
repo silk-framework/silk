@@ -53,7 +53,9 @@ export class MappingRule extends React.Component {
         super(props);
         const pastedId = sessionStorage.getItem('pastedId');
         const isPasted = (pastedId !== null) && (pastedId === this.props.id);
-        if (isPasted) { !sessionStorage.removeItem('pastedId'); }
+        if (isPasted) {
+            !sessionStorage.removeItem('pastedId');
+        }
         this.state = {
             isPasted,
             expanded: isPasted || false,
@@ -281,12 +283,11 @@ export class MappingRule extends React.Component {
         ) : (
             false
         );
-
         const reorderHandleButton = !this.state.expanded ? (
-            <div className="ecc-silk-mapping__ruleitem-reorderhandler">
+            <div className="ecc-silk-mapping__ruleitem-reorderhandler" key={id}>
                 <ContextMenu iconName="reorder" align="left" valign="top">
                     <MenuItem
-                        onClick={this.handleMoveElement.bind(null, {
+                        onClick={() => this.handleMoveElement({
                             parentId,
                             fromPos: pos,
                             toPos: 0,
@@ -296,7 +297,7 @@ export class MappingRule extends React.Component {
                         Move to top
                     </MenuItem>
                     <MenuItem
-                        onClick={this.handleMoveElement.bind(null, {
+                        onClick={() => this.handleMoveElement({
                             parentId,
                             fromPos: pos,
                             toPos: Math.max(0, pos - 1),
@@ -306,7 +307,7 @@ export class MappingRule extends React.Component {
                         Move up
                     </MenuItem>
                     <MenuItem
-                        onClick={this.handleMoveElement.bind(null, {
+                        onClick={() => this.handleMoveElement({
                             parentId,
                             fromPos: pos,
                             toPos: Math.min(pos + 1, count - 1),
@@ -316,7 +317,7 @@ export class MappingRule extends React.Component {
                         Move down
                     </MenuItem>
                     <MenuItem
-                        onClick={this.handleMoveElement.bind(null, {
+                        onClick={() => this.handleMoveElement({
                             parentId,
                             fromPos: pos,
                             toPos: count - 1,

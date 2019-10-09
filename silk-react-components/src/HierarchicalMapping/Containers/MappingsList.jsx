@@ -150,6 +150,7 @@ class MappingsList extends React.Component {
         const listItem = (index, item) => (
             <MappingRule
                 {...item.props}
+                pos={index}
                 provided
                 snapshot
                 handleCopy={this.props.handleCopy}
