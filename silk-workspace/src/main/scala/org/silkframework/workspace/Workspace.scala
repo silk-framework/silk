@@ -188,7 +188,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     provider.readProject(id) match {
       case Some(projectConfig) =>
         val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
-        project.initTasks()
+        project.loadTasks()
+        project.startActivities()
         cachedProjects :+= project
       case None =>
         log.warning(s"Project '$id' could not be reloaded in workspace, because it could not be read from the workspace provider!")
@@ -208,9 +209,13 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   private def loadProjects()(implicit userContext: UserContext): Unit = {
     cachedProjects = for(projectConfig <- provider.readProjects()) yield {
       log.info("Loading project: " + projectConfig.id)
-      val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
-      project.initTasks()
-      project
+      new Project(projectConfig, provider, repository.get(projectConfig.id))
+    }
+    for(project <- cachedProjects) {
+      project.loadTasks()
+    }
+    for(project <- cachedProjects) {
+      project.startActivities()
     }
     reloadPrefixes()
   }

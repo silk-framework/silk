@@ -79,7 +79,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
          (implicit userContext: UserContext): Unit = {
     val task = new ProjectTask(name, taskData, metaData, this)
     provider.putTask(project.name, task)
-    task.init()
+    task.startActivities()
     cachedTasks += ((name, task))
     logger.info(s"Added task '$name' to project ${project.name}. " + userContext.logInfo)
   }
@@ -102,7 +102,12 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     logger.info(s"Removed task '$taskId' from project ${project.name}." + userContext.logInfo)
   }
 
-  private def load()
+  /**
+    * Loads the tasks in this module.
+    * Will be triggered automatically the first time a task is requested.
+    * Can be triggered manually to control when the tasks are loaded.
+    */
+  def load()
                   (implicit userContext: UserContext): Unit = synchronized {
     if(cachedTasks == null) {
       try {
