@@ -40,12 +40,17 @@ sealed trait WorkflowNode {
     */
   def outputPriority: Option[Double]
 
+  /** Allows to re-configure the config parameters of this workflow node with values output from other workflow nodes.
+    * This is used to re-configure workflow tasks at workflow runtime. */
+  def configInputs: Seq[NodeReference]
+
   def copyNode(task: Identifier = task,
                inputs: Seq[NodeReference] = inputs,
                outputs: Seq[NodeReference] = outputs,
                position: (Int, Int) = position,
                nodeId: NodeReference = nodeId,
-               outputPriority: Option[Double] = outputPriority): WorkflowNode = {
+               outputPriority: Option[Double] = outputPriority,
+               configInputs: Seq[NodeReference] = configInputs): WorkflowNode = {
     this match {
       case wo: WorkflowOperator =>
         wo.copy(task = task, inputs = inputs, outputs = outputs, position = position, nodeId = nodeId, outputPriority = outputPriority)
@@ -54,9 +59,7 @@ sealed trait WorkflowNode {
     }
   }
 
-  /** Allows to re-configure the config parameters of this workflow node with values output from other workflow nodes.
-    * This is used to re-configure workflow tasks at workflow runtime. */
-  def configInputs: Seq[WorkflowNode#NodeReference]
+  def allInputs: Seq[NodeReference] = (inputs ++ configInputs).distinct
 }
 
 case class WorkflowOperator(inputs: Seq[WorkflowNode#NodeReference],

@@ -41,7 +41,7 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
     var operatorsToSort = rest
     while (operatorsToSort.nonEmpty) {
       layer += 1
-      val (satisfied, unsatisfied) = operatorsToSort.partition(op => op.inputs.forall(done))
+      val (satisfied, unsatisfied) = operatorsToSort.partition(op => op.allInputs.forall(done))
       if (satisfied.isEmpty) {
         throw new RuntimeException("Cannot topologically sort operators in workflow!")
       }
@@ -93,7 +93,7 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
     val workflowNodeMap = nodes.map(n => (n.nodeId, WorkflowDependencyNode(n))).toMap
     for (node <- nodes) {
       val depNode = workflowNodeMap(node.nodeId)
-      for (inputNode <- node.inputs) {
+      for (inputNode <- node.allInputs) {
         val precedingNode = workflowNodeMap.getOrElse(inputNode,
           throw new scala.RuntimeException("Unsatisfiable input dependency in workflow! Dependency: " + inputNode))
         depNode.addPrecedingNode(precedingNode)
@@ -141,7 +141,7 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
   /** Returns all Dataset tasks that are used as input in the workflow */
   def inputDatasets(project: Project)
                    (implicit userContext: UserContext): Seq[ProjectTask[DatasetSpec[Dataset]]] = {
-    for (datasetNodeId <- operators.flatMap(_.inputs).distinct;
+    for (datasetNodeId <- operators.flatMap(_.allInputs).distinct;
          dataset <- project.taskOption[DatasetSpec[Dataset]](nodeById(datasetNodeId).task)) yield {
       dataset
     }
@@ -159,18 +159,18 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
   /** Returns node ids of workflow nodes that have inputs from other nodes */
   def inputWorkflowNodeIds(): Seq[String] = {
     val outputs = nodes.flatMap(_.outputs).distinct
-    val nodesWithInputs = nodes.filter(_.inputs.nonEmpty).map(_.nodeId)
+    val nodesWithInputs = nodes.filter(n => n.allInputs.nonEmpty).map(_.nodeId)
     (outputs ++ nodesWithInputs).distinct
   }
 
   /** Returns node ids of workflow nodes that have neither inputs nor outputs */
   def singleWorkflowNodes(): Seq[String] = {
-    nodes.filter(n => n.inputs.isEmpty && n.outputs.isEmpty).map(_.nodeId)
+    nodes.filter(n => n.allInputs.isEmpty && n.outputs.isEmpty).map(_.nodeId)
   }
 
   /** Returns node ids of workflow nodes that output data into other nodes */
   def outputWorkflowNodeIds(): Seq[String] = {
-    val inputs = nodes.flatMap(_.inputs).distinct
+    val inputs = nodes.flatMap(_.allInputs).distinct
     val nodesWithOutputs = nodes.filter(_.outputs.nonEmpty).map(_.nodeId)
     (inputs ++ nodesWithOutputs).distinct
   }
@@ -395,7 +395,7 @@ case class WorkflowDependencyNode(workflowNode: WorkflowNode) {
 
   def inputNodes: Seq[WorkflowDependencyNode] = {
     for (
-      input <- workflowNode.inputs;
+      input <- workflowNode.allInputs;
       pNode <- precedingNodes.filter(_.nodeId == input)) yield {
       pNode
     }
