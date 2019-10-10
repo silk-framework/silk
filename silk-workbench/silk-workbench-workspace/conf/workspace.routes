@@ -153,3 +153,5 @@ GET           /assets/*file                                                     
 
 GET           /rdfdataset/:project/:task/select                                 controllers.workspace.SparqlProtocolApi.select(project, task, query ?= "", defaultGraphUri: List[String] ?= List[String](), namedGraphUri: List[String] ?= List[String]())
 GET           /rdfdataset/:project/:task/ask                                    controllers.workspace.SparqlProtocolApi.ask(project, task, query ?= "", defaultGraphUri: List[String] ?= List[String](), namedGraphUri: List[String] ?= List[String]())
+POST           /rdfdataset/:project/:task/select                                 controllers.workspace.SparqlProtocolApi.postSelect(project, task, defaultGraphUri: List[String] ?= List[String](), namedGraphUri: List[String] ?= List[String]())
+POST           /rdfdataset/:project/:task/ask                                    controllers.workspace.SparqlProtocolApi.postAsk(project, task, defaultGraphUri: List[String] ?= List[String](), namedGraphUri: List[String] ?= List[String]())

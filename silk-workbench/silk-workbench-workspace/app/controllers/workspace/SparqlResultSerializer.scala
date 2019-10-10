@@ -7,6 +7,10 @@ import play.api.libs.json._
 
 import scala.collection.immutable.SortedMap
 
+/**
+  * Containing all (De-)Serializer for Json objects needed for SPARQL 1.1 protocol SELECT and ASK queries.
+  * (see: https://www.w3.org/TR/sparql11-results-json/)
+  */
 object SparqlResultSerializer extends JsonFormat[SparqlResults] {
 
   override def read(value: JsValue)(implicit readContext: ReadContext): SparqlResults = {
