@@ -88,8 +88,10 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     */
   override def metaData: MetaData = metaDataValueHolder()
 
-  def init()(implicit userContext: UserContext): Unit = {
-    // Start auto-run activities
+  /**
+    * Starts all autorun activities.
+    */
+  def startActivities()(implicit userContext: UserContext): Unit = {
     for (activity <- taskActivities if activity.autoRun && activity.status() == Status.Idle())
       activity.control.start()
   }
