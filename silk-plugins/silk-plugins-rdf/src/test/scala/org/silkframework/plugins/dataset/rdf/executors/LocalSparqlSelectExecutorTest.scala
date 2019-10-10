@@ -38,6 +38,7 @@ class LocalSparqlSelectExecutorTest extends FlatSpec
           }
         })
       }
+      override def ask(query: String)(implicit userContext: UserContext): SparqlAskResult = ???
     }
     val entityTable = new SparqlEndpointEntityTable(sparqlEndpoint, mock[Task[TaskSpec]])
     val start = System.currentTimeMillis()
