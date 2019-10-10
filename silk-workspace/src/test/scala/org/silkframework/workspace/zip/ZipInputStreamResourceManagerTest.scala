@@ -64,4 +64,11 @@ class ZipInputStreamResourceManagerTest extends FlatSpec with MustMatchers {
       managerWithBaseDir.get("../../etc/passwd")
     }
   }
+
+  it should "work with all allowed paths" in {
+    val zipFile = File.createTempFile(tempDir + "outZip", ".zip")
+    val managerWithBaseDir = new ZipOutputStreamResourceManager(zipFile, "base/Path", true)
+    managerWithBaseDir.get("dir/path with spaces")
+    managerWithBaseDir.get("dir/path$with#special&characters")
+  }
 }
