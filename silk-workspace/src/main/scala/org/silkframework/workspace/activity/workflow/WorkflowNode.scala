@@ -53,6 +53,10 @@ sealed trait WorkflowNode {
         wd.copy(task = task, inputs = inputs, outputs = outputs, position = position, nodeId = nodeId, outputPriority = outputPriority)
     }
   }
+
+  /** Allows to re-configure the config parameters of this workflow node with values output from other workflow nodes.
+    * This is used to re-configure workflow tasks at workflow runtime. */
+  def configInputs: Seq[WorkflowNode#NodeReference]
 }
 
 case class WorkflowOperator(inputs: Seq[WorkflowNode#NodeReference],
@@ -61,11 +65,13 @@ case class WorkflowOperator(inputs: Seq[WorkflowNode#NodeReference],
                             errorOutputs: Seq[String],
                             position: (Int, Int),
                             nodeId: WorkflowNode#NodeReference,
-                            outputPriority: Option[Double]) extends WorkflowNode
+                            outputPriority: Option[Double],
+                            configInputs: Seq[WorkflowNode#NodeReference]) extends WorkflowNode
 
 case class WorkflowDataset(inputs: Seq[WorkflowNode#NodeReference],
                            task: Identifier,
                            outputs: Seq[WorkflowNode#NodeReference],
                            position: (Int, Int),
                            nodeId: WorkflowNode#NodeReference,
-                           outputPriority: Option[Double]) extends WorkflowNode
+                           outputPriority: Option[Double],
+                           configInputs: Seq[WorkflowNode#NodeReference]) extends WorkflowNode

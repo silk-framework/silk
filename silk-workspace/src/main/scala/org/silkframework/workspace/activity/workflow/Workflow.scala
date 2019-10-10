@@ -255,6 +255,7 @@ object Workflow {
           val inputStr = (op \ "@inputs").text
           val outputStr = (op \ "@outputs").text
           val errorOutputStr = (op \ "@errorOutputs").text
+          val configInputStr = (op \ "@configInputs").text
           val task = (op \ "@task").text
           WorkflowOperator(
             inputs = if (inputStr.isEmpty) Seq.empty else inputStr.split(',').toSeq,
@@ -263,7 +264,8 @@ object Workflow {
             errorOutputs = if (errorOutputStr.trim.isEmpty) Seq() else errorOutputStr.split(',').toSeq,
             position = (Math.round((op \ "@posX").text.toDouble).toInt, Math.round((op \ "@posY").text.toDouble).toInt),
             nodeId = parseNodeId(op, task),
-            outputPriority = parseOutputPriority(op)
+            outputPriority = parseOutputPriority(op),
+            configInputs = if (configInputStr.isEmpty) Seq.empty else configInputStr.split(',').toSeq
           )
         }
 
@@ -271,6 +273,7 @@ object Workflow {
         for (ds <- xml \ "Dataset") yield {
           val inputStr = (ds \ "@inputs").text
           val outputStr = (ds \ "@outputs").text
+          val configInputStr = (ds \ "@configInputs").text
           val task = (ds \ "@task").text
           WorkflowDataset(
             inputs = if (inputStr.isEmpty) Seq.empty else inputStr.split(',').toSeq,
@@ -278,7 +281,8 @@ object Workflow {
             outputs = if (outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
             position = (Math.round((ds \ "@posX").text.toDouble).toInt, Math.round((ds \ "@posY").text.toDouble).toInt),
             nodeId = parseNodeId(ds, task),
-            outputPriority = parseOutputPriority(ds)
+            outputPriority = parseOutputPriority(ds),
+            configInputs = if (configInputStr.isEmpty) Seq.empty else configInputStr.split(',').toSeq
           )
         }
 
@@ -300,7 +304,9 @@ object Workflow {
           outputs={op.outputs.mkString(",")}
           errorOutputs={op.errorOutputs.mkString(",")}
           id={op.nodeId}
-          outputPriority={op.outputPriority map (priority => Text(priority.toString))}/>
+          outputPriority={op.outputPriority map (priority => Text(priority.toString))}
+          configInputs={op.configInputs.mkString(",")}
+          />
       }}{for (ds <- datasets) yield {
           <Dataset
           posX={ds.position._1.toString}
@@ -309,7 +315,9 @@ object Workflow {
           inputs={ds.inputs.mkString(",")}
           outputs={ds.outputs.mkString(",")}
           id={ds.nodeId}
-          outputPriority={ds.outputPriority map (priority => Text(priority.toString))}/>
+          outputPriority={ds.outputPriority map (priority => Text(priority.toString))}
+          configInputs={ds.configInputs.mkString(",")}
+          />
       }}
       </Workflow>
     }
