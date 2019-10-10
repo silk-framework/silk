@@ -48,17 +48,6 @@ function WorkflowEditor() {
         isTarget: true,
         maxConnections: 1,
     };
-    this.styles.endpoints.configTarget = {
-        anchor: 'TopCenter',
-        endpoint: 'Dot',
-        paintStyle: {
-            fill: '#BF5741',
-            radius: 4,
-        },
-        connectorStyle: this.styles.connectors.plain,
-        isTarget: true,
-        maxConnections: 1,
-    };
 
     this.handler = new DynamicEndpointHandler();
     this.handler.styles = this.styles.endpoints;
@@ -110,8 +99,6 @@ function WorkflowEditor() {
                 // Check if we still need to add endpoints to the dropped element
                 if (jsPlumb.getEndpoints(ui.helper).length === 0) {
                     var id = ui.helper.attr('id');
-                    var isDataset = ui.helper.hasClass('dataset');
-
                     // Hide operator in toolbox
                     // if($(ui.helper).hasClass('dataset')) {
                     //   ui.draggable.hide();
@@ -129,6 +116,7 @@ function WorkflowEditor() {
                     var inputCardinality = ui.helper.data().inputCardinality;
                     if (inputCardinality === -1) {
                         _this.handler.addDynamicEndpoint(id, 'dynamic_target');
+                        // jsPlumb.addEndpoint(id, _this.styles.endpoints.dynamic_target);
                     } else {
                         var endpoints = [];
                         for (var index = 0; index < inputCardinality; index++) {
@@ -141,10 +129,6 @@ function WorkflowEditor() {
                         }
                         _this.handler.repaintEndpoints(id, endpoints);
                     }
-                    if(!isDataset) {
-                        jsPlumb.addEndpoint(id, _this.styles.endpoints.configTarget);
-                    }
-
                 }
             },
         });
@@ -163,7 +147,6 @@ function WorkflowEditor() {
         // Remember generated endpoints
         var sourceEndpoints = {};
         var targetEndpoints = {};
-        var configTargetEndpoints = {};
 
         deserializeWorkflowOperator('Operator', 'operator');
         deserializeWorkflowOperator('Dataset', 'dataset');
@@ -171,7 +154,6 @@ function WorkflowEditor() {
         function deserializeWorkflowOperator(elementName, childClass) {
             xmlRoot.find(elementName).each(function() {
                 var currXML = $(this);
-                var taskType = currXML.prop("tagName");
                 var taskId = currXML.attr('task');
                 var opId = currXML.attr('id');
                 var outputPriority = currXML.attr('outputPriority');
@@ -205,13 +187,13 @@ function WorkflowEditor() {
                     box,
                     _this.styles.endpoints.source
                 );
-
                 var inputCardinality = $(box).data().inputCardinality;
                 targetEndpoints[opId] = [];
                 if (inputCardinality === -1) {
                     targetEndpoints[opId].push(
                         _this.handler.addDynamicEndpoint(box, 'dynamic_target')
                     );
+                    // jsPlumb.addEndpoint(id, _this.styles.endpoints.dynamic_target);
                 } else {
                     for (var index = 0; index < inputCardinality; index++) {
                         targetEndpoints[opId].push(
@@ -222,10 +204,6 @@ function WorkflowEditor() {
                         );
                     }
                     _this.handler.repaintEndpoints(box, targetEndpoints[opId]);
-                }
-
-                if(taskType === "Operator") {
-                    configTargetEndpoints[opId] = jsPlumb.addEndpoint(box, _this.styles.endpoints.configTarget);
                 }
             });
         }
@@ -261,21 +239,6 @@ function WorkflowEditor() {
                         }
                     }
                 });
-
-                var configInputs = currXML.attr('configInputs');
-                if(configInputs !== undefined) {
-                    $.each(configInputs.split(','), function (
-                        index,
-                        value
-                    ) {
-                        if (value !== '') {
-                            jsPlumb.connect({
-                                source: sourceEndpoints[value],
-                                target: configTargetEndpoints[taskId],
-                            });
-                        }
-                    });
-                }
             });
         }
     };
