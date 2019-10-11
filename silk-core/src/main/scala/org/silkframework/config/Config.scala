@@ -1,11 +1,14 @@
 package org.silkframework.config
 
 import java.io.File
+import java.lang.management.ManagementFactory
 import java.util.logging.Logger
+
 import javax.inject.Named
 import Config._
-
 import com.typesafe.config.{ConfigFactory, Config => TypesafeConfig}
+
+import scala.collection.JavaConverters._
 
 /**
   * Holds the configuration properties
@@ -53,9 +56,9 @@ class DefaultConfig private() extends Config {
   private def init(): TypesafeConfig = {
     this.synchronized {
       ConfigFactory.invalidateCaches()
-      var fullConfig = ConfigFactory.load()
+      val initialSystemConfig = ConfigFactory.load()
       // Check if we are running as part of the eccenca Linked Data Suite
-      eldsHomeDir match {
+      var fullConfig: TypesafeConfig = eldsHomeDir match {
         case Some(eldsHome) =>
           val dataintegrationConfigPath = DATAINTEGRATION_PATH + DATAINTEGRATION_CONF
           val configFile = new File(eldsHome + dataintegrationConfigPath)
@@ -67,23 +70,32 @@ class DefaultConfig private() extends Config {
             msg ++= "Otherwise set elds.home or $ELDS_HOME to point to the correct location."
             log.warning(msg.toString())
           }
-          fullConfig = ConfigFactory.parseFile(configFile).withFallback(fullConfig)
+          initialSystemConfig.withFallback(ConfigFactory.parseFile(configFile))
         case None => Logger.getLogger(this.getClass.getName).info(
           "Variable $ELDS_HOME is not defined. If this application is not running in the ELDS context " +
             "you can ignore this warning. Otherwise please configure $ELDS_HOME or elds.home."
-        )
+          )
+          initialSystemConfig
       }
 
       // Check if we are running as part of the Play Framework
-      val playConfig1 = new File(System.getProperty(USER_HOME_CONF) + REFERENCE_CONF)
-      val playConfig2 = new File(System.getProperty(USER_HOME_CONF) + APPLICATION_CONF)
-      if (playConfig1.exists()) {
-        fullConfig = fullConfig.withFallback(ConfigFactory.parseFile(playConfig1))
+      val referenceConf = new File(System.getProperty(USER_HOME_CONF) + REFERENCE_CONF)
+      val applicationConf = new File(System.getProperty(USER_HOME_CONF) + APPLICATION_CONF)
+      if (applicationConf.exists()) {
+        //fallback to play definition
+        fullConfig = fullConfig.withFallback(ConfigFactory.parseFile(applicationConf))
       }
-      if (playConfig2.exists()) {
-        fullConfig = fullConfig.withFallback(ConfigFactory.parseFile(playConfig2))
+      if (referenceConf.exists()) {
+        // fallback to reference conf
+        fullConfig = fullConfig.withFallback(ConfigFactory.parseFile(referenceConf))
       }
-      fullConfig.resolve()
+      // resolve all parameters
+      val finalConfig = fullConfig.resolve()
+      // publish everything to the system
+      finalConfig.entrySet().asScala.foreach(e => System.setProperty(e.getKey, e.getValue.unwrapped().toString))
+      // finally we re commit any specific command line argument which may have been overwritten by the property sources
+      DefaultConfig.reapplyCommandLineProperties()
+      finalConfig
     }
   }
 
@@ -104,4 +116,17 @@ class DefaultConfig private() extends Config {
 object DefaultConfig {
   // This default initialization needed for usages that don't involve dependency injection
   lazy val instance = new DefaultConfig()
+
+
+  private val CLARegex = """-D\s*([^=]+)\s*=\s*(.+)""".r
+  /**
+    * Will re-commit any specifically provided command line properties, in case they were overwritten by other loaded property sources.
+    */
+  def reapplyCommandLineProperties(): Unit ={
+    ManagementFactory.getRuntimeMXBean.getInputArguments.asScala.foreach{a => CLARegex.findFirstMatchIn(a) match{
+      case Some(m) => System.setProperty(m.group(1), m.group(2).trim)
+      case None =>
+    }
+    }
+  }
 }

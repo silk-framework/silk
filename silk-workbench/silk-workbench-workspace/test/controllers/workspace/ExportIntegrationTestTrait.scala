@@ -9,7 +9,7 @@ import org.scalatest.{MustMatchers, TestSuite}
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.util.Identifier
+import org.silkframework.util.{ConfigTestTrait, Identifier}
 import org.silkframework.workspace._
 
 import scala.io.Source
