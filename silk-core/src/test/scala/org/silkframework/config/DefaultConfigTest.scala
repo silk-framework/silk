@@ -23,7 +23,7 @@ class DefaultConfigTest extends FlatSpec with MustMatchers with ConfigTestTrait 
   }
 
   // needs the corresponding Java cli argument '-Ddi.test.env=value'
-  it should "contain Java cli system properties" in{
+  ignore should "contain Java cli system properties" in{
     DefaultConfig.instance().getString("di.test.env") mustBe "value"
     DefaultConfig.instance().getString("pidfile.path") mustBe "/path/here"
   }
