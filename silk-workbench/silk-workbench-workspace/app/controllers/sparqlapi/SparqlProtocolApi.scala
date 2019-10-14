@@ -86,8 +86,7 @@ class SparqlProtocolApi @Inject() () extends InjectedController {
         chosenMediaType match{
           case Some(SPARQLJSONRESULT) => Ok(SparqlResultJsonSerializers.write(queryResults)(getWriteContext[JsValue](context)))
           case Some(SPARQLXMLRESULT) => Ok(SparqlResultXmlSerializers.write(queryResults)(getWriteContext[Node](context)))
-          case Some(unsupported) => ErrorResult(SparqlContentNegotiationError(Some(unsupported)))
-          case None => Ok(SparqlResultJsonSerializers.write(queryResults)(getWriteContext[JsValue](context))) // by default we return json
+          case _ => Ok(SparqlResultXmlSerializers.write(queryResults)(getWriteContext[Node](context))) // by default we return xml
         }
       case _ => ErrorResult(BadUserInputException("This is not an RDF-Dataset."))
     }
