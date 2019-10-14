@@ -141,9 +141,7 @@ function WorkflowEditor() {
                         }
                         _this.handler.repaintEndpoints(id, endpoints);
                     }
-                    if(!isDataset) {
-                        jsPlumb.addEndpoint(id, _this.styles.endpoints.configTarget);
-                    }
+                    jsPlumb.addEndpoint(id, _this.styles.endpoints.configTarget);
 
                 }
             },
@@ -224,9 +222,7 @@ function WorkflowEditor() {
                     _this.handler.repaintEndpoints(box, targetEndpoints[opId]);
                 }
 
-                if(taskType === "Operator") {
-                    configTargetEndpoints[opId] = jsPlumb.addEndpoint(box, _this.styles.endpoints.configTarget);
-                }
+                configTargetEndpoints[opId] = jsPlumb.addEndpoint(box, _this.styles.endpoints.configTarget);
             });
         }
 
