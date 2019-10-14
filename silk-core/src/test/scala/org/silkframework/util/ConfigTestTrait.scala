@@ -26,7 +26,8 @@ trait ConfigTestTrait extends BeforeAndAfterAll { this: Suite =>
       updateProperty(key, newValue)
       (key, oldValue)
     }
-    DefaultConfig.instance.refresh()
+    val overrides = ConfigFactory.parseMap(propertyMap.flatMap(x => x._2.map(y => (x._1, y))).asJava)
+    DefaultConfig.instance.refresh(overrides)
   }
 
   // Removes the property value if newValue is None, else sets it to the new value
@@ -44,8 +45,7 @@ trait ConfigTestTrait extends BeforeAndAfterAll { this: Suite =>
     for((key, oldValue) <- backupParameters) {
       updateProperty(key, oldValue)
     }
-    val overrides = ConfigFactory.parseMap(backupParameters.flatMap(x => x._2.map(y => (x._1, y))).toMap.asJava)
-    DefaultConfig.instance.refresh(overrides)
+    DefaultConfig.instance.refresh()
     super.afterAll()
   }
 }

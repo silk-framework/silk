@@ -37,7 +37,7 @@ class TestConfig extends Config {
   override def apply(): TypesafeConfig = null
 
   /** Refreshes the Config instance, e.g. load from changed config file or newly set property values. */
-  override def refresh(): Unit = {}
+  override def refresh(overrides: TypesafeConfig): Unit = {}
 }
 
 object ConfigTestHelper {
