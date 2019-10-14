@@ -70,7 +70,7 @@ class DefaultConfig private() extends Config {
             msg ++= "Otherwise set elds.home or $ELDS_HOME to point to the correct location."
             log.warning(msg.toString())
           }
-          initialSystemConfig.withFallback(ConfigFactory.parseFile(configFile))
+          ConfigFactory.parseFile(configFile).withFallback(initialSystemConfig)
         case None => Logger.getLogger(this.getClass.getName).info(
           "Variable $ELDS_HOME is not defined. If this application is not running in the ELDS context " +
             "you can ignore this warning. Otherwise please configure $ELDS_HOME or elds.home."
@@ -92,7 +92,7 @@ class DefaultConfig private() extends Config {
       // resolve all parameters
       val finalConfig = fullConfig.resolve()
       // publish everything to the system
-      finalConfig.entrySet().asScala.foreach(e => System.setProperty(e.getKey, e.getValue.unwrapped().toString))
+      //finalConfig.entrySet().asScala.foreach(e => System.setProperty(e.getKey, e.getValue.unwrapped().toString))
       // finally we re commit any specific command line argument which may have been overwritten by the property sources
       DefaultConfig.reapplyCommandLineProperties()
       finalConfig
