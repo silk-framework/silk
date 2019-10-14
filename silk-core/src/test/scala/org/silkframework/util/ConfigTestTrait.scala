@@ -1,7 +1,9 @@
 package org.silkframework.util
 
+import com.typesafe.config.ConfigFactory
 import org.scalatest.{BeforeAndAfterAll, Suite}
 import org.silkframework.config.DefaultConfig
+import scala.collection.JavaConverters._
 
 /**
   * Trait to be mixed in to modify config parameters during the run of a suite.
@@ -42,8 +44,8 @@ trait ConfigTestTrait extends BeforeAndAfterAll { this: Suite =>
     for((key, oldValue) <- backupParameters) {
       updateProperty(key, oldValue)
     }
-    DefaultConfig.instance.refresh()
+    val overrides = ConfigFactory.parseMap(backupParameters.flatMap(x => x._2.map(y => (x._1, y))).toMap.asJava)
+    DefaultConfig.instance.refresh(overrides)
     super.afterAll()
   }
-
 }

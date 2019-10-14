@@ -18,7 +18,7 @@ trait Config {
   def apply(): TypesafeConfig
 
   /** Refreshes the Config instance, e.g. load from changed config file or newly set property values. */
-  def refresh(): Unit
+  def refresh(overrides: TypesafeConfig = ConfigFactory.empty()): Unit
 }
 
 object Config{
@@ -53,12 +53,19 @@ class DefaultConfig private() extends Config {
       .map(p => new File(p))
   }
 
-  private def init(): TypesafeConfig = {
+  /**
+    * Initializes a default configuration by sequentially applying and resolving all possible configuration objects
+    * @param overrides - optional configuration overriding all other configurations
+    * @return - the resolved default configuration
+    */
+  private def init(overrides: TypesafeConfig = ConfigFactory.empty()): TypesafeConfig = {
     this.synchronized {
       ConfigFactory.invalidateCaches()
+      // as basis we use commandline properties with fallback to the provided overrides
       val initialSystemConfig = ConfigFactory.load()
-      // Check if we are running as part of the eccenca Linked Data Suite
-      var fullConfig: TypesafeConfig = eldsHomeDir match {
+      val allOverrides = DefaultConfig.reapplyCommandLineProperties().withFallback(overrides)
+      // Check if we are running as part of the eccenca Linked Data Suite, if so we fall back to dataintegration.conf
+      var fullConfig: TypesafeConfig = allOverrides.withFallback(eldsHomeDir match {
         case Some(eldsHome) =>
           val dataintegrationConfigPath = DATAINTEGRATION_PATH + DATAINTEGRATION_CONF
           val configFile = new File(eldsHome + dataintegrationConfigPath)
@@ -76,7 +83,7 @@ class DefaultConfig private() extends Config {
             "you can ignore this warning. Otherwise please configure $ELDS_HOME or elds.home."
           )
           initialSystemConfig
-      }
+      })
 
       // Check if we are running as part of the Play Framework
       val referenceConf = new File(System.getProperty(USER_HOME_CONF) + REFERENCE_CONF)
@@ -93,8 +100,6 @@ class DefaultConfig private() extends Config {
       val finalConfig = fullConfig.resolve()
       // publish everything to the system
       //finalConfig.entrySet().asScala.foreach(e => System.setProperty(e.getKey, e.getValue.unwrapped().toString))
-      // finally we re commit any specific command line argument which may have been overwritten by the property sources
-      DefaultConfig.reapplyCommandLineProperties()
       finalConfig
     }
   }
@@ -106,7 +111,7 @@ class DefaultConfig private() extends Config {
   }
 
   /** Refreshes the Config instance, e.g. load from changed config file or newly set property values. */
-  override def refresh(): Unit = {
+  override def refresh(overrides: TypesafeConfig = ConfigFactory.empty()): Unit = {
     this.synchronized {
       config = init()
     }
@@ -122,11 +127,14 @@ object DefaultConfig {
   /**
     * Will re-commit any specifically provided command line properties, in case they were overwritten by other loaded property sources.
     */
-  def reapplyCommandLineProperties(): Unit ={
-    ManagementFactory.getRuntimeMXBean.getInputArguments.asScala.foreach{a => CLARegex.findFirstMatchIn(a) match{
-      case Some(m) => System.setProperty(m.group(1), m.group(2).trim)
-      case None =>
+  def reapplyCommandLineProperties(): TypesafeConfig ={
+    val map = ManagementFactory.getRuntimeMXBean.getInputArguments.asScala.flatMap{a => CLARegex.findFirstMatchIn(a) match{
+      case Some(m) =>
+        System.setProperty(m.group(1), m.group(2).trim)
+        Some((m.group(1), m.group(2).trim))
+      case None => None
     }
     }
+    ConfigFactory.parseMap(map.toMap.asJava)
   }
 }

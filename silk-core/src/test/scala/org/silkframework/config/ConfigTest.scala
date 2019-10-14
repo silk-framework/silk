@@ -9,7 +9,7 @@ import org.scalatest.{FlatSpec, MustMatchers}
 /**
   * Created on 9/27/16.
   */
-class ConfigTest extends FlatSpec with MustMatchers {
+  class ConfigTest extends FlatSpec with MustMatchers {
   behavior of "Config dependency injection"
   it should "inject into Scala objects" in {
     Guice.createInjector(new ScalaModule() {
