@@ -87,7 +87,7 @@ class SparqlProtocolApi @Inject() () extends InjectedController {
           case Some(SPARQLJSONRESULT) => Ok(SparqlResultJsonSerializers.write(queryResults)(getWriteContext[JsValue](context)))
           case Some(SPARQLXMLRESULT) => Ok(SparqlResultXmlSerializers.write(queryResults)(getWriteContext[Node](context)))
           case Some(unsupported) => ErrorResult(SparqlContentNegotiationError(Some(unsupported))) //unsupported!
-          case None | Some(MimeTypes.TEXT) | Some(MimeTypes.TEXT) =>
+          case None | Some(MimeTypes.TEXT) | Some(MimeTypes.HTML) =>
             Ok(SparqlResultXmlSerializers.write(queryResults)(getWriteContext[Node](context)))    // by default we return xml, which also includes text/plain and text/html
         }
       case _ => ErrorResult(BadUserInputException("This is not an RDF-Dataset."))
