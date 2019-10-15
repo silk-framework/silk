@@ -15,6 +15,10 @@ trait CustomTask extends TaskSpec with AnyPlugin {
     ("Type", pluginType.label) +: params.toSeq
   }
 
+  override def withProperties(updatedProperties: Map[String, String])(implicit prefixes: Prefixes): CustomTask = {
+    withParameters(updatedProperties)
+  }
+
 }
 
 object CustomTask extends PluginFactory[CustomTask] {

@@ -67,15 +67,7 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty
   }
 
   override def withProperties(updatedProperties: Map[String, String])(implicit prefixes: Prefixes): DatasetSpec[DatasetType] = {
-    val (pluginDesc, parameters) = PluginRegistry.reflect(plugin)
-
-    val invalidParameters = updatedProperties.keySet -- parameters.keySet
-    if(invalidParameters.nonEmpty) {
-      throw new ValidationException("The following properties cannot be updated on dataset $this because they are no valid plugin parameters: " + invalidParameters)
-    }
-
-    val updatedParameters = parameters ++ updatedProperties
-    copy(plugin = pluginDesc.apply(updatedParameters).asInstanceOf[DatasetType])
+    copy(plugin = plugin.withParameters(updatedProperties))
   }
 
   override def toString: String = DatasetSpec.toString
