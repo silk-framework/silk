@@ -15,6 +15,8 @@
 package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
+import org.silkframework.dataset.DatasetSpec
+import org.silkframework.runtime.validation.ValidationException
 
 /**
  * Plugin interface.
@@ -30,6 +32,23 @@ trait AnyPlugin {
    * The parameters for this plugin as Map.
    */
   @transient lazy val parameters: Map[String, String] = pluginSpec.parameterValues(this)(Prefixes.empty)
+
+  /**
+    * Creates a new instance of this plugin with updated properties.
+    *
+    * @param updatedProperties A list of property values to be updated.
+    *                          This can be a subset of all available properties.
+    *                          Property values that are not part of the map remain unchanged.
+    */
+  def withParameters(updatedProperties: Map[String, String])(implicit prefixes: Prefixes): this.type = {
+    val invalidParameters = updatedProperties.keySet -- parameters.keySet
+    if(invalidParameters.nonEmpty) {
+      throw new ValidationException(s"The following properties cannot be updated on plugin $this because they are no valid parameters: $invalidParameters")
+    }
+
+    val updatedParameters = parameters ++ updatedProperties
+    pluginSpec.apply(updatedParameters).asInstanceOf[this.type]
+  }
 
   override def toString: String = {
     getClass.getSimpleName + "(" + parameters.map { case (key, value) => key + "=" + value }.mkString(" ") + ")"
