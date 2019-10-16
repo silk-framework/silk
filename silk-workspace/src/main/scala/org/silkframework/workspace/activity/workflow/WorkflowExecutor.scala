@@ -95,7 +95,10 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       workflowNode.workflowNode, {
         // Calculate the parameters
         val configInputEntities = workflowNode.configInputNodes.flatMap(node => workflowNodeEntities(node, task))
-        val configParameters = configInputEntities.flatMap(_.headOption.map(extractConfigParameterMap)).reduce(_ ++ _)
+        // Merge parameters, config parameters of later inputs overwrite those of earlier inputs
+        val configParameters = configInputEntities.
+            flatMap(_.headOption.map(extractConfigParameterMap)).
+            foldLeft(Map.empty[String, String])(_ ++ _)
         if(configParameters.isEmpty) {
           task
         } else {
