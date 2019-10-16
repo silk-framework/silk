@@ -9,11 +9,13 @@
 node_modules/
 npm-debug.log
 yarn-error.log
+test-report.xml
 
 # ignore symlinks
 Makefile
 
 # ignore coverage report
+reports/
 coverage/
 
 # ignore compiled

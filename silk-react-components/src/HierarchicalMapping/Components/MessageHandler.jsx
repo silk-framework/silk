@@ -3,111 +3,99 @@ import React from 'react';
 import _ from 'lodash';
 import rxmq from 'ecc-messagebus';
 
-import UseMessageBus from '../UseMessageBusMixin';
-
 import { Alert, Error, Info, Success, Warning } from '@eccenca/gui-elements';
 
-const renderClasses = {
-	alert: Alert,
-	error: Error,
-	info: Info,
-	success: Success,
-	warning: Warning
+const RENDER_CLASSES = {
+    alert: Alert,
+    error: Error,
+    info: Info,
+    success: Success,
+    warning: Warning,
 };
 
 const errorChannel = rxmq.channel('errors');
 
+class MessageHandler extends React.Component {
+    state = {
+        errorMessages: [],
+    };
 
-const MessageHandler = React.createClass({
-	mixins: [UseMessageBus],
-
-	// initilize state
-	getInitialState() {
-		// return state
-		return {
-			errorMessages: []
-		};
-	},
-	componentDidMount() {
+    componentDidMount() {
 		// listen for graphs loading
-		this.subscribe(errorChannel.subject('message'), this.onError.bind(this, 'alert'));
-		this.subscribe(errorChannel.subject('message.alert'), this.onError.bind(this, 'alert'));
-		this.subscribe(errorChannel.subject('message.error'), this.onError.bind(this, 'error'));
-		this.subscribe(errorChannel.subject('message.info'), this.onError.bind(this, 'info'));
-		this.subscribe(errorChannel.subject('message.success'), this.onError.bind(this, 'success'));
-		this.subscribe(errorChannel.subject('message.warning'), this.onError.bind(this, 'warning'));
-	},
+        errorChannel.subject('message').subscribe(data => this.onError('alert', data));
+        errorChannel.subject('message.alert').subscribe(data => this.onError('alert', data));
+        errorChannel.subject('message.error').subscribe(data => this.onError('error', data));
+        errorChannel.subject('message.info').subscribe(data => this.onError('info', data));
+        errorChannel.subject('message.success').subscribe(data => this.onError('success', data));
+        errorChannel.subject('message.warning').subscribe(data => this.onError('warning', data));
+    }
 
 	// handle graphs loaded
-	onError(errorType, data) {
-
+    onError = (errorType, data) => {
 		// get current messages
-		const { errorMessages } = this.state;
-		const messageKey = _.uniqueId('messageHandler--message-');
-		const result = { message: _.isString(data) ? data : data.message };
+        const { errorMessages } = this.state;
+        const messageKey = _.uniqueId('messageHandler--message-');
+        const result = { message: _.isString(data) ? data : data.message };
 
-		if (data.response && data.response.type === 'application/json') {
-			try {
-				const body = JSON.parse(data.response.text);
-				result.message = body.message || result.message;
-			} catch (syntax) {
-			}
-		}
+        if (data.response && data.response.type === 'application/json') {
+            try {
+                const body = JSON.parse(data.response.text);
+                result.message = body.message || result.message;
+            } catch (syntax) {
+            }
+        }
 
 		// assign errorType
-		result.errorType = errorType;
-		result.key = messageKey;
+        result.errorType = errorType;
+        result.key = messageKey;
 
 		// prevent doublettes (same type/same message)
-		if (!_.some(errorMessages, { message: result.message, errorType })) {
+        if (!_.some(errorMessages, { message: result.message, errorType })) {
+            errorMessages.unshift(result);
 
-			errorMessages.unshift(result);
-
-			this.removeAfterDelay(errorType, messageKey);
+            this.removeAfterDelay(errorType, messageKey);
 
 			// apply to state
-			this.setState({
-				errorMessages
-			});
+            this.setState({
+                errorMessages,
+            });
+        }
+    };
 
-		}
+    removeAfterDelay(type, key) {
+        setTimeout(() => {
+            this.removeMessage(key);
+        }, 3000);
+    }
 
-	},
-
-	removeAfterDelay(type, key) {
-		setTimeout(() => {
-			this.removeMessage(key);
-		}, 3000);
-	},
-
-	removeMessage(key) {
-		const errorMessages = _.reject(this.state.errorMessages, ['key', key]);
+    removeMessage = key => {
+        const errorMessages = _.reject(this.state.errorMessages, ['key', key]);
 		// apply to state
-		this.setState({ errorMessages });
-	},
+        this.setState({ errorMessages });
+    };
 
-	render() {
-		const messages = this.state.errorMessages.map(({ message, errorType, key }, index) => {
-			const Class = renderClasses[errorType];
+    render() {
+        const messages = this.state.errorMessages.map(({ message, errorType, key }, index) => {
+            const Class = RENDER_CLASSES[errorType];
 
-			return (
-				<Class
-					key={'error_' + index}
-					border={true}
-					vertSpacing={true}
-					handlerDismiss={this.removeMessage}
-				>
-					{message}
-				</Class>
-			);
-		});
+            return (
+                <Class
+                    key={`error_${index}`}
+                    border={true}
+                    vertSpacing={true}
+                    handlerDismiss={this.removeMessage}
+                >
+                    {message}
+                </Class>
+            );
+        });
 
-		return (messages.length > 0) ? (
-			<div className='ecc-component-messagehandler'>
-				{messages}
-			</div>
-		) : false;
-	}
-});
+        return (messages.length > 0) ? (
+            <div className="ecc-component-messagehandler">
+                {messages}
+            </div>
+        ) : false;
+    }
+}
 
 export default MessageHandler;
