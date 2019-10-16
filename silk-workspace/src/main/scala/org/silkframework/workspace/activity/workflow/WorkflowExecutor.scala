@@ -102,6 +102,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
         if(configParameters.isEmpty) {
           task
         } else {
+          implicit val resourceManager = workflowTask.project.resources
           PlainTask(id = task.id, data = task.data.withProperties(configParameters), metaData = task.metaData)
         }
       }

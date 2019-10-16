@@ -16,6 +16,7 @@ package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DatasetSpec
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.ValidationException
 
 /**
@@ -40,10 +41,11 @@ trait AnyPlugin {
     *                          This can be a subset of all available properties.
     *                          Property values that are not part of the map remain unchanged.
     */
-  def withParameters(updatedProperties: Map[String, String])(implicit prefixes: Prefixes): this.type = {
+  def withParameters(updatedProperties: Map[String, String])(implicit prefixes: Prefixes, resourceManager: ResourceManager): this.type = {
     val invalidParameters = updatedProperties.keySet -- parameters.keySet
     if(invalidParameters.nonEmpty) {
-      throw new ValidationException(s"The following properties cannot be updated on plugin $this because they are no valid parameters: $invalidParameters")
+      throw new ValidationException(s"The following properties cannot be updated on plugin $this because they are no valid parameters:" +
+          s" ${invalidParameters.mkString(", ")}. Valid parameters are: ${parameters.mkString(", ")}")
     }
 
     val updatedParameters = parameters ++ updatedProperties

@@ -45,7 +45,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                   (implicit userContext: UserContext): Unit = {
     cancelled = false
 
-    implicit val workflowRunContext = WorkflowRunContext(
+    implicit val workflowRunContext: WorkflowRunContext = WorkflowRunContext(
       activityContext = context,
       workflow = currentWorkflow,
       userContext = userContext
@@ -196,7 +196,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     if (!workflowRunContext.alreadyExecuted.contains(datasetNode.workflowNode)) {
       // Execute all input nodes and write to this dataset
       datasetNode.inputNodes foreach { pNode =>
-        executeWorkflowNode(pNode, ExecutorOutput(Some(datasetTask(datasetNode)), None)) match {
+        val task = datasetTask(datasetNode)
+        executeWorkflowNode(pNode, ExecutorOutput(Some(task), None)) match {
           case Some(entityTable) =>
             writeEntityTableToDataset(datasetNode, entityTable)
           case None =>

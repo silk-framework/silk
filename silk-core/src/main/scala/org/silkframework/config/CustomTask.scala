@@ -1,6 +1,7 @@
 package org.silkframework.config
 
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory, PluginRegistry}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 
 import scala.xml.Node
@@ -15,7 +16,7 @@ trait CustomTask extends TaskSpec with AnyPlugin {
     ("Type", pluginType.label) +: params.toSeq
   }
 
-  override def withProperties(updatedProperties: Map[String, String])(implicit prefixes: Prefixes): CustomTask = {
+  override def withProperties(updatedProperties: Map[String, String])(implicit prefixes: Prefixes, resourceManager: ResourceManager): CustomTask = {
     withParameters(updatedProperties)
   }
 

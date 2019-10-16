@@ -66,7 +66,7 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty
     properties
   }
 
-  override def withProperties(updatedProperties: Map[String, String])(implicit prefixes: Prefixes): DatasetSpec[DatasetType] = {
+  override def withProperties(updatedProperties: Map[String, String])(implicit prefixes: Prefixes, resourceManager: ResourceManager): DatasetSpec[DatasetType] = {
     copy(plugin = plugin.withParameters(updatedProperties))
   }
 
