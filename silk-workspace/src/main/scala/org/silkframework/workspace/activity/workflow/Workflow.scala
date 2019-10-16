@@ -393,10 +393,20 @@ case class WorkflowDependencyNode(workflowNode: WorkflowNode) {
     precedingNodes ++ precedingNodes.flatMap(_.precedingNodesRecursively)
   }
 
+  /** The direct input nodes as [[WorkflowDependencyNode]] */
   def inputNodes: Seq[WorkflowDependencyNode] = {
     for (
-      input <- workflowNode.allInputs;
+      input <- workflowNode.inputs;
       pNode <- precedingNodes.filter(_.nodeId == input)) yield {
+      pNode
+    }
+  }
+
+  /** The config input nodes as [[WorkflowDependencyNode]] */
+  def configInputNodes: Seq[WorkflowDependencyNode] = {
+    for (
+      configInput <- workflowNode.configInputs;
+      pNode <- precedingNodes.filter(_.nodeId == configInput)) yield {
       pNode
     }
   }

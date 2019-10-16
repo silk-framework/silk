@@ -127,6 +127,8 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
     val dsA1 = testWorkflowWithConfigInputs.workflowDependencyGraph.startNodes.find(_.nodeId == DS_A1)
     dsA1 mustBe defined
     dsA1.get.followingNodes.exists(_.nodeId == CONFIG_NODE) mustBe true
+    // Check if config node is preceding node of transformation
+    dsA1.get.followingNodes.find(_.nodeId == TRANSFORM_1).get.precedingNodes.exists(_.nodeId == CONFIG_NODE) mustBe true
   }
 
   val testWorkflow: Workflow = {
