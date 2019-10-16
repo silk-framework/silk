@@ -99,7 +99,6 @@ export class MappingRule extends React.Component {
     }
 
     handleToggleRule({ expanded, id }) {
-        console.log(expanded, id);
         // only trigger state / render change if necessary
         if (
             expanded !== this.state.expanded &&

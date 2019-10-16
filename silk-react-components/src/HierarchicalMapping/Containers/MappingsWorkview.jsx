@@ -77,7 +77,6 @@ class MappingsWorkview extends React.Component {
     }
 
     componentWillUnmount() {
-        console.log('unmounted');
         EventEmitter.off(MESSAGES.RELOAD, this.loadData);
         EventEmitter.off(MESSAGES.RULE_ID.CREATE, this.onRuleCreate);
         EventEmitter.off(MESSAGES.MAPPING.CREATE, this.handleCreate);
