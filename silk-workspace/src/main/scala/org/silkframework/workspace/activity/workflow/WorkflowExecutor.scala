@@ -6,6 +6,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.Entity
 import org.silkframework.execution._
 import org.silkframework.runtime.activity._
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
 
@@ -91,22 +92,27 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
                                              task: Task[T])
                                             (implicit workflowRunContext: WorkflowRunContext): Task[T] = {
     implicit val prefixes: Prefixes = Prefixes.empty // TODO: propagate prefixes?
-    workflowRunContext.reconfiguredTasks.getOrElseUpdate(
-      workflowNode.workflowNode, {
-        // Calculate the parameters
-        val configInputEntities = workflowNode.configInputNodes.flatMap(node => workflowNodeEntities(node, task))
-        // Merge parameters, config parameters of later inputs overwrite those of earlier inputs
-        val configParameters = configInputEntities.
-            flatMap(_.headOption.map(extractConfigParameterMap)).
-            foldLeft(Map.empty[String, String])(_ ++ _)
-        if(configParameters.isEmpty) {
-          task
-        } else {
-          implicit val resourceManager = workflowTask.project.resources
-          PlainTask(id = task.id, data = task.data.withProperties(configParameters), metaData = task.metaData)
+    try {
+      workflowRunContext.reconfiguredTasks.getOrElseUpdate(
+        workflowNode.workflowNode, {
+          // Calculate the parameters
+          val configInputEntities = workflowNode.configInputNodes.flatMap(node => workflowNodeEntities(node, task))
+          // Merge parameters, config parameters of later inputs overwrite those of earlier inputs
+          val configParameters = configInputEntities.
+              flatMap(_.headOption.map(extractConfigParameterMap)).
+              foldLeft(Map.empty[String, String])(_ ++ _)
+          if (configParameters.isEmpty) {
+            task
+          } else {
+            implicit val resourceManager = workflowTask.project.resources
+            PlainTask(id = task.id, data = task.data.withProperties(configParameters), metaData = task.metaData)
+          }
         }
-      }
-    ).asInstanceOf[Task[T]]
+      ).asInstanceOf[Task[T]]
+    } catch {
+      case ex: ValidationException =>
+        throw new ValidationException(s"Failed to re-configure task '${task.taskLabel()}'. Error details: " + ex.getMessage)
+    }
   }
 
   private def extractConfigParameterMap(entity: Entity): Map[String, String] = {

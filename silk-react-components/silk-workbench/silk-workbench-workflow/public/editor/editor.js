@@ -19,6 +19,10 @@ function WorkflowEditor() {
             fill: '#3187CF',
             radius: 4,
         },
+        hoverPaintStyle: {
+            fill: '#3187CF',
+            radius: 6,
+        },
         connectorStyle: this.styles.connectors.plain,
         connectorHoverStyle: this.styles.connectors.hover,
         connectorOverlays: [['Arrow', {location: 1, width: 15, length: 15}]],
@@ -33,6 +37,10 @@ function WorkflowEditor() {
             fill: '#3187CF',
             radius: 4,
         },
+        hoverPaintStyle: {
+            fill: '#3187CF',
+            radius: 6,
+        },
         connectorStyle: this.styles.connectors.plain,
         isTarget: true,
         maxConnections: 1,
@@ -44,16 +52,25 @@ function WorkflowEditor() {
             fill: '#3187CF',
             radius: 4,
         },
+        hoverPaintStyle: {
+            fill: '#3187CF',
+            radius: 6,
+        },
         connectorStyle: this.styles.connectors.plain,
         isTarget: true,
         maxConnections: 1,
     };
     this.styles.endpoints.configTarget = {
         anchor: 'TopCenter',
+        title: 'test',
         endpoint: 'Dot',
         paintStyle: {
             fill: '#BF5741',
             radius: 4,
+        },
+        hoverPaintStyle: {
+            fill: '#BF5741',
+            radius: 6,
         },
         connectorStyle: this.styles.connectors.plain,
         isTarget: true,

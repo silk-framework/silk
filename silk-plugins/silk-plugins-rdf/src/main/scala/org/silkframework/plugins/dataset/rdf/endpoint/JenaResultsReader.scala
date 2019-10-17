@@ -23,7 +23,7 @@ object JenaResultsReader {
   /**
     * Converts a Jena ARQ QuerySolution to a Silk binding
     */
-  private def toSilkBinding(querySolution: QuerySolution) = {
+  def toSilkBinding(querySolution: QuerySolution): SortedMap[String, RdfNode] = {
     val values =
       for (varName <- querySolution.varNames.toList;
            value <- Option(querySolution.get(varName))) yield {
@@ -36,17 +36,16 @@ object JenaResultsReader {
   /**
     *  Converts a Jena RDFNode to a Silk Node.
     */
-  private def toSilkNode(node: org.apache.jena.rdf.model.RDFNode) = node match {
+  def toSilkNode(node: org.apache.jena.rdf.model.RDFNode): RdfNode = node match {
     case r: org.apache.jena.rdf.model.Resource if !r.isAnon => Resource(r.getURI)
     case r: org.apache.jena.rdf.model.Resource => BlankNode(r.getId.getLabelString)
-    case l: org.apache.jena.rdf.model.Literal => {
+    case l: org.apache.jena.rdf.model.Literal =>
       val dataType = Option(l.getDatatypeURI).filterNot(_ == "http://www.w3.org/2001/XMLSchema#string")
       val lang = Option(l.getLanguage).filterNot(_.isEmpty)
       val lexicalValue = l.getString
       lang.map(LanguageLiteral(lexicalValue, _)).
         orElse(dataType.map(DataTypeLiteral(lexicalValue, _))).
         getOrElse(PlainLiteral(lexicalValue))
-    }
     case _ => throw new IllegalArgumentException("Unsupported Jena RDFNode type '" + node.getClass.getName + "' in Jena SPARQL results")
   }
 

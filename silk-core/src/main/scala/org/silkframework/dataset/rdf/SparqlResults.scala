@@ -8,3 +8,5 @@ case class SparqlResults(bindings: Traversable[SortedMap[String, RdfNode]]) {
     if(bindings.isEmpty) Seq.empty
     else bindings.head.keys.toSeq
 }
+
+class SparqlAskResult(val askResult: Boolean) extends SparqlResults(Traversable.empty)
