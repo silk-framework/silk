@@ -15,7 +15,6 @@
 package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.DatasetSpec
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.ValidationException
 
@@ -44,8 +43,8 @@ trait AnyPlugin {
   def withParameters(updatedProperties: Map[String, String])(implicit prefixes: Prefixes, resourceManager: ResourceManager): this.type = {
     val invalidParameters = updatedProperties.keySet -- parameters.keySet
     if(invalidParameters.nonEmpty) {
-      throw new ValidationException(s"The following properties cannot be updated on plugin $this because they are no valid parameters:" +
-          s" ${invalidParameters.mkString(", ")}. Valid parameters are: ${parameters.mkString(", ")}")
+      throw new ValidationException(s"The following properties cannot be updated on plugin class '${this.getClass.getSimpleName}' because they are no valid parameters:" +
+          s" ${invalidParameters.mkString(", ")}. Valid parameters are: ${parameters.keySet.mkString(", ")}")
     }
 
     val updatedParameters = parameters ++ updatedProperties
