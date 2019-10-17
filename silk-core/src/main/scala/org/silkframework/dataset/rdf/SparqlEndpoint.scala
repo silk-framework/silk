@@ -33,6 +33,17 @@ trait SparqlEndpoint {
   def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint
 
   /**
+    * Executes an ask query.
+    * ASK queries determine whether or not a query solution exists for the given set of patterns and restrictions.
+    * Syntax: ASK WHERE{ ... }
+    */
+  def ask(query: String)(implicit userContext: UserContext): SparqlAskResult = {
+    val selectQuery = query.replaceFirst("(ASK|ask)\\s+", "SELECT * ")
+    val askResult = this.select(selectQuery, 1).bindings.nonEmpty
+    new SparqlAskResult(askResult)
+  }
+
+  /**
     * Executes a select query.
     * If the query does not contain a offset or limit, automatic paging is done by issuing multiple queries with a sliding offset.
     *

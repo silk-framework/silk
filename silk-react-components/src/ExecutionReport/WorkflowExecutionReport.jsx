@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Card, CardContent, CardTitle, Icon} from '@eccenca/gui-elements';
 import silkStore from "../api/silkStore";
-import hierarchicalMappingChannel from "../HierarchicalMapping/store";
 import ExecutionReport from "./ExecutionReport";
 
 /**

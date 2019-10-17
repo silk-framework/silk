@@ -4,7 +4,7 @@ import org.apache.jena.query.{DatasetFactory, Query, QueryExecution, QueryExecut
 import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
 import org.apache.jena.sparql.core.DatasetGraphFactory
 import org.apache.jena.update.{UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
-import org.silkframework.dataset.rdf.{QuadIterator, SparqlEndpoint, SparqlParams, SparqlResults}
+import org.silkframework.dataset.rdf._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 
