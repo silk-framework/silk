@@ -141,8 +141,7 @@ function WorkflowEditor() {
                         }
                         _this.handler.repaintEndpoints(id, endpoints);
                     }
-                    jsPlumb.addEndpoint(id, _this.styles.endpoints.configTarget);
-
+                    _this.addConfigEndpoint(id);
                 }
             },
         });
@@ -222,7 +221,7 @@ function WorkflowEditor() {
                     _this.handler.repaintEndpoints(box, targetEndpoints[opId]);
                 }
 
-                configTargetEndpoints[opId] = jsPlumb.addEndpoint(box, _this.styles.endpoints.configTarget);
+                configTargetEndpoints[opId] = _this.addConfigEndpoint(box);
             });
         }
 
@@ -293,6 +292,12 @@ function WorkflowEditor() {
             // Show the corresponding element in the toolbox again
             $(`#toolbox${elementId.substring(elementId.indexOf('_'))}`).show();
         }, 100);
+    };
+
+    this.addConfigEndpoint = function(box) {
+        var endpoint = jsPlumb.addEndpoint(box, _this.styles.endpoints.configTarget);
+        endpoint.canvas.setAttribute("title", "Configuration input. Values passed here will be used to reconfigure the operator parameters.");
+        return endpoint;
     };
 
     this.bindEvents();
