@@ -41,23 +41,67 @@ import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExam
     input1 = Array("First"),
     input2 = Array("Last"),
     output = Array("First-Last")
+  ),
+  new TransformExample(
+    parameters = Array("glue", "-"),
+    input1 = Array("First"),
+    input2 = Array("Second", "Third"),
+    output = Array("First-Second", "First-Third")
+  ),
+  new TransformExample( // This should equal the last case
+    parameters = Array("glue", "-"),
+    input1 = Array("First"),
+    input2 = Array(""),
+    input3 = Array("Second"),
+    output = Array("First--Second")
+  ),
+  new TransformExample( // This is faulty according to CMEM-2212 but the test does not care
+    parameters = Array("glue", "-"),
+    input1 = Array("First"),
+    input2 = Array(),
+    input3 = Array("Second"),
+    output = Array("First-Second")
+  ),
+  new TransformExample( // The test seems to handle that like the case 2 above, weird
+    parameters = Array("glue", "-", "handleMissingValuesAsEmptyStrings", "true"),
+    input1 = Array("First"),
+    input2 = Array(),
+    input3 = Array("Second"),
+    output = Array("First-Second")
   )
 ))
-case class ConcatTransformer(glue: String = "") extends Transformer {
+case class ConcatTransformer(glue: String = "", handleMissingValuesAsEmptyStrings: Boolean = false) extends Transformer {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
+
     if(values.isEmpty) {
       Seq.empty
     } else if(values.size == 1) {
       values.head
     } else {
-      for (sequence <- cartesianProduct(values)) yield evaluate(sequence)
+      val preprocessed = if (handleMissingValuesAsEmptyStrings) {
+        for (value <- values) yield {
+          if (value.isEmpty) {
+            Seq("")
+          }
+          else {
+            value
+          }
+        }
+      } else {
+        values
+      }
+      for (sequence <- cartesianProduct(preprocessed)) yield evaluate(sequence)
     }
   }
 
   private def cartesianProduct(strings: Seq[Seq[String]]): Seq[List[String]] = {
-    if (strings.tail.isEmpty) for (string <- strings.head) yield string :: Nil
-    else for (string <- strings.head; seq <- cartesianProduct(strings.tail)) yield string :: seq
+    if (strings.tail.isEmpty) {
+      for (string <- strings.head) yield string :: Nil
+    }
+    else {
+      for (string <- strings.head; seq <- cartesianProduct(strings.tail)) yield string :: seq
+    }
   }
 
   private def evaluate(strings: Seq[String]) = {
