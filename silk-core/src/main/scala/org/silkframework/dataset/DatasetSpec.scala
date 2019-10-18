@@ -188,6 +188,29 @@ object DatasetSpec {
       isOpen = true
     }
 
+
+    override def openTableWithPaths(typeUri: Uri, typedPaths: Seq[TypedPath])(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+      if (isOpen) {
+        entitySink.close()
+        isOpen = false
+      }
+      entitySink.openTableWithPaths(typeUri, typedPaths)
+      isOpen = true
+
+    }
+
+    /**
+      * Called before a new table of entities of a particular schema is written.
+      */
+    override def openWithEntitySchema(es: EntitySchema)(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+      if (isOpen) {
+        entitySink.close()
+        isOpen = false
+      }
+      entitySink.openWithEntitySchema(es)
+      isOpen = true
+    }
+
     override def writeEntity(subject: String, values: Seq[Seq[String]])
                             (implicit userContext: UserContext): Unit = {
       require(isOpen, "Output must be opened before writing statements to it")
@@ -197,6 +220,23 @@ object DatasetSpec {
         case None =>
           entitySink.writeEntity(subject, values)
       }
+    }
+
+    /**
+      * Writes a new entity.
+      *
+      * @param entity - the entity to write
+      */
+    override def writeEntity(entity: Entity)(implicit userContext: UserContext): Unit = {
+      require(isOpen, "Output must be opened before writing statements to it")
+      entitySink.writeEntity(entity)
+    }
+
+    /**
+      * Write a complete table based on the provided collection of Entities
+      */
+    override def writeEntities(entities: Traversable[Entity])(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+      entitySink.writeEntities(entities)
     }
 
     /**

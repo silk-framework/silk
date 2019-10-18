@@ -2,7 +2,7 @@ package org.silkframework.dataset
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.TypedPath
-import org.silkframework.entity.{Entity, ValueType}
+import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
@@ -22,6 +22,11 @@ trait EntitySink extends DataSink {
     val properties = typedPaths.map(tp => tp.property.getOrElse(throw new RuntimeException("Typed path is neither a simple forward or backward path: " + tp)))
     openTable(typeUri, properties)
   }
+
+  /**
+    * Called before a new table of entities of a particular schema is written.
+    */
+  def openWithEntitySchema(es: EntitySchema)(implicit userContext: UserContext, prefixes: Prefixes): Unit = openTableWithPaths(es.typeUri, es.typedPaths)
 
   /**
     * Closes writing a table of entities.
@@ -45,6 +50,19 @@ trait EntitySink extends DataSink {
   def writeEntity(entity: Entity)
                  (implicit userContext: UserContext): Unit = if(! entity.hasFailed)
     writeEntity(entity.uri, entity.values)
+
+  /**
+    * Write a complete table based on the provided collection of Entities
+    */
+  def writeEntities(entities: Traversable[Entity])(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+    entities.headOption match{
+      case Some(h) =>
+        openWithEntitySchema(h.schema)
+        entities.foreach(writeEntity)
+        closeTable()
+      case None =>
+    }
+  }
 }
 
 /**

@@ -10,7 +10,6 @@ import org.silkframework.execution.ExecutorOutput
 import org.silkframework.execution.local.{LocalEntities, LocalExecution}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
-import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
 
 import scala.util.control.NonFatal
@@ -117,10 +116,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                       executorOutput: ExecutorOutput,
                                       operator: WorkflowOperator)
                                      (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
+    implicit val userContext: UserContext = workflowRunContext.userContext
     try {
-      project.anyTaskOption(operator.task)(workflowRunContext.userContext) match {
+      project.anyTaskOption(operator.task) match {
         case Some(operatorTask) =>
-          val schemataOpt = operatorTask.data.inputSchemataOpt
+          val schemataOpt = operatorTask.data.inputSchemataOpt(operatorNode.inputNodes.flatMap(n => project.anyTaskOption(n.workflowNode.task)))
           val inputs = operatorNode.inputNodes
           val inputResults = executeWorkflowOperatorInputs(operatorNode, schemataOpt, inputs)
 

@@ -81,7 +81,7 @@ object ParameterType {
   private val allStaticTypes: Seq[ParameterType[_]] = {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, UriType, ResourceType,
       WritableResourceType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType, LongType,
-      PasswordParameterType)
+      PasswordParameterType, ProjectResourceDirectory)
   }
 
   /**
@@ -270,6 +270,35 @@ object ParameterType {
 
   }
 
+  object ProjectResourceDirectory extends ParameterType[ResourceManager] {
+    private val defaultDirName = "temporary_directory"
+
+    override def name: String = "resource-directory"
+
+    override def description: String = "Enter a relative uri, identifying a subdirectory of the projects resource directory."
+
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): ResourceManager = {
+      if(str.trim.isEmpty){
+        resourceLoader.listChildren.filter(_.startsWith(defaultDirName)).sorted.lastOption match{
+          case Some(l) =>
+            val current = l.trim.diff(defaultDirName).substring(1).toInt +1
+            resourceLoader.child(defaultDirName + "_" + current)
+          case None => resourceLoader.child(defaultDirName + "_" + 0)
+        }
+      }
+      else{
+        if(str.trim.toLowerCase == "resources") throw new IllegalArgumentException("The directory name 'resources' is reserved and not allowed.")
+        val path = str.trim.stripPrefix(".").stripPrefix("/").split("(\\/|\\\\)")
+        path.foldLeft(resourceLoader)((rl, p) => rl.child(p.trim))
+      }
+    }
+
+    override def toString(value: ResourceManager)(implicit prefixes: Prefixes): String = {
+      val normalized = value.basePath.replace("\\", "/").trim
+      normalized.substring(normalized.indexOf("/resources/") + 10)
+    }
+  }
+
   object ProjectReferenceType extends ParameterType[ProjectReference] {
 
     override def name: String = "project"
@@ -283,7 +312,6 @@ object ParameterType {
     override def toString(value: ProjectReference)(implicit prefixes: Prefixes): String = {
       value.id
     }
-
   }
 
   object TaskReferenceType extends ParameterType[TaskReference] {

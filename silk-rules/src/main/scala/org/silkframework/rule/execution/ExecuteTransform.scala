@@ -55,7 +55,7 @@ class ExecuteTransform(taskLabel: String,
     var count = 0
     breakable {
       for (entity <- transformedEntities) {
-        entitySink.writeEntity(entity.uri, entity.values)
+        entitySink.writeEntity(entity)
         count += 1
         if (cancelled || limit.exists(_ <= count)) {
           break

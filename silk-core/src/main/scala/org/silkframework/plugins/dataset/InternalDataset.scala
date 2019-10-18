@@ -14,7 +14,7 @@ import scala.util.Try
 
 @Plugin(
   id = "internal",
-  label = "Internal dataset",
+  label = "Internal RDF dataset",
   categories = Array(DatasetCategories.embedded),
   description =
       """Dataset for storing entities between workflow steps."""

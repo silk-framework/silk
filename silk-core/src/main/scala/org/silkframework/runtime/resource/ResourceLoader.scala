@@ -35,10 +35,19 @@ trait ResourceLoader {
     */
   def get(name: String, mustExist: Boolean = false): Resource
 
+  /**
+    * Lists all subdirectories
+    */
   def listChildren: List[String]
 
+  /**
+    * Creates a sub ResourceLoader under the basePath with the given name
+    */
   def child(name: String): ResourceLoader
 
+  /**
+    * The parent ResourceLoader (with one path-segement less)
+    */
   def parent: Option[ResourceLoader]
 
   /**
