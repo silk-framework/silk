@@ -178,13 +178,9 @@ object DatasetSpec {
         entitySink.close()
         isOpen = false
       }
+      val uriTypedProperty = datasetSpec.uriProperty.map(p => TypedProperty(p.uri, UriValueType, isBackwardProperty = false))
 
-      val uriTypedProperty =
-        for(property <- datasetSpec.uriProperty.toIndexedSeq) yield {
-          TypedProperty(property.uri, UriValueType, isBackwardProperty = false)
-        }
-
-      entitySink.openTable(typeUri, uriTypedProperty ++ properties)
+      entitySink.openTable(typeUri, uriTypedProperty.toIndexedSeq ++ properties)
       isOpen = true
     }
 
@@ -194,7 +190,8 @@ object DatasetSpec {
         entitySink.close()
         isOpen = false
       }
-      entitySink.openTableWithPaths(typeUri, typedPaths)
+      val uriTypedProperty = datasetSpec.uriProperty.map(p => TypedPath(p.uri, UriValueType))
+      entitySink.openTableWithPaths(typeUri, uriTypedProperty.toIndexedSeq ++ typedPaths)
       isOpen = true
 
     }
@@ -207,7 +204,8 @@ object DatasetSpec {
         entitySink.close()
         isOpen = false
       }
-      entitySink.openWithEntitySchema(es)
+      val uriTypedProperty = datasetSpec.uriProperty.map(p => TypedPath(p.uri, UriValueType))
+      entitySink.openWithEntitySchema(es.copy(typedPaths = uriTypedProperty.toIndexedSeq ++ es.typedPaths))
       isOpen = true
     }
 
@@ -229,14 +227,20 @@ object DatasetSpec {
       */
     override def writeEntity(entity: Entity)(implicit userContext: UserContext): Unit = {
       require(isOpen, "Output must be opened before writing statements to it")
-      entitySink.writeEntity(entity)
+      writeEntity(entity.uri, entity.values)
     }
 
     /**
       * Write a complete table based on the provided collection of Entities
       */
     override def writeEntities(entities: Traversable[Entity])(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
-      entitySink.writeEntities(entities)
+      entities.headOption match{
+        case Some(h) =>
+          openWithEntitySchema(h.schema)
+          entities.foreach(writeEntity)
+          closeTable()
+        case None =>
+      }
     }
 
     /**

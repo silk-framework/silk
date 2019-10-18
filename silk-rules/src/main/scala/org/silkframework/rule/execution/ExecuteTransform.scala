@@ -2,7 +2,6 @@ package org.silkframework.rule.execution
 
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{DataSource, EntitySink}
-import org.silkframework.execution.{AbortExecutionException, ExecutionReport}
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
 import org.silkframework.rule.execution.local.TransformedEntities
@@ -48,7 +47,7 @@ class ExecuteTransform(taskLabel: String,
                                 entitySink: EntitySink,
                                 context: ActivityContext[TransformReport])
                                (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
-    entitySink.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get))
+    entitySink.openWithEntitySchema(rule.outputSchema)
 
     val entities = dataSource.retrieve(rule.inputSchema)
     val transformedEntities = new TransformedEntities(taskLabel, entities, rule.transformRule.rules, rule.outputSchema, context)
