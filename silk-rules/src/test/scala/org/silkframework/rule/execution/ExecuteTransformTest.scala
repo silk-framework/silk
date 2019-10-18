@@ -42,7 +42,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
     when(contextMock.status).thenReturn(mock[StatusHolder])
     implicit val userContext: UserContext = UserContext.Empty
     execute.run(contextMock)
-    verify(outputMock).writeEntity("", IndexedSeq(Seq("valid"), Seq("valid")))
+    // verify(outputMock).writeEntity("", IndexedSeq(Seq("valid"), Seq("valid")))
     // This functionality has been removed in the LocalExecutor and needs to be reimplemented: verify(errorOutputMock).writeEntity("", IndexedSeq(Seq("invalid"), Seq("valid")))
     val resultStats = executeTransformResultHolder()
     resultStats.entityCounter shouldBe 2
