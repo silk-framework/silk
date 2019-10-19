@@ -237,7 +237,6 @@ object DatasetSpec {
         case None =>
           entitySink.writeEntity(entity)
       }
-      entitySink.writeEntity(entity)
     }
 
     /**
