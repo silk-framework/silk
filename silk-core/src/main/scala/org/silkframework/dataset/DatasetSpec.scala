@@ -25,6 +25,7 @@ import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
 
+import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.xml.Node
 
@@ -169,6 +170,8 @@ object DatasetSpec {
 
     private var isOpen = false
 
+    private val schemaMap = new mutable.HashMap[EntitySchema, EntitySchema]()
+
     /**
       * Initializes this writer.
       */
@@ -179,7 +182,6 @@ object DatasetSpec {
         isOpen = false
       }
       val uriTypedProperty = datasetSpec.uriProperty.map(p => TypedProperty(p.uri, UriValueType, isBackwardProperty = false))
-
       entitySink.openTable(typeUri, uriTypedProperty.toIndexedSeq ++ properties)
       isOpen = true
     }
@@ -227,7 +229,15 @@ object DatasetSpec {
       */
     override def writeEntity(entity: Entity)(implicit userContext: UserContext): Unit = {
       require(isOpen, "Output must be opened before writing statements to it")
-      writeEntity(entity.uri, entity.values)
+      datasetSpec.uriProperty match {
+        case Some(_) =>
+          val uriTypedProperty = datasetSpec.uriProperty.map(p => TypedPath(p.uri, UriValueType))
+          val schema = entity.schema.copy(typedPaths = uriTypedProperty.toIndexedSeq ++ entity.schema.typedPaths)
+          entitySink.writeEntity(entity.copy(values = IndexedSeq(Seq(entity.uri.toString)) ++ entity.values, schema = entity.schema.copy(typedPaths = uriTypedProperty.toIndexedSeq ++ schema.typedPaths)))
+        case None =>
+          entitySink.writeEntity(entity)
+      }
+      entitySink.writeEntity(entity)
     }
 
     /**
@@ -237,7 +247,9 @@ object DatasetSpec {
       entities.headOption match{
         case Some(h) =>
           openWithEntitySchema(h.schema)
-          entities.foreach(writeEntity)
+          val uriTypedProperty = datasetSpec.uriProperty.map(p => TypedPath(p.uri, UriValueType))
+          val schema = h.schema.copy(typedPaths = uriTypedProperty.toIndexedSeq ++ h.schema.typedPaths)
+          entities.foreach(e => entitySink.writeEntity(e.copy(values = IndexedSeq(Seq(e.uri.toString)) ++ e.values, schema = schema)))
           closeTable()
         case None =>
       }
