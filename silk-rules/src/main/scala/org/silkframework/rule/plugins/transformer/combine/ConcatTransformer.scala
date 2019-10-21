@@ -15,13 +15,13 @@
 package org.silkframework.rule.plugins.transformer.combine
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.{Param, Plugin, TransformExample, TransformExamples}
 
 @Plugin(
   id = "concat",
   categories = Array("Combine"),
   label = "Concatenate",
-  description = "Concatenates strings from two inputs."
+  description = "Concatenates strings from multiple inputs."
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -70,7 +70,11 @@ import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExam
     output = Array("First--Second")
   )
 ))
-case class ConcatTransformer(glue: String = "", handleMissingValuesAsEmptyStrings: Boolean = false) extends Transformer {
+case class ConcatTransformer(
+  @Param("Separator to be inserted between two concatenated strings.")
+  glue: String = "",
+  @Param("Handle missing values as empty strings.")
+  missingValuesAsEmptyStrings: Boolean = false) extends Transformer {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
 
@@ -79,7 +83,7 @@ case class ConcatTransformer(glue: String = "", handleMissingValuesAsEmptyString
     } else if(values.size == 1) {
       values.head
     } else {
-      val preprocessed = if (handleMissingValuesAsEmptyStrings) {
+      val preprocessed = if (missingValuesAsEmptyStrings) {
         for (value <- values) yield {
           if (value.isEmpty) {
             Seq("")
