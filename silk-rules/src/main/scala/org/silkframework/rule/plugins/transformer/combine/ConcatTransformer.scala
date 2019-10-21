@@ -55,14 +55,14 @@ import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExam
     input3 = Array("Second"),
     output = Array("First--Second")
   ),
-  new TransformExample( // This is faulty according to CMEM-2212 but the test does not care
+  new TransformExample( // This fails in reality. The test handles the empty array.
     parameters = Array("glue", "-"),
     input1 = Array("First"),
     input2 = Array(),
     input3 = Array("Second"),
     output = Array("First-Second")
   ),
-  new TransformExample( // The test seems to handle that like the case 2 above, weird
+  new TransformExample( // Note: See test. This case actually should result in Array("First--Second")
     parameters = Array("glue", "-", "handleMissingValuesAsEmptyStrings", "true"),
     input1 = Array("First"),
     input2 = Array(),

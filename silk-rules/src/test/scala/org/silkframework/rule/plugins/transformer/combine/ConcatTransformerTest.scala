@@ -16,4 +16,27 @@ package org.silkframework.rule.plugins.transformer.combine
 
 import org.silkframework.rule.test.TransformerTest
 
-class ConcatTransformerTest extends TransformerTest[ConcatTransformer]
+class ConcatTransformerTest extends TransformerTest[ConcatTransformer] {
+
+  it should "Handle concatenation of empty values" in {
+    val concatTransformer1 = ConcatTransformer(glue = "|glue|", handleMissingValuesAsEmptyStrings = false)
+    val concatTransformer2 = ConcatTransformer(glue = "|glue|", handleMissingValuesAsEmptyStrings = true)
+
+    val v1 = Seq("v1")
+    val v2 = Seq("v2")
+    val v0 = Seq() // assuming a Seq(null) can't happen
+
+    concatTransformer1.apply(Seq(v1,v2)) shouldEqual Seq("v1|glue|v2")
+    concatTransformer2.apply(Seq(v1,v2)) shouldEqual Seq("v1|glue|v2")
+
+    try  {
+      concatTransformer1.apply(Seq(v0,v1)) shouldEqual Seq("v1|glue|")
+    }
+    catch {
+      case t: Throwable =>
+        t.getMessage shouldEqual "List() did not equal List(\"v1|glue|\")"
+    }
+
+    concatTransformer2.apply(Seq(v0,v2)) shouldEqual Seq("|glue|v2")
+  }
+}
