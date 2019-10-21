@@ -19,8 +19,8 @@ import org.silkframework.rule.test.TransformerTest
 class ConcatTransformerTest extends TransformerTest[ConcatTransformer] {
 
   it should "Handle concatenation of empty values" in {
-    val concatTransformer1 = ConcatTransformer(glue = "|glue|", handleMissingValuesAsEmptyStrings = false)
-    val concatTransformer2 = ConcatTransformer(glue = "|glue|", handleMissingValuesAsEmptyStrings = true)
+    val concatTransformer1 = ConcatTransformer(glue = "|glue|", missingValuesAsEmptyStrings = false)
+    val concatTransformer2 = ConcatTransformer(glue = "|glue|", missingValuesAsEmptyStrings = true)
 
     val v1 = Seq("v1")
     val v2 = Seq("v2")
