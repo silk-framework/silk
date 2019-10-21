@@ -48,26 +48,26 @@ import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExam
     input2 = Array("Second", "Third"),
     output = Array("First-Second", "First-Third")
   ),
-  new TransformExample( // This should equal the last case
+  new TransformExample(
     parameters = Array("glue", "-"),
     input1 = Array("First"),
     input2 = Array(""),
     input3 = Array("Second"),
     output = Array("First--Second")
   ),
-  new TransformExample( // This fails in reality. The test handles the empty array.
+  new TransformExample(
     parameters = Array("glue", "-"),
     input1 = Array("First"),
     input2 = Array(),
     input3 = Array("Second"),
-    output = Array("First-Second")
+    output = Array()
   ),
-  new TransformExample( // Note: See test. This case actually should result in Array("First--Second")
+  new TransformExample(
     parameters = Array("glue", "-", "handleMissingValuesAsEmptyStrings", "true"),
     input1 = Array("First"),
     input2 = Array(),
     input3 = Array("Second"),
-    output = Array("First-Second")
+    output = Array("First--Second")
   )
 ))
 case class ConcatTransformer(glue: String = "", handleMissingValuesAsEmptyStrings: Boolean = false) extends Transformer {
