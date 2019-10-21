@@ -63,7 +63,7 @@ import org.silkframework.runtime.plugin.{Param, Plugin, TransformExample, Transf
     output = Array()
   ),
   new TransformExample(
-    parameters = Array("glue", "-", "handleMissingValuesAsEmptyStrings", "true"),
+    parameters = Array("glue", "-", "missingValuesAsEmptyStrings", "true"),
     input1 = Array("First"),
     input2 = Array(),
     input3 = Array("Second"),
