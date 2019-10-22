@@ -62,7 +62,6 @@ function WorkflowEditor() {
     };
     this.styles.endpoints.configTarget = {
         anchor: 'TopCenter',
-        title: 'test',
         endpoint: 'Dot',
         paintStyle: {
             fill: '#BF5741',
@@ -71,17 +70,6 @@ function WorkflowEditor() {
         hoverPaintStyle: {
             fill: '#BF5741',
             radius: 6,
-        },
-        connectorStyle: this.styles.connectors.plain,
-        isTarget: true,
-        maxConnections: 1,
-    };
-    this.styles.endpoints.configTarget = {
-        anchor: 'TopCenter',
-        endpoint: 'Dot',
-        paintStyle: {
-            fill: '#BF5741',
-            radius: 4,
         },
         connectorStyle: this.styles.connectors.plain,
         isTarget: true,
