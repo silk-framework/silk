@@ -313,8 +313,27 @@ function WorkflowEditor() {
 
     this.addConfigEndpoint = function(box) {
         var endpoint = jsPlumb.addEndpoint(box, _this.styles.endpoints.configTarget);
-        endpoint.canvas.setAttribute("title", "Configuration input. Values passed here will be used to reconfigure the operator parameters.");
+
+        _this.addEndpointTooltip(endpoint,
+          `Configuration input.<br/>
+           Values passed here will be used to reconfigure the operator parameters.
+           The attribute names must match the name of the parameters to be reconfigured.
+           It's possible to configure a subset of all available parameters.`);
+
         return endpoint;
+    };
+
+    this.addEndpointTooltip = function(endpoint, tooltipHtml) {
+      var id = endpoint.element.id + "_configEndpoint";
+      var tooltip = document.createElement("div");
+      tooltip.className = "mdl-tooltip";
+      tooltip.setAttribute("for", id);
+      tooltip.innerHTML = tooltipHtml;
+
+      endpoint.canvas.id = id;
+      endpoint.canvas.insertAdjacentElement('afterend', tooltip);
+
+      componentHandler.upgradeElement(tooltip);
     };
 
     this.bindEvents();
