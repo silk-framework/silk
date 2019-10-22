@@ -76,6 +76,17 @@ function WorkflowEditor() {
         isTarget: true,
         maxConnections: 1,
     };
+    this.styles.endpoints.configTarget = {
+        anchor: 'TopCenter',
+        endpoint: 'Dot',
+        paintStyle: {
+            fill: '#BF5741',
+            radius: 4,
+        },
+        connectorStyle: this.styles.connectors.plain,
+        isTarget: true,
+        maxConnections: 1,
+    };
 
     this.handler = new DynamicEndpointHandler();
     this.handler.styles = this.styles.endpoints;
