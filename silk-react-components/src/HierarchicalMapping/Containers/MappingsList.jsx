@@ -14,6 +14,7 @@ import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import { orderRulesAsync } from '../store';
 import { MAPPING_RULE_TYPE_DIRECT, MESSAGES } from '../utils/constants';
 import EventEmitter from '../utils/EventEmitter';
+import DraggableItem from './MappingRule/DraggableItem';
 
 class MappingsList extends React.Component {
     static propTypes = {
@@ -147,20 +148,6 @@ class MappingsList extends React.Component {
             </CardTitle>
         );
 
-        const listItem = (index, item) => (
-            <MappingRule
-                {...item.props}
-                pos={index}
-                provided
-                snapshot
-                handleCopy={this.props.handleCopy}
-                handleClone={this.props.handleClone}
-                onRuleIdChange={this.props.onRuleIdChange}
-                onAskDiscardChanges={this.props.onAskDiscardChanges}
-                onClickedRemove={this.props.onClickedRemove}
-            />
-        );
-
         const listItems = _.isEmpty(rules) ? (
             <CardContent>
                 <Info vertSpacing border>
@@ -176,10 +163,21 @@ class MappingsList extends React.Component {
                 onDragEnd={this.onDragEnd}
             >
                 <Droppable droppableId="droppable">
-                    {(provided, snapshot) => (
-                        <ol className="mdl-list" ref={provided.innerRef}>
-                            {_.map(this.state.items, (item, index) =>
-                                listItem(index, item, provided, snapshot))}
+                    {(provided) => (
+                        <ol className="mdl-list"
+                            ref={provided.innerRef}
+                            {...provided.droppableProps}
+                        >
+                            {
+                                _.map(this.state.items, (item, index) => <DraggableItem
+                                        {...item.props}
+                                        pos={index}
+                                        handleCopy={this.props.handleCopy}
+                                        handleClone={this.props.handleClone}
+                                        onRuleIdChange={this.props.onRuleIdChange}
+                                        onAskDiscardChanges={this.props.onAskDiscardChanges}
+                                        onClickedRemove={this.props.onClickedRemove}
+                                    />)}
                             {provided.placeholder}
                         </ol>
                     )}

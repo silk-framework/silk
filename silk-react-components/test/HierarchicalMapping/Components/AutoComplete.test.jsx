@@ -1,6 +1,6 @@
 import React from "react";
 import { shallow } from 'enzyme';
-import AutoComplete from '../../../../../src/HierarchicalMapping/Components/AutoComplete';
+import AutoComplete from '../../../src/HierarchicalMapping/Components/AutoComplete';
 import { AutoCompleteBox } from '@eccenca/gui-elements';
 
 const props = {

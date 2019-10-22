@@ -4,7 +4,7 @@ import {
     ErrorCause,
     ErrorIssue,
     ErrorView
-} from '../../../../src/HierarchicalMapping/Components/ErrorView';
+} from '../../../src/HierarchicalMapping/Components/ErrorView';
 
 const props = {
     title: 'text',
