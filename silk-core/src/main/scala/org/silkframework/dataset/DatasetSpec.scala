@@ -132,7 +132,7 @@ object DatasetSpec {
     private def adaptSchema(entitySchema: EntitySchema): EntitySchema = {
       datasetSpec.uriProperty match {
         case Some(property) =>
-          entitySchema.copy(typedPaths = entitySchema.typedPaths :+ TypedPath(UntypedPath.parse(property.uri), UriValueType, isAttribute = false))
+          entitySchema.copy(typedPaths = entitySchema.typedPaths :+ TypedPath(UntypedPath.parse(property.uri), StringValueType, isAttribute = false))
         case None =>
           entitySchema
       }
@@ -146,7 +146,7 @@ object DatasetSpec {
         case Some(property) =>
           for (entity <- entities) yield {
             Entity(
-              uri = new Uri(entity.singleValue(TypedPath(UntypedPath.parse(property.uri), UriValueType, isAttribute = false)).getOrElse(entity.uri.toString)),
+              uri = new Uri(entity.singleValue(TypedPath(UntypedPath.parse(property.uri), StringValueType, isAttribute = false)).getOrElse(entity.uri.toString)),
               values = entity.values,
               schema = entity.schema
             )
@@ -181,7 +181,7 @@ object DatasetSpec {
         entitySink.close()
         isOpen = false
       }
-      val uriTypedProperty = datasetSpec.uriProperty.map(p => TypedProperty(p.uri, UriValueType, isBackwardProperty = false))
+      val uriTypedProperty = datasetSpec.uriProperty.map(p => TypedProperty(p.uri, StringValueType, isBackwardProperty = false))
       entitySink.openTable(typeUri, uriTypedProperty.toIndexedSeq ++ properties)
       isOpen = true
     }
@@ -192,7 +192,7 @@ object DatasetSpec {
         entitySink.close()
         isOpen = false
       }
-      val uriTypedProperty = datasetSpec.uriProperty.map(p => TypedPath(p.uri, UriValueType))
+      val uriTypedProperty = datasetSpec.uriProperty.map(p => TypedPath(p.uri, StringValueType))
       entitySink.openTableWithPaths(typeUri, uriTypedProperty.toIndexedSeq ++ typedPaths)
       isOpen = true
 
@@ -206,7 +206,7 @@ object DatasetSpec {
         entitySink.close()
         isOpen = false
       }
-      val uriTypedProperty = datasetSpec.uriProperty.map(p => TypedPath(p.uri, UriValueType))
+      val uriTypedProperty = datasetSpec.uriProperty.map(p => TypedPath(p.uri, StringValueType))
       entitySink.openWithEntitySchema(es.copy(typedPaths = uriTypedProperty.toIndexedSeq ++ es.typedPaths))
       isOpen = true
     }
@@ -231,9 +231,9 @@ object DatasetSpec {
       require(isOpen, "Output must be opened before writing statements to it")
       datasetSpec.uriProperty match {
         case Some(_) =>
-          val uriTypedProperty = datasetSpec.uriProperty.map(p => TypedPath(p.uri, UriValueType))
+          val uriTypedProperty = datasetSpec.uriProperty.map(p => TypedPath(p.uri, StringValueType))
           val schema = entity.schema.copy(typedPaths = uriTypedProperty.toIndexedSeq ++ entity.schema.typedPaths)
-          entitySink.writeEntity(entity.copy(values = IndexedSeq(Seq(entity.uri.toString)) ++ entity.values, schema = entity.schema.copy(typedPaths = uriTypedProperty.toIndexedSeq ++ schema.typedPaths)))
+          entitySink.writeEntity(entity.copy(values = IndexedSeq(Seq(entity.uri.toString)) ++ entity.values, schema = schema))
         case None =>
           entitySink.writeEntity(entity)
       }
@@ -246,7 +246,7 @@ object DatasetSpec {
       entities.headOption match{
         case Some(h) =>
           openWithEntitySchema(h.schema)
-          val uriTypedProperty = datasetSpec.uriProperty.map(p => TypedPath(p.uri, UriValueType))
+          val uriTypedProperty = datasetSpec.uriProperty.map(p => TypedPath(p.uri, StringValueType))
           val schema = h.schema.copy(typedPaths = uriTypedProperty.toIndexedSeq ++ h.schema.typedPaths)
           entities.foreach(e => entitySink.writeEntity(e.copy(values = IndexedSeq(Seq(e.uri.toString)) ++ e.values, schema = schema)))
           closeTable()
