@@ -62,7 +62,6 @@ function WorkflowEditor() {
     };
     this.styles.endpoints.configTarget = {
         anchor: 'TopCenter',
-        title: 'test',
         endpoint: 'Dot',
         paintStyle: {
             fill: '#BF5741',
@@ -158,8 +157,7 @@ function WorkflowEditor() {
                         }
                         _this.handler.repaintEndpoints(id, endpoints);
                     }
-                    jsPlumb.addEndpoint(id, _this.styles.endpoints.configTarget);
-
+                    _this.addConfigEndpoint(id);
                 }
             },
         });
@@ -239,7 +237,7 @@ function WorkflowEditor() {
                     _this.handler.repaintEndpoints(box, targetEndpoints[opId]);
                 }
 
-                configTargetEndpoints[opId] = jsPlumb.addEndpoint(box, _this.styles.endpoints.configTarget);
+                configTargetEndpoints[opId] = _this.addConfigEndpoint(box);
             });
         }
 
@@ -310,6 +308,31 @@ function WorkflowEditor() {
             // Show the corresponding element in the toolbox again
             $(`#toolbox${elementId.substring(elementId.indexOf('_'))}`).show();
         }, 100);
+    };
+
+    this.addConfigEndpoint = function(box) {
+        var endpoint = jsPlumb.addEndpoint(box, _this.styles.endpoints.configTarget);
+
+        _this.addEndpointTooltip(endpoint,
+          `Configuration input.<br/>
+           Values passed here will be used to reconfigure the operator parameters.
+           The attribute names must match the name of the parameters to be reconfigured.
+           It's possible to configure a subset of all available parameters.`);
+
+        return endpoint;
+    };
+
+    this.addEndpointTooltip = function(endpoint, tooltipHtml) {
+      var id = endpoint.element.id + "_configEndpoint";
+      var tooltip = document.createElement("div");
+      tooltip.className = "mdl-tooltip";
+      tooltip.setAttribute("for", id);
+      tooltip.innerHTML = tooltipHtml;
+
+      endpoint.canvas.id = id;
+      endpoint.canvas.insertAdjacentElement('afterend', tooltip);
+
+      componentHandler.upgradeElement(tooltip);
     };
 
     this.bindEvents();
