@@ -41,7 +41,7 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
     var operatorsToSort = rest
     while (operatorsToSort.nonEmpty) {
       layer += 1
-      val (satisfied, unsatisfied) = operatorsToSort.partition(op => op.inputs.forall(done))
+      val (satisfied, unsatisfied) = operatorsToSort.partition(op => op.allInputs.forall(done))
       if (satisfied.isEmpty) {
         throw new RuntimeException("Cannot topologically sort operators in workflow!")
       }
@@ -93,7 +93,7 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
     val workflowNodeMap = nodes.map(n => (n.nodeId, WorkflowDependencyNode(n))).toMap
     for (node <- nodes) {
       val depNode = workflowNodeMap(node.nodeId)
-      for (inputNode <- node.inputs) {
+      for (inputNode <- node.allInputs) {
         val precedingNode = workflowNodeMap.getOrElse(inputNode,
           throw new scala.RuntimeException("Unsatisfiable input dependency in workflow! Dependency: " + inputNode))
         depNode.addPrecedingNode(precedingNode)
@@ -141,7 +141,7 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
   /** Returns all Dataset tasks that are used as input in the workflow */
   def inputDatasets(project: Project)
                    (implicit userContext: UserContext): Seq[ProjectTask[DatasetSpec[Dataset]]] = {
-    for (datasetNodeId <- operators.flatMap(_.inputs).distinct;
+    for (datasetNodeId <- operators.flatMap(_.allInputs).distinct;
          dataset <- project.taskOption[DatasetSpec[Dataset]](nodeById(datasetNodeId).task)) yield {
       dataset
     }
@@ -159,18 +159,18 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
   /** Returns node ids of workflow nodes that have inputs from other nodes */
   def inputWorkflowNodeIds(): Seq[String] = {
     val outputs = nodes.flatMap(_.outputs).distinct
-    val nodesWithInputs = nodes.filter(_.inputs.nonEmpty).map(_.nodeId)
+    val nodesWithInputs = nodes.filter(n => n.allInputs.nonEmpty).map(_.nodeId)
     (outputs ++ nodesWithInputs).distinct
   }
 
   /** Returns node ids of workflow nodes that have neither inputs nor outputs */
   def singleWorkflowNodes(): Seq[String] = {
-    nodes.filter(n => n.inputs.isEmpty && n.outputs.isEmpty).map(_.nodeId)
+    nodes.filter(n => n.allInputs.isEmpty && n.outputs.isEmpty).map(_.nodeId)
   }
 
   /** Returns node ids of workflow nodes that output data into other nodes */
   def outputWorkflowNodeIds(): Seq[String] = {
-    val inputs = nodes.flatMap(_.inputs).distinct
+    val inputs = nodes.flatMap(_.allInputs).distinct
     val nodesWithOutputs = nodes.filter(_.outputs.nonEmpty).map(_.nodeId)
     (inputs ++ nodesWithOutputs).distinct
   }
@@ -255,6 +255,7 @@ object Workflow {
           val inputStr = (op \ "@inputs").text
           val outputStr = (op \ "@outputs").text
           val errorOutputStr = (op \ "@errorOutputs").text
+          val configInputStr = (op \ "@configInputs").text
           val task = (op \ "@task").text
           WorkflowOperator(
             inputs = if (inputStr.isEmpty) Seq.empty else inputStr.split(',').toSeq,
@@ -263,7 +264,8 @@ object Workflow {
             errorOutputs = if (errorOutputStr.trim.isEmpty) Seq() else errorOutputStr.split(',').toSeq,
             position = (Math.round((op \ "@posX").text.toDouble).toInt, Math.round((op \ "@posY").text.toDouble).toInt),
             nodeId = parseNodeId(op, task),
-            outputPriority = parseOutputPriority(op)
+            outputPriority = parseOutputPriority(op),
+            configInputs = if (configInputStr.isEmpty) Seq.empty else configInputStr.split(',').toSeq
           )
         }
 
@@ -271,6 +273,7 @@ object Workflow {
         for (ds <- xml \ "Dataset") yield {
           val inputStr = (ds \ "@inputs").text
           val outputStr = (ds \ "@outputs").text
+          val configInputStr = (ds \ "@configInputs").text
           val task = (ds \ "@task").text
           WorkflowDataset(
             inputs = if (inputStr.isEmpty) Seq.empty else inputStr.split(',').toSeq,
@@ -278,7 +281,8 @@ object Workflow {
             outputs = if (outputStr.isEmpty) Seq.empty else outputStr.split(',').toSeq,
             position = (Math.round((ds \ "@posX").text.toDouble).toInt, Math.round((ds \ "@posY").text.toDouble).toInt),
             nodeId = parseNodeId(ds, task),
-            outputPriority = parseOutputPriority(ds)
+            outputPriority = parseOutputPriority(ds),
+            configInputs = if (configInputStr.isEmpty) Seq.empty else configInputStr.split(',').toSeq
           )
         }
 
@@ -300,7 +304,9 @@ object Workflow {
           outputs={op.outputs.mkString(",")}
           errorOutputs={op.errorOutputs.mkString(",")}
           id={op.nodeId}
-          outputPriority={op.outputPriority map (priority => Text(priority.toString))}/>
+          outputPriority={op.outputPriority map (priority => Text(priority.toString))}
+          configInputs={op.configInputs.mkString(",")}
+          />
       }}{for (ds <- datasets) yield {
           <Dataset
           posX={ds.position._1.toString}
@@ -309,7 +315,9 @@ object Workflow {
           inputs={ds.inputs.mkString(",")}
           outputs={ds.outputs.mkString(",")}
           id={ds.nodeId}
-          outputPriority={ds.outputPriority map (priority => Text(priority.toString))}/>
+          outputPriority={ds.outputPriority map (priority => Text(priority.toString))}
+          configInputs={ds.configInputs.mkString(",")}
+          />
       }}
       </Workflow>
     }
@@ -385,10 +393,20 @@ case class WorkflowDependencyNode(workflowNode: WorkflowNode) {
     precedingNodes ++ precedingNodes.flatMap(_.precedingNodesRecursively)
   }
 
+  /** The direct input nodes as [[WorkflowDependencyNode]] */
   def inputNodes: Seq[WorkflowDependencyNode] = {
     for (
       input <- workflowNode.inputs;
       pNode <- precedingNodes.filter(_.nodeId == input)) yield {
+      pNode
+    }
+  }
+
+  /** The config input nodes as [[WorkflowDependencyNode]] */
+  def configInputNodes: Seq[WorkflowDependencyNode] = {
+    for (
+      configInput <- workflowNode.configInputs;
+      pNode <- precedingNodes.filter(_.nodeId == configInput)) yield {
       pNode
     }
   }
