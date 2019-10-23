@@ -14,20 +14,20 @@ import {
     ScrollingHOC,
 } from '@eccenca/gui-elements';
 import _ from 'lodash';
-import ExampleView from './ExampleView';
-import { ParentElement } from '../../Components/ParentElement';
-import { createMappingAsync } from '../../store';
-import { convertToUri } from '../../utils/convertToUri';
-import ErrorView from '../../Components/ErrorView';
-import AutoComplete from '../../Components/AutoComplete';
+import ExampleView from '../ExampleView';
+import { ParentElement } from '../../../Components/ParentElement';
+import { createMappingAsync } from '../../../store';
+import { convertToUri } from '../../../utils/convertToUri';
+import ErrorView from '../../../Components/ErrorView';
+import AutoComplete from '../../../Components/AutoComplete';
 import {
     MAPPING_RULE_TYPE_ROOT,
-    } from '../../utils/constants';
-import { MAPPING_RULE_TYPE_URI, MESSAGES } from '../../utils/constants';
-import EventEmitter from '../../utils/EventEmitter';
-import { trimValue } from '../../utils/trimValue';
-import { wasTouched } from '../../utils/wasTouched';
-import { newValueIsIRI } from '../../utils/newValueIsIRI';
+    } from '../../../utils/constants';
+import { MAPPING_RULE_TYPE_URI, MESSAGES } from '../../../utils/constants';
+import EventEmitter from '../../../utils/EventEmitter';
+import { trimValue } from '../../../utils/trimValue';
+import { wasTouched } from '../../../utils/wasTouched';
+import { newValueIsIRI } from '../../../utils/newValueIsIRI';
 
 /**
  * Provides the editable form for object mappings.

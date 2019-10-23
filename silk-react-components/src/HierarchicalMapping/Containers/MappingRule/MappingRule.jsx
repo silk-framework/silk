@@ -14,9 +14,9 @@ import {
     MenuItem,
     Spinner,
 } from '@eccenca/gui-elements';
-import RuleValueEdit from './ValueMappingRule';
-import RuleObjectEdit from './ObjectMappingRule';
-import { isObjectMappingRule, MAPPING_RULE_TYPE_OBJECT, MESSAGES } from '../../utils/constants';
+import ValueMappingRule from './ValueMappingRule';
+import ObjectMappingRule from './ObjectMappingRule/ObjectMappingRule';
+import { isRootOrObjectRule, MAPPING_RULE_TYPE_OBJECT, MESSAGES } from '../../utils/constants';
 import className from 'classnames';
 import EventEmitter from '../../utils/EventEmitter';
 import PropTypes from 'prop-types';
@@ -158,10 +158,9 @@ export class MappingRule extends React.Component {
             }
             event.stopPropagation();
         };
-        
         const expandedView = this.props.expanded ? (
-            isObjectMappingRule(type) ? (
-                <RuleObjectEdit
+            isRootOrObjectRule(type) ? (
+                <ObjectMappingRule
                     ruleData={{
                         ...this.props,
                         type
@@ -174,7 +173,7 @@ export class MappingRule extends React.Component {
                     onClickedRemove={this.props.onClickedRemove}
                 />
             ) : (
-                <RuleValueEdit
+                <ValueMappingRule
                     {...this.props}
                     handleToggleExpand={this.handleToggleExpand}
                     type={type}

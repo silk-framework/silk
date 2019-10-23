@@ -1,6 +1,6 @@
 import {
     getRuleLabel} from '../../src/HierarchicalMapping/utils/getRuleLabel';
-import { isClonableRule, isCopiableRule, isObjectMappingRule } from '../../src/HierarchicalMapping/utils/constants';
+import { isClonableRule, isCopiableRule, isRootOrObjectRule } from '../../src/HierarchicalMapping/utils/constants';
 import { trimValue } from '../../src/HierarchicalMapping/utils/trimValue';
 
 describe('helpers.js', () => {
@@ -39,10 +39,10 @@ describe('helpers.js', () => {
     
     describe('should isObjectMappingRule function working', () => {
         it('when type equal to direct', () => {
-            expect(isObjectMappingRule('root')).toEqual(true);
+            expect(isRootOrObjectRule('root')).toEqual(true);
         });
         it('when type equal to object', () => {
-            expect(isObjectMappingRule('object')).toEqual(true);
+            expect(isRootOrObjectRule('object')).toEqual(true);
         });
         it('when type is incorrect', () => {
             expect(isClonableRule('dummy')).toEqual(false);

@@ -8,7 +8,7 @@ import {
 
 import { Suggestion } from './utils/Suggestion';
 import {
-    isObjectMappingRule,
+    isRootOrObjectRule,
     MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT,
     MAPPING_RULE_TYPE_URI,
@@ -166,7 +166,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
         if (
             isObjectMapping &&
             result !== null &&
-            !isObjectMappingRule(result.type)
+            !isRootOrObjectRule(result.type)
         ) {
             result = element;
         }

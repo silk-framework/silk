@@ -10,7 +10,7 @@ import {
     MenuItem,
     Spinner,
 } from '@eccenca/gui-elements';
-import ObjectMappingRule from '../../../../src/HierarchicalMapping/Containers/MappingRule/ObjectMappingRule';
+import ObjectMappingRule from '../../../../src/HierarchicalMapping/Containers/MappingRule/ObjectMappingRule/ObjectMappingRule';
 import ValueMappingRule from '../../../../src/HierarchicalMapping/Containers/MappingRule/ValueMappingRule';
 
 const onRuleIdChangeFn = jest.fn();

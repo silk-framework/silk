@@ -1,3 +1,5 @@
+export const isDebugMode = () => __DEBUG__;
+
 export const MESSAGES = {
     RULE_ID: {
         CREATE: 'ruleId.create',
@@ -34,14 +36,17 @@ export const MAPPING_RULE_TYPE_COMPLEX_URI = 'complexUri';
 export const MAPPING_RULE_TYPE_ROOT = 'root';
 export const MAPPING_RULE_TYPE_OBJECT = 'object';
 
+export const isRootRule = type => type === MAPPING_RULE_TYPE_ROOT;
+
+export const isObjectRule = type => type === MAPPING_RULE_TYPE_OBJECT;
+
 export const isCopiableRule = type =>
-    MAPPING_RULE_TYPE_DIRECT === type || MAPPING_RULE_TYPE_OBJECT === type || MAPPING_RULE_TYPE_COMPLEX === type || MAPPING_RULE_TYPE_ROOT === type;
+    MAPPING_RULE_TYPE_DIRECT === type || isObjectRule(type) || MAPPING_RULE_TYPE_COMPLEX === type ||  isRootRule(type);
 
 export const isClonableRule = type =>
-    MAPPING_RULE_TYPE_DIRECT === type || MAPPING_RULE_TYPE_OBJECT === type || MAPPING_RULE_TYPE_COMPLEX === type;
+    MAPPING_RULE_TYPE_DIRECT === type || isObjectRule(type) || MAPPING_RULE_TYPE_COMPLEX === type;
 
-export const isObjectMappingRule = type =>
-    MAPPING_RULE_TYPE_ROOT === type || MAPPING_RULE_TYPE_OBJECT === type;
+export const isRootOrObjectRule = type => isRootRule(type) || isObjectRule(type);
 
 export const SUGGESTION_TYPES = ['value', 'object'];
 

@@ -13,7 +13,7 @@ import {
 import { ThingIcon } from '../Components/ThingIcon';
 import RuleTitle from '../elements/RuleTitle';
 import RuleTypes from '../elements/RuleTypes';
-import ObjectRule from './MappingRule/ObjectMappingRule';
+import ObjectMappingRule from './MappingRule/ObjectMappingRule/ObjectMappingRule';
 import { MAPPING_RULE_TYPE_URI } from '../utils/constants';
 import { MAPPING_RULE_TYPE_COMPLEX_URI, MESSAGES } from '../utils/constants';
 import EventEmitter from '../utils/EventEmitter';
@@ -110,7 +110,7 @@ class MappingsObject extends React.Component {
 
         if (this.state.expanded) {
             content = (
-                <ObjectRule
+                <ObjectMappingRule
                     ruleData={this.props.rule}
                     parentId={_.get(parent, 'id', '')}
                     parent={parent}

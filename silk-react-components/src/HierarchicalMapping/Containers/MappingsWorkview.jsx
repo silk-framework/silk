@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from '../store';
 import MappingsHeader from './MappingsHeader';
 import MappingsObject from './MappingsObject';
-import ObjectMappingRuleForm from './MappingRule/ObjectMappingRuleForm';
+import ObjectMappingRuleForm from './MappingRule/ObjectMappingRule/ObjectMappingRuleForm';
 import ValueMappingRuleForm from './MappingRule/ValueMappingRuleForm';
 import MappingsList from './MappingsList';
 import SuggestionsList from './SuggestionsList';
@@ -17,7 +17,7 @@ import {
     MAPPING_RULE_TYPE_ROOT,
 } from '../utils/constants';
 import {
-    isObjectMappingRule,
+    isRootOrObjectRule,
     MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_DIRECT,
     MAPPING_RULE_TYPE_OBJECT,
@@ -272,7 +272,7 @@ class MappingsWorkview extends React.Component {
             { breadcrumbs, id } = this.state.ruleData;
         if (copyingData !== {}) {
             const data = {
-                id: breadcrumbs.length > 0 && isObjectMappingRule(copyingData.type) && copyingData.cloning ? breadcrumbs[breadcrumbs.length - 1].id : id,
+                id: breadcrumbs.length > 0 && isRootOrObjectRule(copyingData.type) && copyingData.cloning ? breadcrumbs[breadcrumbs.length - 1].id : id,
                 queryParameters: {
                     sourceProject: copyingData.project,
                     sourceTask: copyingData.transformTask,
