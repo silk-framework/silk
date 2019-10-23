@@ -23,11 +23,17 @@ object TransformExampleValue {
     for(example <- transformExamples) yield {
       TransformExampleValue(
         parameters = retrieveParameters(example),
-        input = Seq(example.input1(), example.input2(), example.input3(), example.input4(), example.input5()).map(_.toList).filter(_.nonEmpty),
+        input = retrieveInputs(example),
         output = example.output().toList,
         throwsException = example.throwsException()
       )
     }
+  }
+
+  private def retrieveInputs(example: TransformExample): Seq[Seq[String]] = {
+    val allValues = Seq(example.input1(), example.input2(), example.input3(), example.input4(), example.input5())
+    val definedValues = allValues.reverse.dropWhile(_.isEmpty).reverse
+    definedValues.map(_.toSeq)
   }
 
   private def retrieveParameters(transformExample: TransformExample): Map[String, String] = {
