@@ -108,7 +108,7 @@
 .dataset {
   position: absolute;
   width: 100px;
-  height: 110px;
+  height: 80px;
   z-index: 1;
 }
 
@@ -116,7 +116,6 @@
   width: 100px;
   height: 80px;
   position: absolute;
-  top: 15px;
   border-left: 1px solid #1484d4;
   border-right: 1px solid #1484d4;
   background-color: white;
@@ -145,7 +144,7 @@
   width: 100px;
   height: 30px;
   position: absolute;
-  top: 0px;
+  top: -15px;
   border: 1px solid #1484d4;
   background-color: white;
   cursor: move;
@@ -156,7 +155,7 @@
   width: 100px;
   height: 30px;
   position: absolute;
-  top: 80px;
+  top: 65px;
   border: 1px solid #1484d4;
   background-color: white;
 }
