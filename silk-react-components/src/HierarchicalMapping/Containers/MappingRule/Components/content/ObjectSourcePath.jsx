@@ -1,7 +1,6 @@
 import React from 'react';
-import { SourcePath } from '../../../../Components/SourcePath';
 
-const ObjectSourcePath = ({ type, sourcePath}) => {
+const ObjectSourcePath = ({ children }) => {
     return (
         <div className="ecc-silk-mapping__rulesviewer__sourcePath">
             <dl className="ecc-silk-mapping__rulesviewer__attribute">
@@ -9,12 +8,7 @@ const ObjectSourcePath = ({ type, sourcePath}) => {
                     Value path
                 </dt>
                 <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                    <SourcePath
-                        rule={{
-                            type,
-                            sourcePath
-                        }}
-                    />
+                    {children}
                 </dd>
             </dl>
         </div>

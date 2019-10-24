@@ -3,7 +3,7 @@ import { ThingName } from '../../../../Components/ThingName';
 import { ThingDescription } from '../../../../Components/ThingDescription';
 import { InfoBox } from '../../../../Components/InfoBox';
 
-const ObjectTargetProperty = ({ mappingTargetUri }) => {
+const TargetProperty = ({ mappingTargetUri, isAttribute = false }) => {
     return (
         <div className="ecc-silk-mapping__rulesviewer__targetProperty">
             <dl className="ecc-silk-mapping__rulesviewer__attribute">
@@ -24,10 +24,15 @@ const ObjectTargetProperty = ({ mappingTargetUri }) => {
                             <ThingDescription id={mappingTargetUri}/>
                         </div>
                     </InfoBox>
+                    {isAttribute ? <div>
+                        Values will be written as
+                        attributes if the target dataset
+                        supports it.
+                    </div> : null}
                 </dd>
             </dl>
         </div>
     )
 };
 
-export default ObjectTargetProperty;
+export default TargetProperty;

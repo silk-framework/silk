@@ -20,15 +20,19 @@ import {
 import transformRuleOfObjectMapping from '../../../utils/transformRuleOfObjectMapping';
 import EventEmitter from '../../../utils/EventEmitter';
 
-import EditButton from './buttons/EditButton';
-import CopyButton from './buttons/CopyButton';
-import CloneButton from './buttons/CloneButton';
-import DeleteButton from './buttons/DeleteButton';
-import ObjectTargetProperty from './views/ObjectTargetProperty';
-import ObjectEntityRelation from './views/ObjectEntityRelation';
-import ObjectTypeRules from './views/ObjectTypeRules';
-import ObjectSourcePath from './views/ObjectSourcePath';
-import ObjectUriPattern from './views/ObjectUriPattern';
+import EditButton from '../Components/buttons/EditButton';
+import CopyButton from '../Components/buttons/CopyButton';
+import CloneButton from '../Components/buttons/CloneButton';
+import DeleteButton from '../Components/buttons/DeleteButton';
+import TargetProperty from '../Components/content/TargetProperty';
+import ObjectEntityRelation from '../Components/content/ObjectEntityRelation';
+import ObjectTypeRules from '../Components/content/ObjectTypeRules';
+import ObjectSourcePath from '../Components/content/ObjectSourcePath';
+import ObjectUriPattern from '../Components/content/ObjectUriPattern';
+import ExampleTarget from '../Components/content/ExampleTarget';
+import MetadataLabel from '../Components/content/MetadataLabel';
+import MetadataDesc from '../Components/content/MetadataDesc';
+import { SourcePath } from '../../../Components/SourcePath';
 
 class ObjectMappingRule extends React.Component {
     static propTypes = {
@@ -180,7 +184,7 @@ class ObjectMappingRule extends React.Component {
                     <CardContent>
                         {
                             !isRootRule(type) ? [
-                                <ObjectTargetProperty
+                                <TargetProperty
                                     key={'ObjectTargetProperty'}
                                     mappingTargetUri={_.get(ruleData, 'mappingTarget.uri')}
                                 />,
@@ -206,59 +210,28 @@ class ObjectMappingRule extends React.Component {
                         }
                         {
                             isObjectRule(type) && ruleData.sourcePath
-                                ? <ObjectSourcePath
-                                    type={ruleData.type}
-                                    sourcePath={ruleData.sourcePath}/>
-                                : null
+                                ? <ObjectSourcePath type={ruleData.type}>
+                                    <SourcePath
+                                        rule={{
+                                            type,
+                                            sourcePath: ruleData.sourcePath
+                                        }}
+                                    />
+                                </ObjectSourcePath> : null
                         }
                         {
                             _.get(ruleData, 'rules.uriRule.id')
-                                ? <div className="ecc-silk-mapping__rulesviewer__examples">
-                                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                            Examples of target data
-                                        </dt>
-                                        <dd>
-                                            <ExampleView id={ruleData.rules.uriRule.id}/>
-                                        </dd>
-                                    </dl>
-                                </div>
+                                ? <ExampleTarget uriRuleId={_.get(ruleData, 'rules.uriRule.id')}/>
                                 : null
                         }
                         {
                             _.get(ruleData, 'metadata.label')
-                                ? <div className="ecc-silk-mapping__rulesviewer__label">
-                                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                            Label
-                                        </dt>
-                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                            {_.get(
-                                                ruleData,
-                                                'metadata.label',
-                                                ''
-                                            )}
-                                        </dd>
-                                    </dl>
-                                </div>
+                                ? <MetadataLabel label={_.get(ruleData, 'metadata.label', '')}/>
                                 : null
                         }
                         {
                             _.get(ruleData, 'metadata.description')
-                                ? <div className="ecc-silk-mapping__rulesviewer__comment">
-                                    <dl className="ecc-silk-mapping__rulesviewer__attribute">
-                                        <dt className="ecc-silk-mapping__rulesviewer__attribute-label">
-                                            Description
-                                        </dt>
-                                        <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
-                                            {_.get(
-                                                ruleData,
-                                                'metadata.description',
-                                                ''
-                                            )}
-                                        </dd>
-                                    </dl>
-                                </div>
+                                ? <MetadataDesc description={_.get(ruleData, 'metadata.description', '')} />
                                 : null
                         }
                     </CardContent>

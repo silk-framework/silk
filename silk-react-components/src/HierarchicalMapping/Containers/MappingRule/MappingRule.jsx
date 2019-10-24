@@ -14,7 +14,7 @@ import {
     MenuItem,
     Spinner,
 } from '@eccenca/gui-elements';
-import ValueMappingRule from './ValueMappingRule';
+import ValueMappingRule from './ValueMappingRule/ValueMappingRule';
 import ObjectMappingRule from './ObjectMappingRule/ObjectMappingRule';
 import { isRootOrObjectRule, MAPPING_RULE_TYPE_OBJECT, MESSAGES } from '../../utils/constants';
 import className from 'classnames';

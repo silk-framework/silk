@@ -10,7 +10,7 @@ import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from '../sto
 import MappingsHeader from './MappingsHeader';
 import MappingsObject from './MappingsObject';
 import ObjectMappingRuleForm from './MappingRule/ObjectMappingRule/ObjectMappingRuleForm';
-import ValueMappingRuleForm from './MappingRule/ValueMappingRuleForm';
+import ValueMappingRuleForm from './MappingRule/ValueMappingRule/ValueMappingRuleForm';
 import MappingsList from './MappingsList';
 import SuggestionsList from './SuggestionsList';
 import {

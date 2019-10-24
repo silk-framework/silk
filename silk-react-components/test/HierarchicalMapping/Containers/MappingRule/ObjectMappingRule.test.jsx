@@ -4,21 +4,21 @@ import * as Store from '../../../../src/HierarchicalMapping/store';
 import ObjectMappingRule from '../../../../src/HierarchicalMapping/Containers/MappingRule/ObjectMappingRule/ObjectMappingRule';
 import ObjectMappingRuleForm from '../../../../src/HierarchicalMapping/Containers/MappingRule/ObjectMappingRule/ObjectMappingRuleForm';
 import ObjectEntityRelation
-    from '../../../../src/HierarchicalMapping/Containers/MappingRule/ObjectMappingRule/views/ObjectEntityRelation';
-import ObjectTargetProperty
-    from '../../../../src/HierarchicalMapping/Containers/MappingRule/ObjectMappingRule/views/ObjectTargetProperty';
+    from '../../../../src/HierarchicalMapping/Containers/MappingRule/Components/content/ObjectEntityRelation';
+import TargetProperty
+    from '../../../../src/HierarchicalMapping/Containers/MappingRule/Components/content/TargetProperty';
 import ObjectTypeRules
-    from '../../../../src/HierarchicalMapping/Containers/MappingRule/ObjectMappingRule/views/ObjectTypeRules';
+    from '../../../../src/HierarchicalMapping/Containers/MappingRule/Components/content/ObjectTypeRules';
 import ObjectSourcePath
-    from '../../../../src/HierarchicalMapping/Containers/MappingRule/ObjectMappingRule/views/ObjectSourcePath';
+    from '../../../../src/HierarchicalMapping/Containers/MappingRule/Components/content/ObjectSourcePath';
 import EditButton
-    from '../../../../src/HierarchicalMapping/Containers/MappingRule/ObjectMappingRule/buttons/EditButton';
+    from '../../../../src/HierarchicalMapping/Containers/MappingRule/Components/buttons/EditButton';
 import CopyButton
-    from '../../../../src/HierarchicalMapping/Containers/MappingRule/ObjectMappingRule/buttons/CopyButton';
+    from '../../../../src/HierarchicalMapping/Containers/MappingRule/Components/buttons/CopyButton';
 import CloneButton
-    from '../../../../src/HierarchicalMapping/Containers/MappingRule/ObjectMappingRule/buttons/CloneButton';
+    from '../../../../src/HierarchicalMapping/Containers/MappingRule/Components/buttons/CloneButton';
 import DeleteButton
-    from '../../../../src/HierarchicalMapping/Containers/MappingRule/ObjectMappingRule/buttons/DeleteButton';
+    from '../../../../src/HierarchicalMapping/Containers/MappingRule/Components/buttons/DeleteButton';
 
 const handleCopyFn = jest.fn();
 const handleCloneFn = jest.fn();
@@ -83,7 +83,7 @@ describe("ObjectMappingRule Component", () => {
                 ...props,
                 type: 'complex'
             });
-           expect(wrapper.find(ObjectTargetProperty)).toHaveLength(1);
+           expect(wrapper.find(TargetProperty)).toHaveLength(1);
         });
     
         it('should render ObjectEntityRelation components, when `props.type` is NOT `root`', () => {

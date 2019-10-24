@@ -8,7 +8,7 @@ const getUriOperatorsRecursive = (operator = [], accumulator = []) => {
                 input =>
                     (accumulator = _.concat(
                         accumulator,
-                        getOperators(input, [])
+                        getUriOperatorsRecursive(input, [])
                     ))
             );
         }

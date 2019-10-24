@@ -11,7 +11,7 @@ import {
     Spinner,
 } from '@eccenca/gui-elements';
 import ObjectMappingRule from '../../../../src/HierarchicalMapping/Containers/MappingRule/ObjectMappingRule/ObjectMappingRule';
-import ValueMappingRule from '../../../../src/HierarchicalMapping/Containers/MappingRule/ValueMappingRule';
+import ValueMappingRule from '../../../../src/HierarchicalMapping/Containers/MappingRule/ValueMappingRule/ValueMappingRule';
 
 const onRuleIdChangeFn = jest.fn();
 const onExpandFn = jest.fn();

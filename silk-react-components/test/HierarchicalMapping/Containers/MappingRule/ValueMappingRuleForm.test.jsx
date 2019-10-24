@@ -5,7 +5,7 @@ import ErrorView from '../../../../src/HierarchicalMapping/Components/ErrorView'
 import ExampleView from '../../../../src/HierarchicalMapping/Containers/MappingRule/ExampleView';
 import * as Store from '../../../../src/HierarchicalMapping/store';
 import EventEmitter from '../../../../src/HierarchicalMapping/utils/EventEmitter';
-import { ValueMappingRuleForm } from '../../../../src/HierarchicalMapping/Containers/MappingRule/ValueMappingRuleForm';
+import { ValueMappingRuleForm } from '../../../../src/HierarchicalMapping/Containers/MappingRule/ValueMappingRule/ValueMappingRuleForm';
 
 const props = {
     id: '1',
