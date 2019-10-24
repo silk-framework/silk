@@ -19,6 +19,9 @@ import CloneButton
     from '../../../../../src/HierarchicalMapping/elements/buttons/CloneButton';
 import DeleteButton
     from '../../../../../src/HierarchicalMapping/elements/buttons/DeleteButton';
+import MetadataLabel from '../../../../../src/HierarchicalMapping/components/Metadata/MetadataLabel';
+import MetadataDesc from '../../../../../src/HierarchicalMapping/components/Metadata/MetadataDesc';
+import ExampleTarget from '../../../../../src/HierarchicalMapping/components/ExampleTarget';
 
 const handleCopyFn = jest.fn();
 const handleCloneFn = jest.fn();
@@ -30,12 +33,13 @@ const props = {
     edit: false,
     type: 'root',
     ruleData: {
+        metadata: {
+            label: 'label',
+            description: 'description',
+        },
         parentId: '',
         breadcrumbs: [],
         id: "root",
-        metadata: {
-            label: ""
-        },
         sourcePath: [
             '..', '/test'
         ],
@@ -105,6 +109,29 @@ describe("ObjectMappingRule Component", () => {
             });
             expect(wrapper.find(ObjectSourcePath)).toHaveLength(1);
         });
+    
+        it('should ExampleTarget component rendered, when `props.rules.uriRule.id` is presented', () => {
+            const wrapper = getWrapper(shallow, {
+               ...props,
+               ruleData: {
+                   ...props.ruleData,
+                   rules: {
+                       uriRule: {
+                           id: 'id'
+                       }
+                   }
+               }
+            });
+            expect(wrapper.find(ExampleTarget)).toHaveLength(1);
+        });
+        
+        it('should MetadataLabel component rendered, when `props.metadata.label` is presented', () => {
+            expect(wrapper.find(MetadataLabel)).toHaveLength(1);
+        });
+    
+        it('should ExampleTarget component rendered, when `props.metadata.description` is presented', () => {
+            expect(wrapper.find(MetadataDesc)).toHaveLength(1);
+        });
         
         afterEach(() => {
             wrapper.unmount();
@@ -124,7 +151,7 @@ describe("ObjectMappingRule Component", () => {
             expect(handleCopyFn).toBeCalledWith(props.ruleData.id, props.ruleData.type);
         });
     
-        it("should CopyButton button call `handleClone` function from props, with right arguments", () => {
+        it("should CloneButton button call `handleClone` function from props, with right arguments", () => {
             const wrapper = getWrapper(mount, {
                 ...props,
                 ruleData: {

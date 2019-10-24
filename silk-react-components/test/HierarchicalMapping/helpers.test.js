@@ -1,5 +1,4 @@
-import {
-    getRuleLabel} from '../../src/HierarchicalMapping/utils/getRuleLabel';
+import { getRuleLabel} from '../../src/HierarchicalMapping/utils/getRuleLabel';
 import { isClonableRule, isCopiableRule, isRootOrObjectRule } from '../../src/HierarchicalMapping/utils/constants';
 import { trimValue } from '../../src/HierarchicalMapping/utils/trimValue';
 

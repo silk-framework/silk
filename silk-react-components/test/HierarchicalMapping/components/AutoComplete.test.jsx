@@ -7,9 +7,8 @@ const props = {
     input: 'text',
     ruleId: 'rule',
 };
-
 const autocompleteAsyncMock = jest.fn();
-jest.doMock('../../../../../src/HierarchicalMapping/store', () => autocompleteAsyncMock);
+jest.doMock('../../../src/HierarchicalMapping/store', () => autocompleteAsyncMock);
 
 const getWrapper = (renderer = shallow) => renderer(
     <AutoComplete {...props} />

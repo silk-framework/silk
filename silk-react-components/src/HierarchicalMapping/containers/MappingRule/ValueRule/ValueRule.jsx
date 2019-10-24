@@ -3,7 +3,7 @@ import { Button, Card, CardActions, CardContent, DisruptiveButton, } from '@ecce
 import _ from 'lodash';
 import PropTypes from 'prop-types';
 import { getEditorHref } from '../../../store';
-import ValueMappingRuleForm from './ValueRuleForm';
+import ValueRuleForm from './ValueRuleForm';
 import { isDebugMode, MAPPING_RULE_TYPE_DIRECT, MESSAGES } from '../../../utils/constants';
 import EventEmitter from '../../../utils/EventEmitter';
 import EditButton from '../../../elements/buttons/EditButton';
@@ -19,7 +19,7 @@ import ExampleTarget from '../../../components/ExampleTarget';
 import MetadataLabel from '../../../components/Metadata/MetadataLabel';
 import MetadataDesc from '../../../components/Metadata/MetadataDesc';
 
-class RuleValueView extends React.Component {
+class ValueRule extends React.Component {
     // define property types
     static propTypes = {
         comment: PropTypes.string,
@@ -94,7 +94,7 @@ class RuleValueView extends React.Component {
         
         if (edit) {
             return (
-                <ValueMappingRuleForm
+                <ValueRuleForm
                     id={id}
                     parentId={parentId}
                 />
@@ -164,10 +164,10 @@ class RuleValueView extends React.Component {
                         <DeleteButton
                             onDelete={() => {
                                 this.props.onClickedRemove({
-                                    id: this.props.ruleData.id,
-                                    uri: this.props.ruleData.mappingTarget.uri,
+                                    id,
+                                    uri: mappingTarget.uri,
                                     type: this.props.type,
-                                    parent: this.props.parentId
+                                    parent: parentId
                                 })
                             }}
                         />
@@ -178,4 +178,4 @@ class RuleValueView extends React.Component {
     }
 }
 
-export default RuleValueView;
+export default ValueRule;
