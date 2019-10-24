@@ -1,9 +1,20 @@
 package org.silkframework.serialization.json
 
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.config.Task
+import org.silkframework.dataset.Dataset
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.{FallbackResourceManager, InMemoryResourceManager, ResourceManager}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSerialization}
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonHelpers._
+import org.silkframework.serialization.json.JsonSerializers.{DatasetTaskJsonFormat, TaskJsonFormat}
+import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.workflow._
 import play.api.libs.json.{JsArray, _}
+import play.api.mvc.{AnyContentAsJson, AnyContentAsXml}
+
+import scala.xml.NodeSeq
 
 object WorkflowSerializers {
 
@@ -17,7 +28,6 @@ object WorkflowSerializers {
     private final val POSY = "posY"
     private final val TASK = "task"
     private final val INPUTS = "inputs"
-    private final val CONFIG_INPUTS = "configInputs"
     private final val OUTPUTS = "outputs"
     private final val ERROR_OUTPUTS = "errorOutputs"
     private final val ID = "id"
@@ -44,14 +54,13 @@ object WorkflowSerializers {
 
     private def readOperator(value: JsValue): WorkflowOperator = {
       WorkflowOperator(
-        inputs = inputs(value),
-        task = task(value),
-        outputs = outputs(value),
+        inputs = mustBeJsArray(requiredValue(value, INPUTS))(_.value.map(_.as[JsString].value)),
+        task = stringValue(value, TASK),
+        outputs = mustBeJsArray(requiredValue(value, OUTPUTS))(_.value.map(_.as[JsString].value)),
         errorOutputs = mustBeJsArray(requiredValue(value, ERROR_OUTPUTS))(_.value.map(_.as[JsString].value)),
-        position = nodePosition(value),
-        nodeId = nodeId(value),
-        outputPriority = outputPriority(value),
-        configInputs = configInputs(value)
+        position = (numberValue(value, POSX).toInt, numberValue(value, POSY).toInt),
+        nodeId = stringValue(value, ID),
+        outputPriority = numberValueOption(value, OUTPUT_PRIORITY).map(_.toDouble)
       )
     }
 
@@ -64,20 +73,18 @@ object WorkflowSerializers {
         OUTPUTS -> JsArray(op.outputs.map(JsString)),
         ERROR_OUTPUTS -> JsArray(op.errorOutputs.map(JsString)),
         ID -> op.nodeId.toString,
-        OUTPUT_PRIORITY -> op.outputPriority,
-        CONFIG_INPUTS -> JsArray(op.configInputs.map(JsString))
+        OUTPUT_PRIORITY -> op.outputPriority
       )
     }
 
     private def readDataset(value: JsValue): WorkflowDataset = {
       WorkflowDataset(
-        inputs = inputs(value),
-        task = task(value),
-        outputs = outputs(value),
-        position = nodePosition(value),
-        nodeId = nodeId(value),
-        outputPriority = outputPriority(value),
-        configInputs = configInputs(value)
+        inputs = mustBeJsArray(requiredValue(value, INPUTS))(_.value.map(_.as[JsString].value)),
+        task = stringValue(value, TASK),
+        outputs = mustBeJsArray(requiredValue(value, OUTPUTS))(_.value.map(_.as[JsString].value)),
+        position = (numberValue(value, POSX).toInt, numberValue(value, POSY).toInt),
+        nodeId = stringValue(value, ID),
+        outputPriority = numberValueOption(value, OUTPUT_PRIORITY).map(_.toDouble)
       )
     }
 
@@ -92,33 +99,6 @@ object WorkflowSerializers {
         OUTPUT_PRIORITY -> op.outputPriority
       )
     }
-
-    private def nodeId(value: JsValue): String = {
-      stringValue(value, ID)
-    }
-
-    private def outputPriority(value: JsValue): Option[Double] = {
-      numberValueOption(value, OUTPUT_PRIORITY).map(_.toDouble)
-    }
-
-    private def nodePosition(value: JsValue): (Int, Int) = {
-      (numberValue(value, POSX).toInt, numberValue(value, POSY).toInt)
-    }
-
-    private def task(value: JsValue): String = {
-      stringValue(value, TASK)
-    }
-
-    private def inputs(value: JsValue): IndexedSeq[String] = {
-      mustBeJsArray(requiredValue(value, INPUTS))(_.value.map(_.as[JsString].value))
-    }
-
-    private def outputs(value: JsValue): IndexedSeq[String] = {
-      mustBeJsArray(requiredValue(value, OUTPUTS))(_.value.map(_.as[JsString].value))
-    }
-
-    private def configInputs(value: JsValue): Seq[String] = {
-      optionalValue(value, CONFIG_INPUTS).map(js => mustBeJsArray(js)(_.value.map(_.as[JsString].value))).getOrElse(Seq.empty)
-    }
   }
+
 }

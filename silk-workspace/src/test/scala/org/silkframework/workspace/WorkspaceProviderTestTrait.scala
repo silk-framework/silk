@@ -169,10 +169,10 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
       data =
         Workflow(
           operators = Seq(
-            WorkflowOperator(inputs = Seq(DATASET_ID), task = TRANSFORM_ID, outputs = Seq(), Seq(), (0, 0), TRANSFORM_ID, None, configInputs = Seq.empty)
+            WorkflowOperator(inputs = Seq(DATASET_ID), task = TRANSFORM_ID, outputs = Seq(), Seq(), (0, 0), TRANSFORM_ID, None)
           ),
           datasets = Seq(
-            WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0), configInputs = Seq.empty)
+            WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0))
           )),
       metaData = metaData
     )
