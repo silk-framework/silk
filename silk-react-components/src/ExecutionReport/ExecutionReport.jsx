@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Card, CardContent, CardTitle, Table, TableBody, TableCell, TableHead, TableRow } from '@eccenca/gui-elements';
-import MappingsTree from '../HierarchicalMapping/Containers/MappingsTree';
+import MappingsTree from '../HierarchicalMapping/containers/MappingsTree';
 import { setApiDetails } from "../HierarchicalMapping/store";
 
 /**

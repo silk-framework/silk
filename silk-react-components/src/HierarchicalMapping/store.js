@@ -6,7 +6,7 @@ import {
     MAPPING_RULE_TYPE_ROOT,
     } from './utils/constants';
 
-import { Suggestion } from './utils/Suggestion';
+import { Suggestion } from './containers/Suggestion/Suggestion';
 import {
     isRootOrObjectRule,
     MAPPING_RULE_TYPE_COMPLEX,

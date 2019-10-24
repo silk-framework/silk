@@ -1,7 +1,7 @@
 import React from "react";
 import { mount, shallow } from 'enzyme';
 import { NotAvailable } from '@eccenca/gui-elements';
-import { ThingName } from '../../../src/HierarchicalMapping/Components/ThingName';
+import { ThingName } from '../../../src/HierarchicalMapping/components/ThingName';
 import RuleTypes from '../../../src/HierarchicalMapping/elements/RuleTypes';
 
 const getWrapper = (renderer = shallow, props = {}) => renderer(

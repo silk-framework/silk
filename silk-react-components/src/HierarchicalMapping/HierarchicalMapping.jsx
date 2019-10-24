@@ -10,9 +10,9 @@ import PropTypes from 'prop-types';
 
 import { ruleRemoveAsync, setApiDetails } from './store';
 
-import MappingsTree from './Containers/MappingsTree';
-import MappingsWorkview from './Containers/MappingsWorkview';
-import MessageHandler from './Components/MessageHandler';
+import MappingsTree from './containers/MappingsTree';
+import MappingsWorkview from './containers/MappingsWorkview';
+import MessageHandler from './components/MessageHandler';
 import { MAPPING_RULE_TYPE_OBJECT } from './utils/constants';
 import { MESSAGES } from './utils/constants';
 import RemoveMappingRuleDialog from './elements/RemoveMappingRuleDialog';
