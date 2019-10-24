@@ -21,10 +21,8 @@ import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.language.implicitConversions
@@ -64,10 +62,6 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty
       properties :+= ("URI Property", uriProperty.uri)
     }
     properties
-  }
-
-  override def withProperties(updatedProperties: Map[String, String])(implicit prefixes: Prefixes, resourceManager: ResourceManager): DatasetSpec[DatasetType] = {
-    copy(plugin = plugin.withParameters(updatedProperties))
   }
 
   override def toString: String = DatasetSpec.toString
