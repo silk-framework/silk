@@ -7,4 +7,5 @@ case class CsvSettings(separator: Char = ',',
                        maxColumns: Option[Int] = None,
                        commentChar: Option[Char] = None,
                        quoteEscapeChar: Char = '"',
-                       linesToSkip: Int = 0)
+                       linesToSkip: Int = 0,
+                       nullValue: Option[String] = None)

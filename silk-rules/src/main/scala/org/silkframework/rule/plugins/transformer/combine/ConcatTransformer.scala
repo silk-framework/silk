@@ -15,13 +15,13 @@
 package org.silkframework.rule.plugins.transformer.combine
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.{Param, Plugin, TransformExample, TransformExamples}
 
 @Plugin(
   id = "concat",
   categories = Array("Combine"),
   label = "Concatenate",
-  description = "Concatenates strings from two inputs."
+  description = "Concatenates strings from multiple inputs."
 )
 @TransformExamples(Array(
   new TransformExample(
@@ -41,23 +41,71 @@ import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExam
     input1 = Array("First"),
     input2 = Array("Last"),
     output = Array("First-Last")
+  ),
+  new TransformExample(
+    parameters = Array("glue", "-"),
+    input1 = Array("First"),
+    input2 = Array("Second", "Third"),
+    output = Array("First-Second", "First-Third")
+  ),
+  new TransformExample(
+    parameters = Array("glue", "-"),
+    input1 = Array("First"),
+    input2 = Array(""),
+    input3 = Array("Second"),
+    output = Array("First--Second")
+  ),
+  new TransformExample(
+    parameters = Array("glue", "-"),
+    input1 = Array("First"),
+    input2 = Array(),
+    input3 = Array("Second"),
+    output = Array()
+  ),
+  new TransformExample(
+    parameters = Array("glue", "-", "missingValuesAsEmptyStrings", "true"),
+    input1 = Array("First"),
+    input2 = Array(),
+    input3 = Array("Second"),
+    output = Array("First--Second")
   )
 ))
-case class ConcatTransformer(glue: String = "") extends Transformer {
+case class ConcatTransformer(
+  @Param("Separator to be inserted between two concatenated strings.")
+  glue: String = "",
+  @Param("Handle missing values as empty strings.")
+  missingValuesAsEmptyStrings: Boolean = false) extends Transformer {
 
   override def apply(values: Seq[Seq[String]]): Seq[String] = {
+
     if(values.isEmpty) {
       Seq.empty
     } else if(values.size == 1) {
       values.head
     } else {
-      for (sequence <- cartesianProduct(values)) yield evaluate(sequence)
+      val preprocessed = if (missingValuesAsEmptyStrings) {
+        for (value <- values) yield {
+          if (value.isEmpty) {
+            Seq("")
+          }
+          else {
+            value
+          }
+        }
+      } else {
+        values
+      }
+      for (sequence <- cartesianProduct(preprocessed)) yield evaluate(sequence)
     }
   }
 
   private def cartesianProduct(strings: Seq[Seq[String]]): Seq[List[String]] = {
-    if (strings.tail.isEmpty) for (string <- strings.head) yield string :: Nil
-    else for (string <- strings.head; seq <- cartesianProduct(strings.tail)) yield string :: seq
+    if (strings.tail.isEmpty) {
+      for (string <- strings.head) yield string :: Nil
+    }
+    else {
+      for (string <- strings.head; seq <- cartesianProduct(strings.tail)) yield string :: seq
+    }
   }
 
   private def evaluate(strings: Seq[String]) = {
