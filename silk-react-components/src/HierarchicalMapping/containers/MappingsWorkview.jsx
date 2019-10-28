@@ -11,7 +11,7 @@ import MappingHeader from './MappingHeader';
 import MappingsObject from './MappingsObject';
 import ObjectMappingRuleForm from './MappingRule/ObjectRule/ObjectRuleForm';
 import ValueMappingRuleForm from './MappingRule/ValueRule/ValueRuleForm';
-import MappingsList from './MappingsList';
+import MappingsList from './MappingsList/MappingsList';
 import SuggestionsList from './Suggestion/SuggestionsList';
 import {
     MAPPING_RULE_TYPE_ROOT,
@@ -69,8 +69,6 @@ class MappingsWorkview extends React.Component {
         this.loadData({ initialLoad: true });
         EventEmitter.on(MESSAGES.RELOAD, this.loadData);
         EventEmitter.on(MESSAGES.RULE_ID.CREATE, this.onRuleCreate);
-        EventEmitter.on(MESSAGES.MAPPING.CREATE, this.handleCreate);
-        EventEmitter.on(MESSAGES.MAPPING.SHOW_SUGGESTIONS, this.handleShowSuggestions);
         EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.handleRuleEditClose);
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.handleRuleEditClose);
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.handleRuleEditOpen);
@@ -80,8 +78,6 @@ class MappingsWorkview extends React.Component {
     componentWillUnmount() {
         EventEmitter.off(MESSAGES.RELOAD, this.loadData);
         EventEmitter.off(MESSAGES.RULE_ID.CREATE, this.onRuleCreate);
-        EventEmitter.off(MESSAGES.MAPPING.CREATE, this.handleCreate);
-        EventEmitter.off(MESSAGES.MAPPING.SHOW_SUGGESTIONS, this.handleShowSuggestions);
         EventEmitter.off(MESSAGES.RULE_VIEW.UNCHANGED, this.handleRuleEditClose);
         EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.handleRuleEditClose);
         EventEmitter.off(MESSAGES.RULE_VIEW.CHANGE, this.handleRuleEditOpen);
@@ -130,8 +126,7 @@ class MappingsWorkview extends React.Component {
         });
     };
 
-    handleShowSuggestions(event) {
-        event.stopPropagation();
+    handleShowSuggestions() {
         if (this.state.editing.length === 0) {
             this.setState({
                 showSuggestions: true,
@@ -392,6 +387,8 @@ class MappingsWorkview extends React.Component {
                     onRuleIdChange={this.props.onRuleIdChange}
                     onAskDiscardChanges={this.props.onAskDiscardChanges}
                     onClickedRemove={this.props.onClickedRemove}
+                    onShowSuggestions={this.handleShowSuggestions}
+                    onMappingCreate={this.handleCreate}
                 />
             ) : (
                 false

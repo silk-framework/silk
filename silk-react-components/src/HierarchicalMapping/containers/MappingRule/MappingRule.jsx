@@ -22,13 +22,6 @@ import EventEmitter from '../../utils/EventEmitter';
 import PropTypes from 'prop-types';
 import MappingRuleRow from './MappingRuleRow';
 
-const handleMoveElement = ({toPos, fromPos}) => {
-    if (fromPos === toPos) {
-        return;
-    }
-    EventEmitter.emit(MESSAGES.RULE.REQUEST_ORDER, {toPos, fromPos, reload: true});
-};
-
 export class MappingRule extends React.Component {
     // define property types
     static propTypes = {
@@ -44,6 +37,7 @@ export class MappingRule extends React.Component {
         pos: PropTypes.number.isRequired,
         count: PropTypes.number.isRequired,
         onClickedRemove: PropTypes.func,
+        onOrderRules: PropTypes.func.isRequired,
         onExpand: PropTypes.func,
         // provided,
         // snapshot,
@@ -98,6 +92,13 @@ export class MappingRule extends React.Component {
                 editing: false,
             });
         }
+    };
+    
+    handleMoveElement = ({toPos, fromPos}) => {
+        if (fromPos === toPos) {
+            return;
+        }
+        this.props.onOrderRules({toPos, fromPos});
     };
     
     // show / hide additional row details
@@ -191,7 +192,7 @@ export class MappingRule extends React.Component {
             <div className="ecc-silk-mapping__ruleitem-reorderhandler" key={id}>
                 <ContextMenu iconName="reorder" align="left" valign="top">
                     <MenuItem
-                        onClick={() => handleMoveElement({
+                        onClick={() => this.handleMoveElement({
                             parentId,
                             fromPos: pos,
                             toPos: 0,
@@ -201,7 +202,7 @@ export class MappingRule extends React.Component {
                         Move to top
                     </MenuItem>
                     <MenuItem
-                        onClick={() => handleMoveElement({
+                        onClick={() => this.handleMoveElement({
                             parentId,
                             fromPos: pos,
                             toPos: Math.max(0, pos - 1),
@@ -211,7 +212,7 @@ export class MappingRule extends React.Component {
                         Move up
                     </MenuItem>
                     <MenuItem
-                        onClick={() => handleMoveElement({
+                        onClick={() => this.handleMoveElement({
                             parentId,
                             fromPos: pos,
                             toPos: Math.min(pos + 1, count - 1),
@@ -221,7 +222,7 @@ export class MappingRule extends React.Component {
                         Move down
                     </MenuItem>
                     <MenuItem
-                        onClick={() => handleMoveElement({
+                        onClick={() => this.handleMoveElement({
                             parentId,
                             fromPos: pos,
                             toPos: count - 1,

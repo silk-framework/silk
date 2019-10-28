@@ -13,7 +13,7 @@ import { ruleRemoveAsync, setApiDetails } from './store';
 import MappingsTree from './containers/MappingsTree';
 import MappingsWorkview from './containers/MappingsWorkview';
 import MessageHandler from './components/MessageHandler';
-import { MAPPING_RULE_TYPE_OBJECT } from './utils/constants';
+import { isDebugMode, MAPPING_RULE_TYPE_OBJECT } from './utils/constants';
 import { MESSAGES } from './utils/constants';
 import RemoveMappingRuleDialog from './elements/RemoveMappingRuleDialog';
 import DiscardChangesDialog from './elements/DiscardChangesDialog';
@@ -240,11 +240,11 @@ class HierarchicalMapping extends React.Component {
         const loading = this.state.loading ? <Spinner /> : false;
 
         // render mapping edit / create view of value and object
-        const debugOptions = __DEBUG__ ? (
+        const debugOptions = isDebugMode() ? (
             <div>
                 <DisruptiveButton
                     onClick={() => {
-                        localStorage.setItem('mockStore', null);
+                        // localStorage.setItem('mockStore', null);
                         location.reload();
                     }}
                 >
@@ -259,12 +259,6 @@ class HierarchicalMapping extends React.Component {
                 </Button>
                 <hr />
             </div>
-        ) : (
-            false
-        );
-        const messagequeue = <MessageHandler />;
-        const pseudotoasts = messagequeue ? (
-            <div className="ecc-temp__appmessages">{messagequeue}</div>
         ) : (
             false
         );
@@ -290,7 +284,9 @@ class HierarchicalMapping extends React.Component {
                     )
                 }
                 {loading}
-                {pseudotoasts}
+                <div className="ecc-temp__appmessages">
+                    <MessageHandler />
+                </div>
                 <div className="ecc-silk-mapping__content">
                     {
                         showNavigation && (

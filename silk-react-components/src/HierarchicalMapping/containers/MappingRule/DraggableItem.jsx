@@ -60,6 +60,7 @@ class DraggableItem extends React.Component {
                         isPasted={this.state.isPasted}
                         expanded={this.state.expanded}
                         onExpand={this.handleExpand}
+                        onOrderRules={this.props.onOrderRules}
                         {...this.props}
                     />
                 }

@@ -16,14 +16,9 @@ export const MESSAGES = {
             PROGRESS: 'rule.suggestions.progress',
         },
         COPY: 'rule.copy',
-        REQUEST_ORDER: 'rule.requestOrder',
     },
     TREE_NAV: {
         TOGGLE_VISIBILITY: 'toggleVisibility',
-    },
-    MAPPING: {
-        CREATE: 'mapping.create',
-        SHOW_SUGGESTIONS: 'showSuggestions',
     },
     RELOAD: 'reload',
     TOGGLE_DETAILS: 'toggleDetails',
