@@ -209,7 +209,7 @@ class HierarchicalMapping extends React.Component {
     };
 
     // show / hide navigation
-    handleToggleNavigation = stateVisibility => {
+    handleToggleNavigation = (stateVisibility = !this.state.showNavigation)=> {
         this.setState({
             showNavigation: stateVisibility,
         });
@@ -303,6 +303,7 @@ class HierarchicalMapping extends React.Component {
                     {
                         <MappingsWorkview
                             currentRuleId={this.state.currentRuleId}
+                            showNavigation={showNavigation}
                             onToggleTreeNav={this.handleToggleNavigation}
                             onRuleIdChange={this.handleRuleIdChange}
                             askForDiscardData={this.state.askForDiscard}

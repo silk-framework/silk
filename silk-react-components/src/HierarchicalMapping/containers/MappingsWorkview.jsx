@@ -32,6 +32,7 @@ class MappingsWorkview extends React.Component {
         onRuleIdChange: PropTypes.func,
         onAskDiscardChanges: PropTypes.func,
         onClickedRemove: PropTypes.func,
+        showNavigation: PropTypes.bool,
         currentRuleId: PropTypes.string, // selected rule id
         askForDiscardData: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]), // selected rule id
     };
@@ -402,6 +403,7 @@ class MappingsWorkview extends React.Component {
                 <MappingHeader
                     rule={this.state.ruleData}
                     key={`navhead_${id}`}
+                    showNavigation={this.props.showNavigation}
                     onToggleTreeNav={this.props.onToggleTreeNav}
                     onToggleDetails={this.handleToggleRuleDetails}
                     onRuleIdChange={this.props.onRuleIdChange}
