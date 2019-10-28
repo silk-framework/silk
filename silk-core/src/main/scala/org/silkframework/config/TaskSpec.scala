@@ -1,7 +1,6 @@
 package org.silkframework.config
 
 import org.silkframework.entity.EntitySchema
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
@@ -22,15 +21,6 @@ trait TaskSpec {
     * A result of Some(Seq()) on the other hand means that this task has no inputs at all.
     */
   def inputSchemataOpt: Option[Seq[EntitySchema]]
-
-  /**
-    * The schemata of the input data for this task.
-    * A separate entity schema is returned for each input.
-    * Or None is returned, which means that this task can handle any number of inputs and any kind
-    * of entity schema.
-    * A result of Some(Seq()) on the other hand means that this task has no inputs at all.
-    */
-  def inputSchemataOpt(preceedingTask: Seq[Task[TaskSpec]])(implicit userContext: UserContext): Option[Seq[EntitySchema]] = inputSchemataOpt
 
   /**
     * The schema of the output data.

@@ -110,6 +110,9 @@ case class CompressedFileResource(file: File, name: String, path: String, knownT
   override def size: Option[Long] = Some(file.length())
 }
 
+/**
+  * A compression wrapper for any given resource
+  */
 case class CompressedResourceWrapper(res: WritableResource) extends WritableResource with ResourceWithKnownTypes{
   /**
     * Preferred method for writing to a resource.

@@ -25,7 +25,6 @@ import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
 
-import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.xml.Node
 
@@ -132,7 +131,7 @@ object DatasetSpec {
     private def adaptSchema(entitySchema: EntitySchema): EntitySchema = {
       datasetSpec.uriProperty match {
         case Some(property) =>
-          entitySchema.copy(typedPaths = entitySchema.typedPaths :+ TypedPath(UntypedPath.parse(property.uri), StringValueType, isAttribute = false))
+          entitySchema.copy(typedPaths = entitySchema.typedPaths :+ TypedPath(UntypedPath.parse(property.uri), StringValueType, isAttribute = false)) // StringValueType since UriType will often fail URI validation resulting in failed entities
         case None =>
           entitySchema
       }
@@ -169,8 +168,6 @@ object DatasetSpec {
     private val log = Logger.getLogger(DatasetSpec.getClass.getName)
 
     private var isOpen = false
-
-    private val schemaMap = new mutable.HashMap[EntitySchema, EntitySchema]()
 
     /**
       * Initializes this writer.

@@ -120,7 +120,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     try {
       project.anyTaskOption(operator.task) match {
         case Some(operatorTask) =>
-          val schemataOpt = operatorTask.data.inputSchemataOpt(operatorNode.inputNodes.flatMap(n => project.anyTaskOption(n.workflowNode.task)))
+          val schemataOpt = operatorTask.data.inputSchemataOpt
           val inputs = operatorNode.inputNodes
           val inputResults = executeWorkflowOperatorInputs(operatorNode, schemataOpt, inputs)
 
