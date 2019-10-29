@@ -32,7 +32,6 @@ export const MAPPING_RULE_TYPE_ROOT = 'root';
 export const MAPPING_RULE_TYPE_OBJECT = 'object';
 
 export const isRootRule = type => type === MAPPING_RULE_TYPE_ROOT;
-
 export const isObjectRule = type => type === MAPPING_RULE_TYPE_OBJECT;
 
 export const isCopiableRule = type =>

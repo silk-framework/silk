@@ -3,25 +3,22 @@ import { Button, NotAvailable } from '@eccenca/gui-elements';
 import { MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI } from '../../utils/constants';
 import getPathsRecursive from '../../utils/getUriPaths';
 import getUriOperatorsRecursive from '../../utils/getUriOperators';
+import ComplexEditButton from '../../elements/buttons/ComplexEditButton';
+import ComplexDeleteButton from '../../elements/buttons/ComplexeDeleteButton';
 
 class ObjectUriPattern extends Component {
     render() {
         const {uriRule} = this.props;
         const {type, pattern} = uriRule;
         
-        let uriPattern = false;
+        let uriPattern = <NotAvailable label="automatic default pattern" inline/>;
         
         let uriPatternLabel = 'URI pattern';
-        let tooltipText;
-        let removeButton = (
-            <Button
-                raised
-                iconName="delete"
-                className="ecc-silk-mapping__ruleseditor__actionrow-complex-delete"
-                onClick={this.props.onRemoveUriRule}
-                tooltip="Reset to default pattern"
-            />
-        );
+        let tooltipText = 'Create URI formula';
+        
+        let removeButton = <ComplexDeleteButton
+            onDelete={this.props.onRemoveUriRule}
+        />;
         
         if (type === MAPPING_RULE_TYPE_URI) {
             uriPattern = <code>{pattern}</code>;
@@ -30,7 +27,9 @@ class ObjectUriPattern extends Component {
             const paths = getPathsRecursive(uriRule.operator);
             const operators = getUriOperatorsRecursive(uriRule.operator);
             
+            tooltipText = 'Edit URI formula';
             uriPatternLabel = 'URI formula';
+            
             uriPattern = (
                 <span>
                     URI uses {paths.length} value{' '}
@@ -41,12 +40,7 @@ class ObjectUriPattern extends Component {
                     </code>.
                 </span>
             );
-            tooltipText = 'Edit URI formula';
         } else {
-            uriPattern = (
-                <NotAvailable label="automatic default pattern" inline/>
-            );
-            tooltipText = 'Create URI formula';
             removeButton = false;
         }
         
@@ -59,10 +53,7 @@ class ObjectUriPattern extends Component {
                         </dt>
                         <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                             {uriPattern}
-                            <Button
-                                raised
-                                iconName="edit"
-                                className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
+                            <ComplexEditButton
                                 onClick={this.props.onEditUriRule}
                                 tooltip={tooltipText}
                             />

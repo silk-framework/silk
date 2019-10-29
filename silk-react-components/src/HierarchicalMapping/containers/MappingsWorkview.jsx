@@ -8,7 +8,7 @@ import { Spinner } from '@eccenca/gui-elements';
 import PropTypes from 'prop-types';
 import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from '../store';
 import MappingHeader from './MappingHeader';
-import MappingsObject from './MappingsObject';
+import RootMappingRule from './RootMappingRule';
 import ObjectMappingRuleForm from './MappingRule/ObjectRule/ObjectRuleForm';
 import ValueMappingRuleForm from './MappingRule/ValueRule/ValueRuleForm';
 import MappingsList from './MappingsList/MappingsList';
@@ -406,7 +406,7 @@ class MappingsWorkview extends React.Component {
                     onRuleIdChange={this.props.onRuleIdChange}
                 />
                 <div className="mdl-shadow--2dp">
-                    <MappingsObject
+                    <RootMappingRule
                         rule={this.state.ruleData}
                         key={`objhead_${id}`}
                         handleCopy={this.handleCopy}

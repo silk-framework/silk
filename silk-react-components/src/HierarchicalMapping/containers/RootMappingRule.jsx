@@ -14,11 +14,11 @@ import { ThingIcon } from '../components/ThingIcon';
 import RuleTitle from '../elements/RuleTitle';
 import RuleTypes from '../elements/RuleTypes';
 import ObjectRule from './MappingRule/ObjectRule/ObjectRule';
-import { MAPPING_RULE_TYPE_URI } from '../utils/constants';
-import { MAPPING_RULE_TYPE_COMPLEX_URI, MESSAGES } from '../utils/constants';
+import { MAPPING_RULE_TYPE_COMPLEX_URI, MESSAGES, MAPPING_RULE_TYPE_URI } from '../utils/constants';
 import EventEmitter from '../utils/EventEmitter';
+import ExpandButton from '../elements/buttons/ExpandButton';
 
-class MappingsObject extends React.Component {
+class RootMappingRule extends React.Component {
     state = {
         expanded: false,
         editing: false,
@@ -50,10 +50,7 @@ class MappingsObject extends React.Component {
 
     handleRuleToggle({ expanded, id }) {
         // only trigger state / render change if necessary
-        if (
-            (id === true || id === this.props.rule.id) &&
-            expanded !== this.state.expanded
-        ) {
+        if ((id === true || id === this.props.rule.id) && expanded !== this.state.expanded) {
             this.setState({ expanded });
         }
     };
@@ -105,35 +102,14 @@ class MappingsObject extends React.Component {
 
         const breadcrumbs = _.get(this.props, 'rule.breadcrumbs', []);
         const parent = _.last(breadcrumbs);
-
-        let content = false;
-
-        if (this.state.expanded) {
-            content = (
-                <ObjectRule
-                    ruleData={this.props.rule}
-                    parentId={_.get(parent, 'id', '')}
-                    parent={parent}
-                    edit={false}
-                    handleCopy={this.props.handleCopy}
-                    handleClone={this.props.handleClone}
-                    onClickedRemove={this.props.onClickedRemove}
-                />
-            );
-        }
-
-        let uriPattern;
+        
+        let uriPattern = <NotAvailable label="automatic default pattern" inline />;
 
         const uriRuleType = _.get(this.props.rule.rules, 'uriRule.type', false);
-
         if (uriRuleType === MAPPING_RULE_TYPE_URI) {
             uriPattern = _.get(this, 'props.rule.rules.uriRule.pattern');
         } else if (uriRuleType === MAPPING_RULE_TYPE_COMPLEX_URI) {
             uriPattern = 'URI formula';
-        } else {
-            uriPattern = (
-                <NotAvailable label="automatic default pattern" inline />
-            );
         }
 
         return (
@@ -175,27 +151,29 @@ class MappingsObject extends React.Component {
                                         className="mdl-list__item-secondary-content"
                                         key="action"
                                     >
-                                        <Button
-                                            className={`silk${this.props.rule.id}`}
-                                            iconName={
-                                                this.state.expanded
-                                                    ? 'expand_less'
-                                                    : 'expand_more'
-                                            }
-                                            onClick={ev => {
-                                                this.handleToggleExpand();
-                                            }}
+                                        <ExpandButton
+                                            id={this.props.rule.id}
+                                            expanded={this.state.expanded}
+                                            onExpand={this.handleToggleExpand}
                                         />
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </CardTitle>
-                    {content}
+                    {this.state.expanded && <ObjectRule
+                        ruleData={this.props.rule}
+                        parentId={_.get(parent, 'id', '')}
+                        parent={parent}
+                        edit={false}
+                        handleCopy={this.props.handleCopy}
+                        handleClone={this.props.handleClone}
+                        onClickedRemove={this.props.onClickedRemove}
+                    />}
                 </Card>
             </div>
         );
     }
 }
 
-export default MappingsObject;
+export default RootMappingRule;

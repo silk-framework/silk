@@ -16,11 +16,13 @@ import {
 } from '@eccenca/gui-elements';
 import ValueMappingRule from './ValueRule/ValueRule';
 import ObjectRule from './ObjectRule/ObjectRule';
-import { isRootOrObjectRule, MAPPING_RULE_TYPE_OBJECT, MESSAGES } from '../../utils/constants';
+import { isObjectRule, isRootOrObjectRule, MAPPING_RULE_TYPE_OBJECT, MESSAGES } from '../../utils/constants';
 import className from 'classnames';
 import EventEmitter from '../../utils/EventEmitter';
 import PropTypes from 'prop-types';
 import MappingRuleRow from './MappingRuleRow';
+import NavigateButton from '../../elements/buttons/NavigateButton';
+import ExpandButton from '../../elements/buttons/ExpandButton';
 
 export class MappingRule extends React.Component {
     // define property types
@@ -151,14 +153,6 @@ export class MappingRule extends React.Component {
         
         const srcPath = sourcePath || sourcePaths;
         
-        const mainAction = event => {
-            if (type === MAPPING_RULE_TYPE_OBJECT) {
-                this.handleNavigate(this.props.id, this.props.parentId, event);
-            } else {
-                this.handleToggleExpand({force: true});
-            }
-            event.stopPropagation();
-        };
         const expandedView = this.props.expanded ? (
             isRootOrObjectRule(type) ? (
                 <ObjectRule
@@ -267,7 +261,11 @@ export class MappingRule extends React.Component {
                         <div
                             data-test-id="row-click"
                             className="mdl-list__item clickable"
-                            onClick={mainAction}
+                            onClick={(ev) =>
+                                isObjectRule(type)
+                                    ? this.handleNavigate(this.props.id, this.props.parentId, ev)
+                                    : this.handleToggleExpand({force: true})
+                            }
                         >
                             <MappingRuleRow
                                 status={this.props.status}
@@ -278,21 +276,27 @@ export class MappingRule extends React.Component {
                                 type={type}
                             />
                             <div className="mdl-list__item-secondary-content" key="action">
-                                <Button
-                                    data-test-id={`button-${this.props.id}`}
-                                    className={`silk${this.props.id}`}
-                                    iconName={
-                                        type === MAPPING_RULE_TYPE_OBJECT
-                                            ? 'arrow_nextpage'
-                                            : this.props.expanded ? 'expand_less' : 'expand_more'
-                                    }
-                                    tooltip={
-                                        type === MAPPING_RULE_TYPE_OBJECT
-                                            ? 'Navigate to'
-                                            : undefined
-                                    }
-                                    onClick={mainAction}
-                                />
+                                {
+                                    !isObjectRule(type) && <ExpandButton
+                                        id={this.props.id}
+                                        expanded={this.props.expanded}
+                                        onExpand={ev => {
+                                            ev.stopPropagation();
+                                            this.handleToggleExpand({force: true});
+                                        }}
+                                    />
+                                }
+                                {
+                                    isObjectRule(type) && <NavigateButton
+                                        id={this.props.id}
+                                        tooltip={'Navigate to'}
+                                        onClick={ev => {
+                                            ev.stopPropagation();
+                                            this.handleNavigate(this.props.id, this.props.parentId, ev);
+                                        }}
+                                    />
+                                }
+                                
                             </div>
                         </div>
                     </div>

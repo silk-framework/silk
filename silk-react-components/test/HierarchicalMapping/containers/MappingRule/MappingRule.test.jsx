@@ -1,5 +1,5 @@
 import React from "react";
-import { render, shallow } from 'enzyme';
+import { mount, render, shallow } from 'enzyme';
 import MappingRule from '../../../../src/HierarchicalMapping/containers/MappingRule/MappingRule';
 import {
     Button,
@@ -12,6 +12,8 @@ import {
 } from '@eccenca/gui-elements';
 import ObjectRule from '../../../../src/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRule';
 import ValueMappingRule from '../../../../src/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRule';
+import NavigateButton from '../../../../src/HierarchicalMapping/elements/buttons/NavigateButton';
+import ExpandButton from '../../../../src/HierarchicalMapping/elements/buttons/ExpandButton';
 
 const onRuleIdChangeFn = jest.fn();
 const onExpandFn = jest.fn();
@@ -58,7 +60,6 @@ const props = {
 };
 
 const selectors = {
-    NAV_BUTTON: 'button[data-test-id="button-birthdate"]',
     ROW_CLICK: 'div[data-test-id="row-click"]'
 };
 
@@ -83,9 +84,16 @@ describe("MappingRule Component", () => {
             expect(wrapper.find(Spinner)).toHaveLength(1)
         });
         
-        it('should rendered navigation button', () => {
-            const wrapper = getWrapper(render);
-            expect(wrapper.find(selectors.NAV_BUTTON)).toHaveLength(1)
+        it('should rendered NavigateButton, when type is object', () => {
+            const wrapper = getWrapper(shallow, {
+                ...props,
+                type: 'object'
+            });
+            expect(wrapper.find(NavigateButton)).toHaveLength(1)
+        });
+    
+        it('should rendered ExpandButton, when type is NOT object', () => {
+            expect(wrapper.find(ExpandButton)).toHaveLength(1)
         });
         
         it('should render ObjectMappingRule component, when rule is expanded and rule is object', () => {
