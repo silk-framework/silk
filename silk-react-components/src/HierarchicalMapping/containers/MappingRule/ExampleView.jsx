@@ -7,6 +7,7 @@ import _ from 'lodash';
 
 import { childExampleAsync, ruleExampleAsync } from '../../store';
 import { InfoBox } from '../../components/InfoBox';
+import { isDebugMode } from '../../utils/isDebugMode';
 
 export class ExampleView extends React.Component {
     static propTypes = {
@@ -31,9 +32,7 @@ export class ExampleView extends React.Component {
                 this.setState({ example });
             },
             error => {
-                if (__DEBUG__) {
-                    console.warn('err MappingRuleOverview: rule.example');
-                }
+                isDebugMode('err MappingRuleOverview: rule.example');
                 this.setState({ error });
             }
         );

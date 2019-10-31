@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-const getUriOperatorsRecursive = (operator = [], accumulator = []) => {
+const getUriOperatorsRecursive = (operator = {}, accumulator = []) => {
     if (_.has(operator, 'function')) {
         if (_.has(operator, 'inputs')) {
             _.forEach(
@@ -8,7 +8,7 @@ const getUriOperatorsRecursive = (operator = [], accumulator = []) => {
                 input =>
                     (accumulator = _.concat(
                         accumulator,
-                        getUriOperatorsRecursive(input, [])
+                        getUriOperatorsRecursive(input)
                     ))
             );
         }

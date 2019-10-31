@@ -2,7 +2,7 @@ import React from 'react';
 import _ from 'lodash';
 import { getVocabInfoAsync } from '../store';
 import { NotAvailable } from '@eccenca/gui-elements';
-import { isDebugMode } from '../utils/constants';
+import { isDebugMode } from '../utils/isDebugMode';
 
 export class URIInfo extends React.Component {
     state = {
@@ -27,9 +27,7 @@ export class URIInfo extends React.Component {
                     this.setState({info});
                 },
                 () => {
-                    if (isDebugMode()) {
-                        console.warn(`Could not get any info for ${uri}@${field}`);
-                    }
+                    isDebugMode(`Could not get any info for ${uri}@${field}`);
                     this.setState({info: false});
                 }
             );

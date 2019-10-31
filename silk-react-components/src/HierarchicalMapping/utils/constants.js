@@ -1,9 +1,4 @@
-export const isDebugMode = () => __DEBUG__;
-
 export const MESSAGES = {
-    RULE_ID: {
-        CREATE: 'ruleId.create',
-    },
     RULE_VIEW: {
         CHANGE: 'ruleView.change',
         UNCHANGED: 'ruleView.unchanged',

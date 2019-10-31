@@ -15,6 +15,7 @@ import {
     MESSAGES
 } from './utils/constants';
 import EventEmitter from './utils/EventEmitter';
+import { isDebugMode } from './utils/isDebugMode';
 
 const silkStore = rxmq.channel('silk.api');
 export const errorChannel = rxmq.channel('errors');
@@ -547,9 +548,7 @@ export const autocompleteAsync = data => {
         channel += 'sourcePaths';
         break;
     default:
-        if (__DEBUG__) {
-            console.error(`No autocomplete defined for ${entity}`);
-        }
+        isDebugMode(`No autocomplete defined for ${entity}`);
     }
 
     return silkStore

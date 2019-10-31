@@ -7,11 +7,11 @@ import {
     MenuItem,
 } from '@eccenca/gui-elements';
 
-import MappingsList from '../../../src/HierarchicalMapping/containers/MappingsList/MappingsList';
-import EmptyList from '../../../src/HierarchicalMapping/containers/MappingsList/EmptyList';
+import MappingsList from '../../../../src/HierarchicalMapping/containers/MappingsList/MappingsList';
+import EmptyList from '../../../../src/HierarchicalMapping/containers/MappingsList/EmptyList';
 import { DragDropContext } from 'react-beautiful-dnd';
-import DraggableItem from '../../../src/HierarchicalMapping/containers/MappingRule/DraggableItem';
-import ListActions from '../../../src/HierarchicalMapping/containers/MappingsList/ListActions';
+import DraggableItem from '../../../../src/HierarchicalMapping/containers/MappingRule/DraggableItem';
+import ListActions from '../../../../src/HierarchicalMapping/containers/MappingsList/ListActions';
 
 const onClickedRemoveFn = jest.fn();
 

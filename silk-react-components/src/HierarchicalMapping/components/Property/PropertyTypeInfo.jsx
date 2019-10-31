@@ -1,6 +1,7 @@
 import React from 'react';
 import { autocompleteAsync } from '../../store';
 import _ from 'lodash';
+import { isDebugMode } from '../../utils/isDebugMode';
 
 export class PropertyTypeInfo extends React.Component {
     state = {
@@ -25,11 +26,7 @@ export class PropertyTypeInfo extends React.Component {
                 });
             },
             () => {
-                if (__DEBUG__) {
-                    console.warn(`No ${
-                        this.props.option
-                        } found for the property type ${this.props.name}`);
-                }
+                isDebugMode(`No ${this.props.option} found for the property type ${this.props.name}`);
                 this.setState({
                     result: this.props.name,
                 });

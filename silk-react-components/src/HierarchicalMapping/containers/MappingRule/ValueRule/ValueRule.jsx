@@ -4,7 +4,7 @@ import _ from 'lodash';
 import PropTypes from 'prop-types';
 import { getEditorHref } from '../../../store';
 import ValueRuleForm from './ValueRuleForm';
-import { isDebugMode, MAPPING_RULE_TYPE_DIRECT, MESSAGES } from '../../../utils/constants';
+import { MAPPING_RULE_TYPE_DIRECT, MESSAGES } from '../../../utils/constants';
 import EventEmitter from '../../../utils/EventEmitter';
 import EditButton from '../../../elements/buttons/EditButton';
 import CopyButton from '../../../elements/buttons/CopyButton';
@@ -18,6 +18,7 @@ import ComplexEditButton from '../../../elements/buttons/ComplexEditButton';
 import ExampleTarget from '../../../components/ExampleTarget';
 import MetadataLabel from '../../../components/Metadata/MetadataLabel';
 import MetadataDesc from '../../../components/Metadata/MetadataDesc';
+import { isDebugMode } from '../../../utils/isDebugMode';
 
 class ValueRule extends React.Component {
     // define property types

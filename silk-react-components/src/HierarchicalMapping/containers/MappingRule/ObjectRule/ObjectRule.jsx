@@ -12,7 +12,6 @@ import ObjectMappingRuleForm from './ObjectRuleForm';
 import {
     isClonableRule,
     isCopiableRule,
-    isDebugMode,
     isObjectRule,
     isRootRule,
     MESSAGES,
@@ -33,6 +32,7 @@ import ExampleTarget from '../../../components/ExampleTarget';
 import MetadataLabel from '../../../components/Metadata/MetadataLabel';
 import MetadataDesc from '../../../components/Metadata/MetadataDesc';
 import { SourcePath } from '../../../components/SourcePath';
+import { isDebugMode } from '../../../utils/isDebugMode';
 
 class ObjectRule extends React.Component {
     static propTypes = {
