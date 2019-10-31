@@ -13,7 +13,7 @@ describe('getPathsRecursive function', () => {
         ]);
     });
     
-    it('should return array of functions, when operators have `function` and `inputs` property', () => {
+    it('should return array of functions, when operators have `function` and `inputs` property ', () => {
         const fn = () => {};
         expect(getPathsRecursive({
             function: fn,
