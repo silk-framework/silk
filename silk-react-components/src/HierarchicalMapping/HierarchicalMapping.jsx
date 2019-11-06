@@ -210,7 +210,7 @@ class HierarchicalMapping extends React.Component {
     };
 
     // show / hide navigation
-    handleToggleNavigation = (stateVisibility = !this.state.showNavigation)=> {
+    handleToggleNavigation = (stateVisibility = !this.state.showNavigation) => {
         this.setState({
             showNavigation: stateVisibility,
         });

@@ -99,7 +99,7 @@ class MappingHeader extends React.Component {
                         >
                             <MenuItem
                                 className="ecc-silk-mapping__ruleslistmenu__item-toggletree"
-                                onClick={this.props.onToggleTreeNav}
+                                onClick={() => this.props.onToggleTreeNav()}
                             >
                                 {this.props.showNavigation
                                     ? 'Hide tree navigation'
