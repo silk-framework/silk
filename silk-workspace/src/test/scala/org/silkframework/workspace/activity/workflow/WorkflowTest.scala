@@ -1,13 +1,16 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.mockito.Mockito._
+import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.scalatestplus.mockito.MockitoSugar
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 
+/**
+  * Created on 7/21/16.
+  */
 class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
   behavior of "Workflow"
 
@@ -28,7 +31,6 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
   val OP_1 = "op1"
   val OP_2 = "op2"
   val DS_C = "dsC"
-  val CONFIG_NODE = "conf"
 
   it should "support sorting its workflow operators topologically" in {
     val project = mock[Project]
@@ -57,11 +59,11 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
     val dag = testWorkflow.workflowDependencyGraph
     dag mustBe WorkflowDependencyGraph(
       startNodes = Set(
-        WorkflowDependencyNode(WorkflowDataset(List(), DS_A1, List(TRANSFORM_1), (0, 0), DS_A1, None, Seq.empty)),
-        WorkflowDependencyNode(WorkflowDataset(List(), DS_A2, List(TRANSFORM_2), (0, 0), DS_A2, None, Seq.empty))),
+        WorkflowDependencyNode(WorkflowDataset(List(), DS_A1, List(TRANSFORM_1), (0, 0), DS_A1, None)),
+        WorkflowDependencyNode(WorkflowDataset(List(), DS_A2, List(TRANSFORM_2), (0, 0), DS_A2, None))),
       endNodes = Seq(
-        WorkflowDependencyNode(WorkflowDataset(List(TRANSFORM_2), DS_B, List(), (0, 0), DS_B2, None, Seq.empty)),
-        WorkflowDependencyNode(WorkflowDataset(List(GENERATE_OUTPUT), OUTPUT, List(), (0, 0), OUTPUT, None, Seq.empty))
+        WorkflowDependencyNode(WorkflowDataset(List(), DS_B, List(), (0, 0), DS_B2, None)),
+        WorkflowDependencyNode(WorkflowDataset(List(GENERATE_OUTPUT), OUTPUT, List(), (0, 0), OUTPUT, None))
       ))
     val dsA1 = dag.startNodes.filter(_.workflowNode.nodeId == DS_A1).head
     intercept[IllegalStateException] {
@@ -121,16 +123,6 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
     singleNodeWorkflow.workflowDependencyGraph.endNodes.map(_.nodeId) mustBe Seq(OP_1)
   }
 
-  it should "sort and build the DAG correctly for a workflow with config inputs" in {
-    val sortedWorkflowNodes = testWorkflowWithConfigInputs.topologicalSortedNodes.map(_.nodeId)
-    sortedWorkflowNodes mustBe Seq(DS_A1, DS_A2, TRANSFORM_2, CONFIG_NODE, TRANSFORM_1, DS_B2, DS_B1, LINKING, LINKS, GENERATE_OUTPUT, OUTPUT)
-    val dsA1 = testWorkflowWithConfigInputs.workflowDependencyGraph.startNodes.find(_.nodeId == DS_A1)
-    dsA1 mustBe defined
-    dsA1.get.followingNodes.exists(_.nodeId == CONFIG_NODE) mustBe true
-    // Check if config node is preceding node of transformation
-    dsA1.get.followingNodes.find(_.nodeId == TRANSFORM_1).get.precedingNodes.exists(_.nodeId == CONFIG_NODE) mustBe true
-  }
-
   val testWorkflow: Workflow = {
     Workflow(
       operators = Seq(
@@ -142,20 +134,11 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
       datasets = Seq(
         dataset(DS_A1, DS_A1, outputs = Seq(TRANSFORM_1)),
         dataset(DS_A2, DS_A2, outputs = Seq(TRANSFORM_2)),
-        dataset(DS_B, DS_B1, inputs = Seq(TRANSFORM_1), outputs = Seq(LINKING, LINKING)),
-        dataset(DS_B, DS_B2, inputs = Seq(TRANSFORM_2)),
+        dataset(DS_B, DS_B1, outputs = Seq(LINKING, LINKING)),
+        dataset(DS_B, DS_B2),
         dataset(LINKS, LINKS, inputs = Seq(LINKING), outputs = Seq(GENERATE_OUTPUT)),
         dataset(OUTPUT, OUTPUT, inputs = Seq(GENERATE_OUTPUT))
       ))
-  }
-
-  val testWorkflowWithConfigInputs: Workflow = {
-    Workflow(
-      operators = testWorkflow.operators.map(op => if(op.nodeId != TRANSFORM_1) op else op.copy(configInputs = Seq(CONFIG_NODE))) ++ Seq(
-        operator(task = CONFIG_NODE, inputs = Seq(DS_A1), outputs = Seq(TRANSFORM_1), CONFIG_NODE)
-      ),
-      datasets = testWorkflow.datasets
-    )
   }
 
   val testWorkflowEndingInOperator: Workflow = {
@@ -203,7 +186,7 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
   }
 
   def operator(task: String, inputs: Seq[String], outputs: Seq[String], nodeId: String, outputPriority: Option[Double] = None): WorkflowOperator = {
-    WorkflowOperator(inputs = inputs, task = task, outputs = outputs, Seq(), (0, 0), nodeId, outputPriority, Seq.empty)
+    WorkflowOperator(inputs = inputs, task = task, outputs = outputs, Seq(), (0, 0), nodeId, outputPriority)
   }
 
   def dataset(task: String,
@@ -211,6 +194,6 @@ class WorkflowTest extends FlatSpec with MockitoSugar with MustMatchers {
               outputPriority: Option[Double] = None,
               inputs: Seq[String] = Seq(),
               outputs: Seq[String] = Seq()): WorkflowDataset = {
-    WorkflowDataset(inputs, task, outputs, (0, 0), nodeId, outputPriority, Seq.empty)
+    WorkflowDataset(inputs, task, outputs, (0, 0), nodeId, outputPriority)
   }
 }

@@ -19,10 +19,6 @@ function WorkflowEditor() {
             fill: '#3187CF',
             radius: 4,
         },
-        hoverPaintStyle: {
-            fill: '#3187CF',
-            radius: 6,
-        },
         connectorStyle: this.styles.connectors.plain,
         connectorHoverStyle: this.styles.connectors.hover,
         connectorOverlays: [['Arrow', {location: 1, width: 15, length: 15}]],
@@ -37,10 +33,6 @@ function WorkflowEditor() {
             fill: '#3187CF',
             radius: 4,
         },
-        hoverPaintStyle: {
-            fill: '#3187CF',
-            radius: 6,
-        },
         connectorStyle: this.styles.connectors.plain,
         isTarget: true,
         maxConnections: 1,
@@ -51,25 +43,6 @@ function WorkflowEditor() {
         paintStyle: {
             fill: '#3187CF',
             radius: 4,
-        },
-        hoverPaintStyle: {
-            fill: '#3187CF',
-            radius: 6,
-        },
-        connectorStyle: this.styles.connectors.plain,
-        isTarget: true,
-        maxConnections: 1,
-    };
-    this.styles.endpoints.configTarget = {
-        anchor: 'TopCenter',
-        endpoint: 'Dot',
-        paintStyle: {
-            fill: '#BF5741',
-            radius: 4,
-        },
-        hoverPaintStyle: {
-            fill: '#BF5741',
-            radius: 6,
         },
         connectorStyle: this.styles.connectors.plain,
         isTarget: true,
@@ -126,8 +99,6 @@ function WorkflowEditor() {
                 // Check if we still need to add endpoints to the dropped element
                 if (jsPlumb.getEndpoints(ui.helper).length === 0) {
                     var id = ui.helper.attr('id');
-                    var isDataset = ui.helper.hasClass('dataset');
-
                     // Hide operator in toolbox
                     // if($(ui.helper).hasClass('dataset')) {
                     //   ui.draggable.hide();
@@ -145,6 +116,7 @@ function WorkflowEditor() {
                     var inputCardinality = ui.helper.data().inputCardinality;
                     if (inputCardinality === -1) {
                         _this.handler.addDynamicEndpoint(id, 'dynamic_target');
+                        // jsPlumb.addEndpoint(id, _this.styles.endpoints.dynamic_target);
                     } else {
                         var endpoints = [];
                         for (var index = 0; index < inputCardinality; index++) {
@@ -157,7 +129,6 @@ function WorkflowEditor() {
                         }
                         _this.handler.repaintEndpoints(id, endpoints);
                     }
-                    _this.addConfigEndpoint(id);
                 }
             },
         });
@@ -176,7 +147,6 @@ function WorkflowEditor() {
         // Remember generated endpoints
         var sourceEndpoints = {};
         var targetEndpoints = {};
-        var configTargetEndpoints = {};
 
         deserializeWorkflowOperator('Operator', 'operator');
         deserializeWorkflowOperator('Dataset', 'dataset');
@@ -184,7 +154,6 @@ function WorkflowEditor() {
         function deserializeWorkflowOperator(elementName, childClass) {
             xmlRoot.find(elementName).each(function() {
                 var currXML = $(this);
-                var taskType = currXML.prop("tagName");
                 var taskId = currXML.attr('task');
                 var opId = currXML.attr('id');
                 var outputPriority = currXML.attr('outputPriority');
@@ -218,13 +187,13 @@ function WorkflowEditor() {
                     box,
                     _this.styles.endpoints.source
                 );
-
                 var inputCardinality = $(box).data().inputCardinality;
                 targetEndpoints[opId] = [];
                 if (inputCardinality === -1) {
                     targetEndpoints[opId].push(
                         _this.handler.addDynamicEndpoint(box, 'dynamic_target')
                     );
+                    // jsPlumb.addEndpoint(id, _this.styles.endpoints.dynamic_target);
                 } else {
                     for (var index = 0; index < inputCardinality; index++) {
                         targetEndpoints[opId].push(
@@ -236,8 +205,6 @@ function WorkflowEditor() {
                     }
                     _this.handler.repaintEndpoints(box, targetEndpoints[opId]);
                 }
-
-                configTargetEndpoints[opId] = _this.addConfigEndpoint(box);
             });
         }
 
@@ -272,21 +239,6 @@ function WorkflowEditor() {
                         }
                     }
                 });
-
-                var configInputs = currXML.attr('configInputs');
-                if(configInputs !== undefined) {
-                    $.each(configInputs.split(','), function (
-                        index,
-                        value
-                    ) {
-                        if (value !== '') {
-                            jsPlumb.connect({
-                                source: sourceEndpoints[value],
-                                target: configTargetEndpoints[taskId],
-                            });
-                        }
-                    });
-                }
             });
         }
     };
@@ -308,31 +260,6 @@ function WorkflowEditor() {
             // Show the corresponding element in the toolbox again
             $(`#toolbox${elementId.substring(elementId.indexOf('_'))}`).show();
         }, 100);
-    };
-
-    this.addConfigEndpoint = function(box) {
-        var endpoint = jsPlumb.addEndpoint(box, _this.styles.endpoints.configTarget);
-
-        _this.addEndpointTooltip(endpoint,
-          `Configuration input.<br/>
-           Values passed here will be used to reconfigure the operator parameters.
-           The attribute names must match the name of the parameters to be reconfigured.
-           It's possible to configure a subset of all available parameters.`);
-
-        return endpoint;
-    };
-
-    this.addEndpointTooltip = function(endpoint, tooltipHtml) {
-      var id = endpoint.element.id + "_configEndpoint";
-      var tooltip = document.createElement("div");
-      tooltip.className = "mdl-tooltip";
-      tooltip.setAttribute("for", id);
-      tooltip.innerHTML = tooltipHtml;
-
-      endpoint.canvas.id = id;
-      endpoint.canvas.insertAdjacentElement('afterend', tooltip);
-
-      componentHandler.upgradeElement(tooltip);
     };
 
     this.bindEvents();
