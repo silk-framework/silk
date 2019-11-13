@@ -3,12 +3,14 @@ import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.Param
 import org.silkframework.util.Uri
 
 /**
   * Mock dataset for tests. The main methods for retrieving and writing can be defined as parameter.
   */
-case class MockDataset(name: String = "dummy") extends Dataset {
+case class MockDataset(@Param(label = "person name", value = "The full name of a person")
+                       name: String = "dummy") extends Dataset {
   var retrieveFn: (EntitySchema, Option[Int]) => Traversable[Entity] = (_, _) => Seq.empty
   var retrieveByUriFn: (EntitySchema, Seq[Uri]) => Seq[Entity] = (_, _) => Seq.empty
   var writeLinkFn: (Link, String) => Unit = (_, _) => {}

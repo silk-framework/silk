@@ -16,7 +16,7 @@ trait Path extends Serializable {
 
   /**
     * The normalized serialization using the Silk RDF path language.
-    * Guaranties that the following equivalence holds true: path1 == path2 <=> path1.normalizedSerialization == normalizedSerialization
+    * Guarantees that the following equivalence holds true: path1 == path2 <=> path1.normalizedSerialization == normalizedSerialization
     */
   lazy val normalizedSerialization: String = serializePath(Prefixes.empty, stripForwardSlash = true)
 
