@@ -1,0 +1,14 @@
+.icon {
+  img {
+    width: 25px;
+
+    border-radius: 50%;
+  }
+}
+
+.logout-btn {
+  float: right;
+  &.ant-menu-item-selected {
+    background-color: transparent!important;
+  }
+}
