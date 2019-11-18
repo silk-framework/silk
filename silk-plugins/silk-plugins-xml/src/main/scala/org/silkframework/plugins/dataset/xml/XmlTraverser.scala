@@ -6,18 +6,17 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
 
-import scala.xml.{Node, Text}
+import scala.xml.Node
 
 /**
   * Implementation of XML access functions.
   */
-case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
-
+case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] = None) {
   /**
     * All direct children of this node.
     */
   def children: Seq[XmlTraverser] = {
-    for(child <- node \ "_") yield {
+    for(child <- node.child.filter(!_.isInstanceOf[InMemoryXmlText])) yield {
       XmlTraverser(child, Some(this))
     }
   }
@@ -32,7 +31,7 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
   /**
     * Lists all parent nodes.
     */
-  def parents: List[Node] = {
+  def parents: List[InMemoryXmlNode] = {
     parentOpt match {
       case Some(traverser) =>
         traverser.node :: traverser.parents
@@ -96,7 +95,7 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     // Generate paths for all children nodes
     val childPaths = if(depth == 0) Seq() else children.flatMap(_.collectPathsRecursive(onlyLeafNodes, onlyInnerNodes, path, depth - 1))
     // Generate paths for all attributes
-    val attributes = if(depth == 0) Seq() else node.attributes.asAttrMap.keys.toSeq
+    val attributes = if(depth == 0) Seq() else node.attributes.keys.toSeq
     val attributesPaths = attributes.map(attribute => TypedPath((path :+ ForwardOperator("@" + attribute)).toList, StringValueType, xmlAttribute = true))
     // Paths to inner nodes become object paths (URI), else value paths (string)
     val pathValueType: ValueType = if(children.nonEmpty || node.attributes.nonEmpty) UriValueType else StringValueType
@@ -144,7 +143,7 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
     */
   private def formatNode(uriPattern: String, fetchEntityUri: Boolean): Option[String] = {
     // Check if this is a leaf node
-    if(!fetchEntityUri && (node.isInstanceOf[Text] || (node.child.size == 1 && node.child.head.isInstanceOf[Text]))) {
+    if(!fetchEntityUri && (node.isInstanceOf[InMemoryXmlText] || (node.child.size == 1 && node.child.head.isInstanceOf[InMemoryXmlText]))) {
       Some(node.text)
     } else if(uriPattern.nonEmpty || fetchEntityUri) {
       Some(generateUri(uriPattern))
@@ -174,9 +173,9 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
   private def evaluateForwardOperator(op: ForwardOperator): Seq[XmlTraverser] = {
     op.property.uri match {
       case "#id" =>
-        Seq(XmlTraverser(Text(nodeId), Some(this)))
+        Seq(XmlTraverser(InMemoryXmlText(nodeId), Some(this)))
       case "#tag" =>
-        Seq(XmlTraverser(Text(node.label), Some(this)))
+        Seq(XmlTraverser(InMemoryXmlText(node.label), Some(this)))
       case "#text" =>
         Seq(this)
       case "*" =>
@@ -184,14 +183,11 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
       case "**" =>
         childrenRecursive
       case uri if uri.startsWith("@") =>
-        for {
-          attr <- node.attributes.find(_.key == uri.tail).toSeq
-          child <- attr.value
-        } yield {
-          XmlTraverser(child, Some(this))
+        for (attrValue <- node.attributes.get(uri.tail).toSeq) yield {
+          XmlTraverser(InMemoryXmlText(attrValue), Some(this))
         }
       case uri =>
-        for(child <- node \ uri) yield {
+        for(child <- node.childSelect(uri)) yield {
           XmlTraverser(child, Some(this))
         }
     }
@@ -207,8 +203,8 @@ case class XmlTraverser(node: Node, parentOpt: Option[XmlTraverser] = None) {
   }
 
   private def evaluatePropertyFilter(op: PropertyFilter): Seq[XmlTraverser] = {
-    node.find(n => op.evaluate("\"" + (n \ op.property.uri).text + "\"")) match {
-      case Some(n) =>
+    node.asArray.find(n => op.evaluate("\"" + (InMemoryXmlNodes(n.childSelect(op.property.uri).toArray).text + "\""))) match {
+      case Some(_) =>
         Seq(this)
       case None =>
         Seq.empty
@@ -224,9 +220,10 @@ object XmlTraverser {
   /**
     * Generates a ID for a given XML node that is unique inside the document.
     */
-  private def nodeId(node: Node): String = {
+  private def nodeId(node: InMemoryXmlNode): String = {
     // As we do not have access to the line number, we use a hashcode and hope that it doesn't clash
     node.hashCode.toString.replace('-', '1')
   }
 
+  def apply(node: Node): XmlTraverser = XmlTraverser(InMemoryXmlNode.fromNode(node))
 }

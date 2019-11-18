@@ -136,7 +136,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
           goToPath(reader, UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath)
           var count = 0
           do {
-            val node = buildNode(reader)
+            val node = buildNode(reader) // TODO: Build optimized in-memory XML node here. Only consider paths that are actually requested in the entity schema
             val traverser = XmlTraverser(node)
 
             val uri = traverser.generateUri(uriPattern)
