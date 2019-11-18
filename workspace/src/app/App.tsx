@@ -10,6 +10,8 @@ import LanguageContainer from "./LanguageContainer";
 import { RouteProps } from "react-router";
 import { history } from "./state/configureStore";
 import { ConnectedRouter } from "connected-react-router";
+import "normalize.css";
+import "@blueprintjs/core/lib/css/blueprint.css";
 
 interface IProps {
     routes: RouteProps[];

@@ -1,0 +1,10 @@
+[
+  {
+    "id": "Query.tabs.catalog",
+    "defaultMessage": "Catalog"
+  },
+  {
+    "id": "Query.tabs.editor",
+    "defaultMessage": "Editor"
+  }
+]

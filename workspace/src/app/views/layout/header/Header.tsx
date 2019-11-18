@@ -2,7 +2,7 @@ import React, { memo, useCallback } from 'react';
 import { Divider, Layout, Menu } from "antd";
 import './Header.scss';
 import { globalOp, globalSel } from "../../../state/ducks/global";
-import { connect, useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 
 interface IProps {
@@ -106,7 +106,7 @@ const Header = memo<IProps>(({externalRoutes}) => {
 
     return (
         !isAuth ? null :
-            <Layout.Header className="header">
+            <div className="header">
                 <Menu theme="dark"
                       mode="horizontal"
                       defaultSelectedKeys={['dashboard']}
@@ -114,7 +114,7 @@ const Header = memo<IProps>(({externalRoutes}) => {
                 >
                     {menu}
                 </Menu>
-            </Layout.Header>
+            </div>
     )
 });
 

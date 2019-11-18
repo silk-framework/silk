@@ -72,6 +72,9 @@ checkBrowsers(paths.appPath, isInteractive)
             } else {
                 console.log(chalk.green('Compiled successfully.\n'));
             }
+            // Copy assets into assets public folder
+            copyAssetsToPublicFolder();
+            
             console.log('listening to new changes...');
         },
         err => {
@@ -89,15 +92,13 @@ checkBrowsers(paths.appPath, isInteractive)
 
 // Create the production build and print the deployment instructions.
 function watch() {
-    const compiler = webpack(config);
     return new Promise((resolve, reject) => {
-        compiler.watch({
+        webpack(config).watch({
             aggregateTimeout: 300,
             watchOptions: {
                 ignored: /node_modules/
             }
         }, (err, stats) => {
-            
             let messages;
             if (err) {
                 if (!err.message) {
@@ -131,9 +132,6 @@ function watch() {
                     .then(() => reject())
                     .catch(error => reject(new Error(error)));
             }
-    
-            copyAssetsToPublicFolder();
-    
             return resolve({stats, warnings: messages.warnings});
         });
     });
