@@ -18,7 +18,7 @@ class DatasetSpecTest extends FlatSpec with Matchers {
     val dataset = MockDataset()
     var entities = Map[String, Seq[Seq[String]]]()
     dataset.writeEntityFn = (uri: String, values: Seq[Seq[String]]) => entities += ((uri, values))
-    val datasetSpec = DatasetSpec(dataset, uriProperty = Some("urn:schema:URI"))
+    val datasetSpec = DatasetSpec(dataset, uriAttribute = Some("urn:schema:URI"))
     implicit val userContext: UserContext = UserContext.Empty
     implicit val prefixes: Prefixes = Prefixes.empty
     val sink = datasetSpec.entitySink
