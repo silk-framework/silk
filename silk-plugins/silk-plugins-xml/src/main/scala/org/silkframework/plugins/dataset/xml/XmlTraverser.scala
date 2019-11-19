@@ -6,6 +6,7 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
 
+import scala.collection.mutable.ArrayBuffer
 import scala.xml.Node
 
 /**
@@ -16,16 +17,31 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     * All direct children of this node.
     */
   def children: Seq[XmlTraverser] = {
-    for(child <- node.child.filter(!_.isInstanceOf[InMemoryXmlText])) yield {
-      XmlTraverser(child, Some(this))
+    val arrayResult = new ArrayBuffer[XmlTraverser]
+    val child = node.child
+    var idx = 0
+    while(idx < child.length) {
+      if(!child(idx).isInstanceOf[InMemoryXmlText]) {
+        arrayResult.append(XmlTraverser(child(idx), Some(this)))
+      }
+      idx += 1
     }
+    arrayResult
   }
 
   /**
     * All direct and indirect children of this node.
     */
   def childrenRecursive: Seq[XmlTraverser] = {
-    children ++ children.flatMap(_.childrenRecursive)
+    val results = new ArrayBuffer[XmlTraverser]()
+    childrenRecursiveBuild(results)
+    results
+  }
+
+  private def childrenRecursiveBuild(arrayBuffer: ArrayBuffer[XmlTraverser]): Unit = {
+    val c = children
+    c foreach(child => arrayBuffer.append(child))
+    c foreach(child => child.childrenRecursiveBuild(arrayBuffer))
   }
 
   /**
@@ -121,7 +137,9 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     * @return A sequence of nodes that are matching the path.
     */
   def evaluatePath(path: UntypedPath): Seq[XmlTraverser] = {
-    evaluateOperators(path.operators)
+    val result = new ArrayBuffer[XmlTraverser]()
+    evaluateOperators(path.operators, result)
+    result
   }
 
   /**
@@ -152,16 +170,16 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     }
   }
 
-  private def evaluateOperators(ops: List[PathOperator]): Seq[XmlTraverser] = {
+  private def evaluateOperators(ops: List[PathOperator], results: ArrayBuffer[XmlTraverser]): Unit = {
     ops match {
       case Nil =>
-        Seq(this)
+        results.append(this)
       case op :: opsTail =>
-        evaluateOperator(op).flatMap(_.evaluateOperators(opsTail))
+        evaluateOperator(op) foreach (_.evaluateOperators(opsTail, results))
     }
   }
 
-  private def evaluateOperator(op: PathOperator): Seq[XmlTraverser] = {
+  private def evaluateOperator(op: PathOperator): Array[XmlTraverser] = {
     op match {
       case op: ForwardOperator => evaluateForwardOperator(op)
       case op: PropertyFilter => evaluatePropertyFilter(op)
@@ -170,47 +188,63 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     }
   }
 
-  private def evaluateForwardOperator(op: ForwardOperator): Seq[XmlTraverser] = {
+  private def evaluateForwardOperator(op: ForwardOperator): Array[XmlTraverser] = {
     op.property.uri match {
       case "#id" =>
-        Seq(XmlTraverser(InMemoryXmlText(nodeId), Some(this)))
+        asArray(XmlTraverser(InMemoryXmlText(nodeId), Some(this)))
       case "#tag" =>
-        Seq(XmlTraverser(InMemoryXmlText(node.label), Some(this)))
+        asArray(XmlTraverser(InMemoryXmlText(node.label), Some(this)))
       case "#text" =>
-        Seq(this)
+        asArray(this)
       case "*" =>
-        children
+        children.toArray
       case "**" =>
-        childrenRecursive
-      case uri if uri.startsWith("@") =>
-        for (attrValue <- node.attributes.get(uri.tail).toSeq) yield {
-          XmlTraverser(InMemoryXmlText(attrValue), Some(this))
+        childrenRecursive.toArray
+      case uri: String if uri.startsWith("@") =>
+        node.attributes.get(uri.tail) match {
+          case Some(attrValue) =>
+            asArray(XmlTraverser(InMemoryXmlText(attrValue), Some(this)))
+          case None =>
+            XmlTraverser.emptyArray
         }
-      case uri =>
-        for(child <- node.childSelect(uri)) yield {
-          XmlTraverser(child, Some(this))
+      case uri: String =>
+        val cs = node.childSelect(uri)
+        val result = new Array[XmlTraverser](cs.length)
+        var idx = 0
+        while(idx < cs.length) {
+          result(idx) = XmlTraverser(cs(idx), Some(this))
+          idx += 1
         }
+        result
     }
   }
 
-  private def evaluateBackwardOperator(op: BackwardOperator): Seq[XmlTraverser] = {
+  private def evaluateBackwardOperator(op: BackwardOperator): Array[XmlTraverser] = {
     parentOpt match {
       case Some(parent) =>
-        Seq(parent)
+        asArray(parent)
       case None =>
         throw new RuntimeException("Cannot go backward from root XML element! Backward property: " + op.property.uri)
     }
   }
 
-  private def evaluatePropertyFilter(op: PropertyFilter): Seq[XmlTraverser] = {
-    node.asArray.find(n => op.evaluate("\"" + (InMemoryXmlNodes(n.childSelect(op.property.uri).toArray).text + "\""))) match {
-      case Some(_) =>
-        Seq(this)
-      case None =>
-        Seq.empty
-    }
+  def asArray(xmlTraverser: XmlTraverser): Array[XmlTraverser] = {
+    val arr = new Array[XmlTraverser](1)
+    arr(0) = xmlTraverser
+    arr
   }
 
+  private def evaluatePropertyFilter(op: PropertyFilter): Array[XmlTraverser] = {
+    val nodeArray = node.asArray
+    var idx = 0
+    while(idx < nodeArray.length) {
+      if(op.evaluate("\"" + (InMemoryXmlNodes(nodeArray(idx).childSelect(op.property.uri)).text) + "\"")) {
+        return asArray(this)
+      }
+      idx += 1
+    }
+    new Array[XmlTraverser](0)
+  }
 }
 
 object XmlTraverser {
@@ -221,9 +255,11 @@ object XmlTraverser {
     * Generates a ID for a given XML node that is unique inside the document.
     */
   private def nodeId(node: InMemoryXmlNode): String = {
-    // As we do not have access to the line number, we use a hashcode and hope that it doesn't clash
-    node.hashCode.toString.replace('-', '1')
+    node.id
   }
 
   def apply(node: Node): XmlTraverser = XmlTraverser(InMemoryXmlNode.fromNode(node))
+
+  val emptySeq: Seq[XmlTraverser] = Seq.empty
+  val emptyArray: Array[XmlTraverser] = Array.empty
 }

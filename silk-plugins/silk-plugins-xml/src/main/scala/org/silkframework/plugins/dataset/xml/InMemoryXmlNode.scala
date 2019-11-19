@@ -1,7 +1,5 @@
 package org.silkframework.plugins.dataset.xml
 
-import java.util
-
 import scala.xml._
 
 /**
@@ -50,36 +48,19 @@ sealed trait InMemoryXmlNode {
     */
   def childSelect(selector: String): Array[InMemoryXmlNode] = {
     def fail = throw new IllegalArgumentException(selector)
-//    def atResult = {
-//      lazy val y = asSeq.head
-//      val attr =
-//        if (selector.length == 1) fail
-//        else if (selector(1) == '{') {
-//          val i = selector indexOf '}'
-//          if (i == -1) fail
-//          val (uri, key) = (selector.substring(2,i), selector.substring(i+1, selector.length()))
-//          if (uri == "" || key == "") fail
-//          else y.attribute(uri, key)
-//        }
-//        else y.attribute(selector drop 1)
-//
-//      attr match {
-//        case Some(x)  => Group(x)
-//        case _        => NodeSeq.Empty
-//      }
-//    }
 
     selector match {
-      case ""                                         => fail
-      case "_"                                        => filterArray(child, !_.isInstanceOf[InMemoryXmlText])
-      case _ if (selector(0) == '@' && asArray.length == 1)  => this match {
+      case "" => fail
+      case "_" => ArrayUtil.filterArray(child, !_.isInstanceOf[InMemoryXmlText])
+      case _ if selector(0) == '@' && asArray.length == 1 => this match {
         case elem: InMemoryXmlElem => selectAttribute(selector, elem)
         case _ => new Array[InMemoryXmlNode](0)
       }
-      case _                                          => filterArray(child, _.label == selector)
+      case _ => ArrayUtil.filterArray(child, _.label == selector)
     }
   }
 
+  /** fetch value of an attribute, returns empty array if it does not exist */
   private def selectAttribute(selector: String, elem: InMemoryXmlElem): Array[InMemoryXmlNode] = {
     elem.attributes.get(selector.drop(1)) match {
       case Some(attrValue) =>
@@ -91,26 +72,14 @@ sealed trait InMemoryXmlNode {
     }
   }
 
-  private def filterArray(arr: Array[InMemoryXmlNode], cond: (InMemoryXmlNode) => Boolean): Array[InMemoryXmlNode] = {
-    var idx = 0
-    val indices = new util.ArrayList[Int]()
-    while(idx < arr.length) {
-      if(cond(arr(idx))) {
-        indices.add(idx)
-      }
-      idx += 1
-    }
-    val outputArr = new Array[InMemoryXmlNode](indices.size())
-    idx = 0
-    while(idx < indices.size()) {
-      outputArr(idx) = arr(indices.get(idx))
-      idx += 1
-    }
-    outputArr
-  }
+  def id: String = this.hashCode.toString.replace('-', '1')
 }
 
-case class InMemoryXmlElem(label: String, override val attributes: Map[String, String], override val child: Array[InMemoryXmlNode]) extends InMemoryXmlNode {
+/** Represents an XML element */
+case class InMemoryXmlElem(override val id: String,
+                           label: String,
+                           override val attributes: Map[String, String],
+                           override val child: Array[InMemoryXmlNode]) extends InMemoryXmlNode {
   override def appendText(sb: StringBuffer): Unit = {
     var idx = 0
     while(idx < child.length) {
@@ -120,6 +89,7 @@ case class InMemoryXmlElem(label: String, override val attributes: Map[String, S
   }
 }
 
+/** Represents a group of nodes. */
 case class InMemoryXmlNodes(nodes: Array[InMemoryXmlNode]) extends InMemoryXmlNode {
   override def appendText(sb: StringBuffer): Unit = {
     var idx = 0
@@ -140,26 +110,27 @@ case class InMemoryXmlNodes(nodes: Array[InMemoryXmlNode]) extends InMemoryXmlNo
   override def asArray: Array[InMemoryXmlNode] = nodes
 }
 
+/** XML Text node */
 case class InMemoryXmlText(value: String) extends InMemoryXmlNode {
   override def appendText(sb: StringBuffer): Unit = sb.append(value)
 
   override def label: String = "#PCDATA"
 }
 
-case class InMemoryXmlAttribute(value: String)
-
 object InMemoryXmlNode {
+  /** Convert Scala XML node to [[InMemoryXmlNode]] */
   def fromNode(node: Node): InMemoryXmlNode = {
     node match {
       case Text(text) => InMemoryXmlText(text)
       case Unparsed(text) => InMemoryXmlText(text)
       case PCData(text) => InMemoryXmlText(text)
       case Group(nodes) => InMemoryXmlNodes(nodes.map(fromNode).toArray)
-      case e: Elem => InMemoryXmlElem(e.label, e.attributes.asAttrMap, e.child.map(fromNode).toArray)
+      case e: Elem => InMemoryXmlElem(e.hashCode.toString.replace('-', '1'), e.label, e.attributes.asAttrMap, e.child.map(fromNode).toArray)
       case _ => throw new IllegalArgumentException(node.getClass.getName)
     }
   }
 
+  /** Convert Scala XML attribute [[MetaData]] object to simple map. */
   def attributes(attr: MetaData): Map[String, String] = {
     attr.asAttrMap
   }
