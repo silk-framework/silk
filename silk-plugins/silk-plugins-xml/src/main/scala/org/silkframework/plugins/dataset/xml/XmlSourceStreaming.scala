@@ -16,12 +16,11 @@ import org.silkframework.util.{Identifier, Uri}
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
-import scala.xml._
 
 /**
   * XML streaming source.
   */
-class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) extends DataSource
+class XmlSourceStreaming(override val file: Resource, basePath: String, uriPattern: String) extends DataSource
   with PeakDataSource with PathCoverageDataSource with ValueCoverageDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource {
 
   private val xmlFactory = XMLInputFactory.newInstance()
@@ -138,7 +137,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
           var count = 0
           do {
             val node = buildNode(reader)
-            val traverser = XmlTraverser(node)
+            val traverser = XmlTraverser(node, uniqueFileId = uniqueFileId)
 
             val uri = traverser.generateUri(uriPattern)
             val values = for (typedPath <- entitySchema.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)

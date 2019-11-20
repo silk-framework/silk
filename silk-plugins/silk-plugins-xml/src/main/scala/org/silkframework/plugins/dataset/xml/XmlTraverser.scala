@@ -12,7 +12,7 @@ import scala.xml.Node
 /**
   * Implementation of XML access functions.
   */
-case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] = None) {
+case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] = None, uniqueFileId: String) {
   /**
     * All direct children of this node.
     */
@@ -22,7 +22,7 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     var idx = 0
     while(idx < child.length) {
       if(!child(idx).isInstanceOf[InMemoryXmlText]) {
-        arrayResult.append(XmlTraverser(child(idx), Some(this)))
+        arrayResult.append(XmlTraverser(child(idx), Some(this), uniqueFileId))
       }
       idx += 1
     }
@@ -69,7 +69,8 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     */
   def generateUri(uriPattern: String): String = {
     if (uriPattern.isEmpty) {
-      DataSource.generateEntityUri(node.label, nodeId)
+      val groupPrefix = if(uniqueFileId != "") s"$uniqueFileId-" else ""
+      DataSource.generateEntityUri(groupPrefix + node.label, nodeId)
     } else {
       XmlTraverser.uriRegex.replaceAllIn(uriPattern, m => {
         val pattern = m.group(1)
@@ -191,9 +192,9 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
   private def evaluateForwardOperator(op: ForwardOperator): Array[XmlTraverser] = {
     op.property.uri match {
       case "#id" =>
-        asArray(XmlTraverser(InMemoryXmlText(nodeId), Some(this)))
+        asArray(XmlTraverser(InMemoryXmlText(nodeId), Some(this), uniqueFileId))
       case "#tag" =>
-        asArray(XmlTraverser(InMemoryXmlText(node.label), Some(this)))
+        asArray(XmlTraverser(InMemoryXmlText(node.label), Some(this), uniqueFileId))
       case "#text" =>
         asArray(this)
       case "*" =>
@@ -203,7 +204,7 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
       case uri: String if uri.startsWith("@") =>
         node.attributes.get(uri.tail) match {
           case Some(attrValue) =>
-            asArray(XmlTraverser(InMemoryXmlText(attrValue), Some(this)))
+            asArray(XmlTraverser(InMemoryXmlText(attrValue), Some(this), uniqueFileId))
           case None =>
             XmlTraverser.emptyArray
         }
@@ -212,7 +213,7 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
         val result = new Array[XmlTraverser](cs.length)
         var idx = 0
         while(idx < cs.length) {
-          result(idx) = XmlTraverser(cs(idx), Some(this))
+          result(idx) = XmlTraverser(cs(idx), Some(this), uniqueFileId)
           idx += 1
         }
         result
@@ -258,7 +259,7 @@ object XmlTraverser {
     node.id
   }
 
-  def apply(node: Node): XmlTraverser = XmlTraverser(InMemoryXmlNode.fromNode(node))
+  def apply(node: Node, uniqueFileId: String): XmlTraverser = XmlTraverser(InMemoryXmlNode.fromNode(node), uniqueFileId = uniqueFileId)
 
   val emptySeq: Seq[XmlTraverser] = Seq.empty
   val emptyArray: Array[XmlTraverser] = Array.empty

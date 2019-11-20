@@ -4,6 +4,7 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.Uri
 
 /**
@@ -26,6 +27,13 @@ trait XmlSourceTrait { this: DataSource =>
       val uriSet = entities.map(_.uri.toString).toSet
       retrieve(entitySchema).filter(entity => uriSet.contains(entity.uri.toString))
     }
+  }
+
+  def file: Resource
+
+  // to generate unique URIs even in bulk datasets
+  val uniqueFileId: String = {
+    file.name.split("[/\\\\]").last.stripSuffix(".xml")
   }
 
 }

@@ -20,12 +20,12 @@ class XmlTraverserTest extends FlatSpec with MustMatchers {
         </B>
       </A>
     </Root>
-    implicit val traverser: XmlTraverser = XmlTraverser(xml)
+    implicit val traverser: XmlTraverser = XmlTraverser(xml, uniqueFileId = "file1")
     evaluate("/A/B") mustBe Seq("Value", "complex element")
     val objectResources = evaluate("/A/B", UriValueType)
     objectResources.size mustBe 6
-    objectResources.map(_.take(14)).distinct mustBe Seq("urn:instance:B")
-    evaluate("/A", UriValueType) mustBe Seq("urn:instance:A#1031906387")
+    objectResources.map(_.take(21)).distinct mustBe Seq("urn:instance:file1-B#")
+    evaluate("/A", UriValueType) mustBe Seq("urn:instance:file1-A#1031906387")
     evaluate("/A", StringValueType) mustBe Seq()
     evaluate("/A", IntValueType) mustBe Seq()
   }

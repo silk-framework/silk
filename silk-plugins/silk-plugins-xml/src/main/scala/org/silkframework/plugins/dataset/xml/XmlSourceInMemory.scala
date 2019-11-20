@@ -13,7 +13,7 @@ import org.silkframework.util.{Identifier, Uri}
 
 import scala.xml.XML
 
-class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) extends DataSource
+class XmlSourceInMemory(override val file: Resource, basePath: String, uriPattern: String) extends DataSource
     with PathCoverageDataSource with ValueCoverageDataSource with PeakDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource {
 
   private val logger = Logger.getLogger(getClass.getName)
@@ -64,7 +64,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     val pathStr = if (typeUri.isEmpty) basePath else typeUri
     // Load XML
     val xml = file.read(XML.load)
-    val rootTraverser = XmlTraverser(xml)
+    val rootTraverser = XmlTraverser(xml, uniqueFileId)
     // Move to base path
     rootTraverser.evaluatePath(UntypedPath.parse(pathStr))
   }
