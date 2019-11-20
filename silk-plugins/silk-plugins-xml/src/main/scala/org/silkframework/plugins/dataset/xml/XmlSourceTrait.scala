@@ -5,7 +5,7 @@ import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
-import org.silkframework.util.Uri
+import org.silkframework.util.{Identifier, Uri}
 
 /**
   * A trait that all XML data source implementations should implement
@@ -33,7 +33,7 @@ trait XmlSourceTrait { this: DataSource =>
 
   // to generate unique URIs even in bulk datasets
   val uniqueFileId: String = {
-    file.name.split("[/\\\\]").last.stripSuffix(".xml")
+    file.name.split("[/\\\\]").last.stripSuffix(".xml").filter(Identifier.isAllowed)
   }
 
 }
