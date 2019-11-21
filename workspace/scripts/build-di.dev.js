@@ -25,6 +25,7 @@ const checkRequiredFiles = require('react-dev-utils/checkRequiredFiles');
 const formatWebpackMessages = require('react-dev-utils/formatWebpackMessages');
 const printBuildError = require('react-dev-utils/printBuildError');
 const ignoredFiles = require('react-dev-utils/ignoredFiles');
+const rimraf = require('rimraf');
 
 const isInteractive = process.stdout.isTTY;
 // Warn and crash if required files are missing
@@ -51,36 +52,7 @@ checkBrowsers(paths.appPath, isInteractive)
             // Merge with the public folder
             copyPublicFolder();
             // Start the webpack build
-            return watch();
-        }
-    )
-    .then(
-        ({stats, warnings}) => {
-            if (warnings.length) {
-                console.log(chalk.yellow('Compiled with warnings.\n'));
-                console.log(warnings.join('\n\n'));
-                console.log(
-                    '\nSearch for the ' +
-                    chalk.underline(chalk.yellow('keywords')) +
-                    ' to learn more about each warning.'
-                );
-                console.log(
-                    'To ignore, add ' +
-                    chalk.cyan('// eslint-disable-next-line') +
-                    ' to the line before.\n'
-                );
-            } else {
-                console.log(chalk.green('Compiled successfully.\n'));
-            }
-            // Copy assets into assets public folder
-            copyAssetsToPublicFolder();
-            
-            console.log('listening to new changes...');
-        },
-        err => {
-            console.log(chalk.red('Failed to compile.\n'));
-            printBuildError(err);
-            process.exit(1);
+            watch();
         }
     )
     .catch(err => {
@@ -90,50 +62,77 @@ checkBrowsers(paths.appPath, isInteractive)
         process.exit(1);
     });
 
+function exitOnError(err) {
+    console.log(chalk.red('Failed to compile.\n'));
+    printBuildError(err);
+    // process.exit(1);
+}
+
 // Create the production build and print the deployment instructions.
 function watch() {
-    return new Promise((resolve, reject) => {
-        webpack(config).watch({
-            aggregateTimeout: 300,
-            watchOptions: {
-                ignored: /node_modules/
+    const compiler = webpack(config);
+    compiler.hooks.watchRun.tap('a', () => {
+        // fs.emptyDirSync(paths.appDIAssets + '/assets');
+    });
+    compiler.watch({
+        aggregateTimeout: 300,
+        watchOptions: {
+            ignored: /node_modules/
+        }
+    }, (err, stats) => {
+        let messages;
+        if (err) {
+            if (!err.message) {
+                return exitOnError(err)
             }
-        }, (err, stats) => {
-            let messages;
-            if (err) {
-                if (!err.message) {
-                    return reject(err);
-                }
-                messages = formatWebpackMessages({
-                    errors: [err.message],
-                    warnings: [],
-                });
-            } else {
-                messages = formatWebpackMessages(
-                    stats.toJson({
-                        all: false,
-                        warnings: true,
-                        errors: true,
-                    })
-                );
+            messages = formatWebpackMessages({
+                errors: [err.message],
+                warnings: [],
+            });
+        } else {
+            messages = formatWebpackMessages(
+                stats.toJson({
+                    all: false,
+                    warnings: true,
+                    errors: true,
+                })
+            );
+        }
+        if (messages.errors.length) {
+            // Only keep the first error. Others are often indicative
+            // of the same problem, but confuse the reader with noise.
+            if (messages.errors.length > 1) {
+                messages.errors.length = 1;
             }
-            if (messages.errors.length) {
-                // Only keep the first error. Others are often indicative
-                // of the same problem, but confuse the reader with noise.
-                if (messages.errors.length > 1) {
-                    messages.errors.length = 1;
-                }
-                return reject(new Error(messages.errors.join('\n\n')));
-            }
-            
-            if (writeStatsJson) {
-                return bfj
-                    .write(paths.appDIBuild + '/bundle-stats.json', stats.toJson())
-                    .then(() => reject())
-                    .catch(error => reject(new Error(error)));
-            }
-            return resolve({stats, warnings: messages.warnings});
-        });
+            return exitOnError(new Error(messages.errors.join('\n\n')));
+        }
+        
+        if (messages.warnings.length) {
+            console.log(chalk.yellow('Compiled with warnings.\n'));
+            console.log(messages.warnings.join('\n\n'));
+            console.log(
+                '\nSearch for the ' +
+                chalk.underline(chalk.yellow('keywords')) +
+                ' to learn more about each warning.'
+            );
+            console.log(
+                'To ignore, add ' +
+                chalk.cyan('// eslint-disable-next-line') +
+                ' to the line before.\n'
+            );
+        } else {
+            fs.emptyDirSync(paths.appDIAssets + '/assets');
+            // Copy assets into assets public folder
+            copyAssetsToPublicFolder();
+            console.log(chalk.green('Compiled successfully.\n'));
+        }
+        
+        if (writeStatsJson) {
+            return bfj
+                .write(paths.appDIBuild + '/bundle-stats.json', stats.toJson())
+        }
+        
+        console.log('listening to new changes...');
     });
 }
 
@@ -145,7 +144,6 @@ function copyPublicFolder() {
 }
 
 function copyAssetsToPublicFolder() {
-    fs.emptyDirSync(paths.appDIAssets);
     fs.copySync(
         path.join(paths.appDIBuild, 'assets'),
         path.join(paths.appDIAssets, 'assets')

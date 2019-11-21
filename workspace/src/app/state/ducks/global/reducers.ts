@@ -21,6 +21,12 @@ const global = (state = new GlobalDto(), action: any = {}): GlobalDto => {
                 authenticated: false,
             };
 
+        case (types.CHANGE_SEARCH_STRING):
+            return {
+                ...state,
+                searchString: action.payload.searchString
+            };
+
         default:
             return state;
     }

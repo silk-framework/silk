@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { logError } from "./providers/errorLogger";
+import { isDevelopment } from "./constants";
 
 /**
  * Catch the children components errors
@@ -7,8 +8,11 @@ import { logError } from "./providers/errorLogger";
  * @see https://github.com/facebook/react/issues/11334#issuecomment-338656383
  */
 class ErrorBoundary extends Component {
-    async componentDidCatch(error, info) {
+    componentDidCatch(error, info) {
         logError(error, info);
+        if (isDevelopment) {
+            console.log(error, info);
+        }
     }
 
     render() {

@@ -6,8 +6,13 @@ const isAuthSelector = createSelector(
     [globalSelector],
     global => global.authenticated || isAuthenticated()
 );
+const searchStringSelector = createSelector(
+    [globalSelector],
+    global => global.searchString || ''
+);
 
 export default {
     globalSelector,
+    searchStringSelector,
     isAuthSelector
 }

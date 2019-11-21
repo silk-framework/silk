@@ -14,3 +14,10 @@ export const loginSuccess = () => ({
 export const logOutUser = () => ({
     type: types.LOG_OUT
 });
+
+export const changeSearchString = (searchString: string) => ({
+    type: types.CHANGE_SEARCH_STRING,
+    payload: {
+        searchString
+    }
+});
