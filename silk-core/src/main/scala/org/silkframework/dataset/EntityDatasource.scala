@@ -35,7 +35,7 @@ case class EntityDatasource(underlyingTask: Task[DatasetSpec[Dataset]], entities
             requestSchema
           )
         }
-        GenericEntityTable(entities, entitySchema, underlyingTask)
+        GenericEntityTable(mappedEntities, entitySchema, underlyingTask)
       }
     }
   }
