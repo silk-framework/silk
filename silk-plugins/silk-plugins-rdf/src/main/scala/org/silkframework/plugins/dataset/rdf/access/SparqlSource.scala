@@ -72,7 +72,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
     */
   override def underlyingTask: Task[DatasetSpec[Dataset]] = {
     val taskId = params.graph match{
-      case Some(g) => Identifier.fromAllowed(g.substring(g.lastIndexOf("/")))
+      case Some(g) => Identifier.fromAllowed("graph-" + g.substring(g.lastIndexOf("/")))
       case None => Identifier("default_graph")
     }
 
