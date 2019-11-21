@@ -3,6 +3,8 @@ package org.silkframework.dataset
 import org.silkframework.config.Task
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
@@ -12,7 +14,7 @@ import org.silkframework.util.Uri
   */
 case class EntityDatasource(underlyingTask: Task[DatasetSpec[Dataset]], entities: Traversable[Entity], entitySchema: EntitySchema) extends DataSource with PeakDataSource {
   override def retrieve(requestSchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext): Traversable[Entity] = {
+                       (implicit userContext: UserContext): EntityHolder = {
     if(requestSchema.typeUri != entitySchema.typeUri) {
       throw new ValidationException("Type URI '" + requestSchema.typeUri.toString + "' not available!")
     } else {
@@ -26,19 +28,20 @@ case class EntityDatasource(underlyingTask: Task[DatasetSpec[Dataset]], entities
       } else {
         val matchingPathMap = matchingPaths.toMap
         val valuesIndexes = requestSchema.typedPaths.map ( tp => matchingPathMap(tp) )
-        entities.map { entity =>
+        val mappedEntities = entities.map { entity =>
           Entity(
             entity.uri,
             valuesIndexes map { idx => entity.values(idx) },
             requestSchema
           )
         }
+        GenericEntityTable(entities, entitySchema, underlyingTask)
       }
     }
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): Seq[Entity] = {
+                            (implicit userContext: UserContext): EntityHolder= {
     throw new RuntimeException("Retrieve by URI is not supported!")
   }
 

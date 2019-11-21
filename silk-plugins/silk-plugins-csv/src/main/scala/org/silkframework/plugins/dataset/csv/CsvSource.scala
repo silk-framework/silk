@@ -11,6 +11,8 @@ import org.silkframework.dataset._
 import org.silkframework.entity.paths.UntypedPath.IDX_PATH_IDX
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
@@ -111,23 +113,17 @@ class CsvSource(file: Resource,
   }
 
   override def retrieve(entitySchema: EntitySchema, limitOpt: Option[Int] = None)
-                       (implicit userContext: UserContext): Traversable[Entity] = {
+                       (implicit userContext: UserContext): EntityHolder = {
     if (entitySchema.filter.operator.isDefined) {
       throw new NotImplementedError("Filter restrictions are not supported on CSV datasets!") // TODO: Implement Restriction handling!
     }
-    val entities = retrieveEntities(entitySchema)
-    limitOpt match {
-      case Some(limit) =>
-        entities.take(limit)
-      case None =>
-        entities
-    }
+    retrieveEntities(entitySchema)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): Traversable[Entity] = {
+                            (implicit userContext: UserContext): EntityHolder = {
     if(entities.isEmpty) {
-      Seq.empty
+      GenericEntityTable(Seq.empty, entitySchema, underlyingTask)
     } else {
       val entitySet = entities.map(_.uri.toString).toSet
       val entityTraversal = retrieveEntities(entitySchema)
@@ -136,11 +132,10 @@ class CsvSource(file: Resource,
     }
   }
 
-
-  def retrieveEntities(entityDesc: EntitySchema, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
+  def retrieveEntities(entityDesc: EntitySchema, entities: Seq[String] = Seq.empty, limitOpt: Option[Int] = None): EntityHolder = {
 
     if(entityDesc.typeUri.toString.nonEmpty && entityDesc.typeUri != Uri(typeUri))
-      return Traversable.empty
+      return GenericEntityTable(Traversable.empty, entityDesc, underlyingTask)
 
     logger.log(Level.FINE, "Retrieving data from CSV.")
 
@@ -161,7 +156,16 @@ class CsvSource(file: Resource,
       }
 
     // Return new Traversable that generates an entity for each line
-    entityTraversable(entityDesc, entities, indices)
+    val retrievedEntities = entityTraversable(entityDesc, entities, indices)
+
+    val limitedEntities = limitOpt match {
+      case Some(limit) =>
+        retrievedEntities.take(limit)
+      case None =>
+        retrievedEntities
+    }
+
+    GenericEntityTable(limitedEntities, entityDesc, underlyingTask)
   }
 
   private def entityTraversable(entityDesc: EntitySchema,

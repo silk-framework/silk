@@ -2,6 +2,7 @@ package org.silkframework.execution
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.execution.local.{GenericEntityTable, LocalEntities}
 
 /**
   * Holds entities that are exchanged between tasks.
@@ -34,4 +35,22 @@ trait EntityHolder {
     * @return
     */
   def taskLabel: String = task.metaData.formattedLabel(task.id.toString)
+
+  def mapEntities(f: Entity => Entity): EntityHolder
+
+  def filter(f: Entity => Boolean): EntityHolder
+}
+
+trait EmptyEntityHolder extends LocalEntities {
+
+  final def entities: Traversable[Entity] = Seq.empty
+
+  override def updateEntities(entities: Traversable[Entity]): LocalEntities = {
+    if(entities.isEmpty) {
+      this
+    } else {
+      new GenericEntityTable(entities, entitySchema, task)
+    }
+  }
+
 }

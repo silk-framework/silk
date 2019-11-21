@@ -2,6 +2,8 @@ package org.silkframework.dataset
 import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.Param
 import org.silkframework.util.Uri
@@ -29,13 +31,13 @@ case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => Traversabl
                            retrieveByUriFn: (EntitySchema, Seq[Uri]) => Seq[Entity],
                            retrievePathsFn: (Uri, Int, Option[Int]) => IndexedSeq[TypedPath]) extends DataSource {
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext): Traversable[Entity] = {
-    retrieveFn(entitySchema, limit)
+                       (implicit userContext: UserContext): EntityHolder = {
+    GenericEntityTable(retrieveFn(entitySchema, limit), entitySchema, underlyingTask)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): Seq[Entity] = {
-    retrieveByUriFn(entitySchema, entities)
+                            (implicit userContext: UserContext): EntityHolder = {
+    GenericEntityTable(retrieveByUriFn(entitySchema, entities), entitySchema, underlyingTask)
   }
 
   override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])

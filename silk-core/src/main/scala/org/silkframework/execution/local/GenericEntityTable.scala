@@ -5,8 +5,13 @@ import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.InterruptibleTraversable
 
 class GenericEntityTable(genericEntities: Traversable[Entity], val entitySchema: EntitySchema, val task: Task[TaskSpec]) extends LocalEntities {
+
   override def entities: Traversable[Entity] = {
     new InterruptibleTraversable(genericEntities)
+  }
+
+  override def updateEntities(newEntities: Traversable[Entity]): GenericEntityTable = {
+    new GenericEntityTable(newEntities, entitySchema, task)
   }
 }
 

@@ -4,8 +4,8 @@ import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptyDataset}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.execution.local.{LinksTable, LocalEntities, LocalExecution, MultiEntityTable}
-import org.silkframework.execution.{ExecutionReport, Executor, ExecutorOutput}
+import org.silkframework.execution.local.{EmptyEntityTable, LinksTable, LocalEntities, LocalExecution, MultiEntityTable}
+import org.silkframework.execution.{EntityHolder, ExecutionReport, Executor, ExecutorOutput}
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.rule.execution._
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
@@ -57,13 +57,13 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
   private class EntitySource(table: LocalEntities) extends DataSource {
 
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                         (implicit userContext: UserContext): Traversable[Entity] = {
-      table.entities
+                         (implicit userContext: UserContext): EntityHolder = {
+      table
     }
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext): Seq[Entity] = {
-      Seq.empty
+                              (implicit userContext: UserContext): EntityHolder = {
+      EmptyEntityTable(underlyingTask)
     }
 
     override def retrieveTypes(limit: Option[Int])
