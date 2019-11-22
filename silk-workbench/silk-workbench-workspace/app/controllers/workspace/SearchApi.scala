@@ -99,7 +99,7 @@ class SearchApi @Inject() () extends InjectedController with ControllerUtilsTrai
                                   sortBy: Option[String],
                                   sortOrder: Option[SortOrder.Value],
                                   facets: Option[Map[String, FacetSetting]]) extends SearchRequestTrait {
-    def workingOffset: Int = offset.getOrElse(FacetedSearchRequest.DEFAULT_OFFSET)
+    def workingOffset: Int =  offset.getOrElse(FacetedSearchRequest.DEFAULT_OFFSET)
 
     def workingLimit: Int = limit.getOrElse(FacetedSearchRequest.DEFAULT_LIMIT)
 
@@ -117,8 +117,8 @@ class SearchApi @Inject() () extends InjectedController with ControllerUtilsTrai
       val jsonResult = selectedProjects.map(toJson) ++ tasks.map(toJson)
 
       JsObject(Seq(
-        "overall hits" -> JsNumber(BigDecimal(tasks.size)),
-        "results" -> JsArray(jsonResult)
+        "overall hits" -> JsNumber(BigDecimal(tasks.size + selectedProjects.size)),
+        "results" -> JsArray(jsonResult.drop(workingOffset).take(workingLimit))
       ))
     }
 
