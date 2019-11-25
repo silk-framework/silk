@@ -1,4 +1,4 @@
-package controllers.workspace
+package controllers.workspaceApi
 
 import controllers.core.RequestUserContextAction
 import controllers.core.util.ControllerUtilsTrait

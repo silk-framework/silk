@@ -1,2 +1,3 @@
 # Generic item search, i.e. projects, tasks etc.
-POST          /searchItems                                                      controllers.workspace.SearchApi.facetedSearch()
+POST          /searchTasks                                                      controllers.workspaceApi.SearchApi.search()
+POST          /searchItems                                                      controllers.workspaceApi.SearchApi.facetedSearch()
