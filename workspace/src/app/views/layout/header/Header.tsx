@@ -1,15 +1,15 @@
-import React, { memo, useCallback, useRef, useState } from 'react';
+import React, { memo, useState } from 'react';
 import './Header.scss';
 import { globalOp, globalSel } from "../../../state/ducks/global";
 import { useDispatch, useSelector } from "react-redux";
-import { Link, NavLink } from "react-router-dom";
-import NavButton from "./NavButton";
 import {
+    Button,
+    Classes,
+    IBreadcrumbProps,
     Navbar,
+    NavbarDivider,
     NavbarGroup,
     NavbarHeading,
-    NavbarDivider,
-    Button, Classes, IBreadcrumbProps,
 } from "@blueprintjs/core";
 import Breadcrumbs from "../../components/Breadcrumbs/Breadcrumbs";
 import SearchInput from "./SearchInput";
@@ -97,7 +97,9 @@ const generateMenuItems = (pluginMenuData) => {
 
 const Header = memo<IProps>(({externalRoutes}) => {
     const dispatch = useDispatch();
-    const [searchString, setSearchString] = useState();
+    const searchString = useSelector(globalSel.searchStringSelector);
+
+    const [searchValue, setSearchValue] = useState();
 
     const isPresentableRoute = r => r.menuName;
     const addPluginRoutesInMenu = (route) => {
@@ -117,16 +119,18 @@ const Header = memo<IProps>(({externalRoutes}) => {
     const menu = generateMenuItems(pluginMenuData);
     const isAuth = useSelector(globalSel.isAuthSelector);
     const breadcrumbs: IBreadcrumbProps[] = [
-        { text: 'Home' },
+        {text: 'Home'},
     ];
 
     const handleSearchChange = (e) => {
-        const { value } = e.target;
-        setSearchString(value);
+        const {value} = e.target;
+        setSearchValue(value);
     };
 
     const handleSearchBlur = () => {
-        dispatch(globalOp.changeSearchString(searchString));
+        if (searchString !== searchValue) {
+            dispatch(globalOp.globalSearchAsync(searchValue));
+        }
     };
 
     return (
@@ -138,7 +142,7 @@ const Header = memo<IProps>(({externalRoutes}) => {
                             <Breadcrumbs paths={breadcrumbs}/>
                             <NavbarHeading>Data Integration</NavbarHeading>
                         </div>
-                        { menu }
+                        {menu}
                         <SearchInput
                             onFilterChange={handleSearchChange}
                             onBlur={handleSearchBlur}

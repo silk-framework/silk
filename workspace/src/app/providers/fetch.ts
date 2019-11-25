@@ -21,9 +21,8 @@ const _pendingRequests = [];
  * @private
  */
 const getDefaultHeaders = () => ({
-    "Accept": "application/sparql-results+json",
-    "Content-Type": "application/x-www-form-urlencoded",
-    "Authorization": `Bearer ${globalOp.getTokenFromStore()}`
+    "Accept": "application/json",
+    // "Authorization": `Bearer ${globalOp.getTokenFromStore()}`
 });
 
 /**

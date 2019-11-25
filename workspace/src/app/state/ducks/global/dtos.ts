@@ -5,5 +5,9 @@ export class GlobalDto {
     locale: string = getLocale();
     authenticated: boolean = true;
     searchString: string = '';
+    loading: boolean = false;
+    // @TODO: add the typos for the last 2 properties
+    searchResults: any[] = [];
+    error: any = {};
     // authenticated: boolean = isAuthenticated();
 }

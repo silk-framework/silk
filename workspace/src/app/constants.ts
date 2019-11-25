@@ -1,6 +1,6 @@
-export const DM_ENDPOINT = process.env.DM_ENDPOINT;
-export const SPARQL_DEFAULT_ENDPOINT = DM_ENDPOINT + '/proxy/default/sparql';
-export const AUTH_ENDPOINT = DM_ENDPOINT + '/oauth/authorize';
+export const HOST = process.env.HOST;
+export const API_ENDPOINT = HOST + process.env.API_ENDPOINT;
+export const AUTH_ENDPOINT = HOST + '/oauth/authorize';
 
 export const CLIENT_ID = 'eldsClient';
 export const DEFAULT_LANG = 'en';
