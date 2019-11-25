@@ -12,6 +12,8 @@ import org.silkframework.execution.{DatasetExecutor, ExecutionReport, ExecutionR
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
+import CloseableDataset.using
+import scala.util.control.NonFatal
 
 /**
   * Local dataset executor that handles read and writes to [[Dataset]] tasks.
@@ -111,7 +113,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
     data match {
       case LinksTable(links, linkType, _) =>
-        withLinkSink(dataset.data.plugin) { linkSink =>
+        withLinkSink(dataset, execution) { linkSink =>
           writeLinks(linkSink, links, linkType)
         }
       case tripleEntityTable: TripleEntityTable =>
@@ -248,22 +250,12 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
-  private def withLinkSink(dataset: Dataset)(f: LinkSink => Unit)(implicit userContext: UserContext): Unit = {
-    val sink = dataset.linkSink
-    try {
-      f(sink)
-    } finally {
-      sink.close()
-    }
+  private def withLinkSink(dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)(f: LinkSink => Unit)(implicit userContext: UserContext): Unit = {
+    using(access(dataset, execution).linkSink)(f)
   }
 
   private def withEntitySink(dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)(f: EntitySink => Unit)(implicit userContext: UserContext): Unit = {
-    val sink = access(dataset, execution).entitySink
-    try {
-      f(sink)
-    } finally {
-     sink.close()
-    }
+    using(access(dataset, execution).entitySink)(f)
   }
 
   private def writeEntities(sink: EntitySink, entityTable: LocalEntities)
