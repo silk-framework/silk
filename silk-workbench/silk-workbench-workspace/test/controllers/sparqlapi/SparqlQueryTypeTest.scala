@@ -58,7 +58,7 @@ class SparqlQueryTypeTest extends FlatSpec with MustMatchers with MockitoSugar {
     val correctAsk2 = s"""prefix ex:	<http://www.example.org/schema#>
                         prefix in:	<http://www.example.org/instance#>
 
-    ASK {
+    ASK WHERE {
 		GRAPH <http://example.org/protocol-update-dataset-test/> {
 			<http://kasei.us/2009/09/sparql/data/data1.rdf> a <http://purl.org/dc/terms/BibliographicResource>
 		}
