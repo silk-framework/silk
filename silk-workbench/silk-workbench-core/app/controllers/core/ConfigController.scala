@@ -6,7 +6,8 @@ import play.api.mvc.{InjectedController, ControllerComponents}
 
 class ConfigController @Inject() () extends InjectedController {
 
-  private val ignoredPaths = Set("awt", "file", "jline", "line", "path", "promise", "sbt", "play.http.secret.key")
+  private val ignoredPaths = Set("awt", "file", "jline", "line", "path", "promise", "sbt", "play.http.secret.key",
+  "plugin.parameters.password.crypt.key", "oauth.clientSecret", "workbench.superuser", "play.server.https.keyStore.password")
 
   def index = Action { implicit request =>
     var config = DefaultConfig.instance()

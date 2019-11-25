@@ -38,7 +38,7 @@ describe('helpers.js', () => {
     });
     
     describe('should isObjectMappingRule function working', () => {
-        it('when type equal to direct', () => {
+        it('when type equal to root', () => {
             expect(isObjectMappingRule('root')).toEqual(true);
         });
         it('when type equal to object', () => {
