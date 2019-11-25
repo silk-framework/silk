@@ -7,9 +7,9 @@ object SparqlQueryType extends Enumeration {
   import scala.language.implicitConversions
   implicit def valueToVal(x: Value): Val = x.asInstanceOf[Val]
 
-  val ASK         = Val("ASK", "(?s)(ask|ASK)\\s+(WHERE|where)\\s*\\{".r)
-  val CONSTRUCT   = Val("CONSTRUCT", "(?s)(construct|CONSTRUCT)\\s*\\{\\.*(WHERE|where)\\s*\\{".r)
-  val DESCRIBE    = Val("DESCRIBE", "(?s)(describe|DESCRIBE)\\s+".r)
+  val ASK         = Val("ASK", "(?s)(ask|ASK)\\s*\\{".r)
+  val CONSTRUCT   = Val("CONSTRUCT", "(?s)(construct|CONSTRUCT)\\s+\\{.*(WHERE|where)\\s*\\{".r)
+  val DESCRIBE    = Val("DESCRIBE", "(?s)(describe|DESCRIBE)\\s+(\\?|<)".r)
   val SELECT      = Val("SELECT", "(?s)(select|SELECT)\\s+(DISTINCT|distinct|REDUCED|reduced)?\\s*(\\?|\\*).*(WHERE|where)\\s*\\{".r)
 
   def determineSparqlQueryType(query: String): SparqlQueryType.Val ={

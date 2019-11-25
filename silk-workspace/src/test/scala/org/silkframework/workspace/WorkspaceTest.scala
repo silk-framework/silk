@@ -2,11 +2,10 @@ package org.silkframework.workspace
 
 import java.util.concurrent.atomic.AtomicBoolean
 
+import org.mockito.Mockito._
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.scalatestplus.mockito.MockitoSugar
-import org.mockito.Mockito._
 import org.silkframework.config.{CustomTask, PlainTask, Task, TaskSpec}
-import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{Activity, ActivityContext, TestUserContextTrait, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
@@ -18,7 +17,6 @@ import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 
 import scala.collection.immutable.ListMap
-import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.reflect.ClassTag
