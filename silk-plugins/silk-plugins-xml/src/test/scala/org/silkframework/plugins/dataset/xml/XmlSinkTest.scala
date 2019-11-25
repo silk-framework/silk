@@ -289,7 +289,7 @@ class XmlSinkTest extends FlatSpec with Matchers {
       val schema = entityTable.head.schema
       sink.openTable(schema.typeUri, schema.typedPaths.flatMap(_.property))
       for (entity <- entityTable) {
-        sink.writeEntity(entity.uri, entity.values)
+        sink.writeEntity(entity)
       }
       sink.closeTable()
     }

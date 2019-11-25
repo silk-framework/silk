@@ -1,10 +1,9 @@
 package org.silkframework.runtime.resource.zip
 
-import java.io.{BufferedInputStream, File, FileInputStream, InputStream}
-import java.time.Instant
+import java.io.{BufferedInputStream, File, FileInputStream}
 import java.util.zip.{ZipEntry, ZipInputStream}
 
-import org.silkframework.runtime.resource.{CompressedFileResource, CompressedInMemoryResource, Resource, ResourceLoader, ResourceNotFoundException, ResourceWithKnownTypes, WritableResource}
+import org.silkframework.runtime.resource._
 
 import scala.util.matching.Regex
 

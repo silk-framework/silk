@@ -116,6 +116,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                       executorOutput: ExecutorOutput,
                                       operator: WorkflowOperator)
                                      (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
+    implicit val userContext: UserContext = workflowRunContext.userContext
     try {
       val operatorTask = task(operatorNode)
       val schemataOpt = operatorTask.data.inputSchemataOpt

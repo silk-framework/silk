@@ -4,8 +4,6 @@ import java.time.Instant
 
 import net.jpountz.lz4.{LZ4BlockInputStream, LZ4BlockOutputStream, LZ4Factory, LZ4FrameInputStream, LZ4FrameOutputStream}
 
-import scala.util.Try
-
 /**
   * A resource that's held in-memory and is being compressed.
   */
@@ -110,4 +108,72 @@ case class CompressedFileResource(file: File, name: String, path: String, knownT
   override def exists: Boolean = file.exists()
 
   override def size: Option[Long] = Some(file.length())
+}
+
+/**
+  * A compression wrapper for any given resource
+  */
+case class CompressedResourceWrapper(res: WritableResource) extends WritableResource with ResourceWithKnownTypes{
+  /**
+    * Preferred method for writing to a resource.
+    *
+    * @param write A function that accepts an output stream and writes to it.
+    */
+  override def write(append: Boolean)(write: OutputStream => Unit): Unit = {
+    val bytes = new ByteArrayOutputStream()
+    val l4z = new LZ4FrameOutputStream(bytes)
+    write(l4z)
+    res.writeBytes(bytes.toByteArray, append)
+  }
+
+  /**
+    * Deletes this resource.
+    */
+  override def delete(): Unit = res.delete()
+
+  override def knownTypes: IndexedSeq[String] = res match{
+    case rwkt: ResourceWithKnownTypes => rwkt.knownTypes
+    case _ => IndexedSeq.empty
+  }
+
+  /**
+    * The local name of this resource.
+    */
+  override def name: String = res.name
+
+  /**
+    * The path of this resource.
+    */
+  override def path: String = res.path
+
+  /**
+    * Checks if this resource exists.
+    */
+  override def exists: Boolean = res.exists
+
+  /**
+    * Returns the size of this resource in bytes.
+    * Returns None if the size is not known.
+    */
+  override def size: Option[Long] = res.size
+
+  /**
+    * The time that the resource was last modified.
+    * Returns None if the time is not known.
+    */
+  override def modificationTime: Option[Instant] = res.modificationTime
+
+  /**
+    * Creates an input stream for reading the resource.
+    *
+    * @return An input stream for reading the resource.
+    *         The caller is responsible for closing the stream after reading.
+    */
+  override def inputStream: InputStream = {
+    if(exists) {
+      new LZ4FrameInputStream(res.inputStream)
+    } else {
+      new ByteArrayInputStream(Array.empty[Byte])
+    }
+  }
 }

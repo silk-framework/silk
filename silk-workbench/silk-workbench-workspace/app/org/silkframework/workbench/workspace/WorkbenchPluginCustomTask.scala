@@ -6,7 +6,6 @@ import org.silkframework.util.Identifier
 import org.silkframework.workbench.WorkbenchPlugin
 import org.silkframework.workbench.WorkbenchPlugin.{Tab, TaskActions, TaskType}
 import org.silkframework.workbench.workspace.WorkbenchPluginCustomTask.{CustomTaskActions, CustomTaskType}
-import org.silkframework.workbench.workspace.WorkbenchPluginDataset.{DatasetTaskActions, DatasetTaskType}
 import org.silkframework.workspace.ProjectTask
 
 import scala.language.existentials
