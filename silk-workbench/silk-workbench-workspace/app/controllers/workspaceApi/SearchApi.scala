@@ -1,6 +1,6 @@
 package controllers.workspaceApi
 
-import controllers.core.RequestUserContextAction
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.core.util.ControllerUtilsTrait
 import javax.inject.Inject
 import org.silkframework.config.{CustomTask, TaskSpec}
@@ -12,7 +12,7 @@ import org.silkframework.serialization.json.JsonSerializers.{TaskFormatOptions, 
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
-import play.api.mvc.{Action, InjectedController}
+import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -35,15 +35,28 @@ class SearchApi @Inject() () extends InjectedController with ControllerUtilsTrai
     }
   }
 
+  /** Faceted search API for the workspace search */
   def facetedSearch(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[FacetedSearchRequest] { facetedSearchRequest =>
       Ok(facetedSearchRequest())
     }
   }
 
+  /** Get all item types */
+  def itemTypes(): Action[AnyContent] = Action {
+    val results = ItemType.ordered.map { itemType =>
+      val id = itemType.toString
+      JsObject(Seq("id" -> JsString(id)))
+    }
+    Ok(JsArray(results))
+  }
+
   object ItemType extends Enumeration {
     val Project, Dataset, Transformation, Linking, Workflow, Task = Value
+
+    val ordered: Seq[ItemType.Value] = Seq(Project, Workflow, Dataset, Transformation, Linking, Task)
   }
+  assert(ItemType.values.size == ItemType.ordered.size)
 
   object SortBy extends Enumeration {
     val label = Value
