@@ -14,6 +14,7 @@ import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc.{Action, InjectedController}
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -24,6 +25,7 @@ class SearchApi @Inject() () extends InjectedController with ControllerUtilsTrai
   implicit val searchRequestReader: Reads[SearchRequest] = Json.reads[SearchRequest]
   implicit val itemTypeReads: Reads[ItemType.Value] = Reads.enumNameReads(ItemType)
   implicit val sortOrderReads: Reads[SortOrder.Value] = Reads.enumNameReads(SortOrder)
+  implicit val sortByReads: Reads[SortBy.Value] = Reads.enumNameReads(SortBy)
   implicit val facetSettingReads: Reads[FacetSetting] = Json.reads[FacetSetting]
   implicit val facetedSearchRequestReader: Reads[FacetedSearchRequest] = Json.reads[FacetedSearchRequest]
 
@@ -43,6 +45,10 @@ class SearchApi @Inject() () extends InjectedController with ControllerUtilsTrai
     val Project, Dataset, Transformation, Linking, Workflow, Task = Value
   }
 
+  object SortBy extends Enumeration {
+    val label = Value
+  }
+
   object SortOrder extends Enumeration {
     val ASC, DESC = Value
   }
@@ -52,6 +58,8 @@ class SearchApi @Inject() () extends InjectedController with ControllerUtilsTrai
   object FacetedSearchRequest {
     final val DEFAULT_OFFSET = 0
     final val DEFAULT_LIMIT = 10
+    // Property names
+    final val LABEL = "label"
   }
 
   trait SearchRequestTrait {
@@ -91,17 +99,29 @@ class SearchApi @Inject() () extends InjectedController with ControllerUtilsTrai
     }
   }
 
+  /** A search request that supports types and facets. */
   case class FacetedSearchRequest(project: Option[String],
                                   itemType: Option[ItemType.Value],
                                   textQuery: Option[String],
                                   offset: Option[Int],
                                   limit: Option[Int],
-                                  sortBy: Option[String],
+                                  sortBy: Option[SortBy.Value],
                                   sortOrder: Option[SortOrder.Value],
                                   facets: Option[Map[String, FacetSetting]]) extends SearchRequestTrait {
     def workingOffset: Int =  offset.getOrElse(FacetedSearchRequest.DEFAULT_OFFSET)
 
     def workingLimit: Int = limit.getOrElse(FacetedSearchRequest.DEFAULT_LIMIT)
+
+    private def sort(jsonResult: Seq[JsObject]): Seq[JsObject] = {
+      sortBy match {
+        case None => jsonResult
+        case Some(by) =>
+          val sortAsc = !sortOrder.contains(SortOrder.DESC)
+          val fetchValue: JsObject => String = sortValueFunction(by)
+          val sortFunction: (String, String) => Boolean = createSearchFunction(sortAsc)
+          jsonResult.sortWith((left, right) => sortFunction(fetchValue(left), fetchValue(right)))
+      }
+    }
 
     def apply()(implicit userContext: UserContext): JsValue = {
       val ps: Seq[Project] = projects
@@ -115,10 +135,11 @@ class SearchApi @Inject() () extends InjectedController with ControllerUtilsTrai
       }
 
       val jsonResult = selectedProjects.map(toJson) ++ tasks.map(toJson)
+      val sorted = sort(jsonResult)
 
       JsObject(Seq(
-        "overall hits" -> JsNumber(BigDecimal(tasks.size + selectedProjects.size)),
-        "results" -> JsArray(jsonResult.drop(workingOffset).take(workingLimit))
+        "total" -> JsNumber(BigDecimal(tasks.size + selectedProjects.size)),
+        "results" -> JsArray(sorted.slice(workingOffset, workingOffset + workingLimit))
       ))
     }
 
@@ -157,7 +178,7 @@ class SearchApi @Inject() () extends InjectedController with ControllerUtilsTrai
       JsObject(Seq(
         "type" -> JsString("project"),
         "id" -> JsString(project.config.id),
-        "label" -> JsString(project.config.id),// TODO: Support label and description in projects
+        FacetedSearchRequest.LABEL -> JsString(project.config.id),// TODO: Support label and description in projects
         "description" -> JsString("")
       ))
     }
@@ -170,6 +191,28 @@ class SearchApi @Inject() () extends InjectedController with ControllerUtilsTrai
         "label" -> JsString(task.metaData.label),
         "description" -> JsString("")
       ) ++ task.metaData.description.map(d => "description" -> JsString(d)))
+    }
+  }
+
+  /** Function that extracts a value from the JSON object. */
+  private def sortValueFunction(by: SortBy.Value): JsObject => String = {
+    // memorize converted values in order to not recompute
+    val valueMapping = mutable.HashMap[JsObject, String]()
+    jsObject: JsObject => {
+      valueMapping.getOrElseUpdate(
+        jsObject,
+        by match {
+          case SortBy.label => jsObject.value(FacetedSearchRequest.LABEL).as[String].toLowerCase()
+        }
+      )
+    }
+  }
+
+  private def createSearchFunction(sortAsc: Boolean): (String, String) => Boolean = {
+    if (sortAsc) {
+      (left: String, right: String) => left < right
+    } else {
+      (left: String, right: String) => left > right
     }
   }
 
