@@ -16,7 +16,8 @@ const globalSearchAsync = (searchString: string) => {
             url: API_ENDPOINT + '/searchItems',
             method:'post',
             body: {
-                itemType: 'Transformation'
+                itemType: 'Transformation',
+                textQuery: searchString
             }
         }).then(res => {
             dispatch(searchResultsSuccess(res.data));
