@@ -130,22 +130,23 @@ object SearchApiModel {
     /**
       * Checks if a task matches the search term.
       */
-    protected def matchesSearchTerm(lowerCaseSearchTerm: String, task: ProjectTask[_ <: TaskSpec]): Boolean = {
-      val idMatch = matchesSearchTerm(lowerCaseSearchTerm, task.id)
-      val labelMatch = matchesSearchTerm(lowerCaseSearchTerm, task.metaData.label)
-      val descriptionMatch = matchesSearchTerm(lowerCaseSearchTerm, task.metaData.description.getOrElse(""))
-      val propertiesMatch = task.data.properties(task.project.config.prefixes).exists(p => matchesSearchTerm(lowerCaseSearchTerm, p._2))
+    protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], task: ProjectTask[_ <: TaskSpec]): Boolean = {
+      val idMatch = matchesSearchTerm(lowerCaseSearchTerms, task.id)
+      val labelMatch = matchesSearchTerm(lowerCaseSearchTerms, task.metaData.label)
+      val descriptionMatch = matchesSearchTerm(lowerCaseSearchTerms, task.metaData.description.getOrElse(""))
+      val propertiesMatch = task.data.properties(task.project.config.prefixes).exists(p => matchesSearchTerm(lowerCaseSearchTerms, p._2))
       idMatch || labelMatch || descriptionMatch || propertiesMatch
     }
 
-    protected def matchesSearchTerm(lowerCaseSearchTerm: String, project: Project): Boolean = {
-      val idMatch = matchesSearchTerm(lowerCaseSearchTerm, project.config.id)
-      val nameMatch = matchesSearchTerm(lowerCaseSearchTerm, project.name)
+    protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], project: Project): Boolean = {
+      val idMatch = matchesSearchTerm(lowerCaseSearchTerms, project.config.id)
+      val nameMatch = matchesSearchTerm(lowerCaseSearchTerms, project.name)
       idMatch || nameMatch
     }
 
-    protected def matchesSearchTerm(lowerCaseSearchTerm: String, searchIn: String): Boolean = {
-      searchIn.toLowerCase.contains(lowerCaseSearchTerm)
+    protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], searchIn: String): Boolean = {
+      val lowerCaseText = searchIn.toLowerCase
+      lowerCaseSearchTerms forall lowerCaseText.contains
     }
   }
 
@@ -237,7 +238,7 @@ object SearchApiModel {
       var selectedProjects: Seq[Project] = Seq.empty
 
       for(term <- textQuery) {
-        val lowerCaseTerm = term.toLowerCase
+        val lowerCaseTerm = term.toLowerCase.split("\\s+")
         tasks = tasks.map(typedTasks => filterTasksByTextQuery(typedTasks, lowerCaseTerm))
         selectedProjects = if(itemType.contains(ItemType.Project)) ps.filter(p => matchesSearchTerm(lowerCaseTerm, p)) else Seq()
       }
@@ -257,8 +258,8 @@ object SearchApiModel {
     }
 
     private def filterTasksByTextQuery(typedTasks: TypedTasks,
-                                       lowerCaseTerm: String): TypedTasks = {
-      typedTasks.copy(tasks = typedTasks.tasks.filter { task => matchesSearchTerm(lowerCaseTerm, task) })
+                                       lowerCaseTerms: Seq[String]): TypedTasks = {
+      typedTasks.copy(tasks = typedTasks.tasks.filter { task => matchesSearchTerm(lowerCaseTerms, task) })
     }
 
     private def filterTasksByFacetSettings(typedTasks: TypedTasks): TypedTasks = {
@@ -273,7 +274,7 @@ object SearchApiModel {
         case None => alwaysTrueFunction
         case Some(facetSettings) if facetSettings.isEmpty => alwaysTrueFunction
         case Some(facetSettings) =>
-          itemType match { // FIXME: Improve facet filtering when more facets are added
+          itemType match { // FIXME: Improve facet filtering code when more facets are added
             case ItemType.Dataset =>
               facetSettings.find(_.facetId == Facets.datasetType.id) match {
                 case Some(datasetType: KeywordFacetSetting) =>
@@ -383,7 +384,7 @@ object SearchApiModel {
       var tasks = projects.flatMap(_.allTasks)
 
       for(term <- searchTerm) {
-        val lowerCaseTerm = term.toLowerCase
+        val lowerCaseTerm = term.toLowerCase.split("\\s+")
         tasks = tasks.filter(task => matchesSearchTerm(lowerCaseTerm, task))
       }
 
