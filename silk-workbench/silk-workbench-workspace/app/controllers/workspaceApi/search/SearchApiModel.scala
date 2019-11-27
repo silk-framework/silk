@@ -246,7 +246,7 @@ object SearchApiModel {
     // Adds links to related pages to the result item
     private def addItemLinks(results: Seq[JsObject]): Seq[JsObject] = {
       results map { result =>
-        val project = jsonPropertyStringValue(result, "project")
+        val project = jsonPropertyStringValue(result, "projectId")
         val itemId = jsonPropertyStringValue(result, "id")
         val links: Seq[ItemLink] = itemTypeReads.reads(result.value("type")).get match {
           case ItemType.Transform => Seq(
