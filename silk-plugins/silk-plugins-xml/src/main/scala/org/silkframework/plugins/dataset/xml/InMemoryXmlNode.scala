@@ -10,6 +10,17 @@ sealed trait InMemoryXmlNode {
   /** Append text of node to string buffer */
   def appendText(sb: StringBuilder): Unit
 
+  /**
+    * Concatenated text enclosed in "", to be used in property filters.
+    */
+  lazy val textExpression: String = {
+    val sb = new java.lang.StringBuilder()
+    sb.append('\"')
+    appendText(sb)
+    sb.append('\"')
+    sb.toString
+  }
+
   /** Returns concatenated text of this XML node. */
   def text: String = {
     val sb = new StringBuilder()
@@ -30,47 +41,6 @@ sealed trait InMemoryXmlNode {
     val array = new Array[InMemoryXmlNode](1)
     array(0) = this
     array
-  }
-
-  /** Projection function, which returns  elements of `this` sequence based
-    *  on the string `that`. Use:
-    *   - `this \ "foo"` to get a list of all elements that are labelled with `"foo"`;
-    *   - `\ "_"` to get a list of all elements (wildcard);
-    *   - `ns \ "@foo"` to get the unprefixed attribute `"foo"`;
-    *   - `ns \ "@{uri}foo"` to get the prefixed attribute `"pre:foo"` whose
-    *     prefix `"pre"` is resolved to the namespace `"uri"`.
-    *
-    *  For attribute projections, the resulting [[scala.xml.NodeSeq]] attribute
-    *  values are wrapped in a [[scala.xml.Group]].
-    *
-    *  There is no support for searching a prefixed attribute by its literal prefix.
-    *
-    *  The document order is preserved.
-    */
-  def childSelect(selector: String): Array[InMemoryXmlNode] = {
-    def fail = throw new IllegalArgumentException(selector)
-
-    selector match {
-      case "" => fail
-      case "_" => ArrayUtil.filterNodeArray(child, !_.isInstanceOf[InMemoryXmlText])
-      case _ if selector(0) == '@' && asArray.length == 1 => this match {
-        case elem: InMemoryXmlElem => selectAttribute(selector, elem)
-        case _ => new Array[InMemoryXmlNode](0)
-      }
-      case _ => ArrayUtil.filterNodeArray(child, _.label == selector)
-    }
-  }
-
-  /** fetch value of an attribute, returns empty array if it does not exist */
-  private def selectAttribute(selector: String, elem: InMemoryXmlElem): Array[InMemoryXmlNode] = {
-    elem.attributes.get(selector.drop(1)) match {
-      case Some(attrValue) =>
-        val arr = new Array[InMemoryXmlNode](1)
-        arr(0) = InMemoryXmlText(attrValue)
-        arr
-      case None =>
-        Array.empty
-    }
   }
 
   def id: String = this.hashCode.toString.replace('-', '1')
