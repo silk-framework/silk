@@ -18,6 +18,7 @@ import scala.collection.mutable.ArrayBuffer
   * Data structures used for handling search requests
   */
 object SearchApiModel {
+  /* JSON serialization */
   implicit val responseOptionsReader: Reads[TaskFormatOptions] = Json.reads[TaskFormatOptions]
   implicit val searchRequestReader: Reads[SearchRequest] = Json.reads[SearchRequest]
   implicit val itemTypeReads: Reads[ItemType.Value] = Reads.enumNameReads(ItemType)
@@ -53,27 +54,32 @@ object SearchApiModel {
   }
   implicit val facetResultWrites: Writes[FacetResult] = Json.writes[FacetResult]
 
+  /** The item types the search can be restricted to. */
   object ItemType extends Enumeration {
-    val Project, Dataset, Transformation, Linking, Workflow, Task = Value
+    val Project, Dataset, Transform, Linking, Workflow, Task = Value
 
-    val ordered: Seq[ItemType.Value] = Seq(Project, Workflow, Dataset, Transformation, Linking, Task)
+    val ordered: Seq[ItemType.Value] = Seq(Project, Workflow, Dataset, Transform, Linking, Task)
   }
   assert(ItemType.values.size == ItemType.ordered.size)
 
+  /** The properties that can be sorted by. */
   object SortBy extends Enumeration {
     val label = Value
   }
 
+  /** Sort order, ascending or descending. */
   object SortOrder extends Enumeration {
     val ASC, DESC = Value
   }
 
+  /** The facet types that will correspond to a specific facet widget, e.g. keyword, number/date range. */
   object FacetType extends Enumeration {
     val keyword = Value
 
     val facetTypeSet: Set[String] = Set(keyword.toString)
   }
 
+  /** A single facet of the search results. */
   case class FacetResult(id: String,
                          label: String,
                          `type`: String,
@@ -85,10 +91,12 @@ object SearchApiModel {
   /** Values of a keyword based facet. */
   case class KeywordFacetValues(values: Seq[KeywordFacetValue]) extends FacetValues
 
+  /** A single value of a keyword facet. */
   case class KeywordFacetValue(id: String,
                                label: String,
                                count: Option[Int])
 
+  /** Single facet filter setting */
   sealed trait FacetSetting {
     def `type`: FacetType.Value
     def facetId: String
@@ -112,6 +120,7 @@ object SearchApiModel {
     final val LABEL = "label"
   }
 
+  /** Common methods shared between all search requests */
   trait SearchRequestTrait {
     def project: Option[String]
 
@@ -221,8 +230,10 @@ object SearchApiModel {
       for(typedTasks <- tasks) {
         typedTasks.itemType match {
           case ItemType.Dataset =>
-            typedTasks.tasks foreach { task =>
-              datasetFacetCollector.collect(task.asInstanceOf[ProjectTask[DatasetSpec[Dataset]]])
+            if(itemType.contains(ItemType.Dataset)) {
+              typedTasks.tasks foreach { task =>
+                datasetFacetCollector.collect(task.asInstanceOf[ProjectTask[DatasetSpec[Dataset]]])
+              }
             }
           case _ =>
             // No other facet collectors defined
@@ -232,27 +243,63 @@ object SearchApiModel {
       datasetFacetCollector.result
     }
 
+    // Adds links to related pages to the result item
+    private def addItemLinks(results: Seq[JsObject]): Seq[JsObject] = {
+      results map { result =>
+        val project = jsonPropertyStringValue(result, "project")
+        val itemId = jsonPropertyStringValue(result, "id")
+        val links: Seq[ItemLink] = itemTypeReads.reads(result.value("type")).get match {
+          case ItemType.Transform => Seq(
+            ItemLink("Mapping editor", s"/transform/$project/$itemId/editor"),
+            ItemLink("Transform evaluation", s"/transform/$project/$itemId/evaluate"),
+            ItemLink("Transform execution", s"/transform/$project/$itemId/execute")
+          )
+          case ItemType.Linking => Seq(
+            ItemLink("Linking editor", s"/linking/$project/$itemId/editor"),
+            ItemLink("Linking evaluation", s"/linking/$project/$itemId/evaluate"),
+            ItemLink("Linking execution", s"/linking/$project/$itemId/execute")
+          )
+          case ItemType.Workflow => Seq(
+            ItemLink("Workflow editor", s"/workflow/editor/$project/$itemId")
+          )
+          case _ => Seq.empty
+        }
+        result + ("itemLinks" -> JsArray(links.map(ItemLink.itemLinkWrites.writes)))
+      }
+    }
+
+    private def jsonPropertyStringValue(result: JsObject, property: String): String = {
+      result.value.get(property).map(_.as[String]).getOrElse("")
+    }
+
+    case class ItemLink(label: String, path: String)
+    object ItemLink {
+      val itemLinkWrites: Writes[ItemLink] = Json.writes[ItemLink]
+    }
+
     def apply()(implicit userContext: UserContext): JsValue = {
       val ps: Seq[Project] = projects
       var tasks: Seq[TypedTasks] = ps.flatMap(fetchTasks)
       var selectedProjects: Seq[Project] = Seq.empty
 
       for(term <- textQuery) {
-        val lowerCaseTerm = term.toLowerCase.split("\\s+")
+        val lowerCaseTerm = extractSearchTerms(term)
         tasks = tasks.map(typedTasks => filterTasksByTextQuery(typedTasks, lowerCaseTerm))
         selectedProjects = if(itemType.contains(ItemType.Project)) ps.filter(p => matchesSearchTerm(lowerCaseTerm, p)) else Seq()
       }
 
       // facets are collected after filtering, so only non empty facets are displayed with correct counts
-      // TODO: These are not correctly calculated if multiple facets are applied. Facet values must be calculated with all except this specific facet being applied.
+      // FIXME: These are not correctly calculated if multiple facets are applied. Facet values must be calculated with all except this specific facet being applied.
       val facets = resultFacets(tasks)
       tasks = tasks.map(t => filterTasksByFacetSettings(t))
       val jsonResult = selectedProjects.map(toJson) ++ tasks.flatMap(toJson)
       val sorted = sort(jsonResult)
+      val resultWindow = sorted.slice(workingOffset, workingOffset + workingLimit)
+      val withItemLinks = addItemLinks(resultWindow)
 
       JsObject(Seq(
         "total" -> JsNumber(BigDecimal(sorted.size)),
-        "results" -> JsArray(sorted.slice(workingOffset, workingOffset + workingLimit)),
+        "results" -> JsArray(withItemLinks),
         "facets" -> JsArray(facets.map(fr => Json.toJson(fr)))
       ))
     }
@@ -298,7 +345,7 @@ object SearchApiModel {
           Seq(fetchTasksOfType(project, t))
         case None =>
           val result = new ArrayBuffer[TypedTasks]()
-          for (it <- Seq(ItemType.Dataset, ItemType.Linking, ItemType.Transformation, ItemType.Workflow, ItemType.Task)) {
+          for (it <- Seq(ItemType.Dataset, ItemType.Linking, ItemType.Transform, ItemType.Workflow, ItemType.Task)) {
             result.append(fetchTasksOfType(project, it))
           }
           result
@@ -316,7 +363,7 @@ object SearchApiModel {
       val tasks = itemType match {
         case ItemType.Dataset => project.tasks[DatasetSpec[Dataset]]
         case ItemType.Linking => project.tasks[LinkSpec]
-        case ItemType.Transformation => project.tasks[TransformSpec]
+        case ItemType.Transform => project.tasks[TransformSpec]
         case ItemType.Workflow => project.tasks[Workflow]
         case ItemType.Task => project.tasks[CustomTask]
         case ItemType.Project => Seq.empty
@@ -344,6 +391,10 @@ object SearchApiModel {
         ) ++ task.metaData.description.map(d => "description" -> JsString(d)))
       }
     }
+  }
+
+  private def extractSearchTerms(term: String) = {
+    term.toLowerCase.split("\\s+").filter(_.nonEmpty)
   }
 
   /** Function that extracts a value from the JSON object. */
@@ -384,7 +435,7 @@ object SearchApiModel {
       var tasks = projects.flatMap(_.allTasks)
 
       for(term <- searchTerm) {
-        val lowerCaseTerm = term.toLowerCase.split("\\s+")
+        val lowerCaseTerm = extractSearchTerms(term)
         tasks = tasks.filter(task => matchesSearchTerm(lowerCaseTerm, task))
       }
 
