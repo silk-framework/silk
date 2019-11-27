@@ -5,10 +5,11 @@ import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.WriteContext
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers.{TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat}
-import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import org.silkframework.workspace.activity.workflow.Workflow
-import play.api.libs.json.{JsArray, JsNumber, JsObject, JsString, JsValue, Json, Reads, Writes}
+import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
+import play.api.libs.json._
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -22,7 +23,17 @@ object SearchApiModel {
   implicit val itemTypeReads: Reads[ItemType.Value] = Reads.enumNameReads(ItemType)
   implicit val sortOrderReads: Reads[SortOrder.Value] = Reads.enumNameReads(SortOrder)
   implicit val sortByReads: Reads[SortBy.Value] = Reads.enumNameReads(SortBy)
-  implicit val facetSettingReads: Reads[FacetSetting] = Json.reads[FacetSetting]
+  implicit val facetTypesReads: Reads[FacetType.Value] = Reads.enumNameReads(FacetType)
+  implicit val facetSettingReads: Reads[FacetSetting] = new Reads[FacetSetting] {
+    override def reads(json: JsValue): JsResult[FacetSetting] = {
+      (json \ "type").toOption.map(_.as[String]) match {
+        case Some(facetType) if FacetType.keyword.toString == facetType => KeywordFacetSetting.keywordFacetSettingReads.reads(json)
+        case Some(invalidType) => throw BadUserInputException("No valid facet type specified: '" + invalidType + "'. Valid values are: " +
+            FacetType.facetTypeSet.mkString(", "))
+        case None => throw BadUserInputException("No 'type' property found in given JSON: " + json.toString())
+      }
+    }
+  }
   implicit val facetedSearchRequestReader: Reads[FacetedSearchRequest] = Json.reads[FacetedSearchRequest]
   val keywordFacetValues: Writes[KeywordFacetValues] = new Writes[KeywordFacetValues] {
     override def writes(keywordFacetValues: KeywordFacetValues): JsValue = {
@@ -57,6 +68,12 @@ object SearchApiModel {
     val ASC, DESC = Value
   }
 
+  object FacetType extends Enumeration {
+    val keyword = Value
+
+    val facetTypeSet: Set[String] = Set(keyword.toString)
+  }
+
   case class FacetResult(id: String,
                          label: String,
                          `type`: String,
@@ -68,9 +85,25 @@ object SearchApiModel {
   /** Values of a keyword based facet. */
   case class KeywordFacetValues(values: Seq[KeywordFacetValue]) extends FacetValues
 
-  case class KeywordFacetValue(id: String, label: String, count: Option[Int])
+  case class KeywordFacetValue(id: String,
+                               label: String,
+                               count: Option[Int])
 
-  case class FacetSetting(facetType: String) // TODO: How to design different facets, e.g. data(time) range, keyword, int range etc.
+  sealed trait FacetSetting {
+    def `type`: FacetType.Value
+    def facetId: String
+  }
+  case class KeywordFacetSetting(`type`: FacetType.Value,
+                                 facetId: String,
+                                 keywordIds: Set[String]) extends FacetSetting {
+    if(!Facets.facetIds.contains(facetId)) {
+      throw BadUserInputException(s"Unknown facet ID '$facetId'! Supported facet ID: " + Facets.facetIds.mkString(", "))
+    }
+  }
+
+  object KeywordFacetSetting {
+    val keywordFacetSettingReads: Reads[KeywordFacetSetting] = Json.reads[KeywordFacetSetting]
+  }
 
   object FacetedSearchRequest {
     final val DEFAULT_OFFSET = 0
@@ -116,6 +149,15 @@ object SearchApiModel {
     }
   }
 
+  case class Facet(id: String, label: String)
+
+  object Facets {
+    // dataset facets
+    final val datasetType: Facet = Facet("datasetType", "Dataset type")
+
+    val facetIds: Seq[String] = Seq(datasetType).map(_.id)
+  }
+
   /** A search request that supports types and facets. */
   case class FacetedSearchRequest(project: Option[String],
                                   itemType: Option[ItemType.Value],
@@ -124,11 +166,12 @@ object SearchApiModel {
                                   limit: Option[Int],
                                   sortBy: Option[SortBy.Value],
                                   sortOrder: Option[SortOrder.Value],
-                                  facets: Option[Map[String, FacetSetting]]) extends SearchRequestTrait {
+                                  facets: Option[Seq[FacetSetting]]) extends SearchRequestTrait {
     def workingOffset: Int =  offset.getOrElse(FacetedSearchRequest.DEFAULT_OFFSET)
 
     def workingLimit: Int = limit.getOrElse(FacetedSearchRequest.DEFAULT_LIMIT)
 
+    // Sort results according to request
     private def sort(jsonResult: Seq[JsObject]): Seq[JsObject] = {
       sortBy match {
         case None => jsonResult
@@ -140,20 +183,12 @@ object SearchApiModel {
       }
     }
 
-    case class Facet(id: String, label: String)
-    object Facets {
-      // facets
-      final val datasetType: Facet = Facet("datasetType", "Dataset type")
-
-      // facet types
-      final val KEYWORD_TYPE = "keyword"
-    }
-
     /** Collects facet data of dataset tasks. */
     case class DatasetFacetCollector() {
       val datasetTypes = new mutable.ListMap[String, Int]()
       val datasetTypeLabel = new mutable.ListMap[String, String]()
 
+      /** Collect facet values of a single dataset */
       def collect(datasetTask: ProjectTask[DatasetSpec[Dataset]]): Unit = {
         val pluginSpec = datasetTask.plugin.pluginSpec
         val id = pluginSpec.id
@@ -162,6 +197,7 @@ object SearchApiModel {
         datasetTypeLabel.put(id, label)
       }
 
+      /** Results of all facets of the dataset type */
       def result: Seq[FacetResult] = {
         if(datasetTypes.nonEmpty) {
           Seq(datasetTypeFacet)
@@ -174,7 +210,7 @@ object SearchApiModel {
       private def datasetTypeFacet: FacetResult = {
         val sortedTypes = datasetTypes.toSeq.sortWith(_._2 > _._2)
         val keywordFacetValues = KeywordFacetValues(sortedTypes map (st => KeywordFacetValue(st._1, datasetTypeLabel(st._1), Some(st._2))))
-        FacetResult(Facets.datasetType.id, Facets.datasetType.label, Facets.KEYWORD_TYPE, keywordFacetValues)
+        FacetResult(Facets.datasetType.id, Facets.datasetType.label, FacetType.keyword.toString, keywordFacetValues)
       }
     }
 
@@ -202,25 +238,55 @@ object SearchApiModel {
 
       for(term <- textQuery) {
         val lowerCaseTerm = term.toLowerCase
-        tasks = tasks.map(typedTasks => filterTasks(typedTasks, lowerCaseTerm))
+        tasks = tasks.map(typedTasks => filterTasksByTextQuery(typedTasks, lowerCaseTerm))
         selectedProjects = if(itemType.contains(ItemType.Project)) ps.filter(p => matchesSearchTerm(lowerCaseTerm, p)) else Seq()
       }
 
       // facets are collected after filtering, so only non empty facets are displayed with correct counts
+      // TODO: These are not correctly calculated if multiple facets are applied. Facet values must be calculated with all except this specific facet being applied.
       val facets = resultFacets(tasks)
+      tasks = tasks.map(t => filterTasksByFacetSettings(t))
       val jsonResult = selectedProjects.map(toJson) ++ tasks.flatMap(toJson)
       val sorted = sort(jsonResult)
 
       JsObject(Seq(
-        "total" -> JsNumber(BigDecimal(tasks.size + selectedProjects.size)),
+        "total" -> JsNumber(BigDecimal(sorted.size)),
         "results" -> JsArray(sorted.slice(workingOffset, workingOffset + workingLimit)),
         "facets" -> JsArray(facets.map(fr => Json.toJson(fr)))
       ))
     }
 
-    private def filterTasks(typedTasks: TypedTasks,
-                            lowerCaseTerm: String): TypedTasks = {
+    private def filterTasksByTextQuery(typedTasks: TypedTasks,
+                                       lowerCaseTerm: String): TypedTasks = {
       typedTasks.copy(tasks = typedTasks.tasks.filter { task => matchesSearchTerm(lowerCaseTerm, task) })
+    }
+
+    private def filterTasksByFacetSettings(typedTasks: TypedTasks): TypedTasks = {
+      val facetMatchingFN = matchesFacetSettingFunction(typedTasks.itemType)
+      typedTasks.copy(tasks = typedTasks.tasks.filter { task => facetMatchingFN(task) })
+    }
+
+    /** Returns a function to check if a task matches the facet filter setting */
+    private def matchesFacetSettingFunction(itemType: ItemType.Value): ProjectTask[_ <: TaskSpec] => Boolean = {
+      val alwaysTrueFunction: ProjectTask[_ <: TaskSpec] => Boolean = _ => true
+      facets match {
+        case None => alwaysTrueFunction
+        case Some(facetSettings) if facetSettings.isEmpty => alwaysTrueFunction
+        case Some(facetSettings) =>
+          itemType match { // FIXME: Improve facet filtering when more facets are added
+            case ItemType.Dataset =>
+              facetSettings.find(_.facetId == Facets.datasetType.id) match {
+                case Some(datasetType: KeywordFacetSetting) =>
+                  val datasetTypeIds = datasetType.keywordIds
+                  task: ProjectTask[_ <: TaskSpec] => {
+                    datasetTypeIds.contains(task.asInstanceOf[ProjectTask[DatasetSpec[Dataset]]].data.plugin.pluginSpec.id)
+                  }
+                case None => alwaysTrueFunction
+              }
+            case _ =>
+              alwaysTrueFunction
+          }
+      }
     }
 
     /** Fetches the tasks. If the item type is defined, it will only fetch tasks of a specific type. */
