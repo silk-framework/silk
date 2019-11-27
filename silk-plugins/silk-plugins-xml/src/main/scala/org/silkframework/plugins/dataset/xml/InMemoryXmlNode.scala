@@ -1,17 +1,18 @@
 package org.silkframework.plugins.dataset.xml
 
 import scala.xml._
+import java.lang.StringBuilder
 
 /**
   * Minimalistic in-memory model of an XML node
   */
 sealed trait InMemoryXmlNode {
   /** Append text of node to string buffer */
-  def appendText(sb: StringBuffer): Unit
+  def appendText(sb: StringBuilder): Unit
 
   /** Returns concatenated text of this XML node. */
   def text: String = {
-    val sb = new StringBuffer()
+    val sb = new StringBuilder()
     appendText(sb)
     sb.toString
   }
@@ -51,12 +52,12 @@ sealed trait InMemoryXmlNode {
 
     selector match {
       case "" => fail
-      case "_" => ArrayUtil.filterArray(child, !_.isInstanceOf[InMemoryXmlText])
+      case "_" => ArrayUtil.filterNodeArray(child, !_.isInstanceOf[InMemoryXmlText])
       case _ if selector(0) == '@' && asArray.length == 1 => this match {
         case elem: InMemoryXmlElem => selectAttribute(selector, elem)
         case _ => new Array[InMemoryXmlNode](0)
       }
-      case _ => ArrayUtil.filterArray(child, _.label == selector)
+      case _ => ArrayUtil.filterNodeArray(child, _.label == selector)
     }
   }
 
@@ -80,7 +81,7 @@ case class InMemoryXmlElem(override val id: String,
                            label: String,
                            override val attributes: Map[String, String],
                            override val child: Array[InMemoryXmlNode]) extends InMemoryXmlNode {
-  override def appendText(sb: StringBuffer): Unit = {
+  override def appendText(sb: StringBuilder): Unit = {
     var idx = 0
     while(idx < child.length) {
       child(idx).appendText(sb)
@@ -91,7 +92,7 @@ case class InMemoryXmlElem(override val id: String,
 
 /** Represents a group of nodes. */
 case class InMemoryXmlNodes(nodes: Array[InMemoryXmlNode]) extends InMemoryXmlNode {
-  override def appendText(sb: StringBuffer): Unit = {
+  override def appendText(sb: StringBuilder): Unit = {
     var idx = 0
     while(idx < nodes.length) {
       nodes(idx).appendText(sb)
@@ -112,7 +113,7 @@ case class InMemoryXmlNodes(nodes: Array[InMemoryXmlNode]) extends InMemoryXmlNo
 
 /** XML Text node */
 case class InMemoryXmlText(value: String) extends InMemoryXmlNode {
-  override def appendText(sb: StringBuffer): Unit = sb.append(value)
+  override def appendText(sb: StringBuilder): Unit = sb.append(value)
 
   override def label: String = "#PCDATA"
 }

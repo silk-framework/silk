@@ -1,28 +1,30 @@
 package org.silkframework.plugins.dataset.xml
 
-import java.util
-
-import scala.reflect.ClassTag
-
 /**
   * Array utility functions.
   */
 object ArrayUtil {
-  def filterArray[T : ClassTag](arr: Array[T], cond: T => Boolean): Array[T] = {
+
+  def filterNodeArray(arr: Array[InMemoryXmlNode], cond: InMemoryXmlNode => Boolean): Array[InMemoryXmlNode] = {
     var idx = 0
-    val indices = new util.ArrayList[Int]()
+    var count = 0
     while(idx < arr.length) {
       if(cond(arr(idx))) {
-        indices.add(idx)
+        count += 1
       }
       idx += 1
     }
-    val outputArr = new Array[T](indices.size())
+
+    val result = new Array[InMemoryXmlNode](count)
     idx = 0
-    while(idx < indices.size()) {
-      outputArr(idx) = arr(indices.get(idx))
+    var targetIndex = 0
+    while(idx < arr.length) {
+      if(cond(arr(idx))) {
+        result(targetIndex) = arr(idx)
+        targetIndex += 1
+      }
       idx += 1
     }
-    outputArr
+    result
   }
 }
