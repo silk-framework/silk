@@ -128,6 +128,8 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     if(entitySchema.typedPaths.exists(_.operators.exists(_.isInstanceOf[BackwardOperator]))) {
       throw new ValidationException("Backward paths are not supported when streaming XML. Disable streaming to use backward paths.")
     }
+    val optimizations = XmlEvaluationOptimization(entitySchema.typedPaths)
+    val indexedPaths = entitySchema.typedPaths.zipWithIndex
 
     new Traversable[Entity] {
       override def foreach[U](f: Entity => U): Unit = {
@@ -141,7 +143,13 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
             val traverser = XmlTraverser(node)
 
             val uri = traverser.generateUri(uriPattern)
-            val values = for (typedPath <- entitySchema.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)
+            val values = for ((typedPath, idx) <- indexedPaths) yield {
+              if(optimizations.canOptimizePath(idx)) {
+                optimizations.evaluatePathAsString(typedPath, idx, uriPattern)
+              } else {
+                traverser.evaluatePathAsString(typedPath, uriPattern)
+              }
+            }
 
             f(Entity(uri, values, entitySchema))
 

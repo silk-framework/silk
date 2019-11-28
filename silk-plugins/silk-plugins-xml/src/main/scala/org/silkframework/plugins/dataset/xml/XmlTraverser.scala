@@ -170,7 +170,7 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     }
   }
 
-  private def evaluateOperators(ops: List[PathOperator]): IndexedSeq[XmlTraverser]  = {
+  def evaluateOperators(ops: List[PathOperator]): IndexedSeq[XmlTraverser]  = {
     var current = new util.ArrayList[XmlTraverser]()
     current.add(this)
     var next = new util.ArrayList[XmlTraverser]()
