@@ -2,9 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { Provider } from 'react-redux'
 
-
-import 'antd/dist/antd.css'
 import './index.css';
+import 'normalize.css/normalize.css';
+import '@blueprintjs/core/lib/css/blueprint.css';
+
 import ErrorBoundary from "./app/ErrorBoundary";
 import registerGlobalListeners from "./global";
 import App from "./app/App";

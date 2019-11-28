@@ -8,7 +8,7 @@ const isAuthSelector = createSelector(
 );
 const searchStringSelector = createSelector(
     [globalSelector],
-    global => global.searchString || ''
+    global => global.searchQuery || ''
 );
 
 export default {

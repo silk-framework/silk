@@ -1,4 +1,4 @@
-import { StoreDto } from "../dtos/store.dto";
+import { StoreDto } from "../store.dto";
 
 const reduxDevEnhancer = (createStore) => (
     reducer,

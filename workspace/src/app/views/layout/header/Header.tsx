@@ -1,7 +1,7 @@
-import React, { memo, useState } from 'react';
+import React, { memo} from 'react';
 import './Header.scss';
-import { globalOp, globalSel } from "../../../state/ducks/global";
-import { useDispatch, useSelector } from "react-redux";
+import { globalSel } from "../../../state/ducks/global";
+import { useSelector } from "react-redux";
 import {
     Button,
     Classes,
@@ -11,8 +11,7 @@ import {
     NavbarGroup,
     NavbarHeading,
 } from "@blueprintjs/core";
-import Breadcrumbs from "../../components/Breadcrumbs/Breadcrumbs";
-import SearchInput from "./SearchInput";
+import Breadcrumbs from "../../components/wrappers/Breadcrumbs/Breadcrumbs";
 
 interface IProps {
     externalRoutes: any;
@@ -96,11 +95,6 @@ const generateMenuItems = (pluginMenuData) => {
 };
 
 const Header = memo<IProps>(({externalRoutes}) => {
-    const dispatch = useDispatch();
-    const searchString = useSelector(globalSel.searchStringSelector);
-
-    const [searchValue, setSearchValue] = useState();
-
     const isPresentableRoute = r => r.menuName;
     const addPluginRoutesInMenu = (route) => {
         const menuItem: any = {
@@ -122,17 +116,6 @@ const Header = memo<IProps>(({externalRoutes}) => {
         {text: 'Home'},
     ];
 
-    const handleSearchChange = (e) => {
-        const {value} = e.target;
-        setSearchValue(value);
-    };
-
-    const handleSearchBlur = () => {
-        if (searchString !== searchValue) {
-            dispatch(globalOp.globalSearchAsync(searchValue));
-        }
-    };
-
     return (
         !isAuth ? null :
             <div className="header">
@@ -143,10 +126,6 @@ const Header = memo<IProps>(({externalRoutes}) => {
                             <NavbarHeading>Data Integration</NavbarHeading>
                         </div>
                         {menu}
-                        <SearchInput
-                            onFilterChange={handleSearchChange}
-                            onBlur={handleSearchBlur}
-                        />
                     </NavbarGroup>
                 </Navbar>
 
