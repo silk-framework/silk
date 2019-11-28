@@ -18,6 +18,12 @@ import scala.collection.mutable.ArrayBuffer
   * Data structures used for handling search requests
   */
 object SearchApiModel {
+  // Property names
+  final val LABEL = "label"
+  final val ID = "id"
+  final val TYPE = "type"
+  final val DESCRIPTION = "description"
+  final val PROJECT_ID = "projectId"
   /* JSON serialization */
   implicit val responseOptionsReader: Reads[TaskFormatOptions] = Json.reads[TaskFormatOptions]
   implicit val searchRequestReader: Reads[SearchRequest] = Json.reads[SearchRequest]
@@ -27,7 +33,7 @@ object SearchApiModel {
   implicit val facetTypesReads: Reads[FacetType.Value] = Reads.enumNameReads(FacetType)
   implicit val facetSettingReads: Reads[FacetSetting] = new Reads[FacetSetting] {
     override def reads(json: JsValue): JsResult[FacetSetting] = {
-      (json \ "type").toOption.map(_.as[String]) match {
+      (json \ TYPE).toOption.map(_.as[String]) match {
         case Some(facetType) if FacetType.keyword.toString == facetType => KeywordFacetSetting.keywordFacetSettingReads.reads(json)
         case Some(invalidType) => throw BadUserInputException("No valid facet type specified: '" + invalidType + "'. Valid values are: " +
             FacetType.facetTypeSet.mkString(", "))
@@ -39,8 +45,8 @@ object SearchApiModel {
   val keywordFacetValues: Writes[KeywordFacetValues] = new Writes[KeywordFacetValues] {
     override def writes(keywordFacetValues: KeywordFacetValues): JsValue = {
       val values = keywordFacetValues.values.map(v => JsObject(Seq(
-        "id" -> JsString(v.id),
-        "label" -> JsString(v.label)
+        ID -> JsString(v.id),
+        LABEL -> JsString(v.label)
       ) ++ v.count.map(c => "count" -> JsNumber(c))))
       JsArray(values)
     }
@@ -116,8 +122,6 @@ object SearchApiModel {
   object FacetedSearchRequest {
     final val DEFAULT_OFFSET = 0
     final val DEFAULT_LIMIT = 10
-    // Property names
-    final val LABEL = "label"
   }
 
   /** Common methods shared between all search requests */
@@ -246,9 +250,9 @@ object SearchApiModel {
     // Adds links to related pages to the result item
     private def addItemLinks(results: Seq[JsObject]): Seq[JsObject] = {
       results map { result =>
-        val project = jsonPropertyStringValue(result, "projectId")
-        val itemId = jsonPropertyStringValue(result, "id")
-        val links: Seq[ItemLink] = itemTypeReads.reads(result.value("type")).get match {
+        val project = jsonPropertyStringValue(result, PROJECT_ID)
+        val itemId = jsonPropertyStringValue(result, ID)
+        val links: Seq[ItemLink] = itemTypeReads.reads(result.value(TYPE)).get match {
           case ItemType.Transform => Seq(
             ItemLink("Mapping editor", s"/transform/$project/$itemId/editor"),
             ItemLink("Transform evaluation", s"/transform/$project/$itemId/evaluate"),
@@ -277,6 +281,9 @@ object SearchApiModel {
       val itemLinkWrites: Writes[ItemLink] = Json.writes[ItemLink]
     }
 
+    case class SortableProperty(id: String, label: String)
+    implicit val sortablePropertyWrites: Writes[SortableProperty] = Json.writes[SortableProperty]
+
     def apply()(implicit userContext: UserContext): JsValue = {
       val ps: Seq[Project] = projects
       var tasks: Seq[TypedTasks] = ps.flatMap(fetchTasks)
@@ -300,6 +307,7 @@ object SearchApiModel {
       JsObject(Seq(
         "total" -> JsNumber(BigDecimal(sorted.size)),
         "results" -> JsArray(withItemLinks),
+        "sortByProperties" -> JsArray(Seq(SortableProperty("label", "Label")).map(sortablePropertyWrites.writes)),
         "facets" -> JsArray(facets.map(fr => Json.toJson(fr)))
       ))
     }
@@ -373,22 +381,22 @@ object SearchApiModel {
 
     private def toJson(project: Project): JsObject = {
       JsObject(Seq(
-        "type" -> JsString("project"),
-        "id" -> JsString(project.config.id),
-        FacetedSearchRequest.LABEL -> JsString(project.config.id),// TODO: Support label and description in projects
-        "description" -> JsString("")
+        TYPE -> JsString("project"),
+        ID -> JsString(project.config.id),
+        LABEL -> JsString(project.config.id),// TODO: Support label and description in projects
+        DESCRIPTION -> JsString("")
       ))
     }
 
     private def toJson(typedTask: TypedTasks): Seq[JsObject] = {
       typedTask.tasks map { task =>
         JsObject(Seq(
-          "projectId" -> JsString(typedTask.project),
-          "type" -> JsString(typedTask.itemType.toString),
-          "id" -> JsString(task.id),
-          "label" -> JsString(task.metaData.label),
-          "description" -> JsString("")
-        ) ++ task.metaData.description.map(d => "description" -> JsString(d)))
+          PROJECT_ID -> JsString(typedTask.project),
+          TYPE -> JsString(typedTask.itemType.toString),
+          ID -> JsString(task.id),
+          LABEL -> JsString(task.metaData.label),
+          DESCRIPTION -> JsString("")
+        ) ++ task.metaData.description.map(d => DESCRIPTION -> JsString(d)))
       }
     }
   }
@@ -405,7 +413,7 @@ object SearchApiModel {
       valueMapping.getOrElseUpdate(
         jsObject,
         by match {
-          case SortBy.label => jsObject.value(FacetedSearchRequest.LABEL).as[String].toLowerCase()
+          case SortBy.label => jsObject.value(LABEL).as[String].toLowerCase()
         }
       )
     }
