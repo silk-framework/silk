@@ -71,7 +71,10 @@ const isNetworkError = (err: AxiosError | Error): boolean => {
     if (!err || !Object.keys(err).length) {
         return false;
     }
-    return 'response' in err;
+    if (typeof err === 'object') {
+        return 'response' in err;
+    }
+    return err;
 };
 
 /**

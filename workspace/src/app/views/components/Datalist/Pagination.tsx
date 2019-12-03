@@ -14,8 +14,8 @@ export default function Pagination({ pagination, onPageChange }) {
             {
                 elements.map(i =>
                     i === pagination.current
-                        ? <span>{i} </span>
-                        : <a href="#" onClick={() => onPageChange(i)}>{i} </a>
+                        ? <span key={i}>{i} </span>
+                        : <a key={i} href="#" onClick={() => onPageChange(i)}>{i} </a>
                 )
             }
         </>

@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import Pagination from "./Pagination";
 import { HTMLTable } from "@blueprintjs/core";
 import SearchInput from "../../layout/header/SearchInput";
-import { PaginationDto } from "../../../state/dto";
+import { IPaginationState } from "../../../state/dto";
 
 interface IProps {
     data: any[];
-    pagination: PaginationDto;
+    pagination: IPaginationState;
     searchValue?: string;
 
     onSearch(value: string): void

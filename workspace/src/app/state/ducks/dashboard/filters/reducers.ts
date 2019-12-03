@@ -1,98 +1,90 @@
-import * as types from "./types";
-import { FiltersDto, Modifier } from "./dtos";
-import { PaginationDto } from "../../../dto";
+import { createReducer } from "@reduxjs/toolkit";
+import without from 'ramda/src/without';
 
-const dashboardFiltersReducers = (state = new FiltersDto(), action: any = {}): FiltersDto => {
-    switch (action.type) {
-        case (types.FETCH_TYPES_MOD):
-            return {
-                ...state,
-                modifiers: {
-                    ...state.modifiers,
-                    type: new Modifier()
-                },
-            };
+import {
+    applyFacet,
+    applyFilter,
+    changePage,
+    fetchTypeMod,
+    updateFacets,
+    updateModifiers,
+    updateResultsTotal
+} from "./actions";
+import { initialPaginationState } from "../../../dto";
+import { initialAppliedFacetState, initialFiltersState } from "./dtos";
 
-        case (types.FETCH_TYPES_MOD_SUCCESS):
-            return {
-                ...state,
-                modifiers: {
-                    ...state.modifiers,
-                    type: action.payload.data
-                }
-            };
+const dashboardFiltersReducers = createReducer(initialFiltersState(), {
+        [fetchTypeMod.type]: (state) => {
+            // @Note:  clean all modifiers
+            state.modifiers = {}
+        },
 
-        case (types.FETCH_TYPES_MOD_FAILURE):
-            return {
-                ...state,
-                // error: action.payload.error
-            };
+        [updateModifiers.type]: (state, action) => {
+            const {fieldName, modifier} = action.payload;
+            state.modifiers[fieldName] = modifier;
+        },
 
-        case (types.FETCH_FACETS):
-            return {
-                ...state,
-                facets: [],
-            };
+        [applyFilter.toString()]: (state, action) => {
+            const {field, value} = action.payload;
 
-        case (types.FETCH_FACETS_SUCCESS):
-            return {
-                ...state,
-                facets: [
-                    ...state.facets,
-                    action.payload.data
-                ]
-            };
-
-        case (types.FETCH_FACETS_FAILURE):
-            return {
-                ...state,
-                // error: action.payload.error
-            };
-
-        case (types.APPLY_FILTER):
-            const updatedFilters = {...state.appliedFilters};
-            const { type, filterValue } = action.payload;
-
-            if (filterValue === '') {
-                delete updatedFilters[type];
+            if (value === '') {
+                delete state.appliedFilters[field];
             } else {
-                updatedFilters[type] = filterValue;
+                state.appliedFilters[field] = value;
             }
 
-            return {
-                ...state,
-                appliedFilters: {
-                    ...updatedFilters,
-                },
-                pagination: new PaginationDto()
-            };
+            state.pagination = initialPaginationState();
+        },
 
-        case (types.CHANGE_PAGE):
-            const { page } = action.payload;
-            const { pagination } = state;
+        [changePage.type]: (state, action) => {
+            const {page} = action.payload;
+            const {pagination} = state;
             const offset = (page - 1) * pagination.limit + 1;
 
-            return {
-                ...state,
-                pagination: {
-                    ...pagination,
-                    offset,
-                    current: page
-                }
-            };
+            state.pagination = initialPaginationState({
+                offset,
+                current: page
+            });
+        },
 
-        case (types.UPDATE_RESULTS_TOTAL):
-            return {
-                ...state,
-                pagination: {
-                    ...state.pagination,
-                    total: action.payload.total
-                }
-            };
+        [updateResultsTotal.type]: (state, action) => {
+            state.pagination.total = action.payload.total;
+        },
 
-        default:
-            return state;
-    }
-};
+        [updateFacets.type]: (state, action) => {
+            state.facets = action.payload.facets;
+        },
+
+        [applyFacet.type]: (state, action) => {
+            const {facet, value} = action.payload;
+            const {facets} = state.appliedFilters;
+
+            const ind = facets.findIndex(o => o.facetId === facet.id);
+            // add facet, if doesn't not exists
+            if (ind === -1) {
+                facets.push(
+                    initialAppliedFacetState({
+                        facetId: facet.id,
+                        type: facet.type,
+                        keywordIds: [value]
+                    }));
+                return;
+            }
+            const currentFacet = facets[ind];
+
+            // push keywordId if keywordId not found in applied facet
+            if (!currentFacet.keywordIds.includes(value)) {
+                currentFacet.keywordIds.push(value);
+                return;
+            }
+
+            currentFacet.keywordIds = without([value], currentFacet.keywordIds);
+            // remove facet if no any keyword provided
+            if (!currentFacet.keywordIds.length) {
+                facets.splice(ind, 1);
+            }
+        },
+    })
+;
 
 export default dashboardFiltersReducers;

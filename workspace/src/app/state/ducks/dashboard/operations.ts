@@ -4,11 +4,11 @@ import { API_ENDPOINT } from "../../../constants";
 import { batch } from "react-redux";
 import { dashboardSel } from "./index";
 import {
+    applyFacet,
     applyFilter,
     changePage,
     fetchTypeMod,
-    fetchTypeModFailure,
-    fetchTypeModSuccess,
+    updateFacets, updateModifiers,
     updateResultsTotal
 } from "./filters/actions";
 import { fetchList, fetchListFailure, fetchListSuccess } from "./preview/actions";
@@ -22,44 +22,12 @@ const fetchTypesAsync = () => {
         dispatch(fetchTypeMod());
         fetch({
             url: API_ENDPOINT + '/searchConfig/types',
-            method:'GET',
+            method: 'GET',
         }).then(res => {
             const validModifier = asModifier('Type', 'itemType', res.data);
-            dispatch(fetchTypeModSuccess(validModifier));
-        }, err => {
-            dispatch(fetchTypeModFailure(err));
-        })
-    }
-};
+            dispatch(updateModifiers('type', validModifier));
+        }, error => {
 
-/**
- *
- * @param type
- * @param filter
- */
-const setFilterAsync = (type: string, filter: string) => {
-    return dispatch => {
-        batch(() => {
-            dispatch(applyFilter(type, filter));
-            dispatch(fetchListAsync());
-        });
-    }
-};
-
-const setSearchQueryAsync = (value: string) => {
-    return dispatch => {
-        dispatch(setFilterAsync('textQuery', value));
-    }
-};
-
-/**
- * @param page
- */
-const changePageAsync = (page: number) => {
-    return dispatch => {
-        batch(() => {
-            dispatch(changePage(page));
-            dispatch(fetchListAsync());
         })
     }
 };
@@ -82,18 +50,29 @@ const fetchListAsync = () => {
 
         // get filters
         Object.keys(appliedFilters)
-            .forEach(facet => {
-                body[facet] = appliedFilters[facet]
+            .forEach(filter => {
+                if (filter.length) {
+                    body[filter] = appliedFilters[filter]
+                }
             });
 
         fetch({
             url: API_ENDPOINT + '/searchItems',
-            method:'post',
+            method: 'post',
             body
         }).then(res => {
+            const {total, facets, results, sortByProperties} = res.data;
             batch(() => {
-                dispatch(updateResultsTotal(res.data.total));
-                dispatch(fetchListSuccess(res.data.results));
+                // Update the pagination total value
+                dispatch(updateResultsTotal(total));
+                // Add the facets if it's presented
+                dispatch(updateFacets(facets));
+                // Add sorting modifier
+                const formattedModifier = asModifier('sort', 'sortBy', sortByProperties);
+                dispatch(updateModifiers('sort', formattedModifier));
+
+                // Apply results
+                dispatch(fetchListSuccess(results));
             })
         }, err => {
             dispatch(fetchListFailure(err));
@@ -103,8 +82,8 @@ const fetchListAsync = () => {
 
 export default {
     fetchTypesAsync,
-    setFilterAsync,
-    changePageAsync,
-    setSearchQueryAsync,
-    fetchListAsync
+    fetchListAsync,
+    applyFilter,
+    changePage,
+    applyFacet
 };

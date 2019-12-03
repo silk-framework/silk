@@ -1,19 +1,15 @@
 import * as types from "./types";
+import { createAction } from "@reduxjs/toolkit";
 
-export const fetchList = () => ({
-    type: types.FETCH_SEARCH_RESULTS,
-});
-
-export const fetchListSuccess = (results) => ({
-    type: types.FETCH_SEARCH_RESULTS_SUCCESS,
+export const fetchList = createAction(types.FETCH_SEARCH_RESULTS);
+export const fetchListSuccess = createAction(types.FETCH_SEARCH_RESULTS_SUCCESS, results => ({
     payload: {
         results,
     }
-});
+}));
 
-export const fetchListFailure = (error) => ({
-    type: types.FETCH_SEARCH_RESULTS_FAILURE,
+export const fetchListFailure = createAction(types.FETCH_SEARCH_RESULTS_FAILURE, error => ({
     payload: {
         error
     }
-});
+}));

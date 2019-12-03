@@ -4,14 +4,13 @@ import { Layout } from "antd";
 import Header from "./views/layout/header/Header";
 import { connect } from "react-redux";
 import { globalOp, globalSel } from "./state/ducks/global";
-import Loading from "./views/components/Loading/Loading";
 import RouterOutlet from "./RouterOutlet";
 import LanguageContainer from "./LanguageContainer";
 import { RouteProps } from "react-router";
-import { history } from "./state/configureStore";
-import { ConnectedRouter } from "connected-react-router";
 import "normalize.css";
 import "@blueprintjs/core/lib/css/blueprint.css";
+import { ConnectedRouter } from "connected-react-router";
+import { getHistory } from "./state/configureStore";
 
 interface IProps {
     routes: RouteProps[];
@@ -45,7 +44,7 @@ class App extends Component<IProps, IState> {
         return (
             <LanguageContainer>
                 <Layout style={{height: '100vh'}}>
-                    <ConnectedRouter history={history}>
+                    <ConnectedRouter history={getHistory()}>
                         <Header externalRoutes={this.props.externalRoutes}/>
                         <RouterOutlet routes={this.props.routes}/>
                     </ConnectedRouter>

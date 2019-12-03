@@ -1,4 +1,4 @@
-import { combineReducers } from "redux-starter-kit";
+import { combineReducers } from "@reduxjs/toolkit";
 import { connectRouter } from 'connected-react-router'
 
 import global from './ducks/global';

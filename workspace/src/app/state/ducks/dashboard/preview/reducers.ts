@@ -1,32 +1,22 @@
-import * as types from "./types";
-import { PreviewDto } from "./dtos";
+import { initialPreviewState } from "./dtos";
+import { createReducer } from "@reduxjs/toolkit";
+import { fetchList, fetchListFailure, fetchListSuccess } from "./actions";
 
-const dashboardPreviewReducers = (state = new PreviewDto(), action: any = {}): PreviewDto => {
-    switch (action.type) {
-        case (types.FETCH_SEARCH_RESULTS):
-            return {
-                ...state,
-                searchResults: [],
-                isLoading: true
-            };
+const dashboardPreviewReducers = createReducer(initialPreviewState(), {
+    [fetchList.type]: (state) => {
+        state.searchResults.length = 0;
+        state.isLoading = true;
+    },
 
-        case (types.FETCH_SEARCH_RESULTS_SUCCESS):
-            return {
-                ...state,
-                isLoading: false,
-                searchResults: action.payload.results
-            };
+    [fetchListSuccess.type]: (state, action) => {
+        state.isLoading = false;
+        state.searchResults = action.payload.results;
+    },
 
-        case (types.FETCH_SEARCH_RESULTS_FAILURE):
-            return {
-                ...state,
-                isLoading: false,
-                error: action.payload.error
-            };
-
-        default:
-            return state;
+    [fetchListFailure.type]: (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload.error;
     }
-};
+});
 
 export default dashboardPreviewReducers;

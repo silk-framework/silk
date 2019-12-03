@@ -1,59 +1,63 @@
-import * as types from "./types";
+import { createAction } from "@reduxjs/toolkit";
+import { IFacetState } from "./dtos";
 
-export const fetchTypeMod = () => ({
-    type: types.FETCH_TYPES_MOD,
-});
+const FETCH_TYPES_MOD = "dashboard/filters/FETCH_TYPES_MOD";
 
-export const fetchTypeModSuccess = (data) => ({
-    type: types.FETCH_TYPES_MOD_SUCCESS,
-    payload: {
-        data,
-    }
-});
+const UPDATE_MODIFIERS = "dashboard/filters/UPDATE_MODIFIERS";
+const CHANGE_PAGE = "dashboard/filters/CHANGE_PAGE";
+const UPDATE_RESULTS_TOTAL = "dashboard/filters/UPDATE_RESULTS_TOTAL";
+const UPDATE_FACETS = "dashboard/filters/UPDATE_FACETS";
+const APPLY_FACET = "dashboard/filters/APPLY_FACET";
+const APPLY_FILTER = "dashboard/filters/APPLY_FILTER";
 
-export const fetchTypeModFailure = (error) => ({
-    type: types.FETCH_TYPES_MOD_FAILURE,
-    payload: {
-        error
-    }
-});
+export const fetchTypeMod = createAction(FETCH_TYPES_MOD);
 
-export const fetchAvailableFacets = () => ({
-    type: types.FETCH_FACETS,
-});
+export const updateModifiers = createAction(
+    UPDATE_MODIFIERS,
+    (fieldName: string, modifier:  any) => ({
+        payload: {
+            fieldName,
+            modifier
+        }
+    })
+);
+export const applyFilter = createAction(
+    APPLY_FILTER,
+    (field: string, value: string | number) => ({
+        payload: {
+            field,
+            value
+        }
+    }));
 
-export const fetchAvailableFacetsSuccess = (data) => ({
-    type: types.FETCH_FACETS_SUCCESS,
-    payload: {
-        data,
-    }
-});
+export const changePage = createAction(
+    CHANGE_PAGE,
+    (page: number) => ({
+        payload: {
+            page
+        }
+    }));
+export const updateResultsTotal = createAction(
+    UPDATE_RESULTS_TOTAL,
+    (total: number) => ({
+        payload: {
+            total
+        }
+    }));
 
-export const fetchAvailableFacetsFailure = (error) => ({
-    type: types.FETCH_FACETS_FAILURE,
-    payload: {
-        error
-    }
-});
+export const updateFacets = createAction(
+    UPDATE_FACETS,
+    (facets: IFacetState) => ({
+        payload: {
+            facets
+        }
+    }));
 
-export const applyFilter = (type: string, filterValue: string) => ({
-    type: types.APPLY_FILTER,
-    payload: {
-        type,
-        filterValue
-    }
-});
-
-export const changePage = (page: number) => ({
-    type: types.CHANGE_PAGE,
-    payload: {
-        page,
-    }
-});
-
-export const updateResultsTotal = (total: number) => ({
-    type: types.UPDATE_RESULTS_TOTAL,
-    payload: {
-        total,
-    }
-});
+export const applyFacet = createAction(
+    APPLY_FACET,
+    (facet: IFacetState, value: string) => ({
+        payload: {
+            facet,
+            value
+        }
+    }));

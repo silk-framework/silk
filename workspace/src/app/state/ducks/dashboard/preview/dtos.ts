@@ -1,5 +1,14 @@
-export class PreviewDto {
-    searchResults: [] = [];
-    isLoading: boolean = false;
-    error: any = {};
+export interface IPreviewState {
+    searchResults: [];
+    isLoading: boolean;
+    error: any;
+}
+
+export function initialPreviewState(props: Partial<IPreviewState> = {}): IPreviewState {
+    return {
+        searchResults: [],
+        isLoading: false,
+        error: {},
+        ...props
+    }
 }

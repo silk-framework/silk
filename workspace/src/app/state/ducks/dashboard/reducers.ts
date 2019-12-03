@@ -1,4 +1,4 @@
-import { combineReducers } from "redux";
+import { combineReducers } from "@reduxjs/toolkit";
 import dashboardFiltersReducers from "./filters/reducers";
 import dashboardPreviewReducers from "./preview/reducers";
 

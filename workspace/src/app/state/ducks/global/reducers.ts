@@ -1,35 +1,24 @@
 import * as types from "./types";
-import { GlobalDto } from "./dtos";
+import { createReducer } from "@reduxjs/toolkit";
+import { initialGlobalState } from "./dtos";
 
-const global = (state = new GlobalDto(), action: any = {}): GlobalDto => {
-    switch (action.type) {
-        case (types.CHANGE_LANGUAGE):
-            return {
-                ...state,
-                locale: action.payload.locale
-            };
 
-        case (types.LOGIN_SUCCESS):
-            return {
-                ...state,
-                authenticated: true,
-            };
+const global = createReducer(initialGlobalState(), {
+    [types.CHANGE_LANGUAGE]: (state, action) => {
+        state.locale = action.payload.locale;
+    },
 
-        case (types.LOG_OUT):
-            return {
-                ...state,
-                authenticated: false,
-            };
+    [types.LOGIN_SUCCESS]: (state) => {
+        state.authenticated = true;
+    },
 
-        case (types.CHANGE_SEARCH_STRING):
-            return {
-                ...state,
-                searchQuery: action.payload.searchQuery
-            };
+    [types.LOG_OUT]: (state) => {
+        state.authenticated = false;
+    },
 
-        default:
-            return state;
+    [types.CHANGE_SEARCH_STRING]: (state, action) => {
+        state.searchQuery = action.payload.searchQuery;
     }
-};
+});
 
 export default global;

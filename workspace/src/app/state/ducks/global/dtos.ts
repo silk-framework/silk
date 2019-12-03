@@ -1,13 +1,23 @@
-import { isAuthenticated } from "./thunks/auth.thunk";
 import { getLocale } from "./thunks/locale.thunk";
 
-export class GlobalDto {
-    locale: string = getLocale();
-    authenticated: boolean = true;
-    searchQuery: string = '';
-    loading: boolean = false;
+export interface IGlobalState {
+    locale: string;
+    authenticated: boolean;
+    searchQuery: string;
+    loading: boolean;
     // @TODO: add the typos for the last 2 properties
     // searchResults: any[] = [];
-    error: any = {};
+    error: any;
     // authenticated: boolean = isAuthenticated();
+}
+
+export function initialGlobalState(): IGlobalState {
+    return {
+        locale: getLocale(),
+        authenticated: true,
+        searchQuery: '',
+        loading: false,
+        error: {},
+        // authenticated: boolean = isAuthenticated();
+    }
 }

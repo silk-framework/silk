@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import FilterBar from "../../components/FilterBar/FilterBar";
+import FilterBar from "./FilterBar/FilterBar";
 import Datalist from "../../components/Datalist/Datalist";
 import { useDispatch, useSelector } from "react-redux";
 import { dashboardOp, dashboardSel } from "../../../state/ducks/dashboard";
@@ -8,19 +8,20 @@ export default function DashboardLayout() {
     const dispatch = useDispatch();
 
     const data = useSelector(dashboardSel.resultsSelector);
-    const searchQuery = useSelector(dashboardSel.appliedFiltersSelector).textQuery;
+
     const pagination = useSelector(dashboardSel.paginationSelector);
+    const appliedFilters = useSelector(dashboardSel.appliedFiltersSelector);
 
     useEffect(() => {
         dispatch(dashboardOp.fetchListAsync());
-    }, []);
+    }, [appliedFilters, pagination.current]);
 
     const handleSearch = (value: string) => {
-        dispatch(dashboardOp.setSearchQueryAsync(value));
+        dispatch(dashboardOp.applyFilter('textQuery', value));
     };
 
     const handlePageChange = (i: number) => {
-        dispatch(dashboardOp.changePageAsync(i))
+        dispatch(dashboardOp.changePage(i))
     };
 
     return (
@@ -32,7 +33,7 @@ export default function DashboardLayout() {
                 <Datalist
                     data={data}
                     onSearch={handleSearch}
-                    searchValue={searchQuery}
+                    searchValue={appliedFilters.textQuery}
                     onPageChange={handlePageChange}
                     pagination={pagination}
                 />

@@ -1,18 +1,16 @@
-import { GlobalDto } from "./ducks/global/dtos";
-import { connectRouter } from "connected-react-router";
 import { Reducer } from "redux";
-import { createBrowserHistory } from "history";
-import { DashboardDto } from "./ducks/dashboard/dtos";
+import { IDashboardState, initialDashboardState } from "./ducks/dashboard/dtos";
+import { IGlobalState, initialGlobalState } from "./ducks/global/dtos";
 
-export class StoreDto {
-    global: GlobalDto;
-    dashboard: DashboardDto;
+export interface IStore {
+    global: IGlobalState;
+    dashboard: IDashboardState;
     router: Reducer<any, any>;
+}
 
-    constructor() {
-        this.global = new GlobalDto();
-        this.dashboard = new DashboardDto();
-        this.router = connectRouter(createBrowserHistory())
+export function initialStore() {
+    return {
+        global: initialGlobalState(),
+        dashboard: initialDashboardState()
     }
-
 }

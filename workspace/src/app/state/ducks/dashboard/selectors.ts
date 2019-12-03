@@ -1,7 +1,10 @@
-import { createSelector } from "reselect";
+import { createSelector } from "@reduxjs/toolkit";
+import { IFiltersState } from "./filters/dtos/Filter.dto";
+import { IPreviewState } from "./preview/dtos";
+import { IStore } from "../../store.dto";
 
-const filtersSelector = state => state.dashboard.filters;
-const previewSelector = state => state.dashboard.preview;
+const filtersSelector = (state: IStore): IFiltersState => state.dashboard.filters;
+const previewSelector = (state: IStore): IPreviewState => state.dashboard.preview;
 
 const resultsSelector = createSelector(
     [previewSelector],
@@ -11,6 +14,11 @@ const resultsSelector = createSelector(
 const modifiersSelector = createSelector(
     [filtersSelector],
     filters => filters.modifiers
+);
+
+const facetsSelector = createSelector(
+    [filtersSelector],
+    filters => filters.facets
 );
 
 const appliedFiltersSelector = createSelector(
@@ -27,5 +35,6 @@ export default {
     appliedFiltersSelector,
     resultsSelector,
     paginationSelector,
-    modifiersSelector
+    modifiersSelector,
+    facetsSelector
 }

@@ -1,17 +1,17 @@
 import rootReducer from './reducers';
-import { configureStore, getDefaultMiddleware } from "redux-starter-kit";
+import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
 import { createBrowserHistory } from 'history';
 import { routerMiddleware } from "connected-react-router";
-import logger from 'redux-logger'
+import { createLogger } from 'redux-logger'
 import { isDevelopment } from "../constants";
 import monitorReducerEnhancer from "./enhancers/monitorPerformanceEnhancer";
 import storeDevEnhancer from "./enhancers/reduxDevEnhancer";
 
 let store;
+let history = createBrowserHistory();
 
 export const getStore = () => store;
-
-export const history = createBrowserHistory();
+export const getHistory = () => history;
 
 export default function (options: any = {}) {
     const enhancers = [];
@@ -27,18 +27,23 @@ export default function (options: any = {}) {
         }
     }
 
+    const logger = createLogger({
+        collapsed: true
+    });
+
     store = configureStore({
-        reducer: rootReducer(history),
+        reducer: rootReducer(getHistory()),
         middleware: [
             ...getDefaultMiddleware({
-                serializableCheck: false
+                serializableCheck: false,
             }),
             logger,
-            routerMiddleware(history),
+            routerMiddleware(getHistory()),
         ],
         devTools: isDevelopment,
         enhancers
     });
+
 
     return store;
 }

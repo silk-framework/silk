@@ -1,7 +1,15 @@
-import { FiltersDto } from "./filters/dtos";
-import { PreviewDto } from "./preview/dtos";
+import { IFiltersState, initialFiltersState } from "./filters/dtos/Filter.dto";
+import { initialPreviewState, IPreviewState } from "./preview/dtos";
 
-export class DashboardDto {
-    filters: FiltersDto = new FiltersDto();
-    preview: PreviewDto = new PreviewDto();
+export interface IDashboardState {
+    filters: IFiltersState;
+    preview: IPreviewState;
 }
+
+export function initialDashboardState(): IDashboardState {
+    return {
+        filters: initialFiltersState(),
+        preview: initialPreviewState(),
+    }
+}
+

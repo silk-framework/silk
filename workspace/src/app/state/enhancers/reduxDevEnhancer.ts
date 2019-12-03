@@ -1,4 +1,4 @@
-import { StoreDto } from "../store.dto";
+import { initialStore } from "../store.dto";
 
 const reduxDevEnhancer = (createStore) => (
     reducer,
@@ -8,7 +8,7 @@ const reduxDevEnhancer = (createStore) => (
     const reduxDevReducer = (state, action) => {
         let newState;
         if (action.type === '__dev__/RESET_STORE') {
-            newState = new StoreDto();
+            newState = initialStore();
             newState.router = {
                 ...state.router
             };
