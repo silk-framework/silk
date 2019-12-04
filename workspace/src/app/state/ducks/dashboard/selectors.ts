@@ -1,5 +1,5 @@
 import { createSelector } from "@reduxjs/toolkit";
-import { IFiltersState } from "./filters/dtos/Filter.dto";
+import { IFiltersState } from "./filters/dtos";
 import { IPreviewState } from "./preview/dtos";
 import { IStore } from "../../store.dto";
 
@@ -14,6 +14,11 @@ const resultsSelector = createSelector(
 const modifiersSelector = createSelector(
     [filtersSelector],
     filters => filters.modifiers
+);
+
+const sortersSelector = createSelector(
+    [filtersSelector],
+    filters => filters.sorters
 );
 
 const facetsSelector = createSelector(
@@ -34,6 +39,7 @@ const paginationSelector = createSelector(
 export default {
     appliedFiltersSelector,
     resultsSelector,
+    sortersSelector,
     paginationSelector,
     modifiersSelector,
     facetsSelector

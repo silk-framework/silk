@@ -2,6 +2,21 @@ import { IAppliedFacetState, IFacetState } from "./Facets.dto";
 import { IModifiersState } from "./Modifiers.dto";
 import { initialPaginationState, IPaginationState } from "../../../../dto";
 
+export interface IAppliedSorterState {
+    sortBy: string;
+    sortOrder: 'ASC' | 'DESC';
+}
+
+export interface ISorterListItemState {
+    id: string;
+    label: string;
+}
+
+export interface ISortersState {
+    list: ISorterListItemState[];
+    applied: IAppliedSorterState;
+}
+
 export interface IAppliedFiltersState {
     textQuery: string;
     sortBy?: string;
@@ -14,6 +29,7 @@ export interface IFiltersState {
     modifiers: IModifiersState;
     appliedFilters: IAppliedFiltersState;
     pagination: IPaginationState;
+    sorters: ISortersState;
 }
 
 export function initialFiltersState(props: Partial<IFiltersState> = {}): IFiltersState {
@@ -22,6 +38,15 @@ export function initialFiltersState(props: Partial<IFiltersState> = {}): IFilter
         modifiers: {},
         appliedFilters: initialAppliedFiltersState(),
         pagination: initialPaginationState(),
+        sorters: initialSortersState(),
+        ...props
+    }
+}
+
+export function initialSortersState(props: Partial<ISortersState> = {}): ISortersState {
+    return {
+        list: [],
+        applied: {} as IAppliedSorterState,
         ...props
     }
 }

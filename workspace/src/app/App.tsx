@@ -7,10 +7,11 @@ import { globalOp, globalSel } from "./state/ducks/global";
 import RouterOutlet from "./RouterOutlet";
 import LanguageContainer from "./LanguageContainer";
 import { RouteProps } from "react-router";
-import "normalize.css";
-import "@blueprintjs/core/lib/css/blueprint.css";
 import { ConnectedRouter } from "connected-react-router";
 import { getHistory } from "./state/configureStore";
+
+import "normalize.css";
+import "@blueprintjs/core/lib/css/blueprint.css";
 
 interface IProps {
     routes: RouteProps[];

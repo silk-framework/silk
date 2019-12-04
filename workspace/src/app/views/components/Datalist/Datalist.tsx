@@ -1,19 +1,23 @@
 import React, { useState } from "react";
 import Pagination from "./Pagination";
-import { HTMLTable } from "@blueprintjs/core";
+import { HTMLTable, Icon, Menu, MenuItem } from "@blueprintjs/core";
 import SearchInput from "../../layout/header/SearchInput";
 import { IPaginationState } from "../../../state/dto";
+import SortButton from "./SortButton";
+import { ISorterListItemState } from "../../../state/ducks/dashboard/filters/dtos";
 
 interface IProps {
     data: any[];
     pagination: IPaginationState;
     searchValue?: string;
+    sortersList?: ISorterListItemState[];
 
     onSearch(value: string): void
+    onSort?(value: string): void
     onPageChange(value: number): void
 }
 
-export default function Datalist({data, pagination, searchValue, onSearch, onPageChange}: IProps) {
+export default function Datalist({data, pagination, searchValue, sortersList, onSearch, onPageChange, onSort}: IProps) {
     const [searchInput, setSearchInput] = useState();
     const handleClone = (id: string) => {
 
@@ -34,10 +38,15 @@ export default function Datalist({data, pagination, searchValue, onSearch, onPag
 
     return (
         <>
-            <SearchInput
-                onFilterChange={handleSearchChange}
-                onBlur={handleSearchBlur}
-            />
+            <div style={{width:'80%', float:'left', paddingRight: '10px'}}>
+                <SearchInput
+                    onFilterChange={handleSearchChange}
+                    onBlur={handleSearchBlur}
+                />
+            </div>
+            <div style={{width:'15%', float:'left'}}>
+                <SortButton sortersList={sortersList} onSort={onSort} />
+            </div>
             {
                 !data.length
                     ? <p>No resources found</p>

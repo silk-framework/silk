@@ -1,15 +1,18 @@
-import fetch from '../../../providers/fetch';
+import isEmpty from 'ramda/es/isEmpty';
 
+import fetch from '../../../providers/fetch';
 import { API_ENDPOINT } from "../../../constants";
 import { batch } from "react-redux";
 import { dashboardSel } from "./index";
 import {
     applyFacet,
     applyFilter,
+    applySorter,
     changePage,
     fetchTypeMod,
-    updateFacets, updateModifiers,
-    updateResultsTotal
+    updateFacets,
+    updateModifiers,
+    updateResultsTotal, updateSorters
 } from "./filters/actions";
 import { fetchList, fetchListFailure, fetchListSuccess } from "./preview/actions";
 import asModifier from "../../../utils/asModifier";
@@ -43,10 +46,17 @@ const fetchListAsync = () => {
         const state = getState();
         const {limit, offset} = dashboardSel.paginationSelector(state);
         const appliedFilters = dashboardSel.appliedFiltersSelector(state);
-        const body = {
+        const sorters = dashboardSel.sortersSelector(state);
+
+        const body: any = {
             limit,
             offset,
         };
+
+        if (!isEmpty(sorters)) {
+            body.sortBy = sorters.applied.sortBy;
+            body.sortOrder = sorters.applied.sortOrder;
+        }
 
         // get filters
         Object.keys(appliedFilters)
@@ -67,10 +77,8 @@ const fetchListAsync = () => {
                 dispatch(updateResultsTotal(total));
                 // Add the facets if it's presented
                 dispatch(updateFacets(facets));
-                // Add sorting modifier
-                const formattedModifier = asModifier('sort', 'sortBy', sortByProperties);
-                dispatch(updateModifiers('sort', formattedModifier));
-
+                // Add sorters
+                dispatch(updateSorters(sortByProperties));
                 // Apply results
                 dispatch(fetchListSuccess(results));
             })
@@ -84,6 +92,7 @@ export default {
     fetchTypesAsync,
     fetchListAsync,
     applyFilter,
+    applySorter,
     changePage,
     applyFacet
 };

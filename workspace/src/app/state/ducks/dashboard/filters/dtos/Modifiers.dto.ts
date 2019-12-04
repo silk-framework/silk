@@ -1,7 +1,12 @@
+export interface IModifierOption {
+    id: string;
+    label: string;
+}
+
 export interface IModifierState {
     label: string;
     field: string;
-    options: any[];
+    options: IModifierOption[];
 }
 
 export interface IModifiersState {

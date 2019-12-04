@@ -8,13 +8,14 @@ export default function DashboardLayout() {
     const dispatch = useDispatch();
 
     const data = useSelector(dashboardSel.resultsSelector);
+    const sorters = useSelector(dashboardSel.sortersSelector);
 
     const pagination = useSelector(dashboardSel.paginationSelector);
     const appliedFilters = useSelector(dashboardSel.appliedFiltersSelector);
 
     useEffect(() => {
         dispatch(dashboardOp.fetchListAsync());
-    }, [appliedFilters, pagination.current]);
+    }, [appliedFilters, sorters.applied, pagination.current]);
 
     const handleSearch = (value: string) => {
         dispatch(dashboardOp.applyFilter('textQuery', value));
@@ -22,6 +23,10 @@ export default function DashboardLayout() {
 
     const handlePageChange = (i: number) => {
         dispatch(dashboardOp.changePage(i))
+    };
+
+    const handleSort = (value: string) => {
+        dispatch(dashboardOp.applySorter(value));
     };
 
     return (
@@ -36,6 +41,8 @@ export default function DashboardLayout() {
                     searchValue={appliedFilters.textQuery}
                     onPageChange={handlePageChange}
                     pagination={pagination}
+                    sortersList={sorters.list}
+                    onSort={handleSort}
                 />
             </div>
         </div>

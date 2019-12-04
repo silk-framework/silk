@@ -4,18 +4,18 @@ import without from 'ramda/src/without';
 import {
     applyFacet,
     applyFilter,
+    applySorter,
     changePage,
     fetchTypeMod,
     updateFacets,
     updateModifiers,
-    updateResultsTotal
+    updateResultsTotal, updateSorters
 } from "./actions";
 import { initialPaginationState } from "../../../dto";
-import { initialAppliedFacetState, initialFiltersState } from "./dtos";
+import { IAppliedSorterState, initialAppliedFacetState, initialFiltersState } from "./dtos";
 
 const dashboardFiltersReducers = createReducer(initialFiltersState(), {
         [fetchTypeMod.type]: (state) => {
-            // @Note:  clean all modifiers
             state.modifiers = {}
         },
 
@@ -24,16 +24,32 @@ const dashboardFiltersReducers = createReducer(initialFiltersState(), {
             state.modifiers[fieldName] = modifier;
         },
 
-        [applyFilter.toString()]: (state, action) => {
+        [applyFilter.type]: (state, action) => {
             const {field, value} = action.payload;
 
             if (value === '') {
                 delete state.appliedFilters[field];
             } else {
                 state.appliedFilters[field] = value;
+                state.sorters.applied = {} as IAppliedSorterState;
             }
 
             state.pagination = initialPaginationState();
+        },
+
+        [updateSorters.type]: (state, action) => {
+            state.sorters.list = action.payload.sorters;
+        },
+
+        [applySorter.type]: (state, action) => {
+            const currentSort = state.sorters.applied;
+            const {sortBy} = action.payload;
+            const sortOrder = sortBy && currentSort === sortBy ? 'DESC' : 'ASC';
+
+            state.sorters.applied = {
+                sortBy,
+                sortOrder
+            };
         },
 
         [changePage.type]: (state, action) => {

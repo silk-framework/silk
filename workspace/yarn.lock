@@ -2592,6 +2592,11 @@ bluebird@^3.5.1, bluebird@^3.5.5:
   resolved "https://artifactory.eccenca.com/api/npm/npm/bluebird/-/bluebird-3.7.1.tgz#df70e302b471d7473489acf26a93d63b53f874de"
   integrity sha1-33DjArRx10c0iazyapPWO1P4dN4=
 
+blueprint-css@^3.0.0-beta.0:
+  version "3.0.0-beta.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/blueprint-css/-/blueprint-css-3.0.0-beta.0.tgz#e5558337afacc1f1f8627252dc4a2e8ef9de63c7"
+  integrity sha1-5VWDN6+swfH4YnJS3EoujvneY8c=
+
 bn.js@^4.0.0, bn.js@^4.1.0, bn.js@^4.1.1, bn.js@^4.4.0:
   version "4.11.8"
   resolved "https://artifactory.eccenca.com/api/npm/npm/bn.js/-/bn.js-4.11.8.tgz#2cde09eb5ee341f484746bb0309b3253b1b1442f"
@@ -3040,11 +3045,6 @@ cipher-base@^1.0.0, cipher-base@^1.0.1, cipher-base@^1.0.3:
   dependencies:
     inherits "^2.0.1"
     safe-buffer "^5.0.1"
-
-class-transformer@^0.2.3:
-  version "0.2.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/class-transformer/-/class-transformer-0.2.3.tgz#598c92ca71dcca73f91ccb875d74a3847ccfa32d"
-  integrity sha1-WYySynHcynP5HMuHXXSjhHzPoy0=
 
 class-utils@^0.3.5:
   version "0.3.6"
