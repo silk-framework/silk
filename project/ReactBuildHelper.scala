@@ -73,7 +73,7 @@ object ReactBuildHelper {
     log.info(s"Finished building $project React components.")
   }
 
-  private def process(command: Seq[String], workingDir: File, maxRetries: Int = 0): String = {
+  def process(command: Seq[String], workingDir: File, maxRetries: Int = 0): String = {
     var tries = 0
     while(tries <= maxRetries) {
       val (out, err) = (new StringBuffer(), new StringBuffer())
