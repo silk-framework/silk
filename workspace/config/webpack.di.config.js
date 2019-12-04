@@ -113,7 +113,7 @@ module.exports = function (webpackEnv) {
     return {
         mode: isEnvProduction ? 'production' : isEnvDevelopment && 'development',
         // Stop compilation early in production
-        bail: true,
+        bail: isEnvProduction,
         devtool: isEnvProduction
             ? shouldUseSourceMap
                 ? 'source-map'
@@ -580,7 +580,7 @@ module.exports = function (webpackEnv) {
                 ],
                 watch: paths.appSrc,
                 silent: isEnvProduction,
-                formatter: typescriptFormatter,
+                formatter: isEnvProduction ? typescriptFormatter : undefined,
             }),
         ].filter(Boolean),
         // Some libraries import Node modules but don't use them in the browser.

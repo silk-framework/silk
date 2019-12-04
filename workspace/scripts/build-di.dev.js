@@ -25,7 +25,6 @@ const checkRequiredFiles = require('react-dev-utils/checkRequiredFiles');
 const formatWebpackMessages = require('react-dev-utils/formatWebpackMessages');
 const printBuildError = require('react-dev-utils/printBuildError');
 const ignoredFiles = require('react-dev-utils/ignoredFiles');
-const rimraf = require('rimraf');
 
 const isInteractive = process.stdout.isTTY;
 // Warn and crash if required files are missing

@@ -32,8 +32,6 @@ const measureFileSizesBeforeBuild =
 const printFileSizesAfterBuild = FileSizeReporter.printFileSizesAfterBuild;
 const useYarn = fs.existsSync(paths.yarnLockFile);
 
-const PUBLIC_URI = 'http://localhost:9000/workspaceNew';
-
 // These sizes are pretty large. We'll warn for bundles exceeding them.
 const WARN_AFTER_BUNDLE_GZIP_SIZE = 512 * 1024;
 const WARN_AFTER_CHUNK_GZIP_SIZE = 1024 * 1024;
@@ -99,17 +97,6 @@ checkBrowsers(paths.appPath, isInteractive)
             );
             console.log();
             
-            const appPackage = require(paths.appPackageJson);
-            const publicUrl = PUBLIC_URI;
-            const publicPath = config.output.publicPath;
-            const buildFolder = path.relative(process.cwd(), paths.appDIBuild);
-            printHostingInstructions(
-                appPackage,
-                publicUrl,
-                publicPath,
-                buildFolder,
-                useYarn
-            );
             copyAssetsToPublicFolder();
         },
         err => {
