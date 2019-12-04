@@ -19,10 +19,7 @@ trait EntityHolder {
     */
   def entities: Traversable[Entity]
 
-  /**
-    * get head Entity
-    */
-  def headOption: Option[Entity]
+  def globalErrors: Seq[String] = Seq.empty
 
   /**
     * The task that generated this table.
@@ -35,6 +32,11 @@ trait EntityHolder {
     * @return
     */
   def taskLabel: String = task.metaData.formattedLabel(task.id.toString)
+
+  /**
+    * get head Entity
+    */
+  def headOption: Option[Entity]
 
   def mapEntities(f: Entity => Entity): EntityHolder
 

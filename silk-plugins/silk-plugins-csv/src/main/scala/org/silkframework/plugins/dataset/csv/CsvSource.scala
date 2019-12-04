@@ -8,7 +8,7 @@ import java.util.regex.Pattern
 
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
-import org.silkframework.entity.paths.UntypedPath.IDX_PATH_IDX
+import org.silkframework.entity.paths.UntypedPath.{IDX_PATH_MISSING, IDX_PATH_IDX}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
@@ -140,6 +140,7 @@ class CsvSource(file: Resource,
     logger.log(Level.FINE, "Retrieving data from CSV.")
 
     // Retrieve the indices of the request paths
+    var missingColumns = Seq[String]()
     val indices =
       for (path <- entityDesc.typedPaths) yield {
         val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri
@@ -148,7 +149,8 @@ class CsvSource(file: Resource,
           if(property == "#idx") {
             IDX_PATH_IDX
           } else {
-            throw new Exception("Property " + property + " not found in CSV " + file.name + ". Available properties: " + propertyList.mkString(", "))
+            missingColumns :+= property
+            IDX_PATH_MISSING
           }
         } else {
           propertyIndex
@@ -165,7 +167,14 @@ class CsvSource(file: Resource,
         retrievedEntities
     }
 
-    GenericEntityTable(limitedEntities, entityDesc, underlyingTask)
+    val missingColumnMessages =
+      if(missingColumns.isEmpty) {
+        Seq.empty
+      } else {
+        Seq(s"Column(s) ${missingColumns.mkString(", ")} not found in CSV ${file.name}. Values for missing columns will be empty. Available columns: ${propertyList.mkString(", ")}.")
+      }
+
+    GenericEntityTable(limitedEntities, entityDesc, underlyingTask, missingColumnMessages)
   }
 
   private def entityTraversable(entityDesc: EntitySchema,
@@ -215,6 +224,8 @@ class CsvSource(file: Resource,
 
   private def collectValues(indices: IndexedSeq[Int], entry: Array[String], entityIdx: Int): IndexedSeq[String] = {
     indices map {
+      case IDX_PATH_MISSING =>
+        ""
       case IDX_PATH_IDX =>
         entityIdx.toString
       case idx: Int if idx >= 0 =>
