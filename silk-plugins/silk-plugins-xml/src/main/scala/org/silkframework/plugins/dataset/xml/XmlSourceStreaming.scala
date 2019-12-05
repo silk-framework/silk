@@ -14,6 +14,7 @@ import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 import scala.xml._
 
@@ -294,26 +295,27 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * The parser must be positioned on the start element when calling this method.
     * On return, the parser will be positioned on the element that directly follows the element.
     */
-  private def buildNode(reader: XMLStreamReader): Elem = {
+  private def buildNode(reader: XMLStreamReader): InMemoryXmlElem = {
     assert(reader.isStartElement)
+    val lineNumber = reader.getLocation.getLineNumber
+    val columnNumber = reader.getLocation.getColumnNumber
 
     // Remember label
     val label = reader.getLocalName
 
     // Collect attributes on this element
-    var attributes: MetaData = Null
-    for(i <- 0 until reader.getAttributeCount) {
-      attributes = new UnprefixedAttribute(reader.getAttributeLocalName(i), reader.getAttributeValue(i), attributes)
+    val attributes = for(i <- 0 until reader.getAttributeCount) yield {
+      reader.getAttributeLocalName(i) -> reader.getAttributeValue(i)
     }
 
     // Collect child nodes
-    var children = List[Node]()
+    val children = new ArrayBuffer[InMemoryXmlNode]()
     reader.next()
     while(!reader.isEndElement) {
       if(reader.isStartElement) {
-        children ::= buildNode(reader)
+        children.append(buildNode(reader))
       } else if(reader.isCharacters) {
-        children ::= Text(reader.getText)
+        children.append(InMemoryXmlText(reader.getText))
         reader.next()
       } else {
         reader.next()
@@ -323,7 +325,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     // Move to the element after the end element.
     reader.next()
 
-    Elem(null, label, attributes, NamespaceBinding(null, null, null), minimizeEmpty = false, children.reverse: _*)
+    InMemoryXmlElem(s"$lineNumber-$columnNumber", label, attributes.toMap, children.toArray)
   }
 
   /**

@@ -84,7 +84,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
   val dataset = PlainTask(DATASET_ID, DatasetSpec(MockDataset("default")), metaData = MetaData(DATASET_ID, Some(DATASET_ID + " description")))
 
-  val datasetUpdated = PlainTask(DATASET_ID, DatasetSpec(MockDataset("updated"), uriProperty = Some("uri")), metaData = MetaData(DATASET_ID))
+  val datasetUpdated = PlainTask(DATASET_ID, DatasetSpec(MockDataset("updated"), uriAttribute = Some("uri")), metaData = MetaData(DATASET_ID))
 
   val linkSpec = LinkSpec(rule = rule, dataSelections = DPair(DatasetSelection(DUMMY_DATASET, ""), DatasetSelection(DUMMY_DATASET, "")),
     linkLimit = LinkSpec.DEFAULT_LINK_LIMIT + 1, matchingExecutionTimeout = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS + 1)
@@ -169,10 +169,10 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
       data =
         Workflow(
           operators = Seq(
-            WorkflowOperator(inputs = Seq(DATASET_ID), task = TRANSFORM_ID, outputs = Seq(), Seq(), (0, 0), TRANSFORM_ID, None)
+            WorkflowOperator(inputs = Seq(DATASET_ID), task = TRANSFORM_ID, outputs = Seq(), Seq(), (0, 0), TRANSFORM_ID, None, configInputs = Seq.empty)
           ),
           datasets = Seq(
-            WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0))
+            WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0), configInputs = Seq.empty)
           )),
       metaData = metaData
     )
