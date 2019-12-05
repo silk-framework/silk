@@ -1,3 +1,0 @@
-export const FETCH_SEARCH_RESULTS = "dashboard/preview/FETCH_SEARCH_RESULTS";
-export const FETCH_SEARCH_RESULTS_SUCCESS = "dashboard/preview/FETCH_SEARCH_RESULTS_SUCCESS";
-export const FETCH_SEARCH_RESULTS_FAILURE = "dashboard/preview/FETCH_SEARCH_RESULTS_FAILURE";

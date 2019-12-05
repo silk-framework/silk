@@ -1,49 +1,43 @@
-import { createReducer } from "@reduxjs/toolkit";
-import without from 'ramda/src/without';
+import { createSlice } from "@reduxjs/toolkit";
+import { IAppliedSorterState } from "./typings";
+import { initialPaginationState } from "../../typings";
+import without from "ramda/src/without";
+import { initialAppliedFacetState, initialFiltersState } from "./initialState";
 
-import {
-    applyFacet,
-    applyFilter,
-    applySorter,
-    changePage,
-    fetchTypeMod,
-    updateFacets,
-    updateModifiers,
-    updateResultsTotal, updateSorters
-} from "./actions";
-import { initialPaginationState } from "../../../dto";
-import { IAppliedSorterState, initialAppliedFacetState, initialFiltersState } from "./dtos";
-
-const dashboardFiltersReducers = createReducer(initialFiltersState(), {
-        [fetchTypeMod.type]: (state) => {
+export const filtersSlice = createSlice({
+    name: 'filters',
+    initialState: initialFiltersState(),
+    reducers: {
+        fetchTypeModifier(state) {
             state.modifiers = {}
         },
 
-        [updateModifiers.type]: (state, action) => {
+        updateModifiers(state, action) {
             const {fieldName, modifier} = action.payload;
             state.modifiers[fieldName] = modifier;
         },
 
-        [applyFilter.type]: (state, action) => {
+        applyFilter(state, action) {
             const {field, value} = action.payload;
 
-            if (value === '') {
+            if (!value) {
                 delete state.appliedFilters[field];
             } else {
                 state.appliedFilters[field] = value;
                 state.sorters.applied = {} as IAppliedSorterState;
+                state.appliedFilters.facets = [];
             }
 
             state.pagination = initialPaginationState();
         },
 
-        [updateSorters.type]: (state, action) => {
-            state.sorters.list = action.payload.sorters;
+        updateSorters(state, action) {
+            state.sorters.list = action.payload;
         },
 
-        [applySorter.type]: (state, action) => {
+        applySorter(state, action) {
             const currentSort = state.sorters.applied;
-            const {sortBy} = action.payload;
+            const sortBy = action.payload;
             const sortOrder = sortBy && currentSort === sortBy ? 'DESC' : 'ASC';
 
             state.sorters.applied = {
@@ -52,10 +46,10 @@ const dashboardFiltersReducers = createReducer(initialFiltersState(), {
             };
         },
 
-        [changePage.type]: (state, action) => {
-            const {page} = action.payload;
+        changePage(state, action) {
+            const page = action.payload;
             const {pagination} = state;
-            const offset = (page - 1) * pagination.limit + 1;
+            const offset = (page - 1) * pagination.limit;
 
             state.pagination = initialPaginationState({
                 offset,
@@ -63,15 +57,15 @@ const dashboardFiltersReducers = createReducer(initialFiltersState(), {
             });
         },
 
-        [updateResultsTotal.type]: (state, action) => {
-            state.pagination.total = action.payload.total;
+        updateResultTotal: (state, action) => {
+            state.pagination.total = action.payload;
         },
 
-        [updateFacets.type]: (state, action) => {
-            state.facets = action.payload.facets;
+        updateFacets(state, action) {
+            state.facets = action.payload;
         },
 
-        [applyFacet.type]: (state, action) => {
+        applyFacet(state, action) {
             const {facet, value} = action.payload;
             const {facets} = state.appliedFilters;
 
@@ -100,7 +94,5 @@ const dashboardFiltersReducers = createReducer(initialFiltersState(), {
                 facets.splice(ind, 1);
             }
         },
-    })
-;
-
-export default dashboardFiltersReducers;
+    }
+});

@@ -1,37 +1,50 @@
 import isEmpty from 'ramda/es/isEmpty';
-
-import fetch from '../../../providers/fetch';
-import { API_ENDPOINT } from "../../../constants";
 import { batch } from "react-redux";
-import { dashboardSel } from "./index";
-import {
-    applyFacet,
-    applyFilter,
-    applySorter,
-    changePage,
-    fetchTypeMod,
-    updateFacets,
-    updateModifiers,
-    updateResultsTotal, updateSorters
-} from "./filters/actions";
-import { fetchList, fetchListFailure, fetchListSuccess } from "./preview/actions";
+
+import { API_ENDPOINT } from "../../../constants";
+
+import fetch from '../../../services/fetch';
 import asModifier from "../../../utils/asModifier";
+
+import selectors from "./selectors";
+import { filtersSlice } from "./filtersSlice";
+import { previewSlice } from "./previewSlice";
+
+
+const {
+    fetchTypeModifier,
+    updateModifiers,
+    updateResultTotal,
+    updateFacets,
+    updateSorters,
+    applySorter,
+    applyFilter,
+    applyFacet,
+    changePage
+} = filtersSlice.actions;
+
+const  {
+    cloneTask,
+    fetchList,
+    fetchListFailure,
+    fetchListSuccess,
+} = previewSlice.actions;
 
 /**
  * Fetch types modifier
  */
 const fetchTypesAsync = () => {
-    return dispatch => {
-        dispatch(fetchTypeMod());
-        fetch({
+    return async dispatch => {
+        dispatch(fetchTypeModifier());
+        const res = await fetch({
             url: API_ENDPOINT + '/searchConfig/types',
             method: 'GET',
-        }).then(res => {
-            const validModifier = asModifier('Type', 'itemType', res.data);
-            dispatch(updateModifiers('type', validModifier));
-        }, error => {
-
-        })
+        });
+        const validModifier = asModifier('Type', 'itemType', res.data);
+        dispatch(updateModifiers({
+            fieldName: 'type',
+            modifier: validModifier
+        }));
     }
 };
 
@@ -40,13 +53,13 @@ const fetchTypesAsync = () => {
  * by provided filters
  */
 const fetchListAsync = () => {
-    return (dispatch, getState) => {
+    return async (dispatch, getState) => {
         dispatch(fetchList());
         // get applied pagination values
         const state = getState();
-        const {limit, offset} = dashboardSel.paginationSelector(state);
-        const appliedFilters = dashboardSel.appliedFiltersSelector(state);
-        const sorters = dashboardSel.sortersSelector(state);
+        const {limit, offset} = selectors.paginationSelector(state);
+        const appliedFilters = selectors.appliedFiltersSelector(state);
+        const sorters = selectors.sortersSelector(state);
 
         const body: any = {
             limit,
@@ -66,15 +79,17 @@ const fetchListAsync = () => {
                 }
             });
 
-        fetch({
-            url: API_ENDPOINT + '/searchItems',
-            method: 'post',
-            body
-        }).then(res => {
+        try {
+            const res = await fetch({
+                url: API_ENDPOINT + '/searchItems',
+                method: 'post',
+                body
+            });
+
             const {total, facets, results, sortByProperties} = res.data;
             batch(() => {
                 // Update the pagination total value
-                dispatch(updateResultsTotal(total));
+                dispatch(updateResultTotal(total));
                 // Add the facets if it's presented
                 dispatch(updateFacets(facets));
                 // Add sorters
@@ -82,17 +97,18 @@ const fetchListAsync = () => {
                 // Apply results
                 dispatch(fetchListSuccess(results));
             })
-        }, err => {
+        } catch (err) {
             dispatch(fetchListFailure(err));
-        })
+        }
     }
 };
 
 export default {
     fetchTypesAsync,
     fetchListAsync,
+    cloneTask,
     applyFilter,
     applySorter,
     changePage,
-    applyFacet
+    applyFacet,
 };

@@ -1,5 +1,5 @@
-import { onErrorHandler } from "./app/providers/errorLogger";
-import { createPlugin } from "./app/providers/pluginApi";
+import { onErrorHandler } from "./app/services/errorLogger";
+import { createPlugin } from "./app/services/pluginApi";
 
 /**
  * @override

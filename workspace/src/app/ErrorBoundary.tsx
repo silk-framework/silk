@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { logError } from "./providers/errorLogger";
+import { logError } from "./services/errorLogger";
 import { isDevelopment } from "./constants";
 
 /**

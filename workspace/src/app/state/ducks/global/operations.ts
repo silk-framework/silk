@@ -1,5 +1,5 @@
 import { batch } from 'react-redux';
-import fetch from '../../../providers/fetch';
+import fetch from '../../../services/fetch';
 
 import { authorize, isAuthenticated, getTokenFromStore, logout } from "./thunks/auth.thunk";
 import { changeLocale } from "./thunks/locale.thunk";

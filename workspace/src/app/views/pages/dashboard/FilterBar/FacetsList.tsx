@@ -1,5 +1,5 @@
 import React from 'react';
-import { IFacetState } from "../../../../state/ducks/dashboard/filters/dtos";
+import { IFacetState } from "../../../../state/ducks/dashboard/typings";
 import { useDispatch, useSelector } from "react-redux";
 import { dashboardOp, dashboardSel } from "../../../../state/ducks/dashboard";
 import Label from "../../../components/wrappers/Label/Label";
@@ -20,7 +20,10 @@ export default function FacetsList() {
     };
 
     const handleSetFacet = (facet: IFacetState, value: string) => {
-        dispatch(dashboardOp.applyFacet(facet, value));
+        dispatch(dashboardOp.applyFacet({
+            facet,
+            value
+        }));
     };
 
     return (

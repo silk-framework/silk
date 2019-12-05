@@ -3,6 +3,7 @@ import FilterBar from "./FilterBar/FilterBar";
 import Datalist from "../../components/Datalist/Datalist";
 import { useDispatch, useSelector } from "react-redux";
 import { dashboardOp, dashboardSel } from "../../../state/ducks/dashboard";
+import { ISearchResultsTask } from "../../../state/ducks/dashboard/typings/IDashboardPreview";
 
 export default function DashboardLayout() {
     const dispatch = useDispatch();
@@ -18,7 +19,10 @@ export default function DashboardLayout() {
     }, [appliedFilters, sorters.applied, pagination.current]);
 
     const handleSearch = (value: string) => {
-        dispatch(dashboardOp.applyFilter('textQuery', value));
+        dispatch(dashboardOp.applyFilter({
+            field: 'textQuery',
+            value
+        }));
     };
 
     const handlePageChange = (i: number) => {
@@ -27,6 +31,10 @@ export default function DashboardLayout() {
 
     const handleSort = (value: string) => {
         dispatch(dashboardOp.applySorter(value));
+    };
+
+    const handleClone = (task: ISearchResultsTask) => {
+        dispatch(dashboardOp.cloneTask(task));
     };
 
     return (
@@ -43,6 +51,7 @@ export default function DashboardLayout() {
                     pagination={pagination}
                     sortersList={sorters.list}
                     onSort={handleSort}
+                    onClone={handleClone}
                 />
             </div>
         </div>

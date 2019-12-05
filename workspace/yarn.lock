@@ -57,7 +57,7 @@
     semver "^5.4.1"
     source-map "^0.5.0"
 
-"@babel/core@^7.1.0", "@babel/core@^7.1.6", "@babel/core@^7.4.5":
+"@babel/core@^7.1.0", "@babel/core@^7.4.5", "@babel/core@^7.7.4":
   version "7.7.4"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/core/-/core-7.7.4.tgz#37e864532200cb6b50ee9a4045f5f817840166ab"
   integrity sha1-N+hkUyIAy2tQ7ppARfX4F4QBZqs=
@@ -840,7 +840,7 @@
     js-levenshtein "^1.1.3"
     semver "^5.3.0"
 
-"@babel/preset-env@^7.1.6":
+"@babel/preset-env@^7.4.5":
   version "7.7.4"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/preset-env/-/preset-env-7.7.4.tgz#ccaf309ae8d1ee2409c85a4e2b5e280ceee830f8"
   integrity sha1-zK8wmujR7iQJyFpOK14oDO7oMPg=
@@ -927,6 +927,14 @@
     "@babel/helper-plugin-utils" "^7.0.0"
     "@babel/plugin-transform-typescript" "^7.1.0"
 
+"@babel/runtime-corejs3@^7.7.4":
+  version "7.7.4"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/runtime-corejs3/-/runtime-corejs3-7.7.4.tgz#f861adc1cecb9903dfd66ea97917f02ff8d79888"
+  integrity sha1-+GGtwc7LmQPf1m6peRfwL/jXmIg=
+  dependencies:
+    core-js-pure "^3.0.0"
+    regenerator-runtime "^0.13.2"
+
 "@babel/runtime@7.3.1":
   version "7.3.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/runtime/-/runtime-7.3.1.tgz#574b03e8e8a9898eaf4a872a92ea20b7846f6f2a"
@@ -934,7 +942,7 @@
   dependencies:
     regenerator-runtime "^0.12.0"
 
-"@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.3.4", "@babel/runtime@^7.4.0", "@babel/runtime@^7.4.5", "@babel/runtime@^7.5.5":
+"@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.3.4", "@babel/runtime@^7.4.0", "@babel/runtime@^7.4.5", "@babel/runtime@^7.5.5", "@babel/runtime@^7.7.4":
   version "7.7.4"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/runtime/-/runtime-7.7.4.tgz#b23a856751e4bf099262f867767889c0e3fe175b"
   integrity sha1-sjqFZ1HkvwmSYvhndniJwOP+F1s=
@@ -1205,10 +1213,10 @@
   resolved "https://artifactory.eccenca.com/api/npm/npm/@nodelib/fs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
   integrity sha1-K1o6s/kYzKSKjHVMCBaOPwPrphs=
 
-"@reduxjs/toolkit@^1.0.4":
-  version "1.0.4"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@reduxjs/toolkit/-/toolkit-1.0.4.tgz#cec88446a22a98b48808af7ab19a58aa93e6f5f9"
-  integrity sha1-zsiERqIqmLSICK96sZpYqpPm9fk=
+"@reduxjs/toolkit@^1.1.0":
+  version "1.1.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@reduxjs/toolkit/-/toolkit-1.1.0.tgz#16ee944782e8f716a9a062f55bea3e2435f3d490"
+  integrity sha1-Fu6UR4Lo9xapoGL1W+o+JDXz1JA=
   dependencies:
     immer "^4.0.1"
     redux "^4.0.0"
@@ -1271,7 +1279,7 @@
     "@svgr/babel-plugin-transform-react-native-svg" "^4.2.0"
     "@svgr/babel-plugin-transform-svg-component" "^4.2.0"
 
-"@svgr/core@^4.1.0":
+"@svgr/core@^4.3.3":
   version "4.3.3"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@svgr/core/-/core-4.3.3.tgz#b37b89d5b757dc66e8c74156d00c368338d24293"
   integrity sha1-s3uJ1bdX3Gbox0FW0Aw2gzjSQpM=
@@ -1287,7 +1295,7 @@
   dependencies:
     "@babel/types" "^7.4.4"
 
-"@svgr/plugin-jsx@^4.1.0", "@svgr/plugin-jsx@^4.3.3":
+"@svgr/plugin-jsx@^4.3.3":
   version "4.3.3"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@svgr/plugin-jsx/-/plugin-jsx-4.3.3.tgz#e2ba913dbdfbe85252a34db101abc7ebd50992fa"
   integrity sha1-4rqRPb376FJSo02xAavH69UJkvo=
@@ -1297,7 +1305,7 @@
     "@svgr/hast-util-to-babel-ast" "^4.3.2"
     svg-parser "^2.0.0"
 
-"@svgr/plugin-svgo@^4.0.3":
+"@svgr/plugin-svgo@^4.3.1":
   version "4.3.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@svgr/plugin-svgo/-/plugin-svgo-4.3.1.tgz#daac0a3d872e3f55935c6588dd370336865e9e32"
   integrity sha1-2qwKPYcuP1WTXGWI3TcDNoZenjI=
@@ -1306,19 +1314,19 @@
     merge-deep "^3.0.2"
     svgo "^1.2.2"
 
-"@svgr/webpack@4.1.0":
-  version "4.1.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@svgr/webpack/-/webpack-4.1.0.tgz#20c88f32f731c7b1d4711045b2b993887d731c28"
-  integrity sha1-IMiPMvcxx7HUcRBFsrmTiH1zHCg=
+"@svgr/webpack@^4.3.3":
+  version "4.3.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@svgr/webpack/-/webpack-4.3.3.tgz#13cc2423bf3dff2d494f16b17eb7eacb86895017"
+  integrity sha1-E8wkI789/y1JTxaxfrfqy4aJUBc=
   dependencies:
-    "@babel/core" "^7.1.6"
+    "@babel/core" "^7.4.5"
     "@babel/plugin-transform-react-constant-elements" "^7.0.0"
-    "@babel/preset-env" "^7.1.6"
+    "@babel/preset-env" "^7.4.5"
     "@babel/preset-react" "^7.0.0"
-    "@svgr/core" "^4.1.0"
-    "@svgr/plugin-jsx" "^4.1.0"
-    "@svgr/plugin-svgo" "^4.0.3"
-    loader-utils "^1.1.0"
+    "@svgr/core" "^4.3.3"
+    "@svgr/plugin-jsx" "^4.3.3"
+    "@svgr/plugin-svgo" "^4.3.1"
+    loader-utils "^1.2.3"
 
 "@types/axios-mock-adapter@^1.10.0":
   version "1.10.0"
@@ -1368,9 +1376,9 @@
     "@babel/types" "^7.3.0"
 
 "@types/cheerio@*":
-  version "0.22.14"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/cheerio/-/cheerio-0.22.14.tgz#d150889891e7db892c6a0b16bd5583cc70b3fc44"
-  integrity sha1-0VCImJHn24ksagsWvVWDzHCz/EQ=
+  version "0.22.15"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/cheerio/-/cheerio-0.22.15.tgz#69040ffa92c309beeeeb7e92db66ac3f80700c0b"
+  integrity sha1-aQQP+pLDCb7u636S22asP4BwDAs=
   dependencies:
     "@types/node" "*"
 
@@ -1448,19 +1456,12 @@
     "@types/istanbul-lib-coverage" "*"
     "@types/istanbul-lib-report" "*"
 
-"@types/jest-diff@*":
-  version "24.3.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/jest-diff/-/jest-diff-24.3.0.tgz#29e237a3d954babfe6e23cc59b57ecd8ca8d858d"
-  integrity sha1-KeI3o9lUur/m4jzFm1fs2MqNhY0=
+"@types/jest@^24.0.23":
+  version "24.0.23"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/jest/-/jest-24.0.23.tgz#046f8e2ade026fe831623e361a36b6fb9a4463e4"
+  integrity sha1-BG+OKt4Cb+gxYj42Gja2+5pEY+Q=
   dependencies:
-    jest-diff "*"
-
-"@types/jest@24.0.11":
-  version "24.0.11"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/jest/-/jest-24.0.11.tgz#1f099bea332c228ea6505a88159bfa86a5858340"
-  integrity sha1-Hwmb6jMsIo6mUFqIFZv6hqWFg0A=
-  dependencies:
-    "@types/jest-diff" "*"
+    jest-diff "^24.3.0"
 
 "@types/minimatch@*":
   version "3.0.3"
@@ -1494,10 +1495,10 @@
   dependencies:
     ts-toolbelt "^4.10.7"
 
-"@types/react-dom@16.8.3":
-  version "16.8.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/react-dom/-/react-dom-16.8.3.tgz#6131b7b6158bc7ed1925a3374b88b7c00481f0cb"
-  integrity sha1-YTG3thWLx+0ZJaM3S4i3wASB8Ms=
+"@types/react-dom@^16.9.4":
+  version "16.9.4"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/react-dom/-/react-dom-16.9.4.tgz#0b58df09a60961dcb77f62d4f1832427513420df"
+  integrity sha1-C1jfCaYJYdy3f2LU8YMkJ1E0IN8=
   dependencies:
     "@types/react" "*"
 
@@ -1548,18 +1549,10 @@
   dependencies:
     "@types/react" "*"
 
-"@types/react@*":
-  version "16.9.13"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/react/-/react-16.9.13.tgz#b3ea5dd443f4a680599e2abba8cc66f5e1ce0059"
-  integrity sha1-s+pd1EP0poBZniq7qMxm9eHOAFk=
-  dependencies:
-    "@types/prop-types" "*"
-    csstype "^2.2.0"
-
-"@types/react@16.8.11":
-  version "16.8.11"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/react/-/react-16.8.11.tgz#2b13a7ab797b7ed1309e3cbf69994405d2391623"
-  integrity sha1-KxOnq3l7ftEwnjy/aZlEBdI5FiM=
+"@types/react@*", "@types/react@^16.9.15":
+  version "16.9.15"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/react/-/react-16.9.15.tgz#aeabb7a50f96c9e31a16079ada20ede9ed602977"
+  integrity sha1-rqu3pQ+WyeMaFgea2iDt6e1gKXc=
   dependencies:
     "@types/prop-types" "*"
     csstype "^2.2.0"
@@ -1933,9 +1926,9 @@ ansi-styles@^3.2.0, ansi-styles@^3.2.1:
     color-convert "^1.9.0"
 
 antd@^3.16.2:
-  version "3.25.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/antd/-/antd-3.25.3.tgz#284cbf83cf5ab6c26dffb6066576f202ea60af50"
-  integrity sha1-KEy/g89atsJt/7YGZXbyAupgr1A=
+  version "3.26.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/antd/-/antd-3.26.0.tgz#0a6a43fdd8577e61708932b7bc34ba0234d0f138"
+  integrity sha1-CmpD/dhXfmFwiTK3vDS6AjTQ8Tg=
   dependencies:
     "@ant-design/create-react-context" "^0.2.4"
     "@ant-design/icons" "~2.1.1"
@@ -1954,7 +1947,7 @@ antd@^3.16.2:
     prop-types "^15.7.2"
     raf "^3.4.1"
     rc-animate "^2.10.2"
-    rc-calendar "~9.15.5"
+    rc-calendar "~9.15.7"
     rc-cascader "~0.17.4"
     rc-checkbox "~2.1.6"
     rc-collapse "~1.11.3"
@@ -1967,7 +1960,7 @@ antd@^3.16.2:
     rc-mentions "~0.4.0"
     rc-menu "~7.5.1"
     rc-notification "~3.3.1"
-    rc-pagination "~1.20.5"
+    rc-pagination "~1.20.11"
     rc-progress "~2.5.0"
     rc-rate "~2.5.0"
     rc-resize-observer "^0.1.0"
@@ -2218,12 +2211,12 @@ atob@^2.1.1:
   integrity sha1-bZUX654DDSQ2ZmZR6GvZ9vE1M8k=
 
 autoprefixer@^9.6.1:
-  version "9.7.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/autoprefixer/-/autoprefixer-9.7.2.tgz#26cf729fbb709323b40171a874304884dcceffed"
-  integrity sha1-Js9yn7twkyO0AXGodDBIhNzO/+0=
+  version "9.7.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/autoprefixer/-/autoprefixer-9.7.3.tgz#fd42ed03f53de9beb4ca0d61fb4f7268a9bb50b4"
+  integrity sha1-/ULtA/U96b60yg1h+09yaKm7ULQ=
   dependencies:
-    browserslist "^4.7.3"
-    caniuse-lite "^1.0.30001010"
+    browserslist "^4.8.0"
+    caniuse-lite "^1.0.30001012"
     chalk "^2.4.2"
     normalize-range "^0.1.2"
     num2fraction "^1.2.2"
@@ -2256,11 +2249,12 @@ axios@*, axios@^0.19.0:
     is-buffer "^2.0.2"
 
 axobject-query@^2.0.2:
-  version "2.0.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/axobject-query/-/axobject-query-2.0.2.tgz#ea187abe5b9002b377f925d8bf7d1c561adf38f9"
-  integrity sha1-6hh6vluQArN3+SXYv30cVhrfOPk=
+  version "2.1.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/axobject-query/-/axobject-query-2.1.1.tgz#2a3b1271ec722d48a4cd4b3fcc20c853326a49a7"
+  integrity sha1-KjsScexyLUikzUs/zCDIUzJqSac=
   dependencies:
-    ast-types-flow "0.0.7"
+    "@babel/runtime" "^7.7.4"
+    "@babel/runtime-corejs3" "^7.7.4"
 
 babel-code-frame@^6.22.0, babel-code-frame@^6.26.0:
   version "6.26.0"
@@ -2340,6 +2334,16 @@ babel-loader@8.0.5:
     mkdirp "^0.5.1"
     util.promisify "^1.0.0"
 
+babel-loader@^8.0.6:
+  version "8.0.6"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/babel-loader/-/babel-loader-8.0.6.tgz#e33bdb6f362b03f4bb141a0c21ab87c501b70dfb"
+  integrity sha1-4zvbbzYrA/S7FBoMIauHxQG3Dfs=
+  dependencies:
+    find-cache-dir "^2.0.0"
+    loader-utils "^1.0.2"
+    mkdirp "^0.5.1"
+    pify "^4.0.1"
+
 babel-messages@^6.23.0:
   version "6.23.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/babel-messages/-/babel-messages-6.23.0.tgz#f3cdf4703858035b2a2951c6ec5edf6c62f2630e"
@@ -2402,9 +2406,9 @@ babel-plugin-macros@2.5.0:
     resolve "^1.8.1"
 
 babel-plugin-named-asset-import@^0.3.1:
-  version "0.3.4"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/babel-plugin-named-asset-import/-/babel-plugin-named-asset-import-0.3.4.tgz#4a8fc30e9a3e2b1f5ed36883386ab2d84e1089bd"
-  integrity sha1-So/DDpo+Kx9e02iDOGqy2E4Qib0=
+  version "0.3.5"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/babel-plugin-named-asset-import/-/babel-plugin-named-asset-import-0.3.5.tgz#d3fa1a7f1f4babd4ed0785b75e2f926df0d70d0d"
+  integrity sha1-0/oafx9Lq9TtB4W3Xi+SbfDXDQ0=
 
 babel-plugin-react-intl@^3.0.1:
   version "3.5.1"
@@ -2588,14 +2592,9 @@ block-stream@*:
     inherits "~2.0.0"
 
 bluebird@^3.5.1, bluebird@^3.5.5:
-  version "3.7.1"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/bluebird/-/bluebird-3.7.1.tgz#df70e302b471d7473489acf26a93d63b53f874de"
-  integrity sha1-33DjArRx10c0iazyapPWO1P4dN4=
-
-blueprint-css@^3.0.0-beta.0:
-  version "3.0.0-beta.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/blueprint-css/-/blueprint-css-3.0.0-beta.0.tgz#e5558337afacc1f1f8627252dc4a2e8ef9de63c7"
-  integrity sha1-5VWDN6+swfH4YnJS3EoujvneY8c=
+  version "3.7.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/bluebird/-/bluebird-3.7.2.tgz#9f229c15be272454ffa973ace0dbee79a1b0c36f"
+  integrity sha1-nyKcFb4nJFT/qXOs4NvueaGww28=
 
 bn.js@^4.0.0, bn.js@^4.1.0, bn.js@^4.1.1, bn.js@^4.4.0:
   version "4.11.8"
@@ -2753,14 +2752,14 @@ browserslist@4.7.0:
     electron-to-chromium "^1.3.247"
     node-releases "^1.1.29"
 
-browserslist@^4.0.0, browserslist@^4.3.4, browserslist@^4.6.0, browserslist@^4.6.4, browserslist@^4.7.3:
-  version "4.7.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/browserslist/-/browserslist-4.7.3.tgz#02341f162b6bcc1e1028e30624815d4924442dc3"
-  integrity sha1-AjQfFitrzB4QKOMGJIFdSSRELcM=
+browserslist@^4.0.0, browserslist@^4.3.4, browserslist@^4.6.0, browserslist@^4.6.4, browserslist@^4.8.0:
+  version "4.8.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/browserslist/-/browserslist-4.8.1.tgz#df0f50cc4b3255322fae60ae82a946baae69f8c6"
+  integrity sha1-3w9QzEsyVTIvrmCugqlGuq5p+MY=
   dependencies:
-    caniuse-lite "^1.0.30001010"
-    electron-to-chromium "^1.3.306"
-    node-releases "^1.1.40"
+    caniuse-lite "^1.0.30001015"
+    electron-to-chromium "^1.3.322"
+    node-releases "^1.1.42"
 
 bser@^2.0.0:
   version "2.1.1"
@@ -2938,10 +2937,10 @@ caniuse-api@^3.0.0:
     lodash.memoize "^4.1.2"
     lodash.uniq "^4.5.0"
 
-caniuse-lite@^1.0.0, caniuse-lite@^1.0.30000981, caniuse-lite@^1.0.30000989, caniuse-lite@^1.0.30001010:
-  version "1.0.30001012"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/caniuse-lite/-/caniuse-lite-1.0.30001012.tgz#653ec635e815b9e0fb801890923b0c2079eb34ec"
-  integrity sha1-ZT7GNegVueD7gBiQkjsMIHnrNOw=
+caniuse-lite@^1.0.0, caniuse-lite@^1.0.30000981, caniuse-lite@^1.0.30000989, caniuse-lite@^1.0.30001012, caniuse-lite@^1.0.30001015:
+  version "1.0.30001015"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/caniuse-lite/-/caniuse-lite-1.0.30001015.tgz#15a7ddf66aba786a71d99626bc8f2b91c6f0f5f0"
+  integrity sha1-Fafd9mq6eGpx2ZYmvI8rkcbw9fA=
 
 capture-exit@^2.0.0:
   version "2.0.0"
@@ -3376,17 +3375,17 @@ copy-to-clipboard@^3.2.0:
     toggle-selection "^1.0.6"
 
 core-js-compat@^3.1.1:
-  version "3.4.5"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/core-js-compat/-/core-js-compat-3.4.5.tgz#f072059c0b98ad490eacac082296cfe241af1b58"
-  integrity sha1-8HIFnAuYrUkOrKwIIpbP4kGvG1g=
+  version "3.4.7"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/core-js-compat/-/core-js-compat-3.4.7.tgz#39f8080b1d92a524d6d90505c42b9c5c1eb90611"
+  integrity sha1-OfgICx2SpSTW2QUFxCucXB65BhE=
   dependencies:
-    browserslist "^4.7.3"
+    browserslist "^4.8.0"
     semver "^6.3.0"
 
-core-js@3.2.1:
-  version "3.2.1"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/core-js/-/core-js-3.2.1.tgz#cd41f38534da6cc59f7db050fe67307de9868b09"
-  integrity sha1-zUHzhTTabMWffbBQ/mcwfemGiwk=
+core-js-pure@^3.0.0:
+  version "3.4.7"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/core-js-pure/-/core-js-pure-3.4.7.tgz#c998e1892da9949200c7452cbd33c0df95be9f54"
+  integrity sha1-yZjhiS2plJIAx0UsvTPA35W+n1Q=
 
 core-js@^1.0.0:
   version "1.2.7"
@@ -3397,6 +3396,11 @@ core-js@^2.4.0:
   version "2.6.10"
   resolved "https://artifactory.eccenca.com/api/npm/npm/core-js/-/core-js-2.6.10.tgz#8a5b8391f8cc7013da703411ce5b585706300d7f"
   integrity sha1-iluDkfjMcBPacDQRzltYVwYwDX8=
+
+core-js@^3.4.1:
+  version "3.4.7"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/core-js/-/core-js-3.4.7.tgz#57c35937da80fe494fbc3adcf9cf3dc00eb86b34"
+  integrity sha1-V8NZN9qA/klPvDrc+c89wA64azQ=
 
 core-util-is@1.0.2, core-util-is@~1.0.0:
   version "1.0.2"
@@ -4174,10 +4178,10 @@ ee-first@1.1.1:
   resolved "https://artifactory.eccenca.com/api/npm/npm/ee-first/-/ee-first-1.1.1.tgz#590c61156b0ae2f4f0255732a158b266bc56b21d"
   integrity sha1-WQxhFWsK4vTwJVcyoViyZrxWsh0=
 
-electron-to-chromium@^1.3.247, electron-to-chromium@^1.3.306:
-  version "1.3.314"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/electron-to-chromium/-/electron-to-chromium-1.3.314.tgz#c186a499ed2c9057bce9eb8dca294d6d5450facc"
-  integrity sha1-wYakme0skFe86euNyilNbVRQ+sw=
+electron-to-chromium@^1.3.247, electron-to-chromium@^1.3.322:
+  version "1.3.322"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/electron-to-chromium/-/electron-to-chromium-1.3.322.tgz#a6f7e1c79025c2b05838e8e344f6e89eb83213a8"
+  integrity sha1-pvfhx5AlwrBYOOjjRPbonrgyE6g=
 
 elliptic@^6.0.0:
   version "6.5.2"
@@ -4336,9 +4340,9 @@ error-ex@^1.2.0, error-ex@^1.3.1:
     is-arrayish "^0.2.1"
 
 es-abstract@^1.12.0, es-abstract@^1.13.0, es-abstract@^1.15.0, es-abstract@^1.5.1, es-abstract@^1.7.0:
-  version "1.16.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/es-abstract/-/es-abstract-1.16.2.tgz#4e874331645e9925edef141e74fc4bd144669d34"
-  integrity sha1-TodDMWRemSXt7xQedPxL0URmnTQ=
+  version "1.16.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/es-abstract/-/es-abstract-1.16.3.tgz#52490d978f96ff9f89ec15b5cf244304a5bca161"
+  integrity sha1-UkkNl4+W/5+J7BW1zyRDBKW8oWE=
   dependencies:
     es-to-primitive "^1.2.1"
     function-bind "^1.1.1"
@@ -4388,9 +4392,9 @@ escodegen@^1.9.1:
     source-map "~0.6.1"
 
 eslint-config-react-app@^5.0.2:
-  version "5.0.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/eslint-config-react-app/-/eslint-config-react-app-5.0.2.tgz#df40d73a1402986030680c040bbee520db5a32a4"
-  integrity sha1-30DXOhQCmGAwaAwEC77lINtaMqQ=
+  version "5.1.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/eslint-config-react-app/-/eslint-config-react-app-5.1.0.tgz#a37b3f2d4f56f856f93277281ef52bd791273e63"
+  integrity sha1-o3s/LU9W+Fb5MncoHvUr15EnPmM=
   dependencies:
     confusing-browser-globals "^1.0.9"
 
@@ -4420,6 +4424,11 @@ eslint-module-utils@^2.4.0:
   dependencies:
     debug "^2.6.8"
     pkg-dir "^2.0.0"
+
+eslint-plugin-eslint-plugin@^2.1.0:
+  version "2.1.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/eslint-plugin-eslint-plugin/-/eslint-plugin-eslint-plugin-2.1.0.tgz#a7a00f15a886957d855feacaafee264f039e62d5"
+  integrity sha1-p6APFaiGlX2FX+rKr+4mTwOeYtU=
 
 eslint-plugin-flowtype@^4.3.0:
   version "4.5.2"
@@ -4461,19 +4470,20 @@ eslint-plugin-jsx-a11y@^6.2.3:
     jsx-ast-utils "^2.2.1"
 
 eslint-plugin-react@^7.16.0:
-  version "7.16.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/eslint-plugin-react/-/eslint-plugin-react-7.16.0.tgz#9928e4f3e2122ed3ba6a5b56d0303ba3e41d8c09"
-  integrity sha1-mSjk8+ISLtO6altW0DA7o+QdjAk=
+  version "7.17.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/eslint-plugin-react/-/eslint-plugin-react-7.17.0.tgz#a31b3e134b76046abe3cd278e7482bd35a1d12d7"
+  integrity sha1-oxs+E0t2BGq+PNJ450gr01odEtc=
   dependencies:
     array-includes "^3.0.3"
     doctrine "^2.1.0"
+    eslint-plugin-eslint-plugin "^2.1.0"
     has "^1.0.3"
-    jsx-ast-utils "^2.2.1"
+    jsx-ast-utils "^2.2.3"
     object.entries "^1.1.0"
-    object.fromentries "^2.0.0"
+    object.fromentries "^2.0.1"
     object.values "^1.1.0"
     prop-types "^15.7.2"
-    resolve "^1.12.0"
+    resolve "^1.13.1"
 
 eslint-scope@3.7.1:
   version "3.7.1"
@@ -4512,9 +4522,9 @@ eslint-visitor-keys@^1.0.0, eslint-visitor-keys@^1.1.0:
   integrity sha1-4qgs6oT/JGrW+1f5veW0ZiFFnsI=
 
 eslint@^6.6.0:
-  version "6.7.1"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/eslint/-/eslint-6.7.1.tgz#269ccccec3ef60ab32358a44d147ac209154b919"
-  integrity sha1-JpzMzsPvYKsyNYpE0UesIJFUuRk=
+  version "6.7.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/eslint/-/eslint-6.7.2.tgz#c17707ca4ad7b2d8af986a33feba71e18a9fecd1"
+  integrity sha1-wXcHykrXstivmGoz/rpx4Yqf7NE=
   dependencies:
     "@babel/code-frame" "^7.0.0"
     ajv "^6.10.0"
@@ -6570,7 +6580,7 @@ jest-config@^24.9.0:
     pretty-format "^24.9.0"
     realpath-native "^1.1.0"
 
-jest-diff@*, jest-diff@^24.9.0:
+jest-diff@^24.3.0, jest-diff@^24.9.0:
   version "24.9.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/jest-diff/-/jest-diff-24.9.0.tgz#931b7d0d5778a1baf7452cb816e325e3724055da"
   integrity sha1-kxt9DVd4obr3RSy4FuMl43JAVdo=
@@ -7053,7 +7063,7 @@ jsprim@^1.2.2:
     json-schema "0.2.3"
     verror "1.10.0"
 
-jsx-ast-utils@^2.2.1:
+jsx-ast-utils@^2.2.1, jsx-ast-utils@^2.2.3:
   version "2.2.3"
   resolved "https://artifactory.eccenca.com/api/npm/npm/jsx-ast-utils/-/jsx-ast-utils-2.2.3.tgz#8a9364e402448a3ce7f14d357738310d9248054f"
   integrity sha1-ipNk5AJEijzn8U01dzgxDZJIBU8=
@@ -7950,10 +7960,10 @@ node-pre-gyp@^0.12.0:
     semver "^5.3.0"
     tar "^4"
 
-node-releases@^1.1.29, node-releases@^1.1.40:
-  version "1.1.41"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/node-releases/-/node-releases-1.1.41.tgz#57674a82a37f812d18e3b26118aefaf53a00afed"
-  integrity sha1-V2dKgqN/gS0Y47JhGK769ToAr+0=
+node-releases@^1.1.29, node-releases@^1.1.42:
+  version "1.1.42"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/node-releases/-/node-releases-1.1.42.tgz#a999f6a62f8746981f6da90627a8d2fc090bbad7"
+  integrity sha1-qZn2pi+HRpgfbakGJ6jS/AkLutc=
   dependencies:
     semver "^6.3.0"
 
@@ -8099,7 +8109,7 @@ oauth-sign@~0.9.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/oauth-sign/-/oauth-sign-0.9.0.tgz#47a7b016baa68b5fa0ecf3dee08a85c679ac6455"
   integrity sha1-R6ewFrqmi1+g7PPe4IqFxnmsZFU=
 
-object-assign@4.1.1, object-assign@4.x, object-assign@^4.0.1, object-assign@^4.1.0, object-assign@^4.1.1:
+object-assign@4.x, object-assign@^4.0.1, object-assign@^4.1.0, object-assign@^4.1.1:
   version "4.1.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/object-assign/-/object-assign-4.1.1.tgz#2109adc7965887cfc05cbbd442cac8bfbb360863"
   integrity sha1-IQmtx5ZYh8/AXLvUQsrIv7s2CGM=
@@ -8160,7 +8170,7 @@ object.entries@^1.0.4, object.entries@^1.1.0:
     function-bind "^1.1.1"
     has "^1.0.3"
 
-object.fromentries@^2.0.0, object.fromentries@^2.0.1:
+object.fromentries@^2.0.1:
   version "2.0.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/object.fromentries/-/object.fromentries-2.0.1.tgz#050f077855c7af8ae6649f45c80b16ee2d31e704"
   integrity sha1-BQ8HeFXHr4rmZJ9FyAsW7i0x5wQ=
@@ -9418,19 +9428,19 @@ promise-polyfill@^8.1.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/promise-polyfill/-/promise-polyfill-8.1.3.tgz#8c99b3cf53f3a91c68226ffde7bde81d7f904116"
   integrity sha1-jJmzz1PzqRxoIm/9573oHX+QQRY=
 
-promise@8.0.3:
-  version "8.0.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/promise/-/promise-8.0.3.tgz#f592e099c6cddc000d538ee7283bb190452b0bf6"
-  integrity sha1-9ZLgmcbN3AANU47nKDuxkEUrC/Y=
-  dependencies:
-    asap "~2.0.6"
-
 promise@^7.1.1:
   version "7.3.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/promise/-/promise-7.3.1.tgz#064b72602b18f90f29192b8b1bc418ffd1ebd3bf"
   integrity sha1-BktyYCsY+Q8pGSuLG8QY/9Hr078=
   dependencies:
     asap "~2.0.3"
+
+promise@^8.0.3:
+  version "8.0.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/promise/-/promise-8.0.3.tgz#f592e099c6cddc000d538ee7283bb190452b0bf6"
+  integrity sha1-9ZLgmcbN3AANU47nKDuxkEUrC/Y=
+  dependencies:
+    asap "~2.0.6"
 
 prompts@^2.0.1:
   version "2.3.0"
@@ -9477,9 +9487,9 @@ pseudomap@^1.0.2:
   integrity sha1-8FKijacOYYkX7wqKw0wa5aaChrM=
 
 psl@^1.1.24, psl@^1.1.28:
-  version "1.4.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/psl/-/psl-1.4.0.tgz#5dd26156cdb69fa1fdb8ab1991667d3f80ced7c2"
-  integrity sha1-XdJhVs22n6H9uKsZkWZ9P4DO18I=
+  version "1.5.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/psl/-/psl-1.5.0.tgz#47fd1292def7fdb1e138cd78afa8814cebcf7b13"
+  integrity sha1-R/0Skt73/bHhOM14r6iBTOvPexM=
 
 public-encrypt@^4.0.0:
   version "4.0.3"
@@ -9585,7 +9595,7 @@ querystringify@^2.1.1:
   resolved "https://artifactory.eccenca.com/api/npm/npm/querystringify/-/querystringify-2.1.1.tgz#60e5a5fd64a7f8bfa4d2ab2ed6fdf4c85bad154e"
   integrity sha1-YOWl/WSn+L+k0qsu1v30yFutFU4=
 
-raf@3.4.1, raf@^3.4.0, raf@^3.4.1:
+raf@^3.4.0, raf@^3.4.1:
   version "3.4.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/raf/-/raf-3.4.1.tgz#0742e99a4a6552f445d73e3ee0328af0ff1ede39"
   integrity sha1-B0LpmkplUvRF1z4+4DKK8P8e3jk=
@@ -9686,7 +9696,7 @@ rc-animate@^3.0.0-rc.1:
     rc-util "^4.5.0"
     react-lifecycles-compat "^3.0.4"
 
-rc-calendar@~9.15.5:
+rc-calendar@~9.15.7:
   version "9.15.8"
   resolved "https://artifactory.eccenca.com/api/npm/npm/rc-calendar/-/rc-calendar-9.15.8.tgz#6a3dbc2716c5297b46c8442dc2c748a17346111d"
   integrity sha1-aj28JxbFKXtGyEQtwsdIoXNGER0=
@@ -9736,9 +9746,9 @@ rc-collapse@~1.11.3:
     shallowequal "^1.1.0"
 
 rc-dialog@~7.5.2:
-  version "7.5.13"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/rc-dialog/-/rc-dialog-7.5.13.tgz#ad3bdc668381e77977b6c4689a2b9e2687961a70"
-  integrity sha1-rTvcZoOB53l3tsRomiueJoeWGnA=
+  version "7.5.14"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/rc-dialog/-/rc-dialog-7.5.14.tgz#3e85ed8a6f3ae17cf5082b590b9c366f70ebf5dc"
+  integrity sha1-PoXtim864Xz1CCtZC5w2b3Dr9dw=
   dependencies:
     babel-runtime "6.x"
     rc-animate "2.x"
@@ -9864,7 +9874,7 @@ rc-notification@~3.3.1:
     rc-animate "2.x"
     rc-util "^4.0.4"
 
-rc-pagination@~1.20.5:
+rc-pagination@~1.20.11:
   version "1.20.11"
   resolved "https://artifactory.eccenca.com/api/npm/npm/rc-pagination/-/rc-pagination-1.20.11.tgz#ff8ccbf422e229b0e36039bd33b5c9b619d74ad2"
   integrity sha1-/4zL9CLiKbDjYDm9M7XJthnXStI=
@@ -10005,34 +10015,21 @@ rc-tooltip@^3.7.0, rc-tooltip@~3.7.3:
     rc-trigger "^2.2.2"
 
 rc-tree-select@~2.9.1:
-  version "2.9.1"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/rc-tree-select/-/rc-tree-select-2.9.1.tgz#d076b8ce5bf432df3fdd8a6a01cdd9c93c8e7399"
-  integrity sha1-0Ha4zlv0Mt8/3YpqAc3ZyTyOc5k=
+  version "2.9.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/rc-tree-select/-/rc-tree-select-2.9.3.tgz#6b6bcec864d085ebda50a9fbe26870560a56ca35"
+  integrity sha1-a2vOyGTQhevaUKn74mhwVgpWyjU=
   dependencies:
     classnames "^2.2.1"
     dom-scroll-into-view "^1.2.1"
     prop-types "^15.5.8"
     raf "^3.4.0"
     rc-animate "^2.8.2"
-    rc-tree "~2.0.0"
-    rc-trigger "^3.0.0-rc.2"
+    rc-tree "~2.1.0"
+    rc-trigger "^3.0.0"
     rc-util "^4.5.0"
     react-lifecycles-compat "^3.0.4"
     shallowequal "^1.0.2"
     warning "^4.0.1"
-
-rc-tree@~2.0.0:
-  version "2.0.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/rc-tree/-/rc-tree-2.0.0.tgz#68fc4c9ab696943b279a143619e2ecf05918fb53"
-  integrity sha1-aPxMmraWlDsnmhQ2GeLs8FkY+1M=
-  dependencies:
-    babel-runtime "^6.23.0"
-    classnames "2.x"
-    prop-types "^15.5.8"
-    rc-animate "^2.6.0"
-    rc-util "^4.5.1"
-    react-lifecycles-compat "^3.0.4"
-    warning "^3.0.0"
 
 rc-tree@~2.1.0:
   version "2.1.3"
@@ -10060,10 +10057,10 @@ rc-trigger@^2.2.0, rc-trigger@^2.2.2, rc-trigger@^2.3.0, rc-trigger@^2.5.1, rc-t
     rc-util "^4.4.0"
     react-lifecycles-compat "^3.0.4"
 
-rc-trigger@^3.0.0-rc.2:
-  version "3.0.0-rc.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/rc-trigger/-/rc-trigger-3.0.0-rc.3.tgz#35842df1674d25315e1426a44882a4c97652258b"
-  integrity sha1-NYQt8WdNJTFeFCakSIKkyXZSJYs=
+rc-trigger@^3.0.0:
+  version "3.0.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/rc-trigger/-/rc-trigger-3.0.0.tgz#f6d9b1da8a26b2b2d1d912a06876c1a486f5980f"
+  integrity sha1-9tmx2oomsrLR2RKgaHbBpIb1mA8=
   dependencies:
     babel-runtime "6.x"
     classnames "^2.2.6"
@@ -10071,7 +10068,7 @@ rc-trigger@^3.0.0-rc.2:
     raf "^3.4.0"
     rc-align "^2.4.1"
     rc-animate "^3.0.0-rc.1"
-    rc-util "^4.4.0"
+    rc-util "^4.15.7"
 
 rc-upload@~2.9.1:
   version "2.9.3"
@@ -10083,7 +10080,7 @@ rc-upload@~2.9.1:
     prop-types "^15.5.7"
     warning "4.x"
 
-rc-util@^4.0.4, rc-util@^4.1.1, rc-util@^4.10.0, rc-util@^4.11.2, rc-util@^4.13.0, rc-util@^4.15.3, rc-util@^4.3.0, rc-util@^4.4.0, rc-util@^4.5.0, rc-util@^4.5.1, rc-util@^4.6.0, rc-util@^4.8.1:
+rc-util@^4.0.4, rc-util@^4.1.1, rc-util@^4.10.0, rc-util@^4.11.2, rc-util@^4.13.0, rc-util@^4.15.3, rc-util@^4.15.7, rc-util@^4.3.0, rc-util@^4.4.0, rc-util@^4.5.0, rc-util@^4.5.1, rc-util@^4.6.0, rc-util@^4.8.1:
   version "4.15.7"
   resolved "https://artifactory.eccenca.com/api/npm/npm/rc-util/-/rc-util-4.15.7.tgz#8380b05765952d08dd9fdb836e19dda437cceab7"
   integrity sha1-g4CwV2WVLQjdn9uDbhndpDfM6rc=
@@ -10105,16 +10102,16 @@ rc@^1.2.7:
     strip-json-comments "~2.0.1"
 
 react-app-polyfill@^1.0.4:
-  version "1.0.4"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/react-app-polyfill/-/react-app-polyfill-1.0.4.tgz#4dd2636846b585c2d842b1e44e1bc29044345874"
-  integrity sha1-TdJjaEa1hcLYQrHkThvCkEQ0WHQ=
+  version "1.0.5"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/react-app-polyfill/-/react-app-polyfill-1.0.5.tgz#59c7377a0b9ed25692eeaca7ad9b12ef2d064709"
+  integrity sha1-Wcc3egue0laS7qynrZsS7y0GRwk=
   dependencies:
-    core-js "3.2.1"
-    object-assign "4.1.1"
-    promise "8.0.3"
-    raf "3.4.1"
-    regenerator-runtime "0.13.3"
-    whatwg-fetch "3.0.0"
+    core-js "^3.4.1"
+    object-assign "^4.1.1"
+    promise "^8.0.3"
+    raf "^3.4.1"
+    regenerator-runtime "^0.13.3"
+    whatwg-fetch "^3.0.0"
 
 react-dev-utils@^9.1.0:
   version "9.1.0"
@@ -10158,9 +10155,9 @@ react-dom@^16.8.6:
     scheduler "^0.18.0"
 
 react-error-overlay@^6.0.3:
-  version "6.0.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/react-error-overlay/-/react-error-overlay-6.0.3.tgz#c378c4b0a21e88b2e159a3e62b2f531fd63bf60d"
-  integrity sha1-w3jEsKIeiLLhWaPmKy9TH9Y79g0=
+  version "6.0.4"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/react-error-overlay/-/react-error-overlay-6.0.4.tgz#0d165d6d27488e660bc08e57bdabaad741366f7a"
+  integrity sha1-DRZdbSdIjmYLwI5Xvauq10E2b3o=
 
 react-intl-translations-manager@^5.0.3:
   version "5.0.3"
@@ -10457,11 +10454,6 @@ regenerate@^1.2.1, regenerate@^1.4.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/regenerate/-/regenerate-1.4.0.tgz#4a856ec4b56e4077c557589cae85e7a4c8869a11"
   integrity sha1-SoVuxLVuQHfFV1icroXnpMiGmhE=
 
-regenerator-runtime@0.13.3, regenerator-runtime@^0.13.2:
-  version "0.13.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/regenerator-runtime/-/regenerator-runtime-0.13.3.tgz#7cf6a77d8f5c6f60eb73c5fc1955b2ceb01e6bf5"
-  integrity sha1-fPanfY9cb2Drc8X8GVWyzrAea/U=
-
 regenerator-runtime@^0.11.0:
   version "0.11.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/regenerator-runtime/-/regenerator-runtime-0.11.1.tgz#be05ad7f9bf7d22e056f9726cee5017fbf19e2e9"
@@ -10471,6 +10463,11 @@ regenerator-runtime@^0.12.0:
   version "0.12.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/regenerator-runtime/-/regenerator-runtime-0.12.1.tgz#fa1a71544764c036f8c49b13a08b2594c9f8a0de"
   integrity sha1-+hpxVEdkwDb4xJsToIsllMn4oN4=
+
+regenerator-runtime@^0.13.2, regenerator-runtime@^0.13.3:
+  version "0.13.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/regenerator-runtime/-/regenerator-runtime-0.13.3.tgz#7cf6a77d8f5c6f60eb73c5fc1955b2ceb01e6bf5"
+  integrity sha1-fPanfY9cb2Drc8X8GVWyzrAea/U=
 
 regenerator-transform@^0.14.0:
   version "0.14.1"
@@ -10701,7 +10698,7 @@ resolve@1.1.7:
   resolved "https://artifactory.eccenca.com/api/npm/npm/resolve/-/resolve-1.1.7.tgz#203114d82ad2c5ed9e8e0411b3932875e889e97b"
   integrity sha1-IDEU2CrSxe2ejgQRs5ModeiJ6Xs=
 
-resolve@^1.10.0, resolve@^1.11.0, resolve@^1.12.0, resolve@^1.3.2, resolve@^1.5.0, resolve@^1.8.1:
+resolve@^1.10.0, resolve@^1.11.0, resolve@^1.12.0, resolve@^1.13.1, resolve@^1.3.2, resolve@^1.5.0, resolve@^1.8.1:
   version "1.13.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/resolve/-/resolve-1.13.1.tgz#be0aa4c06acd53083505abb35f4d66932ab35d16"
   integrity sha1-vgqkwGrNUwg1BauzX01mkyqzXRY=
@@ -10961,9 +10958,9 @@ serialize-javascript@^1.7.0:
   integrity sha1-z8IArvd7YAxH2pu4FJyUPnmML9s=
 
 serialize-javascript@^2.1.0:
-  version "2.1.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/serialize-javascript/-/serialize-javascript-2.1.0.tgz#9310276819efd0eb128258bb341957f6eb2fc570"
-  integrity sha1-kxAnaBnv0OsSgli7NBlX9usvxXA=
+  version "2.1.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/serialize-javascript/-/serialize-javascript-2.1.1.tgz#952907a04a3e3a75af7f73d92d15e233862048b2"
+  integrity sha1-lSkHoEo+OnWvf3PZLRXiM4YgSLI=
 
 serve-index@^1.9.1:
   version "1.9.1"
@@ -11713,9 +11710,9 @@ terser-webpack-plugin@^2.2.1:
     webpack-sources "^1.4.3"
 
 terser@^4.1.2, terser@^4.3.9:
-  version "4.4.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/terser/-/terser-4.4.0.tgz#22c46b4817cf4c9565434bfe6ad47336af259ac3"
-  integrity sha1-IsRrSBfPTJVlQ0v+atRzNq8lmsM=
+  version "4.4.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/terser/-/terser-4.4.2.tgz#448fffad0245f4c8a277ce89788b458bfd7706e8"
+  integrity sha1-RI//rQJF9Miid86JeItFi/13Bug=
   dependencies:
     commander "^2.20.0"
     source-map "~0.6.1"
@@ -11910,9 +11907,9 @@ ts-pnp@^1.1.2:
   integrity sha1-hA4HOcifzl86vZA3uwkdv/Ftnew=
 
 ts-toolbelt@^4.10.7:
-  version "4.10.21"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/ts-toolbelt/-/ts-toolbelt-4.10.21.tgz#b88797c82161c9d019c1f3cf940b56540766eb6e"
-  integrity sha1-uIeXyCFhydAZwfPPlAtWVAdm624=
+  version "4.12.13"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/ts-toolbelt/-/ts-toolbelt-4.12.13.tgz#a2fb92f16ef6e5828c16a8f403e1eaf87703160b"
+  integrity sha1-ovuS8W725YKMFqj0A+Hq+HcDFgs=
 
 tslib@^1.9.0:
   version "1.10.0"
@@ -11972,9 +11969,9 @@ typedarray@^0.0.6:
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
 typescript@^3.7.2:
-  version "3.7.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/typescript/-/typescript-3.7.2.tgz#27e489b95fa5909445e9fef5ee48d81697ad18fb"
-  integrity sha1-J+SJuV+lkJRF6f717kjYFpetGPs=
+  version "3.7.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/typescript/-/typescript-3.7.3.tgz#b36840668a16458a7025b9eabfad11b66ab85c69"
+  integrity sha1-s2hAZooWRYpwJbnqv60Rtmq4XGk=
 
 ua-parser-js@^0.7.18:
   version "0.7.20"
@@ -11990,9 +11987,9 @@ uglify-js@3.4.x:
     source-map "~0.6.1"
 
 uglify-js@^3.1.4:
-  version "3.7.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/uglify-js/-/uglify-js-3.7.0.tgz#14b854003386b7a7c045910f43afbc96d2aa5307"
-  integrity sha1-FLhUADOGt6fARZEPQ6+8ltKqUwc=
+  version "3.7.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/uglify-js/-/uglify-js-3.7.1.tgz#35c7de17971a4aa7689cd2eae0a5b39bb838c0c5"
+  integrity sha1-NcfeF5caSqdonNLq4KWzm7g4wMU=
   dependencies:
     commander "~2.20.3"
     source-map "~0.6.1"
@@ -12239,13 +12236,6 @@ warning@4.x, warning@^4.0.1, warning@^4.0.2, warning@^4.0.3, warning@~4.0.3:
   dependencies:
     loose-envify "^1.0.0"
 
-warning@^3.0.0:
-  version "3.0.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/warning/-/warning-3.0.0.tgz#32e5377cb572de4ab04753bdf8821c01ed605b7c"
-  integrity sha1-MuU3fLVy3kqwR1O9+IIcAe1gW3w=
-  dependencies:
-    loose-envify "^1.0.0"
-
 watchpack@^1.6.0:
   version "1.6.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/watchpack/-/watchpack-1.6.0.tgz#4bc12c2ebe8aa277a71f1d3f14d685c7b446cd00"
@@ -12410,7 +12400,7 @@ whatwg-encoding@^1.0.1, whatwg-encoding@^1.0.3:
   dependencies:
     iconv-lite "0.4.24"
 
-whatwg-fetch@3.0.0, whatwg-fetch@>=0.10.0, whatwg-fetch@^3.0.0:
+whatwg-fetch@>=0.10.0, whatwg-fetch@^3.0.0:
   version "3.0.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/whatwg-fetch/-/whatwg-fetch-3.0.0.tgz#fc804e458cc460009b1a2b966bc8817d2578aefb"
   integrity sha1-/IBORYzEYACbGiuWa8iBfSV4rvs=

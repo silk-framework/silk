@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import Pagination from "./Pagination";
-import { HTMLTable, Icon, Menu, MenuItem } from "@blueprintjs/core";
+import { HTMLTable, Icon } from "@blueprintjs/core";
 import SearchInput from "../../layout/header/SearchInput";
-import { IPaginationState } from "../../../state/dto";
+import { IPaginationState } from "../../../state/typings";
 import SortButton from "./SortButton";
-import { ISorterListItemState } from "../../../state/ducks/dashboard/filters/dtos";
+import { ISorterListItemState } from "../../../state/ducks/dashboard/typings";
+import { ISearchResultsTask } from "../../../state/ducks/dashboard/typings/IDashboardPreview";
 
 interface IProps {
     data: any[];
@@ -13,15 +14,17 @@ interface IProps {
     sortersList?: ISorterListItemState[];
 
     onSearch(value: string): void
+
     onSort?(value: string): void
+
     onPageChange(value: number): void
+
+    onClone(task: ISearchResultsTask): void
 }
 
-export default function Datalist({data, pagination, searchValue, sortersList, onSearch, onPageChange, onSort}: IProps) {
+export default function Datalist({data, pagination, searchValue, sortersList, onSearch, onPageChange, onSort, onClone}: IProps) {
     const [searchInput, setSearchInput] = useState();
-    const handleClone = (id: string) => {
 
-    };
     const handleRemove = (id: string) => {
 
     };
@@ -38,14 +41,14 @@ export default function Datalist({data, pagination, searchValue, sortersList, on
 
     return (
         <>
-            <div style={{width:'80%', float:'left', paddingRight: '10px'}}>
+            <div style={{width: '80%', float: 'left', paddingRight: '10px'}}>
                 <SearchInput
                     onFilterChange={handleSearchChange}
                     onBlur={handleSearchBlur}
                 />
             </div>
-            <div style={{width:'15%', float:'left'}}>
-                <SortButton sortersList={sortersList} onSort={onSort} />
+            <div style={{width: '15%', float: 'left'}}>
+                <SortButton sortersList={sortersList} onSort={onSort}/>
             </div>
             {
                 !data.length
@@ -53,7 +56,7 @@ export default function Datalist({data, pagination, searchValue, sortersList, on
                     : <HTMLTable bordered={true} interactive={true} striped={true}>
                         <thead>
                         <tr>
-                            <th colSpan={3}>Results</th>
+                            <th colSpan={2}>Results</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -61,14 +64,12 @@ export default function Datalist({data, pagination, searchValue, sortersList, on
                             data.map(item =>
                                 <tr key={item.id}>
                                     <td>
-                                        <p>{item.label || item.id}</p>
+                                        <p>{item.id}</p>
                                         <p>{item.description}</p>
                                     </td>
                                     <td>
-                                        <a onClick={() => handleClone(item.id)}>Clone</a>
-                                    </td>
-                                    <td>
-                                        <a onClick={() => handleRemove(item.id)}>Remove</a>
+                                        <a onClick={() => onClone(item)}>Clone</a>
+                                         <a onClick={() => handleRemove(item.id)}>Remove</a>
                                     </td>
                                 </tr>
                             )

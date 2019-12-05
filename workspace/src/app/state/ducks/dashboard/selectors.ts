@@ -1,7 +1,7 @@
 import { createSelector } from "@reduxjs/toolkit";
-import { IFiltersState } from "./filters/dtos";
-import { IPreviewState } from "./preview/dtos";
-import { IStore } from "../../store.dto";
+import { IFiltersState } from "./typings";
+import { IPreviewState } from "./typings/IDashboardPreview";
+import { IStore } from "../../typings/IStore";
 
 const filtersSelector = (state: IStore): IFiltersState => state.dashboard.filters;
 const previewSelector = (state: IStore): IPreviewState => state.dashboard.preview;
@@ -42,5 +42,5 @@ export default {
     sortersSelector,
     paginationSelector,
     modifiersSelector,
-    facetsSelector
+    facetsSelector,
 }
