@@ -38,7 +38,7 @@ export const filtersSlice = createSlice({
         applySorter(state, action) {
             const currentSort = state.sorters.applied;
             const sortBy = action.payload;
-            const sortOrder = sortBy && currentSort === sortBy ? 'DESC' : 'ASC';
+            const sortOrder = sortBy && currentSort.sortBy === sortBy ? 'DESC' : 'ASC';
 
             state.sorters.applied = {
                 sortBy,
