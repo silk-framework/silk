@@ -252,21 +252,25 @@ object SearchApiModel {
       results map { result =>
         val project = jsonPropertyStringValue(result, PROJECT_ID)
         val itemId = jsonPropertyStringValue(result, ID)
-        val links: Seq[ItemLink] = itemTypeReads.reads(result.value(TYPE)).get match {
-          case ItemType.Transform => Seq(
-            ItemLink("Mapping editor", s"/transform/$project/$itemId/editor"),
-            ItemLink("Transform evaluation", s"/transform/$project/$itemId/evaluate"),
-            ItemLink("Transform execution", s"/transform/$project/$itemId/execute")
-          )
-          case ItemType.Linking => Seq(
-            ItemLink("Linking editor", s"/linking/$project/$itemId/editor"),
-            ItemLink("Linking evaluation", s"/linking/$project/$itemId/evaluate"),
-            ItemLink("Linking execution", s"/linking/$project/$itemId/execute")
-          )
-          case ItemType.Workflow => Seq(
-            ItemLink("Workflow editor", s"/workflow/editor/$project/$itemId")
-          )
-          case _ => Seq.empty
+        val links: Seq[ItemLink] = itemTypeReads.reads(result.value(TYPE)).asOpt match {
+          case Some(itemType) =>
+            itemType match {
+              case ItemType.Transform => Seq(
+                ItemLink("Mapping editor", s"/transform/$project/$itemId/editor"),
+                ItemLink("Transform evaluation", s"/transform/$project/$itemId/evaluate"),
+                ItemLink("Transform execution", s"/transform/$project/$itemId/execute")
+              )
+              case ItemType.Linking => Seq(
+                ItemLink("Linking editor", s"/linking/$project/$itemId/editor"),
+                ItemLink("Linking evaluation", s"/linking/$project/$itemId/evaluate"),
+                ItemLink("Linking execution", s"/linking/$project/$itemId/execute")
+              )
+              case ItemType.Workflow => Seq(
+                ItemLink("Workflow editor", s"/workflow/editor/$project/$itemId")
+              )
+              case _ => Seq.empty
+            }
+          case None => Seq.empty
         }
         result + ("itemLinks" -> JsArray(links.map(ItemLink.itemLinkWrites.writes)))
       }
