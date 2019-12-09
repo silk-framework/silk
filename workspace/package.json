@@ -74,6 +74,7 @@
   },
   "scripts": {
     "start": "node scripts/start.js",
+    "watch-di-dev": "node scripts/build-di.dev.js --watch",
     "build-di-dev": "node scripts/build-di.dev.js",
     "build-di-prod": "node scripts/build-di.prod.js",
     "build": "node scripts/build.js",

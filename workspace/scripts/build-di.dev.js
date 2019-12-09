@@ -35,7 +35,7 @@ if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
 // Process CLI arguments
 const argv = process.argv.slice(2);
 const writeStatsJson = argv.indexOf('--stats') !== -1;
-
+const isWatch = argv.indexOf('--watch') !== -1;
 // Generate configuration
 const config = configFactory('development');
 
@@ -51,7 +51,7 @@ checkBrowsers(paths.appPath, isInteractive)
             // Merge with the public folder
             copyPublicFolder();
             // Start the webpack build
-            watch();
+            run();
         }
     )
     .catch(err => {
@@ -67,72 +67,74 @@ function exitOnError(err) {
     // process.exit(1);
 }
 
+function runCallback(err, stats) {
+    let messages;
+    if (err) {
+        if (!err.message) {
+            return exitOnError(err)
+        }
+        messages = formatWebpackMessages({
+            errors: [err.message],
+            warnings: [],
+        });
+    } else {
+        messages = formatWebpackMessages(
+            stats.toJson({
+                all: false,
+                warnings: true,
+                errors: true,
+            })
+        );
+    }
+    if (messages.errors.length) {
+        // Only keep the first error. Others are often indicative
+        // of the same problem, but confuse the reader with noise.
+        if (messages.errors.length > 1) {
+            messages.errors.length = 1;
+        }
+        return exitOnError(new Error(messages.errors.join('\n\n')));
+    }
+    
+    if (messages.warnings.length) {
+        console.log(chalk.yellow('Compiled with warnings.\n'));
+        console.log(messages.warnings.join('\n\n'));
+        console.log(
+            '\nSearch for the ' +
+            chalk.underline(chalk.yellow('keywords')) +
+            ' to learn more about each warning.'
+        );
+        console.log(
+            'To ignore, add ' +
+            chalk.cyan('// eslint-disable-next-line') +
+            ' to the line before.\n'
+        );
+    } else {
+        fs.emptyDirSync(paths.appDIAssets + '/assets');
+        // Copy assets into assets public folder
+        copyAssetsToPublicFolder();
+        console.log(chalk.green('Compiled successfully.\n'));
+    }
+    
+    if (writeStatsJson) {
+        return bfj
+            .write(paths.appDIBuild + '/bundle-stats.json', stats.toJson())
+    }
+    
+    console.log('listening to new changes...');
+}
+
 // Create the production build and print the deployment instructions.
-function watch() {
+function run() {
     const compiler = webpack(config);
-    compiler.hooks.watchRun.tap('a', () => {
-        // fs.emptyDirSync(paths.appDIAssets + '/assets');
-    });
-    compiler.watch({
-        aggregateTimeout: 300,
-        watchOptions: {
-            ignored: /node_modules/
-        }
-    }, (err, stats) => {
-        let messages;
-        if (err) {
-            if (!err.message) {
-                return exitOnError(err)
+    if (isWatch) {
+        return compiler.watch({
+            aggregateTimeout: 300,
+            watchOptions: {
+                ignored: /node_modules/
             }
-            messages = formatWebpackMessages({
-                errors: [err.message],
-                warnings: [],
-            });
-        } else {
-            messages = formatWebpackMessages(
-                stats.toJson({
-                    all: false,
-                    warnings: true,
-                    errors: true,
-                })
-            );
-        }
-        if (messages.errors.length) {
-            // Only keep the first error. Others are often indicative
-            // of the same problem, but confuse the reader with noise.
-            if (messages.errors.length > 1) {
-                messages.errors.length = 1;
-            }
-            return exitOnError(new Error(messages.errors.join('\n\n')));
-        }
-        
-        if (messages.warnings.length) {
-            console.log(chalk.yellow('Compiled with warnings.\n'));
-            console.log(messages.warnings.join('\n\n'));
-            console.log(
-                '\nSearch for the ' +
-                chalk.underline(chalk.yellow('keywords')) +
-                ' to learn more about each warning.'
-            );
-            console.log(
-                'To ignore, add ' +
-                chalk.cyan('// eslint-disable-next-line') +
-                ' to the line before.\n'
-            );
-        } else {
-            fs.emptyDirSync(paths.appDIAssets + '/assets');
-            // Copy assets into assets public folder
-            copyAssetsToPublicFolder();
-            console.log(chalk.green('Compiled successfully.\n'));
-        }
-        
-        if (writeStatsJson) {
-            return bfj
-                .write(paths.appDIBuild + '/bundle-stats.json', stats.toJson())
-        }
-        
-        console.log('listening to new changes...');
-    });
+        }, runCallback);
+    }
+    compiler.run(runCallback)
 }
 
 function copyPublicFolder() {
