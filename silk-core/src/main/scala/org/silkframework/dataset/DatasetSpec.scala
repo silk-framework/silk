@@ -18,6 +18,7 @@ import java.util.logging.Logger
 
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
+import org.silkframework.dataset.DatasetSpec.UriAttributeNotUniqueException
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
@@ -35,10 +36,10 @@ import scala.xml.Node
 /**
   * A dataset of entities.
   *
-  * @param uriProperty Setting this URI will generate an additional property for each entity.
-                       The additional property contains the URI of each entity.
+  * @param uriAttribute Setting this URI will generate an additional attribute for each entity.
+                        The additional attribute contains the URI of each entity.
   */
-case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty: Option[Uri] = None) extends TaskSpec with DatasetAccess {
+case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribute: Option[Uri] = None) extends TaskSpec with DatasetAccess {
 
   def source(implicit userContext: UserContext): DataSource = DatasetSpec.DataSourceWrapper(plugin.source, this)
 
@@ -62,7 +63,7 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty
         case Dataset(p, params) =>
           Seq(("type", p.label)) ++ params
       }
-    for(uriProperty <- uriProperty) {
+    for(uriProperty <- uriAttribute) {
       properties :+= ("URI Property", uriProperty.uri)
     }
     properties
@@ -73,6 +74,12 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty
   }
 
   override def toString: String = DatasetSpec.toString
+
+  def assertUriAttributeUniqueness(attributes: Traversable[String]): Unit = {
+    for(uriColumn <- uriAttribute if attributes.exists(_ == uriColumn.uri)) {
+      throw UriAttributeNotUniqueException(uriColumn)
+    }
+  }
 
 }
 
@@ -137,7 +144,7 @@ object DatasetSpec {
       * Adds the URI property to the schema.
       */
     private def adaptSchema(entitySchema: EntitySchema): EntitySchema = {
-      datasetSpec.uriProperty match {
+      datasetSpec.uriAttribute match {
         case Some(property) =>
           entitySchema.copy(typedPaths = entitySchema.typedPaths :+ TypedPath(UntypedPath.parse(property.uri), UriValueType, isAttribute = false))
         case None =>
@@ -149,7 +156,7 @@ object DatasetSpec {
       * Rewrites the entity URIs if an URI property has been specified.
       */
     private def adaptUris(entities: EntityHolder): EntityHolder = {
-      datasetSpec.uriProperty match {
+      datasetSpec.uriAttribute match {
         case Some(property) =>
           entities.mapEntities( entity =>
             Entity(
@@ -187,8 +194,10 @@ object DatasetSpec {
         isOpen = false
       }
 
+      datasetSpec.assertUriAttributeUniqueness(properties.map(_.propertyUri))
+
       val uriTypedProperty =
-        for(property <- datasetSpec.uriProperty.toIndexedSeq) yield {
+        for(property <- datasetSpec.uriAttribute.toIndexedSeq) yield {
           TypedProperty(property.uri, UriValueType, isBackwardProperty = false)
         }
 
@@ -199,7 +208,7 @@ object DatasetSpec {
     override def writeEntity(subject: String, values: Seq[Seq[String]])
                             (implicit userContext: UserContext): Unit = {
       require(isOpen, "Output must be opened before writing statements to it")
-      datasetSpec.uriProperty match {
+      datasetSpec.uriAttribute match {
         case Some(_) =>
           entitySink.writeEntity(subject, Seq(subject) +: values)
         case None =>
@@ -298,7 +307,7 @@ object DatasetSpec {
         val sourceNode = (node \ "DatasetPlugin").headOption.getOrElse(node)
         new DatasetSpec(
           plugin = Dataset((sourceNode \ "@type").text, XmlSerialization.deserializeParameters(sourceNode)),
-          uriProperty = uriProperty
+          uriAttribute = uriProperty
         )
       }
     }
@@ -306,7 +315,7 @@ object DatasetSpec {
     def write(value: DatasetSpec[Dataset])(implicit writeContext: WriteContext[Node]): Node = {
       value.plugin match {
         case Dataset(pluginDesc, params) =>
-          <Dataset type={pluginDesc.id} uriProperty={value.uriProperty.map(_.uri).getOrElse("")}>
+          <Dataset type={pluginDesc.id} uriProperty={value.uriAttribute.map(_.uri).getOrElse("")}>
             {XmlSerialization.serializeParameter(params)}
           </Dataset>
       }
@@ -322,5 +331,12 @@ object DatasetSpec {
       new TaskFormat[DatasetSpec[Dataset]].write(value)
     }
   }
+
+  /**
+    * Thrown if a URI attribute has been configured in DatasetSpec that is not unique.
+    */
+  case class UriAttributeNotUniqueException(uriColumn: String) extends Exception(
+    s"Dataset is configured to add URI attribute '$uriColumn', but generated dataset already contains an attribute of that name."
+  )
 
 }

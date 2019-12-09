@@ -136,10 +136,8 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     * @param path A path relative to the given XML node.
     * @return A sequence of nodes that are matching the path.
     */
-  def evaluatePath(path: UntypedPath): Seq[XmlTraverser] = {
-    val result = new ArrayBuffer[XmlTraverser]()
-    evaluateOperators(path.operators, result)
-    result
+  def evaluatePath(path: UntypedPath): IndexedSeq[XmlTraverser] = {
+    evaluateOperators(path.operators)
   }
 
   /**
@@ -148,7 +146,7 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     * @param path A path relative to the given XML node.
     * @return A sequence of nodes that are matching the path.
     */
-  def evaluatePathAsString(path: TypedPath, uriPattern: String): Seq[String] = {
+  def evaluatePathAsString(path: TypedPath, uriPattern: String): IndexedSeq[String] = {
     val fetchEntityUri = path.valueType == UriValueType
     val xml = evaluatePath(path.toUntypedPath)
     xml.flatMap(_.formatNode(uriPattern, fetchEntityUri))
@@ -161,7 +159,7 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     */
   private def formatNode(uriPattern: String, fetchEntityUri: Boolean): Option[String] = {
     // Check if this is a leaf node
-    if(!fetchEntityUri && (node.isInstanceOf[InMemoryXmlText] || (node.child.size == 1 && node.child.head.isInstanceOf[InMemoryXmlText]))) {
+    if(!fetchEntityUri && (node.isInstanceOf[InMemoryXmlText] || (node.child.length == 1 && node.child.head.isInstanceOf[InMemoryXmlText]))) {
       Some(node.text)
     } else if(uriPattern.nonEmpty || fetchEntityUri) {
       Some(generateUri(uriPattern))
@@ -170,80 +168,137 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     }
   }
 
-  private def evaluateOperators(ops: List[PathOperator], results: ArrayBuffer[XmlTraverser]): Unit = {
-    ops match {
-      case Nil =>
-        results.append(this)
-      case op :: opsTail =>
-        evaluateOperator(op) foreach (_.evaluateOperators(opsTail, results))
+  private def evaluateOperators(ops: List[PathOperator]): IndexedSeq[XmlTraverser]  = {
+    var current = new ArrayBuffer[XmlTraverser]()
+    current += this
+    var next = new ArrayBuffer[XmlTraverser]()
+
+    for(op <- ops) {
+      var idx = 0
+      while(idx < current.size) {
+        current(idx).evaluateOperator(op, next)
+        idx += 1
+      }
+
+      // Switch buffers
+      val temp = current
+      current = next
+      next = temp
+      next.clear()
     }
+    current
   }
 
-  private def evaluateOperator(op: PathOperator): Array[XmlTraverser] = {
+  private def evaluateOperator(op: PathOperator, buffer: ArrayBuffer[XmlTraverser]): Unit = {
     op match {
-      case op: ForwardOperator => evaluateForwardOperator(op)
-      case op: PropertyFilter => evaluatePropertyFilter(op)
-      case op: BackwardOperator => evaluateBackwardOperator(op)
+      case op: ForwardOperator => evaluateForwardOperator(op, buffer)
+      case op: PropertyFilter => evaluatePropertyFilter(op, buffer)
+      case op: BackwardOperator => evaluateBackwardOperator(op, buffer)
       case _ => throw new UnsupportedOperationException("Unsupported path operator: " + op.getClass.getSimpleName)
     }
   }
 
-  private def evaluateForwardOperator(op: ForwardOperator): Array[XmlTraverser] = {
+  private def evaluateForwardOperator(op: ForwardOperator, buffer: ArrayBuffer[XmlTraverser]): Unit= {
     op.property.uri match {
       case "#id" =>
-        asArray(XmlTraverser(InMemoryXmlText(nodeId), Some(this)))
+        buffer += XmlTraverser(InMemoryXmlText(nodeId), Some(this))
       case "#tag" =>
-        asArray(XmlTraverser(InMemoryXmlText(node.label), Some(this)))
+        buffer += XmlTraverser(InMemoryXmlText(node.label), Some(this))
       case "#text" =>
-        asArray(this)
+        buffer.+=(this)
       case "*" =>
-        children.toArray
+        buffer ++= children
       case "**" =>
-        childrenRecursive.toArray
+        buffer ++= childrenRecursive
       case uri: String if uri.startsWith("@") =>
         node.attributes.get(uri.tail) match {
           case Some(attrValue) =>
-            asArray(XmlTraverser(InMemoryXmlText(attrValue), Some(this)))
+            buffer += XmlTraverser(InMemoryXmlText(attrValue), Some(this))
           case None =>
-            XmlTraverser.emptyArray
+            // Nothing to add
         }
       case uri: String =>
-        val cs = node.childSelect(uri)
-        val result = new Array[XmlTraverser](cs.length)
-        var idx = 0
-        while(idx < cs.length) {
-          result(idx) = XmlTraverser(cs(idx), Some(this))
-          idx += 1
-        }
-        result
+        childSelect(uri, buffer)
     }
   }
 
-  private def evaluateBackwardOperator(op: BackwardOperator): Array[XmlTraverser] = {
+  /** Projection function, which returns  elements of `this` sequence based
+    *  on the string `that`. Use:
+    *   - `this \ "foo"` to get a list of all elements that are labelled with `"foo"`;
+    *   - `\ "_"` to get a list of all elements (wildcard);
+    *   - `ns \ "@foo"` to get the unprefixed attribute `"foo"`;
+    *   - `ns \ "@{uri}foo"` to get the prefixed attribute `"pre:foo"` whose
+    *     prefix `"pre"` is resolved to the namespace `"uri"`.
+    *
+    *  For attribute projections, the resulting [[scala.xml.NodeSeq]] attribute
+    *  values are wrapped in a [[scala.xml.Group]].
+    *
+    *  There is no support for searching a prefixed attribute by its literal prefix.
+    *
+    *  The document order is preserved.
+    */
+  @inline
+  private def childSelect(selector: String, buffer: ArrayBuffer[XmlTraverser]): Unit = {
+    def fail = throw new IllegalArgumentException(selector)
+
+    selector match {
+      case "" => fail
+      case "_" => selectNonTextChildren(buffer)
+      case _ if selector(0) == '@' => node match {
+        case elem: InMemoryXmlElem =>
+          for(attributeValue <- elem.attributes.get(selector.substring(1))) {
+            buffer += XmlTraverser(InMemoryXmlText(attributeValue), Some(this))
+          }
+        case _ =>
+          // Nothing to add
+      }
+      case _ => selectChildrenByLabel(selector, buffer)
+    }
+  }
+
+  @inline
+  private def selectNonTextChildren(buffer: ArrayBuffer[XmlTraverser]): Unit = {
+    val arr = node.child
+    var idx = 0
+    while(idx < arr.length) {
+      if(!arr(idx).isInstanceOf[InMemoryXmlText]) {
+        buffer += XmlTraverser(arr(idx), Some(this))
+      }
+      idx += 1
+    }
+  }
+
+  @inline
+  private def selectChildrenByLabel(label: String, buffer: ArrayBuffer[XmlTraverser]): Unit = {
+    val arr = node.child
+    var idx = 0
+    while(idx < arr.length) {
+      if(arr(idx).label == label) {
+        buffer += XmlTraverser(arr(idx), Some(this))
+      }
+      idx += 1
+    }
+  }
+
+  private def evaluateBackwardOperator(op: BackwardOperator, buffer: ArrayBuffer[XmlTraverser]): Unit = {
     parentOpt match {
       case Some(parent) =>
-        asArray(parent)
+        buffer += parent
       case None =>
         throw new RuntimeException("Cannot go backward from root XML element! Backward property: " + op.property.uri)
     }
   }
 
-  def asArray(xmlTraverser: XmlTraverser): Array[XmlTraverser] = {
-    val arr = new Array[XmlTraverser](1)
-    arr(0) = xmlTraverser
-    arr
-  }
-
-  private def evaluatePropertyFilter(op: PropertyFilter): Array[XmlTraverser] = {
-    val nodeArray = node.asArray
+  private def evaluatePropertyFilter(op: PropertyFilter, buffer: ArrayBuffer[XmlTraverser]): Unit= {
+    val nodeArray = node.child
     var idx = 0
     while(idx < nodeArray.length) {
-      if(op.evaluate("\"" + (InMemoryXmlNodes(nodeArray(idx).childSelect(op.property.uri)).text) + "\"")) {
-        return asArray(this)
+      if(nodeArray(idx).label == op.property.uri && op.evaluate(nodeArray(idx).textExpression)) {
+        buffer += this
+        return
       }
       idx += 1
     }
-    new Array[XmlTraverser](0)
   }
 }
 
