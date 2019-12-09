@@ -225,7 +225,7 @@ class CsvSource(file: Resource,
   private def collectValues(indices: IndexedSeq[Int], entry: Array[String], entityIdx: Int): IndexedSeq[String] = {
     indices map {
       case IDX_PATH_MISSING =>
-        ""
+        null // splitArrayValue will generate an empty sequence from this.
       case IDX_PATH_IDX =>
         entityIdx.toString
       case idx: Int if idx >= 0 =>
