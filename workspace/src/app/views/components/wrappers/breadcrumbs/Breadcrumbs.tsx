@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Breadcrumbs as B_BreadCrumbs, IBreadcrumbProps, Icon } from "@blueprintjs/core";
+import { Breadcrumbs as B_BreadCrumbs, IBreadcrumbProps } from "@blueprintjs/core";
 
 interface IProps {
     paths: IBreadcrumbProps[]

@@ -3,7 +3,7 @@ import FilterBar from "./FilterBar/FilterBar";
 import Datalist from "../../components/Datalist/Datalist";
 import { useDispatch, useSelector } from "react-redux";
 import { dashboardOp, dashboardSel } from "../../../state/ducks/dashboard";
-import { ISearchResultsTask } from "../../../state/ducks/dashboard/typings/IDashboardPreview";
+import './style.scss';
 
 export default function DashboardLayout() {
     const dispatch = useDispatch();
@@ -14,35 +14,37 @@ export default function DashboardLayout() {
     const pagination = useSelector(dashboardSel.paginationSelector);
     const appliedFilters = useSelector(dashboardSel.appliedFiltersSelector);
 
+    const appliedModifiers = [];
+    if (appliedFilters.itemType) {
+        appliedModifiers.push(appliedFilters.itemType);
+    }
+
     useEffect(() => {
         dispatch(dashboardOp.fetchListAsync());
     }, [appliedFilters, sorters.applied, pagination.current]);
 
     const handleSearch = (value: string) => {
-        dispatch(dashboardOp.applyFilter({
+        const filter = {
             field: 'textQuery',
             value
-        }));
+        };
+        dispatch(dashboardOp.applyFilter(filter));
     };
 
-    const handlePageChange = (i: number) => {
-        dispatch(dashboardOp.changePage(i))
+    const handlePageChange = (n: number) => {
+        dispatch(dashboardOp.changePage(n))
     };
 
     const handleSort = (value: string) => {
         dispatch(dashboardOp.applySorter(value));
     };
 
-    const handleClone = (task: ISearchResultsTask) => {
-        dispatch(dashboardOp.cloneTask(task));
-    };
-
     return (
-        <div style={{'marginTop': '50px', padding: '5px 10px'}}>
-            <div style={{'float': 'left', 'width': '200px'}}>
+        <div className='main clearfix'>
+            <div className='left-content'>
                 <FilterBar />
             </div>
-            <div style={{'float': 'left'}}>
+            <div className={'right-content'}>
                 <Datalist
                     data={data}
                     onSearch={handleSearch}
@@ -51,7 +53,7 @@ export default function DashboardLayout() {
                     pagination={pagination}
                     sortersList={sorters.list}
                     onSort={handleSort}
-                    onClone={handleClone}
+                    appliedModifiers={appliedModifiers}
                 />
             </div>
         </div>

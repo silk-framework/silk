@@ -39,6 +39,7 @@ export interface IAppliedFiltersState {
     sortBy?: string;
     sortOrder?: string;
     facets: IAppliedFacetState[];
+    itemType?: string;
 }
 
 export interface IModifierOption {

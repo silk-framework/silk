@@ -1,0 +1,14 @@
+.main {
+  margin-top: 15px;
+  padding: 5px 15px;
+
+  .left-content {
+    float: left;
+    min-width: 200px;
+  }
+  .right-content {
+    float: left;
+    margin-left: 15px;
+    min-width: 400px;
+  }
+}

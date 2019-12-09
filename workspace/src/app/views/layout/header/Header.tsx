@@ -11,7 +11,7 @@ import {
     NavbarGroup,
     NavbarHeading,
 } from "@blueprintjs/core";
-import Breadcrumbs from "../../components/wrappers/Breadcrumbs/Breadcrumbs";
+import Breadcrumbs from "../../components/wrappers/breadcrumbs/Breadcrumbs";
 
 interface IProps {
     externalRoutes: any;
