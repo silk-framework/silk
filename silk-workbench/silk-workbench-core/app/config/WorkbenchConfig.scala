@@ -7,7 +7,10 @@ import org.silkframework.buildInfo.BuildInfo
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.resource._
 import play.api.Configuration
+import com.typesafe.config.{Config => TypesafeConfig}
+import play.twirl.api.Html
 
+import scala.io.Source
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -34,6 +37,78 @@ case class WorkbenchConfig(title: String = "Silk Workbench",
 }
 
 object WorkbenchConfig {
+  private lazy val cfg = DefaultConfig.instance()
+  lazy val publicProtocol: String = if(WorkbenchConfig.useHttps(cfg)) "https" else "http"
+  lazy val publicHost: String = WorkbenchConfig.host(cfg).getOrElse("localhost:9000")
+  lazy val publicBaseUrl: String = s"$publicProtocol://$publicHost"
+  lazy val applicationContext: String = WorkbenchConfig.applicationContext(cfg)
+
+  /** The public host name and port of the server this application runs on. */
+  def host(config: TypesafeConfig): Option[String] = {
+    if (config.hasPath("workbench.host")) {
+      Some(config.getString("workbench.host"))
+    } else {
+      None
+    }
+  }
+
+  /** SSL enabled for public address. */
+  def useHttps(config: TypesafeConfig): Boolean = {
+    if (config.hasPath("workbench.protocol")) {
+      config.getString("workbench.protocol") == "https"
+    } else {
+      false
+    }
+  }
+
+  /** The application context, i.e. the base path of the absolute application paths. */
+  def applicationContext(config: TypesafeConfig): String = {
+    if (config.hasPath("play.http.context")) {
+      config.getString("play.http.context").stripSuffix("/")
+    } else {
+      ""
+    }
+  }
+
+  def indexHtml: Html = { // TODO: Do not recalculate the HTML each time. This still needs to update when the application is restarted during development!
+    val context = WorkbenchConfig.applicationContext
+    val source = Source.fromInputStream(this.getClass.getClassLoader.getResourceAsStream("public/index.html"))
+    val htmlString = source.getLines().mkString("\n")
+    source.close()
+    val html = injectConfigProperties(context, htmlString)
+    val rewrittenHtml = adaptUrls(context, html)
+    Html(rewrittenHtml)
+  }
+
+  private def adaptUrls(context: String, html: String): String = {
+    if (context != "") {
+      val regex = """(?:src|href)=\"([^"]+)\"""".r
+      val sb = new StringBuilder()
+      var lastEnd = 0
+      for (m <- regex.findAllMatchIn(html)) {
+        val start = m.start(1)
+        val end = m.end(1)
+        sb.append(html.substring(lastEnd, start))
+        sb.append(context + html.substring(start, end))
+        lastEnd = end
+      }
+      sb.append(html.substring(lastEnd))
+      sb.toString()
+    } else {
+      html
+    }
+
+  }
+
+  /** Injects config properties that are needed by the frontend, e.g. context path. */
+  private def injectConfigProperties(context: String, htmlString: String): String = {
+    val htmlParts = htmlString.split("<head>")
+    assert(htmlParts.size == 2, "The index.html does not have the required format to be parsed correctly.")
+    val scriptPart = s"""<script>window.DI = {"basePath": "$context", "publicBaseUrl":"${WorkbenchConfig.publicBaseUrl}"}</script>"""
+    val html = s"${htmlParts(0)}<head>$scriptPart${htmlParts(1)}"
+    html
+  }
+
   // The version of the workbench
   lazy val version = {
     Try(
