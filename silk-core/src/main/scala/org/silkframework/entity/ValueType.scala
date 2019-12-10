@@ -1,7 +1,8 @@
 package org.silkframework.entity
 
 
-import javax.xml.datatype.{DatatypeConstants, DatatypeFactory, XMLGregorianCalendar}
+import javax.xml.datatype.{DatatypeConstants, DatatypeFactory, Duration, XMLGregorianCalendar}
+import javax.xml.namespace.QName
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.ValueType.XSD
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
@@ -50,9 +51,14 @@ object ValueType {
   final val LANGUAGE_VALUE_TYPE = "LanguageValueType"
   final val OUTDATED_AUTO_DETECT = "AutoDetectValueType"
 
+  final lazy val xmlDatatypeFactory = DatatypeFactory.newInstance()
+
   val DefaultOrdering: Ordering[String] = Ordering.String
   val GregorianCalendarOrdering: Ordering[XMLGregorianCalendar] = Ordering.fromLessThan[XMLGregorianCalendar]((date1: XMLGregorianCalendar, date2: XMLGregorianCalendar) =>{
     date1.compare(date2) < 0
+  })
+  val DurationOrdering: Ordering[Duration] = Ordering.fromLessThan[Duration]((d1: Duration, d2: Duration) =>{
+    d1.compare(d2) < 0
   })
 
   implicit object ValueTypeXmlFormat extends XmlFormat[ValueType] {
@@ -142,12 +148,18 @@ object ValueType {
     Right(StringValueType),
     Right(FloatValueType),
     Right(DoubleValueType),
+    Right(DecimalValueType),
     Right(BooleanValueType),
     Right(IntegerValueType),
     Right(UriValueType),
     Right(UntypedValueType),
     Right(BlankNodeValueType),
-    Right(DateValueType),
+    Right(GeneralDateValueType),
+    Right(YearDateValueType),
+    Right(YearMonthDateValueType),
+    Right(MonthDayDateValueType),
+    Right(DayDateValueType),
+    Right(MonthDateValueType),
     Right(DateTimeValueType)
   )
 
@@ -299,6 +311,23 @@ case object DoubleValueType extends ValueType with Serializable {
   override def ordering: Ordering[String] = Ordering.by((str: String) => str.toDouble)
 }
 
+case object DecimalValueType extends ValueType with Serializable {
+
+  override def label = "Decimal"
+
+  override def validate(lexicalString: String): Boolean = {
+    Try(BigDecimal(lexicalString)).isSuccess
+  }
+
+  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
+  override def uri: Option[String] = Some(XSD + "decimal")
+
+  override def id: String = "DecimalValueType"
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = Ordering.by((str: String) => BigDecimal(str))
+}
+
 case object BooleanValueType extends ValueType with Serializable {
 
   override def label = "Boolean"
@@ -367,22 +396,99 @@ case object BlankNodeValueType extends ValueType with Serializable {
   override def ordering: Ordering[String] = ValueType.DefaultOrdering
 }
 
-case object DateValueType extends ValueType with Serializable {
+abstract class DateValueType extends ValueType with Serializable {
 
-  @transient lazy private val datatypeFactory = DatatypeFactory.newInstance()
-
-  override def label = "Date"
+  def allowedXsdTypes: Set[QName]
 
   override def validate(lexicalString: String): Boolean = {
     try {
-      val date = datatypeFactory.newXMLGregorianCalendar(lexicalString)
+      val date = ValueType.xmlDatatypeFactory.newXMLGregorianCalendar(lexicalString)
+      allowedXsdTypes.contains(date.getXMLSchemaType)
+    } catch {
+      case ex: IllegalArgumentException =>
+        false
+    }
+  }
+
+  /**
+    * Returns the URI of the XML Schema date/time type that a lexical string actually has.
+    */
+  def xmlSchemaType(lexicalString: String): String = {
+    val qName = ValueType.xmlDatatypeFactory.newXMLGregorianCalendar(lexicalString).getXMLSchemaType
+    qName.getNamespaceURI + "#" + qName.getLocalPart
+  }
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = Ordering.by((str: String) => ValueType.xmlDatatypeFactory.newXMLGregorianCalendar(str))(ValueType.GregorianCalendarOrdering)
+}
+
+case object GeneralDateValueType extends DateValueType {
+  override def label: String = "Date"
+  override def id: String = "DateValueType"
+  override def uri: Option[String] = Some(XSD + "date")
+  override def allowedXsdTypes: Set[QName] = {
+    Set(
+      DatatypeConstants.DATE,
+      DatatypeConstants.GYEARMONTH,
+      DatatypeConstants.GMONTHDAY,
+      DatatypeConstants.GYEAR,
+      DatatypeConstants.GMONTH,
+      DatatypeConstants.GDAY
+    )
+  }
+}
+
+case object YearDateValueType extends DateValueType {
+  override def label: String = "Year"
+  override def id: String = "YearValueType"
+  override def uri: Option[String] = Some(XSD + "gYear")
+  override def allowedXsdTypes: Set[QName] = Set(DatatypeConstants.GYEAR)
+}
+
+case object YearMonthDateValueType extends DateValueType {
+  override def label: String = "YearMonth"
+  override def id: String = "YearMonthValueType"
+  override def uri: Option[String] = Some(XSD + "gYearMonth")
+  override def allowedXsdTypes: Set[QName] = Set(DatatypeConstants.GYEARMONTH)
+}
+
+case object MonthDayDateValueType extends DateValueType {
+  override def label: String = "MonthDay"
+  override def id: String = "MonthDayValueType"
+  override def uri: Option[String] = Some(XSD + "gMonthDay")
+  override def allowedXsdTypes: Set[QName] = Set(DatatypeConstants.GMONTHDAY)
+}
+
+case object DayDateValueType extends DateValueType {
+  override def label: String = "Day"
+  override def id: String = "DayValueType"
+  override def uri: Option[String] = Some(XSD + "gDay")
+  override def allowedXsdTypes: Set[QName] = Set(DatatypeConstants.GDAY)
+}
+
+case object MonthDateValueType extends DateValueType {
+  override def label: String = "Month"
+  override def id: String = "MonthValueType"
+  override def uri: Option[String] = Some(XSD + "gMonth")
+  override def allowedXsdTypes: Set[QName] = Set(DatatypeConstants.GMONTH)
+}
+
+case object TimeDateValueType extends DateValueType {
+  override def label: String = "Time"
+  override def id: String = "MonthValueType"
+  override def uri: Option[String] = Some(XSD + "gMonth")
+  override def allowedXsdTypes: Set[QName] = Set(DatatypeConstants.GMONTH)
+}
+
+case object DurationValueType extends ValueType with Serializable {
+
+  override def label: String = "Duration"
+
+  override def validate(lexicalString: String): Boolean = {
+    try {
+      val date = ValueType.xmlDatatypeFactory.newDuration(lexicalString)
       date.getXMLSchemaType match {
-        case DatatypeConstants.DATE => true
-        case DatatypeConstants.GYEARMONTH => true
-        case DatatypeConstants.GMONTHDAY => true
-        case DatatypeConstants.GYEAR => true
-        case DatatypeConstants.GMONTH => true
-        case DatatypeConstants.GDAY => true
+        case DatatypeConstants.DURATION => true
         case _ => false
       }
     } catch {
@@ -392,20 +498,20 @@ case object DateValueType extends ValueType with Serializable {
   }
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
-  override def uri: Option[String] = Some(XSD + "date")
+  override def uri: Option[String] = Some(XSD + "duration")
 
-  override def id: String = "DateValueType"
+  override def id: String = "DurationValueType"
 
   /**
     * Returns the URI of the XML Schema date/time type that a lexical string actually has.
     */
   def xmlSchemaType(lexicalString: String): String = {
-    val qName = datatypeFactory.newXMLGregorianCalendar(lexicalString).getXMLSchemaType
+    val qName = ValueType.xmlDatatypeFactory.newDuration(lexicalString).getXMLSchemaType
     qName.getNamespaceURI + "#" + qName.getLocalPart
   }
 
   /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
-  override def ordering: Ordering[String] = Ordering.by((str: String) => datatypeFactory.newXMLGregorianCalendar(str))(ValueType.GregorianCalendarOrdering)
+  override def ordering: Ordering[String] = Ordering.by((str: String) => ValueType.xmlDatatypeFactory.newDuration(str))(ValueType.DurationOrdering)
 }
 
 case object DateTimeValueType extends ValueType with Serializable {
