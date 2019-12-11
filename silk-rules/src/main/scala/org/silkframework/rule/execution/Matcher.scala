@@ -269,8 +269,11 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
 
           if(!runtimeConfig.indexingOnly) {
             val confidence = linkageRule(entityPair, 0.0)
-            val confidenceOpt = if (confidence >= 0.0) Some(confidence) else None
-            links = links :+ Link(entityPair.source.uri, entityPair.target.uri, confidenceOpt, attachedEntities)
+            if (confidence >= 0.0) {
+              links = links :+ Link(entityPair.source.uri, entityPair.target.uri, Some(confidence), attachedEntities)
+            }
+          } else {
+            links = links :+ Link(entityPair.source.uri, entityPair.target.uri, None, attachedEntities)
           }
         }
       }
