@@ -5,4 +5,4 @@ package org.silkframework.execution
   */
 case class SimpleExecutionReport(label: String,
                                  summary: Seq[(String, String)],
-                                 warning: Option[String]) extends ExecutionReport
+                                 warnings: Seq[String]) extends ExecutionReport

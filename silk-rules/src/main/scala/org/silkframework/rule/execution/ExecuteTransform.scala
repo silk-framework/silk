@@ -50,8 +50,8 @@ class ExecuteTransform(taskLabel: String,
                                (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     entitySink.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get))
 
-    val entities = dataSource.retrieve(rule.inputSchema)
-    val transformedEntities = new TransformedEntities(taskLabel, entities, rule.transformRule.rules, rule.outputSchema, context)
+    val entityTable = dataSource.retrieve(rule.inputSchema)
+    val transformedEntities = new TransformedEntities(taskLabel, entityTable.entities, rule.transformRule.rules, rule.outputSchema, context)
     var count = 0
     breakable {
       for (entity <- transformedEntities) {
@@ -63,5 +63,7 @@ class ExecuteTransform(taskLabel: String,
       }
     }
     entitySink.closeTable()
+
+    context.value() = context.value().copy(globalErrors = context.value().globalErrors ++ entityTable.globalErrors)
   }
 }

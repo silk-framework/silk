@@ -21,6 +21,10 @@ case class LinksTable(
   override def entityIterator: Iterator[Entity] = {
     new LinkEntityIterator(links, entitySchema)
   }
+
+  override def updateEntities(newEntities: Traversable[Entity]): GenericEntityTable = {
+    new GenericEntityTable(newEntities, entitySchema, task)
+  }
 }
 
 class LinkEntityIterator(links: Seq[Link], entitySchema: EntitySchema) extends Iterator[Entity] {
