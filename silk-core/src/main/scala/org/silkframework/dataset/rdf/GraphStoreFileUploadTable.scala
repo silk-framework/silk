@@ -2,7 +2,7 @@ package org.silkframework.dataset.rdf
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.execution.local.LocalEntities
+import org.silkframework.execution.local.{EmptyEntityTable, LocalEntities}
 import org.silkframework.runtime.resource.FileResource
 
 /** A number of files that should be uploaded via the GraphStore protocol. */
@@ -14,4 +14,6 @@ case class LocalGraphStoreFileUploadTable(files: Traversable[FileResource], task
   override def entitySchema: EntitySchema = EntitySchema.empty
 
   override def entities: Traversable[Entity] = Traversable.empty
+
+  override def updateEntities(newEntities: Traversable[Entity]): LocalEntities = EmptyEntityTable(task)
 }
