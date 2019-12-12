@@ -1,15 +1,13 @@
 import isEmpty from 'ramda/es/isEmpty';
 import { batch } from "react-redux";
 
-import { API_ENDPOINT } from "../../../constants";
-
 import fetch from '../../../services/fetch';
 import asModifier from "../../../utils/asModifier";
 
 import selectors from "./selectors";
 import { filtersSlice } from "./filtersSlice";
 import { previewSlice } from "./previewSlice";
-
+import { getApiEndpoint, getLegacyApiEndpoint } from "../../../utils/getApiEndpoint";
 
 const {
     fetchTypeModifier,
@@ -20,13 +18,15 @@ const {
     applySorter,
     applyFilter,
     applyFacet,
-    changePage
+    changePage,
+    removeFacet
 } = filtersSlice.actions;
 
-const  {
+const {
+    setLoading,
+    setError,
     cloneTask,
     fetchList,
-    fetchListFailure,
     fetchListSuccess,
 } = previewSlice.actions;
 
@@ -35,16 +35,26 @@ const  {
  */
 const fetchTypesAsync = () => {
     return async dispatch => {
-        dispatch(fetchTypeModifier());
-        const res = await fetch({
-            url: API_ENDPOINT + '/searchConfig/types',
-            method: 'GET',
+        batch(() => {
+            dispatch(setLoading(true));
+            dispatch(fetchTypeModifier());
         });
-        const validModifier = asModifier('Type', 'itemType', res.data);
-        dispatch(updateModifiers({
-            fieldName: 'type',
-            modifier: validModifier
-        }));
+        try {
+            const res = await fetch({
+                url: getApiEndpoint('/searchConfig/types'),
+                method: 'GET',
+            });
+            const validModifier = asModifier('Type', 'itemType', res.data);
+            batch(() => {
+                dispatch(setLoading(false));
+                dispatch(updateModifiers({
+                    fieldName: 'type',
+                    modifier: validModifier
+                }));
+            });
+        } catch (e) {
+            dispatch(setError(e));
+        }
     }
 };
 
@@ -54,7 +64,10 @@ const fetchTypesAsync = () => {
  */
 const fetchListAsync = () => {
     return async (dispatch, getState) => {
-        dispatch(fetchList());
+        batch(() => {
+            dispatch(setLoading(true));
+            dispatch(fetchList());
+        });
         // get applied pagination values
         const state = getState();
         const {limit, offset} = selectors.paginationSelector(state);
@@ -81,7 +94,7 @@ const fetchListAsync = () => {
 
         try {
             const res = await fetch({
-                url: API_ENDPOINT + '/searchItems',
+                url: getApiEndpoint('/searchItems'),
                 method: 'post',
                 body
             });
@@ -96,9 +109,42 @@ const fetchListAsync = () => {
                 dispatch(updateSorters(sortByProperties));
                 // Apply results
                 dispatch(fetchListSuccess(results));
+                dispatch(setLoading(false));
             })
         } catch (err) {
-            dispatch(fetchListFailure(err));
+            batch(() => {
+                dispatch(setLoading(false));
+                dispatch(setError(err));
+            })
+        }
+    }
+};
+
+const getTaskMetadataAsync = async (taskId: string, projectId: string) => {
+    const url = getLegacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/metadata`);
+    const { data } = await fetch({
+        url
+    });
+    return data;
+};
+
+const fetchRemoveTaskAsync = (taskId: string, projectId: string) => {
+    return async dispatch => {
+        dispatch(setLoading(true));
+        try {
+            await fetch({
+                url: getLegacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}?removeDependentTasks=true`),
+                method: 'DELETE',
+            });
+            batch(() => {
+                dispatch(fetchListAsync());
+                dispatch(setLoading(false));
+            });
+        } catch (e) {
+            batch(() => {
+                dispatch(setError(e));
+                dispatch(setLoading(false));
+            });
         }
     }
 };
@@ -106,9 +152,12 @@ const fetchListAsync = () => {
 export default {
     fetchTypesAsync,
     fetchListAsync,
+    fetchRemoveTaskAsync,
+    getTaskMetadataAsync,
     cloneTask,
     applyFilter,
     applySorter,
     changePage,
     applyFacet,
+    removeFacet
 };

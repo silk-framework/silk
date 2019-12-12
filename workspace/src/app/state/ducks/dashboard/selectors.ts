@@ -31,6 +31,11 @@ const appliedFiltersSelector = createSelector(
     filters => filters.appliedFilters
 );
 
+const appliedFacetsSelector = createSelector(
+    [appliedFiltersSelector],
+    appliedFilters => appliedFilters.facets
+);
+
 const paginationSelector = createSelector(
     [filtersSelector],
     filters => filters.pagination
@@ -38,6 +43,7 @@ const paginationSelector = createSelector(
 
 export default {
     appliedFiltersSelector,
+    appliedFacetsSelector,
     resultsSelector,
     sortersSelector,
     paginationSelector,

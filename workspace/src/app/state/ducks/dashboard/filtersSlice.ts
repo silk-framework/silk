@@ -19,7 +19,6 @@ export const filtersSlice = createSlice({
 
         applyFilter(state, action) {
             const {field, value} = action.payload;
-
             if (!value) {
                 delete state.appliedFilters[field];
             } else {
@@ -94,5 +93,21 @@ export const filtersSlice = createSlice({
                 facets.splice(ind, 1);
             }
         },
+
+        removeFacet(state, action) {
+            const { facetId, keywordId } = action.payload;
+            const { facets } = state.appliedFilters;
+
+            const ind = facets.findIndex(facet => facet.facetId === facetId);
+            if (ind > -1) {
+                const keywords = facets[ind].keywordIds.filter(kw => kw !== keywordId);
+                // Remove if applied facets is empty
+                if (!keywords.length) {
+                    facets.splice(ind, 1);
+                } else {
+                    facets[ind].keywordIds = keywords;
+                }
+            }
+        }
     }
 });

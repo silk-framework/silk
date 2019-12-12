@@ -1,8 +1,13 @@
 import uuid from 'uuid/v4';
-import { loginSuccess, logOutUser } from "../actions";
 import { AUTH_ENDPOINT, CLIENT_ID } from "../../../../constants";
 import qs from 'qs';
 import Store from "store";
+import { globalSlice } from "../globalSlice";
+
+const {
+    loginSuccess,
+    logoutUser
+} = globalSlice.actions;
 
 /**
  * @private
@@ -68,6 +73,6 @@ export const logout = () => {
     return dispatch => {
         Store.remove('token');
         Store.remove('savedState');
-        dispatch(logOutUser());
+        dispatch(logoutUser());
 }
 };

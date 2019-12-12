@@ -1,12 +1,12 @@
 import { combineReducers } from "@reduxjs/toolkit";
 import { connectRouter } from 'connected-react-router'
 
-import global from './ducks/global';
 import dashboard from "./ducks/dashboard";
+import { globalSlice } from "./ducks/global/globalSlice";
 
 export default (history) => {
     return combineReducers({
-        global,
+        global: globalSlice.reducer,
         dashboard,
         router: connectRouter(history)
     });

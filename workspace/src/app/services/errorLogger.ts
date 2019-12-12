@@ -1,6 +1,6 @@
 import { ErrorInfo } from "react";
 import Dexie from 'dexie';
-import { AxiosError } from "axios";
+import { AxiosError, AxiosResponse } from "axios";
 
 interface IClientInfo {
     language: string;
@@ -16,7 +16,7 @@ interface IClientInfo {
 
 interface INetworkError {
     url: string;
-    status: number;
+    status: string;
     payload?: any;
     headers?: any;
 }
@@ -98,24 +98,18 @@ const getClientInfo = (): IClientInfo => {
 
 /**
  * Generate the network error object
- * @param url
- * @param status
- * @param payload
- * @param headers
+ * @param response
  * @return INetworkError
  */
-const generateNetworkError = (
-    url:string,
-    status:number,
-    payload?: any,
-    headers?: any
-): INetworkError => {
+const generateNetworkError = (response: AxiosResponse): INetworkError => {
+    const { status } = response.data;
+    const { headers, url, data } = response.config;
     const netErr: INetworkError = {
         url,
         status,
     };
-    if (payload) {
-        netErr.payload = payload;
+    if (data) {
+        netErr.payload = data;
     }
     if (headers && Object.keys(headers).length) {
         netErr.headers = headers;
@@ -158,12 +152,11 @@ const logError = async (
 
     if (isNetworkError(error)) {
         const { response } = error as AxiosError;
-        const { title, detail, status } = response.data;
-        const { headers, data, url } = response.config;
+        const { title, detail } = response.data;
         err = {
             ...generateDefaultError(title, detail),
             client: getClientInfo(),
-            network: generateNetworkError(url, status, data, headers)
+            network: generateNetworkError(response)
         }
 
     } else if (error instanceof Error) {
@@ -194,5 +187,7 @@ const sendError = async (error: IError) => {
 
 export {
     logError,
-    onErrorHandler
+    onErrorHandler,
+    isNetworkError,
+    generateNetworkError
 }

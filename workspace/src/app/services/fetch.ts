@@ -6,7 +6,7 @@ import { logError } from "./errorLogger";
 
 interface IFetchOptions {
     url: string;
-    method: Method;
+    method?: Method;
     body?: any;
     headers?: any
 }

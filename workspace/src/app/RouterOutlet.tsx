@@ -1,6 +1,6 @@
 import React, { Component, Suspense } from "react";
 import { Redirect, Route, Switch } from "react-router-dom";
-import Loading from "./views/components/Loading/Loading";
+import Loading from "./views/components/loading/Loading";
 
 class RouterOutlet extends Component<any, any> {
     render() {
