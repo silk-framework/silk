@@ -8,6 +8,11 @@ import { isDevelopment } from "./constants";
  * @see https://github.com/facebook/react/issues/11334#issuecomment-338656383
  */
 class ErrorBoundary extends Component {
+
+    getDerivedStateFromError() {
+
+    }
+
     componentDidCatch(error, info) {
         logError(error, info);
         if (isDevelopment) {
