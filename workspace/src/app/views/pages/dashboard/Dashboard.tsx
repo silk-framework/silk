@@ -93,6 +93,7 @@ export default function DashboardLayout() {
                     pagination={pagination}
                     sortersList={sorters.list}
                     appliedFacets={appliedFacets}
+                    searchValue={appliedFilters.textQuery}
                     hooks={{
                         onRemoveModalOpened: handleRemoveModalOpen,
                         onItemRemove: handleItemRemove,

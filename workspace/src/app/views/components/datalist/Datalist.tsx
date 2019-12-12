@@ -57,6 +57,14 @@ export default function Datalist({data, pagination, appliedFacets, hooks, delete
         }
     };
 
+    const getSearchHighlight = (label: string) => {
+        if (searchValue) {
+            const regExp = RegExp(searchValue, 'g');
+            return label.toString().replace(regExp, `<mark>${searchValue}</mark>`)
+        }
+        return label;
+    };
+
     return (
         <>
             <div className="clearfix">
@@ -99,7 +107,9 @@ export default function Datalist({data, pagination, appliedFacets, hooks, delete
                                     data.map(item =>
                                         <tr key={item.id}>
                                             <td>
-                                                <p>{item.label || item.id}</p>
+                                                <p dangerouslySetInnerHTML={{
+                                                    __html: getSearchHighlight(item.label || item.id)}}
+                                                />
                                                 <p>{item.description}</p>
                                             </td>
                                             <td>
