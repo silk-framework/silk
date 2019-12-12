@@ -130,6 +130,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         }
       case datasetResource: DatasetResourceEntityTable =>
         writeDatasetResource(dataset, datasetResource)
+      case graphStoreFiles: LocalGraphStoreFileUploadTable =>
+        uploadFilesViaGraphStore(dataset, graphStoreFiles)
       case sparqlUpdateTable: SparqlUpdateEntityTable =>
         executeSparqlUpdateQueries(dataset, sparqlUpdateTable)
       case et: LocalEntities =>
@@ -225,6 +227,32 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
 
     def bufferedQuerySize: Int = queryBuffer.size()
+  }
+
+  private def uploadFilesViaGraphStore(dataset: Task[DatasetSpec[Dataset]],
+                                       table: GraphStoreFileUploadTable)
+                                      (implicit userContext: UserContext): Unit = {
+    val datasetLabelOrId = dataset.metaData.formattedLabel(dataset.id)
+    dataset.data match {
+      case datasetSpec: DatasetSpec[_] =>
+        datasetSpec.plugin match {
+          case rdfDataset: RdfDataset if rdfDataset.sparqlEndpoint.isInstanceOf[GraphStoreFileUploadTrait] =>
+            val sparqlEndpoint = rdfDataset.sparqlEndpoint
+            val targetGraph = sparqlEndpoint.sparqlParams.graph match {
+              case Some(g) => g
+              case None => throw new ValidationException(s"No graph defined on dataset $datasetLabelOrId of type '${dataset.plugin.pluginSpec.label}'!")
+            }
+            val graphStore = sparqlEndpoint.asInstanceOf[GraphStoreFileUploadTrait]
+            for(fileResource <- table.files) {
+              graphStore.uploadFileToGraph(targetGraph, fileResource.file, "application/n-triples", None) // Only N-Triples supported
+            }
+          case _: Dataset =>
+            throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
+                s"has no support for graph store file uploads!")
+        }
+      case _ =>
+        throw new ValidationException("No dataset spec found!")
+    }
   }
 
   // Write the resource from the resource entity table to the dataset's resource

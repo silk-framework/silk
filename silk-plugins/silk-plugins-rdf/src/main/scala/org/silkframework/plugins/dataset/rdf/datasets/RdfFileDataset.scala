@@ -85,8 +85,6 @@ case class RdfFileDataset(
         } finally {
           inputStream.close()
         }
-      } else {
-        throw new FileNotFoundException(s"The file ${resource.path} could  note be found or read.")
       }
     }
 
