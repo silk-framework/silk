@@ -20,7 +20,7 @@ object ExecutionReportSerializers {
       Json.obj(
         "label" -> value.label,
         "summary" -> value.summary.map(serializeValue),
-        "warning" -> value.warning
+        "warnings" -> value.warnings
       )
     }
 

@@ -4,6 +4,8 @@ import org.silkframework.config.Task
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
@@ -20,15 +22,17 @@ case class CombinedSparqlSource(underlyingTask: Task[DatasetSpec[Dataset]], spar
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext): Traversable[Entity] = {
-    new Traversable[Entity] {
-      override def foreach[U](f: Entity => U): Unit = {
-        for (sparqlSource <- sparqlSources;
-             entity <- sparqlSource.retrieve(entitySchema, limit)) {
-          f(entity)
+                       (implicit userContext: UserContext): EntityHolder = {
+    val allEntities =
+      new Traversable[Entity] {
+        override def foreach[U](f: Entity => U): Unit = {
+          for (sparqlSource <- sparqlSources;
+               entity <- sparqlSource.retrieve(entitySchema, limit).entities) {
+            f(entity)
+          }
         }
       }
-    }
+    GenericEntityTable(allEntities, entitySchema, underlyingTask)
   }
 
   /**
@@ -39,14 +43,14 @@ case class CombinedSparqlSource(underlyingTask: Task[DatasetSpec[Dataset]], spar
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): Traversable[Entity] = {
+                            (implicit userContext: UserContext): EntityHolder = {
     if(entities.isEmpty) {
-      Seq.empty
+      EmptyEntityTable(underlyingTask)
     } else {
       val results = for (sparqlSource <- sparqlSources) yield {
-        sparqlSource.retrieveByUri(entitySchema, entities)
+        sparqlSource.retrieveByUri(entitySchema, entities).entities
       }
-      results.flatten
+      GenericEntityTable(results.flatten, entitySchema, underlyingTask)
     }
   }
 

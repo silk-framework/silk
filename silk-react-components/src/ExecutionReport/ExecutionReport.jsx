@@ -40,15 +40,30 @@ export default class ExecutionReport extends React.Component {
                 Execution Report
             </CardTitle>
             <CardContent>
-                <table className="silk-report-table">
-                    <thead>
-                    </thead>
-                    <tbody>
-                    {summaryRows}
-                    </tbody>
-                </table>
+                <div>
+                    <table className="silk-report-table">
+                        <thead>
+                        </thead>
+                        <tbody>
+                        {summaryRows}
+                        </tbody>
+                    </table>
+                </div>
+                {this.renderWarning()}
             </CardContent>
         </Card>
+    }
+
+    renderWarning() {
+        const warnings = this.props.executionReport.warnings.map(warning =>
+            <div className="mdl-alert mdl-alert--danger mdl-alert--border mdl-alert--spacing">
+                <div className="mdl-alert__content">
+                    <p>{warning}</p>
+                </div>
+            </div>
+        );
+
+        return <div className="silk-report-warning">{warnings}</div>
     }
     
     renderTransformReport() {

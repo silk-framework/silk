@@ -221,7 +221,7 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
       case Some(sampleSize) =>
         dataSource.sampleEntities(entitySchema, sampleSize, None)
       case None =>
-        dataSource.retrieve(entitySchema)
+        dataSource.retrieve(entitySchema).entities
     }
   }
 }
