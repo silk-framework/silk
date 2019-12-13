@@ -15,5 +15,5 @@ case class LocalGraphStoreFileUploadTable(files: Traversable[FileResource], task
 
   override def entities: Traversable[Entity] = Traversable.empty
 
-  override def updateEntities(newEntities: Traversable[Entity]): LocalEntities = EmptyEntityTable(task)
+  override def updateEntities(newEntities: Traversable[Entity]): LocalEntities = this // Changing entities has no effect
 }
