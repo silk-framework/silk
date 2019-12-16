@@ -51,7 +51,8 @@ class ExecuteTransform(taskLabel: String,
     entitySink.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get))
 
     val entities = dataSource.retrieve(rule.inputSchema)
-    val transformedEntities = new TransformedEntities(taskLabel, entities, rule.transformRule.rules, rule.outputSchema, context)
+    val transformedEntities = new TransformedEntities(taskLabel, entities, rule.transformRule.rules, rule.outputSchema,
+      isRequestedSchema = false, context = context)
     var count = 0
     breakable {
       for (entity <- transformedEntities) {
