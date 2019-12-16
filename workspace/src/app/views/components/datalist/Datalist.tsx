@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import Pagination from "./Pagination";
-import { HTMLTable, Icon, Tag } from "@blueprintjs/core";
+import { HTMLTable, Icon, Popover, Position, Tag } from "@blueprintjs/core";
 import SearchInput from "../../layout/header/SearchInput";
 import { IPaginationState } from "../../../state/typings";
 import SortButton from "./SortButton";
-import { IAppliedFacetState, ISorterListItemState } from "../../../state/ducks/dashboard/typings";
+import { IAppliedFacetState, IFacetState, ISorterListItemState } from "../../../state/ducks/dashboard/typings";
 import DeleteModal, { IDeleteModalOptions } from "../modals/DeleteModal";
-
+import { Menu } from "@blueprintjs/core/lib/esnext";
+import './style.scss';
 
 interface IProps {
     data: any[];
@@ -23,9 +24,10 @@ interface IProps {
         onFacetRemove?(facetId: string, keyword: string): void;
     }
     deleteModalOptions: Partial<IDeleteModalOptions>;
+    facets: IFacetState[];
 }
 
-export default function Datalist({data, pagination, appliedFacets, hooks, deleteModalOptions, searchValue, sortersList}: IProps) {
+export default function Datalist({data, pagination, appliedFacets, facets, hooks, deleteModalOptions, searchValue, sortersList}: IProps) {
     const [searchInput, setSearchInput] = useState();
     const [selectedItem, setSelectedItem] = useState();
     const [showDeleteModal, setShowDeleteModal] = useState();
@@ -65,6 +67,34 @@ export default function Datalist({data, pagination, appliedFacets, hooks, delete
         return label;
     };
 
+    const getRowMenu = (item: any) => {
+        const {itemLinks} = item;
+        const menuItems = itemLinks.map(link =>
+            <Menu.Item text={link.label} href={link.path} target={'_blank'}/>
+        );
+        menuItems.push(
+            <Menu.Item icon={'trash'} onClick={() => toggleDeleteModal(item)} text={'Delete'}/>
+        );
+
+        return (
+            <Menu>
+                {menuItems}
+            </Menu>
+        )
+    };
+
+    const facetsList = [];
+    appliedFacets.map(appliedFacet => {
+        const facet = facets.find(o => o.id === appliedFacet.facetId);
+        if (facet) {
+            facetsList.push({
+                label: facet.label,
+                id: facet.id,
+                keywords: facet.values.filter(key => appliedFacet.keywordIds.includes(key.id))
+            });
+
+        }
+    });
     return (
         <>
             <div className="clearfix">
@@ -84,21 +114,23 @@ export default function Datalist({data, pagination, appliedFacets, hooks, delete
                         ? <p>No resources found</p>
                         : <div>
                             {
-                                hooks.onFacetRemove && appliedFacets.map(facet =>
+                                hooks.onFacetRemove && facetsList.map(facet =>
                                     <div
-                                        key={facet.facetId}
-                                        style={{display:'inline-block'}}
+                                        key={facet.id}
+                                        className='tags-group'
                                     >
-                                        {facet.facetId}
+                                        <div className='tag-label'>{facet.label}:</div>
                                         {
-                                            facet.keywordIds.map(keyword =>
-                                                <Tag onRemove={() => hooks.onFacetRemove(facet.facetId, keyword)}>
-                                                    {keyword}
+                                            facet.keywords.map(keyword =>
+                                                <Tag
+                                                    className='tag'
+                                                    onRemove={() => hooks.onFacetRemove(facet.id, keyword.id)}
+                                                >
+                                                    {keyword.label}
                                                 </Tag>
                                             )
                                         }
                                     </div>
-
                                 )
                             }
                             <HTMLTable bordered={true} interactive={true} striped={true}>
@@ -108,31 +140,29 @@ export default function Datalist({data, pagination, appliedFacets, hooks, delete
                                         <tr key={item.id}>
                                             <td>
                                                 <p dangerouslySetInnerHTML={{
-                                                    __html: getSearchHighlight(item.label || item.id)}}
+                                                    __html: getSearchHighlight(item.label || item.id)
+                                                }}
                                                 />
                                                 <p>{item.description}</p>
                                             </td>
                                             <td>
-                                                <a style={{'paddingRight': '10px'}}>
-                                                    <Icon icon={'duplicate'}/>
-                                                </a>
-                                                <a onClick={() => toggleDeleteModal(item)}>
-                                                    <Icon icon={'trash'}/>
-                                                </a>
+                                                <Popover content={getRowMenu(item)} position={Position.BOTTOM_LEFT}>
+                                                    <Icon icon="more"/>
+                                                </Popover>
                                             </td>
                                         </tr>
                                     )
                                 }
                                 </tbody>
                                 <tfoot>
-                                    <tr>
-                                        <td colSpan={3}>
-                                            <Pagination
-                                                pagination={pagination}
-                                                onPageChange={hooks.onPageChange}
-                                            />
-                                        </td>
-                                    </tr>
+                                <tr>
+                                    <td colSpan={3}>
+                                        <Pagination
+                                            pagination={pagination}
+                                            onPageChange={hooks.onPageChange}
+                                        />
+                                    </td>
+                                </tr>
                                 </tfoot>
                             </HTMLTable>
                         </div>

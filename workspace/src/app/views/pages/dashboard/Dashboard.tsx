@@ -13,6 +13,7 @@ export default function DashboardLayout() {
     const [deleteModalOptions, setDeleteModalOptions] = useState({});
 
     const data = useSelector(dashboardSel.resultsSelector);
+    const facets = useSelector(dashboardSel.facetsSelector);
     const sorters = useSelector(dashboardSel.sortersSelector);
 
     const pagination = useSelector(dashboardSel.paginationSelector);
@@ -103,6 +104,7 @@ export default function DashboardLayout() {
                         onFacetRemove: onFacetRemove
                     }}
                     deleteModalOptions={deleteModalOptions}
+                    facets={facets}
                 />
             </div>
         </div>
