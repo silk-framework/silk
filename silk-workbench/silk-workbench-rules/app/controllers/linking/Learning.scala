@@ -8,8 +8,8 @@ import javax.inject.Inject
 import models.learning.{PathValue, PathValues}
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
-import org.silkframework.entity.Link
-import org.silkframework.entity.paths.{Path, TypedPath, UntypedPath}
+import org.silkframework.entity.paths.{Path, TypedPath}
+import org.silkframework.entity.{Link, MinimalLink}
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.learning.individual.Population
@@ -141,7 +141,7 @@ class Learning @Inject() (implicit mat: Materializer) extends InjectedController
     // Try to find the chosen link candidate in the pool, because the pool links have entities attached
     val linkCandidate = activeLearn.value().pool.links.find(l => l.source == linkSource && l.target == linkTarget) match {
       case Some(l) => l
-      case None => new Link(linkSource, linkTarget)
+      case None => new MinimalLink(linkSource, linkTarget)
     }
 
     // Commit link candidate

@@ -8,7 +8,7 @@ import controllers.util.SerializationUtils
 import javax.inject.Inject
 import org.silkframework.config.MetaData
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.entity.{Entity, Link, Restriction}
+import org.silkframework.entity.{Entity, FullLink, Link, MinimalLink, Restriction}
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.rule.evaluation.ReferenceLinks
@@ -21,11 +21,11 @@ import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
-import org.silkframework.workspace.activity.linking.{EvaluateLinkingActivity, ReferenceEntitiesCache}
+import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
+import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, InjectedController}
-import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 
 class LinkingTaskApi @Inject() () extends InjectedController {
 
@@ -224,7 +224,7 @@ class LinkingTaskApi @Inject() () extends InjectedController {
     log.info(s"Adding $linkType reference link: $source - $target")
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val link = new Link(source, target)
+    val link = new MinimalLink(source, target)
 
     linkType match {
       case "positive" => {
@@ -252,7 +252,7 @@ class LinkingTaskApi @Inject() () extends InjectedController {
   def deleteReferenceLink(projectName: String, taskName: String, source: String, target: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val link = new Link(source, target)
+    val link = new MinimalLink(source, target)
     
     val updatedTask = task.data.copy(referenceLinks = task.data.referenceLinks.without(link))
     project.updateTask(taskName, updatedTask)
@@ -331,7 +331,7 @@ class LinkingTaskApi @Inject() () extends InjectedController {
     def serializeLinks(entities: Traversable[DPair[Entity]]): JsValue = {
       JsArray(
         for(entities <- entities.toSeq) yield {
-          val link = new Link(entities.source.uri, entities.target.uri, Some(rule(entities)), Some(entities))
+          val link = new FullLink(entities.source.uri, entities.target.uri, rule(entities), entities)
           new LinkJsonFormat(Some(rule)).write(link)
         }
       )

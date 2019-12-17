@@ -10,10 +10,22 @@ import org.silkframework.runtime.activity.ActivityContext
 
 import scala.util.control.NonFatal
 
+/**
+  * Entities that come from a transform task.
+  *
+  * @param taskLabel         The label of the transform task these entities originate from.
+  * @param entities          The source entities the transformation is applied to.
+  * @param rules             The transformation rules that are applied against the source entities.
+  * @param outputSchema      The output schema of the transformation.
+  * @param isRequestedSchema True, if the output schema was requested by the following task. False if this is the output
+  *                          schema defined by the mapping itself. A requested schema is type agnostic.
+  * @param context           The activity context.
+  */
 class TransformedEntities(taskLabel: String,
                           entities: Traversable[Entity],
                           rules: Seq[TransformRule],
                           outputSchema: EntitySchema,
+                          isRequestedSchema: Boolean,
                           context: ActivityContext[TransformReport]) extends Traversable[Entity] {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
@@ -33,8 +45,9 @@ class TransformedEntities(taskLabel: String,
 
   override def foreach[U](f: Entity => U): Unit = {
     // For each schema path, collect all rules that map to it
-    val rulesPerPath =
-      for(path <- outputSchema.typedPaths) yield {
+    val rulesPerPath = if(isRequestedSchema) { for(path <- outputSchema.typedPaths) yield
+        propertyRules.filter(_.target.get.asPath() == path.asUntypedPath)
+      } else { for(path <- outputSchema.typedPaths) yield
         propertyRules.filter(_.target.get.asTypedPath() == path)
       }
 
@@ -65,7 +78,6 @@ class TransformedEntities(taskLabel: String,
           for (rules <- rulesPerPath) yield {
             rules.flatMap(evalRule)
           }
-
         f(Entity(uri, values, outputSchema))
 
         count += 1
@@ -75,15 +87,17 @@ class TransformedEntities(taskLabel: String,
           lastUpdateTime = System.currentTimeMillis()
         }
       }
-
-      report.incrementEntityCounter()
-      if (errorFlag) {
-        report.incrementEntityErrorCounter()
-      }
-
+      updateReport()
     }
     context.value() = report.build()
     context.status.updateMessage(s"Finished Executing ($count Entities)")
+  }
+
+  private def updateReport(): Unit = {
+    report.incrementEntityCounter()
+    if (errorFlag) {
+      report.incrementEntityErrorCounter()
+    }
   }
 
   private def evaluateRule(entity: Entity, rule: TransformRule): Seq[String] = {

@@ -43,7 +43,7 @@ object LinkingSerializers {
     final val ENTITIES = "entities"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Link = {
-      new Link(
+      Link(
         source = stringValue(value, SOURCE),
         target = stringValue(value, TARGET),
         confidence = numberValueOption(value, CONFIDENCE).map(_.doubleValue)

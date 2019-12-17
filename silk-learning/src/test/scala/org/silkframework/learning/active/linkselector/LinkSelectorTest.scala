@@ -75,7 +75,7 @@ object LinkSelectorTest extends App {
   }
 
   def link(label1: String, date1: String, label2: String, date2: String) = {
-    new Link(
+    Link(
       source = label1 + date1,
       target = label2 + date2,
       entities = Some(entities(label1, date1, label2, date2))
