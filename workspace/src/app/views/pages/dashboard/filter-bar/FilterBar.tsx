@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { dashboardOp, dashboardSel } from "../../../../state/ducks/dashboard";
-import Checkbox from "../../../components/wrappers/checkbox/Checkbox";
+import Checkbox from "../../../components/wrappers/checkbox";
 import Label from "../../../components/wrappers/label/Label";
 import FacetsList from "./FacetsList";
 
@@ -12,7 +12,6 @@ export default function FilterBar() {
     const modifiers = useSelector(dashboardSel.modifiersSelector);
 
     const typeModifier = modifiers.type;
-
 
     useEffect(() => {
         dispatch(dashboardOp.fetchTypesAsync());

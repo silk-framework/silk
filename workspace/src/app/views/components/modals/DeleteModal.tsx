@@ -1,7 +1,7 @@
 import React, { ReactElement, useState } from "react";
 import { Button, Classes, Intent } from '@blueprintjs/core';
 import Dialog from "../wrappers/dialog/Dialog";
-import Checkbox from "../wrappers/checkbox/Checkbox";
+import Checkbox from "../wrappers/checkbox";
 import Label from "../wrappers/label/Label";
 
 export interface IDeleteModalOptions {
@@ -48,7 +48,7 @@ export default function DeleteModal({isOpen, confirmationRequired, onDiscard, re
                     >
                         Remove
                     </Button>
-                    <Button onClick={onDiscard}>Cancel</Button>
+                    <Button onClick={() => onDiscard()}>Cancel</Button>
                 </div>
             </div>
 

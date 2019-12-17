@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@wrappers/*": ["./src/app/views/components/wrappers/*"]
+    },
     "target": "es5",
     "lib": [
       "dom",

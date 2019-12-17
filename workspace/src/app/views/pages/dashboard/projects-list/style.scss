@@ -1,4 +1,5 @@
 .tags-group {
+  margin-left: -10px;
   .tag {
     display: inline-flex;
     flex-direction: row;
@@ -12,7 +13,6 @@
     line-height: 16px;
     color: #f5f8fa;
     font-size: 12px;
-    margin-bottom: 10px;
   }
   .tag-label {
     @extend .tag;
