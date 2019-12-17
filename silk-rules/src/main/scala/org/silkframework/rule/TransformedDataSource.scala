@@ -5,6 +5,8 @@ import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.entity.metadata.GenericExecutionFailure
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.failures.FailureClass
 import org.silkframework.util.Uri
@@ -50,8 +52,8 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext): Traversable[Entity] = {
-    retrieveEntities(entitySchema, None, limit)
+                       (implicit userContext: UserContext): EntityHolder = {
+    GenericEntityTable(retrieveEntities(entitySchema, None, limit), entitySchema, underlyingTask)
   }
 
   /**
@@ -62,11 +64,11 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): Traversable[Entity] = {
+                            (implicit userContext: UserContext): EntityHolder = {
     if(entities.isEmpty) {
-      Seq.empty
+      EmptyEntityTable(underlyingTask)
     } else {
-      retrieveEntities(entitySchema, Some(entities), None)
+      GenericEntityTable(retrieveEntities(entitySchema, Some(entities), None), entitySchema, underlyingTask)
     }
   }
 
@@ -78,7 +80,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
         transformRule.rules.allRules.filter(_.target.map(_.asPath()).contains(typedPath.asUntypedPath))
       }
 
-    val sourceEntities = source.retrieve(inputSchema, limit)
+    val sourceEntities = source.retrieve(inputSchema, limit).entities
     def transformedUri: Entity => String = (entity: Entity) => subjectRule.flatMap(_ (entity).headOption).getOrElse(entity.uri.toString)
     // True if the entity should be output, i.e. if entity URIs are defined the transformed entity URI should be included in that set
     val filterEntity: Entity => Boolean = entities match {

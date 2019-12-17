@@ -64,5 +64,7 @@ class ExecuteTransform(taskLabel: String,
       }
     }
     entitySink.closeTable()
+
+    context.value() = context.value().copy(globalErrors = context.value().globalErrors ++ entityTable.globalErrors)
   }
 }

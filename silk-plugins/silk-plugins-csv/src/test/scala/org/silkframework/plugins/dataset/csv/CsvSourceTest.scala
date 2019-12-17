@@ -55,7 +55,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   "For persons.csv, CsvParser" should "extract all columns" in {
     val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("ID").asStringTypedPath, UntypedPath("Name").asStringTypedPath, UntypedPath("Age").asStringTypedPath))
-    val persons = source.retrieve(entityDesc).toIndexedSeq
+    val persons = source.retrieve(entityDesc).entities.toIndexedSeq
     persons(0).values should equal(IndexedSeq(Seq("1"), Seq("Max Mustermann"), Seq("30")))
     persons(1).values should equal(IndexedSeq(Seq("2"), Seq("Markus G."), Seq("24")))
     persons(2).values should equal(IndexedSeq(Seq("3"), Seq("John Doe"), Seq("55")))
@@ -63,7 +63,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   "For persons.csv, CsvParser" should "extract selected columns" in {
     val entityDesc = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("Name").asStringTypedPath, UntypedPath("Age").asStringTypedPath))
-    val persons = source.retrieveEntities(entityDesc).toIndexedSeq
+    val persons = source.retrieveEntities(entityDesc).entities.toIndexedSeq
     persons(0).values should equal(IndexedSeq(Seq("Max Mustermann"), Seq("30")))
     persons(1).values should equal(IndexedSeq(Seq("Markus G."), Seq("24")))
     persons(2).values should equal(IndexedSeq(Seq("John Doe"), Seq("55")))
@@ -172,7 +172,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   private def getEntities(dataSource: DataSource): Seq[Entity] = {
     val paths = dataSource.retrievePaths(Uri("")).toIndexedSeq
-    val entities = dataSource.retrieve(EntitySchema(Uri(""), paths)).toSeq
+    val entities = dataSource.retrieve(EntitySchema(Uri(""), paths)).entities.toSeq
     entities
   }
 
@@ -193,7 +193,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
   it should "support #idx special forward path" in {
     val s = source
     val schema = EntitySchema("", typedPaths = IndexedSeq(UntypedPath("#idx").asStringTypedPath))
-    val entities = s.retrieve(schema, limitOpt = Some(3))
+    val entities = s.retrieve(schema, limitOpt = Some(3)).entities
     entities.map(_.values.flatten.head) shouldBe Seq("1", "2", "3")
   }
 
@@ -216,8 +216,8 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   "Csv Source" should "fetch entities by URI" in {
     val es = EntitySchema("", IndexedSeq())
-    val entities = source.retrieve(es)
+    val entities = source.retrieve(es).entities
     entities.size shouldBe 3
-    source.retrieveByUri(es, Seq(entities.head.uri)).size shouldBe 1
+    source.retrieveByUri(es, Seq(entities.head.uri)).entities.size shouldBe 1
   }
 }
