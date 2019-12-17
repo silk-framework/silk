@@ -115,7 +115,7 @@ case class ServedContent(contextPath: String = "/",
   * @param contentFn   The content function that returns the served content
   */
 case class DynamicContent(contextPath: String = "/",
-                          contentFn: (HttpExchange) => ServedContent) extends ContentHandler
+                          contentFn: HttpExchange => ServedContent) extends ContentHandler
 
 /**
   * Gives full control over the HTTP Exchange.
@@ -123,4 +123,4 @@ case class DynamicContent(contextPath: String = "/",
   * @param handleRequestFn Handle the HTTP exchange, i.e. send data via output stream and close it, etc.
   */
 case class FullControl(contextPath: String = "/",
-                       handleRequestFn: (HttpExchange) => Unit) extends ContentHandler
+                       handleRequestFn: HttpExchange => Unit) extends ContentHandler
