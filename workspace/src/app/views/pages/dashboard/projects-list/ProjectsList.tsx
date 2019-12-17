@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import Pagination from "./components/Pagination";
-import './style.scss';
 import { useDispatch, useSelector } from "react-redux";
 import { dashboardOp, dashboardSel } from "../../../../state/ducks/dashboard";
 import ActionsTopBar from "./ActionsTopBar";
@@ -9,6 +8,8 @@ import DataList from "../../../components/datalist/DataList";
 import DeleteModal from "../../../components/modals/DeleteModal";
 import ProjectRow from "./ProjectRow";
 import Loading from "../../../components/loading/Loading";
+
+import './style.scss';
 
 export default function ProjectsList() {
 
@@ -29,7 +30,6 @@ export default function ProjectsList() {
 
     useEffect(() => {
         dispatch(dashboardOp.fetchListAsync());
-        console.log(appliedFilters, sorters.applied, pagination.current);
     }, [appliedFilters, sorters.applied, pagination.current]);
 
     const onDiscardDeleteModal = () => {

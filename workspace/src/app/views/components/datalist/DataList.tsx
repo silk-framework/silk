@@ -1,5 +1,5 @@
-import { HTMLTable } from "@blueprintjs/core";
 import React from "react";
+import HTMLTable from "@wrappers/html-table";
 
 function _Row({children}) {
     return (

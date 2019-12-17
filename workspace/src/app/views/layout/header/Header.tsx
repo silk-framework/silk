@@ -2,16 +2,13 @@ import React, { memo} from 'react';
 import './Header.scss';
 import { globalSel } from "../../../state/ducks/global";
 import { useSelector } from "react-redux";
-import {
-    Button,
-    Classes,
-    IBreadcrumbProps,
-    Navbar,
-    NavbarDivider,
-    NavbarGroup,
-    NavbarHeading,
-} from "@blueprintjs/core";
-import Breadcrumbs from "../../components/wrappers/breadcrumbs/Breadcrumbs";
+import Breadcrumbs from "@wrappers/breadcrumbs";
+import Button from "@wrappers/button";
+import { Classes } from "@wrappers/constants";
+import NavbarDivider from "@wrappers/navbar-divider";
+import Navbar from "@wrappers/navbar";
+import NavbarGroup from "@wrappers/navbar-group";
+import NavbarHeading from "@wrappers/navbar-heading";
 
 interface IProps {
     externalRoutes: any;
@@ -112,7 +109,7 @@ const Header = memo<IProps>(({externalRoutes}) => {
 
     const menu = generateMenuItems(pluginMenuData);
     const isAuth = useSelector(globalSel.isAuthSelector);
-    const breadcrumbs: IBreadcrumbProps[] = [
+    const breadcrumbs = [
         {text: 'Home'},
     ];
 

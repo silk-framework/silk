@@ -1,6 +1,10 @@
-import { Button, Menu, MenuItem, Popover, Position } from "@blueprintjs/core";
 import React from "react";
 import { ISorterListItemState } from "../../../../../state/ducks/dashboard/typings";
+import Popover from "@wrappers/popover";
+import Menu from "@wrappers/menu";
+import Button from "@wrappers/button";
+import MenuItem from "@wrappers/menu-item";
+import { Position } from "@wrappers/constants";
 
 interface IProps {
     sortersList: ISorterListItemState[],

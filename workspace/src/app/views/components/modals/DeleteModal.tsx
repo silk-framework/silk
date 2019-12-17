@@ -1,8 +1,9 @@
 import React, { ReactElement, useState } from "react";
-import { Button, Classes, Intent } from '@blueprintjs/core';
-import Dialog from "../wrappers/dialog/Dialog";
-import Checkbox from "../wrappers/checkbox";
-import Label from "../wrappers/label/Label";
+import { Classes, Intent } from "@wrappers/constants";
+import Button from "@wrappers/button";
+import Dialog from "@wrappers/dialog";
+import Label from "@wrappers/label";
+import Checkbox from "@wrappers/checkbox";
 
 export interface IDeleteModalOptions {
     isOpen: boolean;

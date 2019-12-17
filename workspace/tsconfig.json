@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
-      "@wrappers/*": ["./src/app/views/components/wrappers/*"]
+      "@wrappers/*": ["./src/app/wrappers/*"]
     },
     "target": "es5",
     "lib": [

@@ -2,7 +2,7 @@ import React from 'react';
 import { IFacetState } from "../../../../state/ducks/dashboard/typings";
 import { useDispatch, useSelector } from "react-redux";
 import { dashboardOp, dashboardSel } from "../../../../state/ducks/dashboard";
-import Label from "../../../components/wrappers/label/Label";
+import Label from "@wrappers/label";
 import FacetItem from "./FacetItem";
 
 export default function FacetsList() {

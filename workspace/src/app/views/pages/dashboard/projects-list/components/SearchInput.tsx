@@ -1,5 +1,6 @@
-import React, { memo, useEffect } from 'react';
-import { InputGroup, Spinner } from "@blueprintjs/core";
+import React, { memo } from 'react';
+import Spinner from "@wrappers/spinner";
+import InputGroup from "@wrappers/input-group";
 
 interface IProps {
     onFilterChange: (e) => any;

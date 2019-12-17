@@ -1,7 +1,11 @@
-import { Icon, Popover, Position, Menu } from "@blueprintjs/core";
 import React from "react";
 import DataList from "../../../components/datalist/DataList";
 import { ISearchResultsTask } from "../../../../state/ducks/dashboard/typings";
+import MenuItem from "@wrappers/menu-item";
+import Menu from "@wrappers/menu";
+import Popover from "@wrappers/popover";
+import { Position } from "@wrappers/constants";
+import Icon from "@wrappers/icon";
 
 interface IProps {
     item: ISearchResultsTask;
@@ -23,10 +27,10 @@ export default function ProjectRow({ item, searchValue, onOpenDeleteModal }: IPr
     const getRowMenu = (item: any) => {
         const {itemLinks} = item;
         const menuItems = itemLinks.map(link =>
-            <Menu.Item key={link.path} text={link.label} href={link.path} target={'_blank'}/>
+            <MenuItem key={link.path} text={link.label} href={link.path} target={'_blank'}/>
         );
         menuItems.push(
-            <Menu.Item key='delete' icon={'trash'} onClick={() => onOpenDeleteModal(item)} text={'Delete'}/>
+            <MenuItem key='delete' icon={'trash'} onClick={() => onOpenDeleteModal(item)} text={'Delete'}/>
         );
 
         return (

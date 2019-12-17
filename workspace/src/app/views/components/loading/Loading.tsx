@@ -1,5 +1,6 @@
 import React, { memo } from "react";
-import { Spinner, Intent, Classes } from "@blueprintjs/core";
+import Spinner from "@wrappers/spinner";
+import { Classes, Intent } from "@wrappers/constants";
 
 interface IProps {
     size?: string;

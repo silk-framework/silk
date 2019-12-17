@@ -1,4 +1,4 @@
-import { Tag } from "@blueprintjs/core";
+import Tag from "@wrappers/tag";
 import React from "react";
 
 interface IProps {

@@ -8,7 +8,7 @@ import { ConnectedRouter } from "connected-react-router";
 import { getHistory } from "./state/configureStore";
 
 import "normalize.css";
-import "@blueprintjs/core/lib/css/blueprint.css";
+import "@wrappers/index.scss";
 
 interface IProps {
     routes: RouteProps[];

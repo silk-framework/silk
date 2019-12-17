@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
-import { Icon, Intent } from "@blueprintjs/core";
-import { IconNames } from "@blueprintjs/icons";
+import Icon from "@wrappers/icon";
+import { IconNames, Intent } from "@wrappers/constants";
 
 const NavButton = memo(() => {
     return (
