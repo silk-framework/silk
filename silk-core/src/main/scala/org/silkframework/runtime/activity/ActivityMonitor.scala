@@ -113,6 +113,13 @@ class ActivityMonitor[T](name: String,
   }
 
   /**
+    * Removes all child activities.
+    */
+  protected def clearChildren(): Unit = {
+    childControls = Seq.empty
+  }
+
+  /**
     * Will provide context information relevant for the Activity to be performed (if any)
     * @return - ActivityContextData of the specified type
     */
