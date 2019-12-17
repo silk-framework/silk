@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import Spinner from "@wrappers/spinner";
 import InputGroup from "@wrappers/input-group";
+import { IconNames } from "@wrappers/constants";
 
 interface IProps {
     onFilterChange: (e) => any;
@@ -20,7 +21,7 @@ const SearchInput = memo(({ onFilterChange, filterValue, onBlur }: IProps) => {
     return (
         <InputGroup
             type={'search'}
-            leftIcon={'search'}
+            leftIcon={IconNames.SEARCH}
             onChange={onFilterChange}
             onBlur={onBlur}
             onKeyDown={handleKeyDown}

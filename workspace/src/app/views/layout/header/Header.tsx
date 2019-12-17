@@ -1,6 +1,6 @@
 import React, { memo} from 'react';
 import './Header.scss';
-import { globalSel } from "../../../state/ducks/global";
+import { globalSel } from "@ducks/global";
 import { useSelector } from "react-redux";
 import Breadcrumbs from "@wrappers/breadcrumbs";
 import Button from "@wrappers/button";

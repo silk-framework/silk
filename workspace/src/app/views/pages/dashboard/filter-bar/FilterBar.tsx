@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { dashboardOp, dashboardSel } from "../../../../state/ducks/dashboard";
+import { dashboardOp, dashboardSel } from "@ducks/dashboard";
 import Checkbox from "@wrappers/checkbox";
 import Label from "@wrappers/label";
 import FacetsList from "./FacetsList";
@@ -42,6 +42,7 @@ export default function FilterBar() {
                             />
                         )
                     }
+
                     <FacetsList/>
                 </>
             }

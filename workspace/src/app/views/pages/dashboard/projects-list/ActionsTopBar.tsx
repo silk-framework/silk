@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import SortButton from "./components/SortButton";
-import SearchInput from "./components/SearchInput";
-import { dashboardOp, dashboardSel } from "../../../../state/ducks/dashboard";
+import SortButton from "./SortButton";
+import SearchInput from "../../../components/search-input/SearchInput";
+import { dashboardOp, dashboardSel } from "@ducks/dashboard";
 import { useDispatch, useSelector } from "react-redux";
 
 export default function ActionsTopBar() {

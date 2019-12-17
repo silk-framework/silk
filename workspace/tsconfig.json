@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
-    "baseUrl": "./",
+    "baseUrl": "./src/app",
     "paths": {
-      "@wrappers/*": ["./src/app/wrappers/*"]
+      "@wrappers/*": ["./wrappers/*"],
+      "@ducks/*": ["./state/ducks/*"]
     },
     "target": "es5",
     "lib": [

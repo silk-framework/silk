@@ -171,18 +171,22 @@ const logError = async (
         return false;
     }
 
-    await sendError(err);
+    const isStored = await sendError(err);
+    if (isStored) {
+        tableInstance[LOG_TABLE].clear();
+    }
+
     return true;
 };
 
 /**
  * Send the error via http or store in indexedDB
- * @TODO: remove from table if network available
  * @param error
  */
 const sendError = async (error: IError) => {
     await tableInstance[LOG_TABLE].put(error);
-
+    // return false if not saved for network
+    return true;
 };
 
 export {

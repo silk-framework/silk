@@ -1,3 +1,8 @@
+/**
+ * This function can be helpful
+ * if we want to add extra reducers for development environment
+ * @param createStore
+ */
 const reduxDevEnhancer = (createStore) => (
     reducer,
     initialState,

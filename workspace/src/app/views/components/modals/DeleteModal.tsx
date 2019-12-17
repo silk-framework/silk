@@ -21,6 +21,7 @@ export default function DeleteModal({isOpen, confirmationRequired, onDiscard, re
     const toggleConfirmChange = () => {
         setIsConfirmed(!isConfirmed);
     };
+
     return (
         <Dialog
             icon="info-sign"
@@ -32,6 +33,7 @@ export default function DeleteModal({isOpen, confirmationRequired, onDiscard, re
             <div className={Classes.DIALOG_BODY}>
                 {render && render()}
             </div>
+
             <div className={Classes.DIALOG_FOOTER}>
                 <div className={Classes.DIALOG_FOOTER_ACTIONS}>
                     {
@@ -49,7 +51,7 @@ export default function DeleteModal({isOpen, confirmationRequired, onDiscard, re
                     >
                         Remove
                     </Button>
-                    <Button onClick={() => onDiscard()}>Cancel</Button>
+                    <Button onClick={onDiscard}>Cancel</Button>
                 </div>
             </div>
 
