@@ -1,8 +1,10 @@
 import { IPaginationState } from "../../../typings";
 
+export type SortModifierType = 'ASC' | 'DESC';
+
 export interface IAppliedSorterState {
     sortBy: string;
-    sortOrder: 'ASC' | 'DESC';
+    sortOrder: SortModifierType;
 }
 
 export interface ISorterListItemState {

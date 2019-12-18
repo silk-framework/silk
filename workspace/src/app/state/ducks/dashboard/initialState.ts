@@ -33,7 +33,7 @@ export function initialFiltersState(props: Partial<IFiltersState> = {}): IFilter
 export function initialSortersState(props: Partial<ISortersState> = {}): ISortersState {
     return {
         list: [],
-        applied: {} as IAppliedSorterState,
+        applied: null,
         ...props
     }
 }

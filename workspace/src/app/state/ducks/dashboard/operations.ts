@@ -1,4 +1,3 @@
-import isEmpty from 'ramda/es/isEmpty';
 import { batch } from "react-redux";
 
 import fetch from '../../../services/fetch';
@@ -79,7 +78,7 @@ const fetchListAsync = () => {
             offset,
         };
 
-        if (!isEmpty(sorters)) {
+        if (sorters.applied) {
             body.sortBy = sorters.applied.sortBy;
             body.sortOrder = sorters.applied.sortOrder;
         }

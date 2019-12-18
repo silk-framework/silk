@@ -35,7 +35,7 @@ export default function ActionsTopBar() {
                 />
             </div>
             <div style={{width: '15%', float: 'left', marginLeft: '15px'}}>
-                <SortButton sortersList={sorters.list} onSort={handleSort}/>
+                <SortButton sortersList={sorters.list} onSort={handleSort} activeSort={sorters.applied}/>
             </div>
         </div>
     )

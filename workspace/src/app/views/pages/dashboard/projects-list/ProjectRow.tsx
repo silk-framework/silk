@@ -6,6 +6,7 @@ import Menu from "@wrappers/menu";
 import Popover from "@wrappers/popover";
 import { IconNames, Position } from "@wrappers/constants";
 import Icon from "@wrappers/icon";
+import Button from "@wrappers/button";
 
 interface IProps {
     item: ISearchResultsTask;
@@ -16,10 +17,26 @@ interface IProps {
 export default function ProjectRow({ item, searchValue, onOpenDeleteModal }: IProps) {
     const { Row, Cell } = DataList;
 
+    const getItemLinkIcons = (label: string) => {
+        switch (label) {
+            case 'Mapping editor':
+                return IconNames.GRAPH;
+            case 'Transform evaluation':
+                return IconNames.HEAT_GRID;
+            case 'Transform execution':
+                return IconNames.PLAY;
+            default:
+                return null;
+        }
+    };
+
     const getSearchHighlight = (label: string) => {
         if (searchValue) {
-            const regExp = RegExp(searchValue, 'gi');
-            return label.toString().replace(regExp, `<mark>${searchValue}</mark>`)
+            const searchStringParts = searchValue.split(' ');
+            return searchStringParts.map(word => {
+                const regExp = RegExp(word, 'gi');
+                return label.replace(regExp, `<mark>${word}</mark>`)
+            }).join('')
         }
         return label;
     };
@@ -27,7 +44,7 @@ export default function ProjectRow({ item, searchValue, onOpenDeleteModal }: IPr
     const getRowMenu = (item: any) => {
         const {itemLinks} = item;
         const menuItems = itemLinks.map(link =>
-            <MenuItem key={link.path} text={link.label} href={link.path} target={'_blank'}/>
+            <MenuItem key={link.path} text={link.label} href={link.path} icon={getItemLinkIcons(link.label)}/>
         );
 
         menuItems.push(
@@ -47,6 +64,7 @@ export default function ProjectRow({ item, searchValue, onOpenDeleteModal }: IPr
                 <p>{item.description}</p>
             </Cell>
             <Cell>
+                <Icon icon={IconNames.DUPLICATE} onClick={() => {}} style={{'paddingRight': '10px'}}/>
                 <Popover content={getRowMenu(item)} position={Position.BOTTOM_LEFT}>
                     <Icon icon={IconNames.MORE}/>
                 </Popover>

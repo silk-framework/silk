@@ -16,11 +16,10 @@ export default function ProjectsList() {
     const [deleteModalOptions, setDeleteModalOptions] = useState({});
 
     const data = useSelector(dashboardSel.resultsSelector);
-
     const sorters = useSelector(dashboardSel.sortersSelector);
-
     const pagination = useSelector(dashboardSel.paginationSelector);
     const appliedFilters = useSelector(dashboardSel.appliedFiltersSelector);
+    const isLoading = useSelector(dashboardSel.isLoadingSelector);
 
     const [selectedItem, setSelectedItem] = useState();
     const [showDeleteModal, setShowDeleteModal] = useState();
@@ -82,30 +81,35 @@ export default function ProjectsList() {
     return (
         <>
             <ActionsTopBar/>
-            {
-                !data.length ? <p>No resources found</p> :
-                    <DataList>
-                        <Header>
-                            <AppliedFacets/>
-                        </Header>
-                        <Body>
-                        {
-                            data.map(item => <ProjectRow
-                                key={item.id}
-                                item={item}
-                                onOpenDeleteModal={() => onOpenDeleteModal(item)}
-                                searchValue={appliedFilters.textQuery}
-                            />)
-                        }
-                        </Body>
-                        <Footer>
-                            <Pagination
-                                pagination={pagination}
-                                onPageChange={handlePageChange}
-                            />
-                        </Footer>
-                    </DataList>
-            }
+            <>
+                {
+                    isLoading
+                        ? <Loading/>
+                        : !data.length
+                            ? <p>No resources found</p>
+                            : <DataList>
+                                <Header>
+                                    <AppliedFacets/>
+                                </Header>
+                                <Body>
+                                {
+                                    data.map(item => <ProjectRow
+                                        key={item.id}
+                                        item={item}
+                                        onOpenDeleteModal={() => onOpenDeleteModal(item)}
+                                        searchValue={appliedFilters.textQuery}
+                                    />)
+                                }
+                                </Body>
+                                <Footer>
+                                    <Pagination
+                                        pagination={pagination}
+                                        onPageChange={handlePageChange}
+                                    />
+                                </Footer>
+                            </DataList>
+                }
+            </>
             <DeleteModal
                 isOpen={showDeleteModal}
                 onDiscard={onDiscardDeleteModal}

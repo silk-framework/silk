@@ -1,10 +1,15 @@
 import { createSelector } from "@reduxjs/toolkit";
-import { IFiltersState } from "./typings";
-import { IPreviewState } from "./typings/IDashboardPreview";
+import { IFiltersState, IPreviewState } from "./typings";
 import { IStore } from "../../typings/IStore";
 
 const filtersSelector = (state: IStore): IFiltersState => state.dashboard.filters;
 const previewSelector = (state: IStore): IPreviewState => state.dashboard.preview;
+
+const isLoadingSelector = createSelector(
+    [previewSelector],
+    preview => preview.isLoading
+);
+
 
 const resultsSelector = createSelector(
     [previewSelector],
@@ -49,4 +54,5 @@ export default {
     paginationSelector,
     modifiersSelector,
     facetsSelector,
+    isLoadingSelector
 }

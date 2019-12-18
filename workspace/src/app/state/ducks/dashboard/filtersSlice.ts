@@ -1,8 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { IAppliedSorterState } from "./typings";
+import { IAppliedSorterState, SortModifierType } from "./typings";
 import { initialPaginationState } from "../../typings";
 import without from "ramda/src/without";
 import { initialAppliedFacetState, initialFiltersState } from "./initialState";
+
+const DEFAULT_SORTER = {
+    id: null,
+    label: 'Default'
+};
 
 export const filtersSlice = createSlice({
     name: 'filters',
@@ -31,18 +36,28 @@ export const filtersSlice = createSlice({
         },
 
         updateSorters(state, action) {
-            state.sorters.list = action.payload;
+            state.sorters.list = [
+                DEFAULT_SORTER,
+                ...action.payload
+            ]
         },
 
         applySorter(state, action) {
             const currentSort = state.sorters.applied;
             const sortBy = action.payload;
-            const sortOrder = sortBy && currentSort.sortBy === sortBy ? 'DESC' : 'ASC';
-
-            state.sorters.applied = {
-                sortBy,
-                sortOrder
-            };
+            // clean sorting if default selected
+            if (DEFAULT_SORTER.id === sortBy) {
+                state.sorters.applied =null;
+            } else {
+                let sortOrder: SortModifierType = "ASC";
+                if (sortBy && currentSort) {
+                    sortOrder = currentSort.sortBy === sortBy ? "DESC" : "ASC";
+                }
+                state.sorters.applied = {
+                    sortBy,
+                    sortOrder
+                };
+            }
         },
 
         changePage(state, action) {
