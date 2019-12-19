@@ -47,11 +47,11 @@ export const filtersSlice = createSlice({
             const sortBy = action.payload;
             // clean sorting if default selected
             if (DEFAULT_SORTER.id === sortBy) {
-                state.sorters.applied =null;
+                state.sorters.applied = null;
             } else {
                 let sortOrder: SortModifierType = "ASC";
-                if (sortBy && currentSort) {
-                    sortOrder = currentSort.sortBy === sortBy ? "DESC" : "ASC";
+                if (sortBy && currentSort && currentSort.sortBy === sortBy) {
+                    sortOrder = currentSort.sortOrder === "ASC" ? "DESC" : "ASC";
                 }
                 state.sorters.applied = {
                     sortBy,
