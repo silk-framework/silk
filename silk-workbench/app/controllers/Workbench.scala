@@ -14,7 +14,11 @@ class Workbench @Inject() (assets: Assets) extends InjectedController {
     Ok(views.html.start(welcome))
   }
 
-  def reactUI(): Action[AnyContent] = Action {
+  def reactUIRoot(): Action[AnyContent] = Action {
     Ok(WorkbenchConfig.indexHtml)
+  }
+
+  def reactUI(path: String): Action[AnyContent] = Action {
+    Ok(WorkbenchConfig.indexHtml) // Return index.html for everything under the React workspace route
   }
 }

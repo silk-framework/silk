@@ -1,6 +1,7 @@
 GET        /               controllers.Workbench.index
 # TODO: remove this route later
-GET        /workspaceNew     controllers.Workbench.reactWorkbench()
+GET        /workspaceNew     controllers.Workbench.reactUIRoot()
+GET        /workspaceNew/*x  controllers.Workbench.reactUI(x: String)
 
 # Redirect call to individual modules
 ->         /core           core.Routes
