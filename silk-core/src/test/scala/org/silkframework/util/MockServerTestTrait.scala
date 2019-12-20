@@ -56,17 +56,22 @@ trait MockServerTestTrait {
     // Consume body if available
     val is = new BufferedInputStream(httpExchange.getRequestBody)
     while(is.read() != -1) {}
-    val response = responseContent.content
+    val responseOpt = responseContent.content
     val responseHeaders = httpExchange.getResponseHeaders
     if(responseContent.statusCode == 204) {
       // No Content
       httpExchange.sendResponseHeaders(responseContent.statusCode, -1)
     } else {
-      responseHeaders.add("content-type", responseContent.contentType)
-      httpExchange.sendResponseHeaders(responseContent.statusCode, response.getBytes("UTF-8").length)
-      val os = httpExchange.getResponseBody
-      os.write(response.getBytes("UTF-8"))
-      os.close()
+      responseOpt match {
+        case Some(response) =>
+          responseHeaders.add("content-type", responseContent.contentType)
+          httpExchange.sendResponseHeaders(responseContent.statusCode, response.getBytes("UTF-8").length)
+          val os = httpExchange.getResponseBody
+          os.write(response.getBytes("UTF-8"))
+          os.close()
+        case None =>
+          httpExchange.sendResponseHeaders(responseContent.statusCode, -1)
+      }
     }
   }
 
@@ -100,12 +105,12 @@ sealed trait ContentHandler {
 /**
   * Static content that is served by the mock server.
   * @param contextPath The context path of the endpoint serving the content.
-  * @param content     The text content that should be returned.
+  * @param content     The text content that should be returned. None for no body.
   * @param contentType The content type of the response.
   * @param statusCode  The status code of the response.
   */
 case class ServedContent(contextPath: String = "/",
-                         content: String = "",
+                         content: Option[String] = None,
                          contentType: String = "text/plain",
                          statusCode: Int = 200) extends ContentHandler
 
