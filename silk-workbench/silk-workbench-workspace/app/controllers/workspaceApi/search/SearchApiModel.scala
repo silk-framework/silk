@@ -216,6 +216,14 @@ object SearchApiModel {
       }
     }
 
+    override protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], task: ProjectTask[_ <: TaskSpec]): Boolean = {
+      val taskLabel = task.metaData.label
+      val name = if(taskLabel.trim != "") taskLabel else task.id.toString
+      val labelMatch = matchesSearchTerm(lowerCaseSearchTerms, name)
+      val descriptionMatch = matchesSearchTerm(lowerCaseSearchTerms, task.metaData.description.getOrElse(""))
+      labelMatch || descriptionMatch
+    }
+
     /** Collects facet data of dataset tasks. */
     case class DatasetFacetCollector() {
       val datasetTypeDescription = "The concrete type of a dataset, e.g. its data model and format etc."
