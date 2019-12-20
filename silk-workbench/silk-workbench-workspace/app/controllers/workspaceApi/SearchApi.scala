@@ -29,10 +29,16 @@ class SearchApi @Inject() () extends InjectedController with ControllerUtilsTrai
   /** Get all item types */
   def itemTypes(): Action[AnyContent] = Action {
     val results = ItemType.ordered.map { itemType =>
-      val id = itemType.toString
-      JsObject(Seq("id" -> JsString(id)))
+      JsObject(Seq(
+        "id" -> JsString(itemType.id),
+        "label" -> JsString(itemType.label)
+      ))
     }
-    Ok(JsArray(results))
+    val result = JsObject(Seq(
+      "label" -> JsString("Type"),
+      "values" -> JsArray(results)
+    ))
+    Ok(result)
   }
 }
 

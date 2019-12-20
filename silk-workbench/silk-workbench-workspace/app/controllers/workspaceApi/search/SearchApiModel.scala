@@ -27,7 +27,18 @@ object SearchApiModel {
   /* JSON serialization */
   implicit val responseOptionsReader: Reads[TaskFormatOptions] = Json.reads[TaskFormatOptions]
   implicit val searchRequestReader: Reads[SearchRequest] = Json.reads[SearchRequest]
-  implicit val itemTypeReads: Reads[ItemType.Value] = Reads.enumNameReads(ItemType)
+  implicit val itemTypeReads: Format[ItemType] = new Format[ItemType] {
+    override def reads(json: JsValue): JsResult[ItemType] = {
+      json match {
+        case JsString(value) =>ItemType.idToItemType.get(value) match {
+          case Some(itemType) => JsSuccess(itemType)
+          case None => throw BadUserInputException(s"Invalid value for itemType. Got '$value'. Value values: " + ItemType.ordered.map(_.id).mkString(", "))
+        }
+        case _ => throw BadUserInputException("Invalid value for itemType. String value expected.")
+      }
+    }
+    override def writes(o: ItemType): JsValue = JsString(o.id)
+  }
   implicit val sortOrderReads: Reads[SortOrder.Value] = Reads.enumNameReads(SortOrder)
   implicit val sortByReads: Reads[SortBy.Value] = Reads.enumNameReads(SortBy)
   implicit val facetTypesReads: Reads[FacetType.Value] = Reads.enumNameReads(FacetType)
@@ -61,12 +72,19 @@ object SearchApiModel {
   implicit val facetResultWrites: Writes[FacetResult] = Json.writes[FacetResult]
 
   /** The item types the search can be restricted to. */
-  object ItemType extends Enumeration {
-    val Project, Dataset, Transform, Linking, Workflow, Task = Value
+  sealed abstract class ItemType(val id: String, val label: String)
 
-    val ordered: Seq[ItemType.Value] = Seq(Project, Workflow, Dataset, Transform, Linking, Task)
+  object ItemType {
+    case object project extends ItemType("project", "Project")
+    case object dataset extends ItemType("dataset", "Dataset")
+    case object transform extends ItemType("transform", "Transform")
+    case object linking extends ItemType("linking", "Linking")
+    case object workflow extends ItemType("workflow", "Workflow")
+    case object task extends ItemType("task", "Task")
+
+    val ordered: Seq[ItemType] = Seq(project, workflow, dataset, transform, linking, task)
+    val idToItemType: Map[String, ItemType] = ordered.map(it => (it.id, it)).toMap
   }
-  assert(ItemType.values.size == ItemType.ordered.size)
 
   /** The properties that can be sorted by. */
   object SortBy extends Enumeration {
@@ -174,7 +192,7 @@ object SearchApiModel {
 
   /** A search request that supports types and facets. */
   case class FacetedSearchRequest(project: Option[String],
-                                  itemType: Option[ItemType.Value],
+                                  itemType: Option[ItemType],
                                   textQuery: Option[String],
                                   offset: Option[Int],
                                   limit: Option[Int],
@@ -233,8 +251,8 @@ object SearchApiModel {
       val datasetFacetCollector = DatasetFacetCollector()
       for(typedTasks <- tasks) {
         typedTasks.itemType match {
-          case ItemType.Dataset =>
-            if(itemType.contains(ItemType.Dataset)) {
+          case ItemType.dataset =>
+            if(itemType.contains(ItemType.dataset)) {
               typedTasks.tasks foreach { task =>
                 datasetFacetCollector.collect(task.asInstanceOf[ProjectTask[DatasetSpec[Dataset]]])
               }
@@ -255,17 +273,17 @@ object SearchApiModel {
         val links: Seq[ItemLink] = itemTypeReads.reads(result.value(TYPE)).asOpt match {
           case Some(itemType) =>
             itemType match {
-              case ItemType.Transform => Seq(
+              case ItemType.transform => Seq(
                 ItemLink("Mapping editor", s"/transform/$project/$itemId/editor"),
                 ItemLink("Transform evaluation", s"/transform/$project/$itemId/evaluate"),
                 ItemLink("Transform execution", s"/transform/$project/$itemId/execute")
               )
-              case ItemType.Linking => Seq(
+              case ItemType.linking => Seq(
                 ItemLink("Linking editor", s"/linking/$project/$itemId/editor"),
                 ItemLink("Linking evaluation", s"/linking/$project/$itemId/evaluate"),
                 ItemLink("Linking execution", s"/linking/$project/$itemId/execute")
               )
-              case ItemType.Workflow => Seq(
+              case ItemType.workflow => Seq(
                 ItemLink("Workflow editor", s"/workflow/editor/$project/$itemId")
               )
               case _ => Seq.empty
@@ -296,7 +314,7 @@ object SearchApiModel {
       for(term <- textQuery) {
         val lowerCaseTerm = extractSearchTerms(term)
         tasks = tasks.map(typedTasks => filterTasksByTextQuery(typedTasks, lowerCaseTerm))
-        selectedProjects = if(itemType.contains(ItemType.Project)) ps.filter(p => matchesSearchTerm(lowerCaseTerm, p)) else Seq()
+        selectedProjects = if(itemType.contains(ItemType.project)) ps.filter(p => matchesSearchTerm(lowerCaseTerm, p)) else Seq()
       }
 
       // facets are collected after filtering, so only non empty facets are displayed with correct counts
@@ -327,14 +345,14 @@ object SearchApiModel {
     }
 
     /** Returns a function to check if a task matches the facet filter setting */
-    private def matchesFacetSettingFunction(itemType: ItemType.Value): ProjectTask[_ <: TaskSpec] => Boolean = {
+    private def matchesFacetSettingFunction(itemType: ItemType): ProjectTask[_ <: TaskSpec] => Boolean = {
       val alwaysTrueFunction: ProjectTask[_ <: TaskSpec] => Boolean = _ => true
       facets match {
         case None => alwaysTrueFunction
         case Some(facetSettings) if facetSettings.isEmpty => alwaysTrueFunction
         case Some(facetSettings) =>
           itemType match { // FIXME: Improve facet filtering code when more facets are added
-            case ItemType.Dataset =>
+            case ItemType.dataset =>
               facetSettings.find(_.facetId == Facets.datasetType.id) match {
                 case Some(datasetType: KeywordFacetSetting) =>
                   val datasetTypeIds = datasetType.keywordIds
@@ -357,7 +375,7 @@ object SearchApiModel {
           Seq(fetchTasksOfType(project, t))
         case None =>
           val result = new ArrayBuffer[TypedTasks]()
-          for (it <- Seq(ItemType.Dataset, ItemType.Linking, ItemType.Transform, ItemType.Workflow, ItemType.Task)) {
+          for (it <- ItemType.ordered.filter(_ != ItemType.project)) {
             result.append(fetchTasksOfType(project, it))
           }
           result
@@ -365,20 +383,20 @@ object SearchApiModel {
     }
 
     case class TypedTasks(project: String,
-                          itemType: ItemType.Value,
+                          itemType: ItemType,
                           tasks: Seq[ProjectTask[_ <: TaskSpec]])
 
     /** Fetch tasks of a specific type. */
     def fetchTasksOfType(project: Project,
-                         itemType: ItemType.Value)
+                         itemType: ItemType)
                         (implicit userContext: UserContext): TypedTasks = {
       val tasks = itemType match {
-        case ItemType.Dataset => project.tasks[DatasetSpec[Dataset]]
-        case ItemType.Linking => project.tasks[LinkSpec]
-        case ItemType.Transform => project.tasks[TransformSpec]
-        case ItemType.Workflow => project.tasks[Workflow]
-        case ItemType.Task => project.tasks[CustomTask]
-        case ItemType.Project => Seq.empty
+        case ItemType.dataset => project.tasks[DatasetSpec[Dataset]]
+        case ItemType.linking => project.tasks[LinkSpec]
+        case ItemType.transform => project.tasks[TransformSpec]
+        case ItemType.workflow => project.tasks[Workflow]
+        case ItemType.task => project.tasks[CustomTask]
+        case ItemType.project => Seq.empty
       }
       TypedTasks(project.name, itemType, tasks)
     }
@@ -396,7 +414,7 @@ object SearchApiModel {
       typedTask.tasks map { task =>
         JsObject(Seq(
           PROJECT_ID -> JsString(typedTask.project),
-          TYPE -> JsString(typedTask.itemType.toString),
+          TYPE -> JsString(typedTask.itemType.id),
           ID -> JsString(task.id),
           LABEL -> JsString(task.metaData.label),
           DESCRIPTION -> JsString("")
