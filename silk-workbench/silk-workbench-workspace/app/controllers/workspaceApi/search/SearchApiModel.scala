@@ -106,6 +106,7 @@ object SearchApiModel {
   /** A single facet of the search results. */
   case class FacetResult(id: String,
                          label: String,
+                         description: String,
                          `type`: String,
                          values: FacetValues)
 
@@ -217,6 +218,7 @@ object SearchApiModel {
 
     /** Collects facet data of dataset tasks. */
     case class DatasetFacetCollector() {
+      val datasetTypeDescription = "The concrete type of a dataset, e.g. its data model and format etc."
       val datasetTypes = new mutable.ListMap[String, Int]()
       val datasetTypeLabel = new mutable.ListMap[String, String]()
 
@@ -242,7 +244,7 @@ object SearchApiModel {
       private def datasetTypeFacet: FacetResult = {
         val sortedTypes = datasetTypes.toSeq.sortWith(_._2 > _._2)
         val keywordFacetValues = KeywordFacetValues(sortedTypes map (st => KeywordFacetValue(st._1, datasetTypeLabel(st._1), Some(st._2))))
-        FacetResult(Facets.datasetType.id, Facets.datasetType.label, FacetType.keyword.toString, keywordFacetValues)
+        FacetResult(Facets.datasetType.id, Facets.datasetType.label, datasetTypeDescription, FacetType.keyword.toString, keywordFacetValues)
       }
     }
 
