@@ -220,3 +220,9 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     reloadPrefixes()
   }
 }
+
+object Workspace {
+  private val cfg = DefaultConfig.instance()
+  // Flag if auto-run activities should be started automatically
+  def autoRunCachedActivities: Boolean = cfg.getBoolean("caches.config.enableAutoRun")
+}
