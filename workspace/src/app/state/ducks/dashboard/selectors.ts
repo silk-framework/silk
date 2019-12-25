@@ -10,6 +10,10 @@ const isLoadingSelector = createSelector(
     preview => preview.isLoading
 );
 
+const errorSelector = createSelector(
+    [previewSelector],
+    preview => preview.error
+);
 
 const resultsSelector = createSelector(
     [previewSelector],
@@ -54,5 +58,6 @@ export default {
     paginationSelector,
     modifiersSelector,
     facetsSelector,
+    errorSelector,
     isLoadingSelector
 }

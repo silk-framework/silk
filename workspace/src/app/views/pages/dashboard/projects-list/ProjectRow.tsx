@@ -11,10 +11,11 @@ interface IProps {
     item: ISearchResultsTask;
     searchValue?: string;
     onOpenDeleteModal(item: ISearchResultsTask);
+    onOpenDuplicateModal(item: ISearchResultsTask);
     onRowClick();
 }
 
-export default function ProjectRow({ item, searchValue, onOpenDeleteModal, onRowClick }: IProps) {
+export default function ProjectRow({ item, searchValue, onOpenDeleteModal, onOpenDuplicateModal, onRowClick }: IProps) {
     const { Row, Cell } = DataList;
 
     const getItemLinkIcons = (label: string) => {
@@ -64,7 +65,7 @@ export default function ProjectRow({ item, searchValue, onOpenDeleteModal, onRow
                 <p>{item.description}</p>
             </Cell>
             <Cell>
-                <Icon icon={IconNames.DUPLICATE} onClick={() => {}} style={{'paddingRight': '10px'}}/>
+                <Icon icon={IconNames.DUPLICATE} onClick={onOpenDuplicateModal} style={{'paddingRight': '10px'}}/>
                 <Popover content={getRowMenu(item)} position={Position.BOTTOM_LEFT}>
                     <Icon icon={IconNames.MORE}/>
                 </Popover>

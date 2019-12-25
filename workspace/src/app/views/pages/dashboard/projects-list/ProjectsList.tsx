@@ -12,6 +12,7 @@ import { push } from "connected-react-router";
 import { ISearchResultsTask } from "@ducks/dashboard/typings";
 import { IStore } from "../../../../state/typings/IStore";
 import { DATA_TYPES } from "../../../../constants";
+import CloneModal from "../../../components/modals/CloneModal";
 
 export default function ProjectsList() {
 
@@ -28,13 +29,15 @@ export default function ProjectsList() {
 
     const [selectedItem, setSelectedItem] = useState();
     const [showDeleteModal, setShowDeleteModal] = useState();
+    const [showCloneModal, setShowCloneModal] = useState();
 
     useEffect(() => {
         dispatch(dashboardOp.fetchListAsync());
     }, [appliedFilters, sorters.applied, pagination.current]);
 
-    const onDiscardDeleteModal = () => {
+    const onDiscardModals = () => {
         setShowDeleteModal(false);
+        setShowCloneModal(false);
         setSelectedItem(null)
     };
 
@@ -73,9 +76,21 @@ export default function ProjectsList() {
         }
     };
 
+    const onOpenDuplicateModal = (item) => {
+        setShowCloneModal(true);
+        setSelectedItem(item);
+    };
+
     const handleConfirmRemove = () => {
-        onDiscardDeleteModal();
-        dispatch(dashboardOp.fetchRemoveTaskAsync(selectedItem.id, selectedItem.projectId));
+        const { id, projectId } = selectedItem;
+        dispatch(dashboardOp.fetchRemoveTaskAsync(id, projectId));
+        onDiscardModals();
+    };
+
+    const handleConfirmClone = (newId: string) => {
+        const { id, projectId } = selectedItem;
+        dispatch(dashboardOp.fetchCloneTaskAsync(id, projectId, newId));
+        onDiscardModals();
     };
 
     const handlePageChange = (n: number) => {
@@ -104,6 +119,7 @@ export default function ProjectsList() {
                         key={item.id}
                         item={item}
                         onOpenDeleteModal={() => onOpenDeleteModal(item)}
+                        onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
                         onRowClick={() => goToItemDetails(item)}
                         searchValue={appliedFilters.textQuery}
                     />)
@@ -118,9 +134,15 @@ export default function ProjectsList() {
             </DataList>
             <DeleteModal
                 isOpen={showDeleteModal}
-                onDiscard={onDiscardDeleteModal}
+                onDiscard={onDiscardModals}
                 onConfirm={handleConfirmRemove}
                 {...deleteModalOptions}
+            />
+            <CloneModal
+                isOpen={showCloneModal}
+                oldId={selectedItem && selectedItem.id}
+                onDiscard={onDiscardModals}
+                onConfirm={handleConfirmClone}
             />
         </>
     )

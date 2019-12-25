@@ -16,7 +16,7 @@ interface IClientInfo {
 
 interface INetworkError {
     url: string;
-    status: string;
+    status: number;
     payload?: any;
     headers?: any;
 }
@@ -102,7 +102,7 @@ const getClientInfo = (): IClientInfo => {
  * @return INetworkError
  */
 const generateNetworkError = (response: AxiosResponse): INetworkError => {
-    const { status } = response.data;
+    const { status } = response;
     const { headers, url, data } = response.config;
     const netErr: INetworkError = {
         url,

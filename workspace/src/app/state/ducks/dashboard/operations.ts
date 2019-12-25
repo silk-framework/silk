@@ -109,11 +109,12 @@ const fetchListAsync = () => {
                 // Apply results
                 dispatch(fetchListSuccess(results));
                 dispatch(setLoading(false));
+                dispatch(setError({}));
             })
-        } catch (err) {
+        } catch (e) {
             batch(() => {
                 dispatch(setLoading(false));
-                dispatch(setError(err));
+                dispatch(setError(e.response.data));
             })
         }
     }
@@ -138,10 +139,33 @@ const fetchRemoveTaskAsync = (taskId: string, projectId: string) => {
             batch(() => {
                 dispatch(fetchListAsync());
                 dispatch(setLoading(false));
+                dispatch(setError({}));
             });
         } catch (e) {
             batch(() => {
-                dispatch(setError(e));
+                dispatch(setError(e.response.data));
+                dispatch(setLoading(false));
+            });
+        }
+    }
+};
+
+const fetchCloneTaskAsync = (taskId: string, projectId: string, taskNewId: string) => {
+    return async dispatch => {
+        dispatch(setLoading(true));
+        try {
+            await fetch({
+                url: getLegacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/clone?newTask=${taskNewId}`),
+                method: 'POST',
+            });
+            batch(() => {
+                dispatch(fetchListAsync());
+                dispatch(setLoading(false));
+                dispatch(setError({}));
+            });
+        } catch (e) {
+            batch(() => {
+                dispatch(setError(e.response.data));
                 dispatch(setLoading(false));
             });
         }
@@ -153,6 +177,7 @@ export default {
     fetchListAsync,
     fetchRemoveTaskAsync,
     getTaskMetadataAsync,
+    fetchCloneTaskAsync,
     cloneTask,
     applyFilter,
     applySorter,
