@@ -6,15 +6,15 @@ import Menu from "@wrappers/menu";
 import Popover from "@wrappers/popover";
 import { IconNames, Position } from "@wrappers/constants";
 import Icon from "@wrappers/icon";
-import Button from "@wrappers/button";
 
 interface IProps {
     item: ISearchResultsTask;
     searchValue?: string;
     onOpenDeleteModal(item: ISearchResultsTask);
+    onRowClick();
 }
 
-export default function ProjectRow({ item, searchValue, onOpenDeleteModal }: IProps) {
+export default function ProjectRow({ item, searchValue, onOpenDeleteModal, onRowClick }: IProps) {
     const { Row, Cell } = DataList;
 
     const getItemLinkIcons = (label: string) => {
@@ -57,7 +57,7 @@ export default function ProjectRow({ item, searchValue, onOpenDeleteModal }: IPr
 
     return (
         <Row>
-            <Cell>
+            <Cell onClick={onRowClick}>
                 <p dangerouslySetInnerHTML={{
                     __html: getSearchHighlight(item.label || item.id)
                 }}/>

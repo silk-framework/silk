@@ -8,6 +8,10 @@ import DataList from "../../../components/datalist/DataList";
 import DeleteModal from "../../../components/modals/DeleteModal";
 import ProjectRow from "./ProjectRow";
 import Loading from "../../../components/loading/Loading";
+import { push } from "connected-react-router";
+import { ISearchResultsTask } from "@ducks/dashboard/typings";
+import { IStore } from "../../../../state/typings/IStore";
+import { DATA_TYPES } from "../../../../constants";
 
 export default function ProjectsList() {
 
@@ -20,6 +24,7 @@ export default function ProjectsList() {
     const pagination = useSelector(dashboardSel.paginationSelector);
     const appliedFilters = useSelector(dashboardSel.appliedFiltersSelector);
     const isLoading = useSelector(dashboardSel.isLoadingSelector);
+    const pathname = useSelector((state: IStore) => state.router.location.pathname);
 
     const [selectedItem, setSelectedItem] = useState();
     const [showDeleteModal, setShowDeleteModal] = useState();
@@ -77,39 +82,40 @@ export default function ProjectsList() {
         dispatch(dashboardOp.changePage(n))
     };
 
+    const goToItemDetails = (item: ISearchResultsTask) => {
+        if (item.type === DATA_TYPES.PROJECT) {
+            dispatch(
+                push(`${pathname}/project/${item.id}`)
+            );
+        }
+    };
+
     const {Header, Body, Footer} = DataList;
     return (
         <>
             <ActionsTopBar/>
-            <>
+            <DataList isLoading={isLoading} data={data}>
+                <Header>
+                    <AppliedFacets/>
+                </Header>
+                <Body>
                 {
-                    isLoading
-                        ? <Loading/>
-                        : !data.length
-                            ? <p>No resources found</p>
-                            : <DataList>
-                                <Header>
-                                    <AppliedFacets/>
-                                </Header>
-                                <Body>
-                                {
-                                    data.map(item => <ProjectRow
-                                        key={item.id}
-                                        item={item}
-                                        onOpenDeleteModal={() => onOpenDeleteModal(item)}
-                                        searchValue={appliedFilters.textQuery}
-                                    />)
-                                }
-                                </Body>
-                                <Footer>
-                                    <Pagination
-                                        pagination={pagination}
-                                        onPageChange={handlePageChange}
-                                    />
-                                </Footer>
-                            </DataList>
+                    data.map(item => <ProjectRow
+                        key={item.id}
+                        item={item}
+                        onOpenDeleteModal={() => onOpenDeleteModal(item)}
+                        onRowClick={() => goToItemDetails(item)}
+                        searchValue={appliedFilters.textQuery}
+                    />)
                 }
-            </>
+                </Body>
+                <Footer>
+                    <Pagination
+                        pagination={pagination}
+                        onPageChange={handlePageChange}
+                    />
+                </Footer>
+            </DataList>
             <DeleteModal
                 isOpen={showDeleteModal}
                 onDiscard={onDiscardDeleteModal}

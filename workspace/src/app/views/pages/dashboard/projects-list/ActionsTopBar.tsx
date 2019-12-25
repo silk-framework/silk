@@ -27,7 +27,7 @@ export default function ActionsTopBar() {
     };
 
     return (
-        <div className="clearfix">
+        <div className="clearfix" style={{marginLeft: '-10px', marginBottom: '10px'}}>
             <div style={{width: '80%', float: 'left'}}>
                 <SearchInput
                     onFilterChange={handleSearchChange}

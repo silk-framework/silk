@@ -39,11 +39,11 @@ const fetchTypesAsync = () => {
             dispatch(fetchTypeModifier());
         });
         try {
-            const res = await fetch({
+            const { data } = await fetch({
                 url: getApiEndpoint('/searchConfig/types'),
                 method: 'GET',
             });
-            const validModifier = asModifier('Type', 'itemType', res.data);
+            const validModifier = asModifier(data.label, 'itemType', data.values);
             batch(() => {
                 dispatch(setLoading(false));
                 dispatch(updateModifiers({

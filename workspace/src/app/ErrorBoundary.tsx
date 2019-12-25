@@ -9,8 +9,8 @@ import { isDevelopment } from "./constants";
  */
 class ErrorBoundary extends Component {
 
-    getDerivedStateFromError() {
-
+    static getDerivedStateFromError(err) {
+        console.log(err);
     }
 
     componentDidCatch(error, info) {

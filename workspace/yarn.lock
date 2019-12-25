@@ -3169,7 +3169,7 @@ connect-history-api-fallback@^1.6.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/connect-history-api-fallback/-/connect-history-api-fallback-1.6.0.tgz#8b32089359308d111115d81cad3fceab888f97bc"
   integrity sha1-izIIk1kwjRERFdgcrT/Oq4iPl7w=
 
-connected-react-router@^6.3.2:
+connected-react-router@^6.5.2:
   version "6.6.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/connected-react-router/-/connected-react-router-6.6.1.tgz#f6b7717abf959393fab6756c8d43af1a57d622da"
   integrity sha1-9rdxer+Vk5P6tnVsjUOvGlfWIto=

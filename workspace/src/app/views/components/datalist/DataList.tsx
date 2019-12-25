@@ -1,5 +1,6 @@
 import React from "react";
 import HTMLTable from "@wrappers/html-table";
+import Spinner from "@wrappers/spinner";
 
 function _Row({children}) {
     return (
@@ -49,7 +50,16 @@ function _Footer({children}) {
     )
 }
 
-function DataList({ children }) {
+const _loadingIndicator = () => <Spinner />;
+
+const _emptyContent = () => <p>No resources found</p>;
+
+function DataList({ children, isLoading, data }) {
+    if (isLoading) {
+        return _loadingIndicator();
+    } else if (!data.length) {
+        return _emptyContent();
+    }
     return (
         <HTMLTable bordered={true} interactive={true} striped={true}>
             {children}

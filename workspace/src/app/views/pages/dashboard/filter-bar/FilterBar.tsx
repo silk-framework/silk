@@ -35,14 +35,13 @@ export default function FilterBar() {
                         typeModifier.options.map(opt =>
                             <Checkbox
                                 checked={appliedFilters[typeModifier.field] === opt.id}
-                                label={opt.id}
+                                label={opt.label}
                                 onChange={() => handleFilterSelect(typeModifier.field, opt.id)}
                                 value={opt.id}
                                 key={opt.id}
                             />
                         )
                     }
-
                     <FacetsList/>
                 </>
             }
