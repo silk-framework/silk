@@ -35,6 +35,7 @@ const {
 const fetchTypesAsync = () => {
     return async dispatch => {
         batch(() => {
+            dispatch(setError({}));
             dispatch(setLoading(true));
             dispatch(fetchTypeModifier());
         });
@@ -52,7 +53,7 @@ const fetchTypesAsync = () => {
                 }));
             });
         } catch (e) {
-            dispatch(setError(e));
+            dispatch(setError(e.response.data));
         }
     }
 };
@@ -64,6 +65,7 @@ const fetchTypesAsync = () => {
 const fetchListAsync = () => {
     return async (dispatch, getState) => {
         batch(() => {
+            dispatch(setError({}));
             dispatch(setLoading(true));
             dispatch(fetchList());
         });
@@ -109,7 +111,6 @@ const fetchListAsync = () => {
                 // Apply results
                 dispatch(fetchListSuccess(results));
                 dispatch(setLoading(false));
-                dispatch(setError({}));
             })
         } catch (e) {
             batch(() => {
@@ -130,7 +131,11 @@ const getTaskMetadataAsync = async (taskId: string, projectId: string) => {
 
 const fetchRemoveTaskAsync = (taskId: string, projectId: string) => {
     return async dispatch => {
-        dispatch(setLoading(true));
+        batch(() => {
+            dispatch(setLoading(true));
+            dispatch(setError({}));
+        });
+
         try {
             await fetch({
                 url: getLegacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}?removeDependentTasks=true`),
@@ -139,7 +144,6 @@ const fetchRemoveTaskAsync = (taskId: string, projectId: string) => {
             batch(() => {
                 dispatch(fetchListAsync());
                 dispatch(setLoading(false));
-                dispatch(setError({}));
             });
         } catch (e) {
             batch(() => {
@@ -152,7 +156,11 @@ const fetchRemoveTaskAsync = (taskId: string, projectId: string) => {
 
 const fetchCloneTaskAsync = (taskId: string, projectId: string, taskNewId: string) => {
     return async dispatch => {
-        dispatch(setLoading(true));
+        batch(() => {
+            dispatch(setError({}));
+            dispatch(setLoading(true));
+        });
+
         try {
             await fetch({
                 url: getLegacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/clone?newTask=${taskNewId}`),
@@ -161,7 +169,6 @@ const fetchCloneTaskAsync = (taskId: string, projectId: string, taskNewId: strin
             batch(() => {
                 dispatch(fetchListAsync());
                 dispatch(setLoading(false));
-                dispatch(setError({}));
             });
         } catch (e) {
             batch(() => {
