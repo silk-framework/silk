@@ -26,6 +26,7 @@ export interface IFacetValuesState {
 export interface IFacetState {
     id: string;
     label: string;
+    description: string;
     type: string;
     values: IFacetValuesState[]
 }

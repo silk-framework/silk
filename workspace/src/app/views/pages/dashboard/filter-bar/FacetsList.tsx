@@ -4,6 +4,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { dashboardOp, dashboardSel } from "@ducks/dashboard";
 import Label from "@wrappers/label";
 import FacetItem from "./FacetItem";
+import Popover from "@wrappers/popover";
+import Tooltip from "@wrappers/tooltip";
+import { Classes, Position } from "@wrappers/constants";
 
 export default function FacetsList() {
     const dispatch = useDispatch();
@@ -31,7 +34,13 @@ export default function FacetsList() {
             {
                 facets.map(facet =>
                     <div key={facet.id}>
-                        <Label>{facet.label}</Label>
+                        <Popover position={Position.BOTTOM_LEFT}>
+                            <Tooltip className={Classes.TOOLTIP_INDICATOR}
+                                     content={facet.description}
+                                     position={Position.BOTTOM_LEFT}>
+                                <Label>{facet.label}</Label>
+                            </Tooltip>
+                        </Popover>
                         {
                             facet.values.map(val =>
                                 <FacetItem
