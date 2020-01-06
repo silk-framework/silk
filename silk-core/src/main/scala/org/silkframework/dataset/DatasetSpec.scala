@@ -17,7 +17,7 @@ package org.silkframework.dataset
 import java.util.logging.Logger
 
 import org.silkframework.config.Task.TaskFormat
-import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
+import org.silkframework.config.{MetaData, Prefixes, ProductionConfig, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.UriAttributeNotUniqueException
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
@@ -41,7 +41,13 @@ import scala.xml.Node
   */
 case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribute: Option[Uri] = None) extends TaskSpec with DatasetAccess {
 
-  def source(implicit userContext: UserContext): DataSource = DatasetSpec.DataSourceWrapper(plugin.source, this)
+  def source(implicit userContext: UserContext): DataSource = {
+    if(ProductionConfig.inSafeMode && !plugin.isFileResourceBased) {
+      SafeModeDataSource // No external access allowed in safe-mode. TO
+    } else {
+      DatasetSpec.DataSourceWrapper(plugin.source, this)
+    }
+  }
 
   def entitySink(implicit userContext: UserContext): EntitySink = DatasetSpec.EntitySinkWrapper(plugin.entitySink, this)
 

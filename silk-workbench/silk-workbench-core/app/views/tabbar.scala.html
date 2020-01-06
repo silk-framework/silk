@@ -1,6 +1,5 @@
 @import org.silkframework.workbench.WorkbenchPlugins
-@import org.silkframework.config.TaskSpec
-
+@import org.silkframework.config.{ProductionConfig, TaskSpec}
 @import org.silkframework.workbench.Context
 @(context: Option[Context[_ <: TaskSpec]], selectedTab: String, titleLabel: String)
 
@@ -12,6 +11,28 @@
   }
 }
 
+@safeModeButton = {
+  <script type="text/javascript">
+    function setSafeMode(enable) {
+      var setEnable = 'false';
+      if(enable) {
+        setEnable = 'true';
+      }
+      $.post('@config.baseUrl/core/safeMode?enable=' + setEnable)
+          .success(function(request) { window.location.reload(false);  })
+          .fail(function(request) { alert('Request failed: ' + request.responseText); })
+    }
+  </script>
+  @if(ProductionConfig.safeModeEnabled) {
+    @if(ProductionConfig.inSafeMode) {
+      <span class="production_in_safe_mode"><button id="production-safe-mode-button" onclick="setSafeMode(false)">Enter Unsafe Mode</button></span>
+    } else {
+      <span class="production_not_in_safe_mode"><button id="production-safe-mode-button" onclick="setSafeMode(true)">Leave Unsafe Mode</button></span>
+    }
+  } else {
+  }
+}
+
 <div id="tab-bar" class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
   <div class="mdl-tabs__tab-bar">
     <span class="di_tab_task_title">@titleLabel</span>
@@ -19,6 +40,7 @@
     <a id="workspace-link" href="@config.baseUrl/workspace" onclick="window.location='@config.baseUrl/workspace'" class="mdl-tabs__tab @if(selectedTab == "workspace") {is-active}">Workspace</a>
     <a id="allActivities-view-link" href="@config.baseUrl/workspace/allActivities" onclick="window.location='@config.baseUrl/workspace/allActivities'" class="mdl-tabs__tab @if(selectedTab == "activities") {is-active}">Activities</a>
     @pluginTabs
+    @safeModeButton
   </div>
 
 </div>
