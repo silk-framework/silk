@@ -19,12 +19,14 @@ import com.typesafe.config.{Config => TypesafeConfig}
   * Production config related properties.
   */
 object ProductionConfig {
-  private val cfg: TypesafeConfig = DefaultConfig.instance()
   /** Is the application currently in safe mode */
   private var _inSafeMode: Boolean = true
 
   /** Is the safe mode configured, i.e. the application can be set into safe-mode. Else it is always "unsafe". */
-  def safeModeEnabled: Boolean = cfg.getBoolean("config.production.safeMode")
+  def safeModeEnabled: Boolean = {
+    val cfg: TypesafeConfig = DefaultConfig.instance()
+    cfg.getBoolean("config.production.safeMode")
+  }
 
   /** Is the application currently in safe mode. */
   def inSafeMode: Boolean = synchronized {
