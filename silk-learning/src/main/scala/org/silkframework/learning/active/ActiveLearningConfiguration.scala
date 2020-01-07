@@ -15,10 +15,10 @@
 package org.silkframework.learning.active
 
 import org.silkframework.learning.active.linkselector.{JensenShannonDivergenceSelector, LinkSelector, LinkSelectorCombinator, MaximumAgreementSelector}
-import org.silkframework.learning.active.poolgenerator.{LinkPoolGenerator, SimpleLinkPoolGenerator}
+import org.silkframework.learning.active.poolgenerator.{LinkPoolGenerator, IndexLinkPoolGenerator, SimpleLinkPoolGenerator}
 
 
-case class ActiveLearningConfiguration(linkPoolGenerator: LinkPoolGenerator = SimpleLinkPoolGenerator(),
+case class ActiveLearningConfiguration(linkPoolGenerator: LinkPoolGenerator = new IndexLinkPoolGenerator(),
                                        selector: LinkSelector = ActiveLearningConfigurationDefaults.defaultLinkSelector)
 
 object ActiveLearningConfigurationDefaults {
