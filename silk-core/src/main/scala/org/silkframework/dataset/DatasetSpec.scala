@@ -42,7 +42,7 @@ import scala.xml.Node
 case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribute: Option[Uri] = None) extends TaskSpec with DatasetAccess {
 
   def source(implicit userContext: UserContext): DataSource = {
-    if(ProductionConfig.inSafeMode && !plugin.isFileResourceBased) {
+    if(ProductionConfig.inSafeMode && !plugin.isFileResourceBased && !userContext.executionContext.insideWorkflow) {
       SafeModeDataSource // No external access allowed in safe-mode. TO
     } else {
       DatasetSpec.DataSourceWrapper(plugin.source, this)

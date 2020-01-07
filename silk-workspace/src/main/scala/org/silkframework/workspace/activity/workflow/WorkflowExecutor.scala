@@ -134,6 +134,13 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
         throw WorkflowException(s"No task found in project ${project.name} with id " + taskId)
     }
   }
+
+  /** Necessary update for the user context, so external datasets can be accessed in safe-mode inside a workflow execution. */
+  def updateUserContext(userContext: UserContext): UserContext = {
+    val executionContext = userContext.executionContext
+    val updatedUserContext = userContext.withExecutionContext(executionContext.copy(insideWorkflow = true))
+    updatedUserContext
+  }
 }
 
 case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecutionReport],
@@ -172,5 +179,4 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
       activityContext.value() = activityContext.value().withReport(task, report)
     }
   }
-
 }

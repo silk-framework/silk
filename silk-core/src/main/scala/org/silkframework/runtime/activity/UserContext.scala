@@ -20,15 +20,16 @@ trait UserContext {
 case class UserExecutionContext(insideWorkflow: Boolean = false)
 
 object UserContext {
+  val Empty: UserContext = empty(UserExecutionContext())
 
   /** User context that returns no user.
     * This should be used where no user context makes sense, is not available or for tests. */
-  object Empty extends UserContext {
+  def empty(userExecutionContext: UserExecutionContext): UserContext = new UserContext {
     def user: Option[User] = None
 
-    override def executionContext: UserExecutionContext = UserExecutionContext()
+    override def executionContext: UserExecutionContext = userExecutionContext
 
-    override def withExecutionContext(userExecutionContext: UserExecutionContext): UserContext = this
+    override def withExecutionContext(userExecutionContext: UserExecutionContext): UserContext = empty(userExecutionContext)
   }
 
   // A user that can be used at places where there is no user input and no real user context is needed
