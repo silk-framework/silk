@@ -5,12 +5,12 @@ package org.silkframework.util
   */
 trait SparqlMockServerTrait extends MockServerTestTrait {
   /** Empty SPARQL Select example result. If the content does not matter, but a correct format must be returned. */
-  val emptySparqlContent: ContentHandler = sparqlContent(Seq("s", "p", "o"), Seq.empty)
+  val emptySparqlContent: ServedContent = sparqlContent(Seq("s", "p", "o"), Seq.empty)
 
   /** SPARQL results, plain string values only. */
   def sparqlContent(variables: Seq[String],
                     values: Traversable[Seq[String]],
-                    contextPath: String = "/sparql"): ContentHandler = ServedContent(content =
+                    contextPath: String = "/sparql"): ServedContent = ServedContent(content =
       Some(s"""<?xml version="1.0"?>
              |<sparql xmlns="http://www.w3.org/2005/sparql-results#">
              |  <head>
