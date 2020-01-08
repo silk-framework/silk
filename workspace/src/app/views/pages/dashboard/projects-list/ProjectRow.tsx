@@ -31,13 +31,39 @@ export default function ProjectRow({ item, searchValue, onOpenDeleteModal, onOpe
         }
     };
 
+    /** Escapes strings to match literally.
+     *  taken from https://stackoverflow.com/questions/6318710/javascript-equivalent-of-perls-q-e-or-quotemeta
+     */
+    const escapeRegexWord = (str: string) => {
+        return str.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+    };
+
+    /**
+     * Returns a highlighted string according to the words of the search query.
+     *
+     * @param label The string to highlight.
+     */
     const getSearchHighlight = (label: string) => {
         if (searchValue) {
-            const searchStringParts = searchValue.split(' ');
-            return searchStringParts.map(word => {
-                const regExp = RegExp(word, 'gi');
-                return label.replace(regExp, `<mark>${word}</mark>`)
-            }).join('')
+            const searchStringParts = searchValue.split(RegExp('\\s+'));
+            const lowerCaseLabel = label.toLowerCase();
+            const multiWordRegex = RegExp(searchStringParts.map(word => `${escapeRegexWord(word.toLowerCase())}`).join('|'), 'g');
+            let offset = 0;
+            const result: Array<string> = [];
+            // loop through matches and add unmatched and matched parts to result array
+            let matchArray = multiWordRegex.exec(lowerCaseLabel);
+            while(matchArray !== null) {
+                result.push(label.slice(offset, matchArray.index));
+                result.push(`<mark>${matchArray[0]}</mark>`);
+                matchArray.index;
+                offset = multiWordRegex.lastIndex;
+                matchArray = multiWordRegex.exec(lowerCaseLabel);
+            }
+            // Add remaining unmatched string
+            if(offset < label.length) {
+                result.push(label.slice(offset));
+            }
+            return result.join('');
         }
         return label;
     };
