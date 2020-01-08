@@ -14,6 +14,8 @@ class IndexLinkPoolGenerator extends LinkPoolGenerator {
 
   private val maxEntities = 10000
 
+  private val maxLinksPerPathPair = 1000
+
   override def generator(inputs: DPair[DataSource], linkSpec: LinkSpec, paths: Seq[DPair[TypedPath]]): Activity[UnlabeledLinkPool] = {
     new LinkPoolGenerator(inputs, linkSpec, paths)
   }
@@ -41,18 +43,21 @@ class IndexLinkPoolGenerator extends LinkPoolGenerator {
         (sourceCache, sourceIndex) <- sourceCaches.zipWithIndex
         (targetCache, targetIndex) <- targetCaches.zipWithIndex} {
         context.status.update("Finding candidates", 0.2 + 0.8 * (sourceIndex * targetCaches.size + targetIndex).toDouble / (sourceCaches.size * targetCaches.size).toDouble)
+        var count = 0
         for {
           sourceBlock <- 0 until sourceCache.blockCount
           targetBlock <- 0 until targetCache.blockCount
           sourcePartitionIndex <- 0 until sourceCache.partitionCount(sourceBlock)
           targetPartitionIndex <- 0 until targetCache.partitionCount(targetBlock)
+          if count < maxLinksPerPathPair
         } {
           val sourcePartition = sourceCache.read(sourceBlock, sourcePartitionIndex)
           val targetPartition = targetCache.read(targetBlock, targetPartitionIndex)
 
           val entityPairs = runtimeConfig.executionMethod.comparisonPairs(sourcePartition, targetPartition, full = false)
-          for (entityPair <- entityPairs) {
+          for (entityPair <- entityPairs if count < maxLinksPerPathPair) {
             links.append(new LinkWithEntities(entityPair.source.uri, entityPair.target.uri, entityPair))
+            count += 1
           }
         }
       }
