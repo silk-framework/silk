@@ -1,5 +1,6 @@
 package controllers.workspaceApi.search
 
+import config.WorkbenchConfig
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
@@ -280,21 +281,22 @@ object SearchApiModel {
       results map { result =>
         val project = jsonPropertyStringValue(result, PROJECT_ID)
         val itemId = jsonPropertyStringValue(result, ID)
+        val context = WorkbenchConfig.applicationContext
         val links: Seq[ItemLink] = itemTypeReads.reads(result.value(TYPE)).asOpt match {
           case Some(itemType) =>
             itemType match {
               case ItemType.transform => Seq(
-                ItemLink("Mapping editor", s"/transform/$project/$itemId/editor"),
-                ItemLink("Transform evaluation", s"/transform/$project/$itemId/evaluate"),
-                ItemLink("Transform execution", s"/transform/$project/$itemId/execute")
+                ItemLink("Mapping editor", s"$context/transform/$project/$itemId/editor"),
+                ItemLink("Transform evaluation", s"$context/transform/$project/$itemId/evaluate"),
+                ItemLink("Transform execution", s"$context/transform/$project/$itemId/execute")
               )
               case ItemType.linking => Seq(
-                ItemLink("Linking editor", s"/linking/$project/$itemId/editor"),
-                ItemLink("Linking evaluation", s"/linking/$project/$itemId/evaluate"),
-                ItemLink("Linking execution", s"/linking/$project/$itemId/execute")
+                ItemLink("Linking editor", s"$context/linking/$project/$itemId/editor"),
+                ItemLink("Linking evaluation", s"$context/linking/$project/$itemId/evaluate"),
+                ItemLink("Linking execution", s"$context/linking/$project/$itemId/execute")
               )
               case ItemType.workflow => Seq(
-                ItemLink("Workflow editor", s"/workflow/editor/$project/$itemId")
+                ItemLink("Workflow editor", s"$context/workflow/editor/$project/$itemId")
               )
               case _ => Seq.empty
             }
