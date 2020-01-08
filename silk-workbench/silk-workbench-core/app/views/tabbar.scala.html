@@ -44,12 +44,14 @@
         <span class="mdl-switch__label">Safe-mode</span>
       </label>
     </div>
-  } else {
+    <div class="mdl-tooltip" data-mdl-for="safe-mode-switch">
+      Safe-mode prevents access to external data systems, e.g. JDBC, SPARQL datasets. Data access in executed workflows is not affected by the safe-mode.
+    </div>
   }
 }
 
 <div id="tab-bar" class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
-  <div class="mdl-tabs__tab-bar@if(ProductionConfig.safeModeEnabled) {""} else {" safe-mode-disabled"}">
+  <div class="mdl-tabs__tab-bar@if(!ProductionConfig.inSafeMode) { safe-mode-disabled }">
     <span class="di_tab_task_title">@titleLabel</span>
     <a id="start-screen-link" href="@config.baseUrl/" onclick="window.location='@config.baseUrl/'" class="mdl-tabs__tab @if(selectedTab == "start") {is-active}">Start</a>
     <a id="workspace-link" href="@config.baseUrl/workspace" onclick="window.location='@config.baseUrl/workspace'" class="mdl-tabs__tab @if(selectedTab == "workspace") {is-active}">Workspace</a>
