@@ -11,6 +11,9 @@ trait Dataset extends AnyPlugin with DatasetAccess {
 
   /** The resources that are referenced by this dataset. */
   def referencedResources: Seq[Resource] = Seq.empty
+
+  /** A dataset that is based on a file repository based resource, e.g. CSV, XML files. */
+  def isFileResourceBased: Boolean = false
 }
 
 trait DatasetPluginAutoConfigurable[T <: Dataset] {

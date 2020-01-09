@@ -45,6 +45,10 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                   (implicit userContext: UserContext): Unit = {
     cancelled = false
 
+    runWorkflow(context, updateUserContext(userContext))
+  }
+
+  private def runWorkflow(implicit context: ActivityContext[WorkflowExecutionReport], userContext: UserContext): Unit = {
     implicit val workflowRunContext: WorkflowRunContext = WorkflowRunContext(
       activityContext = context,
       workflow = currentWorkflow,
