@@ -7,6 +7,9 @@ import selectors from "./selectors";
 import { filtersSlice } from "./filtersSlice";
 import { previewSlice } from "./previewSlice";
 import { getApiEndpoint, getLegacyApiEndpoint } from "../../../utils/getApiEndpoint";
+import { routerOp } from "@ducks/router";
+import { IFacetState, SortModifierType } from "@ducks/dashboard/typings";
+import { dashboardSel } from "@ducks/dashboard/index";
 
 const {
     fetchTypeModifier,
@@ -15,7 +18,7 @@ const {
     updateFacets,
     updateSorters,
     applySorter,
-    applyFilter,
+    applyFilters,
     applyFacet,
     changePage,
     removeFacet
@@ -40,7 +43,7 @@ const fetchTypesAsync = () => {
             dispatch(fetchTypeModifier());
         });
         try {
-            const { data } = await fetch({
+            const {data} = await fetch({
                 url: getApiEndpoint('/searchConfig/types'),
                 method: 'GET',
             });
@@ -80,7 +83,7 @@ const fetchListAsync = () => {
             offset,
         };
 
-        if (sorters.applied) {
+        if (sorters.applied.sortBy) {
             body.sortBy = sorters.applied.sortBy;
             body.sortOrder = sorters.applied.sortOrder;
         }
@@ -123,7 +126,7 @@ const fetchListAsync = () => {
 
 const getTaskMetadataAsync = async (taskId: string, projectId: string) => {
     const url = getLegacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/metadata`);
-    const { data } = await fetch({
+    const {data} = await fetch({
         url
     });
     return data;
@@ -179,16 +182,73 @@ const fetchCloneTaskAsync = (taskId: string, projectId: string, taskNewId: strin
     }
 };
 
+const applyFiltersOp = (filter) => {
+    return dispatch => {
+        batch(() => {
+            dispatch(applyFilters(filter));
+            dispatch(routerOp.setQueryString(filter));
+        });
+    }
+};
+
+const applySorterOp = (sortBy: string) => {
+    return (dispatch, getState) => {
+        dispatch(applySorter(sortBy));
+        const sorters = dashboardSel.sortersSelector(getState());
+        dispatch(routerOp.setQueryString(sorters.applied));
+    }
+};
+
+const changePageOp = (page: number) => {
+    return dispatch => {
+        batch(() => {
+            dispatch(changePage(page));
+            dispatch(routerOp.setQueryString({
+                page
+            }));
+        });
+    }
+};
+
+const toggleFacetOp = (facet: IFacetState, keywordId: string) => {
+    return (dispatch, getState) => {
+        const facets = dashboardSel.appliedFacetsSelector(getState());
+        const foundFacet = facets.find(o => o.facetId === facet.id);
+
+        const isKeywordMissing = foundFacet && !foundFacet.keywordIds.includes(keywordId);
+
+        if (!foundFacet || isKeywordMissing) {
+            dispatch(applyFacet({
+                facet,
+                keywordId
+            }));
+        } else {
+            dispatch(removeFacet({
+                facet: foundFacet,
+                keywordId
+            }));
+        }
+
+        const updatedFacets = dashboardSel.appliedFacetsSelector(getState());
+        const queryParams = {
+            f_ids:  updatedFacets.map(o => o.facetId),
+            types:  updatedFacets.map(o => o.type),
+            f_keys: updatedFacets.map(o => o.keywordIds.join(','))
+        };
+
+        dispatch(routerOp.setQueryString(queryParams))
+    }
+};
+
 export default {
     fetchTypesAsync,
     fetchListAsync,
     fetchRemoveTaskAsync,
     getTaskMetadataAsync,
     fetchCloneTaskAsync,
+    applyFiltersOp,
+    applySorterOp,
     cloneTask,
-    applyFilter,
-    applySorter,
-    changePage,
-    applyFacet,
-    removeFacet
+    changePageOp,
+    toggleFacetOp,
 };

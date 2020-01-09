@@ -30,10 +30,17 @@ export function initialFiltersState(props: Partial<IFiltersState> = {}): IFilter
     }
 }
 
+export function initialAppliedSortersState(): IAppliedSorterState {
+    return {
+        sortBy: '',
+        sortOrder: ''
+    }
+}
+
 export function initialSortersState(props: Partial<ISortersState> = {}): ISortersState {
     return {
         list: [],
-        applied: null,
+        applied: initialAppliedSortersState(),
         ...props
     }
 }

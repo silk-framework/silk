@@ -10,20 +10,18 @@ export default function ActionsTopBar() {
 
     const [searchInput, setSearchInput] = useState();
 
-    const handleSort = (value: string) => {
-        dispatch(dashboardOp.applySorter(value));
-    };
-
     const handleSearchChange = (e) => {
         setSearchInput(e.target.value);
     };
 
+    const handleSort = (sortBy: string) => {
+        dispatch(dashboardOp.applySorterOp(sortBy));
+    };
+
     const handleSearchBlur = () => {
-        const filter = {
-            field: 'textQuery',
-            value: searchInput
-        };
-        dispatch(dashboardOp.applyFilter(filter));
+        dispatch(dashboardOp.applyFiltersOp({
+            textQuery: searchInput
+        }));
     };
 
     return (

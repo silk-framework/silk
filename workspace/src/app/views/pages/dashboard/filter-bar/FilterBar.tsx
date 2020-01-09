@@ -19,9 +19,8 @@ export default function FilterBar() {
 
     const handleFilterSelect = (field: string, val: string) => {
         let value = val !== appliedFilters[field] ? val : '';
-        dispatch(dashboardOp.applyFilter({
-            field,
-            value
+        dispatch(dashboardOp.applyFiltersOp({
+            [field]: value
         }));
     };
 

@@ -23,10 +23,7 @@ export default function FacetsList() {
     };
 
     const handleSetFacet = (facet: IFacetState, value: string) => {
-        dispatch(dashboardOp.applyFacet({
-            facet,
-            value
-        }));
+        dispatch(dashboardOp.toggleFacetOp(facet, value));
     };
 
     return (

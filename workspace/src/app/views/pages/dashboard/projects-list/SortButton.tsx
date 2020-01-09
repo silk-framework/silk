@@ -22,7 +22,7 @@ export default function SortButton({ sortersList, activeSort, onSort }: IProps) 
                             key={item.id}
                             text={item.label}
                             icon={
-                                activeSort && activeSort.sortBy === item.id
+                                activeSort.sortBy === item.id
                                     ? activeSort.sortOrder === 'ASC' ? IconNames.ARROW_UP : IconNames.ARROW_DOWN
                                     : null
                             }

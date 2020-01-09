@@ -94,7 +94,7 @@ export default function ProjectsList() {
     };
 
     const handlePageChange = (n: number) => {
-        dispatch(dashboardOp.changePage(n))
+        dispatch(dashboardOp.changePageOp(n))
     };
 
     const goToItemDetails = (item: ISearchResultsTask) => {

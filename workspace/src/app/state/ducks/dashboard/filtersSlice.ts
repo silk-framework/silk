@@ -2,10 +2,10 @@ import { createSlice } from "@reduxjs/toolkit";
 import { IAppliedSorterState, SortModifierType } from "./typings";
 import { initialPaginationState } from "../../typings";
 import without from "ramda/src/without";
-import { initialAppliedFacetState, initialFiltersState } from "./initialState";
+import { initialAppliedSortersState, initialFiltersState } from "./initialState";
 
 const DEFAULT_SORTER = {
-    id: null,
+    id: '',
     label: 'Default'
 };
 
@@ -22,16 +22,19 @@ export const filtersSlice = createSlice({
             state.modifiers[fieldName] = modifier;
         },
 
-        applyFilter(state, action) {
-            const {field, value} = action.payload;
-            if (!value) {
-                delete state.appliedFilters[field];
-            } else {
-                state.appliedFilters[field] = value;
-                state.sorters.applied = {} as IAppliedSorterState;
-                state.appliedFilters.facets = [];
-            }
+        applyFilters(state, action) {
+            const filters = action.payload;
+            Object.keys(filters).forEach((field) => {
+                const value = action.payload[field];
+                if (!value) {
+                    delete state.appliedFilters[field];
+                } else {
+                    state.appliedFilters[field] = value;
+                    state.sorters.applied = initialAppliedSortersState();
+                }
+            });
 
+            state.appliedFilters.facets = [];
             state.pagination = initialPaginationState();
         },
 
@@ -45,25 +48,26 @@ export const filtersSlice = createSlice({
         applySorter(state, action) {
             const currentSort = state.sorters.applied;
             const sortBy = action.payload;
-            // clean sorting if default selected
-            if (DEFAULT_SORTER.id === sortBy) {
-                state.sorters.applied = null;
-            } else {
+            let appliedSorter: IAppliedSorterState = {
+                sortBy: '',
+                sortOrder: ''
+            };
+
+            if (sortBy) {
                 let sortOrder: SortModifierType = "ASC";
-                if (sortBy && currentSort && currentSort.sortBy === sortBy) {
+                if (currentSort.sortBy === sortBy) {
                     sortOrder = currentSort.sortOrder === "ASC" ? "DESC" : "ASC";
                 }
-                state.sorters.applied = {
-                    sortBy,
-                    sortOrder
-                };
+                appliedSorter.sortBy = sortBy;
+                appliedSorter.sortOrder = sortOrder;
             }
+
+            state.sorters.applied = appliedSorter;
         },
 
         changePage(state, action) {
             const page = action.payload;
-            const {pagination} = state;
-            const offset = (page - 1) * pagination.limit;
+            const offset = (page - 1) * state.pagination.limit;
 
             state.pagination = initialPaginationState({
                 offset,
@@ -80,40 +84,28 @@ export const filtersSlice = createSlice({
         },
 
         applyFacet(state, action) {
-            const {facet, value} = action.payload;
+            const {facet, keywordId} = action.payload;
             const {facets} = state.appliedFilters;
 
-            const ind = facets.findIndex(o => o.facetId === facet.id);
-            // add facet, if doesn't not exists
-            if (ind === -1) {
-                facets.push(
-                    initialAppliedFacetState({
-                        facetId: facet.id,
-                        type: facet.type,
-                        keywordIds: [value]
-                    }));
-                return;
-            }
-            const currentFacet = facets[ind];
-
-            // push keywordId if keywordId not found in applied facet
-            if (!currentFacet.keywordIds.includes(value)) {
-                currentFacet.keywordIds.push(value);
-                return;
-            }
-
-            currentFacet.keywordIds = without([value], currentFacet.keywordIds);
-            // remove facet if no any keyword provided
-            if (!currentFacet.keywordIds.length) {
-                facets.splice(ind, 1);
+            const currentFacet = facets.find(o => o.facetId === facet.id);
+            // add facet, if doesn't exists
+            if (!currentFacet) {
+                facets.push({
+                    facetId: facet.id,
+                    type: facet.type,
+                    keywordIds: [keywordId]
+                });
+            } else {
+                // push keywordId if keywordId not found in applied facet
+                currentFacet.keywordIds.push(keywordId);
             }
         },
 
         removeFacet(state, action) {
-            const { facetId, keywordId } = action.payload;
-            const { facets } = state.appliedFilters;
+            const {facet, keywordId} = action.payload;
+            const {facets} = state.appliedFilters;
 
-            const ind = facets.findIndex(facet => facet.facetId === facetId);
+            const ind = facets.findIndex(fa => fa.facetId === facet.facetId);
             if (ind > -1) {
                 const keywords = facets[ind].keywordIds.filter(kw => kw !== keywordId);
                 // Remove if applied facets is empty

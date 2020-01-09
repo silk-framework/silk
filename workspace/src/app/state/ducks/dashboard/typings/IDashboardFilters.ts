@@ -1,6 +1,6 @@
 import { IPaginationState } from "../../../typings";
 
-export type SortModifierType = 'ASC' | 'DESC';
+export type SortModifierType = 'ASC' | 'DESC' | '';
 
 export interface IAppliedSorterState {
     sortBy: string;

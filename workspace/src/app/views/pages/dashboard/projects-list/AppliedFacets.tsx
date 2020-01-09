@@ -3,6 +3,7 @@ import TagsGroup from "../../../components/tags/TagsGroup";
 import TagItem from "../../../components/tags/TagItem";
 import { useDispatch, useSelector } from "react-redux";
 import { dashboardOp, dashboardSel } from "@ducks/dashboard";
+import { IFacetState } from "@ducks/dashboard/typings";
 
 
 export default function AppliedFacets() {
@@ -11,11 +12,8 @@ export default function AppliedFacets() {
     const facets = useSelector(dashboardSel.facetsSelector);
     const appliedFacets = useSelector(dashboardSel.appliedFacetsSelector);
 
-    const handleFacetRemove = (facetId: string, keywordId: string) => {
-        dispatch(dashboardOp.removeFacet({
-            facetId,
-            keywordId
-        }));
+    const handleFacetRemove = (facet: IFacetState, keywordId: string) => {
+        dispatch(dashboardOp.toggleFacetOp(facet, keywordId));
     };
 
     const facetsList = [];
@@ -41,7 +39,7 @@ export default function AppliedFacets() {
                                 <TagItem
                                     key={keyword.id}
                                     label={keyword.label}
-                                    onFacetRemove={() => handleFacetRemove(facet.id, keyword.id)}
+                                    onFacetRemove={() => handleFacetRemove(facet, keyword.id)}
                                 />
                             )
                         }

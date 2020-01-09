@@ -49,18 +49,17 @@ export default function ProjectRow({ item, searchValue, onOpenDeleteModal, onOpe
             const lowerCaseLabel = label.toLowerCase();
             const multiWordRegex = RegExp(searchStringParts.map(word => `${escapeRegexWord(word.toLowerCase())}`).join('|'), 'g');
             let offset = 0;
-            const result: Array<string> = [];
+            const result = [];
             // loop through matches and add unmatched and matched parts to result array
             let matchArray = multiWordRegex.exec(lowerCaseLabel);
-            while(matchArray !== null) {
+            while (matchArray !== null) {
                 result.push(label.slice(offset, matchArray.index));
                 result.push(`<mark>${matchArray[0]}</mark>`);
-                matchArray.index;
                 offset = multiWordRegex.lastIndex;
                 matchArray = multiWordRegex.exec(lowerCaseLabel);
             }
             // Add remaining unmatched string
-            if(offset < label.length) {
+            if (offset < label.length) {
                 result.push(label.slice(offset));
             }
             return result.join('');
