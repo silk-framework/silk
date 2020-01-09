@@ -8,8 +8,9 @@ import { filtersSlice } from "./filtersSlice";
 import { previewSlice } from "./previewSlice";
 import { getApiEndpoint, getLegacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { routerOp } from "@ducks/router";
-import { IFacetState, SortModifierType } from "@ducks/dashboard/typings";
+import { IFacetState } from "@ducks/dashboard/typings";
 import { dashboardSel } from "@ducks/dashboard/index";
+import qs from "query-string";
 
 const {
     fetchTypeModifier,
@@ -193,7 +194,9 @@ const applyFiltersOp = (filter) => {
 
 const applySorterOp = (sortBy: string) => {
     return (dispatch, getState) => {
-        dispatch(applySorter(sortBy));
+        dispatch(applySorter({
+            sortBy
+        }));
         const sorters = dashboardSel.sortersSelector(getState());
         dispatch(routerOp.setQueryString(sorters.applied));
     }
@@ -220,7 +223,7 @@ const toggleFacetOp = (facet: IFacetState, keywordId: string) => {
         if (!foundFacet || isKeywordMissing) {
             dispatch(applyFacet({
                 facet,
-                keywordId
+                keywordIds: [keywordId]
             }));
         } else {
             dispatch(removeFacet({
@@ -240,6 +243,68 @@ const toggleFacetOp = (facet: IFacetState, keywordId: string) => {
     }
 };
 
+/*
+* Setup Filters, Sorting, Pagination, Facets from Query string
+**/
+const setupFiltersFromQs = (queryString: string) => {
+    return dispatch => {
+        try {
+            const parsedQs = qs.parse(queryString, {
+                parseNumbers: true,
+                arrayFormat: "comma"
+            });
+
+            // The batch of functions that should dispatched
+            const batchQueue = [];
+
+            // setup filters
+            const filters: any = {};
+            if (parsedQs.textQuery) {
+                filters.textQuery = parsedQs.textQuery;
+            }
+            if (parsedQs.itemType) {
+                filters.itemType = parsedQs.itemType;
+            }
+            batchQueue.push(
+                applyFilters(filters)
+            );
+
+            // Facets
+            if (parsedQs.f_ids) {
+                // @TODO: add array setup feature
+                const facet: Partial<IFacetState> = {
+                    id: parsedQs.f_ids as string,
+                    type: parsedQs.types as string,
+                };
+
+                batchQueue.push(applyFacet({
+                    facet,
+                    keywordIds: parsedQs.f_keys
+                }));
+            }
+
+            // Pagination
+            if (parsedQs.page) {
+                batchQueue.push(
+                    changePage(parsedQs.page)
+                )
+            }
+
+            // Sorting
+            if (parsedQs.sortBy) {
+                batchQueue.push(applySorter({
+                    sortBy: parsedQs.sortBy,
+                    sortOrder: parsedQs.sortOrder
+                }))
+            }
+
+            batch(() => batchQueue.forEach(dispatch));
+
+        } catch {}
+
+    }
+};
+
 export default {
     fetchTypesAsync,
     fetchListAsync,
@@ -251,4 +316,5 @@ export default {
     cloneTask,
     changePageOp,
     toggleFacetOp,
+    setupFiltersFromQs
 };

@@ -10,9 +10,9 @@ import ProjectRow from "./ProjectRow";
 import Loading from "../../../components/loading/Loading";
 import { push } from "connected-react-router";
 import { ISearchResultsTask } from "@ducks/dashboard/typings";
-import { IStore } from "../../../../state/typings/IStore";
 import { DATA_TYPES } from "../../../../constants";
 import CloneModal from "../../../components/modals/CloneModal";
+import { routerSel } from "@ducks/router";
 
 export default function ProjectsList() {
 
@@ -25,11 +25,17 @@ export default function ProjectsList() {
     const pagination = useSelector(dashboardSel.paginationSelector);
     const appliedFilters = useSelector(dashboardSel.appliedFiltersSelector);
     const isLoading = useSelector(dashboardSel.isLoadingSelector);
-    const pathname = useSelector((state: IStore) => state.router.location.pathname);
+    const pathname = useSelector(routerSel.pathnameSelector);
+    const qs = useSelector(routerSel.routerSearchSelector);
 
     const [selectedItem, setSelectedItem] = useState();
     const [showDeleteModal, setShowDeleteModal] = useState();
     const [showCloneModal, setShowCloneModal] = useState();
+
+    useEffect(() => {
+        // Setup the filters from query string
+        dispatch(dashboardOp.setupFiltersFromQs(qs));
+    }, []);
 
     useEffect(() => {
         dispatch(dashboardOp.fetchListAsync());

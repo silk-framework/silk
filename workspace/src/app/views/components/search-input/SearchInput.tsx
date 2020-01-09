@@ -10,8 +10,6 @@ interface IProps {
 }
 
 const SearchInput = memo(({ onFilterChange, filterValue, onBlur }: IProps) => {
-    const maybeSpinner = filterValue ? <Spinner /> : undefined;
-
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
             onBlur();
@@ -25,7 +23,6 @@ const SearchInput = memo(({ onFilterChange, filterValue, onBlur }: IProps) => {
             onChange={onFilterChange}
             onBlur={onBlur}
             onKeyDown={handleKeyDown}
-            rightElement={maybeSpinner}
             value={filterValue}
         />
     )

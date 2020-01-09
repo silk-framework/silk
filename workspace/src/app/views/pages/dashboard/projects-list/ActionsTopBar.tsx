@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import SortButton from "./SortButton";
 import SearchInput from "../../../components/search-input/SearchInput";
 import { dashboardOp, dashboardSel } from "@ducks/dashboard";
@@ -6,9 +6,14 @@ import { useDispatch, useSelector } from "react-redux";
 
 export default function ActionsTopBar() {
     const dispatch = useDispatch();
+    const { textQuery } = useSelector(dashboardSel.appliedFiltersSelector);
     const sorters = useSelector(dashboardSel.sortersSelector);
 
-    const [searchInput, setSearchInput] = useState();
+    const [searchInput, setSearchInput] = useState(textQuery);
+
+    useEffect(() => {
+        setSearchInput(textQuery);
+    }, [textQuery]);
 
     const handleSearchChange = (e) => {
         setSearchInput(e.target.value);
@@ -30,6 +35,7 @@ export default function ActionsTopBar() {
                 <SearchInput
                     onFilterChange={handleSearchChange}
                     onBlur={handleSearchBlur}
+                    filterValue={searchInput}
                 />
             </div>
             <div style={{width: '15%', float: 'left', marginLeft: '15px'}}>

@@ -47,19 +47,19 @@ export const filtersSlice = createSlice({
 
         applySorter(state, action) {
             const currentSort = state.sorters.applied;
-            const sortBy = action.payload;
+            const { sortBy, sortOrder } = action.payload;
             let appliedSorter: IAppliedSorterState = {
                 sortBy: '',
                 sortOrder: ''
             };
 
             if (sortBy) {
-                let sortOrder: SortModifierType = "ASC";
+                let newSortOrder: SortModifierType = sortOrder || "ASC";
                 if (currentSort.sortBy === sortBy) {
-                    sortOrder = currentSort.sortOrder === "ASC" ? "DESC" : "ASC";
+                    newSortOrder = currentSort.sortOrder === "ASC" ? "DESC" : "ASC";
                 }
                 appliedSorter.sortBy = sortBy;
-                appliedSorter.sortOrder = sortOrder;
+                appliedSorter.sortOrder = newSortOrder;
             }
 
             state.sorters.applied = appliedSorter;
@@ -68,7 +68,6 @@ export const filtersSlice = createSlice({
         changePage(state, action) {
             const page = action.payload;
             const offset = (page - 1) * state.pagination.limit;
-
             state.pagination = initialPaginationState({
                 offset,
                 current: page
@@ -84,7 +83,7 @@ export const filtersSlice = createSlice({
         },
 
         applyFacet(state, action) {
-            const {facet, keywordId} = action.payload;
+            const {facet, keywordIds} = action.payload;
             const {facets} = state.appliedFilters;
 
             const currentFacet = facets.find(o => o.facetId === facet.id);
@@ -93,12 +92,13 @@ export const filtersSlice = createSlice({
                 facets.push({
                     facetId: facet.id,
                     type: facet.type,
-                    keywordIds: [keywordId]
+                    keywordIds
                 });
             } else {
                 // push keywordId if keywordId not found in applied facet
-                currentFacet.keywordIds.push(keywordId);
+                currentFacet.keywordIds = [...currentFacet.keywordIds, ...keywordIds];
             }
+            state.pagination = initialPaginationState();
         },
 
         removeFacet(state, action) {
@@ -114,6 +114,7 @@ export const filtersSlice = createSlice({
                 } else {
                     facets[ind].keywordIds = keywords;
                 }
+                state.pagination = initialPaginationState();
             }
         }
     }

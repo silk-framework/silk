@@ -21,10 +21,13 @@ const setQueryString = (queryParams: IQueryParams) => {
             }
         });
 
-        const qsStr = `${location.pathname}?${qs.stringify(currentQuery)}`;
+        const qsStr = `${location.pathname}?${qs.stringify(currentQuery, {
+            arrayFormat: "comma"
+        })}`;
         dispatch(replace(qsStr));
     }
 };
+
 
 export default {
     setQueryString,
