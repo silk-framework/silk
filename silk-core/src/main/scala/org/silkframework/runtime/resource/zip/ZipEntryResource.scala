@@ -9,7 +9,7 @@ import org.silkframework.runtime.resource.{Resource, ResourceWithKnownTypes}
 /**
   * A resource that represents a Zip file entry.
   */
-class ZipEntryResource private[zip](zipEntry: ZipEntry, resourceLoader: ZipResourceLoader)
+class ZipEntryResource private[zip](zipEntry: ZipEntry, resourceLoader: ZipInputStreamResourceLoader)
     extends Resource
         with ResourceWithKnownTypes {
 

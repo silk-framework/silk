@@ -3,13 +3,13 @@ package org.silkframework.runtime.resource
 import java.util.zip.ZipInputStream
 
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
-import org.silkframework.runtime.resource.zip.ZipResourceLoader
+import org.silkframework.runtime.resource.zip.ZipInputStreamResourceLoader
 
-class ZipResourceLoaderTest extends FlatSpec with Matchers with BeforeAndAfterAll {
+class ZipInputStreamResourceLoaderTest extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   behavior of "ZipResourceLoader"
 
-  private val root = ZipResourceLoader(() => new ZipInputStream(getClass.getResource("example.zip").openStream()))
+  private val root = ZipInputStreamResourceLoader(() => new ZipInputStream(getClass.getResource("example.zip").openStream()))
 
   it should "read all files and folders at the root" in {
     root.listChildren shouldBe List("rootFolder")

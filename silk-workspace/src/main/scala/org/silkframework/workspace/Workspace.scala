@@ -147,9 +147,11 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       case Some(_) =>
         throw IdentifierAlreadyExistsException("Project " + name.toString + " does already exist!")
       case None =>
+        log.info(s"Starting import of project '$name'...")
+        val start = System.currentTimeMillis()
         marshaller.unmarshalProject(name, provider, repository.get(name), file)
         reloadProject(name)
-        log.info(s"Imported project '$name'. " + userContext.logInfo)
+        log.info(s"Imported project '$name' in ${(System.currentTimeMillis() - start).toDouble / 1000}s. " + userContext.logInfo)
     }
   }
 

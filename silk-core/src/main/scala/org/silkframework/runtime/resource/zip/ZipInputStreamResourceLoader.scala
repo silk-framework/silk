@@ -1,28 +1,29 @@
 package org.silkframework.runtime.resource.zip
 
-import java.io.{BufferedInputStream, File, FileInputStream, InputStream}
-import java.time.Instant
+import java.io.{BufferedInputStream, File, FileInputStream}
 import java.util.zip.{ZipEntry, ZipInputStream}
 
-import org.silkframework.runtime.resource.{CompressedFileResource, CompressedInMemoryResource, Resource, ResourceLoader, ResourceNotFoundException, ResourceWithKnownTypes, WritableResource}
+import org.silkframework.runtime.resource._
 
 import scala.util.matching.Regex
 
 /**
   * A resource loader that loads all resources from a zip file.
   *
-  * @param zip The zip file to read all resources from.
+  * If a ZIP file is used as input use the [[ZipFileResourceLoader]], which has much better performance and scalability.
+  *
+  * @param zip      A factory method to (re-)create the ZIP input stream.
   * @param basePath The based path inside the zip from which the resources are loaded.
   *                 If empty, the resources from the root are loaded.
   */
-case class ZipResourceLoader(private[zip] val zip: () => ZipInputStream, basePath: String = "") extends ResourceLoader {
+case class ZipInputStreamResourceLoader(private[zip] val zip: () => ZipInputStream, basePath: String = "") extends ResourceLoader {
 
   /**
     * Lists all available files at the given base path.
     */
   override def list: List[String] = {
     val z = zip()
-    val filesBelowBasePath = ZipResourceLoader.listEntries(z).toList.filterNot(_.isDirectory).filter(_.getName.startsWith(basePath)).map(_.getName.stripPrefix(basePath + "/"))
+    val filesBelowBasePath = ZipInputStreamResourceLoader.listEntries(z).toList.filterNot(_.isDirectory).filter(_.getName.startsWith(basePath)).map(_.getName.stripPrefix(basePath + "/"))
     z.close()
     filesBelowBasePath.filterNot(_.contains("/"))
   }
@@ -32,7 +33,7 @@ case class ZipResourceLoader(private[zip] val zip: () => ZipInputStream, basePat
     */
   override def listChildren: List[String] = {
     val z = zip()
-    val entriesBelowBasePath = ZipResourceLoader.listEntries(z).toList.filter(_.getName.startsWith(basePath)).map(_.getName.stripPrefix(basePath + "/"))
+    val entriesBelowBasePath = ZipInputStreamResourceLoader.listEntries(z).toList.filter(_.getName.startsWith(basePath)).map(_.getName.stripPrefix(basePath + "/"))
     val localNames = entriesBelowBasePath.filter(_.contains("/")).map(_.takeWhile(_ != '/'))
     z.close()
     localNames.distinct
@@ -43,7 +44,7 @@ case class ZipResourceLoader(private[zip] val zip: () => ZipInputStream, basePat
     */
   override def get(name: String, mustExist: Boolean): Resource = {
     val z = zip()
-    ZipResourceLoader.listEntries(z).find(e => e.getName == fullPath(name)) match{
+    ZipInputStreamResourceLoader.listEntries(z).find(e => e.getName == fullPath(name)) match{
       case Some(e) =>
         z.close()
         new ZipEntryResource(e, this)
@@ -53,14 +54,14 @@ case class ZipResourceLoader(private[zip] val zip: () => ZipInputStream, basePat
     }
   }
 
-  override def child(name: String): ResourceLoader = ZipResourceLoader(zip, fullPath(name))
+  override def child(name: String): ResourceLoader = ZipInputStreamResourceLoader(zip, fullPath(name))
 
   override def parent: Option[ResourceLoader] = {
     val slashIndex = basePath.lastIndexOf('/')
     if(slashIndex == -1) {
       None
     } else {
-      Some(ZipResourceLoader(zip, basePath.substring(0, slashIndex)))
+      Some(ZipInputStreamResourceLoader(zip, basePath.substring(0, slashIndex)))
     }
   }
 
@@ -90,7 +91,7 @@ case class ZipResourceLoader(private[zip] val zip: () => ZipInputStream, basePat
         val zipInputStream = zip()
         var currentResource: Option[WritableResource with ResourceWithKnownTypes] = None
         try {
-          ZipResourceLoader.listEntries(zipInputStream) foreach { entry =>
+          ZipInputStreamResourceLoader.listEntries(zipInputStream) foreach { entry =>
             if (!entry.isDirectory && filterRegex.findFirstIn(entry.getName).isDefined) {
               val tempResource = createCompressedResource(entry, zipInputStream)
               currentResource.foreach(_.delete())
@@ -120,11 +121,9 @@ case class ZipResourceLoader(private[zip] val zip: () => ZipInputStream, basePat
   }
 }
 
-object ZipResourceLoader{
+object ZipInputStreamResourceLoader{
 
-  def apply(file: File, basePath: String): ZipResourceLoader = apply(() => new ZipInputStream(new BufferedInputStream(new FileInputStream(file))), basePath)
-
-  def apply(resource: Resource, basePath: String): ZipResourceLoader = apply(() => new ZipInputStream(new BufferedInputStream(resource.inputStream)), basePath)
+  def apply(resource: Resource, basePath: String): ZipInputStreamResourceLoader = apply(() => new ZipInputStream(new BufferedInputStream(resource.inputStream)), basePath)
 
   def listEntries(stream: ZipInputStream): Iterator[ZipEntry] = new Iterator[ZipEntry] {
     private var nextEntry: ZipEntry = null
