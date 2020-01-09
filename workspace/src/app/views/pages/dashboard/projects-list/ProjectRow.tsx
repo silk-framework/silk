@@ -59,9 +59,7 @@ export default function ProjectRow({ item, searchValue, onOpenDeleteModal, onOpe
                 matchArray = multiWordRegex.exec(lowerCaseLabel);
             }
             // Add remaining unmatched string
-            if (offset < label.length) {
-                result.push(label.slice(offset));
-            }
+            result.push(label.slice(offset));
             return result.join('');
         }
         return label;
