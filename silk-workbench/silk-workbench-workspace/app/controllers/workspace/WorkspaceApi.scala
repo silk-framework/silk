@@ -16,6 +16,7 @@ import org.silkframework.runtime.resource.{ResourceManager, UrlResource, Writabl
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
+import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace._
 import org.silkframework.workspace.activity.ProjectExecutor
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
@@ -27,7 +28,7 @@ import play.api.mvc._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.existentials
 
-class WorkspaceApi  @Inject() () extends InjectedController {
+class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
@@ -47,6 +48,7 @@ class WorkspaceApi  @Inject() () extends InjectedController {
 
   def getProject(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
+    accessMonitor.saveProjectAccess(project.config.id)
     Ok(JsonSerializer.projectJson(project))
   }
 

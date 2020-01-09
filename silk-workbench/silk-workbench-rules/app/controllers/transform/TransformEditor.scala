@@ -1,24 +1,24 @@
 package controllers.transform
 
-import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.core.util.ControllerUtilsTrait
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import javax.inject.Inject
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.TransformSpec
-import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workbench.Context
+import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
-class TransformEditor @Inject() () extends InjectedController with ControllerUtilsTrait {
+class TransformEditor @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with ControllerUtilsTrait {
 
   def start(project: String, task: String, rule: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[TransformSpec](project, task, request.path)
     val vocabularies = context.task.activity[VocabularyCache].value()
+    accessMonitor.saveProjectTaskAccess(project, task)
 
     // TODO: We should check whether the rule exists
     Ok(views.html.editor.transformRules(context, vocabularies, rule))

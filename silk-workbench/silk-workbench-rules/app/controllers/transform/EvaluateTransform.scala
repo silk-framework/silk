@@ -5,15 +5,17 @@ import javax.inject.Inject
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.{EvaluateTransform => EvaluateTransformTask}
 import org.silkframework.workbench.Context
+import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
-import play.api.mvc.{InjectedController, Action, AnyContent, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, InjectedController}
 
 /** Endpoints for evaluating transform tasks */
-class EvaluateTransform @Inject() () extends InjectedController {
+class EvaluateTransform @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController {
 
   def evaluate(project: String, task: String, offset: Int, limit: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[TransformSpec](project, task, request.path)
+    accessMonitor.saveProjectTaskAccess(project, task)
     Ok(views.html.evaluateTransform.evaluateTransform(context, offset, limit))
   }
 

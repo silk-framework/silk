@@ -11,15 +11,17 @@ import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.DetailedEvaluator
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workbench.Context
+import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, InjectedController, WebSocket}
 
-class EvaluateLinkingController @Inject() (implicit system: ActorSystem, mat: Materializer) extends InjectedController {
+class EvaluateLinkingController @Inject() (implicit system: ActorSystem, mat: Materializer, accessMonitor: WorkbenchAccessMonitor) extends InjectedController {
 
   def generateLinks(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
+    accessMonitor.saveProjectTaskAccess(project, task)
     Ok(views.html.evaluateLinking.evaluateLinking(context))
   }
 

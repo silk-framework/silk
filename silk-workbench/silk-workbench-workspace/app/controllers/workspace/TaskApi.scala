@@ -15,13 +15,14 @@ import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.ErrorResult
+import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{JsBoolean, JsObject, JsValue, Json}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
 
-class TaskApi @Inject() () extends InjectedController with ControllerUtilsTrait {
+class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with ControllerUtilsTrait {
 
   implicit private lazy val executionContext: ExecutionContext = controllerComponents.executionContext
 
@@ -71,6 +72,7 @@ class TaskApi @Inject() () extends InjectedController with ControllerUtilsTrait 
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
 
+    accessMonitor.saveProjectTaskAccess(project.config.id, task.id)
     SerializationUtils.serializeCompileTime[Task[TaskSpec]](task, Some(project))
   }
 
