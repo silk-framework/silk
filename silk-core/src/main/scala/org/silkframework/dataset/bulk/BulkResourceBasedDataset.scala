@@ -8,7 +8,7 @@ import org.silkframework.dataset.{DataSource, Dataset, ResourceBasedDataset}
 import org.silkframework.execution.{InterruptibleTraversable, MappedTraversable}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
-import org.silkframework.runtime.resource.zip.ZipInputStreamResourceLoader
+import org.silkframework.runtime.resource.zip.ZipInputStreamResourceIterator
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.control.NonFatal
@@ -113,7 +113,7 @@ object BulkResourceBasedDataset {
         new InterruptibleTraversable(
           new Traversable[Resource] {
             override def foreach[U](f: Resource => U): Unit = {
-              val zipLoader = ZipInputStreamResourceLoader(resource, "")
+              val zipLoader = ZipInputStreamResourceIterator(resource, "")
               zipLoader.iterateReadOnceResources(filterRegex) foreach f
             }
           }

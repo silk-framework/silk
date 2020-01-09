@@ -1,6 +1,6 @@
 package org.silkframework.runtime.resource.zip
 
-import java.io.{BufferedInputStream, File, FileInputStream}
+import java.io.{BufferedInputStream, File}
 import java.util.zip.{ZipEntry, ZipInputStream}
 
 import org.silkframework.runtime.resource._
@@ -8,70 +8,15 @@ import org.silkframework.runtime.resource._
 import scala.util.matching.Regex
 
 /**
-  * A resource loader that loads all resources from a zip file.
+  * A resource iterator on a ZIP input stream.
   *
-  * If a ZIP file is used as input use the [[ZipFileResourceLoader]], which has much better performance and scalability.
+  * If the input comes from a local zip file, use the [[ZipFileResourceLoader]] instead.
   *
   * @param zip      A factory method to (re-)create the ZIP input stream.
   * @param basePath The based path inside the zip from which the resources are loaded.
   *                 If empty, the resources from the root are loaded.
   */
-case class ZipInputStreamResourceLoader(private[zip] val zip: () => ZipInputStream, basePath: String = "") extends ResourceLoader {
-
-  /**
-    * Lists all available files at the given base path.
-    */
-  override def list: List[String] = {
-    val z = zip()
-    val filesBelowBasePath = ZipInputStreamResourceLoader.listEntries(z).toList.filterNot(_.isDirectory).filter(_.getName.startsWith(basePath)).map(_.getName.stripPrefix(basePath + "/"))
-    z.close()
-    filesBelowBasePath.filterNot(_.contains("/"))
-  }
-
-  /**
-    * Lists all available directories at the given base path.
-    */
-  override def listChildren: List[String] = {
-    val z = zip()
-    val entriesBelowBasePath = ZipInputStreamResourceLoader.listEntries(z).toList.filter(_.getName.startsWith(basePath)).map(_.getName.stripPrefix(basePath + "/"))
-    val localNames = entriesBelowBasePath.filter(_.contains("/")).map(_.takeWhile(_ != '/'))
-    z.close()
-    localNames.distinct
-  }
-
-  /**
-    * Retrieves a file at the given base path.
-    */
-  override def get(name: String, mustExist: Boolean): Resource = {
-    val z = zip()
-    ZipInputStreamResourceLoader.listEntries(z).find(e => e.getName == fullPath(name)) match{
-      case Some(e) =>
-        z.close()
-        new ZipEntryResource(e, this)
-      case None =>
-        z.close()
-        throw new ResourceNotFoundException(s"No resource $name found in zip file at path $basePath.") // If the zip entry is not found, we fail fast even if mustExist is false.
-    }
-  }
-
-  override def child(name: String): ResourceLoader = ZipInputStreamResourceLoader(zip, fullPath(name))
-
-  override def parent: Option[ResourceLoader] = {
-    val slashIndex = basePath.lastIndexOf('/')
-    if(slashIndex == -1) {
-      None
-    } else {
-      Some(ZipInputStreamResourceLoader(zip, basePath.substring(0, slashIndex)))
-    }
-  }
-
-  private def fullPath(name: String) = {
-    if(basePath.isEmpty) {
-      name
-    } else {
-      basePath + "/" + name
-    }
-  }
+case class ZipInputStreamResourceIterator(private[zip] val zip: () => ZipInputStream, basePath: String = "") {
 
   /* The max size of the ZIP resource, so that it will be kept in memory when iterating over the resources.
      This should avoid file access overhead for many small resources. The actual compressed size of the resource might be larger,
@@ -91,7 +36,7 @@ case class ZipInputStreamResourceLoader(private[zip] val zip: () => ZipInputStre
         val zipInputStream = zip()
         var currentResource: Option[WritableResource with ResourceWithKnownTypes] = None
         try {
-          ZipInputStreamResourceLoader.listEntries(zipInputStream) foreach { entry =>
+          ZipInputStreamResourceIterator.listEntries(zipInputStream) foreach { entry =>
             if (!entry.isDirectory && filterRegex.findFirstIn(entry.getName).isDefined) {
               val tempResource = createCompressedResource(entry, zipInputStream)
               currentResource.foreach(_.delete())
@@ -109,21 +54,21 @@ case class ZipInputStreamResourceLoader(private[zip] val zip: () => ZipInputStre
   // Creates a compressed, in-memory or file bases resource from the ZIP input stream.
   private def createCompressedResource[U](entry: ZipEntry, z: ZipInputStream): WritableResource with ResourceWithKnownTypes = {
     val r = if (entry.getCompressedSize <= maxCompressedSizeForInMemory) {
-      CompressedInMemoryResource(entry.getName, entry.getName, ZipEntryResource.getTypeAnnotation(entry).toIndexedSeq)
+      CompressedInMemoryResource(entry.getName, entry.getName, ZipEntryUtil.getTypeAnnotation(entry).toIndexedSeq)
     } else {
       val tempFile = File.createTempFile("zipResource", ".bin")
       tempFile.deleteOnExit()
       // Since there is no way to know when the last resource will not be used anymore, we set the deleteOnGC flag, so it gets eventually deleted.
-      CompressedFileResource(tempFile, entry.getName, entry.getName, ZipEntryResource.getTypeAnnotation(entry).toIndexedSeq, deleteOnGC = true)
+      CompressedFileResource(tempFile, entry.getName, entry.getName, ZipEntryUtil.getTypeAnnotation(entry).toIndexedSeq, deleteOnGC = true)
     }
     r.writeStream(z)
     r
   }
 }
 
-object ZipInputStreamResourceLoader{
+object ZipInputStreamResourceIterator{
 
-  def apply(resource: Resource, basePath: String): ZipInputStreamResourceLoader = apply(() => new ZipInputStream(new BufferedInputStream(resource.inputStream)), basePath)
+  def apply(resource: Resource, basePath: String): ZipInputStreamResourceIterator = apply(() => new ZipInputStream(new BufferedInputStream(resource.inputStream)), basePath)
 
   def listEntries(stream: ZipInputStream): Iterator[ZipEntry] = new Iterator[ZipEntry] {
     private var nextEntry: ZipEntry = null
@@ -144,6 +89,20 @@ object ZipInputStreamResourceLoader{
         nextEntry = stream.getNextEntry
         fetchNext = false
       }
+    }
+  }
+}
+
+object ZipEntryUtil {
+  final val TYPE_URI_PREAMBLE = "Type URI: "
+
+  def getTypeAnnotation(zipEntry: ZipEntry): Option[String] = {
+    if(zipEntry.getComment != null && zipEntry.getComment.startsWith(TYPE_URI_PREAMBLE)) {
+      Some(zipEntry.getComment.drop(TYPE_URI_PREAMBLE.length))
+    } else if(zipEntry.getExtra != null && new String(zipEntry.getExtra).startsWith(TYPE_URI_PREAMBLE)) {
+      Some(new String(zipEntry.getExtra).drop(TYPE_URI_PREAMBLE.length))
+    } else {
+      None
     }
   }
 }
