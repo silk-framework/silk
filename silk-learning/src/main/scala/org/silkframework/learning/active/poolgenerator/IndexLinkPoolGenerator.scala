@@ -1,4 +1,5 @@
 package org.silkframework.learning.active.poolgenerator
+
 import org.silkframework.cache.{EntityCache, MemoryEntityCache}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.paths.TypedPath
@@ -56,8 +57,12 @@ class IndexLinkPoolGenerator extends LinkPoolGenerator {
 
           val entityPairs = runtimeConfig.executionMethod.comparisonPairs(sourcePartition, targetPartition, full = false)
           for (entityPair <- entityPairs if count < maxLinksPerPathPair) {
-            links.append(new LinkWithEntities(entityPair.source.uri, entityPair.target.uri, entityPair))
-            count += 1
+            val sourceValues = entityPair.source.evaluate(sourceIndex).map(_.toLowerCase).toSet
+            val targetValues = entityPair.target.evaluate(targetIndex).map(_.toLowerCase).toSet
+            if(sourceValues.exists(targetValues.contains)) {
+              links.append(new LinkWithEntities(entityPair.source.uri, entityPair.target.uri, entityPair))
+              count += 1
+            }
           }
         }
       }
@@ -68,8 +73,7 @@ class IndexLinkPoolGenerator extends LinkPoolGenerator {
 
     def loadCaches(input: DataSource, entitySchema: EntitySchema, name: String)(implicit userContext: UserContext): Seq[EntityCache] = {
       val caches =
-        for(path <- entitySchema.typedPaths) yield {
-          val pathIndex = entitySchema.indexOfTypedPath(path)
+        for(pathIndex <- entitySchema.typedPaths.indices) yield {
           def indexFunction(e: Entity) = Index.oneDim(e.evaluate(pathIndex).map(_.toLowerCase.hashCode).toSet)
           val cache = new MemoryEntityCache(entitySchema, indexFunction, runtimeConfig)
           cache
