@@ -73,7 +73,7 @@ export default function ProjectRow({item, searchValue, onOpenDeleteModal, onOpen
     const getRowMenu = (item: any) => {
         const {itemLinks} = item;
         const menuItems = itemLinks.map(link =>
-            <MenuItem key={link.path} text={link.label} href={link.path} icon={getItemLinkIcons(link.label)}/>
+            <MenuItem key={link.path} text={link.label} href={link.path} icon={getItemLinkIcons(link.label)} target={'_blank'}/>
         );
 
         menuItems.push(
@@ -94,6 +94,9 @@ export default function ProjectRow({item, searchValue, onOpenDeleteModal, onOpen
             </Cell>
             <Cell>
                 <Icon icon={IconNames.DUPLICATE} onClick={onOpenDuplicateModal} style={{'paddingRight': '10px'}}/>
+                <a href={item.itemLinks[0].path} target='_blank' style={{'color':'inherit'}}>
+                    <Icon icon={IconNames.DOCUMENT_OPEN} style={{'paddingRight': '10px'}}/>
+                </a>
                 <Popover content={getRowMenu(item)} position={Position.BOTTOM_LEFT}>
                     <Icon icon={IconNames.MORE}/>
                 </Popover>
