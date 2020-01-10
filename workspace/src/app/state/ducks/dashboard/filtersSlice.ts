@@ -6,7 +6,7 @@ import { initialAppliedSortersState, initialFiltersState } from "./initialState"
 
 const DEFAULT_SORTER = {
     id: '',
-    label: 'Default'
+    label: 'Most recently viewed (default)'
 };
 
 export const filtersSlice = createSlice({
