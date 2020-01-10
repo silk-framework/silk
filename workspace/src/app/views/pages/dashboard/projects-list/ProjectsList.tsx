@@ -119,7 +119,7 @@ export default function ProjectsList() {
                 <Body>
                 {
                     data.map(item => <ProjectRow
-                        key={item.id}
+                        key={`${item.id}_${item.projectId}`}
                         item={item}
                         onOpenDeleteModal={() => onOpenDeleteModal(item)}
                         onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
