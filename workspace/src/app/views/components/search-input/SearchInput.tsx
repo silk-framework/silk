@@ -1,18 +1,19 @@
-import React, { memo } from 'react';
+import React, { memo, useRef } from 'react';
 import Spinner from "@wrappers/spinner";
 import InputGroup from "@wrappers/input-group";
 import { IconNames } from "@wrappers/constants";
 
 interface IProps {
-    onFilterChange: (e) => any;
-    onBlur: () => any;
+    onFilterChange(e);
+    onBlur?();
+    onEnter();
     filterValue?: string;
 }
 
-const SearchInput = memo(({ onFilterChange, filterValue, onBlur }: IProps) => {
+const SearchInput = memo(({ onFilterChange, filterValue, onEnter, onBlur = () => {} }: IProps) => {
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
-            onBlur();
+            onEnter();
         }
     };
 

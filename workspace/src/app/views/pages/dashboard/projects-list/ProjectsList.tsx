@@ -21,7 +21,6 @@ export default function ProjectsList() {
     const [deleteModalOptions, setDeleteModalOptions] = useState({});
 
     const data = useSelector(dashboardSel.resultsSelector);
-    const sorters = useSelector(dashboardSel.sortersSelector);
     const pagination = useSelector(dashboardSel.paginationSelector);
     const appliedFilters = useSelector(dashboardSel.appliedFiltersSelector);
     const isLoading = useSelector(dashboardSel.isLoadingSelector);
@@ -35,11 +34,9 @@ export default function ProjectsList() {
     useEffect(() => {
         // Setup the filters from query string
         dispatch(dashboardOp.setupFiltersFromQs(qs));
-    }, []);
-
-    useEffect(() => {
+        // Fetch the list of projects
         dispatch(dashboardOp.fetchListAsync());
-    }, [appliedFilters, sorters.applied, pagination.current]);
+    }, []);
 
     const onDiscardModals = () => {
         setShowDeleteModal(false);

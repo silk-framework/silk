@@ -187,6 +187,7 @@ const applyFiltersOp = (filter) => {
     return dispatch => {
         batch(() => {
             dispatch(applyFilters(filter));
+            dispatch(fetchListAsync());
             dispatch(routerOp.setQueryString(filter));
         });
     }
@@ -194,9 +195,12 @@ const applyFiltersOp = (filter) => {
 
 const applySorterOp = (sortBy: string) => {
     return (dispatch, getState) => {
-        dispatch(applySorter({
-            sortBy
-        }));
+        batch(() => {
+            dispatch(applySorter({
+                sortBy
+            }));
+            dispatch(fetchListAsync());
+        });
         const sorters = dashboardSel.sortersSelector(getState());
         dispatch(routerOp.setQueryString(sorters.applied));
     }
@@ -206,6 +210,7 @@ const changePageOp = (page: number) => {
     return dispatch => {
         batch(() => {
             dispatch(changePage(page));
+            dispatch(fetchListAsync());
             dispatch(routerOp.setQueryString({
                 page
             }));
@@ -239,7 +244,10 @@ const toggleFacetOp = (facet: IFacetState, keywordId: string) => {
             f_keys: updatedFacets.map(o => o.keywordIds.join(','))
         };
 
-        dispatch(routerOp.setQueryString(queryParams))
+        batch(() => {
+            dispatch(fetchListAsync());
+            dispatch(routerOp.setQueryString(queryParams));
+        })
     }
 };
 
@@ -250,7 +258,7 @@ const setupFiltersFromQs = (queryString: string) => {
     return dispatch => {
         try {
             const parsedQs = qs.parse(queryString, {
-                parseNumbers: true,
+                parseNumbers: false,
                 arrayFormat: "comma"
             });
 
@@ -286,7 +294,7 @@ const setupFiltersFromQs = (queryString: string) => {
             // Pagination
             if (parsedQs.page) {
                 batchQueue.push(
-                    changePage(parsedQs.page)
+                    changePage(+parsedQs.page)
                 )
             }
 

@@ -23,7 +23,7 @@ export default function ActionsTopBar() {
         dispatch(dashboardOp.applySorterOp(sortBy));
     };
 
-    const handleSearchBlur = () => {
+    const handleSearchEnter = () => {
         dispatch(dashboardOp.applyFiltersOp({
             textQuery: searchInput
         }));
@@ -34,7 +34,7 @@ export default function ActionsTopBar() {
             <div style={{width: '80%', float: 'left'}}>
                 <SearchInput
                     onFilterChange={handleSearchChange}
-                    onBlur={handleSearchBlur}
+                    onEnter={handleSearchEnter}
                     filterValue={searchInput}
                 />
             </div>
