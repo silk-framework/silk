@@ -10,13 +10,16 @@ import Icon from "@wrappers/icon";
 interface IProps {
     item: ISearchResultsTask;
     searchValue?: string;
+
     onOpenDeleteModal(item: ISearchResultsTask);
+
     onOpenDuplicateModal(item: ISearchResultsTask);
+
     onRowClick();
 }
 
-export default function ProjectRow({ item, searchValue, onOpenDeleteModal, onOpenDuplicateModal, onRowClick }: IProps) {
-    const { Row, Cell } = DataList;
+export default function ProjectRow({item, searchValue, onOpenDeleteModal, onOpenDuplicateModal, onRowClick}: IProps) {
+    const {Row, Cell} = DataList;
 
     const getItemLinkIcons = (label: string) => {
         switch (label) {
@@ -35,34 +38,36 @@ export default function ProjectRow({ item, searchValue, onOpenDeleteModal, onOpe
      *  taken from https://stackoverflow.com/questions/6318710/javascript-equivalent-of-perls-q-e-or-quotemeta
      */
     const escapeRegexWord = (str: string) => {
-        return str.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+        return str.toLowerCase().replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
     };
 
     /**
      * Returns a highlighted string according to the words of the search query.
-     *
      * @param label The string to highlight.
      */
     const getSearchHighlight = (label: string) => {
-        if (searchValue) {
-            const searchStringParts = searchValue.split(RegExp('\\s+'));
-            const lowerCaseLabel = label.toLowerCase();
-            const multiWordRegex = RegExp(searchStringParts.map(word => `${escapeRegexWord(word.toLowerCase())}`).join('|'), 'g');
-            let offset = 0;
-            const result = [];
-            // loop through matches and add unmatched and matched parts to result array
-            let matchArray = multiWordRegex.exec(lowerCaseLabel);
-            while (matchArray !== null) {
-                result.push(label.slice(offset, matchArray.index));
-                result.push(`<mark>${matchArray[0]}</mark>`);
-                offset = multiWordRegex.lastIndex;
-                matchArray = multiWordRegex.exec(lowerCaseLabel);
-            }
-            // Add remaining unmatched string
-            result.push(label.slice(offset));
-            return result.join('');
+        if (!searchValue) {
+            return label
         }
-        return label;
+        const searchStringParts = searchValue.split(RegExp('\\s+'));
+        const lowerCaseLabel = label.toLowerCase();
+        const validString = searchStringParts.map(escapeRegexWord).join('|');
+        const multiWordRegex = RegExp(validString, 'g');
+        const result = [];
+
+        let offset = 0;
+        // loop through matches and add unmatched and matched parts to result array
+        let matchArray = multiWordRegex.exec(lowerCaseLabel);
+        while (matchArray !== null) {
+            result.push(label.slice(offset, matchArray.index));
+            result.push(`<mark>${matchArray[0]}</mark>`);
+            offset = multiWordRegex.lastIndex;
+            matchArray = multiWordRegex.exec(lowerCaseLabel);
+        }
+        // Add remaining unmatched string
+        result.push(label.slice(offset));
+        return result.join('');
+
     };
 
     const getRowMenu = (item: any) => {
