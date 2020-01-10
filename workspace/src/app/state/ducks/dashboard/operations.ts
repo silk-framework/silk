@@ -34,6 +34,91 @@ const {
 } = previewSlice.actions;
 
 /**
+ * Update the search query in url
+ */
+const updateQueryString = () => {
+    return (dispatch, getState) => {
+        const state = getState();
+
+        const appliedFilters = dashboardSel.appliedFiltersSelector(state);
+        const {applied: appliedSorters} = dashboardSel.sortersSelector(state);
+        const appliedFacets = dashboardSel.appliedFacetsSelector(state);
+        const {current} = dashboardSel.paginationSelector(state);
+
+        const queryParams = {
+            ...appliedFilters,
+            ...appliedSorters,
+            page: current,
+            f_ids: appliedFacets.map(o => o.facetId),
+            types: appliedFacets.map(o => o.type),
+            f_keys: appliedFacets.map(o => o.keywordIds.join(','))
+        };
+
+        dispatch(routerOp.setQueryString(queryParams));
+    }
+};
+
+/*
+* Setup Filters, Sorting, Pagination, Facets from Query string
+**/
+const setupFiltersFromQs = (queryString: string) => {
+    return dispatch => {
+        try {
+            const parsedQs = qs.parse(queryString, {arrayFormat: "comma"});
+
+            // The batch of functions that should dispatched
+            const batchQueue = [];
+
+            // setup filters
+            const filters: any = {};
+            if (parsedQs.textQuery) {
+                filters.textQuery = parsedQs.textQuery;
+            }
+            if (parsedQs.itemType) {
+                filters.itemType = parsedQs.itemType;
+            }
+            batchQueue.push(
+                applyFilters(filters)
+            );
+
+            // Facets
+            if (parsedQs.f_ids) {
+                // @TODO: add array setup feature
+                const facet: Partial<IFacetState> = {
+                    id: parsedQs.f_ids as string,
+                    type: parsedQs.types as string,
+                };
+
+                batchQueue.push(applyFacet({
+                    facet,
+                    keywordIds: parsedQs.f_keys
+                }));
+            }
+
+            // Pagination
+            if (parsedQs.page) {
+                batchQueue.push(
+                    changePage(+parsedQs.page)
+                )
+            }
+
+            // Sorting
+            if (parsedQs.sortBy) {
+                batchQueue.push(applySorter({
+                    sortBy: parsedQs.sortBy,
+                    sortOrder: parsedQs.sortOrder
+                }))
+            }
+
+            batch(() => batchQueue.forEach(dispatch));
+
+        } catch {
+        }
+
+    }
+};
+
+/**
  * Fetch types modifier
  */
 const fetchTypesAsync = () => {
@@ -188,21 +273,20 @@ const applyFiltersOp = (filter) => {
         batch(() => {
             dispatch(applyFilters(filter));
             dispatch(fetchListAsync());
-            dispatch(routerOp.setQueryString(filter));
+            dispatch(updateQueryString())
         });
     }
 };
 
 const applySorterOp = (sortBy: string) => {
-    return (dispatch, getState) => {
+    return dispatch => {
         batch(() => {
             dispatch(applySorter({
                 sortBy
             }));
             dispatch(fetchListAsync());
+            dispatch(updateQueryString());
         });
-        const sorters = dashboardSel.sortersSelector(getState());
-        dispatch(routerOp.setQueryString(sorters.applied));
     }
 };
 
@@ -211,9 +295,7 @@ const changePageOp = (page: number) => {
         batch(() => {
             dispatch(changePage(page));
             dispatch(fetchListAsync());
-            dispatch(routerOp.setQueryString({
-                page
-            }));
+            dispatch(updateQueryString());
         });
     }
 };
@@ -237,79 +319,10 @@ const toggleFacetOp = (facet: IFacetState, keywordId: string) => {
             }));
         }
 
-        const updatedFacets = dashboardSel.appliedFacetsSelector(getState());
-        const queryParams = {
-            f_ids:  updatedFacets.map(o => o.facetId),
-            types:  updatedFacets.map(o => o.type),
-            f_keys: updatedFacets.map(o => o.keywordIds.join(','))
-        };
-
         batch(() => {
             dispatch(fetchListAsync());
-            dispatch(routerOp.setQueryString(queryParams));
+            dispatch(updateQueryString());
         })
-    }
-};
-
-/*
-* Setup Filters, Sorting, Pagination, Facets from Query string
-**/
-const setupFiltersFromQs = (queryString: string) => {
-    return dispatch => {
-        try {
-            const parsedQs = qs.parse(queryString, {
-                parseNumbers: false,
-                arrayFormat: "comma"
-            });
-
-            // The batch of functions that should dispatched
-            const batchQueue = [];
-
-            // setup filters
-            const filters: any = {};
-            if (parsedQs.textQuery) {
-                filters.textQuery = parsedQs.textQuery;
-            }
-            if (parsedQs.itemType) {
-                filters.itemType = parsedQs.itemType;
-            }
-            batchQueue.push(
-                applyFilters(filters)
-            );
-
-            // Facets
-            if (parsedQs.f_ids) {
-                // @TODO: add array setup feature
-                const facet: Partial<IFacetState> = {
-                    id: parsedQs.f_ids as string,
-                    type: parsedQs.types as string,
-                };
-
-                batchQueue.push(applyFacet({
-                    facet,
-                    keywordIds: parsedQs.f_keys
-                }));
-            }
-
-            // Pagination
-            if (parsedQs.page) {
-                batchQueue.push(
-                    changePage(+parsedQs.page)
-                )
-            }
-
-            // Sorting
-            if (parsedQs.sortBy) {
-                batchQueue.push(applySorter({
-                    sortBy: parsedQs.sortBy,
-                    sortOrder: parsedQs.sortOrder
-                }))
-            }
-
-            batch(() => batchQueue.forEach(dispatch));
-
-        } catch {}
-
     }
 };
 
