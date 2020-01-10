@@ -20,7 +20,6 @@ interface IProps {
 
 export default function ProjectRow({item, searchValue, onOpenDeleteModal, onOpenDuplicateModal, onRowClick}: IProps) {
     const {Row, Cell} = DataList;
-
     const getItemLinkIcons = (label: string) => {
         switch (label) {
             case 'Mapping editor':
@@ -93,7 +92,12 @@ export default function ProjectRow({item, searchValue, onOpenDeleteModal, onOpen
                 <p>{item.description}</p>
             </Cell>
             <Cell>
-                <Icon icon={IconNames.DUPLICATE} onClick={onOpenDuplicateModal} style={{'paddingRight': '10px'}}/>
+                <Icon
+                    data-test-id={'open-duplicate-modal'}
+                    icon={IconNames.DUPLICATE}
+                    onClick={onOpenDuplicateModal}
+                    style={{'paddingRight': '10px'}}
+                />
                 <a href={item.itemLinks[0].path} target='_blank' style={{'color':'inherit'}}>
                     <Icon icon={IconNames.DOCUMENT_OPEN} style={{'paddingRight': '10px'}}/>
                 </a>

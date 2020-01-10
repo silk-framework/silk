@@ -16,7 +16,7 @@ export const DEFAULT_LANG = 'en';
 export const DATA_TYPES = {
     PROJECT: 'project',
     DATASET: 'Dataset',
-    TRANSFORM: 'Transform',
+    TRANSFORM: 'transform',
     LINKING: 'Linking',
     TASK: 'Task',
 };

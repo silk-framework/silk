@@ -1,6 +1,4 @@
-import { DATA_TYPES } from "../../../../constants";
-
-export type DATA_TYPES = keyof typeof DATA_TYPES;
+export type DATA_TYPES = "project" | "Dataset" | "transform" | "Linking" | "task";
 
 export interface ITaskItemLinks {
     label: string;
@@ -11,7 +9,7 @@ export interface ISearchResultsTask {
     description: string;
     id: string;
     label: string;
-    type: DATA_TYPES;
+    type: string;
     projectId: string;
     itemLinks: ITaskItemLinks[];
 }
