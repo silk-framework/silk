@@ -8,7 +8,7 @@ class MostRecentlyOrderedListTest extends FlatSpec with MustMatchers {
   val capacity = 10
 
   it should "order its elements chronologically" in {
-    val list = MostRecentlyOrderedList(capacity)
+    val list = MostRecentlyOrderedList[String](capacity)
     for(v <- Seq("a", "b", "c", "d", "c", "b")) {
       list.add(v)
     }
@@ -16,7 +16,7 @@ class MostRecentlyOrderedListTest extends FlatSpec with MustMatchers {
   }
 
   it should "keep only the N most recent items" in {
-    val list = MostRecentlyOrderedList(capacity)
+    val list = MostRecentlyOrderedList[String](capacity)
     val prefix = "prefix"
     var count = 0
     for(v <- 0 to capacity) {
