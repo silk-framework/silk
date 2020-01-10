@@ -8,6 +8,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers.{TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat}
+import org.silkframework.workbench.workspace.{WorkbenchAccessMonitor, WorkspaceItem, WorkspaceProject, WorkspaceTask}
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
@@ -25,6 +26,8 @@ object SearchApiModel {
   final val TYPE = "type"
   final val DESCRIPTION = "description"
   final val PROJECT_ID = "projectId"
+  // type values
+  final val PROJECT_TYPE = "project"
   /* JSON serialization */
   implicit val responseOptionsReader: Reads[TaskFormatOptions] = Json.reads[TaskFormatOptions]
   implicit val searchRequestReader: Reads[SearchRequest] = Json.reads[SearchRequest]
@@ -76,7 +79,7 @@ object SearchApiModel {
   sealed abstract class ItemType(val id: String, val label: String)
 
   object ItemType {
-    case object project extends ItemType("project", "Project")
+    case object project extends ItemType(PROJECT_TYPE, "Project")
     case object dataset extends ItemType("dataset", "Dataset")
     case object transform extends ItemType("transform", "Transform")
     case object linking extends ItemType("linking", "Linking")
@@ -206,14 +209,43 @@ object SearchApiModel {
     def workingLimit: Int = limit.getOrElse(FacetedSearchRequest.DEFAULT_LIMIT)
 
     // Sort results according to request
-    private def sort(jsonResult: Seq[JsObject]): Seq[JsObject] = {
+    private def sort(jsonResult: Seq[JsObject])
+                    (implicit accessMonitor: WorkbenchAccessMonitor,
+                     userContext: UserContext): Seq[JsObject] = {
       sortBy match {
-        case None => jsonResult
+        case None =>
+          sortByMostRecentlyViewed(jsonResult)
         case Some(by) =>
           val sortAsc = !sortOrder.contains(SortOrder.DESC)
           val fetchValue: JsObject => String = sortValueFunction(by)
           val sortFunction: (String, String) => Boolean = createSearchFunction(sortAsc)
           jsonResult.sortWith((left, right) => sortFunction(fetchValue(left), fetchValue(right)))
+      }
+    }
+
+    // Sorts the result list by most recently viewed items of the user
+    private def sortByMostRecentlyViewed(jsonResult: Seq[JsObject])
+                                        (implicit accessMonitor: WorkbenchAccessMonitor,
+                                         userContext: UserContext): Seq[JsObject] = {
+      val userAccessItems = accessMonitor.getAccessItems.reverse // last item is the most recent item, so reverse
+      val userAccessItemSet = userAccessItems.toSet
+      val (recentlyViewed, others) = jsonResult.partition(jsObject => userAccessItemSet.contains(jsToWorkspaceItem(jsObject)))
+      val recentlyViewedSorted = {
+        val resultMap = recentlyViewed.map(jsObj => jsToWorkspaceItem(jsObj) -> jsObj).toMap
+        for (userAccessItem <- userAccessItems if resultMap.contains(userAccessItem)) yield {
+          resultMap(userAccessItem)
+        }
+      }
+      recentlyViewedSorted ++ others
+    }
+
+    private def jsToWorkspaceItem(jsObject: JsObject)
+                                 (implicit accessMonitor: WorkbenchAccessMonitor): WorkspaceItem = {
+      jsObject.value(TYPE).as[String] match {
+        case PROJECT_TYPE =>
+          WorkspaceProject(jsObject.value(ID).as[String])
+        case _ =>
+          WorkspaceTask(jsObject.value(PROJECT_ID).as[String], jsObject.value(ID).as[String])
       }
     }
 
@@ -318,7 +350,8 @@ object SearchApiModel {
     case class SortableProperty(id: String, label: String)
     implicit val sortablePropertyWrites: Writes[SortableProperty] = Json.writes[SortableProperty]
 
-    def apply()(implicit userContext: UserContext): JsValue = {
+    def apply()(implicit userContext: UserContext,
+                accessMonitor: WorkbenchAccessMonitor): JsValue = {
       val ps: Seq[Project] = projects
       var tasks: Seq[TypedTasks] = ps.flatMap(fetchTasks)
       var selectedProjects: Seq[Project] = Seq.empty
@@ -415,7 +448,7 @@ object SearchApiModel {
 
     private def toJson(project: Project): JsObject = {
       JsObject(Seq(
-        TYPE -> JsString("project"),
+        TYPE -> JsString(PROJECT_TYPE),
         ID -> JsString(project.config.id),
         LABEL -> JsString(project.config.id),// TODO: Support label and description in projects
         DESCRIPTION -> JsString("")

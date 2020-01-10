@@ -11,7 +11,7 @@ import play.api.mvc.{Action, AnyContent, InjectedController}
 /**
   * API to search for tasks in the workspace.
   */
-class SearchApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with ControllerUtilsTrait {
+class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) extends InjectedController with ControllerUtilsTrait {
 
   /** Search tasks by text search query. */
   def search(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>

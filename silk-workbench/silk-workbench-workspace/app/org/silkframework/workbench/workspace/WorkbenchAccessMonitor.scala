@@ -48,25 +48,25 @@ class WorkbenchAccessMonitor {
     val userId = userContext.user.map(_.uri).getOrElse("  ANONYMOUS  ")
     userId
   }
+}
 
-  /** Possible items that are stored in the most recently visited list. */
-  sealed trait WorkspaceItem {
-    def projectId: String
+/** Possible items that are stored in the most recently visited list. */
+sealed trait WorkspaceItem {
+  def projectId: String
 
-    def taskIdOpt: Option[String]
-  }
+  def taskIdOpt: Option[String]
+}
 
-  case class WorkspaceProject(projectId: String) extends WorkspaceItem {
-    override def toString: String = s"project '$projectId'"
+case class WorkspaceProject(projectId: String) extends WorkspaceItem {
+  override def toString: String = s"project '$projectId'"
 
-    override def taskIdOpt: Option[String] = None
-  }
+  override def taskIdOpt: Option[String] = None
+}
 
-  case class WorkspaceTask(projectId: String, taskId: String) extends WorkspaceItem {
-    override def toString: String = {s"task '$taskId' of project '$projectId'"}
+case class WorkspaceTask(projectId: String, taskId: String) extends WorkspaceItem {
+  override def toString: String = {s"task '$taskId' of project '$projectId'"}
 
-    override def taskIdOpt: Option[String] = Some(taskId)
-  }
+  override def taskIdOpt: Option[String] = Some(taskId)
 }
 
 /** A list that keeps its element sorted by how recent they have been added.
