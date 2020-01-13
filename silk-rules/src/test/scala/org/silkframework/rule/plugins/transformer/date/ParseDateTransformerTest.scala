@@ -14,7 +14,7 @@
 
 package org.silkframework.rule.plugins.transformer.date
 
-import org.silkframework.entity.DateValueType
+import org.silkframework.entity.{DateValueType, GeneralDateValueType}
 import org.silkframework.rule.test.TransformerTest
 
 class ParseDateTransformerTest extends TransformerTest[ParseDateTransformer] {
@@ -22,7 +22,7 @@ class ParseDateTransformerTest extends TransformerTest[ParseDateTransformer] {
   it should "format dates as xsd:date, so that it validates using the corresponding date type" in {
     val transformer = ParseDateTransformer("dd.MM.yyyy")
     val formattedDate = transformer.apply(Seq(Seq("01.02.2012"))).head
-    DateValueType.validate(formattedDate) shouldBe true
+    GeneralDateValueType.validate(formattedDate) shouldBe true
   }
 
 }
