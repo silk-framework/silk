@@ -100,7 +100,7 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
   }
 
   it should "serialize triples with DateValueType" in {
-    format("2015-04-03", DateValueType) mustBe
+    format("2015-04-03", GeneralDateValueType) mustBe
       s"""$S_P "2015-04-03"^^<http://www.w3.org/2001/XMLSchema#date> .$NL"""
   }
 

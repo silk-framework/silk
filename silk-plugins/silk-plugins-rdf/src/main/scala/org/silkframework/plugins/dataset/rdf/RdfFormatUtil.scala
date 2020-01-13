@@ -146,8 +146,8 @@ object RdfFormatUtil {
         model.createTypedLiteral(lexicalValue, INTEGER_JENA_TYPE).asNode()
       case LongValueType =>
         model.createTypedLiteral(lexicalValue, LONG_JENA_TYPE).asNode()
-      case DateValueType =>
-        model.createTypedLiteral(lexicalValue, DateValueType.xmlSchemaType(lexicalValue)).asNode()
+      case GeneralDateValueType =>
+        model.createTypedLiteral(lexicalValue, GeneralDateValueType.xmlSchemaType(lexicalValue)).asNode()
       case DateTimeValueType =>
         model.createTypedLiteral(lexicalValue, DateTimeValueType.xmlSchemaType(lexicalValue)).asNode()
       case _ =>
