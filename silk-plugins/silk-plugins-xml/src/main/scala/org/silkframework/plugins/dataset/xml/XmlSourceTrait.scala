@@ -3,6 +3,8 @@ package org.silkframework.plugins.dataset.xml
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.EmptyEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
@@ -19,9 +21,9 @@ trait XmlSourceTrait { this: DataSource =>
     * @param entities     The URIs of the entities to be retrieved.
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
-  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])(implicit userContext: UserContext): Traversable[Entity] = {
+  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])(implicit userContext: UserContext): EntityHolder = {
     if(entities.isEmpty) {
-      Seq.empty
+      EmptyEntityTable(underlyingTask)
     } else {
       val uriSet = entities.map(_.uri.toString).toSet
       retrieve(entitySchema).filter(entity => uriSet.contains(entity.uri.toString))

@@ -11,6 +11,8 @@ import org.silkframework.dataset.rdf.{LinkFormatter, RdfDataset, SparqlParams}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.plugins.dataset.rdf.access.SparqlSource
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
 import org.silkframework.plugins.dataset.rdf.formatters._
@@ -85,8 +87,6 @@ case class RdfFileDataset(
         } finally {
           inputStream.close()
         }
-      } else {
-        throw new FileNotFoundException(s"The file ${resource.path} could  note be found or read.")
       }
     }
 
@@ -121,15 +121,16 @@ case class RdfFileDataset(
     private var lastModificationTime: Option[(Long, Int)] = None
 
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                         (implicit userContext: UserContext): Traversable[Entity] = {
+                         (implicit userContext: UserContext): EntityHolder = {
       load()
-      EntityRetriever(endpoint).retrieve(entitySchema, entityRestriction, None)
+      val retrievedEntities = EntityRetriever(endpoint).retrieve(entitySchema, entityRestriction, None)
+      GenericEntityTable(retrievedEntities, entitySchema, underlyingTask)
     }
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext): Traversable[Entity] = {
+                              (implicit userContext: UserContext): EntityHolder = {
       if (entities.isEmpty) {
-        Seq.empty
+        EmptyEntityTable(underlyingTask)
       } else {
         load()
         sparqlSource.retrieveByUri(entitySchema, entities)

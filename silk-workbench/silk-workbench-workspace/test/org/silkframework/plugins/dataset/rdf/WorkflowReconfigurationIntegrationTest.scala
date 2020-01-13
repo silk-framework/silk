@@ -22,7 +22,7 @@ class WorkflowReconfigurationIntegrationTest extends FlatSpec with MustMatchers 
   override def workspaceProviderId: String = "inMemory"
 
   it should "re-configure tasks in a workflow execution" in {
-    project.task[Workflow](workflowId).activity[LocalWorkflowExecutorGeneratingProvenance].control.startBlocking()
+    executeWorkflow(workflowId)
     project.resources.get(outputFile).loadAsString.split("[\r\n]+") mustBe Seq(
       "name|id",
       "Max Noe|2"

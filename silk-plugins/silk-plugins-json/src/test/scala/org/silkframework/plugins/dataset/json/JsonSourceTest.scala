@@ -41,7 +41,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
         |{"data":[]}
       """.stripMargin)
     val source = JsonSource(resource, "data", "http://blah", Codec.UTF8)
-    val entities = source.retrieve(EntitySchema.empty)
+    val entities = source.retrieve(EntitySchema.empty).entities
     entities mustBe empty
   }
 
@@ -53,7 +53,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
         |{"data":{"entities":[{"id":"ID"}]}}
       """.stripMargin)
     val source = JsonSource(resource, "data/entities", "http://blah/{id}", Codec.UTF8)
-    val entities = source.retrieve(EntitySchema.empty)
+    val entities = source.retrieve(EntitySchema.empty).entities
     entities.size mustBe 1
     entities.head.uri.toString mustBe "http://blah/ID"
   }
@@ -118,7 +118,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   }
 
   it should "return valid URIs for resource paths" in {
-    val result = jsonExampleSource.retrieve(EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath.parse("/persons").asStringTypedPath)))
+    val result = jsonExampleSource.retrieve(EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath.parse("/persons").asStringTypedPath))).entities
     val uris = result.flatMap(_.values.flatten).toSeq
     for(uri <- uris) {
       assert(Uri(uri).isValidUri, s"URI $uri was not valid!")
@@ -130,7 +130,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
 
   it should "return JSON null values as missing values" in {
     val source: DataSource = jsonSource(jsonWithNull)
-    val entities = source.retrieve(EntitySchema("", typedPaths = IndexedSeq(UntypedPath("values").asStringTypedPath)))
+    val entities = source.retrieve(EntitySchema("", typedPaths = IndexedSeq(UntypedPath("values").asStringTypedPath))).entities
     entities.map(_.values) mustBe Seq(Seq(Seq("val")))
   }
 
@@ -144,7 +144,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   it should "be able to ignore null JSON objects in the middle of longer paths" in {
     val source: DataSource = jsonSource(jsonWithNullObject)
 
-    val entities = source.retrieve(EntitySchema("", typedPaths = IndexedSeq(UntypedPath.parse("objects/value").asStringTypedPath)))
+    val entities = source.retrieve(EntitySchema("", typedPaths = IndexedSeq(UntypedPath.parse("objects/value").asStringTypedPath))).entities
     entities.map(_.values) mustBe Seq(Seq(Seq("val", "val2")))
   }
 
@@ -196,13 +196,13 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   it should "ignore nulls for objects on base path" in {
     val source: DataSource = jsonSource(jsonWithNullObject)
 
-    val entities = source.retrieve(EntitySchema("objects", typedPaths = IndexedSeq(UntypedPath.parse("value").asStringTypedPath)))
+    val entities = source.retrieve(EntitySchema("objects", typedPaths = IndexedSeq(UntypedPath.parse("value").asStringTypedPath))).entities
     entities.map(_.values) mustBe Seq(Seq(Seq("val")), Seq(Seq("val2")))
   }
 
   it should "handle entity schema with sub paths and type URI" in {
     val source: DataSource = jsonSource(jsonWithNullObject)
-    val entities = source.retrieve(EntitySchema("objects", typedPaths = IndexedSeq(UntypedPath.parse("nestedValue").asStringTypedPath), subPath = UntypedPath("nestedObject")))
+    val entities = source.retrieve(EntitySchema("objects", typedPaths = IndexedSeq(UntypedPath.parse("nestedValue").asStringTypedPath), subPath = UntypedPath("nestedObject"))).entities
     entities.map(_.values) mustBe Seq(Seq(Seq("nested")))
   }
 

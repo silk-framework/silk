@@ -17,15 +17,15 @@ package org.silkframework.dataset
 import java.util.logging.Logger
 
 import org.silkframework.config.Task.TaskFormat
-import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
+import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.UriAttributeNotUniqueException
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.language.implicitConversions
@@ -39,11 +39,32 @@ import scala.xml.Node
   */
 case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribute: Option[Uri] = None) extends TaskSpec with DatasetAccess {
 
-  def source(implicit userContext: UserContext): DataSource = DatasetSpec.DataSourceWrapper(plugin.source, this)
+  def source(implicit userContext: UserContext): DataSource = {
+    safeAccess(DatasetSpec.DataSourceWrapper(plugin.source, this), SafeModeDataSource)
+  }
 
-  def entitySink(implicit userContext: UserContext): EntitySink = DatasetSpec.EntitySinkWrapper(plugin.entitySink, this)
+  def entitySink(implicit userContext: UserContext): EntitySink = {
+    safeAccess(DatasetSpec.EntitySinkWrapper(plugin.entitySink, this), SafeModeSink)
+  }
 
-  def linkSink(implicit userContext: UserContext): LinkSink = DatasetSpec.LinkSinkWrapper(plugin.linkSink, this)
+  def linkSink(implicit userContext: UserContext): LinkSink = {
+    safeAccess(DatasetSpec.LinkSinkWrapper(plugin.linkSink, this), SafeModeSink)
+  }
+
+  // True if access should be prevented regarding the dataset and safe-mode config
+  private def preventAccessInSafeMode(implicit userContext: UserContext): Boolean = {
+    ProductionConfig.inSafeMode && !plugin.isFileResourceBased && !userContext.executionContext.insideWorkflow
+  }
+
+  // Create data access object or return fallback
+  private def safeAccess[T](create: T, fallback: T)
+                           (implicit userContext: UserContext): T = {
+    if (preventAccessInSafeMode) {
+      fallback
+    } else {
+      create
+    }
+  }
 
   /** Datasets don't define input schemata, because any data can be written to them. */
   override lazy val inputSchemataOpt: Option[Seq[EntitySchema]] = None
@@ -114,10 +135,10 @@ object DatasetSpec {
       * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
       */
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                         (implicit userContext: UserContext): Traversable[Entity] = {
+                         (implicit userContext: UserContext): EntityHolder = {
       val adaptedSchema = adaptSchema(entitySchema)
       val entities = source.retrieve(adaptedSchema, limit)
-      adaptUris(entities, adaptedSchema)
+      adaptUris(entities)
     }
 
     /**
@@ -128,13 +149,13 @@ object DatasetSpec {
       * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
       */
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext): Traversable[Entity] = {
+                              (implicit userContext: UserContext): EntityHolder = {
       if(entities.isEmpty) {
-        Seq.empty
+        GenericEntityTable(Seq.empty, entitySchema, underlyingTask)
       } else {
         val adaptedSchema = adaptSchema(entitySchema)
         val retrievedEntities = source.retrieveByUri(adaptedSchema, entities)
-        adaptUris(retrievedEntities, adaptedSchema)
+        adaptUris(retrievedEntities)
       }
     }
 
@@ -153,16 +174,16 @@ object DatasetSpec {
     /**
       * Rewrites the entity URIs if an URI property has been specified.
       */
-    private def adaptUris(entities: Traversable[Entity], entitySchema: EntitySchema): Traversable[Entity] = {
+    private def adaptUris(entities: EntityHolder): EntityHolder = {
       datasetSpec.uriAttribute match {
         case Some(property) =>
-          for (entity <- entities) yield {
+          entities.mapEntities( entity =>
             Entity(
               uri = new Uri(entity.singleValue(TypedPath(UntypedPath.parse(property.uri), UriValueType, isAttribute = false)).getOrElse(entity.uri.toString)),
               values = entity.values,
               schema = entity.schema
             )
-          }
+          )
         case None =>
           entities
       }

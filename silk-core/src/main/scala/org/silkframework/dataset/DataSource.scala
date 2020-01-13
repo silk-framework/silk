@@ -15,8 +15,10 @@
 package org.silkframework.dataset
 
 import org.silkframework.config.Task
+import org.silkframework.dataset.DatasetSpec.{DataSourceWrapper, GenericDatasetSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
+import org.silkframework.execution.EntityHolder
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Identifier, SampleUtil, Uri}
 
@@ -68,7 +70,7 @@ trait DataSource {
    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
    */
   def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-              (implicit userContext: UserContext): Traversable[Entity]
+              (implicit userContext: UserContext): EntityHolder
 
   /**
    * Retrieves a list of entities from this source.
@@ -79,7 +81,7 @@ trait DataSource {
    * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
    */
   def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                   (implicit userContext: UserContext): Traversable[Entity]
+                   (implicit userContext: UserContext): EntityHolder
 
   /**
    * Samples a fixed size set of entities from the whole dataset.
@@ -92,7 +94,7 @@ trait DataSource {
                      size: Int,
                      filterOpt: Option[Entity => Boolean] = None)
                     (implicit userContext: UserContext): Seq[Entity] = {
-    val entities = retrieve(entityDesc)
+    val entities = retrieve(entityDesc).entities
     SampleUtil.sample(entities, size, filterOpt)
   }
 
@@ -116,4 +118,12 @@ object DataSource{
     * @return
     */
   def generateEntityUri(groupId: Identifier, entityId: Identifier): String = URN_NID_PREFIX + groupId + "#" + entityId
+
+  def pluginSource(datasetTask: GenericDatasetSpec)
+                  (implicit userContext: UserContext): DataSource = {
+    datasetTask.source match {
+      case wrapper: DataSourceWrapper => wrapper.source
+      case source: DataSource => source
+    }
+  }
 }

@@ -56,7 +56,7 @@ class XmlDatasetTest extends FlatSpec with MustMatchers with TestUserContextTrai
   }
 
   private def retrieveIDs(dataset: XmlDataset) = {
-    dataset.source.retrieve(EntitySchema("Person", typedPaths = IndexedSeq(UntypedPath("ID").asStringTypedPath))).toArray.toSeq
+    dataset.source.retrieve(EntitySchema("Person", typedPaths = IndexedSeq(UntypedPath("ID").asStringTypedPath))).entities.toArray.toSeq
   }
 
   private def testOutputTemplate(outputTemplate: String) = {

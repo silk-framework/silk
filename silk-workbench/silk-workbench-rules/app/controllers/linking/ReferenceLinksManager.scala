@@ -4,7 +4,7 @@ import controllers.core.{RequestUserContextAction, UserContextAction}
 import javax.inject.Inject
 import models.linking.EvalLink._
 import models.linking.{EvalLink, LinkSorter}
-import org.silkframework.entity.{Entity, Link}
+import org.silkframework.entity.{Entity, Link, MinimalLink}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.DetailedEvaluator
 import org.silkframework.util.DPair
@@ -53,7 +53,7 @@ class ReferenceLinksManager @Inject() () extends InjectedController {
             )
           }
           case _ => {
-            val cleanLink = new Link(link.source, link.target)
+            val cleanLink = new MinimalLink(link.source, link.target)
 
             new EvalLink(
               link = cleanLink,
@@ -75,7 +75,7 @@ class ReferenceLinksManager @Inject() () extends InjectedController {
             )
           }
           case _ => {
-            val cleanLink = new Link(link.source, link.target)
+            val cleanLink = new MinimalLink(link.source, link.target)
 
             new EvalLink(
               link = cleanLink,
@@ -97,7 +97,7 @@ class ReferenceLinksManager @Inject() () extends InjectedController {
             )
           }
           case _ => {
-            val cleanLink = new Link(link.source, link.target)
+            val cleanLink = new MinimalLink(link.source, link.target)
 
             new EvalLink(
               link = cleanLink,

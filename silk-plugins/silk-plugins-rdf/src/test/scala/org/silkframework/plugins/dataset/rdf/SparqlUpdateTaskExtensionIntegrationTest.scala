@@ -12,7 +12,7 @@ class SparqlUpdateTaskExtensionIntegrationTest extends FlatSpec with MustMatcher
   override def workspaceProviderId: String = "inMemory"
 
   it should "not read from data source when defining a static SPARQL Update template" in {
-    project.task[Workflow]("staticSparqlUpdateWorkflow").activity[LocalWorkflowExecutorGeneratingProvenance].control.startBlocking()
+    executeWorkflow("staticSparqlUpdateWorkflow")
     /*
     Workflow description:
     1. Invalid Knowledge Graph (which fails when read)
