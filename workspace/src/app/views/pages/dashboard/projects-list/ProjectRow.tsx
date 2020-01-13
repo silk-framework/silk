@@ -98,9 +98,11 @@ export default function ProjectRow({item, searchValue, onOpenDeleteModal, onOpen
                     onClick={onOpenDuplicateModal}
                     style={{'paddingRight': '10px'}}
                 />
-                <a href={item.itemLinks[0].path} target='_blank' style={{'color':'inherit'}}>
-                    <Icon icon={IconNames.DOCUMENT_OPEN} style={{'paddingRight': '10px'}}/>
-                </a>
+                {item.itemLinks.length > 0 &&
+                    <a href={item.itemLinks[0].path} target='_blank' style={{'color':'inherit'}}>
+                        <Icon icon={IconNames.DOCUMENT_OPEN} style={{'paddingRight': '10px'}}/>
+                    </a>
+                }
                 <Popover content={getRowMenu(item)} position={Position.BOTTOM_LEFT}>
                     <Icon icon={IconNames.MORE}/>
                 </Popover>
