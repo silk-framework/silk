@@ -107,24 +107,6 @@ object SearchApiModel {
     val facetTypeSet: Set[String] = Set(keyword.toString)
   }
 
-  /** A single facet of the search results. */
-  case class FacetResult(id: String,
-                         label: String,
-                         description: String,
-                         `type`: String,
-                         values: FacetValues)
-
-  /** Values of a single facet. */
-  sealed trait FacetValues
-
-  /** Values of a keyword based facet. */
-  case class KeywordFacetValues(values: Seq[KeywordFacetValue]) extends FacetValues
-
-  /** A single value of a keyword facet. */
-  case class KeywordFacetValue(id: String,
-                               label: String,
-                               count: Option[Int])
-
   /** Single facet filter setting */
   sealed trait FacetSetting {
     def `type`: FacetType.Value
@@ -186,13 +168,14 @@ object SearchApiModel {
     }
   }
 
-  case class Facet(id: String, label: String)
+  case class Facet(id: String, label: String, description: String, facetType: FacetType.Value)
 
   object Facets {
     // dataset facets
-    final val datasetType: Facet = Facet("datasetType", "Dataset type")
+    final val datasetType: Facet = Facet("datasetType", "Dataset type", "The concrete type of a dataset, e.g. its data model and format etc.", FacetType.keyword)
+    final val fileResource: Facet = Facet("datasetFileResource", "Dataset file", "The file resource of a file based dataset.", FacetType.keyword)
 
-    val facetIds: Seq[String] = Seq(datasetType).map(_.id)
+    val facetIds: Seq[String] = Seq(datasetType, fileResource).map(_.id)
   }
 
   /** A search request that supports types and facets. */
@@ -207,6 +190,36 @@ object SearchApiModel {
     def workingOffset: Int =  offset.getOrElse(FacetedSearchRequest.DEFAULT_OFFSET)
 
     def workingLimit: Int = limit.getOrElse(FacetedSearchRequest.DEFAULT_LIMIT)
+
+    def apply()(implicit userContext: UserContext,
+                accessMonitor: WorkbenchAccessMonitor): JsValue = {
+      val ps: Seq[Project] = projects
+      var tasks: Seq[TypedTasks] = ps.flatMap(fetchTasks)
+      var selectedProjects: Seq[Project] = Seq.empty
+
+      for(term <- textQuery) {
+        val lowerCaseTerm = extractSearchTerms(term)
+        tasks = tasks.map(typedTasks => filterTasksByTextQuery(typedTasks, lowerCaseTerm))
+        selectedProjects = if(itemType.contains(ItemType.project)) ps.filter(p => matchesSearchTerm(lowerCaseTerm, p)) else Seq()
+      }
+
+      // facets are collected after filtering, so only non empty facets are displayed with correct counts
+      val facetCollectors = OverallFacetCollector()
+      collectFacetValues(tasks, facetCollectors)
+      val facets = facetCollectors.results
+      tasks = tasks.map(t => filterTasksByFacetSettings(t))
+      val jsonResult = selectedProjects.map(toJson) ++ tasks.flatMap(toJson)
+      val sorted = sort(jsonResult)
+      val resultWindow = sorted.slice(workingOffset, workingOffset + workingLimit)
+      val withItemLinks = addItemLinks(resultWindow)
+
+      JsObject(Seq(
+        "total" -> JsNumber(BigDecimal(sorted.size)),
+        "results" -> JsArray(withItemLinks),
+        "sortByProperties" -> JsArray(Seq(SortableProperty("label", "Label")).map(sortablePropertyWrites.writes)),
+        "facets" -> JsArray(facets.map(fr => Json.toJson(fr)).toSeq)
+      ))
+    }
 
     // Sort results according to request
     private def sort(jsonResult: Seq[JsObject])
@@ -255,38 +268,6 @@ object SearchApiModel {
       val labelMatch = matchesSearchTerm(lowerCaseSearchTerms, name)
       val descriptionMatch = matchesSearchTerm(lowerCaseSearchTerms, task.metaData.description.getOrElse(""))
       labelMatch || descriptionMatch
-    }
-
-    /** Collects facet data of dataset tasks. */
-    case class DatasetFacetCollector() {
-      val datasetTypeDescription = "The concrete type of a dataset, e.g. its data model and format etc."
-      val datasetTypes = new mutable.ListMap[String, Int]()
-      val datasetTypeLabel = new mutable.ListMap[String, String]()
-
-      /** Collect facet values of a single dataset */
-      def collect(datasetTask: ProjectTask[DatasetSpec[Dataset]]): Unit = {
-        val pluginSpec = datasetTask.plugin.pluginSpec
-        val id = pluginSpec.id
-        val label = pluginSpec.label
-        datasetTypes.put(id, datasetTypes.getOrElseUpdate(id, 0) + 1)
-        datasetTypeLabel.put(id, label)
-      }
-
-      /** Results of all facets of the dataset type */
-      def result: Seq[FacetResult] = {
-        if(datasetTypes.nonEmpty) {
-          Seq(datasetTypeFacet)
-        } else {
-          Seq.empty
-        }
-      }
-
-      // Dataset type, e.g. CSV, JSON etc.
-      private def datasetTypeFacet: FacetResult = {
-        val sortedTypes = datasetTypes.toSeq.sortWith(_._2 > _._2)
-        val keywordFacetValues = KeywordFacetValues(sortedTypes map (st => KeywordFacetValue(st._1, datasetTypeLabel(st._1), Some(st._2))))
-        FacetResult(Facets.datasetType.id, Facets.datasetType.label, datasetTypeDescription, FacetType.keyword.toString, keywordFacetValues)
-      }
     }
 
     /** Collects the result facet values. */
@@ -350,33 +331,13 @@ object SearchApiModel {
     case class SortableProperty(id: String, label: String)
     implicit val sortablePropertyWrites: Writes[SortableProperty] = Json.writes[SortableProperty]
 
-    def apply()(implicit userContext: UserContext,
-                accessMonitor: WorkbenchAccessMonitor): JsValue = {
-      val ps: Seq[Project] = projects
-      var tasks: Seq[TypedTasks] = ps.flatMap(fetchTasks)
-      var selectedProjects: Seq[Project] = Seq.empty
-
-      for(term <- textQuery) {
-        val lowerCaseTerm = extractSearchTerms(term)
-        tasks = tasks.map(typedTasks => filterTasksByTextQuery(typedTasks, lowerCaseTerm))
-        selectedProjects = if(itemType.contains(ItemType.project)) ps.filter(p => matchesSearchTerm(lowerCaseTerm, p)) else Seq()
+    private def collectFacetValues(tasks: Seq[TypedTasks], facetCollectors: OverallFacetCollector): Unit = {
+      // Only collect facets for specific item types. FIXME: Add generic collector, e.g. for creation date, creator etc.
+      for (typedTasks <- tasks if itemType.contains(typedTasks.itemType)) {
+        for (task <- typedTasks.tasks) {
+          facetCollectors.collect(typedTasks.itemType, task)
+        }
       }
-
-      // facets are collected after filtering, so only non empty facets are displayed with correct counts
-      // FIXME: These are not correctly calculated if multiple facets are applied. Facet values must be calculated with all except this specific facet being applied.
-      val facets = resultFacets(tasks)
-      tasks = tasks.map(t => filterTasksByFacetSettings(t))
-      val jsonResult = selectedProjects.map(toJson) ++ tasks.flatMap(toJson)
-      val sorted = sort(jsonResult)
-      val resultWindow = sorted.slice(workingOffset, workingOffset + workingLimit)
-      val withItemLinks = addItemLinks(resultWindow)
-
-      JsObject(Seq(
-        "total" -> JsNumber(BigDecimal(sorted.size)),
-        "results" -> JsArray(withItemLinks),
-        "sortByProperties" -> JsArray(Seq(SortableProperty("label", "Label")).map(sortablePropertyWrites.writes)),
-        "facets" -> JsArray(facets.map(fr => Json.toJson(fr)))
-      ))
     }
 
     private def filterTasksByTextQuery(typedTasks: TypedTasks,
