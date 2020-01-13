@@ -8,9 +8,9 @@ import org.silkframework.rule.evaluation.ReferenceEntities
  */
 case class MaximumAgreementSelector() extends LinkSelector {
   def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
-    val rankedLinks = unlabeledLinks.map ( l => (rankLink(rules, l), l))
+    val rankedLinks = unlabeledLinks.par.map ( l => (rankLink(rules, l), l))
     // Order descending by aggregated confidence
-    val descOrderedLinks = rankedLinks.sortBy(_._1).reverse.map(_._2)
+    val descOrderedLinks = rankedLinks.seq.sortBy(_._1).reverse.map(_._2)
 
     descOrderedLinks.take(3)
   }

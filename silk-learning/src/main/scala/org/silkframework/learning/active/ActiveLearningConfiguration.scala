@@ -25,7 +25,7 @@ object ActiveLearningConfigurationDefaults {
 
   val defaultLinkSelector: LinkSelector = {
     // We sample the rules and pool links to limit the runtime of the selectors
-    val max = SamplingLinkSelector(MaximumAgreementSelector(), linkSampleSize = Some(5000), ruleSampleSize = Some(200))
+    val max = SamplingLinkSelector(MaximumAgreementSelector(), linkSampleSize = Some(5000), ruleSampleSize = Some(400))
     val jensen = SamplingLinkSelector(JensenShannonDivergenceSelector(), linkSampleSize = Some(1000), ruleSampleSize = Some(1000))
     LinkSelectorCombinator(
       pickLinkSelector =  (_, _, entities) => {
