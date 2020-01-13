@@ -7,9 +7,11 @@ import controllers.core.UserContextAction
 import controllers.transform.AutoCompletionApi.Categories
 import javax.inject.Inject
 import org.silkframework.config.Prefixes
+import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths._
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
@@ -115,7 +117,7 @@ class AutoCompletionApi @Inject() () extends InjectedController {
   }
 
   /**
-    * Given a search term, returns possible completions for target paths.
+    * Given a search term, returns possible completions for target types.
     *
     * @param projectName The name of the project
     * @param taskName    The name of the transformation
@@ -129,6 +131,29 @@ class AutoCompletionApi @Inject() () extends InjectedController {
     // Removed as they currently cannot be edited in the UI: completions += prefixCompletions(project.config.prefixes)
 
     Ok(completions.filterAndSort(term, maxResults).toJson)
+  }
+
+  /**
+    * Given a search term, returns possible completions for value types.
+    *
+    * @param projectName The name of the project
+    * @param taskName    The name of the transformation
+    * @param term        The search term
+    * @return
+    */
+  def valueTypes(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val completions = Completions(
+      for(valueType <- PluginRegistry.availablePlugins[ValueType].sortBy(_.label)) yield
+        Completion(
+          value = valueType.id,
+          label = Some(valueType.label),
+          description = Some(valueType.description),
+          category = valueType.categories.headOption.getOrElse(""),
+          isCompletion = true
+        )
+    )
+
+    Ok(completions.filterAndSort(term, maxResults, sortEmptyTermResult = false).toJson)
   }
 
   /**
