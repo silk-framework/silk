@@ -191,15 +191,15 @@ const fetchListAsync = () => {
 
             const {total, facets, results, sortByProperties} = res.data;
             batch(() => {
+                // Apply results
+                dispatch(fetchListSuccess(results));
+                dispatch(setLoading(false));
                 // Update the pagination total value
                 dispatch(updateResultTotal(total));
                 // Add the facets if it's presented
                 dispatch(updateFacets(facets));
                 // Add sorters
                 dispatch(updateSorters(sortByProperties));
-                // Apply results
-                dispatch(fetchListSuccess(results));
-                dispatch(setLoading(false));
             })
         } catch (e) {
             batch(() => {
