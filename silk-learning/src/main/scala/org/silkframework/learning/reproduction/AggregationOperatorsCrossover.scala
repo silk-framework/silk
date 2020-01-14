@@ -18,11 +18,13 @@ import org.silkframework.learning.individual.AggregationNode
 import org.silkframework.learning.reproduction.Utils.crossoverNodes
 import org.silkframework.util.DPair
 
+import scala.util.Random
+
 /**
  * A crossover operator which combines the operators of two aggregations.
  */
 case class AggregationOperatorsCrossover() extends NodePairCrossoverOperator[AggregationNode] {
-  override protected def crossover(nodes: DPair[AggregationNode]) = {
+  override protected def crossover(nodes: DPair[AggregationNode], random: Random) = {
     nodes.source.copy(operators = crossoverNodes(nodes.source.operators, nodes.target.operators))
   }
 }

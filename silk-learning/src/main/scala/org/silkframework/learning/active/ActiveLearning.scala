@@ -31,10 +31,11 @@ import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 
 import scala.math.max
+import scala.util.Random
 
 class ActiveLearning(task: ProjectTask[LinkSpec],
                      config: LearningConfiguration,
-                     initialState: ActiveLearningState = ActiveLearningState.initial) extends Activity[ActiveLearningState] {
+                     initialState: ActiveLearningState) extends Activity[ActiveLearningState] {
 
   override def initialValue: Option[ActiveLearningState] = Some(initialState)
 
@@ -45,6 +46,11 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     val datasets = task.dataSources
     val paths = getPaths()
     val referenceEntities = getReferenceEntities()
+
+    // Update random seed
+    val newRandomSeed = new Random(context.value().randomSeed).nextLong()
+    context.value() = context.value().copy(randomSeed = newRandomSeed)
+    implicit val random: Random = new Random(newRandomSeed)
 
     // Update unlabeled pool
     val pool = updatePool(linkSpec, datasets, context, paths)
@@ -102,7 +108,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
                          datasets: DPair[DataSource],
                          context: ActivityContext[ActiveLearningState],
                          paths: DPair[IndexedSeq[TypedPath]])
-                        (implicit userContext: UserContext): UnlabeledLinkPool = Timer("Generating Pool") {
+                        (implicit userContext: UserContext, random: Random): UnlabeledLinkPool = Timer("Generating Pool") {
     var pool = context.value().pool
 
     //Build unlabeled pool
@@ -117,7 +123,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
           // If both source have different paths, generate the complete cartesian product
           for (sourcePath <- paths.source; targetPath <- paths.target) yield DPair(sourcePath, targetPath)
         }
-      val generator = config.active.linkPoolGenerator.generator(datasets, linkSpec, pathPairs)
+      val generator = config.active.linkPoolGenerator.generator(datasets, linkSpec, pathPairs, random.nextLong())
       pool = context.child(generator, 0.5).startBlockingAndGetValue()
     }
 
@@ -141,12 +147,12 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
   private def buildPopulation(linkSpec: LinkSpec,
                               generator: LinkageRuleGenerator,
                               context: ActivityContext[ActiveLearningState])
-                             (implicit userContext: UserContext): Unit = Timer("Generating population") {
+                             (implicit userContext: UserContext, random: Random): Unit = Timer("Generating population") {
     var population = context.value().population
     if(population.isEmpty) {
       context.status.update("Generating population", 0.5)
       val seedRules = if(config.params.seed) linkSpec.rule :: Nil else Nil
-      population = context.child(new GeneratePopulation(seedRules, generator, config), 0.3).startBlockingAndGetValue()
+      population = context.child(new GeneratePopulation(seedRules, generator, config, random.nextLong()), 0.3).startBlockingAndGetValue()
     }
     context.value() = context.value().copy(population = population)
   }
@@ -155,7 +161,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
                                completeEntities: ReferenceEntities,
                                fitnessFunction: (LinkageRule => Double),
                                context: ActivityContext[ActiveLearningState])
-                              (implicit userContext: UserContext): Unit = Timer("Updating population") {
+                              (implicit userContext: UserContext, random: Random): Unit = Timer("Updating population") {
     context.status.update("Reproducing", 0.6)
     val targetFitness = if(context.value().population.isEmpty) 1.0 else context.value().population.bestIndividual.fitness
     var population = context.value().population
@@ -163,9 +169,9 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
         if !context.status().isInstanceOf[Canceling]
         if i > 0 || population.bestIndividual.fitness < targetFitness
         if LinkageRuleEvaluator(population.bestIndividual.node.build, completeEntities).fMeasure < config.params.destinationfMeasure) {
-      population = context.child(new Reproduction(population, fitnessFunction, generator, config)).startBlockingAndGetValue()
+      population = context.child(new Reproduction(population, fitnessFunction, generator, config, random.nextLong())).startBlockingAndGetValue()
       if(i % config.params.cleanFrequency == 0) {
-        population = context.child(new CleanPopulationTask(population, fitnessFunction, generator)).startBlockingAndGetValue()
+        population = context.child(new CleanPopulationTask(population, fitnessFunction, generator, random.nextLong())).startBlockingAndGetValue()
       }
       context.status.updateProgress(0.6 + 0.2 / config.params.maxIterations, logStatus = false)
     }
@@ -176,12 +182,12 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
                           completeEntities: ReferenceEntities,
                           fitnessFunction: (LinkageRule => Double),
                           context: ActivityContext[ActiveLearningState])
-                         (implicit userContext: UserContext): Unit = Timer("Selecting links") {
+                         (implicit userContext: UserContext, random: Random): Unit = Timer("Selecting links") {
     if (!context.status().isInstanceOf[Canceling]) {
       context.status.update("Selecting evaluation links", 0.8)
 
       //TODO measure improvement of randomization
-      val randomizedPopulation = context.child(new Randomize(context.value().population, fitnessFunction, generator, config)).startBlockingAndGetValue()
+      val randomizedPopulation = context.child(new Randomize(context.value().population, fitnessFunction, generator, config, random.nextLong())).startBlockingAndGetValue()
 
       val weightedRules = {
         val bestFitness = randomizedPopulation.bestIndividual.fitness
@@ -201,9 +207,9 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
   private def cleanPopulation(referenceEntities: ReferenceEntities,
                               generator: LinkageRuleGenerator,
                               fitnessFunction: (LinkageRule => Double), context: ActivityContext[ActiveLearningState])
-                             (implicit userContext: UserContext): Unit = {
+                             (implicit userContext: UserContext, random: Random): Unit = {
     if(referenceEntities.isDefined && !context.status().isInstanceOf[Canceling]) {
-      val cleanedPopulation = context.child(new CleanPopulationTask(context.value().population, fitnessFunction, generator)).startBlockingAndGetValue()
+      val cleanedPopulation = context.child(new CleanPopulationTask(context.value().population, fitnessFunction, generator, random.nextLong())).startBlockingAndGetValue()
       context.value() = context.value().copy(population = cleanedPopulation)
     }
   }

@@ -34,7 +34,8 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
   override def generator(inputs: DPair[DataSource],
                          linkSpec: LinkSpec,
-                         paths: Seq[DPair[TypedPath]]): Activity[UnlabeledLinkPool] = {
+                         paths: Seq[DPair[TypedPath]],
+                         randomSeed: Long): Activity[UnlabeledLinkPool] = {
     new LinkPoolGenerator(inputs, linkSpec, paths)
   }
 

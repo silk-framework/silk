@@ -19,13 +19,16 @@ import org.silkframework.learning.generation.LinkageRuleGenerator
 import org.silkframework.learning.individual.{Individual, Population}
 import org.silkframework.rule.LinkageRule
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
+import org.silkframework.util.RandomUtils
 
+import scala.collection.parallel.ParSeq
 import scala.util.Random
 
 class Reproduction(population: Population,
                    fitnessFunction: (LinkageRule => Double),
                    generator: LinkageRuleGenerator,
-                   config: LearningConfiguration) extends Activity[Population] {
+                   config: LearningConfiguration,
+                   randomSeed: Long) extends Activity[Population] {
 
   private val individuals = population.individuals.toArray
 
@@ -41,22 +44,21 @@ class Reproduction(population: Population,
                            .map(i => i.copy(fitness = fitnessFunction(i.node.build)))
 
     //Number of individuals to be generated
-    val count = individuals.size - config.reproduction.elitismCount
-
-    val offspring = for(i <- (0 until count).par) yield reproduce()
+    val count = individuals.length - config.reproduction.elitismCount
+    val offspring = for(random <- RandomUtils.randomSeq(count, randomSeed).par) yield reproduce(random)
 
     context.value.update(Population(elite ++ offspring))
   }
 
-  private def reproduce(): Individual = {
-    if(Random.nextDouble < config.reproduction.mutationProbability)
-      mutation(select())
+  private def reproduce(random: Random): Individual = {
+    if(random.nextDouble < config.reproduction.mutationProbability)
+      mutation(select(random), random)
     else
-      crossover(select(), select())
+      crossover(select(random), select(random), random)
   }
 
-  private def select(): Individual = {
-    val tournamentNodes = List.fill(config.reproduction.tournamentSize)(individuals(Random.nextInt(individuals.size)))
+  private def select(random: Random): Individual = {
+    val tournamentNodes = List.fill(config.reproduction.tournamentSize)(individuals(random.nextInt(individuals.length)))
 
     tournamentNodes.reduceLeft((n1, n2) => if (n1.fitness > n2.fitness) n1 else n2)
   }

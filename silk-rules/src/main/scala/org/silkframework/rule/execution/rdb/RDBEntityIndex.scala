@@ -12,6 +12,8 @@ import org.silkframework.rule.execution.rdb.RDBEntityIndex.executeUpdate
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.util.{DPair, Identifier}
 
+import scala.util.Random
+
 /**
   * An entity index based on a relational database that is used to generate linking candidates based on a link specification.
   */
@@ -219,6 +221,7 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
                               (implicit userContext: UserContext): Traversable[Entity] = {
     runtimeLinkingConfig.sampleSizeOpt match {
       case Some(sampleSize) =>
+        implicit val random: Random = Random
         dataSource.sampleEntities(entitySchema, sampleSize, None)
       case None =>
         dataSource.retrieve(entitySchema).entities

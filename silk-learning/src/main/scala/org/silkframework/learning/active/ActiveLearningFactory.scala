@@ -7,6 +7,8 @@ import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
 
+import scala.util.Random
+
 @Plugin(
   id = ActiveLearningFactory.pluginId,
   label = "Active Learning",
@@ -19,7 +21,8 @@ case class ActiveLearningFactory() extends TaskActivityFactory[LinkSpec, ActiveL
 
     new ActiveLearning(
       task,
-      config = LearningConfiguration.default
+      config = LearningConfiguration.default,
+      initialState = ActiveLearningState.initial(LearningConfiguration.default.params.randomSeed.getOrElse(Random.nextLong()))
     )
   }
 

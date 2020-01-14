@@ -9,8 +9,10 @@ import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.util.DPair
 import LinkPoolGeneratorUtils._
+
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
+import scala.util.Random
 
 /**
   * Link Pool Generator that generates link candidates based indices.
@@ -24,19 +26,22 @@ class IndexLinkPoolGenerator extends LinkPoolGenerator {
   // For each pair of paths, generate at most that many links that have matching values for the given paths.
   private val maxLinksPerPathPair = 1000
 
-  override def generator(inputs: DPair[DataSource], linkSpec: LinkSpec, paths: Seq[DPair[TypedPath]]): Activity[UnlabeledLinkPool] = {
-    new LinkPoolGeneratorActivity(inputs, linkSpec, paths)
+  override def generator(inputs: DPair[DataSource], linkSpec: LinkSpec, paths: Seq[DPair[TypedPath]], randomSeed: Long): Activity[UnlabeledLinkPool] = {
+    new LinkPoolGeneratorActivity(inputs, linkSpec, paths, randomSeed)
   }
 
   private class LinkPoolGeneratorActivity(inputs: DPair[DataSource],
                                           linkSpec: LinkSpec,
-                                          paths: Seq[DPair[TypedPath]]) extends Activity[UnlabeledLinkPool] {
+                                          paths: Seq[DPair[TypedPath]],
+                                          randomSeed: Long) extends Activity[UnlabeledLinkPool] {
 
     private val runtimeConfig = RuntimeLinkingConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 
     private val fullEntitySchema = entitySchema(linkSpec, paths)
 
     override def run(context: ActivityContext[UnlabeledLinkPool])(implicit userContext: UserContext): Unit = {
+      implicit val random: Random = new Random(randomSeed)
+
       context.status.update("Loading source dataset", 0.1)
       val sourceCaches = loadCaches(inputs.source, fullEntitySchema.source, "source")
 
@@ -58,7 +63,7 @@ class IndexLinkPoolGenerator extends LinkPoolGenerator {
     /**
       * Given an entity schema, loads a separate cache for each of its paths
       */
-    def loadCaches(input: DataSource, entitySchema: EntitySchema, name: String)(implicit userContext: UserContext): Seq[EntityCache] = {
+    def loadCaches(input: DataSource, entitySchema: EntitySchema, name: String)(implicit userContext: UserContext, random: Random): Seq[EntityCache] = {
       val caches =
         for(pathIndex <- entitySchema.typedPaths.indices) yield {
           def indexFunction(e: Entity) = Index.oneDim(normalize(e.evaluate(pathIndex)).map(_.hashCode).toSet)
