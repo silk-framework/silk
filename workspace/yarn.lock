@@ -1489,27 +1489,19 @@
     hoist-non-react-statics "^3.3.0"
     redux "^4.0.0"
 
-"@types/react-router-dom@^4.3.2":
-  version "4.3.5"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/react-router-dom/-/react-router-dom-4.3.5.tgz#72f229967690c890d00f96e6b85e9ee5780db31f"
-  integrity sha1-cvIplnaQyJDQD5bmuF6e5XgNsx8=
+"@types/react-router-dom@^5.1.3":
+  version "5.1.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/react-router-dom/-/react-router-dom-5.1.3.tgz#b5d28e7850bd274d944c0fbbe5d57e6b30d71196"
+  integrity sha1-tdKOeFC9J02UTA+75dV+azDXEZY=
   dependencies:
     "@types/history" "*"
     "@types/react" "*"
     "@types/react-router" "*"
 
-"@types/react-router@*":
-  version "5.1.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/react-router/-/react-router-5.1.3.tgz#7c7ca717399af64d8733d8cb338dd43641b96f2d"
-  integrity sha1-fHynFzma9k2HM9jLM43UNkG5by0=
-  dependencies:
-    "@types/history" "*"
-    "@types/react" "*"
-
-"@types/react-router@^4.4.5":
-  version "4.4.5"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/react-router/-/react-router-4.4.5.tgz#1166997dc7eef2917b5ebce890ebecb32ee5c1b3"
-  integrity sha1-EWaZfcfu8pF7XrzokOvssy7lwbM=
+"@types/react-router@*", "@types/react-router@^5.1.4":
+  version "5.1.4"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/react-router/-/react-router-5.1.4.tgz#7d70bd905543cb6bcbdcc6bd98902332054f31a6"
+  integrity sha1-fXC9kFVDy2vL3Ma9mJAjMgVPMaY=
   dependencies:
     "@types/history" "*"
     "@types/react" "*"
@@ -9482,7 +9474,7 @@ react-redux@^7.1.3:
     prop-types "^15.7.2"
     react-is "^16.9.0"
 
-react-router-dom@^5.0.0:
+react-router-dom@^5.1.2:
   version "5.1.2"
   resolved "https://artifactory.eccenca.com/api/npm/npm/react-router-dom/-/react-router-dom-5.1.2.tgz#06701b834352f44d37fbb6311f870f84c76b9c18"
   integrity sha1-BnAbg0NS9E03+7YxH4cPhMdrnBg=
@@ -9495,7 +9487,7 @@ react-router-dom@^5.0.0:
     tiny-invariant "^1.0.2"
     tiny-warning "^1.0.0"
 
-react-router@5.1.2, react-router@^5.0.0:
+react-router@5.1.2, react-router@^5.1.2:
   version "5.1.2"
   resolved "https://artifactory.eccenca.com/api/npm/npm/react-router/-/react-router-5.1.2.tgz#6ea51d789cb36a6be1ba5f7c0d48dd9e817d3418"
   integrity sha1-bqUdeJyzamvhul98DUjdnoF9NBg=

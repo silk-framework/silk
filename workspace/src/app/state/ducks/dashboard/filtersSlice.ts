@@ -1,7 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { IAppliedSorterState, SortModifierType } from "./typings";
 import { initialPaginationState } from "../../typings";
-import without from "ramda/src/without";
 import { initialAppliedSortersState, initialFiltersState } from "./initialState";
 
 const DEFAULT_SORTER = {
@@ -13,15 +12,6 @@ export const filtersSlice = createSlice({
     name: 'filters',
     initialState: initialFiltersState(),
     reducers: {
-        fetchTypeModifier(state) {
-            state.modifiers = {}
-        },
-
-        updateModifiers(state, action) {
-            const {fieldName, modifier} = action.payload;
-            state.modifiers[fieldName] = modifier;
-        },
-
         applyFilters(state, action) {
             const filters = action.payload;
             Object.keys(filters).forEach((field) => {

@@ -20,11 +20,6 @@ const resultsSelector = createSelector(
     preview => preview.searchResults
 );
 
-const modifiersSelector = createSelector(
-    [filtersSelector],
-    filters => filters.modifiers
-);
-
 const sortersSelector = createSelector(
     [filtersSelector],
     filters => filters.sorters
@@ -56,7 +51,6 @@ export default {
     resultsSelector,
     sortersSelector,
     paginationSelector,
-    modifiersSelector,
     facetsSelector,
     errorSelector,
     isLoadingSelector

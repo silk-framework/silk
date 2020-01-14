@@ -15,12 +15,6 @@ interface IProps {
 }
 
 const generateMenuItems = (pluginMenuData) => {
-    // const dispatch = useDispatch();
-    // const onLogout = useCallback(
-    //     () => dispatch(globalOp.logout()),
-    //     [dispatch]
-    // );
-
     const menuData = [
         // {
         //     title: 'Dashboard',
@@ -92,6 +86,8 @@ const generateMenuItems = (pluginMenuData) => {
 };
 
 const Header = memo<IProps>(({externalRoutes}) => {
+    const breadcrumbs = useSelector(globalSel.breadcrumbsSelector);
+
     const isPresentableRoute = r => r.menuName;
     const addPluginRoutesInMenu = (route) => {
         const menuItem: any = {
@@ -109,9 +105,6 @@ const Header = memo<IProps>(({externalRoutes}) => {
 
     const menu = generateMenuItems(pluginMenuData);
     const isAuth = useSelector(globalSel.isAuthSelector);
-    const breadcrumbs = [
-        {text: 'Home'},
-    ];
 
     return (
         !isAuth ? null :

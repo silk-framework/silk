@@ -13,6 +13,7 @@ const appRoutes: RouteProps[] = [
     {
         path: "/project/:projectId",
         component: ProjectPage,
+        exact: true
     },
 ];
 

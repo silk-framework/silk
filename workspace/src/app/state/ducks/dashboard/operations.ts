@@ -1,7 +1,6 @@
 import { batch } from "react-redux";
 
 import fetch from '../../../services/fetch';
-import asModifier from "../../../utils/asModifier";
 
 import selectors from "./selectors";
 import { filtersSlice } from "./filtersSlice";
@@ -13,8 +12,6 @@ import { dashboardSel } from "@ducks/dashboard/index";
 import qs from "query-string";
 
 const {
-    fetchTypeModifier,
-    updateModifiers,
     updateResultTotal,
     updateFacets,
     updateSorters,
@@ -115,35 +112,6 @@ const setupFiltersFromQs = (queryString: string) => {
         } catch {
         }
 
-    }
-};
-
-/**
- * Fetch types modifier
- */
-const fetchTypesAsync = () => {
-    return async dispatch => {
-        batch(() => {
-            dispatch(setError({}));
-            dispatch(setLoading(true));
-            dispatch(fetchTypeModifier());
-        });
-        try {
-            const {data} = await fetch({
-                url: getApiEndpoint('/searchConfig/types'),
-                method: 'GET',
-            });
-            const validModifier = asModifier(data.label, 'itemType', data.values);
-            batch(() => {
-                dispatch(setLoading(false));
-                dispatch(updateModifiers({
-                    fieldName: 'type',
-                    modifier: validModifier
-                }));
-            });
-        } catch (e) {
-            dispatch(setError(e.response.data));
-        }
     }
 };
 
@@ -327,7 +295,6 @@ const toggleFacetOp = (facet: IFacetState, keywordId: string) => {
 };
 
 export default {
-    fetchTypesAsync,
     fetchListAsync,
     fetchRemoveTaskAsync,
     getTaskMetadataAsync,

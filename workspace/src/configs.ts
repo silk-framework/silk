@@ -34,7 +34,7 @@ const configs: ISettings = {
         // }
     ],
     dev: {
-        monitorPerformance: true,
+        monitorPerformance: false,
         enableStoreDevUtils: false
     }
 };

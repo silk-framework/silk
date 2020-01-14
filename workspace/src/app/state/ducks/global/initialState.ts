@@ -5,6 +5,9 @@ export function initialGlobalState(): IGlobalState {
     return {
         locale: getLocale(),
         authenticated: true,
-        searchQuery: ''
+        searchQuery: '',
+        breadcrumbs: [],
+        error: {},
+        availableDataTypes: {}
     }
 }

@@ -1,8 +1,11 @@
 // @ts-ignore
 const {DI} = window;
 
+export const BASE_PATH = DI.basePath || '';
+export const SERVE_PATH = BASE_PATH + '/workspaceNew';
+
 export const HOST = DI.publicBaseUrl
-    ? DI.publicBaseUrl + DI.basePath
+    ? DI.publicBaseUrl + BASE_PATH
     : process.env.HOST;
 
 export const isDevelopment = process.env.NODE_ENV !== 'production';

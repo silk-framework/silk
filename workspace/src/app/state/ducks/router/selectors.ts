@@ -13,6 +13,7 @@ const routerSearchSelector = createSelector(
     location => location.search
 );
 
+
 export default {
     routerSearchSelector,
     pathnameSelector

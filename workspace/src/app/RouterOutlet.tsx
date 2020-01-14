@@ -1,12 +1,9 @@
 import React, { Suspense } from "react";
-import { Redirect, Route, Switch } from "react-router-dom";
+import { Route, Switch } from "react-router-dom";
 import Loading from "./views/components/loading/Loading";
-import { useSelector } from "react-redux";
-import { IStore } from "./state/typings/IStore";
-
+import { SERVE_PATH } from "./constants";
 export default function RouterOutlet({routes}) {
-    const pathname = useSelector((state: IStore) => state.router.location.pathname);
-
+    // @FIXME: fix static string of path
     return (
         <Suspense fallback={<Loading/>}>
             <Switch>
@@ -15,7 +12,7 @@ export default function RouterOutlet({routes}) {
                         return (
                             <Route
                                 key={route.path as string}
-                                path={`${pathname}${route.path}`}
+                                path={`${SERVE_PATH}${route.path}`}
                                 exact={route.exact}
                                 component={route.component}
                             />
