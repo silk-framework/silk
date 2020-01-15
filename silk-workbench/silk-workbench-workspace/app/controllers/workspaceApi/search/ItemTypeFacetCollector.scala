@@ -1,8 +1,7 @@
 package controllers.workspaceApi.search
 
-import controllers.workspaceApi.search.SearchApiModel.{Facet, Facets, ItemType}
+import controllers.workspaceApi.search.SearchApiModel.{Facet, FacetSetting, ItemType, KeywordFacetSetting}
 import org.silkframework.config.TaskSpec
-import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.workspace.ProjectTask
 
 import scala.collection.immutable.ListMap
@@ -12,8 +11,6 @@ import scala.collection.mutable
   * Collects facets and their values for the respective project task type.
   */
 trait ItemTypeFacetCollector[T <: TaskSpec] {
-  /** Add values of project task to collector. */
-  def collect(task: ProjectTask[T]): Unit
 
   /** Return aggregated facet results. */
   def result: Seq[FacetResult]
@@ -24,9 +21,39 @@ trait ItemTypeFacetCollector[T <: TaskSpec] {
   /** Conversion and check function */
   def convertProjectTask(projectTask: ProjectTask[_ <: TaskSpec]): ProjectTask[T]
 
-  /** Type agnostic collect method. */
-  def collectProjectTask(projectTask: ProjectTask[_ <: TaskSpec]): Unit = {
-    collect(convertProjectTask(projectTask))
+  private lazy val facetCollectorMap: Map[String, FacetCollector[T]] = {
+    facetCollectors.map(fc => (fc.appliesForFacet.id, fc)).toMap
+  }
+
+  /** Returns true if the project task should be in the result set according to the facet setting.
+    * It collects facet values after filtering.
+    * Values are collected for each facet, when no other facet filters out a project task. */
+  def filterAndCollect[U <: TaskSpec](facetSettings: Seq[FacetSetting],
+                                      projectTask: ProjectTask[U]): Boolean = {
+    val specificTask = convertProjectTask(projectTask)
+    val enabledFacets = facetSettings.map(_.facetId).toSet
+    val matchingFacets = mutable.Set[String]()
+    facetSettings foreach { facetSetting =>
+      facetCollectorMap.get(facetSetting.facetId) match {
+        case Some(facetCollector) =>
+          val facetMatches = facetCollector.filter(facetSetting, specificTask)
+          if(facetMatches) {
+            matchingFacets.add(facetSetting.facetId)
+          }
+        case None =>
+          throw new IllegalArgumentException(s"Facet ID '${facetSetting.facetId}' is not available for facet collector '${this.getClass.getSimpleName}'.")
+      }
+    }
+    val allMatch = facetSettings.size == matchingFacets.size // Only when all requested facet settings match, it's an overall match
+    for(facetCollector <- facetCollectors) {
+      if(allMatch || // count if the project task is in the result
+          !matchingFacets.contains(facetCollector.appliesForFacet.id) // count if this specific does not match, but all other facets do
+              && matchingFacets.size == facetSettings.size - 1
+              && enabledFacets.contains(facetCollector.appliesForFacet.id)) {
+        facetCollector.collect(specificTask)
+      }
+    }
+    allMatch
   }
 }
 
@@ -35,10 +62,10 @@ trait ItemTypeFacetCollector[T <: TaskSpec] {
   */
 trait FacetCollector[T <: TaskSpec] {
   /** Collect facet values of a single facet. */
-  def collect(datasetTask: ProjectTask[T]): Unit
+  def collect(projectTask: ProjectTask[T]): Unit
 
   /** The facet results if there exists at least one value. */
-  def facetValues: Option[FacetValues]
+  def facetValues: Option[Seq[FacetValue]]
 
   /** The facet result. */
   def result: Option[FacetResult] = {
@@ -47,8 +74,42 @@ trait FacetCollector[T <: TaskSpec] {
     }
   }
 
+  /** Returns true if the task is filtered that is matched by the facet setting. */
+  def filter(facetSetting: FacetSetting,
+             projectTask: ProjectTask[T]): Boolean
+
   /** The facet this collector applies for. */
   def appliesForFacet: Facet
+}
+
+trait KeywordFacetCollector[T <: TaskSpec] extends FacetCollector[T] {
+  /** Extracts the keywords for this facet from the given project task. */
+  def extractKeywordIds(projectTask: ProjectTask[T]): Set[String]
+
+  /** The collected keyword statistics: (id, label, count) */
+  def keywordStats: Seq[(String, String, Int)]
+
+  override def facetValues: Option[Seq[FacetValue]] = {
+    val stats = keywordStats
+    if(stats.nonEmpty) {
+      val sortedKeywords = stats.sortBy(ks => (ks._3, ks._2))(Ordering.Tuple2(Ordering.Int.reverse, Ordering.String))
+      Some(sortedKeywords map (st => KeywordFacetValue(st._1, st._2, Some(st._3))))
+    } else {
+      None
+    }
+  }
+
+  override def filter(facetSetting: FacetSetting,
+                      projectTask: ProjectTask[T]): Boolean = {
+    facetSetting match {
+      case KeywordFacetSetting(_, facetId, keywordIds) if facetId == appliesForFacet.id =>
+        val keywords = extractKeywordIds(projectTask)
+        // For now keyword facets are always disjunctive
+        keywordIds.exists(keywords.contains)
+      case _ =>
+        false
+    }
+  }
 }
 
 /** Collects values for all facets of all types. */
@@ -62,8 +123,11 @@ case class OverallFacetCollector() {
     ItemType.task -> Seq()
   )
 
-  def collect(itemType: ItemType, datasetTask: ProjectTask[_ <: TaskSpec]): Unit = {
-    itemTypeFacetCollectors(itemType).foreach(_.collectProjectTask(datasetTask))
+  def filterAndCollect(itemType: ItemType,
+                       projectTask: ProjectTask[_ <: TaskSpec],
+                       facetSettings: Seq[FacetSetting]): Boolean = {
+    // TODO: Extend filterAndCollect beyond single item collectors
+    itemTypeFacetCollectors(itemType).forall(_.filterAndCollect(facetSettings, projectTask))
   }
 
   def results: Iterable[FacetResult] = {
@@ -80,15 +144,12 @@ case class FacetResult(id: String,
                        label: String,
                        description: String,
                        `type`: String,
-                       values: FacetValues)
+                       values: Seq[FacetValue])
 
-/** Values of a single facet. */
-sealed trait FacetValues
+/** Single Value of a specific facet. */
+sealed trait FacetValue
 
-/** Values of a keyword based facet. */
-case class KeywordFacetValues(values: Seq[KeywordFacetValue]) extends FacetValues
-
-/** A single value of a keyword facet. */
+/** Single value of a keyword facet. */
 case class KeywordFacetValue(id: String,
                              label: String,
-                             count: Option[Int])
+                             count: Option[Int]) extends FacetValue

@@ -29,9 +29,9 @@ object SearchApiModel {
   // type values
   final val PROJECT_TYPE = "project"
   /* JSON serialization */
-  implicit val responseOptionsReader: Reads[TaskFormatOptions] = Json.reads[TaskFormatOptions]
-  implicit val searchRequestReader: Reads[SearchRequest] = Json.reads[SearchRequest]
-  implicit val itemTypeReads: Format[ItemType] = new Format[ItemType] {
+  lazy implicit val responseOptionsReader: Reads[TaskFormatOptions] = Json.reads[TaskFormatOptions]
+  lazy implicit val searchRequestReader: Reads[SearchRequest] = Json.reads[SearchRequest]
+  lazy implicit val itemTypeReads: Format[ItemType] = new Format[ItemType] {
     override def reads(json: JsValue): JsResult[ItemType] = {
       json match {
         case JsString(value) =>ItemType.idToItemType.get(value) match {
@@ -43,10 +43,10 @@ object SearchApiModel {
     }
     override def writes(o: ItemType): JsValue = JsString(o.id)
   }
-  implicit val sortOrderReads: Reads[SortOrder.Value] = Reads.enumNameReads(SortOrder)
-  implicit val sortByReads: Reads[SortBy.Value] = Reads.enumNameReads(SortBy)
-  implicit val facetTypesReads: Reads[FacetType.Value] = Reads.enumNameReads(FacetType)
-  implicit val facetSettingReads: Reads[FacetSetting] = new Reads[FacetSetting] {
+  lazy implicit val sortOrderReads: Reads[SortOrder.Value] = Reads.enumNameReads(SortOrder)
+  lazy implicit val sortByReads: Reads[SortBy.Value] = Reads.enumNameReads(SortBy)
+  lazy implicit val facetTypesReads: Reads[FacetType.Value] = Reads.enumNameReads(FacetType)
+  lazy implicit val facetSettingReads: Reads[FacetSetting] = new Reads[FacetSetting] {
     override def reads(json: JsValue): JsResult[FacetSetting] = {
       (json \ TYPE).toOption.map(_.as[String]) match {
         case Some(facetType) if FacetType.keyword.toString == facetType => KeywordFacetSetting.keywordFacetSettingReads.reads(json)
@@ -56,24 +56,10 @@ object SearchApiModel {
       }
     }
   }
-  implicit val facetedSearchRequestReader: Reads[FacetedSearchRequest] = Json.reads[FacetedSearchRequest]
-  val keywordFacetValues: Writes[KeywordFacetValues] = new Writes[KeywordFacetValues] {
-    override def writes(keywordFacetValues: KeywordFacetValues): JsValue = {
-      val values = keywordFacetValues.values.map(v => JsObject(Seq(
-        ID -> JsString(v.id),
-        LABEL -> JsString(v.label)
-      ) ++ v.count.map(c => "count" -> JsNumber(c))))
-      JsArray(values)
-    }
-  }
-  implicit val facetValuesWrites: Writes[FacetValues] = new Writes[FacetValues] {
-    override def writes(o: FacetValues): JsValue = {
-      o match {
-        case kw: KeywordFacetValues => keywordFacetValues.writes(kw)
-      }
-    }
-  }
-  implicit val facetResultWrites: Writes[FacetResult] = Json.writes[FacetResult]
+  lazy implicit val facetedSearchRequestReader: Reads[FacetedSearchRequest] = Json.reads[FacetedSearchRequest]
+  lazy implicit val facetValueReads: Format[FacetValue] = Json.format[FacetValue]
+  lazy implicit val keywordFacetValueReads: Format[KeywordFacetValue] = Json.format[KeywordFacetValue]
+  lazy implicit val facetResultWrites: Writes[FacetResult] = Json.writes[FacetResult]
 
   /** The item types the search can be restricted to. */
   sealed abstract class ItemType(val id: String, val label: String)
@@ -178,15 +164,25 @@ object SearchApiModel {
     val facetIds: Seq[String] = Seq(datasetType, fileResource).map(_.id)
   }
 
+  case class SortableProperty(id: String, label: String)
+  lazy implicit val sortablePropertyWrites: Writes[SortableProperty] = Json.writes[SortableProperty]
+
+  case class FacetedSearchResult(total: Int,
+                                 results: Seq[JsObject],
+                                 sortByProperties: Seq[SortableProperty],
+                                 facets: Seq[FacetResult])
+
+  lazy implicit val facetedSearchResult: Writes[FacetedSearchResult] = Json.writes[FacetedSearchResult]
+
   /** A search request that supports types and facets. */
-  case class FacetedSearchRequest(project: Option[String],
-                                  itemType: Option[ItemType],
-                                  textQuery: Option[String],
-                                  offset: Option[Int],
-                                  limit: Option[Int],
-                                  sortBy: Option[SortBy.Value],
-                                  sortOrder: Option[SortOrder.Value],
-                                  facets: Option[Seq[FacetSetting]]) extends SearchRequestTrait {
+  case class FacetedSearchRequest(project: Option[String] = None,
+                                  itemType: Option[ItemType] = None,
+                                  textQuery: Option[String] = None,
+                                  offset: Option[Int] = None,
+                                  limit: Option[Int] = None,
+                                  sortBy: Option[SortBy.Value] = None,
+                                  sortOrder: Option[SortOrder.Value] = None,
+                                  facets: Option[Seq[FacetSetting]] = None) extends SearchRequestTrait {
     def workingOffset: Int =  offset.getOrElse(FacetedSearchRequest.DEFAULT_OFFSET)
 
     def workingLimit: Int = limit.getOrElse(FacetedSearchRequest.DEFAULT_LIMIT)
@@ -195,29 +191,28 @@ object SearchApiModel {
                 accessMonitor: WorkbenchAccessMonitor): JsValue = {
       val ps: Seq[Project] = projects
       var tasks: Seq[TypedTasks] = ps.flatMap(fetchTasks)
-      var selectedProjects: Seq[Project] = Seq.empty
+      var selectedProjects: Seq[Project] = if(itemType.contains(ItemType.project) || itemType.isEmpty) ps else Seq()
 
       for(term <- textQuery) {
         val lowerCaseTerm = extractSearchTerms(term)
         tasks = tasks.map(typedTasks => filterTasksByTextQuery(typedTasks, lowerCaseTerm))
-        selectedProjects = if(itemType.contains(ItemType.project)) ps.filter(p => matchesSearchTerm(lowerCaseTerm, p)) else Seq()
+        selectedProjects = if(itemType.contains(ItemType.project) || itemType.isEmpty) ps.filter(p => matchesSearchTerm(lowerCaseTerm, p)) else Seq()
       }
 
       // facets are collected after filtering, so only non empty facets are displayed with correct counts
-      val facetCollectors = OverallFacetCollector()
-      collectFacetValues(tasks, facetCollectors)
-      val facets = facetCollectors.results
-      tasks = tasks.map(t => filterTasksByFacetSettings(t))
+      val overallFacetCollector = OverallFacetCollector()
+      tasks = tasks.map(t => filterTasksByFacetSettings(t, overallFacetCollector))
       val jsonResult = selectedProjects.map(toJson) ++ tasks.flatMap(toJson)
       val sorted = sort(jsonResult)
       val resultWindow = sorted.slice(workingOffset, workingOffset + workingLimit)
       val withItemLinks = addItemLinks(resultWindow)
+      val facets = overallFacetCollector.results
 
-      JsObject(Seq(
-        "total" -> JsNumber(BigDecimal(sorted.size)),
-        "results" -> JsArray(withItemLinks),
-        "sortByProperties" -> JsArray(Seq(SortableProperty("label", "Label")).map(sortablePropertyWrites.writes)),
-        "facets" -> JsArray(facets.map(fr => Json.toJson(fr)).toSeq)
+      Json.toJson(FacetedSearchResult(
+        total = sorted.size,
+        results = withItemLinks,
+        sortByProperties = Seq(SortableProperty("label", "Label")),
+        facets = facets.toSeq
       ))
     }
 
@@ -270,25 +265,6 @@ object SearchApiModel {
       labelMatch || descriptionMatch
     }
 
-    /** Collects the result facet values. */
-    def resultFacets(tasks: Seq[TypedTasks]): Seq[FacetResult] = {
-      val datasetFacetCollector = DatasetFacetCollector()
-      for(typedTasks <- tasks) {
-        typedTasks.itemType match {
-          case ItemType.dataset =>
-            if(itemType.contains(ItemType.dataset)) {
-              typedTasks.tasks foreach { task =>
-                datasetFacetCollector.collect(task.asInstanceOf[ProjectTask[DatasetSpec[Dataset]]])
-              }
-            }
-          case _ =>
-            // No other facet collectors defined
-            Seq.empty
-        }
-      }
-      datasetFacetCollector.result
-    }
-
     // Adds links to related pages to the result item
     private def addItemLinks(results: Seq[JsObject]): Seq[JsObject] = {
       results map { result =>
@@ -328,26 +304,21 @@ object SearchApiModel {
       val itemLinkWrites: Writes[ItemLink] = Json.writes[ItemLink]
     }
 
-    case class SortableProperty(id: String, label: String)
-    implicit val sortablePropertyWrites: Writes[SortableProperty] = Json.writes[SortableProperty]
-
-    private def collectFacetValues(tasks: Seq[TypedTasks], facetCollectors: OverallFacetCollector): Unit = {
-      // Only collect facets for specific item types. FIXME: Add generic collector, e.g. for creation date, creator etc.
-      for (typedTasks <- tasks if itemType.contains(typedTasks.itemType)) {
-        for (task <- typedTasks.tasks) {
-          facetCollectors.collect(typedTasks.itemType, task)
-        }
-      }
-    }
-
     private def filterTasksByTextQuery(typedTasks: TypedTasks,
                                        lowerCaseTerms: Seq[String]): TypedTasks = {
       typedTasks.copy(tasks = typedTasks.tasks.filter { task => matchesSearchTerm(lowerCaseTerms, task) })
     }
 
-    private def filterTasksByFacetSettings(typedTasks: TypedTasks): TypedTasks = {
-      val facetMatchingFN = matchesFacetSettingFunction(typedTasks.itemType)
-      typedTasks.copy(tasks = typedTasks.tasks.filter { task => facetMatchingFN(task) })
+    private def filterTasksByFacetSettings(typedTasks: TypedTasks,
+                                           facetCollector: OverallFacetCollector): TypedTasks = {
+      // Only collect facets for specific item types.
+      // FIXME: Add generic collector, e.g. for creation date, creator etc.
+      itemType match {
+        case Some(typ) if typedTasks.itemType == typ =>
+          typedTasks.copy(tasks = typedTasks.tasks.filter { task => facetCollector.filterAndCollect(typ, task, facets.getOrElse(Seq.empty)) })
+        case _ =>
+          typedTasks
+      }
     }
 
     /** Returns a function to check if a task matches the facet filter setting */

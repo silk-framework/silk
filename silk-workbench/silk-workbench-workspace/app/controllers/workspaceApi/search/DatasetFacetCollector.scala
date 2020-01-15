@@ -3,7 +3,7 @@ package controllers.workspaceApi.search
 import controllers.workspaceApi.search.SearchApiModel.{Facet, Facets}
 import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.WritableResourceDataset
+import org.silkframework.dataset.ResourceBasedDataset
 import org.silkframework.workspace.ProjectTask
 
 import scala.collection.mutable
@@ -14,13 +14,6 @@ case class DatasetFacetCollector() extends ItemTypeFacetCollector[GenericDataset
     DatasetTypeFacetCollector(),
     DatasetFileFacetCollector()
   )
-
-  /** Collect facet values of a single dataset */
-  override def collect(datasetTask: ProjectTask[GenericDatasetSpec]): Unit = {
-    for(facetCollector <- facetCollectors) {
-      facetCollector.collect(datasetTask)
-    }
-  }
 
   /** Results of all facets of the dataset type */
   override def result: Seq[FacetResult] = {
@@ -37,7 +30,7 @@ case class DatasetFacetCollector() extends ItemTypeFacetCollector[GenericDataset
 }
 
 /** Collects values for the dataset type facet. */
-case class DatasetTypeFacetCollector() extends FacetCollector[GenericDatasetSpec] {
+case class DatasetTypeFacetCollector() extends KeywordFacetCollector[GenericDatasetSpec] {
   private val datasetTypes = new mutable.ListMap[String, Int]()
   private val datasetTypeLabel = new mutable.ListMap[String, String]()
 
@@ -52,36 +45,38 @@ case class DatasetTypeFacetCollector() extends FacetCollector[GenericDatasetSpec
 
   override def appliesForFacet: Facet = Facets.datasetType
 
-  override def facetValues: Option[FacetValues] = {
-    if(datasetTypes.nonEmpty) {
-      val sortedTypes = datasetTypes.toSeq.sortWith(_._2 > _._2)
-      Some(KeywordFacetValues(sortedTypes map (st => KeywordFacetValue(st._1, datasetTypeLabel(st._1), Some(st._2)))))
-    } else {
-      None
-    }
+  override def extractKeywordIds(datasetTask: ProjectTask[GenericDatasetSpec]): Set[String] = {
+    val pluginSpec = datasetTask.plugin.pluginSpec
+    Set(pluginSpec.id)
+  }
+
+  override def keywordStats: Seq[(String, String, Int)] = {
+    datasetTypes.toSeq.map(st => (st._1, datasetTypeLabel(st._1), st._2))
   }
 }
 
 /** File resources used by the datasets. */
-case class DatasetFileFacetCollector() extends FacetCollector[GenericDatasetSpec] {
+case class DatasetFileFacetCollector() extends KeywordFacetCollector[GenericDatasetSpec] {
   private val resourceNames = new mutable.ListMap[String, Int]()
 
   override def collect(datasetTask: ProjectTask[GenericDatasetSpec]): Unit = {
-    val data = datasetTask.data.plugin
-    if(data.isInstanceOf[WritableResourceDataset]) {
-      val resourceName = data.asInstanceOf[WritableResourceDataset].file.name
+    extractKeywordIds(datasetTask).foreach { resourceName =>
       resourceNames.put(resourceName, resourceNames.getOrElseUpdate(resourceName, 0) + 1)
     }
   }
 
-  override def facetValues: Option[FacetValues] = {
-    if(resourceNames.nonEmpty) {
-      val sortedResourceNames = resourceNames.toSeq.sortWith(_._2 > _._2)
-      Some(KeywordFacetValues(sortedResourceNames map (rn => KeywordFacetValue(rn._1, rn._1, Some(rn._2)))))
+  override def appliesForFacet: Facet = Facets.fileResource
+
+  override def extractKeywordIds(datasetTask: ProjectTask[GenericDatasetSpec]): Set[String] = {
+    val data = datasetTask.data.plugin
+    if(data.isInstanceOf[ResourceBasedDataset]) {
+      Set(data.asInstanceOf[ResourceBasedDataset].file.name)
     } else {
-      None
+      Set()
     }
   }
 
-  override def appliesForFacet: Facet = Facets.fileResource
+  override def keywordStats: Seq[(String, String, Int)] = {
+    resourceNames.toSeq map (rn => (rn._1, rn._1, rn._2))
+  }
 }

@@ -16,6 +16,7 @@ import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.io.Codec
+import scala.util.control.NonFatal
 
 class CsvSource(file: Resource,
                 settings: CsvSettings = CsvSettings(),
@@ -138,6 +139,9 @@ class CsvSource(file: Resource,
 
 
   def retrieveEntities(entityDesc: EntitySchema, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
+    if(!file.exists) {
+      Seq.empty[Entity]
+    }
 
     if(entityDesc.typeUri.toString.nonEmpty && entityDesc.typeUri != Uri(typeUri))
       return Traversable.empty
@@ -263,19 +267,23 @@ class CsvSource(file: Resource,
       if(skipFirst) parser.parseNext()
       parser
     } catch {
-      case e: Throwable =>
+      case NonFatal(ex) =>
         parser.stopParsing()
-        throw new RuntimeException("Problem during initialization of CSV parser: " + e.getMessage, e)
+        throw new RuntimeException("Problem during initialization of CSV parser: " + ex.getMessage, ex)
     }
   }
 
   private def firstLine: Array[String] = {
     var parser: Option[CsvParser] = None
-    try {
-      parser = Some(csvParser())
-      parser.get.parseNext().getOrElse(Array())
-    } finally {
-      parser foreach (_.stopParsing())
+    if(!file.exists) {
+      Array.empty[String]
+    } else {
+      try {
+        parser = Some(csvParser())
+        parser.get.parseNext().getOrElse(Array())
+      } finally {
+        parser foreach (_.stopParsing())
+      }
     }
   }
 

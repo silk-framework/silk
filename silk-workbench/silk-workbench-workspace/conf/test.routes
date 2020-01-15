@@ -1,1 +1,2 @@
 ->         /workspace                   workspace.Routes
+->         /api/workspace               workspaceApi.Routes
