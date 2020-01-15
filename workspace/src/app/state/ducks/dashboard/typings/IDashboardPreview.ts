@@ -16,6 +16,8 @@ export interface ISearchResultsTask {
 
 export interface IPreviewState {
     searchResults: ISearchResultsTask[];
+    currentProjectId: string;
+    projectMetadata: any;
     editingTasks: {
         [key: string]: ISearchResultsTask
     };

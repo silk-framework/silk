@@ -24,6 +24,16 @@ export const previewSlice = createSlice({
         },
         cloneTask(state, action) {
 
+        },
+        setProjectId(state, action) {
+            state.currentProjectId = action.payload;
+        },
+        setProject(state, action) {
+            state.projectMetadata = action.payload;
+        },
+        unsetProject(state) {
+            state.currentProjectId = null;
+            state.projectMetadata = {};
         }
     }
 });

@@ -6,15 +6,15 @@ import ActionsTopBar from "./ActionsTopBar";
 import AppliedFacets from "./AppliedFacets";
 import DataList from "../../../components/datalist/DataList";
 import DeleteModal from "../../../components/modals/DeleteModal";
-import ProjectRow from "./ProjectRow";
+import TaskRow from "./TaskRow";
 import Loading from "../../../components/loading/Loading";
 import { push } from "connected-react-router";
 import { ISearchResultsTask } from "@ducks/dashboard/typings";
-import { DATA_TYPES } from "../../../../constants";
 import CloneModal from "../../../components/modals/CloneModal";
 import { routerSel } from "@ducks/router";
+import { useParams } from "react-router";
 
-export default function ProjectsList() {
+export default function TasksList() {
 
     const dispatch = useDispatch();
 
@@ -24,15 +24,17 @@ export default function ProjectsList() {
     const pagination = useSelector(dashboardSel.paginationSelector);
     const appliedFilters = useSelector(dashboardSel.appliedFiltersSelector);
     const isLoading = useSelector(dashboardSel.isLoadingSelector);
-    const pathname = useSelector(routerSel.pathnameSelector);
-    const qs = useSelector(routerSel.routerSearchSelector);
 
     const [selectedItem, setSelectedItem] = useState();
     const [showDeleteModal, setShowDeleteModal] = useState();
     const [showCloneModal, setShowCloneModal] = useState();
 
+    const {projectId} = useParams();
+
     useEffect(() => {
-        // Fetch the list of projects
+        dispatch(dashboardOp.setProjectId(projectId));
+        dispatch(dashboardOp.fetchProjectMetadata());
+        // Fetch the list of tasks
         dispatch(dashboardOp.fetchListAsync());
     }, []);
 
@@ -99,11 +101,11 @@ export default function ProjectsList() {
     };
 
     const goToItemDetails = (item: ISearchResultsTask) => {
-        if (item.type === DATA_TYPES.PROJECT) {
-            dispatch(
-                push(`${pathname}/project/${item.id}`)
-            );
-        }
+        // if (item.type === DATA_TYPES.PROJECT) {
+        //     dispatch(
+        //         push(`${pathname}/project/${item.id}`)
+        //     );
+        // }
     };
 
     const {Header, Body, Footer} = DataList;
@@ -116,7 +118,7 @@ export default function ProjectsList() {
                 </Header>
                 <Body>
                 {
-                    data.map(item => <ProjectRow
+                    data.map(item => <TaskRow
                         key={`${item.id}_${item.projectId}`}
                         item={item}
                         onOpenDeleteModal={() => onOpenDeleteModal(item)}

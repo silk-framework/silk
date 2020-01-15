@@ -5,17 +5,23 @@ import Checkbox from "@wrappers/checkbox";
 import Label from "@wrappers/label";
 import FacetsList from "./FacetsList";
 import { globalOp, globalSel } from "@ducks/global";
+import { useParams } from "react-router";
+import { routerSel } from "@ducks/router";
 
 export default function FilterBar() {
     const dispatch = useDispatch();
+    const {projectId} = useParams();
 
     const appliedFilters = useSelector(dashboardSel.appliedFiltersSelector);
     const modifiers = useSelector(globalSel.availableDTypesSelector);
+    const qs = useSelector(routerSel.routerSearchSelector);
 
     const typeModifier = modifiers.type;
 
     useEffect(() => {
-        dispatch(globalOp.fetchAvailableDTypesAsync());
+        // Setup the filters from query string
+        dispatch(dashboardOp.setupFiltersFromQs(qs));
+        dispatch(globalOp.fetchAvailableDTypesAsync(projectId));
     }, []);
 
     const handleFilterSelect = (field: string, val: string) => {

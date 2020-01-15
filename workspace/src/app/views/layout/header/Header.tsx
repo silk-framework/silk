@@ -105,6 +105,7 @@ const Header = memo<IProps>(({externalRoutes}) => {
 
     const menu = generateMenuItems(pluginMenuData);
     const isAuth = useSelector(globalSel.isAuthSelector);
+    const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
 
     return (
         !isAuth ? null :
@@ -113,7 +114,7 @@ const Header = memo<IProps>(({externalRoutes}) => {
                     <NavbarGroup>
                         <div>
                             <Breadcrumbs paths={breadcrumbs}/>
-                            <NavbarHeading>Data Integration</NavbarHeading>
+                            <NavbarHeading>{lastBreadcrumb.text}</NavbarHeading>
                         </div>
                         {menu}
                     </NavbarGroup>

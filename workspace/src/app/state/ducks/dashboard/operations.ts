@@ -19,7 +19,8 @@ const {
     applyFilters,
     applyFacet,
     changePage,
-    removeFacet
+    removeFacet,
+    resetFilters
 } = filtersSlice.actions;
 
 const {
@@ -28,7 +29,12 @@ const {
     cloneTask,
     fetchList,
     fetchListSuccess,
+    setProjectId,
+    setProject,
+    unsetProject
 } = previewSlice.actions;
+
+const ARRAY_DELIMETER = '|';
 
 /**
  * Update the search query in url
@@ -48,9 +54,8 @@ const updateQueryString = () => {
             page: current,
             f_ids: appliedFacets.map(o => o.facetId),
             types: appliedFacets.map(o => o.type),
-            f_keys: appliedFacets.map(o => o.keywordIds.join(','))
+            f_keys: appliedFacets.map(o => o.keywordIds.join(ARRAY_DELIMETER))
         };
-
         dispatch(routerOp.setQueryString(queryParams));
     }
 };
@@ -80,16 +85,29 @@ const setupFiltersFromQs = (queryString: string) => {
 
             // Facets
             if (parsedQs.f_ids) {
-                // @TODO: add array setup feature
-                const facet: Partial<IFacetState> = {
-                    id: parsedQs.f_ids as string,
-                    type: parsedQs.types as string,
-                };
+                const facetIds = parsedQs.f_ids;
+                if (!Array.isArray(facetIds)) {
+                    batchQueue.push(applyFacet({
+                        facet: {
+                            id: facetIds,
+                            type: parsedQs.types
+                        },
+                        keywordIds: parsedQs.f_keys
+                    }));
+                } else {
+                    facetIds.forEach((facetId, i) => {
+                        const facet: Partial<IFacetState> = {
+                            id: facetId,
+                            type: parsedQs.types[i]
+                        };
+                        batchQueue.push(applyFacet({
+                            facet,
+                            keywordIds: parsedQs.f_keys[i].split(ARRAY_DELIMETER)
+                        }));
+                    });
+                }
 
-                batchQueue.push(applyFacet({
-                    facet,
-                    keywordIds: parsedQs.f_keys
-                }));
+
             }
 
             // Pagination
@@ -115,6 +133,35 @@ const setupFiltersFromQs = (queryString: string) => {
     }
 };
 
+const fetchProjectMetadata = () => {
+    return async (dispatch, getState) => {
+        batch(() => {
+            dispatch(setError({}));
+            dispatch(setLoading(true));
+        });
+
+        try {
+            const projectId = selectors.currentProjectIdSelector(getState());
+            const res = await fetch({
+                url: getLegacyApiEndpoint(`/projects/${projectId}`),
+            });
+
+            const {results} = res.data;
+            batch(() => {
+                // Apply results
+                dispatch(setProject(results));
+                dispatch(setLoading(false));
+            })
+        } catch (e) {
+            batch(() => {
+                dispatch(setLoading(false));
+                dispatch(setError(e.response.data));
+            })
+        }
+
+    }
+};
+
 /**
  * Fetch the search results
  * by provided filters
@@ -131,6 +178,7 @@ const fetchListAsync = () => {
         const {limit, offset} = selectors.paginationSelector(state);
         const appliedFilters = selectors.appliedFiltersSelector(state);
         const sorters = selectors.sortersSelector(state);
+        const projectId = selectors.currentProjectIdSelector(state);
 
         const body: any = {
             limit,
@@ -149,6 +197,10 @@ const fetchListAsync = () => {
                     body[filter] = appliedFilters[filter]
                 }
             });
+
+        if (projectId) {
+            body.project = projectId;
+        }
 
         try {
             const res = await fetch({
@@ -304,5 +356,9 @@ export default {
     cloneTask,
     changePageOp,
     toggleFacetOp,
-    setupFiltersFromQs
+    setupFiltersFromQs,
+    fetchProjectMetadata,
+    resetFilters,
+    setProjectId,
+    unsetProject
 };

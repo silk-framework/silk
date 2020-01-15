@@ -24,6 +24,7 @@ export function initialFiltersState(props: Partial<IFiltersState> = {}): IFilter
         facets: [],
         modifiers: {},
         appliedFilters: initialAppliedFiltersState(),
+        appliedFacets: [],
         pagination: initialPaginationState(),
         sorters: initialSortersState(),
         ...props
@@ -48,16 +49,6 @@ export function initialSortersState(props: Partial<ISortersState> = {}): ISorter
 export function initialAppliedFiltersState(props: Partial<IAppliedFiltersState> = {}): IAppliedFiltersState {
     return {
         textQuery: '',
-        facets: [],
-        ...props
-    }
-}
-
-export function initialModifierState(props: Partial<IModifierState> = {}): IModifierState {
-    return {
-        label: '',
-        field: '',
-        options: [],
         ...props
     }
 }
@@ -76,7 +67,10 @@ export function initialPreviewState(props: Partial<IPreviewState> = {}): IPrevie
         searchResults: [],
         editingTasks: {},
         isLoading: false,
+        projectMetadata: {},
+        currentProjectId: null,
         error: {},
         ...props
     }
 }
+

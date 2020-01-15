@@ -12,10 +12,10 @@ export default function FacetsList() {
     const dispatch = useDispatch();
 
     const facets = useSelector(dashboardSel.facetsSelector);
-    const appliedFilters = useSelector(dashboardSel.appliedFiltersSelector);
+    const appliedFacets = useSelector(dashboardSel.appliedFacetsSelector);
 
     const isChecked = (facetId: string, value: string): boolean => {
-        const existsFacet = appliedFilters.facets.find(o => o.facetId === facetId);
+        const existsFacet = appliedFacets.find(o => o.facetId === facetId);
         if (!existsFacet) {
             return false;
         }

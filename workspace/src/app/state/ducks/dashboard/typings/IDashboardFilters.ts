@@ -41,7 +41,6 @@ export interface IAppliedFiltersState {
     textQuery: string;
     sortBy?: string;
     sortOrder?: string;
-    facets: IAppliedFacetState[];
     itemType?: string;
 }
 
@@ -64,6 +63,7 @@ export interface IFiltersState {
     facets: IFacetState[];
     modifiers: IModifiersState;
     appliedFilters: IAppliedFiltersState;
+    appliedFacets: IAppliedFacetState[];
     pagination: IPaginationState;
     sorters: ISortersState;
 }

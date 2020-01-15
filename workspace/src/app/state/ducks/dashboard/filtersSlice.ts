@@ -1,7 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { IAppliedSorterState, SortModifierType } from "./typings";
+import { IAppliedFacetState, IAppliedSorterState, SortModifierType } from "./typings";
 import { initialPaginationState } from "../../typings";
-import { initialAppliedSortersState, initialFiltersState } from "./initialState";
+import {
+    initialAppliedFiltersState,
+    initialAppliedSortersState,
+    initialFiltersState,
+    initialSortersState
+} from "./initialState";
 
 const DEFAULT_SORTER = {
     id: '',
@@ -24,7 +29,7 @@ export const filtersSlice = createSlice({
                 }
             });
 
-            state.appliedFilters.facets = [];
+            state.appliedFacets = [];
             state.pagination = initialPaginationState();
         },
 
@@ -74,12 +79,11 @@ export const filtersSlice = createSlice({
 
         applyFacet(state, action) {
             const {facet, keywordIds} = action.payload;
-            const {facets} = state.appliedFilters;
 
-            const currentFacet = facets.find(o => o.facetId === facet.id);
+            const currentFacet = state.appliedFacets.find(o => o.facetId === facet.id);
             // add facet, if doesn't exists
             if (!currentFacet) {
-                facets.push({
+                state.appliedFacets.push({
                     facetId: facet.id,
                     type: facet.type,
                     keywordIds
@@ -93,19 +97,24 @@ export const filtersSlice = createSlice({
 
         removeFacet(state, action) {
             const {facet, keywordId} = action.payload;
-            const {facets} = state.appliedFilters;
 
-            const ind = facets.findIndex(fa => fa.facetId === facet.facetId);
+            const ind = state.appliedFacets.findIndex(fa => fa.facetId === facet.facetId);
             if (ind > -1) {
-                const keywords = facets[ind].keywordIds.filter(kw => kw !== keywordId);
+                const keywords = state.appliedFacets[ind].keywordIds.filter(kw => kw !== keywordId);
                 // Remove if applied facets is empty
                 if (!keywords.length) {
-                    facets.splice(ind, 1);
+                    state.appliedFacets.splice(ind, 1);
                 } else {
-                    facets[ind].keywordIds = keywords;
+                    state.appliedFacets[ind].keywordIds = keywords;
                 }
                 state.pagination = initialPaginationState();
             }
+        },
+
+        resetFilters(state) {
+            state.appliedFilters = initialAppliedFiltersState();
+            state.sorters = initialSortersState();
+            state.pagination = initialPaginationState();
         }
     }
 });

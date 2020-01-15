@@ -36,13 +36,23 @@ const appliedFiltersSelector = createSelector(
 );
 
 const appliedFacetsSelector = createSelector(
-    [appliedFiltersSelector],
-    appliedFilters => appliedFilters.facets
+    [filtersSelector],
+    filters => filters.appliedFacets
 );
 
 const paginationSelector = createSelector(
     [filtersSelector],
     filters => filters.pagination
+);
+
+const currentProjectIdSelector = createSelector(
+    [previewSelector],
+    preview => preview.currentProjectId
+);
+
+const projectMetadataSelector = createSelector(
+    [previewSelector],
+    preview => preview.projectMetadata
 );
 
 export default {
@@ -53,5 +63,7 @@ export default {
     paginationSelector,
     facetsSelector,
     errorSelector,
-    isLoadingSelector
+    isLoadingSelector,
+    currentProjectIdSelector,
+    projectMetadataSelector
 }

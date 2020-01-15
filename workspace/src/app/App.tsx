@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 import Header from "./views/layout/header/Header";
 import RouterOutlet from "./RouterOutlet";
@@ -9,6 +9,8 @@ import { ConnectedRouter } from "connected-react-router";
 
 import "normalize.css";
 import "@wrappers/index.scss";
+import { globalOp } from "@ducks/global";
+import { useDispatch } from "react-redux";
 
 interface IProps {
     routes: RouteProps[];
@@ -16,6 +18,14 @@ interface IProps {
 }
 
 export default function App({ externalRoutes, routes }: IProps) {
+    const dispatch = useDispatch();
+    useEffect(() => {
+        dispatch(globalOp.addBreadcrumb({
+            href: '',
+            text: 'Data Integration'
+        }));
+    }, []);
+
     return (
         <LanguageContainer>
             <ConnectedRouter history={getHistory()}>

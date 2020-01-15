@@ -8,18 +8,35 @@ import { AppToaster } from "../../../services/toaster";
 import { Intent } from "@wrappers/constants";
 import { globalOp } from "@ducks/global";
 import FilterBar from "./filter-bar/FilterBar";
+import { useParams } from "react-router";
+import TasksList from "./tasks-list/TasksList";
 
 export default function Dashboard() {
     const dispatch = useDispatch();
+    const error = useSelector(dashboardSel.errorSelector);
+
+    const {projectId} = useParams();
+
     useEffect(() => {
-        dispatch(globalOp.addBreadcrumb({
-            href: '',
-            text: 'Home'
-        }));
-        dispatch(globalOp.fetchAvailableDTypesAsync());
+        if (projectId) {
+            dispatch(globalOp.addBreadcrumb({
+                href: `/project/${projectId}`,
+                text: projectId
+            }));
+        }
     }, []);
 
-    const error = useSelector(dashboardSel.errorSelector);
+    // useEffect(() => {
+    //     if (selectedProject !== projectId) {
+    //         // clear filter on page change
+    //         dispatch(dashboardOp.resetFilters());
+    //     }
+    //
+    //     if (selectedProject && !projectId) {
+    //         dispatch(dashboardOp.unsetProject())
+    //     }
+    // }, [projectId]);
+
     useEffect(() => {
         if (error.detail) {
             AppToaster.show({
@@ -36,7 +53,11 @@ export default function Dashboard() {
                 <FilterBar/>
             </div>
             <div className='right-content'>
-                <ProjectsList/>
+                {
+                    projectId
+                        ? <TasksList/>
+                        : <ProjectsList/>
+                }
             </div>
         </div>
     )

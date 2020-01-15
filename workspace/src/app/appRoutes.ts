@@ -2,7 +2,6 @@ import { lazy } from "react";
 import { RouteProps } from "react-router";
 
 const DashboardPage = lazy(() => import('./views/pages/dashboard/Dashboard'));
-const ProjectPage = lazy(() => import('./views/pages/project/Project'));
 
 const appRoutes: RouteProps[] = [
     {
@@ -12,7 +11,7 @@ const appRoutes: RouteProps[] = [
     },
     {
         path: "/project/:projectId",
-        component: ProjectPage,
+        component: DashboardPage,
         exact: true
     },
 ];
