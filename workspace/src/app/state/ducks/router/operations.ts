@@ -8,7 +8,7 @@ interface IQueryParams {
 const setQueryString = (queryParams: IQueryParams) => {
     return (dispatch, getState) => {
         const location = getLocation(getState());
-        const currentQuery = qs.parse(location.search);
+        const currentQuery = {};
 
         Object.keys(queryParams).map(paramName => {
             const values = queryParams[paramName];

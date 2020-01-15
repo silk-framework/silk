@@ -19,6 +19,8 @@ export default function FilterBar() {
     const typeModifier = modifiers.type;
 
     useEffect(() => {
+        // Reset the filters, due to redirecting
+        dispatch(dashboardOp.resetFilters());
         // Setup the filters from query string
         dispatch(dashboardOp.setupFiltersFromQs(qs));
         dispatch(globalOp.fetchAvailableDTypesAsync(projectId));
