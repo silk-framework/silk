@@ -46,6 +46,13 @@ class SearchApiIntegrationTest extends FlatSpec
     typeIds mustBe Seq("project", "workflow", "dataset", "transform", "linking", "task")
   }
 
+  it should "return all project task item types if a project ID is defined" in {
+    val response = client.url(s"$baseUrl/api/workspace/searchConfig/types?projectId=proj").get()
+    val json = checkResponse(response).json
+    val typeIds = (json \ "values").as[JsArray].value.map(v => (v \ "id").as[String])
+    typeIds mustBe Seq("workflow", "dataset", "transform", "linking", "task")
+  }
+
   private val allDatasets = Seq("csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2")
   private val allResults = Seq("singleProject", "csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2", "transformA")
 

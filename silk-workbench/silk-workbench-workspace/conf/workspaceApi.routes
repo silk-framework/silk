@@ -1,5 +1,5 @@
 # Generic item search, i.e. projects, tasks etc.
-GET           /searchConfig/types                                               controllers.workspaceApi.SearchApi.itemTypes()
+GET           /searchConfig/types                                               controllers.workspaceApi.SearchApi.itemTypes(projectId: Option[String] ?= None)
 POST          /searchTasks                                                      controllers.workspaceApi.SearchApi.search()
 POST          /searchItems                                                      controllers.workspaceApi.SearchApi.facetedSearch()
 GET           /recentlyViewedItems                                              controllers.workspaceApi.SearchApi.recentlyViewedItems()

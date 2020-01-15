@@ -38,18 +38,26 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
   }
 
   /** Get all item types */
-  def itemTypes(): Action[AnyContent] = Action {
-    val results = ItemType.ordered.map { itemType =>
-      JsObject(Seq(
-        "id" -> JsString(itemType.id),
-        "label" -> JsString(itemType.label)
-      ))
+  def itemTypes(projectId: Option[String]): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val returnItemTypes = projectId match {
+      case Some(_) =>
+        ItemType.ordered.filterNot(_ == ItemType.project)
+      case None =>
+        ItemType.ordered
     }
+    val results = returnItemTypes.map(itemTypeJson)
     val result = JsObject(Seq(
       "label" -> JsString("Type"),
       "values" -> JsArray(results)
     ))
     Ok(result)
+  }
+
+  private def itemTypeJson(itemType: ItemType): JsValue = {
+      JsObject(Seq(
+        "id" -> JsString(itemType.id),
+        "label" -> JsString(itemType.label)
+      ))
   }
 }
 
