@@ -56,13 +56,11 @@ object LearningConfiguration {
    * @param maxIneffectiveIterations The maximum number of subsequent iterations without any increase in fitness before giving up.
    * @param cleanFrequency The number of iterations between two runs of the cleaning algorithm.
    * @param destinationfMeasure The desired fMeasure. The algorithm will stop after reaching it.
-   * @param randomSeed Optional random seed to make the active learning deterministic
    */
   case class Parameters(seed: Boolean = true,
                         populationSize: Int = 500,
                         maxIterations: Int = 50,
                         maxIneffectiveIterations: Int = 50,
                         cleanFrequency: Int = 5,
-                        destinationfMeasure: Double = 0.999,
-                        randomSeed: Option[Long] = Some(0L))
+                        destinationfMeasure: Double = 0.999)
 }

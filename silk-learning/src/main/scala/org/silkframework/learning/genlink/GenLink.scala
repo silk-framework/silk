@@ -42,7 +42,7 @@ private class GenLink(trainingLinks: ReferenceEntities, seeds: Traversable[Linka
 
     val fitnessFunction = config.fitnessFunction(trainingLinks)
     val generator = LinkageRuleGenerator(trainingLinks, config.components)
-    val random = new Random(config.params.randomSeed.getOrElse(Random.nextLong()))
+    val random = Random
 
     //Generate initial population
     if(!cancelled) executeStep(new GeneratePopulation(seeds, generator, config, random.nextLong()), context)

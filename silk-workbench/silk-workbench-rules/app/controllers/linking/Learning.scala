@@ -26,6 +26,8 @@ import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
+import scala.util.Random
+
 class Learning @Inject() (implicit mat: Materializer) extends InjectedController {
 
   private val log = Logger.getLogger(getClass.getName)
@@ -217,8 +219,10 @@ class Learning @Inject() (implicit mat: Materializer) extends InjectedController
     task.activity[ReferenceEntitiesCache].control.reset()
     task.update(task.data.copy(referenceLinks = ReferenceLinks.empty))
 
-    // Reset active learning activity
-    task.activity[ActiveLearning].reset()
+    // Restart active learning activity
+    task.activity[ActiveLearning].control.cancel()
+    task.activity[ActiveLearning].control.waitUntilFinished()
+    task.activity[ActiveLearning].start(Map("fixedRandomSeed" -> "false"))
 
     Ok
   }

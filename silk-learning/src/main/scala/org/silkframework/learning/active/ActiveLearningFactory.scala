@@ -15,14 +15,14 @@ import scala.util.Random
   categories = Array("LinkSpecification"),
   description = "Executes an active learning iteration."
 )
-case class ActiveLearningFactory() extends TaskActivityFactory[LinkSpec, ActiveLearning] {
+case class ActiveLearningFactory(fixedRandomSeed: Boolean = true) extends TaskActivityFactory[LinkSpec, ActiveLearning] {
 
   override def apply(task: ProjectTask[LinkSpec]): Activity[ActiveLearningState] = {
-
+    val randomSeed = if(fixedRandomSeed) 0L else Random.nextLong()
     new ActiveLearning(
       task,
       config = LearningConfiguration.default,
-      initialState = ActiveLearningState.initial(LearningConfiguration.default.params.randomSeed.getOrElse(Random.nextLong()))
+      initialState = ActiveLearningState.initial(randomSeed)
     )
   }
 
