@@ -18,7 +18,7 @@ import org.silkframework.workspace.{Project, ProjectMarshallingTrait, WorkspaceP
 @Plugin(
   id = "xmlZipMarshalling",
   label = "XML zip project",
-  description = "XML zip marshalling of Silk projects for importing and exporting."
+  description = "XML zip marshalling of projects for importing and exporting."
 )
 case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
 
