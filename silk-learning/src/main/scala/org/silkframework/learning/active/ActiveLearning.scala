@@ -191,7 +191,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
 
       val weightedRules = {
         val bestFitness = randomizedPopulation.bestIndividual.fitness
-        val topIndividuals = randomizedPopulation.individuals.toSeq.filter(_.fitness >= bestFitness * 0.1).sortBy(-_.fitness)
+        val topIndividuals = randomizedPopulation.individuals.filter(_.fitness >= bestFitness * 0.1).sortBy(-_.fitness)
         for (individual <- topIndividuals) yield {
           new WeightedLinkageRule(individual.node.build.operator, max(0.0001, individual.fitness))
         }

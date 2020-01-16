@@ -40,7 +40,7 @@ class Randomize(population: Population,
     val randomSeeds = Seq.fill(population.individuals.size)(random.nextLong())
 
     // Generate new individuals
-    val updatedIndividuals = for((individual, randomSeed) <- (population.individuals.toSeq zip randomSeeds).par) yield mutation(individual, new Random(randomSeed))
+    val updatedIndividuals = for((individual, randomSeed) <- (population.individuals zip randomSeeds).par) yield mutation(individual, new Random(randomSeed))
     context.value.update(Population(updatedIndividuals.seq))
   }
 }

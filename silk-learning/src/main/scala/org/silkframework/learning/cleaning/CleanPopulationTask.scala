@@ -42,8 +42,8 @@ class CleanPopulationTask(population: Population, fitnessFunction: (LinkageRule 
     context.value.update(Population(distinctIndividuals ++ randomIndividuals))
   }
 
-  private def removeDuplicates(individuals: Traversable[Individual]) = {
-    val sortedIndividuals = individuals.toSeq.sortBy(-_.fitness)
+  private def removeDuplicates(individuals: Seq[Individual]) = {
+    val sortedIndividuals = individuals.sortBy(-_.fitness)
 
     var currentIndividual = sortedIndividuals.head
     var distinctIndividuals = currentIndividual :: Nil

@@ -202,7 +202,7 @@ class Learning @Inject() (implicit mat: Materializer) extends InjectedController
     val population = getPopulation(task)
 
     val pageSize = 20
-    val individuals = population.individuals.toSeq
+    val individuals = population.individuals
     val sortedIndividuals = individuals.sortBy(-_.fitness)
     val pageIndividuals = sortedIndividuals.view(page * pageSize, (page + 1) * pageSize)
 

@@ -25,6 +25,6 @@ import scala.util.Random
  */
 case class AggregationOperatorsCrossover() extends NodePairCrossoverOperator[AggregationNode] {
   override protected def crossover(nodes: DPair[AggregationNode], random: Random) = {
-    nodes.source.copy(operators = crossoverNodes(nodes.source.operators, nodes.target.operators))
+    nodes.source.copy(operators = crossoverNodes(nodes.source.operators, nodes.target.operators, random: Random))
   }
 }
