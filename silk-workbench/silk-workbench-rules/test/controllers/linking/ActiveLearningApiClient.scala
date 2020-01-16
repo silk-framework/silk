@@ -13,8 +13,8 @@ import play.api.libs.ws.EmptyBody
 
 trait ActiveLearningApiClient extends ApiClient {
 
-  def iterate(projectId: String, taskId: String, decision: String, linkSource: String, linkTarget: String): Option[Link] = {
-    val request = createRequest(ActiveLearningApi.iterate(projectId, taskId, decision, linkSource, linkTarget))
+  def iterate(projectId: String, taskId: String, decision: String, linkSource: String, linkTarget: String, synchronous: Boolean = false): Option[Link] = {
+    val request = createRequest(ActiveLearningApi.iterate(projectId, taskId, decision, linkSource, linkTarget, synchronous))
     val response = checkResponse(request.post(EmptyBody))
 
     if(response.status == Status.NO_CONTENT) {

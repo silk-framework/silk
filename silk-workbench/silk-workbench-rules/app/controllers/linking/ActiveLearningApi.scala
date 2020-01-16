@@ -1,13 +1,12 @@
 package controllers.linking
 
 import akka.stream.Materializer
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.core.RequestUserContextAction
 import javax.inject.Inject
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
-import org.silkframework.serialization.json.LinkingSerializers
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.workbench.Context
 import play.api.libs.json.JsValue
@@ -16,9 +15,9 @@ import play.api.mvc.{Action, AnyContent, InjectedController}
 class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedController {
 
   def iterate(project: String, task: String, decision: String,
-              linkSource: String, linkTarget: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+              linkSource: String, linkTarget: String, synchronous: Boolean = false): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
-    val linkCandidate = ActiveLearningIterator.nextActiveLearnCandidate(decision, linkSource, linkTarget, context.task)
+    val linkCandidate = ActiveLearningIterator.nextActiveLearnCandidate(decision, linkSource, linkTarget, context.task, synchronous)
     linkCandidate match {
       case Some(candidate) =>
         implicit val writeContext = WriteContext[JsValue]()

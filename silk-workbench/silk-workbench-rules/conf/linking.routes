@@ -61,5 +61,5 @@ POST          /tasks/:project/:task/postLinkDatasource                          
 POST          /tasks/:project/:linkingTaskName/evaluateLinkageRule                  controllers.linking.LinkingTaskApi.evaluateLinkageRule(project: String, linkingTaskName: String, linkLimit: Int ?= 1000, timeoutInMs: Int ?= 30000, includeReferenceLinks: Boolean ?= false)
 
 # Active Learning API
-POST          /tasks/:project/:task/activeLearning/iterate                          controllers.linking.ActiveLearningApi.iterate(project: String, task: String, decision: String, linkSource: String, linkTarget: String)
+POST          /tasks/:project/:task/activeLearning/iterate                          controllers.linking.ActiveLearningApi.iterate(project: String, task: String, decision: String, linkSource: String, linkTarget: String, synchronous: Boolean ?= false)
 GET           /tasks/:project/:task/activeLearning/bestRule                         controllers.linking.ActiveLearningApi.bestRule(project: String, task: String)

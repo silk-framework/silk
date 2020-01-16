@@ -7,7 +7,6 @@ import org.silkframework.entity.{Link, MinimalLink}
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.workbench.Context
 import org.silkframework.workspace.ProjectTask
 
 object ActiveLearningIterator {
@@ -20,8 +19,11 @@ object ActiveLearningIterator {
     * @param decision The decision for the link candidate. One of [[LinkCandidateDecision]].
     * @param linkSource source URI of the current link candidate
     * @param linkTarget target URI of the current link candidate
+    * @param task The project task
+    * @param synchronous If false, the active learning will be run in the background and the call only blocks and waits if no more link candidates are available.
+    *                    If true, a new active learning is started in every iteration. This is slower, but deterministic.
     */
-  def nextActiveLearnCandidate(decision: String, linkSource: String, linkTarget: String, task: ProjectTask[LinkSpec])
+  def nextActiveLearnCandidate(decision: String, linkSource: String, linkTarget: String, task: ProjectTask[LinkSpec], synchronous: Boolean = false)
                               (implicit userContext: UserContext): Option[Link] = {
     val activeLearn = task.activity[ActiveLearning].control
     // Try to find the chosen link candidate in the pool, because the pool links have entities attached
@@ -31,17 +33,14 @@ object ActiveLearningIterator {
     }
 
     // Commit link candidate
-    decision match {
-      case LinkCandidateDecision.positive =>
-        task.update(task.data.copy(referenceLinks = task.data.referenceLinks.withPositive(linkCandidate)))
-      case LinkCandidateDecision.negative =>
-        task.update(task.data.copy(referenceLinks = task.data.referenceLinks.withNegative(linkCandidate)))
-      case LinkCandidateDecision.pass =>
-    }
+    commitLink(linkCandidate, decision, task)
 
     // Assert that a learning task is running
-    val finished = !activeLearn.status().isRunning
-    if(finished) {
+    var finished = !activeLearn.status().isRunning
+    if(synchronous) {
+      activeLearn.startBlocking()
+      finished = true
+    } else if(finished) {
       activeLearn.start()
     }
 
@@ -69,6 +68,16 @@ object ActiveLearningIterator {
       val currentIndex = links.indexOf(linkCandidate)
       log.info(s"Selecting link candidate: Learning task still running, thus selecting next candidate with index ${currentIndex + 1} from list.")
       Some(links(currentIndex + 1))
+    }
+  }
+
+  private def commitLink(linkCandidate: Link, decision: String, task: ProjectTask[LinkSpec])(implicit userContext: UserContext): Unit = {
+    decision match {
+      case LinkCandidateDecision.positive =>
+        task.update(task.data.copy(referenceLinks = task.data.referenceLinks.withPositive(linkCandidate)))
+      case LinkCandidateDecision.negative =>
+        task.update(task.data.copy(referenceLinks = task.data.referenceLinks.withNegative(linkCandidate)))
+      case LinkCandidateDecision.pass =>
     }
   }
 
