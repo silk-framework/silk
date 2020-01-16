@@ -76,7 +76,7 @@ case class JensenShannonDivergenceSelector(fulfilledOnly: Boolean = true) extend
     }
   
     private def probability(rule: LinkageRule, entityPair: DPair[Entity]) = {
-      rule(entityPair) * 0.5 + 0.5
+      rule(entityPair, limit = -1.0) * 0.5 + 0.5
     }
 
     /**
