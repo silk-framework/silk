@@ -92,7 +92,7 @@ const setupFiltersFromQs = (queryString: string) => {
                             id: facetIds,
                             type: parsedQs.types
                         },
-                        keywordIds: parsedQs.f_keys
+                        keywordIds: [].concat(parsedQs.f_keys)
                     }));
                 } else {
                     facetIds.forEach((facetId, i) => {
@@ -177,6 +177,7 @@ const fetchListAsync = () => {
         const state = getState();
         const {limit, offset} = selectors.paginationSelector(state);
         const appliedFilters = selectors.appliedFiltersSelector(state);
+        const appliedFacets = selectors.appliedFacetsSelector(state);
         const sorters = selectors.sortersSelector(state);
         const projectId = selectors.currentProjectIdSelector(state);
 
@@ -197,6 +198,9 @@ const fetchListAsync = () => {
                     body[filter] = appliedFilters[filter]
                 }
             });
+
+        // get facets
+        body.facets = appliedFacets.map(facet => facet);
 
         if (projectId) {
             body.project = projectId;
