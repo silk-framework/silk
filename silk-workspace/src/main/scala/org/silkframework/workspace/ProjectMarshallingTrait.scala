@@ -31,6 +31,9 @@ trait ProjectMarshallingTrait extends AnyPlugin {
   /** Handler for file suffix */
   def suffix: Option[String]
 
+  /** MIME-Type */
+  def mediaType: Option[String]
+
   /**
     * Marshals the project from the in-memory [[Project]] object and the given resource manager.
     *

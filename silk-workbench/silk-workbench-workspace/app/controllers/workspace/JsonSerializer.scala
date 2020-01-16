@@ -160,7 +160,8 @@ object JsonSerializer {
       ("id" -> JsString(marshaller.id)) ::
       ("label" -> JsString(marshaller.name)) ::
       ("description" -> JsString(marshaller.pluginSpec.description)) ::
-      ("fileExtension" -> marshaller.suffix.map(ext => JsString("." + ext)).orNull) :: Nil
+      ("fileExtension" -> marshaller.suffix.map(JsString).orNull) ::
+      ("mediaType" -> marshaller.mediaType.map(JsString).orNull) :: Nil
     )
   }
 }
