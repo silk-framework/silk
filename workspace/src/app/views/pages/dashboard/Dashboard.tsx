@@ -26,17 +26,6 @@ export default function Dashboard() {
         }
     }, []);
 
-    // useEffect(() => {
-    //     if (selectedProject !== projectId) {
-    //         // clear filter on page change
-    //         dispatch(dashboardOp.resetFilters());
-    //     }
-    //
-    //     if (selectedProject && !projectId) {
-    //         dispatch(dashboardOp.unsetProject())
-    //     }
-    // }, [projectId]);
-
     useEffect(() => {
         if (error.detail) {
             AppToaster.show({

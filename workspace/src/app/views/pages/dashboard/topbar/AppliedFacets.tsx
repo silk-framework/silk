@@ -2,8 +2,8 @@ import React from "react";
 import TagsGroup from "../../../components/tags/TagsGroup";
 import TagItem from "../../../components/tags/TagItem";
 import { useDispatch, useSelector } from "react-redux";
-import { dashboardOp, dashboardSel } from "@ducks/dashboard";
-import { IFacetState } from "@ducks/dashboard/typings";
+import { dashboardOp, dashboardSel } from "../../../../state/ducks/dashboard";
+import { IFacetState } from "../../../../state/ducks/dashboard/typings";
 
 
 export default function AppliedFacets() {

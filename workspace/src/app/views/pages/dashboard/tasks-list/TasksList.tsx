@@ -2,17 +2,15 @@ import React, { useEffect, useState } from "react";
 import Pagination from "../../../components/pagination/Pagination";
 import { useDispatch, useSelector } from "react-redux";
 import { dashboardOp, dashboardSel } from "@ducks/dashboard";
-import ActionsTopBar from "./ActionsTopBar";
-import AppliedFacets from "./AppliedFacets";
 import DataList from "../../../components/datalist/DataList";
 import DeleteModal from "../../../components/modals/DeleteModal";
 import TaskRow from "./TaskRow";
 import Loading from "../../../components/loading/Loading";
-import { push } from "connected-react-router";
 import { ISearchResultsTask } from "@ducks/dashboard/typings";
 import CloneModal from "../../../components/modals/CloneModal";
-import { routerSel } from "@ducks/router";
 import { useParams } from "react-router";
+import ActionsTopBar from "../topbar/ActionsTopBar";
+import AppliedFacets from "../topbar/AppliedFacets";
 
 export default function TasksList() {
 
@@ -52,24 +50,33 @@ export default function TasksList() {
             render: () => <Loading/>
         });
 
-        const data = await dashboardOp.getTaskMetadataAsync(item.id, item.projectId);
-        const {dependentTasksDirect} = data.relations;
+        try {
+            const data = await dashboardOp.getTaskMetadataAsync(item.id, projectId);
+            const {dependentTasksDirect} = data.relations;
 
-        if (dependentTasksDirect.length) {
-            setDeleteModalOptions({
-                confirmationRequired: true,
-                render: () =>
-                    <div>
-                        <p>There are tasks depending on task {item.label || item.id}. </p>
-                        <p>Are you sure you want to delete all tasks below?</p>
-                        <ul>
-                            {
-                                dependentTasksDirect.map(rel => <li key={rel}>{rel}</li>)
-                            }
-                        </ul>
-                    </div>
-            });
-        } else {
+            if (dependentTasksDirect.length) {
+                setDeleteModalOptions({
+                    confirmationRequired: true,
+                    render: () =>
+                        <div>
+                            <p>There are tasks depending on task {item.label || item.id}. </p>
+                            <p>Are you sure you want to delete all tasks below?</p>
+                            <ul>
+                                {
+                                    dependentTasksDirect.map(rel => <li key={rel}>{rel}</li>)
+                                }
+                            </ul>
+                        </div>
+                });
+            } else {
+                setDeleteModalOptions({
+                    confirmationRequired: false,
+                    render: () => <p>
+                        Are you sure you want to permanently remove this item?
+                    </p>
+                });
+            }
+        } catch {
             setDeleteModalOptions({
                 confirmationRequired: false,
                 render: () => <p>

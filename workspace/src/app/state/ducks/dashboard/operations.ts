@@ -34,7 +34,7 @@ const {
     unsetProject
 } = previewSlice.actions;
 
-const ARRAY_DELIMETER = '|';
+const ARRAY_DELIMITER = '|';
 
 /**
  * Update the search query in url
@@ -54,7 +54,7 @@ const updateQueryString = () => {
             page: current,
             f_ids: appliedFacets.map(o => o.facetId),
             types: appliedFacets.map(o => o.type),
-            f_keys: appliedFacets.map(o => o.keywordIds.join(ARRAY_DELIMETER))
+            f_keys: appliedFacets.map(o => o.keywordIds.join(ARRAY_DELIMITER))
         };
         dispatch(routerOp.setQueryString(queryParams));
     }
@@ -102,7 +102,7 @@ const setupFiltersFromQs = (queryString: string) => {
                         };
                         batchQueue.push(applyFacet({
                             facet,
-                            keywordIds: parsedQs.f_keys[i].split(ARRAY_DELIMETER)
+                            keywordIds: parsedQs.f_keys[i].split(ARRAY_DELIMITER)
                         }));
                     });
                 }
@@ -146,10 +146,9 @@ const fetchProjectMetadata = () => {
                 url: getLegacyApiEndpoint(`/projects/${projectId}`),
             });
 
-            const {results} = res.data;
             batch(() => {
                 // Apply results
-                dispatch(setProject(results));
+                dispatch(setProject(res.data));
                 dispatch(setLoading(false));
             })
         } catch (e) {
