@@ -48,12 +48,13 @@ class IndexLinkPoolGenerator extends LinkPoolGenerator {
       context.status.update("Loading target dataset", 0.2)
       val targetCaches = loadCaches(inputs.target, fullEntitySchema.target, "target")
 
+      context.status.update("Finding candidates", 0.3)
       val links = ArrayBuffer[Link]()
       for {
         (sourceCache, sourceIndex) <- sourceCaches.zipWithIndex
         (targetCache, targetIndex) <- targetCaches.zipWithIndex
       } {
-        context.status.update("Finding candidates", 0.2 + 0.8 * (sourceIndex * targetCaches.size + targetIndex).toDouble / (sourceCaches.size * targetCaches.size).toDouble)
+        context.status.updateProgress(0.3 + 0.7 * (sourceIndex * targetCaches.size + targetIndex).toDouble / (sourceCaches.size * targetCaches.size).toDouble, logStatus = false)
         findLinks(sourceCache, sourceIndex, targetCache, targetIndex, links)
       }
 
