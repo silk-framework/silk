@@ -3,7 +3,6 @@ import { Route, Switch } from "react-router-dom";
 import Loading from "./views/components/loading/Loading";
 import { SERVE_PATH } from "./constants";
 export default function RouterOutlet({routes}) {
-    // @FIXME: fix static string of path
     return (
         <Suspense fallback={<Loading/>}>
             <Switch>

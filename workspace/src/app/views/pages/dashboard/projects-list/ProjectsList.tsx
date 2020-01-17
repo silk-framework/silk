@@ -118,7 +118,7 @@ export default function ProjectsList() {
 
     const {Header, Body, Footer} = DataList;
     return (
-        <>
+        <div style={{'width': '100%'}}>
             <ActionsTopBar/>
             <DataList isLoading={isLoading} data={data}>
                 <Header>
@@ -155,6 +155,6 @@ export default function ProjectsList() {
                 onDiscard={onDiscardModals}
                 onConfirm={handleConfirmClone}
             />
-        </>
+        </div>
     )
 }

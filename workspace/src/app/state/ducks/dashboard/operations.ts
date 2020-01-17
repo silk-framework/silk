@@ -296,7 +296,7 @@ const applyFiltersOp = (filter) => {
         batch(() => {
             dispatch(applyFilters(filter));
             dispatch(fetchListAsync());
-            dispatch(updateQueryString())
+            dispatch(updateQueryString());
         });
     }
 };

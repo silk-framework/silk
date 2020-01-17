@@ -4,7 +4,6 @@ import {
     IAppliedFiltersState,
     IAppliedSorterState,
     IFiltersState,
-    IModifierState,
     IPreviewState,
     ISortersState
 } from "./typings";
@@ -22,7 +21,6 @@ export function initialPaginationState(props: Partial<IPaginationState> = {}): I
 export function initialFiltersState(props: Partial<IFiltersState> = {}): IFiltersState {
     return {
         facets: [],
-        modifiers: {},
         appliedFilters: initialAppliedFiltersState(),
         appliedFacets: [],
         pagination: initialPaginationState(),

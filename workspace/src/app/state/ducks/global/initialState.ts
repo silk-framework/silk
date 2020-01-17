@@ -6,10 +6,7 @@ export function initialGlobalState(): IGlobalState {
         locale: getLocale(),
         authenticated: true,
         searchQuery: '',
-        breadcrumbs: [{
-            text: 'Home',
-            href: '/'
-        }],
+        breadcrumbs: [],
         error: {},
         availableDataTypes: {}
     }

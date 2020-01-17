@@ -114,7 +114,9 @@ const Header = memo<IProps>(({externalRoutes}) => {
                     <NavbarGroup>
                         <div>
                             <Breadcrumbs paths={breadcrumbs}/>
-                            <NavbarHeading>{lastBreadcrumb.text}</NavbarHeading>
+                            {
+                                lastBreadcrumb && <NavbarHeading>{lastBreadcrumb.text}</NavbarHeading>
+                            }
                         </div>
                         {menu}
                     </NavbarGroup>
