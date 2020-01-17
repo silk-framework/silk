@@ -197,7 +197,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
         }
       }
 
-      val updatedLinks = config.active.selector(weightedRules, context.value().pool.links.toSeq, completeEntities)
+      val updatedLinks = config.active.selector(weightedRules, context.value().pool.links, completeEntities)
       context.value() = context.value().copy(links = updatedLinks)
       for(topLink <- updatedLinks.headOption)
         context.log.fine(s"Selected top link candidate $topLink using ${config.active.selector.toString}")

@@ -10,7 +10,7 @@ case class SamplingLinkSelector(baseSelector: LinkSelector, linkSampleSize: Opti
 
   private implicit val random: Random = Random
 
-  def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
+  def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[Link] = {
     val sampledLinks = linkSampleSize match {
       case Some(sampleSize) => SampleUtil.sample(unlabeledLinks, sampleSize, None)
       case None => unlabeledLinks

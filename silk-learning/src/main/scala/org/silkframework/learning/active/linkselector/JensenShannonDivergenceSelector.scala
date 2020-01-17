@@ -20,6 +20,7 @@ import org.silkframework.rule.evaluation.ReferenceEntities
 import org.silkframework.util.DPair
 
 import scala.math.log
+import scala.util.Random
 
 /**
  * Selects links based on the Jensen-Shannon divergence from the closest reference link.
@@ -28,7 +29,7 @@ case class JensenShannonDivergenceSelector(fulfilledOnly: Boolean = true) extend
   /**
    * Returns the links with the highest Jensen-Shannon divergence from any reference link.
    */
-  override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
+  override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[Link] = {
     val posDist = referenceEntities.positiveEntities.map(referencePair => new ReferenceLinkDistance(referencePair, rules, true))
     val negDist = referenceEntities.negativeEntities.map(referencePair => new ReferenceLinkDistance(referencePair, rules, false))
     val dist = posDist ++ negDist

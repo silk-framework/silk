@@ -17,6 +17,8 @@ package org.silkframework.learning.active.linkselector
 import org.silkframework.entity.Link
 import org.silkframework.rule.evaluation.ReferenceEntities
 
+import scala.util.Random
+
 /**
  * Selects a link from the unlabeled pool for evaluation by the user.
  * An implementation should select the most informative links e.g. the links for which the current linkage rules are most uncertain.
@@ -31,5 +33,5 @@ trait LinkSelector {
    *
    * @return A sequence of links which is ordered by informativeness. The number of links which are returned depends on the implementation.
    */
-  def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link]
+  def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[Link]
 }
