@@ -9,7 +9,7 @@ const Main = ({children, ...restProps}) => {
     )
 };
 
-const _LeftSide = ({children, className, ...restProps}) => {
+const _LeftPanel = ({children, className, ...restProps}) => {
     return (
         <div className={`left-side-content ${className}`} {...restProps}>
             {children}
@@ -17,7 +17,7 @@ const _LeftSide = ({children, className, ...restProps}) => {
     )
 };
 
-const _RightSide = ({children, className,...restProps}) => {
+const _RightPanel = ({children, className,...restProps}) => {
     return (
         <div className={`right-side-widgets ${className}`} {...restProps}>
             {children}
@@ -26,7 +26,7 @@ const _RightSide = ({children, className,...restProps}) => {
 
 };
 
-Main.LeftPanel = _LeftSide;
-Main.RightPanel = _RightSide;
+Main.LeftPanel = _LeftPanel;
+Main.RightPanel = _RightPanel;
 
 export default Main;

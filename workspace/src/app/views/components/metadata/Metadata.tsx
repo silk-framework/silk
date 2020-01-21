@@ -1,20 +1,24 @@
 import React from 'react';
 import './Metadata.scss';
+import Card from "@wrappers/card";
+import { H4 } from "@wrappers/typography";
 
 export default function Metadata({ metadata }) {
     const { name, description } = metadata;
     return (
         <>
             <div className='metadata-block'>
-                <h4 className='title'>Details & Metadata</h4>
-                <div className="content">
+                <Card>
+                    <H4>
+                        Details & Metadata
+                    </H4>
                     <p>
                         Name: {name}
                     </p>
                     {
                         description && <p>Description: {description}</p>
                     }
-                </div>
+                </Card>
             </div>
         </>
     );

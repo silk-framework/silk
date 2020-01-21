@@ -14,6 +14,8 @@ export default function FacetsList() {
     const facets = useSelector(dashboardSel.facetsSelector);
     const appliedFacets = useSelector(dashboardSel.appliedFacetsSelector);
 
+    const FACETS_PREVIEW_LIMIT = 5;
+
     const isChecked = (facetId: string, value: string): boolean => {
         const existsFacet = appliedFacets.find(o => o.facetId === facetId);
         if (!existsFacet) {
