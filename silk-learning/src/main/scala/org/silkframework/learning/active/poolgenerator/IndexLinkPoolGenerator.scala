@@ -11,7 +11,6 @@ import org.silkframework.util.DPair
 import LinkPoolGeneratorUtils._
 
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 /**
@@ -49,7 +48,7 @@ class IndexLinkPoolGenerator extends LinkPoolGenerator {
       val targetCaches = loadCaches(inputs.target, fullEntitySchema.target, "target")
 
       context.status.update("Finding candidates", 0.3)
-      val links = ArrayBuffer[Link]()
+      val links = new mutable.LinkedHashSet[Link]
       for {
         (sourceCache, sourceIndex) <- sourceCaches.zipWithIndex
         (targetCache, targetIndex) <- targetCaches.zipWithIndex
@@ -58,7 +57,7 @@ class IndexLinkPoolGenerator extends LinkPoolGenerator {
         findLinks(sourceCache, sourceIndex, targetCache, targetIndex, links)
       }
 
-      context.value() = UnlabeledLinkPool(fullEntitySchema, shuffleLinks(links))
+      context.value() = UnlabeledLinkPool(fullEntitySchema, shuffleLinks(links.toSeq))
     }
 
     /**
@@ -87,7 +86,7 @@ class IndexLinkPoolGenerator extends LinkPoolGenerator {
       * Finds links between two sequences of entity caches.
       * Each cache contains entities indexed by a single path.
       */
-    def findLinks(sourceCache: EntityCache, sourceIndex: Int, targetCache: EntityCache, targetIndex: Int, linkBuffer: mutable.Buffer[Link]): Unit = {
+    def findLinks(sourceCache: EntityCache, sourceIndex: Int, targetCache: EntityCache, targetIndex: Int, links: mutable.Set[Link]): Unit = {
       var count = 0
       for {
         sourceBlock <- 0 until sourceCache.blockCount
@@ -104,7 +103,7 @@ class IndexLinkPoolGenerator extends LinkPoolGenerator {
           val sourceValues = normalize(entityPair.source.evaluate(sourceIndex)).toSet
           val targetValues = normalize(entityPair.target.evaluate(targetIndex)).toSet
           if(sourceValues.exists(targetValues.contains)) {
-            linkBuffer.append(new LinkWithEntities(entityPair.source.uri, entityPair.target.uri, entityPair))
+            links.add(new LinkWithEntities(entityPair.source.uri, entityPair.target.uri, entityPair))
             count += 1
           }
         }
