@@ -191,7 +191,7 @@ object SearchApiModel {
                 accessMonitor: WorkbenchAccessMonitor): JsValue = {
       val ps: Seq[Project] = projects
       var tasks: Seq[TypedTasks] = ps.flatMap(fetchTasks)
-      var selectedProjects: Seq[Project] = if(itemType.contains(ItemType.project) || itemType.isEmpty) ps else Seq()
+      var selectedProjects: Seq[Project] = if(project.isEmpty && (itemType.contains(ItemType.project) || itemType.isEmpty)) ps else Seq()
 
       for(term <- textQuery) {
         val lowerCaseTerm = extractSearchTerms(term)
