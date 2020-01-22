@@ -1,10 +1,11 @@
 package org.silkframework.workspace.zip
 
 import java.io.File
+import java.util.zip.ZipFile
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.runtime.resource.FileResource
-import org.silkframework.runtime.resource.zip.{ZipInputStreamResourceManager, ZipOutputStreamResourceManager}
+import org.silkframework.runtime.resource.zip.{ZipFileResourceLoader, ZipOutputStreamResourceManager}
 
 class ZipInputStreamResourceManagerTest extends FlatSpec with MustMatchers {
 
@@ -23,7 +24,7 @@ class ZipInputStreamResourceManagerTest extends FlatSpec with MustMatchers {
     })
     outputResourceManager.close()
 
-    val zipIn = new ZipInputStreamResourceManager(zipFile, "")
+    val zipIn = ZipFileResourceLoader(new ZipFile(zipFile.file))
     pseudoFiles.foreach(file =>{
       val resource = zipIn.get(file._1)
       resource.loadLines.head mustBe file._2
@@ -38,7 +39,7 @@ class ZipInputStreamResourceManagerTest extends FlatSpec with MustMatchers {
     res.writeString("some tests")
     manager.close()
 
-    val readManager = new ZipInputStreamResourceManager(zipFile, "")
+    val readManager = ZipFileResourceLoader(zipFile.file, "")
     val child1 = readManager.child("someDir")
     val child2 = child1.child("another")
     child2.get("test.txt").loadLines.head mustBe "some tests"

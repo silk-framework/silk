@@ -24,7 +24,7 @@ class SparqlUpdateTaskIntegrationTest extends FlatSpec with MustMatchers with Si
     ("Velocity with task properties", "workflowVelocityTaskProperties", "outputVelocity.csv", taskPropertyConcatenate) //
   )) {
     it should s"generate the correct result in '$templatingMode' templating mode" in {
-      project.task[Workflow](workflowId).activity[LocalWorkflowExecutorGeneratingProvenance].control.startBlocking()
+      executeWorkflow(workflowId)
       /*
       Workflow description:
       1. Transform CSV to RDF (in-memory)

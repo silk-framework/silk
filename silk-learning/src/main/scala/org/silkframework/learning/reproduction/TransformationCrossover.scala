@@ -27,12 +27,12 @@ case class TransformationCrossover() extends NodePairCrossoverOperator[InputNode
     nodes.source.isSource == nodes.target.isSource
   }
 
-  override protected def crossover(nodePair: DPair[InputNode]) = {
+  override protected def crossover(nodePair: DPair[InputNode], random: Random) = {
     val lowerSourceNodes = NodeTraverser(nodePair.source).iterateAll.withFilter(_.node.isInstanceOf[InputNode]).toIndexedSeq
     val lowerTargetNodes = NodeTraverser(nodePair.target).iterateAll.withFilter(_.node.isInstanceOf[InputNode]).toIndexedSeq
 
-    val lowerSourceNode = lowerSourceNodes(Random.nextInt(lowerSourceNodes.size))
-    val lowerTargetNode = lowerTargetNodes(Random.nextInt(lowerTargetNodes.size))
+    val lowerSourceNode = lowerSourceNodes(random.nextInt(lowerSourceNodes.size))
+    val lowerTargetNode = lowerTargetNodes(random.nextInt(lowerTargetNodes.size))
 
     val updatedLowerNode = lowerTargetNode.update(lowerSourceNode.node)
 

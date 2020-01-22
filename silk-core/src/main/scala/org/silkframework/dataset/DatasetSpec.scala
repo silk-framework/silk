@@ -17,17 +17,15 @@ package org.silkframework.dataset
 import java.util.logging.Logger
 
 import org.silkframework.config.Task.TaskFormat
-import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
+import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.UriAttributeNotUniqueException
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
-import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.language.implicitConversions
@@ -41,11 +39,32 @@ import scala.xml.Node
   */
 case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribute: Option[Uri] = None) extends TaskSpec with DatasetAccess {
 
-  def source(implicit userContext: UserContext): DataSource = DatasetSpec.DataSourceWrapper(plugin.source, this)
+  def source(implicit userContext: UserContext): DataSource = {
+    safeAccess(DatasetSpec.DataSourceWrapper(plugin.source, this), SafeModeDataSource)
+  }
 
-  def entitySink(implicit userContext: UserContext): EntitySink = DatasetSpec.EntitySinkWrapper(plugin.entitySink, this)
+  def entitySink(implicit userContext: UserContext): EntitySink = {
+    safeAccess(DatasetSpec.EntitySinkWrapper(plugin.entitySink, this), SafeModeSink)
+  }
 
-  def linkSink(implicit userContext: UserContext): LinkSink = DatasetSpec.LinkSinkWrapper(plugin.linkSink, this)
+  def linkSink(implicit userContext: UserContext): LinkSink = {
+    safeAccess(DatasetSpec.LinkSinkWrapper(plugin.linkSink, this), SafeModeSink)
+  }
+
+  // True if access should be prevented regarding the dataset and safe-mode config
+  private def preventAccessInSafeMode(implicit userContext: UserContext): Boolean = {
+    ProductionConfig.inSafeMode && !plugin.isFileResourceBased && !userContext.executionContext.insideWorkflow
+  }
+
+  // Create data access object or return fallback
+  private def safeAccess[T](create: T, fallback: T)
+                           (implicit userContext: UserContext): T = {
+    if (preventAccessInSafeMode) {
+      fallback
+    } else {
+      create
+    }
+  }
 
   /** Datasets don't define input schemata, because any data can be written to them. */
   override lazy val inputSchemataOpt: Option[Seq[EntitySchema]] = None

@@ -15,11 +15,14 @@
 package org.silkframework.dataset
 
 import org.silkframework.config.Task
+import org.silkframework.dataset.DatasetSpec.{DataSourceWrapper, GenericDatasetSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.EntityHolder
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Identifier, SampleUtil, Uri}
+
+import scala.util.Random
 
 /**
  * The base trait of a concrete source of entities.
@@ -92,7 +95,7 @@ trait DataSource {
   def sampleEntities(entityDesc: EntitySchema,
                      size: Int,
                      filterOpt: Option[Entity => Boolean] = None)
-                    (implicit userContext: UserContext): Seq[Entity] = {
+                    (implicit userContext: UserContext, random: Random): Seq[Entity] = {
     val entities = retrieve(entityDesc).entities
     SampleUtil.sample(entities, size, filterOpt)
   }
@@ -117,4 +120,12 @@ object DataSource{
     * @return
     */
   def generateEntityUri(groupId: Identifier, entityId: Identifier): String = URN_NID_PREFIX + groupId + "#" + entityId
+
+  def pluginSource(datasetTask: GenericDatasetSpec)
+                  (implicit userContext: UserContext): DataSource = {
+    datasetTask.source match {
+      case wrapper: DataSourceWrapper => wrapper.source
+      case source: DataSource => source
+    }
+  }
 }

@@ -14,8 +14,10 @@
 
 package org.silkframework.rule.plugins.distance.numeric
 
-import javax.xml.datatype.DatatypeFactory
+import java.time.{DateTimeException, LocalDate}
+import java.time.temporal.ChronoUnit
 
+import javax.xml.datatype.{DatatypeFactory, XMLGregorianCalendar}
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
 import org.silkframework.runtime.plugin.Plugin
@@ -37,18 +39,14 @@ case class DateMetric() extends SimpleDistanceMeasure {
 
   private final val millisPerDay = 1000 * 60 * 60 * 24
 
-  override def evaluate(str1: String, str2: String, threshold: Double) = {
+  override def evaluate(str1: String, str2: String, threshold: Double): Double = {
     try {
-      val date1 = dataTypeFactory.newXMLGregorianCalendar(str1)
-
-      val date2 = dataTypeFactory.newXMLGregorianCalendar(str2)
-
-      val days1 = date1.toGregorianCalendar.getTimeInMillis / millisPerDay
-      val days2 = date2.toGregorianCalendar.getTimeInMillis / millisPerDay
-
-      abs(days1 - days2).toDouble
+      val date1 = parseDate(str1)
+      val date2 = parseDate(str2)
+      abs(ChronoUnit.DAYS.between(date1, date2)).toDouble
     } catch {
-      case ex: IllegalArgumentException => Double.PositiveInfinity
+      case _: IllegalArgumentException => Double.PositiveInfinity
+      case _: DateTimeException => Double.PositiveInfinity
     }
   }
 
@@ -60,6 +58,12 @@ case class DateMetric() extends SimpleDistanceMeasure {
     } catch {
       case ex: IllegalArgumentException => Index.empty
     }
+  }
+
+  @inline
+  private def parseDate(str: String): LocalDate = {
+    val date = dataTypeFactory.newXMLGregorianCalendar(str)
+    LocalDate.of(date.getYear, date.getMonth, date.getDay)
   }
 }
 

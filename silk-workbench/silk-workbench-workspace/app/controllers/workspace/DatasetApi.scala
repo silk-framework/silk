@@ -5,7 +5,7 @@ import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.SerializationUtils._
 import javax.inject.Inject
 import org.silkframework.config.{PlainTask, Prefixes}
-import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.dataset.DatasetSpec.{DataSourceWrapper, GenericDatasetSpec}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
 import org.silkframework.entity.EntitySchema
@@ -163,7 +163,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
       val datasetTask = project.task[GenericDatasetSpec](datasetId)
       val inputPaths = transformationInputPaths(project)
       val dataSourcePath = UntypedPath.parse(mappingCoverageRequest.dataSourcePath)
-      datasetTask.plugin.source match {
+      DataSource.pluginSource(datasetTask) match {
         case vd: PathCoverageDataSource with ValueCoverageDataSource =>
           val matchingInputPaths = for (coveragePathInput <- inputPaths;
                inputPath <- coveragePathInput.paths
@@ -195,7 +195,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
       val project = WorkspaceFactory().workspace.project(projectName)
       implicit val prefixes: Prefixes = project.config.prefixes
       val datasetTask = project.task[GenericDatasetSpec](datasetId)
-      datasetTask.plugin.source match {
+      DataSource.pluginSource(datasetTask) match {
         case cd: PathCoverageDataSource =>
           getCoverageFromCoverageSource(filterPaths, project, cd)
         case _ =>
@@ -215,7 +215,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
                                             project: Project,
                                             cd: PathCoverageDataSource)
                                            (implicit prefixes: Prefixes,
-                                            userContext: UserContext) = {
+                                            userContext: UserContext): Result = {
     val inputPaths = transformationInputPaths(project)
     val result = cd.pathCoverage(inputPaths.toSeq)
     val filteredPaths = filterPaths(result)

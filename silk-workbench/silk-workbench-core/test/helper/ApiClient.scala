@@ -1,7 +1,8 @@
 package helper
 
 import play.api.Application
-import play.api.libs.ws.{WSClient, WSResponse}
+import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
+import play.api.mvc.Call
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
@@ -15,6 +16,10 @@ trait ApiClient {
   implicit def app: Application
 
   implicit lazy val client: WSClient = app.injector.instanceOf[WSClient]
+
+  protected def createRequest(call: Call): WSRequest = {
+    client.url(baseUrl + call.url)
+  }
 
   protected def checkResponse(futureResponse: Future[WSResponse],
                     responseCodePrefix: Char = '2'): WSResponse = {
