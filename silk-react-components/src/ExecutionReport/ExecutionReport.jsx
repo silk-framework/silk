@@ -56,7 +56,7 @@ export default class ExecutionReport extends React.Component {
 
     renderWarning() {
         const warnings = this.props.executionReport.warnings.map(warning =>
-            <div className="mdl-alert mdl-alert--danger mdl-alert--border mdl-alert--spacing">
+            <div className="mdl-alert mdl-alert--info mdl-alert--border mdl-alert--spacing">
                 <div className="mdl-alert__content">
                     <p>{warning}</p>
                 </div>
