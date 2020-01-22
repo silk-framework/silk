@@ -17,13 +17,15 @@ package org.silkframework.learning.reproduction
 import org.silkframework.learning.generation.LinkageRuleGenerator
 import org.silkframework.learning.individual.Individual
 
+import scala.util.Random
+
 /**
  * Mutates a linkage rule.
  */
 class MutationFunction(crossover: CrossoverFunction,
-                       generator: LinkageRuleGenerator) extends (Individual => Individual) {
+                       generator: LinkageRuleGenerator) extends ((Individual, Random) => Individual) {
 
-  def apply(ind: Individual): Individual = {
-    crossover(ind, Individual(generator(), 0.0))
+  def apply(ind: Individual, random: Random): Individual = {
+    crossover(ind, Individual(generator(random), 0.0), random)
   }
 }

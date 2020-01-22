@@ -17,6 +17,8 @@ package org.silkframework.learning.reproduction
 import org.silkframework.learning.individual.{FunctionNode, InputNode, Node}
 import org.silkframework.util.DPair
 
+import scala.util.Random
+
 case class SubtreeCrossover() extends NodePairCrossoverOperator[Node] {
 
   override protected def compatible(nodes: DPair[Node]) = {
@@ -30,7 +32,7 @@ case class SubtreeCrossover() extends NodePairCrossoverOperator[Node] {
     }
   }
   
-  override protected def crossover(nodes: DPair[Node]): Node = {
+  override protected def crossover(nodes: DPair[Node], random: Random): Node = {
     nodes.target
   }
 }

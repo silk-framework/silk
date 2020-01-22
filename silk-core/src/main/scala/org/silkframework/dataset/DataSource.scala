@@ -22,6 +22,8 @@ import org.silkframework.execution.EntityHolder
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Identifier, SampleUtil, Uri}
 
+import scala.util.Random
+
 /**
  * The base trait of a concrete source of entities.
  */
@@ -93,7 +95,7 @@ trait DataSource {
   def sampleEntities(entityDesc: EntitySchema,
                      size: Int,
                      filterOpt: Option[Entity => Boolean] = None)
-                    (implicit userContext: UserContext): Seq[Entity] = {
+                    (implicit userContext: UserContext, random: Random): Seq[Entity] = {
     val entities = retrieve(entityDesc).entities
     SampleUtil.sample(entities, size, filterOpt)
   }

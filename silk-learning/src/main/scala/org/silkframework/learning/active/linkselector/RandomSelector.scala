@@ -24,7 +24,7 @@ import scala.util.Random
  * This can be used as a baseline against other selectors can be compared.
  */
 case class RandomSelector() extends LinkSelector {
-  override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
-    Seq(unlabeledLinks(Random.nextInt(unlabeledLinks.size)))
+  override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[Link] = {
+    Seq(unlabeledLinks(random.nextInt(unlabeledLinks.size)))
   }
 }

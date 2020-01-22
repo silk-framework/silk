@@ -23,9 +23,12 @@ import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.{Aggregation, Comparison}
 import org.silkframework.util.{DPair, Uri}
 
+import scala.util.Random
+
 object LinkSelectorTest extends App {
   val selector1: LinkSelector = JensenShannonDivergenceSelector(fulfilledOnly = true)
   val selector2: LinkSelector = JensenShannonDivergenceSelector(fulfilledOnly = false)
+  implicit val random = new Random
 
   val referenceLinks = ReferenceEntities.fromEntities(
     positiveEntities = entities("Frankenstein", "2000", "Frankenstein", "2000") :: Nil,
