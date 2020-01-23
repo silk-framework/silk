@@ -2,7 +2,7 @@ package org.silkframework.serialization.json
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.entity.{Entity, EntitySchema, Restriction, StringValueType}
+import org.silkframework.entity.{Entity, EntitySchema, Restriction, StringValueType, ValueType}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.serialization.json.JsonHelpers.{mustBeDefined, mustBeJsArray, numberValueOption, optionalValue, requiredValue, stringValue}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
@@ -19,7 +19,7 @@ object EntitySerializers {
       implicit val prefixes: Prefixes = readContext.prefixes
       EntitySchema(
         typeUri = new Uri(stringValue(value, "typeUri")),
-        typedPaths = mustBeJsArray(requiredValue(value, "paths"))(_.value.map(pathStr => TypedPath(pathStr.as[String], StringValueType))),
+        typedPaths = mustBeJsArray(requiredValue(value, "paths"))(_.value.map(pathStr => TypedPath(pathStr.as[String], ValueType.STRING))),
         filter = Restriction.parse(stringValue(value, "filter")),
         subPath = UntypedPath.parse(stringValue(value, "subPath"))
       )

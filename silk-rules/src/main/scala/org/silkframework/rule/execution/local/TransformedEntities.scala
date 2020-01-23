@@ -2,7 +2,7 @@ package org.silkframework.rule.execution.local
 
 import java.util.logging.Logger
 
-import org.silkframework.entity.{Entity, EntitySchema, UriValueType}
+import org.silkframework.entity.{Entity, EntitySchema, UriValueType, ValueType}
 import org.silkframework.execution.ExecutionException
 import org.silkframework.rule.TransformRule
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
@@ -62,7 +62,7 @@ class TransformedEntities(taskLabel: String,
 
       for(uri <- uris) {
         lazy val objectEntity = { // Constructs an entity that only contains object source paths for object mappings
-          val uriTypePaths = entity.schema.typedPaths.zip(entity.values).filter(_._1.valueType == UriValueType)
+          val uriTypePaths = entity.schema.typedPaths.zip(entity.values).filter(_._1.valueType == ValueType.URI)
           val typedPaths = uriTypePaths.map(_._1)
           val values = uriTypePaths.map(_._2)
           Entity(entity.uri, values, entity.schema.copy(typedPaths = typedPaths))

@@ -15,7 +15,7 @@ class SparqlSinkTest extends FlatSpec with Matchers with MockitoSugar {
   it should "generate valid statements based on the lexical value representation" in {
     val sink = new SparqlSink(SparqlParams(), mock[SparqlEndpoint])
     sink.buildStatementString(SUBJ, PROP, "test", ValueType.UNTYPED) should endWith (" \"test\" .\n")
-    sink.buildStatementString(SUBJ, PROP, "123", ValueType.INT) should endWith (" \"123\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n")
+    sink.buildStatementString(SUBJ, PROP, "123", ValueType.INT) should endWith (" \"123\"^^<http://www.w3.org/2001/XMLSchema#int> .\n")
     sink.buildStatementString(SUBJ, PROP, "123.45", ValueType.DOUBLE) should endWith (" \"123.45\"^^<http://www.w3.org/2001/XMLSchema#double> .\n")
     sink.buildStatementString(SUBJ, PROP, "http://url.org", ValueType.URI) should endWith (" <http://url.org> .\n")
     sink.buildStatementString(SUBJ, PROP, "http://url.org Some Text", ValueType.UNTYPED) should endWith (" \"http://url.org Some Text\" .\n")

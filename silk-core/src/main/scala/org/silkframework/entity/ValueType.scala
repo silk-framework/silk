@@ -79,11 +79,11 @@ object ValueType {
 
   /** All [[ValueType]] classes/singletons */
   val allValueType: Seq[Either[(String, Class[_ <: ValueType]), ValueType]] = Seq(
-    /** Left((CUSTOM_VALUE_TYPE, classOf[CustomValueType])), Cannot be used in the UI at the moment */
+    Left((CUSTOM_VALUE_TYPE_ID, classOf[CustomValueType])),
     Left((LANGUAGE_VALUE_TYPE_ID, classOf[LanguageValueType])),
     // this type string is a left over from the previous name of UntypedValueType.
     // Since many project configs in tests still feature the old type, this is a valid workaround.
-    Left((OUTDATED_AUTO_DETECT_ID, StringValueType.getClass.asInstanceOf[Class[_ <: ValueType]])),
+    Left((OUTDATED_AUTO_DETECT_ID, STRING.getClass)),
     Right(UNTYPED),
     Right(STRING),
     Right(URI),
@@ -134,15 +134,9 @@ object ValueType {
     }
   }
 
-  def valueTypeId(valueType: ValueType): String = {
-    valueTypeIdMapByClass.get(valueType.getClass) match {
-      case Some(valueTypeId) =>
-        valueTypeId
-      case None =>
-        throw new RuntimeException("ValueType serialization for " + valueType.getClass + " is not supported!")
-    }
-  }
-
+  /**
+    * XML serialization of value types.
+    */
   implicit object ValueTypeXmlFormat extends XmlFormat[ValueType] {
     /**
       * Deserializes a value.
@@ -179,7 +173,7 @@ object ValueType {
                                     nodeType: String,
                                     prefixes: Prefixes): ValueType = {
       nodeType.replace("$", "") match {
-        case OUTDATED_AUTO_DETECT_ID => StringValueType() //for backward compatibility
+        case OUTDATED_AUTO_DETECT_ID => ValueType.STRING //for backward compatibility
         case CUSTOM_VALUE_TYPE_ID =>
           (value \ "@uri").headOption match {
             case Some(typeUri) =>
@@ -258,7 +252,7 @@ case class LanguageValueType(language: String) extends ValueType {
 @Plugin(
   id = "IntegerValueType",
   label = "Integer",
-  description = "Suited for numbers which have no fractional value"
+  description = "Numeric values without a fractional component, unbounded."
 )
 case class IntegerValueType() extends ValueType with Serializable {
 
@@ -278,7 +272,7 @@ case class IntegerValueType() extends ValueType with Serializable {
 @Plugin(
   id = "IntValueType",
   label = "Int",
-  description = "Suited for numbers which have no fractional value"
+  description = "Numeric values without a fractional component, represented as 32-bit signed integers"
 )
 case class IntValueType() extends ValueType with Serializable {
 
@@ -296,7 +290,7 @@ case class IntValueType() extends ValueType with Serializable {
 @Plugin(
   id = "LongValueType",
   label = "Long",
-  description = "Suited for numbers which have no fractional value"
+  description = "Numeric values without a fractional component, represented as 64-bit signed integers."
 )
 case class LongValueType() extends ValueType with Serializable {
 
@@ -331,7 +325,7 @@ case class StringValueType() extends ValueType with Serializable {
 @Plugin(
   id = "FloatValueType",
   label = "Float",
-  description = "Suited for numbers which have a fractional value"
+  description = "Numeric values which have a fractional value, represented as IEEE single-precision 32-bit floating point numbers."
 )
 case class FloatValueType() extends ValueType with Serializable {
 
@@ -349,7 +343,7 @@ case class FloatValueType() extends ValueType with Serializable {
 @Plugin(
   id = "DoubleValueType",
   label = "Double",
-  description = "Suited for numbers which have a fractional value"
+  description = "Numeric values which have a fractional value, represented as IEEE double-precision 64-bit floating point numbers."
 )
 case class DoubleValueType() extends ValueType with Serializable {
 
@@ -366,7 +360,8 @@ case class DoubleValueType() extends ValueType with Serializable {
 
 @Plugin(
   id = "DecimalValueType",
-  label = "Decimal"
+  label = "Decimal",
+  description = "Decimal values."
 )
 case class DecimalValueType() extends ValueType with Serializable {
 
@@ -419,7 +414,8 @@ case class UriValueType() extends ValueType with Serializable {
 
 @Plugin(
   id = "BlankNodeValueType",
-  label = "Blank Node"
+  label = "Blank Node",
+  description = "RDF blank nodes"
 )
 case class BlankNodeValueType() extends ValueType with Serializable {
 

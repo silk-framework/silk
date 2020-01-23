@@ -257,14 +257,14 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   it should "return typed paths" in {
     val typedPaths = jsonExampleSource.retrievePaths("")
     typedPaths.map(tp => (tp.toUntypedPath.normalizedSerialization, tp.valueType)) mustBe IndexedSeq(
-      "persons" -> UriValueType,
-      "persons/id" -> StringValueType,
-      "persons/name" -> StringValueType,
-      "persons/phoneNumbers" -> UriValueType,
-      "persons/phoneNumbers/type" -> StringValueType,
-      "persons/phoneNumbers/number" -> StringValueType,
-      "organizations" -> UriValueType,
-      "organizations/name" -> StringValueType
+      "persons" -> ValueType.URI,
+      "persons/id" -> ValueType.STRING ,
+      "persons/name" -> ValueType.STRING,
+      "persons/phoneNumbers" -> ValueType.URI,
+      "persons/phoneNumbers/type" -> ValueType.STRING,
+      "persons/phoneNumbers/number" -> ValueType.STRING,
+      "organizations" -> ValueType.URI,
+      "organizations/name" -> ValueType.STRING
     )
   }
 

@@ -20,7 +20,7 @@ import java.net.URLDecoder
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.entity.{EntitySchema, StringValueType, UriValueType}
+import org.silkframework.entity.{EntitySchema, StringValueType, UriValueType, ValueType}
 import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.FileResourceManager
@@ -81,9 +81,9 @@ class FileDataSourceTest extends FlatSpec with Matchers {
   it should "return typed paths" in {
     dataset.source.retrievePaths("http://dbpedia.org/ontology/City").
         map(tp => tp.toUntypedPath.normalizedSerialization -> tp.valueType) shouldBe IndexedSeq(
-          "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>" -> UriValueType,
-          "<http://www.w3.org/2000/01/rdf-schema#label>" -> StringValueType,
-          "\\<http://dbpedia.org/ontology/place>" -> UriValueType
+          "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>" -> ValueType.URI,
+          "<http://www.w3.org/2000/01/rdf-schema#label>" -> ValueType.STRING,
+          "\\<http://dbpedia.org/ontology/place>" -> ValueType.URI
     )
   }
 }
