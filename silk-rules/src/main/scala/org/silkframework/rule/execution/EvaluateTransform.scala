@@ -4,7 +4,7 @@ import java.util.logging.Logger
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.paths.TypedPath
-import org.silkframework.entity.{EntitySchema, StringValueType}
+import org.silkframework.entity.{EntitySchema, StringValueType, ValueType}
 import org.silkframework.rule.{DatasetSelection, TransformRule}
 import org.silkframework.rule.evaluation.{DetailedEntity, DetailedEvaluator}
 import org.silkframework.runtime.activity.UserContext
@@ -29,7 +29,7 @@ class EvaluateTransform(source: DataSource,
     val entityDesc =
       EntitySchema(
         typeUri = dataSelection.typeUri,
-        typedPaths = rules.flatMap(_.sourcePaths).map(p => TypedPath(p.operators, StringValueType, xmlAttribute = false)).toIndexedSeq,
+        typedPaths = rules.flatMap(_.sourcePaths).map(p => TypedPath(p.operators, ValueType.STRING, xmlAttribute = false)).toIndexedSeq,
         filter = dataSelection.restriction
       )
     val entities = source.retrieve(entityDesc, Some(maxEntities)).entities

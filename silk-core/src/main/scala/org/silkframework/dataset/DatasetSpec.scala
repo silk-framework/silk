@@ -165,7 +165,7 @@ object DatasetSpec {
     private def adaptSchema(entitySchema: EntitySchema): EntitySchema = {
       datasetSpec.uriAttribute match {
         case Some(property) =>
-          entitySchema.copy(typedPaths = entitySchema.typedPaths :+ TypedPath(UntypedPath.parse(property.uri), UriValueType, isAttribute = false))
+          entitySchema.copy(typedPaths = entitySchema.typedPaths :+ TypedPath(UntypedPath.parse(property.uri), ValueType.URI, isAttribute = false))
         case None =>
           entitySchema
       }
@@ -179,7 +179,7 @@ object DatasetSpec {
         case Some(property) =>
           entities.mapEntities( entity =>
             Entity(
-              uri = new Uri(entity.singleValue(TypedPath(UntypedPath.parse(property.uri), UriValueType, isAttribute = false)).getOrElse(entity.uri.toString)),
+              uri = new Uri(entity.singleValue(TypedPath(UntypedPath.parse(property.uri), ValueType.URI, isAttribute = false)).getOrElse(entity.uri.toString)),
               values = entity.values,
               schema = entity.schema
             )
@@ -217,7 +217,7 @@ object DatasetSpec {
 
       val uriTypedProperty =
         for(property <- datasetSpec.uriAttribute.toIndexedSeq) yield {
-          TypedProperty(property.uri, UriValueType, isBackwardProperty = false)
+          TypedProperty(property.uri, ValueType.URI, isBackwardProperty = false)
         }
 
       entitySink.openTable(typeUri, uriTypedProperty ++ properties)

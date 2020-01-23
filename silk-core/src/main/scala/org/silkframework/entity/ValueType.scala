@@ -47,12 +47,74 @@ sealed trait ValueType extends AnyPlugin {
 }
 
 object ValueType {
-  final val XSD = "http://www.w3.org/2001/XMLSchema#"
-  final val CUSTOM_VALUE_TYPE = "CustomValueType"
-  final val LANGUAGE_VALUE_TYPE = "LanguageValueType"
-  final val OUTDATED_AUTO_DETECT = "AutoDetectValueType"
 
+  final val CUSTOM_VALUE_TYPE_ID = "CustomValueType"
+  final val LANGUAGE_VALUE_TYPE_ID = "LanguageValueType"
+  final val OUTDATED_AUTO_DETECT_ID = "AutoDetectValueType"
+
+  final val UNTYPED: ValueType = UntypedValueType()
+  final val STRING: ValueType = StringValueType()
+  final val URI: ValueType = UriValueType()
+
+  final val INTEGER: ValueType = IntegerValueType()
+  final val INT: ValueType = IntValueType()
+  final val LONG: ValueType = LongValueType()
+  final val FLOAT: ValueType = FloatValueType()
+  final val DOUBLE: ValueType = DoubleValueType()
+  final val DECIMAL: ValueType = DecimalValueType()
+  final val BOOLEAN: ValueType = BooleanValueType()
+
+  final val BLANK_NODE: ValueType = BlankNodeValueType()
+
+  final val DATE: DateValueType = GeneralDateValueType()
+  final val YEAR: DateValueType = YearDateValueType()
+  final val YEAR_MONTH: DateValueType = YearMonthDateValueType()
+  final val MONTH_DAY: DateValueType = MonthDayDateValueType()
+  final val DAY: DateValueType = DayDateValueType()
+  final val MONTH: DateValueType = MonthDateValueType()
+  final val DATE_TIME: DateTimeValueType = DateTimeValueType()
+
+  final val XSD = "http://www.w3.org/2001/XMLSchema#"
   final lazy val xmlDatatypeFactory = DatatypeFactory.newInstance()
+
+  /** All [[ValueType]] classes/singletons */
+  val allValueType: Seq[Either[(String, Class[_ <: ValueType]), ValueType]] = Seq(
+    /** Left((CUSTOM_VALUE_TYPE, classOf[CustomValueType])), Cannot be used in the UI at the moment */
+    Left((LANGUAGE_VALUE_TYPE_ID, classOf[LanguageValueType])),
+    // this type string is a left over from the previous name of UntypedValueType.
+    // Since many project configs in tests still feature the old type, this is a valid workaround.
+    Left((OUTDATED_AUTO_DETECT_ID, StringValueType.getClass.asInstanceOf[Class[_ <: ValueType]])),
+    Right(UNTYPED),
+    Right(STRING),
+    Right(URI),
+    Right(INTEGER),
+    Right(INT),
+    Right(LONG),
+    Right(FLOAT),
+    Right(DOUBLE),
+    Right(DECIMAL),
+    Right(BOOLEAN),
+    Right(BLANK_NODE),
+    Right(DATE),
+    Right(YEAR),
+    Right(YEAR_MONTH),
+    Right(MONTH_DAY),
+    Right(DAY),
+    Right(MONTH),
+    Right(DATE_TIME)
+  )
+
+  lazy val valueTypeMapByStringId: Map[String, Either[Class[_], ValueType]] = allValueType.map {
+    case Left((id, clazz)) => (id, Left(clazz))
+    case Right(obj) => (obj.id, Right(obj))
+  }.toMap
+
+  lazy val valueTypeIdMapByClass: Map[Class[_], String] = valueTypeMapByStringId.filterNot(x => x._1 == OUTDATED_AUTO_DETECT_ID).map(ei =>  // we have to remove the outdated name
+    ei._2 match {
+      case Left(clazz) => (clazz, ei._1)
+      case Right(obj) => (obj.getClass, ei._1)
+    }
+  ).toMap
 
   val DefaultOrdering: Ordering[String] = Ordering.String
   val GregorianCalendarOrdering: Ordering[XMLGregorianCalendar] = Ordering.fromLessThan[XMLGregorianCalendar]((date1: XMLGregorianCalendar, date2: XMLGregorianCalendar) =>{
@@ -61,6 +123,25 @@ object ValueType {
   val DurationOrdering: Ordering[Duration] = Ordering.fromLessThan[Duration]((d1: Duration, d2: Duration) =>{
     d1.compare(d2) < 0
   })
+
+  def valueTypeById(valueTypeId: String): Either[Class[_], ValueType] = {
+    // The stripping of '$' at the end is for being backward compatible to older project data
+    valueTypeMapByStringId.get(valueTypeId.stripSuffix("$")) match {
+      case None =>
+        throw new IllegalArgumentException("Invalid value type ID: " + valueTypeId + ". Valid values: " +
+            valueTypeMapByStringId.keys.toSeq.sortWith(_ < _).mkString(", "))
+      case Some(vt) => vt
+    }
+  }
+
+  def valueTypeId(valueType: ValueType): String = {
+    valueTypeIdMapByClass.get(valueType.getClass) match {
+      case Some(valueTypeId) =>
+        valueTypeId
+      case None =>
+        throw new RuntimeException("ValueType serialization for " + valueType.getClass + " is not supported!")
+    }
+  }
 
   implicit object ValueTypeXmlFormat extends XmlFormat[ValueType] {
     /**
@@ -85,96 +166,38 @@ object ValueType {
       * Serializes a value.
       */
     override def write(value: ValueType)(implicit writeContext: WriteContext[Node]): Node = {
-      val typeId = valueTypeId(value)
+      val typeId = value.id
       value match {
         case CustomValueType(typeUri) => <ValueType nodeType={typeId} uri={typeUri}/>
         case LanguageValueType(lang) => <ValueType nodeType={typeId} lang={lang}/>
         case objValueType: ValueType => <ValueType nodeType={typeId}/>
       }
     }
-  }
 
-  def valueTypeById(valueTypeId: String): Either[Class[_], ValueType] = {
-    // The stripping of '$' at the end is for being backward compatible to older project data
-    valueTypeMapByStringId.get(valueTypeId.stripSuffix("$")) match {
-      case None =>
-        throw new IllegalArgumentException("Invalid value type ID: " + valueTypeId + ". Valid values: " +
-            valueTypeMapByStringId.keys.toSeq.sortWith(_ < _).mkString(", "))
-      case Some(vt) => vt
+    // Handle the ValueType class cases
+    private def readClassValueTypes(value: Node,
+                                    nodeType: String,
+                                    prefixes: Prefixes): ValueType = {
+      nodeType.replace("$", "") match {
+        case OUTDATED_AUTO_DETECT_ID => StringValueType() //for backward compatibility
+        case CUSTOM_VALUE_TYPE_ID =>
+          (value \ "@uri").headOption match {
+            case Some(typeUri) =>
+              val uri = Uri.parse(typeUri.text.trim, prefixes)
+              CustomValueType(uri.uri)
+            case None =>
+              throw new IllegalArgumentException("'uri' attribute not existing in node")
+          }
+        case LANGUAGE_VALUE_TYPE_ID =>
+          (value \ "@lang").headOption match {
+            case Some(lang) =>
+              LanguageValueType(lang.text.trim)
+            case None =>
+              throw new IllegalArgumentException("'lang' attribute not existing in node")
+          }
+      }
     }
   }
-
-  def valueTypeId(valueType: ValueType): String = {
-    valueTypeIdMapByClass.get(valueType.getClass) match {
-      case Some(valueTypeId) =>
-        valueTypeId
-      case None =>
-        throw new RuntimeException("ValueType serialization for " + valueType.getClass + " is not supported!")
-    }
-  }
-
-  // Handle the ValueType class cases
-  private def readClassValueTypes(value: Node,
-                                  nodeType: String,
-                                  prefixes: Prefixes): ValueType = {
-    nodeType.replace("$", "") match {
-      case OUTDATED_AUTO_DETECT => StringValueType() //for backward compatibility
-      case CUSTOM_VALUE_TYPE =>
-        (value \ "@uri").headOption match {
-          case Some(typeUri) =>
-            val uri = Uri.parse(typeUri.text.trim, prefixes)
-            CustomValueType(uri.uri)
-          case None =>
-            throw new IllegalArgumentException("'uri' attribute not existing in node")
-        }
-      case LANGUAGE_VALUE_TYPE =>
-        (value \ "@lang").headOption match {
-          case Some(lang) =>
-            LanguageValueType(lang.text.trim)
-          case None =>
-            throw new IllegalArgumentException("'lang' attribute not existing in node")
-        }
-    }
-  }
-
-  /** All [[ValueType]] classes/singletons */
-  val allValueType: Seq[Either[(String, Class[_ <: ValueType]), ValueType]] = Seq(
-    /** Left((CUSTOM_VALUE_TYPE, classOf[CustomValueType])), Cannot be used in the UI at the moment */
-    Left((LANGUAGE_VALUE_TYPE, classOf[LanguageValueType])),
-    // this type string is a left over from the previous name of UntypedValueType.
-    // Since many project configs in tests still feature the old type, this is a valid workaround.
-    Left((OUTDATED_AUTO_DETECT, StringValueType.getClass.asInstanceOf[Class[_ <: ValueType]])),
-    Right(IntValueType()),
-    Right(LongValueType()),
-    Right(StringValueType()),
-    Right(FloatValueType()),
-    Right(DoubleValueType()),
-    Right(DecimalValueType()),
-    Right(BooleanValueType()),
-    Right(IntegerValueType()),
-    Right(UriValueType()),
-    Right(UntypedValueType()),
-    Right(BlankNodeValueType()),
-    Right(GeneralDateValueType()),
-    Right(YearDateValueType()),
-    Right(YearMonthDateValueType()),
-    Right(MonthDayDateValueType()),
-    Right(DayDateValueType()),
-    Right(MonthDateValueType()),
-    Right(DateTimeValueType())
-  )
-
-  val valueTypeMapByStringId: Map[String, Either[Class[_], ValueType]] = allValueType.map {
-    case Left((id, clazz)) => (id, Left(clazz))
-    case Right(obj) => (obj.id, Right(obj))
-  }.toMap
-
-  val valueTypeIdMapByClass: Map[Class[_], String] = valueTypeMapByStringId.filterNot(x => x._1 == OUTDATED_AUTO_DETECT).map(ei =>  // we have to remove the outdated name
-    ei._2 match {
-      case Left(clazz) => (clazz, ei._1)
-      case Right(obj) => (obj.getClass, ei._1)
-    }
-  ).toMap
 }
 
 /**
@@ -197,11 +220,9 @@ case class UntypedValueType() extends ValueType with Serializable {//renamed fro
   override def ordering: Ordering[String] = ValueType.DefaultOrdering
 }
 
-object UntypedValueType extends UntypedValueType
-
 /** A custom type that is used for all types not covered by any other types. */
 @Plugin(
-  id = ValueType.CUSTOM_VALUE_TYPE,
+  id = ValueType.CUSTOM_VALUE_TYPE_ID,
   label = "Custom Type"
 )
 case class CustomValueType(typeUri: String) extends ValueType {
@@ -218,7 +239,7 @@ case class CustomValueType(typeUri: String) extends ValueType {
 
 /** Represents language tagged strings. */
 @Plugin(
-  id = ValueType.LANGUAGE_VALUE_TYPE,
+  id = ValueType.LANGUAGE_VALUE_TYPE_ID,
   label = "Language Tagged",
   description = "Suited for texts that are in a specific language."
 )
@@ -233,144 +254,6 @@ case class LanguageValueType(language: String) extends ValueType {
   /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
   override def ordering: Ordering[String] = ValueType.DefaultOrdering
 }
-
-@Plugin(
-  id = "IntValueType",
-  label = "Int",
-  description = "Suited for numbers which have no fractional value"
-)
-case class IntValueType() extends ValueType with Serializable {
-
-  override def validate(lexicalString: String): Boolean = {
-    Try(lexicalString.toInt).isSuccess
-  }
-
-  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
-  override def uri: Option[String] = Some(XSD + "int")
-
-  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
-  override def ordering: Ordering[String] = Ordering.by((str: String) => str.toInt)
-}
-
-object IntValueType extends IntValueType
-
-@Plugin(
-  id = "LongValueType",
-  label = "Long",
-  description = "Suited for numbers which have no fractional value"
-)
-case class LongValueType() extends ValueType with Serializable {
-
-  override def validate(lexicalString: String): Boolean = {
-    Try(lexicalString.toLong).isSuccess
-  }
-
-  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
-  override def uri: Option[String] = Some(XSD + "long")
-
-  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
-  override def ordering: Ordering[String] = Ordering.by((str: String) => str.toLong)
-}
-
-object LongValueType extends LongValueType
-
-@Plugin(
-  id = "StringValueType",
-  label = "String",
-  description = "Suited for values which contain text"
-)
-case class StringValueType() extends ValueType with Serializable {
-
-  /** returns true if the lexical string is a representation of this type */
-  override def validate(lexicalString: String): Boolean = true // Always true
-
-  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
-  override def uri: Option[String] = Some(XSD + "string") // In RDF this can be omitted
-
-  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
-  override def ordering: Ordering[String] = ValueType.DefaultOrdering
-}
-
-object StringValueType extends StringValueType
-
-@Plugin(
-  id = "FloatValueType",
-  label = "Float",
-  description = "Suited for numbers which have a fractional value"
-)
-case class FloatValueType() extends ValueType with Serializable {
-
-  override def validate(lexicalString: String): Boolean = {
-    Try(lexicalString.toFloat).isSuccess
-  }
-
-  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
-  override def uri: Option[String] = Some(XSD + "float")
-
-  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
-  override def ordering: Ordering[String] = Ordering.by((str: String) => str.toFloat)
-}
-
-object FloatValueType extends FloatValueType
-
-@Plugin(
-  id = "DoubleValueType",
-  label = "Double",
-  description = "Suited for numbers which have a fractional value"
-)
-case class DoubleValueType() extends ValueType with Serializable {
-
-  override def validate(lexicalString: String): Boolean = {
-    Try(lexicalString.toDouble).isSuccess
-  }
-
-  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
-  override def uri: Option[String] = Some(XSD + "double")
-
-  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
-  override def ordering: Ordering[String] = Ordering.by((str: String) => str.toDouble)
-}
-
-object DoubleValueType extends DoubleValueType
-
-@Plugin(
-  id = "DecimalValueType",
-  label = "Decimal"
-)
-case class DecimalValueType() extends ValueType with Serializable {
-
-  override def validate(lexicalString: String): Boolean = {
-    Try(BigDecimal(lexicalString)).isSuccess
-  }
-
-  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
-  override def uri: Option[String] = Some(XSD + "decimal")
-
-  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
-  override def ordering: Ordering[String] = Ordering.by((str: String) => BigDecimal(str))
-}
-
-object DecimalValueType extends DecimalValueType
-
-@Plugin(
-  id = "BooleanValueType",
-  label = "Boolean",
-  description = "Suited for values which are either true or false"
-)
-case class BooleanValueType() extends ValueType with Serializable {
-
-  override def validate(lexicalString: String): Boolean = {
-    Try(lexicalString.toBoolean).isSuccess
-  }
-
-  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
-  override def uri: Option[String] = Some(XSD + "boolean")
-
-  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
-  override def ordering: Ordering[String] = Ordering.by((str: String) => str.toBoolean)
-}
-
-object BooleanValueType extends BooleanValueType
 
 @Plugin(
   id = "IntegerValueType",
@@ -392,7 +275,129 @@ case class IntegerValueType() extends ValueType with Serializable {
   override def ordering: Ordering[String] = Ordering.by((str: String) => str.toInt)
 }
 
-object IntegerValueType extends IntegerValueType
+@Plugin(
+  id = "IntValueType",
+  label = "Int",
+  description = "Suited for numbers which have no fractional value"
+)
+case class IntValueType() extends ValueType with Serializable {
+
+  override def validate(lexicalString: String): Boolean = {
+    Try(lexicalString.toInt).isSuccess
+  }
+
+  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
+  override def uri: Option[String] = Some(XSD + "int")
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = Ordering.by((str: String) => str.toInt)
+}
+
+@Plugin(
+  id = "LongValueType",
+  label = "Long",
+  description = "Suited for numbers which have no fractional value"
+)
+case class LongValueType() extends ValueType with Serializable {
+
+  override def validate(lexicalString: String): Boolean = {
+    Try(lexicalString.toLong).isSuccess
+  }
+
+  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
+  override def uri: Option[String] = Some(XSD + "long")
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = Ordering.by((str: String) => str.toLong)
+}
+
+@Plugin(
+  id = "StringValueType",
+  label = "String",
+  description = "Suited for values which contain text"
+)
+case class StringValueType() extends ValueType with Serializable {
+
+  /** returns true if the lexical string is a representation of this type */
+  override def validate(lexicalString: String): Boolean = true // Always true
+
+  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
+  override def uri: Option[String] = Some(XSD + "string") // In RDF this can be omitted
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = ValueType.DefaultOrdering
+}
+
+@Plugin(
+  id = "FloatValueType",
+  label = "Float",
+  description = "Suited for numbers which have a fractional value"
+)
+case class FloatValueType() extends ValueType with Serializable {
+
+  override def validate(lexicalString: String): Boolean = {
+    Try(lexicalString.toFloat).isSuccess
+  }
+
+  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
+  override def uri: Option[String] = Some(XSD + "float")
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = Ordering.by((str: String) => str.toFloat)
+}
+
+@Plugin(
+  id = "DoubleValueType",
+  label = "Double",
+  description = "Suited for numbers which have a fractional value"
+)
+case class DoubleValueType() extends ValueType with Serializable {
+
+  override def validate(lexicalString: String): Boolean = {
+    Try(lexicalString.toDouble).isSuccess
+  }
+
+  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
+  override def uri: Option[String] = Some(XSD + "double")
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = Ordering.by((str: String) => str.toDouble)
+}
+
+@Plugin(
+  id = "DecimalValueType",
+  label = "Decimal"
+)
+case class DecimalValueType() extends ValueType with Serializable {
+
+  override def validate(lexicalString: String): Boolean = {
+    Try(BigDecimal(lexicalString)).isSuccess
+  }
+
+  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
+  override def uri: Option[String] = Some(XSD + "decimal")
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = Ordering.by((str: String) => BigDecimal(str))
+}
+
+@Plugin(
+  id = "BooleanValueType",
+  label = "Boolean",
+  description = "Suited for values which are either true or false"
+)
+case class BooleanValueType() extends ValueType with Serializable {
+
+  override def validate(lexicalString: String): Boolean = {
+    Try(lexicalString.toBoolean).isSuccess
+  }
+
+  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
+  override def uri: Option[String] = Some(XSD + "boolean")
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = Ordering.by((str: String) => str.toBoolean)
+}
 
 @Plugin(
   id = "UriValueType",
@@ -412,8 +417,6 @@ case class UriValueType() extends ValueType with Serializable {
   override def ordering: Ordering[String] = ValueType.DefaultOrdering
 }
 
-object UriValueType extends UriValueType
-
 @Plugin(
   id = "BlankNodeValueType",
   label = "Blank Node"
@@ -428,8 +431,6 @@ case class BlankNodeValueType() extends ValueType with Serializable {
   /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
   override def ordering: Ordering[String] = ValueType.DefaultOrdering
 }
-
-object BlankNodeValueType extends BlankNodeValueType()
 
 abstract class DateValueType extends ValueType with Serializable {
 
@@ -475,8 +476,6 @@ case class GeneralDateValueType() extends DateValueType {
     )
   }
 }
-
-object GeneralDateValueType extends GeneralDateValueType
 
 @Plugin(
   id = "YearValueType",
@@ -584,5 +583,3 @@ case class DateTimeValueType() extends ValueType with Serializable {
   /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
   override def ordering: Ordering[String] = Ordering.by((str: String) => datatypeFactory.newXMLGregorianCalendar(str))(ValueType.GregorianCalendarOrdering)
 }
-
-object DateTimeValueType extends DateTimeValueType

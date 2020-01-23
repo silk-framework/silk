@@ -97,7 +97,7 @@ object TypedPath {
     * Empty TypedPath (used as filler or duds)
     * @return
     */
-  def empty: TypedPath = TypedPath(UntypedPath.empty, UntypedValueType, isAttribute = false)
+  def empty: TypedPath = TypedPath(UntypedPath.empty, ValueType.UNTYPED, isAttribute = false)
 
   /**
     * Will remove a given subpath prefix from the operator list of a TypedPath

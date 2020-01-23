@@ -1,7 +1,7 @@
 package org.silkframework.rule
 
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.entity.{CustomValueType, FloatValueType, UriValueType}
+import org.silkframework.entity.{CustomValueType, FloatValueType, UriValueType, ValueType}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Uri
 
@@ -12,10 +12,10 @@ class MappingTargetTest extends FlatSpec with MustMatchers {
   behavior of "MatchingTarget"
 
   private val PROP_URI = "http://uri"
-  val mappingTarget = MappingTarget(propertyUri = Uri(PROP_URI), valueType = FloatValueType)
+  val mappingTarget = MappingTarget(propertyUri = Uri(PROP_URI), valueType = ValueType.FLOAT)
   val mappingTargetCustom = MappingTarget(propertyUri = Uri(PROP_URI), valueType = CustomValueType("http://RichString"))
-  val mappingTargetBackward = MappingTarget(propertyUri = Uri(PROP_URI), valueType = UriValueType, isBackwardProperty = true)
-  val mappingTargetAttribute = MappingTarget(propertyUri = Uri(PROP_URI), valueType = UriValueType, isAttribute = true)
+  val mappingTargetBackward = MappingTarget(propertyUri = Uri(PROP_URI), valueType = ValueType.URI, isBackwardProperty = true)
+  val mappingTargetAttribute = MappingTarget(propertyUri = Uri(PROP_URI), valueType = ValueType.URI, isAttribute = true)
 
   it should "serialize and deserialize to/from XML" in {
     roundTripTest(mappingTarget)

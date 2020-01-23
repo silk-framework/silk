@@ -214,7 +214,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     }
 
     def entityURIsAt(pathStr: String): Seq[Seq[String]] = {
-      val path = TypedPath(UntypedPath.parse(pathStr), UriValueType, isAttribute = false)
+      val path = TypedPath(UntypedPath.parse(pathStr), ValueType.URI, isAttribute = false)
       retrieve(IndexedSeq(path)).map(_.evaluate(path))
     }
 

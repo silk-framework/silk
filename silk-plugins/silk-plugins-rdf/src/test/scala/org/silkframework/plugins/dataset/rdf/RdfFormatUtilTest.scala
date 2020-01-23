@@ -9,7 +9,7 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
   final val NL = "\n"
   final val S_P = "<s> <p>"
 
-  private def format(objectValue: String, valueType: ValueType = UntypedValueType): String = {
+  private def format(objectValue: String, valueType: ValueType = ValueType.UNTYPED): String = {
     RdfFormatUtil.tripleValuesToNTriplesSyntax("s", "p", objectValue, valueType)
   }
 
@@ -18,19 +18,19 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
   }
 
   it should "serialize double literal triples" in {
-    format("3.14", valueType = DoubleValueType) mustBe
+    format("3.14", valueType = ValueType.DOUBLE) mustBe
         s"""$S_P "3.14"^^<http://www.w3.org/2001/XMLSchema#double> .$NL"""
-    format("12e3", valueType = DoubleValueType) mustBe expectedTriple("\"12e3\"^^<http://www.w3.org/2001/XMLSchema#double>")
-    format("0.0e2", valueType = DoubleValueType) mustBe expectedTriple("\"0.0e2\"^^<http://www.w3.org/2001/XMLSchema#double>")
+    format("12e3", valueType = ValueType.DOUBLE) mustBe expectedTriple("\"12e3\"^^<http://www.w3.org/2001/XMLSchema#double>")
+    format("0.0e2", valueType = ValueType.DOUBLE) mustBe expectedTriple("\"0.0e2\"^^<http://www.w3.org/2001/XMLSchema#double>")
     // Whitespace allowed before and after
-    format("42.1 ", valueType = DoubleValueType) mustBe expectedTriple("\"42.1 \"^^<http://www.w3.org/2001/XMLSchema#double>")
-    format(" 42.1", valueType = DoubleValueType) mustBe expectedTriple("\" 42.1\"^^<http://www.w3.org/2001/XMLSchema#double>")
+    format("42.1 ", valueType = ValueType.DOUBLE) mustBe expectedTriple("\"42.1 \"^^<http://www.w3.org/2001/XMLSchema#double>")
+    format(" 42.1", valueType = ValueType.DOUBLE) mustBe expectedTriple("\" 42.1\"^^<http://www.w3.org/2001/XMLSchema#double>")
   }
 
   it should "serialize integer literal triples" in {
-    format("33563267326578325683257832", valueType = IntValueType) mustBe
+    format("33563267326578325683257832", valueType = ValueType.INTEGER) mustBe
         s"""$S_P "33563267326578325683257832"^^<http://www.w3.org/2001/XMLSchema#integer> .$NL"""
-    format("0", valueType = IntValueType) mustBe expectedTriple("\"0\"^^<http://www.w3.org/2001/XMLSchema#integer>")
+    format("0", valueType = ValueType.INTEGER) mustBe expectedTriple("\"0\"^^<http://www.w3.org/2001/XMLSchema#integer>")
   }
 
   it should "serialize all other to plain literal triples" in {
@@ -45,7 +45,7 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
   }
 
   it should "serialize triples with StringValueType" in {
-    format("31", StringValueType) mustBe
+    format("31", ValueType.STRING) mustBe
         s"""$S_P "31" .$NL"""
   }
 
@@ -55,7 +55,7 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
   }
 
   it should "serialize triples with UriValueType" in {
-    format("urn:test:31", UriValueType) mustBe
+    format("urn:test:31", ValueType.URI) mustBe
         s"""$S_P <urn:test:31> .$NL"""
   }
 
@@ -65,54 +65,54 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
   }
 
   it should "serialize triples with BlankNodeValueType" in {
-    format("bla45532532532532", BlankNodeValueType) must startWith regex
+    format("bla45532532532532", ValueType.BLANK_NODE) must startWith regex
         s"""$S_P _:""" // Jena constructs new blank node ids
   }
 
   it should "serialize triples with BooleanValueType" in {
-    format("true", BooleanValueType) mustBe
+    format("true", ValueType.BOOLEAN) mustBe
         s"""$S_P "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .$NL"""
   }
 
   it should "serialize triples with DoubleValueType" in {
-    format("4.2", DoubleValueType) mustBe
+    format("4.2", ValueType.DOUBLE) mustBe
         s"""$S_P "4.2"^^<http://www.w3.org/2001/XMLSchema#double> .$NL"""
   }
 
   it should "serialize triples with FloatValueType" in {
-    format("2.3", FloatValueType) mustBe
+    format("2.3", ValueType.FLOAT) mustBe
         s"""$S_P "2.3"^^<http://www.w3.org/2001/XMLSchema#float> .$NL"""
   }
 
   it should "serialize triples with IntValueType" in {
-    format("42", IntValueType) mustBe
-        s"""$S_P "42"^^<http://www.w3.org/2001/XMLSchema#integer> .$NL"""
+    format("42", ValueType.INT) mustBe
+        s"""$S_P "42"^^<http://www.w3.org/2001/XMLSchema#int> .$NL"""
   }
 
   it should "serialize triples with IntegerValueType" in {
-    format("543255432543254322354444444432", IntegerValueType) mustBe
+    format("543255432543254322354444444432", ValueType.INTEGER) mustBe
         s"""$S_P "543255432543254322354444444432"^^<http://www.w3.org/2001/XMLSchema#integer> .$NL"""
   }
 
   it should "serialize triples with LongValueType" in {
-    format("5432554325432542235", LongValueType) mustBe
+    format("5432554325432542235", ValueType.LONG) mustBe
         s"""$S_P "5432554325432542235"^^<http://www.w3.org/2001/XMLSchema#long> .$NL"""
   }
 
   it should "serialize triples with DateValueType" in {
-    format("2015-04-03", GeneralDateValueType) mustBe
+    format("2015-04-03", ValueType.DATE) mustBe
       s"""$S_P "2015-04-03"^^<http://www.w3.org/2001/XMLSchema#date> .$NL"""
   }
 
   it should "serialize triples with DateTimeValueType" in {
-    format("2002-05-30T09:00:00", DateTimeValueType) mustBe
+    format("2002-05-30T09:00:00", ValueType.DATE_TIME) mustBe
       s"""$S_P "2002-05-30T09:00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .$NL"""
   }
 
   it should "serialize triples with UntypedValueType always as plain literal" in {
-    format("1024", UntypedValueType) mustBe
+    format("1024", ValueType.UNTYPED) mustBe
       s"""$S_P "1024" .$NL"""
-    format("http://example.org/resource", UntypedValueType) mustBe
+    format("http://example.org/resource", ValueType.UNTYPED) mustBe
         s"""$S_P "http://example.org/resource" .$NL"""
   }
 }
