@@ -36,37 +36,37 @@ case class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGener
 
   private val maxOperatorCount = 2
 
-  def apply() = {
-    LinkageRuleNode(Some(generateAggregation()))
+  def apply(random: Random): LinkageRuleNode = {
+    LinkageRuleNode(Some(generateAggregation(random)))
   }
 
   /**
    * Generates a random aggregation node.
    */
-  private def generateAggregation(): AggregationNode = {
+  private def generateAggregation(random: Random): AggregationNode = {
     //Choose a random aggregation
-    val aggregation = aggregations(Random.nextInt(aggregations.size))
+    val aggregation = aggregations(random.nextInt(aggregations.size))
 
     //Choose a random operator count
-    val operatorCount = minOperatorCount + Random.nextInt(maxOperatorCount - minOperatorCount + 1)
+    val operatorCount = minOperatorCount + random.nextInt(maxOperatorCount - minOperatorCount + 1)
 
     //Generate operators
     val operators =
       for (i <- List.range(1, operatorCount + 1)) yield {
-        generateComparison()
+        generateComparison(random)
       }
 
     //Build aggregation
     AggregationNode(
       aggregation = aggregation,
-      weight = Random.nextInt(maxWeight) + 1,
-      required = Random.nextBoolean(),
+      weight = random.nextInt(maxWeight) + 1,
+      required = random.nextBoolean(),
       operators = operators
     )
   }
 
-  private def generateComparison() = {
-    comparisonGenerators(Random.nextInt(comparisonGenerators.size))()
+  private def generateComparison(random: Random) = {
+    comparisonGenerators(random.nextInt(comparisonGenerators.size))(random)
   }
 }
 

@@ -27,14 +27,15 @@ import org.silkframework.rule.{LinkSpec, LinkageRule, Operator, RuntimeLinkingCo
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
 import org.silkframework.util.{DPair, Identifier}
-
+import LinkPoolGeneratorUtils._
 import scala.util.Random
 
 case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
   override def generator(inputs: DPair[DataSource],
                          linkSpec: LinkSpec,
-                         paths: Seq[DPair[TypedPath]]): Activity[UnlabeledLinkPool] = {
+                         paths: Seq[DPair[TypedPath]],
+                         randomSeed: Long): Activity[UnlabeledLinkPool] = {
     new LinkPoolGenerator(inputs, linkSpec, paths)
   }
 
@@ -52,11 +53,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
     override def run(context: ActivityContext[UnlabeledLinkPool])
                     (implicit userContext: UserContext): Unit = {
-      val entitySchemata =
-        DPair(
-          source = linkSpec.entityDescriptions.source.copy(typedPaths = paths.map(_.source).distinct.toIndexedSeq),
-          target = linkSpec.entityDescriptions.target.copy(typedPaths = paths.map(_.target).distinct.toIndexedSeq)
-        )
+      val entitySchemata = entitySchema(linkSpec, paths)
       val op = new SampleOperator()
       val linkSpec2 = linkSpec.copy(rule = LinkageRule(op))
 
@@ -78,8 +75,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       assert(generatedLinks.nonEmpty || context.status().isInstanceOf[Canceling], "The unlabeled pool generator could not find any link candidates")
 
       if(generatedLinks.nonEmpty) {
-        val shuffledLinks = for ((s, t) <- generatedLinks zip (generatedLinks.tail :+ generatedLinks.head)) yield new LinkWithEntities(s.source, t.target, DPair(s.entities.get.source, t.entities.get.target))
-        context.value.update(UnlabeledLinkPool(entitySchemata, generatedLinks ++ shuffledLinks))
+        context.value.update(UnlabeledLinkPool(entitySchemata, shuffleLinks(generatedLinks)))
       }
     }
 

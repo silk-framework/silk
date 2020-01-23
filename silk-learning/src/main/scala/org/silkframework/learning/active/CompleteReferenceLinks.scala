@@ -33,7 +33,7 @@ object CompleteReferenceLinks {
   /**
    * Completes a set of reference links.
    */
-  def apply(referenceEntities: ReferenceEntities, unlabeledLinks: Traversable[Link], population: Population) = {
+  def apply(referenceEntities: ReferenceEntities, unlabeledLinks: Traversable[Link], population: Population): ReferenceEntities = {
     /** The unlabeled links where the confidence for each link is set to the average confidence amongst all rules */
     lazy val linksWithConfidence = {
       val rules = population.individuals.take(maxRules).map(_.node.build)
@@ -44,7 +44,7 @@ object CompleteReferenceLinks {
 
         link.update(confidence = Some(confidence))
       }
-    } 
+    }
 
     val positive = {
       val entities = referenceEntities.positiveEntities

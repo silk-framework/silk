@@ -26,7 +26,7 @@ trait AnyPlugin {
   /**
    * The description for this plugin.
    */
-  @transient lazy val pluginSpec = PluginDescription(getClass)
+  @transient lazy val pluginSpec: PluginDescription[AnyPlugin] = PluginDescription(getClass)
 
   /**
    * The parameters for this plugin as Map.
@@ -41,14 +41,8 @@ trait AnyPlugin {
     *                          Property values that are not part of the map remain unchanged.
     */
   def withParameters(updatedProperties: Map[String, String])(implicit prefixes: Prefixes, resourceManager: ResourceManager): this.type = {
-    val invalidParameters = updatedProperties.keySet -- parameters.keySet
-    if(invalidParameters.nonEmpty) {
-      throw new ValidationException(s"The following properties cannot be updated on plugin class '${this.getClass.getSimpleName}' because they are no valid parameters:" +
-          s" ${invalidParameters.mkString(", ")}. Valid parameters are: ${parameters.keySet.mkString(", ")}")
-    }
-
     val updatedParameters = parameters ++ updatedProperties
-    pluginSpec.apply(updatedParameters).asInstanceOf[this.type]
+    pluginSpec.apply(updatedParameters, ignoreNonExistingParameters = false).asInstanceOf[this.type]
   }
 
   override def toString: String = {

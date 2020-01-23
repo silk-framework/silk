@@ -12,19 +12,16 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, WorkspaceProvider}
 
-/**
-  * Created on 6/27/16.
-  */
 @Plugin(
   id = "xmlZipMarshalling",
-  label = "XML zip project",
-  description = "XML zip marshalling of Silk projects for importing and exporting."
+  label = "XML/ZIP file",
+  description = "ZIP archive, which includes XML meta data and resource files."
 )
 case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
 
   def id: String = XmlZipProjectMarshaling.marshallerId
 
-  val name = "XML zip file"
+  val name = "XML/ZIP file"
 
   /**
     * Marshals the project from the in-memory [[Project]] object and the given resource manager.
@@ -131,6 +128,8 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
 
   /** Handler for file suffix */
   override def suffix: Option[String] = Some("zip")
+
+  override def mediaType: Option[String] = Some("application/zip")
 }
 
 object XmlZipProjectMarshaling {

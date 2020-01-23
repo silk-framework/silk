@@ -9,7 +9,6 @@ import scala.util.Random
  * Utility methods related to sampling.
  */
 object SampleUtil {
-  private val r = new Random()
 
   /**
    * Sample a fixed size sample set from a set larger than the target set uniformly.
@@ -27,7 +26,7 @@ object SampleUtil {
   def sample[T](values: Traversable[T],
                 size: Int,
                 filterOpt: Option[T => Boolean])
-               (implicit m: ClassTag[T]): Seq[T] = {
+               (implicit m: ClassTag[T], random: Random): Seq[T] = {
     val sample = new Array[T](size)
 
     var valueCount = 0l
@@ -43,7 +42,7 @@ object SampleUtil {
     for (value <- values if f(value)) {
       if (valueCount < size) {
         sample(valueCount.toInt) = value
-      } else if (r.nextDouble() < nextSampleProbability) {
+      } else if (random.nextDouble() < nextSampleProbability) {
         val idx = (valueCount % size).toInt // Round-robin over each position in the array
         sample(idx) = value
       }

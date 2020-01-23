@@ -13,4 +13,4 @@ class PluginRegistryTest extends FlatSpec with MustMatchers {
   }
 }
 
-private case class TestPlugin(param1: String, param2: Int) extends AnyPlugin
+

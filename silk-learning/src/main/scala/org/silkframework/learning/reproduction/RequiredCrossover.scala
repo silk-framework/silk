@@ -17,11 +17,13 @@ package org.silkframework.learning.reproduction
 import org.silkframework.learning.individual.{AggregationNode, ComparisonNode, OperatorNode}
 import org.silkframework.util.DPair
 
+import scala.util.Random
+
 /**
  * A crossover operator which toggles the required attributes of the first operator.
  */
 case class RequiredCrossover() extends NodePairCrossoverOperator[OperatorNode] {
-  def crossover(nodes: DPair[OperatorNode]) = nodes.source match {
+  def crossover(nodes: DPair[OperatorNode], random: Random) = nodes.source match {
     case c: ComparisonNode => c.copy(required = !c.required)
     case a: AggregationNode => a.copy(required = !a.required)
   }
