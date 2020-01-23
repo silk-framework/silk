@@ -193,10 +193,10 @@ object SearchApiModel {
       var tasks: Seq[TypedTasks] = ps.flatMap(fetchTasks)
       var selectedProjects: Seq[Project] = if(project.isEmpty && (itemType.contains(ItemType.project) || itemType.isEmpty)) ps else Seq()
 
-      for(term <- textQuery) {
+      for(term <- textQuery if term.trim.nonEmpty) {
         val lowerCaseTerm = extractSearchTerms(term)
         tasks = tasks.map(typedTasks => filterTasksByTextQuery(typedTasks, lowerCaseTerm))
-        selectedProjects = if(itemType.contains(ItemType.project) || itemType.isEmpty) ps.filter(p => matchesSearchTerm(lowerCaseTerm, p)) else Seq()
+        selectedProjects = if(itemType.contains(ItemType.project) || itemType.isEmpty) selectedProjects.filter(p => matchesSearchTerm(lowerCaseTerm, p)) else Seq()
       }
 
       // facets are collected after filtering, so only non empty facets are displayed with correct counts

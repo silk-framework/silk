@@ -66,6 +66,11 @@ class SearchApiIntegrationTest extends FlatSpec
     resultItemIds(response) mustBe allResults.drop(1)
   }
 
+  it should "only return task results for project restricted searches with text query" in {
+    val response = facetedSearchRequest(FacetedSearchRequest(project = Some(projectId), textQuery = Some("o    s")))
+    resultItemIds(response) mustBe Seq("jsonXYZ", "transformA")
+  }
+
   it should "page through the results correctly" in {
     var results = allResults.toList
     var offset = 0
