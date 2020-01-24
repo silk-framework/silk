@@ -1,9 +1,9 @@
 package org.silkframework.plugins.dataset.rdf
 
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
+import org.scalatestplus.mockito.MockitoSugar
 import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams}
-import org.silkframework.entity.{DoubleValueType, IntValueType, StringValueType, UntypedValueType, UriValueType, ValueType}
+import org.silkframework.entity.ValueType
 import org.silkframework.plugins.dataset.rdf.access.SparqlSink
 
 class SparqlSinkTest extends FlatSpec with Matchers with MockitoSugar {

@@ -17,7 +17,7 @@ package org.silkframework.entity.paths
 import java.net.URLEncoder
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.{StringValueType, UntypedValueType, UriValueType, ValueType, paths}
+import org.silkframework.entity.{ValueType, paths}
 import org.silkframework.util.Uri
 
 import scala.util.{Failure, Success, Try}

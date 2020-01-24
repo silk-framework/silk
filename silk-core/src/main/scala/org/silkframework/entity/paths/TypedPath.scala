@@ -2,7 +2,7 @@ package org.silkframework.entity.paths
 
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.TypedProperty
-import org.silkframework.entity.{UntypedValueType, ValueType}
+import org.silkframework.entity.ValueType
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 
 import scala.xml.Node
