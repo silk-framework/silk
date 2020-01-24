@@ -9,8 +9,10 @@ import appRoutes from "./app/appRoutes";
 import { createPlugin } from "./app/services/pluginApi";
 import configureStore  from './app/state/configureStore';
 
+import "normalize.css";
+import "@wrappers/index.scss";
 import './index.css';
-import 'normalize.css/normalize.css';
+import './theme/grid.scss';
 
 const bootstrapPlugins = (plugins) => {
     const arr = [];

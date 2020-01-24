@@ -7,8 +7,6 @@ import { RouteProps } from "react-router";
 import { getHistory } from "./state/configureStore";
 import { ConnectedRouter } from "connected-react-router";
 
-import "normalize.css";
-import "@wrappers/index.scss";
 import { globalOp } from "@ducks/global";
 import { useDispatch } from "react-redux";
 

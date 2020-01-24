@@ -1,9 +1,10 @@
 import React from 'react';
 import Main from "../../layout/main/Main";
-import FilterBar from "./filter-bar/FilterBar";
-import ProjectsList from "./projects-list/ProjectsList";
+import FilterBar from "./filterbar/FilterBar";
+import ProjectList from "./project/ProjectList";
+import TopBar from "./topbar/TopBar";
 
-const ProjectLayout = () => {
+const Projects = () => {
     return (
         <Main>
             <Main.LeftPanel className='clearfix'>
@@ -11,11 +12,12 @@ const ProjectLayout = () => {
                     <FilterBar/>
                 </div>
                 <div className='preview-content'>
-                    <ProjectsList/>
+                    <TopBar/>
+                    <ProjectList/>
                 </div>
             </Main.LeftPanel>
         </Main>
     )
 };
 
-export default ProjectLayout;
+export default Projects;

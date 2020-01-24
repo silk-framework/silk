@@ -4,7 +4,7 @@ import SearchInput from "../../../components/search-input/SearchInput";
 import { dashboardOp, dashboardSel } from "../../../../state/ducks/dashboard";
 import { useDispatch, useSelector } from "react-redux";
 
-export default function ActionsTopBar() {
+export default function TopBar() {
     const dispatch = useDispatch();
     const { textQuery } = useSelector(dashboardSel.appliedFiltersSelector);
     const sorters = useSelector(dashboardSel.sortersSelector);

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Pagination from "../../../components/pagination/Pagination";
 import { useDispatch, useSelector } from "react-redux";
 import { dashboardOp, dashboardSel } from "@ducks/dashboard";
-import ActionsTopBar from "../topbar/ActionsTopBar";
+import TopBar from "../topbar/TopBar";
 import AppliedFacets from "../topbar/AppliedFacets";
 import DataList from "../../../components/datalist/DataList";
 import DeleteModal from "../../../components/modals/DeleteModal";
@@ -14,7 +14,7 @@ import { DATA_TYPES } from "../../../../constants";
 import CloneModal from "../../../components/modals/CloneModal";
 import { routerSel } from "@ducks/router";
 
-export default function ProjectsList() {
+export default function ProjectList() {
 
     const dispatch = useDispatch();
 
@@ -118,8 +118,7 @@ export default function ProjectsList() {
 
     const {Header, Body, Footer} = DataList;
     return (
-        <div style={{'width': '100%'}}>
-            <ActionsTopBar/>
+        <>
             <DataList isLoading={isLoading} data={data}>
                 <Header>
                     <AppliedFacets/>
@@ -155,6 +154,6 @@ export default function ProjectsList() {
                 onDiscard={onDiscardModals}
                 onConfirm={handleConfirmClone}
             />
-        </div>
+        </>
     )
 }

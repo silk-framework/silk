@@ -190,6 +190,10 @@ const fetchListAsync = () => {
             body.sortOrder = sorters.applied.sortOrder;
         }
 
+        if (projectId) {
+            body.project = projectId;
+        }
+
         // get filters
         Object.keys(appliedFilters)
             .forEach(filter => {
@@ -200,10 +204,6 @@ const fetchListAsync = () => {
 
         // get facets
         body.facets = appliedFacets.map(facet => facet);
-
-        if (projectId) {
-            body.project = projectId;
-        }
 
         try {
             const res = await fetch({
