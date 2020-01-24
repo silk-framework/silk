@@ -86,7 +86,7 @@ module.exports = {
   publicUrl: getPublicUrl(resolveApp('package.json')),
   servedPath: getServedPath(resolveApp('package.json')),
   wrappersPath: resolveApp('src/app/wrappers'),
-  ducksFolder: resolveApp('src/app/state/ducks')
+  ducksFolder: resolveApp('src/app/store/ducks')
 };
 
 

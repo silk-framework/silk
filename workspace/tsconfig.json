@@ -3,7 +3,7 @@
     "baseUrl": "./src/app",
     "paths": {
       "@wrappers/*": ["./wrappers/*"],
-      "@ducks/*": ["./state/ducks/*"]
+      "@ducks/*": ["./store/ducks/*"]
     },
     "target": "es5",
     "lib": [

@@ -3,7 +3,7 @@ import { IntlProvider, addLocaleData } from 'react-intl';
 import locale_de from 'react-intl/locale-data/de';
 import messages_de from '../translations/de.json';
 import { connect } from "react-redux";
-import { globalSel } from "./state/ducks/global";
+import { globalSel } from "./store/ducks/global";
 
 addLocaleData([...locale_de ]);
 

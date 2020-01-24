@@ -1,10 +1,10 @@
 import React, { useEffect } from "react";
 
-import Header from "./views/layout/header/Header";
+import Header from "./views/layout/Header";
 import RouterOutlet from "./RouterOutlet";
 import LanguageContainer from "./LanguageContainer";
 import { RouteProps } from "react-router";
-import { getHistory } from "./state/configureStore";
+import { getHistory } from "./store/configureStore";
 import { ConnectedRouter } from "connected-react-router";
 
 import { globalOp } from "@ducks/global";

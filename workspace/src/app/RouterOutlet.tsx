@@ -1,6 +1,6 @@
 import React, { Suspense } from "react";
 import { Route, Switch } from "react-router-dom";
-import Loading from "./views/components/loading/Loading";
+import Loading from "./views/components/Loading";
 import { SERVE_PATH } from "./constants";
 export default function RouterOutlet({routes}) {
     return (

@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosPromise, AxiosRequestConfig, Method } from 'axios';
 import {is} from 'ramda';
-import { getStore } from "../state/configureStore";
-import { globalOp } from "../state/ducks/global";
+import { getStore } from "../store/configureStore";
+import { globalOp } from "../store/ducks/global";
 import { logError } from "./errorLogger";
 
 interface IFetchOptions {
