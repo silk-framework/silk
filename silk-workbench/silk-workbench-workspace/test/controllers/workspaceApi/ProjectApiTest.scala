@@ -21,6 +21,7 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
   override def routes: Option[Class[_ <: Router]] = Some(classOf[test.Routes])
 
   lazy val projectsUrl: String = controllers.workspaceApi.routes.ProjectApi.createNewProject().url
+  private def projectsMetaDataUrl(projectId: String): String = controllers.workspaceApi.routes.ProjectApi.updateProjectMetaData(projectId).url
   implicit val readContext: ReadContext = ReadContext()
 
   it should "allow to create a new project by label" in {
@@ -45,6 +46,16 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
   it should "generate default IDs for labels without any allowed chars in IDs" in {
     (createProjectByLabel("Ä*#").json \ "name").as[String] mustBe "project"
     (createProjectByLabel("!§$%").json \ "name").as[String] mustBe "project2"
+  }
+
+  it should "update the meta data of an existing project" in {
+    val projectId = (createProjectByLabel("will be overwritten", Some("will also be overwritten")).json \ "name").as[String]
+    val (newLabel, newDescription) = ("new label", Some("new description"))
+    val response = client.url(s"$baseUrl${projectsMetaDataUrl(projectId)}").put(Json.toJson(ItemMetaData(newLabel, newDescription)))
+    checkResponse(response)
+    val metaData = retrieveOrCreateProject(projectId).config.metaData
+    metaData.label mustBe newLabel
+    metaData.description mustBe newDescription
   }
 
   private def createProjectByLabel(label: String, description: Option[String] = None): WSResponse = {

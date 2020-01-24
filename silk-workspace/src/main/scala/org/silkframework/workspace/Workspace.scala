@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.Logger
 
-import org.silkframework.config.{DefaultConfig, Prefixes}
+import org.silkframework.config.{DefaultConfig, MetaData, Prefixes}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.ServiceUnavailableException
 import org.silkframework.util.Identifier
@@ -97,10 +97,24 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     }
     provider.putProject(config)
     val newProject = new Project(config, provider, repository.get(config.id))
-    cachedProjects :+= newProject
+    addProjectToCache(newProject)
     newProject.setAdditionalPrefixes(additionalPrefixes)
     log.info(s"Created new project '${config.id}'. " + userContext.logInfo)
     newProject
+  }
+
+  /** Update the meta data of a project. */
+  def updateProjectMetaData(projectId: Identifier,
+                            metaData: MetaData)
+                           (implicit userContext: UserContext): Unit = synchronized {
+    loadUserProjects()
+    val diProject = project(projectId)
+    val projectConfig = diProject.config
+    val updatedProjectConfig = projectConfig.copy(metaData = metaData)
+    provider.putProject(updatedProjectConfig)
+    removeProjectFromCache(projectId)
+    addProjectToCache(new Project(updatedProjectConfig, provider, repository.get(projectId)))
+    log.info(s"Project meta data updated for '$projectId'.")
   }
 
   def removeProject(name: Identifier)
@@ -113,8 +127,12 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       activity.control.cancel()
     }
     provider.deleteProject(name)
-    cachedProjects = cachedProjects.filterNot(_.name == name)
+    removeProjectFromCache(name)
     log.info(s"Removed project '$name'. " + userContext.logInfo)
+  }
+
+  private def removeProjectFromCache(name: Identifier) = {
+    cachedProjects = cachedProjects.filterNot(_.name == name)
   }
 
   /**
@@ -184,16 +202,20 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
                            (implicit userContext: UserContext): Unit = synchronized {
     // remove project
     Try(project(id).activities.foreach(_.control.cancel()))
-    cachedProjects = cachedProjects.filterNot(_.name == id)
+    removeProjectFromCache(id)
     provider.readProject(id) match {
       case Some(projectConfig) =>
         val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
         project.loadTasks()
         project.startActivities()
-        cachedProjects :+= project
+        addProjectToCache(project)
       case None =>
         log.warning(s"Project '$id' could not be reloaded in workspace, because it could not be read from the workspace provider!")
     }
+  }
+
+  private def addProjectToCache(project: Project) = {
+    cachedProjects :+= project
   }
 
   /**

@@ -3,7 +3,7 @@ package controllers.workspaceApi
 import controllers.core.RequestUserContextAction
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspace.JsonSerializer
-import controllers.workspaceApi.project.ProjectApiRestPayloads.ProjectCreationData
+import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
 import javax.inject.Inject
 import org.silkframework.config.MetaData
 import org.silkframework.runtime.activity.UserContext
@@ -26,10 +26,22 @@ class ProjectApi @Inject()() extends InjectedController with ControllerUtilsTrai
           throw BadUserInputException("The label must not be empty!")
         }
         val generatedId = generateProjectId(label)
-        val project = workspace.createProject(ProjectConfig(generatedId, metaData = MetaData(label, metaData.description.filter(_.trim.nonEmpty))))
+        val project = workspace.createProject(ProjectConfig(generatedId, metaData = cleanUpMetaData(metaData)))
         Created(JsonSerializer.projectJson(project)).
             withHeaders(LOCATION -> s"/api/workspace/projects/$generatedId")
       }
+  }
+
+  private def cleanUpMetaData(metaData: MetaData) = {
+    MetaData(metaData.label.trim, metaData.description.filter(_.trim.nonEmpty))
+  }
+
+  /** Update the project meta data. */
+  def updateProjectMetaData(projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    validateJson[ItemMetaData] { newMetaData =>
+      workspace.updateProjectMetaData(projectId, cleanUpMetaData(newMetaData.asMetaData))
+      NoContent
+    }
   }
 
   private def generateProjectId(label: String)

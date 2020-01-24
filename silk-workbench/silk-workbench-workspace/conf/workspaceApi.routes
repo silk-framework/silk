@@ -7,3 +7,4 @@ GET           /recentlyViewedItems                                              
 # Projects
 
 POST          /projects                                                         controllers.workspaceApi.ProjectApi.createNewProject()
+PUT           /projects/:projectId/metaData                                     controllers.workspaceApi.ProjectApi.updateProjectMetaData(projectId: String)
