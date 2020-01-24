@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream
 import scala.collection.JavaConverters._
 import org.apache.jena.riot.RDFDataMgr
 import org.apache.jena.graph.{Node, NodeFactory, Triple => JenaTriple}
+import org.silkframework.dataset.rdf.RdfNode
 /**
   * Some helper methods to serialize Jena objects to strings.
   */

@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.scalatestplus.mockito.MockitoSugar
 import org.mockito.Mockito._
-import org.silkframework.config.{CustomTask, PlainTask, Task, TaskSpec}
+import org.silkframework.config.{CustomTask, MetaData, PlainTask, Task, TaskSpec}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{Activity, ActivityContext, TestUserContextTrait, UserContext}
@@ -30,7 +30,7 @@ class WorkspaceTest extends FlatSpec with MustMatchers with ConfigTestTrait with
   it should "throw a 503 if it is loading and reaching its timeout" in {
     val slowSeq = new Seq[ProjectConfig] {
       override def length: Int = 0
-      override def apply(idx: Int): ProjectConfig = ProjectConfig()
+      override def apply(idx: Int): ProjectConfig = ProjectConfig(metaData = MetaData("project"))
       override def iterator: Iterator[ProjectConfig] = {
         Thread.sleep(5000)
         Iterator.empty
@@ -60,12 +60,12 @@ class WorkspaceTest extends FlatSpec with MustMatchers with ConfigTestTrait with
 
     val project1 = Identifier("project1")
     val task1 = Identifier("task1")
-    workspaceProvider.putProject(ProjectConfig(project1))
+    workspaceProvider.putProject(ProjectConfig(project1, metaData = MetaData(project1)))
     workspaceProvider.putTask(project1, PlainTask(task1,  TestTask()))
 
     val project2 = Identifier("project2")
     val task2 = Identifier("task2")
-    workspaceProvider.putProject(ProjectConfig(project2))
+    workspaceProvider.putProject(ProjectConfig(project2, metaData = MetaData(project2)))
     workspaceProvider.putTask(project2, PlainTask(task2,  TestTask()))
 
     val workspace = new Workspace(workspaceProvider, InMemoryResourceRepository())

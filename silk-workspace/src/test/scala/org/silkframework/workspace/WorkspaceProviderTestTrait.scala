@@ -206,7 +206,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   private def createProject(projectName: String): ProjectConfig = {
-    val project = ProjectConfig(projectName)
+    val project = ProjectConfig(projectName, metaData = MetaData(projectName))
     workspace.createProject(project)
     project
   }

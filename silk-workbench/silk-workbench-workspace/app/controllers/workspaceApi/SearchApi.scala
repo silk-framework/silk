@@ -30,7 +30,7 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
   /** Recently viewed items of user. */
   def recentlyViewedItems(): Action[AnyContent] = UserContextAction { implicit userContext =>
     val items = accessMonitor.getAccessItems.map { item =>
-      JsObject(Seq(
+      JsObject(Seq( // TODO: Add item type, label and main link (e.g. workflow editor, project details page etc.)
         "projectId" -> JsString(item.projectId)
       ) ++ item.taskIdOpt.map(taskId => ("taskId", JsString(taskId))).toSeq)
     }

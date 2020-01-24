@@ -2,7 +2,7 @@ package controllers.core.util
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
+import org.silkframework.workspace.{Project, ProjectTask, Workspace, WorkspaceFactory}
 import play.api.libs.json.{JsError, JsValue, Json, Reads}
 import play.api.mvc.{BaseController, Request, Result}
 
@@ -26,6 +26,10 @@ trait ControllerUtilsTrait {
         body(obj)
       }
     )
+  }
+
+  def workspace(implicit userContext: UserContext): Workspace = {
+    WorkspaceFactory().workspace
   }
 
   def projectAndTask[T <: TaskSpec : ClassTag](projectName: String, taskName: String)

@@ -116,7 +116,7 @@ class WorkflowApi @Inject() () extends InjectedController {
     val id = activity.start(workflowConfiguration)
 
     Created(Json.obj(("activityId", id.toString)))
-        .withHeaders("Location" -> controllers.workflow.routes.WorkflowApi.removeVariableWorkflowExecution(projectName, workflowTaskName, id).url)
+        .withHeaders(LOCATION -> controllers.workflow.routes.WorkflowApi.removeVariableWorkflowExecution(projectName, workflowTaskName, id).url)
   }
 
   def removeVariableWorkflowExecution(projectName: String,

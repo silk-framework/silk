@@ -56,7 +56,7 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     if (WorkspaceFactory().workspace.projects.exists(_.name.toString == project)) {
       ErrorResult(CONFLICT, "Conflict", s"Project with name '$project' already exists. Creation failed.")
     } else {
-      val projectConfig = ProjectConfig(project)
+      val projectConfig = ProjectConfig(project, metaData = MetaData(project))
       projectConfig.copy(projectResourceUriOpt = Some(projectConfig.generateDefaultUri))
       val newProject = WorkspaceFactory().workspace.createProject(projectConfig)
       Created(JsonSerializer.projectJson(newProject))

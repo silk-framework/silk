@@ -65,9 +65,17 @@ object Identifier {
 
   /**
     * Creates a new Identifier only from the allowed characters in a given string.
+    *
+    * @param str The input string from which to generate the Identifier
+    * @param alternative If the generated ID is empty, the alternative String is used.
     */
-  def fromAllowed(str: String): Identifier = {
-    new Identifier(str.filter(Identifier.isAllowed))
+  def fromAllowed(str: String, alternative: Option[String] = None): Identifier = {
+    try {
+      new Identifier(str.filter(Identifier.isAllowed))
+    }  catch {
+      case _: IllegalArgumentException if alternative.isDefined =>
+        Identifier(alternative.get)
+    }
   }
 
   /**
