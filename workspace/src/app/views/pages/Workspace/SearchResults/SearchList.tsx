@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import Pagination from "../../../components/Pagination";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import TopBar from "../Topbar";
 import AppliedFacets from "../Topbar/AppliedFacets";
 import DataList from "../../../components/Datalist";
 import DeleteModal from "../../../components/modals/DeleteModal";
@@ -10,9 +9,10 @@ import SearchItem from "./SearchItem";
 import Loading from "../../../components/Loading";
 import { push } from "connected-react-router";
 import { ISearchResultsTask } from "@ducks/workspace/typings";
-import { DATA_TYPES } from "../../../../constants";
+import { DATA_TYPES, SERVE_PATH } from "../../../../constants";
 import CloneModal from "../../../components/modals/CloneModal";
 import { routerSel } from "@ducks/router";
+import { sharedOp } from "@ducks/shared";
 
 export default function SearchList() {
 
@@ -51,7 +51,7 @@ export default function SearchList() {
         });
 
         try {
-            const data = await workspaceOp.getTaskMetadataAsync(item.id, item.projectId);
+            const data = await sharedOp.getTaskMetadataAsync(item.id, item.projectId);
             const {dependentTasksDirect} = data.relations;
 
             if (dependentTasksDirect.length) {
@@ -111,12 +111,11 @@ export default function SearchList() {
     const goToItemDetails = (item: ISearchResultsTask) => {
         if (item.type === DATA_TYPES.PROJECT) {
             dispatch(
-                push(`${pathname}/projects/${item.id}`)
+                push(`${SERVE_PATH}/projects/${item.id}`)
             );
-        }
-        if (item.type === DATA_TYPES.DATASET) {
+        } else {
             dispatch(
-                push(`${pathname}/datasets/${item.id}`)
+                push(`${SERVE_PATH}/projects/${item.projectId}/${item.type.toLowerCase()}/${item.id}`)
             );
         }
     };

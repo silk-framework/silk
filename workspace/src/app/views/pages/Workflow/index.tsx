@@ -12,7 +12,7 @@ import { datasetOp, datasetSel } from "@ducks/dataset";
 
 export default function() {
     const error = useSelector(datasetSel.errorSelector);
-    const {datasetId, projectId} = useParams();
+    const {workflowId, projectId} = useParams();
     const [metadata, setMetadata] = useState({});
     const dispatch = useDispatch();
 
@@ -27,12 +27,12 @@ export default function() {
     }, [error.detail]);
 
     useEffect(() => {
-        getTaskMetadata(datasetId, projectId);
-    }, [datasetId, projectId]);
+        getTaskMetadata(workflowId, projectId);
+    }, [workflowId, projectId]);
 
-    const getTaskMetadata = async(datasetId: string, projectId: string) => {
+    const getTaskMetadata = async(workflowId: string, projectId: string) => {
         dispatch(datasetOp.setLoading(true));
-        const data = await sharedOp.getTaskMetadataAsync(datasetId, projectId);
+        const data = await sharedOp.getTaskMetadataAsync(workflowId, projectId);
         setMetadata(data);
         dispatch(datasetOp.setLoading(false));
     };

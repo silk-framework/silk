@@ -1,10 +1,10 @@
-import { IFiltersState } from "./IDashboardFilters";
-import { IPreviewState } from "./IDashboardPreview";
+import { IFiltersState } from "./IWorkspaceFilters";
+import { IPreviewState } from "./IWorkspacePreview";
 
-export interface IDashboardState {
+export interface IWorkspaceState {
     filters: IFiltersState;
     preview: IPreviewState;
 }
 
-export * from './IDashboardPreview';
-export * from './IDashboardFilters';
+export * from './IWorkspacePreview';
+export * from './IWorkspaceFilters';

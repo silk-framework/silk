@@ -1,9 +1,11 @@
-import { IDashboardState} from "@ducks/workspace/typings";
+import { IWorkspaceState} from "@ducks/workspace/typings";
 import { IGlobalState } from "@ducks/global/typings";
 import { RouterState } from "connected-react-router";
+import { IDatasetState } from "@ducks/dataset/typings";
 
 export interface IStore {
     global: IGlobalState;
-    dashboard: IDashboardState;
+    workspace: IWorkspaceState;
+    dataset: IDatasetState;
     router: RouterState;
 }

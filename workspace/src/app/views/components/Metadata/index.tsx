@@ -4,7 +4,7 @@ import Card from "@wrappers/card";
 import { H4 } from "@wrappers/typography";
 
 export default function ({ metadata }) {
-    const { name, description } = metadata;
+    const { name, description, id } = metadata;
     return (
         <>
             <div className='metadata-block'>
@@ -13,7 +13,7 @@ export default function ({ metadata }) {
                         Details & Metadata
                     </H4>
                     <p>
-                        Name: {name}
+                        Name: {name || id}
                     </p>
                     {
                         description && <p>Description: {description}</p>

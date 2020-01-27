@@ -19,6 +19,7 @@ export const DEFAULT_LANG = 'en';
 export const DATA_TYPES = {
     PROJECT: 'project',
     DATASET: 'dataset',
+    WORKFLOW: 'workflow',
     TRANSFORM: 'transform',
     LINKING: 'Linking',
     TASK: 'Task',

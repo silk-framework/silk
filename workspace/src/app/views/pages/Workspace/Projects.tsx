@@ -1,6 +1,6 @@
 import React from 'react';
 import Main from "../../layout/Main";
-import Index from "./Filterbar";
+import Filterbar from "./Filterbar";
 import SearchList from "./SearchResults/SearchList";
 import TopBar from "./Topbar";
 
@@ -9,7 +9,7 @@ const Projects = () => {
         <Main>
             <Main.LeftPanel className='clearfix'>
                 <div className='filter-bar-content'>
-                    <Index/>
+                    <Filterbar/>
                 </div>
                 <div className='preview-content'>
                     <TopBar/>
