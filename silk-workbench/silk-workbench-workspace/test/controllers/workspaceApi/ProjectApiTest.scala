@@ -7,7 +7,7 @@ import org.silkframework.config.MetaData
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.JsonSerializers._
-import play.api.libs.json.Json
+import play.api.libs.json.{JsResult, Json}
 import play.api.libs.ws.WSResponse
 import play.api.routing.Router
 
@@ -21,6 +21,8 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
   override def routes: Option[Class[_ <: Router]] = Some(classOf[test.Routes])
 
   lazy val projectsUrl: String = controllers.workspaceApi.routes.ProjectApi.createNewProject().url
+  def projectPrefixesUrl(projectId: String): String = controllers.workspaceApi.routes.ProjectApi.fetchProjectPrefixes(projectId).url
+  def projectPrefixUrl(projectId: String, prefixName: String): String = controllers.workspaceApi.routes.ProjectApi.addProjectPrefix(projectId, prefixName).url
   private def projectsMetaDataUrl(projectId: String): String = controllers.workspaceApi.routes.ProjectApi.updateProjectMetaData(projectId).url
   implicit val readContext: ReadContext = ReadContext()
 
@@ -56,6 +58,33 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
     val metaData = retrieveOrCreateProject(projectId).config.metaData
     metaData.label mustBe newLabel
     metaData.description mustBe newDescription
+  }
+
+  val prefixProjectId = "prefixProject"
+
+  it should "fetch the project prefixes" in {
+    createProject(prefixProjectId)
+    val prefixes = fetchPrefixes
+    prefixes.isSuccess mustBe true
+    prefixes.get.size must be > 0
+  }
+
+  it should "Update project prefixes" in {
+    retrieveOrCreateProject(prefixProjectId)
+    val prefixes = fetchPrefixes
+    val prefixName = prefixes.get.head._1
+    val responseJsonDelete = checkResponse(client.url(s"$baseUrl${projectPrefixUrl(prefixProjectId, prefixName)}").delete()).json
+    (responseJsonDelete \\ prefixName).headOption must not be defined
+    retrieveOrCreateProject(prefixProjectId).config.prefixes.get(prefixName) must not be defined
+    val newPrefixUri = "http://newUri"
+    val responseJsonPut = checkResponse(client.url(s"$baseUrl${projectPrefixUrl(prefixProjectId, prefixName)}").put(Json.toJson(newPrefixUri))).json
+    (responseJsonPut \\ prefixName).headOption.map(_.as[String]) mustBe Some(newPrefixUri)
+    retrieveOrCreateProject(prefixProjectId).config.prefixes.get(prefixName) mustBe Some(newPrefixUri)
+  }
+
+  private def fetchPrefixes: JsResult[Map[String, String]] = {
+    val responseJson = checkResponse(client.url(s"$baseUrl${projectPrefixesUrl(prefixProjectId)}").get()).json
+    Json.fromJson[Map[String, String]](responseJson)
   }
 
   private def createProjectByLabel(label: String, description: Option[String] = None): WSResponse = {

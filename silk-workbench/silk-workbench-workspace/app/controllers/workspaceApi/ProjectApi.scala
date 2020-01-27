@@ -1,17 +1,17 @@
 package controllers.workspaceApi
 
-import controllers.core.RequestUserContextAction
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspace.JsonSerializer
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
 import javax.inject.Inject
-import org.silkframework.config.MetaData
+import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectConfig
-import play.api.libs.json.JsValue
-import play.api.mvc.{Action, InjectedController}
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc.{Action, AnyContent, InjectedController}
 
 /**
   * REST API for project artifacts.
@@ -57,5 +57,29 @@ class ProjectApi @Inject()() extends InjectedController with ControllerUtilsTrai
       case None =>
         tempId
     }
+  }
+
+  /** Returns all project prefixes */
+  def fetchProjectPrefixes(projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = getProject(projectId)
+    Ok(Json.toJson(project.config.prefixes.prefixMap))
+  }
+
+  /** Add or update project prefix. */
+  def addProjectPrefix(projectId: String, prefixName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>implicit userContext =>
+    val project = getProject(projectId)
+    validateJson[String] { prefixUri =>
+      val newPrefixes = Prefixes(project.config.prefixes.prefixMap ++ Map(prefixName -> prefixUri))
+      project.config = project.config.copy(prefixes = newPrefixes)
+      Ok(Json.toJson(newPrefixes.prefixMap))
+    }
+  }
+
+  /** Delete a project prefix */
+  def deleteProjectPrefix(projectId: String, prefixName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = getProject(projectId)
+    val newPrefixes = Prefixes(project.config.prefixes.prefixMap - prefixName)
+    project.config = project.config.copy(prefixes = newPrefixes)
+    Ok(Json.toJson(newPrefixes.prefixMap))
   }
 }

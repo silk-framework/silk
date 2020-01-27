@@ -8,3 +8,6 @@ GET           /recentlyViewedItems                                              
 
 POST          /projects                                                         controllers.workspaceApi.ProjectApi.createNewProject()
 PUT           /projects/:projectId/metaData                                     controllers.workspaceApi.ProjectApi.updateProjectMetaData(projectId: String)
+GET           /projects/:projectId/prefixes                                     controllers.workspaceApi.ProjectApi.fetchProjectPrefixes(projectId: String)
+PUT           /projects/:projectId/prefixes/:prefixName                         controllers.workspaceApi.ProjectApi.addProjectPrefix(projectId: String, prefixName: String)
+DELETE        /projects/:projectId/prefixes/:prefixName                         controllers.workspaceApi.ProjectApi.deleteProjectPrefix(projectId: String, prefixName: String)
