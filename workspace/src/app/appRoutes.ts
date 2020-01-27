@@ -40,7 +40,7 @@ const appRoutes: RouteProps[] = [
         exact: true
     },
     {
-        path: "/projects/:projectId/script/:scriptTaskId",
+        path: "/projects/:projectId/task/:scriptTaskId",
         component: ScriptTaskPage,
         exact: true
     },
