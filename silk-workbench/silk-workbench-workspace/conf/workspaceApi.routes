@@ -11,3 +11,7 @@ PUT           /projects/:projectId/metaData                                     
 GET           /projects/:projectId/prefixes                                     controllers.workspaceApi.ProjectApi.fetchProjectPrefixes(projectId: String)
 PUT           /projects/:projectId/prefixes/:prefixName                         controllers.workspaceApi.ProjectApi.addProjectPrefix(projectId: String, prefixName: String)
 DELETE        /projects/:projectId/prefixes/:prefixName                         controllers.workspaceApi.ProjectApi.deleteProjectPrefix(projectId: String, prefixName: String)
+
+# Project resources
+
+POST          /projects/:projectId/resourceSearch                               controllers.workspaceApi.SearchApi.resourceSearch(projectId: String)

@@ -2,6 +2,7 @@ package controllers.workspaceApi
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.core.util.ControllerUtilsTrait
+import controllers.workspaceApi.search.ResourceSearchRequest
 import controllers.workspaceApi.search.SearchApiModel._
 import javax.inject.Inject
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
@@ -24,6 +25,14 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
   def facetedSearch(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[FacetedSearchRequest] { facetedSearchRequest =>
       Ok(facetedSearchRequest())
+    }
+  }
+
+  /** Allows a text based search over project resources */
+  def resourceSearch(projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    val project = getProject(projectId) // just to 404 on unknown project
+    validateJson[ResourceSearchRequest] { resourceSearchRequest =>
+      Ok(resourceSearchRequest(project))
     }
   }
 

@@ -1,12 +1,12 @@
 package controllers.workspace
 
-import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult,
-  Facets, ItemType, KeywordFacetSetting, SortBy, SortOrder, SortableProperty}
-import controllers.workspaceApi.search.{FacetResult, FacetValue, KeywordFacetValue}
+import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, Facets, ItemType, KeywordFacetSetting, SortBy, SortOrder, SortableProperty}
+import controllers.workspaceApi.search.{FacetResult, FacetValue, KeywordFacetValue, ResourceSearchRequest}
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import play.api.libs.json._
+import play.api.mvc.Call
 import test.Routes
 
 class SearchApiIntegrationTest extends FlatSpec
@@ -152,6 +152,36 @@ class SearchApiIntegrationTest extends FlatSpec
     resultItemIds(facetedSearchRequest(
       FacetedSearchRequest(sortBy = Some(SortBy.label), textQuery = Some("js xyZ"))
     )) mustBe Seq("jsonXYZ")
+  }
+
+  it should "search for project resources" in {
+    val resourcesManager = project.resources
+    val expectedNames = for(i <- 0 to 9) yield {
+      val name = s"res$i" + (if(i%2 == 0) "even" else "odd")
+      resourcesManager.get(name).writeString("a" * i)
+      name
+    }
+    // default search
+    val defaultResults = resourceSearch(ResourceSearchRequest())
+    resourceNames(defaultResults) mustBe expectedNames.take(ResourceSearchRequest.DEFAULT_LIMIT)
+    // limit and offset search
+    val smallPageResult = resourceSearch(ResourceSearchRequest(limit = Some(3), offset = Some(2)))
+    val expectedSmallNames = expectedNames.slice(2, 5)
+    resourceNames(smallPageResult) mustBe expectedSmallNames
+    smallPageResult.flatMap(_.get(ResourceSearchRequest.SIZE_PARAM)).map(_.as[Int]) mustBe Seq(2, 3, 4)
+    // text search
+    resourceNames(resourceSearch(ResourceSearchRequest(limit = Some(2), offset = Some(2), searchText = Some("res even")))) mustBe
+      expectedNames.zipWithIndex.filter(_._2 % 2 == 0).slice(2, 4).map(_._1)
+  }
+
+  private def resourceNames(defaultResults: IndexedSeq[collection.Map[String, JsValue]]) = {
+    defaultResults.flatMap(_.get(ResourceSearchRequest.NAME_PARAM)).map(_.as[String])
+  }
+
+  private lazy val resourceSearchUrl = controllers.workspaceApi.routes.SearchApi.resourceSearch(projectId)
+  private def resourceSearch(request: ResourceSearchRequest): IndexedSeq[collection.Map[String, JsValue]] = {
+    val result = checkResponse(client.url(s"$baseUrl$resourceSearchUrl").post(Json.toJson(request))).json
+    result.as[JsArray].value.map(_.asInstanceOf[JsObject].value)
   }
 
   private def checkAndGetDatasetFacetValues(response: FacetedSearchResult): Seq[Seq[(String, Int)]] = {

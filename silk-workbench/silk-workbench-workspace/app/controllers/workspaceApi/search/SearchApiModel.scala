@@ -142,18 +142,32 @@ object SearchApiModel {
       idMatch || labelMatch || descriptionMatch || propertiesMatch
     }
 
+    /** Split text query into multi term search */
+    protected def extractSearchTerms(term: String) = {
+      term.toLowerCase.split("\\s+").filter(_.nonEmpty)
+    }
+
+    /** Match search terms against project. */
     protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], project: Project): Boolean = {
       val idMatch = matchesSearchTerm(lowerCaseSearchTerms, project.config.id)
       val nameMatch = matchesSearchTerm(lowerCaseSearchTerms, project.name)
       idMatch || nameMatch
     }
 
+    /** Match search terms against string. Returns only true if all search terms match. */
     protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], searchIn: String): Boolean = {
       val lowerCaseText = searchIn.toLowerCase
       lowerCaseSearchTerms forall lowerCaseText.contains
     }
   }
 
+  /**
+    * Representation of a facet.
+    * @param id          The facet ID.
+    * @param label       The facet label.
+    * @param description The facet description.
+    * @param facetType   The facet type, e.g. keyword facet, numeric range facet etc.
+    */
   case class Facet(id: String, label: String, description: String, facetType: FacetType.Value)
 
   object Facets {
@@ -164,9 +178,11 @@ object SearchApiModel {
     val facetIds: Seq[String] = Seq(datasetType, fileResource).map(_.id)
   }
 
+  /** The property of the search item to sort by and the label to display in the UI. */
   case class SortableProperty(id: String, label: String)
   lazy implicit val sortablePropertyWrites: Writes[SortableProperty] = Json.writes[SortableProperty]
 
+  /** The result of a faceted search. */
   case class FacetedSearchResult(total: Int,
                                  results: Seq[JsObject],
                                  sortByProperties: Seq[SortableProperty],
@@ -183,10 +199,13 @@ object SearchApiModel {
                                   sortBy: Option[SortBy.Value] = None,
                                   sortOrder: Option[SortOrder.Value] = None,
                                   facets: Option[Seq[FacetSetting]] = None) extends SearchRequestTrait {
+    /** The offset used for paging. */
     def workingOffset: Int =  offset.getOrElse(FacetedSearchRequest.DEFAULT_OFFSET)
 
+    /** The limit used for paging. */
     def workingLimit: Int = limit.getOrElse(FacetedSearchRequest.DEFAULT_LIMIT)
 
+    /** Execute search request and return result list. */
     def apply()(implicit userContext: UserContext,
                 accessMonitor: WorkbenchAccessMonitor): JsValue = {
       val ps: Seq[Project] = projects
@@ -321,29 +340,6 @@ object SearchApiModel {
       }
     }
 
-    /** Returns a function to check if a task matches the facet filter setting */
-    private def matchesFacetSettingFunction(itemType: ItemType): ProjectTask[_ <: TaskSpec] => Boolean = {
-      val alwaysTrueFunction: ProjectTask[_ <: TaskSpec] => Boolean = _ => true
-      facets match {
-        case None => alwaysTrueFunction
-        case Some(facetSettings) if facetSettings.isEmpty => alwaysTrueFunction
-        case Some(facetSettings) =>
-          itemType match { // FIXME: Improve facet filtering code when more facets are added
-            case ItemType.dataset =>
-              facetSettings.find(_.facetId == Facets.datasetType.id) match {
-                case Some(datasetType: KeywordFacetSetting) =>
-                  val datasetTypeIds = datasetType.keywordIds
-                  task: ProjectTask[_ <: TaskSpec] => {
-                    datasetTypeIds.contains(task.asInstanceOf[ProjectTask[DatasetSpec[Dataset]]].data.plugin.pluginSpec.id)
-                  }
-                case None => alwaysTrueFunction
-              }
-            case _ =>
-              alwaysTrueFunction
-          }
-      }
-    }
-
     /** Fetches the tasks. If the item type is defined, it will only fetch tasks of a specific type. */
     private def fetchTasks(project: Project)
                           (implicit userContext: UserContext): Seq[TypedTasks] = {
@@ -359,6 +355,7 @@ object SearchApiModel {
       }
     }
 
+    /** Tasks of a specific item type, e.g. dataset, transform, workflow... */
     case class TypedTasks(project: String,
                           itemType: ItemType,
                           tasks: Seq[ProjectTask[_ <: TaskSpec]])
@@ -400,10 +397,6 @@ object SearchApiModel {
     }
   }
 
-  private def extractSearchTerms(term: String) = {
-    term.toLowerCase.split("\\s+").filter(_.nonEmpty)
-  }
-
   /** Function that extracts a value from the JSON object. */
   private def sortValueFunction(by: SortBy.Value): JsObject => String = {
     // memorize converted values in order to not recompute
@@ -426,6 +419,7 @@ object SearchApiModel {
     }
   }
 
+  /** A simple text based search request. The text query has to match as a whole. */
   case class SearchRequest(project: Option[String],
                            searchTerm: Option[String],
                            formatOptions: Option[TaskFormatOptions]) extends SearchRequestTrait {
