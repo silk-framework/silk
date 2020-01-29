@@ -76,6 +76,7 @@
     "build-di-prod": "node scripts/build-di.prod.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
+    "test-ci": "CI=true node scripts/test.js",
     "trans": "node scripts/manageTranslations.js"
   },
   "eslintConfig": {
