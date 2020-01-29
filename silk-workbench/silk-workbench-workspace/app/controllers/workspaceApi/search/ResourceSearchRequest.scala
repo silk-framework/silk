@@ -31,8 +31,10 @@ case class ResourceSearchRequest(searchText: Option[String] = None,
   private def toJson(resource: Resource): JsObject = {
     JsObject(
       Seq(
-        ResourceSearchRequest.NAME_PARAM -> JsString(resource.name),
-        ResourceSearchRequest.FULL_PATH_PARAM -> JsString(resource.path)
+        ResourceSearchRequest.NAME_PARAM -> JsString(resource.name)
+        /* FIXME: The full path should reflect the full path with the resource repository as root and only makes sense
+                  as soon as hierarchical folder structures are supported. resource.path actually prints the file system absolute path. */
+//        ResourceSearchRequest.FULL_PATH_PARAM -> JsString(resource.path)
       )
         ++ resource.modificationTime.map(instant => ResourceSearchRequest.LAST_MODIFIED_PARAM -> JsString(formatDate(instant))).toSeq
         ++ resource.size.map(size => ResourceSearchRequest.SIZE_PARAM -> JsNumber(size))

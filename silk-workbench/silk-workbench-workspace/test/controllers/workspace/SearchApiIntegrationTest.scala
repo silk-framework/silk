@@ -157,7 +157,7 @@ class SearchApiIntegrationTest extends FlatSpec
   it should "search for project resources" in {
     val resourcesManager = project.resources
     val expectedNames = for(i <- 0 to 9) yield {
-      val name = s"res$i" + (if(i%2 == 0) "even" else "odd")
+      val name = s"Res$i" + (if(i%2 == 0) "even" else "odd")
       resourcesManager.get(name).writeString("a" * i)
       name
     }
@@ -170,7 +170,7 @@ class SearchApiIntegrationTest extends FlatSpec
     resourceNames(smallPageResult) mustBe expectedSmallNames
     smallPageResult.flatMap(_.get(ResourceSearchRequest.SIZE_PARAM)).map(_.as[Int]) mustBe Seq(2, 3, 4)
     // text search
-    resourceNames(resourceSearch(ResourceSearchRequest(limit = Some(2), offset = Some(2), searchText = Some("res even")))) mustBe
+    resourceNames(resourceSearch(ResourceSearchRequest(limit = Some(2), offset = Some(2), searchText = Some("res Even")))) mustBe
       expectedNames.zipWithIndex.filter(_._2 % 2 == 0).slice(2, 4).map(_._1)
   }
 
