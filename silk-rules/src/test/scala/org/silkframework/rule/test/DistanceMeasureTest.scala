@@ -9,6 +9,12 @@ import org.silkframework.test.PluginTest
 
 import scala.reflect.ClassTag
 
+/**
+  * Can be mixed into a DistanceMeasure test spec.
+  * Will iterate through all [[DistanceMeasureExampleValue]] annotations and generate a test case for each.
+  *
+  * @tparam T The class to be tested.
+  */
 abstract class DistanceMeasureTest[T <: DistanceMeasure : ClassTag] extends PluginTest {
 
   /** Numeric values may differ slightly from their expected values. */
