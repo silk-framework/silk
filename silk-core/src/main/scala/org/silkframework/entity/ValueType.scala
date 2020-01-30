@@ -5,7 +5,8 @@ import javax.xml.datatype.{DatatypeConstants, DatatypeFactory, Duration, XMLGreg
 import javax.xml.namespace.QName
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.ValueType.XSD
-import org.silkframework.runtime.plugin.{AnyPlugin, Plugin}
+import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Uri
 
