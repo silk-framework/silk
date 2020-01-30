@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, ProjectConfig}

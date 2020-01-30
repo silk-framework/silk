@@ -7,7 +7,7 @@ import org.silkframework.execution.{AbortExecutionException, ExecutionType, Exec
 import org.silkframework.rule.execution.ComparisonToRestrictionConverter
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityMonitor, UserContext}
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.DPair
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory

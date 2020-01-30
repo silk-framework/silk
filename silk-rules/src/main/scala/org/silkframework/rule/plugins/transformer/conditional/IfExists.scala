@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.conditional
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
 
 @Plugin(
   id = "ifExists",

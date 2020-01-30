@@ -15,7 +15,8 @@
 package org.silkframework.rule.plugins.transformer.tokenization
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Param, Plugin, PluginCategories, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.PluginCategories
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExample, TransformExamples}
 
 @Plugin(
   id = "tokenize",

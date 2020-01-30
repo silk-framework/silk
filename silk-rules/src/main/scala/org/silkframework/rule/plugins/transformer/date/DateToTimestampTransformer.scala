@@ -17,9 +17,8 @@
 package org.silkframework.rule.plugins.transformer.date
 
 import javax.xml.datatype.DatatypeFactory
-
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin;
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
  * Convert an xsd:date to a Unix timestamp.

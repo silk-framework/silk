@@ -5,7 +5,7 @@ import java.util.Properties
 import java.util.logging.Logger
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
 

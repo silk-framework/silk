@@ -3,7 +3,7 @@ package org.silkframework.learning.active
 import org.silkframework.learning.{LearningActivity, LearningConfiguration, LearningInput, LearningResult}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache

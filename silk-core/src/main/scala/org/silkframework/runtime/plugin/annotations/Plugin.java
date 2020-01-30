@@ -12,7 +12,9 @@
  * limitations under the License.
  */
 
-package org.silkframework.runtime.plugin;
+package org.silkframework.runtime.plugin.annotations;
+
+import org.silkframework.runtime.plugin.PluginCategories;
 
 import java.lang.annotation.*;
 

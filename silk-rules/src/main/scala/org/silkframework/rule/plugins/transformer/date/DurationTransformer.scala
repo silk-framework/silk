@@ -2,9 +2,8 @@ package org.silkframework.rule.plugins.transformer.date
 
 import javax.xml.bind.DatatypeConverter
 import javax.xml.datatype.DatatypeFactory
-
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "duration",

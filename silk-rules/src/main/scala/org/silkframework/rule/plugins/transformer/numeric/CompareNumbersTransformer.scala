@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.numeric
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.StringUtils.DoubleLiteral
 
 /**

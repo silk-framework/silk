@@ -1,11 +1,11 @@
 package org.silkframework.rule.plugins.transformer.date
 
 import java.util.GregorianCalendar
-import javax.xml.datatype.DatatypeFactory
 
+import javax.xml.datatype.DatatypeFactory
 import org.silkframework.rule.plugins.transformer.date.CurrentDateTransformer._
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "currentDate",

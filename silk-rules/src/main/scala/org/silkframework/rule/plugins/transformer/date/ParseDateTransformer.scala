@@ -19,7 +19,7 @@ package org.silkframework.rule.plugins.transformer.date
 import java.text.{ParseException, SimpleDateFormat}
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Param, Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExample, TransformExamples}
 import org.silkframework.runtime.validation.ValidationException;
 
 /**

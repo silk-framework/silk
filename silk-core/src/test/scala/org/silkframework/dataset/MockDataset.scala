@@ -5,7 +5,7 @@ import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.Param
+import org.silkframework.runtime.plugin.annotations.Param
 import org.silkframework.util.Uri
 
 /**

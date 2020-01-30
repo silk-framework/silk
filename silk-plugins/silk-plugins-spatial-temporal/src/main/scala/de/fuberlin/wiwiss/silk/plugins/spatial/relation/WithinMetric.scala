@@ -17,8 +17,7 @@ package org.silkframework.plugins.spatial.relation
 import org.silkframework.entity.Index
 import org.silkframework.plugins.spatial.utils._
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.Plugin
-
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 
 /**

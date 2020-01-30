@@ -1,5 +1,7 @@
 package org.silkframework.runtime.plugin
 
+import org.silkframework.runtime.plugin.annotations.TransformExample
+
 case class TransformExampleValue(parameters: Map[String, String], input: Seq[Seq[String]], output: Seq[String], throwsException: String) {
 
   def formatted: String = {

@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.replace
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 import scala.util.matching.Regex
 

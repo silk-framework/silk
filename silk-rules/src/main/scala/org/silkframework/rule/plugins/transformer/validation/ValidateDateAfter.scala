@@ -15,10 +15,9 @@
 package org.silkframework.rule.plugins.transformer.validation
 
 import javax.xml.datatype.DatatypeFactory
-
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Param, Plugin}
 import ValidateDateAfter._
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.validation.ValidationException
 
 @Plugin(

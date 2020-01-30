@@ -1,4 +1,4 @@
-package org.silkframework.runtime.plugin;
+package org.silkframework.runtime.plugin.annotations;
 
 import java.lang.annotation.*;
 

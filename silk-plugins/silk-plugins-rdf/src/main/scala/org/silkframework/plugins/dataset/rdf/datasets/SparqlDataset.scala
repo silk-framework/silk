@@ -5,7 +5,8 @@ import org.silkframework.dataset.{DatasetCategories, TripleSink, TripleSinkDatas
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.plugins.dataset.rdf.access.{SparqlSink, SparqlSource}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, PasswordParameter, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.{MultilineStringParameter, PasswordParameter}
 
 @Plugin(
   id = "sparqlEndpoint",
