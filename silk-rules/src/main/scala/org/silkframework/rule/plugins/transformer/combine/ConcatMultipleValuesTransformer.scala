@@ -3,7 +3,7 @@ package org.silkframework.rule.plugins.transformer.combine
 import java.util.regex.Pattern
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
 
 /**
  * Transformer concatenating multiple values using a given glue string. Optionally removes duplicate values.

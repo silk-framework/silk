@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.transform
 
 import org.silkframework.rule.TransformSpec
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory}
 

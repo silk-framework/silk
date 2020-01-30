@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.numeric
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Param, Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExample, TransformExamples}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.StringUtils.DoubleLiteral
 

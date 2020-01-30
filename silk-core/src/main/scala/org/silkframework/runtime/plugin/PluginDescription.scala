@@ -18,6 +18,7 @@ import java.lang.reflect.{Constructor, InvocationTargetException}
 
 import com.thoughtworks.paranamer.BytecodeReadingParanamer
 import org.silkframework.config.Prefixes
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager, ResourceNotFoundException}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier

@@ -16,7 +16,7 @@ package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 import scala.math.max
 

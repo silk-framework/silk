@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.sequence
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
   * Transforms the sequence of values to their respective indexes in the sequence.

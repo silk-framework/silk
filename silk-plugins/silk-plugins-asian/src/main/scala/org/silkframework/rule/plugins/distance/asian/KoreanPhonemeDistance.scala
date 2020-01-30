@@ -16,7 +16,7 @@ package org.silkframework.rule.plugins.distance.asian
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.StringUtils._
 
 import scala.Array._

@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.xml
 import org.silkframework.config.CustomTask
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.util.Uri
 
 @Plugin(

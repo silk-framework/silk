@@ -24,7 +24,7 @@ import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.Uri
 
 @Plugin(id = "cache", label = "Cache", description= "Reads the entities from an existing Silk entity cache.")

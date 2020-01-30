@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "jaro",

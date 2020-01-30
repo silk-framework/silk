@@ -4,7 +4,7 @@ import java.io.{File, OutputStream}
 import java.util.zip.ZipFile
 
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource._
 import org.silkframework.runtime.resource.zip.{ZipFileResourceLoader, ZipOutputStreamResourceManager}
 import org.silkframework.runtime.validation.NotFoundException
