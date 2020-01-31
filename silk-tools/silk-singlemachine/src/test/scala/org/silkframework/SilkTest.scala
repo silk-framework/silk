@@ -20,13 +20,13 @@ class SilkTest extends FlatSpec with Matchers {
   "Silk" should "execute the example link spec" in {
     Silk.executeFile(linkSpecFile)
     outputFile.exists() should be(true)
-    Source.fromFile(outputFile).getLines().size should be (106)
+    Source.fromFile(outputFile).getLines().size should be (110)
   }
 
   "Silk" should "execute workflows" in {
     val project = Silk.executeProject(projectFile, "workflow")
     val output = project.resources.get("output.nt")
-    output.loadAsString.split("\n").length should be (106)
+    output.loadAsString.split("\n").length should be (110)
     // Clean up
     project.resources.delete("output.nt")
     project.resources.delete("source.nt")
