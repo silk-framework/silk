@@ -6,7 +6,7 @@ class DateTimeValueTypeTest extends FlatSpec with Matchers {
 
   behavior of "DateTimeValueType"
 
-  private val dt = DateTimeValueType()
+  private val dt = AnyDateTimeValueType()
 
   it should "accept XML schema dates" in {
     dt.validate("2017-08-23") shouldBe true
