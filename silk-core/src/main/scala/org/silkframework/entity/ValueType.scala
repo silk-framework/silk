@@ -104,7 +104,9 @@ object ValueType {
     Right(DAY),
     Right(MONTH),
     Right(DATE_TIME),
-    Right(TIME)
+    Right(TIME),
+    Right(AnyDateValueType()),
+    Right(AnyDateTimeValueType())
   )
 
   lazy val valueTypeMapByStringId: Map[String, Either[Class[_], ValueType]] = allValueType.map {
@@ -415,7 +417,7 @@ case class BooleanValueType() extends ValueType with Serializable {
 
 @Plugin(
   id = "UriValueType",
-  label = "Uri",
+  label = "URI",
   description = "Suited for values which are Unique Resource Identifiers."
 )
 case class UriValueType() extends ValueType with Serializable {
@@ -477,9 +479,36 @@ abstract class DateAndTimeValueType extends ValueType with Serializable {
 }
 
 @Plugin(
+  id = "AnyDateTimeValueType",
+  label = "DateTime (all types)",
+  description = "Suited for XML Schema dates and time types. Accepts values in the the following formats: xsd:date, xsd:dateTime, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth, xsd:time."
+)
+@ValueTypeAnnotation(
+  validValues = Array("31", "2020-01-01"),
+  invalidValues = Array("2002-05-30T09:30:10")
+)
+case class AnyDateTimeValueType() extends DateAndTimeValueType {
+
+  override def uri: Option[String] = Some(XSD + "dateTime")
+
+  override def allowedXsdTypes: Set[QName] = {
+    Set(
+      DatatypeConstants.DATE,
+      DatatypeConstants.GYEARMONTH,
+      DatatypeConstants.GMONTHDAY,
+      DatatypeConstants.GYEAR,
+      DatatypeConstants.GMONTH,
+      DatatypeConstants.GDAY,
+      DatatypeConstants.DATETIME,
+      DatatypeConstants.TIME
+    )
+  }
+}
+
+@Plugin(
   id = "AnyDateValueType",
-  label = "Any Date type",
-  description = "Suited for XML Schema dates. Accepts values in the the following formats: xsd:date, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth."
+  label = "Date (all types)",
+  description = "Suited for XML Schema date types. Accepts values in the the following formats: xsd:date, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth."
 )
 @ValueTypeAnnotation(
   validValues = Array("31", "2020-01-01"),
@@ -500,9 +529,23 @@ case class AnyDateValueType() extends DateAndTimeValueType {
 }
 
 @Plugin(
+  id = "DateTimeValueType",
+  label = "DateTime",
+  description = "Suited for XML Schema date times. All components (year, month, day and time) are required."
+)
+@ValueTypeAnnotation(
+  validValues = Array("2002-05-30T09:30:10"),
+  invalidValues = Array("31","2020-01-01")
+)
+case class DateTimeValueType() extends DateAndTimeValueType {
+  override def uri: Option[String] = Some(XSD + "dateTime")
+  override def allowedXsdTypes: Set[QName] = Set(DatatypeConstants.DATETIME)
+}
+
+@Plugin(
   id = "DateValueType",
   label = "Date",
-  description = "Suited for XML Schema dates."
+  description = "Suited for XML Schema dates. All components (year, month and day) are required."
 )
 @ValueTypeAnnotation(
   validValues = Array("2020-01-01"),
@@ -581,47 +624,6 @@ case class DayDateValueType() extends DateAndTimeValueType {
 case class MonthDateValueType() extends DateAndTimeValueType {
   override def uri: Option[String] = Some(XSD + "gMonth")
   override def allowedXsdTypes: Set[QName] = Set(DatatypeConstants.GMONTH)
-}
-
-@Plugin(
-  id = "AnyDateTimeValueType",
-  label = "Any DateTime type",
-  description = "Suited for XML Schema dates and times. Accepts values in the the following formats: xsd:date, xsd:dateTime, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth, xsd:time."
-)
-@ValueTypeAnnotation(
-  validValues = Array("31", "2020-01-01"),
-  invalidValues = Array("2002-05-30T09:30:10")
-)
-case class AnyDateTimeValueType() extends DateAndTimeValueType {
-
-  override def uri: Option[String] = Some(XSD + "dateTime")
-
-  override def allowedXsdTypes: Set[QName] = {
-    Set(
-      DatatypeConstants.DATE,
-      DatatypeConstants.GYEARMONTH,
-      DatatypeConstants.GMONTHDAY,
-      DatatypeConstants.GYEAR,
-      DatatypeConstants.GMONTH,
-      DatatypeConstants.GDAY,
-      DatatypeConstants.DATETIME,
-      DatatypeConstants.TIME
-    )
-  }
-}
-
-@Plugin(
-  id = "DateTimeValueType",
-  label = "DateTime",
-  description = "Suited for XML Schema date times."
-)
-@ValueTypeAnnotation(
-  validValues = Array("2002-05-30T09:30:10"),
-  invalidValues = Array("31","2020-01-01")
-)
-case class DateTimeValueType() extends DateAndTimeValueType {
-  override def uri: Option[String] = Some(XSD + "dateTime")
-  override def allowedXsdTypes: Set[QName] = Set(DatatypeConstants.DATETIME)
 }
 
 @Plugin(
