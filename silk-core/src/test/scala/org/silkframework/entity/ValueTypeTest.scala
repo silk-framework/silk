@@ -3,9 +3,6 @@ package org.silkframework.entity
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 
-/**
-  * Created on 11/22/16.
-  */
 class ValueTypeTest extends FlatSpec with MustMatchers {
   behavior of "ValueType"
 
@@ -25,5 +22,30 @@ class ValueTypeTest extends FlatSpec with MustMatchers {
     val xmlNodes = objTypes.map(XmlSerialization.toXml[ValueType])
     val roundTripObjTypes = xmlNodes.map(XmlSerialization.fromXml[ValueType])
     roundTripObjTypes mustBe objTypes
+  }
+
+  // Test all value types without parameters for now
+  for(valueType <- ValueType.allValueType.flatMap(_.right.toOption)) {
+    testValueType(valueType)
+  }
+
+  def testValueType(valueType: ValueType): Unit = {
+    val annotation = valueType.getClass.getAnnotation(classOf[ValueTypeAnnotation])
+    if (annotation != null) {
+      valueType.id should "accept valid values" in {
+        for (value <- annotation.validValues()) {
+          if(!valueType.validate(value)) {
+            fail(s"$valueType did not accept '$value' as a valid value.")
+          }
+        }
+      }
+      it should "reject valid values" in {
+        for (value <- annotation.invalidValues()) {
+          if(valueType.validate(value)) {
+            fail(s"$valueType did not reject '$value' as an invalid value.")
+          }
+        }
+      }
+    }
   }
 }

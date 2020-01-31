@@ -67,13 +67,14 @@ object ValueType {
 
   final val BLANK_NODE: ValueType = BlankNodeValueType()
 
-  final val DATE: DateValueType = GeneralDateValueType()
-  final val YEAR: DateValueType = YearDateValueType()
-  final val YEAR_MONTH: DateValueType = YearMonthDateValueType()
-  final val MONTH_DAY: DateValueType = MonthDayDateValueType()
-  final val DAY: DateValueType = DayDateValueType()
-  final val MONTH: DateValueType = MonthDateValueType()
+  final val DATE: DateAndTimeValueType = DateValueType()
+  final val YEAR: DateAndTimeValueType = YearDateValueType()
+  final val YEAR_MONTH: DateAndTimeValueType = YearMonthDateValueType()
+  final val MONTH_DAY: DateAndTimeValueType = MonthDayDateValueType()
+  final val DAY: DateAndTimeValueType = DayDateValueType()
+  final val MONTH: DateAndTimeValueType = MonthDateValueType()
   final val DATE_TIME: DateTimeValueType = DateTimeValueType()
+  final val TIME: TimeValueType = TimeValueType()
 
   final val XSD = "http://www.w3.org/2001/XMLSchema#"
   final lazy val xmlDatatypeFactory = DatatypeFactory.newInstance()
@@ -102,7 +103,8 @@ object ValueType {
     Right(MONTH_DAY),
     Right(DAY),
     Right(MONTH),
-    Right(DATE_TIME)
+    Right(DATE_TIME),
+    Right(TIME)
   )
 
   lazy val valueTypeMapByStringId: Map[String, Either[Class[_], ValueType]] = allValueType.map {
@@ -273,7 +275,7 @@ case class IntegerValueType() extends ValueType with Serializable {
 @Plugin(
   id = "IntValueType",
   label = "Int",
-  description = "Numeric values without a fractional component, represented as 32-bit signed integers"
+  description = "Numeric values without a fractional component, represented as 32-bit signed integers."
 )
 case class IntValueType() extends ValueType with Serializable {
 
@@ -309,7 +311,7 @@ case class LongValueType() extends ValueType with Serializable {
 @Plugin(
   id = "StringValueType",
   label = "String",
-  description = "Suited for values which contain text"
+  description = "Suited for values which contain text."
 )
 case class StringValueType() extends ValueType with Serializable {
 
@@ -327,6 +329,10 @@ case class StringValueType() extends ValueType with Serializable {
   id = "FloatValueType",
   label = "Float",
   description = "Numeric values which have a fractional value, represented as IEEE single-precision 32-bit floating point numbers."
+)
+@ValueTypeAnnotation(
+  validValues = Array("1.9"),
+  invalidValues = Array("1,9")
 )
 case class FloatValueType() extends ValueType with Serializable {
 
@@ -346,6 +352,10 @@ case class FloatValueType() extends ValueType with Serializable {
   label = "Double",
   description = "Numeric values which have a fractional value, represented as IEEE double-precision 64-bit floating point numbers."
 )
+@ValueTypeAnnotation(
+  validValues = Array("1.9"),
+  invalidValues = Array("1,9")
+)
 case class DoubleValueType() extends ValueType with Serializable {
 
   override def validate(lexicalString: String): Boolean = {
@@ -364,6 +374,10 @@ case class DoubleValueType() extends ValueType with Serializable {
   label = "Decimal",
   description = "Decimal values."
 )
+@ValueTypeAnnotation(
+  validValues = Array("+1234.456", "1234567890123456789012345678901234567890.1234567890"),
+  invalidValues = Array("1,9", "1.7.2017")
+)
 case class DecimalValueType() extends ValueType with Serializable {
 
   override def validate(lexicalString: String): Boolean = {
@@ -380,7 +394,11 @@ case class DecimalValueType() extends ValueType with Serializable {
 @Plugin(
   id = "BooleanValueType",
   label = "Boolean",
-  description = "Suited for values which are either true or false"
+  description = "Suited for values which are either true or false."
+)
+@ValueTypeAnnotation(
+  validValues = Array("true", "TRUE", "false"),
+  invalidValues = Array("1", "none")
 )
 case class BooleanValueType() extends ValueType with Serializable {
 
@@ -398,7 +416,7 @@ case class BooleanValueType() extends ValueType with Serializable {
 @Plugin(
   id = "UriValueType",
   label = "Uri",
-  description = "Suited for values which are Unique Resource Identifiers"
+  description = "Suited for values which are Unique Resource Identifiers."
 )
 case class UriValueType() extends ValueType with Serializable {
 
@@ -416,7 +434,7 @@ case class UriValueType() extends ValueType with Serializable {
 @Plugin(
   id = "BlankNodeValueType",
   label = "Blank Node",
-  description = "RDF blank nodes"
+  description = "RDF blank nodes."
 )
 case class BlankNodeValueType() extends ValueType with Serializable {
 
@@ -429,7 +447,10 @@ case class BlankNodeValueType() extends ValueType with Serializable {
   override def ordering: Ordering[String] = ValueType.DefaultOrdering
 }
 
-abstract class DateValueType extends ValueType with Serializable {
+/**
+  * Base class for all date and time related data types.
+  */
+abstract class DateAndTimeValueType extends ValueType with Serializable {
 
   def allowedXsdTypes: Set[QName]
 
@@ -438,7 +459,7 @@ abstract class DateValueType extends ValueType with Serializable {
       val date = ValueType.xmlDatatypeFactory.newXMLGregorianCalendar(lexicalString)
       allowedXsdTypes.contains(date.getXMLSchemaType)
     } catch {
-      case ex: IllegalArgumentException =>
+      case _: IllegalArgumentException =>
         false
     }
   }
@@ -456,11 +477,15 @@ abstract class DateValueType extends ValueType with Serializable {
 }
 
 @Plugin(
-  id = "DateValueType",
-  label = "Date",
+  id = "AnyDateValueType",
+  label = "Any Date type",
   description = "Suited for XML Schema dates. Accepts values in the the following formats: xsd:date, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth."
 )
-case class GeneralDateValueType() extends DateValueType {
+@ValueTypeAnnotation(
+  validValues = Array("31", "2020-01-01"),
+  invalidValues = Array("2002-05-30T09:30:10")
+)
+case class AnyDateValueType() extends DateAndTimeValueType {
   override def uri: Option[String] = Some(XSD + "date")
   override def allowedXsdTypes: Set[QName] = {
     Set(
@@ -475,53 +500,151 @@ case class GeneralDateValueType() extends DateValueType {
 }
 
 @Plugin(
-  id = "YearValueType",
-  label = "Year"
+  id = "DateValueType",
+  label = "Date",
+  description = "Suited for XML Schema dates."
 )
-case class YearDateValueType() extends DateValueType {
+@ValueTypeAnnotation(
+  validValues = Array("2020-01-01"),
+  invalidValues = Array("31","2002-05-30T09:30:10")
+)
+case class DateValueType() extends DateAndTimeValueType {
+  override def uri: Option[String] = Some(XSD + "date")
+  override def allowedXsdTypes: Set[QName] = Set(DatatypeConstants.DATE)
+}
+
+@Plugin(
+  id = "YearValueType",
+  label = "Year",
+  description = "Suited for XML Schema years."
+)
+@ValueTypeAnnotation(
+  validValues = Array("2020"),
+  invalidValues = Array("2020-01-01")
+)
+case class YearDateValueType() extends DateAndTimeValueType {
   override def uri: Option[String] = Some(XSD + "gYear")
   override def allowedXsdTypes: Set[QName] = Set(DatatypeConstants.GYEAR)
 }
 
 @Plugin(
   id = "YeahMonthValueType",
-  label = "YearMonth"
+  label = "YearMonth",
+  description = "Suited for XML Schema year months."
 )
-case class YearMonthDateValueType() extends DateValueType {
+@ValueTypeAnnotation(
+  validValues = Array("2020-01"),
+  invalidValues = Array("2020")
+)
+case class YearMonthDateValueType() extends DateAndTimeValueType {
   override def uri: Option[String] = Some(XSD + "gYearMonth")
   override def allowedXsdTypes: Set[QName] = Set(DatatypeConstants.GYEARMONTH)
 }
 
 @Plugin(
   id = "MonthDayValueType",
-  label = "MonthDay"
+  label = "MonthDay",
+  description = "Suited for XML Schema month days."
 )
-case class MonthDayDateValueType() extends DateValueType {
+@ValueTypeAnnotation(
+  validValues = Array("--12-01"),
+  invalidValues = Array("--14-01", "2020")
+)
+case class MonthDayDateValueType() extends DateAndTimeValueType {
   override def uri: Option[String] = Some(XSD + "gMonthDay")
   override def allowedXsdTypes: Set[QName] = Set(DatatypeConstants.GMONTHDAY)
 }
 
 @Plugin(
   id = "DayValueType",
-  label = "Day"
+  label = "Day",
+  description = "Suited for XML Schema days."
 )
-case class DayDateValueType() extends DateValueType {
+@ValueTypeAnnotation(
+  validValues = Array("---31"),
+  invalidValues = Array("31", "32", "2020-01-01")
+)
+case class DayDateValueType() extends DateAndTimeValueType {
   override def uri: Option[String] = Some(XSD + "gDay")
   override def allowedXsdTypes: Set[QName] = Set(DatatypeConstants.GDAY)
 }
 
 @Plugin(
   id = "MonthValueType",
-  label = "Month"
+  label = "Month",
+  description = "Suited for XML Schema months."
 )
-case class MonthDateValueType() extends DateValueType {
+@ValueTypeAnnotation(
+  validValues = Array("--12"),
+  invalidValues = Array("14", "2020-01-01")
+)
+case class MonthDateValueType() extends DateAndTimeValueType {
   override def uri: Option[String] = Some(XSD + "gMonth")
   override def allowedXsdTypes: Set[QName] = Set(DatatypeConstants.GMONTH)
 }
 
 @Plugin(
+  id = "AnyDateTimeValueType",
+  label = "Any DateTime type",
+  description = "Suited for XML Schema dates and times. Accepts values in the the following formats: xsd:date, xsd:dateTime, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth, xsd:time."
+)
+@ValueTypeAnnotation(
+  validValues = Array("31", "2020-01-01"),
+  invalidValues = Array("2002-05-30T09:30:10")
+)
+case class AnyDateTimeValueType() extends DateAndTimeValueType {
+
+  override def uri: Option[String] = Some(XSD + "dateTime")
+
+  override def allowedXsdTypes: Set[QName] = {
+    Set(
+      DatatypeConstants.DATE,
+      DatatypeConstants.GYEARMONTH,
+      DatatypeConstants.GMONTHDAY,
+      DatatypeConstants.GYEAR,
+      DatatypeConstants.GMONTH,
+      DatatypeConstants.GDAY,
+      DatatypeConstants.DATETIME,
+      DatatypeConstants.TIME
+    )
+  }
+}
+
+@Plugin(
+  id = "DateTimeValueType",
+  label = "DateTime",
+  description = "Suited for XML Schema date times."
+)
+@ValueTypeAnnotation(
+  validValues = Array("2002-05-30T09:30:10"),
+  invalidValues = Array("31","2020-01-01")
+)
+case class DateTimeValueType() extends DateAndTimeValueType {
+  override def uri: Option[String] = Some(XSD + "dateTime")
+  override def allowedXsdTypes: Set[QName] = Set(DatatypeConstants.DATETIME)
+}
+
+@Plugin(
+  id = "TimeValueType",
+  label = "Time",
+  description = "Suited for XML Schema times."
+)
+@ValueTypeAnnotation(
+  validValues = Array("13:20:00"),
+  invalidValues = Array("31","2020-01-01")
+)
+case class TimeValueType() extends DateAndTimeValueType {
+  override def uri: Option[String] = Some(XSD + "time")
+  override def allowedXsdTypes: Set[QName] = Set(DatatypeConstants.TIME)
+}
+
+@Plugin(
   id = "DurationValueType",
   label = "Duration"
+)
+@ValueTypeAnnotation(
+  validValues = Array("P5Y2M10D"),
+  invalidValues = Array("1s", "5min")
 )
 case class DurationValueType() extends ValueType with Serializable {
 
@@ -533,8 +656,7 @@ case class DurationValueType() extends ValueType with Serializable {
         case _ => false
       }
     } catch {
-      case ex: IllegalArgumentException =>
-        false
+      case _: IllegalArgumentException => false
     }
   }
 
@@ -551,32 +673,4 @@ case class DurationValueType() extends ValueType with Serializable {
 
   /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
   override def ordering: Ordering[String] = Ordering.by((str: String) => ValueType.xmlDatatypeFactory.newDuration(str))(ValueType.DurationOrdering)
-}
-
-@Plugin(
-  id = "DateTimeValueType",
-  label = "DateTime",
-  description = "Suited for XML Schema dates and times. Accepts values in the the following formats: xsd:date, xsd:dateTime, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth, xsd:time."
-)
-case class DateTimeValueType() extends ValueType with Serializable {
-
-  @transient lazy private val datatypeFactory = DatatypeFactory.newInstance()
-
-  override def validate(lexicalString: String): Boolean = {
-    Try(datatypeFactory.newXMLGregorianCalendar(lexicalString)).isSuccess
-  }
-
-  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
-  override def uri: Option[String] = Some(XSD + "dateTime")
-
-  /**
-    * Returns the URI of the XML Schema date/time type that a lexical string actually has.
-    */
-  def xmlSchemaType(lexicalString: String): String = {
-    val qName = datatypeFactory.newXMLGregorianCalendar(lexicalString).getXMLSchemaType
-    qName.getNamespaceURI + "#" + qName.getLocalPart
-  }
-
-  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
-  override def ordering: Ordering[String] = Ordering.by((str: String) => datatypeFactory.newXMLGregorianCalendar(str))(ValueType.GregorianCalendarOrdering)
 }

@@ -7,11 +7,11 @@ import controllers.core.UserContextAction
 import controllers.transform.AutoCompletionApi.Categories
 import javax.inject.Inject
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.ValueType
+import org.silkframework.entity.{CustomValueType, ValueType, ValueTypeAnnotation}
 import org.silkframework.entity.paths._
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
@@ -142,18 +142,31 @@ class AutoCompletionApi @Inject() () extends InjectedController {
     * @return
     */
   def valueTypes(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val completions = Completions(
-      for(valueType <- PluginRegistry.availablePlugins[ValueType].sortBy(_.label)) yield
-        Completion(
-          value = valueType.id,
-          label = Some(valueType.label),
-          description = Some(valueType.description),
-          category = valueType.categories.headOption.getOrElse(""),
-          isCompletion = true
-        )
-    )
-
+    val valueTypeBlacklist = Set(ValueType.CUSTOM_VALUE_TYPE_ID)
+    val valueTypes = PluginRegistry.availablePlugins[ValueType].sortBy(_.label)
+    val filteredValueTypes = valueTypes.filterNot(v => valueTypeBlacklist.contains(v.id))
+    val completions = Completions(filteredValueTypes.map(valueTypeCompletion))
     Ok(completions.filterAndSort(term, maxResults, sortEmptyTermResult = false).toJson)
+  }
+
+  private def valueTypeCompletion(valueType: PluginDescription[ValueType]): Completion = {
+    val annotation = valueType.pluginClass.getAnnotation(classOf[ValueTypeAnnotation])
+    val annotationDescription =
+      if(annotation != null) {
+        val validValues = annotation.validValues().map(str => s"'$str'").mkString(", ")
+        val invalidValues = annotation.invalidValues().map(str => s"'$str'").mkString(", ")
+        s" Examples for valid values are: $validValues. Invalid values are: $invalidValues"
+      } else {
+        ""
+      }
+
+    Completion(
+      value = valueType.id,
+      label = Some(valueType.label),
+      description = Some(valueType.description + annotationDescription),
+      category = valueType.categories.headOption.getOrElse(""),
+      isCompletion = true
+    )
   }
 
   /**

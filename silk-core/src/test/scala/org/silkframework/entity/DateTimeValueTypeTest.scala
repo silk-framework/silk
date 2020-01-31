@@ -4,7 +4,7 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class DateTimeValueTypeTest extends FlatSpec with Matchers {
 
-  behavior of "DateTimeValue"
+  behavior of "DateTimeValueType"
 
   private val dt = DateTimeValueType()
 
