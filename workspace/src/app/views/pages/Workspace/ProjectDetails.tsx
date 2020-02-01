@@ -7,8 +7,9 @@ import Metadata from "../../components/Metadata";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import SearchList from "./SearchResults/SearchList";
 import TopBar from "./Topbar";
+import ConfigurationWidget from "./widgets/Configuration";
 
-const ProjectDetails = ({ projectId }) => {
+const ProjectDetails = ({projectId}) => {
     const dispatch = useDispatch();
     const projectMetadata = useSelector(workspaceSel.projectMetadataSelector);
 
@@ -24,9 +25,11 @@ const ProjectDetails = ({ projectId }) => {
         }));
     }, []);
 
+    const {LeftPanel, RightPanel} = Main;
+
     return (
         <Main>
-            <Main.LeftPanel className='clearfix'>
+            <LeftPanel className='clearfix'>
                 <Metadata metadata={projectMetadata}/>
                 <div className='filter-bar-content'>
                     <Filterbar/>
@@ -35,7 +38,10 @@ const ProjectDetails = ({ projectId }) => {
                     <TopBar/>
                     <SearchList/>
                 </div>
-            </Main.LeftPanel>
+            </LeftPanel>
+            <RightPanel>
+                <ConfigurationWidget projectId={projectId}/>
+            </RightPanel>
         </Main>
     )
 };

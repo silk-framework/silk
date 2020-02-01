@@ -1,14 +1,7 @@
-import { getLegacyApiEndpoint } from "../../../utils/getApiEndpoint";
-import fetch from "../../../services/fetch";
-
-const getTaskMetadataAsync = async (taskId: string, projectId: string) => {
-    const url = getLegacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/metadata`);
-    const {data} = await fetch({
-        url
-    });
-    return data;
-};
+import { getTaskMetadataAsync } from "@ducks/shared/thunks/metadata.thunk";
+import { getProjectPrefixes } from "@ducks/shared/thunks/widgets.thunk";
 
 export default {
-    getTaskMetadataAsync
+    getTaskMetadataAsync,
+    getProjectPrefixes
 }

@@ -26,7 +26,6 @@ const {
 const {
     setLoading,
     setError,
-    cloneTask,
     fetchList,
     fetchListSuccess,
     setProjectId,
@@ -157,7 +156,6 @@ const fetchProjectMetadata = () => {
                 dispatch(setError(e.response.data));
             })
         }
-
     }
 };
 
@@ -347,7 +345,6 @@ export default {
     fetchCloneTaskAsync,
     applyFiltersOp,
     applySorterOp,
-    cloneTask,
     changePageOp,
     toggleFacetOp,
     setupFiltersFromQs,
