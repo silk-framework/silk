@@ -42,8 +42,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case DatasetResourceEntitySchema.schema =>
         handleDatasetResourceEntitySchema(dataset)
       case _ =>
-        val entities = source.retrieve(entitySchema = schema).entities
-        GenericEntityTable(entities, entitySchema = schema, dataset)
+        val table = source.retrieve(entitySchema = schema)
+        GenericEntityTable(table.entities, entitySchema = schema, dataset, table.globalErrors)
     }
   }
 
@@ -64,13 +64,15 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
 
   private def handleMultiEntitySchema(dataset: Task[DatasetSpec[Dataset]], source: DataSource, schema: EntitySchema, multi: MultiEntitySchema)
                                      (implicit userContext: UserContext)= {
+    val table = source.retrieve(entitySchema = schema)
     MultiEntityTable(
-      entities = source.retrieve(entitySchema = schema).entities,
+      entities = table.entities,
       entitySchema = schema,
       subTables =
           for (subSchema <- multi.subSchemata) yield
             GenericEntityTable(source.retrieve(entitySchema = subSchema).entities, subSchema, dataset),
-      task = dataset
+      task = dataset,
+      globalErrors = table.globalErrors
     )
   }
 
