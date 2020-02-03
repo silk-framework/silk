@@ -155,7 +155,7 @@ class AutoCompletionApi @Inject() () extends InjectedController {
       if(annotation != null) {
         val validValues = annotation.validValues().map(str => s"'$str'").mkString(", ")
         val invalidValues = annotation.invalidValues().map(str => s"'$str'").mkString(", ")
-        s" Examples for valid values are: $validValues. Invalid values are: $invalidValues"
+        s" Examples for valid values are: $validValues. Invalid values are: $invalidValues."
       } else {
         ""
       }
