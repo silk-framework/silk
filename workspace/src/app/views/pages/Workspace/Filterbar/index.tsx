@@ -8,6 +8,8 @@ import { globalOp, globalSel } from "@ducks/global";
 import { useParams } from "react-router";
 import { routerSel } from "@ducks/router";
 
+import '../../../../../theme/override.scss';
+
 export default function () {
     const dispatch = useDispatch();
     const {projectId} = useParams();

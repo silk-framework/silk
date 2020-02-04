@@ -1,2 +1,104 @@
 @import '../../../node_modules/@blueprintjs/core/lib/css/blueprint.css';
 @import '../../../node_modules/@blueprintjs/icons/lib/css/blueprint-icons.css';
+
+
+.main-content {
+  background-color: #f1f1f1;
+  height: 100vh;
+  overflow: auto;
+}
+
+.bp3-breadcrumb {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.bp3-overflow-list {
+  height: unset;
+}
+
+.bp3-label {
+  font-weight: bold;
+}
+
+.bp3-navbar {
+  height: 60px;
+  display: flex;
+  align-items: center;
+}
+
+.filter-bar-content {
+  margin: 0 15px;
+}
+
+.searchField {
+  width: 80%;
+  float: left
+}
+.bp3-input[type="search"] {
+  border-radius: 3px;
+  //watch later
+  width: 100%;
+}
+
+.sortButton {
+  float: left;
+  margin: 0 15px;
+}
+
+.cardBody>.bp3-card {
+  margin: 8px 0;
+  min-width: 100%;
+  height: 60px;
+}
+
+.data_row {
+  display: flex;
+}
+
+.data_row:hover {
+  cursor: pointer;
+}
+
+.data_cell:nth-child(2) {
+  flex-basis: 87%;
+}
+
+.data_cell:first-child {
+  margin: 0 15px 0 0;
+}
+
+.footer .data_cell {
+  display: inline-block;
+}
+
+.footer .data_cell a {
+  color: black;
+  float: left;
+  padding: 8px 16px;
+  text-decoration: none;
+  border: 1px solid #ddd;
+  background-color: white;
+}
+
+.footer .data_cell a.active {
+  background-color: #FF8C00;
+  color: white;
+  border: 1px solid #FF8C00;
+}
+
+.footer .data_cell a:hover:not(.active) {
+  background-color: rgba(255, 140, 0, 0.5);
+  border: 1px solid #FF8C00;
+  color: white;
+}
+
+.footer .data_cell a:first-child {
+  border-top-left-radius: 3px;
+  border-bottom-left-radius: 3px;
+}
+
+.footer .data_cell a:last-child {
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
+}

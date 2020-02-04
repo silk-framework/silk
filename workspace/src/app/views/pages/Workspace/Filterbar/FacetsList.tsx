@@ -29,7 +29,7 @@ export default function FacetsList() {
     };
 
     return (
-        <div style={{marginTop: '10px'}}>
+        <div>
             {
                 facets.map(facet =>
                     <div key={facet.id}>

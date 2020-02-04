@@ -2,6 +2,8 @@ import React, { memo, useRef } from 'react';
 import Spinner from "@wrappers/spinner";
 import InputGroup from "@wrappers/input-group";
 import { IconNames } from "@wrappers/constants";
+import '../../../../theme/override.scss';
+
 
 interface IProps {
     onFilterChange(e);

@@ -4,20 +4,22 @@ export default function Pagination({ pagination, onPageChange }) {
     const elements = [];
 
     let pagesCount = Math.ceil(pagination.total / pagination.limit);
+    // console.log(this.state.router.location.search);
     while (pagesCount--) {
         elements.unshift(pagesCount + 1);
     }
 
     return (
         <>
-            Pages:
+            <a href="#" >&laquo;</a>
             {
                 elements.map(i =>
                     i === pagination.current
-                        ? <span key={i}>{i} </span>
+                        ? <a className={'active'} key={i}>{i} </a>
                         : <a key={i} href="#" onClick={() => onPageChange(i)}>{i} </a>
                 )
             }
+            <a href="#">&raquo;</a>
         </>
     );
 }

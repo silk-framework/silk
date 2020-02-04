@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
 import Pagination from "../../../components/Pagination";
-import { useDispatch, useSelector } from "react-redux";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import {useDispatch, useSelector} from "react-redux";
+import {workspaceOp, workspaceSel} from "@ducks/workspace";
 import AppliedFacets from "../Topbar/AppliedFacets";
 import DataList from "../../../components/Datalist";
 import DeleteModal from "../../../components/modals/DeleteModal";
 import SearchItem from "./SearchItem";
 import Loading from "../../../components/Loading";
-import { push } from "connected-react-router";
-import { ISearchResultsTask } from "@ducks/workspace/typings";
-import { DATA_TYPES, SERVE_PATH } from "../../../../constants";
+import {push} from "connected-react-router";
+import {ISearchResultsTask} from "@ducks/workspace/typings";
+import {DATA_TYPES, SERVE_PATH} from "../../../../constants";
 import CloneModal from "../../../components/modals/CloneModal";
-import { routerSel } from "@ducks/router";
-import { sharedOp } from "@ducks/shared";
+import {routerSel} from "@ducks/router";
+import {sharedOp} from "@ducks/shared";
 
 export default function SearchList() {
 
@@ -93,13 +93,13 @@ export default function SearchList() {
     };
 
     const handleConfirmRemove = () => {
-        const { id, projectId } = selectedItem;
+        const {id, projectId} = selectedItem;
         dispatch(workspaceOp.fetchRemoveTaskAsync(id, projectId));
         onDiscardModals();
     };
 
     const handleConfirmClone = (newId: string) => {
-        const { id, projectId } = selectedItem;
+        const {id, projectId} = selectedItem;
         dispatch(workspaceOp.fetchCloneTaskAsync(id, projectId, newId));
         onDiscardModals();
     };
@@ -123,29 +123,30 @@ export default function SearchList() {
     const {Header, Body, Footer} = DataList;
     return (
         <>
-            <DataList isLoading={isLoading} data={data}>
-                <Header>
-                    <AppliedFacets/>
-                </Header>
-                <Body>
+            <Header>
+                <AppliedFacets/>
+            </Header>
+            <div className={'cardBody'}>
                 {
-                    data.map(item => <SearchItem
-                        key={`${item.id}_${item.projectId}`}
-                        item={item}
-                        onOpenDeleteModal={() => onOpenDeleteModal(item)}
-                        onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
-                        onRowClick={() => goToItemDetails(item)}
-                        searchValue={appliedFilters.textQuery}
-                    />)
+                    data.map(item => <DataList isLoading={isLoading} data={data}>
+                            <SearchItem
+                                key={`${item.id}_${item.projectId}`}
+                                item={item}
+                                onOpenDeleteModal={() => onOpenDeleteModal(item)}
+                                onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
+                                onRowClick={() => goToItemDetails(item)}
+                                searchValue={appliedFilters.textQuery}
+                            />
+                        </DataList>
+                    )
                 }
-                </Body>
-                <Footer>
-                    <Pagination
-                        pagination={pagination}
-                        onPageChange={handlePageChange}
-                    />
-                </Footer>
-            </DataList>
+            </div>
+            <Footer>
+                <Pagination
+                    pagination={pagination}
+                    onPageChange={handlePageChange}
+                />
+            </Footer>
             <DeleteModal
                 isOpen={showDeleteModal}
                 onDiscard={onDiscardModals}

@@ -15,7 +15,7 @@ code {
 
 .clearfix:after {
   content: '';
-  display: block;
+  min-width: 800px;
+  display: flex;
   clear: both;
-  height:0;
 }
