@@ -484,8 +484,8 @@ abstract class DateAndTimeValueType extends ValueType with Serializable {
   description = "Suited for XML Schema dates and time types. Accepts values in the the following formats: xsd:date, xsd:dateTime, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth, xsd:time."
 )
 @ValueTypeAnnotation(
-  validValues = Array("31", "2020-01-01"),
-  invalidValues = Array("2002-05-30T09:30:10")
+  validValues = Array("---31", "2020-01-01", "2002-05-30T09:30:10"),
+  invalidValues = Array("123")
 )
 case class AnyDateTimeValueType() extends DateAndTimeValueType {
 
@@ -511,7 +511,7 @@ case class AnyDateTimeValueType() extends DateAndTimeValueType {
   description = "Suited for XML Schema date types. Accepts values in the the following formats: xsd:date, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth."
 )
 @ValueTypeAnnotation(
-  validValues = Array("31", "2020-01-01"),
+  validValues = Array("---31", "2020-01", "2020-01-01"),
   invalidValues = Array("2002-05-30T09:30:10")
 )
 case class AnyDateValueType() extends DateAndTimeValueType {
