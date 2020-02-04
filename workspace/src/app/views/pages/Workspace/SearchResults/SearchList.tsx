@@ -24,8 +24,6 @@ export default function SearchList() {
     const pagination = useSelector(workspaceSel.paginationSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const isLoading = useSelector(workspaceSel.isLoadingSelector);
-    const pathname = useSelector(routerSel.pathnameSelector);
-    const qs = useSelector(routerSel.routerSearchSelector);
 
     const [selectedItem, setSelectedItem] = useState();
     const [showDeleteModal, setShowDeleteModal] = useState();

@@ -16,10 +16,10 @@ const ConfigurationWidget = ({ projectId }: IProps) => {
     const VISIBLE_COUNT = 5;
 
     useEffect(() => {
-        getPrefixesList(projectId)
+        getPrefixesList()
     }, [projectId]);
 
-    const getPrefixesList = async (projectId) => {
+    const getPrefixesList = async () => {
         try {
             const data = await sharedOp.getProjectPrefixes(projectId);
             const arr = Object.keys(data).slice(0, VISIBLE_COUNT);
@@ -31,6 +31,14 @@ const ConfigurationWidget = ({ projectId }: IProps) => {
     const getFullSizeOfList = () => Object.keys(prefixList).length;
     const handleOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
+
+    const handleRemovePrefix = async (prefixName: string) => {
+        try {
+            await sharedOp.removeProjectPrefixes(projectId, prefixName)
+        } catch {
+            console.log(`can't delete the prefix: ${prefixName}`);
+        }
+    };
 
     return (
         <Card>
@@ -55,6 +63,7 @@ const ConfigurationWidget = ({ projectId }: IProps) => {
                 isOpen && <PrefixesDialog
                     prefixList={prefixList}
                     onCloseModal={handleClose}
+                    onRemovePrefix={handleRemovePrefix}
                 />
             }
         </Card>

@@ -13,9 +13,10 @@ export interface IDeleteModalOptions {
     onConfirm(): void;
 
     render?(): ReactElement;
+    children?: ReactElement;
 }
 
-export default function DeleteModal({isOpen, confirmationRequired, onDiscard, render, onConfirm}: IDeleteModalOptions) {
+export default function DeleteModal({isOpen, confirmationRequired, onDiscard, render, onConfirm, children}: IDeleteModalOptions) {
     const [isConfirmed, setIsConfirmed] = useState(false);
 
     const toggleConfirmChange = () => {
@@ -32,6 +33,7 @@ export default function DeleteModal({isOpen, confirmationRequired, onDiscard, re
 
             <div className={Classes.DIALOG_BODY}>
                 {render && render()}
+                {children && children}
             </div>
 
             <div className={Classes.DIALOG_FOOTER}>

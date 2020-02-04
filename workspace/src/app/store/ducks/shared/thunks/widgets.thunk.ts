@@ -9,3 +9,12 @@ export const getProjectPrefixes = async (projectId: string): Promise<Object> => 
     });
     return data;
 };
+
+export const removeProjectPrefixes = async (projectId: string, prefixName: string) => {
+    const url = getApiEndpoint(`/projects/${projectId}/prefixes/${prefixName}`);
+    const {data} = await fetch({
+        url,
+        method: 'DELETE'
+    });
+    return data;
+};
