@@ -11,7 +11,6 @@ export default function Pagination({ pagination, onPageChange }) {
 
     return (
         <>
-            <a href="#" >&laquo;</a>
             {
                 elements.map(i =>
                     i === pagination.current
@@ -19,7 +18,6 @@ export default function Pagination({ pagination, onPageChange }) {
                         : <a key={i} href="#" onClick={() => onPageChange(i)}>{i} </a>
                 )
             }
-            <a href="#">&raquo;</a>
         </>
     );
 }
