@@ -113,7 +113,7 @@ case class JsonSource(input: JsValue, basePath: String, uriPattern: String) exte
         // Generate URI
         val uri =
           if (uriPattern.isEmpty) {
-            genericEntityIRI(index.toString)
+            genericEntityIRI(node.nodeId(node.value))
           } else {
             uriRegex.replaceAllIn(uriPattern, m => {
               val path = UntypedPath.parse(m.group(1))
@@ -217,7 +217,7 @@ case class JsonSource(input: JsValue, basePath: String, uriPattern: String) exte
     *
     * @return
     */
-  override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.random, DatasetSpec(EmptyDataset))     //FIXME CMEM 1352 replace with actual task
+  override lazy val underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.random, DatasetSpec(EmptyDataset))     //FIXME CMEM 1352 replace with actual task
 }
 
 object JsonSource{
