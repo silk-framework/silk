@@ -8,7 +8,7 @@ import DeleteModal from "../../../components/modals/DeleteModal";
 import SearchItem from "./SearchItem";
 import Loading from "../../../components/Loading";
 import { push } from "connected-react-router";
-import { ISearchResultsTask } from "@ducks/workspace/typings";
+import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { DATA_TYPES, SERVE_PATH } from "../../../../constants";
 import CloneModal from "../../../components/modals/CloneModal";
 import { routerSel } from "@ducks/router";
@@ -106,7 +106,7 @@ export default function SearchList() {
         dispatch(workspaceOp.changePageOp(n))
     };
 
-    const goToItemDetails = (item: ISearchResultsTask) => {
+    const goToItemDetails = (item: ISearchResultsServer) => {
         if (item.type === DATA_TYPES.PROJECT) {
             dispatch(
                 push(`${SERVE_PATH}/projects/${item.id}`)

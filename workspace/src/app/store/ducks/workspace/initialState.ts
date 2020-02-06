@@ -63,7 +63,6 @@ export function initialAppliedFacetState(props: Partial<IAppliedFacetState> = {}
 export function initialPreviewState(props: Partial<IPreviewState> = {}): IPreviewState {
     return {
         searchResults: [],
-        editingTasks: {},
         isLoading: false,
         projectMetadata: {},
         currentProjectId: null,
