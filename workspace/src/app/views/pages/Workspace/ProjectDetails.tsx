@@ -40,7 +40,7 @@ const ProjectDetails = ({projectId}) => {
                 </div>
             </LeftPanel>
             <RightPanel>
-                <ConfigurationWidget projectId={projectId}/>
+                <ConfigurationWidget />
             </RightPanel>
         </Main>
     )

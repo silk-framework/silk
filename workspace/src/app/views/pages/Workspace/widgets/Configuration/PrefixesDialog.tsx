@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Classes, Intent } from "@wrappers/constants";
 import Dialog from "@wrappers/dialog";
 
@@ -6,56 +6,53 @@ import Button from '@wrappers/button';
 import PrefixRow from "./PrefixRow";
 import DeleteModal from "../../../../components/modals/DeleteModal";
 import PrefixNew from "./PrefixNew";
+import { IPrefixState } from "@ducks/workspace/typings";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { useDispatch, useSelector } from "react-redux";
 
-export interface IFormattedPrefix {
-    prefixName: string;
-    prefixUri: string;
-}
+const PrefixesDialog = ({onCloseModal, isOpen}) => {
+    const dispatch = useDispatch();
 
-const PrefixesDialog = ({prefixList, onCloseModal, onRemove, onAddOrUpdate}) => {
-    const [formattedPrefixes, setFormattedPrefixes] = useState<IFormattedPrefix[]>([]);
+    const prefixList = useSelector(workspaceSel.prefixListSelector);
+    const newPrefix = useSelector(workspaceSel.newPrefixSelector);
+
     const [isOpenRemove, setIsOpenRemove] = useState<boolean>(false);
-    const [selectedPrefix, setSelectedPrefix] = useState<IFormattedPrefix>(null);
+    const [selectedPrefix, setSelectedPrefix] = useState<IPrefixState>(null);
 
-    useEffect(() => {
-        const prefixesArr = Object.keys(prefixList)
-            .map(key => ({
-                prefixName: key,
-                prefixUri: prefixList[key]
-            }));
-
-        setFormattedPrefixes(prefixesArr);
-    }, [prefixList]);
-
-    const handleRemove = (prefix: IFormattedPrefix) => {
-        setIsOpenRemove(true);
-        setSelectedPrefix(prefix);
+    const toggleRemoveDialog = (prefix?: IPrefixState) => {
+        if (!prefix || isOpenRemove) {
+            setIsOpenRemove(false);
+            setSelectedPrefix(null);
+        } else {
+            setIsOpenRemove(true);
+            setSelectedPrefix(prefix);
+        }
     };
 
     const handleConfirmRemove = () => {
         if (selectedPrefix) {
-            onRemove(selectedPrefix.prefixName);
-
-            const arr = [...formattedPrefixes];
-            const i = arr.findIndex(item => item.prefixUri === selectedPrefix.prefixUri);
-            arr.splice(i, 1);
-
-            setFormattedPrefixes(arr);
+            dispatch(workspaceOp.removeProjectPrefixAsync(selectedPrefix.prefixName));
         }
-
-        setSelectedPrefix(null);
-        setIsOpenRemove(false);
+        toggleRemoveDialog();
     };
 
-    const handleAddNew = (prefix: IFormattedPrefix) => {
-        onAddOrUpdate(prefix.prefixName, prefix.prefixUri)
+    const handleAddOrUpdatePrefix = (prefix: IPrefixState) => {
+        const {prefixName, prefixUri} = prefix;
+        dispatch(workspaceOp.addOrUpdatePrefixAsync(prefixName, prefixUri));
+    };
+
+    const handleUpdatePrefixFields = (field: string, value: string) => {
+        dispatch(workspaceOp.updateNewPrefix({
+            field,
+            value
+        }));
     };
 
     return (
         <Dialog
             onClose={onCloseModal}
             title="Manage Prefixes"
-            isOpen={true}
+            isOpen={isOpen}
             style={{width: '850px'}}
         >
             <div className={Classes.DIALOG_BODY} style={{
@@ -63,18 +60,22 @@ const PrefixesDialog = ({prefixList, onCloseModal, onRemove, onAddOrUpdate}) => 
                 overflow: 'auto'
             }}>
                 <div className="col-12">
-                    <PrefixNew onAdd={handleAddNew}/>
+                    <PrefixNew
+                        prefix={newPrefix}
+                        onChangePrefix={handleUpdatePrefixFields}
+                        onAdd={() => handleAddOrUpdatePrefix(newPrefix)}
+                    />
                 </div>
                 <div className={'row'}>
                     <div className="col-5"><b>Prefix</b></div>
                     <div className="col-6"><b>Uri</b></div>
                 </div>
                 {
-                    formattedPrefixes.map((prefix, i) =>
+                    prefixList.map((prefix, i) =>
                         <PrefixRow
                             key={i}
                             prefix={prefix}
-                            onRemove={() => handleRemove(prefix)}
+                            onRemove={() => toggleRemoveDialog(prefix)}
                         />
                     )
                 }
@@ -82,14 +83,15 @@ const PrefixesDialog = ({prefixList, onCloseModal, onRemove, onAddOrUpdate}) => 
             <div className={Classes.DIALOG_FOOTER}>
                 <div className={Classes.DIALOG_FOOTER_ACTIONS}>
                     <Button
-                        onClick={() => setIsOpenRemove(false)}
-                        intent={Intent.NONE}
-                    >Cancel</Button>
+                        onClick={() => toggleRemoveDialog()}
+                        intent={Intent.NONE}>
+                        Cancel
+                    </Button>
                 </div>
             </div>
             <DeleteModal
                 isOpen={isOpenRemove}
-                onDiscard={() => setIsOpenRemove(false)}
+                onDiscard={() => toggleRemoveDialog()}
                 onConfirm={handleConfirmRemove}
             >
                 <div>

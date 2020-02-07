@@ -1,11 +1,11 @@
 import { IconNames } from "@wrappers/constants";
 import React from "react";
 import Icon from "@wrappers/icon";
-import { IFormattedPrefix } from "./PrefixesDialog";
 import styles from './index.module.scss';
+import { IPrefixState } from "@ducks/workspace/typings";
 
 interface IProps {
-    prefix: IFormattedPrefix;
+    prefix: IPrefixState;
     onRemove();
 }
 

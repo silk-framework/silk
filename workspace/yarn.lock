@@ -1300,20 +1300,6 @@
     "@svgr/plugin-svgo" "^4.3.1"
     loader-utils "^1.2.3"
 
-"@types/axios-mock-adapter@^1.10.0":
-  version "1.10.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/axios-mock-adapter/-/axios-mock-adapter-1.10.0.tgz#2db4abb44e46923d2042ac554f1cd34ef4a62a7e"
-  integrity sha1-LbSrtE5Gkj0gQqxVTxzTTvSmKn4=
-  dependencies:
-    axios-mock-adapter "*"
-
-"@types/axios@^0.14.0":
-  version "0.14.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/axios/-/axios-0.14.0.tgz#ec2300fbe7d7dddd7eb9d3abf87999964cafce46"
-  integrity sha1-7CMA++fX3d1+udOr+HmZlkyvzkY=
-  dependencies:
-    axios "*"
-
 "@types/babel__core@^7.1.0", "@types/babel__core@^7.1.2":
   version "7.1.3"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@types/babel__core/-/babel__core-7.1.3.tgz#e441ea7df63cd080dfcd02ab199e6d16a735fc30"
@@ -1353,13 +1339,6 @@
   integrity sha1-aQQP+pLDCb7u636S22asP4BwDAs=
   dependencies:
     "@types/node" "*"
-
-"@types/dexie@^1.3.1":
-  version "1.3.1"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/dexie/-/dexie-1.3.1.tgz#accca262f9071f1ed963a40255fcf4bc7af67e15"
-  integrity sha1-rMyiYvkHHx7ZY6QCVfz0vHr2fhU=
-  dependencies:
-    dexie "*"
 
 "@types/dom4@^2.0.1":
   version "2.0.1"
@@ -1535,13 +1514,6 @@
   version "1.0.2"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@types/tapable/-/tapable-1.0.2.tgz#e13182e1b69871a422d7863e11a4a6f5b814a4bd"
   integrity sha1-4TGC4baYcaQi14Y+EaSm9bgUpL0=
-
-"@types/uuid@^3.4.4":
-  version "3.4.6"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/uuid/-/uuid-3.4.6.tgz#d2c4c48eb85a757bf2927f75f939942d521e3016"
-  integrity sha1-0sTEjrhadXvykn91+TmULVIeMBY=
-  dependencies:
-    "@types/node" "*"
 
 "@types/yargs-parser@*":
   version "13.1.0"
@@ -2114,14 +2086,14 @@ aws4@^1.8.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/aws4/-/aws4-1.9.0.tgz#24390e6ad61386b0a747265754d2a17219de862c"
   integrity sha1-JDkOatYThrCnRyZXVNKhchnehiw=
 
-axios-mock-adapter@*, axios-mock-adapter@^1.16.0:
+axios-mock-adapter@^1.16.0:
   version "1.17.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/axios-mock-adapter/-/axios-mock-adapter-1.17.0.tgz#0dbee43c606d4aaba5a43d88d96d6661a7cc3c04"
   integrity sha1-Db7kPGBtSqulpD2I2W1mYafMPAQ=
   dependencies:
     deep-equal "^1.0.1"
 
-axios@*, axios@^0.19.0:
+axios@^0.19.0:
   version "0.19.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/axios/-/axios-0.19.0.tgz#8e09bff3d9122e133f7b8101c8fbdd00ed3d2ab8"
   integrity sha1-jgm/89kSLhM/e4EByPvdAO09Krg=
@@ -3777,7 +3749,7 @@ detect-port-alt@1.1.6:
     address "^1.0.1"
     debug "^2.6.0"
 
-dexie@*, dexie@^2.0.4:
+dexie@^2.0.4:
   version "2.0.4"
   resolved "https://artifactory.eccenca.com/api/npm/npm/dexie/-/dexie-2.0.4.tgz#6027a5e05879424e8f9979d8c14e7420f27e3a11"
   integrity sha1-YCel4Fh5Qk6PmXnYwU50IPJ+OhE=
@@ -7513,6 +7485,11 @@ nan@^2.12.1, nan@^2.13.2:
   resolved "https://artifactory.eccenca.com/api/npm/npm/nan/-/nan-2.14.0.tgz#7818f722027b2459a86f0295d434d1fc2336c52c"
   integrity sha1-eBj3IgJ7JFmobwKV1DTR/CM2xSw=
 
+nanoid@^2.1.0:
+  version "2.1.11"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/nanoid/-/nanoid-2.1.11.tgz#ec24b8a758d591561531b4176a01e3ab4f0f0280"
+  integrity sha1-7CS4p1jVkVYVMbQXagHjq08PAoA=
+
 nanomatch@^1.2.9:
   version "1.2.13"
   resolved "https://artifactory.eccenca.com/api/npm/npm/nanomatch/-/nanomatch-1.2.13.tgz#b87a8aa4fc0de8fe6be88895b38983ff265bd119"
@@ -9937,7 +9914,7 @@ resolve@1.1.7:
   resolved "https://artifactory.eccenca.com/api/npm/npm/resolve/-/resolve-1.1.7.tgz#203114d82ad2c5ed9e8e0411b3932875e889e97b"
   integrity sha1-IDEU2CrSxe2ejgQRs5ModeiJ6Xs=
 
-resolve@^1.10.0, resolve@^1.11.0, resolve@^1.12.0, resolve@^1.13.1, resolve@^1.3.2, resolve@^1.5.0, resolve@^1.8.1:
+resolve@^1.10.0, resolve@^1.11.0, resolve@^1.13.1, resolve@^1.3.2, resolve@^1.5.0, resolve@^1.8.1:
   version "1.13.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/resolve/-/resolve-1.13.1.tgz#be0aa4c06acd53083505abb35f4d66932ab35d16"
   integrity sha1-vgqkwGrNUwg1BauzX01mkyqzXRY=
@@ -10292,6 +10269,13 @@ shellwords@^0.1.1:
   version "0.1.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/shellwords/-/shellwords-0.1.1.tgz#d6b9181c1a48d397324c84871efbcfc73fc0654b"
   integrity sha1-1rkYHBpI05cyTISHHvvPxz/AZUs=
+
+shortid@^2.2.15:
+  version "2.2.15"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/shortid/-/shortid-2.2.15.tgz#2b902eaa93a69b11120373cd42a1f1fe4437c122"
+  integrity sha1-K5AuqpOmmxESA3PNQqHx/kQ3wSI=
+  dependencies:
+    nanoid "^2.1.0"
 
 signal-exit@^3.0.0, signal-exit@^3.0.2:
   version "3.0.2"
