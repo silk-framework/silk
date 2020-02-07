@@ -3,18 +3,16 @@ import { Classes, Intent } from "@wrappers/constants";
 import Dialog from "@wrappers/dialog";
 
 import Button from '@wrappers/button';
-import PrefixDialogRow from "./PrefixDialogRow";
+import PrefixRow from "./PrefixRow";
 import DeleteModal from "../../../../components/modals/DeleteModal";
+import PrefixNew from "./PrefixNew";
 
 export interface IFormattedPrefix {
     prefixName: string;
     prefixUri: string;
-    _isNew?: boolean;
 }
 
-const PrefixesDialog = ({prefixList, onCloseModal, onRemovePrefix}) => {
-    const [newPrefix, setNewPrefix] = useState<IFormattedPrefix>(null);
-
+const PrefixesDialog = ({prefixList, onCloseModal, onRemove, onAddOrUpdate}) => {
     const [formattedPrefixes, setFormattedPrefixes] = useState<IFormattedPrefix[]>([]);
     const [isOpenRemove, setIsOpenRemove] = useState<boolean>(false);
     const [selectedPrefix, setSelectedPrefix] = useState<IFormattedPrefix>(null);
@@ -36,7 +34,7 @@ const PrefixesDialog = ({prefixList, onCloseModal, onRemovePrefix}) => {
 
     const handleConfirmRemove = () => {
         if (selectedPrefix) {
-            onRemovePrefix(selectedPrefix.prefixName);
+            onRemove(selectedPrefix.prefixName);
 
             const arr = [...formattedPrefixes];
             const i = arr.findIndex(item => item.prefixUri === selectedPrefix.prefixUri);
@@ -45,61 +43,37 @@ const PrefixesDialog = ({prefixList, onCloseModal, onRemovePrefix}) => {
             setFormattedPrefixes(arr);
         }
 
-        setNewPrefix(null);
         setSelectedPrefix(null);
         setIsOpenRemove(false);
     };
 
-    const handleChange = (index: number, field: string, value: string) => {
-        const arr = [...formattedPrefixes];
-        // This is new prefix
-        if (index < 0) {
-            arr.unshift(newPrefix);
-            index = 0;
-        }
-
-        arr[index] = {
-            ...arr[index],
-            [field]: value
-        };
-
-        setFormattedPrefixes(arr);
-        setNewPrefix(null);
-    };
-
-    const handleAdd = () => {
-        setNewPrefix({
-            prefixUri: '',
-            prefixName: '',
-            _isNew: true
-        });
+    const handleAddNew = (prefix: IFormattedPrefix) => {
+        onAddOrUpdate(prefix.prefixName, prefix.prefixUri)
     };
 
     return (
         <Dialog
             onClose={onCloseModal}
-            title="Edit Prefixes"
+            title="Manage Prefixes"
             isOpen={true}
-            style={{width: '800px'}}
+            style={{width: '850px'}}
         >
             <div className={Classes.DIALOG_BODY} style={{
                 maxHeight: '600px',
                 overflow: 'auto'
             }}>
-                {
-                    newPrefix && <PrefixDialogRow
-                        key={'NEW_PREFIX'}
-                        prefix={newPrefix}
-                        onChange={(field, value) => handleChange(-1, field, value)}
-                        onRemove={() => handleConfirmRemove()}
-                    />
-                }
+                <div className="col-12">
+                    <PrefixNew onAdd={handleAddNew}/>
+                </div>
+                <div className={'row'}>
+                    <div className="col-5"><b>Prefix</b></div>
+                    <div className="col-6"><b>Uri</b></div>
+                </div>
                 {
                     formattedPrefixes.map((prefix, i) =>
-                        <PrefixDialogRow
+                        <PrefixRow
                             key={i}
                             prefix={prefix}
-                            onChange={(field, value) => handleChange(i, field, value)}
                             onRemove={() => handleRemove(prefix)}
                         />
                     )
@@ -108,10 +82,9 @@ const PrefixesDialog = ({prefixList, onCloseModal, onRemovePrefix}) => {
             <div className={Classes.DIALOG_FOOTER}>
                 <div className={Classes.DIALOG_FOOTER_ACTIONS}>
                     <Button
-                        onClick={handleAdd}
-                        intent={Intent.PRIMARY}
-                        disabled={newPrefix}
-                    >Add Prefix</Button>
+                        onClick={() => setIsOpenRemove(false)}
+                        intent={Intent.NONE}
+                    >Cancel</Button>
                 </div>
             </div>
             <DeleteModal

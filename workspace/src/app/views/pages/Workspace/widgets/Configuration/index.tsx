@@ -8,7 +8,7 @@ interface IProps {
     projectId: string;
 }
 
-const ConfigurationWidget = ({ projectId }: IProps) => {
+const ConfigurationWidget = ({projectId}: IProps) => {
     const [prefixList, setPrefixList] = useState<Object>({});
     const [visiblePrefixes, setVisiblePrefixes] = useState<string[]>([]);
     const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -16,28 +16,32 @@ const ConfigurationWidget = ({ projectId }: IProps) => {
     const VISIBLE_COUNT = 5;
 
     useEffect(() => {
-        getPrefixesList()
+        getPrefixesList();
     }, [projectId]);
-
-    const getPrefixesList = async () => {
-        try {
-            const data = await sharedOp.getProjectPrefixes(projectId);
-            const arr = Object.keys(data).slice(0, VISIBLE_COUNT);
-            setVisiblePrefixes(arr);
-            setPrefixList(data);
-        } catch {}
-    };
 
     const getFullSizeOfList = () => Object.keys(prefixList).length;
     const handleOpen = () => setIsOpen(true);
     const handleClose = () => setIsOpen(false);
 
+    const updateThePrefixList = (data) => {
+        const arr = Object.keys(data).slice(0, VISIBLE_COUNT);
+        setVisiblePrefixes(arr);
+        setPrefixList(data);
+    };
+
+    const getPrefixesList = async () => {
+        const data = await sharedOp.getProjectPrefixes(projectId);
+        updateThePrefixList(data);
+    };
+
     const handleRemovePrefix = async (prefixName: string) => {
-        try {
-            await sharedOp.removeProjectPrefixes(projectId, prefixName)
-        } catch {
-            console.log(`can't delete the prefix: ${prefixName}`);
-        }
+        const data = await sharedOp.removeProjectPrefixes(projectId, prefixName);
+        updateThePrefixList(data);
+    };
+
+    const handleAddOrUpdatePrefix = async (prefixName: string, prefixUri: string) => {
+        const data = await sharedOp.addProjectPrefix(projectId, prefixName, prefixUri)
+        updateThePrefixList(data);
     };
 
     return (
@@ -63,7 +67,8 @@ const ConfigurationWidget = ({ projectId }: IProps) => {
                 isOpen && <PrefixesDialog
                     prefixList={prefixList}
                     onCloseModal={handleClose}
-                    onRemovePrefix={handleRemovePrefix}
+                    onRemove={handleRemovePrefix}
+                    onAddOrUpdate={handleAddOrUpdatePrefix}
                 />
             }
         </Card>
