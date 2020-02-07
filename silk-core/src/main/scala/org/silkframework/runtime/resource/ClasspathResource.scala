@@ -32,11 +32,15 @@ case class ClasspathResource(resourcePath: String) extends Resource {
 
   def size: Option[Long] = {
     val stream = inputStream
-    var count = 0L
-    while(stream.read() != -1) {
-      count += 1
+    try {
+      var count = 0L
+      while (stream.read() != -1) {
+        count += 1
+      }
+      Some(count)
+    } finally {
+      stream.close()
     }
-    Some(count)
   }
 
   def modificationTime: Option[Instant] = None
