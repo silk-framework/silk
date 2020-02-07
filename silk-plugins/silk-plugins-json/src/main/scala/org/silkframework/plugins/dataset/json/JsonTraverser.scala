@@ -157,7 +157,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
   }
 
   def generateUri(path: String, value: JsObject): String = {
-    DataSource.generateEntityUri(path, nodeId(value))
+    DataSource.generateEntityUri(taskId, nodeId(value))
   }
 
   def nodeId(value: JsValue): String = {
