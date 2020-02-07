@@ -30,7 +30,14 @@ case class ClasspathResource(resourcePath: String) extends Resource {
     Option(getClass.getClassLoader.getResourceAsStream(resourcePath)).isDefined
   }
 
-  def size: Option[Long] = None
+  def size: Option[Long] = {
+    val stream = inputStream
+    var count = 0L
+    while(stream.read() != -1) {
+      count += 1
+    }
+    Some(count)
+  }
 
   def modificationTime: Option[Instant] = None
 
