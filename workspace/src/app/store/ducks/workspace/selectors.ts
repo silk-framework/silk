@@ -1,6 +1,7 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { IFiltersState, IPreviewState } from "./typings";
 import { IStore } from "../../typings/IStore";
+import {create} from "domain";
 
 const filtersSelector = (state: IStore): IFiltersState => state.workspace.filters;
 const previewSelector = (state: IStore): IPreviewState => state.workspace.preview;

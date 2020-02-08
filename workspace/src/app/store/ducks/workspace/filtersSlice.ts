@@ -69,6 +69,11 @@ export const filtersSlice = createSlice({
             });
         },
 
+        changeVisibleProjectsLimit(state, action) {
+            state.pagination.limit = action.payload;
+            state.pagination.value = action.payload;
+        },
+
         updateResultTotal: (state, action) => {
             state.pagination.total = action.payload;
         },

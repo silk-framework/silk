@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Pagination from "../../../components/Pagination";
+import {Pagination, Selection} from "../../../components/Pagination";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import AppliedFacets from "../Topbar/AppliedFacets";
@@ -106,6 +106,10 @@ export default function SearchList() {
         dispatch(workspaceOp.changePageOp(n))
     };
 
+    const handleVisibleProjects = (value: string) => {
+        dispatch(workspaceOp.changeVisibleProjects(+value))
+    };
+
     const goToItemDetails = (item: ISearchResultsServer) => {
         if (item.type === DATA_TYPES.PROJECT) {
             dispatch(
@@ -141,6 +145,10 @@ export default function SearchList() {
                     <Pagination
                         pagination={pagination}
                         onPageChange={handlePageChange}
+                    />
+                    <Selection
+                        onChangeSelect={handleVisibleProjects}
+                        value={pagination.value}
                     />
                 </Footer>
             </DataList>
