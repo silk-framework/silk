@@ -6,6 +6,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 
+import scala.collection.mutable
 import scala.reflect.ClassTag
 import scala.util.Try
 
@@ -79,23 +80,35 @@ trait WorkspaceProvider {
     */
   def sparqlEndpoint: Option[SparqlEndpoint]
 
-  private var externalLoadingErrors: List[TaskLoadingError] = List.empty
+  private val externalLoadingErrors: mutable.HashMap[String, Vector[TaskLoadingError]] = new mutable.HashMap[String, Vector[TaskLoadingError]]()
 
   /**
     * Retains a task loading error that was caught from an external system, e.g. when copying tasks between workspaces (project import),
     * the loading error is also copied and can be displayed to the user.
     */
-  private[workspace] def retainExternalTaskLoadingError(loadingError: TaskLoadingError): Unit = synchronized {
-    externalLoadingErrors = externalLoadingErrors.filter(_.id != loadingError.id)
-    externalLoadingErrors ::= loadingError
+  private[workspace] def retainExternalTaskLoadingError(projectId: String,
+                                                        loadingError: TaskLoadingError): Unit = synchronized {
+    val loadingErrors = externalLoadingErrors.getOrElse(projectId, Vector.empty)
+    val loadingErrorsWithoutTaskId = loadingErrors.filter(_.id != loadingError.id)
+    externalLoadingErrors.put(projectId, loadingErrorsWithoutTaskId :+ loadingError)
   }
 
   /** Task loading errors that come from an external system, e.g. when copying tasks between workspaces. The errors should be
     * kept e.g. for informing the user. */
-  private[workspace] def externalTaskLoadingErrors: Seq[TaskLoadingError] = synchronized {
-    externalLoadingErrors
+  private[workspace] def externalTaskLoadingErrors(projectId: String): Seq[TaskLoadingError] = synchronized {
+    externalLoadingErrors.get(projectId).toSeq.flatten
   }
 
+  /** Removes the external task loading errors that were previously added. */
+  private[workspace] def removeExternalTaskLoadingErrors(projectId: String): Unit = synchronized {
+    externalLoadingErrors.remove(projectId)
+  }
+
+  /** Removes the external task loading error that might exist. */
+  private[workspace] def removeExternalTaskLoadingError(projectId: String, taskId: String): Unit = synchronized {
+    val loadingErrors = externalLoadingErrors.getOrElse(projectId, Vector.empty)
+    externalLoadingErrors.put(projectId, loadingErrors.filter(_.id != taskId))
+  }
 }
 
 /** Task loading error. */

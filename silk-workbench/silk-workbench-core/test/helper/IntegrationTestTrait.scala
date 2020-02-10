@@ -78,6 +78,12 @@ trait IntegrationTestTrait extends TaskApiClient with ActivityApiClient with Gui
     checkResponse(response)
   }
 
+  /** Remove the project from the workspace. */
+  def removeProject(projectId: String): WSResponse = {
+    val response = client.url(s"$baseUrl/workspace/projects/$projectId").delete()
+    checkResponse(response)
+  }
+
   /**
     * Adds common prefixes to the project, so URIs can be written as qualified names.
     */

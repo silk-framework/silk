@@ -74,7 +74,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   def loadingErrors: Seq[TaskLoadingError] = {
     val errors = modules.flatMap(_.loadingError)
     val errorIds = errors.map(_.id).toSet
-    val externalLoadingErrors = provider.externalTaskLoadingErrors.filterNot(extError => errorIds.contains(extError.id))
+    val externalLoadingErrors = provider.externalTaskLoadingErrors(config.id).filterNot(extError => errorIds.contains(extError.id))
     // Some workspaces have duplicate loading errors, make them distinct.
     (errors ++ externalLoadingErrors).groupBy(_.id).values.map(_.head).toSeq
   }
@@ -203,6 +203,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
     }
     module[T].add(name, taskData, metaData)
+    provider.removeExternalTaskLoadingError(config.id, name)
   }
 
   /**

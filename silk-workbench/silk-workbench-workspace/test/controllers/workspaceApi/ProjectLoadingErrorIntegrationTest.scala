@@ -4,6 +4,7 @@ import controllers.workspaceApi.project.ProjectLoadingErrors.ProjectTaskLoadingE
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.MetaData
+import org.silkframework.plugins.dataset.json.JsonParserTask
 import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
 import play.api.libs.json.Json
 import play.api.routing.Router
@@ -56,13 +57,39 @@ class ProjectLoadingErrorIntegrationTest extends FlatSpec with SingleProjectWork
     markdown must include (projectLabel)
   }
 
+  it should "report loading failures in JSON for a specific task" in {
+    val jsonReport = checkResponse(client.url(s"$baseUrl${taskReportEndpoint(failingDataset)}").withHttpHeaders(ACCEPT -> APPLICATION_JSON).get()).json
+    val errorReport = Json.fromJson[ProjectTaskLoadingErrorResponse](jsonReport).get
+    checkFailingDatasetReport(errorReport)
+  }
+
+  val otherProject = "otherProject"
+
   it should "report loading failures in JSON for all tasks" in {
-    val jsonReport = checkResponse(client.url(s"$baseUrl$tasksReportEndpoint").withHttpHeaders(ACCEPT -> APPLICATION_JSON).get()).json
-    val errorReport = Json.fromJson[Seq[ProjectTaskLoadingErrorResponse]](jsonReport).get
+    createProject(otherProject)
+    val errorReport = taskErrorReport
     errorReport must have size 2
     errorReport.map(_.taskId) mustBe Seq(failingDataset, failingCustomTask)
     val datasetError = errorReport.head
     checkFailingDatasetReport(datasetError)
+  }
+
+  it should "consider changes in the workspace for the loading errors correctly" in {
+    // another project should not have errors attached to it
+    retrieveOrCreateProject(otherProject).loadingErrors must have size 0
+    // When creating a task with the same ID the error should be removed
+    project.addTask(failingCustomTask, JsonParserTask())
+    taskErrorReport must have size 1
+    // When removing the project and creating a new project with the same name, the errors should be gone
+    removeProject(projectId)
+    createProject(projectId)
+    taskErrorReport must have size 0
+  }
+
+  private def taskErrorReport: Seq[ProjectTaskLoadingErrorResponse] = {
+    val jsonReport = checkResponse(client.url(s"$baseUrl$tasksReportEndpoint").withHttpHeaders(ACCEPT -> APPLICATION_JSON).get()).json
+    val errorReport = Json.fromJson[Seq[ProjectTaskLoadingErrorResponse]](jsonReport).get
+    errorReport
   }
 
   private def checkFailingDatasetReport(datasetError: ProjectTaskLoadingErrorResponse): Unit = {
@@ -71,11 +98,5 @@ class ProjectLoadingErrorIntegrationTest extends FlatSpec with SingleProjectWork
     datasetError.stackTrace must not be empty
     datasetError.taskLabel mustBe Some("test Csv")
     datasetError.stackTrace.get.lines.size must be > 10
-  }
-
-  it should "report loading failures in JSON for a specific task" in {
-    val jsonReport = checkResponse(client.url(s"$baseUrl${taskReportEndpoint(failingDataset)}").withHttpHeaders(ACCEPT -> APPLICATION_JSON).get()).json
-    val errorReport = Json.fromJson[ProjectTaskLoadingErrorResponse](jsonReport).get
-    checkFailingDatasetReport(errorReport)
   }
 }

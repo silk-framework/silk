@@ -78,7 +78,7 @@ object WorkspaceIO {
         case Left(task) =>
           outputWorkspace.putTask(projectName, task)
         case Right(taskLoadingError) =>
-          outputWorkspace.retainExternalTaskLoadingError(taskLoadingError)
+          outputWorkspace.retainExternalTaskLoadingError(projectName, taskLoadingError)
           log.warning("Invalid task encountered while copying task between workspace providers. Error message: " + taskLoadingError.throwable.getMessage)
       }
     }

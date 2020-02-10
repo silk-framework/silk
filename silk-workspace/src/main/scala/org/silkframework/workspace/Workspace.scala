@@ -127,11 +127,12 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       activity.control.cancel()
     }
     provider.deleteProject(name)
+    provider.removeExternalTaskLoadingErrors(name)
     removeProjectFromCache(name)
     log.info(s"Removed project '$name'. " + userContext.logInfo)
   }
 
-  private def removeProjectFromCache(name: Identifier) = {
+  private def removeProjectFromCache(name: Identifier): Unit = {
     cachedProjects = cachedProjects.filterNot(_.name == name)
   }
 
