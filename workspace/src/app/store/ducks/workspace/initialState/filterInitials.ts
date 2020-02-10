@@ -9,7 +9,7 @@ import { IPaginationState } from "../../../typings";
 
 export function initialPaginationState(props: Partial<IPaginationState> = {}): IPaginationState {
     return {
-        limit: 5,
+        limit: 10,
         offset: 0,
         current: 1,
         total: 0,
