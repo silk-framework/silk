@@ -9,7 +9,7 @@ import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.{Identifier, XMLUtils}
 import org.silkframework.util.XMLUtils._
-import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider}
+import org.silkframework.workspace.{ProjectConfig, TaskLoadingError, WorkspaceProvider}
 
 import scala.reflect.ClassTag
 import scala.util.Try
@@ -103,7 +103,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     plugin[T].removeTask(task, resources.child(project).child(plugin[T].prefix))
   }
 
-  private def plugin[T <: TaskSpec : ClassTag] = {
+  private def plugin[T <: TaskSpec : ClassTag]: XmlSerializer[T] = {
     val taskClass = implicitly[ClassTag[T]].runtimeClass
     plugins.find(_._1.isAssignableFrom(taskClass))
       .getOrElse(throw new RuntimeException("No plugin available for class " + taskClass))
@@ -120,7 +120,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
 
   override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier,
                                                        projectResources: ResourceManager)
-                                                      (implicit user: UserContext): Seq[Try[Task[T]]] = {
+                                                      (implicit user: UserContext): Seq[Either[Task[T], TaskLoadingError]] = {
     plugin[T].loadTasksSafe(resources.child(project).child(plugin[T].prefix), projectResources)
   }
 

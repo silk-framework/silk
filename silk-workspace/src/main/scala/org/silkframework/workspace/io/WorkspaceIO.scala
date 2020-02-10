@@ -75,10 +75,11 @@ object WorkspaceIO {
                                                  (implicit userContext: UserContext): Unit = {
     for(taskTry <- inputWorkspace.readTasksSafe[T](projectName, resources)) {
       taskTry match {
-        case Success(task) =>
+        case Left(task) =>
           outputWorkspace.putTask(projectName, task)
-        case Failure(ex) =>
-          log.warning("Invalid task encountered while copying task between workspace providers. Error message: " + ex.getMessage)
+        case Right(taskLoadingError) =>
+          outputWorkspace.retainExternalTaskLoadingError(taskLoadingError)
+          log.warning("Invalid task encountered while copying task between workspace providers. Error message: " + taskLoadingError.throwable.getMessage)
       }
     }
   }

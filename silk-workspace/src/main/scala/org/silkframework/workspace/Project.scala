@@ -46,12 +46,6 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   @volatile
   private var modules = Seq[Module[_ <: TaskSpec]]()
 
-  /**
-    * Holds all issues that occurred during loading project activities.
-    */
-  @volatile
-  private var activityLoadingErrors: Seq[ValidationException] = Seq.empty
-
   // Register all default modules
   registerModule[DatasetSpec[Dataset]]()
   registerModule[TransformSpec]()
@@ -75,9 +69,15 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   def name: Identifier = cachedConfig.id
 
   /**
-    * Retrieves all errors that occured during loading this project.
+    * Retrieves all errors that occurred during loading this project.
     */
-  def loadingErrors: Seq[ValidationException] = modules.flatMap(_.loadingError) ++ activityLoadingErrors
+  def loadingErrors: Seq[TaskLoadingError] = {
+    val errors = modules.flatMap(_.loadingError)
+    val errorIds = errors.map(_.id).toSet
+    val externalLoadingErrors = provider.externalTaskLoadingErrors.filterNot(extError => errorIds.contains(extError.id))
+    // Some workspaces have duplicate loading errors, make them distinct.
+    (errors ++ externalLoadingErrors).groupBy(_.id).values.map(_.head).toSeq
+  }
 
   private val projectActivities = {
     val factories = PluginRegistry.availablePlugins[ProjectActivityFactory[_ <: HasValue]].toList
@@ -88,7 +88,6 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
       } catch {
         case NonFatal(ex) =>
           val errorMsg = s"Could not load project activity '$factory' in project '${initialConfig.id}'."
-          activityLoadingErrors :+= new ValidationException(errorMsg + "Details: " + ex.getMessage, ex)
           logger.log(Level.WARNING, errorMsg, ex)
       }
     }

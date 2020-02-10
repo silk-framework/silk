@@ -8,7 +8,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.Plugin
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.{InMemoryWorkspaceProvider, ProjectConfig}
+import org.silkframework.workspace.{InMemoryWorkspaceProvider, ProjectConfig, TaskLoadingError}
 
 import scala.reflect.ClassTag
 import scala.util.Try
@@ -37,7 +37,9 @@ class MockableWorkspaceProvider extends InMemoryWorkspaceProvider {
     )
   }
 
-  override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)(implicit user: UserContext): Seq[Try[Task[T]]] = {
+  override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier,
+                                                       projectResources: ResourceManager)
+                                                      (implicit user: UserContext): Seq[Either[Task[T], TaskLoadingError]] = {
     config.readTasksSafe[T](project, projectResources).getOrElse(
       super.readTasksSafe[T](project, projectResources)
     )
@@ -72,5 +74,5 @@ class BreakableWorkspaceProviderConfig {
                                          (implicit user: UserContext): Option[Seq[Task[T]]] = None
 
   def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
-                                             (implicit user: UserContext): Option[Seq[Try[Task[T]]]] = None
+                                             (implicit user: UserContext): Option[Seq[Either[Task[T], TaskLoadingError]]] = None
 }

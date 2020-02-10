@@ -1,0 +1,16 @@
+# Projects
+
+POST          /                                                                 controllers.workspaceApi.ProjectApi.createNewProject()
+PUT           /:projectId/metaData                                     controllers.workspaceApi.ProjectApi.updateProjectMetaData(projectId: String)
+GET           /:projectId/prefixes                                     controllers.workspaceApi.ProjectApi.fetchProjectPrefixes(projectId: String)
+PUT           /:projectId/prefixes/:prefixName                         controllers.workspaceApi.ProjectApi.addProjectPrefix(projectId: String, prefixName: String)
+DELETE        /:projectId/prefixes/:prefixName                         controllers.workspaceApi.ProjectApi.deleteProjectPrefix(projectId: String, prefixName: String)
+
+# Project resources
+
+POST          /:projectId/resourceSearch                               controllers.workspaceApi.SearchApi.resourceSearch(projectId: String)
+
+# Project error report
+
+GET           /:projectId/failedTasksReport                            controllers.workspaceApi.ProjectApi.projectTasksLoadingErrorReport(projectId: String)
+GET           /:projectId/failedTasksReport/:taskId                    controllers.workspaceApi.ProjectApi.projectTaskLoadingErrorReport(projectId: String, taskId: String)

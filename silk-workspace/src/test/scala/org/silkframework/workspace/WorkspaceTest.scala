@@ -124,7 +124,7 @@ object WorkspaceTest {
       tasks
     }
     override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
-                                                        (implicit user: UserContext): Seq[Try[Task[T]]] = {
+                                                        (implicit user: UserContext): Seq[Either[Task[T], TaskLoadingError]] = {
       val tasks = super.readTasksSafe(project, projectResources)
       Thread.sleep(loadTimePause)
       taskReadTimes += ((project, System.currentTimeMillis()))

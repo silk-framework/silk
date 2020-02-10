@@ -39,16 +39,18 @@ trait WorkspaceProvider {
 
   /**
    * Reads all tasks of a specific type from a project.
+    *
+    * Use readTasksSafe instead of this method.
    */
   def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
                                          (implicit user: UserContext): Seq[Task[T]] = {
-    readTasksSafe[T](project, projectResources).map(_.get)
+    readTasksSafe[T](project, projectResources).map(t => t.left.getOrElse(throw t.right.get.throwable))
   }
 
   /**
     * Version of readTasks that returns a Seq[Try[Task[T]]]
     **/
-  def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)(implicit user: UserContext): Seq[Try[Task[T]]]
+  def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)(implicit user: UserContext): Seq[Either[Task[T], TaskLoadingError]]
 
   /**
    * Adds/Updates a task in a project.
@@ -76,4 +78,25 @@ trait WorkspaceProvider {
     * May return None if the projects are not held as RDF.
     */
   def sparqlEndpoint: Option[SparqlEndpoint]
+
+  private var externalLoadingErrors: List[TaskLoadingError] = List.empty
+
+  /**
+    * Retains a task loading error that was caught from an external system, e.g. when copying tasks between workspaces (project import),
+    * the loading error is also copied and can be displayed to the user.
+    */
+  private[workspace] def retainExternalTaskLoadingError(loadingError: TaskLoadingError): Unit = synchronized {
+    externalLoadingErrors = externalLoadingErrors.filter(_.id != loadingError.id)
+    externalLoadingErrors ::= loadingError
+  }
+
+  /** Task loading errors that come from an external system, e.g. when copying tasks between workspaces. The errors should be
+    * kept e.g. for informing the user. */
+  private[workspace] def externalTaskLoadingErrors: Seq[TaskLoadingError] = synchronized {
+    externalLoadingErrors
+  }
+
 }
+
+/** Task loading error. */
+case class TaskLoadingError(id: String, throwable: Throwable, label: Option[String] = None, description: Option[String] = None)

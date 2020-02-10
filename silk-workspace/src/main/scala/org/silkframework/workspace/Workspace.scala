@@ -165,6 +165,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       case Some(_) =>
         throw IdentifierAlreadyExistsException("Project " + name.toString + " does already exist!")
       case None =>
+        log.info("Project import started. Loading project '$name' into workspace.")
         marshaller.unmarshalProject(name, provider, repository.get(name), file)
         reloadProject(name)
         log.info(s"Imported project '$name'. " + userContext.logInfo)
@@ -231,11 +232,12 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   private def loadProjects()(implicit userContext: UserContext): Unit = {
     cachedProjects = for(projectConfig <- provider.readProjects()) yield {
       log.info("Loading project: " + projectConfig.id)
-      new Project(projectConfig, provider, repository.get(projectConfig.id))
-    }
-    for(project <- cachedProjects) {
+      val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
       project.loadTasks()
+      log.info("Finished loading project '" + projectConfig.id + "'.")
+      project
     }
+    log.info("Starting project activities...")
     for(project <- cachedProjects) {
       project.startActivities()
     }

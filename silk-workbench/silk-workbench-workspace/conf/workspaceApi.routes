@@ -4,14 +4,4 @@ POST          /searchTasks                                                      
 POST          /searchItems                                                      controllers.workspaceApi.SearchApi.facetedSearch()
 GET           /recentlyViewedItems                                              controllers.workspaceApi.SearchApi.recentlyViewedItems()
 
-# Projects
-
-POST          /projects                                                         controllers.workspaceApi.ProjectApi.createNewProject()
-PUT           /projects/:projectId/metaData                                     controllers.workspaceApi.ProjectApi.updateProjectMetaData(projectId: String)
-GET           /projects/:projectId/prefixes                                     controllers.workspaceApi.ProjectApi.fetchProjectPrefixes(projectId: String)
-PUT           /projects/:projectId/prefixes/:prefixName                         controllers.workspaceApi.ProjectApi.addProjectPrefix(projectId: String, prefixName: String)
-DELETE        /projects/:projectId/prefixes/:prefixName                         controllers.workspaceApi.ProjectApi.deleteProjectPrefix(projectId: String, prefixName: String)
-
-# Project resources
-
-POST          /projects/:projectId/resourceSearch                               controllers.workspaceApi.SearchApi.resourceSearch(projectId: String)
+->            /projects                   projectsApi.Routes

@@ -4,6 +4,7 @@ import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspace.JsonSerializer
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
+import controllers.workspaceApi.project.ProjectLoadingErrors.{ProjectTaskLoadingErrorResponse, Stacktrace}
 import javax.inject.Inject
 import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.runtime.activity.UserContext
@@ -11,12 +12,15 @@ import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectConfig
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Action, AnyContent, InjectedController}
+import play.api.mvc.{Accepting, Action, AnyContent, InjectedController, Result}
 
 /**
   * REST API for project artifacts.
   */
 class ProjectApi @Inject()() extends InjectedController with ControllerUtilsTrait {
+  private val MARKDOWN_MIME = "text/markdown"
+  private val AcceptsMarkdown = Accepting(MARKDOWN_MIME)
+
   /** Create a project given the meta data. Automatically generates an ID. */
   def createNewProject(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
       validateJson[ProjectCreationData] { projectCreationData =>
@@ -66,7 +70,7 @@ class ProjectApi @Inject()() extends InjectedController with ControllerUtilsTrai
   }
 
   /** Add or update project prefix. */
-  def addProjectPrefix(projectId: String, prefixName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>implicit userContext =>
+  def addProjectPrefix(projectId: String, prefixName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = getProject(projectId)
     validateJson[String] { prefixUri =>
       val newPrefixes = Prefixes(project.config.prefixes.prefixMap ++ Map(prefixName -> prefixUri))
@@ -81,5 +85,49 @@ class ProjectApi @Inject()() extends InjectedController with ControllerUtilsTrai
     val newPrefixes = Prefixes(project.config.prefixes.prefixMap - prefixName)
     project.config = project.config.copy(prefixes = newPrefixes)
     Ok(Json.toJson(newPrefixes.prefixMap))
+  }
+
+  /** Get an error report for tasks that failed loading. */
+  def projectTaskLoadingErrorReport(projectId: String, taskId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val project = getProject(projectId)
+    project.loadingErrors.find(_.id == taskId) match {
+      case Some(loadingError) =>
+        val failedTask = ProjectTaskLoadingErrorResponse.fromTaskLoadingError(loadingError)
+        val taskLabel = failedTask.taskLabel.getOrElse(failedTask.taskId)
+        render {
+          case AcceptsMarkdown() =>
+            val markdownHeader = s"""# Project task loading error report
+                                    |
+                                    |Task '$taskLabel' in project '${project.config.metaData.label}' has failed loading.
+                                    |
+                                    |""".stripMargin
+            Ok(markdownHeader + failedTask.asMarkdown(None)).withHeaders("Content-type" -> MARKDOWN_MIME)
+          case Accepts.Json() => // default is JSON
+            Ok(Json.toJson(failedTask))
+        }
+      case None =>
+        NotFound
+    }
+  }
+
+  /** Get an error report for tasks that failed loading. */
+  def projectTasksLoadingErrorReport(projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val project = getProject(projectId)
+    val failedTasks = project.loadingErrors.map(ProjectTaskLoadingErrorResponse.fromTaskLoadingError)
+    render {
+      case AcceptsMarkdown() =>
+        val sb = new StringBuilder()
+        val markdownHeader = s"""# Project Tasks Loading Error Report
+                               |
+                               |In project '${project.config.metaData.label}' ${failedTasks.size} task/s could not be loaded.
+                               |""".stripMargin
+        sb.append(markdownHeader)
+        for((failedTask, idx) <- failedTasks.zipWithIndex) {
+          sb.append("\n").append(failedTask.asMarkdown(Some(idx + 1)))
+        }
+        Ok(sb.toString()).withHeaders("Content-type" -> MARKDOWN_MIME)
+      case Accepts.Json() => // default is JSON
+        Ok(Json.toJson(failedTasks))
+    }
   }
 }

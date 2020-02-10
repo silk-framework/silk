@@ -19,11 +19,9 @@ import java.util.logging.Logger
 
 import org.silkframework.config._
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
-import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.util.Identifier
-
-import scala.util.Try
-import scala.xml.XML
+import org.silkframework.workspace.TaskLoadingError
 
 /**
  * Holds custom tasks.
@@ -33,12 +31,6 @@ private class CustomTaskXmlSerializer extends XmlSerializer[CustomTask] {
   private val logger = Logger.getLogger(classOf[CustomTaskXmlSerializer].getName)
 
   override def prefix = "custom"
-
-  private def loadTask(name: String, resources: ResourceLoader, projectResources: ResourceManager) = {
-    implicit val res = projectResources
-    implicit val readContext = ReadContext(projectResources)
-    XmlSerialization.fromXml[Task[CustomTask]](resources.get(name).read(XML.load))
-  }
 
   /**
    * Writes an updated task.
@@ -62,10 +54,10 @@ private class CustomTaskXmlSerializer extends XmlSerializer[CustomTask] {
   }
 
   override def loadTasksSafe(resources: ResourceLoader,
-                             projectResources: ResourceManager): List[Try[Task[CustomTask]]] = {
+                             projectResources: ResourceManager): Seq[Either[Task[CustomTask], TaskLoadingError]] = {
     val names = taskNames(resources)
     val tasks = for (name <- names) yield {
-      Try(loadTask(name, resources, projectResources))
+      loadTaskSafelyFromXML(name, Some(name.stripSuffix(".xml")), resources, projectResources)
     }
 
     tasks

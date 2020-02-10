@@ -20,13 +20,10 @@ import org.silkframework.config._
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.ReferenceLinksReader
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
-import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
-
-import scala.util.Try
-import scala.xml.XML
+import org.silkframework.workspace.TaskLoadingError
 
 /**
  * The linking module which encapsulates all linking tasks.
@@ -40,12 +37,15 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
   /**
    * Loads a specific task in this module.
    */
-  private def loadTask(taskResources: ResourceLoader, projectResources: ResourceManager) = {
-    implicit val resources = projectResources
-    implicit val readContext = ReadContext(resources)
-    val linkSpec = fromXml[Task[LinkSpec]](taskResources.get("linkSpec.xml").read(XML.load))
-    val referenceLinks = taskResources.get("alignment.xml").read(ReferenceLinksReader.readReferenceLinks)
-    PlainTask(linkSpec.id, linkSpec.data.copy(referenceLinks = referenceLinks), linkSpec.metaData)
+  private def loadTask(taskResources: ResourceLoader,
+                       projectResources: ResourceManager): Either[Task[LinkSpec], TaskLoadingError] = {
+    loadTaskSafelyFromXML("linkSpec.xml", None, taskResources, projectResources) match {
+      case Left(linkSpec) => // TODO: Fix alternative ID
+        val referenceLinks = taskResources.get("alignment.xml").read(ReferenceLinksReader.readReferenceLinks)
+        Left(PlainTask(linkSpec.id, linkSpec.data.copy(referenceLinks = referenceLinks), linkSpec.metaData))
+      case right: Either[Task[LinkSpec], TaskLoadingError] =>
+        right
+    }
   }
 
   /**
@@ -68,10 +68,10 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
     taskResources.get("alignment.xml").write(){ os => data.referenceLinks.toXML.write(os) }
   }
 
-  override def loadTasksSafe(resources: ResourceLoader, projectResources: ResourceManager): List[Try[PlainTask[LinkSpec]]] = {
+  override def loadTasksSafe(resources: ResourceLoader, projectResources: ResourceManager): Seq[Either[Task[LinkSpec], TaskLoadingError]] = {
     val tasks =
       for(name <- resources.listChildren) yield
-        Try(loadTask(resources.child(name), projectResources))
+        loadTask(resources.child(name), projectResources)
     tasks
   }
 }

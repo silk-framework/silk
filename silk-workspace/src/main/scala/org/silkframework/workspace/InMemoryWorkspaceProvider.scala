@@ -64,9 +64,9 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
   }
 
   override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier,
-                                                       projectResources: ResourceManager)(implicit user: UserContext): Seq[Try[Task[T]]] = {
+                                                       projectResources: ResourceManager)(implicit user: UserContext): Seq[Either[Task[T], TaskLoadingError]] = {
     val taskClass = implicitly[ClassTag[T]].runtimeClass
-    projects(project).tasks.values.filter(task => taskClass.isAssignableFrom(task.data.getClass)).map(task => Success(task.asInstanceOf[Task[T]])).toSeq
+    projects(project).tasks.values.filter(task => taskClass.isAssignableFrom(task.data.getClass)).map(task => Left(task.asInstanceOf[Task[T]])).toSeq
   }
 
   /**

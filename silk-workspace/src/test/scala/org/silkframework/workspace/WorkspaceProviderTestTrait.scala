@@ -201,6 +201,17 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     getProject(project2.id) should be (Some(project2.copy(projectResourceUriOpt = Some(project2.generateDefaultUri))))
   }
 
+  it should "read and write project meta data" in {
+    project.config.metaData shouldBe MetaData(PROJECT_NAME)
+    val projectLabel = "named project"
+    val projectDescription = "project description"
+    val newMetaData = MetaData(projectLabel, description = Some(projectDescription))
+    workspace.updateProjectMetaData(PROJECT_NAME, newMetaData)
+    refreshTest {
+      getProject(PROJECT_NAME).get.metaData shouldBe newMetaData
+    }
+  }
+
   private def getProject(projectId: String): Option[ProjectConfig] = {
     workspaceProvider.readProjects().find(_.id == projectId)
   }
