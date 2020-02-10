@@ -108,7 +108,7 @@ export default function SearchList() {
     };
 
     const handleVisibleProjects = (value: string) => {
-        dispatch(workspaceOp.changeVisibleProjects(+value))
+        dispatch(workspaceOp.changeVisibleProjectsOp(+value))
     };
 
     const goToItemDetails = (item: ISearchResultsServer) => {
