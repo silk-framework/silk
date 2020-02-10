@@ -10,14 +10,15 @@ import PropTypes from 'prop-types';
 
 import { ruleRemoveAsync, setApiDetails } from './store';
 
-import MappingsTree from './Containers/MappingsTree';
-import MappingsWorkview from './Containers/MappingsWorkview';
-import MessageHandler from './Components/MessageHandler';
+import MappingsTree from './containers/MappingsTree';
+import MappingsWorkview from './containers/MappingsWorkview';
+import MessageHandler from './components/MessageHandler';
 import { MAPPING_RULE_TYPE_OBJECT } from './utils/constants';
 import { MESSAGES } from './utils/constants';
 import RemoveMappingRuleDialog from './elements/RemoveMappingRuleDialog';
 import DiscardChangesDialog from './elements/DiscardChangesDialog';
 import EventEmitter from './utils/EventEmitter';
+import { isDebugMode } from './utils/isDebugMode';
 
 class HierarchicalMapping extends React.Component {
     // define property types
@@ -141,7 +142,7 @@ class HierarchicalMapping extends React.Component {
                 askForRemove: true,
                 removeFunction,
             });
-        } else if (__DEBUG__) {
+        } else if (isDebugMode()) {
             console.error('Wrong arguments passed to handleClickRemove Function');
         }
     };
@@ -209,7 +210,7 @@ class HierarchicalMapping extends React.Component {
     };
 
     // show / hide navigation
-    handleToggleNavigation = stateVisibility => {
+    handleToggleNavigation = (stateVisibility = !this.state.showNavigation) => {
         this.setState({
             showNavigation: stateVisibility,
         });
@@ -240,7 +241,7 @@ class HierarchicalMapping extends React.Component {
         const loading = this.state.loading ? <Spinner /> : false;
 
         // render mapping edit / create view of value and object
-        const debugOptions = __DEBUG__ ? (
+        const debugOptions = isDebugMode() ? (
             <div>
                 <DisruptiveButton
                     onClick={() => {
@@ -259,12 +260,6 @@ class HierarchicalMapping extends React.Component {
                 </Button>
                 <hr />
             </div>
-        ) : (
-            false
-        );
-        const messagequeue = <MessageHandler />;
-        const pseudotoasts = messagequeue ? (
-            <div className="ecc-temp__appmessages">{messagequeue}</div>
         ) : (
             false
         );
@@ -290,7 +285,9 @@ class HierarchicalMapping extends React.Component {
                     )
                 }
                 {loading}
-                {pseudotoasts}
+                <div className="ecc-temp__appmessages">
+                    <MessageHandler />
+                </div>
                 <div className="ecc-silk-mapping__content">
                     {
                         showNavigation && (
@@ -303,6 +300,7 @@ class HierarchicalMapping extends React.Component {
                     {
                         <MappingsWorkview
                             currentRuleId={this.state.currentRuleId}
+                            showNavigation={showNavigation}
                             onToggleTreeNav={this.handleToggleNavigation}
                             onRuleIdChange={this.handleRuleIdChange}
                             askForDiscardData={this.state.askForDiscard}

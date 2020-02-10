@@ -17,6 +17,7 @@ Makefile
 # ignore coverage report
 reports/
 coverage/
+analyzer-stats.json
 
 # ignore compiled
 es5/
