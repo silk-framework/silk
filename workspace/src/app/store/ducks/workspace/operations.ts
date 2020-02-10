@@ -1,14 +1,14 @@
-import { batch } from "react-redux";
+import {batch} from "react-redux";
 
 import fetch from '../../../services/fetch';
 
 import selectors from "./selectors";
-import { filtersSlice } from "./filtersSlice";
-import { previewSlice } from "./previewSlice";
-import { getApiEndpoint, getLegacyApiEndpoint } from "../../../utils/getApiEndpoint";
-import { routerOp } from "@ducks/router";
-import { IFacetState } from "@ducks/workspace/typings";
-import { workspaceSel } from "@ducks/workspace/index";
+import {filtersSlice} from "./filtersSlice";
+import {previewSlice} from "./previewSlice";
+import {getApiEndpoint, getLegacyApiEndpoint} from "../../../utils/getApiEndpoint";
+import {routerOp} from "@ducks/router";
+import {IFacetState} from "@ducks/workspace/typings";
+import {workspaceSel} from "@ducks/workspace/index";
 import qs from "query-string";
 
 const {
@@ -46,13 +46,13 @@ const updateQueryString = () => {
         const appliedFilters = workspaceSel.appliedFiltersSelector(state);
         const {applied: appliedSorters} = workspaceSel.sortersSelector(state);
         const appliedFacets = workspaceSel.appliedFacetsSelector(state);
-        const {current, value} = workspaceSel.paginationSelector(state);
+        const {current, limit} = workspaceSel.paginationSelector(state);
 
         const queryParams = {
             ...appliedFilters,
             ...appliedSorters,
             page: current,
-            limit: value,
+            limit: limit,
             f_ids: appliedFacets.map(o => o.facetId),
             types: appliedFacets.map(o => o.type),
             f_keys: appliedFacets.map(o => o.keywordIds.join(ARRAY_DELIMITER))
@@ -120,9 +120,9 @@ const setupFiltersFromQs = (queryString: string) => {
             }
 
             //DropDown
-            if(parsedQs.limit) {
+            if (parsedQs.limit) {
                 batchQueue.push(
-                    changeVisibleProjectsLimit(+parsedQs.limit)
+                    dispatch(changeVisibleProjectsLimit(+parsedQs.limit))
                 )
             }
 

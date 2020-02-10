@@ -3,5 +3,4 @@ export interface IPaginationState {
     offset: number;
     current: number;
     total: number;
-    value: number
 }

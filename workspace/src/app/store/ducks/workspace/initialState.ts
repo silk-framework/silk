@@ -14,7 +14,6 @@ export function initialPaginationState(props: Partial<IPaginationState> = {}): I
         offset: 0,
         current: 1,
         total: 0,
-        value: 10,
         ...props
     }
 }

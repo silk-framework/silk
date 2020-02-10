@@ -1,6 +1,6 @@
 import React from 'react';
 
-export function Pagination({pagination, onPageChange}) {
+export default function Pagination({pagination, onPageChange}) {
     const elements = [];
 
     let pagesCount = Math.ceil(pagination.total / pagination.limit);
@@ -20,15 +20,4 @@ export function Pagination({pagination, onPageChange}) {
             }
         </>
     );
-}
-
-export function Selection({onChangeSelect, value}) {
-    return (
-            <select value={value} onChange={(e) => onChangeSelect(e.target.value)}>
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-            </select>
-    )
 }

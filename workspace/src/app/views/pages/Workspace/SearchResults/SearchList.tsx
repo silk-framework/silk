@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import {Pagination, Selection} from "../../../components/Pagination";
+import Pagination from "../../../components/Pagination";
+import PageSizer from "../../../components/PageSizer";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import AppliedFacets from "../Topbar/AppliedFacets";
@@ -146,9 +147,9 @@ export default function SearchList() {
                         pagination={pagination}
                         onPageChange={handlePageChange}
                     />
-                    <Selection
+                    <PageSizer
                         onChangeSelect={handleVisibleProjects}
-                        value={pagination.value}
+                        value={pagination.limit}
                     />
                 </Footer>
             </DataList>
