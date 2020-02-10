@@ -48,7 +48,7 @@ class FileEntityCache(val entitySchema: EntitySchema,
     if (indices.nonEmpty) entityCount += 1
   }
 
-  override def read(block: Int, partition: Int) = {
+  override def read(block: Int, partition: Int): Partition = {
     require(block >= 0 && block < blockCount, "0 <= block < " + blockCount + " (block = " + block + ")")
     require(partition >= 0 && partition < blocks(block).partitionCount, "0 <= partition < " + blocks(block).partitionCount + " (partition = " + partition + ")")
 
@@ -86,9 +86,11 @@ class FileEntityCache(val entitySchema: EntitySchema,
   override def close() {
     logger.log(Level.FINER, s"Closing file cache [ size :: ${blocks.length} ].")
 
-    for (block <- blocks) {
+    val blockWrittenFlag = for (block <- blocks) yield {
       block.close()
     }
+    val blocksWritten = blockWrittenFlag.count(written => written)
+    logger.log(Level.FINE, s"$blocksWritten block(s) written to file cache directory ${dir.getCanonicalPath}.")
   }
 
   private class Block(block: Int) {
@@ -96,14 +98,24 @@ class FileEntityCache(val entitySchema: EntitySchema,
 
     private val blockDir = dir + "/block" + block.toString + "/"
 
-    private val currentEntities = new Array[Entity](runtimeConfig.partitionSize)
-    private val currentIndices = new Array[BitsetIndex](runtimeConfig.partitionSize)
+    @volatile
+    private var currentEntities: Array[Entity] = null
+    @volatile
+    private var currentIndices: Array[BitsetIndex] = null
     @volatile private var count = 0
 
-    if (runtimeConfig.reloadCache)
+    if (runtimeConfig.reloadCache) {
       clear()
-    else
+    } else {
       load()
+    }
+
+    private def checkInit(): Unit = {
+      if(currentEntities == null) {
+        currentEntities = new Array[Entity](runtimeConfig.partitionSize)
+        currentIndices = new Array[BitsetIndex](runtimeConfig.partitionSize)
+      }
+    }
 
     private def load() {
       //Retrieve the number of existing partitions
@@ -118,26 +130,14 @@ class FileEntityCache(val entitySchema: EntitySchema,
           0
         }
       }
-
-      //Load the last partition in memory
-      if (partitionCount > 0) {
-        val readPartition = readPartitionFromFile(partitionCount - 1)
-        Array.copy(readPartition.entities, 0, currentEntities, 0, readPartition.size)
-        Array.copy(readPartition.indices, 0, currentIndices, 0, readPartition.size)
-        count = readPartition.size
-      }
     }
 
     def read(partitionIndex: Int): Partition = {
-      if (partitionIndex == partitionCount - 1) {
-        Partition(currentEntities, currentIndices, count)
-      }
-      else {
-        readPartitionFromFile(partitionIndex)
-      }
+      readPartitionFromFile(partitionIndex)
     }
 
     def write(entity: Entity, index: BitsetIndex) {
+      checkInit()
       if (partitionCount == 0) partitionCount = 1
 
       currentEntities(count) = entity
@@ -146,23 +146,35 @@ class FileEntityCache(val entitySchema: EntitySchema,
 
       if (count == runtimeConfig.partitionSize) {
         writePartitionToFile()
-        count = 0
+        initCurrentPartition(removeTempData = false)
         partitionCount += 1
       }
     }
 
-    def clear() {
-      partitionCount = 0
+    private def initCurrentPartition(removeTempData: Boolean): Unit = {
+      if(removeTempData) {
+        currentEntities = null
+        currentIndices = null
+      }
       count = 0
     }
 
-    def close() {
+    def clear() {
+      partitionCount = 0
+      initCurrentPartition(removeTempData = true)
+    }
+
+    def close(): Boolean = {
       if (count > 0) {
         writePartitionToFile()
+        initCurrentPartition(removeTempData = true)
+        true
+      } else {
+        false
       }
     }
 
-    private def readPartitionFromFile(partition: Int) = {
+    private def readPartitionFromFile(partition: Int): Partition = {
       val stream = new DataInputStream(new BufferedInputStream(new FileInputStream(blockDir + "/partition" + partition.toString)))
 
       try {

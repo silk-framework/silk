@@ -5,7 +5,8 @@ import org.silkframework.dataset.{DatasetCategories, TripleSink, TripleSinkDatas
 import org.silkframework.plugins.dataset.rdf.endpoint.RemoteSparqlEndpoint
 import org.silkframework.plugins.dataset.rdf.access.{SparqlSink, SparqlSource}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, PasswordParameter, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.{MultilineStringParameter, PasswordParameter}
 
 @Plugin(
   id = "sparqlEndpoint",
@@ -39,7 +40,12 @@ case class SparqlDataset(
   useOrderBy: Boolean = true,
   @Param(label = "Clear graph before workflow execution",
     value = "If set to true this will clear the specified graph before executing a workflow that writes to it.")
-  clearGraphBeforeExecution: Boolean = false) extends RdfDataset with TripleSinkDataset {
+  clearGraphBeforeExecution: Boolean = false,
+  @Param(
+    label = "SPARQL query timeout (ms)",
+    value = "SPARQL query timeout (select/update) in milliseconds. A value of zero means that the timeout configured via " +
+        "property is used (e.g. configured via silk.remoteSparqlEndpoint.defaults.read.timeout.ms). To overwrite the configured value specify a value greater than zero.")
+  sparqlTimeout: Int = 0) extends RdfDataset with TripleSinkDataset {
 
   private val params =
     SparqlParams(
@@ -54,7 +60,8 @@ case class SparqlDataset(
       retryPause = retryPause,
       queryParameters = queryParameters,
       strategy = strategy,
-      useOrderBy = useOrderBy
+      useOrderBy = useOrderBy,
+      timeout = Some(sparqlTimeout).filter(_ > 0)
     )
 
   override val sparqlEndpoint: RemoteSparqlEndpoint = {

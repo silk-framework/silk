@@ -141,7 +141,7 @@ object JsonSerializers {
             id = (value \ TYPE).as[JsString].value,
             params = (value \ PARAMETERS).as[JsObject].value.mapValues(_.as[JsString].value).asInstanceOf[Map[String, String]]
           ),
-        uriProperty = stringValueOption(value, URI_PROPERTY).filter(_.trim.nonEmpty).map(v => Uri(v.trim))
+        uriAttribute = stringValueOption(value, URI_PROPERTY).filter(_.trim.nonEmpty).map(v => Uri(v.trim))
       )
     }
 
@@ -152,7 +152,7 @@ object JsonSerializers {
           TYPE -> JsString(value.plugin.pluginSpec.id.toString),
           PARAMETERS -> Json.toJson(value.plugin.parameters)
         )
-      for(property <- value.uriProperty) {
+      for(property <- value.uriAttribute) {
         json += (URI_PROPERTY -> JsString(property.uri))
       }
       json

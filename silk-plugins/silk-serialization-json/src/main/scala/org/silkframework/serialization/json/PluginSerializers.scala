@@ -6,6 +6,7 @@ import org.silkframework.runtime.serialization.WriteContext
 import play.api.libs.json._
 
 object PluginSerializers {
+  final val MARKDOWN_DOCUMENTATION_PARAMETER = "markdownDocumentation"
 
   /**
     * Generates a JSON serialization of a list of plugins.
@@ -13,22 +14,27 @@ object PluginSerializers {
     */
   implicit object PluginListJsonFormat extends WriteOnlyJsonFormat[PluginList] {
 
-    override def write(plugins: PluginList)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+    override def write(pluginList: PluginList)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsObject(
-        for((pluginType, plugins) <- plugins.pluginsByType; plugin <- plugins) yield {
-          plugin.id.toString -> serializePlugin(plugin)
+        for((_, plugins) <- pluginList.pluginsByType; plugin <- plugins) yield {
+          plugin.id.toString -> serializePlugin(plugin, pluginList.serializeMarkdownDocumentation)
         }
       )
     }
 
-    private def serializePlugin(plugin: PluginDescription[_]) = {
-      Json.obj(
-        "title" -> JsString(plugin.label),
-        "categories" -> plugin.categories.map(JsString),
-        "description" -> JsString(plugin.description),
-        "type" -> "object",
-        "properties" -> JsObject(serializeParams(plugin.parameters)),
-        "required" -> JsArray(plugin.parameters.filterNot(_.defaultValue.isDefined).map(_.name).map(JsString))
+    private def serializePlugin(plugin: PluginDescription[_], withMarkdownDocumentation: Boolean): JsObject = {
+      val markdownDocumentation = if(withMarkdownDocumentation && plugin.documentation.nonEmpty){
+        Some((MARKDOWN_DOCUMENTATION_PARAMETER -> JsString(plugin.documentation)))
+      } else { None }
+      JsObject(
+        Seq(
+          "title" -> JsString(plugin.label),
+          "categories" -> JsArray(plugin.categories.map(JsString)),
+          "description" -> JsString(plugin.description),
+          "type" -> JsString("object"),
+          "properties" -> JsObject(serializeParams(plugin.parameters)),
+          "required" -> JsArray(plugin.parameters.filterNot(_.defaultValue.isDefined).map(_.name).map(JsString))
+        ) ++ markdownDocumentation
       )
     }
 

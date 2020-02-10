@@ -106,11 +106,16 @@ trait Resource {
     */
   def nonEmpty: Boolean = {
     if(exists) {
-      val in = inputStream
-      try {
-        in.read() != -1
-      } finally {
-        in.close()
+      size match {
+        case Some(s) =>
+          s > 0
+        case None =>
+          val in = inputStream
+          try {
+            in.read() != -1
+          } finally {
+            in.close()
+          }
       }
     } else {
       false

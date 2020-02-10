@@ -8,9 +8,11 @@ import java.util.regex.Pattern
 
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
-import org.silkframework.entity.paths.UntypedPath.IDX_PATH_IDX
+import org.silkframework.entity.paths.UntypedPath.{IDX_PATH_MISSING, IDX_PATH_IDX}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
@@ -23,7 +25,6 @@ class CsvSource(file: Resource,
                 uriPattern: String = "",
                 regexFilter: String = "",
                 codec: Codec = Codec.UTF8,
-                skipLinesBeginning: Int = 0,
                 ignoreBadLines: Boolean = false,
                 detectSeparator: Boolean = false,
                 detectSkipLinesBeginning: Boolean = false,
@@ -112,23 +113,17 @@ class CsvSource(file: Resource,
   }
 
   override def retrieve(entitySchema: EntitySchema, limitOpt: Option[Int] = None)
-                       (implicit userContext: UserContext): Traversable[Entity] = {
+                       (implicit userContext: UserContext): EntityHolder = {
     if (entitySchema.filter.operator.isDefined) {
       throw new NotImplementedError("Filter restrictions are not supported on CSV datasets!") // TODO: Implement Restriction handling!
     }
-    val entities = retrieveEntities(entitySchema)
-    limitOpt match {
-      case Some(limit) =>
-        entities.take(limit)
-      case None =>
-        entities
-    }
+    retrieveEntities(entitySchema)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): Traversable[Entity] = {
+                            (implicit userContext: UserContext): EntityHolder = {
     if(entities.isEmpty) {
-      Seq.empty
+      GenericEntityTable(Seq.empty, entitySchema, underlyingTask)
     } else {
       val entitySet = entities.map(_.uri.toString).toSet
       val entityTraversal = retrieveEntities(entitySchema)
@@ -137,15 +132,15 @@ class CsvSource(file: Resource,
     }
   }
 
-
-  def retrieveEntities(entityDesc: EntitySchema, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
+  def retrieveEntities(entityDesc: EntitySchema, entities: Seq[String] = Seq.empty, limitOpt: Option[Int] = None): EntityHolder = {
 
     if(entityDesc.typeUri.toString.nonEmpty && entityDesc.typeUri != Uri(typeUri))
-      return Traversable.empty
+      return GenericEntityTable(Traversable.empty, entityDesc, underlyingTask)
 
     logger.log(Level.FINE, "Retrieving data from CSV.")
 
     // Retrieve the indices of the request paths
+    var missingColumns = Seq[String]()
     val indices =
       for (path <- entityDesc.typedPaths) yield {
         val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri
@@ -154,7 +149,8 @@ class CsvSource(file: Resource,
           if(property == "#idx") {
             IDX_PATH_IDX
           } else {
-            throw new Exception("Property " + property + " not found in CSV " + file.name + ". Available properties: " + propertyList.mkString(", "))
+            missingColumns :+= property
+            IDX_PATH_MISSING
           }
         } else {
           propertyIndex
@@ -162,7 +158,23 @@ class CsvSource(file: Resource,
       }
 
     // Return new Traversable that generates an entity for each line
-    entityTraversable(entityDesc, entities, indices)
+    val retrievedEntities = entityTraversable(entityDesc, entities, indices)
+
+    val limitedEntities = limitOpt match {
+      case Some(limit) =>
+        retrievedEntities.take(limit)
+      case None =>
+        retrievedEntities
+    }
+
+    val missingColumnMessages =
+      if(missingColumns.isEmpty) {
+        Seq.empty
+      } else {
+        Seq(s"Column(s) ${missingColumns.mkString(", ")} not found in CSV ${file.name}. Values for missing columns will be empty. Available columns: ${propertyList.mkString(", ")}.")
+      }
+
+    GenericEntityTable(limitedEntities, entityDesc, underlyingTask, missingColumnMessages)
   }
 
   private def entityTraversable(entityDesc: EntitySchema,
@@ -212,6 +224,8 @@ class CsvSource(file: Resource,
 
   private def collectValues(indices: IndexedSeq[Int], entry: Array[String], entityIdx: Int): IndexedSeq[String] = {
     indices map {
+      case IDX_PATH_MISSING =>
+        null // splitArrayValue will generate an empty sequence from this.
       case IDX_PATH_IDX =>
         entityIdx.toString
       case idx: Int if idx >= 0 =>
@@ -282,7 +296,7 @@ class CsvSource(file: Resource,
 
   // Skip lines that are not part of the CSV file, headers may be included
   private def initBufferedReader(reader: BufferedReader): Unit = {
-    val nrLinesToSkip = skipLinesAutomatic getOrElse skipLinesBeginning
+    val nrLinesToSkip = skipLinesAutomatic getOrElse csvSettings.linesToSkip
     for (_ <- 1 to nrLinesToSkip) {
       reader.readLine() // Skip line
     }

@@ -2,6 +2,7 @@ package org.silkframework.runtime.resource.zip
 
 import java.io.{BufferedOutputStream, File, FileOutputStream, OutputStream}
 import java.net.{URI, URL}
+import java.nio.file.{Path, Paths}
 import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.{Deflater, ZipEntry, ZipOutputStream}
 
@@ -47,7 +48,7 @@ class ZipOutputStreamResourceManager(zip: OutputStream, val basePath: String = "
   }
 
   private def resolvePath(path: String): String = {
-    if(!new URI(path).normalize.toString.startsWith("..")) {
+    if(!Paths.get(path).normalize.toString.startsWith("..")) {
       base + path
     } else{
       throw new IllegalArgumentException("The path requested would be outside the Zip resource.")

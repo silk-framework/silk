@@ -45,7 +45,7 @@ case class ProjectConfig(id: Identifier = Identifier.random,
 
 object ProjectConfig {
   @Inject
-  private var configMgr: Config = DefaultConfig.instance
+  private val configMgr: Config = DefaultConfig.instance
 
   private val log: Logger = Logger.getLogger(getClass.getName)
 

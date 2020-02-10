@@ -11,12 +11,15 @@ import org.silkframework.dataset.rdf.{LinkFormatter, RdfDataset, SparqlParams}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.plugins.dataset.rdf.access.SparqlSource
 import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEndpoint}
 import org.silkframework.plugins.dataset.rdf.formatters._
 import org.silkframework.plugins.dataset.rdf.sparql.EntityRetriever
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.MultilineStringParameter
 import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.util.{Identifier, Uri}
 
@@ -39,7 +42,9 @@ case class RdfFileDataset(
     value = "The maximum size of the RDF file resource for read operations. Since the whole dataset will be kept in-memory, this value should be kept low to guarantee stability.")
   maxReadSize: Long = 10,
   @Param("A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.")
-  entityList: MultilineStringParameter = MultilineStringParameter("")) extends RdfDataset with TripleSinkDataset with BulkResourceBasedDataset {
+  entityList: MultilineStringParameter = MultilineStringParameter(""),
+  @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
+  override val zipFileRegex: String = ".*") extends RdfDataset with TripleSinkDataset with BulkResourceBasedDataset {
 
   implicit val userContext: UserContext = UserContext.INTERNAL_USER
 
@@ -72,7 +77,7 @@ case class RdfFileDataset(
     createSparqlEndpoint(allResources)
   }
 
-  private def createSparqlEndpoint(resources: Seq[Resource]): JenaEndpoint = {
+  private def createSparqlEndpoint(resources: Traversable[Resource]): JenaEndpoint = {
     // Load data set
     val dataset = DatasetFactory.createTxnMem()
     for(resource <- resources) {
@@ -83,8 +88,6 @@ case class RdfFileDataset(
         } finally {
           inputStream.close()
         }
-      } else {
-        throw new FileNotFoundException(s"The file ${resource.path} could  note be found or read.")
       }
     }
 
@@ -119,15 +122,16 @@ case class RdfFileDataset(
     private var lastModificationTime: Option[(Long, Int)] = None
 
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                         (implicit userContext: UserContext): Traversable[Entity] = {
+                         (implicit userContext: UserContext): EntityHolder = {
       load()
-      EntityRetriever(endpoint).retrieve(entitySchema, entityRestriction, None)
+      val retrievedEntities = EntityRetriever(endpoint).retrieve(entitySchema, entityRestriction, None)
+      GenericEntityTable(retrievedEntities, entitySchema, underlyingTask)
     }
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext): Traversable[Entity] = {
+                              (implicit userContext: UserContext): EntityHolder = {
       if (entities.isEmpty) {
-        Seq.empty
+        EmptyEntityTable(underlyingTask)
       } else {
         load()
         sparqlSource.retrieveByUri(entitySchema, entities)

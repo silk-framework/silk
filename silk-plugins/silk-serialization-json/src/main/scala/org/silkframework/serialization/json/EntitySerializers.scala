@@ -1,20 +1,32 @@
 package org.silkframework.serialization.json
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.{Entity, EntitySchema, Restriction, StringValueType}
 import org.silkframework.execution.EntityHolder
-import org.silkframework.runtime.serialization.WriteContext
-import org.silkframework.util.DPair
+import org.silkframework.serialization.json.JsonHelpers.{mustBeDefined, mustBeJsArray, numberValueOption, optionalValue, requiredValue, stringValue}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workspace.activity.transform.CachedEntitySchemata
 import play.api.libs.json.{JsArray, JsString, JsValue, Json}
 
 object EntitySerializers {
 
-  implicit object EntitySchemaJsonFormat extends WriteOnlyJsonFormat[EntitySchema] {
+  // TODO: Typed paths are not correctly serialized here, check where this serialization is consumed
+  implicit object EntitySchemaJsonFormat extends JsonFormat[EntitySchema] {
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): EntitySchema = {
+      implicit val prefixes: Prefixes = readContext.prefixes
+      EntitySchema(
+        typeUri = new Uri(stringValue(value, "typeUri")),
+        typedPaths = mustBeJsArray(requiredValue(value, "paths"))(_.value.map(pathStr => TypedPath(pathStr.as[String], StringValueType))),
+        filter = Restriction.parse(stringValue(value, "filter")),
+        subPath = UntypedPath.parse(stringValue(value, "subPath"))
+      )
+    }
 
     override def write(value: EntitySchema)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       implicit val prefixes: Prefixes = writeContext.prefixes
-      // TODO: Typed paths are not correctly serialized here, check where this serialization is consumed
       val paths = for(typedPath <- value.typedPaths) yield JsString(typedPath.toUntypedPath.serialize())
       Json.obj(
         "typeUri" -> value.typeUri.uri,
@@ -63,11 +75,20 @@ object EntitySerializers {
     }
   }
 
-  class EntityJsonFormat(includeSchema: Boolean = true) extends WriteOnlyJsonFormat[Entity] {
+  class EntityJsonFormat(includeSchema: Boolean = true) extends JsonFormat[Entity] {
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): Entity = {
+      Entity(
+        uri = stringValue(value, "uri"),
+        values = mustBeJsArray(requiredValue(value, "values"))(value => value.value.map(v => mustBeJsArray(v)(innerValue => innerValue.value.map(_.as[String])))),
+        schema = EntitySchemaJsonFormat.read(requiredValue(value, "schema"))
+      )
+    }
 
     override def write(entity: Entity)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       val entityJson =
         Json.obj(
+          "uri" -> entity.uri.toString,
           "values" -> entity.values.map(values => JsArray(values.map(JsString)))
         )
 

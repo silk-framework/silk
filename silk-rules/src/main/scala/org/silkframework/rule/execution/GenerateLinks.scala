@@ -97,7 +97,8 @@ class GenerateLinks(id: Identifier,
     children ::= matcher
     matcher.startBlocking()
 
-      cleanUpCaches(caches)
+    stopLoading(context, loaders)
+    cleanUpCaches(caches)
 
     if(context.status.isCanceling) return
 
@@ -136,6 +137,23 @@ class GenerateLinks(id: Identifier,
   override def cancelExecution()(implicit userContext: UserContext): Unit = {
     children foreach { _.cancel()}
     super.cancelExecution()
+  }
+
+  /**
+    * Makes sure that no loading activity is running after completion of this method.
+    * This is relevant in cases when matching has been cancelled, but loading is still active.
+    */
+  private def stopLoading(context: ActivityContext[Linking], loaders: Seq[ActivityControl[_]])
+                         (implicit userContext: UserContext): Unit = {
+    if(loaders.exists(_.status().isRunning)) {
+      context.status.updateMessage("Stopping loaders")
+      for (loader <- loaders if loader.status().isRunning) {
+        loader.cancel()
+      }
+      for (loader <- loaders if loader.status().isRunning) {
+        loader.waitUntilFinished()
+      }
+    }
   }
 
   private def cleanUpCaches(caches: DPair[EntityCache]): Unit = {

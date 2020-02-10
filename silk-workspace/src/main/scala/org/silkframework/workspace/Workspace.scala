@@ -15,10 +15,13 @@
 package org.silkframework.workspace
 
 import java.io._
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.Logger
 
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{DefaultConfig, Prefixes}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.validation.ServiceUnavailableException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
 
@@ -34,6 +37,12 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
 
   private val log = Logger.getLogger(classOf[Workspace].getName)
 
+  private val cfg = DefaultConfig.instance()
+  // Time in milliseconds to wait for the workspace to be loaded
+  private val waitForWorkspaceInitialization = cfg.getLong("workspace.timeouts.waitForWorkspaceInitialization")
+  private val loadProjectsLock = new ReentrantLock()
+
+  @volatile
   private var initialized = false
 
   @volatile
@@ -45,11 +54,18 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
 
   /** Load the projects of a user into the workspace. At the moment all users have access to all projects, so this is only,
     * executed once. */
-  private def loadUserProjects()(implicit userContext: UserContext): Unit = synchronized {
+  private def loadUserProjects()(implicit userContext: UserContext): Unit = {
     // FIXME: Extension for access control should happen here.
-    if (!initialized) {
-      loadProjects()
-      initialized = true
+    if (!initialized) { // Avoid lock
+      if(loadProjectsLock.tryLock(waitForWorkspaceInitialization, TimeUnit.MILLISECONDS)) {
+        if(!initialized) { // Should have changed by now, but loadProjects() could also have failed, so double-check
+          loadProjects()
+          initialized = true
+        }
+      } else {
+        // Timeout
+        throw ServiceUnavailableException("The DataIntegration workspace is currently being initialized. The request has timed out. Please try again later.")
+      }
     }
   }
 
@@ -90,7 +106,12 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   def removeProject(name: Identifier)
                    (implicit userContext: UserContext): Unit = synchronized {
     loadUserProjects()
+    // Cancel all project and task activities
     project(name).activities.foreach(_.control.cancel())
+    for(task <- project(name).allTasks;
+        activity <- task.activities) {
+      activity.control.cancel()
+    }
     provider.deleteProject(name)
     cachedProjects = cachedProjects.filterNot(_.name == name)
     log.info(s"Removed project '$name'. " + userContext.logInfo)
@@ -126,9 +147,11 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       case Some(_) =>
         throw IdentifierAlreadyExistsException("Project " + name.toString + " does already exist!")
       case None =>
+        log.info(s"Starting import of project '$name'...")
+        val start = System.currentTimeMillis()
         marshaller.unmarshalProject(name, provider, repository.get(name), file)
         reloadProject(name)
-        log.info(s"Imported project '$name'. " + userContext.logInfo)
+        log.info(s"Imported project '$name' in ${(System.currentTimeMillis() - start).toDouble / 1000}s. " + userContext.logInfo)
     }
   }
 
@@ -167,7 +190,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     provider.readProject(id) match {
       case Some(projectConfig) =>
         val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
-        project.initTasks()
+        project.loadTasks()
+        project.startActivities()
         cachedProjects :+= project
       case None =>
         log.warning(s"Project '$id' could not be reloaded in workspace, because it could not be read from the workspace provider!")
@@ -187,10 +211,22 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   private def loadProjects()(implicit userContext: UserContext): Unit = {
     cachedProjects = for(projectConfig <- provider.readProjects()) yield {
       log.info("Loading project: " + projectConfig.id)
-      val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
-      project.initTasks()
-      project
+      new Project(projectConfig, provider, repository.get(projectConfig.id))
+    }
+    for(project <- cachedProjects) {
+      project.loadTasks()
+    }
+    for(project <- cachedProjects) {
+      project.startActivities()
     }
     reloadPrefixes()
+  }
+}
+
+object Workspace {
+  // Flag if auto-run activities should be started automatically
+  def autoRunCachedActivities: Boolean = {
+    val cfg = DefaultConfig.instance()
+    cfg.getBoolean("caches.config.enableAutoRun")
   }
 }

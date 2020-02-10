@@ -46,5 +46,6 @@ class JsonPluginModule extends PluginModule {
       EntityHolderJsonFormat.getClass ::
       LinkingJsonFormat.getClass ::
       TransformReportJsonFormat.getClass ::
+      LinkageRuleJsonFormat.getClass ::
       Nil
 }

@@ -8,6 +8,8 @@ import org.silkframework.dataset.rdf.{Resource, SparqlEndpoint, SparqlParams}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{BackwardOperator, TypedPath, UntypedPath}
 import org.silkframework.entity.rdf.SparqlRestriction
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.plugins.dataset.rdf.sparql._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Identifier, Uri}
@@ -29,24 +31,30 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
   private val entityUris: Seq[String] = params.entityRestriction
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                       (implicit userContext: UserContext): Traversable[Entity] = {
+                       (implicit userContext: UserContext): EntityHolder = {
     val entityRetriever = EntityRetriever(sparqlEndpoint, params.strategy, params.pageSize, params.graph, params.useOrderBy)
-    entityRetriever.retrieve(entitySchema, entityUris.map(Uri(_)), limit)
+    val entities = entityRetriever.retrieve(entitySchema, entityUris.map(Uri(_)), limit)
+    GenericEntityTable(entities, entitySchema, underlyingTask)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): Traversable[Entity] = {
+                            (implicit userContext: UserContext): EntityHolder = {
     if(entities.isEmpty) {
-      Seq.empty
+      EmptyEntityTable(underlyingTask)
     } else {
       val entityRetriever = EntityRetriever(sparqlEndpoint, params.strategy, params.pageSize, params.graph, params.useOrderBy)
-      entityRetriever.retrieve(entitySchema, entities, None)
+      val retrievedEntities = entityRetriever.retrieve(entitySchema, entities, None)
+      GenericEntityTable(retrievedEntities, entitySchema, underlyingTask)
     }
   }
 
   override def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None)
                             (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
-    val restrictions = SparqlRestriction.forType(typeUri)
+    val restrictions = if(typeUri.isEmpty) {
+      SparqlRestriction.empty
+    } else {
+      SparqlRestriction.forType(typeUri)
+    }
     retrievePathsSparqlRestriction(restrictions, limit)
   }
 
@@ -64,7 +72,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
     */
   override def underlyingTask: Task[DatasetSpec[Dataset]] = {
     val taskId = params.graph match{
-      case Some(g) => Identifier.fromAllowed(g.substring(g.lastIndexOf("/")))
+      case Some(g) => Identifier.fromAllowed("graph-" + g.substring(g.lastIndexOf("/")))
       case None => Identifier("default_graph")
     }
 

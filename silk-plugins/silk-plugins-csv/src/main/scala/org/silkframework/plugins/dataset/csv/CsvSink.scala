@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.csv
 import java.io.{File, IOException}
 import java.util.logging.Logger
 
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{DataSink, TypedProperty}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.WritableResource
@@ -15,7 +16,7 @@ class CsvSink(resource: WritableResource, settings: CsvSettings) extends DataSin
   private var writerOpt: Option[CsvWriter] = None
 
   def openTable(typeUri: Uri, properties: Seq[TypedProperty] = Seq.empty)
-               (implicit userContext: UserContext){
+               (implicit userContext: UserContext, prefixes: Prefixes){
     writerOpt = Some(new CsvWriter(resource, properties, settings))
   }
 

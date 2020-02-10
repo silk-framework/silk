@@ -1,19 +1,21 @@
 package org.silkframework.plugins.dataset.rdf
 
   import java.io.File
+
   import org.scalatest.mock.MockitoSugar
   import org.scalatest.{FlatSpec, MustMatchers}
-  import org.silkframework.config.PlainTask
+  import org.silkframework.config.{PlainTask, Prefixes}
   import org.silkframework.dataset.DatasetSpec
   import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
   import org.silkframework.dataset.rdf.SparqlEndpointEntityTable
-  import org.silkframework.execution.ExecutionReport
+  import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
   import org.silkframework.execution.local.LocalExecution
   import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
   import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlCopyExecutor
   import org.silkframework.plugins.dataset.rdf.tasks.SparqlCopyCustomTask
   import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
   import org.silkframework.runtime.resource.{ClasspathResourceLoader, ReadOnlyResourceManager}
+  import org.silkframework.util.TestMocks
   import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
   import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutionReportWithProvenance}
 
@@ -21,6 +23,7 @@ package org.silkframework.plugins.dataset.rdf
     behavior of "Local SPARQL Copy Executor"
 
     implicit val uc: UserContext = UserContext.Empty
+    implicit val prefixes: Prefixes = Prefixes.empty
 
     private lazy val resources = ReadOnlyResourceManager(ClasspathResourceLoader(getClass.getPackage.getName.replace('.', '/')))
 
@@ -36,7 +39,7 @@ package org.silkframework.plugins.dataset.rdf
     private val execution = LocalExecution(true)
     private val executor = new LocalSparqlCopyExecutor()
     private val constructQuery = "CONSTRUCT { ?s ?p ?o. } WHERE { ?s ?p ?o. FILTER(?s = <http://dbpedia.org/resource/Albert_Einstein>) }"
-    private val context = mock[ActivityContext[ExecutionReport]]
+    private val context = TestMocks.activityContextMock()
     private val source = RdfFileDataset(resources.get("test.nt"), "N-Triples")    // FIXME CMEM-1759 use quad file when QuadSink is available
     private val input = Seq(new SparqlEndpointEntityTable(source.sparqlEndpoint, PlainTask("endpointTask", DatasetSpec.empty)))
 
@@ -48,7 +51,7 @@ package org.silkframework.plugins.dataset.rdf
       val task = PlainTask("task", SparqlCopyCustomTask(constructQuery, withTempfile))
 
       it should "copy correct triples and store them optionally in a temp file " + withTempfile in {
-        val result = executor.execute(task, input, None, execution, context)
+        val result = executor.execute(task, input, ExecutorOutput.empty, execution, context)
         result match{
           case Some(copy) =>
             copy.entities.size mustBe 5                    // number of triples in source

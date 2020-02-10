@@ -3,7 +3,8 @@ package org.silkframework.plugins.dataset.xml
 import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.MultilineStringParameter
 import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 
@@ -27,7 +28,9 @@ case class XmlDataset( @Param("The XML file. This may also be a zip archive of m
                        @Param(value = "The output template used for writing XML. Must be valid XML. The generated entity is identified through a processing instruction of the form <?MyEntity?>.")
                        outputTemplate: MultilineStringParameter = "<Root><?Entity?></Root>",
                        @Param(value = "Streaming allows for reading large XML files.", advanced = true)
-                       streaming: Boolean = true) extends Dataset with BulkResourceBasedDataset {
+                       streaming: Boolean = true,
+                       @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
+                       override val zipFileRegex: String = ".*\\.xml$") extends Dataset with BulkResourceBasedDataset {
 
   validateOutputTemplate()
 

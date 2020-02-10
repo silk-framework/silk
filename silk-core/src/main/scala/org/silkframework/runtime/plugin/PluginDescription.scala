@@ -18,6 +18,7 @@ import java.lang.reflect.{Constructor, InvocationTargetException}
 
 import com.thoughtworks.paranamer.BytecodeReadingParanamer
 import org.silkframework.config.Prefixes
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager, ResourceNotFoundException}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
@@ -50,8 +51,16 @@ class PluginDescription[+T](val id: Identifier, val categories: Seq[String], val
 
   /**
    * Creates a new instance of this plugin.
+   *
+   * @param parameterValues The parameter values to be used for instantiation. Will override any default.
+   * @param ignoreNonExistingParameters If true, parameter values for parameters that do not exist are ignored.
+    *                                   If false, creation will fail if a parameter is provided that does not exist on the plugin.
    */
-  def apply(parameterValues: Map[String, String] = Map.empty)(implicit prefixes: Prefixes, resources: ResourceManager = EmptyResourceManager()): T = {
+  def apply(parameterValues: Map[String, String] = Map.empty, ignoreNonExistingParameters: Boolean = true)
+           (implicit prefixes: Prefixes, resources: ResourceManager = EmptyResourceManager()): T = {
+    if(!ignoreNonExistingParameters) {
+      validateParameters(parameterValues)
+    }
     val parsedParameters = parseParameters(parameterValues)
     try {
       constructor.newInstance(parsedParameters: _*)
@@ -76,13 +85,24 @@ class PluginDescription[+T](val id: Identifier, val categories: Seq[String], val
           try {
             parameter.dataType.fromString(v).asInstanceOf[AnyRef]
           } catch {
-            case NonFatal(ex) => throw new ValidationException(label + " has an invalid value for parameter " + parameter.name + ". Value must be a valid " + parameter.dataType + ". Issue: " + ex.getMessage, ex)
+            case NonFatal(ex) => throw new InvalidPluginParameterValueException(label + " has an invalid value for parameter " + parameter.name + ". Value must be a valid " + parameter.dataType + ". Issue: " + ex.getMessage, ex)
           }
         case None if parameter.defaultValue.isDefined =>
           parameter.defaultValue.get
         case None =>
-          throw new ValidationException("Parameter '" + parameter.name + "' is required for " + label)
+          throw new InvalidPluginParameterValueException("Parameter '" + parameter.name + "' is required for " + label)
       }
+    }
+  }
+
+  /**
+    * Throws an exception if a parameter value is provided that does not exist on this plugin.
+    */
+  private def validateParameters(parameterValues: Map[String, String]): Unit = {
+    val invalidParameters = parameterValues.keySet -- parameters.map(_.name)
+    if (invalidParameters.nonEmpty) {
+      throw new InvalidPluginParameterValueException(s"The following parameters cannot be set on plugin '$label' because they are no valid parameters:" +
+        s" ${invalidParameters.mkString(", ")}. Valid parameters are: ${parameters.map(_.name).mkString(", ")}")
     }
   }
 
@@ -92,10 +112,19 @@ class PluginDescription[+T](val id: Identifier, val categories: Seq[String], val
  * Factory for plugin description.
  */
 object PluginDescription {
+
   /**
-   * Creates a new plugin description from a class.
-   */
+    * Returns a plugin description for a given class.
+    * If available, returns an already registered plugin description.
+    */
   def apply[T](pluginClass: Class[T]): PluginDescription[T] = {
+    PluginRegistry.pluginDescription(pluginClass).getOrElse(create(pluginClass))
+  }
+
+  /**
+    * Creates a new plugin description from a class.
+    */
+  def create[T](pluginClass: Class[T]): PluginDescription[T] = {
     getAnnotation(pluginClass) match {
       case Some(annotation) => createFromAnnotation(pluginClass, annotation)
       case None => createFromClass(pluginClass)

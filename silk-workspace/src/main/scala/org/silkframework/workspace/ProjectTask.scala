@@ -23,7 +23,7 @@ import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
+import org.silkframework.workspace.activity.{CachedActivity, TaskActivity, TaskActivityFactory}
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
@@ -88,10 +88,20 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     */
   override def metaData: MetaData = metaDataValueHolder()
 
-  def init()(implicit userContext: UserContext): Unit = {
-    // Start auto-run activities
-    for (activity <- taskActivities if activity.autoRun && activity.status() == Status.Idle())
+  /**
+    * Starts all autorun activities.
+    */
+  def startActivities()(implicit userContext: UserContext): Unit = {
+    for (activity <- taskActivities if shouldAutoRun(activity) && activity.status() == Status.Idle())
       activity.control.start()
+  }
+
+  private def shouldAutoRun(activity: TaskActivity[_, _]): Boolean = {
+    // is auto-run activity
+    activity.autoRun &&
+    // do not run cached activities if auto-run is disabled for cached activities
+        (Workspace.autoRunCachedActivities ||
+            !classOf[CachedActivity[_]].isAssignableFrom(activity.factory.activityType))
   }
 
   /**
@@ -175,7 +185,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     // Write task
     module.provider.putTask(project.name, ProjectTask.this)
     // Restart each activity, don't wait for completion.
-    for (activity <- taskActivities if activity.autoRun) {
+    for (activity <- taskActivities if shouldAutoRun(activity)) {
       activity.control.restart()
     }
   }

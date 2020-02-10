@@ -4,7 +4,7 @@ import java.text.NumberFormat
 import java.util.Locale
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 import scala.util.matching.Regex
 import scala.util.matching.Regex.Match

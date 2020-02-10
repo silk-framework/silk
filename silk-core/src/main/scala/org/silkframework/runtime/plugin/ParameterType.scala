@@ -206,10 +206,14 @@ object ParameterType {
 
     override def description: String = "A map of the form 'Key1:Value1,Key2:Value2'"
 
-    private val utf8: String = "UTF8"
+    private final val utf8: String = "UTF8"
 
     def fromString(str: String)(implicit prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceManager = EmptyResourceManager()): Map[String, String] = {
-      str.split(',').map(_.split(':')).map(v => Tuple2(URLDecoder.decode(v(0), utf8), URLDecoder.decode(v(1), utf8))).toMap
+      if(str.trim.isEmpty) {
+        Map.empty
+      } else {
+        str.split(',').map(_.split(':')).map(v => Tuple2(URLDecoder.decode(v(0), utf8), URLDecoder.decode(v(1), utf8))).toMap
+      }
     }
 
     override def toString(value: Map[String, String])(implicit prefixes: Prefixes): String = {

@@ -2,10 +2,11 @@ package org.silkframework.workspace.activity.workflow
 
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{PlainTask, Task, TaskSpec}
+import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
-import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.execution.{EntityHolder, ExecutorOutput}
 import org.silkframework.execution.local.{LocalEntities, LocalExecution}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
@@ -36,13 +37,19 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   private val log = Logger.getLogger(getClass.getName)
 
+  private implicit val prefixes: Prefixes = workflowTask.project.config.prefixes
+
   override def initialValue: Option[WorkflowExecutionReport] = Some(WorkflowExecutionReport(workflowTask.taskLabel()))
 
   override def run(context: ActivityContext[WorkflowExecutionReport])
                   (implicit userContext: UserContext): Unit = {
     cancelled = false
 
-    implicit val workflowRunContext = WorkflowRunContext(
+    runWorkflow(context, updateUserContext(userContext))
+  }
+
+  private def runWorkflow(implicit context: ActivityContext[WorkflowExecutionReport], userContext: UserContext): Unit = {
+    implicit val workflowRunContext: WorkflowRunContext = WorkflowRunContext(
       activityContext = context,
       workflow = currentWorkflow,
       userContext = userContext
@@ -54,7 +61,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     val DAG = workflow.workflowDependencyGraph
     try {
       for (endNode <- DAG.endNodes) {
-        executeWorkflowNode(endNode, entitySchemaOpt = None)
+        executeWorkflowNode(endNode, ExecutorOutput.empty)
       }
       if (workflowRunContext.alreadyExecuted.size != workflow.nodes.size) {
         throw WorkflowException("Not all workflow nodes were executed! Executed " +
@@ -80,15 +87,15 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   def executeWorkflowNode(node: WorkflowDependencyNode,
-                          entitySchemaOpt: Option[EntitySchema])
+                          output: ExecutorOutput)
                          (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
     // Execute this node
     if (!cancelled) {
       node.workflowNode match {
-        case dataset: WorkflowDataset =>
-          executeWorkflowDataset(node, entitySchemaOpt, dataset)
+        case _: WorkflowDataset =>
+          executeWorkflowDataset(node, output)
         case operator: WorkflowOperator =>
-          executeWorkflowOperator(node, entitySchemaOpt, operator)
+          executeWorkflowOperator(node, output, operator)
       }
     } else {
       // Don't execute, workflow has been cancelled
@@ -97,9 +104,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   private def executeWorkflowOperatorInput(input: WorkflowDependencyNode,
-                                           schemaOpt: Option[EntitySchema])
+                                           output: ExecutorOutput)
                                           (implicit workflowRunContext: WorkflowRunContext): Some[LocalEntities] = {
-    executeWorkflowNode(input, schemaOpt) match {
+    executeWorkflowNode(input, output) match {
       case e@Some(entityTable) =>
         e
       case None =>
@@ -110,32 +117,28 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   /** Execute nodes of type [[WorkflowOperator]]. */
   private def executeWorkflowOperator(operatorNode: WorkflowDependencyNode,
-                                      entitySchemaOpt: Option[EntitySchema],
+                                      executorOutput: ExecutorOutput,
                                       operator: WorkflowOperator)
                                      (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
     try {
-      project.anyTaskOption(operator.task)(workflowRunContext.userContext) match {
-        case Some(operatorTask) =>
-          val schemataOpt = operatorTask.data.inputSchemataOpt
-          val inputs = operatorNode.inputNodes
-          val inputResults = executeWorkflowOperatorInputs(operatorNode, schemataOpt, inputs)
+      val operatorTask = task(operatorNode)
+      val schemataOpt = operatorTask.data.inputSchemataOpt
+      val inputs = operatorNode.inputNodes
+      val inputResults = executeWorkflowOperatorInputs(operatorNode, schemataOpt, inputs)
 
-          if (inputResults.exists(_.isEmpty)) {
-            throw WorkflowException("At least one input did not return a result for workflow node " + operatorNode.nodeId + "!")
-          }
-          val result = execute(operatorTask, inputResults.flatten, entitySchemaOpt)
-          // Throw exception if result was promised, but not returned
-          if (operatorTask.data.outputSchemaOpt.isDefined && result.isEmpty) {
-            throw WorkflowException(s"In workflow ${workflowTask.id.toString} operator node ${operatorNode.nodeId} defined an output " +
-                s"schema, but did not return any result!")
-          }
-          log.info("Finished execution of " + operator.nodeId)
-          workflowRunContext.alreadyExecuted.add(operatorNode.workflowNode)
-          updateProgress(operatorNode.nodeId)
-          result
-        case None =>
-          throw WorkflowException("No operator task found with id " + operator.task)
+      if (inputResults.exists(_.isEmpty)) {
+        throw WorkflowException("At least one input did not return a result for workflow node " + operatorNode.nodeId + "!")
       }
+      val result = execute(operatorTask, inputResults.flatten, executorOutput)
+      // Throw exception if result was promised, but not returned
+      if (operatorTask.data.outputSchemaOpt.isDefined && result.isEmpty) {
+        throw WorkflowException(s"In workflow ${workflowTask.id.toString} operator node ${operatorNode.nodeId} defined an output " +
+            s"schema, but did not return any result!")
+      }
+      log.info("Finished execution of " + operator.nodeId)
+      workflowRunContext.alreadyExecuted.add(operatorNode.workflowNode)
+      updateProgress(operatorNode.nodeId)
+      result
     } catch {
       case ex: WorkflowException =>
         throw ex
@@ -146,19 +149,23 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     }
   }
 
+  // Execute all inputs of a workflow operator to generate input values for this operator
   private def executeWorkflowOperatorInputs(operatorNode: WorkflowDependencyNode,
                                             schemataOpt: Option[Seq[EntitySchema]],
                                             inputs: Seq[WorkflowDependencyNode])
                                            (implicit workflowRunContext: WorkflowRunContext): Seq[Some[LocalEntities]] = {
+    val operatorTask = task(operatorNode)
     schemataOpt match {
       case Some(schemata) =>
+        /* FIXME: Detect schema mismatch between inputs and requested schemata. Transform input entities to match requested schema automatically
+                  and output warning */
         val useInputs = checkInputsAgainstSchema(operatorNode, inputs, schemata)
         for ((input, schema) <- useInputs.zip(schemata)) yield {
-          executeWorkflowOperatorInput(input, Some(schema))
+          executeWorkflowOperatorInput(input, ExecutorOutput(Some(operatorTask), Some(schema)))
         }
       case None =>
         for (input <- inputs) yield {
-          executeWorkflowOperatorInput(input, None)
+          executeWorkflowOperatorInput(input, ExecutorOutput(Some(operatorTask), None))
         }
     }
   }
@@ -189,16 +196,16 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     * need to be re-evaluated each time.
     */
   private def executeWorkflowDataset(datasetNode: WorkflowDependencyNode,
-                                     entitySchemaOpt: Option[EntitySchema],
-                                     dataset: WorkflowDataset)
+                                     output: ExecutorOutput)
                                     (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
     // Only execute a dataset once, i.e. only execute its inputs once and write them to the dataset.
     if (!workflowRunContext.alreadyExecuted.contains(datasetNode.workflowNode)) {
       // Execute all input nodes and write to this dataset
-      datasetNode.precedingNodes foreach { pNode =>
-        executeWorkflowNode(pNode, None) match {
+      datasetNode.inputNodes foreach { pNode =>
+        val task = datasetTask(datasetNode)
+        executeWorkflowNode(pNode, ExecutorOutput(Some(task), None)) match {
           case Some(entityTable) =>
-            writeEntityTableToDataset(dataset, entityTable)
+            writeEntityTableToDataset(datasetNode, entityTable)
           case None =>
           // Write nothing
         }
@@ -208,43 +215,38 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       log.info("Finished writing of node " + datasetNode.nodeId)
     }
     // Read from the dataset
-    entitySchemaOpt match {
-      case Some(entitySchema) =>
-        Some(readFromDataset(dataset, entitySchema))
-      case None =>
+    (output.task, output.requestedSchema) match {
+      case (Some(outputTask), Some(entitySchema)) =>
+        Some(readFromDataset(datasetNode, entitySchema, outputTask))
+      case _ =>
         None
     }
   }
 
-  private def writeEntityTableToDataset(workflowDataset: WorkflowDataset,
+  private def writeEntityTableToDataset(workflowDataset: WorkflowDependencyNode,
                                         entityTable: LocalEntities)
                                        (implicit workflowRunContext: WorkflowRunContext): Unit = {
-    implicit val userContext: UserContext = workflowRunContext.userContext
-    project.taskOption[GenericDatasetSpec](workflowDataset.task) match {
-      case Some(datasetTask) =>
-        val resolvedDataset = resolveDataset(datasetTask, replaceSinks)
-        execute(resolvedDataset, Seq(entityTable), None)
-      case None =>
-        throw WorkflowException("No dataset task found with id " + workflowDataset.task)
+    try {
+      val resolvedDataset = resolveDataset(datasetTask(workflowDataset), replaceSinks)
+      execute(resolvedDataset, Seq(entityTable), ExecutorOutput.empty)
+    } catch {
+      case NonFatal(ex) =>
+        throw WorkflowException("Exception occurred while writing to workflow dataset operator " + workflowDataset.nodeId +
+            ". Cause: " + ex.getMessage, Some(ex))
     }
   }
 
-  def readFromDataset(workflowDataset: WorkflowDataset,
-                      entitySchema: EntitySchema)
+  def readFromDataset(workflowDataset: WorkflowDependencyNode,
+                      entitySchema: EntitySchema,
+                      outputTask: Task[_ <: TaskSpec])
                      (implicit workflowRunContext: WorkflowRunContext): LocalEntities = {
-    implicit val userContext: UserContext = workflowRunContext.userContext
-    project.taskOption[GenericDatasetSpec](workflowDataset.task) match {
-      case Some(datasetTask) =>
-        val resolvedDataset = resolveDataset(datasetTask, replaceDataSources)
-        execute(resolvedDataset, Seq.empty, Some(entitySchema)) match {
-          case Some(entityTable) =>
-            entityTable
-          case None =>
-            throw WorkflowException(s"In workflow ${workflowTask.id.toString} the Dataset node ${workflowDataset.nodeId} did " +
-                s"not return any result!")
-        }
+    val resolvedDataset = resolveDataset(datasetTask(workflowDataset), replaceDataSources)
+    execute(resolvedDataset, Seq.empty, ExecutorOutput(Some(outputTask), Some(entitySchema))) match {
+      case Some(entityTable) =>
+        entityTable
       case None =>
-        throw WorkflowException("No dataset task found with id " + workflowDataset.task)
+        throw WorkflowException(s"In workflow ${workflowTask.id.toString} the Dataset node ${workflowDataset.nodeId} did " +
+            s"not return any result!")
     }
   }
 
@@ -302,7 +304,6 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
           case None =>
             throw new IllegalArgumentException("No input found for variable dataset " + datasetTask.id.toString)
         }
-
       case _: InternalDataset =>
         val internalDataset = executionContext.createInternalDataset(Some(datasetTask.id.toString))
         PlainTask(datasetTask.id, datasetTask.data.copy(plugin = internalDataset), metaData = datasetTask.metaData)
@@ -312,4 +313,10 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   override protected val executionContext: LocalExecution = LocalExecution(useLocalInternalDatasets)
+
+  override protected def workflowNodeEntities(workflowDependencyNode: WorkflowDependencyNode,
+                                              outputTask: Task[_ <: TaskSpec])
+                                             (implicit workflowRunContext: WorkflowRunContext): Option[EntityHolder] = {
+    executeWorkflowNode(workflowDependencyNode, ExecutorOutput(Some(outputTask), None))
+  }
 }

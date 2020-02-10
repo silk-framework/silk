@@ -1,16 +1,19 @@
 package org.silkframework.execution.local
 
+import java.util
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.Task
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetSpec}
 import org.silkframework.dataset.rdf._
 import org.silkframework.dataset._
 import org.silkframework.entity._
-import org.silkframework.execution.{DatasetExecutor, TaskException}
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.execution.{DatasetExecutor, ExecutionReport, ExecutionReportUpdater, TaskException}
+import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
+import CloseableDataset.using
+import scala.util.control.NonFatal
 
 /**
   * Local dataset executor that handles read and writes to [[Dataset]] tasks.
@@ -22,10 +25,12 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     * Reads data from a dataset.
     */
   override def read(dataset: Task[DatasetSpec[DatasetType]], schema: EntitySchema, execution: LocalExecution)
-                   (implicit userContext: UserContext): LocalEntities = {
+                   (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): LocalEntities = {
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
-    val source = access(dataset, execution).source
+    lazy val source = access(dataset, execution).source
     schema match {
+      case EmptyEntityTable.schema =>
+        EmptyEntityTable(dataset)
       case QuadEntityTable.schema =>
         handleTripleEntitySchema(dataset)
       case TripleEntityTable.schema =>
@@ -37,8 +42,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case DatasetResourceEntitySchema.schema =>
         handleDatasetResourceEntitySchema(dataset)
       case _ =>
-        val entities = source.retrieve(entitySchema = schema)
-        GenericEntityTable(entities, entitySchema = schema, dataset)
+        val table = source.retrieve(entitySchema = schema)
+        GenericEntityTable(table.entities, entitySchema = schema, dataset, table.globalErrors)
     }
   }
 
@@ -59,13 +64,15 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
 
   private def handleMultiEntitySchema(dataset: Task[DatasetSpec[Dataset]], source: DataSource, schema: EntitySchema, multi: MultiEntitySchema)
                                      (implicit userContext: UserContext)= {
+    val table = source.retrieve(entitySchema = schema)
     MultiEntityTable(
-      entities = source.retrieve(entitySchema = schema),
+      entities = table.entities,
       entitySchema = schema,
       subTables =
           for (subSchema <- multi.subSchemata) yield
-            GenericEntityTable(source.retrieve(entitySchema = subSchema), subSchema, dataset),
-      task = dataset
+            GenericEntityTable(source.retrieve(entitySchema = subSchema).entities, subSchema, dataset),
+      task = dataset,
+      globalErrors = table.globalErrors
     )
   }
 
@@ -104,11 +111,11 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   override protected def write(data: LocalEntities, dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)
-                              (implicit userContext: UserContext): Unit = {
+                              (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit = {
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
     data match {
       case LinksTable(links, linkType, _) =>
-        withLinkSink(dataset.data.plugin) { linkSink =>
+        withLinkSink(dataset, execution) { linkSink =>
           writeLinks(linkSink, links, linkType)
         }
       case tripleEntityTable: TripleEntityTable =>
@@ -125,6 +132,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         }
       case datasetResource: DatasetResourceEntityTable =>
         writeDatasetResource(dataset, datasetResource)
+      case graphStoreFiles: LocalGraphStoreFileUploadTable =>
+        uploadFilesViaGraphStore(dataset, graphStoreFiles)
       case sparqlUpdateTable: SparqlUpdateEntityTable =>
         executeSparqlUpdateQueries(dataset, sparqlUpdateTable)
       case et: LocalEntities =>
@@ -134,18 +143,117 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
+  final val remainingSparqlUpdateQueryBufferSize = 1000
+
+  case class SparqlUpdateExecutionReportUpdater(taskLabel: String, context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    var remainingQueries = 0
+
+    override def entityProcessVerb: String = "executed"
+
+    override def entityLabelSingle: String = "Update query"
+
+    override def entityLabelPlural: String = "Update queries"
+
+    override def additionalFields(): Seq[(String, String)] = {
+      if(remainingQueries > 0) {
+        Seq(
+          "Remaining queries" -> remainingQueriesStat,
+          "Estimated runtime" -> estimatedRuntimeStat
+        )
+      } else {
+        Seq.empty
+      }
+    }
+
+    private def remainingQueriesStat: String = {
+      if (remainingQueries >= remainingSparqlUpdateQueryBufferSize) {
+        "> " + remainingSparqlUpdateQueryBufferSize
+      } else {
+        remainingQueries.toString
+      }
+    }
+
+    private def estimatedRuntimeStat: String = {
+      if (runtime > 0) {
+        val estimation = (remainingQueries / throughput).formatted("%.2f") + " seconds"
+        if (remainingQueries >= remainingSparqlUpdateQueryBufferSize) {
+          "> " + estimation
+        } else {
+          estimation
+        }
+      } else {
+        "-"
+      }
+    }
+  }
+
   private def executeSparqlUpdateQueries(dataset: Task[DatasetSpec[Dataset]],
                                          sparqlUpdateTable: SparqlUpdateEntityTable)
-                                        (implicit userContext: UserContext): Unit = {
+                                        (implicit userContext: UserContext, context: ActivityContext[ExecutionReport]): Unit = {
     dataset.plugin match {
       case rdfDataset: RdfDataset =>
         val endpoint = rdfDataset.sparqlEndpoint
-        for (entity <- sparqlUpdateTable.entities) {
-          assert(entity.values.size == 1 && entity.values.head.size == 1)
-          endpoint.update(entity.values.head.head)
+        val executionReport = SparqlUpdateExecutionReportUpdater(dataset.taskLabel(), context)
+        val queryBuffer = SparqlQueryBuffer(remainingSparqlUpdateQueryBufferSize, sparqlUpdateTable.entities)
+        for (updateQuery <- queryBuffer) {
+          endpoint.update(updateQuery)
+          executionReport.increaseEntityCounter()
+          executionReport.remainingQueries = queryBuffer.bufferedQuerySize
+          executionReport.update()
         }
+        executionReport.update(force = true, addEndTime = true)
       case _ =>
         throw new ValidationException(s"Dataset task ${dataset.id} is not an RDF dataset!")
+    }
+  }
+
+  /** Buffers queries to make prediction about how many queries will be executed.
+    *
+    * @param bufferSize max size of queries that should be buffered
+    */
+  case class SparqlQueryBuffer(bufferSize: Int, entities: Traversable[Entity]) extends Traversable[String] {
+    private val queryBuffer = new util.LinkedList[String]()
+
+    override def foreach[U](f: String => U): Unit = {
+      entities foreach { entity =>
+        assert(entity.values.size == 1 && entity.values.head.size == 1)
+        val query = entity.values.head.head
+        queryBuffer.push(query)
+        if(queryBuffer.size() > bufferSize) {
+          f(queryBuffer.remove())
+        }
+      }
+      while(!queryBuffer.isEmpty) {
+        f(queryBuffer.remove())
+      }
+    }
+
+    def bufferedQuerySize: Int = queryBuffer.size()
+  }
+
+  private def uploadFilesViaGraphStore(dataset: Task[DatasetSpec[Dataset]],
+                                       table: GraphStoreFileUploadTable)
+                                      (implicit userContext: UserContext): Unit = {
+    val datasetLabelOrId = dataset.metaData.formattedLabel(dataset.id)
+    dataset.data match {
+      case datasetSpec: DatasetSpec[_] =>
+        datasetSpec.plugin match {
+          case rdfDataset: RdfDataset if rdfDataset.sparqlEndpoint.isInstanceOf[GraphStoreFileUploadTrait] =>
+            val sparqlEndpoint = rdfDataset.sparqlEndpoint
+            val targetGraph = sparqlEndpoint.sparqlParams.graph match {
+              case Some(g) => g
+              case None => throw new ValidationException(s"No graph defined on dataset $datasetLabelOrId of type '${dataset.plugin.pluginSpec.label}'!")
+            }
+            val graphStore = sparqlEndpoint.asInstanceOf[GraphStoreFileUploadTrait]
+            for(fileResource <- table.files) {
+              graphStore.uploadFileToGraph(targetGraph, fileResource.file, "application/n-triples", None) // Only N-Triples supported
+            }
+          case _: Dataset =>
+            throw new ValidationException(s"Dataset task ${dataset.id} of type ${datasetSpec.plugin.pluginSpec.label} " +
+                s"has no support for graph store file uploads!")
+        }
+      case _ =>
+        throw new ValidationException("No dataset spec found!")
     }
   }
 
@@ -172,26 +280,16 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
-  private def withLinkSink(dataset: Dataset)(f: LinkSink => Unit)(implicit userContext: UserContext): Unit = {
-    val sink = dataset.linkSink
-    try {
-      f(sink)
-    } finally {
-      sink.close()
-    }
+  private def withLinkSink(dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)(f: LinkSink => Unit)(implicit userContext: UserContext): Unit = {
+    using(access(dataset, execution).linkSink)(f)
   }
 
   private def withEntitySink(dataset: Task[DatasetSpec[DatasetType]], execution: LocalExecution)(f: EntitySink => Unit)(implicit userContext: UserContext): Unit = {
-    val sink = access(dataset, execution).entitySink
-    try {
-      f(sink)
-    } finally {
-     sink.close()
-    }
+    using(access(dataset, execution).entitySink)(f)
   }
 
   private def writeEntities(sink: EntitySink, entityTable: LocalEntities)
-                           (implicit userContext: UserContext): Unit = {
+                           (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     var entityCount = 0
     val startTime = System.currentTimeMillis()
     var lastLog = startTime
@@ -259,7 +357,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def writeMultiTables(sink: EntitySink, tables: MultiEntityTable)
-                              (implicit userContext: UserContext): Unit = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     writeEntities(sink, tables)
     for(table <- tables.subTables) {
       writeEntities(sink, table)

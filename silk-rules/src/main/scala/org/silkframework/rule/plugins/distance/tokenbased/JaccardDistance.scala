@@ -16,7 +16,8 @@ package org.silkframework.rule.plugins.distance.tokenbased
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.DistanceMeasure
-import org.silkframework.runtime.plugin.{Plugin, PluginCategories}
+import org.silkframework.runtime.plugin.PluginCategories
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "jaccard",

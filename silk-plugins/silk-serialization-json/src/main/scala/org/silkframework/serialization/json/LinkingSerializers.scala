@@ -5,9 +5,9 @@ import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation._
 import org.silkframework.rule.execution.Linking
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.serialization.json.EntitySerializers.PairEntitySchemaJsonFormat
-import org.silkframework.serialization.json.JsonHelpers.{mustBeDefined, mustBeJsArray, numberValueOption, stringValue}
-import org.silkframework.serialization.json.JsonSerializers.{fromJson, toJson}
+import org.silkframework.serialization.json.EntitySerializers.{EntityJsonFormat, PairEntitySchemaJsonFormat}
+import org.silkframework.serialization.json.JsonHelpers.{mustBeDefined, mustBeJsArray, numberValueOption, stringValue, optionalValue}
+import org.silkframework.serialization.json.JsonSerializers.{PairJsonFormat, fromJson, toJson}
 import play.api.libs.json.{JsArray, JsValue, Json}
 
 object LinkingSerializers {
@@ -34,35 +34,49 @@ object LinkingSerializers {
     }
   }
 
-  class LinkJsonFormat(rule: Option[LinkageRule]) extends JsonFormat[Link] {
+  class LinkJsonFormat(rule: Option[LinkageRule], writeEntities: Boolean = false, writeEntitySchema: Boolean = false) extends JsonFormat[Link] {
+    import LinkJsonFormat._
+
     final val SOURCE = "source"
     final val TARGET = "target"
     final val CONFIDENCE = "confidence"
     final val ENTITIES = "entities"
-    final val RULE_VALUES = "ruleValues"
+
+    private val entityPairFormat = new PairJsonFormat()(new EntityJsonFormat(includeSchema = writeEntitySchema))
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Link = {
-      new Link(
+      Link(
         source = stringValue(value, SOURCE),
         target = stringValue(value, TARGET),
-        confidence = numberValueOption(value, CONFIDENCE).map(_.doubleValue)
+        confidence = numberValueOption(value, CONFIDENCE).map(_.doubleValue),
+        entities = optionalValue(value, ENTITIES).map(entityPairFormat.read)
       )
     }
 
     override def write(link: Link)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       val evaluationDetails = rule.flatMap(r => link.entities.flatMap(entities => DetailedEvaluator(r, entities).details))
 
-      Json.obj(
-        SOURCE -> link.source,
-        TARGET -> link.target,
-        CONFIDENCE -> link.confidence,
-        // The entity values are also part of the rule values, so we don't write them currently: ENTITIES -> link.entities.map(entityPairFormat.write),
-        RULE_VALUES -> evaluationDetails.map(ConfidenceJsonFormat.write)
-      )
+      var json =
+        Json.obj(
+          SOURCE -> link.source,
+          TARGET -> link.target,
+          CONFIDENCE -> link.confidence,
+          RULE_VALUES -> evaluationDetails.map(ConfidenceJsonFormat.write)
+        )
+
+      if(writeEntities) {
+        for(entities <- link.entities) {
+          json += (ENTITIES -> entityPairFormat.write(entities))
+        }
+      }
+
+      json
     }
   }
 
-  implicit object LinkJsonFormat extends LinkJsonFormat(None)
+  implicit object LinkJsonFormat extends LinkJsonFormat(None, writeEntities = false, writeEntitySchema = false) {
+    final val RULE_VALUES = "ruleValues"
+  }
 
   implicit object ConfidenceJsonFormat extends WriteOnlyJsonFormat[Confidence] {
     final val SCORE = "score"

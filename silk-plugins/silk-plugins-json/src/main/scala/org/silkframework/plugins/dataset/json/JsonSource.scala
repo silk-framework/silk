@@ -8,6 +8,8 @@ import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
@@ -32,7 +34,7 @@ case class JsonSource(input: JsValue, basePath: String, uriPattern: String) exte
   private val uriRegex = "\\{([^\\}]+)\\}".r
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                       (implicit userContext: UserContext): Traversable[Entity] = {
+                       (implicit userContext: UserContext): EntityHolder = {
     logger.log(Level.FINE, "Retrieving data from JSON.")
     val jsonTraverser = JsonTraverser(underlyingTask.id, input)
     val selectedElements = jsonTraverser.select(basePathParts)
@@ -40,7 +42,8 @@ case class JsonSource(input: JsValue, basePath: String, uriPattern: String) exte
     val subPathElements = if(subPath.operators.nonEmpty) {
       selectedElements.flatMap(_.select(subPath.operators))
     } else { selectedElements }
-    new Entities(subPathElements, entitySchema, Set.empty)
+    val entities = new Entities(subPathElements, entitySchema, Set.empty)
+    GenericEntityTable(entities, entitySchema, underlyingTask)
   }
 
   private val basePathParts: List[String] = {
@@ -57,14 +60,15 @@ case class JsonSource(input: JsValue, basePath: String, uriPattern: String) exte
   private val basePathLength = basePathParts.length
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): Traversable[Entity] = {
+                            (implicit userContext: UserContext): EntityHolder = {
     if(entities.isEmpty) {
-      Seq.empty
+      EmptyEntityTable(underlyingTask)
     } else {
       logger.log(Level.FINE, "Retrieving data from JSON.")
       val jsonTraverser = JsonTraverser(underlyingTask.id, input)
       val selectedElements = jsonTraverser.select(basePathParts)
-      new Entities(selectedElements, entitySchema, entities.map(_.uri).toSet)
+      val retrievedEntities = new Entities(selectedElements, entitySchema, entities.map(_.uri).toSet)
+      GenericEntityTable(retrievedEntities, entitySchema, underlyingTask)
     }
   }
 
@@ -109,7 +113,7 @@ case class JsonSource(input: JsValue, basePath: String, uriPattern: String) exte
         // Generate URI
         val uri =
           if (uriPattern.isEmpty) {
-            genericEntityIRI(index.toString)
+            genericEntityIRI(node.nodeId(node.value))
           } else {
             uriRegex.replaceAllIn(uriPattern, m => {
               val path = UntypedPath.parse(m.group(1))
@@ -213,7 +217,7 @@ case class JsonSource(input: JsValue, basePath: String, uriPattern: String) exte
     *
     * @return
     */
-  override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.random, DatasetSpec(EmptyDataset))     //FIXME CMEM 1352 replace with actual task
+  override lazy val underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.random, DatasetSpec(EmptyDataset))     //FIXME CMEM 1352 replace with actual task
 }
 
 object JsonSource{

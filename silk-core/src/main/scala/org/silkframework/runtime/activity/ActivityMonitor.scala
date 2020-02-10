@@ -1,5 +1,5 @@
 package org.silkframework.runtime.activity
-import java.util.concurrent.ForkJoinPool
+import java.util.concurrent.{ForkJoinPool, ForkJoinTask}
 import java.util.concurrent.ForkJoinPool.ManagedBlocker
 import java.util.logging.Logger
 
@@ -70,6 +70,7 @@ class ActivityMonitor[T](name: String,
   def blockUntil(condition: () => Boolean): Unit = {
     val sleepTime = 500
     while(!condition()) {
+      ForkJoinTask.helpQuiesce()
       ForkJoinPool.managedBlock(
         new ManagedBlocker {
           @volatile
@@ -109,6 +110,13 @@ class ActivityMonitor[T](name: String,
     */
   private def removeDoneChildren(): Unit = {
     childControls = childControls.filter(_.status().isRunning)
+  }
+
+  /**
+    * Removes all child activities.
+    */
+  protected def clearChildren(): Unit = {
+    childControls = Seq.empty
   }
 
   /**

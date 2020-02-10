@@ -146,3 +146,10 @@ GET           /activities/updatesWebSocket                                      
 ############################################################################################################################################
 
 GET           /assets/*file                                                     controllers.workspace.Assets.at(path="/public/lib/silk-workbench-workspace", file)
+
+############################################################################################################################################
+# SPARQL 1.1 Protocol
+############################################################################################################################################
+
+GET           /rdfdataset/:project/:task/sparql                                 controllers.sparqlapi.SparqlProtocolApi.select(project, task, query ?= "", defaultGraphUri: List[String] ?= List[String](), namedGraphUri: List[String] ?= List[String]())
+POST          /rdfdataset/:project/:task/sparql                                 controllers.sparqlapi.SparqlProtocolApi.postSelect(project, task, defaultGraphUri: List[String] ?= List[String](), namedGraphUri: List[String] ?= List[String]())

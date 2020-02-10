@@ -19,7 +19,7 @@ import java.util.regex.Pattern
 import org.silkframework.entity.Index
 import org.silkframework.rule.plugins.distance.characterbased.{JaroDistanceMetric, JaroWinklerDistance, LevenshteinMetric}
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
  * <p>
