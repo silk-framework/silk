@@ -19,6 +19,7 @@ import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation.ReferenceEntities
 
 import scala.math.log
+import scala.util.Random
 
 /**
  * Selects links with the highest Kullback-Leibler divergence as suggested in:
@@ -28,7 +29,7 @@ import scala.math.log
  */
 case class KullbackLeiblerDivergenceSelector(normalize: Boolean = false) extends LinkSelector {
 
-  override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
+  override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[Link] = {
     val proj = projection(rules, referenceEntities)
 
     val positiveLinks = referenceEntities.positiveEntities map LinkSelectorHelper.pairToLink

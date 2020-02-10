@@ -8,7 +8,7 @@ import org.apache.jena.riot.{RDFDataMgr, RDFLanguages}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaDatasetEndpoint
 import org.silkframework.rule.vocab.{Vocabulary, VocabularyManager}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.{FileResource, ResourceNotFoundException}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.WorkspaceFactory

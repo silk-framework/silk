@@ -4,7 +4,7 @@ import java.text.Normalizer
 import java.util.regex.Pattern
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
  * Normalizes strings by removing diacritics, converting ß to ss, etc.

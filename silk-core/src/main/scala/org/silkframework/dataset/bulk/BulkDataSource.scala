@@ -4,7 +4,8 @@ import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.execution.{ExecutionException, MappedTraversable}
+import org.silkframework.execution.local.GenericEntityTable
+import org.silkframework.execution.{EntityHolder, ExecutionException, MappedTraversable}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Identifier, Uri}
 
@@ -79,30 +80,36 @@ class BulkDataSource(bulkContainerName: String,
     }
   }
 
-  override def retrieve(entitySchema: EntitySchema, limit: Option[Int])(implicit userContext: UserContext): Traversable[Entity] = {
-    new Traversable[Entity] {
-      override def foreach[U](emitEntity: Entity => U): Unit = {
-        sources foreach { dataSource =>
-          handleSourceError(dataSource) { source =>
-            source.retrieve(entitySchema, limit) foreach emitEntity
-          }
-        }
-      }
-    }
-  }
-
-  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])(implicit userContext: UserContext): Traversable[Entity] = {
-    new Traversable[Entity] {
-      override def foreach[U](f: Entity => U): Unit = {
-        sources foreach { dataSource =>
-          handleSourceError(dataSource) { source =>
-            for(entity <- source.retrieveByUri(entitySchema, entities)) {
-              f(entity)
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int])(implicit userContext: UserContext): EntityHolder = {
+    val entities =
+      new Traversable[Entity] {
+        override def foreach[U](emitEntity: Entity => U): Unit = {
+          sources foreach { dataSource =>
+            handleSourceError(dataSource) { source =>
+              source.retrieve(entitySchema, limit).entities foreach emitEntity
             }
           }
         }
       }
-    }
+
+    GenericEntityTable(entities, entitySchema, underlyingTask)
+  }
+
+  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])(implicit userContext: UserContext): EntityHolder = {
+    val retrievedEntities =
+      new Traversable[Entity] {
+        override def foreach[U](f: Entity => U): Unit = {
+          sources foreach { dataSource =>
+            handleSourceError(dataSource) { source =>
+              for(entity <- source.retrieveByUri(entitySchema, entities).entities) {
+                f(entity)
+              }
+            }
+          }
+        }
+      }
+
+    GenericEntityTable(retrievedEntities, entitySchema, underlyingTask)
   }
 
   override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(bulkContainerName), DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with actual task

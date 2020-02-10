@@ -73,7 +73,7 @@ trait ExecutionReportUpdater {
           startFirstEntity.toSeq.map(firstEntityStart =>
             s"Runtime since first ${entityLabelSingle.toLowerCase} $entityProcessVerb" -> s"${(firstEntityStart - start).toDouble / 1000} seconds") ++
           additionalFields()
-      context.value.update(SimpleExecutionReport(taskLabel, stats, None))
+      context.value.update(SimpleExecutionReport(taskLabel, stats, Seq.empty))
       lastUpdate = System.currentTimeMillis()
     }
   }

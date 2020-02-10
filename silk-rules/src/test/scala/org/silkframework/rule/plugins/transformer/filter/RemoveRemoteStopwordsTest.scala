@@ -12,9 +12,7 @@ class RemoveRemoteStopwordsTest extends FlatSpec with Matchers with MockServerTe
     withAdditionalServer(Seq(
       ServedContent(
         contextPath = "/stopwords.txt",
-        content = "the\nis\n",
-        contentType = "plain/text",
-        statusCode = 200
+        content = Some("the\nis\n")
       )
     )) { port =>
       val transformer = RemoveRemoteStopwords(s"http://localhost:$port/stopwords.txt")

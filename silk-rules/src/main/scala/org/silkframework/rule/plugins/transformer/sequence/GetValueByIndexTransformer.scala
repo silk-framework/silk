@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.sequence
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
   * For each input sequence take the element with specified index and concatenate all values to a new sequence.

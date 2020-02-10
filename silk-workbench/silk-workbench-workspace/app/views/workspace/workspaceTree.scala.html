@@ -156,7 +156,7 @@
       @button("Add", "Add " + taskType.typeName, "plus.png", s"workspaceDialog('$path')")
     }
     <ul>
-      @for(actions <- taskActions) {
+      @for(actions <- taskActions.sortBy(_.task.taskLabel()).reverse) {
         @task(project, taskType, actions)
       }
     </ul>

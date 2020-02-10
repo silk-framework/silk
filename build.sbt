@@ -100,7 +100,7 @@ lazy val workspace = (project in file("silk-workspace"))
     libraryDependencies += "com.typesafe.play" % "play-ws_2.11" % "2.6.23"
   )
 
-//////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////// ///////////////////////////////
 // Plugins
 //////////////////////////////////////////////////////////////////////////////
 
@@ -301,6 +301,7 @@ lazy val workbench = (project in file("silk-workbench"))
       name := "Silk Workbench",
       // War Packaging
       com.github.play2war.plugin.Play2WarKeys.servletVersion := "3.0",
+      libraryDependencies += guice,
       // Linux Packaging, Uncomment to generate Debian packages that register the Workbench as an Upstart service
       // packageArchetype.java_server
       version in Debian := "2.7.2",

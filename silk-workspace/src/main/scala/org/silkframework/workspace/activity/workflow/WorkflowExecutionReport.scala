@@ -11,11 +11,11 @@ case class WorkflowExecutionReport(label: String, taskReports: Map[Identifier, E
 
   override def summary: Seq[(String, String)] = Seq.empty
 
-  override def warning: Option[String] = {
-    if(taskReports.values.exists(_.warning.nonEmpty)) {
-      Some("Some tasks generated warnings.")
+  override def warnings: Seq[String] = {
+    if(taskReports.values.exists(_.warnings.nonEmpty)) {
+      Seq("Some tasks generated warnings.")
     } else {
-      None
+      Seq.empty
     }
   }
 }

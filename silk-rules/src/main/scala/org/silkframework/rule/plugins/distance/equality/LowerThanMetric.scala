@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.distance.equality
 
 import org.silkframework.rule.similarity.{NonSymmetricDistanceMeasure, SimpleDistanceMeasure}
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.util.StringUtils._
 
 @Plugin(

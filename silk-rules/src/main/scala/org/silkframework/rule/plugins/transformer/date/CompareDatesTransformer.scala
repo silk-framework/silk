@@ -1,9 +1,9 @@
 package org.silkframework.rule.plugins.transformer.date
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
 import org.silkframework.util.StringUtils.XSDDateLiteral
 import ComparatorEnum._
+import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
 
 /**
  * Compares two dates.

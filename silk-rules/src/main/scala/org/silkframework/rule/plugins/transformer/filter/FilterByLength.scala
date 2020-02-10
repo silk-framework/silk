@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.filter
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
  * Removes all strings that are shorter than 'min' characters and longer than 'max' characters.

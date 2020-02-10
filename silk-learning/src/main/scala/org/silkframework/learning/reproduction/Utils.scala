@@ -20,13 +20,13 @@ import scala.util.Random
 
 private object Utils {
 
-  def crossoverNodes[T <: Node](n1: List[T], n2: List[T]): List[T] = {
+  def crossoverNodes[T <: Node](n1: List[T], n2: List[T], random: Random): List[T] = {
     //Interleave both node lists
     val interleaved = (n1 zip n2).flatMap {
-      case (a, b) => if (Random.nextBoolean) a :: b :: Nil else b :: a :: Nil
+      case (a, b) => if (random.nextBoolean) a :: b :: Nil else b :: a :: Nil
     }
 
     //Randomly remove about half of the nodes
-    interleaved.filter(_ => Random.nextBoolean)
+    interleaved.filter(_ => random.nextBoolean)
   }
 }

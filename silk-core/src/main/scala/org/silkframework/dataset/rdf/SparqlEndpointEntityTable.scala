@@ -2,6 +2,7 @@ package org.silkframework.dataset.rdf
 
 import org.silkframework.config.{SilkVocab, Task, TaskSpec}
 import org.silkframework.entity._
+import org.silkframework.execution.EmptyEntityHolder
 import org.silkframework.execution.local.LocalEntities
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
@@ -9,10 +10,9 @@ import org.silkframework.util.Uri
 /**
   * An entity table that does not contain data, but a SPARQL endpoint from the data source input that can be queried.
   */
-class SparqlEndpointEntityTable(sparqlEndpoint: SparqlEndpoint, val task: Task[TaskSpec]) extends LocalEntities {
-  override def entitySchema: EntitySchema = EntitySchema.empty
+class SparqlEndpointEntityTable(sparqlEndpoint: SparqlEndpoint, val task: Task[TaskSpec]) extends LocalEntities with EmptyEntityHolder {
 
-  override def entities: Traversable[Entity] = Traversable.empty
+  override def entitySchema: EntitySchema = EntitySchema.empty
 
   /**
     * Executes the select query on the SPARQL endpoint.

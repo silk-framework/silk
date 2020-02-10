@@ -210,7 +210,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
           typeUri = Uri(basePath),
           typedPaths = IndexedSeq.empty
         )
-      xmlSource.retrieveByUri(entityDesc, Seq(uri)).head
+      xmlSource.retrieveByUri(entityDesc, Seq(uri)).entities.head
     }
 
     def entityURIsAt(pathStr: String): Seq[Seq[String]] = {
@@ -237,7 +237,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
           typeUri = Uri(basePath),
           typedPaths = paths
         )
-      xmlSource.retrieve(entityDesc, entityLimit).toSeq
+      xmlSource.retrieve(entityDesc, entityLimit).entities.toSeq
     }
 
   }

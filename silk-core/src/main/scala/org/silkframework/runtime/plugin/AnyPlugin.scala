@@ -15,6 +15,8 @@
 package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
+import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.validation.ValidationException
 
 /**
  * Plugin interface.
@@ -24,12 +26,24 @@ trait AnyPlugin {
   /**
    * The description for this plugin.
    */
-  @transient lazy val pluginSpec = PluginDescription(getClass)
+  @transient lazy val pluginSpec: PluginDescription[AnyPlugin] = PluginDescription(getClass)
 
   /**
    * The parameters for this plugin as Map.
    */
   @transient lazy val parameters: Map[String, String] = pluginSpec.parameterValues(this)(Prefixes.empty)
+
+  /**
+    * Creates a new instance of this plugin with updated properties.
+    *
+    * @param updatedProperties A list of property values to be updated.
+    *                          This can be a subset of all available properties.
+    *                          Property values that are not part of the map remain unchanged.
+    */
+  def withParameters(updatedProperties: Map[String, String])(implicit prefixes: Prefixes, resourceManager: ResourceManager): this.type = {
+    val updatedParameters = parameters ++ updatedProperties
+    pluginSpec.apply(updatedParameters, ignoreNonExistingParameters = false).asInstanceOf[this.type]
+  }
 
   override def toString: String = {
     getClass.getSimpleName + "(" + parameters.map { case (key, value) => key + "=" + value }.mkString(" ") + ")"
