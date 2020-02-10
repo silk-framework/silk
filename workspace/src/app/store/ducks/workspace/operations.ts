@@ -3,13 +3,19 @@ import {batch} from "react-redux";
 import fetch from '../../../services/fetch';
 
 import selectors from "./selectors";
-import {filtersSlice} from "./filtersSlice";
-import {previewSlice} from "./previewSlice";
-import {getApiEndpoint, getLegacyApiEndpoint} from "../../../utils/getApiEndpoint";
-import {routerOp} from "@ducks/router";
-import {IFacetState} from "@ducks/workspace/typings";
-import {workspaceSel} from "@ducks/workspace/index";
+import { filtersSlice } from "./filtersSlice";
+import { previewSlice } from "./previewSlice";
+import { getApiEndpoint, getLegacyApiEndpoint } from "../../../utils/getApiEndpoint";
+import { routerOp } from "@ducks/router";
+import { IFacetState } from "@ducks/workspace/typings";
+import { workspaceSel } from "@ducks/workspace";
 import qs from "query-string";
+import {
+    addOrUpdatePrefixAsync,
+    fetchProjectPrefixesAsync,
+    removeProjectPrefixAsync
+} from "@ducks/workspace/thunks/widgets.thunk";
+import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 
 const {
     updateResultTotal,
@@ -33,6 +39,10 @@ const {
     setProject,
     unsetProject
 } = previewSlice.actions;
+
+const {
+    updateNewPrefix
+} = widgetsSlice.actions;
 
 const ARRAY_DELIMITER = '|';
 
@@ -370,7 +380,11 @@ export default {
     toggleFacetOp,
     setupFiltersFromQs,
     fetchProjectMetadata,
+    fetchProjectPrefixesAsync,
+    addOrUpdatePrefixAsync,
+    removeProjectPrefixAsync,
     resetFilters,
     setProjectId,
-    unsetProject
+    unsetProject,
+    updateNewPrefix
 };

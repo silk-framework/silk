@@ -1,9 +1,10 @@
 import { createSelector } from "@reduxjs/toolkit";
-import { IFiltersState, IPreviewState } from "./typings";
+import { IFiltersState, IPreviewState, IWidgetsState } from "./typings";
 import { IStore } from "../../typings/IStore";
 
 const filtersSelector = (state: IStore): IFiltersState => state.workspace.filters;
 const previewSelector = (state: IStore): IPreviewState => state.workspace.preview;
+const widgetsSelector = (state: IStore): IWidgetsState => state.workspace.widgets;
 
 const isLoadingSelector = createSelector(
     [previewSelector],
@@ -55,6 +56,16 @@ const projectMetadataSelector = createSelector(
     preview => preview.projectMetadata
 );
 
+const prefixListSelector = createSelector(
+    [widgetsSelector],
+    widgets => widgets.configuration.prefixes
+);
+
+const newPrefixSelector = createSelector(
+    [widgetsSelector],
+    widgets => widgets.configuration.newPrefix
+);
+
 export default {
     appliedFiltersSelector,
     appliedFacetsSelector,
@@ -65,5 +76,7 @@ export default {
     errorSelector,
     isLoadingSelector,
     currentProjectIdSelector,
-    projectMetadataSelector
+    projectMetadataSelector,
+    prefixListSelector,
+    newPrefixSelector
 }

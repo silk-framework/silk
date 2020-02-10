@@ -22,6 +22,7 @@ const _pendingRequests = [];
  */
 const getDefaultHeaders = () => ({
     "Accept": "application/json",
+    'Content-Type': "application/json"
     // "Authorization": `Bearer ${globalOp.getTokenFromStore()}`
 });
 
