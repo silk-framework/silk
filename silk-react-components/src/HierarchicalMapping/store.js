@@ -6,15 +6,16 @@ import {
     MAPPING_RULE_TYPE_ROOT,
     } from './utils/constants';
 
-import { Suggestion } from './utils/Suggestion';
+import { Suggestion } from './containers/Suggestion/Suggestion';
 import {
-    isObjectMappingRule,
+    isRootOrObjectRule,
     MAPPING_RULE_TYPE_COMPLEX,
     MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT,
     MAPPING_RULE_TYPE_URI,
     MESSAGES
 } from './utils/constants';
 import EventEmitter from './utils/EventEmitter';
+import { isDebugMode } from './utils/isDebugMode';
 
 const silkStore = rxmq.channel('silk.api');
 export const errorChannel = rxmq.channel('errors');
@@ -166,7 +167,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
         if (
             isObjectMapping &&
             result !== null &&
-            !isObjectMappingRule(result.type)
+            !isRootOrObjectRule(result.type)
         ) {
             result = element;
         }
@@ -547,9 +548,7 @@ export const autocompleteAsync = data => {
         channel += 'sourcePaths';
         break;
     default:
-        if (__DEBUG__) {
-            console.error(`No autocomplete defined for ${entity}`);
-        }
+        isDebugMode(`No autocomplete defined for ${entity}`);
     }
 
     return silkStore

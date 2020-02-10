@@ -1,7 +1,7 @@
 import React from 'react';
 import _ from 'lodash';
 import { NotAvailable } from '@eccenca/gui-elements';
-import { ThingName } from '../Components/ThingName';
+import { ThingName } from '../components/ThingName';
 
 import {
     MAPPING_RULE_TYPE_ROOT,
