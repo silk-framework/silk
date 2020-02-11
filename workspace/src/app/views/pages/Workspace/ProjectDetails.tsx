@@ -18,6 +18,8 @@ const ProjectDetails = ({projectId}) => {
     }, [projectId]);
 
     useEffect(() => {
+        // Fetch the list of projects
+        dispatch(workspaceOp.fetchListAsync());
         dispatch(workspaceOp.fetchProjectMetadata());
         dispatch(globalOp.addBreadcrumb({
             href: `/projects/${projectId}`,
@@ -40,7 +42,7 @@ const ProjectDetails = ({projectId}) => {
                 </div>
             </LeftPanel>
             <RightPanel>
-                <ConfigurationWidget />
+                <ConfigurationWidget/>
             </RightPanel>
         </Main>
     )
