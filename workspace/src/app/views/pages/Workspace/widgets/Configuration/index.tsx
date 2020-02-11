@@ -33,6 +33,9 @@ const ConfigurationWidget = () => {
         dispatch(workspaceOp.fetchProjectPrefixesAsync());
     };
 
+    const optionalMore = () => { // Displays how many more prefixes are defined that are not displayed in preview
+        return getFullSizeOfList() - VISIBLE_COUNT > 0 ? <b> and {getFullSizeOfList() - VISIBLE_COUNT} more</b> : '';
+    };
     return (
         <Card>
             <h3>Configuration</h3>
@@ -45,7 +48,7 @@ const ConfigurationWidget = () => {
                             {
                                 index < visiblePrefixes.length - 1
                                     ? ', '
-                                    : <b> and {getFullSizeOfList() - VISIBLE_COUNT} more</b>
+                                    : optionalMore()
                             }
                         </span>
                     )
