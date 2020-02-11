@@ -30,11 +30,6 @@ export default function SearchList() {
     const [showDeleteModal, setShowDeleteModal] = useState();
     const [showCloneModal, setShowCloneModal] = useState();
 
-    useEffect(() => {
-        // Fetch the list of projects
-        dispatch(workspaceOp.fetchListAsync());
-    }, []);
-
     const onDiscardModals = () => {
         setShowDeleteModal(false);
         setShowCloneModal(false);
