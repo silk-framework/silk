@@ -284,29 +284,44 @@ object SearchApiModel {
       labelMatch || descriptionMatch
     }
 
+    // TODO: Update URL after deciding on path for new workspace
+    private def workspaceProjectPath(projectId: String) = s"workspaceNew/projects/$projectId"
     // Adds links to related pages to the result item
     private def addItemLinks(results: Seq[JsObject]): Seq[JsObject] = {
+
       results map { result =>
         val project = jsonPropertyStringValue(result, PROJECT_ID)
         val itemId = jsonPropertyStringValue(result, ID)
         val context = WorkbenchConfig.applicationContext
+        val detailsPageBase = s"$context/${workspaceProjectPath(project)}"
         val links: Seq[ItemLink] = itemTypeReads.reads(result.value(TYPE)).asOpt match {
           case Some(itemType) =>
             itemType match {
+              case ItemType.dataset => Seq(
+                ItemLink("Dataset details page", s"$detailsPageBase/${ItemType.dataset.id}/$itemId")
+              )
               case ItemType.transform => Seq(
+                ItemLink("Transform details page", s"$detailsPageBase/${ItemType.transform.id}/$itemId"),
                 ItemLink("Mapping editor", s"$context/transform/$project/$itemId/editor"),
                 ItemLink("Transform evaluation", s"$context/transform/$project/$itemId/evaluate"),
                 ItemLink("Transform execution", s"$context/transform/$project/$itemId/execute")
               )
               case ItemType.linking => Seq(
+                ItemLink("Linking details page", s"$detailsPageBase/${ItemType.linking.id}/$itemId"),
                 ItemLink("Linking editor", s"$context/linking/$project/$itemId/editor"),
                 ItemLink("Linking evaluation", s"$context/linking/$project/$itemId/evaluate"),
                 ItemLink("Linking execution", s"$context/linking/$project/$itemId/execute")
               )
               case ItemType.workflow => Seq(
+                ItemLink("Workflow details page", s"$detailsPageBase/${ItemType.workflow.id}/$itemId"),
                 ItemLink("Workflow editor", s"$context/workflow/editor/$project/$itemId")
               )
-              case _ => Seq.empty
+              case ItemType.task => Seq(
+                ItemLink("Task details page", s"$detailsPageBase/${ItemType.task.id}/$itemId")
+              )
+              case ItemType.project => Seq(
+                ItemLink("Project details page", s"$context/${workspaceProjectPath(itemId)}")
+              )
             }
           case None => Seq.empty
         }
