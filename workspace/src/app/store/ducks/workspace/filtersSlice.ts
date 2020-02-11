@@ -1,11 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { IAppliedFacetState, IAppliedSorterState, SortModifierType } from "./typings";
+import { IAppliedSorterState, SortModifierType } from "./typings";
 import { initialPaginationState } from "../../typings";
 import {
     initialAppliedFiltersState,
     initialAppliedSortersState,
-    initialFiltersState,
-    initialSortersState
+    initialSortersState,
+    initialFiltersState
 } from "./initialState";
 
 const DEFAULT_SORTER = {
@@ -42,7 +42,7 @@ export const filtersSlice = createSlice({
 
         applySorter(state, action) {
             const currentSort = state.sorters.applied;
-            const { sortBy, sortOrder } = action.payload;
+            const {sortBy, sortOrder} = action.payload;
             let appliedSorter: IAppliedSorterState = {
                 sortBy: '',
                 sortOrder: ''
@@ -67,6 +67,10 @@ export const filtersSlice = createSlice({
                 offset,
                 current: page
             });
+        },
+
+        changeVisibleProjectsLimit(state, action) {
+            state.pagination.limit = action.payload;
         },
 
         updateResultTotal: (state, action) => {

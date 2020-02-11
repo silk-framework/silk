@@ -1,16 +1,15 @@
-import { IPaginationState } from "../../typings";
 import {
     IAppliedFacetState,
     IAppliedFiltersState,
     IAppliedSorterState,
     IFiltersState,
-    IPreviewState,
     ISortersState
-} from "./typings";
+} from "@ducks/workspace/typings";
+import { IPaginationState } from "../../../typings";
 
 export function initialPaginationState(props: Partial<IPaginationState> = {}): IPaginationState {
     return {
-        limit: 5,
+        limit: 10,
         offset: 0,
         current: 1,
         total: 0,
@@ -59,16 +58,3 @@ export function initialAppliedFacetState(props: Partial<IAppliedFacetState> = {}
         ...props
     }
 }
-
-export function initialPreviewState(props: Partial<IPreviewState> = {}): IPreviewState {
-    return {
-        searchResults: [],
-        editingTasks: {},
-        isLoading: false,
-        projectMetadata: {},
-        currentProjectId: null,
-        error: {},
-        ...props
-    }
-}
-

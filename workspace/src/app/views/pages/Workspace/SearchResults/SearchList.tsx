@@ -1,15 +1,16 @@
 import React, {useEffect, useState} from "react";
 import Pagination from "../../../components/Pagination";
-import {useDispatch, useSelector} from "react-redux";
-import {workspaceOp, workspaceSel} from "@ducks/workspace";
+import PageSizer from "../../../components/PageSizer";
+import { useDispatch, useSelector } from "react-redux";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import AppliedFacets from "../Topbar/AppliedFacets";
 import DataList from "../../../components/Datalist";
 import DeleteModal from "../../../components/modals/DeleteModal";
 import SearchItem from "./SearchItem";
 import Loading from "../../../components/Loading";
-import {push} from "connected-react-router";
-import {ISearchResultsTask} from "@ducks/workspace/typings";
-import {DATA_TYPES, SERVE_PATH} from "../../../../constants";
+import { push } from "connected-react-router";
+import { ISearchResultsServer } from "@ducks/workspace/typings";
+import { DATA_TYPES, SERVE_PATH } from "../../../../constants";
 import CloneModal from "../../../components/modals/CloneModal";
 import {routerSel} from "@ducks/router";
 import {sharedOp} from "@ducks/shared";
@@ -24,8 +25,6 @@ export default function SearchList() {
     const pagination = useSelector(workspaceSel.paginationSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const isLoading = useSelector(workspaceSel.isLoadingSelector);
-    const pathname = useSelector(routerSel.pathnameSelector);
-    const qs = useSelector(routerSel.routerSearchSelector);
 
     const [selectedItem, setSelectedItem] = useState();
     const [showDeleteModal, setShowDeleteModal] = useState();
@@ -108,7 +107,11 @@ export default function SearchList() {
         dispatch(workspaceOp.changePageOp(n))
     };
 
-    const goToItemDetails = (item: ISearchResultsTask) => {
+    const handleVisibleProjects = (value: string) => {
+        dispatch(workspaceOp.changeVisibleProjectsOp(+value))
+    };
+
+    const goToItemDetails = (item: ISearchResultsServer) => {
         if (item.type === DATA_TYPES.PROJECT) {
             dispatch(
                 push(`${SERVE_PATH}/projects/${item.id}`)
@@ -126,7 +129,7 @@ export default function SearchList() {
             <Header>
                 <AppliedFacets/>
             </Header>
-            <div className={'cardBody'}>
+            <Body className={'cardBody'}>
                 {
                     data.map(item => <DataList isLoading={isLoading} data={data}>
                             <SearchItem
@@ -140,13 +143,18 @@ export default function SearchList() {
                         </DataList>
                     )
                 }
-            </div>
-            <Footer>
-                <Pagination
-                    pagination={pagination}
-                    onPageChange={handlePageChange}
-                />
-            </Footer>
+                </Body>
+                <Footer>
+                    <Pagination
+                        pagination={pagination}
+                        onPageChange={handlePageChange}
+                    />
+                    <PageSizer
+                        onChangeSelect={handleVisibleProjects}
+                        value={pagination.limit}
+                    />
+                </Footer>
+            </DataList>
             <DeleteModal
                 isOpen={showDeleteModal}
                 onDiscard={onDiscardModals}

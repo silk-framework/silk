@@ -1,6 +1,6 @@
 import React from "react";
 import DataList from "../../../components/Datalist";
-import { ISearchResultsTask } from "@ducks/workspace/typings";
+import { ISearchResultsServer } from "@ducks/workspace/typings";
 import MenuItem from "@wrappers/menu-item";
 import Menu from "@wrappers/menu";
 import Popover from "@wrappers/popover";
@@ -8,12 +8,12 @@ import { IconNames, Position } from "@wrappers/constants";
 import Icon from "@wrappers/icon";
 
 interface IProps {
-    item: ISearchResultsTask;
+    item: ISearchResultsServer;
     searchValue?: string;
 
-    onOpenDeleteModal(item: ISearchResultsTask);
+    onOpenDeleteModal(item: ISearchResultsServer);
 
-    onOpenDuplicateModal(item: ISearchResultsTask);
+    onOpenDuplicateModal(item: ISearchResultsServer);
 
     onRowClick();
 }

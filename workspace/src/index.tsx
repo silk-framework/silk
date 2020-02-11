@@ -11,8 +11,7 @@ import configureStore  from './app/store/configureStore';
 
 import "normalize.css";
 import "@wrappers/index.scss";
-import './index.css';
-import './theme/grid.scss';
+import './theme/index.scss';
 
 const bootstrapPlugins = (plugins) => {
     const arr = [];

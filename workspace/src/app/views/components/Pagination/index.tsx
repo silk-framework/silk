@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Pagination({ pagination, onPageChange }) {
+export default function Pagination({pagination, onPageChange}) {
     const elements = [];
 
     let pagesCount = Math.ceil(pagination.total / pagination.limit);

@@ -1,4 +1,4 @@
-import { batch } from "react-redux";
+import {batch} from "react-redux";
 
 import fetch from '../../../services/fetch';
 
@@ -8,8 +8,14 @@ import { previewSlice } from "./previewSlice";
 import { getApiEndpoint, getLegacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { routerOp } from "@ducks/router";
 import { IFacetState } from "@ducks/workspace/typings";
-import { workspaceSel } from "@ducks/workspace/index";
+import { workspaceSel } from "@ducks/workspace";
 import qs from "query-string";
+import {
+    addOrUpdatePrefixAsync,
+    fetchProjectPrefixesAsync,
+    removeProjectPrefixAsync
+} from "@ducks/workspace/thunks/widgets.thunk";
+import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 
 const {
     updateResultTotal,
@@ -19,6 +25,7 @@ const {
     applyFilters,
     applyFacet,
     changePage,
+    changeVisibleProjectsLimit,
     removeFacet,
     resetFilters
 } = filtersSlice.actions;
@@ -26,13 +33,16 @@ const {
 const {
     setLoading,
     setError,
-    cloneTask,
     fetchList,
     fetchListSuccess,
     setProjectId,
     setProject,
     unsetProject
 } = previewSlice.actions;
+
+const {
+    updateNewPrefix
+} = widgetsSlice.actions;
 
 const ARRAY_DELIMITER = '|';
 
@@ -46,16 +56,18 @@ const updateQueryString = () => {
         const appliedFilters = workspaceSel.appliedFiltersSelector(state);
         const {applied: appliedSorters} = workspaceSel.sortersSelector(state);
         const appliedFacets = workspaceSel.appliedFacetsSelector(state);
-        const {current} = workspaceSel.paginationSelector(state);
+        const {current, limit} = workspaceSel.paginationSelector(state);
 
         const queryParams = {
             ...appliedFilters,
             ...appliedSorters,
             page: current,
+            limit: limit,
             f_ids: appliedFacets.map(o => o.facetId),
             types: appliedFacets.map(o => o.type),
             f_keys: appliedFacets.map(o => o.keywordIds.join(ARRAY_DELIMITER))
         };
+
         dispatch(routerOp.setQueryString(queryParams));
     }
 };
@@ -117,6 +129,13 @@ const setupFiltersFromQs = (queryString: string) => {
                 )
             }
 
+            //DropDown
+            if (parsedQs.limit) {
+                batchQueue.push(
+                    changeVisibleProjectsLimit(+parsedQs.limit)
+                )
+            }
+
             // Sorting
             if (parsedQs.sortBy) {
                 batchQueue.push(applySorter({
@@ -157,7 +176,6 @@ const fetchProjectMetadata = () => {
                 dispatch(setError(e.response.data));
             })
         }
-
     }
 };
 
@@ -315,6 +333,16 @@ const changePageOp = (page: number) => {
     }
 };
 
+const changeVisibleProjectsOp = (value: number) => {
+    return dispatch => {
+        batch(() => {
+            dispatch(changeVisibleProjectsLimit(value));
+            dispatch(fetchListAsync());
+            dispatch(updateQueryString());
+        })
+    }
+};
+
 const toggleFacetOp = (facet: IFacetState, keywordId: string) => {
     return (dispatch, getState) => {
         const facets = workspaceSel.appliedFacetsSelector(getState());
@@ -347,12 +375,16 @@ export default {
     fetchCloneTaskAsync,
     applyFiltersOp,
     applySorterOp,
-    cloneTask,
     changePageOp,
+    changeVisibleProjectsOp,
     toggleFacetOp,
     setupFiltersFromQs,
     fetchProjectMetadata,
+    fetchProjectPrefixesAsync,
+    addOrUpdatePrefixAsync,
+    removeProjectPrefixAsync,
     resetFilters,
     setProjectId,
-    unsetProject
+    unsetProject,
+    updateNewPrefix
 };
