@@ -1,4 +1,4 @@
-import { batch } from "react-redux";
+import {batch} from "react-redux";
 
 import fetch from '../../../services/fetch';
 
@@ -26,6 +26,7 @@ const {
     applyFilters,
     applyFacet,
     changePage,
+    changeVisibleProjectsLimit,
     removeFacet,
     resetFilters
 } = filtersSlice.actions;
@@ -56,16 +57,18 @@ const updateQueryString = () => {
         const appliedFilters = workspaceSel.appliedFiltersSelector(state);
         const {applied: appliedSorters} = workspaceSel.sortersSelector(state);
         const appliedFacets = workspaceSel.appliedFacetsSelector(state);
-        const {current} = workspaceSel.paginationSelector(state);
+        const {current, limit} = workspaceSel.paginationSelector(state);
 
         const queryParams = {
             ...appliedFilters,
             ...appliedSorters,
             page: current,
+            limit: limit,
             f_ids: appliedFacets.map(o => o.facetId),
             types: appliedFacets.map(o => o.type),
             f_keys: appliedFacets.map(o => o.keywordIds.join(ARRAY_DELIMITER))
         };
+
         dispatch(routerOp.setQueryString(queryParams));
     }
 };
@@ -124,6 +127,13 @@ const setupFiltersFromQs = (queryString: string) => {
             if (parsedQs.page) {
                 batchQueue.push(
                     changePage(+parsedQs.page)
+                )
+            }
+
+            //DropDown
+            if (parsedQs.limit) {
+                batchQueue.push(
+                    changeVisibleProjectsLimit(+parsedQs.limit)
                 )
             }
 
@@ -325,6 +335,16 @@ const changePageOp = (page: number) => {
     }
 };
 
+const changeVisibleProjectsOp = (value: number) => {
+    return dispatch => {
+        batch(() => {
+            dispatch(changeVisibleProjectsLimit(value));
+            dispatch(fetchListAsync());
+            dispatch(updateQueryString());
+        })
+    }
+};
+
 const toggleFacetOp = (facet: IFacetState, keywordId: string) => {
     return (dispatch, getState) => {
         const facets = workspaceSel.appliedFacetsSelector(getState());
@@ -358,6 +378,7 @@ export default {
     applyFiltersOp,
     applySorterOp,
     changePageOp,
+    changeVisibleProjectsOp,
     toggleFacetOp,
     setupFiltersFromQs,
     fetchProjectMetadata,
