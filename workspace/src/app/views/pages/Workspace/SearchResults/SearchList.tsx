@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Pagination from "../../../components/Pagination";
 import PageSizer from "../../../components/PageSizer";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,11 +8,8 @@ import DataList from "../../../components/Datalist";
 import DeleteModal from "../../../components/modals/DeleteModal";
 import SearchItem from "./SearchItem";
 import Loading from "../../../components/Loading";
-import { push } from "connected-react-router";
-import { ISearchResultsServer } from "@ducks/workspace/typings";
-import { DATA_TYPES, SERVE_PATH } from "../../../../constants";
+import { DATA_TYPES } from "../../../../constants";
 import CloneModal from "../../../components/modals/CloneModal";
-import { routerSel } from "@ducks/router";
 import { sharedOp } from "@ducks/shared";
 
 export default function SearchList() {
@@ -88,13 +85,13 @@ export default function SearchList() {
     };
 
     const handleConfirmRemove = () => {
-        const { id, projectId } = selectedItem;
+        const {id, projectId} = selectedItem;
         dispatch(workspaceOp.fetchRemoveTaskAsync(id, projectId));
         onDiscardModals();
     };
 
     const handleConfirmClone = (newId: string) => {
-        const { id, projectId } = selectedItem;
+        const {id, projectId} = selectedItem;
         dispatch(workspaceOp.fetchCloneTaskAsync(id, projectId, newId));
         onDiscardModals();
     };
@@ -105,18 +102,6 @@ export default function SearchList() {
 
     const handleVisibleProjects = (value: string) => {
         dispatch(workspaceOp.changeVisibleProjectsOp(+value))
-    };
-
-    const goToItemDetails = (item: ISearchResultsServer) => {
-        if (item.type === DATA_TYPES.PROJECT) {
-            dispatch(
-                push(`${SERVE_PATH}/projects/${item.id}`)
-            );
-        } else {
-            dispatch(
-                push(`${SERVE_PATH}/projects/${item.projectId}/${item.type.toLowerCase()}/${item.id}`)
-            );
-        }
     };
 
     const {Header, Body, Footer} = DataList;
@@ -133,7 +118,6 @@ export default function SearchList() {
                         item={item}
                         onOpenDeleteModal={() => onOpenDeleteModal(item)}
                         onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
-                        onRowClick={() => goToItemDetails(item)}
                         searchValue={appliedFilters.textQuery}
                     />)
                 }
