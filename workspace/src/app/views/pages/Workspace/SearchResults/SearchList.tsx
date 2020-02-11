@@ -43,16 +43,17 @@ export default function SearchList() {
     const onOpenDeleteModal = async (item?: any) => {
         setShowDeleteModal(true);
         setSelectedItem(item);
-
         setDeleteModalOptions({
             render: () => <Loading/>
         });
 
         try {
             const data = await sharedOp.getTaskMetadataAsync(item.id, item.projectId);
-            const {dependentTasksDirect} = data.relations;
+            const isProject = data.type !== DATA_TYPES.PROJECT;
 
-            if (dependentTasksDirect.length) {
+            const {dependentTasksDirect} = data.relations;
+            // Skip check the relations for projects
+            if (!isProject && dependentTasksDirect.length) {
                 setDeleteModalOptions({
                     confirmationRequired: true,
                     render: () =>

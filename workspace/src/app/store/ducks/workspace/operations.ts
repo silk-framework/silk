@@ -16,6 +16,7 @@ import {
     removeProjectPrefixAsync
 } from "@ducks/workspace/thunks/widgets.thunk";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
+import { sharedOp } from "@ducks/shared";
 
 const {
     updateResultTotal,
@@ -151,13 +152,10 @@ const fetchProjectMetadata = () => {
 
         try {
             const projectId = selectors.currentProjectIdSelector(getState());
-            const res = await fetch({
-                url: getLegacyApiEndpoint(`/projects/${projectId}`),
-            });
-
+            const data = await sharedOp.getTaskMetadataAsync(projectId);
             batch(() => {
                 // Apply results
-                dispatch(setProject(res.data));
+                dispatch(setProject(data));
                 dispatch(setLoading(false));
             })
         } catch (e) {
@@ -241,7 +239,7 @@ const fetchListAsync = () => {
     }
 };
 
-const fetchRemoveTaskAsync = (taskId: string, projectId: string) => {
+const fetchRemoveTaskAsync = (itemId: string, parentId?: string) => {
     return async dispatch => {
         batch(() => {
             dispatch(setLoading(true));
@@ -249,8 +247,12 @@ const fetchRemoveTaskAsync = (taskId: string, projectId: string) => {
         });
 
         try {
+            let url = getLegacyApiEndpoint(`/projects/${itemId}`);
+            if (parentId) {
+                url = getLegacyApiEndpoint(`/projects/${parentId}/tasks/${itemId}?removeDependentTasks=true`)
+            }
             await fetch({
-                url: getLegacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}?removeDependentTasks=true`),
+                url,
                 method: 'DELETE',
             });
             batch(() => {
