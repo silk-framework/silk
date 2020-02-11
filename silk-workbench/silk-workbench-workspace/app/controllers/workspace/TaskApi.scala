@@ -111,7 +111,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     val taskJson = taskFormat.write(task)
     val metaDataJson = JsonSerializers.toJson(task.metaData)
     val mergedJson = metaDataJson.as[JsObject].deepMerge(taskJson.as[JsObject])
-
+    accessMonitor.saveProjectTaskAccess(project.config.id, task.id)
     Ok(mergedJson)
   }
 
