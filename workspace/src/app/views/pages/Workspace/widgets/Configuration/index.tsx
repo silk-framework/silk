@@ -53,7 +53,7 @@ const ConfigurationWidget = () => {
                     )
                 }
             </div>
-            <Button onClick={handleOpen}>Add Prefix Settings</Button>
+            <Button onClick={handleOpen}>Change Prefix Settings</Button>
             {
                 <PrefixesDialog
                     isOpen={isOpen}
