@@ -11,6 +11,10 @@ case class QuadEntityTable(entityFunction: () => Traversable[Entity], task: Task
   override def entitySchema: EntitySchema = QuadEntityTable.schema
 
   override def entities: Traversable[Entity] = new InterruptibleTraversable(entityFunction())
+
+  override def updateEntities(newEntities: Traversable[Entity]): LocalEntities = {
+    QuadEntityTable(() => newEntities, task)
+  }
 }
 
 object QuadEntityTable {

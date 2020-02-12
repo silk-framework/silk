@@ -78,7 +78,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       assert(generatedLinks.nonEmpty || context.status().isInstanceOf[Canceling], "The unlabeled pool generator could not find any link candidates")
 
       if(generatedLinks.nonEmpty) {
-        val shuffledLinks = for ((s, t) <- generatedLinks zip (generatedLinks.tail :+ generatedLinks.head)) yield new Link(s.source, t.target, None, Some(DPair(s.entities.get.source, t.entities.get.target)))
+        val shuffledLinks = for ((s, t) <- generatedLinks zip (generatedLinks.tail :+ generatedLinks.head)) yield new LinkWithEntities(s.source, t.target, DPair(s.entities.get.source, t.entities.get.target))
         context.value.update(UnlabeledLinkPool(entitySchemata, generatedLinks ++ shuffledLinks))
       }
     }
@@ -114,7 +114,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
           val size = links(index).size
 
           if (size <= maxLinks && metric(sourceValues, targetValues, maxDistance) <= maxDistance) {
-            links(index) :+= new Link(source = entities.source.uri, target = entities.target.uri, entities = Some(entities))
+            links(index) :+= new LinkWithEntities(source = entities.source.uri, target = entities.target.uri, ents = entities)
           }
 
           if (size > maxLinks)

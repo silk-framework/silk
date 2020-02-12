@@ -294,3 +294,21 @@ div#newproject {
     /* Workaround 2 Addon A: overlapping still happens but tab items have bg color and so they are readable */
     background-color: #fff;
 }
+
+#safe-mode-switch {
+    position: absolute;
+    right: 0;
+    margin: 12px 36px 0px 0px;
+}
+
+#safe-mode-switch .mdl-switch.is-checked .mdl-switch__thumb {
+    background: #4caf50;
+}
+
+#safe-mode-switch .mdl-switch.is-checked .mdl-switch__track {
+    background: rgba(76, 185, 80, 0.39);
+}
+
+.mdl-tabs__tab-bar.safe-mode-disabled {
+    border-top: 4px solid red;
+}

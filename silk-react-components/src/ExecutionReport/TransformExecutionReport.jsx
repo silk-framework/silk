@@ -14,7 +14,8 @@ export default class TransformExecutionReport extends React.Component {
     this.displayName = 'TransformExecutionReport';
     this.state = {
       executionReport: {
-        summary: []
+        summary: [],
+        warnings: []
       }
     };
   }

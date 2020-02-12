@@ -72,13 +72,17 @@ trait GraphStoreTrait {
   def deleteGraph(graph: String)
                  (implicit userContext: UserContext): Unit = {
     var tries = 0
-    while(tries < 2) {
+    var success = false
+    while(!success && tries < 2) {
       tries += 1
       val connection = initConnection(graph)
       connection.setRequestMethod("DELETE")
-      if(connection.getResponseCode / 100 != 2) {
+      success = connection.getResponseCode / 100 == 2
+      if(!success) {
         if(tries == 1 && connection.getResponseCode == UNAUTHORIZED) {
           handleAuthenticationError(userContext)
+        } else if(connection.getResponseCode / 100 == 5) {
+          // Try again on server error
         } else {
           handleError(connection, s"Could not delete graph $graph!")
         }

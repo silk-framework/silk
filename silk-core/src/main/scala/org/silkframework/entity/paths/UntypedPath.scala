@@ -57,6 +57,7 @@ class UntypedPath private[entity](val operators: List[PathOperator]) extends Pat
 object UntypedPath {
 
   /** Special path indexes that have a specific meaning for all datasets, where they are used */
+  final val IDX_PATH_MISSING = -1 // Missing paths
   final val IDX_PATH_IDX = -2 // #idx (returns the index of the entity, e.g. in a CSV file the line number)
   final val IDX_PATH_OPERATORS = Seq(ForwardOperator("#idx"))
 

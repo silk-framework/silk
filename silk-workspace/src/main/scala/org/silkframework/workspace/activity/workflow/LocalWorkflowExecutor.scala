@@ -45,6 +45,10 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                   (implicit userContext: UserContext): Unit = {
     cancelled = false
 
+    runWorkflow(context, updateUserContext(userContext))
+  }
+
+  private def runWorkflow(implicit context: ActivityContext[WorkflowExecutionReport], userContext: UserContext): Unit = {
     implicit val workflowRunContext: WorkflowRunContext = WorkflowRunContext(
       activityContext = context,
       workflow = currentWorkflow,
@@ -153,6 +157,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     val operatorTask = task(operatorNode)
     schemataOpt match {
       case Some(schemata) =>
+        /* FIXME: Detect schema mismatch between inputs and requested schemata. Transform input entities to match requested schema automatically
+                  and output warning */
         val useInputs = checkInputsAgainstSchema(operatorNode, inputs, schemata)
         for ((input, schema) <- useInputs.zip(schemata)) yield {
           executeWorkflowOperatorInput(input, ExecutorOutput(Some(operatorTask), Some(schema)))

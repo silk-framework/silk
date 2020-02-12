@@ -4,7 +4,7 @@ import org.silkframework.config.{SilkVocab, Task, TaskSpec}
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.execution.InterruptibleTraversable
+import org.silkframework.execution.{EntityHolder, InterruptibleTraversable}
 import org.silkframework.util.Uri
 
 /**
@@ -17,6 +17,10 @@ class TripleEntityTable(tripleEntities: Traversable[Entity], val task: Task[Task
   }
 
   override def entitySchema: EntitySchema = TripleEntityTable.schema
+
+  override def updateEntities(newEntities: Traversable[Entity]): LocalEntities = {
+    new TripleEntityTable(newEntities, task)
+  }
 }
 
 object TripleEntityTable {

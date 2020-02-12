@@ -17,15 +17,21 @@ package org.silkframework.rule.evaluation
 import org.silkframework.entity.{Entity, Link}
 import org.silkframework.util.DPair
 
-class DetailedLink(source: String,
-                   target: String,
-                   entities: Option[DPair[Entity]],
-                   val details: Option[Confidence]) extends Link(source, target, details.flatMap(_.score), entities) {
+import scala.xml.Elem
+
+class DetailedLink(val source: String,
+                   val target: String,
+                   val entities: Option[DPair[Entity]],
+                   val details: Option[Confidence]) extends Link {
 
   def this(link: Link) = this(link.source, link.target, link.entities, link.confidence.map(c => SimpleConfidence(Some(c))))
 
-  override def toXML =
+  override def toXML: Elem =
     <DetailedLink source={source} target={target}>
       { details.map(_.toXML).toList }
     </DetailedLink>
+
+  override def confidence: Option[Double] = details.flatMap(_.score)
+
+  override def reverse: Link = new DetailedLink(target, source, entities, details)
 }

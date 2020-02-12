@@ -62,7 +62,7 @@ class CacheLoader(source: DataSource,
       case Some(sampleSize) =>
         source.sampleEntities(entityCache.entitySchema, sampleSize, None) // TODO: Add filter
       case None =>
-        source.retrieve(entityCache.entitySchema)
+        source.retrieve(entityCache.entitySchema).entities
     }
   }
 }

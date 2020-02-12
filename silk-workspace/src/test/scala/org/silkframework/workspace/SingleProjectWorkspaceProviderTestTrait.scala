@@ -5,6 +5,7 @@ import java.io.File
 import org.scalatest._
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
 import org.silkframework.workspace.xml.XmlZipProjectMarshaling
 
 /**
@@ -22,7 +23,12 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with Tes
 
   override protected def beforeAll(): Unit = {
     super.beforeAll()
-    val is = new File(getClass.getClassLoader.getResource(projectPathInClasspath).getFile)
+    val is = try {
+      new File(getClass.getClassLoader.getResource(projectPathInClasspath).getFile)
+    } catch {
+      case npe: NullPointerException =>
+        throw new RuntimeException(s"Project file '$projectPathInClasspath' does not exist!")
+    }
     assert(Option(is).isDefined, "Resource was not found in classpath: " + projectPathInClasspath)
     implicit val userContext: UserContext = UserContext.Empty
     WorkspaceFactory().workspace.importProject(projectId, is, XmlZipProjectMarshaling())
@@ -43,5 +49,10 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with Tes
       case _ =>
         throw new RuntimeException("Not an RDF workspace provider configured!")
     }
+  }
+
+  def executeWorkflow(workflowId: String)
+                     (implicit userContext: UserContext): Unit = {
+    project.task[Workflow](workflowId).activity[LocalWorkflowExecutorGeneratingProvenance].control.startBlocking()
   }
 }

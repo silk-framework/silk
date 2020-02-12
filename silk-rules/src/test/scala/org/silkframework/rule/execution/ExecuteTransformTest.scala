@@ -4,10 +4,11 @@ import org.mockito.Mockito._
 import org.mockito.Matchers._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.rule.execution.{ExecuteTransform, TransformReport}
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
 import org.silkframework.rule._
@@ -29,7 +30,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
     val outputMock = mock[EntitySink]
     val entities = Seq(entity(IndexedSeq("valid", "valid"), IndexedSeq(prop, prop2)), entity(IndexedSeq("invalid", "valid"), IndexedSeq(prop, prop2)))
     val dataSourceMock = mock[DataSource]
-    when(dataSourceMock.retrieve(any(), any())(any())).thenReturn(entities)
+    when(dataSourceMock.retrieve(any(), any())(any())).thenReturn(GenericEntityTable(entities, entities.head.schema, null))
     val execute = new ExecuteTransform(
       taskLabel = "transform task",
       input = _ => dataSourceMock,

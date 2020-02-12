@@ -16,7 +16,7 @@
 
 package org.silkframework.rule.evaluation
 
-import org.silkframework.entity.Link
+import org.silkframework.entity.{Link, MinimalLink}
 
 import scala.xml.Node
 
@@ -55,7 +55,7 @@ case class ReferenceLinks(positive: Set[Link] = Set.empty, negative: Set[Link] =
     val sourceEntities = positiveLinksSeq.map(_.source)
     val targetEntities = positiveLinksSeq.map(_.target)
 
-    val negativeLinks = for ((s, t) <- sourceEntities zip (targetEntities.tail :+ targetEntities.head)) yield new Link(s, t)
+    val negativeLinks = for ((s, t) <- sourceEntities zip (targetEntities.tail :+ targetEntities.head)) yield new MinimalLink(s, t)
 
     copy(negative = negativeLinks.toSet)
   }

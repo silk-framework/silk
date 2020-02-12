@@ -1,6 +1,5 @@
 @import org.silkframework.workbench.WorkbenchPlugins
-@import org.silkframework.config.TaskSpec
-
+@import org.silkframework.config.{ProductionConfig, TaskSpec}
 @import org.silkframework.workbench.Context
 @(context: Option[Context[_ <: TaskSpec]], selectedTab: String, titleLabel: String)
 
@@ -12,13 +11,52 @@
   }
 }
 
+@safeModeButton = {
+  <script type="text/javascript">
+    function toggleSafeMode() {
+      var safeModeCheckbox = document.getElementById("safe-mode-switch-checkbox");
+      var setEnable = "true";
+      if(safeModeCheckbox.checked) {
+          setEnable = "false"
+      }
+      $.post('@config.baseUrl/core/safeMode?enable=' + setEnable)
+          .success(function(request) {
+              var safeModeCheckbox = document.getElementById("safe-mode-switch-checkbox");
+              if(safeModeCheckbox.checked) {
+                safeModeCheckbox.parentElement.MaterialSwitch.off();
+                $('#tab-bar .mdl-tabs__tab-bar').attr("class", "mdl-tabs__tab-bar safe-mode-disabled")
+              } else {
+                safeModeCheckbox.parentElement.MaterialSwitch.on();
+                $('#tab-bar .mdl-tabs__tab-bar').attr("class", "mdl-tabs__tab-bar")
+              }
+          })
+          .fail(function(request, status, error) { alert('Request to change safe-mode has failed!'); })
+    }
+  </script>
+  @if(ProductionConfig.safeModeEnabled) {
+    <div id="safe-mode-switch" onclick="toggleSafeMode()" >
+      <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="switch-1">
+        @if(ProductionConfig.inSafeMode) {
+          <input type="checkbox" id="safe-mode-switch-checkbox" class="mdl-switch__input" checked="true">
+        } else {
+          <input type="checkbox" id="safe-mode-switch-checkbox" class="mdl-switch__input">
+        }
+        <span class="mdl-switch__label">Safe-mode</span>
+      </label>
+    </div>
+    <div class="mdl-tooltip" data-mdl-for="safe-mode-switch">
+      Safe-mode prevents access to external data systems, e.g. JDBC, SPARQL datasets. Data access in executed workflows is not affected by the safe-mode.
+    </div>
+  }
+}
+
 <div id="tab-bar" class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
-  <div class="mdl-tabs__tab-bar">
+  <div class="mdl-tabs__tab-bar@if(!ProductionConfig.inSafeMode) { safe-mode-disabled }">
     <span class="di_tab_task_title">@titleLabel</span>
     <a id="start-screen-link" href="@config.baseUrl/" onclick="window.location='@config.baseUrl/'" class="mdl-tabs__tab @if(selectedTab == "start") {is-active}">Start</a>
     <a id="workspace-link" href="@config.baseUrl/workspace" onclick="window.location='@config.baseUrl/workspace'" class="mdl-tabs__tab @if(selectedTab == "workspace") {is-active}">Workspace</a>
     <a id="allActivities-view-link" href="@config.baseUrl/workspace/allActivities" onclick="window.location='@config.baseUrl/workspace/allActivities'" class="mdl-tabs__tab @if(selectedTab == "activities") {is-active}">Activities</a>
     @pluginTabs
+    @safeModeButton
   </div>
-
 </div>

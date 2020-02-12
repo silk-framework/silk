@@ -50,11 +50,11 @@ class FileDataSourceTest extends FlatSpec with Matchers {
     )
 
   it should "return all cities" in {
-    dataset.source.retrieve(entityDescCity).size should equal (3)
+    dataset.source.retrieve(entityDescCity).entities.size should equal (3)
   }
 
   it should "return entities by uri" in {
-    dataset.source.retrieveByUri(entityDescCity, "http://dbpedia.org/resource/Berlin" :: Nil).size should equal (1)
+    dataset.source.retrieveByUri(entityDescCity, "http://dbpedia.org/resource/Berlin" :: Nil).entities.size should equal (1)
   }
 
   private val pathPlaces = UntypedPath.parse("?a/do:place/rdfs:label").asStringTypedPath
@@ -69,7 +69,7 @@ class FileDataSourceTest extends FlatSpec with Matchers {
       typedPaths = IndexedSeq(pathPlaces, pathPlacesCalledMunich, pathCities)
     )
 
-  private val persons = dataset.source.retrieve(entityDescPerson).toList
+  private val persons = dataset.source.retrieve(entityDescPerson).entities.toList
 
   it should "work with filters" in {
     persons.size should equal (1)

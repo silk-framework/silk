@@ -5,5 +5,7 @@ GET        /mdlStyle             controllers.core.Branding.mdlStyle
 GET        /config               controllers.core.ConfigController.index
 GET        /plugins              controllers.core.PluginApi.plugins(addMarkdownDocumentation: Boolean ?= false)
 GET        /plugins/:pluginType  controllers.core.PluginApi.pluginsForTypes(pluginType, addMarkdownDocumentation: Boolean ?= false)
+GET        /safeMode             controllers.core.ConfigController.safeMode()
+POST       /safeMode             controllers.core.ConfigController.setSafeMode(enable: Boolean)
 
 GET        /assets/*file         controllers.core.Assets.at(path="/public/lib/silk-workbench-core", file)

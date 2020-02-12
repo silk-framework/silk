@@ -16,6 +16,9 @@ class ActivityExecutionTest extends FlatSpec with MustMatchers {
   }
   implicit val userContext: UserContext = new UserContext {
     def user: Option[User] = Some(testUser)
+    override def executionContext: UserExecutionContext = UserExecutionContext()
+
+    override def withExecutionContext(userExecutionContext: UserExecutionContext): UserContext = this
   }
 
   it should "interrupt activities when they are cancelled by the user" in {
