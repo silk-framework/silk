@@ -27,8 +27,8 @@ class EntityTest extends FlatSpec with Matchers {
 
   "Entity" should "be serializable if it contains big WKT literals" in {
     serialized(entity3) should be (entity3)
-  }  
-  
+  }
+
   def serialized(entity: Entity): Entity = {
     // Serialize entity
     val outputStream = new ByteArrayOutputStream()
@@ -54,14 +54,6 @@ class EntityTest extends FlatSpec with Matchers {
   "Complex Entity" should "be serializable" in {
     serialized(complexEntity) should be (complexEntity)
     serialized(complexEntity2) should be (complexEntity2)
-  }
-
-  "Complex Entity" should "be evaluated correctly" in {
-    complexEntity.evaluate(1) shouldBe complexEntity.evaluate(UntypedPath("path2").asStringTypedPath)
-    complexEntity.evaluate(3) shouldBe complexEntity.evaluate(UntypedPath("path4").asStringTypedPath)
-    complexEntity.evaluate(4) shouldBe complexEntity.evaluate(UntypedPath("path5").asStringTypedPath)
-    complexEntity.evaluate(3) shouldBe complexEntity.evaluate(UntypedPath.parse("sub1/path4").asStringTypedPath)
-    complexEntity.evaluate(4) shouldBe complexEntity.evaluate(UntypedPath.parse("sub2/path5").asStringTypedPath)
   }
 
   "Multiple entities" should "serialize/deserialize correctly" in {

@@ -131,30 +131,7 @@ case class Entity(
     * @param pathIndex - the index in the value array
     */
   def evaluate(pathIndex: Int): Seq[String] = {
-    this.schema match {
-      case mes: MultiEntitySchema =>
-        val schemata = Seq(mes.pivotSchema) ++ mes.subSchemata
-        val pivotSize = mes.pivotSchema.typedPaths.size
-        // create range sequence where the first entry is the EntitySchema belonging to the value of the index (and the second is out of range)
-        val rangeMap = (schemata.zip(Seq(0) ++ mes.subSchemata.zipWithIndex.map(x => mes.subSchemata.
-            splitAt(x._2)._1
-            .foldLeft(pivotSize)((i, s) => s.typedPaths.size + i))
-        ) ++ Seq((EntitySchema.empty, mes.allPaths.size))).sliding(2)
-        // now find the correct range and EntitySchema
-        val zw = rangeMap.find(x => x.head._2 <= pathIndex && (x.tail.headOption match {
-          case Some(o) => o._2 > pathIndex
-          case None => true
-        })).map(_.head)
-        zw.flatMap(x =>
-          if (x._1 == mes.pivotSchema) {
-            Some(this.values(pathIndex))
-          }
-          else {
-            this.subEntities.flatten.find(se => se.schema == x._1).map(e => e.evaluate(pathIndex - x._2))
-          }
-        ).getOrElse(Seq())
-      case _: EntitySchema => this.values(pathIndex)
-    }
+    this.values(pathIndex)
   }
 
   /**
