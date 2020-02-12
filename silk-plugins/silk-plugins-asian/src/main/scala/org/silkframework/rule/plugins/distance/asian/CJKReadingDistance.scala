@@ -17,7 +17,7 @@ package org.silkframework.rule.plugins.distance.asian
 import java.util.{ArrayList, Collections}
 
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 import scala.collection.JavaConverters._
 import scala.io.Source

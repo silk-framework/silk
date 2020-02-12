@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.rule.similarity.{NonSymmetricDistanceMeasure, SimpleDistanceMeasure}
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 @Plugin(
   id = "isSubstring",

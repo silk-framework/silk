@@ -17,11 +17,13 @@ package org.silkframework.learning.reproduction
 import org.silkframework.learning.individual.ComparisonNode
 import org.silkframework.util.DPair
 
+import scala.util.Random
+
 /**
  * A crossover operator which interchanges the aggregation strategies.
  */
 case class DistanceMeasureCrossover() extends NodePairCrossoverOperator[ComparisonNode] {
-  override protected def crossover(nodes: DPair[ComparisonNode]) = {
+  override protected def crossover(nodes: DPair[ComparisonNode], random: Random) = {
     nodes.source.copy(metric = nodes.target.metric)
   }
 }

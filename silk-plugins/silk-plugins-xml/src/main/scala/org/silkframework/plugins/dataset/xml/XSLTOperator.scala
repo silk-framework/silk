@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.xml
 import org.silkframework.config.CustomTask
 import org.silkframework.dataset.DatasetResourceEntitySchema
 import org.silkframework.entity.EntitySchema
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.Resource
 
 @Plugin(

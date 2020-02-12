@@ -14,7 +14,8 @@ import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.characterbased.QGramsMetric
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{Plugin, PluginRegistry}
+import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.util.DPair
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}

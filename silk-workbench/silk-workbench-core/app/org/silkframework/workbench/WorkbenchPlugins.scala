@@ -25,13 +25,14 @@ object WorkbenchPlugins {
     */
   def byType(project: Project)
             (implicit userContext: UserContext): Seq[(TaskType, Seq[TaskActions])] = {
+    val allTasks =  project.allTasks
     for {
       plugin <- allPlugins
     } yield {
       (
         plugin.taskType,
         for {
-          task <- project.allTasks
+          task <- allTasks
           taskPlugin = pluginForTask(task) if taskPlugin.getClass == plugin.getClass
         } yield taskPlugin.taskActions(task)
       )

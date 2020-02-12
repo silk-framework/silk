@@ -31,8 +31,16 @@ case class ClasspathResource(resourcePath: String) extends Resource {
   }
 
   def size: Option[Long] = {
-    val length = loadAsBytes.length
-    Some(length)
+    val stream = inputStream
+    try {
+      var count = 0L
+      while (stream.read() != -1) {
+        count += 1
+      }
+      Some(count)
+    } finally {
+      stream.close()
+    }
   }
 
   def modificationTime: Option[Instant] = None

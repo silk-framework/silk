@@ -118,7 +118,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
         children(prop).flatMap(child => child.evaluate(tail))
       case BackwardOperator(prop) :: tail =>
         parentOpt match {
-          case Some(parent) if parent.property == prop =>
+          case Some(parent) =>
             parent.traverser.evaluate(tail)
           case None =>
             Nil
@@ -157,7 +157,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
   }
 
   def generateUri(path: String, value: JsObject): String = {
-    DataSource.generateEntityUri(path, nodeId(value))
+    DataSource.generateEntityUri(taskId, nodeId(value))
   }
 
   def nodeId(value: JsValue): String = {

@@ -2,7 +2,7 @@ package org.silkframework.workspace.resources
 
 import java.io.File
 
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.{FileResourceManager, ResourceManager, UrlResourceManager}
 import org.silkframework.util.Identifier
 

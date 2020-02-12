@@ -15,7 +15,8 @@
 package org.silkframework.rule.plugins.transformer.normalize
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.{Plugin, PluginCategories}
+import org.silkframework.runtime.plugin.PluginCategories
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "lowerCase",

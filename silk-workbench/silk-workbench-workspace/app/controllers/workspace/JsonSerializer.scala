@@ -161,7 +161,10 @@ object JsonSerializer {
   def marshaller(marshaller: ProjectMarshallingTrait): JsObject = {
     JsObject(
       ("id" -> JsString(marshaller.id)) ::
-      ("label" -> JsString(marshaller.name)) :: Nil
+      ("label" -> JsString(marshaller.name)) ::
+      ("description" -> JsString(marshaller.pluginSpec.description)) ::
+      ("fileExtension" -> marshaller.suffix.map(JsString).orNull) ::
+      ("mediaType" -> marshaller.mediaType.map(JsString).orNull) :: Nil
     )
   }
 }

@@ -1,29 +1,27 @@
 package org.silkframework.workspace.xml
 
 import java.io.{File, OutputStream}
+import java.util.zip.ZipFile
 
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource._
-import org.silkframework.runtime.resource.zip.{ZipOutputStreamResourceManager, ZipResourceLoader}
+import org.silkframework.runtime.resource.zip.{ZipFileResourceLoader, ZipOutputStreamResourceManager}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, WorkspaceProvider}
 
-/**
-  * Created on 6/27/16.
-  */
 @Plugin(
   id = "xmlZipMarshalling",
-  label = "XML zip project",
-  description = "XML zip marshalling of Silk projects for importing and exporting."
+  label = "XML/ZIP file",
+  description = "ZIP archive, which includes XML meta data and resource files."
 )
 case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
 
   def id: String = XmlZipProjectMarshaling.marshallerId
 
-  val name = "XML zip file"
+  val name = "XML/ZIP file"
 
   /**
     * Marshals the project from the in-memory [[Project]] object and the given resource manager.
@@ -62,9 +60,9 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
                                 resourceManager: ResourceManager,
                                 file: File)
                                 (implicit userContext: UserContext): Unit = {
-
+    val zip = new ZipFile(file)
     try {
-      var resourceLoader: ResourceLoader = ZipResourceLoader(file, "")
+      var resourceLoader: ResourceLoader = ZipFileResourceLoader(zip)
       if(!resourceLoader.list.contains("config.xml")) {
         if (resourceLoader.listChildren.nonEmpty) {
           resourceLoader = resourceLoader.child(resourceLoader.listChildren.head)
@@ -79,6 +77,7 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
       val projectResources = getProjectResources(xmlWorkspaceProvider, projectName)
       importProject(projectName, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider, Some(projectResources), importResources = Some(resourceManager))
     } finally {
+      zip.close()
     }
   }
 
@@ -108,8 +107,9 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
                                   resourceRepository: ResourceRepository,
                                   file: File)
                                  (implicit userContext: UserContext): Unit = {
+    val zip = new ZipFile(file)
     try {
-      val resourceManager: ResourceManager = ReadOnlyResourceManager(ZipResourceLoader(file, ""))
+      val resourceManager: ResourceManager = ReadOnlyResourceManager(ZipFileResourceLoader(zip))
       val xmlWorkspaceProvider = new XmlWorkspaceProvider(resourceManager)
       val projects = xmlWorkspaceProvider.readProjects()
 
@@ -118,6 +118,7 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
         importProject(project.id, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider, Some(projectResources), importResources = Some(resourceRepository.get(project.id)))
       }
     } finally {
+      zip.close()
     }
   }
 
@@ -127,6 +128,8 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
 
   /** Handler for file suffix */
   override def suffix: Option[String] = Some("zip")
+
+  override def mediaType: Option[String] = Some("application/zip")
 }
 
 object XmlZipProjectMarshaling {

@@ -3,7 +3,7 @@ package org.silkframework.workspace.activity.dataset
 import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.DatasetActivityFactory
 

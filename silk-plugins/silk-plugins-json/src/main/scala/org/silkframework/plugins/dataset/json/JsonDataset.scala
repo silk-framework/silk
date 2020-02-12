@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.json
 
 import org.silkframework.dataset._
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.Resource
 
 import scala.io.Codec

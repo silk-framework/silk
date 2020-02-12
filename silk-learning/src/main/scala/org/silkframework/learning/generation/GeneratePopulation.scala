@@ -18,35 +18,40 @@ import org.silkframework.learning.LearningConfiguration
 import org.silkframework.learning.individual.{Individual, LinkageRuleNode, Population}
 import org.silkframework.rule.LinkageRule
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
+import org.silkframework.util.RandomUtils
 
 import scala.util.Random
 
 /**
  * Generates a new population of linkage rules.
  */
-class GeneratePopulation(seedLinkageRules: Traversable[LinkageRule], generator: LinkageRuleGenerator, config: LearningConfiguration) extends Activity[Population] {
+class GeneratePopulation(seedLinkageRules: Traversable[LinkageRule],
+                         generator: LinkageRuleGenerator,
+                         config: LearningConfiguration,
+                         randomSeed: Long) extends Activity[Population] {
 
   override val initialValue = Some(Population.empty)
 
   override def run(context: ActivityContext[Population])
                   (implicit userContext: UserContext): Unit = {
+    val randoms = RandomUtils.randomSeq(config.params.populationSize, randomSeed).toIndexedSeq
     val individuals = for(i <- (0 until config.params.populationSize).par) yield {
       context.status.updateProgress(i.toDouble / config.params.populationSize, logStatus = false)
-      generateIndividual()
+      generateIndividual(randoms(i))
     }
     context.value.update(Population(individuals.seq))
   }
 
-  private def generateIndividual(): Individual = {
-    val linkageRule = generateRule()
+  private def generateIndividual(random: Random): Individual = {
+    val linkageRule = generateRule(random)
     Individual(linkageRule, 0.0)
   }
 
-  private def generateRule() = {
+  private def generateRule(random: Random) = {
     val nonEmptyRules = seedLinkageRules.filter(_.operator.isDefined).toIndexedSeq
-    if(!nonEmptyRules.isEmpty && Random.nextDouble() < 0.1)
-      LinkageRuleNode.load(nonEmptyRules(Random.nextInt(nonEmptyRules.size)))
+    if(!nonEmptyRules.isEmpty && random.nextDouble() < 0.1)
+      LinkageRuleNode.load(nonEmptyRules(random.nextInt(nonEmptyRules.size)))
     else
-      generator()
+      generator(random)
   }
 }

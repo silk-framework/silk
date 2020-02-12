@@ -1,7 +1,7 @@
 package org.silkframework.dataset
 
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
   * A [[Dataset]] that has no own implementation, but is replaced by another implementation at request time.
