@@ -14,8 +14,29 @@ export function initialConfigurationState() {
     }
 }
 
+export function initialWarningItemState() {
+    return {
+        taskId: "",
+        errorSummary: "",
+        taskLabel: "",
+        errorMessage: "",
+        stackTrace: {
+            errorMessage: "",
+            lines: []
+        }
+    }
+
+}
+
+export function initialWarningState() {
+    return {
+        results: [],
+    }
+}
+
 export function initialWidgetsState(): IWidgetsState {
     return {
-        configuration: initialConfigurationState()
+        configuration: initialConfigurationState(),
+        warnings: initialWarningState()
     }
 }

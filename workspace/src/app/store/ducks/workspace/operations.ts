@@ -14,9 +14,10 @@ import {
     addOrUpdatePrefixAsync,
     fetchProjectPrefixesAsync,
     removeProjectPrefixAsync
-} from "@ducks/workspace/thunks/widgets.thunk";
+} from "@ducks/workspace/thunks/configurationWidget.thunk";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { sharedOp } from "@ducks/shared";
+import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/thunks/warningWidget.thunk";
 
 const {
     updateResultTotal,
@@ -385,6 +386,8 @@ export default {
     fetchProjectPrefixesAsync,
     addOrUpdatePrefixAsync,
     removeProjectPrefixAsync,
+    fetchWarningListAsync,
+    fetchWarningMarkdownAsync,
     resetFilters,
     setProjectId,
     unsetProject,

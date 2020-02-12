@@ -61,6 +61,11 @@ const prefixListSelector = createSelector(
     widgets => widgets.configuration.prefixes
 );
 
+const warningListSelector = createSelector(
+    [widgetsSelector],
+    widgets => widgets.warnings.results
+);
+
 const newPrefixSelector = createSelector(
     [widgetsSelector],
     widgets => widgets.configuration.newPrefix
@@ -78,5 +83,6 @@ export default {
     currentProjectIdSelector,
     projectMetadataSelector,
     prefixListSelector,
-    newPrefixSelector
+    newPrefixSelector,
+    warningListSelector
 }
