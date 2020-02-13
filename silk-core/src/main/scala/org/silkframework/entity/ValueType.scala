@@ -1,6 +1,9 @@
 package org.silkframework.entity
 
 
+import java.time.LocalDateTime
+import java.time.temporal.TemporalAccessor
+
 import javax.xml.datatype.{DatatypeConstants, DatatypeFactory, Duration, XMLGregorianCalendar}
 import javax.xml.namespace.QName
 import org.silkframework.config.Prefixes
