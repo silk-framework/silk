@@ -11,6 +11,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFo
 import org.silkframework.util.Uri
 
 import scala.util.Try
+import scala.util.control.NonFatal
 import scala.util.matching.Regex
 import scala.xml.Node
 
@@ -75,6 +76,7 @@ object ValueType {
   final val MONTH: DateAndTimeValueType = MonthDateValueType()
   final val DATE_TIME: DateTimeValueType = DateTimeValueType()
   final val TIME: TimeValueType = TimeValueType()
+  final val DURATION: DurationValueType = DurationValueType()
 
   final val XSD = "http://www.w3.org/2001/XMLSchema#"
   final lazy val xmlDatatypeFactory = DatatypeFactory.newInstance()
@@ -105,6 +107,7 @@ object ValueType {
     Right(MONTH),
     Right(DATE_TIME),
     Right(TIME),
+    Right(DURATION),
     Right(AnyDateValueType()),
     Right(AnyDateTimeValueType())
   )
@@ -257,7 +260,11 @@ case class LanguageValueType(language: String) extends ValueType {
 @Plugin(
   id = "IntegerValueType",
   label = "Integer",
-  description = "Numeric values without a fractional component, unbounded."
+  description = "Numeric values without a fractional component. The value space is unrestricted, i.e., numbers can be arbitrarily large. Use the 'Int' or 'Long' types, if the value space is restricted."
+)
+@ValueTypeAnnotation(
+  validValues = Array("1", "-1234567890123456789012345678901234567890"),
+  invalidValues = Array("1.0")
 )
 case class IntegerValueType() extends ValueType with Serializable {
 
@@ -277,7 +284,11 @@ case class IntegerValueType() extends ValueType with Serializable {
 @Plugin(
   id = "IntValueType",
   label = "Int",
-  description = "Numeric values without a fractional component, represented as 32-bit signed integers."
+  description = "Numeric values without a fractional component, represented as 32-bit signed integers. Numbers must be between -2147483648 and 2147483647."
+)
+@ValueTypeAnnotation(
+  validValues = Array("1"),
+  invalidValues = Array("1.0", "1234567890123456789012345678901234567890")
 )
 case class IntValueType() extends ValueType with Serializable {
 
@@ -295,7 +306,11 @@ case class IntValueType() extends ValueType with Serializable {
 @Plugin(
   id = "LongValueType",
   label = "Long",
-  description = "Numeric values without a fractional component, represented as 64-bit signed integers."
+  description = "Numeric values without a fractional component, represented as 64-bit signed integers. Numbers must be between -9223372036854775808 and 9223372036854775807."
+)
+@ValueTypeAnnotation(
+  validValues = Array("1", "9223372036854775807"),
+  invalidValues = Array("1.0", "1234567890123456789012345678901234567890")
 )
 case class LongValueType() extends ValueType with Serializable {
 
@@ -330,7 +345,7 @@ case class StringValueType() extends ValueType with Serializable {
 @Plugin(
   id = "FloatValueType",
   label = "Float",
-  description = "Numeric values which have a fractional value, represented as IEEE single-precision 32-bit floating point numbers."
+  description = "Numeric values which can have a fractional value, represented as IEEE single-precision 32-bit floating point numbers."
 )
 @ValueTypeAnnotation(
   validValues = Array("1.9"),
@@ -352,7 +367,7 @@ case class FloatValueType() extends ValueType with Serializable {
 @Plugin(
   id = "DoubleValueType",
   label = "Double",
-  description = "Numeric values which have a fractional value, represented as IEEE double-precision 64-bit floating point numbers."
+  description = "Numeric values which can have a fractional value, represented as IEEE double-precision 64-bit floating point numbers."
 )
 @ValueTypeAnnotation(
   validValues = Array("1.9"),
@@ -374,7 +389,7 @@ case class DoubleValueType() extends ValueType with Serializable {
 @Plugin(
   id = "DecimalValueType",
   label = "Decimal",
-  description = "Decimal values."
+  description = "Arbitrary-precision numeric values which can have a fractional value. If the precision should be restricted to 32bit or 64bit, use the Float or Double types."
 )
 @ValueTypeAnnotation(
   validValues = Array("+1234.456", "1234567890123456789012345678901234567890.1234567890"),
@@ -399,13 +414,16 @@ case class DecimalValueType() extends ValueType with Serializable {
   description = "Suited for values which are either true or false."
 )
 @ValueTypeAnnotation(
-  validValues = Array("true", "TRUE", "false"),
-  invalidValues = Array("1", "none")
+  validValues = Array("true", "false"),
+  invalidValues = Array("1", "none", "TRUE")
 )
 case class BooleanValueType() extends ValueType with Serializable {
 
   override def validate(lexicalString: String): Boolean = {
-    Try(lexicalString.toBoolean).isSuccess
+    lexicalString match {
+      case "true" | "false" => true
+      case _ => false
+    }
   }
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
@@ -652,13 +670,11 @@ case class DurationValueType() extends ValueType with Serializable {
 
   override def validate(lexicalString: String): Boolean = {
     try {
-      val date = ValueType.xmlDatatypeFactory.newDuration(lexicalString)
-      date.getXMLSchemaType match {
-        case DatatypeConstants.DURATION => true
-        case _ => false
-      }
+      ValueType.xmlDatatypeFactory.newDuration(lexicalString)
+      true
     } catch {
-      case _: IllegalArgumentException => false
+      case _: IllegalArgumentException =>
+        false
     }
   }
 
