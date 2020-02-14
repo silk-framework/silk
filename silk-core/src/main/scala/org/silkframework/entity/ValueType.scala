@@ -663,7 +663,8 @@ case class TimeValueType() extends DateAndTimeValueType {
 
 @Plugin(
   id = "DurationValueType",
-  label = "Duration"
+  label = "Duration",
+  description = "Suited for XML Schema durations."
 )
 @ValueTypeAnnotation(
   validValues = Array("P5Y2M10D"),
