@@ -37,18 +37,6 @@ describe('helpers.js', () => {
         })
     });
     
-    describe('should isObjectMappingRule function working', () => {
-        it('when type equal to root', () => {
-            expect(isObjectMappingRule('root')).toEqual(true);
-        });
-        it('when type equal to object', () => {
-            expect(isObjectMappingRule('object')).toEqual(true);
-        });
-        it('when type is incorrect', () => {
-            expect(isClonableRule('dummy')).toEqual(false);
-        })
-    });
-    
     describe('trimValue function', () => {
         describe('should return trimmed value', () => {
             it('when pass the object within the `value` property', () => {

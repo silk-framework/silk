@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Card, CardContent, CardTitle, Table, TableBody, TableCell, TableHead, TableRow } from '@eccenca/gui-elements';
-import MappingsTree from '../HierarchicalMapping/Containers/MappingsTree';
+import MappingsTree from '../HierarchicalMapping/containers/MappingsTree';
 import { setApiDetails } from "../HierarchicalMapping/store";
 
 /**
@@ -56,7 +56,7 @@ export default class ExecutionReport extends React.Component {
 
     renderWarning() {
         const warnings = this.props.executionReport.warnings.map(warning =>
-            <div className="mdl-alert mdl-alert--danger mdl-alert--border mdl-alert--spacing">
+            <div className="mdl-alert mdl-alert--info mdl-alert--border mdl-alert--spacing">
                 <div className="mdl-alert__content">
                     <p>{warning}</p>
                 </div>
