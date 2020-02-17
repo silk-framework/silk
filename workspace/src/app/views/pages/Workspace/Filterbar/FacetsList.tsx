@@ -1,12 +1,12 @@
-import React from 'react';
-import { IFacetState } from "@ducks/workspace/typings";
-import { useDispatch, useSelector } from "react-redux";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import React, {useEffect, useState} from 'react';
+import {IFacetState} from "@ducks/workspace/typings";
+import {useDispatch, useSelector} from "react-redux";
+import {workspaceOp, workspaceSel} from "@ducks/workspace";
 import Label from "@wrappers/label";
 import FacetItem from "./FacetItem";
 import Popover from "@wrappers/popover";
 import Tooltip from "@wrappers/tooltip";
-import { Classes, Position } from "@wrappers/constants";
+import {Classes, Position} from "@wrappers/constants";
 
 export default function FacetsList() {
     const dispatch = useDispatch();
@@ -14,7 +14,18 @@ export default function FacetsList() {
     const facets = useSelector(workspaceSel.facetsSelector);
     const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
 
+    const [visibleFacetsKeywords, setVisibleFacetsKeywords] = useState({});
+    const [toggledFacets, setToggledFacets] = useState([]);
+
     const FACETS_PREVIEW_LIMIT = 5;
+
+    useEffect(() => {
+        const visiblesOnly = {} as any;
+        facets.forEach(facet => {
+            visiblesOnly[facet.id] = facet.values.slice(0, FACETS_PREVIEW_LIMIT);
+        });
+        setVisibleFacetsKeywords(visiblesOnly);
+    }, [facets]);
 
     const isChecked = (facetId: string, value: string): boolean => {
         const existsFacet = appliedFacets.find(o => o.facetId === facetId);
@@ -26,6 +37,21 @@ export default function FacetsList() {
 
     const handleSetFacet = (facet: IFacetState, value: string) => {
         dispatch(workspaceOp.toggleFacetOp(facet, value));
+    };
+
+    const toggleShowMore = (facet: IFacetState) => {
+        const toggledIndex = toggledFacets.findIndex(f => f === facet.id);
+        const keywords = {...visibleFacetsKeywords};
+
+        if (toggledIndex > -1) {
+            keywords[facet.id] = [...facet.values.slice(0, FACETS_PREVIEW_LIMIT)];
+            toggledFacets.splice(toggledIndex, 1);
+        } else {
+            keywords[facet.id] = [...facet.values];
+            toggledFacets.push(facet.id);
+        }
+        setToggledFacets(toggledFacets);
+        setVisibleFacetsKeywords(keywords);
     };
 
     return (
@@ -43,7 +69,7 @@ export default function FacetsList() {
                             </Tooltip>
                         </Popover>
                         {
-                            facet.values.map(val =>
+                            visibleFacetsKeywords[facet.id] && visibleFacetsKeywords[facet.id].map(val =>
                                 <FacetItem
                                     key={val.id}
                                     isChecked={isChecked(facet.id, val.id)}
@@ -53,6 +79,7 @@ export default function FacetsList() {
                                 />
                             )
                         }
+                        <a onClick={() => toggleShowMore(facet)}>{(visibleFacetsKeywords[facet.id] && visibleFacetsKeywords[facet.id].length > FACETS_PREVIEW_LIMIT) ? 'Show less...' : 'Show more...'}</a>
                     </div>
                 )
             }
