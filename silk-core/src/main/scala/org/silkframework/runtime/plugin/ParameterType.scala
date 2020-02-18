@@ -2,10 +2,12 @@ package org.silkframework.runtime.plugin
 
 import java.lang.reflect.{ParameterizedType, Type}
 import java.net.{URLDecoder, URLEncoder}
+import java.security.InvalidKeyException
 import java.util.logging.Logger
 
 import org.silkframework.config.{DefaultConfig, Prefixes, ProjectReference, TaskReference}
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
+import org.silkframework.execution.AbortExecutionException
 import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, ResourceManager, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{AesCrypto, Identifier, Uri}
@@ -353,24 +355,32 @@ object ParameterType {
   object PasswordParameterType extends ParameterType[PasswordParameter] {
     // This preamble should be added to all serializations to mark the string as a encrypted password, else it will be interpreted as plain
     final val PREAMBLE = "PASSWORD_PARAMETER:"
+    final val CONFIG_KEY = "plugin.parameters.password.crypt.key"
+
     override def name: String = "password"
 
     override def description: String = "A password string."
 
     lazy val key: String = {
-      Try(DefaultConfig.instance().getString("plugin.parameters.password.crypt.key")).getOrElse {
-        log.warning("No valid value set for plugin.parameters.password.crypt.key, using insecure default key!")
+      Try(DefaultConfig.instance().getString(CONFIG_KEY)).getOrElse {
+        log.warning(s"No valid value set for $CONFIG_KEY, using insecure default key!")
         "1234567890123456"
       }
     }
 
     override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): PasswordParameter = {
-      val encryptedPassword = if(str == null || str == "") {
+      val encryptedPassword = if (str == null || str == "") {
         str // Handle empty string as empty password and vice versa
-      } else if(str.startsWith(PREAMBLE)) {
+      } else if (str.startsWith(PREAMBLE)) {
         str.stripPrefix(PREAMBLE)
       } else {
-        AesCrypto.encrypt(key, str)
+        try {
+          AesCrypto.encrypt(key, str)
+        } catch {
+          case ex: InvalidKeyException =>
+            throw new RuntimeException(s"The password parameter encryption key is invalid. Value for " +
+                s"${PasswordParameterType.CONFIG_KEY} needs to be a character string of length 16.", ex)
+        }
       }
       PasswordParameter(encryptedPassword)
     }

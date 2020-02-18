@@ -85,7 +85,8 @@ class PluginDescription[+T](val id: Identifier, val categories: Seq[String], val
           try {
             parameter.dataType.fromString(v).asInstanceOf[AnyRef]
           } catch {
-            case NonFatal(ex) => throw new InvalidPluginParameterValueException(label + " has an invalid value for parameter " + parameter.name + ". Value must be a valid " + parameter.dataType + ". Issue: " + ex.getMessage, ex)
+            case NonFatal(ex) =>
+              throw new InvalidPluginParameterValueException(label + " has an invalid value for parameter " + parameter.name + ". Value must be a valid " + parameter.dataType + ". Issue: " + ex.getMessage, ex)
           }
         case None if parameter.defaultValue.isDefined =>
           parameter.defaultValue.get
