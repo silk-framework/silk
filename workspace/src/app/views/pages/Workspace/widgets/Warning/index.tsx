@@ -36,7 +36,7 @@ const ConfigurationWidget = () => {
             setCurrentMarkdown(markdown);
         } catch {
             AppToaster.show({
-                message: `Sorry but we can't find the markdown information for this log`,
+                message: `Sorry but we can't find the markdown information for this report`,
                 intent: Intent.DANGER,
                 timeout: 2000
             });
@@ -52,7 +52,6 @@ const ConfigurationWidget = () => {
                         <div>
                             {warn.errorSummary}
                             <Icon icon={IconNames.INFO_SIGN} onClick={() => handleOpenMarkDown(warn.taskId)}/>
-                            <Icon icon={IconNames.TRASH}/>
                         </div>
                     )
                 }
