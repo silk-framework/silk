@@ -154,7 +154,6 @@ export default function SearchList() {
                         value={pagination.limit}
                     />
                 </Footer>
-            </DataList>
             <DeleteModal
                 isOpen={showDeleteModal}
                 onDiscard={onDiscardModals}

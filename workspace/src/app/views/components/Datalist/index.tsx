@@ -31,9 +31,9 @@ function _Header({children}) {
     )
 }
 
-function _Body({children}) {
+function _Body({children, ...restProps}) {
     return (
-        <div>
+        <div {...restProps}>
         {children}
         </div>
     )
