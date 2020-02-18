@@ -86,7 +86,7 @@ POST          /projects/:project/execute                                        
 POST          /projects/:project/clone                                          controllers.workspace.WorkspaceApi.cloneProject(project, newProject)
 
 # Resources
-GET           /projects/:project/resources                                      controllers.workspace.WorkspaceApi.getResources(project: String)
+GET           /projects/:project/resources                                      controllers.workspace.WorkspaceApi.getResources(project: String, searchText: Option[String] ?= None, limit: Option[Int] ?= None, offset: Option[Int] ?= None)
 GET           /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.getResource(project: String, name: String)
 PUT           /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.putResource(project: String, name: String)
 DELETE        /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.deleteResource(project: String, name: String)

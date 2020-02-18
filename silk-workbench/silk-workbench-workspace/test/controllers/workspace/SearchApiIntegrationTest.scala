@@ -178,9 +178,9 @@ class SearchApiIntegrationTest extends FlatSpec
     defaultResults.flatMap(_.get(ResourceSearchRequest.NAME_PARAM)).map(_.as[String])
   }
 
-  private lazy val resourceSearchUrl = controllers.workspaceApi.routes.SearchApi.resourceSearch(projectId)
+  private lazy val resourceSearchUrl = controllers.workspace.routes.WorkspaceApi.getResources(projectId)
   private def resourceSearch(request: ResourceSearchRequest): IndexedSeq[collection.Map[String, JsValue]] = {
-    val result = checkResponse(client.url(s"$baseUrl$resourceSearchUrl").post(Json.toJson(request))).json
+    val result = checkResponse(client.url(s"$baseUrl$resourceSearchUrl?${request.queryString}").get()).json
     result.as[JsArray].value.map(_.asInstanceOf[JsObject].value)
   }
 

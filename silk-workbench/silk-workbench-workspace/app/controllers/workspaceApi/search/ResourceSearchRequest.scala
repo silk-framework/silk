@@ -1,5 +1,6 @@
 package controllers.workspaceApi.search
 
+import java.net.URLEncoder
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
 
@@ -55,6 +56,14 @@ case class ResourceSearchRequest(searchText: Option[String] = None,
       case None =>
         resources
     }
+  }
+
+  def queryString: String = {
+    Seq(
+      searchText.map(t => s"searchText=${URLEncoder.encode(t, "UTF-8")}"),
+      limit.map(l => s"limit=$l"),
+      offset.map(o => s"offset=$o")
+    ).flatten.mkString("&")
   }
 }
 

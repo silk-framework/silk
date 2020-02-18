@@ -28,14 +28,6 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
     }
   }
 
-  /** Allows a text based search over project resources */
-  def resourceSearch(projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
-    val project = getProject(projectId) // just to 404 on unknown project
-    validateJson[ResourceSearchRequest] { resourceSearchRequest =>
-      Ok(resourceSearchRequest(project))
-    }
-  }
-
   /** Recently viewed items of user. */
   def recentlyViewedItems(): Action[AnyContent] = UserContextAction { implicit userContext =>
     val items = accessMonitor.getAccessItems.map { item =>

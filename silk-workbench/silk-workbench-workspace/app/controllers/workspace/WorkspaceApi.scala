@@ -7,6 +7,7 @@ import java.util.logging.Logger
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.workspaceApi.search.ResourceSearchRequest
 import javax.inject.Inject
 import org.silkframework.config._
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
@@ -27,6 +28,7 @@ import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.existentials
+import scala.util.Try
 
 class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController {
 
@@ -136,10 +138,13 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     Ok
   }
 
-  def getResources(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  def getResources(projectName: String,
+                   searchText: Option[String],
+                   limit: Option[Int],
+                   offset: Option[Int]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val resourceRequest = ResourceSearchRequest(searchText, limit, offset)
     val project = WorkspaceFactory().workspace.project(projectName)
-
-    Ok(JsonSerializer.projectResources(project))
+    Ok(resourceRequest(project))
   }
 
   def getResourceMetadata(projectName: String, resourcePath: String): Action[AnyContent] = UserContextAction { implicit userContext =>
