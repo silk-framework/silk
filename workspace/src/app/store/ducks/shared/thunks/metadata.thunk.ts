@@ -1,12 +1,16 @@
 import { getLegacyApiEndpoint } from "../../../../utils/getApiEndpoint";
 import fetch from "../../../../services/fetch";
 
-export const getTaskMetadataAsync = async (taskId: string, projectId: string) => {
-    const url = getLegacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/metadata`);
+export const getTaskMetadataAsync = async (itemId: string, parentId?: string) => {
+    let url = getLegacyApiEndpoint(`/projects/${itemId}`);
+    if (parentId) {
+        url = getLegacyApiEndpoint(`/projects/${parentId}/tasks/${itemId}/metadata`);
+    }
+
     try {
-        const {data} = await fetch({
-            url
-        });
+        const {data} = await fetch({ url });
         return data;
-    } catch {}
+    } catch(e) {
+        return e;
+    }
 };

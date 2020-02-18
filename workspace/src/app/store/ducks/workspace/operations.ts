@@ -1,4 +1,4 @@
-import {batch} from "react-redux";
+import { batch } from "react-redux";
 
 import fetch from '../../../services/fetch';
 
@@ -14,8 +14,9 @@ import {
     addOrUpdatePrefixAsync,
     fetchProjectPrefixesAsync,
     removeProjectPrefixAsync
-} from "@ducks/workspace/thunks/widgets.thunk";
+} from "@ducks/workspace/widgets/configuration.thunk";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
+import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
 
 const {
     updateResultTotal,
@@ -36,7 +37,6 @@ const {
     fetchList,
     fetchListSuccess,
     setProjectId,
-    setProject,
     unsetProject
 } = previewSlice.actions;
 
@@ -119,7 +119,6 @@ const setupFiltersFromQs = (queryString: string) => {
                     });
                 }
 
-
             }
 
             // Pagination
@@ -149,33 +148,6 @@ const setupFiltersFromQs = (queryString: string) => {
         } catch {
         }
 
-    }
-};
-
-const fetchProjectMetadata = () => {
-    return async (dispatch, getState) => {
-        batch(() => {
-            dispatch(setError({}));
-            dispatch(setLoading(true));
-        });
-
-        try {
-            const projectId = selectors.currentProjectIdSelector(getState());
-            const res = await fetch({
-                url: getLegacyApiEndpoint(`/projects/${projectId}`),
-            });
-
-            batch(() => {
-                // Apply results
-                dispatch(setProject(res.data));
-                dispatch(setLoading(false));
-            })
-        } catch (e) {
-            batch(() => {
-                dispatch(setLoading(false));
-                dispatch(setError(e.response.data));
-            })
-        }
     }
 };
 
@@ -251,7 +223,7 @@ const fetchListAsync = () => {
     }
 };
 
-const fetchRemoveTaskAsync = (taskId: string, projectId: string) => {
+const fetchRemoveTaskAsync = (itemId: string, parentId?: string) => {
     return async dispatch => {
         batch(() => {
             dispatch(setLoading(true));
@@ -259,8 +231,12 @@ const fetchRemoveTaskAsync = (taskId: string, projectId: string) => {
         });
 
         try {
+            let url = getLegacyApiEndpoint(`/projects/${itemId}`);
+            if (parentId) {
+                url = getLegacyApiEndpoint(`/projects/${parentId}/tasks/${itemId}?removeDependentTasks=true`)
+            }
             await fetch({
-                url: getLegacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}?removeDependentTasks=true`),
+                url,
                 method: 'DELETE',
             });
             batch(() => {
@@ -379,10 +355,11 @@ export default {
     changeVisibleProjectsOp,
     toggleFacetOp,
     setupFiltersFromQs,
-    fetchProjectMetadata,
     fetchProjectPrefixesAsync,
     addOrUpdatePrefixAsync,
     removeProjectPrefixAsync,
+    fetchWarningListAsync,
+    fetchWarningMarkdownAsync,
     resetFilters,
     setProjectId,
     unsetProject,

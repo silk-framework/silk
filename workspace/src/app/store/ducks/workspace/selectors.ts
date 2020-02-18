@@ -51,14 +51,14 @@ const currentProjectIdSelector = createSelector(
     preview => preview.currentProjectId
 );
 
-const projectMetadataSelector = createSelector(
-    [previewSelector],
-    preview => preview.projectMetadata
-);
-
 const prefixListSelector = createSelector(
     [widgetsSelector],
     widgets => widgets.configuration.prefixes
+);
+
+const warningListSelector = createSelector(
+    [widgetsSelector],
+    widgets => widgets.warnings.results
 );
 
 const newPrefixSelector = createSelector(
@@ -76,7 +76,7 @@ export default {
     errorSelector,
     isLoadingSelector,
     currentProjectIdSelector,
-    projectMetadataSelector,
     prefixListSelector,
-    newPrefixSelector
+    newPrefixSelector,
+    warningListSelector
 }

@@ -17,6 +17,9 @@ export const widgetsSlice = createSlice({
         },
         resetNewPrefix(state) {
             state.configuration.newPrefix = initialNewPrefixState();
+        },
+        setWarnings(state, action) {
+            state.warnings.results = action.payload;
         }
     }
 });

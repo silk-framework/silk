@@ -33,6 +33,8 @@ const ConfigurationWidget = () => {
         dispatch(workspaceOp.fetchProjectPrefixesAsync());
     };
 
+    const moreCount = getFullSizeOfList() - VISIBLE_COUNT;
+
     return (
         <Card>
             <h3>Configuration</h3>
@@ -45,13 +47,13 @@ const ConfigurationWidget = () => {
                             {
                                 index < visiblePrefixes.length - 1
                                     ? ', '
-                                    : <b> and {getFullSizeOfList() - VISIBLE_COUNT} more</b>
+                                    : moreCount > 0 && <b> and {moreCount} more</b>
                             }
                         </span>
                     )
                 }
             </div>
-            <Button onClick={handleOpen}>Add Prefix Settings</Button>
+            <Button onClick={handleOpen}>Change Prefix Settings</Button>
             {
                 <PrefixesDialog
                     isOpen={isOpen}

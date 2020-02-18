@@ -43,10 +43,6 @@ export interface IPreviewState {
      */
     currentProjectId: string;
     /**
-     * Used in project details page only and store project metadata information
-     */
-    projectMetadata: any;
-    /**
      * Loading indicator for Workspace and Project Details page
      */
     isLoading: boolean;

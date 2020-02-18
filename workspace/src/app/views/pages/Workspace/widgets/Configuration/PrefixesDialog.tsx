@@ -83,9 +83,9 @@ const PrefixesDialog = ({onCloseModal, isOpen}) => {
             <div className={Classes.DIALOG_FOOTER}>
                 <div className={Classes.DIALOG_FOOTER_ACTIONS}>
                     <Button
-                        onClick={() => toggleRemoveDialog()}
+                        onClick={() => onCloseModal()}
                         intent={Intent.NONE}>
-                        Cancel
+                        Close
                     </Button>
                 </div>
             </div>

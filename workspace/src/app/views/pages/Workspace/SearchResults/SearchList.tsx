@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import React, { useState } from "react";
 import Pagination from "../../../components/Pagination";
 import PageSizer from "../../../components/PageSizer";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,12 +8,9 @@ import DataList from "../../../components/Datalist";
 import DeleteModal from "../../../components/modals/DeleteModal";
 import SearchItem from "./SearchItem";
 import Loading from "../../../components/Loading";
-import { push } from "connected-react-router";
-import { ISearchResultsServer } from "@ducks/workspace/typings";
-import { DATA_TYPES, SERVE_PATH } from "../../../../constants";
+import { DATA_TYPES } from "../../../../constants";
 import CloneModal from "../../../components/modals/CloneModal";
-import {routerSel} from "@ducks/router";
-import {sharedOp} from "@ducks/shared";
+import { sharedOp } from "@ducks/shared";
 
 export default function SearchList() {
 
@@ -30,11 +27,6 @@ export default function SearchList() {
     const [showDeleteModal, setShowDeleteModal] = useState();
     const [showCloneModal, setShowCloneModal] = useState();
 
-    useEffect(() => {
-        // Fetch the list of projects
-        dispatch(workspaceOp.fetchListAsync());
-    }, []);
-
     const onDiscardModals = () => {
         setShowDeleteModal(false);
         setShowCloneModal(false);
@@ -44,16 +36,17 @@ export default function SearchList() {
     const onOpenDeleteModal = async (item?: any) => {
         setShowDeleteModal(true);
         setSelectedItem(item);
-
         setDeleteModalOptions({
             render: () => <Loading/>
         });
 
         try {
             const data = await sharedOp.getTaskMetadataAsync(item.id, item.projectId);
-            const {dependentTasksDirect} = data.relations;
+            const isProject = data.type !== DATA_TYPES.PROJECT;
 
-            if (dependentTasksDirect.length) {
+            const {dependentTasksDirect} = data.relations;
+            // Skip check the relations for projects
+            if (!isProject && dependentTasksDirect.length) {
                 setDeleteModalOptions({
                     confirmationRequired: true,
                     render: () =>
@@ -111,18 +104,6 @@ export default function SearchList() {
         dispatch(workspaceOp.changeVisibleProjectsOp(+value))
     };
 
-    const goToItemDetails = (item: ISearchResultsServer) => {
-        if (item.type === DATA_TYPES.PROJECT) {
-            dispatch(
-                push(`${SERVE_PATH}/projects/${item.id}`)
-            );
-        } else {
-            dispatch(
-                push(`${SERVE_PATH}/projects/${item.projectId}/${item.type.toLowerCase()}/${item.id}`)
-            );
-        }
-    };
-
     const {Header, Body, Footer} = DataList;
     return (
         <>
@@ -131,17 +112,13 @@ export default function SearchList() {
             </Header>
             <Body className={'cardBody'}>
                 {
-                    data.map(item => <DataList isLoading={isLoading} data={data}>
-                            <SearchItem
-                                key={`${item.id}_${item.projectId}`}
-                                item={item}
-                                onOpenDeleteModal={() => onOpenDeleteModal(item)}
-                                onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
-                                onRowClick={() => goToItemDetails(item)}
-                                searchValue={appliedFilters.textQuery}
-                            />
-                        </DataList>
-                    )
+                    data.map(item => <SearchItem
+                        key={`${item.id}_${item.projectId}`}
+                        item={item}
+                        onOpenDeleteModal={() => onOpenDeleteModal(item)}
+                        onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
+                        searchValue={appliedFilters.textQuery}
+                    />)
                 }
                 </Body>
                 <Footer>

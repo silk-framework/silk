@@ -15,10 +15,10 @@ interface IProps {
 
     onOpenDuplicateModal(item: ISearchResultsServer);
 
-    onRowClick();
+    onRowClick?();
 }
 
-export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpenDuplicateModal, onRowClick}: IProps) {
+export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpenDuplicateModal, onRowClick = () => {}}: IProps) {
     const {Row, Cell} = DataList;
     const getItemLinkIcons = (label: string) => {
         switch (label) {

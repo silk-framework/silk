@@ -20,9 +20,26 @@ export interface IWorkspaceConfigurationWidget {
     newPrefix: IPrefixState;
 }
 
+export interface IWarningWidgetItem {
+    taskId: string;
+    errorSummary: string;
+    taskLabel: string;
+    errorMessage: string;
+    stackTrace: {
+        errorMessage: string;
+        lines: string[];
+    }
+}
+
+export interface IWarningWidget {
+    results: IWarningWidgetItem[];
+}
+
 export interface IWidgetsState {
     /**
      * Store Project details page all widgets by widget name
      */
     configuration: IWorkspaceConfigurationWidget;
+
+    warnings: IWarningWidget;
 }

@@ -1,20 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 
 import './index.scss';
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { AppToaster } from "../../../services/toaster";
 import { Intent } from "@wrappers/constants";
 import { useParams } from "react-router";
 import Main from "../../layout/Main";
 import Metadata from "../../components/Metadata";
-import { sharedOp } from "@ducks/shared";
-import { datasetOp, datasetSel } from "@ducks/dataset";
+import { datasetSel } from "@ducks/dataset";
 
-export default function() {
+export default function () {
     const error = useSelector(datasetSel.errorSelector);
     const {workflowId, projectId} = useParams();
-    const [metadata, setMetadata] = useState({});
-    const dispatch = useDispatch();
 
     useEffect(() => {
         if (error.detail) {
@@ -26,21 +23,10 @@ export default function() {
         }
     }, [error.detail]);
 
-    useEffect(() => {
-        getTaskMetadata(workflowId, projectId);
-    }, [workflowId, projectId]);
-
-    const getTaskMetadata = async(workflowId: string, projectId: string) => {
-        dispatch(datasetOp.setLoading(true));
-        const data = await sharedOp.getTaskMetadataAsync(workflowId, projectId);
-        setMetadata(data);
-        dispatch(datasetOp.setLoading(false));
-    };
-
     return (
         <Main>
             <Main.LeftPanel>
-                <Metadata metadata={metadata}/>
+                <Metadata projectId={projectId} taskId={workflowId}/>
             </Main.LeftPanel>
         </Main>
     );
