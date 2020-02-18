@@ -62,9 +62,9 @@ function DataList({children, isLoading, data}) {
         return _emptyContent();
     }
     return (
-            <Card>
+            <div>
                 {children}
-            </Card>
+            </div>
     )
 }
 
