@@ -18,6 +18,10 @@ export interface IWorkspaceConfigurationWidget {
      * Plain object  for new prefix
      */
     newPrefix: IPrefixState;
+
+    isLoading: boolean;
+
+    error: any;
 }
 
 export interface IWarningWidgetItem {
@@ -31,6 +35,12 @@ export interface IWarningWidgetItem {
     }
 }
 
+export interface IWarningWidget {
+    results: IWarningWidgetItem[];
+    isLoading: boolean;
+    error: any;
+}
+
 export interface IFileWidgetItem {
     name: string;
     relativePath: string;
@@ -39,12 +49,10 @@ export interface IFileWidgetItem {
     modified: string;
 }
 
-export interface IWarningWidget {
-    results: IWarningWidgetItem[];
-}
-
 export interface IFilesWidget {
     results: IFileWidgetItem[];
+    isLoading: boolean;
+    error: any;
 }
 
 export interface IWidgetsState {

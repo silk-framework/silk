@@ -84,5 +84,6 @@ export default {
     prefixListSelector,
     newPrefixSelector,
     warningListSelector,
-    filesListSelector
+    filesListSelector,
+    widgetsSelector
 }

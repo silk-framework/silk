@@ -6,11 +6,15 @@ import { IconNames, Intent } from "@wrappers/constants";
 import Icon from "@wrappers/icon";
 import MarkdownModal from "../../../../components/modals/MarkdownModal";
 import { AppToaster } from "../../../../../services/toaster";
+import Loading from "../Configuration";
 
 const ConfigurationWidget = () => {
     const dispatch = useDispatch();
     const projectId = useSelector(workspaceSel.currentProjectIdSelector);
     const warningList = useSelector(workspaceSel.warningListSelector);
+
+    const warnWidget = useSelector(workspaceSel.widgetsSelector).warnings;
+    const {error, isLoading} = warnWidget;
 
     const [currentMarkdown, setCurrentMarkdown] = useState('');
     const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -46,17 +50,20 @@ const ConfigurationWidget = () => {
     return (
         <Card>
             <h3>Warning</h3>
-            <div>
-                {
-                    warningList.map(warn =>
-                        <div>
-                            {warn.errorSummary}
-                            <Icon icon={IconNames.INFO_SIGN} onClick={() => handleOpenMarkDown(warn.taskId)}/>
-                        </div>
-                    )
-                }
-                <MarkdownModal isOpen={isOpen} onDiscard={handleClose} markdown={currentMarkdown}/>
-            </div>
+            {
+                isLoading ? <Loading/> :
+                    <div>
+                        {
+                            warningList.map(warn =>
+                                <div>
+                                    {warn.errorSummary}
+                                    <Icon icon={IconNames.INFO_SIGN} onClick={() => handleOpenMarkDown(warn.taskId)}/>
+                                </div>
+                            )
+                        }
+                        <MarkdownModal isOpen={isOpen} onDiscard={handleClose} markdown={currentMarkdown}/>
+                    </div>
+            }
         </Card>
     )
 };
