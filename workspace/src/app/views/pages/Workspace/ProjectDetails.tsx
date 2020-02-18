@@ -9,6 +9,7 @@ import SearchList from "./SearchResults/SearchList";
 import TopBar from "./Topbar";
 import ConfigurationWidget from "./widgets/Configuration";
 import WarningWidget from "./widgets/Warning";
+import FileWidget from "./widgets/File";
 
 const ProjectDetails = ({projectId}) => {
     const dispatch = useDispatch();
@@ -41,6 +42,7 @@ const ProjectDetails = ({projectId}) => {
                 </div>
             </LeftPanel>
             <RightPanel>
+                <FileWidget/>
                 <ConfigurationWidget/>
                 <WarningWidget/>
             </RightPanel>

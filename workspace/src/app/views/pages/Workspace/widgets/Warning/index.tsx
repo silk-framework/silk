@@ -17,7 +17,7 @@ const ConfigurationWidget = () => {
 
     useEffect(() => {
         getWarningList();
-    }, [projectId]);
+    }, []);
 
     const handleOpen = () => setIsOpen(true);
     const handleClose = () => {

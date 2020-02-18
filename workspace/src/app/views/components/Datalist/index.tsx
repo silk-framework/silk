@@ -10,6 +10,14 @@ function _Row({children}) {
     )
 }
 
+function _HCell({children, ...restProps}) {
+    return (
+        <td {...restProps}>
+            {children}
+        </td>
+    )
+}
+
 function _Cell({children, ...restProps}) {
     return (
         <td {...restProps}>
@@ -72,5 +80,6 @@ DataList.Body = _Body;
 DataList.Footer = _Footer;
 DataList.Row = _Row;
 DataList.Cell = _Cell;
+DataList.HCell = _HCell;
 
 export default DataList;

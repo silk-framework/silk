@@ -31,8 +31,20 @@ export interface IWarningWidgetItem {
     }
 }
 
+export interface IFileWidgetItem {
+    name: string;
+    relativePath: string;
+    absolutePath: string;
+    size: number;
+    modified: string;
+}
+
 export interface IWarningWidget {
     results: IWarningWidgetItem[];
+}
+
+export interface IFilesWidget {
+    results: IFileWidgetItem[];
 }
 
 export interface IWidgetsState {
@@ -42,4 +54,6 @@ export interface IWidgetsState {
     configuration: IWorkspaceConfigurationWidget;
 
     warnings: IWarningWidget;
+
+    files: IFilesWidget;
 }

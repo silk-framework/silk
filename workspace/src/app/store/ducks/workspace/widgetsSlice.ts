@@ -20,6 +20,9 @@ export const widgetsSlice = createSlice({
         },
         setWarnings(state, action) {
             state.warnings.results = action.payload;
+        },
+        setFiles(state, action) {
+            state.files.results = action.payload;
         }
     }
 });

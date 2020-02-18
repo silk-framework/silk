@@ -34,9 +34,16 @@ export function initialWarningState() {
     }
 }
 
+export function initialFilesState() {
+    return {
+        results: []
+    }
+}
+
 export function initialWidgetsState(): IWidgetsState {
     return {
         configuration: initialConfigurationState(),
-        warnings: initialWarningState()
+        warnings: initialWarningState(),
+        files: initialFilesState()
     }
 }

@@ -8,7 +8,6 @@ import { IPrefixState } from "@ducks/workspace/typings";
 
 const ConfigurationWidget = () => {
     const dispatch = useDispatch();
-    const projectId = useSelector(workspaceSel.currentProjectIdSelector);
     const prefixList = useSelector(workspaceSel.prefixListSelector);
 
     const [visiblePrefixes, setVisiblePrefixes] = useState<IPrefixState[]>([]);
@@ -18,7 +17,7 @@ const ConfigurationWidget = () => {
 
     useEffect(() => {
         getPrefixesList();
-    }, [projectId]);
+    }, []);
 
     useEffect(() => {
         const visibleItems = prefixList.slice(0, VISIBLE_COUNT);
