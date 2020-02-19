@@ -108,22 +108,19 @@ export default function SearchList() {
     const {Header, Body, Footer} = DataList;
     return (
         <DataList isLoading={isLoading} data={data}>
-            <Header>
-                <AppliedFacets/>
-            </Header>
             <Body className={'cardBody'}>
-            {
-                data.map(item => (
-                    <Card key={`${item.id}_${item.projectId}`}>
-                        <SearchItem
-                            item={item}
-                            onOpenDeleteModal={() => onOpenDeleteModal(item)}
-                            onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
-                            searchValue={appliedFilters.textQuery}
-                        />
-                    </Card>
-                ))
-            }
+                <AppliedFacets/>
+                {
+                    data.map(item => (
+                            <SearchItem
+                                key={`${item.id}_${item.projectId}`}
+                                item={item}
+                                onOpenDeleteModal={() => onOpenDeleteModal(item)}
+                                onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
+                                searchValue={appliedFilters.textQuery}
+                            />
+                    ))
+                }
             </Body>
             <Footer>
                 <Pagination

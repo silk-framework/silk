@@ -1,49 +1,44 @@
 import React from "react";
-import HTMLTable from "@wrappers/blueprint/html-table";
-import Card from "@wrappers/blueprint/card";
 import Spinner from "@wrappers/blueprint/spinner";
+import StructuredListBody from "@wrappers/carbon/structured-list/StructuredListBody";
+import StructuredListHead from "@wrappers/carbon/structured-list/StructuredListHead";
+import StructuredListCell from "@wrappers/carbon/structured-list/StructuredListCell";
+import StructuredListRow from "@wrappers/carbon/structured-list/StructuredListRow";
+import { StructuredListWrapper } from "carbon-components-react";
 
 function _Row({children}) {
     return (
-        <div className={'data_row'}>
+        <StructuredListRow className={'data_row'}>
             {children}
-        </div>
-    )
-}
-
-function _HCell({children, ...restProps}) {
-    return (
-        <td {...restProps}>
-            {children}
-        </td>
+        </StructuredListRow>
     )
 }
 
 function _Cell({children, ...restProps}) {
     return (
-        <div className={'data_cell'} {...restProps}>
+        <StructuredListCell className={'data_cell'} {...restProps}>
             {children}
-        </div>
+        </StructuredListCell>
     )
 }
 
 function _Header({children}) {
     return (
-        <div className={'header'}>
+        <StructuredListHead className={'header'}>
             <_Row>
                 <_Cell>
                     {children}
                 </_Cell>
             </_Row>
-        </div>
+        </StructuredListHead>
     )
 }
 
 function _Body({children, ...restProps}) {
     return (
-        <div {...restProps}>
-        {children}
-        </div>
+        <StructuredListBody {...restProps}>
+            {children}
+        </StructuredListBody>
     )
 }
 
@@ -70,9 +65,9 @@ function DataList({children, isLoading, data}) {
         return _emptyContent();
     }
     return (
-            <div>
+            <StructuredListWrapper>
                 {children}
-            </div>
+            </StructuredListWrapper>
     )
 }
 
@@ -81,6 +76,5 @@ DataList.Body = _Body;
 DataList.Footer = _Footer;
 DataList.Row = _Row;
 DataList.Cell = _Cell;
-DataList.HCell = _HCell;
 
 export default DataList;

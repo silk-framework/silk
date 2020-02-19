@@ -61,22 +61,22 @@
   padding: 15px;
 }
 
-.data_row {
-  display: flex;
-  align-items: center;
-}
-
-.data_row:hover {
-  cursor: pointer;
-}
-
-.data_cell:nth-child(2) {
-  flex-basis: 85%;
-}
-
-.data_cell:first-child {
-  margin: 0 15px 0 0;
-}
+//.data_row {
+//  display: flex;
+//  align-items: center;
+//}
+//
+//.data_row:hover {
+//  cursor: pointer;
+//}
+//
+//.data_cell:nth-child(2) {
+//  flex-basis: 85%;
+//}
+//
+//.data_cell:first-child {
+//  margin: 0 15px 0 0;
+//}
 
 .footer .data_cell {
   display: inline-block;
