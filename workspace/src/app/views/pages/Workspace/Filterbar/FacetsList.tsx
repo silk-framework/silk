@@ -54,12 +54,6 @@ export default function FacetsList() {
         setVisibleFacetsKeywords(keywords);
     };
 
-    const showMoreOrLess = (facet) => {
-        const variable = visibleFacetsKeywords[facet.id];
-        return (
-            variable && variable.length > FACETS_PREVIEW_LIMIT ? 'Show less...' : 'Show more...')
-    };
-
     return (
         <div>
             {
@@ -85,7 +79,7 @@ export default function FacetsList() {
                                 />
                             )
                         }
-                        <a onClick={() => toggleShowMore(facet)}>{showMoreOrLess(facet)}</a>
+                        <a onClick={() => toggleShowMore(facet)}>{toggledFacets[facet.id]? 'Show less...' : 'Show more...'}</a>
                     </div>
                 )
             }
