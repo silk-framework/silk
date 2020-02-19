@@ -7,17 +7,11 @@ interface IProps {
 }
 
 const Breadcrumbs = memo(({ paths }: IProps) => {
-    // const renderCurrentBreadcrumb = ({ path, label }) => {
-    //     // customize rendering of last breadcrumb
-    //     return <span>{text}</span>;
-    // };
     return (
-        <div className={styles.customBread}>
             <B_BreadCrumbs
                 className={styles.customBread}
                 items={paths}
             />
-        </div>
     );
 });
 

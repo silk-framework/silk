@@ -14,7 +14,7 @@ interface IProps {
 
 export default function SortButton({ sortersList, activeSort, onSort }: IProps) {
     return (
-        <Popover
+        <Popover className={'sortButton'}
             content={
                 <Menu>
                     {

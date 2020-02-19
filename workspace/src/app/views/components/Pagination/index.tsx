@@ -4,7 +4,6 @@ export default function Pagination({pagination, onPageChange}) {
     const elements = [];
 
     let pagesCount = Math.ceil(pagination.total / pagination.limit);
-    // console.log(this.state.router.location.search);
     while (pagesCount--) {
         elements.unshift(pagesCount + 1);
     }

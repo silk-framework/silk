@@ -31,16 +31,12 @@ export default function () {
 
     return (
         <div className="clearfix">
-            <div className={'searchField'}>
                 <SearchInput
                     onFilterChange={handleSearchChange}
                     onEnter={handleSearchEnter}
                     filterValue={searchInput}
                 />
-            </div>
-            <div  className={'sortButton'}>
                 <SortButton sortersList={sorters.list} onSort={handleSort} activeSort={sorters.applied}/>
-            </div>
         </div>
     )
 }

@@ -13,9 +13,6 @@ import NavbarHeading from "@wrappers/navbar-heading";
 import NavButton from "./NavButton";
 import HomeButton from "./HomeButton";
 
-import '../../../../theme/override.scss';
-
-
 interface IProps {
     externalRoutes: any;
 }
