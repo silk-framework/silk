@@ -4,7 +4,7 @@ import './index.scss';
 import { useSelector } from "react-redux";
 import { workspaceSel } from "@ducks/workspace";
 import { AppToaster } from "../../../services/toaster";
-import { Intent } from "@wrappers/constants";
+import { Intent } from "@wrappers/bluprint/constants";
 import { useParams } from "react-router";
 import Projects from "./Projects";
 import ProjectDetails from "./ProjectDetails";

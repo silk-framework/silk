@@ -979,6 +979,18 @@
     classnames "^2.2"
     tslib "~1.9.0"
 
+"@carbon/icon-helpers@^10.5.2":
+  version "10.5.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@carbon/icon-helpers/-/icon-helpers-10.5.2.tgz#7975fc091206f4a423e812dada89519df52c2041"
+  integrity sha1-eXX8CRIG9KQj6BLa2olRnfUsIEE=
+
+"@carbon/icons-react@^10.8.2":
+  version "10.8.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@carbon/icons-react/-/icons-react-10.8.2.tgz#f109b80457a4dcb23dd4d168662966ca229a3614"
+  integrity sha1-8Qm4BFek3LI91NFoZilmyiKaNhQ=
+  dependencies:
+    "@carbon/icon-helpers" "^10.5.2"
+
 "@cnakazawa/watch@^1.0.3":
   version "1.0.3"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@cnakazawa/watch/-/watch-1.0.3.tgz#099139eaec7ebf07a27c1786a3ff64f39464d2ef"
@@ -1332,6 +1344,14 @@
   integrity sha1-R5pO4+KRpAOhCWEGAT7CLPm2QBI=
   dependencies:
     "@babel/types" "^7.3.0"
+
+"@types/carbon-components-react@^7.6.15":
+  version "7.6.15"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/carbon-components-react/-/carbon-components-react-7.6.15.tgz#f0a81d6d09cf1304edacc57793ba7d7c892ba1cd"
+  integrity sha1-8KgdbQnPEwTtrMV3k7p9fIkroc0=
+  dependencies:
+    "@types/react" "*"
+    flatpickr "4.6.1"
 
 "@types/cheerio@*":
   version "0.22.15"
@@ -2807,6 +2827,39 @@ capture-exit@^2.0.0:
   dependencies:
     rsvp "^4.8.4"
 
+carbon-components-react@^7.9.3:
+  version "7.9.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/carbon-components-react/-/carbon-components-react-7.9.3.tgz#664dda1c47077944e30a9de5bcdbd4c219954248"
+  integrity sha1-Zk3aHEcHeUTjCp3lvNvUwhmVQkg=
+  dependencies:
+    "@carbon/icons-react" "^10.8.2"
+    classnames "2.2.6"
+    downshift "^1.31.14"
+    flatpickr "4.6.1"
+    focus-trap-react "^6.0.0"
+    invariant "^2.2.3"
+    lodash.debounce "^4.0.8"
+    lodash.isequal "^4.5.0"
+    lodash.omit "^4.5.0"
+    react-is "^16.8.6"
+    warning "^3.0.0"
+    window-or-global "^1.0.1"
+
+carbon-components@^10.9.3:
+  version "10.9.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/carbon-components/-/carbon-components-10.9.3.tgz#d0d8f42c35fb7ce1cacc131d1c4b11fc2c905a6a"
+  integrity sha1-0Nj0LDX7fOHKzBMdHEsR/CyQWmo=
+  dependencies:
+    carbon-icons "^7.0.7"
+    flatpickr "4.6.1"
+    lodash.debounce "^4.0.8"
+    warning "^3.0.0"
+
+carbon-icons@^7.0.7:
+  version "7.0.7"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/carbon-icons/-/carbon-icons-7.0.7.tgz#ebafe3e9fa25df973796a8eca06d8a7c501cc610"
+  integrity sha1-66/j6fol35c3lqjsoG2KfFAcxhA=
+
 case-sensitive-paths-webpack-plugin@2.2.0:
   version "2.2.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/case-sensitive-paths-webpack-plugin/-/case-sensitive-paths-webpack-plugin-2.2.0.tgz#3371ef6365ef9c25fa4b81c16ace0e9c7dc58c3e"
@@ -2928,7 +2981,7 @@ class-utils@^0.3.5:
     isobject "^3.0.0"
     static-extend "^0.1.1"
 
-classnames@^2.2:
+classnames@2.2.6, classnames@^2.2:
   version "2.2.6"
   resolved "https://artifactory.eccenca.com/api/npm/npm/classnames/-/classnames-2.2.6.tgz#43935bffdd291f326dad0a205309b38d00f650ce"
   integrity sha1-Q5Nb/90pHzJtrQogUwmzjQD2UM4=
@@ -3961,6 +4014,11 @@ dotenv@^8.2.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/dotenv/-/dotenv-8.2.0.tgz#97e619259ada750eea3e4ea3e26bceea5424b16a"
   integrity sha1-l+YZJZradQ7qPk6j4mvO6lQksWo=
 
+downshift@^1.31.14:
+  version "1.31.16"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/downshift/-/downshift-1.31.16.tgz#acd81631539502d4112d01bd573654419fd9f640"
+  integrity sha1-rNgWMVOVAtQRLQG9VzZUQZ/Z9kA=
+
 duplexer@^0.1.1:
   version "0.1.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/duplexer/-/duplexer-0.1.1.tgz#ace6ff808c1ce66b57d1ebf97977acb02334cfc1"
@@ -4819,6 +4877,11 @@ flat-cache@^2.0.1:
     rimraf "2.6.3"
     write "1.0.3"
 
+flatpickr@4.6.1:
+  version "4.6.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/flatpickr/-/flatpickr-4.6.1.tgz#9eb498ab805dd27f5ae02e1ac6ac6c099ce45e94"
+  integrity sha1-nrSYq4Bd0n9a4C4axqxsCZzkXpQ=
+
 flatted@^2.0.0:
   version "2.0.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/flatted/-/flatted-2.0.1.tgz#69e57caa8f0eacbc281d2e2cb458d46fdb449e08"
@@ -4836,6 +4899,21 @@ flush-write-stream@^1.0.0:
   dependencies:
     inherits "^2.0.3"
     readable-stream "^2.3.6"
+
+focus-trap-react@^6.0.0:
+  version "6.0.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/focus-trap-react/-/focus-trap-react-6.0.0.tgz#3f5a9f68447dd374d22388fb4c50018be83e74a5"
+  integrity sha1-P1qfaER903TSI4j7TFABi+g+dKU=
+  dependencies:
+    focus-trap "^4.0.2"
+
+focus-trap@^4.0.2:
+  version "4.0.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/focus-trap/-/focus-trap-4.0.2.tgz#4ee2b96547c9ea0e4252a2d4b2cca68944194663"
+  integrity sha1-TuK5ZUfJ6g5CUqLUssymiUQZRmM=
+  dependencies:
+    tabbable "^3.1.2"
+    xtend "^4.0.1"
 
 follow-redirects@1.5.10:
   version "1.5.10"
@@ -5824,7 +5902,7 @@ intl-relativeformat@^2.1.0:
   dependencies:
     intl-messageformat "^2.0.0"
 
-invariant@^2.1.0, invariant@^2.1.1, invariant@^2.2.2, invariant@^2.2.4:
+invariant@^2.1.0, invariant@^2.1.1, invariant@^2.2.2, invariant@^2.2.3, invariant@^2.2.4:
   version "2.2.4"
   resolved "https://artifactory.eccenca.com/api/npm/npm/invariant/-/invariant-2.2.4.tgz#610f3c92c9359ce1db616e538008d23ff35158e6"
   integrity sha1-YQ88ksk1nOHbYW5TgAjSP/NRWOY=
@@ -7058,6 +7136,11 @@ lodash.camelcase@^4.3.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/lodash.camelcase/-/lodash.camelcase-4.3.0.tgz#b28aa6288a2b9fc651035c7711f65ab6190331a6"
   integrity sha1-soqmKIorn8ZRA1x3EfZathkDMaY=
 
+lodash.debounce@^4.0.8:
+  version "4.0.8"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/lodash.debounce/-/lodash.debounce-4.0.8.tgz#82d79bff30a67c4005ffd5e2515300ad9ca4d7af"
+  integrity sha1-gteb/zCmfEAF/9XiUVMArZyk168=
+
 lodash.escape@^4.0.1:
   version "4.0.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/lodash.escape/-/lodash.escape-4.0.1.tgz#c9044690c21e04294beaa517712fded1fa88de98"
@@ -7082,6 +7165,11 @@ lodash.memoize@^4.1.2:
   version "4.1.2"
   resolved "https://artifactory.eccenca.com/api/npm/npm/lodash.memoize/-/lodash.memoize-4.1.2.tgz#bcc6c49a42a2840ed997f323eada5ecd182e0bfe"
   integrity sha1-vMbEmkKihA7Zl/Mj6tpezRguC/4=
+
+lodash.omit@^4.5.0:
+  version "4.5.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/lodash.omit/-/lodash.omit-4.5.0.tgz#6eb19ae5a1ee1dd9df0b969e66ce0b7fa30b5e60"
+  integrity sha1-brGa5aHuHdnfC5aeZs4Lf6MLXmA=
 
 lodash.sortby@^4.7.0:
   version "4.7.0"
@@ -11006,6 +11094,11 @@ symbol-tree@^3.2.2:
   resolved "https://artifactory.eccenca.com/api/npm/npm/symbol-tree/-/symbol-tree-3.2.4.tgz#430637d248ba77e078883951fb9aa0eed7c63fa2"
   integrity sha1-QwY30ki6d+B4iDlR+5qg7tfGP6I=
 
+tabbable@^3.1.2:
+  version "3.1.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/tabbable/-/tabbable-3.1.2.tgz#f2d16cccd01f400e38635c7181adfe0ad965a4a2"
+  integrity sha1-8tFszNAfQA44Y1xxga3+CtllpKI=
+
 table@^5.2.3:
   version "5.4.6"
   resolved "https://artifactory.eccenca.com/api/npm/npm/table/-/table-5.4.6.tgz#1292d19500ce3f86053b05f0e8e7e4a3bb21079e"
@@ -11670,6 +11763,13 @@ walker@^1.0.7, walker@~1.0.5:
   dependencies:
     makeerror "1.0.x"
 
+warning@^3.0.0:
+  version "3.0.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/warning/-/warning-3.0.0.tgz#32e5377cb572de4ab04753bdf8821c01ed605b7c"
+  integrity sha1-MuU3fLVy3kqwR1O9+IIcAe1gW3w=
+  dependencies:
+    loose-envify "^1.0.0"
+
 warning@^4.0.2, warning@^4.0.3:
   version "4.0.3"
   resolved "https://artifactory.eccenca.com/api/npm/npm/warning/-/warning-4.0.3.tgz#16e9e077eb8a86d6af7d64aa1e05fd85b4678ca3"
@@ -11892,6 +11992,11 @@ wide-align@^1.1.0:
   integrity sha1-rgdOa9wMFKQx6ATmJFScYzsABFc=
   dependencies:
     string-width "^1.0.2 || 2"
+
+window-or-global@^1.0.1:
+  version "1.0.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/window-or-global/-/window-or-global-1.0.1.tgz#dbe45ba2a291aabc56d62cf66c45b7fa322946de"
+  integrity sha1-2+RboqKRqrxW1iz2bEW3+jIpRt4=
 
 word-wrap@~1.2.3:
   version "1.2.3"

@@ -1,6 +1,6 @@
 import React, { memo } from "react";
-import Spinner from "@wrappers/spinner";
-import { Classes, Intent } from "@wrappers/constants";
+import Spinner from "@wrappers/bluprint/spinner";
+import { Classes, Intent } from "@wrappers/bluprint/constants";
 
 interface IProps {
     size?: string;

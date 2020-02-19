@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './Metadata.scss';
-import Card from "@wrappers/card";
-import { H4 } from "@wrappers/typography";
+import Card from "@wrappers/bluprint/card";
+import { H4 } from "@wrappers/bluprint/typography";
 import { sharedOp } from "@ducks/shared";
 
 export default function ({ projectId = null, taskId }) {

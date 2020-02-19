@@ -1,12 +1,6 @@
 @import '../../../node_modules/@blueprintjs/core/lib/css/blueprint.css';
 @import '../../../node_modules/@blueprintjs/icons/lib/css/blueprint-icons.css';
-
-
-.main-content {
-  background-color: #f1f1f1;
-  height: 100vh;
-  overflow: auto;
-}
+@import '../../../node_modules/carbon-components/scss/globals/scss/styles.scss';
 
 .bp3-breadcrumb {
   font-size: 12px;

@@ -1,27 +1,32 @@
 import React from 'react';
-import './index.scss';
+import styles from './index.module.scss';
+import Grid from "@wrappers/carbon/grid";
+import Row from "@wrappers/carbon/grid/Row";
+import Col from "@wrappers/carbon/grid/Col";
 
 const Main = ({children, ...restProps}) => {
     return (
-        <section className='main-content clearfix' {...restProps}>
-            {children}
-        </section>
+        <Grid className={styles.mainContent} {...restProps}>
+            <Row>
+                {children}
+            </Row>
+        </Grid>
     )
 };
 
-const _LeftPanel = ({children, className = '', ...restProps}) => {
+const _LeftPanel = ({children, span = 0, className = '', ...restProps}) => {
     return (
-        <div className={`left-side-content ${className}`} {...restProps}>
+        <Col span={span} className={`left-side-content ${className}`} {...restProps}>
             {children}
-        </div>
+        </Col>
     )
 };
 
-const _RightPanel = ({children, className = '',...restProps}) => {
+const _RightPanel = ({children, span = 0, className = '',...restProps}) => {
     return (
-        <div className={`right-side-widgets ${className}`} {...restProps}>
+        <Col span={span} className={`right-side-widgets ${className}`} {...restProps}>
             {children}
-        </div>
+        </Col>
     )
 
 };

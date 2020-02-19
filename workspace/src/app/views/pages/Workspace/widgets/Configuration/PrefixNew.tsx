@@ -1,8 +1,8 @@
 import React from 'react';
-import Card from '@wrappers/card';
-import Button from '@wrappers/button';
-import InputGroup from '@wrappers/input-group';
-import { Intent } from "@wrappers/constants";
+import Card from '@wrappers/bluprint/card';
+import Button from '@wrappers/bluprint/button';
+import InputGroup from '@wrappers/bluprint/input-group';
+import { Intent } from "@wrappers/bluprint/constants";
 
 const PrefixNew = ({onAdd, onChangePrefix, prefix}) => {
     return (

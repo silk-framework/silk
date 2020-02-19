@@ -1,10 +1,10 @@
 import React from "react";
 import {IAppliedSorterState, ISorterListItemState} from "@ducks/workspace/typings";
-import Popover from "@wrappers/popover";
-import Menu from "@wrappers/menu";
-import Button from "@wrappers/button";
-import MenuItem from "@wrappers/menu-item";
-import {IconNames, Position} from "@wrappers/constants";
+import Popover from "@wrappers/bluprint/popover";
+import Menu from "@wrappers/bluprint/menu";
+import Button from "@wrappers/bluprint/button";
+import MenuItem from "@wrappers/bluprint/menu-item";
+import {IconNames, Position} from "@wrappers/bluprint/constants";
 
 interface IProps {
     sortersList: ISorterListItemState[],

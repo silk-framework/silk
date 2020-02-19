@@ -43,10 +43,8 @@ export interface IWarningWidget {
 
 export interface IFileWidgetItem {
     name: string;
-    relativePath: string;
-    absolutePath: string;
     size: number;
-    modified: string;
+    lastModified: string;
 }
 
 export interface IFilesWidget {

@@ -17,7 +17,7 @@ const Projects = () => {
 
     return (
         <Main>
-            <Main.LeftPanel className='clearfix'>
+            <Main.LeftPanel>
                 <div className='filter-bar-content'>
                     <Filterbar/>
                 </div>

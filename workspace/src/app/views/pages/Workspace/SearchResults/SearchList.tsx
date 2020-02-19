@@ -1,17 +1,17 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import Pagination from "../../../components/Pagination";
 import PageSizer from "../../../components/PageSizer";
-import {useDispatch, useSelector} from "react-redux";
-import {workspaceOp, workspaceSel} from "@ducks/workspace";
+import { useDispatch, useSelector } from "react-redux";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import AppliedFacets from "../Topbar/AppliedFacets";
 import DataList from "../../../components/Datalist";
-import Card from "@wrappers/card";
+import Card from "@wrappers/bluprint/card";
 import DeleteModal from "../../../components/modals/DeleteModal";
 import SearchItem from "./SearchItem";
 import Loading from "../../../components/Loading";
-import {DATA_TYPES} from "../../../../constants";
+import { DATA_TYPES } from "../../../../constants";
 import CloneModal from "../../../components/modals/CloneModal";
-import {sharedOp} from "@ducks/shared";
+import { sharedOp } from "@ducks/shared";
 
 export default function SearchList() {
 
@@ -112,15 +112,18 @@ export default function SearchList() {
                 <AppliedFacets/>
             </Header>
             <Body className={'cardBody'}>
-                {
-                    data.map(item => <Card><SearchItem
-                        key={`${item.id}_${item.projectId}`}
-                        item={item}
-                        onOpenDeleteModal={() => onOpenDeleteModal(item)}
-                        onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
-                        searchValue={appliedFilters.textQuery}
-                    /></Card>)
-                }
+            {
+                data.map(item => (
+                    <Card key={`${item.id}_${item.projectId}`}>
+                        <SearchItem
+                            item={item}
+                            onOpenDeleteModal={() => onOpenDeleteModal(item)}
+                            onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
+                            searchValue={appliedFilters.textQuery}
+                        />
+                    </Card>
+                ))
+            }
             </Body>
             <Footer>
                 <Pagination

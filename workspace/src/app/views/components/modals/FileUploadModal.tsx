@@ -1,46 +1,34 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Classes, Intent } from "@wrappers/bluprint/constants";
 import Button from "@wrappers/bluprint/button";
 import Dialog from "@wrappers/bluprint/dialog";
-import InputGroup from "@wrappers/bluprint/input-group";
 
-export interface ICloneOptions {
+export interface IFileUploadModalProps {
     isOpen: boolean;
-    oldId: string;
 
     onDiscard(): void;
-    onConfirm(newId: string): void;
+
+    onConfirm(): void;
 }
 
-export default function CloneModal({isOpen, oldId, onDiscard, onConfirm}: ICloneOptions) {
-    const [newId, setNewId] = useState(oldId);
-
-    useEffect(() => {
-        setNewId(oldId);
-    }, [oldId]);
-
+export default function FileUploadModal({isOpen, onDiscard, onConfirm}: IFileUploadModalProps) {
     return (
         <Dialog
             icon="info-sign"
             onClose={onDiscard}
-            title="Cloning"
+            title="Confirm Deletion"
             isOpen={isOpen}
         >
-            <div className={Classes.DIALOG_BODY}>
-                <InputGroup
-                    onChange={e => setNewId(e.target.value)}
-                    value={newId}
-                />
-            </div>
 
+            <div className={Classes.DIALOG_BODY}>
+            </div>
             <div className={Classes.DIALOG_FOOTER}>
                 <div className={Classes.DIALOG_FOOTER_ACTIONS}>
                     <Button
                         intent={Intent.PRIMARY}
-                        onClick={() => onConfirm(newId)}
-                        disabled={!newId}
+                        onClick={onConfirm}
                     >
-                        Clone
+                        Confirm
                     </Button>
                     <Button onClick={onDiscard}>Cancel</Button>
                 </div>

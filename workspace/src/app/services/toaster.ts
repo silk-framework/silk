@@ -1,5 +1,5 @@
-import Toaster from "@wrappers/toaster";
-import { Position } from "@wrappers/constants";
+import Toaster from "@wrappers/bluprint/toaster";
+import { Position } from "@wrappers/bluprint/constants";
 
 /** Singleton toaster instance. Create separate instances for different options. */
 export const AppToaster = Toaster.create({

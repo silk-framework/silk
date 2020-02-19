@@ -63,7 +63,11 @@ const warningListSelector = createSelector(
 
 const filesListSelector = createSelector(
     [widgetsSelector],
-    widgets => widgets.files.results
+    widgets => widgets.files.results.map(item => ({
+        id: item.name,
+        formattedDate: (new Date(item.lastModified)).toLocaleString(),
+        ...item
+    }))
 );
 
 const newPrefixSelector = createSelector(

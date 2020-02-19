@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import Card from "../../../../../wrappers/card";
-import Button from "../../../../../wrappers/button";
+import Card from "../../../../../wrappers/bluprint/card";
+import Button from "../../../../../wrappers/bluprint/button";
 import PrefixesDialog from "./PrefixesDialog";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";

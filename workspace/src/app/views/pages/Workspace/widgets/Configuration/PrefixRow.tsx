@@ -1,6 +1,6 @@
-import { IconNames } from "@wrappers/constants";
+import { IconNames } from "@wrappers/bluprint/constants";
 import React from "react";
-import Icon from "@wrappers/icon";
+import Icon from "@wrappers/bluprint/icon";
 import styles from './index.module.scss';
 import { IPrefixState } from "@ducks/workspace/typings";
 

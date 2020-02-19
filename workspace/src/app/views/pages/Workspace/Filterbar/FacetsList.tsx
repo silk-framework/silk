@@ -2,11 +2,11 @@ import React, {useEffect, useState} from 'react';
 import {IFacetState} from "@ducks/workspace/typings";
 import {useDispatch, useSelector} from "react-redux";
 import {workspaceOp, workspaceSel} from "@ducks/workspace";
-import Label from "@wrappers/label";
+import Label from "@wrappers/bluprint/label";
 import FacetItem from "./FacetItem";
-import Popover from "@wrappers/popover";
-import Tooltip from "@wrappers/tooltip";
-import {Classes, Position} from "@wrappers/constants";
+import Popover from "@wrappers/bluprint/popover";
+import Tooltip from "@wrappers/bluprint/tooltip";
+import {Classes, Position} from "@wrappers/bluprint/constants";
 
 export default function FacetsList() {
     const dispatch = useDispatch();

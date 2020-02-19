@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
-import InputGroup from "@wrappers/input-group";
-import { IconNames } from "@wrappers/constants";
+import InputGroup from "@wrappers/bluprint/input-group";
+import { IconNames } from "@wrappers/bluprint/constants";
 
 interface IProps {
     onFilterChange(e);

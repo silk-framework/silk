@@ -1,8 +1,8 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import Checkbox from "@wrappers/checkbox";
-import Label from "@wrappers/label";
+import Checkbox from "@wrappers/bluprint/checkbox";
+import Label from "@wrappers/bluprint/label";
 import FacetsList from "./FacetsList";
 import { globalOp, globalSel } from "@ducks/global";
 import { useParams } from "react-router";
