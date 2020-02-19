@@ -16,7 +16,7 @@ const Main = ({children, ...restProps}) => {
 
 const _LeftPanel = ({children, span = 0, className = '', ...restProps}) => {
     return (
-        <Col span={span} className={`left-side-content ${className}`} {...restProps}>
+        <Col span={10} className={`left-side-content ${className} bx--col-md-2`} {...restProps}>
             {children}
         </Col>
     )
@@ -24,7 +24,7 @@ const _LeftPanel = ({children, span = 0, className = '', ...restProps}) => {
 
 const _RightPanel = ({children, span = 0, className = '',...restProps}) => {
     return (
-        <Col span={span} className={`right-side-widgets ${className}`} {...restProps}>
+        <Col span={2} className={`right-side-widgets ${className}`} {...restProps}>
             {children}
         </Col>
     )

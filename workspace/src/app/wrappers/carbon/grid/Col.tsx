@@ -5,7 +5,7 @@ export default function Col({ children, className = '', span = 0, size = ''}) {
         _className += ` bx--col`;
     } else {
         size = size || 'lg';
-        _className += ` bx--col--${size}-${span}`;
+        _className += ` bx--col-${size}-${span}`;
     }
     return (
         <div className={_className}>{children}</div>
