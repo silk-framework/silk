@@ -85,6 +85,9 @@ export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpen
 
     return (
         <Row>
+            <Cell>
+                <Icon icon={IconNames.PROJECTS}/>
+            </Cell>
             <Cell onClick={onRowClick}>
                 <p dangerouslySetInnerHTML={{
                     __html: getSearchHighlight(item.label || item.id)

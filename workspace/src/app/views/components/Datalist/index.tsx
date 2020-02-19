@@ -1,12 +1,13 @@
 import React from "react";
 import HTMLTable from "@wrappers/html-table";
+import Card from "@wrappers/card";
 import Spinner from "@wrappers/spinner";
 
 function _Row({children}) {
     return (
-        <tr>
+        <div className={'data_row'}>
             {children}
-        </tr>
+        </div>
     )
 }
 
@@ -20,58 +21,58 @@ function _HCell({children, ...restProps}) {
 
 function _Cell({children, ...restProps}) {
     return (
-        <td {...restProps}>
+        <div className={'data_cell'} {...restProps}>
             {children}
-        </td>
+        </div>
     )
 }
 
-function _Header({ children }) {
+function _Header({children}) {
     return (
-        <thead>
+        <div className={'header'}>
             <_Row>
                 <_Cell>
                     {children}
                 </_Cell>
             </_Row>
-        </thead>
+        </div>
     )
 }
 
-function _Body({children}) {
+function _Body({children, ...restProps}) {
     return (
-        <tbody>
+        <div {...restProps}>
         {children}
-        </tbody>
+        </div>
     )
 }
 
 function _Footer({children}) {
     return (
-        <tfoot>
-        <_Row>
-            <_Cell>
-                {children}
-            </_Cell>
-        </_Row>
-        </tfoot>
+        <div className={'footer'}>
+            <_Row>
+                <_Cell>
+                    {children}
+                </_Cell>
+            </_Row>
+        </div>
     )
 }
 
-const _loadingIndicator = () => <Spinner />;
+const _loadingIndicator = () => <Spinner/>;
 
 const _emptyContent = () => <p>No resources found</p>;
 
-function DataList({ children, isLoading, data }) {
+function DataList({children, isLoading, data}) {
     if (isLoading) {
         return _loadingIndicator();
     } else if (!data.length) {
         return _emptyContent();
     }
     return (
-        <HTMLTable bordered={true} interactive={true} striped={true}>
-            {children}
-        </HTMLTable>
+            <div>
+                {children}
+            </div>
     )
 }
 

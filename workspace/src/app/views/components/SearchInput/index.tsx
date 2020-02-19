@@ -1,5 +1,4 @@
-import React, { memo, useRef } from 'react';
-import Spinner from "@wrappers/spinner";
+import React, { memo } from 'react';
 import InputGroup from "@wrappers/input-group";
 import { IconNames } from "@wrappers/constants";
 
@@ -19,6 +18,7 @@ const SearchInput = memo(({ onFilterChange, filterValue, onEnter, onBlur = () =>
 
     return (
         <InputGroup
+            className={'searchField'}
             type={'search'}
             leftIcon={IconNames.SEARCH}
             onChange={onFilterChange}

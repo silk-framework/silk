@@ -1,5 +1,6 @@
 import React, { memo} from 'react';
 import './index.scss';
+
 import { globalSel } from "@ducks/global";
 import { useSelector } from "react-redux";
 import Breadcrumbs from "@wrappers/breadcrumbs";
@@ -9,6 +10,8 @@ import NavbarDivider from "@wrappers/navbar-divider";
 import Navbar from "@wrappers/navbar";
 import NavbarGroup from "@wrappers/navbar-group";
 import NavbarHeading from "@wrappers/navbar-heading";
+import NavButton from "./NavButton";
+import HomeButton from "./HomeButton";
 
 interface IProps {
     externalRoutes: any;
@@ -112,16 +115,17 @@ const Header = memo<IProps>(({externalRoutes}) => {
             <div className="header">
                 <Navbar>
                     <NavbarGroup>
+                        <NavButton/>
+                        <HomeButton/>
                         <div>
                             <Breadcrumbs paths={breadcrumbs}/>
                             {
-                                lastBreadcrumb && <NavbarHeading>{lastBreadcrumb.text}</NavbarHeading>
+                                lastBreadcrumb && <NavbarHeading style={{fontWeight: 'bold'}}>{lastBreadcrumb.text}</NavbarHeading>
                             }
                         </div>
                         {menu}
                     </NavbarGroup>
                 </Navbar>
-
             </div>
     )
 });

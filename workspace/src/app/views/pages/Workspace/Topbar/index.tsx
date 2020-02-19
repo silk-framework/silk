@@ -30,17 +30,13 @@ export default function () {
     };
 
     return (
-        <div className="clearfix" style={{marginLeft: '-10px', marginBottom: '10px'}}>
-            <div style={{width: '80%', float: 'left'}}>
+        <div className="clearfix">
                 <SearchInput
                     onFilterChange={handleSearchChange}
                     onEnter={handleSearchEnter}
                     filterValue={searchInput}
                 />
-            </div>
-            <div style={{width: '15%', float: 'left', marginLeft: '15px'}}>
                 <SortButton sortersList={sorters.list} onSort={handleSort} activeSort={sorters.applied}/>
-            </div>
         </div>
     )
 }
