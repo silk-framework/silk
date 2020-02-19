@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
-import Icon from "@wrappers/bluprint/icon";
-import { IconNames, Intent } from "@wrappers/bluprint/constants";
+import Icon from "@wrappers/blueprint/icon";
+import { IconNames, Intent } from "@wrappers/blueprint/constants";
 
 const HomeButton = memo(() => {
     return (

@@ -1,5 +1,5 @@
 import React from "react";
-import Tag from "@wrappers/bluprint/tag";
+import Tag from "@wrappers/blueprint/tag";
 
 const styles = {
     display: 'inline-flex',

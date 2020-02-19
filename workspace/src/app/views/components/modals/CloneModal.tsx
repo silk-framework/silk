@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Classes, Intent } from "@wrappers/bluprint/constants";
-import Button from "@wrappers/bluprint/button";
-import Dialog from "@wrappers/bluprint/dialog";
-import InputGroup from "@wrappers/bluprint/input-group";
+import { Classes, Intent } from "@wrappers/blueprint/constants";
+import Button from "@wrappers/blueprint/button";
+import Dialog from "@wrappers/blueprint/dialog";
+import InputGroup from "@wrappers/blueprint/input-group";
 
 export interface ICloneOptions {
     isOpen: boolean;

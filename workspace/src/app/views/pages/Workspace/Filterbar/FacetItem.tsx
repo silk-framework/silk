@@ -1,5 +1,5 @@
 import React from 'react';
-import Checkbox from '@wrappers/bluprint/checkbox';
+import Checkbox from '@wrappers/blueprint/checkbox';
 
 interface IProps {
     isChecked?: boolean;

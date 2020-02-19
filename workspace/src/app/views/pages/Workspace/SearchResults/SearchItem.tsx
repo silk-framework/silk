@@ -1,11 +1,11 @@
 import React from "react";
 import DataList from "../../../components/Datalist";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
-import MenuItem from "@wrappers/bluprint/menu-item";
-import Menu from "@wrappers/bluprint/menu";
-import Popover from "@wrappers/bluprint/popover";
-import { IconNames, Position } from "@wrappers/bluprint/constants";
-import Icon from "@wrappers/bluprint/icon";
+import MenuItem from "@wrappers/blueprint/menu-item";
+import Menu from "@wrappers/blueprint/menu";
+import Popover from "@wrappers/blueprint/popover";
+import { IconNames, Position } from "@wrappers/blueprint/constants";
+import Icon from "@wrappers/blueprint/icon";
 
 interface IProps {
     item: ISearchResultsServer;

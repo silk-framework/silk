@@ -1,8 +1,8 @@
-import { Classes, Intent } from "@wrappers/bluprint/constants";
+import { Classes, Intent } from "@wrappers/blueprint/constants";
 import React from "react";
-import Dialog from "@wrappers/bluprint/dialog";
+import Dialog from "@wrappers/blueprint/dialog";
 import ReactMarkdown from "react-markdown";
-import Button from "@wrappers/bluprint/button";
+import Button from "@wrappers/blueprint/button";
 
 const MarkdownModal = ({onDiscard, isOpen, markdown, title = 'Report'}) => {
 

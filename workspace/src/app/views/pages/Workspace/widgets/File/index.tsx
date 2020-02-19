@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import Card from "../../../../../wrappers/bluprint/card";
+import Card from "../../../../../wrappers/blueprint/card";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import Loading from "../../../../components/Loading";

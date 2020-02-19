@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import './index.scss';
 import { useSelector } from "react-redux";
 import { AppToaster } from "../../../services/toaster";
-import { Intent } from "@wrappers/bluprint/constants";
+import { Intent } from "@wrappers/blueprint/constants";
 import { useParams } from "react-router";
 import Main from "../../layout/Main";
 import Metadata from "../../components/Metadata";

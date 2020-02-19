@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Classes, Intent } from "@wrappers/bluprint/constants";
-import Dialog from "@wrappers/bluprint/dialog";
+import { Classes, Intent } from "@wrappers/blueprint/constants";
+import Dialog from "@wrappers/blueprint/dialog";
 
-import Button from '@wrappers/bluprint/button';
+import Button from '@wrappers/blueprint/button';
 import PrefixRow from "./PrefixRow";
 import DeleteModal from "../../../../components/modals/DeleteModal";
 import PrefixNew from "./PrefixNew";

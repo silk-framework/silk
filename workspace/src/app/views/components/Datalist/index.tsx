@@ -1,7 +1,7 @@
 import React from "react";
-import HTMLTable from "@wrappers/bluprint/html-table";
-import Card from "@wrappers/bluprint/card";
-import Spinner from "@wrappers/bluprint/spinner";
+import HTMLTable from "@wrappers/blueprint/html-table";
+import Card from "@wrappers/blueprint/card";
+import Spinner from "@wrappers/blueprint/spinner";
 
 function _Row({children}) {
     return (

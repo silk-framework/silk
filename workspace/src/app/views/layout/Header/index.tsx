@@ -3,13 +3,13 @@ import './index.scss';
 
 import { globalSel } from "@ducks/global";
 import { useSelector } from "react-redux";
-import Breadcrumbs from "@wrappers/bluprint/breadcrumbs";
-import Button from "@wrappers/bluprint/button";
-import { Classes } from "@wrappers/bluprint/constants";
-import NavbarDivider from "@wrappers/bluprint/navbar-divider";
-import Navbar from "@wrappers/bluprint/navbar";
-import NavbarGroup from "@wrappers/bluprint/navbar-group";
-import NavbarHeading from "@wrappers/bluprint/navbar-heading";
+import Breadcrumbs from "@wrappers/blueprint/breadcrumbs";
+import Button from "@wrappers/blueprint/button";
+import { Classes } from "@wrappers/blueprint/constants";
+import NavbarDivider from "@wrappers/blueprint/navbar-divider";
+import Navbar from "@wrappers/blueprint/navbar";
+import NavbarGroup from "@wrappers/blueprint/navbar-group";
+import NavbarHeading from "@wrappers/blueprint/navbar-heading";
 import NavButton from "./NavButton";
 import HomeButton from "./HomeButton";
 

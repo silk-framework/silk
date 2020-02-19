@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import Card from "../../../../../wrappers/bluprint/card";
+import Card from "../../../../../wrappers/blueprint/card";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { IconNames, Intent } from "@wrappers/bluprint/constants";
-import Icon from "@wrappers/bluprint/icon";
+import { IconNames, Intent } from "@wrappers/blueprint/constants";
+import Icon from "@wrappers/blueprint/icon";
 import MarkdownModal from "../../../../components/modals/MarkdownModal";
 import { AppToaster } from "../../../../../services/toaster";
 import Loading from "../Configuration";

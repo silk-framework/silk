@@ -1,9 +1,9 @@
 import React, { ReactElement, useState } from "react";
-import { Classes, Intent } from "@wrappers/bluprint/constants";
-import Button from "@wrappers/bluprint/button";
-import Dialog from "@wrappers/bluprint/dialog";
-import Label from "@wrappers/bluprint/label";
-import Checkbox from "@wrappers/bluprint/checkbox";
+import { Classes, Intent } from "@wrappers/blueprint/constants";
+import Button from "@wrappers/blueprint/button";
+import Dialog from "@wrappers/blueprint/dialog";
+import Label from "@wrappers/blueprint/label";
+import Checkbox from "@wrappers/blueprint/checkbox";
 
 export interface IDeleteModalOptions {
     isOpen: boolean;

@@ -1,7 +1,7 @@
 import React from "react";
-import { Classes, Intent } from "@wrappers/bluprint/constants";
-import Button from "@wrappers/bluprint/button";
-import Dialog from "@wrappers/bluprint/dialog";
+import { Classes, Intent } from "@wrappers/blueprint/constants";
+import Button from "@wrappers/blueprint/button";
+import Dialog from "@wrappers/blueprint/dialog";
 
 export interface IFileUploadModalProps {
     isOpen: boolean;
