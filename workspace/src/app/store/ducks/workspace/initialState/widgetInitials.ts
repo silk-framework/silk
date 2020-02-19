@@ -10,7 +10,9 @@ export function initialNewPrefixState(): IPrefixState {
 export function initialConfigurationState() {
     return {
         prefixes: [],
-        newPrefix: initialNewPrefixState()
+        newPrefix: initialNewPrefixState(),
+        isLoading: false,
+        error: {}
     }
 }
 
@@ -31,12 +33,23 @@ export function initialWarningItemState() {
 export function initialWarningState() {
     return {
         results: [],
+        isLoading: false,
+        error: {}
+    }
+}
+
+export function initialFilesState() {
+    return {
+        results: [],
+        isLoading: false,
+        error: {}
     }
 }
 
 export function initialWidgetsState(): IWidgetsState {
     return {
         configuration: initialConfigurationState(),
-        warnings: initialWarningState()
+        warnings: initialWarningState(),
+        files: initialFilesState()
     }
 }

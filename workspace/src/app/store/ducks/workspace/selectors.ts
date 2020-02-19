@@ -61,6 +61,11 @@ const warningListSelector = createSelector(
     widgets => widgets.warnings.results
 );
 
+const filesListSelector = createSelector(
+    [widgetsSelector],
+    widgets => widgets.files.results
+);
+
 const newPrefixSelector = createSelector(
     [widgetsSelector],
     widgets => widgets.configuration.newPrefix
@@ -78,5 +83,7 @@ export default {
     currentProjectIdSelector,
     prefixListSelector,
     newPrefixSelector,
-    warningListSelector
+    warningListSelector,
+    filesListSelector,
+    widgetsSelector
 }
