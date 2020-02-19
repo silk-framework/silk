@@ -79,7 +79,7 @@ export default function FacetsList() {
                                 />
                             )
                         }
-                        <a onClick={() => toggleShowMore(facet)}>{toggledFacets[facet.id]? 'Show less...' : 'Show more...'}</a>
+                        <a onClick={() => toggleShowMore(facet)}>{toggledFacets.includes(facet.id)? 'Show less...' : 'Show more...'}</a>
                     </div>
                 )
             }
