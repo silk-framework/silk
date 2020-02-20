@@ -30,13 +30,13 @@ export default function () {
     };
 
     return (
-        <div className="clearfix">
+        <>
                 <SearchInput
                     onFilterChange={handleSearchChange}
                     onEnter={handleSearchEnter}
                     filterValue={searchInput}
                 />
                 <SortButton sortersList={sorters.list} onSort={handleSort} activeSort={sorters.applied}/>
-        </div>
+        </>
     )
 }

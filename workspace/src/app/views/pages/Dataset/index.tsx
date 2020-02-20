@@ -25,9 +25,9 @@ export default function () {
 
     return (
         <Main>
-            <Main.LeftPanel>
+            <>
                 <Metadata projectId={projectId} taskId={datasetId}/>
-            </Main.LeftPanel>
+            </>
         </Main>
     );
 }

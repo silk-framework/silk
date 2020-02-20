@@ -3,28 +3,32 @@ import React from "react";
 import Icon from "@wrappers/blueprint/icon";
 import styles from './index.module.scss';
 import { IPrefixState } from "@ducks/workspace/typings";
+import DataList from "../../../../components/Datalist";
+
+const {Cell, ListRow} = DataList;
 
 interface IProps {
     prefix: IPrefixState;
+
     onRemove();
 }
 
 const PrefixRow = ({prefix, onRemove}: IProps) => {
     return (
-        <div className={`${styles.prefixRow} row`}>
-            <div className="col-5">
+        <ListRow className={`${styles.prefixRow}`}>
+            <Cell span={7}>
                 <span>{prefix.prefixName}</span>
-            </div>
-            <div className="col-6">
+            </Cell>
+            <Cell span={8}>
                 <span>{prefix.prefixUri}</span>
-            </div>
-            <div className="col-1">
+            </Cell>
+            <Cell span={1}>
                 <Icon
                     icon={IconNames.TRASH}
                     onClick={onRemove}
                 />
-            </div>
-        </div>
+            </Cell>
+        </ListRow>
     )
 };
 

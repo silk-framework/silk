@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import AppliedFacets from "../Topbar/AppliedFacets";
 import DataList from "../../../components/Datalist";
-import Card from "@wrappers/blueprint/card";
 import DeleteModal from "../../../components/modals/DeleteModal";
 import SearchItem from "./SearchItem";
 import Loading from "../../../components/Loading";
@@ -109,18 +108,18 @@ export default function SearchList() {
     return (
         <DataList isLoading={isLoading} data={data}>
             <Body className={'cardBody'}>
-                <AppliedFacets/>
-                {
-                    data.map(item => (
-                            <SearchItem
-                                key={`${item.id}_${item.projectId}`}
-                                item={item}
-                                onOpenDeleteModal={() => onOpenDeleteModal(item)}
-                                onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
-                                searchValue={appliedFilters.textQuery}
-                            />
-                    ))
-                }
+            <AppliedFacets/>
+            {
+                data.map(item => (
+                    <SearchItem
+                        key={`${item.id}_${item.projectId}`}
+                        item={item}
+                        onOpenDeleteModal={() => onOpenDeleteModal(item)}
+                        onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
+                        searchValue={appliedFilters.textQuery}
+                    />
+                ))
+            }
             </Body>
             <Footer>
                 <Pagination

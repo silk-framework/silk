@@ -6,9 +6,9 @@ import StructuredListCell from "@wrappers/carbon/structured-list/StructuredListC
 import StructuredListRow from "@wrappers/carbon/structured-list/StructuredListRow";
 import { StructuredListWrapper } from "carbon-components-react";
 
-function _Row({children}) {
+function _ListRow({children, ...restProps}) {
     return (
-        <StructuredListRow className={'data_row'}>
+        <StructuredListRow {...restProps}>
             {children}
         </StructuredListRow>
     )
@@ -16,7 +16,7 @@ function _Row({children}) {
 
 function _Cell({children, ...restProps}) {
     return (
-        <StructuredListCell className={'data_cell'} {...restProps}>
+        <StructuredListCell {...restProps}>
             {children}
         </StructuredListCell>
     )
@@ -25,11 +25,9 @@ function _Cell({children, ...restProps}) {
 function _Header({children}) {
     return (
         <StructuredListHead className={'header'}>
-            <_Row>
-                <_Cell>
-                    {children}
-                </_Cell>
-            </_Row>
+            <_ListRow head>
+                {children}
+            </_ListRow>
         </StructuredListHead>
     )
 }
@@ -44,13 +42,9 @@ function _Body({children, ...restProps}) {
 
 function _Footer({children}) {
     return (
-        <div className={'footer'}>
-            <_Row>
-                <_Cell>
-                    {children}
-                </_Cell>
-            </_Row>
-        </div>
+        <StructuredListBody className={'footer'}>
+            {children}
+        </StructuredListBody>
     )
 }
 
@@ -58,7 +52,7 @@ const _loadingIndicator = () => <Spinner/>;
 
 const _emptyContent = () => <p>No resources found</p>;
 
-function DataList({children, isLoading, data}) {
+function DataList({children, isLoading = false, data}) {
     if (isLoading) {
         return _loadingIndicator();
     } else if (!data.length) {
@@ -74,7 +68,7 @@ function DataList({children, isLoading, data}) {
 DataList.Header = _Header;
 DataList.Body = _Body;
 DataList.Footer = _Footer;
-DataList.Row = _Row;
+DataList.ListRow = _ListRow;
 DataList.Cell = _Cell;
 
 export default DataList;

@@ -10,6 +10,9 @@ import TopBar from "./Topbar";
 import ConfigurationWidget from "./widgets/Configuration";
 import WarningWidget from "./widgets/Warning";
 import FileWidget from "./widgets/File";
+import Grid from "@wrappers/carbon/grid";
+import Row from "@wrappers/carbon/grid/Row";
+import Col from "@wrappers/carbon/grid/Col";
 
 const ProjectDetails = ({projectId}) => {
     const dispatch = useDispatch();
@@ -27,25 +30,29 @@ const ProjectDetails = ({projectId}) => {
         }));
     }, []);
 
-    const {LeftPanel, RightPanel} = Main;
-
     return (
         <Main>
-            <LeftPanel className='clearfix'>
-                <Metadata taskId={projectId}/>
-                <div className='filter-bar-content'>
-                    <Filterbar/>
-                </div>
-                <div className='preview-content'>
-                    <TopBar/>
-                    <SearchList/>
-                </div>
-            </LeftPanel>
-            <RightPanel>
-                <FileWidget/>
-                <ConfigurationWidget/>
-                <WarningWidget/>
-            </RightPanel>
+            <Grid>
+                <Row>
+                    <Col span={11}>
+                        <Row><Metadata taskId={projectId}/></Row>
+                        <Row>
+                            <Col span={4} className='filter-bar-content'>
+                                <Filterbar/>
+                            </Col>
+                            <Col span={12} className='preview-content'>
+                                <TopBar/>
+                                <SearchList/>
+                            </Col>
+                        </Row>
+                    </Col>
+                    <Col span={5}>
+                        <FileWidget/>
+                        <ConfigurationWidget/>
+                        <WarningWidget/>
+                    </Col>
+                </Row>
+            </Grid>
         </Main>
     )
 };

@@ -19,7 +19,7 @@ interface IProps {
 }
 
 export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpenDuplicateModal, onRowClick = () => {}}: IProps) {
-    const {Row, Cell} = DataList;
+    const {ListRow, Cell} = DataList;
     const getItemLinkIcons = (label: string) => {
         switch (label) {
             case 'Mapping editor':
@@ -84,7 +84,7 @@ export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpen
     };
 
     return (
-        <Row>
+        <ListRow>
             <Cell>
                 <Icon icon={IconNames.PROJECTS}/>
             </Cell>
@@ -111,6 +111,6 @@ export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpen
                     <Icon icon={IconNames.MORE}/>
                 </Popover>
             </Cell>
-        </Row>
+        </ListRow>
     )
 }
