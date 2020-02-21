@@ -5,6 +5,9 @@ import SearchList from "./SearchResults/SearchList";
 import TopBar from "./Topbar";
 import { workspaceOp } from "@ducks/workspace";
 import { useDispatch } from "react-redux";
+import Grid from "@wrappers/carbon/grid";
+import Row from "@wrappers/carbon/grid/Row";
+import Col from "@wrappers/carbon/grid/Col";
 
 const Projects = () => {
     const dispatch = useDispatch();
@@ -17,15 +20,17 @@ const Projects = () => {
 
     return (
         <Main>
-            <Main.LeftPanel>
-                <div className='filter-bar-content'>
-                    <Filterbar/>
-                </div>
-                <div className='preview-content'>
-                    <TopBar/>
-                    <SearchList/>
-                </div>
-            </Main.LeftPanel>
+            <Grid>
+                <Row>
+                    <Col span={2} className='filter-bar-content'>
+                        <Filterbar/>
+                    </Col>
+                    <Col span={6} className='preview-content'>
+                        <TopBar/>
+                        <SearchList/>
+                    </Col>
+                </Row>
+            </Grid>
         </Main>
     )
 };

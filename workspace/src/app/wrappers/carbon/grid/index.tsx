@@ -1,7 +1,7 @@
 import React from 'react';
 
 export default function Grid({children, className = '', fullWidth = true, ...restProps}) {
-    let _className = `bx-grid`;
+    let _className = `bx--grid`;
     if (fullWidth) {
         _className += `--full-width`;
     }
