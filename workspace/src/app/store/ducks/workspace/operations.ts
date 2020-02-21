@@ -27,7 +27,7 @@ const {
     applyFilters,
     applyFacet,
     changePage,
-    changeVisibleProjectsLimit,
+    changeProjectsLimit,
     removeFacet,
     resetFilters
 } = filtersSlice.actions;
@@ -132,7 +132,7 @@ const setupFiltersFromQs = (queryString: string) => {
             //DropDown
             if (parsedQs.limit) {
                 batchQueue.push(
-                    changeVisibleProjectsLimit(+parsedQs.limit)
+                    changeProjectsLimit(+parsedQs.limit)
                 )
             }
 
@@ -310,10 +310,10 @@ const changePageOp = (page: number) => {
     }
 };
 
-const changeVisibleProjectsOp = (value: number) => {
+const changeLimitOp = (value: number) => {
     return dispatch => {
         batch(() => {
-            dispatch(changeVisibleProjectsLimit(value));
+            dispatch(changeProjectsLimit(value));
             dispatch(fetchListAsync());
             dispatch(updateQueryString());
         })
@@ -353,7 +353,7 @@ export default {
     applyFiltersOp,
     applySorterOp,
     changePageOp,
-    changeVisibleProjectsOp,
+    changeLimitOp,
     toggleFacetOp,
     setupFiltersFromQs,
     fetchProjectPrefixesAsync,

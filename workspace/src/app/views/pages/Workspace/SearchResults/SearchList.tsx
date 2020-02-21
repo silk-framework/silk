@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import Pagination from "../../../components/Pagination";
-import PageSizer from "../../../components/PageSizer";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import AppliedFacets from "../Topbar/AppliedFacets";
@@ -15,6 +14,8 @@ import { sharedOp } from "@ducks/shared";
 export default function SearchList() {
 
     const dispatch = useDispatch();
+
+    const pageSizes = [10, 25, 50, 100];
 
     const [deleteModalOptions, setDeleteModalOptions] = useState({});
 
@@ -96,39 +97,33 @@ export default function SearchList() {
         onDiscardModals();
     };
 
-    const handlePageChange = (n: number) => {
-        dispatch(workspaceOp.changePageOp(n))
-    };
-
-    const handleVisibleProjects = (value: string) => {
-        dispatch(workspaceOp.changeVisibleProjectsOp(+value))
+    const handlePaginationOnChange = (n: number, pageSize: number) => {
+        dispatch(workspaceOp.changePageOp(n));
+        dispatch(workspaceOp.changeLimitOp(pageSize));
     };
 
     const {Header, Body, Footer} = DataList;
     return (
         <DataList isLoading={isLoading} data={data}>
             <Body className={'cardBody'}>
-            <AppliedFacets/>
-            {
-                data.map(item => (
-                    <SearchItem
-                        key={`${item.id}_${item.projectId}`}
-                        item={item}
-                        onOpenDeleteModal={() => onOpenDeleteModal(item)}
-                        onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
-                        searchValue={appliedFilters.textQuery}
-                    />
-                ))
-            }
+                <AppliedFacets/>
+                {
+                    data.map(item => (
+                        <SearchItem
+                            key={`${item.id}_${item.projectId}`}
+                            item={item}
+                            onOpenDeleteModal={() => onOpenDeleteModal(item)}
+                            onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
+                            searchValue={appliedFilters.textQuery}
+                        />
+                    ))
+                }
             </Body>
             <Footer>
                 <Pagination
                     pagination={pagination}
-                    onPageChange={handlePageChange}
-                />
-                <PageSizer
-                    onChangeSelect={handleVisibleProjects}
-                    value={pagination.limit}
+                    pageSizes={pageSizes}
+                    onChangeSelect={handlePaginationOnChange}
                 />
             </Footer>
             <DeleteModal

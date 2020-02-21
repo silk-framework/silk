@@ -69,7 +69,7 @@ export const filtersSlice = createSlice({
             });
         },
 
-        changeVisibleProjectsLimit(state, action) {
+        changeProjectsLimit(state, action) {
             state.pagination.limit = action.payload;
         },
 
