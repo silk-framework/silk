@@ -1,22 +1,15 @@
 import React from 'react';
+import PaginationC from "@wrappers/carbon/Pagination"
 
-export default function Pagination({pagination, onPageChange}) {
-    const elements = [];
-
-    let pagesCount = Math.ceil(pagination.total / pagination.limit);
-    while (pagesCount--) {
-        elements.unshift(pagesCount + 1);
-    }
-
+export default function Pagination({pagination, onChangeSelect, pageSizes}) {
     return (
-        <>
-            {
-                elements.map(i =>
-                    i === pagination.current
-                        ? <a className={'active'} key={i}>{i} </a>
-                        : <a key={i} href="#" onClick={() => onPageChange(i)}>{i} </a>
-                )
-            }
-        </>
+        <PaginationC
+            onChange={({page, pageSize}) => {onChangeSelect(page, pageSize)} }
+            totalItems={pagination.total}
+            pageSizes={pageSizes}
+            page={pagination.current}
+            pageSize={pagination.limit}
+        >
+        </PaginationC>
     );
 }
