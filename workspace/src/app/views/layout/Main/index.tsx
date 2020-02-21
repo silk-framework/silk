@@ -16,7 +16,7 @@ const Main = ({children, ...restProps}) => {
 
 const _LeftPanel = ({children, span = 0, className = '', ...restProps}) => {
     return (
-        <Col span={10} className={`left-side-content ${className} bx--col-md-2`} {...restProps}>
+        <Col span={10} className={`left-side-content ${className}`} {...restProps}>
             {children}
         </Col>
     )
