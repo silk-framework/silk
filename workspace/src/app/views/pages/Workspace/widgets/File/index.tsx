@@ -101,7 +101,7 @@ const FilesWidget = () => {
                 onDiscard={toggleFileUploader}
                 onUpload={handleFileUpload}
                 onAbortUploading={() => {}}
-                uploadUrl={`/dataintegration/workspace/projects/Full`}
+                uploadUrl={`/workspace/projects/passwordProject`}
             />
         </>
     )
