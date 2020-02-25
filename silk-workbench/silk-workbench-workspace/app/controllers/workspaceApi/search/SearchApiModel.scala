@@ -173,9 +173,10 @@ object SearchApiModel {
   object Facets {
     // dataset facets
     final val datasetType: Facet = Facet("datasetType", "Dataset type", "The concrete type of a dataset, e.g. its data model and format etc.", FacetType.keyword)
+    final val taskType: Facet = Facet("taskType", "Task type", "The concrete type of a task.", FacetType.keyword)
     final val fileResource: Facet = Facet("datasetFileResource", "Dataset file", "The file resource of a file based dataset.", FacetType.keyword)
 
-    val facetIds: Seq[String] = Seq(datasetType, fileResource).map(_.id)
+    val facetIds: Seq[String] = Seq(datasetType, fileResource, taskType).map(_.id)
   }
 
   /** The property of the search item to sort by and the label to display in the UI. */
@@ -391,12 +392,15 @@ object SearchApiModel {
     }
 
     private def toJson(project: Project): JsObject = {
-      JsObject(Seq(
-        TYPE -> JsString(PROJECT_TYPE),
-        ID -> JsString(project.config.id),
-        LABEL -> JsString(project.config.id),// TODO: Support label and description in projects
-        DESCRIPTION -> JsString("")
-      ))
+      JsObject(
+        Seq(
+          TYPE -> JsString(PROJECT_TYPE),
+          ID -> JsString(project.config.id),
+          LABEL -> JsString(project.config.metaData.label)
+        ) ++ project.config.metaData.description.toSeq.map { desc =>
+          DESCRIPTION -> JsString(desc)
+        }
+      )
     }
 
     private def toJson(typedTask: TypedTasks): Seq[JsObject] = {

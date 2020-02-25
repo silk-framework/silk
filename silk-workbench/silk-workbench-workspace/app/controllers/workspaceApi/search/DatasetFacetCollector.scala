@@ -24,7 +24,7 @@ case class DatasetFacetCollector() extends ItemTypeFacetCollector[GenericDataset
     if(projectTask.data.isInstanceOf[GenericDatasetSpec]) {
       projectTask.asInstanceOf[ProjectTask[GenericDatasetSpec]]
     } else {
-      throw new IllegalArgumentException(s"Task '${projectTask.taskLabel()}' if not of type Dataset.")
+      throw new IllegalArgumentException(s"Task '${projectTask.taskLabel()}' is not of type Dataset.")
     }
   }
 }

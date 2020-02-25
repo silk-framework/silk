@@ -120,7 +120,7 @@ case class OverallFacetCollector() {
     ItemType.transform -> Seq(),
     ItemType.linking -> Seq(),
     ItemType.workflow -> Seq(),
-    ItemType.task -> Seq()
+    ItemType.task -> Seq(TaskFacetCollector())
   )
 
   def filterAndCollect(itemType: ItemType,
