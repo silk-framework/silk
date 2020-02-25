@@ -26,7 +26,7 @@ class LocalSparqlUpdateExecutorTest extends FlatSpec with MustMatchers with Mock
   private val executor = LocalSparqlUpdateExecutor()
   private val batchSize = 5
   private val sparqlUpdateTemplate = s"""INSERT DATA { $${<s>} <urn:prop> $${"v"} } ;"""
-  private val schema = EntitySchema("", typedPaths = IndexedSeq(TypedPath("s", UriValueType), TypedPath("v", StringValueType)))
+  private val schema = EntitySchema("", typedPaths = IndexedSeq(TypedPath("s", ValueType.URI), TypedPath("v", ValueType.STRING)))
   private val notIncluded = "NOT_INCLUDED"
   private val inputEntities: Seq[Entity] = Seq(
     Entity("http://example.org/entity/1", IndexedSeq(Seq("http://s1"), Seq("s1a", "s1b")), schema),

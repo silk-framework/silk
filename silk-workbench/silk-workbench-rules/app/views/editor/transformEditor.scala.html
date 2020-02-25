@@ -98,7 +98,7 @@
     <li style="display: none">
       <label>Target Type:</label>
       <div id="input_type" class="mdl-textfield mdl-js-textfield">
-        <input id="targettype" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.target.map(t => ValueType.valueTypeId(t.valueType)).getOrElse("AutoDetectValueType")" disabled/>
+        <input id="targettype" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@rule.target.map(_.valueType.id).getOrElse("AutoDetectValueType")" disabled/>
       </div>
       <div class="mdl-tooltip mdl-tooltip--large" for="input_type">
         The target type.

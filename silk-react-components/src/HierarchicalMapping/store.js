@@ -24,77 +24,6 @@ let rootId = null;
 
 const vocabularyCache = {};
 
-const datatypes = _.map(
-    [
-        {
-            value: 'AutoDetectValueType',
-            label: 'Auto Detect',
-            description:
-                'The data type is decided automatically, based on the lexical form of each value.',
-        },
-        {
-            value: 'UriValueType',
-            label: 'URI',
-            description:
-                'Suited for values which are Unique Resource Identifiers',
-        },
-        {
-            value: 'BooleanValueType',
-            label: 'Boolean',
-            description: 'Suited for values which are either true or false',
-        },
-        {
-            value: 'StringValueType',
-            label: 'String',
-            description: 'Suited for values which contain text',
-        },
-        {
-            value: 'IntegerValueType',
-            label: 'Integer',
-            description: 'Suited for numbers which have no fractional value',
-        },
-        {
-            value: 'FloatValueType',
-            label: 'Float',
-            description: 'Suited for numbers which have a fractional value',
-        },
-        {
-            value: 'LongValueType',
-            label: 'Long',
-            description:
-                'Suited for large numbers which have no fractional value',
-        },
-        {
-            value: 'DoubleValueType',
-            label: 'Double',
-            description:
-                'Suited for large numbers which have a fractional value',
-        },
-        {
-            value: 'DateValueType',
-            label: 'Date',
-            description:
-                'Suited for XML Schema dates. Accepts values in the the following formats: xsd:date, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth.',
-        },
-        {
-            value: 'DateTimeValueType',
-            label: 'DateTime',
-            description:
-                'Suited for XML Schema dates and times. Accepts values in the the following formats: xsd:date, xsd:dateTime, xsd:gDay, xsd:gMonth, xsd:gMonthDay, xsd:gYear, xsd:gYearMonth, xsd:time.',
-        },
-        {
-            value: 'LanguageValueType',
-            label: 'Language Tagged',
-            description:
-                'Suited for texts that are in a specific language.',
-        },
-    ],
-    datatype => ({
-        ...datatype,
-        $search: _.deburr(`${datatype.value}|${datatype.label}|${datatype.description}`).toLocaleLowerCase(),
-    })
-);
-
 let _apiDetails = {};
 export const setApiDetails = data => {
     _apiDetails = { ...data };
@@ -533,11 +462,8 @@ export const autocompleteAsync = data => {
     let channel = 'transform.task.rule.completions.';
     switch (entity) {
     case 'propertyType':
-        const search = _.deburr(input).toLocaleLowerCase();
-        return Rx.Observable.just({
-            options: _.filter(datatypes, datatype =>
-                _.includes(datatype.$search, search)),
-        });
+        channel += 'valueTypes';
+        break;
     case 'targetProperty':
         channel += 'targetProperties';
         break;

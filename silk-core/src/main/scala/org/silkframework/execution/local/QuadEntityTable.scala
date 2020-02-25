@@ -21,11 +21,11 @@ object QuadEntityTable {
   final val schema = EntitySchema(
     typeUri = Uri(SilkVocab.QuadSchemaType),
     typedPaths = IndexedSeq(
-      TypedPath(UntypedPath(SilkVocab.tripleSubject), UriValueType, isAttribute = false),
-      TypedPath(UntypedPath(SilkVocab.triplePredicate), UriValueType, isAttribute = false),
-      TypedPath(UntypedPath(SilkVocab.tripleObject), StringValueType, isAttribute = false),
-      TypedPath(UntypedPath(SilkVocab.tripleObjectValueType), StringValueType, isAttribute = false),
-      TypedPath(UntypedPath(SilkVocab.quadContext), StringValueType, isAttribute = false)
+      TypedPath(UntypedPath(SilkVocab.tripleSubject), ValueType.URI, isAttribute = false),
+      TypedPath(UntypedPath(SilkVocab.triplePredicate), ValueType.URI, isAttribute = false),
+      TypedPath(UntypedPath(SilkVocab.tripleObject), ValueType.STRING, isAttribute = false),
+      TypedPath(UntypedPath(SilkVocab.tripleObjectValueType), ValueType.STRING, isAttribute = false),
+      TypedPath(UntypedPath(SilkVocab.quadContext), ValueType.STRING, isAttribute = false)
     )
   )
 }
