@@ -14,7 +14,7 @@ const setError = e => dispatch => dispatch(setWidgetError({
     error: e
 }));
 
-export const fetchFilesListAsync = () => {
+export const fetchResourcesListAsync = () => {
     return async (dispatch, getState) => {
         const projectId = workspaceSel.currentProjectIdSelector(getState());
         const url = getLegacyApiEndpoint(`/projects/${projectId}/resources`);
@@ -28,4 +28,14 @@ export const fetchFilesListAsync = () => {
             dispatch(setError(e));
         }
     };
+};
+
+export const checkIfResourceExistsAsync = async (resourceName: string, projectId: string) => {
+        const url = getLegacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/metadata`);
+        try {
+            const {data} = await fetch({url});
+            return !!data.size;
+        } catch {
+            return false;
+        }
 };
