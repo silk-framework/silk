@@ -1,0 +1,43 @@
+// TODO: add comments about reasons for this patches
+
+.bp3-breadcrumb {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.bp3-overflow-list {
+  height: unset;
+}
+
+.bp3-label {
+  font-weight: bold;
+}
+
+.bp3-control {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bp3-control:hover {
+  overflow: visible;
+}
+
+.bp3-navbar {
+  height: 60px;
+  display: flex;
+  align-items: center;
+}
+
+.bp3-input[type="search"] {
+  border-radius: 3px;
+  width: 100%;
+}
+
+.cardBody>.bp3-card {
+    // FIXME: respect guidelines regarding class naming
+  margin: 8px 0;
+  min-width: 100%;
+  min-height: 60px;
+  padding: 15px;
+}

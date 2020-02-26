@@ -1,0 +1,10 @@
+// load configurations
+@import 'blueprintjs/variables';
+
+// load library
+@import '../../../../../node_modules/@blueprintjs/core/src/blueprint';
+// Icon lib import seems not to be necessary with bp3, maybe we need this only as fallback for older browsers
+// @import '../../../../../node_modules/@blueprintjs/icons/src/blueprint-icons';
+
+// load patches and tweaks
+@import 'blueprintjs/patches';

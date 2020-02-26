@@ -1,0 +1,8 @@
+// load configurations
+@import 'carbon-components/variables';
+
+// load library
+@import '../../../../../node_modules/carbon-components/scss/globals/scss/styles.scss';
+
+// load patches and tweaks
+@import 'carbon-components/patches';

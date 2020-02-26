@@ -1,110 +1,12 @@
-$feature-flags: (
-        grid-columns-16: true,
-);
+// load default configuration
+@import 'src/configuration/variables';
 
-//@import '../../../node_modules/@blueprintjs/core/lib/scss/variables.scss';
-@import '../../../node_modules/@blueprintjs/core/src/blueprint.scss';
-@import '../../../node_modules/@blueprintjs/icons/src/blueprint-icons.css';
-@import '../../../node_modules/carbon-components/scss/globals/scss/styles.scss';
+// load includes from other libraries
+@import 'src/includes/blueprintjs';
+@import 'src/includes/carbon-components';
 
-.bp3-breadcrumb {
-  font-size: 12px;
-  font-weight: bold;
-}
+// load own element styles
+// TODO
 
-.bp3-overflow-list {
-  height: unset;
-}
-
-.bp3-label {
-  font-weight: bold;
-}
-
-.bp3-control {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.bp3-control:hover {
-  overflow: visible;
-}
-
-.bp3-navbar {
-  height: 60px;
-  display: flex;
-  align-items: center;
-}
-
-.searchField {
-  width: 80%;
-  float: left
-}
-.bp3-input[type="search"] {
-  border-radius: 3px;
-  width: 100%;
-}
-
-.sortButton {
-  float: left;
-  margin: 0 15px;
-}
-
-.cardBody>.bp3-card {
-  margin: 8px 0;
-  min-width: 100%;
-  min-height: 60px;
-  padding: 15px;
-}
-
-//.data_row {
-//  display: flex;
-//  align-items: center;
-//}
-//
-//.data_row:hover {
-//  cursor: pointer;
-//}
-//
-//.data_cell:nth-child(2) {
-//  flex-basis: 85%;
-//}
-//
-//.data_cell:first-child {
-//  margin: 0 15px 0 0;
-//}
-//
-//.footer .data_cell {
-//  display: inline-block;
-//}
-//
-//.footer .data_cell a {
-//  color: black;
-//  float: left;
-//  padding: 8px 16px;
-//  text-decoration: none;
-//  border: 1px solid #ddd;
-//  background-color: white;
-//}
-//
-//.footer .data_cell a.active {
-//  background-color: #FF8C00;
-//  color: white;
-//  border: 1px solid #FF8C00;
-//}
-//
-//.footer .data_cell a:hover:not(.active) {
-//  background-color: rgba(255, 140, 0, 0.5);
-//  border: 1px solid #FF8C00;
-//  color: white;
-//}
-//
-//.footer .data_cell a:first-child {
-//  border-top-left-radius: 3px;
-//  border-bottom-left-radius: 3px;
-//}
-//
-//.footer .data_cell a:last-child {
-//  border-top-right-radius: 3px;
-//  border-bottom-right-radius: 3px;
-//}
+// load tweaks
+@import 'src/shame';
