@@ -2,8 +2,9 @@ $feature-flags: (
         grid-columns-16: true,
 );
 
-@import '../../../node_modules/@blueprintjs/core/lib/css/blueprint.css';
-@import '../../../node_modules/@blueprintjs/icons/lib/css/blueprint-icons.css';
+//@import '../../../node_modules/@blueprintjs/core/lib/scss/variables.scss';
+@import '../../../node_modules/@blueprintjs/core/src/blueprint.scss';
+@import '../../../node_modules/@blueprintjs/icons/src/blueprint-icons.css';
 @import '../../../node_modules/carbon-components/scss/globals/scss/styles.scss';
 
 .bp3-breadcrumb {
