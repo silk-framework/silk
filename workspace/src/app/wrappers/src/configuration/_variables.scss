@@ -1,0 +1,72 @@
+/**
+ * Configuration base variables used to calculate config variables used in
+ * included libraries.
+ *
+ * @author Michael Haschke, eccenca GmbH
+ */
+
+/*
+     We use ecc- prefix here to have an distinction to variables from other
+     libraries. Variables are only defined if they are not set before. Use those
+     variables to overwrite the default look of the application.
+*/
+
+// TODO: all unsused variables are currently commented out
+
+// -- Configuration stack of colors --------------------------------------------
+
+$ecc-color-application-text: rgb(38,50,56) !default;
+$ecc-color-application-background: rgb(144,164,174) !default;
+
+$ecc-color-primary: rgb(254, 143, 1) !default;
+$ecc-color-primary-contrast: rgb(255,255,255) !default;
+$ecc-color-accent: rgb(10, 103, 163) !default;
+$ecc-color-accent-contrast: rgb(255,255,255) !default;
+
+$ecc-color-success-text: rgb(46,125,50) !default;
+$ecc-color-success-background: rgb(232,245,233) !default;
+$ecc-color-info-text: rgb(21,101,192) !default;
+$ecc-color-info-background: rgb(227,242,253) !default;
+$ecc-color-warning-text: rgb(239,108,0) !default;
+$ecc-color-warning-background: rgb(255,243,224) !default;
+$ecc-color-danger-text: rgb(198,40,40) !default;
+$ecc-color-danger-background: rgb(255,235,238) !default;
+
+// -- Configuration stack of typography ----------------------------------------
+
+$ecc-font-family: 'Roboto', sans-serif !default;
+$ecc-font-family-monospace: 'Roboto Mono', monospace !default;
+$ecc-size-typo-base: 14px !default; // size including absolute unit, preferable px
+$ecc-size-typo-base-lineheight: 1.39 !default; // only ratio to font size, no unit!
+$ecc-size-type-levelratio: 7/6 !default; // ratio without unit! used to calculate different text sizes, etc ...
+
+// -- Configuration stack of sizes ---------------------------------------------
+
+$ecc-size-block-whitespace: $ecc-size-typo-base !default;
+$ecc-size-inline-whitespace: $ecc-size-typo-base / 2 !default;
+
+// -- Calculation of more config vars ------------------------------------------
+
+/*
+    You can overwrite them by setting them before loading this configuration but
+    it is not recommended to do so.
+*/
+
+$ecc-size-typo-caption: 1/$ecc-size-type-levelratio * 1rem !default;
+$ecc-size-typo-caption-lineheight: max($ecc-size-type-levelratio * $ecc-size-typo-base-lineheight, 1) !default;
+$ecc-size-typo-text: $ecc-size-typo-base !default; // should be `1rem` but bp3 currently do not support rem units here, leads to errors in their calculations for values of other properties
+$ecc-size-typo-text-lineheight: max($ecc-size-typo-base-lineheight, 1) !default;
+$ecc-size-typo-subtitle: $ecc-size-type-levelratio * $ecc-size-typo-text !default;
+$ecc-size-typo-subtitle-lineheight: max(1/$ecc-size-type-levelratio * $ecc-size-typo-text-lineheight, 1) !default;
+$ecc-size-typo-title: $ecc-size-type-levelratio * $ecc-size-typo-subtitle !default;
+$ecc-size-typo-title-lineheight: max(1/$ecc-size-type-levelratio * $ecc-size-typo-subtitle-lineheight, 1) !default;
+$ecc-size-typo-headline: $ecc-size-type-levelratio * $ecc-size-typo-title !default;
+$ecc-size-typo-headline-lineheight: max(1/$ecc-size-type-levelratio * $ecc-size-typo-title-lineheight, 1) !default;
+$ecc-size-typo-display-1: $ecc-size-type-levelratio * $ecc-size-typo-headline !default;
+$ecc-size-typo-display-1-lineheight: max(1/$ecc-size-type-levelratio * $ecc-size-typo-headline-lineheight , 1)!default;
+$ecc-size-typo-display-2: $ecc-size-type-levelratio * $ecc-size-typo-display-1 !default;
+$ecc-size-typo-display-2-lineheight: max(1/$ecc-size-type-levelratio * $ecc-size-typo-display-1-lineheight, 1) !default;
+$ecc-size-typo-display-3: $ecc-size-type-levelratio * $ecc-size-typo-display-2 !default;
+$ecc-size-typo-display-3-lineheight: max(1/$ecc-size-type-levelratio * $ecc-size-typo-display-2-lineheight, 1) !default;
+
+$ecc-size-maxwidth-workview: 100 * $ecc-size-typo-text;
