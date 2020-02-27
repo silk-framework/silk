@@ -15,6 +15,7 @@ import play.api.libs.json._
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
+import scala.util.{Failure, Success, Try}
 
 /**
   * Data structures used for handling search requests
@@ -24,6 +25,7 @@ object SearchApiModel {
   final val LABEL = "label"
   final val ID = "id"
   final val TYPE = "type"
+  final val VALUES = "values"
   final val DESCRIPTION = "description"
   final val PROJECT_ID = "projectId"
   // type values
@@ -49,7 +51,7 @@ object SearchApiModel {
   lazy implicit val facetSettingReads: Reads[FacetSetting] = new Reads[FacetSetting] {
     override def reads(json: JsValue): JsResult[FacetSetting] = {
       (json \ TYPE).toOption.map(_.as[String]) match {
-        case Some(facetType) if FacetType.keyword.toString == facetType => KeywordFacetSetting.keywordFacetSettingReads.reads(json)
+        case Some(facetType) if FacetType.keyword.toString == facetType => Json.fromJson[KeywordFacetSetting](json)
         case Some(invalidType) => throw BadUserInputException("No valid facet type specified: '" + invalidType + "'. Valid values are: " +
             FacetType.facetTypeSet.mkString(", "))
         case None => throw BadUserInputException("No 'type' property found in given JSON: " + json.toString())
@@ -57,9 +59,24 @@ object SearchApiModel {
     }
   }
   lazy implicit val facetedSearchRequestReader: Reads[FacetedSearchRequest] = Json.reads[FacetedSearchRequest]
-  lazy implicit val facetValueReads: Format[FacetValue] = Json.format[FacetValue]
   lazy implicit val keywordFacetValueReads: Format[KeywordFacetValue] = Json.format[KeywordFacetValue]
-  lazy implicit val facetResultWrites: Writes[FacetResult] = Json.writes[FacetResult]
+  lazy implicit val facetResultWrites: Writes[FacetResult] = new Writes[FacetResult] {
+    override def writes(facetResult: FacetResult): JsValue = {
+      assert(FacetType.facetTypeSet.contains(facetResult.`type`), s"Facet type '${facetResult.`type`}' is not a valid facet type.")
+      val facetValues: Seq[JsValue] = FacetType.withName(facetResult.`type`) match {
+        case FacetType.keyword => facetResult.values map {
+          case value: KeywordFacetValue => keywordFacetValueReads.writes(value)
+        }
+      }
+      JsObject(Seq(
+        ID -> JsString(facetResult.id),
+        LABEL -> JsString(facetResult.label),
+        DESCRIPTION -> JsString(facetResult.description),
+        TYPE -> JsString(facetResult.`type`),
+        VALUES -> JsArray(facetValues)
+      ))
+    }
+  }
 
   /** The item types the search can be restricted to. */
   sealed abstract class ItemType(val id: String, val label: String)
@@ -107,7 +124,7 @@ object SearchApiModel {
   }
 
   object KeywordFacetSetting {
-    val keywordFacetSettingReads: Reads[KeywordFacetSetting] = Json.reads[KeywordFacetSetting]
+    implicit val keywordFacetSettingReads: Reads[KeywordFacetSetting] = Json.reads[KeywordFacetSetting]
   }
 
   object FacetedSearchRequest {

@@ -142,6 +142,7 @@ object Status {
       case (_, _, true) => "Cancelled after " + formattedTime
       case (false, Some(ex), _) => "Failed after " + formattedTime + ": " + ex.getMessage
       case (true, Some(ex), _) => "Errors occurred after " + formattedTime + ": " + ex.getMessage
+      case _ => "Unknown status"
     }
 
     private def formattedTime = {

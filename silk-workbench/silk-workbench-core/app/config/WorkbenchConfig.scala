@@ -2,12 +2,13 @@ package config
 
 import java.io.File
 
+import com.typesafe.config.{Config => TypesafeConfig}
 import config.WorkbenchConfig.Tabs
+import javax.inject.Inject
 import org.silkframework.buildInfo.BuildInfo
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.resource._
-import play.api.Configuration
-import com.typesafe.config.{Config => TypesafeConfig}
+import play.api.{Configuration, Environment, Mode}
 import play.twirl.api.Html
 
 import scala.io.Source
@@ -70,14 +71,27 @@ object WorkbenchConfig {
     }
   }
 
-  def indexHtml: Html = { // TODO: Do not recalculate the HTML each time. This still needs to update when the application is restarted during development!
-    val context = WorkbenchConfig.applicationContext
-    val source = Source.fromInputStream(this.getClass.getClassLoader.getResourceAsStream("public/index.html"))
-    val htmlString = source.getLines().mkString("\n")
-    source.close()
-    val html = injectConfigProperties(context, htmlString)
-    val rewrittenHtml = adaptUrls(context, html)
-    Html(rewrittenHtml)
+  @javax.inject.Singleton
+  class WorkspaceReact @Inject()(env: Environment) {
+    private lazy val html: Html = calculateHtml()
+
+    def indexHtml: Html = {
+      if(env.mode == Mode.Prod) {
+        html
+      } else {
+        calculateHtml()
+      }
+    }
+
+    private def calculateHtml(): Html = {
+      val context = WorkbenchConfig.applicationContext
+      val source = Source.fromInputStream(this.getClass.getClassLoader.getResourceAsStream("public/index.html"))
+      val htmlString = source.getLines().mkString("\n")
+      source.close()
+      val html = injectConfigProperties(context, htmlString)
+      val rewrittenHtml = adaptUrls(context, html)
+      Html(rewrittenHtml)
+    }
   }
 
   private def adaptUrls(context: String, html: String): String = {

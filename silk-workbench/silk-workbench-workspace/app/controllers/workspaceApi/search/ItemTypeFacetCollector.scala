@@ -124,7 +124,7 @@ case class OverallFacetCollector() {
   private val itemTypeFacetCollectors = ListMap[ItemType, Seq[ItemTypeFacetCollector[_]]](
     ItemType.project -> Seq(),
     ItemType.dataset -> Seq(DatasetFacetCollector()),
-    ItemType.transform -> Seq(),
+    ItemType.transform -> Seq(TransformFacetCollector()),
     ItemType.linking -> Seq(),
     ItemType.workflow -> Seq(),
     ItemType.task -> Seq(TaskFacetCollector())
@@ -133,7 +133,7 @@ case class OverallFacetCollector() {
   def filterAndCollect(itemType: ItemType,
                        projectTask: ProjectTask[_ <: TaskSpec],
                        facetSettings: Seq[FacetSetting]): Boolean = {
-    // TODO: Extend filterAndCollect beyond single item collectors
+    // TODO: Extend filterAndCollect beyond single item collectors. Maybe not needed if there is a generic facet collector, when no item type is selected.
     itemTypeFacetCollectors(itemType).forall(_.filterAndCollect(facetSettings, projectTask))
   }
 

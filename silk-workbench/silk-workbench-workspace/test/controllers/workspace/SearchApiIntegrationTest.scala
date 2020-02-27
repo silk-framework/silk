@@ -1,12 +1,11 @@
 package controllers.workspace
 
 import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, Facets, ItemType, KeywordFacetSetting, SortBy, SortOrder, SortableProperty}
-import controllers.workspaceApi.search.{FacetResult, FacetValue, KeywordFacetValue, ResourceSearchRequest}
+import controllers.workspaceApi.search.{FacetResult, FacetValue, KeywordFacetValue, ResourceSearchRequest, SearchApiModel}
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import play.api.libs.json._
-import play.api.mvc.Call
 import test.Routes
 
 class SearchApiIntegrationTest extends FlatSpec
@@ -26,15 +25,32 @@ class SearchApiIntegrationTest extends FlatSpec
   lazy implicit val facetSearchRequestWrites: Writes[FacetedSearchRequest] = Json.writes[FacetedSearchRequest]
   lazy implicit val sortablePropertyFormat: Format[SortableProperty] = Json.format[SortableProperty]
   lazy implicit val keywordFacetValueReads: Reads[KeywordFacetValue] = Json.reads[KeywordFacetValue]
-  lazy implicit val facetResultReads: Reads[FacetResult] = Json.reads[FacetResult]
+  lazy implicit val facetResultReads: Reads[FacetResult] = new Reads[FacetResult] {
+    override def reads(json: JsValue): JsResult[FacetResult] = {
+      val facetType = (json \ SearchApiModel.TYPE).get.as[String]
+      assert(FacetType.facetTypeSet.contains(facetType), "Facet type invalid!")
+      val facetValues = FacetType.withName(facetType) match {
+        case FacetType.keyword =>
+          (json \ SearchApiModel.VALUES).as[JsArray].value.map(keywordFacetValueReads.reads(_).get)
+      }
+      JsSuccess(FacetResult(
+        id = (json \ SearchApiModel.ID).as[String],
+        label = (json \ SearchApiModel.LABEL).as[String],
+        description = (json \ SearchApiModel.DESCRIPTION).as[String],
+        `type` = facetType,
+        values = facetValues
+      ))
+    }
+  }
   lazy implicit val facetValuesReads: Reads[FacetValue] = Json.reads[FacetValue]
   lazy implicit val facetedSearchResultReads: Reads[FacetedSearchResult] = Json.reads[FacetedSearchResult]
 
-  private def facetedSearchRequest(facetedSearchRequest: FacetedSearchRequest): FacetedSearchResult = {
+  private def facetedSearchRequest(facetedSearchRequest: FacetedSearchRequest): (FacetedSearchResult, JsValue) = {
     val response = client.url(s"$baseUrl/api/workspace/searchItems").post(Json.toJson(facetedSearchRequest))
-    Json.fromJson[FacetedSearchResult](checkResponse(response).json) match {
+    val json = checkResponse(response).json
+    Json.fromJson[FacetedSearchResult](json) match {
       case JsError(errors) => throw new RuntimeException("JSON could not be parsed: " + errors)
-      case JsSuccess(value, path) => value
+      case JsSuccess(value, _) => (value, json)
     }
   }
 
@@ -57,17 +73,17 @@ class SearchApiIntegrationTest extends FlatSpec
   private val allResults = Seq("singleProject", "csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2", "transformA")
 
   it should "return all tasks (pages) for a unrestricted search" in {
-    val response = facetedSearchRequest(FacetedSearchRequest())
+    val (response, _) = facetedSearchRequest(FacetedSearchRequest())
     resultItemIds(response) mustBe allResults
   }
 
   it should "only return task results for project restricted searches" in {
-    val response = facetedSearchRequest(FacetedSearchRequest(project = Some(projectId)))
+    val (response, _) = facetedSearchRequest(FacetedSearchRequest(project = Some(projectId)))
     resultItemIds(response) mustBe allResults.drop(1)
   }
 
   it should "only return task results for project restricted searches with text query" in {
-    val response = facetedSearchRequest(FacetedSearchRequest(project = Some(projectId), textQuery = Some("o    s")))
+    val (response, _) = facetedSearchRequest(FacetedSearchRequest(project = Some(projectId), textQuery = Some("o    s")))
     resultItemIds(response) mustBe Seq("jsonXYZ", "transformA")
   }
 
@@ -78,26 +94,28 @@ class SearchApiIntegrationTest extends FlatSpec
     while(results.nonEmpty) {
       val expectedResults = results.take(3)
       results = results.drop(3)
-      val response = facetedSearchRequest(FacetedSearchRequest(offset = Some(offset), limit = Some(pageSize)))
+      val (response, _) = facetedSearchRequest(FacetedSearchRequest(offset = Some(offset), limit = Some(pageSize)))
       resultItemIds(response) mustBe expectedResults
       offset += pageSize
     }
   }
 
   it should "return no facets for an unrestricted search" in {
-    val response = facetedSearchRequest(FacetedSearchRequest())
-    response.facets.size mustBe 0
+    val (facetedSearchResult, _) = facetedSearchRequest(FacetedSearchRequest())
+    facetedSearchResult.facets.size mustBe 0
   }
 
   private val CSV = "csv"
 
   it should "return the right facet counts and result for a dataset type restricted search" in {
-    val response = facetedSearchRequest(FacetedSearchRequest(itemType = Some(ItemType.dataset)))
-    checkAndGetDatasetFacetValues(response) mustBe Seq(
+    val (facetedSearchResult, json) = facetedSearchRequest(FacetedSearchRequest(itemType = Some(ItemType.dataset)))
+    val firstFacet = (json \ "facets").as[JsArray].value.head
+    (firstFacet \ "values").as[JsArray].value.head.asInstanceOf[JsObject].keys mustBe Set("id", "label", "count")
+    checkAndGetDatasetFacetValues(facetedSearchResult) mustBe Seq(
       Seq((CSV,3), ("xml",2), ("inMemory",1), ("json",1)),
       Seq(("a.xml",2), ("a.csv",1), ("b.csv",1), ("c.csv",1), ("xyz.json",1))
     )
-    resultItemIds(response) mustBe allDatasets
+    resultItemIds(facetedSearchResult) mustBe allDatasets
   }
 
   // Returns all item IDs of the search results
@@ -106,52 +124,52 @@ class SearchApiIntegrationTest extends FlatSpec
   }
 
   it should "return the right facet counts and results when restricting the search via dataset type facet" in {
-    val response = facetedSearchRequest(
+    val (facetedSearchResult, _) = facetedSearchRequest(
       FacetedSearchRequest(itemType = Some(ItemType.dataset), facets = Some(Seq(
         KeywordFacetSetting(FacetType.keyword, Facets.datasetType.id, Set(CSV))
       ))))
-    checkAndGetDatasetFacetValues(response) mustBe Seq(
+    checkAndGetDatasetFacetValues(facetedSearchResult) mustBe Seq(
       Seq((CSV,3), ("xml",2), ("inMemory",1), ("json",1)),
       Seq(("a.csv",1), ("b.csv",1), ("c.csv",1))
     )
-    resultItemIds(response) mustBe Seq("csvA", "csvB", "csvC")
+    resultItemIds(facetedSearchResult) mustBe Seq("csvA", "csvB", "csvC")
   }
 
   it should "return the right facet counts and results when restricting the search via dataset type and resource facet" in {
-    val response = facetedSearchRequest(
+    val (facetedSearchResult, _) = facetedSearchRequest(
       FacetedSearchRequest(itemType = Some(ItemType.dataset), facets = Some(Seq(
         KeywordFacetSetting(FacetType.keyword, Facets.datasetType.id, Set(CSV)),
         KeywordFacetSetting(FacetType.keyword, Facets.fileResource.id, Set("a.csv", "b.csv"))
       ))))
-    checkAndGetDatasetFacetValues(response) mustBe Seq(
+    checkAndGetDatasetFacetValues(facetedSearchResult) mustBe Seq(
       Seq((CSV,2)),
       Seq(("a.csv",1), ("b.csv",1), ("c.csv",1))
     )
-    resultItemIds(response) mustBe Seq("csvA", "csvB")
+    resultItemIds(facetedSearchResult) mustBe Seq("csvA", "csvB")
   }
 
   it should "sort the results by label/ID" in {
     resultItemIds(facetedSearchRequest(
       FacetedSearchRequest(itemType = Some(ItemType.dataset), sortBy = Some(SortBy.label), sortOrder = Some(SortOrder.DESC))
-    )) mustBe Seq("xmlA2", "xmlA1", "output", "jsonXYZ", "csvC", "csvB", "csvA")
+    )._1) mustBe Seq("xmlA2", "xmlA1", "output", "jsonXYZ", "csvC", "csvB", "csvA")
     resultItemIds(facetedSearchRequest(
       FacetedSearchRequest(itemType = Some(ItemType.dataset), sortBy = Some(SortBy.label), sortOrder = Some(SortOrder.ASC))
-    )) mustBe Seq("csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2")
+    )._1) mustBe Seq("csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2")
     resultItemIds(facetedSearchRequest( // Default sort order is ascending
       FacetedSearchRequest(itemType = Some(ItemType.dataset), sortBy = Some(SortBy.label))
-    )) mustBe Seq("csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2")
+    )._1) mustBe Seq("csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2")
   }
 
   it should "filter by (multi-word) text query" in {
     resultItemIds(facetedSearchRequest(
       FacetedSearchRequest(sortBy = Some(SortBy.label), textQuery = Some("ml"))
-    )) mustBe Seq("xmlA1", "xmlA2")
+    )._1) mustBe Seq("xmlA1", "xmlA2")
     resultItemIds(facetedSearchRequest(
       FacetedSearchRequest(sortBy = Some(SortBy.label), textQuery = Some("ou ut"))
-    )) mustBe Seq("output")
+    )._1) mustBe Seq("output")
     resultItemIds(facetedSearchRequest(
       FacetedSearchRequest(sortBy = Some(SortBy.label), textQuery = Some("js xyZ"))
-    )) mustBe Seq("jsonXYZ")
+    )._1) mustBe Seq("jsonXYZ")
   }
 
   it should "search for project resources" in {
