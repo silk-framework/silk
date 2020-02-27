@@ -12,14 +12,21 @@ import scala.collection.mutable
   */
 trait ItemTypeFacetCollector[T <: TaskSpec] {
 
+  /** Conversion and check function */
+  def convertProjectTask(projectTask: ProjectTask[_ <: TaskSpec]): ProjectTask[T] = {
+    if(projectTask.data.isInstanceOf[T]) {
+      projectTask.asInstanceOf[ProjectTask[T]]
+    } else {
+      throw new IllegalArgumentException(s"Task '${projectTask.taskLabel()}' is not of type Dataset.")
+    }
+  }
   /** Return aggregated facet results. */
-  def result: Seq[FacetResult]
+  def result: Seq[FacetResult] = {
+    facetCollectors.flatMap(_.result)
+  }
 
   /** The collectors for each facet */
   def facetCollectors: Seq[FacetCollector[T]]
-
-  /** Conversion and check function */
-  def convertProjectTask(projectTask: ProjectTask[_ <: TaskSpec]): ProjectTask[T]
 
   private lazy val facetCollectorMap: Map[String, FacetCollector[T]] = {
     facetCollectors.map(fc => (fc.appliesForFacet.id, fc)).toMap

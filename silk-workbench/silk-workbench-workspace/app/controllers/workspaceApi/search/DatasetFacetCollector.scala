@@ -14,19 +14,6 @@ case class DatasetFacetCollector() extends ItemTypeFacetCollector[GenericDataset
     DatasetTypeFacetCollector(),
     DatasetFileFacetCollector()
   )
-
-  /** Results of all facets of the dataset type */
-  override def result: Seq[FacetResult] = {
-    facetCollectors.flatMap(_.result)
-  }
-
-  override def convertProjectTask(projectTask: ProjectTask[_ <: TaskSpec]): ProjectTask[GenericDatasetSpec] = {
-    if(projectTask.data.isInstanceOf[GenericDatasetSpec]) {
-      projectTask.asInstanceOf[ProjectTask[GenericDatasetSpec]]
-    } else {
-      throw new IllegalArgumentException(s"Task '${projectTask.taskLabel()}' is not of type Dataset.")
-    }
-  }
 }
 
 /** Collects values for the dataset type facet. */

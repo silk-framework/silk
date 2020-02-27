@@ -13,19 +13,6 @@ case class TaskFacetCollector() extends ItemTypeFacetCollector[CustomTask] {
   override val facetCollectors: Seq[FacetCollector[CustomTask]] = Seq(
     TaskTypeFacetCollector()
   )
-
-  /** Results of all facets of the Task type */
-  override def result: Seq[FacetResult] = {
-    facetCollectors.flatMap(_.result)
-  }
-
-  override def convertProjectTask(projectTask: ProjectTask[_ <: TaskSpec]): ProjectTask[CustomTask] = {
-    if(projectTask.data.isInstanceOf[CustomTask]) {
-      projectTask.asInstanceOf[ProjectTask[CustomTask]]
-    } else {
-      throw new IllegalArgumentException(s"Task '${projectTask.taskLabel()}' is not of type CustomTask.")
-    }
-  }
 }
 
 /** Collects values for the task type facet. */
