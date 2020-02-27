@@ -15,7 +15,7 @@ interface IProps {
     externalRoutes: any;
 }
 
-export default function App({ externalRoutes, routes }: IProps) {
+export default function App({externalRoutes, routes}: IProps) {
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(globalOp.addBreadcrumb({
@@ -29,11 +29,13 @@ export default function App({ externalRoutes, routes }: IProps) {
     }, []);
 
     return (
-        <LanguageContainer>
-            <ConnectedRouter history={getHistory()}>
-                <Header externalRoutes={externalRoutes}/>
-                <RouterOutlet routes={routes}/>
-            </ConnectedRouter>
-        </LanguageContainer>
+        <React.StrictMode>
+            <LanguageContainer>
+                <ConnectedRouter history={getHistory()}>
+                    <Header externalRoutes={externalRoutes}/>
+                    <RouterOutlet routes={routes}/>
+                </ConnectedRouter>
+            </LanguageContainer>
+        </React.StrictMode>
     );
 }
