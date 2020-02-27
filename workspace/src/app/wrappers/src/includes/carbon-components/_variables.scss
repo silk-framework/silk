@@ -1,4 +1,27 @@
+// Stack of Carbon variables that are necessary to use their framework
+// TODO: calculate them from own configuration variables, all unchanged variables are commented out
+
+/// If true, includes font face mixins in `_css--font-face.scss` depending on the `css--plex` feature flag
+$css--font-face: false !default;
+
+/// If true, includes the `css-helpers()` mixin
+$css--helpers: false !default;
+
+/// If true, includes the `css-body()` mixin
+$css--body: false !default;
+
+/// If true, the `layer()` mixin sets `box-shadow` values
+// $css--use-layer: true !default;
+
+/// If true, include reset CSS
+$css--reset: false !default;
+
+/// If true, include default type
+$css--default-type: false !default;
+
+/// Used with `css--font-face` feature flag, if true, uses Plex font families instead of Helvetica
+$css--plex: false !default;
+
 $feature-flags: (
-    // TODO: is this carbot or a leftover from the old grid framework?
     grid-columns-16: true,
 );
