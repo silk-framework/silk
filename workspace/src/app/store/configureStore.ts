@@ -15,8 +15,14 @@ export const getHistory = () => history;
 
 export default function (options: any = {}) {
     const enhancers = [];
+    const middleware = [
+        ...getDefaultMiddleware({
+            serializableCheck: false,
+        }),
+        routerMiddleware(getHistory()),
+    ];
     if (isDevelopment) {
-        const {enableStoreDevUtils, monitorPerformance} = options;
+        const {enableStoreDevUtils, monitorPerformance, logReduxActions} = options;
         // Enable redux development actions, e.g. reset store
         if (enableStoreDevUtils) {
             enhancers.push(storeDevEnhancer);
@@ -25,21 +31,17 @@ export default function (options: any = {}) {
         if (monitorPerformance) {
             enhancers.push(monitorReducerEnhancer);
         }
+        if (logReduxActions) {
+            const logger = createLogger({
+                collapsed: true
+            });
+            middleware.push(logger);
+        }
     }
-
-    const logger = createLogger({
-        collapsed: true
-    });
 
     store = configureStore({
         reducer: rootReducer(getHistory()),
-        middleware: [
-            ...getDefaultMiddleware({
-                serializableCheck: false,
-            }),
-            logger,
-            routerMiddleware(getHistory()),
-        ],
+        middleware,
         devTools: isDevelopment,
         enhancers
     });

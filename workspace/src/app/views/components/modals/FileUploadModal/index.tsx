@@ -1,18 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { Classes, Intent } from "../../../../wrappers/blueprint/constants";
+import React, { useState } from "react";
+import { Classes, Intent } from "@wrappers/blueprint/constants";
 import Button from "../../../../wrappers/blueprint/button";
 import Dialog from "../../../../wrappers/blueprint/dialog";
-import Uppy from '@uppy/core';
-import { DragDrop } from '@uppy/react';
-import XHR from '@uppy/xhr-upload';
-import ProgressBar from "../../../../wrappers/blueprint/progressbar";
-import Loading from "../../Loading";
 import AbortAlert from "./AbortAlert";
 import OverrideAlert from "./OverrideAlert";
 
-import '@uppy/core/dist/style.css';
-import '@uppy/drag-drop/dist/style.css'
-import '@uppy/progress-bar/dist/style.css';
+import FileUploader from "../../FileUploader";
 
 export interface IFileUploadModalProps {
     isOpen: boolean;
@@ -21,82 +14,48 @@ export interface IFileUploadModalProps {
 
     onDiscard(): void;
 
-    onAbortUploading?(): void;
-
     onCheckFileExists?(fileName: string);
-
-    onUpload?(file: File): void;
 }
 
-const uppy = Uppy({
-    autoProceed: false,
-});
-
-export default function FileUploadModal({isOpen, onDiscard, onAbortUploading, onCheckFileExists, onUpload, uploadUrl}: IFileUploadModalProps) {
+export default function FileUploadModal({isOpen, onDiscard, onCheckFileExists, uploadUrl}: IFileUploadModalProps) {
+    const [fileUploaderInstance, setFileUploaderInstance] = useState<any>(null);
     const [isCheckingFile, setIsCheckingFile] = useState<boolean>(false);
-    const [fileProgress, setFileProgress] = useState<number>(0);
     const [isUploading, setIsUploading] = useState<boolean>(false);
     const [openAbortDialog, setOpenAbortDialog] = useState<boolean>(false);
     const [overrideDialog, setOverrideDialog] = useState<File>(null);
 
-    useEffect(() => {
-        uppy.use(XHR, {
-            method: 'PUT',
-            fieldName: 'file',
-            metaFields: [],
-        });
-        uppy.on('file-added', onFileAdded);
-        uppy.on('upload-progress', onProgress);
-        uppy.on('upload-success', resetFileDialog);
-    }, []);
+    const getUploaderInstance = (instance) => {
+        setFileUploaderInstance(instance);
+    };
 
     const resetFileDialog = () => {
         setIsCheckingFile(false);
         setIsUploading(false);
-        setFileProgress(0);
         setOpenAbortDialog(false);
         setOverrideDialog(null);
-        uppy.reset();
+        fileUploaderInstance.cancelAll();
+        fileUploaderInstance.reset();
     };
 
-    const handleAbort = () => {
-        uppy.cancelAll();
-        resetFileDialog();
-        if (onAbortUploading) {
-            onAbortUploading();
-        }
-    };
-
-    const upload = async (file) => {
-        // @ts-ignore
-        uppy.getPlugin('XHRUpload').setOptions({
-            endpoint: `${uploadUrl}/${file.name}`,
-        });
+    const upload = async (file: File) => {
+        fileUploaderInstance.setEndpoint(`${uploadUrl}/${file.name}`);
         setIsUploading(true);
-        await uppy.upload();
+        await fileUploaderInstance.upload();
+        setIsUploading(false);
         resetFileDialog();
-        if (onUpload) {
-            onUpload(file);
-        }
-
     };
 
-    const onProgress = (file, {bytesUploaded, bytesTotal}) => {
-        const progress = 100.0 * (bytesUploaded / bytesTotal);
-        setFileProgress(progress);
-    };
-
-    const onFileAdded = async (result) => {
+    const onFileAdded = async (result: File) => {
         if (onCheckFileExists) {
             setIsCheckingFile(true);
             const isExists = await onCheckFileExists(result.name);
             setIsCheckingFile(false);
 
-            if (isExists) {
-                setOverrideDialog(result);
-            } else {
-                upload(result);
-            }
+            isExists
+                ? setOverrideDialog(result)
+                : upload(result)
+        } else {
+            upload(result);
         }
     };
 
@@ -110,7 +69,7 @@ export default function FileUploadModal({isOpen, onDiscard, onAbortUploading, on
     };
 
     const handleOverrideCancel = () => {
-        uppy.reset();
+        fileUploaderInstance.reset();
         setOverrideDialog(null);
     };
 
@@ -121,21 +80,11 @@ export default function FileUploadModal({isOpen, onDiscard, onAbortUploading, on
             isOpen={isOpen}
         >
             <div className={Classes.DIALOG_BODY}>
-                {
-                    isCheckingFile ? <Loading/> : <>
-                        <DragDrop uppy={uppy} allowMultipleFiles={false}/>
-                        {!!fileProgress &&
-                        <div>
-                            <p>
-                                Waiting for finished file upload to show data preview.
-                                You can also create the dataset now and configure it later.
-                            </p>
-                            <ProgressBar value={fileProgress}/>
-                        </div>
-                        }
-                    </>
-                }
-
+                <FileUploader
+                    getInstance={getUploaderInstance}
+                    onFileAdded={onFileAdded}
+                    disabled={isCheckingFile}
+                />
             </div>
             <div className={Classes.DIALOG_FOOTER}>
                 <div className={Classes.DIALOG_FOOTER_ACTIONS}>
@@ -157,7 +106,7 @@ export default function FileUploadModal({isOpen, onDiscard, onAbortUploading, on
         <AbortAlert
             isOpen={openAbortDialog}
             onCancel={() => setOpenAbortDialog(false)}
-            onConfirm={handleAbort}
+            onConfirm={resetFileDialog}
         />
         <OverrideAlert
             isOpen={overrideDialog}

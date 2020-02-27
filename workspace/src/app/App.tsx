@@ -29,13 +29,11 @@ export default function App({externalRoutes, routes}: IProps) {
     }, []);
 
     return (
-        <React.StrictMode>
-            <LanguageContainer>
-                <ConnectedRouter history={getHistory()}>
-                    <Header externalRoutes={externalRoutes}/>
-                    <RouterOutlet routes={routes}/>
-                </ConnectedRouter>
-            </LanguageContainer>
-        </React.StrictMode>
+        <LanguageContainer>
+            <ConnectedRouter history={getHistory()}>
+                <Header externalRoutes={externalRoutes}/>
+                <RouterOutlet routes={routes}/>
+            </ConnectedRouter>
+        </LanguageContainer>
     );
 }
