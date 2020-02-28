@@ -81,12 +81,25 @@ $ns: bp3 !default;
 // (so other variables can use it to define themselves)
 $pt-grid-size: $ecc-size-typo-text/1.4 !default;
 
-$pt-font-family: -$ecc-font-family !default;
+$pt-font-family: $ecc-font-family !default;
 $pt-font-family-monospace: $ecc-font-family-monospace !default;
 $pt-font-size: $ecc-size-typo-text !default;
 $pt-font-size-large: $ecc-size-typo-subtitle !default;
 $pt-font-size-small: $ecc-size-typo-caption !default;
 $pt-line-height: $ecc-size-typo-text-lineheight !default;
+
+// tag: (font-size, line-height)
+/*
+$headings: (
+  "h1": (36px, 40px),
+  "h2": (28px, 32px),
+  "h3": (22px, 25px),
+  "h4": (18px, 21px),
+  "h5": (16px, 19px),
+  "h6": (14px, 16px)
+) !default;
+*/
+
 
 // Icon variables
 // $icons16-family: "Icons16" !default;

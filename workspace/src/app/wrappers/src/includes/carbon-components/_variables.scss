@@ -1,6 +1,8 @@
 // Stack of Carbon variables that are necessary to use their framework
 // TODO: calculate them from own configuration variables, all unchanged variables are commented out
 
+@import '../../../../../../node_modules/carbon-components/scss/globals/scss/vendor/@carbon/type/scss/vendor/@carbon/layout/convert';
+
 /// If true, includes font face mixins in `_css--font-face.scss` depending on the `css--plex` feature flag
 $css--font-face: false !default;
 
@@ -14,7 +16,7 @@ $css--body: false !default;
 // $css--use-layer: true !default;
 
 /// If true, include reset CSS
-$css--reset: false !default;
+// $css--reset: true !default;
 
 /// If true, include default type
 $css--default-type: false !default;
@@ -23,5 +25,59 @@ $css--default-type: false !default;
 $css--plex: false !default;
 
 $feature-flags: (
+    ui-shell: false,
     grid-columns-16: true,
 );
+
+$carbon--base-font-size: $ecc-size-typo-base !default;
+
+$caption-01: (
+  font-size: carbon-rem($ecc-size-typo-caption),
+  line-height: $ecc-size-typo-text-lineheight / $ecc-size-type-levelratio,
+) !default;
+$label-01: (
+  font-size: carbon-rem($ecc-size-typo-caption),
+  line-height: $ecc-size-typo-text-lineheight / $ecc-size-type-levelratio,
+) !default;
+$helper-text-01: (
+  font-size: carbon-rem($ecc-size-typo-caption),
+  line-height: $ecc-size-typo-text-lineheight / $ecc-size-type-levelratio,
+) !default;
+
+$body-short-01: (
+  font-size: carbon-rem($ecc-size-typo-text),
+  line-height: $ecc-size-typo-text-lineheight / $ecc-size-type-levelratio,
+) !default;
+$body-long-01: (
+  font-size: carbon-rem($ecc-size-typo-text),
+  line-height: $ecc-size-typo-text-lineheight,
+) !default;
+$code-01: (
+  font-family: $ecc-font-family-monospace,
+  font-size: carbon-rem($ecc-size-typo-caption),
+  line-height: $ecc-size-typo-text-lineheight / $ecc-size-type-levelratio,
+) !default;
+$heading-01: (
+  font-size: carbon-rem($ecc-size-typo-text),
+  font-weight: 600,
+  line-height: $ecc-size-typo-text-lineheight,
+) !default;
+
+$body-short-02: (
+  font-size: carbon-rem($ecc-size-typo-subtitle),
+  line-height: $ecc-size-typo-text-lineheight,
+) !default;
+$body-long-02: (
+  font-size: carbon-rem($ecc-size-typo-subtitle),
+  line-height: $ecc-size-typo-text-lineheight * $ecc-size-type-levelratio,
+) !default;
+$code-02: (
+  font-family: $ecc-font-family-monospace,
+  font-size: carbon-rem($ecc-size-typo-text),
+  line-height: $ecc-size-typo-text-lineheight,
+) !default;
+$heading-02: (
+font-size: carbon-rem($ecc-size-typo-subtitle),
+font-weight: 600,
+line-height: $ecc-size-typo-text-lineheight * $ecc-size-type-levelratio,
+) !default;
