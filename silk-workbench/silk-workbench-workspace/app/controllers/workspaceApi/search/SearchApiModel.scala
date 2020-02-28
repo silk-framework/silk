@@ -192,8 +192,10 @@ object SearchApiModel {
     final val datasetType: Facet = Facet("datasetType", "Dataset type", "The concrete type of a dataset, e.g. its data model and format etc.", FacetType.keyword)
     final val taskType: Facet = Facet("taskType", "Task type", "The concrete type of a task.", FacetType.keyword)
     final val fileResource: Facet = Facet("datasetFileResource", "Dataset file", "The file resource of a file based dataset.", FacetType.keyword)
-    final val transformInputResource: Facet = Facet("transformInputType", "Transformed File Resource",
+    final val transformInputResource: Facet = Facet("transformInputResource", "Transformed File Resource",
       "In case the input is a file resource based dataset, these are the file names of these resources.", FacetType.keyword)
+    final val workflowExecutionStatus: Facet = Facet("workflowExecutionStatus", "Last Execution Status", "Allows to filter by the" +
+        " status of the last execution of the workflow.", FacetType.keyword)
 
     val facetIds: Seq[String] = Seq(datasetType, fileResource, taskType, transformInputResource).map(_.id)
     assert(facetIds.distinct.size == facetIds.size, "Facet IDs must be unique!")

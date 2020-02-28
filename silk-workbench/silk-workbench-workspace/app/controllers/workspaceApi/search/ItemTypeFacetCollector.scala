@@ -6,18 +6,19 @@ import org.silkframework.workspace.ProjectTask
 
 import scala.collection.immutable.ListMap
 import scala.collection.mutable
+import scala.reflect.ClassTag
 
 /**
   * Collects facets and their values for the respective project task type.
   */
-trait ItemTypeFacetCollector[T <: TaskSpec] {
+trait ItemTypeFacetCollector[T  <: TaskSpec] {
 
   /** Conversion and check function */
-  def convertProjectTask(projectTask: ProjectTask[_ <: TaskSpec]): ProjectTask[T] = {
-    if(projectTask.data.isInstanceOf[T]) {
+  def convertProjectTask(projectTask: ProjectTask[_ <: TaskSpec])(implicit classTag: ClassTag[T]): ProjectTask[T] = {
+    if(classTag.runtimeClass.isAssignableFrom(projectTask.data.getClass)) {
       projectTask.asInstanceOf[ProjectTask[T]]
     } else {
-      throw new IllegalArgumentException(s"Task '${projectTask.taskLabel()}' is not of type Dataset.")
+      throw new IllegalArgumentException(s"Task '${projectTask.taskLabel()}' has not correct type for facet collector ${this.getClass.getSimpleName}.")
     }
   }
   /** Return aggregated facet results. */
@@ -26,7 +27,7 @@ trait ItemTypeFacetCollector[T <: TaskSpec] {
   }
 
   /** The collectors for each facet */
-  def facetCollectors: Seq[FacetCollector[T]]
+  val facetCollectors: Seq[FacetCollector[T]]
 
   private lazy val facetCollectorMap: Map[String, FacetCollector[T]] = {
     facetCollectors.map(fc => (fc.appliesForFacet.id, fc)).toMap
@@ -35,8 +36,8 @@ trait ItemTypeFacetCollector[T <: TaskSpec] {
   /** Returns true if the project task should be in the result set according to the facet setting.
     * It collects facet values after filtering.
     * Values are collected for each facet, when no other facet filters out a project task. */
-  def filterAndCollect[U <: TaskSpec](facetSettings: Seq[FacetSetting],
-                                      projectTask: ProjectTask[U]): Boolean = {
+  def filterAndCollect(facetSettings: Seq[FacetSetting],
+                       projectTask: ProjectTask[_ <: TaskSpec])(implicit classTag: ClassTag[T]): Boolean = {
     val specificTask = convertProjectTask(projectTask)
     val enabledFacets = facetSettings.map(_.facetId).toSet
     val matchingFacets = mutable.Set[String]()
@@ -119,6 +120,21 @@ trait KeywordFacetCollector[T <: TaskSpec] extends FacetCollector[T] {
   }
 }
 
+/** Trait that can be used for keyword facets where the keyword ID is the same as the keyword label. */
+trait NoLabelKeyboardFacetCollector[T <: TaskSpec] extends KeywordFacetCollector[T] {
+  private val keywordNames = new mutable.ListMap[String, Int]()
+
+  override def collect(projectTask: ProjectTask[T]): Unit = {
+    extractKeywordIds(projectTask) foreach { keywordName =>
+      keywordNames.put(keywordName, keywordNames.getOrElseUpdate(keywordName, 0) + 1)
+    }
+  }
+
+  override def keywordStats: Seq[(String, String, Int)] = {
+    keywordNames.toSeq map (rn => (rn._1, rn._1, rn._2))
+  }
+}
+
 /** Collects values for all facets of all types. */
 case class OverallFacetCollector() {
   private val itemTypeFacetCollectors = ListMap[ItemType, Seq[ItemTypeFacetCollector[_]]](
@@ -126,14 +142,14 @@ case class OverallFacetCollector() {
     ItemType.dataset -> Seq(DatasetFacetCollector()),
     ItemType.transform -> Seq(TransformFacetCollector()),
     ItemType.linking -> Seq(),
-    ItemType.workflow -> Seq(),
+    ItemType.workflow -> Seq(WorkflowFacetCollector()),
     ItemType.task -> Seq(TaskFacetCollector())
   )
 
   def filterAndCollect(itemType: ItemType,
                        projectTask: ProjectTask[_ <: TaskSpec],
                        facetSettings: Seq[FacetSetting]): Boolean = {
-    // TODO: Extend filterAndCollect beyond single item collectors. Maybe not needed if there is a generic facet collector, when no item type is selected.
+    // TODO: Extend filterAndCollect beyond single item collectors. This will be needed if the generic facet collector (user, creation date etc) is added.
     itemTypeFacetCollectors(itemType).forall(_.filterAndCollect(facetSettings, projectTask))
   }
 

@@ -43,27 +43,16 @@ case class DatasetTypeFacetCollector() extends KeywordFacetCollector[GenericData
 }
 
 /** File resources used by the datasets. */
-case class DatasetFileFacetCollector() extends KeywordFacetCollector[GenericDatasetSpec] {
-  private val resourceNames = new mutable.ListMap[String, Int]()
-
-  override def collect(datasetTask: ProjectTask[GenericDatasetSpec]): Unit = {
-    extractKeywordIds(datasetTask).foreach { resourceName =>
-      resourceNames.put(resourceName, resourceNames.getOrElseUpdate(resourceName, 0) + 1)
-    }
-  }
-
+case class DatasetFileFacetCollector() extends NoLabelKeyboardFacetCollector[GenericDatasetSpec] {
   override def appliesForFacet: Facet = Facets.fileResource
 
   override def extractKeywordIds(datasetTask: ProjectTask[GenericDatasetSpec]): Set[String] = {
     val data = datasetTask.data.plugin
-    if(data.isInstanceOf[ResourceBasedDataset]) {
-      Set(data.asInstanceOf[ResourceBasedDataset].file.name)
-    } else {
-      Set()
+    data match {
+      case dataset: ResourceBasedDataset =>
+        Set(dataset.file.name)
+      case _ =>
+        Set()
     }
-  }
-
-  override def keywordStats: Seq[(String, String, Int)] = {
-    resourceNames.toSeq map (rn => (rn._1, rn._1, rn._2))
   }
 }
