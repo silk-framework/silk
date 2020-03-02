@@ -17,6 +17,7 @@ export interface IPlugins {
 interface IDev {
     monitorPerformance: boolean;
     enableStoreDevUtils: boolean;
+    logReduxActions: boolean;
 }
 
 export interface ISettings {
@@ -35,7 +36,8 @@ const configs: ISettings = {
     ],
     dev: {
         monitorPerformance: false,
-        enableStoreDevUtils: false
+        enableStoreDevUtils: false,
+        logReduxActions: false
     }
 };
 

@@ -8,6 +8,7 @@ import { useDispatch } from "react-redux";
 import Grid from "@wrappers/carbon/grid";
 import Row from "@wrappers/carbon/grid/Row";
 import Col from "@wrappers/carbon/grid/Col";
+import EmptyWorkspace from "./EmptyWorkspace";
 
 const Projects = () => {
     const dispatch = useDispatch();
@@ -21,6 +22,11 @@ const Projects = () => {
     return (
         <Main>
             <Grid>
+                <Row>
+                    <Col span={12}>
+                        <EmptyWorkspace />
+                    </Col>
+                </Row>
                 <Row>
                     <Col span={2} className='filter-bar-content'>
                         <Filterbar/>

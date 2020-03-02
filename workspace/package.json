@@ -162,6 +162,7 @@
     "babel-preset-react-app": "^7.0.2",
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.12.1",
+    "eslint-plugin-react-hooks": "^2.5.0",
     "react-test-renderer": "^16.8.6",
     "redux-mock-store": "^1.5.3",
     "webpack-cli": "^3.3.10"

@@ -1,10 +1,10 @@
 import React, { useEffect, useLayoutEffect } from "react";
 import { globalOp } from "@ducks/global";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Main from "../../layout/Main";
 import Filterbar from "./Filterbar";
 import Metadata from "../../components/Metadata";
-import { workspaceOp } from "@ducks/workspace";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import SearchList from "./SearchResults/SearchList";
 import TopBar from "./Topbar";
 import ConfigurationWidget from "./widgets/Configuration";
@@ -13,16 +13,15 @@ import FileWidget from "./widgets/File";
 import Grid from "@wrappers/carbon/grid";
 import Row from "@wrappers/carbon/grid/Row";
 import Col from "@wrappers/carbon/grid/Col";
+import Loading from "../../components/Loading";
 
 const ProjectDetails = ({projectId}) => {
     const dispatch = useDispatch();
-
-    useLayoutEffect(() => {
-        dispatch(workspaceOp.setProjectId(projectId));
-    }, [projectId]);
+    const currentProjectId = useSelector(workspaceSel.currentProjectIdSelector);
 
     useEffect(() => {
         // Fetch the list of projects
+        dispatch(workspaceOp.setProjectId(projectId));
         dispatch(workspaceOp.fetchListAsync());
         dispatch(globalOp.addBreadcrumb({
             href: `/projects/${projectId}`,
@@ -31,6 +30,7 @@ const ProjectDetails = ({projectId}) => {
     }, []);
 
     return (
+        !currentProjectId ? <Loading /> :
         <Main>
             <Grid>
                 <Row>

@@ -17,7 +17,7 @@ import {
 } from "@ducks/workspace/widgets/configuration.thunk";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
-import { fetchFilesListAsync } from "@ducks/workspace/widgets/file.thunk";
+import { checkIfResourceExistsAsync, fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
 
 const {
     updateResultTotal,
@@ -361,7 +361,8 @@ export default {
     removeProjectPrefixAsync,
     fetchWarningListAsync,
     fetchWarningMarkdownAsync,
-    fetchFilesListAsync,
+    fetchResourcesListAsync,
+    checkIfResourceExistsAsync,
     resetFilters,
     setProjectId,
     unsetProject,

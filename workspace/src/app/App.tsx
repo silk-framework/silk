@@ -15,7 +15,7 @@ interface IProps {
     externalRoutes: any;
 }
 
-export default function App({ externalRoutes, routes }: IProps) {
+export default function App({externalRoutes, routes}: IProps) {
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(globalOp.addBreadcrumb({

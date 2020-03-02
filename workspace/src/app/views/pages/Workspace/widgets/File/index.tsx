@@ -5,6 +5,7 @@ import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import Loading from "../../../../components/Loading";
 import { Button, DataTable } from 'carbon-components-react';
 import FileUploadModal from "../../../../components/modals/FileUploadModal";
+import { getLegacyApiEndpoint } from "../../../../../utils/getApiEndpoint";
 
 const {
     TableContainer,
@@ -19,12 +20,14 @@ const {
     TableToolbarContent,
 } = DataTable;
 
-const FilesWidget = () => {
+const FileWidget = () => {
     const dispatch = useDispatch();
-    const [isOpenDialog, setIsOpenDialog] = useState<boolean>(false);
 
+    const projectId = useSelector(workspaceSel.currentProjectIdSelector);
     const filesList = useSelector(workspaceSel.filesListSelector);
     const fileWidget = useSelector(workspaceSel.widgetsSelector).files;
+
+    const [isOpenDialog, setIsOpenDialog] = useState<boolean>(false);
     const {error, isLoading} = fileWidget;
 
     const headers = [
@@ -39,21 +42,19 @@ const FilesWidget = () => {
     }, []);
 
     const getFilesList = () => {
-        dispatch(workspaceOp.fetchFilesListAsync());
+        dispatch(workspaceOp.fetchResourcesListAsync());
     };
 
     const handleSearch = (e) => {
         const {value} = e.target;
     };
 
-
-
     const toggleFileUploader = () => {
         setIsOpenDialog(!isOpenDialog);
     };
 
-    const handleFileUpload = (addedFiles) => {
-
+    const isResourceExists = (fileName: string) => {
+        return workspaceOp.checkIfResourceExistsAsync(fileName, projectId);
     };
 
     return (
@@ -99,12 +100,11 @@ const FilesWidget = () => {
             <FileUploadModal
                 isOpen={isOpenDialog}
                 onDiscard={toggleFileUploader}
-                onUpload={handleFileUpload}
-                onAbortUploading={() => {}}
-                uploadUrl={`/dataintegration/workspace/projects/Full`}
+                uploadUrl={getLegacyApiEndpoint(`/projects/${projectId}/resources`)}
+                onCheckFileExists={isResourceExists}
             />
         </>
     )
 };
 
-export default FilesWidget;
+export default FileWidget;
