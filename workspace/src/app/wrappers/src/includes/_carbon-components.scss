@@ -2,8 +2,8 @@
 @import 'carbon-components/variables';
 
 // load library
-// TODO: later we should only include the parts we really need 
-@import '../../../../../node_modules/carbon-components/scss/globals/scss/styles.scss';
+// TODO: later we should only include the parts we really need
+@import '~carbon-components/scss/globals/scss/styles.scss';
 
 // load patches and tweaks
 @import 'carbon-components/patches';

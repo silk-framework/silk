@@ -28,7 +28,7 @@ $feature-flags: (
 );
 
 $carbon--base-font-size: $ecc-size-typo-base !default;
-@import '../../../../../../node_modules/carbon-components/scss/globals/scss/vendor/@carbon/type/scss/vendor/@carbon/layout/convert';
+@import '~carbon-components/scss/globals/scss/vendor/@carbon/type/scss/vendor/@carbon/layout/convert';
 
 $caption-01: (
   font-size: carbon--rem($ecc-size-typo-caption),

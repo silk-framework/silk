@@ -1,7 +1,7 @@
 // Stack of BlueprintJS variables that are necessary to use their framework
 // TODO: calculate them from own configuration variables, all unchanged variables are commented out
 
-$icon-font-path: "../../../../../node_modules/@blueprintjs/icons/resources/icons" !default;
+$icon-font-path: "~@blueprintjs/icons/resources/icons" !default;
 
 // Gray scale
 
@@ -28,7 +28,7 @@ $icon-font-path: "../../../../../node_modules/@blueprintjs/icons/resources/icons
 // $white: #ffffff !default;
 
 // Other colors
-// @import '../../../../../../node_modules/@blueprintjs/core/src/common/colors';
+// @import '~@blueprintjs/core/src/common/colors';
 
 // Color aliases
 
