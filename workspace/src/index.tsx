@@ -9,9 +9,9 @@ import appRoutes from "./app/appRoutes";
 import { createPlugin } from "./app/services/pluginApi";
 import configureStore  from './app/store/configureStore';
 
-import "normalize.css";
+// import "normalize.css";
+// import './theme/index.scss';
 import "@wrappers/index.scss";
-import './theme/index.scss';
 
 const bootstrapPlugins = (plugins) => {
     const arr = [];
@@ -42,4 +42,3 @@ registerGlobalListeners();
 const pluginRoutes = bootstrapPlugins(configs.plugins);
 // Bootstrap the React application
 bootstrapApp(appRoutes, pluginRoutes);
-
