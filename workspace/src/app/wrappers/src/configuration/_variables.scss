@@ -52,7 +52,7 @@ $ecc-size-inline-whitespace: $ecc-size-typo-base / 2 !default;
     it is not recommended to do so.
 */
 
-$ecc-size-typo-caption: 1/$ecc-size-type-levelratio * 1rem !default;
+$ecc-size-typo-caption: 1/$ecc-size-type-levelratio * $ecc-size-typo-base !default;
 $ecc-size-typo-caption-lineheight: max($ecc-size-type-levelratio * $ecc-size-typo-base-lineheight, 1) !default;
 $ecc-size-typo-text: $ecc-size-typo-base !default; // should be `1rem` but bp3 currently do not support rem units here, leads to errors in their calculations for values of other properties
 $ecc-size-typo-text-lineheight: max($ecc-size-typo-base-lineheight, 1) !default;
