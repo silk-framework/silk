@@ -23,7 +23,7 @@ $css--default-type: false !default;
 $css--plex: false !default;
 
 $feature-flags: (
-    ui-shell: false,
+    ui-shell: true,
     grid-columns-16: true,
 );
 

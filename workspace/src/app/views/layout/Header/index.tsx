@@ -1,5 +1,4 @@
 import React, { memo} from 'react';
-import './index.scss';
 
 import { globalSel } from "@ducks/global";
 import { useSelector } from "react-redux";
@@ -12,6 +11,7 @@ import NavbarGroup from "@wrappers/blueprint/navbar-group";
 import NavbarHeading from "@wrappers/blueprint/navbar-heading";
 import NavButton from "./NavButton";
 import HomeButton from "./HomeButton";
+import { ApplicationHeader } from "@wrappers/index";
 
 interface IProps {
     externalRoutes: any;
@@ -112,21 +112,19 @@ const Header = memo<IProps>(({externalRoutes}) => {
 
     return (
         !isAuth ? null :
-            <div className="header">
-                <Navbar>
-                    <NavbarGroup>
-                        <NavButton/>
-                        <HomeButton/>
-                        <div>
-                            <Breadcrumbs paths={breadcrumbs}/>
-                            {
-                                lastBreadcrumb && <NavbarHeading style={{fontWeight: 'bold'}}>{lastBreadcrumb.text}</NavbarHeading>
-                            }
-                        </div>
-                        {menu}
-                    </NavbarGroup>
-                </Navbar>
-            </div>
+            <ApplicationHeader aria-label={"TODO: eccenca DI"}>
+                <NavbarGroup>
+                    <NavButton/>
+                    <HomeButton/>
+                    <div>
+                        <Breadcrumbs paths={breadcrumbs}/>
+                        {
+                            lastBreadcrumb && <NavbarHeading style={{fontWeight: 'bold'}}>{lastBreadcrumb.text}</NavbarHeading>
+                        }
+                    </div>
+                    {menu}
+                </NavbarGroup>
+            </ApplicationHeader>
     )
 });
 
