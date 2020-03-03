@@ -197,7 +197,7 @@ object SearchApiModel {
     final val workflowExecutionStatus: Facet = Facet("workflowExecutionStatus", "Last Execution Status", "Allows to filter by the" +
         " status of the last execution of the workflow.", FacetType.keyword)
 
-    val facetIds: Seq[String] = Seq(datasetType, fileResource, taskType, transformInputResource).map(_.id)
+    val facetIds: Seq[String] = Seq(datasetType, fileResource, taskType, transformInputResource, workflowExecutionStatus).map(_.id)
     assert(facetIds.distinct.size == facetIds.size, "Facet IDs must be unique!")
   }
 
