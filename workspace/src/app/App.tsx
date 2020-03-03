@@ -10,6 +10,8 @@ import { ConnectedRouter } from "connected-react-router";
 import { globalOp } from "@ducks/global";
 import { useDispatch } from "react-redux";
 
+import ApplicationContainer from "@wrappers/index";
+
 interface IProps {
     routes: RouteProps[];
     externalRoutes: any;
@@ -31,8 +33,10 @@ export default function App({externalRoutes, routes}: IProps) {
     return (
         <LanguageContainer>
             <ConnectedRouter history={getHistory()}>
-                <Header externalRoutes={externalRoutes}/>
-                <RouterOutlet routes={routes}/>
+                <ApplicationContainer>
+                    <Header externalRoutes={externalRoutes}/>
+                    <RouterOutlet routes={routes}/>
+                </ApplicationContainer>
             </ConnectedRouter>
         </LanguageContainer>
     );
