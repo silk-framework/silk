@@ -33,7 +33,9 @@ export const fetchProjectPrefixesAsync = () => {
         const url = getApiEndpoint(`/projects/${projectId}/prefixes`);
         try {
             dispatch(toggleLoading());
-            const {data} = await fetch({url});
+            const {data} = await fetch({
+                url
+            });
             dispatch(updatePrefixList(data));
             dispatch(toggleLoading());
         } catch (e) {
@@ -43,7 +45,7 @@ export const fetchProjectPrefixesAsync = () => {
     };
 };
 
-export const addOrUpdatePrefixAsync = (prefixName: string, prefixUri: string) => {
+export const fetchAddOrUpdatePrefixAsync = (prefixName: string, prefixUri: string) => {
     return async (dispatch, getState) => {
         const projectId = workspaceSel.currentProjectIdSelector(getState());
         const url = getApiEndpoint(`/projects/${projectId}/prefixes/${prefixName}`);
@@ -67,7 +69,7 @@ export const addOrUpdatePrefixAsync = (prefixName: string, prefixUri: string) =>
     }
 };
 
-export const removeProjectPrefixAsync = (prefixName: string) => {
+export const fetchRemoveProjectPrefixAsync = (prefixName: string) => {
     return async (dispatch, getState) => {
         const projectId = workspaceSel.currentProjectIdSelector(getState());
         const url = getApiEndpoint(`/projects/${projectId}/prefixes/${prefixName}`);

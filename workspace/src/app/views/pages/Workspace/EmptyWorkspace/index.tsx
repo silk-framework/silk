@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
 import Button from '@wrappers/blueprint/button';
-import CreateProjectModal from "../../../components/modals/CreateProjectModal";
+import CreateProjectModal from "./CreateProjectModal";
 
 const EmptyWorkspace = () => {
     const [openCreateDialog, setOpenCreateDialog] = useState<boolean>(false);
 
     const toggleCreateModal = () => {
         setOpenCreateDialog(!openCreateDialog);
-    };
-
-    const handleConfirmCreation = (formData: any) => {
-        console.log(formData);
     };
 
     return <>
@@ -21,7 +17,7 @@ const EmptyWorkspace = () => {
         <CreateProjectModal
             isOpen={openCreateDialog}
             onDiscard={toggleCreateModal}
-            onConfirm={handleConfirmCreation}
+            onConfirm={toggleCreateModal}
         />
     </>
 };

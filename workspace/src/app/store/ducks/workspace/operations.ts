@@ -11,9 +11,9 @@ import { IFacetState } from "@ducks/workspace/typings";
 import { workspaceSel } from "@ducks/workspace";
 import qs from "query-string";
 import {
-    addOrUpdatePrefixAsync,
+    fetchAddOrUpdatePrefixAsync,
     fetchProjectPrefixesAsync,
-    removeProjectPrefixAsync
+    fetchRemoveProjectPrefixAsync
 } from "@ducks/workspace/widgets/configuration.thunk";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
@@ -38,7 +38,7 @@ const {
     fetchList,
     fetchListSuccess,
     setProjectId,
-    unsetProject
+    unsetProject,
 } = previewSlice.actions;
 
 const {
@@ -278,6 +278,28 @@ const fetchCloneTaskAsync = (taskId: string, projectId: string, taskNewId: strin
     }
 };
 
+const fetchCreateProjectAsync = (label: string, description?: string) => {
+    return async dispatch => {
+        dispatch(setError({}));
+
+        try {
+            const {data} = await fetch({
+                url: getApiEndpoint(`/projects`),
+                method: 'POST',
+                body: {
+                    metaData: {
+                        label,
+                        description
+                    }
+                }
+            });
+            dispatch(routerOp.goToPage(`/projects/${data.name}`));
+        } catch (e) {
+            dispatch(setError(e.response.data));
+        }
+    }
+};
+
 const applyFiltersOp = (filter) => {
     return dispatch => {
         batch(() => {
@@ -357,12 +379,13 @@ export default {
     toggleFacetOp,
     setupFiltersFromQs,
     fetchProjectPrefixesAsync,
-    addOrUpdatePrefixAsync,
-    removeProjectPrefixAsync,
+    fetchAddOrUpdatePrefixAsync,
+    fetchRemoveProjectPrefixAsync,
     fetchWarningListAsync,
     fetchWarningMarkdownAsync,
     fetchResourcesListAsync,
     checkIfResourceExistsAsync,
+    fetchCreateProjectAsync,
     resetFilters,
     setProjectId,
     unsetProject,
