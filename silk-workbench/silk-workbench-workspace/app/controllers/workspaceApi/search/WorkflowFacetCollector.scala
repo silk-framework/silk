@@ -22,14 +22,25 @@ case class WorkflowExecutionStatus() extends NoLabelKeyboardFacetCollector[Workf
   override def extractKeywordIds(projectTask: ProjectTask[Workflow]): Set[String] = {
     val executionActivity = projectTask.activity[LocalWorkflowExecutorGeneratingProvenance]
     executionActivity.status.get.toSet map { status: Status =>
-      if(status.failed) {
-        "Fail"
-      } else if(status.succeeded) {
-        "Success"
-      } else if(status.isRunning) {
-        "Running"
-      } else {
-        "Not executed"
+      status match {
+        case _: Status.Idle =>
+          "Not executed"
+        case _: Status.Waiting =>
+          "Waiting"
+        case st: Status.Finished =>
+          if (st.cancelled) {
+            "Cancelled"
+          } else if (st.failed) {
+            "Fail"
+          } else {
+            "Success"
+          }
+        case _: Status.Canceling =>
+          "Canceling"
+        case _: Status.Running =>
+          "Running"
+        case _: Status.WithErrors =>
+          "Running (with errors)"
       }
     }
   }
