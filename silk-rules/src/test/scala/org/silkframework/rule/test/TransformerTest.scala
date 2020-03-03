@@ -63,7 +63,7 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
           val expectedException = Class.forName(example.throwsException)
           throwableOpt match {
             case Some(ex) =>
-              if(ex.getClass != expectedException) {
+              if(!expectedException.isAssignableFrom(ex.getClass)) {
                 throw new RuntimeException("Another exception was thrown: " + ex.getClass.getName + ". Expected: " + example.throwsException)
               }
             case None =>

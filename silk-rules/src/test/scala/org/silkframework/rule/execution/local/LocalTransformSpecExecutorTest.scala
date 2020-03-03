@@ -27,7 +27,7 @@ class LocalTransformSpecExecutorTest extends FlatSpec with MustMatchers with Exe
     val executor = new LocalTransformSpecExecutor()
     val enMappingTarget = MappingTarget("urn:prop:label", enVT)
     val deMappingTarget = MappingTarget("urn:prop:label", deVT)
-    val plainMappingTarget = MappingTarget("urn:prop:label", StringValueType)
+    val plainMappingTarget = MappingTarget("urn:prop:label", ValueType.STRING)
     val transformTask = PlainTask("transform", TransformSpec(
       DatasetSelection.empty,
       RootMappingRule(MappingRules(
@@ -46,7 +46,7 @@ class LocalTransformSpecExecutorTest extends FlatSpec with MustMatchers with Exe
     result.get.entitySchema.typedPaths mustBe IndexedSeq(
       TypedPath(UntypedPath("urn:prop:label"), enVT, isAttribute = false),
       TypedPath(UntypedPath("urn:prop:label"), deVT, isAttribute = false),
-      TypedPath(UntypedPath("urn:prop:label"), StringValueType, isAttribute = false)
+      TypedPath(UntypedPath("urn:prop:label"), ValueType.STRING, isAttribute = false)
     )
     result.get.entities.map(_.values) mustBe Seq(IndexedSeq(Seq("A"), Seq("B", "D"), Seq("C", "E")))
   }

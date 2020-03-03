@@ -88,10 +88,10 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
       val relativeClass = schemaClass.sourceType.drop(normalizedTypeUri.length).dropWhile(_ == '/')
       val classPath = UntypedPath.parse(relativeClass)
       if(classPath.size > 0 && classPath.size <= depth) {
-        pathBuffer.append(TypedPath(classPath, UriValueType, isAttribute = false))
+        pathBuffer.append(TypedPath(classPath, ValueType.URI, isAttribute = false))
       }
       for(schemaPath <- schemaClass.properties) {
-        val typedPath = TypedPath(UntypedPath.parse(relativeClass + "/" + schemaPath.path.normalizedSerialization), StringValueType,
+        val typedPath = TypedPath(UntypedPath.parse(relativeClass + "/" + schemaPath.path.normalizedSerialization), ValueType.STRING,
           isAttribute = schemaPath.path.normalizedSerialization.startsWith("@"))
         if(typedPath.size <= depth) {
           pathBuffer.append(typedPath)
@@ -255,13 +255,13 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     reader.next()
 
     val depthAdjustedAttributePaths: IndexedSeq[TypedPath] = if(depth == 0) IndexedSeq() else attributePaths
-    val pathValueType = if(attributePaths.nonEmpty || startElements.nonEmpty) UriValueType else StringValueType
+    val pathValueType = if(attributePaths.nonEmpty || startElements.nonEmpty) ValueType.URI else ValueType.STRING
     val typedPath = TypedPath(path, pathValueType, isAttribute = false)
 
     if(onlyInnerNodes && startElements.isEmpty && attributePaths.isEmpty) {
       Seq() // An inner node has at least an attribute or child elements
     } else if(onlyInnerNodes) {
-      TypedPath(path, UriValueType, isAttribute = false) +: paths // The paths are already depth adjusted and only contain inner nodes
+      TypedPath(path, ValueType.URI, isAttribute = false) +: paths // The paths are already depth adjusted and only contain inner nodes
     } else if(onlyLeafNodes && startElements.isEmpty) {
       Seq(typedPath) ++ depthAdjustedAttributePaths // A leaf node is a node without children, but may have attributes
     } else if(onlyLeafNodes) {
@@ -291,7 +291,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
 
   private def fetchAttributePaths(reader: XMLStreamReader, path: UntypedPath) = {
     for (attributeIndex <- 0 until reader.getAttributeCount) yield {
-      TypedPath(path ++ UntypedPath("@" + reader.getAttributeLocalName(attributeIndex)), StringValueType, isAttribute = true)
+      TypedPath(path ++ UntypedPath("@" + reader.getAttributeLocalName(attributeIndex)), ValueType.STRING, isAttribute = true)
     }
   }
 

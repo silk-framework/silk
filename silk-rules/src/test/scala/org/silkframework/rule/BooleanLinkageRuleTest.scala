@@ -1,7 +1,7 @@
 package org.silkframework.rule
 
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.entity.StringValueType
+import org.silkframework.entity.{StringValueType, ValueType}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
@@ -116,7 +116,7 @@ class BooleanLinkageRuleTest extends FlatSpec with MustMatchers {
   }
 
   private val dummyPathInput = PathInput("path", UntypedPath("path"))
-  private val dummyValueOutputOperator = InputPathOperator(TypedPath("path", StringValueType), dummyPathInput)
+  private val dummyValueOutputOperator = InputPathOperator(TypedPath("path", ValueType.STRING), dummyPathInput)
 
   private val dummyComparison = Comparison("dummyComparison", metric = EqualityMetric(), inputs = DPair(dummyPathInput, dummyPathInput))
 

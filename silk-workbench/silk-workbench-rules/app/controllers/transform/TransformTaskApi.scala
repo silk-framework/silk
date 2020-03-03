@@ -253,7 +253,7 @@ class TransformTaskApi @Inject() () extends InjectedController {
   private def convertRootMappingRule(rule: TransformRule): TransformRule = {
     rule match {
       case RootMappingRule(rules, id, metaData) =>
-        ObjectMapping(id, rules = rules, metaData = metaData, target = Some(MappingTarget(ROOT_COPY_TARGET_PROPERTY, UriValueType)))
+        ObjectMapping(id, rules = rules, metaData = metaData, target = Some(MappingTarget(ROOT_COPY_TARGET_PROPERTY, ValueType.URI)))
       case other: TransformRule =>
         other
     }

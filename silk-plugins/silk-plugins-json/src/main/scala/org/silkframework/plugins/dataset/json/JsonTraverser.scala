@@ -46,15 +46,15 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
         if(leafPathsOnly) {
           childPaths
         } else {
-          Seq(path -> UriValueType) ++ childPaths
+          Seq(path -> ValueType.URI) ++ childPaths
         }
       case array: JsArray if array.value.nonEmpty =>
         keepParent(array.value.head).collectPaths(path, leafPathsOnly, innerPathsOnly, depth)
       case _ =>
         if (path.nonEmpty && !innerPathsOnly) {
-          Seq(path -> StringValueType)
+          Seq(path -> ValueType.STRING)
         } else if(innerPathsOnly && path.isEmpty) {
-          Seq(path -> UriValueType)
+          Seq(path -> ValueType.URI)
         } else {
           Seq() // also return root path, since this is a valid type in JSON
         }

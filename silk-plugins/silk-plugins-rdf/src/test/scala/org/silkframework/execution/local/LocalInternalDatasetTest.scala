@@ -1,7 +1,7 @@
 package org.silkframework.execution.local
 
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.entity.StringValueType
+import org.silkframework.entity.{StringValueType, ValueType}
 import org.silkframework.plugins.dataset.InternalDatasetTrait
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.InMemoryWorkspaceTestTrait
@@ -22,7 +22,7 @@ class LocalInternalDatasetTest extends FlatSpec with MustMatchers with InMemoryW
       }
       val sink = ds.tripleSink
       sink.init()
-      sink.writeTriple("s" + id.getOrElse("None"), "b", "o", StringValueType)
+      sink.writeTriple("s" + id.getOrElse("None"), "b", "o", ValueType.STRING)
       sink.close()
       ds.sparqlEndpoint.select("SELECT ?s WHERE {?s ?p ?o}").bindings.size mustBe 1
     }

@@ -24,7 +24,7 @@ object SparqlUpdateEntitySchema {
   final val schema = EntitySchema(
     typeUri = Uri(SilkVocab.SparqlUpdateSchemaType),
     typedPaths = IndexedSeq(
-      TypedPath(UntypedPath(SilkVocab.sparqlUpdateQuery), StringValueType, isAttribute = false)
+      TypedPath(UntypedPath(SilkVocab.sparqlUpdateQuery), ValueType.STRING, isAttribute = false)
     )
   )
 }

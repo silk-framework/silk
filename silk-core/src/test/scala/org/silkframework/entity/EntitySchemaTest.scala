@@ -17,7 +17,7 @@ class EntitySchemaTest extends FlatSpec with Matchers {
     , IndexedSeq(subSchema1, subSchema2))
 
   val complexSchemaDifferentType = new MultiEntitySchema(
-    EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(TypedPath(UntypedPath("path1"), IntegerValueType, isAttribute = false), UntypedPath("path2").asStringTypedPath), filter = Restriction.empty)
+    EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(TypedPath(UntypedPath("path1"), ValueType.INTEGER, isAttribute = false), UntypedPath("path2").asStringTypedPath), filter = Restriction.empty)
     , IndexedSeq(subSchema1, subSchema2))
 
 

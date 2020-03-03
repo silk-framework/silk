@@ -56,9 +56,9 @@ class SparqlPathsCollectorTest extends FlatSpec with Matchers with BeforeAndAfte
     val paths = SparqlAggregatePathsCollector(endpoint, Some(graphDBpedia), SparqlRestriction.forType("http://dbpedia.org/ontology/City"), None)
     paths.toSet shouldBe
       Set(
-        forward("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", UriValueType),
-        forward("http://www.w3.org/2000/01/rdf-schema#label", StringValueType),
-        backward("http://dbpedia.org/ontology/place", UriValueType)
+        forward("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", ValueType.URI),
+        forward("http://www.w3.org/2000/01/rdf-schema#label", ValueType.STRING),
+        backward("http://dbpedia.org/ontology/place", ValueType.URI)
       )
   }
 
@@ -66,8 +66,8 @@ class SparqlPathsCollectorTest extends FlatSpec with Matchers with BeforeAndAfte
     val paths = SparqlSamplePathsCollector(endpoint, Some(graphDBpedia), SparqlRestriction.forType("http://dbpedia.org/ontology/City"), None)
     paths.toSet shouldBe
       Set(
-        forward("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", StringValueType),
-        forward("http://www.w3.org/2000/01/rdf-schema#label", StringValueType)
+        forward("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", ValueType.STRING),
+        forward("http://www.w3.org/2000/01/rdf-schema#label", ValueType.STRING)
         // The sample path collector does not return backward paths: backward("http://dbpedia.org/ontology/place")
       )
   }
@@ -76,8 +76,8 @@ class SparqlPathsCollectorTest extends FlatSpec with Matchers with BeforeAndAfte
     val paths = SparqlAggregatePathsCollector(endpoint, Some(graphSchemaOrg), SparqlRestriction.forType("http://schema.org/City"), None)
     paths.toSet shouldBe
       Set(
-        forward("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", UriValueType),
-        forward("http://www.w3.org/2000/01/rdf-schema#label", StringValueType)
+        forward("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", ValueType.URI),
+        forward("http://www.w3.org/2000/01/rdf-schema#label", ValueType.STRING)
       )
   }
 
@@ -85,8 +85,8 @@ class SparqlPathsCollectorTest extends FlatSpec with Matchers with BeforeAndAfte
     val paths = SparqlSamplePathsCollector(endpoint, Some(graphSchemaOrg), SparqlRestriction.forType("http://schema.org/City"), None)
     paths.toSet shouldBe
       Set(
-        forward("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", StringValueType),
-        forward("http://www.w3.org/2000/01/rdf-schema#label", StringValueType)
+        forward("http://www.w3.org/1999/02/22-rdf-syntax-ns#type", ValueType.STRING),
+        forward("http://www.w3.org/2000/01/rdf-schema#label", ValueType.STRING)
       )
   }
 

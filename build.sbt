@@ -22,6 +22,8 @@ lazy val commonSettings = Seq(
       Some("releases" at artifactory + "maven-ecc-release")
     }
   },
+  // If SBT_PUBLISH_TESTS_JARS ENV variable is set to "true" then tests jar files will be published that can be used e.g. in testing plugins
+  publishArtifact in (Test, packageBin) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.7" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "4.0.0" % "test",
