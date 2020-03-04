@@ -6,15 +6,19 @@ import Breadcrumbs from "@wrappers/blueprint/breadcrumbs";
 import Button from "@wrappers/blueprint/button";
 import { Classes } from "@wrappers/blueprint/constants";
 import NavbarDivider from "@wrappers/blueprint/navbar-divider";
-import Navbar from "@wrappers/blueprint/navbar";
 import NavbarGroup from "@wrappers/blueprint/navbar-group";
 import NavbarHeading from "@wrappers/blueprint/navbar-heading";
-import NavButton from "./NavButton";
 import HomeButton from "./HomeButton";
-import { ApplicationHeader } from "@wrappers/index";
+import {
+    ApplicationHeader,
+    ApplicationSidebarToggler,
+    ApplicationTitle,
+} from "@wrappers/index";
 
 interface IProps {
     externalRoutes: any;
+    onClickApplicationSidebarExpand: any;
+    isApplicationSidebarExpanded: any;
 }
 
 const generateMenuItems = (pluginMenuData) => {
@@ -88,7 +92,7 @@ const generateMenuItems = (pluginMenuData) => {
     return menuData.map(generateMainMenu);
 };
 
-const Header = memo<IProps>(({externalRoutes}) => {
+const Header = memo<IProps>(({externalRoutes, onClickApplicationSidebarExpand, isApplicationSidebarExpanded}) => {
     const breadcrumbs = useSelector(globalSel.breadcrumbsSelector);
 
     const isPresentableRoute = r => r.menuName;
@@ -110,20 +114,24 @@ const Header = memo<IProps>(({externalRoutes}) => {
     const isAuth = useSelector(globalSel.isAuthSelector);
     const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
 
+    // TODO:
     return (
         !isAuth ? null :
             <ApplicationHeader aria-label={"TODO: eccenca DI"}>
-                <NavbarGroup>
-                    <NavButton/>
-                    <HomeButton/>
-                    <div>
-                        <Breadcrumbs paths={breadcrumbs}/>
-                        {
-                            lastBreadcrumb && <NavbarHeading style={{fontWeight: 'bold'}}>{lastBreadcrumb.text}</NavbarHeading>
-                        }
-                    </div>
-                    {menu}
-                </NavbarGroup>
+                <ApplicationSidebarToggler
+                    aria-label="TODO: Open menu"
+                    onClick={onClickApplicationSidebarExpand}
+                    isActive={isApplicationSidebarExpanded}
+                />
+                <ApplicationTitle prefix="eccenca">DataIntegration</ApplicationTitle>
+                <HomeButton/>
+                <div>
+                    <Breadcrumbs paths={breadcrumbs}/>
+                    {
+                        lastBreadcrumb && <NavbarHeading style={{fontWeight: 'bold'}}>{lastBreadcrumb.text}</NavbarHeading>
+                    }
+                </div>
+                {menu}
             </ApplicationHeader>
     )
 });

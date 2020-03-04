@@ -39,7 +39,10 @@ export default function App({externalRoutes, routes}: IProps) {
                 <ApplicationContainer
                     render = {({ isApplicationSidebarExpanded, onClickApplicationSidebarExpand }) => (
                         <>
-                            <Header externalRoutes={externalRoutes}/>
+                            <Header
+                                externalRoutes={externalRoutes}
+                                isApplicationSidebarExpanded={isApplicationSidebarExpanded}
+                                onClickApplicationSidebarExpand={onClickApplicationSidebarExpand} />
                             <ApplicationContent>
                                 <RouterOutlet routes={routes}/>
                             </ApplicationContent>
