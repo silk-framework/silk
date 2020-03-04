@@ -22,7 +22,7 @@ export default function FileUploadModal({isOpen, onDiscard, onCheckFileExists, u
     const [isCheckingFile, setIsCheckingFile] = useState<boolean>(false);
     const [isUploading, setIsUploading] = useState<boolean>(false);
     const [openAbortDialog, setOpenAbortDialog] = useState<boolean>(false);
-    const [overrideDialog, setOverrideDialog] = useState<File>(null);
+    const [invokeOverrideDialog, setInvokeOverrideDialog] = useState<File>(null);
 
     const getUploaderInstance = (instance) => {
         setFileUploaderInstance(instance);
@@ -32,8 +32,7 @@ export default function FileUploadModal({isOpen, onDiscard, onCheckFileExists, u
         setIsCheckingFile(false);
         setIsUploading(false);
         setOpenAbortDialog(false);
-        setOverrideDialog(null);
-        fileUploaderInstance.cancelAll();
+        setInvokeOverrideDialog(null);
         fileUploaderInstance.reset();
     };
 
@@ -52,7 +51,7 @@ export default function FileUploadModal({isOpen, onDiscard, onCheckFileExists, u
             setIsCheckingFile(false);
 
             isExists
-                ? setOverrideDialog(result)
+                ? setInvokeOverrideDialog(result)
                 : upload(result)
         } else {
             upload(result);
@@ -70,7 +69,7 @@ export default function FileUploadModal({isOpen, onDiscard, onCheckFileExists, u
 
     const handleOverrideCancel = () => {
         fileUploaderInstance.reset();
-        setOverrideDialog(null);
+        setInvokeOverrideDialog(null);
     };
 
     return <>
@@ -101,7 +100,6 @@ export default function FileUploadModal({isOpen, onDiscard, onCheckFileExists, u
                     }
                 </div>
             </div>
-
         </Dialog>
         <AbortAlert
             isOpen={openAbortDialog}
@@ -109,9 +107,9 @@ export default function FileUploadModal({isOpen, onDiscard, onCheckFileExists, u
             onConfirm={resetFileDialog}
         />
         <OverrideAlert
-            isOpen={overrideDialog}
+            isOpen={invokeOverrideDialog}
             onCancel={handleOverrideCancel}
-            onConfirm={() => upload(overrideDialog)}
+            onConfirm={() => upload(invokeOverrideDialog)}
         />
     </>
 }

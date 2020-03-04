@@ -1,5 +1,6 @@
 import qs from 'query-string';
-import { getLocation, replace } from "connected-react-router";
+import { getLocation, push, replace } from "connected-react-router";
+import { SERVE_PATH } from "../../../constants";
 
 interface IQueryParams {
     [key: string]: any;
@@ -28,7 +29,14 @@ const setQueryString = (queryParams: IQueryParams) => {
     }
 };
 
+const goToPage = (path: string) => {
+    return dispatch => {
+        dispatch(push(SERVE_PATH + path))
+    }
+};
+
 
 export default {
     setQueryString,
+    goToPage
 };

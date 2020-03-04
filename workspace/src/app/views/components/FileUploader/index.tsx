@@ -28,10 +28,15 @@ interface IProps {
     onProgress?(progress: number);
 
     allowMultiple?: boolean;
+
     disabled?: boolean;
 }
 
-class FileUploader extends React.Component<IProps, any> {
+interface IState {
+    progress: number
+}
+
+class FileUploader extends React.Component<IProps, IState> {
     private uppy = Uppy();
 
     constructor(props) {
@@ -103,6 +108,7 @@ class FileUploader extends React.Component<IProps, any> {
         this.setState({
             progress: 0
         });
+        this.uppy.cancelAll();
         this.uppy.reset();
     };
 

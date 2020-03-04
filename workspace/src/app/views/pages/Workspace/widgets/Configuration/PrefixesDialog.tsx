@@ -11,6 +11,7 @@ import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { useDispatch, useSelector } from "react-redux";
 import Row from "@wrappers/carbon/grid/Row";
 import DataList from "../../../../components/Datalist";
+import Loading from "../../../../components/Loading";
 
 const { Cell, ListRow, Header, Body } = DataList;
 
@@ -19,6 +20,8 @@ const PrefixesDialog = ({onCloseModal, isOpen}) => {
 
     const prefixList = useSelector(workspaceSel.prefixListSelector);
     const newPrefix = useSelector(workspaceSel.newPrefixSelector);
+    const configWidget = useSelector(workspaceSel.widgetsSelector).configuration;
+    const {error, isLoading} = configWidget;
 
     const [isOpenRemove, setIsOpenRemove] = useState<boolean>(false);
     const [selectedPrefix, setSelectedPrefix] = useState<IPrefixState>(null);
@@ -35,14 +38,14 @@ const PrefixesDialog = ({onCloseModal, isOpen}) => {
 
     const handleConfirmRemove = () => {
         if (selectedPrefix) {
-            dispatch(workspaceOp.removeProjectPrefixAsync(selectedPrefix.prefixName));
+            dispatch(workspaceOp.fetchRemoveProjectPrefixAsync(selectedPrefix.prefixName));
         }
         toggleRemoveDialog();
     };
 
     const handleAddOrUpdatePrefix = (prefix: IPrefixState) => {
         const {prefixName, prefixUri} = prefix;
-        dispatch(workspaceOp.addOrUpdatePrefixAsync(prefixName, prefixUri));
+        dispatch(workspaceOp.fetchAddOrUpdatePrefixAsync(prefixName, prefixUri));
     };
 
     const handleUpdatePrefixFields = (field: string, value: string) => {
@@ -59,44 +62,49 @@ const PrefixesDialog = ({onCloseModal, isOpen}) => {
             isOpen={isOpen}
             style={{width: '850px'}}
         >
-            <div className={Classes.DIALOG_BODY} style={{
-                maxHeight: '600px',
-                overflow: 'auto'
-            }}>
-                <PrefixNew
-                    prefix={newPrefix}
-                    onChangePrefix={handleUpdatePrefixFields}
-                    onAdd={() => handleAddOrUpdatePrefix(newPrefix)}
-                />
-                <Row>
-                    <DataList data={prefixList}>
-                        <Header>
-                            <Cell head>Prefix</Cell>
-                            <Cell head>Uri</Cell>
-                        </Header>
-                        <Body>
-                            {
-                                prefixList.map((prefix, i) =>
-                                    <PrefixRow
-                                        key={i}
-                                        prefix={prefix}
-                                        onRemove={() => toggleRemoveDialog(prefix)}
-                                    />
-                                )
-                            }
-                        </Body>
-                    </DataList>
-                </Row>
-            </div>
-            <div className={Classes.DIALOG_FOOTER}>
-                <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                    <Button
-                        onClick={() => onCloseModal()}
-                        intent={Intent.NONE}>
-                        Close
-                    </Button>
-                </div>
-            </div>
+            {
+                isLoading ? <Loading /> :
+                    <>
+                        <div className={Classes.DIALOG_BODY} style={{
+                            maxHeight: '600px',
+                            overflow: 'auto'
+                        }}>
+                            <PrefixNew
+                                prefix={newPrefix}
+                                onChangePrefix={handleUpdatePrefixFields}
+                                onAdd={() => handleAddOrUpdatePrefix(newPrefix)}
+                            />
+                            <Row>
+                                <DataList data={prefixList}>
+                                    <Header>
+                                        <Cell head>Prefix</Cell>
+                                        <Cell head>Uri</Cell>
+                                    </Header>
+                                    <Body>
+                                    {
+                                        prefixList.map((prefix, i) =>
+                                            <PrefixRow
+                                                key={i}
+                                                prefix={prefix}
+                                                onRemove={() => toggleRemoveDialog(prefix)}
+                                            />
+                                        )
+                                    }
+                                    </Body>
+                                </DataList>
+                            </Row>
+                        </div>
+                        <div className={Classes.DIALOG_FOOTER}>
+                            <div className={Classes.DIALOG_FOOTER_ACTIONS}>
+                                <Button
+                                    onClick={() => onCloseModal()}
+                                    intent={Intent.NONE}>
+                                    Close
+                                </Button>
+                            </div>
+                        </div>
+                    </>
+            }
             <DeleteModal
                 isOpen={isOpenRemove}
                 onDiscard={() => toggleRemoveDialog()}
