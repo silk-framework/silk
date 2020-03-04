@@ -1,8 +1,8 @@
-import ApplicationContainer from './src/components/layout/ApplicationContainer';
-import ApplicationHeader from './src/components/layout/ApplicationHeader';
-import ApplicationContent from './src/components/layout/ApplicationContent';
-import ApplicationSidebarToggler from './src/components/layout/ApplicationSidebarToggler';
-import ApplicationTitle from './src/components/layout/ApplicationTitle';
+import ApplicationContainer from './src/components/Application/ApplicationContainer';
+import ApplicationHeader from './src/components/Application/ApplicationHeader';
+import ApplicationContent from './src/components/Application/ApplicationContent';
+import ApplicationSidebarToggler from './src/components/Application/ApplicationSidebarToggler';
+import ApplicationTitle from './src/components/Application/ApplicationTitle';
 
 export {
     ApplicationContainer,
