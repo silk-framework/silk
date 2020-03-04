@@ -984,12 +984,24 @@
   resolved "https://artifactory.eccenca.com/api/npm/npm/@carbon/icon-helpers/-/icon-helpers-10.5.2.tgz#7975fc091206f4a423e812dada89519df52c2041"
   integrity sha1-eXX8CRIG9KQj6BLa2olRnfUsIEE=
 
+"@carbon/icon-helpers@^10.6.0":
+  version "10.6.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@carbon/icon-helpers/-/icon-helpers-10.6.0.tgz#72a5bbd1edbee3728e47fa6d17c2aca67dbb101c"
+  integrity sha1-cqW70e2+43KOR/ptF8Kspn27EBw=
+
 "@carbon/icons-react@^10.8.2":
   version "10.8.2"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@carbon/icons-react/-/icons-react-10.8.2.tgz#f109b80457a4dcb23dd4d168662966ca229a3614"
   integrity sha1-8Qm4BFek3LI91NFoZilmyiKaNhQ=
   dependencies:
     "@carbon/icon-helpers" "^10.5.2"
+
+"@carbon/icons-react@^10.9.1":
+  version "10.9.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@carbon/icons-react/-/icons-react-10.9.1.tgz#3030f3d94d737bab07a8b48bb99a9401a6087170"
+  integrity sha1-MDDz2U1ze6sHqLSLuZqUAaYIcXA=
+  dependencies:
+    "@carbon/icon-helpers" "^10.6.0"
 
 "@cnakazawa/watch@^1.0.3":
   version "1.0.3"
@@ -2942,18 +2954,18 @@ capture-exit@^2.0.0:
   dependencies:
     rsvp "^4.8.4"
 
-carbon-components-react@^7.9.3:
-  version "7.9.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/carbon-components-react/-/carbon-components-react-7.9.3.tgz#664dda1c47077944e30a9de5bcdbd4c219954248"
-  integrity sha1-Zk3aHEcHeUTjCp3lvNvUwhmVQkg=
+carbon-components-react@^7.10.1:
+  version "7.10.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/carbon-components-react/-/carbon-components-react-7.10.1.tgz#8f29cca3fea91f022ab66484800458680d5336e4"
+  integrity sha1-jynMo/6pHwIqtmSEgARYaA1TNuQ=
   dependencies:
-    "@carbon/icons-react" "^10.8.2"
+    "@carbon/icons-react" "^10.9.1"
     classnames "2.2.6"
     downshift "^1.31.14"
     flatpickr "4.6.1"
-    focus-trap-react "^6.0.0"
     invariant "^2.2.3"
     lodash.debounce "^4.0.8"
+    lodash.findlast "^4.5.0"
     lodash.isequal "^4.5.0"
     lodash.omit "^4.5.0"
     react-is "^16.8.6"
@@ -5024,21 +5036,6 @@ flush-write-stream@^1.0.0:
   dependencies:
     inherits "^2.0.3"
     readable-stream "^2.3.6"
-
-focus-trap-react@^6.0.0:
-  version "6.0.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/focus-trap-react/-/focus-trap-react-6.0.0.tgz#3f5a9f68447dd374d22388fb4c50018be83e74a5"
-  integrity sha1-P1qfaER903TSI4j7TFABi+g+dKU=
-  dependencies:
-    focus-trap "^4.0.2"
-
-focus-trap@^4.0.2:
-  version "4.0.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/focus-trap/-/focus-trap-4.0.2.tgz#4ee2b96547c9ea0e4252a2d4b2cca68944194663"
-  integrity sha1-TuK5ZUfJ6g5CUqLUssymiUQZRmM=
-  dependencies:
-    tabbable "^3.1.2"
-    xtend "^4.0.1"
 
 follow-redirects@1.5.10:
   version "1.5.10"
@@ -7275,6 +7272,11 @@ lodash.escape@^4.0.1:
   version "4.0.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/lodash.escape/-/lodash.escape-4.0.1.tgz#c9044690c21e04294beaa517712fded1fa88de98"
   integrity sha1-yQRGkMIeBClL6qUXcS/e0fqI3pg=
+
+lodash.findlast@^4.5.0:
+  version "4.6.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/lodash.findlast/-/lodash.findlast-4.6.0.tgz#ea8bb78cf2e7e7804fc8aeb7d1953e07fe31fbc8"
+  integrity sha1-6ou3jPLn54BPyK630ZU+B/4x+8g=
 
 lodash.flattendeep@^4.4.0:
   version "4.4.0"
@@ -11255,11 +11257,6 @@ symbol-tree@^3.2.2:
   version "3.2.4"
   resolved "https://artifactory.eccenca.com/api/npm/npm/symbol-tree/-/symbol-tree-3.2.4.tgz#430637d248ba77e078883951fb9aa0eed7c63fa2"
   integrity sha1-QwY30ki6d+B4iDlR+5qg7tfGP6I=
-
-tabbable@^3.1.2:
-  version "3.1.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/tabbable/-/tabbable-3.1.2.tgz#f2d16cccd01f400e38635c7181adfe0ad965a4a2"
-  integrity sha1-8tFszNAfQA44Y1xxga3+CtllpKI=
 
 table@^5.2.3:
   version "5.4.6"

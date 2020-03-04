@@ -15,7 +15,7 @@
     "babel-plugin-react-intl": "^3.0.1",
     "bfj": "6.1.1",
     "carbon-components": "^10.9.3",
-    "carbon-components-react": "^7.9.3",
+    "carbon-components-react": "^7.10.1",
     "case-sensitive-paths-webpack-plugin": "2.2.0",
     "connected-react-router": "^6.5.2",
     "css-loader": "1.0.0",
