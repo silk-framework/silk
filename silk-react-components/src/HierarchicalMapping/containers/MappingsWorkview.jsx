@@ -137,7 +137,7 @@ class MappingsWorkview extends React.Component {
     };
     
     loadData(params = {}) {
-        const {initialLoad = false} = params;
+        const {initialLoad = false, onFinish} = params;
         this.setState({
             loading: true,
         });
@@ -165,8 +165,11 @@ class MappingsWorkview extends React.Component {
                         ruleData: rule,
                     });
                 },
-                err => {
-                    this.setState({loading: false});
+                err => this.setState({loading: false}),
+                () => {
+                    if (onFinish) {
+                        onFinish();
+                    }
                 }
             );
     };
@@ -294,6 +297,12 @@ class MappingsWorkview extends React.Component {
         this.handlePaste(true);
     };
     
+    handleAddNewRule = (callback) => {
+        this.loadData({
+            onFinish: callback
+        });
+    }
+    
     render() {
         const {rules = {}, id} = this.state.ruleData;
         const loading = this.state.loading ? <Spinner/> : false;
@@ -310,12 +319,14 @@ class MappingsWorkview extends React.Component {
                             type: _.get(this, 'state.ruleData.rules.typeRules[0].typeUri'),
                         }}
                         ruleData={{type: MAPPING_RULE_TYPE_OBJECT}}
+                        onAddNewRule={this.handleAddNewRule}
                     />
                 ) : (
                     <ValueMappingRuleForm
                         type={createType}
                         parentId={this.state.ruleData.id}
                         edit
+                        onAddNewRule={this.handleAddNewRule}
                     />
                 )}
             </div>
