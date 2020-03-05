@@ -1,14 +1,20 @@
 import React, { useEffect } from 'react';
-import Main from "../../layout/Main";
 import Filterbar from "./Filterbar";
 import SearchList from "./SearchResults/SearchList";
 import TopBar from "./Topbar";
 import { workspaceOp } from "@ducks/workspace";
 import { useDispatch } from "react-redux";
-import Grid from "@wrappers/carbon/grid";
-import Row from "@wrappers/carbon/grid/Row";
-import Col from "@wrappers/carbon/grid/Col";
 import EmptyWorkspace from "./EmptyWorkspace";
+
+import {
+    WorkspaceContent,
+    WorkspaceMain,
+    WorkspaceSide,
+    WorkspaceSection,
+    WorkspaceGrid,
+    WorkspaceRow,
+    WorkspaceColumn,
+} from "@wrappers/index";
 
 const Projects = () => {
     const dispatch = useDispatch();
@@ -20,24 +26,28 @@ const Projects = () => {
     }, []);
 
     return (
-        <Main>
-            <Grid>
-                <Row>
-                    <Col span={12}>
-                        <EmptyWorkspace />
-                    </Col>
-                </Row>
-                <Row>
-                    <Col span={2} className='filter-bar-content'>
-                        <Filterbar/>
-                    </Col>
-                    <Col span={6} className='preview-content'>
-                        <TopBar/>
-                        <SearchList/>
-                    </Col>
-                </Row>
-            </Grid>
-        </Main>
+        <WorkspaceContent className="eccapp-di__workspace">
+            <WorkspaceMain>
+                <WorkspaceSection>
+                    <TopBar/>
+                    <WorkspaceGrid>
+                        <WorkspaceRow>
+                            <WorkspaceColumn small>
+                                <Filterbar/>
+                            </WorkspaceColumn>
+                            <WorkspaceColumn full>
+                                <SearchList/>
+                            </WorkspaceColumn>
+                        </WorkspaceRow>
+                    </WorkspaceGrid>
+                </WorkspaceSection>
+            </WorkspaceMain>
+            <WorkspaceSide>
+                <WorkspaceSection>
+                    <EmptyWorkspace />
+                </WorkspaceSection>
+            </WorkspaceSide>
+        </WorkspaceContent>
     )
 };
 

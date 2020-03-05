@@ -1,13 +1,17 @@
 import React, { useEffect } from "react";
 
-import './index.scss';
 import { useSelector } from "react-redux";
 import { AppToaster } from "../../../services/toaster";
 import { Intent } from "@wrappers/blueprint/constants";
 import { useParams } from "react-router";
-import Main from "../../layout/Main";
 import Metadata from "../../components/Metadata";
 import { datasetSel } from "@ducks/dataset";
+
+import {
+    WorkspaceContent,
+    WorkspaceMain,
+    WorkspaceSection,
+} from "@wrappers/index";
 
 export default function () {
     const error = useSelector(datasetSel.errorSelector);
@@ -24,10 +28,12 @@ export default function () {
     }, [error.detail]);
 
     return (
-        <Main>
-            <>
-                <Metadata projectId={projectId} taskId={linkingId}/>
-            </>
-        </Main>
+        <WorkspaceContent className="eccapp-di__linking">
+            <WorkspaceMain>
+                <WorkspaceSection>
+                    <Metadata projectId={projectId} taskId={linkingId}/>
+                </WorkspaceSection>
+            </WorkspaceMain>
+        </WorkspaceContent>
     );
 }
