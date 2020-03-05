@@ -23,7 +23,7 @@ before_cache:
   - find $HOME/.sbt        -name "*.lock"               -print -delete
 
 before_deploy:
-  - sbt ++$TRAVIS_SCALA_VERSION "project workbench" universal:package-zip-tarball
+  - GIT_DESCRIBE=$TRAVIS_TAG sbt ++$TRAVIS_SCALA_VERSION "project workbench" universal:package-zip-tarball
 
 deploy:
   provider: releases
