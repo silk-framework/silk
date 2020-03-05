@@ -22,16 +22,13 @@ before_cache:
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
   - find $HOME/.sbt        -name "*.lock"               -print -delete
 
-script:
-  - echo "skipping tests"
-
-after_success:
+before_deploy:
   - sbt ++$TRAVIS_SCALA_VERSION "project workbench" universal:package-zip-tarball
 
 deploy:
   provider: releases
   api_key:
-    secure: JYr9YnA5HrW0Lnso5Fs0R2gln33u0zB1MputrLxVy43AgjDSnpnV1B0JWUpARTz//x4XtkwF5aqrVjKWUu+7e1f4SV1Vuh2allogp7XDFoKcC2H9cB3kG4PCo8o2FGU1UkieNzYykwuCDGST2tu4HpcbE4FnQCd7p5shUspG/2olau0z37m0ZVlntMuy+SPhIQ/jdaohdo/6zEHnVajTOEZUzoDmgQJjjntmbt1OqHASGAJ1vt77PfI3u6+lM1IHUlVn4ZlZnc94dXrcMfFqYhOMejMW+I6RbX5qyDC5i0BqfMpuGuv6LsylB4n+O5GzKl0Lm9E8b6vOS2pHzx/VYn6OPcB+8sxihZ3gU/dFQ4jQc3mmJT0c1d/x4MjSKRNy4Ry/tvyFIAvDneCRWvOcZ0ybY47W1Ug5b5aUt32eujjVRSQ9jlCbPY9ZVU6tnfsr7G/vPecrPShM5evfASvv5de7jIWJVV2YP4wles/+D3K1MyssKvUpX2qO0Je6U3IXPHic+u528zTfmQ+uVov0ufHYiebPQE5ly6ygx9ZWOy27EbRlkM0cO8RX3Iu1Nmm+D00uqY5/AgVJodOu0QR0vppP9hYTtxu8+CYi2h+1+9592F+Od4Fi5rO+M1MvIkJPaHRET0vaUdDm76gRItqjLNpCsMC2ueieAMxD69p+nFA=
+    secure: C0yrDT9jaD5cYParaSmScdCYSFyEUmXCsEWWYqYUw/2KyiBYwhtadyEc9VC6R91swTY50/nImlfb7yIopejAftll1jImxFBjQvToP3JI2UQ6j6h7l3DupH+WawPV5nkaIeVscVoa9tCrumpimaQ96RijVhqLmBWCAqCwXH84TLT7e1CH1fwsRk1cM8wUvP0TntfjQTXLZVQEVvkWKb7G/zQ1xLbZNjj1OBpdmDmvQB4lv8fly3eJv0P6XZr0ldz1oYTGW4eNdpTjsn+31d3s63ugsUN7HnuYrW/hwDC12HgqDaZshnf0zm67CJi2RzUF6/CwuCGdWtIUHjRInbpEfv3UmIL70VqK5avZJ7s3AtYd3gAiLDqs0EaJK9E2Qlha0kW9N5+02/wPg6hFl1rwNSf38nS5hCWaIv0AaeT1l9oyClrWB6iz/3cRs5DojrzIqQN+ISkPR8zCriC9KSHVxiFK9MrxJQ0wF7s+9M3fKQ05Xn4Yu/taBOrO+GAspBkMLlvSlUj25QCUPihv2tNrI1SqnrgDvrKwa6EDpSxt5MxroNvJ3JQoP174GmTZrazyEes3RajtvvDDfMvdJzNyV8jGkorywkVgFQhrMpQq68TooPqZMFT44QzfKGxOwPTM9K+Tql6Q3WFUt/0NSI48cB5hWVFVfNhTH+JcGNwMO0k=
   file_glob: true
   file: silk-workbench/target/universal/silk-workbench-*
   on:
