@@ -22,4 +22,11 @@ before_cache:
   - find $HOME/.sbt        -name "*.lock"               -print -delete
 
 after_success:
-  - sbt ++$TRAVIS_SCALA_VERSION "project workbench" universal:package-zip-tarball
+  - sbt ++$TRAVIS_SCALA_VERSION
+
+deploy:
+  provider: releases "project workbench" universal:package-zip-tarball
+  api_key: "845842f757a9a359fd7404f7d6ded8f1539287f6"
+  file: "silk-workbench/target/universal/silk-workbench-3.0.0-SNAPSHOT.tgz"
+  skip_cleanup: true
+  draft: true
