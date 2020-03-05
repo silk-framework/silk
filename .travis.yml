@@ -21,5 +21,5 @@ before_cache:
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
   - find $HOME/.sbt        -name "*.lock"               -print -delete
 
-before_deploy:
+after_success:
   - sbt ++$TRAVIS_SCALA_VERSION "project workbench" universal:package-zip-tarball
