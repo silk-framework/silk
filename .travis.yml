@@ -32,7 +32,8 @@ deploy:
   provider: releases
   api_key:
     secure: Uqvy1rGUg7yMIebERoQm/MTKEvg0Q2O2ZLjs6pqMSIa1jldtVZi9PcYO0Lz4I02bYtXPQdPqW0yG7V0K3K2p0u8I0IsZBRKED4c33ULZLuLoVcpYWe7m+iGKXA4mfOqCg8wSNkx5IAsSsakNW2IdTdE6OHn8LBJwV3DohqCr4UrY0A3ktBD7+6OhstxdPsxg37XIqMQEjGnJ6R1uesu3asZgzNP1IKYCH0ClGxedV9E6NdOHCuN+DH81kvWbvF/Jof0B8uis5ztf49UNf4VPGMXsVSH5LMMUIVqn8Ebst3oK48KCdOa1Z7bWoOeoB5pxc/gzLmrN1xKFlv9OG32UwLVQ0CBVIrdt8rFmsgmLEZU9ivCpHPq19pW14X7UN8mKk95AMlIanr25yXyfgrJP6mPCn3i8RbDkyXjsfuWnI1jZmPfhRCKUxKrThqWlzenr18G3lA0DcGJhvaYau80RjSkaJuQ4t4JULtiA93dIkfNUOHU1F7Ng8qlJie8SOULPZOmXJhRZRdlhaBwlMdpBDY+oTQeijG1EJOaRi7Dj0ijKa09JpOcdB3Pgww10K483UcMi5NAgj5GlCv5E/cLlkwkO2mCGvEKfZY7i/D/UOpjFwQ7rHZJi+O/Ge1gqLrOQWMxxyWdgPBnpiA+fhzI5C/9E7xWE1qnEI0sDSA1cjkE=
-  file: silk-workbench/target/universal/silk-workbench-3.0.0-SNAPSHOT.tgz
+  file_glob: true
+  file: silk-workbench/target/universal/silk-workbench-*
   on:
     repo: silk-framework/silk
     branch: feature/buildPackage
