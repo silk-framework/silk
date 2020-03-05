@@ -161,15 +161,15 @@ class MappingsWorkview extends React.Component {
                         });
                     }
                     this.setState({
-                        loading: false,
                         ruleData: rule,
                     });
                 },
-                err => this.setState({loading: false}),
+                () => {},
                 () => {
                     if (onFinish) {
                         onFinish();
                     }
+                    this.setState({loading: false})
                 }
             );
     };
@@ -301,7 +301,7 @@ class MappingsWorkview extends React.Component {
         this.loadData({
             onFinish: callback
         });
-    }
+    };
     
     render() {
         const {rules = {}, id} = this.state.ruleData;
