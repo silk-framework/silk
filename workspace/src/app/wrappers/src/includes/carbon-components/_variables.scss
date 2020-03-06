@@ -11,10 +11,10 @@ $css--helpers: false !default;
 $css--body: false !default;
 
 /// If true, the `layer()` mixin sets `box-shadow` values
-// $css--use-layer: true !default;
+$css--use-layer: true !default;
 
 /// If true, include reset CSS
-// $css--reset: true !default;
+$css--reset: true !default;
 
 /// If true, include default type
 $css--default-type: false !default;
@@ -25,7 +25,12 @@ $css--plex: false !default;
 $feature-flags: (
     ui-shell: true,
     grid-columns-16: true,
-);
+) !default;
+
+// ⚠️ Manage deprecations
+$deprecations--entry: true;
+$deprecations--reasons: ();
+$deprecations--message: 'Deprecated code was found, this code will be removed before the next release of Carbon.';
 
 $carbon--base-font-size: $ecc-size-typo-base !default;
 @import '~carbon-components/scss/globals/scss/vendor/@carbon/type/scss/vendor/@carbon/layout/convert';

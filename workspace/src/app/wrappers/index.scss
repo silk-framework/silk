@@ -1,12 +1,154 @@
-// load default configuration
+// == load default configuration ===============================================
+
 @import 'src/configuration/variables';
 
-// load includes from other libraries
-@import 'src/includes/blueprintjs';
-@import 'src/includes/carbon-components';
+// == Necessary imports from libraries =========================================
 
-// load own element styles
-// TODO
+// -- BlueprintJS --------------------------------------------------------------
 
-// load tweaks
+// calculate blueprintjs configuration
+@import 'src/includes/blueprintjs/variables';
+// load blueprintjs requsists
+@import "~@blueprintjs/core/src/common/variables";
+@import "~@blueprintjs/core/src/common/colors";
+@import "~@blueprintjs/core/src/reset";
+@import "~@blueprintjs/core/src/typography";
+@import "~@blueprintjs/core/src/accessibility/focus-states";
+
+// -- Carbon Elements ----------------------------------------------------------
+
+/*
+    ATTENTION: Blueprint and Carbon seem to share some variable names,
+    e.g. `$button-padding` and maybe some more ... loading Carbon config here
+    leads to some unwanted style results of Blueprint components later, but as
+    we want to prevent double usage of same elements we need to figure this out
+    later anyway.
+*/
+
+// calculate carbon configuration
+@import 'src/includes/carbon-components/variables';
+// load carbon requsists
+@import '~carbon-components/scss/globals/scss/feature-flags';
+@import '~carbon-components/scss/globals/scss/vars';
+@import '~carbon-components/scss/globals/scss/colors';
+@import '~carbon-components/scss/globals/scss/theme';
+@import '~carbon-components/scss/globals/scss/mixins';
+@import '~carbon-components/scss/globals/scss/layout';
+@import '~carbon-components/scss/globals/scss/layer';
+@import '~carbon-components/scss/globals/scss/spacing';
+@import '~carbon-components/scss/globals/scss/typography';
+@import '~carbon-components/scss/globals/scss/vendor/@carbon/elements/scss/import-once/import-once';
+@import '~carbon-components/scss/globals/scss/css--reset';
+@import '~carbon-components/scss/globals/scss/css--font-face';
+@import '~carbon-components/scss/globals/scss/css--helpers';
+@import '~carbon-components/scss/globals/scss/css--body';
+@import '~carbon-components/scss/globals/grid/grid';
+
+
+// == Load element styles ======================================================
+
+/*
+    TODO: when finished we only should see includes from own elements here, even
+    if we use element includes from libraries there.
+*/
+
+@import "~@blueprintjs/core/src/components/alert/alert";
+@import "~@blueprintjs/core/src/components/breadcrumbs/breadcrumbs";
+@import "~@blueprintjs/core/src/components/button/button";
+@import "~@blueprintjs/core/src/components/button/button-group";
+@import "~@blueprintjs/core/src/components/callout/callout";
+@import "~@blueprintjs/core/src/components/card/card";
+@import "~@blueprintjs/core/src/components/collapse/collapse";
+@import "~@blueprintjs/core/src/components/context-menu/context-menu";
+@import "~@blueprintjs/core/src/components/divider/divider";
+@import "~@blueprintjs/core/src/components/dialog/dialog";
+@import "~@blueprintjs/core/src/components/drawer/drawer";
+@import "~@blueprintjs/core/src/components/editable-text/editable-text";
+@import "~@blueprintjs/core/src/components/forms/index";
+@import "~@blueprintjs/core/src/components/html-select/html-select";
+@import "~@blueprintjs/core/src/components/html-table/html-table";
+@import "~@blueprintjs/core/src/components/hotkeys/hotkeys";
+@import "~@blueprintjs/core/src/components/icon/icon";
+@import "~@blueprintjs/core/src/components/menu/menu";
+@import "~@blueprintjs/core/src/components/navbar/navbar";
+@import "~@blueprintjs/core/src/components/non-ideal-state/non-ideal-state";
+@import "~@blueprintjs/core/src/components/overflow-list/overflow-list";
+@import "~@blueprintjs/core/src/components/overlay/overlay";
+@import "~@blueprintjs/core/src/components/panel-stack/panel-stack";
+@import "~@blueprintjs/core/src/components/popover/popover";
+@import "~@blueprintjs/core/src/components/portal/portal";
+@import "~@blueprintjs/core/src/components/progress-bar/progress-bar";
+@import "~@blueprintjs/core/src/components/skeleton/skeleton";
+@import "~@blueprintjs/core/src/components/slider/slider";
+@import "~@blueprintjs/core/src/components/spinner/spinner";
+@import "~@blueprintjs/core/src/components/tabs/tabs";
+@import "~@blueprintjs/core/src/components/tag/tag";
+@import "~@blueprintjs/core/src/components/tag-input/tag-input";
+@import "~@blueprintjs/core/src/components/toast/toast";
+@import "~@blueprintjs/core/src/components/tooltip/tooltip";
+@import "~@blueprintjs/core/src/components/tree/tree";
+// Icon lib import seems not to be necessary with bp3, maybe we need this only as fallback for older browsers
+// @import '~@blueprintjs/icons/src/blueprint-icons';
+
+@import '~carbon-components/scss/components/button/button';
+@import '~carbon-components/scss/components/copy-button/copy-button';
+@import '~carbon-components/scss/components/file-uploader/file-uploader';
+@import '~carbon-components/scss/components/checkbox/checkbox';
+@import '~carbon-components/scss/components/combo-box/combo-box';
+@import '~carbon-components/scss/components/radio-button/radio-button';
+@import '~carbon-components/scss/components/toggle/toggle';
+@import '~carbon-components/scss/components/search/search';
+@import '~carbon-components/scss/components/select/select';
+@import '~carbon-components/scss/components/text-input/text-input';
+@import '~carbon-components/scss/components/text-area/text-area';
+@import '~carbon-components/scss/components/number-input/number-input';
+@import '~carbon-components/scss/components/form/form';
+@import '~carbon-components/scss/components/link/link';
+@import '~carbon-components/scss/components/list-box/list-box';
+@import '~carbon-components/scss/components/list/list';
+@import '~carbon-components/scss/components/data-table/data-table';
+@import '~carbon-components/scss/components/structured-list/structured-list';
+@import '~carbon-components/scss/components/code-snippet/code-snippet';
+@import '~carbon-components/scss/components/overflow-menu/overflow-menu';
+@import '~carbon-components/scss/components/content-switcher/content-switcher';
+@import '~carbon-components/scss/components/date-picker/date-picker';
+@import '~carbon-components/scss/components/dropdown/dropdown';
+@import '~carbon-components/scss/components/loading/loading';
+@import '~carbon-components/scss/components/modal/modal';
+@import '~carbon-components/scss/components/multi-select/multi-select';
+@import '~carbon-components/scss/components/notification/inline-notification';
+@import '~carbon-components/scss/components/notification/toast-notification';
+@import '~carbon-components/scss/components/tooltip/tooltip';
+@import '~carbon-components/scss/components/tabs/tabs';
+@import '~carbon-components/scss/components/tag/tag';
+@import '~carbon-components/scss/components/pagination/pagination';
+@import '~carbon-components/scss/components/accordion/accordion';
+@import '~carbon-components/scss/components/progress-indicator/progress-indicator';
+@import '~carbon-components/scss/components/breadcrumb/breadcrumb';
+@import '~carbon-components/scss/components/toolbar/toolbar';
+@import '~carbon-components/scss/components/time-picker/time-picker';
+@import '~carbon-components/scss/components/slider/slider';
+@import '~carbon-components/scss/components/tile/tile';
+@import '~carbon-components/scss/components/skeleton/skeleton';
+@import '~carbon-components/scss/components/inline-loading/inline-loading';
+@import '~carbon-components/scss/components/pagination-nav/pagination-nav';
+@import '~carbon-components/scss/components/ui-shell/ui-shell'; // experimental
+
+// == load tweaks ==============================================================
+
 @import 'src/shame';
+
+// == Some aftermath ===========================================================
+
+// -- Carbon Elements ----------------------------------------------------------
+
+// Cycle through all the deprecation reasons, if any exist, that have been
+// accumulated through the @import process.
+@if (length($deprecations--reasons) > 0) {
+  $deprecations--message: '';
+  @each $reason in $deprecations--reasons {
+    $deprecations--message: '#{$deprecations--message} REASON: #{$reason}';
+  }
+
+  @warn $deprecations--message;
+}
