@@ -36,3 +36,6 @@ deploy:
     tags: true
   skip_cleanup: true
   draft: false
+  # Title and description of the Github release
+  name: Release $TRAVIS_TAG
+  body: Silk Framework Release $TRAVIS_TAG
