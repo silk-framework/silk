@@ -298,7 +298,7 @@ class MappingsWorkview extends React.Component {
     };
     
     handleAddNewRule = (callback) => {
-        this.loadData({
+        EventEmitter.emit(MESSAGES.RELOAD, {
             onFinish: callback
         });
     };
