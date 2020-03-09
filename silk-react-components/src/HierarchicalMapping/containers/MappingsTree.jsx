@@ -44,7 +44,7 @@ class MappingsTree extends React.Component {
         EventEmitter.off(MESSAGES.RELOAD, this.loadNavigationTree);
     }
 
-    loadNavigationTree = () => {
+    loadNavigationTree = (args = {}) => {
         const { navigationExpanded } = this.state;
         this.setState({
             navigationLoading: true,
@@ -66,6 +66,11 @@ class MappingsTree extends React.Component {
                     this.setState({
                         navigationLoading: false,
                     });
+                },
+                () => {
+                    if (args.onFinish) {
+                        args.onFinish();
+                    }
                 }
             );
     };
