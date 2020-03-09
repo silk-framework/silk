@@ -1,0 +1,185 @@
+/*
+    Currently it does not work to set the carbon vars before the include of
+    the library component because teh include reset the vars again to the
+    default values. For this reason we need to overwrite colors again in our
+    own rule patches.
+*/
+
+/// Header bar background
+$shell-header-bg-01: $ecc-color-applicationheader-background !default;
+
+/// Header menu trigger hover, Header nav link hover
+$shell-header-bg-02: darken($ecc-color-applicationheader-background, 0.1) !default;
+
+/// Header action active background
+$shell-header-bg-03: darken($ecc-color-applicationheader-background, 0.2) !default;
+
+/// Header submenu link hover
+$shell-header-bg-04: darken($ecc-color-applicationheader-background, 0.1) !default; //TODO needs color var gray-90-hover
+
+/// Header nav link active and focus background
+$shell-header-bg-05: darken($ecc-color-applicationheader-background, 0.1) !default;
+
+/// Header nav link submenu
+$shell-header-bg-06: darken($ecc-color-applicationheader-background, 0.2) !default;
+
+/// Header border bottom
+$shell-header-border-01: transparent !default;
+
+/// Header focus
+$shell-header-focus: lighten($ecc-color-applicationheader-text, 0.39) !default;
+
+/// Primary text in header, Title text
+$shell-header-text-01: lighten($ecc-color-applicationheader-text, 0.1) !default;
+
+/// Secondary text in header, Menu item nav text
+$shell-header-text-02: $ecc-color-applicationheader-text !default;
+
+/// Header menu trigger
+$shell-header-icon-01: $ecc-color-applicationheader-text !default;
+
+/// Header bar icons
+$shell-header-icon-02: $ecc-color-applicationheader-text !default;
+
+/// Header bar icons
+$shell-header-icon-03: $ecc-color-applicationheader-text !default;
+
+/// Item link
+$shell-header-link: $carbon--blue-60 !default;
+
+// load library sub component
+@import '~carbon-components/scss/components/ui-shell/header';
+
+// tweack original layout
+
+.#{$prefix}--header {
+    height: mini-units(8);
+}
+
+.#{$prefix}--header__action {
+    width: mini-units(8);
+    height: mini-units(8);
+}
+
+a.#{$prefix}--header__name {
+    // padding: 0 mini-units(4) 0 mini-units(2);
+}
+
+.#{$prefix}--header__nav {
+    // padding-left: mini-units(2);
+}
+
+a.#{$prefix}--header__menu-item {
+    // padding: 0 mini-units(2);
+}
+
+.#{$prefix}--header__menu-title[aria-expanded='true'] + .#{$prefix}--header__menu {
+    // width: mini-units(25);
+}
+
+.#{$prefix}--header__menu .#{$prefix}--header__menu-item {
+    height: mini-units(8);
+}
+
+.#{$prefix}--header__menu-arrow {
+    // margin-left: mini-units(1);
+}
+
+// tweak original colors (as long as config does not work properly)
+
+// $shell-header-bg-01
+.#{$prefix}--header,
+.#{$prefix}--skip-to-content:focus {
+    background-color: $ecc-color-applicationheader-background;
+}
+.#{$prefix}--header__action--active {
+    border-bottom-color: $ecc-color-applicationheader-background;
+}
+
+// $shell-header-bg-02
+a.#{$prefix}--header__menu-item:hover {
+    background-color: darken($ecc-color-applicationheader-background, 0.1);
+}
+.#{$prefix}--header__menu-trigger:hover {
+    fill: darken($ecc-color-applicationheader-background, 0.1);
+}
+
+// $shell-header-bg-03
+.#{$prefix}--header__action:active,
+.#{$prefix}--header__menu-title[aria-expanded='true'] + .#{$prefix}--header__menu .#{$prefix}--header__menu-item:active,
+.#{$prefix}--header__action:active,
+a.#{$prefix}--header__menu-item:active {
+    background-color: darken($ecc-color-applicationheader-background, 0.2);
+}
+
+// $shell-header-bg-04
+.#{$prefix}--header__action:hover,
+.#{$prefix}--header__menu-title[aria-expanded='true'] + .#{$prefix}--header__menu .#{$prefix}--header__menu-item:hover {
+    background-color: darken($ecc-color-applicationheader-background, 0.1);
+}
+
+// $shell-header-bg-06
+.#{$prefix}--header__menu-title[aria-expanded='true'],
+.#{$prefix}--header__menu-title[aria-expanded='true'],
+.#{$prefix}--header__menu .#{$prefix}--header__menu-item:hover {
+    background-color: darken($ecc-color-applicationheader-background, 0.2);
+}
+
+// $shell-header-border-01
+.#{$prefix}--header {
+    border-bottom-color: transparent;
+}
+.#{$prefix}--header__action--active {
+    border-left-color: transparent;
+    border-right-color: transparent;
+}
+.#{$prefix}--header__nav {
+    &::before {
+        background-color: transparent;
+    }
+}
+
+// $shell-header-focus
+.#{$prefix}--header__action:focus ,
+a.#{$prefix}--header__name:focus,
+a.#{$prefix}--header__menu-item:focus {
+    border-color: lighten($ecc-color-applicationheader-text, 0.39);
+}
+.#{$prefix}--header__menu-title[aria-expanded='true'] {
+    color: lighten($ecc-color-applicationheader-text, 0.39);
+}
+
+// $shell-header-text-01
+a.#{$prefix}--header__name,
+a.#{$prefix}--header__name:hover,
+a.#{$prefix}--header__menu-item:hover,
+.#{$prefix}--header__action:active,
+a.#{$prefix}--header__menu-item:active,
+a.#{$prefix}--header__menu-item:focus,
+.#{$prefix}--header__menu .#{$prefix}--header__menu-item:hover,
+.#{$prefix}--skip-to-content:focus {
+  color: lighten($ecc-color-applicationheader-text, 0.1);
+}
+
+// $shell-header-text-02
+a.#{$prefix}--header__menu-item {
+  color: $ecc-color-applicationheader-text;
+}
+
+// $shell-header-icon-01
+.#{$prefix}--header__menu-trigger > svg,
+a.#{$prefix}--header__menu-item:hover > svg,
+a.#{$prefix}--header__menu-item:active > svg,
+a.#{$prefix}--header__menu-item:focus > svg {
+  fill: $ecc-color-applicationheader-text;
+}
+
+// $shell-header-icon-02
+.#{$prefix}--header__action > svg {
+  fill: $ecc-color-applicationheader-text;
+}
+
+// $shell-header-icon-03
+.#{$prefix}--header__menu-arrow {
+  fill: $ecc-color-applicationheader-text;
+}

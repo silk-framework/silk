@@ -11,6 +11,7 @@ import WorkspaceContent from './src/components/Workspace/WorkspaceContent';
 import WorkspaceMain from './src/components/Workspace/WorkspaceMain';
 import WorkspaceSide from './src/components/Workspace/WorkspaceSide';
 import WorkspaceSection from './src/components/Workspace/WorkspaceSection';
+import WorkspaceHeader from './src/components/Workspace/WorkspaceHeader';
 
 export {
     ApplicationContainer,
@@ -26,4 +27,5 @@ export {
     WorkspaceMain,
     WorkspaceSide,
     WorkspaceSection,
+    WorkspaceHeader,
 };

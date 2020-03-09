@@ -11,12 +11,7 @@
      variables to overwrite the default look of the application.
 */
 
-// TODO: all unsused variables are currently commented out
-
 // -- Configuration stack of colors --------------------------------------------
-
-$ecc-color-application-text: rgb(38,50,56) !default;
-$ecc-color-application-background: rgb(144,164,174) !default;
 
 $ecc-color-primary: rgb(254, 143, 1) !default;
 $ecc-color-primary-contrast: rgb(255,255,255) !default;
@@ -31,6 +26,14 @@ $ecc-color-warning-text: rgb(239,108,0) !default;
 $ecc-color-warning-background: rgb(255,243,224) !default;
 $ecc-color-danger-text: rgb(198,40,40) !default;
 $ecc-color-danger-background: rgb(255,235,238) !default;
+
+$ecc-color-applicationheader-text: #222 !default;
+$ecc-color-applicationheader-background: #ddd !default;
+$ecc-color-workspace-text: #444 !default;
+$ecc-color-workspace-background: #f5f5f5 !default;
+
+$ecc-color-application-text: $ecc-color-workspace-text !default; // deprecated
+$ecc-color-application-background: $ecc-color-workspace-background !default; // deprecated
 
 // -- Configuration stack of typography ----------------------------------------
 

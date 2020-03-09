@@ -13,6 +13,7 @@ import {
     ApplicationHeader,
     ApplicationSidebarToggler,
     ApplicationTitle,
+    WorkspaceHeader,
 } from "@wrappers/index";
 
 interface IProps {
@@ -110,11 +111,10 @@ const Header = memo<IProps>(({externalRoutes, onClickApplicationSidebarExpand, i
         .filter(isPresentableRoute)
         .map(addPluginRoutesInMenu);
 
-    const menu = generateMenuItems(pluginMenuData);
+    const menu = generateMenuItems(pluginMenuData); // TODO: include {menu} as ApplicationSidebar
     const isAuth = useSelector(globalSel.isAuthSelector);
     const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
 
-    // TODO:
     return (
         !isAuth ? null :
             <ApplicationHeader aria-label={"TODO: eccenca DI"}>
@@ -124,14 +124,15 @@ const Header = memo<IProps>(({externalRoutes, onClickApplicationSidebarExpand, i
                     isActive={isApplicationSidebarExpanded}
                 />
                 <ApplicationTitle prefix="eccenca">DataIntegration</ApplicationTitle>
-                <HomeButton/>
-                <div>
-                    <Breadcrumbs paths={breadcrumbs}/>
-                    {
-                        lastBreadcrumb && <NavbarHeading style={{fontWeight: 'bold'}}>{lastBreadcrumb.text}</NavbarHeading>
-                    }
-                </div>
-                {menu}
+                <WorkspaceHeader>
+                    <HomeButton/>
+                    <div>
+                        <Breadcrumbs paths={breadcrumbs}/>
+                        {
+                            lastBreadcrumb && <NavbarHeading style={{fontWeight: 'bold'}}>{lastBreadcrumb.text}</NavbarHeading>
+                        }
+                    </div>
+                </WorkspaceHeader>
             </ApplicationHeader>
     )
 });

@@ -84,3 +84,5 @@ font-size: carbon--rem($ecc-size-typo-subtitle),
 font-weight: 600,
 line-height: $ecc-size-typo-text-lineheight * $ecc-size-type-levelratio,
 ) !default;
+
+$ui-02: $ecc-color-workspace-background !default;

@@ -1,0 +1,27 @@
+$ui-02: $ecc-color-workspace-background !default;
+
+@import '~carbon-components/scss/components/ui-shell/content';
+
+// tweack original layout
+
+.#{$prefix}--content {
+    padding: 1rem;
+}
+
+.#{$prefix}--header ~ .#{$prefix}--content {
+    margin-top: mini-units(8);
+}
+
+.#{$prefix}--side-nav ~ .#{$prefix}--content {
+    margin-left: mini-units(8);
+}
+
+.#{$prefix}--side-nav.#{$prefix}--side-nav--expanded ~ .#{$prefix}--content {
+    // margin-left: mini-units(32);
+}
+
+// tweak original colors
+
+.#{$prefix}--content {
+    // background: $ui-02; // color can be set in carbon configuration
+}

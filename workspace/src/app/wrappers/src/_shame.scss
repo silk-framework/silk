@@ -14,8 +14,9 @@
 }
 */
 
-.bx--content {
-    padding: 1rem;
+html {
+    background-color: $ecc-color-workspace-background;
+    color: $ecc-color-workspace-text;
 }
 
 .bx--grid {
