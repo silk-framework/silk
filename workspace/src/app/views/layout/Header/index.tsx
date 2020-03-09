@@ -13,6 +13,9 @@ import {
     ApplicationHeader,
     ApplicationSidebarToggler,
     ApplicationTitle,
+    ApplicationToolbar,
+    ApplicationToolbarAction,
+    ApplicationToolbarPanel,
     WorkspaceHeader,
 } from "@wrappers/index";
 
@@ -133,6 +136,22 @@ const Header = memo<IProps>(({externalRoutes, onClickApplicationSidebarExpand, i
                         }
                     </div>
                 </WorkspaceHeader>
+                <ApplicationToolbar>
+                    <ApplicationToolbarAction
+                        aria-label="TODO: User menu"
+                        isActive={false}
+                        onClick={() => {}}
+                    >
+                        x
+                    </ApplicationToolbarAction>
+                    <ApplicationToolbarPanel
+                        aria-label="TODO: User panel"
+                        expanded={false}
+                    >
+                        TODO
+                    </ApplicationToolbarPanel>
+                </ApplicationToolbar>
+
             </ApplicationHeader>
     )
 });

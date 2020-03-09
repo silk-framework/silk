@@ -9,28 +9,28 @@
 $shell-header-bg-01: $ecc-color-applicationheader-background !default;
 
 /// Header menu trigger hover, Header nav link hover
-$shell-header-bg-02: darken($ecc-color-applicationheader-background, 0.1) !default;
+$shell-header-bg-02: adjust-color($ecc-color-applicationheader-background, $lightness: -5%) !default;
 
 /// Header action active background
-$shell-header-bg-03: darken($ecc-color-applicationheader-background, 0.2) !default;
+$shell-header-bg-03: adjust-color($ecc-color-applicationheader-background, $lightness: -10%) !default;
 
 /// Header submenu link hover
-$shell-header-bg-04: darken($ecc-color-applicationheader-background, 0.1) !default; //TODO needs color var gray-90-hover
+$shell-header-bg-04: adjust-color($ecc-color-applicationheader-background, $lightness: -5%) !default; //TODO needs color var gray-90-hover
 
 /// Header nav link active and focus background
-$shell-header-bg-05: darken($ecc-color-applicationheader-background, 0.1) !default;
+$shell-header-bg-05: adjust-color($ecc-color-applicationheader-background, $lightness: -5%) !default;
 
 /// Header nav link submenu
-$shell-header-bg-06: darken($ecc-color-applicationheader-background, 0.2) !default;
+$shell-header-bg-06: adjust-color($ecc-color-applicationheader-background, $lightness: -10%) !default;
 
 /// Header border bottom
 $shell-header-border-01: transparent !default;
 
 /// Header focus
-$shell-header-focus: lighten($ecc-color-applicationheader-text, 0.39) !default;
+$shell-header-focus: adjust-color($ecc-color-applicationheader-text, $lightness: 39%) !default;
 
 /// Primary text in header, Title text
-$shell-header-text-01: lighten($ecc-color-applicationheader-text, 0.1) !default;
+$shell-header-text-01: adjust-color($ecc-color-applicationheader-text, $lightness: -5%) !default;
 
 /// Secondary text in header, Menu item nav text
 $shell-header-text-02: $ecc-color-applicationheader-text !default;
@@ -92,16 +92,12 @@ a.#{$prefix}--header__menu-item {
 .#{$prefix}--skip-to-content:focus {
     background-color: $ecc-color-applicationheader-background;
 }
-.#{$prefix}--header__action--active {
-    border-bottom-color: $ecc-color-applicationheader-background;
-}
-
 // $shell-header-bg-02
 a.#{$prefix}--header__menu-item:hover {
-    background-color: darken($ecc-color-applicationheader-background, 0.1);
+    background-color: adjust-color($ecc-color-applicationheader-background, $lightness: -5%);
 }
 .#{$prefix}--header__menu-trigger:hover {
-    fill: darken($ecc-color-applicationheader-background, 0.1);
+    fill: adjust-color($ecc-color-applicationheader-background, $lightness: -5%);
 }
 
 // $shell-header-bg-03
@@ -109,20 +105,25 @@ a.#{$prefix}--header__menu-item:hover {
 .#{$prefix}--header__menu-title[aria-expanded='true'] + .#{$prefix}--header__menu .#{$prefix}--header__menu-item:active,
 .#{$prefix}--header__action:active,
 a.#{$prefix}--header__menu-item:active {
-    background-color: darken($ecc-color-applicationheader-background, 0.2);
+    background-color: adjust-color($ecc-color-applicationheader-background, $lightness: -10%);
 }
 
 // $shell-header-bg-04
 .#{$prefix}--header__action:hover,
 .#{$prefix}--header__menu-title[aria-expanded='true'] + .#{$prefix}--header__menu .#{$prefix}--header__menu-item:hover {
-    background-color: darken($ecc-color-applicationheader-background, 0.1);
+    background-color: adjust-color($ecc-color-applicationheader-background, $lightness: -10%);
+}
+
+// $shell-header-bg-05
+.#{$prefix}--header__action--active {
+    background-color: adjust-color($ecc-color-applicationheader-background, $lightness: -5%);
+    border-bottom-color: adjust-color($ecc-color-applicationheader-background, $lightness: -5%);
 }
 
 // $shell-header-bg-06
 .#{$prefix}--header__menu-title[aria-expanded='true'],
-.#{$prefix}--header__menu-title[aria-expanded='true'],
 .#{$prefix}--header__menu .#{$prefix}--header__menu-item:hover {
-    background-color: darken($ecc-color-applicationheader-background, 0.2);
+    background-color: adjust-color($ecc-color-applicationheader-background, $lightness: -10%);
 }
 
 // $shell-header-border-01
@@ -143,10 +144,10 @@ a.#{$prefix}--header__menu-item:active {
 .#{$prefix}--header__action:focus ,
 a.#{$prefix}--header__name:focus,
 a.#{$prefix}--header__menu-item:focus {
-    border-color: lighten($ecc-color-applicationheader-text, 0.39);
+    border-color: adjust-color($ecc-color-applicationheader-text, $lightness: 39%);
 }
 .#{$prefix}--header__menu-title[aria-expanded='true'] {
-    color: lighten($ecc-color-applicationheader-text, 0.39);
+    color: adjust-color($ecc-color-applicationheader-text, $lightness: 39%);
 }
 
 // $shell-header-text-01
@@ -158,7 +159,7 @@ a.#{$prefix}--header__menu-item:active,
 a.#{$prefix}--header__menu-item:focus,
 .#{$prefix}--header__menu .#{$prefix}--header__menu-item:hover,
 .#{$prefix}--skip-to-content:focus {
-  color: lighten($ecc-color-applicationheader-text, 0.1);
+  color: adjust-color($ecc-color-applicationheader-text, $lightness: -5%);
 }
 
 // $shell-header-text-02

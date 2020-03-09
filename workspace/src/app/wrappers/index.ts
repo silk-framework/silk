@@ -3,6 +3,9 @@ import ApplicationHeader from './src/components/Application/ApplicationHeader';
 import ApplicationContent from './src/components/Application/ApplicationContent';
 import ApplicationSidebarToggler from './src/components/Application/ApplicationSidebarToggler';
 import ApplicationTitle from './src/components/Application/ApplicationTitle';
+import ApplicationToolbar from './src/components/Application/ApplicationToolbar';
+import ApplicationToolbarAction from './src/components/Application/ApplicationToolbarAction';
+import ApplicationToolbarPanel from './src/components/Application/ApplicationToolbarPanel';
 
 import WorkspaceGrid from './src/components/Workspace/WorkspaceGrid';
 import WorkspaceRow from './src/components/Workspace/WorkspaceRow';
@@ -13,12 +16,16 @@ import WorkspaceSide from './src/components/Workspace/WorkspaceSide';
 import WorkspaceSection from './src/components/Workspace/WorkspaceSection';
 import WorkspaceHeader from './src/components/Workspace/WorkspaceHeader';
 
+
 export {
     ApplicationContainer,
     ApplicationHeader,
     ApplicationContent,
     ApplicationSidebarToggler,
     ApplicationTitle,
+    ApplicationToolbar,
+    ApplicationToolbarAction,
+    ApplicationToolbarPanel,
 
     WorkspaceGrid,
     WorkspaceRow,

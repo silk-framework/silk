@@ -1,0 +1,66 @@
+/*
+    Currently it does not work to set the carbon vars before the include of
+    the library component because the include reset the vars again to the
+    default values. For this reason we need to overwrite colors again in our
+    own rule patches.
+*/
+
+/// Header-panel background
+$shell-panel-bg-01: $ecc-color-applicationheader-background !default;
+
+/// Panel item hover background
+$shell-panel-bg-02: adjust-color($ecc-color-applicationheader-background, $lightness: -10%) !default;
+
+/// Panel item focus and active background
+$shell-panel-bg-03: adjust-color($ecc-color-applicationheader-background, $lightness: -5%) !default;
+
+/// Panel item link selected background
+$shell-panel-bg-04: adjust-color($ecc-color-applicationheader-background, $lightness: 5%) !default;
+
+/// Panel border
+$shell-panel-border: adjust-color($ecc-color-applicationheader-background, $lightness: -5%) !default;
+
+/// Header panel text
+$shell-panel-text-01: adjust-color($ecc-color-applicationheader-text, $lightness: -5%) !default;
+
+/// Header panel secondary text
+$shell-panel-text-02: $ecc-color-applicationheader-text !default;
+
+/// Header panel focus border
+$shell-panel-focus: adjust-color($ecc-color-applicationheader-text, $lightness: 39%) !default;
+
+@import '~carbon-components/scss/components/ui-shell/header-panel';
+
+// tweack original layout
+
+.#{$prefix}--header-panel {
+    top: mini-units(8);
+}
+
+.#{$prefix}--header-panel--expanded {
+    //width: carbon--mini-units(32);
+}
+
+// tweak original colors
+
+// $shell-panel-bg-01
+.#{$prefix}--header-panel {
+    background-color: adjust-color($ecc-color-applicationheader-background, $lightness: -5%);
+}
+
+// $shell-panel-text-01
+.#{$prefix}--header-panel {
+    color: adjust-color($ecc-color-applicationheader-text, $lightness: -5%);
+}
+
+// $shell-panel-border
+.#{$prefix}--header-panel--expanded {
+    border-left-color: adjust-color($ecc-color-applicationheader-background, $lightness: -5%);
+    border-right-color: adjust-color($ecc-color-applicationheader-background, $lightness: -5%);
+}
+
+// add rules for own class identiiers
+
+.ecc-application__toolbar {
+    flex-grow: 0;
+}
