@@ -1,6 +1,5 @@
-import { IconNames } from "@wrappers/blueprint/constants";
 import React from "react";
-import Icon from "@wrappers/blueprint/icon";
+import { Icon } from "@wrappers/index";
 import styles from './index.module.scss';
 import { IPrefixState } from "@ducks/workspace/typings";
 import DataList from "../../../../components/Datalist";
@@ -24,7 +23,7 @@ const PrefixRow = ({prefix, onRemove}: IProps) => {
             </Cell>
             <Cell span={1}>
                 <Icon
-                    icon={IconNames.TRASH}
+                    name="item-remove"
                     onClick={onRemove}
                 />
             </Cell>

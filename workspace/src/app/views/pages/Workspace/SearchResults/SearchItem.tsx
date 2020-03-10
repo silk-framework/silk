@@ -5,7 +5,7 @@ import MenuItem from "@wrappers/blueprint/menu-item";
 import Menu from "@wrappers/blueprint/menu";
 import Popover from "@wrappers/blueprint/popover";
 import { IconNames, Position } from "@wrappers/blueprint/constants";
-import Icon from "@wrappers/blueprint/icon";
+import { Icon } from "@wrappers/index";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -23,11 +23,11 @@ export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpen
     const getItemLinkIcons = (label: string) => {
         switch (label) {
             case 'Mapping editor':
-                return IconNames.GRAPH;
+                return 'application-mapping';
             case 'Transform evaluation':
-                return IconNames.HEAT_GRID;
+                return 'item-evaluation';
             case 'Transform execution':
-                return IconNames.PLAY;
+                return 'item-execution';
             default:
                 return null;
         }
@@ -86,7 +86,7 @@ export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpen
     return (
         <ListRow>
             <Cell>
-                <Icon icon={IconNames.PROJECTS}/>
+                <Icon name='artefact-project' large />
             </Cell>
             <Cell onClick={onRowClick}>
                 <p dangerouslySetInnerHTML={{
@@ -97,18 +97,17 @@ export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpen
             <Cell>
                 <Icon
                     data-test-id={'open-duplicate-modal'}
-                    icon={IconNames.DUPLICATE}
+                    name='item-clone'
                     onClick={onOpenDuplicateModal}
-                    style={{'paddingRight': '10px'}}
                 />
                 {
                     !!item.itemLinks.length &&
-                    <a href={item.itemLinks[0].path} target='_blank' style={{'color':'inherit'}}>
-                        <Icon icon={IconNames.DOCUMENT_OPEN} style={{'paddingRight': '10px'}}/>
+                    <a href={item.itemLinks[0].path}>
+                        <Icon name='item-viewdetails' />
                     </a>
                 }
                 <Popover content={getRowMenu(item)} position={Position.BOTTOM_LEFT}>
-                    <Icon icon={IconNames.MORE}/>
+                    <Icon name='item-moremenu' />
                 </Popover>
             </Cell>
         </ListRow>

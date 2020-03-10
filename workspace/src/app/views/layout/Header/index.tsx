@@ -17,6 +17,7 @@ import {
     ApplicationToolbarAction,
     ApplicationToolbarPanel,
     WorkspaceHeader,
+    Icon,
 } from "@wrappers/index";
 
 interface IProps {
@@ -142,7 +143,11 @@ const Header = memo<IProps>(({externalRoutes, onClickApplicationSidebarExpand, i
                         isActive={false}
                         onClick={() => {}}
                     >
-                        x
+                        <Icon
+                            name="application-useraccount"
+                            description="TODO: Open user menu"
+                            large
+                        />
                     </ApplicationToolbarAction>
                     <ApplicationToolbarPanel
                         aria-label="TODO: User panel"

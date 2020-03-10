@@ -1,4 +1,15 @@
 {
     "application-homepage": "Workspace",
-    "application-useraccount": "UserAvatar"
+    "application-useraccount": "UserAvatar",
+    "application-mapping": "ModelBuilder",
+
+    "item-moremenu": "OverflowMenuVertical",
+    "item-viewdetails": "View",
+    "item-clone": "Copy",
+    "item-evaluation": "Analytics",
+    "item-execution": "Run",
+    "item-info": "Information",
+    "item-remove": "TrashCan",
+
+    "artefact-project": "Folder"
 }

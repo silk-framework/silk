@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import Card from "../../../../../wrappers/blueprint/card";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { IconNames, Intent } from "@wrappers/blueprint/constants";
-import Icon from "@wrappers/blueprint/icon";
+import { Intent } from "@wrappers/blueprint/constants";
+import { Icon } from "@wrappers/index";
 import MarkdownModal from "../../../../components/modals/MarkdownModal";
 import { AppToaster } from "../../../../../services/toaster";
 import Loading from "../Configuration";
@@ -57,7 +57,7 @@ const ConfigurationWidget = () => {
                             warningList.map(warn =>
                                 <div>
                                     {warn.errorSummary}
-                                    <Icon icon={IconNames.INFO_SIGN} onClick={() => handleOpenMarkDown(warn.taskId)}/>
+                                    <Icon name="item-info" onClick={() => handleOpenMarkDown(warn.taskId)}/>
                                 </div>
                             )
                         }
