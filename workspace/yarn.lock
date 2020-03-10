@@ -979,24 +979,12 @@
     classnames "^2.2"
     tslib "~1.9.0"
 
-"@carbon/icon-helpers@^10.5.2":
-  version "10.5.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@carbon/icon-helpers/-/icon-helpers-10.5.2.tgz#7975fc091206f4a423e812dada89519df52c2041"
-  integrity sha1-eXX8CRIG9KQj6BLa2olRnfUsIEE=
-
 "@carbon/icon-helpers@^10.6.0":
   version "10.6.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@carbon/icon-helpers/-/icon-helpers-10.6.0.tgz#72a5bbd1edbee3728e47fa6d17c2aca67dbb101c"
   integrity sha1-cqW70e2+43KOR/ptF8Kspn27EBw=
 
-"@carbon/icons-react@^10.8.2":
-  version "10.8.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@carbon/icons-react/-/icons-react-10.8.2.tgz#f109b80457a4dcb23dd4d168662966ca229a3614"
-  integrity sha1-8Qm4BFek3LI91NFoZilmyiKaNhQ=
-  dependencies:
-    "@carbon/icon-helpers" "^10.5.2"
-
-"@carbon/icons-react@^10.9.1":
+"@carbon/icons-react@^10.8.2", "@carbon/icons-react@^10.9.1":
   version "10.9.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@carbon/icons-react/-/icons-react-10.9.1.tgz#3030f3d94d737bab07a8b48bb99a9401a6087170"
   integrity sha1-MDDz2U1ze6sHqLSLuZqUAaYIcXA=
@@ -2973,13 +2961,14 @@ carbon-components-react@^7.10.1:
     window-or-global "^1.0.1"
 
 carbon-components@^10.9.3:
-  version "10.9.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/carbon-components/-/carbon-components-10.9.3.tgz#d0d8f42c35fb7ce1cacc131d1c4b11fc2c905a6a"
-  integrity sha1-0Nj0LDX7fOHKzBMdHEsR/CyQWmo=
+  version "10.10.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/carbon-components/-/carbon-components-10.10.1.tgz#db8bb3703123db402238283ab315aa23d5ab69a4"
+  integrity sha1-24uzcDEj20AiOCg6sxWqI9WraaQ=
   dependencies:
     carbon-icons "^7.0.7"
     flatpickr "4.6.1"
     lodash.debounce "^4.0.8"
+    scss-to-json "^2.0.0"
     warning "^3.0.0"
 
 carbon-icons@^7.0.7:
@@ -3650,6 +3639,11 @@ cssesc@^2.0.0:
   version "2.0.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/cssesc/-/cssesc-2.0.0.tgz#3b13bd1bb1cb36e1bcb5a4dcd27f54c5dcb35703"
   integrity sha1-OxO9G7HLNuG8taTc0n9UxdyzVwM=
+
+cssmin@^0.4.3:
+  version "0.4.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/cssmin/-/cssmin-0.4.3.tgz#c9194077e0ebdacd691d5f59015b9d819f38d015"
+  integrity sha1-yRlAd+Dr2s1pHV9ZAVudgZ840BU=
 
 cssnano-preset-default@^4.0.7:
   version "4.0.7"
@@ -7998,6 +7992,29 @@ node-releases@^1.1.29, node-releases@^1.1.42:
   dependencies:
     semver "^6.3.0"
 
+"node-sass@^3.1.2, ^4.0.0":
+  version "4.13.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/node-sass/-/node-sass-4.13.1.tgz#9db5689696bb2eec2c32b98bfea4c7a2e992d0a3"
+  integrity sha1-nbVolpa7LuwsMrmL/qTHoumS0KM=
+  dependencies:
+    async-foreach "^0.1.3"
+    chalk "^1.1.1"
+    cross-spawn "^3.0.0"
+    gaze "^1.0.0"
+    get-stdin "^4.0.1"
+    glob "^7.0.3"
+    in-publish "^2.0.0"
+    lodash "^4.17.15"
+    meow "^3.7.0"
+    mkdirp "^0.5.1"
+    nan "^2.13.2"
+    node-gyp "^3.8.0"
+    npmlog "^4.0.0"
+    request "^2.88.0"
+    sass-graph "^2.2.4"
+    stdout-stream "^1.4.0"
+    "true-case-path" "^1.0.2"
+
 node-sass@^4.11.0:
   version "4.13.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/node-sass/-/node-sass-4.13.0.tgz#b647288babdd6a1cb726de4545516b31f90da066"
@@ -10510,6 +10527,15 @@ schema-utils@^2.0.1, schema-utils@^2.1.0, schema-utils@^2.2.0, schema-utils@^2.5
   dependencies:
     ajv "^6.10.2"
     ajv-keywords "^3.4.1"
+
+scss-to-json@^2.0.0:
+  version "2.0.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/scss-to-json/-/scss-to-json-2.0.0.tgz#dd8f74869da3d99fb44c8f5235f534ebb130ea47"
+  integrity sha1-3Y90hp2j2Z+0TI9SNfU067Ew6kc=
+  dependencies:
+    cssmin "^0.4.3"
+    minimist "^1.2.0"
+    node-sass "^3.1.2, ^4.0.0"
 
 scss-tokenizer@^0.2.3:
   version "0.2.3"
