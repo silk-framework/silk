@@ -4,7 +4,9 @@ import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetType, 
 import controllers.workspaceApi.search.{FacetResult, FacetValue, KeywordFacetValue, ResourceSearchRequest, SearchApiModel}
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
+import org.silkframework.config.MetaData
+import org.silkframework.workspace.activity.workflow.Workflow
+import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
 import play.api.libs.json._
 import test.Routes
 
@@ -190,6 +192,28 @@ class SearchApiIntegrationTest extends FlatSpec
     // text search
     resourceNames(resourceSearch(ResourceSearchRequest(limit = Some(2), offset = Some(2), searchText = Some("res Even")))) mustBe
       expectedNames.zipWithIndex.filter(_._2 % 2 == 0).slice(2, 4).map(_._1)
+  }
+
+  it should "find a project and task by their descriptions" in {
+    val uniqueId = "veryUnique"
+    val newProject = "newProject"
+    val newTask = "newTask"
+    val metaData = MetaData("", Some("A" + uniqueId + "Z"))
+
+    val project = retrieveOrCreateProject(newProject)
+    try {
+      WorkspaceFactory().workspace.updateProjectMetaData(newProject, metaData)
+      val workflow = Workflow(Seq.empty, Seq.empty)
+      project.addAnyTask(newTask, workflow, metaData)
+      resultItemIds(facetedSearchRequest(
+        FacetedSearchRequest(itemType = Some(ItemType.workflow), textQuery = Some(uniqueId))
+      )._1) mustBe Seq(newTask)
+      resultItemIds(facetedSearchRequest(
+        FacetedSearchRequest(itemType = Some(ItemType.project), textQuery = Some(uniqueId))
+      )._1) mustBe Seq(newProject)
+    } finally {
+      WorkspaceFactory().workspace.removeProject(newProject)
+    }
   }
 
   private def resourceNames(defaultResults: IndexedSeq[collection.Map[String, JsValue]]) = {

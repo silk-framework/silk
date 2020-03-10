@@ -160,15 +160,16 @@ object SearchApiModel {
     }
 
     /** Split text query into multi term search */
-    protected def extractSearchTerms(term: String) = {
+    protected def extractSearchTerms(term: String): Array[String] = {
       term.toLowerCase.split("\\s+").filter(_.nonEmpty)
     }
 
     /** Match search terms against project. */
     protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], project: Project): Boolean = {
       val idMatch = matchesSearchTerm(lowerCaseSearchTerms, project.config.id)
-      val nameMatch = matchesSearchTerm(lowerCaseSearchTerms, project.name)
-      idMatch || nameMatch
+      val labelMatch = matchesSearchTerm(lowerCaseSearchTerms, project.config.metaData.label)
+      val descriptionMatch = project.config.metaData.description.exists(d => matchesSearchTerm(lowerCaseSearchTerms, d))
+      idMatch || labelMatch || descriptionMatch
     }
 
     /** Match search terms against string. Returns only true if all search terms match. */
