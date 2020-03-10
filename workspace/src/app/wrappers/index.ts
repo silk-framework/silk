@@ -16,6 +16,8 @@ import WorkspaceSide from './src/components/Workspace/WorkspaceSide';
 import WorkspaceSection from './src/components/Workspace/WorkspaceSection';
 import WorkspaceHeader from './src/components/Workspace/WorkspaceHeader';
 
+import Icon from './src/components/Icon/Icon';
+
 
 export {
     ApplicationContainer,
@@ -35,4 +37,6 @@ export {
     WorkspaceSide,
     WorkspaceSection,
     WorkspaceHeader,
+
+    Icon,
 };

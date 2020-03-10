@@ -47,6 +47,7 @@
 // == Load element styles ======================================================
 
 @import 'src/components/Application/application';
+@import 'src/components/Icon/icon';
 @import 'src/components/Workspace/workspace';
 
 /*
@@ -89,8 +90,6 @@
 @import "~@blueprintjs/core/src/components/toast/toast";
 @import "~@blueprintjs/core/src/components/tooltip/tooltip";
 @import "~@blueprintjs/core/src/components/tree/tree";
-// Icon lib import seems not to be necessary with bp3, maybe we need this only as fallback for older browsers
-// @import '~@blueprintjs/icons/src/blueprint-icons';
 
 @import '~carbon-components/scss/components/button/button';
 @import '~carbon-components/scss/components/copy-button/copy-button';
