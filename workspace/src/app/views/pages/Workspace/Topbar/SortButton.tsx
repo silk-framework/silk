@@ -1,12 +1,11 @@
 import React from "react";
 import {IAppliedSorterState, ISorterListItemState} from "@ducks/workspace/typings";
-import Popover from "@wrappers/blueprint/popover";
-import {Position} from "@wrappers/blueprint/constants";
 
 import {
     Icon,
     Menu,
     MenuItem,
+    ContextOverlay,
 } from '@wrappers/index';
 
 interface IProps {
@@ -19,9 +18,7 @@ interface IProps {
 export default function SortButton({sortersList, activeSort, onSort}: IProps) {
     return (
         <div className={'sortButton'}>
-            <Popover
-                     position={Position.BOTTOM_RIGHT}
-            >
+            <ContextOverlay>
                 <Icon name='list-sort'/>
                 <Menu>
                     {
@@ -39,7 +36,7 @@ export default function SortButton({sortersList, activeSort, onSort}: IProps) {
                         )
                     }
                 </Menu>
-            </Popover>
+            </ContextOverlay>
         </div>
     )
 }

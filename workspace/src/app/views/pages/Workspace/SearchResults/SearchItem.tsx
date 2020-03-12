@@ -1,12 +1,11 @@
 import React from "react";
 import DataList from "../../../components/Datalist";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
-import Popover from "@wrappers/blueprint/popover";
-import { IconNames, Position } from "@wrappers/blueprint/constants";
 import {
     Menu,
     MenuItem,
     MenuDivider,
+    ContextOverlay,
     Icon,
 } from "@wrappers/index";
 
@@ -102,14 +101,14 @@ export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpen
                         <Icon name='item-viewdetails' />
                     </a>
                 }
-                <Popover position={Position.BOTTOM_LEFT}>
+                <ContextOverlay>
                     <Icon name='item-moremenu' />
                     <Menu>
                         {getContextMenuItems(item)}
                         <MenuDivider />
                         <MenuItem key='delete' icon={'item-remove'} onClick={onOpenDeleteModal} text={'Delete'}/>
                     </Menu>
-                </Popover>
+                </ContextOverlay>
             </Cell>
         </ListRow>
     )

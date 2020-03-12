@@ -4,9 +4,9 @@ import {useDispatch, useSelector} from "react-redux";
 import {workspaceOp, workspaceSel} from "@ducks/workspace";
 import Label from "@wrappers/blueprint/label";
 import FacetItem from "./FacetItem";
-import Popover from "@wrappers/blueprint/popover";
 import Tooltip from "@wrappers/blueprint/tooltip";
 import {Classes, Position} from "@wrappers/blueprint/constants";
+import { ContextOverlay } from "@wrappers/index";
 
 export default function FacetsList() {
     const dispatch = useDispatch();
@@ -59,7 +59,7 @@ export default function FacetsList() {
             {
                 facets.map(facet =>
                     <div key={facet.id}>
-                        <Popover position={Position.BOTTOM_LEFT}>
+                        <ContextOverlay position={Position.BOTTOM_LEFT}>
                             <Tooltip
                                 className={Classes.TOOLTIP_INDICATOR}
                                 content={facet.description}
@@ -67,7 +67,7 @@ export default function FacetsList() {
                             >
                                 <Label>{facet.label}</Label>
                             </Tooltip>
-                        </Popover>
+                        </ContextOverlay>
                         {
                             visibleFacetsKeywords[facet.id] && visibleFacetsKeywords[facet.id].map(val =>
                                 <FacetItem
