@@ -35,8 +35,8 @@ const Icon = ({
     large = false,
     ...restProps
 }: any) => {
-    let sizeConfig = { height: "20", width: "20" };
-    if (large) sizeConfig = { height: "32", width: "32" };
+    let sizeConfig = { height: 20, width: 20 };
+    if (large) sizeConfig = { height: 32, width: 32 };
     let iconImportName = 'Undefined'+sizeConfig.width;
     if (typeof canonicalIconNames[name] !== 'undefined') {
         iconImportName = canonicalIconNames[name]+sizeConfig.width;
