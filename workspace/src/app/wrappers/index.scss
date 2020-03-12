@@ -47,8 +47,9 @@
 // == Load element styles ======================================================
 
 @import 'src/components/Application/application';
-@import 'src/components/Icon/icon';
 @import 'src/components/Workspace/workspace';
+@import 'src/components/Icon/icon';
+@import 'src/components/Menu/menu';
 
 /*
     TODO: when finished we only should see includes from own elements here, even
@@ -71,8 +72,8 @@
 @import "~@blueprintjs/core/src/components/html-select/html-select";
 @import "~@blueprintjs/core/src/components/html-table/html-table";
 @import "~@blueprintjs/core/src/components/hotkeys/hotkeys";
-@import "~@blueprintjs/core/src/components/icon/icon";
-@import "~@blueprintjs/core/src/components/menu/menu";
+// @import "~@blueprintjs/core/src/components/icon/icon";
+// @import "~@blueprintjs/core/src/components/menu/menu";
 @import "~@blueprintjs/core/src/components/navbar/navbar";
 @import "~@blueprintjs/core/src/components/non-ideal-state/non-ideal-state";
 @import "~@blueprintjs/core/src/components/overflow-list/overflow-list";
