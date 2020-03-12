@@ -169,6 +169,7 @@ class MappingsTree extends React.Component {
                 <span className="ecc-silk-mapping__treenav--item-maintitle">
                     <span>
                         <RuleTitle rule={parent} />
+                        { this.renderRuleIcon(id) }
                     </span>
                 </span>
                 {parentType === MAPPING_RULE_TYPE_OBJECT && (
@@ -217,6 +218,16 @@ class MappingsTree extends React.Component {
         );
     };
 
+    renderRuleIcon(ruleId) {
+        if(!this.props.ruleValidation || !this.props.ruleValidation.hasOwnProperty(ruleId)) {
+            return (null);
+        } else if(this.props.ruleValidation[ruleId] === "ok") {
+            return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="done" />
+        } else {
+            return <Icon className="ecc-silk-mapping__ruleitem-icon-red" name="warning" />
+        }
+    };
+
     render() {
         const { data, navigationLoading } = this.state;
 
@@ -254,6 +265,8 @@ MappingsTree.propTypes = {
     currentRuleId: PropTypes.string,
     handleRuleNavigation: PropTypes.func,
     showValueMappings: PropTypes.bool,
+    // For each rule id, contains one of the following: "ok", "warning"
+    ruleValidation: PropTypes.objectOf(React.PropTypes.oneOf(['ok', 'warning']))
 };
 
 MappingsTree.defaultProps = {
