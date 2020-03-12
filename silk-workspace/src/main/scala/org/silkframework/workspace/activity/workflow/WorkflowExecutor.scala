@@ -152,6 +152,7 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
     * Listeners for updates to task reports.
     * We need to hold them to prevent their garbage collection.
     */
+  @volatile
   private var reportListeners: List[TaskReportListener] = List.empty
 
   /** Creates an activity context for a specific task that will be executed in the workflow.
