@@ -18,6 +18,9 @@ import WorkspaceHeader from './src/components/Workspace/WorkspaceHeader';
 
 import Icon from './src/components/Icon/Icon';
 
+import Menu from './src/components/Menu/Menu';
+import MenuItem from './src/components/Menu/MenuItem';
+import MenuDivider from './src/components/Menu/MenuDivider';
 
 export {
     ApplicationContainer,
@@ -37,6 +40,10 @@ export {
     WorkspaceSide,
     WorkspaceSection,
     WorkspaceHeader,
+
+    Menu,
+    MenuItem,
+    MenuDivider,
 
     Icon,
 };

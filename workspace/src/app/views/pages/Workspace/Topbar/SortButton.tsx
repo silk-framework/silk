@@ -1,10 +1,13 @@
 import React from "react";
 import {IAppliedSorterState, ISorterListItemState} from "@ducks/workspace/typings";
 import Popover from "@wrappers/blueprint/popover";
-import Menu from "@wrappers/blueprint/menu";
-import Button from "@wrappers/blueprint/button";
-import MenuItem from "@wrappers/blueprint/menu-item";
-import {IconNames, Position} from "@wrappers/blueprint/constants";
+import {Position} from "@wrappers/blueprint/constants";
+
+import {
+    Icon,
+    Menu,
+    MenuItem,
+} from '@wrappers/index';
 
 interface IProps {
     sortersList: ISorterListItemState[],
@@ -17,27 +20,25 @@ export default function SortButton({sortersList, activeSort, onSort}: IProps) {
     return (
         <div className={'sortButton'}>
             <Popover
-                     content={
-                         <Menu>
-                             {
-                                 sortersList.map(item =>
-                                     <MenuItem
-                                         key={item.id}
-                                         text={item.label}
-                                         icon={
-                                             activeSort.sortBy === item.id
-                                                 ? activeSort.sortOrder === 'ASC' ? IconNames.ARROW_UP : IconNames.ARROW_DOWN
-                                                 : null
-                                         }
-                                         onClick={() => onSort(item.id)}
-                                     />
-                                 )
-                             }
-                         </Menu>
-                     }
                      position={Position.BOTTOM_RIGHT}
             >
-                <Button icon={IconNames.SORT_ASC}/>
+                <Icon name='list-sort'/>
+                <Menu>
+                    {
+                        sortersList.map(item =>
+                            <MenuItem
+                                key={item.id}
+                                text={item.label}
+                                icon={
+                                    activeSort.sortBy === item.id
+                                        ? activeSort.sortOrder === 'ASC' ? 'list-sortasc' : 'list-sortdesc'
+                                        : null
+                                }
+                                onClick={() => onSort(item.id)}
+                            />
+                        )
+                    }
+                </Menu>
             </Popover>
         </div>
     )

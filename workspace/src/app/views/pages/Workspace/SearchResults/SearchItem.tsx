@@ -1,11 +1,14 @@
 import React from "react";
 import DataList from "../../../components/Datalist";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
-import MenuItem from "@wrappers/blueprint/menu-item";
-import Menu from "@wrappers/blueprint/menu";
 import Popover from "@wrappers/blueprint/popover";
 import { IconNames, Position } from "@wrappers/blueprint/constants";
-import { Icon } from "@wrappers/index";
+import {
+    Menu,
+    MenuItem,
+    MenuDivider,
+    Icon,
+} from "@wrappers/index";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -69,18 +72,11 @@ export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpen
 
     };
 
-    const getRowMenu = (item: any) => {
+    const getContextMenuItems = (item: any) => {
         const {itemLinks} = item;
-        const menuItems = itemLinks.map(link =>
+        return itemLinks.map(link =>
             <MenuItem key={link.path} text={link.label} href={link.path} icon={getItemLinkIcons(link.label)} target={'_blank'}/>
         );
-
-        menuItems.push(
-            <MenuItem key='delete' icon={IconNames.TRASH} onClick={onOpenDeleteModal} text={'Delete'}/>
-        );
-        return (
-            <Menu>{menuItems}</Menu>
-        )
     };
 
     return (
@@ -106,8 +102,13 @@ export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpen
                         <Icon name='item-viewdetails' />
                     </a>
                 }
-                <Popover content={getRowMenu(item)} position={Position.BOTTOM_LEFT}>
+                <Popover position={Position.BOTTOM_LEFT}>
                     <Icon name='item-moremenu' />
+                    <Menu>
+                        {getContextMenuItems(item)}
+                        <MenuDivider />
+                        <MenuItem key='delete' icon={'item-remove'} onClick={onOpenDeleteModal} text={'Delete'}/>
+                    </Menu>
                 </Popover>
             </Cell>
         </ListRow>

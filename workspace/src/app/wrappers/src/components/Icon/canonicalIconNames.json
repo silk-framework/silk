@@ -11,5 +11,9 @@
     "item-info": "Information",
     "item-remove": "TrashCan",
 
+    "list-sort": "ChevronSort",
+    "list-sortasc": "ChevronSortDown",
+    "list-sortdesc": "ChevronSortUp",
+
     "artefact-project": "Folder"
 }
