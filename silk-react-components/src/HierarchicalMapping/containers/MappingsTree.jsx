@@ -100,7 +100,6 @@ class MappingsTree extends React.Component {
         // also expand all parent nodes
         const parentRuleIds = MappingsTree.extractParentIds(tree, this.props.currentRuleId);
         _.forEach(parentRuleIds, ruleId => { expanded[ruleId] = true});
-        console.log(expanded);
         return expanded;
     }
 
