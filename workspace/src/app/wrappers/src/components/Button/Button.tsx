@@ -35,7 +35,7 @@ const Button = ({
             rightIcon={
                 typeof rightIcon === 'string' ? <Icon name={rightIcon} /> : rightIcon
             }
-            href
+            href={href}
         >
             {children}
         </ButtonType>
