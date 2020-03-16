@@ -51,6 +51,7 @@
 @import 'src/components/Icon/icon';
 @import 'src/components/Menu/menu';
 @import 'src/components/ContextOverlay/contextoverlay';
+@import 'src/components/Button/button';
 
 /*
     TODO: when finished we only should see includes from own elements here, even
@@ -59,7 +60,7 @@
 
 @import "~@blueprintjs/core/src/components/alert/alert";
 @import "~@blueprintjs/core/src/components/breadcrumbs/breadcrumbs";
-@import "~@blueprintjs/core/src/components/button/button";
+// @import "~@blueprintjs/core/src/components/button/button";
 @import "~@blueprintjs/core/src/components/button/button-group";
 @import "~@blueprintjs/core/src/components/callout/callout";
 @import "~@blueprintjs/core/src/components/card/card";
@@ -93,7 +94,7 @@
 @import "~@blueprintjs/core/src/components/tooltip/tooltip";
 @import "~@blueprintjs/core/src/components/tree/tree";
 
-@import '~carbon-components/scss/components/button/button';
+// @import '~carbon-components/scss/components/button/button';
 @import '~carbon-components/scss/components/copy-button/copy-button';
 @import '~carbon-components/scss/components/file-uploader/file-uploader';
 @import '~carbon-components/scss/components/checkbox/checkbox';

@@ -1,0 +1,8 @@
+svg.ecc-icon:not([fill]) {
+    fill: currentColor;
+}
+
+.#{$ns}-button .ecc-icon:first-child:last-child,
+.#{$ns}-button .#{$ns}-spinner + .ecc-icon:last-child {
+    margin: 0 (-($pt-button-height - $pt-icon-size-standard) / 2);
+}

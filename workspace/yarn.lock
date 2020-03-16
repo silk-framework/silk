@@ -954,30 +954,30 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
-"@blueprintjs/core@^3.17.2":
-  version "3.22.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/core/-/core-3.22.0.tgz#6c7e7562a7e5fb7d2924ee3cd0832734eeb24470"
-  integrity sha1-bH51Yqfl+30pJO480IMnNO6yRHA=
+"@blueprintjs/core@^3.24.0":
+  version "3.24.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/core/-/core-3.24.0.tgz#593a2b289bb94224f3a924eb1b3065ea3c4ca00a"
+  integrity sha1-WTorKJu5QiTzqSTrGzBl6jxMoAo=
   dependencies:
-    "@blueprintjs/icons" "^3.12.0"
+    "@blueprintjs/icons" "^3.14.0"
     "@types/dom4" "^2.0.1"
     classnames "^2.2"
     dom4 "^2.1.5"
     normalize.css "^8.0.1"
     popper.js "^1.15.0"
     react-lifecycles-compat "^3.0.4"
-    react-popper "^1.3.3"
+    react-popper "^1.3.7"
     react-transition-group "^2.9.0"
     resize-observer-polyfill "^1.5.1"
-    tslib "~1.9.0"
+    tslib "~1.10.0"
 
-"@blueprintjs/icons@^3.12.0":
-  version "3.12.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/icons/-/icons-3.12.0.tgz#cea6a6434d9d469e26d87b055e6b6aa5768135b3"
-  integrity sha1-zqamQ02dRp4m2HsFXmtqpXaBNbM=
+"@blueprintjs/icons@^3.14.0":
+  version "3.14.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/icons/-/icons-3.14.0.tgz#9f9a51b116907d103e4e2e9b78d53d4ac6f107fd"
+  integrity sha1-n5pRsRaQfRA+Ti6beNU9SsbxB/0=
   dependencies:
     classnames "^2.2"
-    tslib "~1.9.0"
+    tslib "~1.10.0"
 
 "@carbon/icon-helpers@^10.6.0":
   version "10.6.0"
@@ -3818,7 +3818,7 @@ deep-diff@^0.3.5:
   resolved "https://artifactory.eccenca.com/api/npm/npm/deep-diff/-/deep-diff-0.3.8.tgz#c01de63efb0eec9798801d40c7e0dae25b582c84"
   integrity sha1-wB3mPvsO7JeYgB1Ax+Da4ltYLIQ=
 
-deep-equal@^1.0.1:
+deep-equal@^1.0.1, deep-equal@^1.1.1:
   version "1.1.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/deep-equal/-/deep-equal-1.1.1.tgz#b5c98c942ceffaf7cb051e24e1434a25a2e6076a"
   integrity sha1-tcmMlCzv+vfLBR4k4UNKJaLmB2o=
@@ -9828,13 +9828,14 @@ react-markdown@^4.3.1:
     unist-util-visit "^1.3.0"
     xtend "^4.0.1"
 
-react-popper@^1.3.3:
-  version "1.3.6"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/react-popper/-/react-popper-1.3.6.tgz#32122f83af8fda01bdd4f86625ddacaf64fdd06d"
-  integrity sha1-MhIvg6+P2gG91PhmJd2sr2T90G0=
+react-popper@^1.3.7:
+  version "1.3.7"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/react-popper/-/react-popper-1.3.7.tgz#f6a3471362ef1f0d10a4963673789de1baca2324"
+  integrity sha1-9qNHE2LvHw0QpJY2c3id4brKIyQ=
   dependencies:
     "@babel/runtime" "^7.1.2"
     create-react-context "^0.3.0"
+    deep-equal "^1.1.1"
     popper.js "^1.14.4"
     prop-types "^15.6.1"
     typed-styles "^0.0.7"
@@ -11557,15 +11558,10 @@ ts-toolbelt@^4.10.7:
   resolved "https://artifactory.eccenca.com/api/npm/npm/ts-toolbelt/-/ts-toolbelt-4.12.13.tgz#a2fb92f16ef6e5828c16a8f403e1eaf87703160b"
   integrity sha1-ovuS8W725YKMFqj0A+Hq+HcDFgs=
 
-tslib@^1.9.0:
+tslib@^1.9.0, tslib@~1.10.0:
   version "1.10.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/tslib/-/tslib-1.10.0.tgz#c3c19f95973fb0a62973fb09d90d961ee43e5c8a"
   integrity sha1-w8GflZc/sKYpc/sJ2Q2WHuQ+XIo=
-
-tslib@~1.9.0:
-  version "1.9.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/tslib/-/tslib-1.9.3.tgz#d7e4dd79245d85428c4d7e4822a79917954ca286"
-  integrity sha1-1+TdeSRdhUKMTX5IIqeZF5VMooY=
 
 tty-browserify@0.0.0:
   version "0.0.0"

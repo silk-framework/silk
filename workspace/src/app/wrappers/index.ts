@@ -17,6 +17,9 @@ import WorkspaceSection from './src/components/Workspace/WorkspaceSection';
 import WorkspaceHeader from './src/components/Workspace/WorkspaceHeader';
 
 import Icon from './src/components/Icon/Icon';
+import IconButton from './src/components/Icon/IconButton';
+
+import Button from './src/components/Button/Button';
 
 import Menu from './src/components/Menu/Menu';
 import MenuItem from './src/components/Menu/MenuItem';
@@ -50,4 +53,7 @@ export {
     ContextOverlay,
 
     Icon,
+    IconButton,
+
+    Button,
 };
