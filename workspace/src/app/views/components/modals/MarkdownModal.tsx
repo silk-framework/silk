@@ -2,7 +2,7 @@ import { Classes, Intent } from "@wrappers/blueprint/constants";
 import React from "react";
 import Dialog from "@wrappers/blueprint/dialog";
 import ReactMarkdown from "react-markdown";
-import Button from "@wrappers/blueprint/button";
+import { Button } from '@wrappers/index';
 
 const MarkdownModal = ({onDiscard, isOpen, markdown, title = 'Report'}) => {
 
@@ -30,13 +30,13 @@ const MarkdownModal = ({onDiscard, isOpen, markdown, title = 'Report'}) => {
             </div>
             <div className={Classes.DIALOG_FOOTER}>
                 <div className={Classes.DIALOG_FOOTER_ACTIONS}>
+                    <Button onClick={onDiscard}>Cancel</Button>
                     <Button
-                        intent={Intent.PRIMARY}
+                        affirmative
                         onClick={handleDownload}
                     >
                         Download
                     </Button>
-                    <Button onClick={onDiscard}>Cancel</Button>
                 </div>
             </div>
         </Dialog>

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Classes, Intent } from "@wrappers/blueprint/constants";
-import Button from "@wrappers/blueprint/button";
+import { Classes } from "@wrappers/blueprint/constants";
 import Dialog from "@wrappers/blueprint/dialog";
 import InputGroup from "@wrappers/blueprint/input-group";
+import { Button } from '@wrappers/index';
 
 export interface ICloneOptions {
     isOpen: boolean;
@@ -35,14 +35,14 @@ export default function CloneModal({isOpen, oldId, onDiscard, onConfirm}: IClone
 
             <div className={Classes.DIALOG_FOOTER}>
                 <div className={Classes.DIALOG_FOOTER_ACTIONS}>
+                    <Button onClick={onDiscard}>Cancel</Button>
                     <Button
-                        intent={Intent.PRIMARY}
+                        affirmative
                         onClick={() => onConfirm(newId)}
                         disabled={!newId}
                     >
                         Clone
                     </Button>
-                    <Button onClick={onDiscard}>Cancel</Button>
                 </div>
             </div>
 

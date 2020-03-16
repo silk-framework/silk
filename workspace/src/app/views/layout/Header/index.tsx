@@ -3,8 +3,6 @@ import React, { memo} from 'react';
 import { globalSel } from "@ducks/global";
 import { useSelector } from "react-redux";
 import Breadcrumbs from "@wrappers/blueprint/breadcrumbs";
-import Button from "@wrappers/blueprint/button";
-import { Classes } from "@wrappers/blueprint/constants";
 import NavbarDivider from "@wrappers/blueprint/navbar-divider";
 import NavbarGroup from "@wrappers/blueprint/navbar-group";
 import NavbarHeading from "@wrappers/blueprint/navbar-heading";
@@ -18,6 +16,7 @@ import {
     ApplicationToolbarPanel,
     WorkspaceHeader,
     Icon,
+    Button,
 } from "@wrappers/index";
 
 interface IProps {
@@ -60,17 +59,18 @@ const generateMenuItems = (pluginMenuData) => {
         if (item.url) {
             return (
                 <Button
-                    className={Classes.MINIMAL}
+                    minimal
                     key={key}
                     icon={icon}
                     text={title}
                     disabled={disabled}
+                    href={item.url}
                 />
             )
         }
         return (
             <Button
-                className={Classes.MINIMAL}
+                minimal
                 key={key}
                 icon={icon}
                 text={title}

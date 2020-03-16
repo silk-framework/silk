@@ -1,9 +1,9 @@
 import React, { ReactElement, useState } from "react";
-import { Classes, Intent } from "@wrappers/blueprint/constants";
-import Button from "@wrappers/blueprint/button";
+import { Classes } from "@wrappers/blueprint/constants";
 import Dialog from "@wrappers/blueprint/dialog";
 import Label from "@wrappers/blueprint/label";
 import Checkbox from "@wrappers/blueprint/checkbox";
+import { Button } from '@wrappers/index';
 
 export interface IDeleteModalOptions {
     isOpen: boolean;
@@ -46,14 +46,14 @@ export default function DeleteModal({isOpen, confirmationRequired, onDiscard, re
                             </>
                         )
                     }
+                    <Button onClick={onDiscard}>Cancel</Button>
                     <Button
-                        intent={Intent.PRIMARY}
+                        disruptive
                         onClick={onConfirm}
                         disabled={confirmationRequired && !isConfirmed}
                     >
                         Remove
                     </Button>
-                    <Button onClick={onDiscard}>Cancel</Button>
                 </div>
             </div>
 

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { Classes, Intent } from "@wrappers/blueprint/constants";
+import { Classes } from "@wrappers/blueprint/constants";
 import Dialog from "@wrappers/blueprint/dialog";
 
-import Button from '@wrappers/blueprint/button';
 import PrefixRow from "./PrefixRow";
 import DeleteModal from "../../../../components/modals/DeleteModal";
 import PrefixNew from "./PrefixNew";
@@ -12,6 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Row from "@wrappers/carbon/grid/Row";
 import DataList from "../../../../components/Datalist";
 import Loading from "../../../../components/Loading";
+import { Button } from '@wrappers/index';
 
 const { Cell, ListRow, Header, Body } = DataList;
 
@@ -96,9 +96,7 @@ const PrefixesDialog = ({onCloseModal, isOpen}) => {
                         </div>
                         <div className={Classes.DIALOG_FOOTER}>
                             <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                                <Button
-                                    onClick={() => onCloseModal()}
-                                    intent={Intent.NONE}>
+                                <Button onClick={() => onCloseModal()}>
                                     Close
                                 </Button>
                             </div>

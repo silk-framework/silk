@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { Classes, Intent } from "@wrappers/blueprint/constants";
-import Button from "../../../../wrappers/blueprint/button";
+import { Classes } from "@wrappers/blueprint/constants";
 import Dialog from "../../../../wrappers/blueprint/dialog";
 import InputGroup from "../../../../wrappers/blueprint/input-group";
 import { FormGroup } from "@blueprintjs/core";
@@ -9,6 +8,7 @@ import Loading from "../../../components/Loading";
 import FileUploader from "../../../components/FileUploader";
 import { workspaceOp } from "@ducks/workspace";
 import { useDispatch } from "react-redux";
+import { Button } from '@wrappers/index';
 
 interface IFormData {
     label: string;
@@ -95,13 +95,8 @@ export default function CreateProjectModal({isOpen, onDiscard, onConfirm}: IClon
                     </div>
                     <div className={Classes.DIALOG_FOOTER}>
                         <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                            <Button
-                                intent={Intent.PRIMARY}
-                                onClick={handleCreate}
-                            >
-                                Create
-                            </Button>
                             <Button onClick={onDiscard}>Cancel</Button>
+                            <Button affirmative onClick={handleCreate}>Create</Button>
                         </div>
                     </div>
                 </>

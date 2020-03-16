@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Classes, Intent } from "@wrappers/blueprint/constants";
-import Button from "../../../../wrappers/blueprint/button";
+import { Classes } from "@wrappers/blueprint/constants";
+import { Button } from '@wrappers/index';
 import Dialog from "../../../../wrappers/blueprint/dialog";
 import AbortAlert from "./AbortAlert";
 import OverrideAlert from "./OverrideAlert";
@@ -89,7 +89,6 @@ export default function FileUploadModal({isOpen, onDiscard, onCheckFileExists, u
                 <div className={Classes.DIALOG_FOOTER_ACTIONS}>
                     {
                         isUploading && <Button
-                            intent={Intent.PRIMARY}
                             onClick={handleDiscard}
                         >
                             Abort Upload

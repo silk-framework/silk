@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import Card from "../../../../../wrappers/blueprint/card";
-import Button from "../../../../../wrappers/blueprint/button";
 import PrefixesDialog from "./PrefixesDialog";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { IPrefixState } from "@ducks/workspace/typings";
+import { Button } from '@wrappers/index';
 
 const ConfigurationWidget = () => {
     const dispatch = useDispatch();

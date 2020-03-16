@@ -7,6 +7,7 @@ import {
     MenuDivider,
     ContextOverlay,
     Icon,
+    IconButton,
 } from "@wrappers/index";
 
 interface IProps {
@@ -90,23 +91,22 @@ export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpen
                 <p>{item.description}</p>
             </Cell>
             <Cell>
-                <Icon
+                <IconButton
                     data-test-id={'open-duplicate-modal'}
                     name='item-clone'
+                    text='Clone'
                     onClick={onOpenDuplicateModal}
                 />
                 {
                     !!item.itemLinks.length &&
-                    <a href={item.itemLinks[0].path}>
-                        <Icon name='item-viewdetails' />
-                    </a>
+                    <IconButton name='item-viewdetails' text='Show details' href={item.itemLinks[0].path} />
                 }
                 <ContextOverlay>
-                    <Icon name='item-moremenu' />
+                    <IconButton name='item-moremenu' text="Show more options" />
                     <Menu>
                         {getContextMenuItems(item)}
                         <MenuDivider />
-                        <MenuItem key='delete' icon={'item-remove'} onClick={onOpenDeleteModal} text={'Delete'}/>
+                        <MenuItem key='delete' icon={'item-remove'} onClick={onOpenDeleteModal} text={'Delete'} />
                     </Menu>
                 </ContextOverlay>
             </Cell>
