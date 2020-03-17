@@ -13,7 +13,7 @@ import org.silkframework.config._
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.{ResourceManager, UrlResource, WritableResource}
+import org.silkframework.runtime.resource.{ResourceManager, ResourceNotFoundException, UrlResource, WritableResource}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
@@ -161,11 +161,16 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
 
   def getResource(projectName: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    val resource = project.resources.get(resourceName, mustExist = true)
-    val enumerator = Enumerator.fromStream(resource.inputStream)
-    val source = Source.fromPublisher(IterateeStreams.enumeratorToPublisher(enumerator))
+    try {
+      val resource = project.resources.get(resourceName, mustExist = true)
+      val enumerator = Enumerator.fromStream(resource.inputStream)
+      val source = Source.fromPublisher(IterateeStreams.enumeratorToPublisher(enumerator))
 
-    Ok.chunked(source).withHeaders("Content-Disposition" -> "attachment")
+      Ok.chunked(source).withHeaders("Content-Disposition" -> "attachment")
+    } catch {
+      case _: ResourceNotFoundException =>
+        NotFound
+    }
   }
 
   def putResource(projectName: String, resourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request =>implicit userContext =>
