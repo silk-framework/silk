@@ -18,11 +18,22 @@ const availableDTypesSelector = createSelector(
     [globalSelector],
     global => global.availableDataTypes
 );
+const pluginsListSelector = createSelector(
+    [globalSelector],
+    global => global.pluginsList
+);
+
+const artefactModalSelector = createSelector(
+    [globalSelector],
+    global => global.artefactModal
+);
 
 export default {
     globalSelector,
     searchStringSelector,
+    pluginsListSelector,
     availableDTypesSelector,
     breadcrumbsSelector,
+    artefactModalSelector,
     isAuthSelector
 }

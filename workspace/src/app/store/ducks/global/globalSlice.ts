@@ -14,6 +14,19 @@ export const globalSlice = createSlice({
             const {fieldName, modifier} = action.payload;
             state.availableDataTypes[fieldName] = modifier;
         },
+        toggleArtefactModal(state) {
+            state.artefactModal.isOpen = !state.artefactModal.isOpen;
+        },
+        selectArtefact(state, action) {
+            state.artefactModal.isOpen = true;
+            state.artefactModal.selectedArtefact = action.payload
+        },
+        fetchArtefactsList(state) {
+            state.artefactModal.artefactsList = [];
+        },
+        setArtefactsList(state, action) {
+            state.artefactModal.artefactsList = action.payload;
+        },
         setError(state, action) {
             let error = action.payload;
             if (isNetworkError(error)) {

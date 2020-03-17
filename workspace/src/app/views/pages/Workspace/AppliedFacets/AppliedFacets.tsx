@@ -1,12 +1,10 @@
 import React from "react";
-import TagsGroup from "../../../components/tags/TagsGroup";
-import TagItem from "../../../components/tags/TagItem";
+import Tags from "../../../components/Tag";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { IFacetState } from "@ducks/workspace/typings";
 
-
-export default function AppliedFacets() {
+export function AppliedFacets() {
     const dispatch = useDispatch();
 
     const facets = useSelector(workspaceSel.facetsSelector);
@@ -32,17 +30,17 @@ export default function AppliedFacets() {
         <>
             {
                 facetsList.map(facet =>
-                    <TagsGroup key={facet.id} label={facet.label}>
+                    <Tags.TagsGroup key={facet.id} label={facet.label}>
                         {
                             facet.keywords.map(keyword =>
-                                <TagItem
+                                <Tags.TagItem
                                     key={keyword.id}
                                     label={keyword.label}
                                     onFacetRemove={() => handleFacetRemove(facet, keyword.id)}
                                 />
                             )
                         }
-                    </TagsGroup>
+                    </Tags.TagsGroup>
                 )
             }
         </>

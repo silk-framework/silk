@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Pagination from "../../../components/Pagination";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import AppliedFacets from "../Topbar/AppliedFacets";
+import AppliedFacets from "../AppliedFacets";
 import DataList from "../../../components/Datalist";
 import DeleteModal from "../../../components/modals/DeleteModal";
 import SearchItem from "./SearchItem";

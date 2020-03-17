@@ -1,9 +1,8 @@
 import React, { useEffect } from 'react';
 import Filterbar from "./Filterbar";
 import SearchList from "./SearchResults/SearchList";
-import TopBar from "./Topbar";
-import { workspaceOp } from "@ducks/workspace";
-import { useDispatch } from "react-redux";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { useDispatch, useSelector } from "react-redux";
 import EmptyWorkspace from "./EmptyWorkspace";
 
 import {
@@ -15,9 +14,12 @@ import {
     WorkspaceRow,
     WorkspaceColumn,
 } from "@wrappers/index";
+import SearchBar from "../../components/SearchBar";
 
 const Projects = () => {
     const dispatch = useDispatch();
+    const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
+    const sorters = useSelector(workspaceSel.sortersSelector);
 
     useEffect(() => {
         dispatch(workspaceOp.unsetProject());
@@ -25,11 +27,24 @@ const Projects = () => {
         dispatch(workspaceOp.fetchListAsync());
     }, []);
 
+    const handleSort = (sortBy: string) => {
+        dispatch(workspaceOp.applySorterOp(sortBy));
+    };
+
+    const handleApplyFilter = (filters: any) => {
+        dispatch(workspaceOp.applyFiltersOp(filters));
+    };
+
     return (
         <WorkspaceContent className="eccapp-di__workspace">
             <WorkspaceMain>
                 <WorkspaceSection>
-                    <TopBar/>
+                    <SearchBar
+                        textQuery={textQuery}
+                        sorters={sorters}
+                        onSort={handleSort}
+                        onApplyFilters={handleApplyFilter}
+                    />
                     <WorkspaceGrid>
                         <WorkspaceRow>
                             <WorkspaceColumn small>

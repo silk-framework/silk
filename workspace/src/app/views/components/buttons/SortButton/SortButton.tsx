@@ -15,7 +15,7 @@ interface IProps {
     onSort(id: string): void
 }
 
-export default function SortButton({sortersList, activeSort, onSort}: IProps) {
+export function SortButton({sortersList, activeSort, onSort}: IProps) {
     return (
         <div className={'sortButton'}>
             <ContextOverlay>

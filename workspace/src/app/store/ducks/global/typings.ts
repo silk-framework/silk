@@ -19,11 +19,18 @@ export interface IAvailableDataType {
     options: IAvailableDataTypeOption[];
 }
 
+export interface IArtefactModal {
+    isOpen: boolean;
+    artefactsList: any[];
+    selectedArtefact: string;
+}
+
 export interface IGlobalState {
     locale: string;
     authenticated: boolean;
     searchQuery: string;
     error?: any;
     breadcrumbs: IBreadcrumbState[];
-    availableDataTypes: IAvailableDataTypes
+    availableDataTypes: IAvailableDataTypes;
+    artefactModal: IArtefactModal;
 }

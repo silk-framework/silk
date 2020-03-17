@@ -14,7 +14,7 @@ const styles = {
     fontSize: '12px',
 };
 
-export default function TagHeader({ label }) {
+export function TagHeader({ label }) {
     return (
         <div style={styles}>{label}:</div>
     )
