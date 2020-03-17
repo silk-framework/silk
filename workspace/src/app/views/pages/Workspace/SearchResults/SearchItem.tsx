@@ -2,10 +2,9 @@ import React from "react";
 import DataList from "../../../components/Datalist";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import {
-    Menu,
+    ContextMenu,
     MenuItem,
     MenuDivider,
-    ContextOverlay,
     Icon,
     IconButton,
 } from "@wrappers/index";
@@ -101,14 +100,11 @@ export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpen
                     !!item.itemLinks.length &&
                     <IconButton name='item-viewdetails' text='Show details' href={item.itemLinks[0].path} />
                 }
-                <ContextOverlay>
-                    <IconButton name='item-moremenu' text="Show more options" />
-                    <Menu>
-                        {getContextMenuItems(item)}
-                        <MenuDivider />
-                        <MenuItem key='delete' icon={'item-remove'} onClick={onOpenDeleteModal} text={'Delete'} />
-                    </Menu>
-                </ContextOverlay>
+                <ContextMenu togglerText="Show more options">
+                    {getContextMenuItems(item)}
+                    <MenuDivider />
+                    <MenuItem key='delete' icon={'item-remove'} onClick={onOpenDeleteModal} text={'Delete'} />
+                </ContextMenu>
             </Cell>
         </ListRow>
     )

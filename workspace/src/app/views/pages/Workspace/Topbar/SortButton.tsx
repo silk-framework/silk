@@ -2,10 +2,8 @@ import React from "react";
 import {IAppliedSorterState, ISorterListItemState} from "@ducks/workspace/typings";
 
 import {
-    Icon,
-    Menu,
+    ContextMenu,
     MenuItem,
-    ContextOverlay,
 } from '@wrappers/index';
 
 interface IProps {
@@ -18,25 +16,22 @@ interface IProps {
 export default function SortButton({sortersList, activeSort, onSort}: IProps) {
     return (
         <div className={'sortButton'}>
-            <ContextOverlay>
-                <Icon name='list-sort'/>
-                <Menu>
-                    {
-                        sortersList.map(item =>
-                            <MenuItem
-                                key={item.id}
-                                text={item.label}
-                                icon={
-                                    activeSort.sortBy === item.id
-                                        ? activeSort.sortOrder === 'ASC' ? 'list-sortasc' : 'list-sortdesc'
-                                        : null
-                                }
-                                onClick={() => onSort(item.id)}
-                            />
-                        )
-                    }
-                </Menu>
-            </ContextOverlay>
+            <ContextMenu togglerElement='list-sort' togglerText="Sort options">
+                {
+                    sortersList.map(item =>
+                        <MenuItem
+                            key={item.id}
+                            text={item.label}
+                            icon={
+                                activeSort.sortBy === item.id
+                                    ? activeSort.sortOrder === 'ASC' ? 'list-sortasc' : 'list-sortdesc'
+                                    : null
+                            }
+                            onClick={() => onSort(item.id)}
+                        />
+                    )
+                }
+            </ContextMenu>
         </div>
     )
 }
