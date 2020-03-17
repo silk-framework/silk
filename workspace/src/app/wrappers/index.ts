@@ -26,6 +26,7 @@ import MenuItem from './src/components/Menu/MenuItem';
 import MenuDivider from './src/components/Menu/MenuDivider';
 
 import ContextOverlay from './src/components/ContextOverlay/ContextOverlay';
+import ContextMenu from './src/components/ContextOverlay/ContextMenu';
 
 export {
     ApplicationContainer,
@@ -51,6 +52,7 @@ export {
     MenuDivider,
 
     ContextOverlay,
+    ContextMenu,
 
     Icon,
     IconButton,
