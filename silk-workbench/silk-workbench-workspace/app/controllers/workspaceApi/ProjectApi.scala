@@ -1,5 +1,7 @@
 package controllers.workspaceApi
 
+import java.util.UUID
+
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspace.JsonSerializer
@@ -50,16 +52,11 @@ class ProjectApi @Inject()() extends InjectedController with ControllerUtilsTrai
 
   private def generateProjectId(label: String)
                                (implicit userContext: UserContext): Identifier = {
-    val tempId = Identifier.fromAllowed(label, Some("project"))
-    var counter = 2
-    workspace.findProject(tempId) match {
-      case Some(_) =>
-        while (workspace.findProject(tempId + counter).isDefined) {
-          counter += 1
-        }
-        tempId + counter
-      case None =>
-        tempId
+    val defaultSuffix = "project"
+    if(Identifier.fromAllowed(label, alternative = Some(defaultSuffix)) == Identifier(defaultSuffix)) {
+      Identifier.fromAllowed(UUID.randomUUID().toString + "_" + defaultSuffix)
+    } else {
+      Identifier.fromAllowed(UUID.randomUUID().toString + "_" + label)
     }
   }
 
