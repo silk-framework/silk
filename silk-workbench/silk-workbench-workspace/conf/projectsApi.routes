@@ -1,12 +1,83 @@
 # Projects
 
+GET           /                                                        controllers.workspace.WorkspaceApi.projects
 POST          /                                                        controllers.workspaceApi.ProjectApi.createNewProject()
 PUT           /:projectId/metaData                                     controllers.workspaceApi.ProjectApi.updateProjectMetaData(projectId: String)
 GET           /:projectId/prefixes                                     controllers.workspaceApi.ProjectApi.fetchProjectPrefixes(projectId: String)
 PUT           /:projectId/prefixes/:prefixName                         controllers.workspaceApi.ProjectApi.addProjectPrefix(projectId: String, prefixName: String)
 DELETE        /:projectId/prefixes/:prefixName                         controllers.workspaceApi.ProjectApi.deleteProjectPrefix(projectId: String, prefixName: String)
+GET           /:project                                                controllers.workspace.WorkspaceApi.getProject(project: String)
+PUT           /:project                                                controllers.workspace.WorkspaceApi.newProject(project: String)
+DELETE        /:project                                                controllers.workspace.WorkspaceApi.deleteProject(project: String)
+POST          /:project/import                                         controllers.workspace.ProjectMarshalingApi.importProject(project: String)
+POST          /:project/import/:importPlugin                           controllers.workspace.ProjectMarshalingApi.importProjectViaPlugin(project: String, importPlugin: String)
+GET           /:project/export                                         controllers.workspace.ProjectMarshalingApi.exportProject(project: String)
+GET           /:project/export/:exportPlugin                           controllers.workspace.ProjectMarshalingApi.exportProjectViaPlugin(project: String, exportPlugin: String)
+POST          /:project/importLinkSpec                                 controllers.workspace.WorkspaceApi.importLinkSpec(project: String)
+GET           /:project/:task/exportLinkSpec                           controllers.workspace.WorkspaceApi.exportLinkSpec(project: String, task: String)
+PUT           /:project/prefixes                                       controllers.workspace.WorkspaceApi.updatePrefixes(project: String)
+POST          /:project/execute                                        controllers.workspace.WorkspaceApi.executeProject(project: String)
+POST          /:project/clone                                          controllers.workspace.WorkspaceApi.cloneProject(project, newProject)
+
+# Resources
+GET           /:project/resources                                      controllers.workspace.WorkspaceApi.getResources(project: String, searchText: Option[String] ?= None, limit: Option[Int] ?= None, offset: Option[Int] ?= None)
+GET           /:project/resources/:name                                controllers.workspace.WorkspaceApi.getResource(project: String, name: String)
+PUT           /:project/resources/:name                                controllers.workspace.WorkspaceApi.putResource(project: String, name: String)
+DELETE        /:project/resources/:name                                controllers.workspace.WorkspaceApi.deleteResource(project: String, name: String)
+GET           /:project/resources/:name/metadata                       controllers.workspace.WorkspaceApi.getResourceMetadata(project: String, name: String)
+
+# Task API
+
+POST          /:project/tasks                                          controllers.workspace.TaskApi.postTask(project: String)
+PUT           /:project/tasks/:task                                    controllers.workspace.TaskApi.putTask(project: String, task: String)
+PATCH         /:project/tasks/:task                                    controllers.workspace.TaskApi.patchTask(project: String, task: String)
+GET           /:project/tasks/:task                                    controllers.workspace.TaskApi.getTask(project: String, task: String)
+DELETE        /:project/tasks/:task                                    controllers.workspace.TaskApi.deleteTask(project: String, task: String, removeDependentTasks: Boolean ?= false)
+PUT           /:project/tasks/:task/metadata                           controllers.workspace.TaskApi.putTaskMetadata(project: String, task: String)
+GET           /:project/tasks/:task/metadata                           controllers.workspace.TaskApi.getTaskMetadata(project: String, task: String)
+POST          /:project/tasks/:task/clone                              controllers.workspace.TaskApi.cloneTask(project, task, newTask)
+POST          /:project/tasks/:task/copy                               controllers.workspace.TaskApi.copyTask(project: String, task: String)
+GET           /:project/tasks/:task/cachesLoaded                       controllers.workspace.TaskApi.cachesLoaded(project: String, task: String)
+GET           /:project/tasks/:task/downloadOutput                     controllers.workspace.TaskApi.downloadOutput(project: String, task: String)
+
+# Project Activities
+GET           /:project/activities                                     controllers.workspace.ActivityApi.getProjectActivities(project: String)
+POST          /:project/activities/:activity/start                     controllers.workspace.ActivityApi.startActivity(project: String, task = "", activity: String, blocking: Boolean = false)
+POST          /:project/activities/:activity/startBlocking             controllers.workspace.ActivityApi.startActivity(project: String, task = "", activity: String, blocking: Boolean = true)
+POST          /:project/activities/:activity/cancel                    controllers.workspace.ActivityApi.cancelActivity(project: String, task = "", activity: String)
+POST          /:project/activities/:activity/restart                   controllers.workspace.ActivityApi.restartActivity(project: String, task= "", activity: String, blocking: Boolean ?= false)
+GET           /:project/activities/:activity/config                    controllers.workspace.ActivityApi.getActivityConfig(project: String, task = "", activity: String)
+POST          /:project/activities/:activity/config                    controllers.workspace.ActivityApi.postActivityConfig(project: String, task = "", activity: String)
+GET           /:project/activities/:activity/status                    controllers.workspace.ActivityApi.getActivityStatus(project: String, task = "", activity: String)
+GET           /:project/activities/:activity/value                     controllers.workspace.ActivityApi.getActivityValue(project: String, task = "", activity: String)
+
+# Task Activities
+GET           /:project/tasks/:task/activities                         controllers.workspace.ActivityApi.getTaskActivities(project: String, task: String)
+POST          /:project/tasks/:task/activities/:activity/start         controllers.workspace.ActivityApi.startActivity(project: String, task: String, activity: String, blocking: Boolean = false)
+POST          /:project/tasks/:task/activities/:activity/startBlocking controllers.workspace.ActivityApi.startActivity(project: String, task: String, activity: String, blocking: Boolean = true)
+POST          /:project/tasks/:task/activities/:activity/cancel        controllers.workspace.ActivityApi.cancelActivity(project: String, task: String, activity: String)
+POST          /:project/tasks/:task/activities/:activity/restart       controllers.workspace.ActivityApi.restartActivity(project: String, task: String, activity: String, blocking: Boolean ?= false)
+GET           /:project/tasks/:task/activities/:activity/config        controllers.workspace.ActivityApi.getActivityConfig(project: String, task: String, activity: String)
+POST          /:project/tasks/:task/activities/:activity/config        controllers.workspace.ActivityApi.postActivityConfig(project: String, task: String, activity: String)
+GET           /:project/tasks/:task/activities/:activity/status        controllers.workspace.ActivityApi.getActivityStatus(project: String, task: String, activity: String)
+GET           /:project/tasks/:task/activities/:activity/value         controllers.workspace.ActivityApi.getActivityValue(project: String, task: String, activity: String)
 
 # Project error report
 
 GET           /:projectId/failedTasksReport                            controllers.workspaceApi.ProjectApi.projectTasksLoadingErrorReport(projectId: String)
 GET           /:projectId/failedTasksReport/:taskId                    controllers.workspaceApi.ProjectApi.projectTaskLoadingErrorReport(projectId: String, taskId: String)
+
+# Dataset API
+PUT           /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.putDataset(project: String, name: String, autoConfigure: Boolean ?= false)
+GET           /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.getDataset(project: String, name: String)
+DELETE        /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.deleteDataset(project: String, name: String)
+GET           /projects/:project/datasets/:name/autoConfigured                  controllers.workspace.DatasetApi.getDatasetAutoConfigured(project: String, name: String)
+GET           /projects/:project/datasets/:name/types                           controllers.workspace.DatasetApi.getDatasetTypes(project: String, name: String)
+GET           /projects/:project/datasets/:name/mappingCoverage                 controllers.workspace.DatasetApi.getMappingCoverage(project: String, name: String)
+POST          /projects/:project/datasets/:name/mappingCoverage/values          controllers.workspace.DatasetApi.getMappingValueCoverage(project: String, name: String)
+
+# Custom task API
+GET           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.getTask(project: String, name: String)
+POST          /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.pushTask(project: String, name: String, createOnly: Boolean = true)
+PUT           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.pushTask(project: String, name: String, createOnly: Boolean = false)
+DELETE        /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.deleteTask(project: String, name: String)

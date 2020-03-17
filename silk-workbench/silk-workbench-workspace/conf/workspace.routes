@@ -36,15 +36,6 @@ GET           /datasets/:project/:task/table                                    
 GET           /datasets/:project/:task/sparql                                   controllers.workspace.DatasetApi.sparql(project, task, query ?= "")
 GET           /datasets/:project/:task/types                                    controllers.workspace.DatasetApi.types(project, task, search)
 
-# API
-PUT           /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.putDataset(project: String, name: String, autoConfigure: Boolean ?= false)
-GET           /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.getDataset(project: String, name: String)
-DELETE        /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.deleteDataset(project: String, name: String)
-GET           /projects/:project/datasets/:name/autoConfigured                  controllers.workspace.DatasetApi.getDatasetAutoConfigured(project: String, name: String)
-GET           /projects/:project/datasets/:name/types                           controllers.workspace.DatasetApi.getDatasetTypes(project: String, name: String)
-GET           /projects/:project/datasets/:name/mappingCoverage                 controllers.workspace.DatasetApi.getMappingCoverage(project: String, name: String)
-POST          /projects/:project/datasets/:name/mappingCoverage/values          controllers.workspace.DatasetApi.getMappingValueCoverage(project: String, name: String)
-
 ############################################################################################################################################
 # CustomTasks
 ############################################################################################################################################
@@ -53,92 +44,29 @@ POST          /projects/:project/datasets/:name/mappingCoverage/values          
 GET           /customTasks/newTaskDialog/:project                                controllers.workspace.CustomTasks.taskDialog(project: String, task = "", createDialog: Boolean = true)
 GET           /customTasks/editTaskDialog/:project/:task                         controllers.workspace.CustomTasks.taskDialog(project: String, task: String, createDialog: Boolean = false)
 
-# API
-GET           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.getTask(project: String, name: String)
-POST           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.pushTask(project: String, name: String, createOnly: Boolean = true)
-PUT           /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.pushTask(project: String, name: String, createOnly: Boolean = false)
-DELETE        /projects/:project/customTasks/:name                               controllers.workspace.CustomTasks.deleteTask(project: String, name: String)
-
 ############################################################################################################################################
-# Workspace API
+# Workspace API - DEPRECATED routes -> perm redirected to new API routes
 ############################################################################################################################################
 
 # Reload Workspace
-POST          /reload                                                           controllers.workspace.WorkspaceApi.reload
-POST          /reloadPrefixes                                                   controllers.workspace.WorkspaceApi.reloadPrefixes
-POST          /import/:importPlugin                                             controllers.workspace.ProjectMarshalingApi.importWorkspaceViaPlugin(importPlugin: String)
-GET           /export/:exportPlugin                                             controllers.workspace.ProjectMarshalingApi.exportWorkspaceViaPlugin(exportPlugin: String)
-GET           /marshallingPlugins                                               controllers.workspace.ProjectMarshalingApi.availableMarshallingPlugins()
+POST          /reload                                                           controllers.workspace.HttpUtilApi.permPrefixRedirect(prefix =  "/api", rest = "")
+POST          /reloadPrefixes                                                   controllers.workspace.HttpUtilApi.permPrefixRedirect(prefix =  "/api", rest = "")
+POST          /import/:importPlugin                                             controllers.workspace.HttpUtilApi.permPrefixRedirect(prefix =  "/api", importPlugin: String)
+GET           /export/:exportPlugin                                             controllers.workspace.HttpUtilApi.permPrefixRedirect(prefix =  "/api", exportPlugin: String)
+GET           /marshallingPlugins                                               controllers.workspace.HttpUtilApi.permPrefixRedirect(prefix =  "/api", rest = "")
 
 # Projects
-GET           /projects                                                         controllers.workspace.WorkspaceApi.projects
-GET           /projects/:project                                                controllers.workspace.WorkspaceApi.getProject(project: String)
-PUT           /projects/:project                                                controllers.workspace.WorkspaceApi.newProject(project: String)
-DELETE        /projects/:project                                                controllers.workspace.WorkspaceApi.deleteProject(project: String)
-POST          /projects/:project/import                                         controllers.workspace.ProjectMarshalingApi.importProject(project: String)
-POST          /projects/:project/import/:importPlugin                           controllers.workspace.ProjectMarshalingApi.importProjectViaPlugin(project: String, importPlugin: String)
-GET           /projects/:project/export                                         controllers.workspace.ProjectMarshalingApi.exportProject(project: String)
-GET           /projects/:project/export/:exportPlugin                           controllers.workspace.ProjectMarshalingApi.exportProjectViaPlugin(project: String, exportPlugin: String)
-POST          /projects/:project/importLinkSpec                                 controllers.workspace.WorkspaceApi.importLinkSpec(project: String)
-GET           /projects/:project/:task/exportLinkSpec                           controllers.workspace.WorkspaceApi.exportLinkSpec(project: String, task: String)
-PUT           /projects/:project/prefixes                                       controllers.workspace.WorkspaceApi.updatePrefixes(project: String)
-POST          /projects/:project/execute                                        controllers.workspace.WorkspaceApi.executeProject(project: String)
-POST          /projects/:project/clone                                          controllers.workspace.WorkspaceApi.cloneProject(project, newProject)
-
-# Resources
-GET           /projects/:project/resources                                      controllers.workspace.WorkspaceApi.getResources(project: String, searchText: Option[String] ?= None, limit: Option[Int] ?= None, offset: Option[Int] ?= None)
-GET           /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.getResource(project: String, name: String)
-PUT           /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.putResource(project: String, name: String)
-DELETE        /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.deleteResource(project: String, name: String)
-GET           /projects/:project/resources/:name/metadata                       controllers.workspace.WorkspaceApi.getResourceMetadata(project: String, name: String)
-
-# Tasks
-POST          /projects/:project/tasks                                          controllers.workspace.TaskApi.postTask(project: String)
-PUT           /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.putTask(project: String, task: String)
-PATCH         /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.patchTask(project: String, task: String)
-GET           /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.getTask(project: String, task: String)
-DELETE        /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.deleteTask(project: String, task: String, removeDependentTasks: Boolean ?= false)
-PUT           /projects/:project/tasks/:task/metadata                           controllers.workspace.TaskApi.putTaskMetadata(project: String, task: String)
-GET           /projects/:project/tasks/:task/metadata                           controllers.workspace.TaskApi.getTaskMetadata(project: String, task: String)
-POST          /projects/:project/tasks/:task/clone                              controllers.workspace.TaskApi.cloneTask(project, task, newTask)
-POST          /projects/:project/tasks/:task/copy                               controllers.workspace.TaskApi.copyTask(project: String, task: String)
-GET           /projects/:project/tasks/:task/cachesLoaded                       controllers.workspace.TaskApi.cachesLoaded(project: String, task: String)
-GET           /projects/:project/tasks/:task/downloadOutput                     controllers.workspace.TaskApi.downloadOutput(project: String, task: String)
-
-# Project Activities
-GET           /projects/:project/activities                                     controllers.workspace.ActivityApi.getProjectActivities(project: String)
-POST          /projects/:project/activities/:activity/start                     controllers.workspace.ActivityApi.startActivity(project: String, task = "", activity: String, blocking: Boolean = false)
-POST          /projects/:project/activities/:activity/startBlocking             controllers.workspace.ActivityApi.startActivity(project: String, task = "", activity: String, blocking: Boolean = true)
-POST          /projects/:project/activities/:activity/cancel                    controllers.workspace.ActivityApi.cancelActivity(project: String, task = "", activity: String)
-POST          /projects/:project/activities/:activity/restart                   controllers.workspace.ActivityApi.restartActivity(project: String, task= "", activity: String, blocking: Boolean ?= false)
-GET           /projects/:project/activities/:activity/config                    controllers.workspace.ActivityApi.getActivityConfig(project: String, task = "", activity: String)
-POST          /projects/:project/activities/:activity/config                    controllers.workspace.ActivityApi.postActivityConfig(project: String, task = "", activity: String)
-GET           /projects/:project/activities/:activity/status                    controllers.workspace.ActivityApi.getActivityStatus(project: String, task = "", activity: String)
-GET           /projects/:project/activities/:activity/value                     controllers.workspace.ActivityApi.getActivityValue(project: String, task = "", activity: String)
-
-# Task Activities
-GET           /projects/:project/tasks/:task/activities                         controllers.workspace.ActivityApi.getTaskActivities(project: String, task: String)
-POST          /projects/:project/tasks/:task/activities/:activity/start         controllers.workspace.ActivityApi.startActivity(project: String, task: String, activity: String, blocking: Boolean = false)
-POST          /projects/:project/tasks/:task/activities/:activity/startBlocking controllers.workspace.ActivityApi.startActivity(project: String, task: String, activity: String, blocking: Boolean = true)
-POST          /projects/:project/tasks/:task/activities/:activity/cancel        controllers.workspace.ActivityApi.cancelActivity(project: String, task: String, activity: String)
-POST          /projects/:project/tasks/:task/activities/:activity/restart       controllers.workspace.ActivityApi.restartActivity(project: String, task: String, activity: String, blocking: Boolean ?= false)
-GET           /projects/:project/tasks/:task/activities/:activity/config        controllers.workspace.ActivityApi.getActivityConfig(project: String, task: String, activity: String)
-POST          /projects/:project/tasks/:task/activities/:activity/config        controllers.workspace.ActivityApi.postActivityConfig(project: String, task: String, activity: String)
-GET           /projects/:project/tasks/:task/activities/:activity/status        controllers.workspace.ActivityApi.getActivityStatus(project: String, task: String, activity: String)
-GET           /projects/:project/tasks/:task/activities/:activity/value         controllers.workspace.ActivityApi.getActivityValue(project: String, task: String, activity: String)
+# Project related API endpoints have been moved to projectsApi.routes
+GET           /projects                                                         controllers.workspace.HttpUtilApi.permPrefixRedirect(prefix =  "/api", rest = "")
+POST          /projects/*rest                                                   controllers.workspace.HttpUtilApi.permPrefixRedirect(prefix =  "/api", rest: String)
+PUT           /projects/*rest                                                   controllers.workspace.HttpUtilApi.permPrefixRedirect(prefix =  "/api", rest: String)
+PATCH         /projects/*rest                                                   controllers.workspace.HttpUtilApi.permPrefixRedirect(prefix =  "/api", rest: String)
+GET           /projects/*rest                                                   controllers.workspace.HttpUtilApi.permPrefixRedirect(prefix =  "/api", rest: String)
+DELETE        /projects/*rest                                                   controllers.workspace.HttpUtilApi.permPrefixRedirect(prefix =  "/api", rest: String)
 
 # General Activities API
-POST          /activities/start                                                 controllers.workspace.ActivityApi.startActivity(project: String, task: String, activity: String, blocking: Boolean = false)
-POST          /activities/startBlocking                                         controllers.workspace.ActivityApi.startActivity(project: String, task: String, activity: String, blocking: Boolean = true)
-POST          /activities/cancel                                                controllers.workspace.ActivityApi.cancelActivity(project: String, task: String, activity: String)
-POST          /activities/restart                                               controllers.workspace.ActivityApi.restartActivity(project: String, task: String, activity: String, blocking: Boolean ?= false)
-GET           /activities/config                                                controllers.workspace.ActivityApi.getActivityConfig(project: String, task: String, activity: String)
-POST          /activities/config                                                controllers.workspace.ActivityApi.postActivityConfig(project: String, task: String, activity: String)
-GET           /activities/status                                                controllers.workspace.ActivityApi.getActivityStatus(project: String, task: String, activity: String)
-GET           /activities/recent                                                controllers.workspace.ActivityApi.recentActivities(maxCount: Int ?= 10)
-GET           /activities/log                                                   controllers.workspace.ActivityApi.activityLog()
-GET           /activities/updates                                               controllers.workspace.ActivityApi.getActivityStatusUpdates(project: String ?= "", task: String ?= "", activity: String ?= "", timestamp: Long ?= 0L)
-GET           /activities/updatesWebSocket                                      controllers.workspace.ActivityApi.activityStatusUpdatesWebSocket(project: String ?= "", task: String ?= "", activity: String ?= "")
+POST          /activities/*rest                                                 controllers.workspace.HttpUtilApi.permPrefixRedirect(prefix =  "/api", rest: String)
+GET           /activities/*rest                                                 controllers.workspace.HttpUtilApi.permPrefixRedirect(prefix =  "/api", rest: String)
 
 ############################################################################################################################################
 # Assets
