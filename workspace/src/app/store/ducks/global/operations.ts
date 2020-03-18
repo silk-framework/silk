@@ -5,8 +5,14 @@ import { batch } from "react-redux";
 import { getApiEndpoint } from "../../../utils/getApiEndpoint";
 import fetch from '../../../services/fetch';
 import asModifier from "../../../utils/asModifier";
+import { globalOp, globalSel } from "@ducks/global/index";
+import { workspaceOp } from "@ducks/workspace";
 
-const {addBreadcrumb, setError, fetchAvailableDTypes, updateAvailableDTypes} = globalSlice.actions;
+const {
+    addBreadcrumb, setError, fetchAvailableDTypes,
+    updateAvailableDTypes, fetchArtefactsList, setArtefactsList,
+    closeArtefactModal, selectArtefact
+} = globalSlice.actions;
 
 /**
  * Fetch types modifier
@@ -36,6 +42,39 @@ const fetchAvailableDTypesAsync = (id?: string) => {
     }
 };
 
+const fetchArtefactsListAsync = () => {
+    return async dispatch => {
+        dispatch(fetchArtefactsList());
+        try {
+            const {data} = await fetch({
+                url: '/dataintegration/core/plugins/org.silkframework.dataset.Dataset',
+            });
+            const result = Object.keys(data).map(key => ({
+                key,
+                ...data[key]
+            }));
+
+            dispatch(setArtefactsList(result));
+        } catch (e) {
+            dispatch(setError(e.response.data));
+        }
+    }
+};
+
+const createArtefactAsync = (formData) => {
+    return (dispatch, getState) => {
+        const artefactType = globalSel.artefactModalSelector(getState()).selectedArtefact;
+        switch (artefactType) {
+            case "project":
+                dispatch(workspaceOp.fetchCreateProjectAsync(formData));
+                break;
+            default:
+                console.warn('Artefact type not defined');
+                break;
+        }
+    }
+};
+
 export default {
     changeLocale,
     isAuthenticated,
@@ -43,5 +82,9 @@ export default {
     authorize,
     logout,
     addBreadcrumb,
-    fetchAvailableDTypesAsync
+    fetchAvailableDTypesAsync,
+    fetchArtefactsListAsync,
+    closeArtefactModal,
+    selectArtefact,
+    createArtefactAsync
 };

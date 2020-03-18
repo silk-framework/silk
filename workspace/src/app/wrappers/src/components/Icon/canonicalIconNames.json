@@ -2,6 +2,7 @@
     "application-homepage": "Workspace",
     "application-useraccount": "UserAvatar",
     "application-mapping": "ModelBuilder",
+    "application-create-button": "DocumentAdd",
 
     "item-moremenu": "OverflowMenuVertical",
     "item-viewdetails": "View",

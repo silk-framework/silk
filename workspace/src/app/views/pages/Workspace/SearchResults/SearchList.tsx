@@ -8,7 +8,7 @@ import DeleteModal from "../../../components/modals/DeleteModal";
 import Loading from "../../../components/Loading";
 import CloneModal from "../../../components/modals/CloneModal";
 import { DATA_TYPES } from "../../../../constants";
-import AppliedFacets from "../Topbar/AppliedFacets";
+import AppliedFacets from "../AppliedFacets";
 import SearchItem from "./SearchItem";
 
 export default function SearchList() {

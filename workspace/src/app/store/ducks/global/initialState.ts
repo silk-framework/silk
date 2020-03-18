@@ -8,6 +8,11 @@ export function initialGlobalState(): IGlobalState {
         searchQuery: '',
         breadcrumbs: [],
         error: {},
-        availableDataTypes: {}
+        availableDataTypes: {},
+        artefactModal: {
+            isOpen: false,
+            artefactsList: [],
+            selectedArtefact: ''
+        }
     }
 }

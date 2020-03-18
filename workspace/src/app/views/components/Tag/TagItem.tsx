@@ -15,7 +15,7 @@ const styles = {
     fontSize: '12px',
 };
 
-export default function TagItem({label, onFacetRemove}) {
+export function TagItem({label, onFacetRemove}) {
     return (
         <Tag
             style={styles}

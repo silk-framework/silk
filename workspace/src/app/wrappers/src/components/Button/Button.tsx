@@ -12,7 +12,7 @@ const Button = ({
     affirmative=false,
     disruptive=false,
     elevated=false,
-    href=false,
+    href='',
     icon=false,
     rightIcon=false,
     ...restProps

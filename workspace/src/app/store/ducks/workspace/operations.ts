@@ -278,10 +278,13 @@ const fetchCloneTaskAsync = (taskId: string, projectId: string, taskNewId: strin
     }
 };
 
-const fetchCreateProjectAsync = (label: string, description?: string) => {
+const fetchCreateProjectAsync = (formData: {
+    label: string,
+    description?: string
+}) => {
     return async dispatch => {
         dispatch(setError({}));
-
+        const { label, description } = formData;
         try {
             const {data} = await fetch({
                 url: getApiEndpoint(`/projects`),
