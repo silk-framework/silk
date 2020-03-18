@@ -1,11 +1,13 @@
 import React from "react";
-import { Icon } from "@wrappers/index";
 import styles from './index.module.scss';
 import { IPrefixState } from "@ducks/workspace/typings";
-import DataList from "../../../../components/Datalist";
-
-const {Cell, ListRow} = DataList;
-
+import {
+    OverviewItem,
+    OverviewItemDescription,
+    OverviewItemLine,
+    OverviewItemActions,
+    Icon,
+} from "@wrappers/index";
 interface IProps {
     prefix: IPrefixState;
 
@@ -14,20 +16,22 @@ interface IProps {
 
 const PrefixRow = ({prefix, onRemove}: IProps) => {
     return (
-        <ListRow className={`${styles.prefixRow}`}>
-            <Cell span={7}>
-                <span>{prefix.prefixName}</span>
-            </Cell>
-            <Cell span={8}>
-                <span>{prefix.prefixUri}</span>
-            </Cell>
-            <Cell span={1}>
+        <OverviewItem>
+            <OverviewItemDescription>
+                <OverviewItemLine>
+                    <span>{prefix.prefixName}</span>
+                </OverviewItemLine>
+                <OverviewItemLine>
+                    <span>{prefix.prefixUri}</span>
+                </OverviewItemLine>
+            </OverviewItemDescription>
+            <OverviewItemActions>
                 <Icon
                     name="item-remove"
                     onClick={onRemove}
                 />
-            </Cell>
-        </ListRow>
+            </OverviewItemActions>
+        </OverviewItem>
     )
 };
 

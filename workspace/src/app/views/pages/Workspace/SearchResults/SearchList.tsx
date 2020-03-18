@@ -1,15 +1,15 @@
 import React, { useState } from "react";
-import Pagination from "../../../components/Pagination";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import AppliedFacets from "../Topbar/AppliedFacets";
+import { sharedOp } from "@ducks/shared";
+import Pagination from "../../../components/Pagination";
 import DataList from "../../../components/Datalist";
 import DeleteModal from "../../../components/modals/DeleteModal";
-import SearchItem from "./SearchItem";
 import Loading from "../../../components/Loading";
-import { DATA_TYPES } from "../../../../constants";
 import CloneModal from "../../../components/modals/CloneModal";
-import { sharedOp } from "@ducks/shared";
+import { DATA_TYPES } from "../../../../constants";
+import AppliedFacets from "../Topbar/AppliedFacets";
+import SearchItem from "./SearchItem";
 
 export default function SearchList() {
 
@@ -102,11 +102,10 @@ export default function SearchList() {
         dispatch(workspaceOp.changeLimitOp(pageSize));
     };
 
-    const {Header, Body, Footer} = DataList;
     return (
-        <DataList isLoading={isLoading} data={data}>
-            <Body className={'cardBody'}>
-                <AppliedFacets/>
+        <>
+            <AppliedFacets/>
+            <DataList isLoading={isLoading} data={data}>
                 {
                     data.map(item => (
                         <SearchItem
@@ -118,14 +117,12 @@ export default function SearchList() {
                         />
                     ))
                 }
-            </Body>
-            <Footer>
-                <Pagination
-                    pagination={pagination}
-                    pageSizes={pageSizes}
-                    onChangeSelect={handlePaginationOnChange}
-                />
-            </Footer>
+            </DataList>
+            <Pagination
+                pagination={pagination}
+                pageSizes={pageSizes}
+                onChangeSelect={handlePaginationOnChange}
+            />
             <DeleteModal
                 isOpen={showDeleteModal}
                 onDiscard={onDiscardModals}
@@ -138,6 +135,6 @@ export default function SearchList() {
                 onDiscard={onDiscardModals}
                 onConfirm={handleConfirmClone}
             />
-        </DataList>
+        </>
     )
 }

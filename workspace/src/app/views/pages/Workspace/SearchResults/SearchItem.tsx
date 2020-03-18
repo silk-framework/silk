@@ -2,6 +2,11 @@ import React from "react";
 import DataList from "../../../components/Datalist";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import {
+    OverviewItem,
+    OverviewItemDepiction,
+    OverviewItemDescription,
+    OverviewItemLine,
+    OverviewItemActions,
     ContextMenu,
     MenuItem,
     MenuDivider,
@@ -21,7 +26,6 @@ interface IProps {
 }
 
 export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpenDuplicateModal, onRowClick = () => {}}: IProps) {
-    const {ListRow, Cell} = DataList;
     const getItemLinkIcons = (label: string) => {
         switch (label) {
             case 'Mapping editor':
@@ -79,17 +83,23 @@ export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpen
     };
 
     return (
-        <ListRow>
-            <Cell>
+        <OverviewItem onClick={onRowClick}>
+            <OverviewItemDepiction>
                 <Icon name='artefact-project' large />
-            </Cell>
-            <Cell onClick={onRowClick}>
-                <p dangerouslySetInnerHTML={{
-                    __html: getSearchHighlight(item.label || item.id)
-                }}/>
-                <p>{item.description}</p>
-            </Cell>
-            <Cell>
+            </OverviewItemDepiction>
+            <OverviewItemDescription>
+                <OverviewItemLine>
+                    <p dangerouslySetInnerHTML={{
+                        __html: getSearchHighlight(item.label || item.id)
+                    }}/>
+                </OverviewItemLine>
+                {   item.description &&
+                    <OverviewItemLine>
+                        <p>{item.description}</p>
+                    </OverviewItemLine>
+                }
+            </OverviewItemDescription>
+            <OverviewItemActions>
                 <IconButton
                     data-test-id={'open-duplicate-modal'}
                     name='item-clone'
@@ -105,7 +115,7 @@ export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpen
                     <MenuDivider />
                     <MenuItem key='delete' icon={'item-remove'} onClick={onOpenDeleteModal} text={'Delete'} />
                 </ContextMenu>
-            </Cell>
-        </ListRow>
+            </OverviewItemActions>
+        </OverviewItem>
     )
 }

@@ -8,12 +8,11 @@ import PrefixNew from "./PrefixNew";
 import { IPrefixState } from "@ducks/workspace/typings";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { useDispatch, useSelector } from "react-redux";
-import Row from "@wrappers/carbon/grid/Row";
 import DataList from "../../../../components/Datalist";
 import Loading from "../../../../components/Loading";
-import { Button } from '@wrappers/index';
-
-const { Cell, ListRow, Header, Body } = DataList;
+import {
+    Button
+} from '@wrappers/index';
 
 const PrefixesDialog = ({onCloseModal, isOpen}) => {
     const dispatch = useDispatch();
@@ -74,25 +73,17 @@ const PrefixesDialog = ({onCloseModal, isOpen}) => {
                                 onChangePrefix={handleUpdatePrefixFields}
                                 onAdd={() => handleAddOrUpdatePrefix(newPrefix)}
                             />
-                            <Row>
-                                <DataList data={prefixList}>
-                                    <Header>
-                                        <Cell head>Prefix</Cell>
-                                        <Cell head>Uri</Cell>
-                                    </Header>
-                                    <Body>
-                                    {
-                                        prefixList.map((prefix, i) =>
-                                            <PrefixRow
-                                                key={i}
-                                                prefix={prefix}
-                                                onRemove={() => toggleRemoveDialog(prefix)}
-                                            />
-                                        )
-                                    }
-                                    </Body>
-                                </DataList>
-                            </Row>
+                            <DataList data={prefixList}>
+                                {
+                                    prefixList.map((prefix, i) =>
+                                        <PrefixRow
+                                            key={i}
+                                            prefix={prefix}
+                                            onRemove={() => toggleRemoveDialog(prefix)}
+                                        />
+                                    )
+                                }
+                            </DataList>
                         </div>
                         <div className={Classes.DIALOG_FOOTER}>
                             <div className={Classes.DIALOG_FOOTER_ACTIONS}>

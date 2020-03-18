@@ -1,52 +1,6 @@
 import React from "react";
 import Spinner from "@wrappers/blueprint/spinner";
-import StructuredListBody from "@wrappers/carbon/structured-list/StructuredListBody";
-import StructuredListHead from "@wrappers/carbon/structured-list/StructuredListHead";
-import StructuredListCell from "@wrappers/carbon/structured-list/StructuredListCell";
-import StructuredListRow from "@wrappers/carbon/structured-list/StructuredListRow";
-import { StructuredListWrapper } from "carbon-components-react";
-
-function _ListRow({children, ...restProps}) {
-    return (
-        <StructuredListRow {...restProps}>
-            {children}
-        </StructuredListRow>
-    )
-}
-
-function _Cell({children, ...restProps}) {
-    return (
-        <StructuredListCell {...restProps}>
-            {children}
-        </StructuredListCell>
-    )
-}
-
-function _Header({children}) {
-    return (
-        <StructuredListHead className={'header'}>
-            <_ListRow head>
-                {children}
-            </_ListRow>
-        </StructuredListHead>
-    )
-}
-
-function _Body({children, ...restProps}) {
-    return (
-        <StructuredListBody {...restProps}>
-            {children}
-        </StructuredListBody>
-    )
-}
-
-function _Footer({children}) {
-    return (
-        <StructuredListBody className={'footer'}>
-            {children}
-        </StructuredListBody>
-    )
-}
+import { OverviewItemList } from '@wrappers/index'
 
 const _loadingIndicator = () => <Spinner/>;
 
@@ -59,16 +13,10 @@ function DataList({children, isLoading = false, data}) {
         return _emptyContent();
     }
     return (
-            <StructuredListWrapper>
+            <OverviewItemList>
                 {children}
-            </StructuredListWrapper>
+            </OverviewItemList>
     )
 }
-
-DataList.Header = _Header;
-DataList.Body = _Body;
-DataList.Footer = _Footer;
-DataList.ListRow = _ListRow;
-DataList.Cell = _Cell;
 
 export default DataList;

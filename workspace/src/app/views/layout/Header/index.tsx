@@ -15,8 +15,16 @@ import {
     ApplicationToolbarAction,
     ApplicationToolbarPanel,
     WorkspaceHeader,
+    OverviewItem,
+    OverviewItemDepiction,
+    OverviewItemDescription,
+    OverviewItemLine,
+    OverviewItemActions,
     Icon,
+    IconButton,
     Button,
+    ContextMenu,
+    MenuItem,
 } from "@wrappers/index";
 
 interface IProps {
@@ -129,13 +137,26 @@ const Header = memo<IProps>(({externalRoutes, onClickApplicationSidebarExpand, i
                 />
                 <ApplicationTitle prefix="eccenca">DataIntegration</ApplicationTitle>
                 <WorkspaceHeader>
-                    <HomeButton/>
-                    <div>
-                        <Breadcrumbs paths={breadcrumbs}/>
-                        {
-                            lastBreadcrumb && <NavbarHeading style={{fontWeight: 'bold'}}>{lastBreadcrumb.text}</NavbarHeading>
-                        }
-                    </div>
+                    <OverviewItem>
+                        <OverviewItemDepiction>
+                            <HomeButton/>
+                        </OverviewItemDepiction>
+                        <OverviewItemDescription>
+                            <OverviewItemLine small>
+                                <Breadcrumbs paths={breadcrumbs}/>
+                            </OverviewItemLine>
+                                {
+                                    lastBreadcrumb &&
+                                    <OverviewItemLine large>
+                                        <NavbarHeading style={{fontWeight: 'bold'}}>{lastBreadcrumb.text}</NavbarHeading>
+                                    </OverviewItemLine>
+                                }
+                        </OverviewItemDescription>
+                        <OverviewItemActions>
+                            <Button text="Dummy" elevated />
+                            <IconButton name="item-remove" text="Remove" disruptive />
+                        </OverviewItemActions>
+                    </OverviewItem>
                 </WorkspaceHeader>
                 <ApplicationToolbar>
                     <ApplicationToolbarAction
