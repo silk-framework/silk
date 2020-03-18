@@ -1,0 +1,99 @@
+$ecc-color-overviewitem-depiction-background: $ecc-color-workspace-text !default;
+$ecc-color-overviewitem-depiction-text: $ecc-color-workspace-background !default;
+$ecc-size-overviewitem-depiction-border-radius: $pt-border-radius !default;
+
+$ecc-size-overviewitem-line-typo-small: $ecc-size-typo-caption !default;
+$ecc-size-overviewitem-line-typo-small-linheight: $ecc-size-typo-caption-lineheight !default;
+$ecc-size-overviewitem-line-typo-large: $ecc-size-typo-subtitle !default;
+$ecc-size-overviewitem-line-typo-large-lineheight: $ecc-size-typo-subtitle-lineheight !default;
+
+.ecc-overviewitem__item {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+    align-content: stretch;
+    height: mini-units(6);
+}
+
+.ecc-overviewitem__depiction {
+    flex-grow: 0;
+    flex-shrink: 0;
+    width: mini-units(6);
+    height: mini-units(6);
+    background-color: $ecc-color-overviewitem-depiction-background;
+    color: $ecc-color-overviewitem-depiction-text;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    align-content: center;
+    text-align: center;
+    border-radius: $ecc-size-overviewitem-depiction-border-radius;
+
+    & > * {
+        width: auto;
+        max-height: 100%;
+        display: block;
+        margin: 0 auto;
+    }
+
+    svg {
+        fill: $ecc-color-overviewitem-depiction-text;
+    }
+}
+
+.ecc-overviewitem__description {
+    flex-grow: 1;
+    flex-shrink: 1;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+    align-content: stretch;
+    overflow: hidden;
+
+    .ecc-overviewitem__depiction + & {
+        margin-left: mini-units(1);
+    }
+}
+
+.ecc-overviewitem__line {
+    flex-shrink: 1;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 1rem;
+
+    & > * {
+        display: inline-flex;
+        font-size: inherit;
+    }
+}
+
+.ecc-overviewitem__line--small {
+    font-size: $ecc-size-overviewitem-line-typo-small;
+    line-height: $ecc-size-overviewitem-line-typo-small-linheight
+}
+
+.ecc-overviewitem__line--large {
+    font-size: $ecc-size-overviewitem-line-typo-large;
+    line-height: $ecc-size-overviewitem-line-typo-large-lineheight;
+}
+
+.ecc-overviewitem__actions {
+    flex-grow: 0;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    align-items: center;
+
+    .ecc-overviewitem__description + & {
+        margin-left: mini-units(1);
+    }
+}

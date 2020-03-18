@@ -4,6 +4,13 @@
 
 // == Necessary imports from libraries =========================================
 
+/*
+    Our own imports are at the end to rule higher if necessary.
+
+    TODO: when finished we only should see includes from own elements here, even
+    if we use element includes from libraries there.
+*/
+
 // -- BlueprintJS --------------------------------------------------------------
 
 // calculate blueprintjs configuration
@@ -14,6 +21,42 @@
 @import "~@blueprintjs/core/src/reset";
 @import "~@blueprintjs/core/src/typography";
 @import "~@blueprintjs/core/src/accessibility/focus-states";
+// load blueprintjs components
+@import "~@blueprintjs/core/src/components/alert/alert";
+@import "~@blueprintjs/core/src/components/breadcrumbs/breadcrumbs";
+// own component @import "~@blueprintjs/core/src/components/button/button";
+@import "~@blueprintjs/core/src/components/button/button-group";
+@import "~@blueprintjs/core/src/components/callout/callout";
+@import "~@blueprintjs/core/src/components/card/card";
+@import "~@blueprintjs/core/src/components/collapse/collapse";
+@import "~@blueprintjs/core/src/components/context-menu/context-menu";
+@import "~@blueprintjs/core/src/components/divider/divider";
+@import "~@blueprintjs/core/src/components/dialog/dialog";
+@import "~@blueprintjs/core/src/components/drawer/drawer";
+@import "~@blueprintjs/core/src/components/editable-text/editable-text";
+@import "~@blueprintjs/core/src/components/forms/index";
+@import "~@blueprintjs/core/src/components/html-select/html-select";
+@import "~@blueprintjs/core/src/components/html-table/html-table";
+@import "~@blueprintjs/core/src/components/hotkeys/hotkeys";
+// own component @import "~@blueprintjs/core/src/components/icon/icon";
+// own component @import "~@blueprintjs/core/src/components/menu/menu";
+@import "~@blueprintjs/core/src/components/navbar/navbar";
+@import "~@blueprintjs/core/src/components/non-ideal-state/non-ideal-state";
+@import "~@blueprintjs/core/src/components/overflow-list/overflow-list";
+@import "~@blueprintjs/core/src/components/overlay/overlay";
+@import "~@blueprintjs/core/src/components/panel-stack/panel-stack";
+// own component @import "~@blueprintjs/core/src/components/popover/popover";
+@import "~@blueprintjs/core/src/components/portal/portal";
+@import "~@blueprintjs/core/src/components/progress-bar/progress-bar";
+@import "~@blueprintjs/core/src/components/skeleton/skeleton";
+@import "~@blueprintjs/core/src/components/slider/slider";
+@import "~@blueprintjs/core/src/components/spinner/spinner";
+@import "~@blueprintjs/core/src/components/tabs/tabs";
+@import "~@blueprintjs/core/src/components/tag/tag";
+@import "~@blueprintjs/core/src/components/tag-input/tag-input";
+@import "~@blueprintjs/core/src/components/toast/toast";
+@import "~@blueprintjs/core/src/components/tooltip/tooltip";
+@import "~@blueprintjs/core/src/components/tree/tree";
 
 // -- Carbon Elements ----------------------------------------------------------
 
@@ -42,59 +85,8 @@
 @import '~carbon-components/scss/globals/scss/css--helpers';
 @import '~carbon-components/scss/globals/scss/css--body';
 @import '~carbon-components/scss/globals/grid/grid';
-
-
-// == Load element styles ======================================================
-
-@import 'src/components/Application/application';
-@import 'src/components/Workspace/workspace';
-@import 'src/components/Icon/icon';
-@import 'src/components/Menu/menu';
-@import 'src/components/ContextOverlay/contextoverlay';
-@import 'src/components/Button/button';
-
-/*
-    TODO: when finished we only should see includes from own elements here, even
-    if we use element includes from libraries there.
-*/
-
-@import "~@blueprintjs/core/src/components/alert/alert";
-@import "~@blueprintjs/core/src/components/breadcrumbs/breadcrumbs";
-// @import "~@blueprintjs/core/src/components/button/button";
-@import "~@blueprintjs/core/src/components/button/button-group";
-@import "~@blueprintjs/core/src/components/callout/callout";
-@import "~@blueprintjs/core/src/components/card/card";
-@import "~@blueprintjs/core/src/components/collapse/collapse";
-@import "~@blueprintjs/core/src/components/context-menu/context-menu";
-@import "~@blueprintjs/core/src/components/divider/divider";
-@import "~@blueprintjs/core/src/components/dialog/dialog";
-@import "~@blueprintjs/core/src/components/drawer/drawer";
-@import "~@blueprintjs/core/src/components/editable-text/editable-text";
-@import "~@blueprintjs/core/src/components/forms/index";
-@import "~@blueprintjs/core/src/components/html-select/html-select";
-@import "~@blueprintjs/core/src/components/html-table/html-table";
-@import "~@blueprintjs/core/src/components/hotkeys/hotkeys";
-// @import "~@blueprintjs/core/src/components/icon/icon";
-// @import "~@blueprintjs/core/src/components/menu/menu";
-@import "~@blueprintjs/core/src/components/navbar/navbar";
-@import "~@blueprintjs/core/src/components/non-ideal-state/non-ideal-state";
-@import "~@blueprintjs/core/src/components/overflow-list/overflow-list";
-@import "~@blueprintjs/core/src/components/overlay/overlay";
-@import "~@blueprintjs/core/src/components/panel-stack/panel-stack";
-// @import "~@blueprintjs/core/src/components/popover/popover";
-@import "~@blueprintjs/core/src/components/portal/portal";
-@import "~@blueprintjs/core/src/components/progress-bar/progress-bar";
-@import "~@blueprintjs/core/src/components/skeleton/skeleton";
-@import "~@blueprintjs/core/src/components/slider/slider";
-@import "~@blueprintjs/core/src/components/spinner/spinner";
-@import "~@blueprintjs/core/src/components/tabs/tabs";
-@import "~@blueprintjs/core/src/components/tag/tag";
-@import "~@blueprintjs/core/src/components/tag-input/tag-input";
-@import "~@blueprintjs/core/src/components/toast/toast";
-@import "~@blueprintjs/core/src/components/tooltip/tooltip";
-@import "~@blueprintjs/core/src/components/tree/tree";
-
-// @import '~carbon-components/scss/components/button/button';
+// load carbon components
+// not used @import '~carbon-components/scss/components/button/button';
 @import '~carbon-components/scss/components/copy-button/copy-button';
 @import '~carbon-components/scss/components/file-uploader/file-uploader';
 @import '~carbon-components/scss/components/checkbox/checkbox';
@@ -137,6 +129,16 @@
 @import '~carbon-components/scss/components/inline-loading/inline-loading';
 @import '~carbon-components/scss/components/pagination-nav/pagination-nav';
 // own component @import '~carbon-components/scss/components/ui-shell/ui-shell'; // experimental
+
+// == Load element styles ======================================================
+
+@import 'src/components/Application/application';
+@import 'src/components/Workspace/workspace';
+@import 'src/components/Icon/icon';
+@import 'src/components/Menu/menu';
+@import 'src/components/ContextOverlay/contextoverlay';
+@import 'src/components/Button/button';
+@import 'src/components/OverviewItem/overviewitem';
 
 // == load tweaks ==============================================================
 

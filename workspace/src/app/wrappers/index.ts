@@ -28,6 +28,13 @@ import MenuDivider from './src/components/Menu/MenuDivider';
 import ContextOverlay from './src/components/ContextOverlay/ContextOverlay';
 import ContextMenu from './src/components/ContextOverlay/ContextMenu';
 
+import OverviewItem from './src/components/OverviewItem/OverviewItem';
+import OverviewItemDepiction from './src/components/OverviewItem/OverviewItemDepiction';
+import OverviewItemDescription from './src/components/OverviewItem/OverviewItemDescription';
+import OverviewItemLine from './src/components/OverviewItem/OverviewItemLine';
+import OverviewItemActions from './src/components/OverviewItem/OverviewItemActions';
+import OverviewItemList from './src/components/OverviewItem/OverviewItemList';
+
 export {
     ApplicationContainer,
     ApplicationHeader,
@@ -53,6 +60,13 @@ export {
 
     ContextOverlay,
     ContextMenu,
+
+    OverviewItem,
+    OverviewItemDepiction,
+    OverviewItemDescription,
+    OverviewItemLine,
+    OverviewItemActions,
+    OverviewItemList,
 
     Icon,
     IconButton,
