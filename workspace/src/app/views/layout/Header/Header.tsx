@@ -10,6 +10,7 @@ import {
     ApplicationSidebarToggler,
     ApplicationTitle,
     ApplicationToolbar,
+    ApplicationToolbarSection,
     ApplicationToolbarAction,
     ApplicationToolbarPanel,
     WorkspaceHeader,
@@ -69,7 +70,7 @@ const Header = ({onClickApplicationSidebarExpand, isApplicationSidebarExpanded}:
                                 }
                         </OverviewItemDescription>
                         <OverviewItemActions>
-                            <Button text="Dummy" elevated />
+                            <Button text="Dummy" outlined elevated />
                             <IconButton name="item-remove" text="Remove" disruptive />
                             <ContextMenu>
                                 <MenuItem text={'This'} disabled />
@@ -80,7 +81,9 @@ const Header = ({onClickApplicationSidebarExpand, isApplicationSidebarExpanded}:
                     </OverviewItem>
                 </WorkspaceHeader>
                 <ApplicationToolbar>
-                    <CreateButton onClick={handleCreateDialog}/>
+                    <ApplicationToolbarSection>
+                        <CreateButton onClick={handleCreateDialog}/>
+                    </ApplicationToolbarSection>
                     <ApplicationToolbarAction
                         aria-label="TODO: User menu"
                         isActive={false}

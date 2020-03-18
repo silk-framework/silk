@@ -2,7 +2,6 @@
     "application-homepage": "Workspace",
     "application-useraccount": "UserAvatar",
     "application-mapping": "ModelBuilder",
-    "application-create-button": "DocumentAdd",
 
     "item-moremenu": "OverflowMenuVertical",
     "item-viewdetails": "View",
@@ -11,6 +10,7 @@
     "item-execution": "Run",
     "item-info": "Information",
     "item-remove": "TrashCan",
+    "item-add-artefact": "AddAlt",
 
     "list-sort": "ChevronSort",
     "list-sortasc": "ChevronSortDown",

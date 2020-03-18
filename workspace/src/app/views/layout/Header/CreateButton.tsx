@@ -1,12 +1,12 @@
 import React, { memo } from 'react';
-import { Icon } from "@wrappers/index";
+import { Button } from "@wrappers/index";
 
 const CreateButton = memo<any>((props) => {
     return (
-        <Icon
-            name="application-create-button"
-            description="TODO: Create Button"
-            large
+        <Button
+            elevated
+            text="Create"
+            rightIcon="item-add-artefact"
             {...props}
         />
     )
