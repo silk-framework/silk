@@ -27,3 +27,7 @@ html {
 .bx--structured-list-tbody {
     display: inherit;
 }
+
+.bp3-portal {
+    z-index: 6001; // higher than carbon ui shell header
+}

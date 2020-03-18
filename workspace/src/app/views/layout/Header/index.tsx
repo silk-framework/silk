@@ -155,6 +155,11 @@ const Header = memo<IProps>(({externalRoutes, onClickApplicationSidebarExpand, i
                         <OverviewItemActions>
                             <Button text="Dummy" elevated />
                             <IconButton name="item-remove" text="Remove" disruptive />
+                            <ContextMenu>
+                                <MenuItem text={'This'} disabled />
+                                <MenuItem text={'Is just a'} disabled />
+                                <MenuItem text={'Dummy'} disabled />
+                            </ContextMenu>
                         </OverviewItemActions>
                     </OverviewItem>
                 </WorkspaceHeader>
