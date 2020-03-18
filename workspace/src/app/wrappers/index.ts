@@ -4,6 +4,7 @@ import ApplicationContent from './src/components/Application/ApplicationContent'
 import ApplicationSidebarToggler from './src/components/Application/ApplicationSidebarToggler';
 import ApplicationTitle from './src/components/Application/ApplicationTitle';
 import ApplicationToolbar from './src/components/Application/ApplicationToolbar';
+import ApplicationToolbarSection from './src/components/Application/ApplicationToolbarSection';
 import ApplicationToolbarAction from './src/components/Application/ApplicationToolbarAction';
 import ApplicationToolbarPanel from './src/components/Application/ApplicationToolbarPanel';
 
@@ -42,6 +43,7 @@ export {
     ApplicationSidebarToggler,
     ApplicationTitle,
     ApplicationToolbar,
+    ApplicationToolbarSection,
     ApplicationToolbarAction,
     ApplicationToolbarPanel,
 

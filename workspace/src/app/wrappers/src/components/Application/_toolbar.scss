@@ -64,3 +64,9 @@ $shell-panel-focus: adjust-color($ecc-color-applicationheader-text, $lightness: 
 .ecc-application__toolbar {
     flex-grow: 0;
 }
+
+.ecc-application__toolbar__section {
+    padding: 0 mini-units(1);
+    display: flex;
+    align-items: center;
+}
