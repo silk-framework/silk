@@ -91,15 +91,16 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
 
   def createProject(config: ProjectConfig)
                    (implicit userContext: UserContext): Project = synchronized {
+    val creationConfig = config.withMetaData(config.metaData.asNewMetaData)
     loadUserProjects()
-    if(cachedProjects.exists(_.name == config.id)) {
-      throw IdentifierAlreadyExistsException("Project " + config.id + " does already exist!")
+    if(cachedProjects.exists(_.name == creationConfig.id)) {
+      throw IdentifierAlreadyExistsException("Project " + creationConfig.id + " does already exist!")
     }
-    provider.putProject(config)
-    val newProject = new Project(config, provider, repository.get(config.id))
+    provider.putProject(creationConfig)
+    val newProject = new Project(creationConfig, provider, repository.get(creationConfig.id))
     addProjectToCache(newProject)
     newProject.setAdditionalPrefixes(additionalPrefixes)
-    log.info(s"Created new project '${config.id}'. " + userContext.logInfo)
+    log.info(s"Created new project '${creationConfig.id}'. " + userContext.logInfo)
     newProject
   }
 
@@ -110,7 +111,9 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     loadUserProjects()
     val diProject = project(projectId)
     val projectConfig = diProject.config
-    val updatedProjectConfig = projectConfig.copy(metaData = metaData)
+    val oldMetaData = projectConfig.metaData
+    val mergedMetaData = oldMetaData.copy(label = metaData.label, description = metaData.description)
+    val updatedProjectConfig = projectConfig.copy(metaData = mergedMetaData.asUpdatedMetaData)
     provider.putProject(updatedProjectConfig)
     removeProjectFromCache(projectId)
     addProjectToCache(new Project(updatedProjectConfig, provider, repository.get(projectId)))

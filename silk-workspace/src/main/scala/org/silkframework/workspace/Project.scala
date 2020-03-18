@@ -202,7 +202,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     if(allTasks.exists(_.id == name)) {
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
     }
-    module[T].add(name, taskData, metaData)
+    module[T].add(name, taskData, metaData.asNewMetaData)
     provider.removeExternalTaskLoadingError(config.id, name)
   }
 
@@ -218,7 +218,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
     }
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
-      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData)
+      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData.asNewMetaData)
       case None => throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
     }
   }
@@ -236,9 +236,17 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
                                           (implicit userContext: UserContext): Unit = synchronized {
     module[T].taskOption(name) match {
       case Some(task) =>
-        task.update(taskData, metaData)
+        val mergedMetaData = mergeMetaData(task.metaData, metaData)
+        task.update(taskData, Some(mergedMetaData.asUpdatedMetaData))
       case None =>
-        addTask[T](name, taskData, metaData.getOrElse(MetaData(MetaData.labelFromId(name))))
+        addTask[T](name, taskData, metaData.getOrElse(MetaData(MetaData.labelFromId(name))).asNewMetaData)
+    }
+  }
+
+  private def mergeMetaData(metaData: MetaData, fromMetaData: Option[MetaData]): MetaData = {
+    fromMetaData match {
+      case Some(newMetaData) => metaData.copy(label = newMetaData.label, description = newMetaData.description)
+      case None => metaData
     }
   }
 
@@ -255,9 +263,10 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
       case Some(module) =>
         module.taskOption(name) match {
           case Some(task) =>
-            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, metaData)
+            val mergedMetaData = mergeMetaData(task.metaData, metaData)
+            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(mergedMetaData.asUpdatedMetaData))
           case None =>
-            addAnyTask(name, taskData, metaData.getOrElse(MetaData.empty))
+            addAnyTask(name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData)
         }
       case None =>
         throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")

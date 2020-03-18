@@ -72,6 +72,9 @@ object JsonSerializers {
     final val LABEL = "label"
     final val DESCRIPTION = "description"
     final val MODIFIED = "modified"
+    final val CREATED = "created"
+    final val CREATED_BY = "createdBy"
+    final val LAST_MODIFIED_BY = "lastModifiedBy"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): MetaData = {
       read(value, "")
@@ -80,14 +83,17 @@ object JsonSerializers {
     /**
       * Reads meta data. Generates a label if no label is provided in the json.
       *
-      * @param json The json to read the meta data from.
+      * @param value The json to read the meta data from.
       * @param identifier If no label is provided in the json, use this identifier to generate a label.
       */
     def read(value: JsValue, identifier: String)(implicit readContext: ReadContext): MetaData = {
       MetaData(
         label = stringValueOption(value, LABEL).getOrElse(MetaData.labelFromId(identifier)),
         description = stringValueOption(value, DESCRIPTION),
-        modified = stringValueOption(value, MODIFIED).map(Instant.parse)
+        modified = stringValueOption(value, MODIFIED).map(Instant.parse),
+        created = stringValueOption(value, CREATED).map(Instant.parse),
+        createdByUser = stringValueOption(value, CREATED_BY).map(Uri.apply),
+        lastModifiedByUser = stringValueOption(value, LAST_MODIFIED_BY).map(Uri.apply)
       )
     }
 
@@ -96,11 +102,20 @@ object JsonSerializers {
         Json.obj(
           LABEL -> JsString(value.label)
         )
+      for(description <- value.description if description.nonEmpty) {
+        json += DESCRIPTION -> JsString(description)
+      }
       for(modified <- value.modified) {
         json += MODIFIED -> JsString(modified.toString)
       }
-      for(description <- value.description if description.nonEmpty) {
-        json += DESCRIPTION -> JsString(description)
+      for(created <- value.created) {
+        json += CREATED -> JsString(created.toString)
+      }
+      for(createdBy <- value.createdByUser) {
+        json += CREATED_BY -> JsString(createdBy.uri)
+      }
+      for(lastModifiedBy <- value.lastModifiedByUser) {
+        json += LAST_MODIFIED_BY -> JsString(lastModifiedBy.uri)
       }
       json
     }

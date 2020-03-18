@@ -1,9 +1,7 @@
 package org.silkframework.workspace
 
-import java.time.Instant
-
-import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
+import org.scalatestplus.mockito.MockitoSugar
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DatasetSpec, MockDataset}
@@ -13,11 +11,12 @@ import org.silkframework.rule._
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.characterbased.QGramsMetric
 import org.silkframework.rule.similarity.Comparison
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.activity.{SimpleUserContext, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.ResourceNotFoundException
-import org.silkframework.util.DPair
+import org.silkframework.runtime.users.DefaultUserManager
+import org.silkframework.util.{DPair, Identifier, Uri}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 
@@ -35,7 +34,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   val DUMMY_DATASET = "dummy"
 
   // Assume that tested workspace provider have no enabled authentication
-  implicit val userContext: UserContext = UserContext.Empty
+  val emptyUserContext: UserContext = UserContext.Empty
 
   val dummyDataset = MockDataset()
 
@@ -43,7 +42,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
   def createWorkspaceProvider(): WorkspaceProvider
 
-  private val refreshTest = withRefresh(PROJECT_NAME)(_)
+  private def refreshTest(ex: => Unit)(implicit userContext: UserContext) = withRefresh(PROJECT_NAME)(ex)
 
   val workspaceProvider: WorkspaceProvider = createWorkspaceProvider()
 
@@ -53,7 +52,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
   private val projectResources = repository.get(PROJECT_NAME)
 
-  private lazy val project = workspace.project(PROJECT_NAME)
+  private def project(implicit userContext: UserContext) = workspace.project(PROJECT_NAME)
 
   val rule =
     LinkageRule(
@@ -72,15 +71,13 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   val metaData =
     MetaData(
       label = "Task Label",
-      description = Some("Some Task Description"),
-      modified = Some(Instant.now)
+      description = Some("Some Task Description")
     )
 
   val metaDataUpdated =
     MetaData(
       label = "Updated Task Label",
-      description = Some("Updated Task Description"),
-      modified = Some(Instant.now)
+      description = Some("Updated Task Description")
     )
 
   val dataset = PlainTask(DATASET_ID, DatasetSpec(MockDataset("default")), metaData = MetaData(DATASET_ID, Some(DATASET_ID + " description")))
@@ -195,35 +192,68 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
       metaData = metaData
     )
 
+  private val specificUserUri = "http://specificUser"
+  private val specificUserUri2 = "http://specificUser2"
+  private val specificUserContext: UserContext = SimpleUserContext(Some(DefaultUserManager.get(specificUserUri)))
+  private val specificUserContext2: UserContext = SimpleUserContext(Some(DefaultUserManager.get(specificUserUri2)))
+
+
+  private def checkCreationMetaData(metaData: MetaData, originalMetaData: MetaData, userContext: UserContext): Unit = {
+    metaData.modified should not be empty
+    metaData.created should not be empty
+    val expectedUserUri = userContext.user.map(u => Uri(u.uri))
+    val expectedWithoutDateTime = originalMetaData.copy(created = None, modified = None,
+      createdByUser = expectedUserUri, lastModifiedByUser = expectedUserUri)
+    val currentWithoutDateTime = metaData.copy(created = None, modified = None)
+    currentWithoutDateTime shouldBe expectedWithoutDateTime
+  }
+
+  private def checkUpdateMetaData(metaData: MetaData, originalMetaData: MetaData, creationUserContext: UserContext, updateUserContext: UserContext): Unit = {
+    metaData.modified should not be empty
+    metaData.created should not be empty
+    metaData.modified.get should be > metaData.created.get
+    metaData.copy(modified = None) shouldBe originalMetaData.copy(modified = None,
+      createdByUser = creationUserContext.user.map(u => Uri(u.uri)), lastModifiedByUser = updateUserContext.user.map(u => Uri(u.uri)))
+  }
+
   it should "read and write projects" in {
-    val project = createProject(PROJECT_NAME)
-    val project2 = createProject(PROJECT_NAME_OTHER)
-    getProject(project.id) should be (Some(project.copy(projectResourceUriOpt = Some(project.generateDefaultUri))))
-    getProject(project2.id) should be (Some(project2.copy(projectResourceUriOpt = Some(project2.generateDefaultUri))))
+    val projectConfig2 = createProject(PROJECT_NAME_OTHER)(emptyUserContext)
+    val projectConfig = createProject(PROJECT_NAME)(specificUserContext)
+    val project = getProject(projectConfig.id).get
+    val project2 = getProject(projectConfig2.id).get
+    project.prefixes shouldBe projectConfig.prefixes
+    project.projectResourceUriOpt shouldBe Some(projectConfig.generateDefaultUri)
+    checkCreationMetaData(project.metaData, projectConfig.copy(projectResourceUriOpt = Some(projectConfig.generateDefaultUri)).metaData, specificUserContext)
+    checkCreationMetaData(project2.metaData, projectConfig2.copy(projectResourceUriOpt = Some(projectConfig2.generateDefaultUri)).metaData, emptyUserContext)
   }
 
   it should "read and write project meta data" in {
-    project.config.metaData shouldBe MetaData(PROJECT_NAME)
+    implicit val us: UserContext = specificUserContext2
+    Thread.sleep(2) // Wait shortly, so modified time is different than creation time
     val projectLabel = "named project"
     val projectDescription = "project description"
     val newMetaData = MetaData(projectLabel, description = Some(projectDescription))
+    val originalMetaData = project.config.metaData
     workspace.updateProjectMetaData(PROJECT_NAME, newMetaData)
     refreshTest {
-      getProject(PROJECT_NAME).get.metaData shouldBe newMetaData
+      checkUpdateMetaData(project.config.metaData, originalMetaData.copy(label = projectLabel, description = Some(projectDescription)), specificUserContext, specificUserContext2)
     }
   }
 
   private def getProject(projectId: String): Option[ProjectConfig] = {
-    workspaceProvider.readProjects().find(_.id == projectId)
+    implicit val us: UserContext = emptyUserContext
+    workspaceProvider.readProjects().find(_.id == Identifier(projectId))
   }
 
-  private def createProject(projectName: String): ProjectConfig = {
+  private def createProject(projectName: String)
+                           (implicit userContext: UserContext): ProjectConfig = {
     val project = ProjectConfig(projectName, metaData = MetaData(projectName))
-    workspace.createProject(project)
+    workspace.createProject(project)(userContext)
     project
   }
 
   it should "read and write dataset tasks" in {
+    implicit val us: UserContext = emptyUserContext
     PluginRegistry.registerPlugin(classOf[MockDataset])
     project.addTask[GenericDatasetSpec](DUMMY_DATASET, DatasetSpec(dummyDataset))
     workspaceProvider.putTask(PROJECT_NAME, dataset)
@@ -235,6 +265,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   it should "update dataset tasks" in {
+    implicit val us: UserContext = emptyUserContext
     workspaceProvider.putTask(PROJECT_NAME, datasetUpdated)
     refreshTest {
       val ds = workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).find(_.id.toString == DATASET_ID).get
@@ -243,20 +274,31 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   it should "read and write linking tasks" in {
+    implicit val us: UserContext = specificUserContext
     project.addTask[LinkSpec](LINKING_TASK_ID, linkSpec, metaData)
     refreshTest {
-      workspaceProvider.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(linkTask)
+      val linkingTask = workspaceProvider.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption
+      linkingTask shouldBe defined
+      linkingTask.get.data shouldBe linkTask.data
+      checkCreationMetaData(linkingTask.get.metaData, linkTask.metaData, specificUserContext)
     }
   }
 
   it should "update linking tasks" in {
-    workspaceProvider.putTask(PROJECT_NAME, linkTaskUpdated)
+    Thread.sleep(2) // So the modified time will be higher than the creation time
+    implicit val us: UserContext = specificUserContext2
+    val originalTask = project.anyTask(LINKING_TASK_ID)
+    project.updateAnyTask(LINKING_TASK_ID, linkTaskUpdated.data, Some(linkTaskUpdated.metaData))
     refreshTest {
-      workspaceProvider.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(linkTaskUpdated)
+      val linkingTask = workspaceProvider.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption
+      linkingTask shouldBe defined
+      linkingTask.get.data shouldBe linkTaskUpdated.data
+      checkUpdateMetaData(linkingTask.get.metaData, originalTask.metaData, specificUserContext, specificUserContext2)
     }
   }
 
   it should "read and write transformation tasks" in {
+    implicit val us: UserContext = emptyUserContext
     workspaceProvider.putTask(PROJECT_NAME, transformTask)
     refreshTest {
       workspaceProvider.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(transformTask)
@@ -264,6 +306,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   it should "update transformation tasks" in {
+    implicit val us: UserContext = emptyUserContext
     workspaceProvider.putTask(PROJECT_NAME, transformTaskUpdated)
     refreshTest {
       workspaceProvider.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(transformTaskUpdated)
@@ -271,6 +314,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   it should "remove meta data when a task is deleted" in {
+    implicit val us: UserContext = emptyUserContext
     val newTransformTaskLabel = "newTransformTask"
     workspace.project(PROJECT_NAME).removeAnyTask(TRANSFORM_ID, removeDependentTasks = false)
     workspace.project(PROJECT_NAME).addTask[TransformSpec](TRANSFORM_ID, transformTaskUpdated.data, MetaData(newTransformTaskLabel))
@@ -283,6 +327,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   it should "update hierarchical transformation tasks" in {
+    implicit val us: UserContext = emptyUserContext
     workspaceProvider.putTask(PROJECT_NAME, transformTaskHierarchical)
     refreshTest {
       workspaceProvider.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(transformTaskHierarchical)
@@ -291,6 +336,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
 
   it should "read and write workflows" in {
+    implicit val us: UserContext = emptyUserContext
     workspaceProvider.putTask(PROJECT_NAME, miniWorkflow)
     refreshTest {
       workspaceProvider.readTasks[Workflow](PROJECT_NAME, projectResources).headOption shouldBe Some(miniWorkflow)
@@ -298,6 +344,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   it should "update workflow task correctly" in {
+    implicit val us: UserContext = emptyUserContext
     workspaceProvider.putTask(PROJECT_NAME, miniWorkflowUpdated)
     refreshTest {
       workspaceProvider.readTasks[Workflow](PROJECT_NAME, projectResources).headOption shouldBe Some(miniWorkflowUpdated)
@@ -305,6 +352,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   it should "read and write Custom tasks" in {
+    implicit val us: UserContext = emptyUserContext
     workspaceProvider.putTask(PROJECT_NAME, customTask)
     refreshTest {
       workspaceProvider.readTasks[CustomTask](PROJECT_NAME, projectResources).headOption shouldBe Some(customTask)
@@ -312,19 +360,21 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   it should "update meta data" in {
+    implicit val us: UserContext = emptyUserContext
     val project = workspace.project(PROJECT_NAME)
     val linkingTask = project.task[LinkSpec](LINKING_TASK_ID)
     val label = "Linking Task 1"
     val description = "Description of linking task"
+    val originalMetaData = linkingTask.metaData
     project.updateTask[LinkSpec](LINKING_TASK_ID, linkingTask, Some(MetaData(label, Some(description))))
     withWorkspaceRefresh(PROJECT_NAME) {
       val task = project.task[LinkSpec](LINKING_TASK_ID)
-      task.metaData.label shouldBe label
-      task.metaData.description shouldBe Some(description)
+      checkUpdateMetaData(task.metaData, originalMetaData.copy(label = label, description = Some(description)), specificUserContext, emptyUserContext)
     }
   }
 
   it should "delete custom tasks" in {
+    implicit val us: UserContext = emptyUserContext
     refreshProject(PROJECT_NAME)
     workspaceProvider.readTasks[CustomTask](PROJECT_NAME, projectResources).headOption shouldBe defined
     workspaceProvider.deleteTask[CustomTask](PROJECT_NAME, CUSTOM_TASK_ID)
@@ -334,6 +384,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   it should "delete workflow tasks" in {
+    implicit val us: UserContext = emptyUserContext
     refreshProject(PROJECT_NAME)
     workspaceProvider.readTasks[Workflow](PROJECT_NAME, projectResources).headOption shouldBe defined
     workspaceProvider.deleteTask[Workflow](PROJECT_NAME, WORKFLOW_ID)
@@ -343,6 +394,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   it should "delete linking tasks" in {
+    implicit val us: UserContext = emptyUserContext
     workspaceProvider.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption shouldBe defined
     refreshProject(PROJECT_NAME)
     workspaceProvider.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption shouldBe defined
@@ -353,6 +405,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   it should "delete transform tasks" in {
+    implicit val us: UserContext = emptyUserContext
     refreshProject(PROJECT_NAME)
     workspaceProvider.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe defined
     workspaceProvider.deleteTask[TransformSpec](PROJECT_NAME, TRANSFORM_ID)
@@ -362,6 +415,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   it should "delete dataset tasks" in {
+    implicit val us: UserContext = emptyUserContext
     refreshProject(PROJECT_NAME)
     workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).headOption shouldBe defined
     workspaceProvider.deleteTask[GenericDatasetSpec](PROJECT_NAME, DATASET_ID)
@@ -371,6 +425,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   it should "delete projects" in {
+    implicit val us: UserContext = emptyUserContext
     refreshProject(PROJECT_NAME)
     workspaceProvider.readProjects().size shouldBe 2
     workspace.removeProject(PROJECT_NAME)
@@ -381,6 +436,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   it should "manage project resources separately and correctly" in {
+    implicit val us: UserContext = emptyUserContext
     workspaceProvider.readProjects().size shouldBe 1
     createProject(PROJECT_NAME)
     workspaceProvider.readProjects().size shouldBe 2
@@ -399,6 +455,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   it should "update prefixes" in {
+    implicit val us: UserContext = emptyUserContext
     val projectOpt = getProject(PROJECT_NAME)
     projectOpt shouldBe defined
     val project = projectOpt.get
@@ -418,13 +475,13 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   /** Executes the block before and after project refresh */
-  private def withRefresh(projectName: String)(ex: => Unit): Unit = {
+  private def withRefresh(projectName: String)(ex: => Unit)(implicit userContext: UserContext): Unit = {
     ex
     refreshProject(projectName)
     ex
   }
 
-  private def withWorkspaceRefresh(projectName: String)(ex: => Unit): Unit = {
+  private def withWorkspaceRefresh(projectName: String)(ex: => Unit)(implicit userContext: UserContext): Unit = {
     ex
     workspace.reload()
     ex
@@ -432,7 +489,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
   /** Refreshes the project in the workspace, which usually means that it is reloaded from wherever its stored.
     * This should make sure that not only the possible cache version is up to date, but also the background model. */
-  private def refreshProject(projectName: String): Unit = {
+  private def refreshProject(projectName: String)(implicit userContext: UserContext): Unit = {
     workspaceProvider.refresh()
   }
 }

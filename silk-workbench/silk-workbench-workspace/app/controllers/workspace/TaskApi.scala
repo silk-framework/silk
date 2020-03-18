@@ -28,7 +28,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
 
   def postTask(projectName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    implicit val readContext = ReadContext(project.resources, project.config.prefixes)
+    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
     SerializationUtils.deserializeCompileTime[Task[TaskSpec]]() { task =>
       project.addAnyTask(task.id, task.data, task.metaData)
       Ok

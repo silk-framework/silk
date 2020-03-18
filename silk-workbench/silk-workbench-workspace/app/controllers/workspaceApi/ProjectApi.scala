@@ -32,7 +32,7 @@ class ProjectApi @Inject()() extends InjectedController with ControllerUtilsTrai
           throw BadUserInputException("The label must not be empty!")
         }
         val generatedId = generateProjectId(label)
-        val project = workspace.createProject(ProjectConfig(generatedId, metaData = cleanUpMetaData(metaData)))
+        val project = workspace.createProject(ProjectConfig(generatedId, metaData = cleanUpMetaData(metaData).asNewMetaData))
         Created(JsonSerializer.projectJson(project)).
             withHeaders(LOCATION -> s"/api/workspace/projects/$generatedId")
       }
@@ -45,7 +45,10 @@ class ProjectApi @Inject()() extends InjectedController with ControllerUtilsTrai
   /** Update the project meta data. */
   def updateProjectMetaData(projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[ItemMetaData] { newMetaData =>
-      workspace.updateProjectMetaData(projectId, cleanUpMetaData(newMetaData.asMetaData))
+      val cleanedNewMetaData = newMetaData
+      val oldProjectMetaData = workspace.project(projectId).config.metaData
+      val mergedMetaData = oldProjectMetaData.copy(label = cleanedNewMetaData.label, description = cleanedNewMetaData.description)
+      workspace.updateProjectMetaData(projectId, mergedMetaData.asUpdatedMetaData)
       NoContent
     }
   }

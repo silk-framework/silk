@@ -9,7 +9,7 @@ import play.api.libs.json.{Format, Json}
 object ProjectApiRestPayloads {
 
   /**
-    * Meta data used for projects and tasks.
+    * Meta data used for projects and tasks. Does not include fields that should not be modified by a user request.
     *
     * @param label       label of the item
     * @param description optional description of the item

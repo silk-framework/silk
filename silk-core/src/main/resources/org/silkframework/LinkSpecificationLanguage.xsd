@@ -7,6 +7,9 @@
                 <xs:element name="Label" minOccurs="0" maxOccurs="1" type="xs:string"/>
                 <xs:element name="Description" minOccurs="0" maxOccurs="1" type="xs:string"/>
                 <xs:element name="Modified" minOccurs="0" maxOccurs="1" type="xs:string"/>
+                <xs:element name="Created" minOccurs="0" maxOccurs="1" type="xs:string"/>
+                <xs:element name="CreatedByUser" minOccurs="0" maxOccurs="1" type="xs:string"/>
+                <xs:element name="LastModifiedByUser" minOccurs="0" maxOccurs="1" type="xs:string"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
