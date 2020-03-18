@@ -53,7 +53,6 @@ class MappingsTree extends React.Component {
         getHierarchyAsync()
             .subscribe(
                 ({ hierarchy }) => {
-                    const topLevelId = hierarchy.id;
                     this.setState({
                         navigationLoading: false,
                         data: hierarchy,
@@ -96,7 +95,11 @@ class MappingsTree extends React.Component {
         const expanded = {
             ...currentExpanded,
         };
-        expanded[this.props.currentRuleId] = true;
+        if(this.props.currentRuleId) {
+            expanded[this.props.currentRuleId] = true;
+        } else {
+            expanded[tree.id] = true; // Expand root rule
+        }
         // also expand all parent nodes
         const parentRuleIds = MappingsTree.extractParentIds(tree, this.props.currentRuleId);
         _.forEach(parentRuleIds, ruleId => { expanded[ruleId] = true});
