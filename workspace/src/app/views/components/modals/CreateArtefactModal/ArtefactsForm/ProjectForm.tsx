@@ -6,9 +6,6 @@ import { FormGroup } from "@blueprintjs/core";
 import TextArea from "@wrappers/blueprint/textarea";
 import Loading from "../../../Loading";
 import FileUploader from "../../../FileUploader";
-import { workspaceOp } from "@ducks/workspace";
-import { useDispatch } from "react-redux";
-import { Button } from '@wrappers/index';
 
 interface IFormData {
     label: string;
@@ -16,30 +13,22 @@ interface IFormData {
 }
 
 export interface IProps {
-    onConfirm(formData: IFormData): void;
+    onChange(formData: IFormData): void;
 }
 
-export function ProjectForm({onConfirm}: IProps) {
-    const dispatch = useDispatch();
-
+export function ProjectForm({onChange}: IProps) {
     const [formData, setFormData] = useState<IFormData>({
         label: '',
         description: ''
     });
 
     const handleInputChange = (key: string, value: string) => {
-        setFormData({
+        const updated = {
             ...formData,
             [key]: value
-        });
-    };
-
-    const handleCreate = async () => {
-        try {
-            dispatch(workspaceOp.fetchCreateProjectAsync(formData.label, formData.description));
-            onConfirm(formData);
-        } finally {
-        }
+        };
+        setFormData(updated);
+        onChange(updated);
     };
 
     return <>

@@ -14,8 +14,9 @@ export const globalSlice = createSlice({
             const {fieldName, modifier} = action.payload;
             state.availableDataTypes[fieldName] = modifier;
         },
-        toggleArtefactModal(state) {
-            state.artefactModal.isOpen = !state.artefactModal.isOpen;
+        closeArtefactModal(state) {
+            state.artefactModal.isOpen = false;
+            state.artefactModal.selectedArtefact = '';
         },
         selectArtefact(state, action) {
             state.artefactModal.isOpen = true;

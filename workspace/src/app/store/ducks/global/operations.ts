@@ -5,12 +5,13 @@ import { batch } from "react-redux";
 import { getApiEndpoint } from "../../../utils/getApiEndpoint";
 import fetch from '../../../services/fetch';
 import asModifier from "../../../utils/asModifier";
-import { globalSel } from "@ducks/global/index";
+import { globalOp, globalSel } from "@ducks/global/index";
+import { workspaceOp } from "@ducks/workspace";
 
 const {
     addBreadcrumb, setError, fetchAvailableDTypes,
     updateAvailableDTypes, fetchArtefactsList, setArtefactsList,
-    toggleArtefactModal, selectArtefact
+    closeArtefactModal, selectArtefact
 } = globalSlice.actions;
 
 /**
@@ -60,12 +61,12 @@ const fetchArtefactsListAsync = () => {
     }
 };
 
-const createArtefactAsync = () => {
+const createArtefactAsync = (formData) => {
     return (dispatch, getState) => {
-        const artefactType = globalSel.artefactModalSelector(getState()).selectArtefact;
+        const artefactType = globalSel.artefactModalSelector(getState()).selectedArtefact;
         switch (artefactType) {
             case "project":
-
+                dispatch(workspaceOp.fetchCreateProjectAsync(formData));
                 break;
             default:
                 console.warn('Artefact type not defined');
@@ -83,7 +84,7 @@ export default {
     addBreadcrumb,
     fetchAvailableDTypesAsync,
     fetchArtefactsListAsync,
-    toggleArtefactModal,
+    closeArtefactModal,
     selectArtefact,
     createArtefactAsync
 };

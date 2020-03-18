@@ -29,7 +29,7 @@ const Header = ({onClickApplicationSidebarExpand, isApplicationSidebarExpanded}:
     const breadcrumbs = useSelector(globalSel.breadcrumbsSelector);
 
     const handleCreateDialog = () => {
-        dispatch(globalOp.toggleArtefactModal())
+        dispatch(globalOp.selectArtefact())
     };
 
     const isAuth = useSelector(globalSel.isAuthSelector);

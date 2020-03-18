@@ -22,10 +22,11 @@ const ARTEFACT_FORM_COMPONENTS_MAP = {
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
     const modalStore = useSelector(globalSel.artefactModalSelector);
-    const {selectedArtefact, isOpen} = modalStore;
+    const {selectedArtefact, isOpen, artefactsList} = modalStore;
 
     const [loading, setLoading] = useState<boolean>(false);
     const [selected, setSelected] = useState<string>(selectedArtefact);
+    const [formData, setFormData] = useState<any>({});
 
     const handleAdd = () => {
         dispatch(globalOp.selectArtefact(selected))
@@ -41,20 +42,25 @@ export function CreateArtefactModal() {
     };
 
     const handleCreate = () => {
-        // dispatch(globalOp.createArtefact())
+        dispatch(globalOp.createArtefactAsync(formData));
+        closeModal();
     };
 
     const closeModal = () => {
-        dispatch(globalOp.toggleArtefactModal());
+        dispatch(globalOp.closeArtefactModal());
+        setFormData({});
+    };
+
+    const handleFormChange = (data: any) => {
+        setFormData(data);
     };
 
     const ArtefactForm = ARTEFACT_FORM_COMPONENTS_MAP[modalStore.selectedArtefact];
-
     return (
         <Dialog
             icon="info-sign"
             onClose={closeModal}
-            title={`Create a new artefact ${selectedArtefact ? `: ${selectedArtefact}` : null}`}
+            title={`Create a new artefact${selectedArtefact && `: ${selectedArtefact}`}`}
             isOpen={isOpen}
             style={{width: '800px'}}
         >
@@ -63,22 +69,29 @@ export function CreateArtefactModal() {
                     <div className={Classes.DIALOG_BODY}>
                         {
                             ArtefactForm
-                                ? <ArtefactForm/>
+                                ? <ArtefactForm onChange={handleFormChange}/>
                                 : <Row>
-                                    <Col span={7}>
+                                    <Col span={4}>
                                         <h3>Artefact Type</h3>
                                         <ul>
                                             <li><a href='#'>All</a></li>
                                         </ul>
                                     </Col>
-                                    <Col span={8}>
+                                    <Col span={12}>
                                         <Row>
                                             <SearchBar onSort={() => {}} onApplyFilters={() => {}}/>
                                         </Row>
                                         <Row>
                                             <Col>
-                                                <strong onClick={() => handleArtefactSelect('project')}>Project</strong>
+                                                <Button onClick={() => handleArtefactSelect('project')}>Project</Button>
                                             </Col>
+                                            {
+                                                artefactsList.map(artefact =>
+                                                    <Col key={artefact.key}>
+                                                        <Button onClick={() => handleArtefactSelect(artefact.key)}>{artefact.title}</Button>
+                                                    </Col>
+                                                )
+                                            }
                                         </Row>
                                     </Col>
                                 </Row>
