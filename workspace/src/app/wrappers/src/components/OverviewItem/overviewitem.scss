@@ -1,3 +1,6 @@
+$ecc-color-overviewitem-divider: $ui-03 !default;
+$ecc-size-overviewitem-spacing: $ecc-size-typo-base/2 !default;
+
 $ecc-color-overviewitem-depiction-background: $ecc-color-workspace-text !default;
 $ecc-color-overviewitem-depiction-text: $ecc-color-workspace-background !default;
 $ecc-size-overviewitem-depiction-border-radius: $pt-border-radius !default;
@@ -15,6 +18,26 @@ $ecc-size-overviewitem-line-typo-large-lineheight: $ecc-size-typo-subtitle-lineh
     align-items: stretch;
     align-content: stretch;
     height: mini-units(6);
+
+    .ecc-overviewitem__item--highdensity,
+    .ecc-overviewitem__list--highdensity > li > & {
+        height: mini-units(4);
+    }
+
+    &.ecc-overviewitem__item--hasdivider,
+    .ecc-overviewitem__list--hasdivider > li > & {
+        border-bottom: 1px solid $ecc-color-overviewitem-divider;
+    }
+    .ecc-overviewitem__list--hasdivider > li:last-child > & {
+        border-bottom: none;
+    }
+
+
+    &.ecc-overviewitem__item--hasspacing,
+    .ecc-overviewitem__list--hasspacing > li > & {
+        box-sizing: content-box;
+        padding: $ecc-size-overviewitem-spacing/2;
+    }
 }
 
 .ecc-overviewitem__depiction {
@@ -41,6 +64,13 @@ $ecc-size-overviewitem-line-typo-large-lineheight: $ecc-size-typo-subtitle-lineh
     svg {
         fill: $ecc-color-overviewitem-depiction-text;
     }
+
+    .ecc-overviewitem__list--highdensity > .ecc-overviewitem__item > &,
+    .ecc-overviewitem__item--highdensity > & {
+        width: mini-units(4);
+        height: mini-units(4);
+    }
+
 }
 
 .ecc-overviewitem__description {
