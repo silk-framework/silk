@@ -39,8 +39,6 @@ case class WorkflowExecutionStatus() extends NoLabelKeyboardFacetCollector[Workf
           "Canceling"
         case _: Status.Running =>
           "Running"
-        case _: Status.WithErrors =>
-          "Running (with errors)"
       }
     }
   }
