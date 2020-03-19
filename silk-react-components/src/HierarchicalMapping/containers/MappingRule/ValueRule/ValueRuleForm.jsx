@@ -125,8 +125,13 @@ export class ValueRuleForm extends React.Component {
             isAttribute: this.state.isAttribute,
         }).subscribe(
             () => {
-                this.handleClose(event);
-                EventEmitter.emit(MESSAGES.RELOAD, true);
+                if (this.props.onAddNewRule) {
+                    this.props.onAddNewRule(() => {
+                        this.handleClose(event);
+                    });
+                } else {
+                    this.handleClose(event);
+                }
             },
             err => {
                 this.setState({

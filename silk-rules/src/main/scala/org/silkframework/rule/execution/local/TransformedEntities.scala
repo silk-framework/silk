@@ -36,14 +36,14 @@ class TransformedEntities(taskLabel: String,
 
   private val updateIntervalInMS = 1000
 
-  private val report = {
-    val prevReport = context.value.get.getOrElse(TransformReport(taskLabel))
-    new TransformReportBuilder(prevReport.label, rules, prevReport)
-  }
-
   private var errorFlag = false
 
   override def foreach[U](f: Entity => U): Unit = {
+    val report = {
+      val prevReport = context.value.get.getOrElse(TransformReport(taskLabel))
+      new TransformReportBuilder(prevReport.label, rules, prevReport)
+    }
+
     // For each schema path, collect all rules that map to it
     val rulesPerPath = if(isRequestedSchema) { for(path <- outputSchema.typedPaths) yield
         propertyRules.filter(_.target.get.asPath() == path.asUntypedPath)
@@ -56,7 +56,7 @@ class TransformedEntities(taskLabel: String,
     for(entity <- entities) {
       errorFlag = false
       val uris = subjectRule match {
-        case Some(rule) => evaluateRule(entity, rule)
+        case Some(rule) => evaluateRule(entity, rule, report)
         case None => Seq(entity.uri.toString)
       }
 
@@ -69,15 +69,12 @@ class TransformedEntities(taskLabel: String,
         }
         def evalRule(rule: TransformRule): Seq[String] = { // evaluate rule on the correct entity representation
           if(rule.representsDefaultUriRule) {
-            evaluateRule(objectEntity, rule)
+            evaluateRule(objectEntity, rule, report)
           } else {
-            evaluateRule(entity, rule) // This works even though there are still object paths mixed in, because they all are at the end
+            evaluateRule(entity, rule, report) // This works even though there are still object paths mixed in, because they all are at the end
           }
         }
-        val values =
-          for (rules <- rulesPerPath) yield {
-            rules.flatMap(evalRule)
-          }
+        val values = for (rules <- rulesPerPath) yield { rules.flatMap(evalRule) }
         f(Entity(uri, values, outputSchema))
 
         count += 1
@@ -87,20 +84,20 @@ class TransformedEntities(taskLabel: String,
           lastUpdateTime = System.currentTimeMillis()
         }
       }
-      updateReport()
+      updateReport(report)
     }
     context.value() = report.build()
     context.status.updateMessage(s"Finished Executing ($count Entities)")
   }
 
-  private def updateReport(): Unit = {
+  private def updateReport(report: TransformReportBuilder): Unit = {
     report.incrementEntityCounter()
     if (errorFlag) {
       report.incrementEntityErrorCounter()
     }
   }
 
-  private def evaluateRule(entity: Entity, rule: TransformRule): Seq[String] = {
+  private def evaluateRule(entity: Entity, rule: TransformRule, report: TransformReportBuilder): Seq[String] = {
     try {
       rule(entity)
     } catch {

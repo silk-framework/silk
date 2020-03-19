@@ -44,7 +44,7 @@ class MappingsTree extends React.Component {
         EventEmitter.off(MESSAGES.RELOAD, this.loadNavigationTree);
     }
 
-    loadNavigationTree = () => {
+    loadNavigationTree = (args = {}) => {
         const { navigationExpanded } = this.state;
         this.setState({
             navigationLoading: true,
@@ -53,19 +53,21 @@ class MappingsTree extends React.Component {
         getHierarchyAsync()
             .subscribe(
                 ({ hierarchy }) => {
-                    const topLevelId = hierarchy.id;
                     this.setState({
                         navigationLoading: false,
                         data: hierarchy,
-                        navigationExpanded: (_.isEmpty(navigationExpanded) && topLevelId)
-                            ? { [topLevelId]: true }
-                            : navigationExpanded,
+                        navigationExpanded: this.updateExpandedRules(hierarchy, navigationExpanded),
                     });
                 },
                 () => {
                     this.setState({
                         navigationLoading: false,
                     });
+                },
+                () => {
+                    if (args.onFinish) {
+                        args.onFinish();
+                    }
                 }
             );
     };
@@ -82,17 +84,48 @@ class MappingsTree extends React.Component {
     }
 
     expandNavigationTreeElement() {
-        const expanded = {
-            ...this.state.navigationExpanded,
-        };
-        expanded[this.props.currentRuleId] = true;
-        // @NOTE: we should pass the parent id by another way
-        // expanded[parentId] = true;
-
+        const expanded = this.updateExpandedRules(this.state.data, this.state.navigationExpanded);
         this.setState({
             navigationExpanded: expanded,
         });
     }
+
+    // Updates the expanded rules list based on the currently selected rule
+    updateExpandedRules(tree, currentExpanded) {
+        const expanded = {
+            ...currentExpanded,
+        };
+        if(this.props.currentRuleId) {
+            expanded[this.props.currentRuleId] = true;
+        } else {
+            expanded[tree.id] = true; // Expand root rule
+        }
+        // also expand all parent nodes
+        const parentRuleIds = MappingsTree.extractParentIds(tree, this.props.currentRuleId);
+        _.forEach(parentRuleIds, ruleId => { expanded[ruleId] = true});
+        return expanded;
+    }
+
+    // Extracts the parent IDs of the currently selected rule
+    static extractParentIds = (tree, currentId) => {
+      if(tree.id === currentId) {
+          return [currentId];
+      } else {
+          if (_.has(tree, 'rules.propertyRules')) {
+              const objectRules = _.filter(tree.rules.propertyRules, rule => { return rule.type === "object" });
+              const objectRuleResults = _.map(objectRules, rule => { return MappingsTree.extractParentIds(rule, currentId); });
+              const nonEmptyResult = _.find(objectRuleResults, result => { return result.length > 0; });
+              if(nonEmptyResult === undefined) {
+                  return [];
+              } else {
+                  nonEmptyResult.unshift(tree.id);
+                  return _.filter(nonEmptyResult, ruleId => { return ruleId !== currentId; });
+              }
+          } else {
+              return [];
+          }
+      }
+    };
 
     /**
      * Returns an object which contains a key for each rule
@@ -109,12 +142,13 @@ class MappingsTree extends React.Component {
         const { id, type } = tree;
 
         let expanded = this.state.navigationExpanded[id] || false;
+
         let isHighlighted =
-            id === this.state.currentRuleId ||
-            (_.get(tree, 'rules.uriRule.id') === this.state.currentRuleId &&
-                !_.isUndefined(this.state.currentRuleId)) ||
+            id === this.props.currentRuleId ||
+            (_.get(tree, 'rules.uriRule.id') === this.props.currentRuleId &&
+                !_.isUndefined(this.props.currentRuleId)) ||
             (type === MAPPING_RULE_TYPE_ROOT &&
-                _.isUndefined(this.state.currentRuleId));
+                _.isUndefined(this.props.currentRuleId));
 
         if (_.has(tree, 'rules.propertyRules')) {
             tree.rules.propertyRules = _.map(tree.rules.propertyRules, rule => {
@@ -122,7 +156,7 @@ class MappingsTree extends React.Component {
 
                 if (
                     subtree.type !== MAPPING_RULE_TYPE_OBJECT &&
-                    subtree.id === this.state.currentRuleId
+                    subtree.id === this.props.currentRuleId
                 ) {
                     isHighlighted = true;
                     expanded = true;
@@ -164,6 +198,7 @@ class MappingsTree extends React.Component {
                 <span className="ecc-silk-mapping__treenav--item-maintitle">
                     <span>
                         <RuleTitle rule={parent} />
+                        { this.renderRuleIcon(id) }
                     </span>
                 </span>
                 {parentType === MAPPING_RULE_TYPE_OBJECT && (
@@ -212,6 +247,16 @@ class MappingsTree extends React.Component {
         );
     };
 
+    renderRuleIcon(ruleId) {
+        if(!this.props.ruleValidation || !this.props.ruleValidation.hasOwnProperty(ruleId)) {
+            return (null);
+        } else if(this.props.ruleValidation[ruleId] === "ok") {
+            return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="done" />
+        } else {
+            return <Icon className="ecc-silk-mapping__ruleitem-icon-red" name="warning" />
+        }
+    };
+
     render() {
         const { data, navigationLoading } = this.state;
 
@@ -249,6 +294,8 @@ MappingsTree.propTypes = {
     currentRuleId: PropTypes.string,
     handleRuleNavigation: PropTypes.func,
     showValueMappings: PropTypes.bool,
+    // For each rule id, contains one of the following: "ok", "warning"
+    ruleValidation: PropTypes.objectOf(React.PropTypes.oneOf(['ok', 'warning']))
 };
 
 MappingsTree.defaultProps = {

@@ -142,8 +142,8 @@ object LinkingSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): ReferenceLinks = {
       ReferenceLinks(
         positive = mustBeJsArray(mustBeDefined(value, POSITIVE))(_.value.map(fromJson[Link])).toSet,
-        negative = mustBeJsArray(mustBeDefined(value, POSITIVE))(_.value.map(fromJson[Link])).toSet,
-        unlabeled = mustBeJsArray(mustBeDefined(value, POSITIVE))(_.value.map(fromJson[Link])).toSet
+        negative = mustBeJsArray(mustBeDefined(value, NEGATIVE))(_.value.map(fromJson[Link])).toSet,
+        unlabeled = mustBeJsArray(mustBeDefined(value, UNLABELED))(_.value.map(fromJson[Link])).toSet
       )
     }
 

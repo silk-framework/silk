@@ -8,6 +8,7 @@ import org.mockito.Mockito._
 import org.silkframework.config.{CustomTask, MetaData, PlainTask, Task, TaskSpec}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.entity.EntitySchema
+import org.silkframework.runtime.activity.Status.Idle
 import org.silkframework.runtime.activity.{Activity, ActivityContext, TestUserContextTrait, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
@@ -75,16 +76,15 @@ class WorkspaceTest extends FlatSpec with MustMatchers with ConfigTestTrait with
     workspace.project(project1).allTasks.map(_.id) mustBe Seq(task1)
     workspace.project(project2).allTasks.map(_.id) mustBe Seq(task2)
 
+    // Wait until the test activities have been started
+    val testActivities = workspace.projects.flatMap(_.tasks[TestTask]).map(_.activity[TestActivity].control)
+    while(testActivities.exists(_.startTime.isEmpty)) {
+      Thread.sleep(50)
+    }
+
     // Make sure that all projects and tasks have been loaded before starting any activity
     val projectLoadTimes = workspaceProvider.taskReadTimes.values
-    val activityStartTimes = {
-      for {project <- workspace.projects
-           task <- project.tasks[TestTask]} yield {
-        task.activity[TestActivity].control.startTime.getOrElse {
-          fail("Autorun activity has not been started.")
-        }
-      }
-    }
+    val activityStartTimes = testActivities.map(_.startTime.getOrElse(fail("Autorun activity has not been started.")))
 
     projectLoadTimes.size mustBe 2
     activityStartTimes.size mustBe 2
