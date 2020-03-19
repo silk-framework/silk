@@ -170,6 +170,7 @@ trait NoLabelKeyboardFacetCollector[T <: TaskSpec] extends KeywordFacetCollector
 
 /** Collects values for all facets of all types. */
 case class OverallFacetCollector() {
+  // Item type specific facet collectors
   private val itemTypeFacetCollectors = ListMap[ItemType, ItemTypeFacetCollectors[_ <: TaskSpec]](
     ItemType.project -> ItemTypeFacetCollectors(Seq()), // This is never used, but still listed for completeness
     ItemType.dataset -> ItemTypeFacetCollectors(Seq(DatasetFacetCollector(), TaskSpecFacetCollector[GenericDatasetSpec]())),
@@ -178,15 +179,22 @@ case class OverallFacetCollector() {
     ItemType.workflow -> ItemTypeFacetCollectors(Seq(WorkflowFacetCollector(), TaskSpecFacetCollector[Workflow]())),
     ItemType.task -> ItemTypeFacetCollectors(Seq(TaskFacetCollector(), TaskSpecFacetCollector[CustomTask]()))
   )
+  // Generic item type collectors
+  private val genericItemTypeFacetCollectors = ItemTypeFacetCollectors(Seq(TaskSpecFacetCollector[TaskSpec]()))
 
-  def filterAndCollect(itemType: ItemType,
-                       projectTask: ProjectTask[_ <: TaskSpec],
-                       facetSettings: Seq[FacetSetting]): Boolean = {
+  def filterAndCollectByItemType(itemType: ItemType,
+                                 projectTask: ProjectTask[_ <: TaskSpec],
+                                 facetSettings: Seq[FacetSetting]): Boolean = {
     itemTypeFacetCollectors(itemType).filterAndCollect(projectTask, facetSettings)
   }
 
+  def filterAndCollectAllItems(projectTask: ProjectTask[_ <: TaskSpec],
+                               facetSettings: Seq[FacetSetting]): Boolean = {
+    genericItemTypeFacetCollectors.filterAndCollect(projectTask, facetSettings)
+  }
+
   def results: Iterable[FacetResult] = {
-    for((_, collector) <-itemTypeFacetCollectors;
+    for(collector <- Seq(genericItemTypeFacetCollectors) ++ itemTypeFacetCollectors.values;
         result <- collector.result) yield {
       result
     }

@@ -375,13 +375,12 @@ object SearchApiModel {
 
     private def filterTasksByFacetSettings(typedTasks: TypedTasks,
                                            facetCollector: OverallFacetCollector): TypedTasks = {
-      // Only collect facets for specific item types.
-      // FIXME: Add generic collector, e.g. for creation date, creator etc.
+      val facetSettings = facets.getOrElse(Seq.empty)
       itemType match {
         case Some(typ) if typedTasks.itemType == typ =>
-          typedTasks.copy(tasks = typedTasks.tasks.filter { task => facetCollector.filterAndCollect(typ, task, facets.getOrElse(Seq.empty)) })
+          typedTasks.copy(tasks = typedTasks.tasks.filter { task => facetCollector.filterAndCollectByItemType(typ, task, facetSettings) })
         case _ =>
-          typedTasks
+          typedTasks.copy(tasks = typedTasks.tasks.filter { task => facetCollector.filterAndCollectAllItems(task, facetSettings)})
       }
     }
 
