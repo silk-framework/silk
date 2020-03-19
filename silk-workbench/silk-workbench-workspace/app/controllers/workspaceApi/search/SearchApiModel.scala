@@ -189,16 +189,22 @@ object SearchApiModel {
   case class Facet(id: String, label: String, description: String, facetType: FacetType.Value)
 
   object Facets {
-    // dataset facets
+    // Dataset facets
     final val datasetType: Facet = Facet("datasetType", "Dataset type", "The concrete type of a dataset, e.g. its data model and format etc.", FacetType.keyword)
-    final val taskType: Facet = Facet("taskType", "Task type", "The concrete type of a task.", FacetType.keyword)
     final val fileResource: Facet = Facet("datasetFileResource", "Dataset file", "The file resource of a file based dataset.", FacetType.keyword)
+    // Transformation facets
     final val transformInputResource: Facet = Facet("transformInputResource", "Transformed File Resource",
       "In case the input is a file resource based dataset, these are the file names of these resources.", FacetType.keyword)
+    // Workflow facets
     final val workflowExecutionStatus: Facet = Facet("workflowExecutionStatus", "Last Execution Status", "Allows to filter by the" +
         " status of the last execution of the workflow.", FacetType.keyword)
+    // Task facets
+    final val taskType: Facet = Facet("taskType", "Task type", "The concrete type of a task.", FacetType.keyword)
+    // Generic facets
+    final val createdBy: Facet = Facet("createdBy", "Created by", "The user who created the item.", FacetType.keyword)
+    final val lastModifiedBy: Facet = Facet("lastModifiedBy", "Last modified by", "The user who last modified the item.", FacetType.keyword)
 
-    val facetIds: Seq[String] = Seq(datasetType, fileResource, taskType, transformInputResource, workflowExecutionStatus).map(_.id)
+    val facetIds: Seq[String] = Seq(datasetType, fileResource, taskType, transformInputResource, workflowExecutionStatus, createdBy, lastModifiedBy).map(_.id)
     assert(facetIds.distinct.size == facetIds.size, "Facet IDs must be unique!")
   }
 
