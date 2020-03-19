@@ -105,7 +105,7 @@ export default function SearchList() {
     return (
         <>
             <AppliedFacets/>
-            <DataList isLoading={isLoading} data={data}>
+            <DataList isLoading={isLoading} data={data} hasSpacing hasDivider>
                 {
                     data.map(item => (
                         <SearchItem

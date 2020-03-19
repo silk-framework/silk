@@ -6,7 +6,7 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     OverviewItemActions,
-    Icon,
+    IconButton,
 } from "@wrappers/index";
 interface IProps {
     prefix: IPrefixState;
@@ -21,13 +21,14 @@ const PrefixRow = ({prefix, onRemove}: IProps) => {
                 <OverviewItemLine>
                     <span>{prefix.prefixName}</span>
                 </OverviewItemLine>
-                <OverviewItemLine>
+                <OverviewItemLine small>
                     <span>{prefix.prefixUri}</span>
                 </OverviewItemLine>
             </OverviewItemDescription>
             <OverviewItemActions>
-                <Icon
+                <IconButton
                     name="item-remove"
+                    text="Remove prefix"
                     onClick={onRemove}
                 />
             </OverviewItemActions>
