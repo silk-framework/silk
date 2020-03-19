@@ -64,25 +64,22 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
     var request = client.url(s"$baseUrl/workspace/projects/$project/tasks/$datasetId")
     request = request.addHttpHeaders("Accept" -> "application/json")
     val response = checkResponse(request.get())
-    response.json mustBe
-      Json.obj(
-        "id" -> datasetId,
-        "project" -> project,
-        "metadata" ->
-          Json.obj(
-            "label" -> "label 1",
-            "description" -> "description 1",
-            "modified" -> "2018-03-08T13:05:40.347Z"
-          ),
-        "taskType" -> "Dataset",
-        "data" -> Json.obj(
-          "taskType" -> "Dataset",
-          "type" -> "internal",
-          "parameters" -> Json.obj(
-            "graphUri" -> "urn:dataset1"
-          )
-        )
+    val json = response.json
+    val metaData = (json \ "metadata").get
+    (metaData \ "label").as[String] mustBe "label 1"
+    (metaData \ "description").as[String] mustBe "description 1"
+    (metaData \ "modified").asOpt[String] mustBe defined
+    (metaData \ "created").asOpt[String] mustBe defined
+    (json \ "id").as[String] mustBe datasetId
+    (json \ "project").as[String] mustBe project
+    (json \ "taskType").as[String] mustBe "Dataset"
+    (json \ "data").as[JsObject] mustBe Json.obj(
+      "taskType" -> "Dataset",
+      "type" -> "internal",
+      "parameters" -> Json.obj(
+        "graphUri" -> "urn:dataset1"
       )
+    )
   }
 
   "update dataset task" in {
