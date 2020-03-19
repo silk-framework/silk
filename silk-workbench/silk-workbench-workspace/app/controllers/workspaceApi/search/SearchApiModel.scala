@@ -250,18 +250,20 @@ object SearchApiModel {
 
       // facets are collected after filtering, so only non empty facets are displayed with correct counts
       val overallFacetCollector = OverallFacetCollector()
-      tasks = tasks.map(t => filterTasksByFacetSettings(t, overallFacetCollector))
+      val facetSettings = facets.getOrElse(Seq.empty)
+      tasks = tasks.map(t => filterTasksByFacetSettings(t, overallFacetCollector, facetSettings))
+      selectedProjects = selectedProjects.filter(p => overallFacetCollector.filterAndCollectProjects(p, facetSettings))
       val jsonResult = selectedProjects.map(toJson) ++ tasks.flatMap(toJson)
       val sorted = sort(jsonResult)
       val resultWindow = sorted.slice(workingOffset, workingOffset + workingLimit)
       val withItemLinks = addItemLinks(resultWindow)
-      val facets = overallFacetCollector.results
+      val facetResults = overallFacetCollector.results
 
       Json.toJson(FacetedSearchResult(
         total = sorted.size,
         results = withItemLinks,
         sortByProperties = Seq(SortableProperty("label", "Label")),
-        facets = facets.toSeq
+        facets = facetResults.toSeq
       ))
     }
 
@@ -374,8 +376,8 @@ object SearchApiModel {
     }
 
     private def filterTasksByFacetSettings(typedTasks: TypedTasks,
-                                           facetCollector: OverallFacetCollector): TypedTasks = {
-      val facetSettings = facets.getOrElse(Seq.empty)
+                                           facetCollector: OverallFacetCollector,
+                                           facetSettings: Seq[FacetSetting]): TypedTasks = {
       itemType match {
         case Some(typ) if typedTasks.itemType == typ =>
           typedTasks.copy(tasks = typedTasks.tasks.filter { task => facetCollector.filterAndCollectByItemType(typ, task, facetSettings) })

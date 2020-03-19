@@ -51,7 +51,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     initialMetaData.copy(modified = Some(initialMetaData.modified.getOrElse(Instant.now)))
   ))
 
-  private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
+  lazy private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
     implicit val prefixes: Prefixes = module.project.config.prefixes
     implicit val resources: ResourceManager = module.project.resources
@@ -71,7 +71,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     activities.reverse
   }
 
-  private val taskActivityMap: Map[Class[_], TaskActivity[TaskType, _ <: HasValue]] = taskActivities.map(a => (a.activityType, a)).toMap
+  lazy private val taskActivityMap: Map[Class[_], TaskActivity[TaskType, _ <: HasValue]] = taskActivities.map(a => (a.activityType, a)).toMap
 
   /**
     * The project this task belongs to.

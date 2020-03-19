@@ -1,7 +1,8 @@
 package controllers.workspace
 
-import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, Facets, ItemType, KeywordFacetSetting, SortBy, SortOrder, SortableProperty}
-import controllers.workspaceApi.search.{FacetResult, FacetValue, KeywordFacetValue, ResourceSearchRequest, SearchApiModel}
+import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult,
+  Facets, ItemType, KeywordFacetSetting, SortBy, SortOrder, SortableProperty}
+import controllers.workspaceApi.search._
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.MetaData
@@ -102,9 +103,9 @@ class SearchApiIntegrationTest extends FlatSpec
     }
   }
 
-  it should "return no facets for an unrestricted search" in {
+  it should "return only generic facets for an unrestricted search" in {
     val (facetedSearchResult, _) = facetedSearchRequest(FacetedSearchRequest())
-    facetedSearchResult.facets.size mustBe 0
+    facetedSearchResult.facets.map(_.id) mustBe Seq(Facets.createdBy.id, Facets.lastModifiedBy.id)
   }
 
   private val CSV = "csv"
@@ -115,7 +116,9 @@ class SearchApiIntegrationTest extends FlatSpec
     (firstFacet \ "values").as[JsArray].value.head.asInstanceOf[JsObject].keys mustBe Set("id", "label", "count")
     checkAndGetDatasetFacetValues(facetedSearchResult) mustBe Seq(
       Seq((CSV,3), ("xml",2), ("inMemory",1), ("json",1)),
-      Seq(("a.xml",2), ("a.csv",1), ("b.csv",1), ("c.csv",1), ("xyz.json",1))
+      Seq(("a.xml",2), ("a.csv",1), ("b.csv",1), ("c.csv",1), ("xyz.json",1)),
+      Seq(("", 7)), // Unknown user
+      Seq(("", 7))  // Unknown user
     )
     resultItemIds(facetedSearchResult) mustBe allDatasets
   }
@@ -132,7 +135,9 @@ class SearchApiIntegrationTest extends FlatSpec
       ))))
     checkAndGetDatasetFacetValues(facetedSearchResult) mustBe Seq(
       Seq((CSV,3), ("xml",2), ("inMemory",1), ("json",1)),
-      Seq(("a.csv",1), ("b.csv",1), ("c.csv",1))
+      Seq(("a.csv",1), ("b.csv",1), ("c.csv",1)),
+      Seq(("", 3)),
+      Seq(("", 3))
     )
     resultItemIds(facetedSearchResult) mustBe Seq("csvA", "csvB", "csvC")
   }
@@ -145,7 +150,9 @@ class SearchApiIntegrationTest extends FlatSpec
       ))))
     checkAndGetDatasetFacetValues(facetedSearchResult) mustBe Seq(
       Seq((CSV,2)),
-      Seq(("a.csv",1), ("b.csv",1), ("c.csv",1))
+      Seq(("a.csv",1), ("b.csv",1), ("c.csv",1)),
+      Seq(("", 2)),
+      Seq(("", 2))
     )
     resultItemIds(facetedSearchResult) mustBe Seq("csvA", "csvB")
   }
@@ -227,11 +234,9 @@ class SearchApiIntegrationTest extends FlatSpec
   }
 
   private def checkAndGetDatasetFacetValues(response: FacetedSearchResult): Seq[Seq[(String, Int)]] = {
-    response.facets.size mustBe 2
-    val Seq(datasetTypeFacet, datasetResourceFacet) = response.facets
-    datasetTypeFacet.id mustBe Facets.datasetType.id
-    datasetResourceFacet.id mustBe Facets.fileResource.id
-    Seq(extractKeyWordsWithCounts(datasetTypeFacet), extractKeyWordsWithCounts(datasetResourceFacet))
+    response.facets.size mustBe 4
+    response.facets.map(_.id) mustBe Seq(Facets.datasetType.id, Facets.fileResource.id, Facets.createdBy.id, Facets.lastModifiedBy.id)
+    response.facets.map(extractKeyWordsWithCounts)
   }
 
   private def extractKeyWordsWithCounts(facetResult: FacetResult): Seq[(String, Int)] = {

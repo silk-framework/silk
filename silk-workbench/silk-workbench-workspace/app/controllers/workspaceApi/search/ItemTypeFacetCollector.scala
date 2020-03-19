@@ -4,7 +4,7 @@ import controllers.workspaceApi.search.SearchApiModel.{Facet, FacetSetting, Item
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.{LinkSpec, TransformSpec}
-import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.{Project, ProjectTask}
 import org.silkframework.workspace.activity.workflow.Workflow
 
 import scala.collection.immutable.ListMap
@@ -191,6 +191,12 @@ case class OverallFacetCollector() {
   def filterAndCollectAllItems(projectTask: ProjectTask[_ <: TaskSpec],
                                facetSettings: Seq[FacetSetting]): Boolean = {
     genericItemTypeFacetCollectors.filterAndCollect(projectTask, facetSettings)
+  }
+
+  def filterAndCollectProjects(project: Project,
+                               facetSettings: Seq[FacetSetting]): Boolean = {
+    // Since projects are not TaskSpecs, we have to do an unclean workaround. Only OK because we know what the TaskSpecFacetCollector will do and its tested.
+    genericItemTypeFacetCollectors.filterAndCollect(new ProjectTask[TaskSpec](project.name, Workflow(Seq.empty, Seq.empty), project.config.metaData, null), facetSettings)
   }
 
   def results: Iterable[FacetResult] = {
