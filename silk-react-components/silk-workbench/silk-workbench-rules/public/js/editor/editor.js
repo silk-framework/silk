@@ -565,14 +565,14 @@ function removeElement(elementId) {
 var lastWindowStatus = null;
 
 // FIXME: Remove this and do it solely with css?
-function updateWindowSize() {
+function updateWindowSize(forceResize = false) {
     var header_height =
         $('header').height() + $('#toolbar').height() + $('#tab-bar').height();
     var window_width = $(window).width();
     var window_height = $(window).height();
     var status = `${window_height};${window_width};${header_height};${!!$canvas}`;
 
-    if (status === lastWindowStatus) {
+    if (!forceResize && status === lastWindowStatus) {
         return;
     }
     lastWindowStatus = status;
@@ -750,7 +750,7 @@ function getPropertyPaths(targetElement, groupPaths) {
             if (status === 'error') {
                 setTimeout(getPropertyPaths, 2000, targetElement, groupPaths);
             } else {
-                updateWindowSize();
+                updateWindowSize(true);
             }
         },
     });
