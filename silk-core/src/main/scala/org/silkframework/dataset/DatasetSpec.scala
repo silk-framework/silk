@@ -24,7 +24,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.{Resource, ResourceManager}
+import org.silkframework.runtime.resource.{Resource, ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
 
@@ -76,7 +76,7 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribut
   override def referencedResources: Seq[Resource] = plugin.referencedResources
 
   /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-  override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
+  override def properties(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): Seq[(String, String)] = {
     var properties =
       plugin match {
         case Dataset(p, params) =>

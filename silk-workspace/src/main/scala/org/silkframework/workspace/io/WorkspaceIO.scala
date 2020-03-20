@@ -76,7 +76,7 @@ object WorkspaceIO {
     for(taskTry <- inputWorkspace.readTasksSafe[T](projectName, resources)) {
       taskTry match {
         case Success(task) =>
-          outputWorkspace.putTask(projectName, task)
+          outputWorkspace.putTask(projectName, task, resources)
         case Failure(ex) =>
           log.warning("Invalid task encountered while copying task between workspace providers. Error message: " + ex.getMessage)
       }

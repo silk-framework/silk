@@ -15,6 +15,7 @@
 package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
+import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 
 import scala.language.existentials
 
@@ -49,19 +50,19 @@ case class Parameter(name: String,
   /**
     * Retrieves the current value of this parameter as string.
     */
-  def stringValue(obj: AnyRef)(implicit prefixes: Prefixes): String = {
+  def stringValue(obj: AnyRef)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): String = {
     formatValue(apply(obj))
   }
 
-  def stringDefaultValue(implicit prefixes: Prefixes): Option[String] = {
+  def stringDefaultValue(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): Option[String] = {
     for(value <- defaultValue) yield formatValue(value)
   }
 
-  def stringExampleValue(implicit prefixes: Prefixes): Option[String] = {
+  def stringExampleValue(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): Option[String] = {
     for(value <- exampleValue) yield formatValue(value)
   }
 
-  private def formatValue(value: AnyRef)(implicit prefixes: Prefixes) = {
+  private def formatValue(value: AnyRef)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader) = {
     dataType.asInstanceOf[ParameterType[AnyRef]].toString(value)
   }
 }

@@ -215,7 +215,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   it should "read and write dataset tasks" in {
     PluginRegistry.registerPlugin(classOf[MockDataset])
     project.addTask[GenericDatasetSpec](DUMMY_DATASET, DatasetSpec(dummyDataset))
-    workspaceProvider.putTask(PROJECT_NAME, dataset)
+    workspaceProvider.putTask(PROJECT_NAME, dataset, projectResources)
     refreshTest {
       val tasks = workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources)
       val ds = tasks.find(_.id.toString == DATASET_ID).get
@@ -224,7 +224,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   it should "update dataset tasks" in {
-    workspaceProvider.putTask(PROJECT_NAME, datasetUpdated)
+    workspaceProvider.putTask(PROJECT_NAME, datasetUpdated, projectResources)
     refreshTest {
       val ds = workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).find(_.id.toString == DATASET_ID).get
       ds shouldBe datasetUpdated
@@ -239,21 +239,21 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   it should "update linking tasks" in {
-    workspaceProvider.putTask(PROJECT_NAME, linkTaskUpdated)
+    workspaceProvider.putTask(PROJECT_NAME, linkTaskUpdated, projectResources)
     refreshTest {
       workspaceProvider.readTasks[LinkSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(linkTaskUpdated)
     }
   }
 
   it should "read and write transformation tasks" in {
-    workspaceProvider.putTask(PROJECT_NAME, transformTask)
+    workspaceProvider.putTask(PROJECT_NAME, transformTask, projectResources)
     refreshTest {
       workspaceProvider.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(transformTask)
     }
   }
 
   it should "update transformation tasks" in {
-    workspaceProvider.putTask(PROJECT_NAME, transformTaskUpdated)
+    workspaceProvider.putTask(PROJECT_NAME, transformTaskUpdated, projectResources)
     refreshTest {
       workspaceProvider.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(transformTaskUpdated)
     }
@@ -272,7 +272,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   }
 
   it should "update hierarchical transformation tasks" in {
-    workspaceProvider.putTask(PROJECT_NAME, transformTaskHierarchical)
+    workspaceProvider.putTask(PROJECT_NAME, transformTaskHierarchical, projectResources)
     refreshTest {
       workspaceProvider.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(transformTaskHierarchical)
     }
@@ -280,21 +280,21 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
 
   it should "read and write workflows" in {
-    workspaceProvider.putTask(PROJECT_NAME, miniWorkflow)
+    workspaceProvider.putTask(PROJECT_NAME, miniWorkflow, projectResources)
     refreshTest {
       workspaceProvider.readTasks[Workflow](PROJECT_NAME, projectResources).headOption shouldBe Some(miniWorkflow)
     }
   }
 
   it should "update workflow task correctly" in {
-    workspaceProvider.putTask(PROJECT_NAME, miniWorkflowUpdated)
+    workspaceProvider.putTask(PROJECT_NAME, miniWorkflowUpdated, projectResources)
     refreshTest {
       workspaceProvider.readTasks[Workflow](PROJECT_NAME, projectResources).headOption shouldBe Some(miniWorkflowUpdated)
     }
   }
 
   it should "read and write Custom tasks" in {
-    workspaceProvider.putTask(PROJECT_NAME, customTask)
+    workspaceProvider.putTask(PROJECT_NAME, customTask, projectResources)
     refreshTest {
       workspaceProvider.readTasks[CustomTask](PROJECT_NAME, projectResources).headOption shouldBe Some(customTask)
     }

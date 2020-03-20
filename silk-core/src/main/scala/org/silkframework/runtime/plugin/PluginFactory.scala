@@ -15,7 +15,7 @@
 package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceLoader, ResourceManager}
 
 import scala.reflect.ClassTag
 
@@ -34,7 +34,7 @@ class PluginFactory[T: ClassTag] {
   /**
    * Retrieves the parameters of a plugin instance e.g. to serialize it.
    */
-  def unapply(t: T)(implicit prefixes: Prefixes = Prefixes.empty): Option[(PluginDescription[_], Map[String, String])] = {
+  def unapply(t: T)(implicit prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceLoader = EmptyResourceManager()): Option[(PluginDescription[_], Map[String, String])] = {
     Some(PluginRegistry.reflect(t.asInstanceOf[AnyRef]))
   }
 

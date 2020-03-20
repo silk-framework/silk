@@ -175,7 +175,7 @@
     @button("Clone", "Clone task", "clone.png", s"cloneTask('${project.name}', '${actions.task.id}')")
     @button("Remove", "Remove task", "cross.png", s"deleteTaskConfirm('${project.name}', '${actions.task.id}')")
     <ul>
-      @for((key, value) <- actions.task.metaDataFields ++ actions.task.data.properties(project.config.prefixes) if !value.isEmpty) {
+      @for((key, value) <- actions.task.metaDataFields ++ actions.task.data.properties(project.config.prefixes, project.resources) if !value.isEmpty) {
         <li data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
           @key: @value
         </li>

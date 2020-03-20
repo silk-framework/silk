@@ -15,7 +15,7 @@
 package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.validation.ValidationException
 
 /**
@@ -31,7 +31,7 @@ trait AnyPlugin {
   /**
    * The parameters for this plugin as Map.
    */
-  @transient lazy val parameters: Map[String, String] = pluginSpec.parameterValues(this)(Prefixes.empty)
+  @transient lazy val parameters: Map[String, String] = pluginSpec.parameterValues(this)(Prefixes.empty, EmptyResourceManager())
 
   /**
     * Creates a new instance of this plugin with updated properties.

@@ -4,6 +4,7 @@ import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.{MetaData, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.ResourceLoader
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
@@ -78,7 +79,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   def add(name: Identifier, taskData: TaskData, metaData: MetaData)
          (implicit userContext: UserContext): Unit = {
     val task = new ProjectTask(name, taskData, metaData, this)
-    provider.putTask(project.name, task)
+    provider.putTask(project.name, task, project.resources)
     task.startActivities()
     cachedTasks += ((name, task))
     logger.info(s"Added task '$name' to project ${project.name}. " + userContext.logInfo)

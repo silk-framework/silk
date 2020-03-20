@@ -74,7 +74,7 @@
 }
 
 @parameterValues(plugin: AnyRef, pluginType: PluginDescription[_]) = @{
-  for(p <- pluginType.parameters) yield p.stringValue(plugin)(project.config.prefixes)
+  for(p <- pluginType.parameters) yield p.stringValue(plugin)(project.config.prefixes, project.resources)
 }
 
 @**

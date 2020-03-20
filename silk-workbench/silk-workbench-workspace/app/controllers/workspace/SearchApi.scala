@@ -70,7 +70,7 @@ class SearchApi @Inject() () extends InjectedController with ControllerUtilsTrai
       val idMatch = task.id.toLowerCase.contains(lowerCaseSearchTerm)
       val labelMatch = task.metaData.label.toLowerCase.contains(lowerCaseSearchTerm)
       val descriptionMatch = task.metaData.description.getOrElse("").toLowerCase.contains(lowerCaseSearchTerm)
-      val propertiesMatch = task.data.properties(task.project.config.prefixes).exists(_._2.toLowerCase.contains(lowerCaseSearchTerm))
+      val propertiesMatch = task.data.properties(task.project.config.prefixes, task.project.resources).exists(_._2.toLowerCase.contains(lowerCaseSearchTerm))
       idMatch || labelMatch || descriptionMatch || propertiesMatch
     }
   }

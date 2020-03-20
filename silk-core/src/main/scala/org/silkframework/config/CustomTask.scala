@@ -1,7 +1,7 @@
 package org.silkframework.config
 
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory, PluginRegistry}
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 
 import scala.xml.Node
@@ -11,7 +11,7 @@ import scala.xml.Node
 trait CustomTask extends TaskSpec with AnyPlugin {
 
   /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
-  override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
+  override def properties(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): Seq[(String, String)] = {
     val (pluginType, params) = PluginRegistry.reflect(this)
     ("Type", pluginType.label) +: params.toSeq
   }
@@ -43,7 +43,7 @@ object CustomTask extends PluginFactory[CustomTask] {
     }
 
     def write(value: CustomTask)(implicit writeContext: WriteContext[Node]): Node = {
-      val (pluginType, params) = PluginRegistry.reflect(value)(Prefixes.empty)
+      val (pluginType, params) = PluginRegistry.reflect(value)(writeContext.prefixes, writeContext.resourceLoader)
 
       <CustomTask type={pluginType.id.toString}>{
         {XmlSerialization.serializeParameter(params)}

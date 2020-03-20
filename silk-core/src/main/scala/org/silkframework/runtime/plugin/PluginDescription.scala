@@ -19,7 +19,7 @@ import java.lang.reflect.{Constructor, InvocationTargetException}
 import com.thoughtworks.paranamer.BytecodeReadingParanamer
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager, ResourceNotFoundException}
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceLoader, ResourceManager, ResourceNotFoundException}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
@@ -72,7 +72,7 @@ class PluginDescription[+T](val id: Identifier, val categories: Seq[String], val
   /**
    * Retrieves the parameters values of a given plugin instance.
    */
-  def parameterValues(plugin: AnyRef)(implicit prefixes: Prefixes): Map[String, String] = {
+  def parameterValues(plugin: AnyRef)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): Map[String, String] = {
     parameters.map(param => (param.name, param.stringValue(plugin))).toMap
   }
 

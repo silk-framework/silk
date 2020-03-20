@@ -25,6 +25,7 @@ import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.ResourceLoader
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, ValidatingXMLReader, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationException
@@ -113,7 +114,7 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
 
   override def outputTasks: Set[Identifier] = outputs.toSet
 
-  override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
+  override def properties(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): Seq[(String, String)] = {
     Seq(
       ("Source", dataSelections.source.inputId.toString),
       ("Target", dataSelections.target.inputId.toString),

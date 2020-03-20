@@ -85,8 +85,8 @@
               var filteredData = json.filter(function(res) { return res.name.toLowerCase().includes(searchTerm) } );
               var data = filteredData.map(function(resource) {
                 return {
-                  label: resource.name,
-                  value: resource.name
+                  label: resource.relativePath,
+                  value: resource.relativePath
                 };
               });
               // Add original resource name to autocompletion
@@ -289,6 +289,7 @@
     }
   // Convert parameter value to string
   implicit val prefixes = project.config.prefixes
+  implicit val resourceLoader = project.resources
   val paramType = param.dataType.asInstanceOf[ParameterType[AnyRef]]
   val paramStr = paramObj.map(paramType.toString).getOrElse("")
   paramStr

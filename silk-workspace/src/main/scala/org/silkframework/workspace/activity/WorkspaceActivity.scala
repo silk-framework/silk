@@ -5,6 +5,7 @@ import java.util.logging.Logger
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.{ObservableMirror, _}
 import org.silkframework.runtime.plugin.PluginDescription
+import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.{Project, ProjectTask}
 
@@ -147,7 +148,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   /**
     * The default configuration of this activity type.
     */
-  final def defaultConfig: Map[String, String] = PluginDescription(factory.getClass).parameterValues(factory)(Prefixes.empty)
+  final def defaultConfig: Map[String, String] = PluginDescription(factory.getClass).parameterValues(factory)(Prefixes.empty, EmptyResourceManager())
 
   @deprecated("should send configuration when calling start", "4.5.0")
   final def update(config: Map[String, String]): Unit = {

@@ -5,7 +5,7 @@ import java.util.logging.{Level, Logger}
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.io.WorkspaceIO
 
@@ -90,8 +90,8 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
   /**
     * Adds/Updates a task in a project.
     */
-  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T])(implicit user: UserContext): Unit = {
-    executeOnBackends(_.putTask(project, task), s"Adding/Updating task $task in project $project")
+  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T], projectResources: ResourceLoader)(implicit user: UserContext): Unit = {
+    executeOnBackends(_.putTask(project, task, projectResources), s"Adding/Updating task $task in project $project")
   }
 
   /**

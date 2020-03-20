@@ -11,7 +11,7 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.Status.Idle
 import org.silkframework.runtime.activity.{Activity, ActivityContext, TestUserContextTrait, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.validation.ServiceUnavailableException
 import org.silkframework.util.{ConfigTestTrait, Identifier}
 import org.silkframework.workspace.WorkspaceTest.{TestActivity, TestActivityFactory, TestTask, TestWorkspaceProvider}
@@ -62,12 +62,12 @@ class WorkspaceTest extends FlatSpec with MustMatchers with ConfigTestTrait with
     val project1 = Identifier("project1")
     val task1 = Identifier("task1")
     workspaceProvider.putProject(ProjectConfig(project1))
-    workspaceProvider.putTask(project1, PlainTask(task1,  TestTask()))
+    workspaceProvider.putTask(project1, PlainTask(task1,  TestTask()), EmptyResourceManager())
 
     val project2 = Identifier("project2")
     val task2 = Identifier("task2")
     workspaceProvider.putProject(ProjectConfig(project2))
-    workspaceProvider.putTask(project2, PlainTask(task2,  TestTask()))
+    workspaceProvider.putTask(project2, PlainTask(task2,  TestTask()), EmptyResourceManager())
 
     val workspace = new Workspace(workspaceProvider, InMemoryResourceRepository())
 

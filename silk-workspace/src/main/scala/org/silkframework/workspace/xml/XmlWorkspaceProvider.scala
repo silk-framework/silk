@@ -5,7 +5,7 @@ import java.util.logging.{Level, Logger}
 import org.silkframework.config._
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider}
@@ -83,7 +83,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     plugin[T].loadTasks(resources.child(project).child(plugin[T].prefix), projectResources)
   }
 
-  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T])
+  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T], projectResources: ResourceLoader)
                                                 (implicit userContext: UserContext): Unit = {
     plugin[T].writeTask(task, resources.child(project).child(plugin[T].prefix))
   }

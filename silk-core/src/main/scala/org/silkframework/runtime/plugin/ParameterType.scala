@@ -8,7 +8,7 @@ import java.util.logging.Logger
 import org.silkframework.config.{DefaultConfig, Prefixes, ProjectReference, TaskReference}
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.execution.AbortExecutionException
-import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, ResourceManager, WritableResource}
+import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, ResourceLoader, ResourceManager, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{AesCrypto, Identifier, Uri}
 
@@ -62,7 +62,7 @@ sealed abstract class ParameterType[T: ClassTag] {
     * @param value The value to be serialized.
     * @return The string representation of the value that can be parsed by calling fromString on the same datatype.
     */
-  def toString(value: T)(implicit prefixes: Prefixes): String = Option(value) map (_.toString) getOrElse ""
+  def toString(value: T)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): String = Option(value) map (_.toString) getOrElse ""
 
   /**
     * Short name of this type.
@@ -196,7 +196,7 @@ object ParameterType {
       }
     }
 
-    override def toString(value: Option[Int])(implicit prefixes: Prefixes): String = {
+    override def toString(value: Option[Int])(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): String = {
       value.map(_.toString).getOrElse("")
     }
 
@@ -218,7 +218,7 @@ object ParameterType {
       }
     }
 
-    override def toString(value: Map[String, String])(implicit prefixes: Prefixes): String = {
+    override def toString(value: Map[String, String])(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): String = {
       val strValues = for ((k, v) <- value) yield URLEncoder.encode(k, utf8) + ":" + URLEncoder.encode(v, utf8)
       strValues.mkString(",")
     }
@@ -235,7 +235,7 @@ object ParameterType {
       Uri.parse(str, prefixes)
     }
 
-    override def toString(value: Uri)(implicit prefixes: Prefixes): String = {
+    override def toString(value: Uri)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): String = {
       value.serialize(prefixes)
     }
   }
@@ -250,8 +250,12 @@ object ParameterType {
       if (str.trim.isEmpty) {
         throw new ValidationException("Resource cannot be empty")
       } else {
-        resourceLoader.get(str)
+        resourceLoader.getInPath(str)
       }
+    }
+
+    override def toString(value: Resource)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): String = {
+      value.path.stripPrefix(resourceLoader.basePath).stripPrefix("/").stripPrefix("\\")
     }
 
   }
@@ -270,6 +274,10 @@ object ParameterType {
       }
     }
 
+    override def toString(value: WritableResource)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): String = {
+      value.path.stripPrefix(resourceLoader.basePath).stripPrefix("/")
+    }
+
   }
 
   object ProjectReferenceType extends ParameterType[ProjectReference] {
@@ -282,7 +290,7 @@ object ParameterType {
       ProjectReference(Identifier(str))
     }
 
-    override def toString(value: ProjectReference)(implicit prefixes: Prefixes): String = {
+    override def toString(value: ProjectReference)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): String = {
       value.id
     }
 
@@ -298,7 +306,7 @@ object ParameterType {
       TaskReference(Identifier(str))
     }
 
-    override def toString(value: TaskReference)(implicit prefixes: Prefixes): String = {
+    override def toString(value: TaskReference)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): String = {
       value.id
     }
 
@@ -343,7 +351,7 @@ object ParameterType {
       }
     }
 
-    override def toString(value: Enum[_])(implicit prefixes: Prefixes): String = enumerationValue(value)
+    override def toString(value: Enum[_])(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): String = enumerationValue(value)
   }
 
   object MultilineStringParameterType extends ParameterType[MultilineStringParameter] {

@@ -8,6 +8,7 @@ import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, Exe
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.plugins.dataset.rdf.tasks.templating.TaskProperties
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceLoader}
 import org.silkframework.runtime.validation.ValidationException
 
 /**
@@ -77,6 +78,7 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
   private def createTaskProperties(inputTask: Option[Task[_ <: TaskSpec]],
                                    outputTask: Option[Task[_ <: TaskSpec]]): TaskProperties = {
     implicit val prefixes: Prefixes = Prefixes.empty // It's obligatory to have empty prefixes here, since we do not want to have prefixed URIs for URI parameters
+    implicit val resourceLoader: ResourceLoader = EmptyResourceManager()
     val inputProperties = inputTask.toSeq.flatMap(_.properties).toMap
     val outputProperties = outputTask.toSeq.flatMap(_.properties).toMap
     TaskProperties(inputProperties, outputProperties)

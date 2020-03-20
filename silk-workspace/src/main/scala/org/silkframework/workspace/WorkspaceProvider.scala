@@ -3,7 +3,7 @@ package org.silkframework.workspace
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.util.Identifier
 
 import scala.reflect.ClassTag
@@ -53,7 +53,7 @@ trait WorkspaceProvider {
   /**
    * Adds/Updates a task in a project.
    */
-  def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T])(implicit user: UserContext): Unit
+  def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T], projectResources: ResourceLoader)(implicit user: UserContext): Unit
 
   /**
    * Deletes a task from a project.

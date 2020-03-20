@@ -2,6 +2,7 @@ package org.silkframework.serialization.json
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.plugin.{Parameter, PluginDescription, PluginList}
+import org.silkframework.runtime.resource.EmptyResourceManager
 import org.silkframework.runtime.serialization.WriteContext
 import play.api.libs.json._
 
@@ -45,7 +46,7 @@ object PluginSerializers {
     }
 
     private def serializeParam(param: Parameter) = {
-      val defaultValue = param.stringDefaultValue(Prefixes.empty) match {
+      val defaultValue = param.stringDefaultValue(Prefixes.empty, EmptyResourceManager()) match {
         case Some(value) => JsString(value)
         case None => JsNull
       }

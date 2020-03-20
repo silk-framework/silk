@@ -4,7 +4,7 @@ import org.silkframework.config.{MetaData, PlainTask, Task, TaskSpec}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.Plugin
-import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceManager}
+import org.silkframework.runtime.resource.{EmptyResourceManager, InMemoryResourceManager, ResourceLoader, ResourceManager}
 import org.silkframework.util.Identifier
 
 import scala.reflect.ClassTag
@@ -49,7 +49,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
   /**
     * Adds/Updates a task in a project.
     */
-  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T])
+  override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T], projectResources: ResourceLoader)
                                                 (implicit userContext: UserContext): Unit = {
     projects(project).tasks += ((task.id, task))
   }

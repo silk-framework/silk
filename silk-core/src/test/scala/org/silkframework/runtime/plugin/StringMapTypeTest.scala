@@ -3,12 +3,14 @@ package org.silkframework.runtime.plugin
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.plugin.ParameterType.StringMapType
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceLoader}
 
 class StringMapTypeTest extends FlatSpec with MustMatchers {
 
   behavior of "Map[String] plugin parameter"
 
   implicit val prefixes: Prefixes = Prefixes.empty
+  implicit val resourceLoader: ResourceLoader = EmptyResourceManager()
 
   it should "parse basic map expressions" in {
     StringMapType.fromString("a:b,c:d") mustBe Map("a" -> "b", "c" -> "d")

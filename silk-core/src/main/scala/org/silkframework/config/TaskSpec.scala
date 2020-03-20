@@ -2,7 +2,7 @@ package org.silkframework.config
 
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.EntityHolder
-import org.silkframework.runtime.resource.{Resource, ResourceManager}
+import org.silkframework.runtime.resource.{Resource, ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
@@ -54,7 +54,7 @@ trait TaskSpec {
     * Retrieves a list of properties to be displayed to the user.
     * @return Properties as key-value pairs.
     */
-  def properties(implicit prefixes: Prefixes): Seq[(String, String)] = Seq.empty
+  def properties(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): Seq[(String, String)] = Seq.empty
 
   /**
     * Creates a new instance of this task with updated properties.

@@ -4,10 +4,10 @@ import java.io.File
 import java.net.{URL, URLClassLoader}
 import java.util.ServiceLoader
 import java.util.logging.Logger
-import javax.inject.Inject
 
+import javax.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig, Prefixes}
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceLoader, ResourceManager}
 import org.silkframework.util.Identifier
 
 import scala.collection.JavaConversions._
@@ -105,7 +105,7 @@ object PluginRegistry {
   /**
    * Given a plugin instance, extracts its plugin description and parameters.
    */
-  def reflect(pluginInstance: AnyRef)(implicit prefixes: Prefixes): (PluginDescription[_], Map[String, String]) = {
+  def reflect(pluginInstance: AnyRef)(implicit prefixes: Prefixes, resourceLoader: ResourceLoader): (PluginDescription[_], Map[String, String]) = {
     val desc = PluginDescription(pluginInstance.getClass)
     val parameters =
       for(param <- desc.parameters if param(pluginInstance) != null) yield
