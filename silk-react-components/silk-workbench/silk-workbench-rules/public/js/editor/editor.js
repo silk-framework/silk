@@ -778,7 +778,7 @@ function getRelativePropertyPathsForRule(ruleId, targetElement, groupPaths) {
                     groupPaths
                 );
             } else {
-                updateWindowSize();
+                updateWindowSize(true);
             }
         },
     });

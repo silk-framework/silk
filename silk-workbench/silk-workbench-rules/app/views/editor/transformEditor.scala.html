@@ -123,6 +123,10 @@
 @content = {
   <div class="draggables mdl-shadow--2dp">
     <div id="palette-header">
+      <div id="operatorSearchField" class="mdl-textfield mdl-js-textfield">
+        <input class="mdl-textfield__input" type="text" id="operator_search_term">
+        <label class="mdl-textfield__label" for="operator_search_term">Search term...</label>
+      </div>
     </div>
 
     <div id="operators-grouped">
@@ -134,10 +138,31 @@
       </div>
 
       <div id="operators">
-        @operators("Transformations", "transform", Transformer.pluginsByCategory, context.project)
+      @operators("Transformations", "transform", Transformer.pluginsByCategory, context.project)
+      </div>
+    </div>
+
+    <div id="operators-search-result" style="display: none;">
+      <div id="no_match_alert" class="alert alert-info">
+        <strong>No matching operators</strong>
+      </div>
+      <div id="operatorList" class="scrollboxes" style="height: 100%;">
+        <div id="paths_search">
+          loading paths ...
+          <script type="text/javascript">
+            getRelativePropertyPathsForRule(ruleIndex, '#paths_search', false);
+          </script>
+        </div>
+        @operatorsAll("Transformations", "transform", Transformer, context.project)
+        <div id="max_results_alert" class="alert alert-info" style="display: none">
+          <strong>More than 50 matches, please refine your search.</strong>
+        </div>
       </div>
     </div>
   </div>
+
+  <script src="@CoreAssets.at("libs/mark.js/dist/jquery.mark.js")" type="text/javascript"></script>
+  <script src="@Assets.at("js/editor/operatorSearch.js")" type="text/javascript"></script>
 
   <div class="wrapperEditor">
 
