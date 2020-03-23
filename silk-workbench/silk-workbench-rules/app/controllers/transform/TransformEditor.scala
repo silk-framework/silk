@@ -44,7 +44,7 @@ class TransformEditor @Inject() () extends InjectedController with ControllerUti
   }
 
   /** Fetch relative source paths for a specific rule and render widget. */
-  def rulePaths(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  def rulePaths(projectName: String, taskName: String, ruleName: String, groupPaths: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
     val (project, transformTask) = projectAndTask[TransformSpec](projectName, taskName)
     val sourceName = transformTask.data.selection.inputId.toString
     val prefixes = project.config.prefixes
@@ -60,7 +60,11 @@ class TransformEditor @Inject() () extends InjectedController with ControllerUti
               filter(tp => tp.operators.startsWith(sourcePath) && tp.operators.size > sourcePath.size).
               map(tp => UntypedPath(tp.operators.drop(sourcePath.size)))
           val paths = DPair(relativePaths.map(_.serialize()(prefixes)), Seq.empty)
-          Ok(views.html.editor.paths(DPair(sourceName, ""), paths, onlySource = true,  project = project))
+          if (groupPaths) {
+            Ok(views.html.editor.paths(DPair(sourceName, ""), paths, onlySource = true, project = project))
+          } else {
+            Ok(views.html.editor.pathsList(DPair(sourceName, ""), paths, onlySource = true, project = project))
+          }
         }
       case None =>
         throw new NotFoundException("No rule found with name " + ruleName)
