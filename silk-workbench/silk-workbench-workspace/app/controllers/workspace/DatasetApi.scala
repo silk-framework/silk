@@ -103,11 +103,6 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
     }
   }
 
-  def dataset(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val context = Context.get[GenericDatasetSpec](project, task, request.path)
-    Ok(views.html.workspace.dataset.dataset(context))
-  }
-
   def table(project: String, task: String, maxEntities: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
     val source = context.task.data.source
