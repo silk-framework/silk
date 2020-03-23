@@ -75,9 +75,20 @@
 }
 
 @content = {
-  <div class="mdl-shadow--2dp">
-    <div class="wrapper-header">
-      <div class="wrapper-title">Linkage Rule Candidate</div>
+  <div class="mdl-grid mdl-grid--centered">
+    <div class="mdl-cell mdl-cell--12-col">
+      @learnedRuleCard
+    </div>
+    <div class="mdl-cell mdl-cell--12-col">
+      @uncertainLinksCard
+    </div>
+  </div>
+}
+
+@learnedRuleCard = {
+  <div class="mdl-card mdl-shadow--2dp mdl-card--stretch">
+    <div class="mdl-card__title mdl-card--border">
+      <div class="mdl-card__title-text">Linkage Rule Candidate</div>
       <button id="show_graph_button" class="mdl-button mdl-js-button mdl-button--icon toggle_graph_button" style="display: none;">
         <i class="material-icons">expand_more</i>
       </button>
@@ -90,16 +101,16 @@
       <div class="mdl-tooltip mdl-tooltip--left" for="hide_graph_button">
         Hide the current Linking Rule Candidate
       </div>
-      <div id="learning_fitness_info">--</div>
+      <div id="learning_fitness_info" class="mdl-card__supporting-text">--</div>
     </div>
 
-    <div class="wrapper">
+    <div class="mdl-card__content">
       <div id="rule_view" class="clearfix">
-        @autoReload(
-          context = context,
-          contentPath = Learning.rule(context.project.name, context.task.id).url,
-          activityId = ActiveLearningFactory.pluginId
-        )
+      @autoReload(
+        context = context,
+        contentPath = Learning.rule(context.project.name, context.task.id).url,
+        activityId = ActiveLearningFactory.pluginId
+      )
       </div>
     </div>
     <script type="text/javascript">
@@ -113,13 +124,15 @@
       });
     </script>
   </div>
+}
 
-  <div class="mdl-shadow--2dp">
-    <div class="wrapper-header">
-      <div class="wrapper-title">Uncertain links</div>
+@uncertainLinksCard = {
+  <div class="mdl-card mdl-shadow--2dp mdl-card--stretch">
+    <div class="mdl-card__title mdl-card--border">
+      <div class="mdl-card__title-text">Uncertain links</div>
     </div>
 
-    <div class="wrapper" style="overflow: auto;">
+    <div class="mdl-card__content" style="overflow: auto;">
       <div id="tree-header">
         <div class="middle">
           <ul class="navigation"></ul>
