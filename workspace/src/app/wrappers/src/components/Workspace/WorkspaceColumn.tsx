@@ -11,8 +11,8 @@ const WorkspaceColumn = ({
     ...restProps
 }: any) => {
     let sizeConfig = {};
-    if (small) sizeConfig = { md:1, lg:2 };
-    if (medium) sizeConfig = { md:2, lg:4 };
+    if (small) sizeConfig = { md:2, lg:3 };
+    if (medium) sizeConfig = { md:3, lg:5 };
     return (
         <CarbonColumn {...restProps} {...sizeConfig} className={'ecc-workspace__column '+className}>
             { children }
