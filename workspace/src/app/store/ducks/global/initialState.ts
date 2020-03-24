@@ -12,7 +12,7 @@ export function initialGlobalState(): IGlobalState {
         artefactModal: {
             isOpen: false,
             artefactsList: [],
-            selectedArtefact: ''
+            selectedArtefact: null
         }
     }
 }

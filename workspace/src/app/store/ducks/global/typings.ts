@@ -19,10 +19,30 @@ export interface IAvailableDataType {
     options: IAvailableDataTypeOption[];
 }
 
+export interface IArtefactItemProperty {
+    [key: string]: {
+        title: string;
+        description: string;
+        type: string;
+        value: string;
+        advanced: boolean;
+    }
+}
+
+export interface IArtefactItem {
+    key: string;
+    title: string;
+    description: string;
+    type: string;
+    categories: string[];
+    properties: IArtefactItemProperty;
+    required: string[];
+}
+
 export interface IArtefactModal {
     isOpen: boolean;
-    artefactsList: any[];
-    selectedArtefact: string;
+    artefactsList: IArtefactItem[];
+    selectedArtefact: IArtefactItem;
 }
 
 export interface IGlobalState {

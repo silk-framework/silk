@@ -7,7 +7,11 @@ export const EmptyWorkspace = () => {
     const dispatch = useDispatch();
 
     const openCreateProjectModal = () => {
-        dispatch(globalOp.selectArtefact('project'));
+        dispatch(
+            globalOp.selectArtefact({
+                key: 'project'
+            })
+        );
     };
 
     return <>
