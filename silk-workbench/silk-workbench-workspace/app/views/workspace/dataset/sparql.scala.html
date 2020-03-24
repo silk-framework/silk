@@ -14,35 +14,57 @@
 }
 
 @content = {
-<form action="sparql">
-  <textarea name="query" cols="70" rows="25">
-@if(query.isEmpty) {@for((prefix, namespace) <- context.project.config.prefixes.prefixMap) {PREFIX @prefix: &lt;@namespace&gt;
+  <div class="mdl-grid mdl-grid--centered">
+    <div class="mdl-cell mdl-cell--12-col">
+      @queryCard
+    </div>
+    <div class="mdl-cell mdl-cell--12-col">
+      @resultTable
+    </div>
+  </div>
+}
+
+@queryCard = {
+  <div class="mdl-card mdl-shadow--2dp mdl-card--stretch">
+    <div class="mdl-card__content">
+      <form action="sparql">
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+          <textarea id="query" name="query" class="mdl-textfield__input" cols="70" rows="18">@if(query.isEmpty) {@defaultQuery} else {@query}</textarea>
+        </div>
+        <input class="mdl-button mdl-js-button mdl-button--raised"  type="submit" value="Submit">
+      </form>
+    </div>
+  </div>
+}
+
+@resultTable = {
+  <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+    <thead>
+      <tr>
+      @for(results <- queryResults.toList;
+              variable <- results.variables) {
+        <th class="mdl-data-table__cell--non-numeric">@variable<th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+    @for(results <- queryResults.toList; bindings <- results.bindings) {
+      <tr>
+      @for((variable, node) <- bindings) {
+        <td class="mdl-data-table__cell--non-numeric" style="white-space: normal">@node.value<td>
+        }
+      </tr>
+    }
+    </tbody>
+  </table>
+}
+
+@defaultQuery = {@for((prefix, namespace) <- context.project.config.prefixes.prefixMap) {PREFIX @prefix: &lt;@namespace&gt;
 }
 SELECT * WHERE {
   ?s ?p ?o
 }
-LIMIT 20} else {@query}
-  </textarea>
-  <br/>
-  <input type="submit" value="Submit">
-</form>
-
-<table>
-  <tr>
-    @for(results <- queryResults.toList;
-         variable <- results.variables) {
-      <th>@variable<th>
-    }
-  </tr>
-
-  @for(results <- queryResults.toList; bindings <- results.bindings) {
-    <tr>
-      @for((variable, node) <- bindings) {
-        <td>@node.value<td>
-      }
-    </tr>
-  }
-</table>
+LIMIT 20
 }
 
 @main(Some(context), titleLabel = context.task.taskLabel())(header)(toolbar)(content)
