@@ -103,6 +103,18 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
     }
   }
 
+  def dataset(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val context = Context.get[GenericDatasetSpec](project, task, request.path)
+    context.task.data match {
+      case dataset: GenericDatasetSpec =>
+        if (dataset.plugin.isInstanceOf[RdfDataset]) {
+          Redirect(routes.DatasetApi.sparql(project, task))
+        } else {
+          Redirect(routes.DatasetApi.table(project, task))
+        }
+    }
+  }
+
   def table(project: String, task: String, maxEntities: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
     val source = context.task.data.source
