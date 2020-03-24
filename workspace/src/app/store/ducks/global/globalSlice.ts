@@ -16,7 +16,7 @@ export const globalSlice = createSlice({
         },
         closeArtefactModal(state) {
             state.artefactModal.isOpen = false;
-            state.artefactModal.selectedArtefact = '';
+            state.artefactModal.selectedArtefact = null;
         },
         selectArtefact(state, action) {
             state.artefactModal.isOpen = true;

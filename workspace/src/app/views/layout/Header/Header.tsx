@@ -70,7 +70,7 @@ const Header = ({onClickApplicationSidebarExpand, isApplicationSidebarExpanded}:
                                 }
                         </OverviewItemDescription>
                         <OverviewItemActions>
-                            <Button text="Dummy" outlined elevated />
+                            <Button text="Dummy" outlined={'true'} elevated />
                             <IconButton name="item-remove" text="Remove" disruptive />
                             <ContextMenu>
                                 <MenuItem text={'This'} disabled />

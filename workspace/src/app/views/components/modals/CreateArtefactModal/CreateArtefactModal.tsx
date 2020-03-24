@@ -8,12 +8,10 @@ import Row from "@wrappers/carbon/grid/Row";
 import Col from "@wrappers/carbon/grid/Col";
 import { SearchBar } from "../../SearchBar/SearchBar";
 import Card from "@wrappers/blueprint/card";
-import { ProjectForm } from "./ArtefactsForm/ProjectForm";
+import { ProjectForm } from "./ArtefactForms/ProjectForm";
 import { globalOp, globalSel } from "@ducks/global";
-
-export interface IProps {
-
-}
+import { GenericForm } from "./ArtefactForms/GenericForm";
+import { IArtefactItem } from "@ducks/global/typings";
 
 const ARTEFACT_FORM_COMPONENTS_MAP = {
     project: ProjectForm
@@ -25,20 +23,20 @@ export function CreateArtefactModal() {
     const {selectedArtefact, isOpen, artefactsList} = modalStore;
 
     const [loading, setLoading] = useState<boolean>(false);
-    const [selected, setSelected] = useState<string>(selectedArtefact);
+    const [selected, setSelected] = useState<IArtefactItem>(selectedArtefact);
     const [formData, setFormData] = useState<any>({});
 
     const handleAdd = () => {
         dispatch(globalOp.selectArtefact(selected))
     };
 
-    const handleArtefactSelect = (artefactName: string) => {
-        setSelected(artefactName)
+    const handleArtefactSelect = (artefact: IArtefactItem) => {
+        setSelected(artefact)
     };
 
     const handleBack = () => {
-        setSelected('');
-        dispatch(globalOp.selectArtefact(''));
+        setSelected(null);
+        dispatch(globalOp.selectArtefact(null));
     };
 
     const handleCreate = () => {
@@ -55,12 +53,27 @@ export function CreateArtefactModal() {
         setFormData(data);
     };
 
-    const ArtefactForm = ARTEFACT_FORM_COMPONENTS_MAP[modalStore.selectedArtefact];
+    const _TEMP_handleProjectSelect = () => {
+        handleArtefactSelect({
+            key: 'project'
+        } as IArtefactItem);
+    };
+
+    let ArtefactForm = null;
+    if (modalStore.selectedArtefact) {
+        const {key, properties} = modalStore.selectedArtefact;
+        ArtefactForm = ARTEFACT_FORM_COMPONENTS_MAP[key];
+
+        if (!ArtefactForm) {
+            ArtefactForm = () => <GenericForm onChange={handleFormChange} properties={properties} />
+        }
+    }
+
     return (
         <Dialog
             icon="info-sign"
             onClose={closeModal}
-            title={`Create a new artefact${selectedArtefact && `: ${selectedArtefact}`}`}
+            title={`Create a new artefact${selectedArtefact ? `: ${selectedArtefact.title}` : ''}`}
             isOpen={isOpen}
             style={{width: '800px'}}
         >
@@ -83,12 +96,14 @@ export function CreateArtefactModal() {
                                         </Row>
                                         <Row>
                                             <Col>
-                                                <Button onClick={() => handleArtefactSelect('project')}>Project</Button>
+                                                <Button onClick={_TEMP_handleProjectSelect}>
+                                                    Project
+                                                </Button>
                                             </Col>
                                             {
                                                 artefactsList.map(artefact =>
                                                     <Col key={artefact.key}>
-                                                        <Button onClick={() => handleArtefactSelect(artefact.key)}>{artefact.title}</Button>
+                                                        <Button onClick={() => handleArtefactSelect(artefact)}>{artefact.title}</Button>
                                                     </Col>
                                                 )
                                             }
