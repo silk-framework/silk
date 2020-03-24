@@ -43,7 +43,7 @@
       <tr>
       @for(results <- queryResults.toList;
               variable <- results.variables) {
-        <th>@variable<th>
+        <th class="mdl-data-table__cell--non-numeric">@variable<th>
         }
       </tr>
     </thead>
@@ -51,7 +51,7 @@
     @for(results <- queryResults.toList; bindings <- results.bindings) {
       <tr>
       @for((variable, node) <- bindings) {
-        <td>@node.value<td>
+        <td class="mdl-data-table__cell--non-numeric" style="white-space: normal">@node.value<td>
         }
       </tr>
     }

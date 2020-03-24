@@ -23,7 +23,7 @@
     <thead>
       <tr>
         @for(path <- paths) {
-          <th>@path.toString<th>
+          <th class="mdl-data-table__cell--non-numeric">@path.toString<th>
         }
       </tr>
     </thead>
@@ -31,7 +31,7 @@
       @for(entity <- entities) {
         <tr>
           @for(path <- paths) {
-            <td>@entity.evaluate(path)<td>
+            <td class="mdl-data-table__cell--non-numeric" style="white-space: normal">@entity.evaluate(path)<td>
           }
         </tr>
       }
