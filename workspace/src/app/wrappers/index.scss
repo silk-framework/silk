@@ -23,7 +23,7 @@
 @import "~@blueprintjs/core/src/accessibility/focus-states";
 // load blueprintjs components
 @import "~@blueprintjs/core/src/components/alert/alert";
-@import "~@blueprintjs/core/src/components/breadcrumbs/breadcrumbs";
+// own component @import "~@blueprintjs/core/src/components/breadcrumbs/breadcrumbs";
 // own component @import "~@blueprintjs/core/src/components/button/button";
 @import "~@blueprintjs/core/src/components/button/button-group";
 @import "~@blueprintjs/core/src/components/callout/callout";
@@ -120,7 +120,7 @@
 @import '~carbon-components/scss/components/pagination/pagination';
 @import '~carbon-components/scss/components/accordion/accordion';
 @import '~carbon-components/scss/components/progress-indicator/progress-indicator';
-@import '~carbon-components/scss/components/breadcrumb/breadcrumb';
+// not used @import '~carbon-components/scss/components/breadcrumb/breadcrumb';
 @import '~carbon-components/scss/components/toolbar/toolbar';
 @import '~carbon-components/scss/components/time-picker/time-picker';
 @import '~carbon-components/scss/components/slider/slider';
@@ -139,6 +139,7 @@
 @import 'src/components/ContextOverlay/contextoverlay';
 @import 'src/components/Button/button';
 @import 'src/components/OverviewItem/overviewitem';
+@import 'src/components/Breadcrumb/breadcrumb';
 
 // == load tweaks ==============================================================
 

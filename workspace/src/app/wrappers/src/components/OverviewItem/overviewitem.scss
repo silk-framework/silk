@@ -99,7 +99,7 @@ $ecc-size-overviewitem-line-typo-large-lineheight: $ecc-size-typo-subtitle-lineh
     font-size: 1rem;
 
     & > * {
-        display: inline-flex;
+        display: inline-block;
         font-size: inherit;
     }
 }

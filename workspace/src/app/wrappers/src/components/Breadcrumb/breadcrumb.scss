@@ -1,0 +1,19 @@
+@import "~@blueprintjs/core/src/components/breadcrumbs/breadcrumbs";
+
+.ecc-breadcrumb__list {
+    height: auto;
+
+    & > li::after {
+        background: none;
+        margin: 0 0.5ex;
+        height: auto;
+        width: auto;
+        display: inline-block;
+        vertical-align: middle;
+        content: "/";
+    }
+}
+
+.ecc-breadcrumb__item {
+    font-size: inherit;
+}

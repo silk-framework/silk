@@ -36,6 +36,9 @@ import OverviewItemLine from './src/components/OverviewItem/OverviewItemLine';
 import OverviewItemActions from './src/components/OverviewItem/OverviewItemActions';
 import OverviewItemList from './src/components/OverviewItem/OverviewItemList';
 
+import BreadcrumbList from './src/components/Breadcrumb/BreadcrumbList';
+import BreadcrumbItem from './src/components/Breadcrumb/BreadcrumbItem';
+
 export {
     ApplicationContainer,
     ApplicationHeader,
@@ -74,4 +77,7 @@ export {
     IconButton,
 
     Button,
+
+    BreadcrumbList,
+    BreadcrumbItem,
 };
