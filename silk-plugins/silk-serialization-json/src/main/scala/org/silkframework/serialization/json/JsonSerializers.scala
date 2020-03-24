@@ -1,6 +1,7 @@
 package org.silkframework.serialization.json
 
 import java.time.Instant
+import java.util.UUID
 
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
@@ -13,9 +14,9 @@ import org.silkframework.rule.vocab.{GenericInfo, VocabularyClass, VocabularyPro
 import org.silkframework.rule.{MappingTarget, TransformRule, _}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
-import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
 import org.silkframework.serialization.json.InputJsonSerializer._
-import org.silkframework.serialization.json.JsonHelpers._
+import org.silkframework.serialization.json.JsonHelpers.{metaData, _}
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{DPair, Identifier, Uri}
 import org.silkframework.util.StringUtils._
@@ -975,9 +976,25 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): Task[T] = {
+      def generateTaskId(label: String): Identifier = {
+        val defaultSuffix = "task"
+        if(Identifier.fromAllowed(label, alternative = Some(defaultSuffix)) == Identifier(defaultSuffix)) {
+          Identifier.fromAllowed(UUID.randomUUID().toString + "_" + defaultSuffix)
+        } else {
+          Identifier.fromAllowed(UUID.randomUUID().toString + "_" + label)
+        }
+      }
+      val id: Identifier = stringValueOption(value, ID).map(_.trim).filter(_.nonEmpty).map(Identifier.apply).getOrElse {
+        // Generate unique ID from label if no ID was supplied
+        val md = metaData(value, "id")
+        val label = md.label.trim
+        if(label.isEmpty) {
+          throw BadUserInputException("The label must not be empty if no ID is provided!")
+        }
+        generateTaskId(label)
+      }
       // In older serializations the task data has been directly attached to this JSON object
       val dataJson = optionalValue(value, DATA).getOrElse(value)
-      val id = stringValue(value, ID)
       PlainTask(
         id = id,
         data = fromJson[T](dataJson),

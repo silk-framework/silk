@@ -45,6 +45,31 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
     checkResponse(response)
   }
 
+  "post task without ID, but label" in {
+    val request = client.url(s"$baseUrl/workspace/projects/$project/tasks")
+    val response = request.post(
+      Json.obj(
+        "metadata" ->
+            Json.obj(
+              "label" -> "some label"
+            ),
+        "data" -> Json.obj(
+          "uriProperty" -> "URI",
+          "taskType" -> "Dataset",
+          "type" -> "internal",
+          "parameters" ->
+              Json.obj(
+                "graphUri" -> "urn:dataset2"
+              )
+        )
+      )
+    )
+    val r = checkResponse(response)
+    val location = r.headerValues("Location").headOption.getOrElse("")
+    location must endWith ("somelabel")
+    workspaceProject(project).anyTaskOption(location.split("/").last) mustBe defined
+  }
+
   "post dataset task with existing identifier" in {
     val request = client.url(s"$baseUrl/workspace/projects/$project/tasks")
     val response = request.post(

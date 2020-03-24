@@ -31,7 +31,8 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
     SerializationUtils.deserializeCompileTime[Task[TaskSpec]]() { task =>
       project.addAnyTask(task.id, task.data, task.metaData)
-      Ok
+      Created(JsonSerializer.projectJson(project)).
+          withHeaders(LOCATION -> routes.TaskApi.getTask(projectName, task.id).path())
     }
   }
 
