@@ -2,7 +2,6 @@ import React, { memo, useState } from 'react';
 
 import { globalOp, globalSel } from "@ducks/global";
 import { useDispatch, useSelector } from "react-redux";
-import Breadcrumbs from "@wrappers/blueprint/breadcrumbs";
 import NavbarHeading from "@wrappers/blueprint/navbar-heading";
 import HomeButton from "./HomeButton";
 import {
@@ -24,6 +23,7 @@ import {
     Button,
     ContextMenu,
     MenuItem,
+    BreadcrumbList,
 } from "@wrappers/index";
 import CreateButton from "./CreateButton";
 import { CreateArtefactModal } from "../../components/modals/CreateArtefactModal/CreateArtefactModal";
@@ -60,7 +60,7 @@ const Header = ({onClickApplicationSidebarExpand, isApplicationSidebarExpanded}:
                         </OverviewItemDepiction>
                         <OverviewItemDescription>
                             <OverviewItemLine small>
-                                <Breadcrumbs paths={breadcrumbs}/>
+                                <BreadcrumbList items={breadcrumbs} />
                             </OverviewItemLine>
                                 {
                                     lastBreadcrumb &&
@@ -70,7 +70,7 @@ const Header = ({onClickApplicationSidebarExpand, isApplicationSidebarExpanded}:
                                 }
                         </OverviewItemDescription>
                         <OverviewItemActions>
-                            <Button text="Dummy" outlined elevated />
+                            <Button text="Dummy" outlined="true" elevated />
                             <IconButton name="item-remove" text="Remove" disruptive />
                             <ContextMenu>
                                 <MenuItem text={'This'} disabled />
