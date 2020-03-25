@@ -118,11 +118,15 @@ export default function SearchList() {
                     ))
                 }
             </DataList>
-            <Pagination
-                pagination={pagination}
-                pageSizes={pageSizes}
-                onChangeSelect={handlePaginationOnChange}
-            />
+            {
+                isLoading || !data.length
+                    ? <div/>
+                    : <Pagination
+                        pagination={pagination}
+                        pageSizes={pageSizes}
+                        onChangeSelect={handlePaginationOnChange}
+                    />
+            }
             <DeleteModal
                 isOpen={showDeleteModal}
                 onDiscard={onDiscardModals}
