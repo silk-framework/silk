@@ -19,7 +19,7 @@ $ecc-size-overviewitem-line-typo-large-lineheight: $ecc-size-typo-subtitle-lineh
     align-content: stretch;
     height: mini-units(6);
 
-    .ecc-overviewitem__item--highdensity,
+    &.ecc-overviewitem__item--highdensity,
     .ecc-overviewitem__list--highdensity > li > & {
         height: mini-units(4);
     }
