@@ -46,6 +46,7 @@ const fetchArtefactsListAsync = () => {
     return async dispatch => {
         dispatch(fetchArtefactsList());
         try {
+            // @FIXME: Replace with correct plugins list
             const {data} = await fetch({
                 url: '/dataintegration/core/plugins/org.silkframework.dataset.Dataset',
             });
