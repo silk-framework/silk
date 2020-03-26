@@ -7,7 +7,6 @@ import { useDispatch, useSelector } from "react-redux";
 import Row from "@wrappers/carbon/grid/Row";
 import Col from "@wrappers/carbon/grid/Col";
 import { SearchBar } from "../../SearchBar/SearchBar";
-import Card from "@wrappers/blueprint/card";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
 import { globalOp, globalSel } from "@ducks/global";
 import { GenericForm } from "./ArtefactForms/GenericForm";
@@ -69,8 +68,6 @@ export function CreateArtefactModal() {
         }
     }
 
-    const buttonDisable = formData.label == '' || formData.label == undefined;
-
     return (
         <Dialog
             icon="info-sign"
@@ -121,7 +118,7 @@ export function CreateArtefactModal() {
                                 selectedArtefact
                                     ? <>
                                         <Button onClick={handleBack}>Back</Button>
-                                        <Button disabled={buttonDisable} affirmative={true} onClick={handleCreate}>Create</Button>
+                                        <Button disabled={!formData.label} affirmative={true} onClick={handleCreate}>Create</Button>
                                     </>
                                     : <Button
                                         affirmative={true}
