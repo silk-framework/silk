@@ -12,6 +12,7 @@ import {
     MenuDivider,
     Icon,
     IconButton,
+    Card,
 } from "@wrappers/index";
 
 interface IProps {
@@ -83,39 +84,41 @@ export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpen
     };
 
     return (
-        <OverviewItem onClick={onRowClick}>
-            <OverviewItemDepiction>
-                <Icon name='artefact-project' large />
-            </OverviewItemDepiction>
-            <OverviewItemDescription>
-                <OverviewItemLine>
-                    <p dangerouslySetInnerHTML={{
-                        __html: getSearchHighlight(item.label || item.id)
-                    }}/>
-                </OverviewItemLine>
-                {   item.description &&
+        <Card isOnlyLayout>
+            <OverviewItem hasSpacing onClick={onRowClick}>
+                <OverviewItemDepiction>
+                    <Icon name='artefact-project' large />
+                </OverviewItemDepiction>
+                <OverviewItemDescription>
                     <OverviewItemLine>
-                        <p>{item.description}</p>
+                        <p dangerouslySetInnerHTML={{
+                            __html: getSearchHighlight(item.label || item.id)
+                        }}/>
                     </OverviewItemLine>
-                }
-            </OverviewItemDescription>
-            <OverviewItemActions>
-                <IconButton
-                    data-test-id={'open-duplicate-modal'}
-                    name='item-clone'
-                    text='Clone'
-                    onClick={onOpenDuplicateModal}
-                />
-                {
-                    !!item.itemLinks.length &&
-                    <IconButton name='item-viewdetails' text='Show details' href={item.itemLinks[0].path} />
-                }
-                <ContextMenu togglerText="Show more options">
-                    {getContextMenuItems(item)}
-                    <MenuDivider />
-                    <MenuItem key='delete' icon={'item-remove'} onClick={onOpenDeleteModal} text={'Delete'} />
-                </ContextMenu>
-            </OverviewItemActions>
-        </OverviewItem>
+                    {   item.description &&
+                        <OverviewItemLine>
+                            <p>{item.description}</p>
+                        </OverviewItemLine>
+                    }
+                </OverviewItemDescription>
+                <OverviewItemActions>
+                    <IconButton
+                        data-test-id={'open-duplicate-modal'}
+                        name='item-clone'
+                        text='Clone'
+                        onClick={onOpenDuplicateModal}
+                    />
+                    {
+                        !!item.itemLinks.length &&
+                        <IconButton name='item-viewdetails' text='Show details' href={item.itemLinks[0].path} />
+                    }
+                    <ContextMenu togglerText="Show more options">
+                        {getContextMenuItems(item)}
+                        <MenuDivider />
+                        <MenuItem key='delete' icon={'item-remove'} onClick={onOpenDeleteModal} text={'Delete'} />
+                    </ContextMenu>
+                </OverviewItemActions>
+            </OverviewItem>
+        </Card>
     )
 }
