@@ -69,6 +69,8 @@ export function CreateArtefactModal() {
         }
     }
 
+    const buttonDisable = formData.label == '' || formData.label == undefined;
+
     return (
         <Dialog
             icon="info-sign"
@@ -119,7 +121,7 @@ export function CreateArtefactModal() {
                                 selectedArtefact
                                     ? <>
                                         <Button onClick={handleBack}>Back</Button>
-                                        <Button affirmative={true} onClick={handleCreate}>Create</Button>
+                                        <Button disabled={buttonDisable} affirmative={true} onClick={handleCreate}>Create</Button>
                                     </>
                                     : <Button
                                         affirmative={true}
