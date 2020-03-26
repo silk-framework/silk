@@ -29,18 +29,26 @@ import MenuDivider from './src/components/Menu/MenuDivider';
 import ContextOverlay from './src/components/ContextOverlay/ContextOverlay';
 import ContextMenu from './src/components/ContextOverlay/ContextMenu';
 
-import OverviewItem from './src/components/OverviewItem/OverviewItem';
-import OverviewItemDepiction from './src/components/OverviewItem/OverviewItemDepiction';
-import OverviewItemDescription from './src/components/OverviewItem/OverviewItemDescription';
-import OverviewItemLine from './src/components/OverviewItem/OverviewItemLine';
-import OverviewItemActions from './src/components/OverviewItem/OverviewItemActions';
-import OverviewItemList from './src/components/OverviewItem/OverviewItemList';
+import {
+    OverviewItem,
+    OverviewItemDepiction,
+    OverviewItemDescription,
+    OverviewItemLine,
+    OverviewItemActions,
+    OverviewItemList,
+} from './src/components/OverviewItem';
 
 import BreadcrumbList from './src/components/Breadcrumb/BreadcrumbList';
 import BreadcrumbItem from './src/components/Breadcrumb/BreadcrumbItem';
 
-import Card from './src/components/Card/Card';
-import CardContent from './src/components/Card/CardContent';
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardOptions,
+    CardContent,
+    CardActions,
+} from './src/components/Card';
 
 export {
     ApplicationContainer,
@@ -85,6 +93,10 @@ export {
     BreadcrumbItem,
 
     Card,
+    CardHeader,
+    CardTitle,
+    CardOptions,
     CardContent,
+    CardActions,
 
 };
