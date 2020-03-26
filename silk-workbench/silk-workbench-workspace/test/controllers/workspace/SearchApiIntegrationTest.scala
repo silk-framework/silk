@@ -1,11 +1,14 @@
 package controllers.workspace
 
-import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult,
-  Facets, ItemType, KeywordFacetSetting, SortBy, SortOrder, SortableProperty}
+import controllers.core.{AutoCompletableTestPlugin, TestAutoCompletionProvider}
+import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, Facets, ItemType, KeywordFacetSetting, SortBy, SortOrder, SortableProperty}
 import controllers.workspaceApi.search._
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.MetaData
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginParameterAutoCompletionProvider, PluginRegistry}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
 import play.api.libs.json._
@@ -223,11 +226,38 @@ class SearchApiIntegrationTest extends FlatSpec
     }
   }
 
+  private val testAutoCompletionProvider = TestAutoCompletionProvider()
+  implicit private val autoCompleteResultReads: Writes[AutoCompletionResult] = Json.writes[AutoCompletionResult]
+
+  it should "return correct result for the plugin parameter auto-completion endpoint" in {
+    def toAutoComplete: Seq[(String, String)] => Seq[AutoCompletionResult] = values => values.map { case (value, label) => AutoCompletionResult(value, Some(label))}
+    PluginRegistry.registerPlugin(classOf[AutoCompletableTestPlugin])
+    // All values
+    pluginParameterAutoCompletion(ParameterAutoCompletionRequest("autoCompletableTestPlugin", "completableParam", projectId)) mustBe
+      Json.toJson(testAutoCompletionProvider.values.map{case (value, label) => AutoCompletionResult(value, Some(label))})
+    // With offset and limit
+    pluginParameterAutoCompletion(ParameterAutoCompletionRequest("autoCompletableTestPlugin", "completableParam", projectId,
+      offset = Some(1), limit = Some(1))) mustBe
+        Json.toJson(toAutoComplete(testAutoCompletionProvider.values.slice(1, 2)))
+    // With search query
+    pluginParameterAutoCompletion(ParameterAutoCompletionRequest("autoCompletableTestPlugin", "completableParam", projectId,
+      textQuery = Some("ir"))) mustBe
+        Json.toJson(toAutoComplete(testAutoCompletionProvider.values.filter(_._1 != "val2")))
+  }
+
   private def resourceNames(defaultResults: IndexedSeq[collection.Map[String, JsValue]]) = {
     defaultResults.flatMap(_.get(ResourceSearchRequest.NAME_PARAM)).map(_.as[String])
   }
 
   private lazy val resourceSearchUrl = controllers.workspace.routes.WorkspaceApi.getResources(projectId)
+
+  private lazy val pluginParameterAutoCompleteUrl = s"$baseUrl/api/workspace/pluginParameterAutoCompletion"
+
+  private def pluginParameterAutoCompletion(request: ParameterAutoCompletionRequest): JsValue = {
+    val result = checkResponse(client.url(pluginParameterAutoCompleteUrl).post(Json.toJson(request)))
+    result.json
+  }
+
   private def resourceSearch(request: ResourceSearchRequest): IndexedSeq[collection.Map[String, JsValue]] = {
     val result = checkResponse(client.url(s"$baseUrl$resourceSearchUrl?${request.queryString}").get()).json
     result.as[JsArray].value.map(_.asInstanceOf[JsObject].value)

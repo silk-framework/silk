@@ -2,6 +2,7 @@
 GET           /searchConfig/types                                               controllers.workspaceApi.SearchApi.itemTypes(projectId: Option[String] ?= None)
 POST          /searchTasks                                                      controllers.workspaceApi.SearchApi.search()
 POST          /searchItems                                                      controllers.workspaceApi.SearchApi.facetedSearch()
+POST          /pluginParameterAutoCompletion                                    controllers.workspaceApi.SearchApi.parameterAutoCompletion()
 GET           /recentlyViewedItems                                              controllers.workspaceApi.SearchApi.recentlyViewedItems()
 
 ->            /projects                   projectsApi.Routes

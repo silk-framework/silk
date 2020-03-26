@@ -38,26 +38,42 @@ object PluginSerializers {
       )
     }
 
-    private def serializeParams(params: Seq[Parameter]) = {
+    private def serializeParams(params: Seq[Parameter]): Seq[(String, JsValue)] = {
       for(param <- params) yield {
         param.name -> serializeParam(param)
       }
     }
 
-    private def serializeParam(param: Parameter) = {
-      val defaultValue = param.stringDefaultValue(Prefixes.empty) match {
+    private def serializeParam(param: Parameter): JsValue = {
+      val defaultValue: JsValue = param.stringDefaultValue(Prefixes.empty) match {
         case Some(value) => JsString(value)
         case None => JsNull
       }
 
-      Json.obj(
-        "title" -> JsString(param.label),
-        "description" -> JsString(param.description),
-        "type" -> JsString(param.dataType.name),
-        "value" -> defaultValue,
-        "advanced" -> JsBoolean(param.advanced)
-      )
+      Json.toJson(PluginParameterJsonPayload(
+        title = param.label,
+        description = param.description,
+        `type` = param.dataType.name,
+        value = defaultValue,
+        advanced = param.advanced,
+        autoCompleteSupport = param.autoCompletionSupport,
+        // Don't output auto-complete specific parameters, if auto-completion is disabled.
+        allowOnlyAutoCompletedValues = Some(param.allowOnlyAutoCompletedValues).filter(_ => param.autoCompletionSupport),
+        autoCompleteValueWithLabels = Some(param.autoCompleteValueWithLabels).filter(_ => param.autoCompletionSupport)
+      ))
     }
   }
+}
 
+case class PluginParameterJsonPayload(title: String,
+                                      description: String,
+                                     `type`: String,
+                                      value: JsValue,
+                                      advanced: Boolean,
+                                      autoCompleteSupport: Boolean,
+                                      allowOnlyAutoCompletedValues: Option[Boolean],
+                                      autoCompleteValueWithLabels: Option[Boolean])
+
+object PluginParameterJsonPayload {
+  implicit val pluginParameterJsonPayloadFormat: Format[PluginParameterJsonPayload] = Json.format[PluginParameterJsonPayload]
 }

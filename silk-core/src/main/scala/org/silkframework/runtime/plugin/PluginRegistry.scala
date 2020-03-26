@@ -42,6 +42,9 @@ object PluginRegistry {
   /** Map holding all plugins by their class name */
   private var plugins = Map[String, PluginDescription[_]]()
 
+  /** Map holding all plugins by their ID. */
+  private var pluginsById = Map[String, PluginDescription[_]]()
+
   // Register all plugins at instantiation of this singleton object.
   if(configMgr().hasPath("pluginRegistry.pluginFolder")) {
     registerJars(new File(configMgr().getString("pluginRegistry.pluginFolder")))
@@ -124,6 +127,8 @@ object PluginRegistry {
         .sortBy(_.label)
   }
 
+  def pluginDescriptionById(pluginId: String): Option[PluginDescription[_]] = pluginsById.get(pluginId)
+
   /**
     * Returns a list of all available plugins of a specific runtime type.
     */
@@ -137,7 +142,7 @@ object PluginRegistry {
   /**
    * Returns a map of all plugins grouped by category
    */
-  def pluginsByCategoty[T: ClassTag]: Map[String, Seq[PluginDescription[_]]] = {
+  def pluginsByCategory[T: ClassTag]: Map[String, Seq[PluginDescription[_]]] = {
     pluginType[T].pluginsByCategory
   }
 
@@ -205,6 +210,7 @@ object PluginRegistry {
         pluginType.register(pluginDesc)
       }
       plugins += ((pluginDesc.pluginClass.getName, pluginDesc))
+      pluginsById += ((pluginDesc.id.toString, pluginDesc))
     }
   }
 

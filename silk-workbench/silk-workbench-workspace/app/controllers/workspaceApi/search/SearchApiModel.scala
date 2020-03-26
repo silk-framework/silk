@@ -172,10 +172,10 @@ object SearchApiModel {
       idMatch || labelMatch || descriptionMatch
     }
 
-    /** Match search terms against string. Returns only true if all search terms match. */
-    protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], searchIn: String): Boolean = {
-      val lowerCaseText = searchIn.toLowerCase
-      lowerCaseSearchTerms forall lowerCaseText.contains
+    /** Match search terms against string. Returns only true if all search terms match at least one of the provided strings. */
+    protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], searchIn: String*): Boolean = {
+      val lowerCaseTexts = searchIn.map(_.toLowerCase)
+      lowerCaseSearchTerms forall (searchTerm => lowerCaseTexts.exists(_.contains(searchTerm)))
     }
   }
 
@@ -311,9 +311,7 @@ object SearchApiModel {
     override protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], task: ProjectTask[_ <: TaskSpec]): Boolean = {
       val taskLabel = task.metaData.label
       val name = if(taskLabel.trim != "") taskLabel else task.id.toString
-      val labelMatch = matchesSearchTerm(lowerCaseSearchTerms, name)
-      val descriptionMatch = matchesSearchTerm(lowerCaseSearchTerms, task.metaData.description.getOrElse(""))
-      labelMatch || descriptionMatch
+      matchesSearchTerm(lowerCaseSearchTerms, name, task.metaData.description.getOrElse(""))
     }
 
     // TODO: Update URL after deciding on path for new workspace

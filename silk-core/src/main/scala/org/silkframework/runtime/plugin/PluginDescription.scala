@@ -223,9 +223,13 @@ object PluginDescription {
 
       val advanced = pluginParam exists (_.advanced())
       val visible = pluginParam forall (_.visibleInDialog())
+      val autoCompletionProvider = pluginParam.map(_.autoCompletionProvider()).getOrElse(classOf[NopPluginParameterAutoCompletionProvider])
+      val allowOnlyAutoCompletedValues = pluginParam exists (_.allowOnlyAutoCompletedValues())
+      val autoCompleteValueWithLabels = pluginParam exists (_.autoCompleteValueWithLabels())
 
       val dataType = ParameterType.forType(parType)
-      Parameter(parName, dataType, label, description, defaultValue, exampleValue, advanced, visible)
+      Parameter(parName, dataType, label, description, defaultValue, exampleValue, advanced, visible, autoCompletionProvider,
+        allowOnlyAutoCompletedValues, autoCompleteValueWithLabels)
     }
   }
 

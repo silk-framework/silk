@@ -1,10 +1,15 @@
 package controllers.workspaceApi
 
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import java.util.logging.Logger
+
 import controllers.core.util.ControllerUtilsTrait
-import controllers.workspaceApi.search.ResourceSearchRequest
+import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.workspaceApi.search.ParameterAutoCompletionRequest
 import controllers.workspaceApi.search.SearchApiModel._
 import javax.inject.Inject
+import org.silkframework.config.Prefixes
+import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginParameterAutoCompletionProvider, PluginRegistry}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, InjectedController}
@@ -13,6 +18,9 @@ import play.api.mvc.{Action, AnyContent, InjectedController}
   * API to search for tasks in the workspace.
   */
 class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) extends InjectedController with ControllerUtilsTrait {
+
+  private val log: Logger = Logger.getLogger(this.getClass.getName)
+  implicit val autoCompletionResultJsonFormat: Format[AutoCompletionResult] = Json.format[AutoCompletionResult]
 
   /** Search tasks by text search query. */
   def search(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
@@ -36,6 +44,30 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
       ) ++ item.taskIdOpt.map(taskId => ("taskId", JsString(taskId))).toSeq)
     }
     Ok(JsArray(items))
+  }
+
+  /** Auto-completion service for plugin parameters. */
+  def parameterAutoCompletion(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    validateJson[ParameterAutoCompletionRequest] { request =>
+      val project = getProject(request.projectId)
+      implicit val prefixes: Prefixes = project.config.prefixes
+      implicit val resourceProvider: ResourceManager = project.resources
+      PluginRegistry.pluginDescriptionById(request.pluginId) match {
+        case Some(pluginDescription) =>
+          pluginDescription.parameters.find(_.name == request.parameterId) match {
+            case Some(parameter) =>
+              val autoCompletionProvider = PluginParameterAutoCompletionProvider.get(parameter.autoCompletionProvider)
+              val result = autoCompletionProvider.autoComplete(request.textQuery.getOrElse(""), request.projectId, limit = request.workingLimit, offset = request.workingOffset)
+              Ok(Json.toJson(result))
+            case None =>
+              log.warning(s"Plugin '${request.pluginId}' does not have a parameter '${request.parameterId}'.")
+              NotFound
+          }
+        case None =>
+          log.warning(s"Requesting auto-completion for non-existing plugin: ${request.pluginId}.")
+          NotFound
+      }
+    }
   }
 
   /** Get all item types */
