@@ -119,13 +119,13 @@ export default function SearchList() {
                 }
             </DataList>
             {
-                isLoading || !data.length
-                    ? <div/>
-                    : <Pagination
+                !isLoading && data.length
+                    ? <Pagination
                         pagination={pagination}
                         pageSizes={pageSizes}
                         onChangeSelect={handlePaginationOnChange}
                     />
+                    : null
             }
             <DeleteModal
                 isOpen={showDeleteModal}
