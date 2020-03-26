@@ -1,8 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import './Metadata.scss';
-import Card from "@wrappers/blueprint/card";
-import { H4 } from "@wrappers/blueprint/typography";
 import { sharedOp } from "@ducks/shared";
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardOptions,
+    CardContent,
+    CardActions,
+    IconButton,
+    ContextMenu,
+    MenuItem,
+    Button,
+} from "@wrappers/index";
 
 export default function ({ projectId = null, taskId }) {
     const [metadata, setMetadata] = useState({} as any);
@@ -21,15 +30,31 @@ export default function ({ projectId = null, taskId }) {
         <>
             <div className='metadata-block'>
                 <Card>
-                    <H4>
-                        Details & Metadata
-                    </H4>
-                    <p>
-                        Name: {name || id}
-                    </p>
-                    {
-                        description && <p>Description: {description}</p>
-                    }
+                    <CardHeader>
+                        <CardTitle>
+                            <h4>Details & Metadata</h4>
+                        </CardTitle>
+                        <CardOptions>
+                            <IconButton name="item-edit" text="Edit" />
+                            <ContextMenu>
+                                <MenuItem text={'This'} disabled />
+                                <MenuItem text={'Is just a'} disabled />
+                                <MenuItem text={'Dummy'} disabled />
+                            </ContextMenu>
+                        </CardOptions>
+                    </CardHeader>
+                    <CardContent>
+                        <p>
+                            Name: {name || id}
+                        </p>
+                        {
+                            description && <p>Description: {description}</p>
+                        }
+                    </CardContent>
+                    <CardActions inverseDirection>
+                        <Button text="Remove me" disruptive />
+                        <Button text="Dummy" />
+                    </CardActions>
                 </Card>
             </div>
         </>
