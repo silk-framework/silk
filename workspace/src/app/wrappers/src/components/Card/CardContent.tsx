@@ -7,6 +7,7 @@ const CardContent = ({
 }: any) => {
     return (
         <div
+            {...otherProps}
             className={'ecc-card__content ' + className}
         >
             {children}

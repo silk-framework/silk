@@ -1,9 +1,49 @@
 @import "~@blueprintjs/core/src/components/card/card";
 
+$ecc-size-card-spacing: $ecc-size-typo-base !default;
+
 .ecc-card {
     padding: 0;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+
+.ecc-card__header {
+    padding: $ecc-size-card-spacing/2 $ecc-size-card-spacing/2 $ecc-size-card-spacing/2 $ecc-size-card-spacing;
+    box-sizing: content-box;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.ecc-card__title {
+    font-weight: normal;
+
+    & > * {
+        font-weight: inherit;
+    }
 }
 
 .ecc-card__content {
-    padding: 0.5rem;
+    padding: $ecc-size-card-spacing/2 $ecc-size-card-spacing;
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.ecc-card__actions {
+    padding: $ecc-size-card-spacing/4;
+    flex-grow: 0;
+    flex-shrink: 0;
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+
+    & > * {
+        margin: $ecc-size-card-spacing/4;
+    }
+}
+
+.ecc-card__actions--inversedirection {
+    flex-direction: row-reverse;
 }
