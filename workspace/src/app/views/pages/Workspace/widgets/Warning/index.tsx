@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from "react";
-import Card from "../../../../../wrappers/blueprint/card";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { Intent } from "@wrappers/blueprint/constants";
-import { Icon } from "@wrappers/index";
+import {
+    Icon,
+    Card,
+    CardHeader,
+    CardTitle,
+    CardContent,
+} from "@wrappers/index";
 import MarkdownModal from "../../../../components/modals/MarkdownModal";
 import { AppToaster } from "../../../../../services/toaster";
 import Loading from "../Configuration";
@@ -49,10 +54,14 @@ const ConfigurationWidget = () => {
 
     return (
         <Card>
-            <h3>Warning</h3>
+            <CardHeader>
+                <CardTitle>
+                    <h3>Warning</h3>
+                </CardTitle>
+            </CardHeader>
             {
                 isLoading ? <Loading/> :
-                    <div>
+                    <CardContent>
                         {
                             warningList.map(warn =>
                                 <div>
@@ -62,7 +71,7 @@ const ConfigurationWidget = () => {
                             )
                         }
                         <MarkdownModal isOpen={isOpen} onDiscard={handleClose} markdown={currentMarkdown}/>
-                    </div>
+                    </CardContent>
             }
         </Card>
     )

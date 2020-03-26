@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from "react";
-import Card from "../../../../../wrappers/blueprint/card";
 import { useDispatch, useSelector } from "react-redux";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import Loading from "../../../../components/Loading";
 import { Button, DataTable } from 'carbon-components-react';
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardContent,
+} from "@wrappers/index";
+import Loading from "../../../../components/Loading";
 import FileUploadModal from "../../../../components/modals/FileUploadModal";
 import { getLegacyApiEndpoint } from "../../../../../utils/getApiEndpoint";
 
@@ -59,43 +64,50 @@ const FileWidget = () => {
 
     return (
         <>
-            <Card style={{'maxHeight': '250px', 'overflow': 'auto'}}>
-                {isLoading ? <Loading/> :
-                    <DataTable
-                        rows={filesList}
-                        headers={headers}
-                        render={({rows, headers, getHeaderProps}) => (
-                            <TableContainer title="Files">
-                                <TableToolbar>
-                                    <TableToolbarContent>
-                                        <TableToolbarSearch/>
-                                        <Button kind={'primary'} onClick={toggleFileUploader}>+ Add File</Button>
-                                    </TableToolbarContent>
-                                </TableToolbar>
-                                <Table>
-                                    <TableHead>
-                                        <TableRow>
-                                            {headers.map(header => (
-                                                <TableHeader {...getHeaderProps({header})}>
-                                                    {header.header}
-                                                </TableHeader>
-                                            ))}
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {rows.map(row => (
-                                            <TableRow key={row.id}>
-                                                {row.cells.map(cell => (
-                                                    <TableCell key={cell.id}>{cell.value}</TableCell>
+            <Card>
+                <CardHeader>
+                    <CardTitle>
+                        <h3>Files</h3>
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {isLoading ? <Loading/> :
+                        <DataTable
+                            rows={filesList}
+                            headers={headers}
+                            render={({rows, headers, getHeaderProps}) => (
+                                <TableContainer>
+                                    <TableToolbar>
+                                        <TableToolbarContent>
+                                            <TableToolbarSearch/>
+                                            <Button kind={'primary'} onClick={toggleFileUploader}>+ Add File</Button>
+                                        </TableToolbarContent>
+                                    </TableToolbar>
+                                    <Table>
+                                        <TableHead>
+                                            <TableRow>
+                                                {headers.map(header => (
+                                                    <TableHeader {...getHeaderProps({header})}>
+                                                        {header.header}
+                                                    </TableHeader>
                                                 ))}
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        )}
-                    />
-                }
+                                        </TableHead>
+                                        <TableBody>
+                                            {rows.map(row => (
+                                                <TableRow key={row.id}>
+                                                    {row.cells.map(cell => (
+                                                        <TableCell key={cell.id}>{cell.value}</TableCell>
+                                                    ))}
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            )}
+                        />
+                    }
+                </CardContent>
             </Card>
             <FileUploadModal
                 isOpen={isOpenDialog}

@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from "react";
-import Card from "../../../../../wrappers/blueprint/card";
 import PrefixesDialog from "./PrefixesDialog";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { IPrefixState } from "@ducks/workspace/typings";
-import { Button } from '@wrappers/index';
+import {
+    Button,
+    Card,
+    CardHeader,
+    CardTitle,
+    CardContent,
+} from '@wrappers/index';
 
 const ConfigurationWidget = () => {
     const dispatch = useDispatch();
@@ -36,27 +41,33 @@ const ConfigurationWidget = () => {
 
     return (
         <Card>
-            <h3>Configuration</h3>
-            <div>
-                <p><strong>Prefix Settings ({(getFullSizeOfList())})</strong></p>
-                {
-                    visiblePrefixes.map((o, index) =>
-                        <span key={index}>
-                                            {o.prefixName}
-                            {
-                                index < visiblePrefixes.length - 1
-                                    ? ', '
-                                    : moreCount > 0 && <b> and {moreCount} more</b>
-                            }
-                        </span>
-                    )
-                }
-            </div>
-            <Button onClick={handleOpen}>Change Prefix Settings</Button>
-            <PrefixesDialog
-                isOpen={isOpen}
-                onCloseModal={handleClose}
-            />
+            <CardHeader>
+                <CardTitle>
+                    <h3>Configuration</h3>
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div>
+                    <p><strong>Prefix Settings ({(getFullSizeOfList())})</strong></p>
+                    {
+                        visiblePrefixes.map((o, index) =>
+                            <span key={index}>
+                                                {o.prefixName}
+                                {
+                                    index < visiblePrefixes.length - 1
+                                        ? ', '
+                                        : moreCount > 0 && <b> and {moreCount} more</b>
+                                }
+                            </span>
+                        )
+                    }
+                </div>
+                <Button onClick={handleOpen}>Change Prefix Settings</Button>
+                <PrefixesDialog
+                    isOpen={isOpen}
+                    onCloseModal={handleClose}
+                />
+            </CardContent>
         </Card>
     )
 };
