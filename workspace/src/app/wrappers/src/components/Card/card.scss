@@ -1,9 +1,12 @@
-@import "~@blueprintjs/core/src/components/card/card";
+$card-padding: 0 !default;
+$card-background-color: $white !default;
+//$dark-card-background-color: $dark-gray4 !default;
 
 $ecc-size-card-spacing: $ecc-size-typo-base !default;
 
+@import "~@blueprintjs/core/src/components/card/card";
+
 .ecc-card {
-    padding: 0;
     display: flex;
     flex-flow: column nowrap;
     justify-content: flex-start;
@@ -26,9 +29,13 @@ $ecc-size-card-spacing: $ecc-size-typo-base !default;
 }
 
 .ecc-card__content {
-    padding: $ecc-size-card-spacing/2 $ecc-size-card-spacing;
+    padding: $ecc-size-card-spacing/2 $ecc-size-card-spacing $ecc-size-card-spacing $ecc-size-card-spacing;
     flex-grow: 1;
     flex-shrink: 1;
+
+    .ecc-separation__divider-horizontal + & {
+        padding-top: $ecc-size-card-spacing;
+    }
 }
 
 .ecc-card__actions {

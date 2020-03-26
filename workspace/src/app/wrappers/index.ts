@@ -50,6 +50,9 @@ import {
     CardActions,
 } from './src/components/Card';
 
+import Spacing from './src/components/Separation/Spacing';
+import Divider from './src/components/Separation/Divider';
+
 export {
     ApplicationContainer,
     ApplicationHeader,
@@ -98,5 +101,8 @@ export {
     CardOptions,
     CardContent,
     CardActions,
+
+    Spacing,
+    Divider,
 
 };
