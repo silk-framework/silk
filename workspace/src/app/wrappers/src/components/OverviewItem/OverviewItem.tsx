@@ -4,7 +4,6 @@ const OverviewItem = ({
     children,
     className = '',
     densityHigh = false,
-    hasDivider = false,
     hasSpacing = false,
     ...restProps
 }: any) => {
@@ -14,7 +13,6 @@ const OverviewItem = ({
             className={
                 'ecc-overviewitem__item ' +
                 (densityHigh ? 'ecc-overviewitem__item--highdensity ' : '') +
-                (hasDivider ? 'ecc-overviewitem__item--hasdivider ' : '') +
                 (hasSpacing ? 'ecc-overviewitem__item--hasspacing ' : '') +
                 className
             }

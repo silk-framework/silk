@@ -39,6 +39,9 @@ import OverviewItemList from './src/components/OverviewItem/OverviewItemList';
 import BreadcrumbList from './src/components/Breadcrumb/BreadcrumbList';
 import BreadcrumbItem from './src/components/Breadcrumb/BreadcrumbItem';
 
+import Card from './src/components/Card/Card';
+import CardContent from './src/components/Card/CardContent';
+
 export {
     ApplicationContainer,
     ApplicationHeader,
@@ -80,4 +83,8 @@ export {
 
     BreadcrumbList,
     BreadcrumbItem,
+
+    Card,
+    CardContent,
+
 };

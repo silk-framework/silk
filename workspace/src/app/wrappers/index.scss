@@ -23,11 +23,11 @@
 @import "~@blueprintjs/core/src/accessibility/focus-states";
 // load blueprintjs components
 @import "~@blueprintjs/core/src/components/alert/alert";
-// own component @import "~@blueprintjs/core/src/components/breadcrumbs/breadcrumbs";
-// own component @import "~@blueprintjs/core/src/components/button/button";
+// used in own component @import "~@blueprintjs/core/src/components/breadcrumbs/breadcrumbs";
+// used in own component @import "~@blueprintjs/core/src/components/button/button";
 @import "~@blueprintjs/core/src/components/button/button-group";
 @import "~@blueprintjs/core/src/components/callout/callout";
-@import "~@blueprintjs/core/src/components/card/card";
+// used in own component @import "~@blueprintjs/core/src/components/card/card";
 @import "~@blueprintjs/core/src/components/collapse/collapse";
 @import "~@blueprintjs/core/src/components/context-menu/context-menu";
 @import "~@blueprintjs/core/src/components/divider/divider";
@@ -38,14 +38,14 @@
 @import "~@blueprintjs/core/src/components/html-select/html-select";
 @import "~@blueprintjs/core/src/components/html-table/html-table";
 @import "~@blueprintjs/core/src/components/hotkeys/hotkeys";
-// own component @import "~@blueprintjs/core/src/components/icon/icon";
-// own component @import "~@blueprintjs/core/src/components/menu/menu";
+// not used @import "~@blueprintjs/core/src/components/icon/icon";
+// used in own component @import "~@blueprintjs/core/src/components/menu/menu";
 @import "~@blueprintjs/core/src/components/navbar/navbar";
 @import "~@blueprintjs/core/src/components/non-ideal-state/non-ideal-state";
 @import "~@blueprintjs/core/src/components/overflow-list/overflow-list";
 @import "~@blueprintjs/core/src/components/overlay/overlay";
 @import "~@blueprintjs/core/src/components/panel-stack/panel-stack";
-// own component @import "~@blueprintjs/core/src/components/popover/popover";
+// used in own component @import "~@blueprintjs/core/src/components/popover/popover";
 @import "~@blueprintjs/core/src/components/portal/portal";
 @import "~@blueprintjs/core/src/components/progress-bar/progress-bar";
 @import "~@blueprintjs/core/src/components/skeleton/skeleton";
@@ -128,7 +128,7 @@
 @import '~carbon-components/scss/components/skeleton/skeleton';
 @import '~carbon-components/scss/components/inline-loading/inline-loading';
 @import '~carbon-components/scss/components/pagination-nav/pagination-nav';
-// own component @import '~carbon-components/scss/components/ui-shell/ui-shell'; // experimental
+// used in own component @import '~carbon-components/scss/components/ui-shell/ui-shell'; // experimental
 
 // == Load element styles ======================================================
 
@@ -140,6 +140,7 @@
 @import 'src/components/Button/button';
 @import 'src/components/OverviewItem/overviewitem';
 @import 'src/components/Breadcrumb/breadcrumb';
+@import 'src/components/Card/card';
 
 // == load tweaks ==============================================================
 
