@@ -9,6 +9,7 @@ import {
     CardHeader,
     CardTitle,
     CardContent,
+    Divider,
 } from '@wrappers/index';
 
 const ConfigurationWidget = () => {
@@ -46,6 +47,7 @@ const ConfigurationWidget = () => {
                     <h3>Configuration</h3>
                 </CardTitle>
             </CardHeader>
+            <Divider />
             <CardContent>
                 <div>
                     <p><strong>Prefix Settings ({(getFullSizeOfList())})</strong></p>

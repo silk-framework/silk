@@ -19,6 +19,7 @@ import {
     WorkspaceGrid,
     WorkspaceRow,
     WorkspaceColumn,
+    Spacing,
 } from "@wrappers/index";
 
 const ProjectDetails = ({projectId}) => {
@@ -41,6 +42,7 @@ const ProjectDetails = ({projectId}) => {
             <WorkspaceMain>
                 <WorkspaceSection>
                     <Metadata taskId={projectId}/>
+                    <Spacing />
                 </WorkspaceSection>
                 <WorkspaceSection>
                     <TopBar/>
@@ -59,7 +61,9 @@ const ProjectDetails = ({projectId}) => {
             <WorkspaceSide>
                 <WorkspaceSection>
                     <FileWidget/>
+                    <Spacing />
                     <ConfigurationWidget/>
+                    <Spacing />
                     <WarningWidget/>
                 </WorkspaceSection>
             </WorkspaceSide>

@@ -8,6 +8,7 @@ import {
     CardHeader,
     CardTitle,
     CardContent,
+    Divider,
 } from "@wrappers/index";
 import MarkdownModal from "../../../../components/modals/MarkdownModal";
 import { AppToaster } from "../../../../../services/toaster";
@@ -61,17 +62,20 @@ const ConfigurationWidget = () => {
             </CardHeader>
             {
                 isLoading ? <Loading/> :
-                    <CardContent>
-                        {
-                            warningList.map(warn =>
-                                <div>
-                                    {warn.errorSummary}
-                                    <Icon name="item-info" onClick={() => handleOpenMarkDown(warn.taskId)}/>
-                                </div>
-                            )
-                        }
-                        <MarkdownModal isOpen={isOpen} onDiscard={handleClose} markdown={currentMarkdown}/>
-                    </CardContent>
+                    <>
+                        <Divider />
+                        <CardContent>
+                            {
+                                warningList.map(warn =>
+                                    <div>
+                                        {warn.errorSummary}
+                                        <Icon name="item-info" onClick={() => handleOpenMarkDown(warn.taskId)}/>
+                                    </div>
+                                )
+                            }
+                            <MarkdownModal isOpen={isOpen} onDiscard={handleClose} markdown={currentMarkdown}/>
+                        </CardContent>
+                    </>
             }
         </Card>
     )

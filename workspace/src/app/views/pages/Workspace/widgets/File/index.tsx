@@ -7,6 +7,7 @@ import {
     CardHeader,
     CardTitle,
     CardContent,
+    Divider,
 } from "@wrappers/index";
 import Loading from "../../../../components/Loading";
 import FileUploadModal from "../../../../components/modals/FileUploadModal";
@@ -70,6 +71,7 @@ const FileWidget = () => {
                         <h3>Files</h3>
                     </CardTitle>
                 </CardHeader>
+                <Divider />
                 <CardContent>
                     {isLoading ? <Loading/> :
                         <DataTable

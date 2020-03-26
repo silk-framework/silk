@@ -11,6 +11,7 @@ import {
     ContextMenu,
     MenuItem,
     Button,
+    Divider,
 } from "@wrappers/index";
 
 export default function ({ projectId = null, taskId }) {
@@ -43,6 +44,7 @@ export default function ({ projectId = null, taskId }) {
                             </ContextMenu>
                         </CardOptions>
                     </CardHeader>
+                    <Divider />
                     <CardContent>
                         <p>
                             Name: {name || id}
@@ -51,6 +53,7 @@ export default function ({ projectId = null, taskId }) {
                             description && <p>Description: {description}</p>
                         }
                     </CardContent>
+                    <Divider />
                     <CardActions inverseDirection>
                         <Button text="Remove me" disruptive />
                         <Button text="Dummy" />

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Spacing } from "@wrappers/index";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { sharedOp } from "@ducks/shared";
 import Pagination from "../../../components/Pagination";
@@ -120,11 +121,14 @@ export default function SearchList() {
             </DataList>
             {
                 !isLoading && data.length
-                    ? <Pagination
-                        pagination={pagination}
-                        pageSizes={pageSizes}
-                        onChangeSelect={handlePaginationOnChange}
-                    />
+                    ? <>
+                        <Spacing size="small" />
+                        <Pagination
+                            pagination={pagination}
+                            pageSizes={pageSizes}
+                            onChangeSelect={handlePaginationOnChange}
+                        />
+                    </>
                     : null
             }
             <DeleteModal
