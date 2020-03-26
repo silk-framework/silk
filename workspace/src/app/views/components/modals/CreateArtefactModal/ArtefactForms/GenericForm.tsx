@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import InputGroup from "@wrappers/blueprint/input-group";
 import { FormGroup } from "@blueprintjs/core";
-import TextArea from "@wrappers/blueprint/textarea";
 import { IArtefactItemProperty } from "@ducks/global/typings";
+import { useForm } from "react-hook-form";
 
 type IFormData = IArtefactItemProperty;
 
@@ -13,23 +13,26 @@ export interface IProps {
 
 export function GenericForm({onChange, properties}: IProps) {
     const [formData, setFormData] = useState<IArtefactItemProperty>(properties);
+    // const { register, handleSubmit, errors } = useForm();
 
-    const handleInputChange = (key: string, value: string) => {
+    const handleInputChange = (e: any) => {
+        console.log(e.target.name, formData);
         const updated = {
             ...formData,
-            [key]: {
-                ...formData[key],
-                value
+            [e.target.name]: {
+                ...formData[e.target.name],
+                value: e.target.value
             }
         };
         setFormData(updated);
-        onChange(updated);
+        // onChange(updated);
     };
 
     return <>
         {
             Object.keys(formData).map(key =>
                 <FormGroup
+                    key={key}
                     inline={false}
                     label={formData[key].title}
                     labelFor={key}
@@ -37,9 +40,9 @@ export function GenericForm({onChange, properties}: IProps) {
                 >
                     <InputGroup
                         id={key}
-                        placeholder={formData[key].title}
-                        onChange={e => handleInputChange(key, e.target.value)}
-                        value={formData[key].value}
+                        name={key}
+                        onChange={handleInputChange}
+                        value={formData[key].value || ''}
                     />
                 </FormGroup>
             )

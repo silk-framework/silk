@@ -22,10 +22,10 @@ export function ProjectForm({onChange}: IProps) {
         description: ''
     });
 
-    const handleInputChange = (key: string, value: string) => {
+    const handleInputChange = (e: any) => {
         const updated = {
             ...formData,
-            [key]: value
+            [e.target.name]: e.target.value
         };
         setFormData(updated);
         onChange(updated);
@@ -41,7 +41,8 @@ export function ProjectForm({onChange}: IProps) {
                 <InputGroup
                     id="title-input"
                     placeholder="Project Title"
-                    onChange={e => handleInputChange('label', e.target.value)}
+                    name={'label'}
+                    onChange={handleInputChange}
                     value={formData.label}
                 />
             </FormGroup>
@@ -53,9 +54,10 @@ export function ProjectForm({onChange}: IProps) {
                 <TextArea
                     style={{'width': '100%'}}
                     id="desc-input"
+                    name={'description'}
                     growVertically={true}
                     placeholder="Project Description"
-                    onChange={e => handleInputChange('description', e.target.value)}
+                    onChange={handleInputChange}
                     value={formData.description}
                 />
             </FormGroup>
