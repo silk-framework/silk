@@ -12,7 +12,7 @@ import { DATA_TYPES } from "../../../../constants";
 import AppliedFacets from "../AppliedFacets";
 import SearchItem from "./SearchItem";
 
-export default function SearchList() {
+export function SearchList() {
 
     const dispatch = useDispatch();
 

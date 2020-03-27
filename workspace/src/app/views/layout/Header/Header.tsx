@@ -34,7 +34,7 @@ interface IProps {
     isApplicationSidebarExpanded: any;
 }
 
-const Header = ({onClickApplicationSidebarExpand, isApplicationSidebarExpanded}: IProps) => {
+export const Header = ({onClickApplicationSidebarExpand, isApplicationSidebarExpanded}: IProps) => {
     const dispatch = useDispatch();
     const breadcrumbs = useSelector(globalSel.breadcrumbsSelector);
 
@@ -106,5 +106,3 @@ const Header = ({onClickApplicationSidebarExpand, isApplicationSidebarExpanded}:
             </ApplicationHeader>
     )
 };
-
-export default Header;

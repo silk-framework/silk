@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Filterbar from "./Filterbar";
 import Metadata from "../../components/Metadata";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import SearchList from "./SearchResults/SearchList";
+import SearchList from "./SearchList";
 import TopBar from "./AppliedFacets";
 import ConfigurationWidget from "./widgets/Configuration";
 import WarningWidget from "./widgets/Warning";

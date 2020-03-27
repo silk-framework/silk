@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import Filterbar from "./Filterbar";
-import SearchList from "./SearchResults/SearchList";
+import SearchList from "./SearchList";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { useDispatch, useSelector } from "react-redux";
 import EmptyWorkspace from "./EmptyWorkspace";

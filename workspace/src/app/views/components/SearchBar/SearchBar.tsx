@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import SearchInput from "./SearchInput";
 import SortButton from "../buttons/SortButton";
 import { ISortersState } from "@ducks/workspace/typings";
@@ -9,8 +9,8 @@ interface IProps {
     onSort(sortBy: string): void;
     onApplyFilters({textQuery: string}): void;
 }
-export function SearchBar({textQuery = '', sorters, onSort, onApplyFilters}: IProps) {
 
+export function SearchBar({textQuery = '', sorters, onSort, onApplyFilters}: IProps) {
     const [searchInput, setSearchInput] = useState(textQuery);
 
     useEffect(() => {
@@ -21,11 +21,11 @@ export function SearchBar({textQuery = '', sorters, onSort, onApplyFilters}: IPr
         setSearchInput(e.target.value);
     };
 
-    const handleSearchEnter = () => {
+    const handleSearchEnter = useCallback(() => {
         onApplyFilters({
             textQuery: searchInput
         });
-    };
+    }, []);
 
     return (
         <>

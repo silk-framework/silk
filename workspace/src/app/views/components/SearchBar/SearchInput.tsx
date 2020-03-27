@@ -9,7 +9,7 @@ interface IProps {
     filterValue?: string;
 }
 
-const SearchInput = memo(({ onFilterChange, filterValue, onEnter, onBlur = () => {} }: IProps) => {
+const SearchInput = ({ onFilterChange, filterValue, onEnter, onBlur = () => {} }) => {
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
             onEnter();
@@ -27,6 +27,7 @@ const SearchInput = memo(({ onFilterChange, filterValue, onEnter, onBlur = () =>
             value={filterValue}
         />
     )
-});
+};
 
-export default SearchInput;
+const areEqual = (p: IProps, n: IProps) => p.filterValue === n.filterValue;
+export default memo<IProps>(SearchInput, areEqual);
