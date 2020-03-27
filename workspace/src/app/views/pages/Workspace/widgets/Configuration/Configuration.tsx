@@ -4,12 +4,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { IPrefixState } from "@ducks/workspace/typings";
 import {
-    Button,
+    IconButton,
     Card,
     CardHeader,
     CardTitle,
     CardContent,
     Divider,
+    OverviewItemList,
+    OverviewItem,
+    OverviewItemDescription,
+    OverviewItemLine,
+    OverviewItemActions,
 } from '@wrappers/index';
 
 export const ConfigurationWidget = () => {
@@ -49,22 +54,34 @@ export const ConfigurationWidget = () => {
             </CardHeader>
             <Divider />
             <CardContent>
-                <div>
-                    <p><strong>Prefix Settings ({(getFullSizeOfList())})</strong></p>
-                    {
-                        visiblePrefixes.map((o, index) =>
-                            <span key={index}>
-                                                {o.prefixName}
+                <OverviewItemList hasSpacing hasDivider>
+                    <OverviewItem>
+                        <OverviewItemDescription>
+                            <OverviewItemLine>
+                                <strong>Prefixes&nbsp;({(getFullSizeOfList())})</strong>
+                            </OverviewItemLine>
+                            <OverviewItemLine small>
+                                <span>
                                 {
-                                    index < visiblePrefixes.length - 1
-                                        ? ', '
-                                        : moreCount > 0 && <b> and {moreCount} more</b>
+                                    visiblePrefixes.map((o, index) =>
+                                        <span key={index}>
+                                            {o.prefixName}
+                                            {
+                                                index < visiblePrefixes.length - 1
+                                                    ? ', '
+                                                    : moreCount > 0 && <>and {moreCount} more</>
+                                            }
+                                        </span>
+                                    )
                                 }
-                            </span>
-                        )
-                    }
-                </div>
-                <Button onClick={handleOpen}>Change Prefix Settings</Button>
+                                </span>
+                            </OverviewItemLine>
+                        </OverviewItemDescription>
+                        <OverviewItemActions>
+                            <IconButton onClick={handleOpen} name="item-edit" text="Edit prefix settings" />
+                        </OverviewItemActions>
+                    </OverviewItem>
+                </OverviewItemList>
                 <PrefixesDialog
                     isOpen={isOpen}
                     onCloseModal={handleClose}
