@@ -29,12 +29,12 @@ for more see https://www.npmjs.com/package/@carbon/icons-react
 // TODO: add list of canonical icon names and their identifier in carbon icons
 // TODO: add properties for intention/state (e.g. success, info, earning, error)
 
-const Icon = ({
+function Icon ({
     className = '',
     name = 'undefined',
     large = false,
     ...restProps
-}: any) => {
+}: any) {
     let sizeConfig = { height: 20, width: 20 };
     if (large) sizeConfig = { height: 32, width: 32 };
     let iconImportName = 'Undefined'+sizeConfig.width;

@@ -2,11 +2,11 @@ import React from "react";
 // import PropTypes from 'prop-types';
 import { Breadcrumb as BlueprintBreadcrumbItem } from "@blueprintjs/core";
 
-const BreadcrumbItem = ({
+function BreadcrumbItem ({
     className='',
     itemDivider='',
     ...otherProps
-}: any) => {
+}: any) {
 
     /*
         TODO: adding `data-divider` does not work this way because BlueprintJS

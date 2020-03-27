@@ -1,10 +1,10 @@
 import React from 'react';
 
-const CardContent = ({
+function CardContent({
     children,
     className='',
     ...otherProps
-}: any) => {
+}: any) {
     return (
         <div
             {...otherProps}

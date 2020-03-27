@@ -11,11 +11,11 @@ import {
 
 */
 
-const ContextOverlay = ({
+function ContextOverlay({
     children,
     className='',
     ...restProps
-}: any) => {
+}: any) {
 
     return (
         <BlueprintPropover

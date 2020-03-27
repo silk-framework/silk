@@ -2,7 +2,7 @@ import React from "react";
 // import PropTypes from 'prop-types';
 import { HeaderGlobalAction as CarbonHeaderGlobalAction } from "carbon-components-react/lib/components/UIShell";
 
-const ApplicationToolbarAction = ({ children, className = '', ...restProps }: any) => {
+function ApplicationToolbarAction({ children, className = '', ...restProps }: any) {
     return (
         <CarbonHeaderGlobalAction
             {...restProps}

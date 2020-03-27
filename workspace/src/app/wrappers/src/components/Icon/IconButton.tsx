@@ -2,13 +2,13 @@ import React from 'react';
 import Button from '../Button/Button';
 import Icon from './Icon';
 
-const IconButton = ({
+function IconButton({
     className='',
     name = 'undefined',
     text,
     large,
     ...restProps
-}: any) => {
+}: any) {
 
     return (
         <Button

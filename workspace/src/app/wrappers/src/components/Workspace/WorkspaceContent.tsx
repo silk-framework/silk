@@ -3,7 +3,7 @@ import React from "react";
 import WorkspaceGrid from "./WorkspaceGrid";
 import WorkspaceRow from "./WorkspaceRow";
 
-const WorkspaceContent = ({ children, className = '', ...restProps }: any) => {
+function WorkspaceContent({ children, className = '', ...restProps }: any) {
     return (
         <WorkspaceGrid
             {...restProps}

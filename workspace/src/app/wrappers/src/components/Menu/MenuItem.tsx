@@ -2,12 +2,12 @@ import React from 'react';
 import { MenuItem as BlueprintMenuItem } from "@blueprintjs/core";
 import Icon from '../Icon/Icon';
 
-const MenuItem = ({
+function MenuItem ({
     children,
     className='',
     icon=false,
     ...restProps
-}: any) => {
+}: any) {
 
     return (
         <BlueprintMenuItem

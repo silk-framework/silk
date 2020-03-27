@@ -1,6 +1,6 @@
 import React from "react";
 
-const WorkspaceHeader = ({ children, className = '' }: any) => {
+function WorkspaceHeader({ children, className = '' }: any) {
     return (
         <div className={'ecc-workspace__header '+className}>
             { children }
