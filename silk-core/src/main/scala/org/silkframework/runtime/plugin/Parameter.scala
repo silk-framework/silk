@@ -68,7 +68,7 @@ case class Parameter(name: String,
   }
 }
 
-case class ParameterAutoCompletion(autoCompletionProvider: Class[_ <: PluginParameterAutoCompletionProvider] = classOf[NopPluginParameterAutoCompletionProvider],
+case class ParameterAutoCompletion(autoCompletionProvider: PluginParameterAutoCompletionProvider,
                                    allowOnlyAutoCompletedValues: Boolean = false,
                                    autoCompleteValueWithLabels: Boolean = false,
                                    autoCompletionDependsOnParameters: Seq[String] = Seq.empty)

@@ -2,7 +2,7 @@ package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 
 /**
   * Plugin type where each implementation can be used to auto-complete a specific type of parameter, e.g. over workflow tasks
@@ -88,11 +88,11 @@ case class NopPluginParameterAutoCompletionProvider() extends PluginParameterAut
 object PluginParameterAutoCompletionProvider {
   private val providerTrait = classOf[PluginParameterAutoCompletionProvider]
   /** Get an auto-completion plugin by ID. */
-  def get(providerClass: Class[_ <: PluginParameterAutoCompletionProvider])
-         (implicit prefixes: Prefixes,
-          resourceManager: ResourceManager): PluginParameterAutoCompletionProvider = {
+  def get(providerClass: Class[_ <: PluginParameterAutoCompletionProvider]): PluginParameterAutoCompletionProvider = {
     assert(classOf[PluginParameterAutoCompletionProvider].isAssignableFrom(providerClass),
       s"Class ${providerClass.getCanonicalName} does not implement ${providerTrait.getCanonicalName}!")
+    implicit val prefixes: Prefixes = Prefixes.empty
+    implicit val resourceManager: ResourceManager = EmptyResourceManager()
     try {
       providerClass.getConstructor().newInstance()
     } catch {

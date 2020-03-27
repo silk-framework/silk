@@ -49,17 +49,14 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
   /** Auto-completion service for plugin parameters. */
   def parameterAutoCompletion(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[ParameterAutoCompletionRequest] { request =>
-      val project = getProject(request.projectId)
-      implicit val prefixes: Prefixes = project.config.prefixes
-      implicit val resourceProvider: ResourceManager = project.resources
       PluginRegistry.pluginDescriptionById(request.pluginId) match {
         case Some(pluginDescription) =>
           pluginDescription.parameters.find(_.name == request.parameterId) match {
             case Some(parameter) =>
               parameter.autoCompletion match {
                 case Some(autoCompletion) =>
-                  val autoCompletionProvider = PluginParameterAutoCompletionProvider.get(autoCompletion.autoCompletionProvider)
-                  val result = autoCompletionProvider.autoComplete(request.textQuery.getOrElse(""), request.projectId, request.dependsOnParameterValues.getOrElse(Seq.empty),
+                  val result = autoCompletion.autoCompletionProvider.autoComplete(request.textQuery.getOrElse(""),
+                    request.projectId, request.dependsOnParameterValues.getOrElse(Seq.empty),
                     limit = request.workingLimit, offset = request.workingOffset)
                   Ok(Json.toJson(result.map(_.withNonEmptyLabels)))
                 case None =>
