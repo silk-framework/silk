@@ -32,9 +32,11 @@ class PluginApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers
     PluginRegistry.registerPlugin(classOf[AutoCompletableTestPlugin])
     val jsonResult = checkResponse(client.url(s"$baseUrl/core/plugins").get()).json
     val autoCompletableTestPluginJson = Json.fromJson[PluginParameterJsonPayload]((jsonResult \ "autoCompletableTestPlugin" \ "properties" \ "completableParam").as[JsValue]).get
-    autoCompletableTestPluginJson.autoCompleteSupport mustBe true
-    autoCompletableTestPluginJson.autoCompleteValueWithLabels mustBe Some(true)
-    autoCompletableTestPluginJson.allowOnlyAutoCompletedValues mustBe Some(true)
+    val autoComplete = autoCompletableTestPluginJson.autoCompletion
+    autoComplete mustBe defined
+    autoComplete.get.autoCompleteValueWithLabels mustBe true
+    autoComplete.get.allowOnlyAutoCompletedValues mustBe true
+    autoComplete.get.autoCompletionDependsOnParameters mustBe Seq("otherParam")
   }
 }
 
@@ -43,21 +45,22 @@ class PluginApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers
   label = "Test dummy auto completable plugin"
 )
 case class AutoCompletableTestPlugin(@Param(value = "Some param", autoCompletionProvider = classOf[TestAutoCompletionProvider],
-                                            autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
-                                            completableParam: String) extends Transformer {
+                                            autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true, autoCompletionDependsOnParameters = Array("otherParam"))
+                                            completableParam: String,
+                                     otherParam: String) extends Transformer {
   override def apply(values: Seq[Seq[String]]): Seq[String] = Seq.empty
 }
 
 case class TestAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
   val values = Seq("val1" -> "First value", "val2" -> "Second value", "val3" -> "Third value")
 
-  override protected def autoComplete(searchQuery: String, projectId: String)
+  override protected def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String])
                                      (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
     val multiWordQuery = extractSearchTerms(searchQuery)
     values.filter(v => matchesSearchTerm(multiWordQuery, v._2)).map{ case (value, label) => AutoCompletionResult(value, Some(label))}
   }
 
-  override def valueToLabel(value: String)
+  override def valueToLabel(projectId: String, value: String, dependOnParameterValues: Seq[String])
                            (implicit userContext: UserContext): Option[String] = {
     values.find(_._1 == value).map(_._2)
   }

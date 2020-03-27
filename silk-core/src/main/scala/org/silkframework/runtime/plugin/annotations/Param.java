@@ -57,4 +57,7 @@ public @interface Param {
    *
    *  If autoCompleteValueWithLabels is true allowOnlyAutoCompletedValues should also be true, at the moment. */
   boolean autoCompleteValueWithLabels() default false;
+
+  /** The plugin parameter values the auto-completion depends on. Without those values given no auto-completion is possible. */
+  String[] autoCompletionDependsOnParameters() default {};
 }

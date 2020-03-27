@@ -73,7 +73,6 @@ class RulePlugins extends PluginModule {
         classOf[RemoveSpecialCharsTransformer] ::
         classOf[ConvertCharsetTransformer] ::
         classOf[RemoveValues] ::
-        classOf[RemoveStopwords] ::
         classOf[RemoveRemoteStopwords] ::
         classOf[RemoveEmptyValues] ::
         classOf[RemoveParentheses] ::
@@ -95,7 +94,6 @@ class RulePlugins extends PluginModule {
         classOf[ConstantUriTransformer] ::
         classOf[RandomNumberTransformer] ::
         classOf[EmptyValueTransformer] ::
-        classOf[ReadParameter] ::
         // Conditional
         classOf[IfContains] ::
         classOf[IfExists] ::

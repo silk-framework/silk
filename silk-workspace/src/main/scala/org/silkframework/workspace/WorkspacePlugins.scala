@@ -1,5 +1,7 @@
 package org.silkframework.workspace
 
+import org.silkframework.plugins.filter.RemoveStopwords
+import org.silkframework.plugins.transformer.value.ReadParameter
 import org.silkframework.runtime.plugin.PluginModule
 import org.silkframework.workspace.activity.dataset.Types.TypesFormat
 import org.silkframework.workspace.activity.dataset.TypesCacheFactory
@@ -22,6 +24,7 @@ class WorkspacePlugins extends PluginModule {
         workflowActivities :::
         projectMarshaller :::
         provenancePlugins :::
+        rulePlugins :::
         formats
 
   def workspaceProviders: List[Class[_]] =
@@ -50,6 +53,12 @@ class WorkspacePlugins extends PluginModule {
     VocabularyCacheValue.ValueFormat.getClass ::
     CachedEntitySchemaXmlFormat.getClass ::
     WorkflowXmlFormat.getClass ::
+    Nil
+  }
+
+  def rulePlugins: List[Class[_]] = {
+    classOf[ReadParameter] ::
+    classOf[RemoveStopwords] ::
     Nil
   }
 

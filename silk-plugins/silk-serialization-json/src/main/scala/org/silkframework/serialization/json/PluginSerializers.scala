@@ -1,7 +1,7 @@
 package org.silkframework.serialization.json
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.plugin.{Parameter, PluginDescription, PluginList}
+import org.silkframework.runtime.plugin.{NopPluginParameterAutoCompletionProvider, Parameter, ParameterAutoCompletion, PluginDescription, PluginList, PluginParameterAutoCompletionProvider}
 import org.silkframework.runtime.serialization.WriteContext
 import play.api.libs.json._
 
@@ -56,10 +56,11 @@ object PluginSerializers {
         `type` = param.dataType.name,
         value = defaultValue,
         advanced = param.advanced,
-        autoCompleteSupport = param.autoCompletionSupport,
-        // Don't output auto-complete specific parameters, if auto-completion is disabled.
-        allowOnlyAutoCompletedValues = Some(param.allowOnlyAutoCompletedValues).filter(_ => param.autoCompletionSupport),
-        autoCompleteValueWithLabels = Some(param.autoCompleteValueWithLabels).filter(_ => param.autoCompletionSupport)
+        autoCompletion = param.autoCompletion.map(autoComplete => ParameterAutoCompletionJsonPayload(
+          allowOnlyAutoCompletedValues = autoComplete.allowOnlyAutoCompletedValues,
+          autoCompleteValueWithLabels = autoComplete.autoCompleteValueWithLabels,
+          autoCompletionDependsOnParameters = autoComplete.autoCompletionDependsOnParameters
+        ))
       ))
     }
   }
@@ -70,10 +71,13 @@ case class PluginParameterJsonPayload(title: String,
                                      `type`: String,
                                       value: JsValue,
                                       advanced: Boolean,
-                                      autoCompleteSupport: Boolean,
-                                      allowOnlyAutoCompletedValues: Option[Boolean],
-                                      autoCompleteValueWithLabels: Option[Boolean])
+                                      autoCompletion: Option[ParameterAutoCompletionJsonPayload])
+
+case class ParameterAutoCompletionJsonPayload(allowOnlyAutoCompletedValues: Boolean,
+                                              autoCompleteValueWithLabels: Boolean,
+                                              autoCompletionDependsOnParameters: Seq[String])
 
 object PluginParameterJsonPayload {
+  implicit val parameterAutoCompletionJsonPayloadFormat: Format[ParameterAutoCompletionJsonPayload] = Json.format[ParameterAutoCompletionJsonPayload]
   implicit val pluginParameterJsonPayloadFormat: Format[PluginParameterJsonPayload] = Json.format[PluginParameterJsonPayload]
 }

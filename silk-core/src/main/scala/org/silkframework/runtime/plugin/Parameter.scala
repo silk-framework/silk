@@ -29,7 +29,7 @@ import scala.language.existentials
   * @param exampleValue An example value for this parameter
   * @param advanced     Is this an advanced parameter that should only be changed by experienced users.
   * @param visibleInDialog True, if it can be edited in the UI plugin dialogs.
-  * @param autoCompletionProvider The auto-completion provider class.
+  * @param autoCompletion The parameter auto-completion object.
   */
 case class Parameter(name: String,
                      dataType: ParameterType[_],
@@ -39,9 +39,7 @@ case class Parameter(name: String,
                      exampleValue: Option[AnyRef] = None,
                      advanced: Boolean,
                      visibleInDialog: Boolean,
-                     autoCompletionProvider: Class[_ <: PluginParameterAutoCompletionProvider] = classOf[NopPluginParameterAutoCompletionProvider],
-                     allowOnlyAutoCompletedValues: Boolean = false,
-                     autoCompleteValueWithLabels: Boolean = false) {
+                     autoCompletion: Option[ParameterAutoCompletion]) {
 
   /**
    * Retrieves the current value of this parameter.
@@ -68,7 +66,9 @@ case class Parameter(name: String,
   private def formatValue(value: AnyRef)(implicit prefixes: Prefixes): String = {
     dataType.asInstanceOf[ParameterType[AnyRef]].toString(value)
   }
-
-  /** True if this parameter supports auto-completion. */
-  def autoCompletionSupport: Boolean = autoCompletionProvider != classOf[NopPluginParameterAutoCompletionProvider]
 }
+
+case class ParameterAutoCompletion(autoCompletionProvider: Class[_ <: PluginParameterAutoCompletionProvider] = classOf[NopPluginParameterAutoCompletionProvider],
+                                   allowOnlyAutoCompletedValues: Boolean = false,
+                                   autoCompleteValueWithLabels: Boolean = false,
+                                   autoCompletionDependsOnParameters: Seq[String] = Seq.empty)

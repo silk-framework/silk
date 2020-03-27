@@ -56,9 +56,16 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         case Some(pluginDescription) =>
           pluginDescription.parameters.find(_.name == request.parameterId) match {
             case Some(parameter) =>
-              val autoCompletionProvider = PluginParameterAutoCompletionProvider.get(parameter.autoCompletionProvider)
-              val result = autoCompletionProvider.autoComplete(request.textQuery.getOrElse(""), request.projectId, limit = request.workingLimit, offset = request.workingOffset)
-              Ok(Json.toJson(result))
+              parameter.autoCompletion match {
+                case Some(autoCompletion) =>
+                  val autoCompletionProvider = PluginParameterAutoCompletionProvider.get(autoCompletion.autoCompletionProvider)
+                  val result = autoCompletionProvider.autoComplete(request.textQuery.getOrElse(""), request.projectId, request.dependsOnParameterValues.getOrElse(Seq.empty),
+                    limit = request.workingLimit, offset = request.workingOffset)
+                  Ok(Json.toJson(result.map(_.withNonEmptyLabels)))
+                case None =>
+                  log.warning(s"Parameter '${parameter.name}' of plugin '${request.pluginId}' has no auto-completion support.")
+                  NotFound
+              }
             case None =>
               log.warning(s"Plugin '${request.pluginId}' does not have a parameter '${request.parameterId}'.")
               NotFound

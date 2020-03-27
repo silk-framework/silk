@@ -124,7 +124,7 @@ lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
   )
 
 lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
-  .dependsOn(core, workspace % "test -> compile;test -> test", pluginsRdf % "test->compile")
+  .dependsOn(core, workspace % "compile -> compile;test -> test", pluginsRdf % "test->compile")
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins XML",

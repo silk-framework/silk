@@ -226,10 +226,20 @@ object PluginDescription {
       val autoCompletionProvider = pluginParam.map(_.autoCompletionProvider()).getOrElse(classOf[NopPluginParameterAutoCompletionProvider])
       val allowOnlyAutoCompletedValues = pluginParam exists (_.allowOnlyAutoCompletedValues())
       val autoCompleteValueWithLabels = pluginParam exists (_.autoCompleteValueWithLabels())
+      val autoCompletionDependsOnParameters = pluginParam.map(_.autoCompletionDependsOnParameters()).getOrElse(Array.empty)
+      val autoCompletion = if(autoCompletionProvider != classOf[NopPluginParameterAutoCompletionProvider]) {
+        Some(ParameterAutoCompletion(
+          autoCompletionProvider = autoCompletionProvider,
+          allowOnlyAutoCompletedValues = allowOnlyAutoCompletedValues,
+          autoCompleteValueWithLabels = autoCompleteValueWithLabels,
+          autoCompletionDependsOnParameters = autoCompletionDependsOnParameters
+        ))
+      } else {
+        None
+      }
 
       val dataType = ParameterType.forType(parType)
-      Parameter(parName, dataType, label, description, defaultValue, exampleValue, advanced, visible, autoCompletionProvider,
-        allowOnlyAutoCompletedValues, autoCompleteValueWithLabels)
+      Parameter(parName, dataType, label, description, defaultValue, exampleValue, advanced, visible, autoCompletion)
     }
   }
 

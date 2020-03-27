@@ -13,21 +13,31 @@ import org.silkframework.runtime.resource.ResourceManager
 trait PluginParameterAutoCompletionProvider {
   /** Auto-completion based on a text based search query */
   protected def autoComplete(searchQuery: String,
-                             projectId: String)
+                             projectId: String,
+                             dependOnParameterValues: Seq[String])
                             (implicit userContext: UserContext): Traversable[AutoCompletionResult]
 
   /** Returns the label if exists for the given auto-completion value. This is needed if a value should
     * be presented to the user and the actual internal value is e.g. not human-readable.
-    * @param value The value of the parameter.
+    *
+    * @param projectId The project ID for context.
+    * @param value     The value of the parameter.
+    * @param dependOnParameterValues The parameter values this parameter auto-completion depends on.
     * */
-  def valueToLabel(value: String)
+  def valueToLabel(projectId: String,
+                   value: String,
+                   dependOnParameterValues: Seq[String])
                   (implicit userContext: UserContext): Option[String]
 
   /** Match search terms against string. Returns only true if all search terms match. */
   protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String],
                                   searchIn: String): Boolean = {
-    val lowerCaseText = searchIn.toLowerCase
-    lowerCaseSearchTerms forall lowerCaseText.contains
+    if(lowerCaseSearchTerms.isEmpty) {
+      true
+    } else {
+      val lowerCaseText = searchIn.toLowerCase
+      lowerCaseSearchTerms forall lowerCaseText.contains
+    }
   }
 
   /** Split text query into multi term search */
@@ -38,10 +48,21 @@ trait PluginParameterAutoCompletionProvider {
   /** Auto-completion based on a text query with limit and offset. */
   def autoComplete(searchQuery: String,
                    projectId: String,
+                   dependOnParameterValues: Seq[String],
                    limit: Int,
                    offset: Int)
                   (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
-    autoComplete(searchQuery, projectId).slice(offset, offset + limit)
+    autoComplete(searchQuery, projectId, dependOnParameterValues).slice(offset, offset + limit)
+  }
+
+  /** Filters an auto-completion result list by the search query. */
+  protected def filterResults(searchQuery: String,
+                              results: Traversable[AutoCompletionResult]): Traversable[AutoCompletionResult] = {
+    val multiWordSearchQuery = extractSearchTerms(searchQuery)
+    results filter { case AutoCompletionResult(value, labelOpt) =>
+      val filterBy = labelOpt.getOrElse(value).toLowerCase
+      matchesSearchTerm(multiWordSearchQuery, filterBy)
+    }
   }
 }
 
@@ -50,14 +71,16 @@ trait PluginParameterAutoCompletionProvider {
   * @param value The value to which the parameter value should be set.
   * @param label An optional label that a human user would see instead. If it is missing the value is shown.
   */
-case class AutoCompletionResult(value: String, label: Option[String])
+case class AutoCompletionResult(value: String, label: Option[String]) {
+  def withNonEmptyLabels: AutoCompletionResult = AutoCompletionResult(value, label.filter(_.trim.nonEmpty))
+}
 
 /** Default auto-completion provider. This one always returns empty results. */
 case class NopPluginParameterAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
-  override protected def autoComplete(searchQuery: String, projectId: String)
+  override protected def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String])
                                      (implicit userContext: UserContext): Traversable[AutoCompletionResult] = Seq.empty
 
-  override def valueToLabel(value: String)
+  override def valueToLabel(projectId: String, value: String, dependOnParameterValues: Seq[String])
                            (implicit userContext: UserContext): Option[String] = None
 
 }
