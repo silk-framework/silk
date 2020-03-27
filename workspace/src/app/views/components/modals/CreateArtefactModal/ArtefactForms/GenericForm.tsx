@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import InputGroup from "@wrappers/blueprint/input-group";
 import { FormGroup } from "@blueprintjs/core";
 import { IArtefactItemProperty } from "@ducks/global/typings";
-import { useForm } from "react-hook-form";
+// import { useForm } from "react-hook-form";
 
 type IFormData = IArtefactItemProperty;
 
