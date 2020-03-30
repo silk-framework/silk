@@ -1,13 +1,19 @@
 package controllers.workspace
 
 import helper.IntegrationTestTrait
+import org.scalatest.MustMatchers
 import org.scalatestplus.play.PlaySpec
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.config.MetaData
+import org.silkframework.dataset.DatasetSpec
+import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
+import org.silkframework.plugins.dataset.rdf.datasets.{InMemoryDataset, SparqlDataset}
+import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
+import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginRegistry}
 import org.silkframework.workspace.TestCustomTask
 import play.api.http.Status
 import play.api.libs.json._
 
-class TaskApiTest extends PlaySpec with IntegrationTestTrait {
+class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
 
   private val project = "project"
 
@@ -311,6 +317,35 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait {
     (response.xml \ "@id").text mustBe customTaskId
     (response.xml \ "@type").text mustBe "test"
     (response.xml \ "Param").filter(p => (p \ "@name").text == "stringParam").text mustBe "someValue"
+  }
+
+  "get tasks with parameter value labels" in {
+    def taskValuesWithLabel(taskId: String): Seq[(String, Option[String])] = {
+      val parameters = (checkResponse(client.url(s"$baseUrl/workspace/projects/$project/tasks/$taskId?withLabels=true").
+          withHttpHeaders("Accept" -> "application/json").
+          get()).json.as[JsObject] \ "data" \ "parameters").as[JsObject].fields
+      parameters.map(p => ((p._2 \ "value").as[String], (p._2 \ "label").asOpt[String]))
+    }
+    val sparqlSelect = "sparqlSelect"
+    val sparqlDataset = "sparqlDataset"
+    val inMemoryDataset = "inMemoryDataset"
+    val inMemoryDatasetLabel = "An in-memory dataset"
+    val p = workspaceProject(project)
+    // Add tasks
+    p.addAnyTask(inMemoryDataset, DatasetSpec(InMemoryDataset()), MetaData(label = inMemoryDatasetLabel))
+    p.addAnyTask(sparqlSelect, SparqlSelectCustomTask("SELECT * WHERE {?s ?p ?o}", optionalInputDataset = SparqlEndpointDatasetParameter(inMemoryDataset)))
+    p.addAnyTask(sparqlDataset, DatasetSpec(SparqlDataset("http://endpoint")))
+    // Check tasks
+    taskValuesWithLabel(sparqlSelect).filter(_._2.isDefined) mustBe Seq(inMemoryDataset -> Some(inMemoryDatasetLabel))
+    taskValuesWithLabel(sparqlDataset).filter(_._2.isDefined) mustBe Seq("parallel" -> Some("parallel"))
+    // TODO: These are not supported, since they are no regular DI plugins
+//    taskValuesWithLabel(workflowId)
+//    taskValuesWithLabel(linkTaskId)
+//    taskValuesWithLabel(transformId)
+    // Remove tasks
+    for(taskId <- Seq(inMemoryDataset, sparqlDataset, sparqlSelect)) {
+      p.removeAnyTask(taskId, false)
+    }
   }
 
   "copy endpoint" should {

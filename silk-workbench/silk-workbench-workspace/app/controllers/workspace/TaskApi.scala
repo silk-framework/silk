@@ -1,5 +1,7 @@
 package controllers.workspace
 
+import java.util.logging.Logger
+
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.SerializationUtils
@@ -8,23 +10,26 @@ import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.ResourceBasedDataset
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.runtime.resource.FileResource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.serialization.json.JsonSerializers
+import org.silkframework.serialization.json.{JsonSerialization, JsonSerializers}
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
-import org.silkframework.workspace.{Project, WorkspaceFactory}
-import play.api.libs.json.{JsBoolean, JsObject, JsValue, Json}
+import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
+import play.api.libs.json.{JsBoolean, JsObject, JsString, JsValue, Json}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
+import scala.util.control.NonFatal
 
 class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with ControllerUtilsTrait {
 
   implicit private lazy val executionContext: ExecutionContext = controllerComponents.executionContext
+  private val log: Logger = Logger.getLogger(this.getClass.getCanonicalName)
 
   def postTask(projectName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
@@ -69,12 +74,62 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     Ok
   }
 
-  def getTask(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  def getTask(projectName: String, taskName: String, withLabels: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
 
     accessMonitor.saveProjectTaskAccess(project.config.id, task.id)
-    SerializationUtils.serializeCompileTime[Task[TaskSpec]](task, Some(project))
+    if(withLabels) {
+      getTaskWithParameterLabels(projectName, project, task)
+    } else {
+      SerializationUtils.serializeCompileTime[Task[TaskSpec]](task, Some(project))
+    }
+  }
+
+  // Add parameter value labels for auto-completable parameters, e.g. task label of a task reference parameter.
+  private def getTaskWithParameterLabels(projectName: String,
+                                         project: Project,
+                                         task: ProjectTask[_ <: TaskSpec])
+                                        (implicit userContext: UserContext): Result = {
+    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes, projectId = Some(project.config.id))
+    // JSON only
+    val jsObj: JsObject = JsonSerialization.toJson[Task[TaskSpec]](task).as[JsObject]
+    val data = (jsObj \ "data").as[JsObject]
+    val parameters = (data \ "parameters").as[JsObject]
+    val parameterValue = parameters.value
+    val updatedParameters: Map[String, JsObject] = parametersWithLabel(projectName, task, parameterValue)
+    val remainingParametersWithoutLabel = parameterValue.filter(p => !updatedParameters.contains(p._1)).map { case (key, value) =>
+      (key, JsObject(Seq("value" -> value)))
+    }
+    val updatedData = data.deepMerge(JsObject(Seq("parameters" -> JsObject(updatedParameters ++ remainingParametersWithoutLabel))))
+    val updatedJsObj = jsObj.deepMerge(JsObject(Seq("data" -> updatedData)))
+    Ok(updatedJsObj)
+  }
+
+  private def parametersWithLabel(projectName: String,
+                                  task: ProjectTask[_ <: TaskSpec],
+                                  parameterValue: collection.Map[String, JsValue])
+                                 (implicit userContext: UserContext): Map[String, JsObject] = {
+    try {
+      val pluginClass = task.data match {
+        case ds: GenericDatasetSpec => ds.plugin.getClass
+        case o: TaskSpec => o.getClass
+      }
+      val pluginDescription = PluginDescription(pluginClass)
+      val parametersToUpdate = pluginDescription.parameters.filter(p => p.autoCompletion.isDefined && p.autoCompletion.get.autoCompleteValueWithLabels)
+      (for (parameter <- parametersToUpdate;
+            value <- parameterValue.get(parameter.name);
+            autoComplete <- parameter.autoCompletion) yield {
+        val dependsOnParameterValues = autoComplete.autoCompletionDependsOnParameters.map(param => parameterValue.getOrElse(param,
+          throw new RuntimeException(s"No value found for plugin parameter '$param'. Could not retrieve label!")))
+        val label = autoComplete.autoCompletionProvider.valueToLabel(projectName, value.as[String], dependsOnParameterValues.map(_.as[String]))
+        (parameter.name, JsObject(Seq("value" -> value) ++ label.toSeq.map(l => "label" -> JsString(l))))
+      }).toMap
+    } catch {
+      case NonFatal(ex) =>
+        log.warning(s"Could not get labels of plugin parameters for task '${task.taskLabel()}' in project '$projectName'. Details: " + ex.getMessage)
+        Map.empty
+    }
   }
 
   def deleteTask(projectName: String, taskName: String, removeDependentTasks: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>

@@ -96,7 +96,7 @@ GET           /projects/:project/resources/:name/metadata                       
 POST          /projects/:project/tasks                                          controllers.workspace.TaskApi.postTask(project: String)
 PUT           /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.putTask(project: String, task: String)
 PATCH         /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.patchTask(project: String, task: String)
-GET           /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.getTask(project: String, task: String)
+GET           /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.getTask(project: String, task: String, withLabels: Boolean ?= false)
 DELETE        /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.deleteTask(project: String, task: String, removeDependentTasks: Boolean ?= false)
 PUT           /projects/:project/tasks/:task/metadata                           controllers.workspace.TaskApi.putTaskMetadata(project: String, task: String)
 GET           /projects/:project/tasks/:task/metadata                           controllers.workspace.TaskApi.getTaskMetadata(project: String, task: String)
