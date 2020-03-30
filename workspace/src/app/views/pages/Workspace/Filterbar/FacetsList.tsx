@@ -3,9 +3,10 @@ import {IFacetState} from "@ducks/workspace/typings";
 import {useDispatch, useSelector} from "react-redux";
 import {workspaceOp, workspaceSel} from "@ducks/workspace";
 import FacetItem from "./FacetItem";
-import Tooltip from "@wrappers/blueprint/tooltip";
-import {Classes, Position} from "@wrappers/blueprint/constants";
-import { Spacing } from "@wrappers/index";
+import {
+    Spacing,
+    Tooltip,
+} from "@wrappers/index";
 
 export default function FacetsList() {
     const dispatch = useDispatch();
@@ -59,9 +60,8 @@ export default function FacetsList() {
                 facets.map(facet =>
                     <div key={facet.id}>
                         <Tooltip
-                            className={Classes.TOOLTIP_INDICATOR}
+                            addIndicator
                             content={facet.description}
-                            position={Position.BOTTOM_LEFT}
                         >
                             <h3>{facet.label}</h3>
                         </Tooltip>
