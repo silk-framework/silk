@@ -1,0 +1,16 @@
+$tooltip-background-color: $ecc-color-applicationheader-text; // !default;
+$tooltip-text-color: $ecc-color-applicationheader-background; // !default;
+// $dark-tooltip-background-color: $light-gray3 !default;
+// $dark-tooltip-text-color: $dark-gray5 !default;
+$tooltip-padding-vertical: $ecc-size-block-whitespace/4; // !default;
+$tooltip-padding-horizontal: $ecc-size-block-whitespace/2; // !default;
+
+$ecc-size-typo-tooltip: $ecc-size-typo-caption !default;
+$ecc-size-typo-tooltip-lineheight: $ecc-size-typo-caption-lineheight !default;
+
+@import "~@blueprintjs/core/src/components/tooltip/tooltip";
+
+.#{$ns}-tooltip {
+    font-size: $ecc-size-typo-tooltip;
+    line-height: $ecc-size-typo-tooltip-lineheight;
+}

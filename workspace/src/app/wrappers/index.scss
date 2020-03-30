@@ -55,7 +55,7 @@
 @import "~@blueprintjs/core/src/components/tag/tag";
 @import "~@blueprintjs/core/src/components/tag-input/tag-input";
 @import "~@blueprintjs/core/src/components/toast/toast";
-@import "~@blueprintjs/core/src/components/tooltip/tooltip";
+// used in own component @import "~@blueprintjs/core/src/components/tooltip/tooltip";
 @import "~@blueprintjs/core/src/components/tree/tree";
 
 // -- Carbon Elements ----------------------------------------------------------
@@ -114,7 +114,7 @@
 @import '~carbon-components/scss/components/multi-select/multi-select';
 @import '~carbon-components/scss/components/notification/inline-notification';
 @import '~carbon-components/scss/components/notification/toast-notification';
-@import '~carbon-components/scss/components/tooltip/tooltip';
+// not used @import '~carbon-components/scss/components/tooltip/tooltip';
 @import '~carbon-components/scss/components/tabs/tabs';
 @import '~carbon-components/scss/components/tag/tag';
 @import '~carbon-components/scss/components/pagination/pagination';
@@ -142,6 +142,7 @@
 @import 'src/components/Breadcrumb/breadcrumb';
 @import 'src/components/Card/card';
 @import 'src/components/Separation/separation';
+@import 'src/components/Tooltip/tooltip';
 
 // == load tweaks ==============================================================
 

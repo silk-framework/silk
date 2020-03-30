@@ -53,6 +53,8 @@ import {
 import Spacing from './src/components/Separation/Spacing';
 import Divider from './src/components/Separation/Divider';
 
+import Tooltip from './src/components/Tooltip/Tooltip';
+
 export {
     ApplicationContainer,
     ApplicationHeader,
@@ -104,5 +106,7 @@ export {
 
     Spacing,
     Divider,
+
+    Tooltip,
 
 };
