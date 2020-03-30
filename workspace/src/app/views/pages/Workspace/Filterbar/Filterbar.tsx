@@ -1,12 +1,12 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import Checkbox from "@wrappers/blueprint/checkbox";
-import Label from "@wrappers/blueprint/label";
-import FacetsList from "./FacetsList";
-import { globalOp, globalSel } from "@ducks/global";
 import { useParams } from "react-router";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { globalOp, globalSel } from "@ducks/global";
 import { routerSel } from "@ducks/router";
+import Checkbox from "@wrappers/blueprint/checkbox";
+import { Spacing } from "@wrappers/index";
+import FacetsList from "./FacetsList";
 
 export function Filterbar() {
     const dispatch = useDispatch();
@@ -34,25 +34,28 @@ export function Filterbar() {
     };
 
     return (
-        <aside>
+        <nav>
             {
                 typeModifier &&
                 <>
-                    <Label>{typeModifier.label}</Label>
+                    <h3>{typeModifier.label}</h3>
+                    <ul>
                     {
                         typeModifier.options.map(opt =>
-                            <Checkbox
+                            <li><Checkbox
                                 checked={appliedFilters[typeModifier.field] === opt.id}
                                 label={opt.label}
                                 onChange={() => handleFilterSelect(typeModifier.field, opt.id)}
                                 value={opt.id}
                                 key={opt.id}
-                            />
+                            /></li>
                         )
                     }
+                    </ul>
+                    <Spacing />
                     <FacetsList/>
                 </>
             }
-        </aside>
+        </nav>
     )
 }

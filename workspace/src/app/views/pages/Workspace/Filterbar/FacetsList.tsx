@@ -2,11 +2,10 @@ import React, {useEffect, useState} from 'react';
 import {IFacetState} from "@ducks/workspace/typings";
 import {useDispatch, useSelector} from "react-redux";
 import {workspaceOp, workspaceSel} from "@ducks/workspace";
-import Label from "@wrappers/blueprint/label";
 import FacetItem from "./FacetItem";
 import Tooltip from "@wrappers/blueprint/tooltip";
 import {Classes, Position} from "@wrappers/blueprint/constants";
-import { ContextOverlay } from "@wrappers/index";
+import { Spacing } from "@wrappers/index";
 
 export default function FacetsList() {
     const dispatch = useDispatch();
@@ -59,35 +58,36 @@ export default function FacetsList() {
             {
                 facets.map(facet =>
                     <div key={facet.id}>
-                        <ContextOverlay position={Position.BOTTOM_LEFT}>
-                            <Tooltip
-                                className={Classes.TOOLTIP_INDICATOR}
-                                content={facet.description}
-                                position={Position.BOTTOM_LEFT}
-                            >
-                                <Label>{facet.label}</Label>
-                            </Tooltip>
-                        </ContextOverlay>
-                        {
-                            visibleFacetsKeywords[facet.id] && visibleFacetsKeywords[facet.id].map(val =>
-                                <FacetItem
-                                    key={val.id}
-                                    isChecked={isChecked(facet.id, val.id)}
-                                    value={val.id}
-                                    onSelectFacet={(valueId) => handleSetFacet(facet, valueId)}
-                                    label={`${val.label} (${val.count})`}
-                                />
-                            )
-                        }
-                        <a onClick={() => toggleShowMore(facet)}>
+                        <Tooltip
+                            className={Classes.TOOLTIP_INDICATOR}
+                            content={facet.description}
+                            position={Position.BOTTOM_LEFT}
+                        >
+                            <h3>{facet.label}</h3>
+                        </Tooltip>
+                        <ul>
                             {
-                                facet.values.length <= FACETS_PREVIEW_LIMIT
-                                ? null
-                                : toggledFacets.includes(facet.id)
-                                    ? 'Show less...'
-                                    : 'Show more...'
+                                visibleFacetsKeywords[facet.id] && visibleFacetsKeywords[facet.id].map(val =>
+                                    <li><FacetItem
+                                        key={val.id}
+                                        isChecked={isChecked(facet.id, val.id)}
+                                        value={val.id}
+                                        onSelectFacet={(valueId) => handleSetFacet(facet, valueId)}
+                                        label={`${val.label} (${val.count})`}
+                                    /></li>
+                                )
                             }
-                        </a>
+                            <li><a onClick={() => toggleShowMore(facet)}>
+                                {
+                                    facet.values.length <= FACETS_PREVIEW_LIMIT
+                                    ? null
+                                    : toggledFacets.includes(facet.id)
+                                        ? 'Show less...'
+                                        : 'Show more...'
+                                }
+                            </a></li>
+                        </ul>
+                        <Spacing />
                     </div>
                 )
             }
