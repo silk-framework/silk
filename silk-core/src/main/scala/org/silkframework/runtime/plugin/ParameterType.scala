@@ -3,8 +3,10 @@ package org.silkframework.runtime.plugin
 import java.lang.reflect.{ParameterizedType, Type}
 import java.net.{URLDecoder, URLEncoder}
 import java.security.InvalidKeyException
-import java.util.logging.Logger
+import java.security.spec.InvalidKeySpecException
+import java.util.logging.{Level, Logger}
 
+import javax.crypto.SecretKey
 import org.silkframework.config.{DefaultConfig, Prefixes, ProjectReference, TaskReference}
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.execution.AbortExecutionException
@@ -14,7 +16,7 @@ import org.silkframework.util.{AesCrypto, Identifier, Uri}
 
 import scala.language.existentials
 import scala.reflect.ClassTag
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 /**
   * Represents a plugin parameter type and provides serialization.
@@ -361,10 +363,26 @@ object ParameterType {
 
     override def description: String = "A password string."
 
-    lazy val key: String = {
-      Try(DefaultConfig.instance().getString(CONFIG_KEY)).getOrElse {
-        log.warning(s"No valid value set for $CONFIG_KEY, using insecure default key!")
-        "1234567890123456"
+    /**
+      * The configured key. Failure, if no key has been configured or the key is invalid.
+      */
+    lazy val configuredKey: Try[SecretKey] = {
+      for {
+        password <- Try(DefaultConfig.instance().getString(CONFIG_KEY))
+        checkedPassword <- checkPassword(password)
+        key <- Try(AesCrypto.generateKey(checkedPassword))
+      } yield key
+    }
+
+    /**
+      * The key used for encryption. A default key will be used, if no key has been configured.
+      */
+    lazy val key: SecretKey = {
+      configuredKey match {
+        case Success(k) => k
+        case Failure(ex) =>
+          log.log(Level.WARNING, s"No valid key set for $CONFIG_KEY, using insecure default key!", ex)
+          AesCrypto.generateKey("1234567890123456")
       }
     }
 
@@ -374,16 +392,24 @@ object ParameterType {
       } else if (str.startsWith(PREAMBLE)) {
         str.stripPrefix(PREAMBLE)
       } else {
-        try {
-          AesCrypto.encrypt(key, str)
-        } catch {
-          case ex: InvalidKeyException =>
-            throw new RuntimeException(s"The password parameter encryption key is invalid. Value for " +
-                s"${PasswordParameterType.CONFIG_KEY} needs to be a character string of length 16.", ex)
-        }
+        AesCrypto.encrypt(key, str)
       }
       PasswordParameter(encryptedPassword)
     }
+
+    /**
+      * Makes sure that the password has been set and is longer than 16 characters.
+      */
+    private def checkPassword(password: String): Try[String] = {
+      if(password ==  "changemechangeme") {
+        Failure(new InvalidKeySpecException("Default key is not overridden"))
+      } else if(password.length < 16) {
+        Failure(new InvalidKeySpecException("Key must be at least 16 characters long"))
+      } else {
+        Success(password)
+      }
+    }
+
   }
 
   object SparqlEndpointDatasetParameterType extends ParameterType[SparqlEndpointDatasetParameter] {

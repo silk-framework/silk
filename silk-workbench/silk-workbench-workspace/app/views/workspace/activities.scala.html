@@ -105,7 +105,11 @@
 }
 
 @content = {
-  @workspaceActivities(WorkspaceFactory().workspace)
+  <div class="mdl-card mdl-shadow--2dp mdl-card--stretch">
+    <div class="mdl-card__content">
+      @workspaceActivities(WorkspaceFactory().workspace)
+    </div>
+  </div>
 
   <div id="statusCometIFrame"></div>
 }

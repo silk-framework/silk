@@ -6,27 +6,37 @@
 @(context: Context[GenericDatasetSpec], paths: IndexedSeq[UntypedPath], entities: Seq[Entity])(implicit session: play.api.mvc.Session)
 
 @header = {
+  <style>
+    /* Make the content container scrollable */
+    .mdl-layout__content
+    {
+      overflow-x: auto !important;
+    }
+  </style>
 }
 
 @toolbar = {
 }
 
 @content = {
-<table>
-  <tr>
-    @for(path <- paths) {
-      <th>@path.toString<th>
-    }
-  </tr>
-
-  @for(entity <- entities) {
-    <tr>
-      @for(path <- paths) {
-        <td>@entity.evaluate(path)<td>
+  <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp">
+    <thead>
+      <tr>
+        @for(path <- paths) {
+          <th class="mdl-data-table__cell--non-numeric">@path.toString<th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for(entity <- entities) {
+        <tr>
+          @for(path <- paths) {
+            <td class="mdl-data-table__cell--non-numeric" style="white-space: normal"><span style="word-wrap: break-word">@entity.evaluate(path)</span><td>
+          }
+        </tr>
       }
-    </tr>
-  }
-</table>
+    </tbody>
+  </table>
 }
 
 @main(Some(context), titleLabel = context.task.taskLabel())(header)(toolbar)(content)

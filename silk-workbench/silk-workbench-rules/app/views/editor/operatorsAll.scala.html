@@ -12,7 +12,7 @@ project: Project)(implicit userContext: UserContext)
     <div class="operator-index">
       @plugin.label
     </div>
-    <div id="@{opType}_@{plugin.categories.head}_@{plugin.id}" class="draggable @name.toLowerCase">
+    <div id="search_@{opType}_@{plugin.categories.head}_@{plugin.id}" class="draggable @name.toLowerCase">
       <small>@plugin.label</small>
       <p class="non-breaking-label">@plugin.label</p>
       @operatorExpanded(plugin)
@@ -23,11 +23,12 @@ project: Project)(implicit userContext: UserContext)
   </div>
 }
 
+@* Need to generate different IDs as for the main operators. Since the IDs are used for generating labels after dragging the operator in, we just add a _  *@
 @operatorExpanded(plugin: PluginDescription[_]) = {
   @opType match {
-    case "transform" => { @transformationBox(plugin.id, plugin, parameterValues(plugin), 0, 0, false, project) }
-    case "compare" => { @comparisonBox(plugin.id, false, 1, 0.0, plugin, parameterValues(plugin), 0, 0, false, project) }
-    case "aggregate" => { @aggregationBox(plugin.id, false, 1, plugin, parameterValues(plugin), 0, 0, false, project) }
+    case "transform" => { @transformationBox(plugin.id + "_", plugin, parameterValues(plugin), 0, 0, false, project) }
+    case "compare" => { @comparisonBox(plugin.id + "_", false, 1, 0.0, plugin, parameterValues(plugin), 0, 0, false, project) }
+    case "aggregate" => { @aggregationBox(plugin.id + "_", false, 1, plugin, parameterValues(plugin), 0, 0, false, project) }
   }
 }
 
