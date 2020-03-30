@@ -9,8 +9,6 @@ import appRoutes from "./app/appRoutes";
 import { createPlugin } from "./app/services/pluginApi";
 import configureStore  from './app/store/configureStore';
 
-// import "normalize.css";
-// import './theme/index.scss';
 import "@wrappers/index.scss";
 
 const bootstrapPlugins = (plugins) => {
@@ -40,5 +38,25 @@ const bootstrapApp = (routes, externalRoutes) => {
 registerGlobalListeners();
 // Bootstrap plugins from settings.js
 const pluginRoutes = bootstrapPlugins(configs.plugins);
+
+
+if (configs.dev.logUselessRenders) {
+    try {
+        const whyDidYouRender = require('@welldone-software/why-did-you-render');
+        const ReactRedux = require('react-redux');
+        whyDidYouRender(React, {
+            trackHooks: true,
+            trackAllPureComponents: true,
+            collapseGroups: true,
+            titleColor: "green",
+            exclude: [/^Blueprint/],
+            diffNameColor: "darkturquoise",
+            diffPathColor: "goldenrod"
+        });
+    } catch (e) {
+        console.log(e);
+    }
+}
+
 // Bootstrap the React application
 bootstrapApp(appRoutes, pluginRoutes);

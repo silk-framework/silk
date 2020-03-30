@@ -1,38 +1,49 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import InputGroup from "@wrappers/blueprint/input-group";
 import { FormGroup } from "@blueprintjs/core";
 import { IArtefactItemProperty } from "@ducks/global/typings";
-import { useForm } from "react-hook-form";
+import { Switch, NumericInput } from "@wrappers/index";
+import { Intent } from "@wrappers/blueprint/constants";
+import TextArea from "@wrappers/blueprint/textarea";
 
 export interface IProps {
+    form: any;
+
     properties: IArtefactItemProperty;
 
-    onChange(field: string, value: any): void;
+    required: string[];
 }
 
-const transformToFormData = (properties: IArtefactItemProperty) => {
-    return Object
-        .keys(properties)
-        .reduce((acc, key) => ({
-            ...acc,
-            [key]: properties[key].value || ''
-        }), {})
+const InputMapper = ({type, ...props}) => {
+    switch (type) {
+        case "boolean":
+            return <Switch {...props}/>;
+        case "int":
+            return <NumericInput {...props} buttonPosition={'none'} />;
+
+        case "multiline string":
+            return <TextArea {...props} />;
+        case "string":
+        default:
+            return <InputGroup {...props} />
+    }
 };
 
-export function GenericForm({onChange, properties}: IProps) {
+export function GenericForm({properties, form, required}: IProps) {
+    const {register, errors, getValues, setValue} = form;
 
-    const [formData, setFormData] = useState(transformToFormData(properties));
-    const {register, handleSubmit, errors, getValues, setValue} = useForm({
-        mode: 'onChange',
-    });
-    const handleInputChange = ({target}: any) => {
-        const {name, value} = target;
-        setFormData({
-            ...formData,
-            [name]: value
+    useEffect(() => {
+        Object.keys(properties).map(key => {
+            const property = properties[key];
+            let value: any = property.value;
+
+            if (property.type === 'boolean') {
+                value = property.value === 'true'
+            }
+
+            setValue(key, value)
         });
-        onChange(name, value);
-    };
+    }, [properties]);
 
     return <form>
         {
@@ -42,16 +53,23 @@ export function GenericForm({onChange, properties}: IProps) {
                     inline={false}
                     label={properties[key].title}
                     labelFor={key}
-                    labelInfo={properties[key].advanced ? "" : "(required)"}
+                    labelInfo={required.includes(key) ? "(required)" : ""}
                 >
-                    <InputGroup
+                    <InputMapper
                         id={key}
                         name={key}
-                        onChange={handleInputChange}
-                        value={formData[key]}
+                        type={properties[key].type}
+                        inputRef={register({
+                            required: required.includes(key)
+                        })}
+                        intent={errors[key] ? Intent.DANGER : Intent.NONE}
                     />
+                    {
+                        errors[key] && <span style={{color: 'red'}}>{properties[key].title} not specified</span>
+                    }
                 </FormGroup>
             )
         }
+        <button type='button' onClick={() => console.log(getValues(), errors)}>GO</button>
     </form>
 }
