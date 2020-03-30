@@ -6,7 +6,7 @@ import {
  } from "@blueprintjs/core";
 import Icon from '../Icon/Icon';
 
-const Button = ({
+function Button({
     children,
     className='',
     affirmative=false,
@@ -16,7 +16,7 @@ const Button = ({
     icon=false,
     rightIcon=false,
     ...restProps
-}: any) => {
+}: any) {
 
     let intention;
     if (affirmative || elevated) intention = BlueprintIntent.PRIMARY;

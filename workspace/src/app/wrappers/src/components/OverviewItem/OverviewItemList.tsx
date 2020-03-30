@@ -1,13 +1,13 @@
 import React from "react";
 
-const OverviewItemList = ({
+function OverviewItemList({
     children,
     className = '',
     densityHigh = false,
     hasDivider = false,
     hasSpacing = false,
     ...restProps
-}: any) => {
+}: any) {
     return (
         <ol
             {...restProps}

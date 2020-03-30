@@ -1,12 +1,12 @@
 import React from "react";
 
-const OverviewItemLine = ({
+function OverviewItemLine({
     children,
     className = '',
     small=false,
     large=false,
     ...restProps
-}: any) => {
+}: any) {
     return (
         <div
             {...restProps}

@@ -1,11 +1,11 @@
 import React from 'react';
 
-const CardActions = ({
+function CardActions ({
     children,
     className='',
     inverseDirection=false,
     ...otherProps
-}: any) => {
+}: any) {
     return (
         <footer
             {...otherProps}

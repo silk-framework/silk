@@ -6,12 +6,12 @@ import {
 import CardTitle from './CardTitle';
 import CardOptions from './CardOptions';
 
-const CardHeader = ({
+function CardHeader({
     children,
     className='',
     densityHigh = true,
     ...otherProps
-}: any) => {
+}: any) {
     let actions = [];
     let description = [];
 

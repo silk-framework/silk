@@ -1,6 +1,6 @@
 import React from "react";
 
-const WorkspaceSection = ({ children, className = '', ...restProps }: any) => {
+function WorkspaceSection({ children, className = '', ...restProps }: any) {
     return (
         <section
             {...restProps}

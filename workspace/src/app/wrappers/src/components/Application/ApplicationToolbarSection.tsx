@@ -1,6 +1,6 @@
 import React from "react";
 
-const ApplicationToolbarSection = ({ children, className = '', ...restProps }: any) => {
+function ApplicationToolbarSection({ children, className = '', ...restProps }: any) {
     return (
         <div
             {...restProps}

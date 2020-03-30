@@ -2,7 +2,7 @@ import React from "react";
 // import PropTypes from 'prop-types';
 import WorkspaceColumn from "./WorkspaceColumn";
 
-const WorkspaceSide = ({ children, className = '', ...restProps }: any) => {
+function WorkspaceSide({ children, className = '', ...restProps }: any) {
     return (
         <WorkspaceColumn
             {...restProps}

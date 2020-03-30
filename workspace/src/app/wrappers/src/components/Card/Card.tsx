@@ -1,13 +1,13 @@
 import React from 'react';
 import { Card as BlueprintCard } from "@blueprintjs/core";
 
-const Card = ({
+function Card({
     children,
     className='',
     elevation=1,
     isOnlyLayout=false,
     ...otherProps
-}: any) => {
+}: any) {
     const cardElement = (
         <BlueprintCard
             {...otherProps}

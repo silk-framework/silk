@@ -3,11 +3,11 @@ import React from "react";
 import { Breadcrumbs as BlueprintBreadcrumbList } from "@blueprintjs/core";
 import BreadcrumbItem from './BreadcrumbItem';
 
-const BreadcrumbList = ({
+function BreadcrumbList ({
     className='',
     itemDivider='/',
     ...otherProps
-}: any) => {
+}: any) {
 
     const renderBreadcrumb = (propsBreadcrumb) => {
         return <BreadcrumbItem

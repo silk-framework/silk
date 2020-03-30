@@ -48,8 +48,11 @@ export function CreateArtefactModal() {
         setFormData({});
     };
 
-    const handleFormChange = (data: any) => {
-        setFormData(data);
+    const handleFormChange = (field: string, value:any) => {
+        setFormData({
+            ...formData,
+            [field]: value
+        });
     };
 
     const _TEMP_handleProjectSelect = () => {
@@ -58,14 +61,14 @@ export function CreateArtefactModal() {
         } as IArtefactItem);
     };
 
-    let ArtefactForm = null;
+    let artefactForm = null;
     if (modalStore.selectedArtefact) {
         const {key, properties} = modalStore.selectedArtefact;
-        ArtefactForm = ARTEFACT_FORM_COMPONENTS_MAP[key];
+        const Form = ARTEFACT_FORM_COMPONENTS_MAP[key];
 
-        if (!ArtefactForm) {
-            ArtefactForm = () => <GenericForm onChange={handleFormChange} properties={properties} />
-        }
+        artefactForm = Form
+            ? <Form onChange={handleFormChange} />
+            : <GenericForm onChange={handleFormChange} properties={properties} />
     }
 
     return (
@@ -80,8 +83,8 @@ export function CreateArtefactModal() {
                 loading ? <Loading/> : <>
                     <div className={Classes.DIALOG_BODY}>
                         {
-                            ArtefactForm
-                                ? <ArtefactForm onChange={handleFormChange}/>
+                            artefactForm
+                                ? artefactForm
                                 : <Row>
                                     <Col span={4}>
                                         <h3>Artefact Type</h3>

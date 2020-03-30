@@ -1,12 +1,12 @@
 import React from "react";
 
-const OverviewItem = ({
+function OverviewItem({
     children,
     className = '',
     densityHigh = false,
     hasSpacing = false,
     ...restProps
-}: any) => {
+}: any) {
     return (
         <div
             {...restProps}

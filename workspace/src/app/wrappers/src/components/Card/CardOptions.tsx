@@ -1,11 +1,11 @@
 import React from 'react';
 import { OverviewItemActions } from './../OverviewItem';
 
-const CardOptions = ({
+function CardOptions({
     children,
     className='',
     ...otherProps
-}: any) => {
+}: any) {
     return (
         <OverviewItemActions
             {...otherProps}

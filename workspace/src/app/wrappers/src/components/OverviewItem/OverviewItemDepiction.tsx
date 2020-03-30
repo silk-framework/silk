@@ -1,10 +1,10 @@
 import React from "react";
 
-const OverviewItemDepiction = ({
+function OverviewItemDepiction({
     children,
     className = '',
     ...restProps
-}: any) => {
+}: any) {
     return (
         <div {...restProps} className={'ecc-overviewitem__depiction '+className}>
             {children}

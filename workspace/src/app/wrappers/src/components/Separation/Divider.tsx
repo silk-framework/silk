@@ -1,8 +1,8 @@
 import React from 'react';
 
-const Divider = ({
+function Divider({
     addSpacing="none"
-}: any) => {
+}: any) {
     return (
         <hr
             className={

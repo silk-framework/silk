@@ -4,13 +4,13 @@ import ContextOverlay from './ContextOverlay';
 import Menu from '../Menu/Menu';
 import IconButton from '../Icon/IconButton';
 
-const ContextMenu = ({
+function ContextMenu ({
     children,
     className='',
     togglerElement='item-moremenu',
     togglerText='Show more options',
     ...restProps
-}: any) => {
+}: any) {
 
     return (
         <ContextOverlay

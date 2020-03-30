@@ -1,12 +1,12 @@
 import React from 'react';
 import { OverviewItemLine } from './../OverviewItem';
 
-const CardTitle = ({
+function CardTitle({
     children,
     className='',
     narrowed=false,
     ...otherProps
-}: any) => {
+}: any) {
     return (
         <OverviewItemLine
             {...otherProps}

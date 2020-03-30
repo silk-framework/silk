@@ -2,14 +2,14 @@ import React from "react";
 // import PropTypes from 'prop-types';
 import { Column as CarbonColumn } from "carbon-components-react/lib/components/Grid";
 
-const WorkspaceColumn = ({
+function WorkspaceColumn({
     children,
     className = '',
     small = false,
     medium = false,
     full = true,
     ...restProps
-}: any) => {
+}: any) {
     let sizeConfig = {};
     if (small) sizeConfig = { md:2, lg:3 };
     if (medium) sizeConfig = { md:3, lg:5 };
