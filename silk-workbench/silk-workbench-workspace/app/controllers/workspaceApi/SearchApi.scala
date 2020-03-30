@@ -8,8 +8,9 @@ import controllers.workspaceApi.search.ParameterAutoCompletionRequest
 import controllers.workspaceApi.search.SearchApiModel._
 import javax.inject.Inject
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginParameterAutoCompletionProvider, PluginRegistry}
+import org.silkframework.runtime.plugin.{AutoCompletionResult, ParameterAutoCompletion, PluginParameterAutoCompletionProvider, PluginRegistry}
 import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, InjectedController}
@@ -55,10 +56,15 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
             case Some(parameter) =>
               parameter.autoCompletion match {
                 case Some(autoCompletion) =>
-                  val result = autoCompletion.autoCompletionProvider.autoComplete(request.textQuery.getOrElse(""),
-                    request.projectId, request.dependsOnParameterValues.getOrElse(Seq.empty),
-                    limit = request.workingLimit, offset = request.workingOffset)
-                  Ok(Json.toJson(result.map(_.withNonEmptyLabels)))
+                  if(hasInvalidDependentParameterValues(request, autoCompletion)) {
+                    throw BadUserInputException("No values for depends-on parameters supplied. Values are expected for " +
+                        s"following parameters: ${autoCompletion.autoCompletionDependsOnParameters.mkString(", ")}.")
+                  } else {
+                    val result = autoCompletion.autoCompletionProvider.autoComplete(request.textQuery.getOrElse(""),
+                      request.projectId, request.dependsOnParameterValues.getOrElse(Seq.empty),
+                      limit = request.workingLimit, offset = request.workingOffset)
+                    Ok(Json.toJson(result.map(_.withNonEmptyLabels)))
+                  }
                 case None =>
                   log.warning(s"Parameter '${parameter.name}' of plugin '${request.pluginId}' has no auto-completion support.")
                   NotFound
@@ -72,6 +78,11 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
           NotFound
       }
     }
+  }
+
+  private def hasInvalidDependentParameterValues(request: ParameterAutoCompletionRequest, autoCompletion: ParameterAutoCompletion): Boolean = {
+    autoCompletion.autoCompletionDependsOnParameters.nonEmpty &&
+      autoCompletion.autoCompletionDependsOnParameters.size != request.dependsOnParameterValues.map(_.size).getOrElse(0)
   }
 
   /** Get all item types */

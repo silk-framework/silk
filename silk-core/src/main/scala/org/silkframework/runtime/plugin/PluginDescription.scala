@@ -20,7 +20,7 @@ import com.thoughtworks.paranamer.BytecodeReadingParanamer
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager, ResourceNotFoundException}
+import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, ResourceManager, ResourceNotFoundException}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 
@@ -234,29 +234,36 @@ object PluginDescription {
   private def parameterAutoCompletion[T](dataType: Type,
                                          pluginParam: Param): Option[ParameterAutoCompletion] = {
     dataType match {
+      case _ if pluginParam.autoCompletionProvider() != classOf[NopPluginParameterAutoCompletionProvider] =>
+        Some(explicitParameterAutoCompletionProvider(pluginParam))
       case enumClass: Class[_] if enumClass.isEnum =>
-        val withLabel = classOf[EnumerationParameterType].isAssignableFrom(enumClass)
-        Some(ParameterAutoCompletion(
-          autoCompletionProvider = EnumPluginParameterAutoCompletionProvider(enumClass),
-          allowOnlyAutoCompletedValues = true,
-          autoCompleteValueWithLabels = withLabel
-        ))
+        Some(enumParameterAutoCompletion(enumClass))
       case _ =>
-        val autoCompletionProvider = PluginParameterAutoCompletionProvider.get(pluginParam.autoCompletionProvider())
-        val allowOnlyAutoCompletedValues = pluginParam.allowOnlyAutoCompletedValues()
-        val autoCompleteValueWithLabels = pluginParam.autoCompleteValueWithLabels()
-        val autoCompletionDependsOnParameters = pluginParam.autoCompletionDependsOnParameters()
-        if (!autoCompletionProvider.isInstanceOf[NopPluginParameterAutoCompletionProvider]) {
-          Some(ParameterAutoCompletion(
-            autoCompletionProvider = autoCompletionProvider,
-            allowOnlyAutoCompletedValues = allowOnlyAutoCompletedValues,
-            autoCompleteValueWithLabels = autoCompleteValueWithLabels,
-            autoCompletionDependsOnParameters = autoCompletionDependsOnParameters
-          ))
-        } else {
           None
-        }
     }
+  }
+
+  private def enumParameterAutoCompletion[T](enumClass: Class[_]): ParameterAutoCompletion = {
+    val withLabel = classOf[EnumerationParameterType].isAssignableFrom(enumClass)
+    ParameterAutoCompletion(
+      autoCompletionProvider = EnumPluginParameterAutoCompletionProvider(enumClass),
+      allowOnlyAutoCompletedValues = true,
+      autoCompleteValueWithLabels = withLabel
+    )
+  }
+
+  private def explicitParameterAutoCompletionProvider(pluginParam: Param): ParameterAutoCompletion = {
+    assert(pluginParam.autoCompletionProvider() != classOf[NopPluginParameterAutoCompletionProvider])
+    val autoCompletionProvider = PluginParameterAutoCompletionProvider.get(pluginParam.autoCompletionProvider())
+    val allowOnlyAutoCompletedValues = pluginParam.allowOnlyAutoCompletedValues()
+    val autoCompleteValueWithLabels = pluginParam.autoCompleteValueWithLabels()
+    val autoCompletionDependsOnParameters = pluginParam.autoCompletionDependsOnParameters()
+    ParameterAutoCompletion(
+      autoCompletionProvider = autoCompletionProvider,
+      allowOnlyAutoCompletedValues = allowOnlyAutoCompletedValues,
+      autoCompleteValueWithLabels = autoCompleteValueWithLabels,
+      autoCompletionDependsOnParameters = autoCompletionDependsOnParameters
+    )
   }
 
   case class EnumPluginParameterAutoCompletionProvider(enumClass: Class[_]) extends PluginParameterAutoCompletionProvider {
