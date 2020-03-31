@@ -7,6 +7,8 @@ import {
     Spacing,
     Tooltip,
     Button,
+    TitleSubsection,
+    Icon,
 } from "@wrappers/index";
 
 export default function FacetsList() {
@@ -60,12 +62,18 @@ export default function FacetsList() {
             {
                 facets.map(facet =>
                     <div key={facet.id}>
-                        <Tooltip
-                            addIndicator
-                            content={facet.description}
-                        >
-                            <h3>{facet.label}</h3>
-                        </Tooltip>
+                        <TitleSubsection>
+                            <h3>
+                                {facet.label}
+                                &nbsp;
+                                <Tooltip
+                                    content={facet.description}
+                                >
+                                    <Icon name="item-info" small />
+                                </Tooltip>
+                            </h3>
+                        </TitleSubsection>
+                        <Spacing size="tiny" />
                         <ul>
                             {
                                 visibleFacetsKeywords[facet.id] && visibleFacetsKeywords[facet.id].map(val =>

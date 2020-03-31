@@ -5,7 +5,10 @@ import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { globalOp, globalSel } from "@ducks/global";
 import { routerSel } from "@ducks/router";
 import Checkbox from "@wrappers/blueprint/checkbox";
-import { Spacing } from "@wrappers/index";
+import {
+    Spacing,
+    TitleSubsection,
+} from "@wrappers/index";
 import FacetsList from "./FacetsList";
 
 export function Filterbar() {
@@ -38,7 +41,8 @@ export function Filterbar() {
             {
                 typeModifier &&
                 <>
-                    <h3>{typeModifier.label}</h3>
+                    <TitleSubsection>{typeModifier.label}</TitleSubsection>
+                    <Spacing size="tiny" />
                     <ul>
                     {
                         typeModifier.options.map(opt =>
