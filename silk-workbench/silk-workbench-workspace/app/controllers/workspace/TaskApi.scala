@@ -53,7 +53,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     }
   }
 
-  def patchTask(projectName: String, taskName: String): Action[JsValue] = RequestUserContextAction(BodyParsers.parse.json) { implicit request => implicit userContext =>
+  def patchTask(projectName: String, taskName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     // Load current task
     val project = WorkspaceFactory().workspace.project(projectName)
     val currentTask = project.anyTask(taskName)
