@@ -3,7 +3,11 @@
     "application-useraccount": "UserAvatar",
     "application-mapping": "ModelBuilder",
 
+    "toggler-showmore": "ChevronDown",
+    "toggler-showless": "ChevronUp",
+
     "item-moremenu": "OverflowMenuVertical",
+    "item-vertmenu": "OverflowMenuHorizontal",
     "item-viewdetails": "View",
     "item-clone": "Copy",
     "item-edit": "Edit",

@@ -6,6 +6,7 @@ import FacetItem from "./FacetItem";
 import {
     Spacing,
     Tooltip,
+    Button,
 } from "@wrappers/index";
 
 export default function FacetsList() {
@@ -77,15 +78,20 @@ export default function FacetsList() {
                                     /></li>
                                 )
                             }
-                            <li><a onClick={() => toggleShowMore(facet)}>
-                                {
-                                    facet.values.length <= FACETS_PREVIEW_LIMIT
-                                    ? null
-                                    : toggledFacets.includes(facet.id)
-                                        ? 'Show less...'
-                                        : 'Show more...'
-                                }
-                            </a></li>
+                            {
+                                facet.values.length <= FACETS_PREVIEW_LIMIT
+                                ? null
+                                : <li>
+                                    <Button
+                                        onClick={() => toggleShowMore(facet)}
+                                        text={toggledFacets.includes(facet.id) ? 'show less' : 'show more'}
+                                        rightIcon={toggledFacets.includes(facet.id) ? 'toggler-showless' : 'toggler-showmore'}
+                                        small
+                                        minimal
+                                    />
+                                </li>
+                            }
+
                         </ul>
                         <Spacing />
                     </div>
