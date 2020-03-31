@@ -2,9 +2,8 @@ import React, { useEffect } from "react";
 import InputGroup from "@wrappers/blueprint/input-group";
 import { FormGroup } from "@blueprintjs/core";
 import { IArtefactItemProperty } from "@ducks/global/typings";
-import { Switch, NumericInput } from "@wrappers/index";
+import { Switch, NumericInput, QueryEditor } from "@wrappers/index";
 import { Intent } from "@wrappers/blueprint/constants";
-import TextArea from "@wrappers/blueprint/textarea";
 
 export interface IProps {
     form: any;
@@ -19,10 +18,9 @@ const InputMapper = ({type, ...props}) => {
         case "boolean":
             return <Switch {...props}/>;
         case "int":
-            return <NumericInput {...props} buttonPosition={'none'} />;
-
+            return <NumericInput {...props} buttonPosition={'none'}/>;
         case "multiline string":
-            return <TextArea {...props} />;
+            return <QueryEditor {...props} />;
         case "string":
         default:
             return <InputGroup {...props} />
@@ -38,12 +36,12 @@ export function GenericForm({properties, form, required}: IProps) {
             let value: any = property.value;
 
             if (property.type === 'boolean') {
-                value = property.value === 'true'
+                value = property.value === 'true';
             }
 
             setValue(key, value)
         });
-    }, [properties]);
+    }, [properties, register]);
 
     return <form>
         {
@@ -55,21 +53,28 @@ export function GenericForm({properties, form, required}: IProps) {
                     labelFor={key}
                     labelInfo={required.includes(key) ? "(required)" : ""}
                 >
-                    <InputMapper
-                        id={key}
-                        name={key}
-                        type={properties[key].type}
-                        inputRef={register({
-                            required: required.includes(key)
-                        })}
-                        intent={errors[key] ? Intent.DANGER : Intent.NONE}
-                    />
+                    {
+                        properties[key].type === 'multiline string'
+                            ? <QueryEditor
+                                name={key}
+                                onChange={(value: string) => setValue(key, value)}
+                            />
+                            : <InputMapper
+                                id={key}
+                                name={key}
+                                type={properties[key].type}
+                                inputRef={register({
+                                    required: required.includes(key)
+                                })}
+                                intent={errors[key] ? Intent.DANGER : Intent.NONE}
+                            />
+                    }
                     {
                         errors[key] && <span style={{color: 'red'}}>{properties[key].title} not specified</span>
                     }
                 </FormGroup>
             )
         }
-        <button type='button' onClick={() => console.log(getValues(), errors)}>GO</button>
+        <button type='button' onClick={() => console.log(getValues(), errors)}>Console Form data</button>
     </form>
 }

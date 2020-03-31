@@ -130,6 +130,10 @@
 @import '~carbon-components/scss/components/pagination-nav/pagination-nav';
 // used in own component @import '~carbon-components/scss/components/ui-shell/ui-shell'; // experimental
 
+// 3rd party libs
+@import "~codemirror/lib/codemirror.css";
+@import "~codemirror/theme/xq-light.css";
+
 // == Load element styles ======================================================
 
 @import 'src/components/Application/application';
@@ -161,3 +165,4 @@
 
   @warn $deprecations--message;
 }
+

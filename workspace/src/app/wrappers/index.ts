@@ -55,6 +55,7 @@ import {
 
 import Spacing from './src/components/Separation/Spacing';
 import Divider from './src/components/Separation/Divider';
+import QueryEditor from './src/components/QueryEditor/QueryEditor';
 
 export {
     ApplicationContainer,
@@ -109,5 +110,6 @@ export {
     Divider,
 
     Switch,
-    NumericInput
+    NumericInput,
+    QueryEditor
 };
