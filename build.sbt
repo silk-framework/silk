@@ -4,7 +4,7 @@ import sbt._
 // Common Settings
 //////////////////////////////////////////////////////////////////////////////
 
-val NEXT_VERSION = "3.0.0"
+val NEXT_VERSION = "3.1.0"
 val silkVersion = sys.env.getOrElse("GIT_DESCRIBE", NEXT_VERSION + "-SNAPSHOT")
 
 concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
