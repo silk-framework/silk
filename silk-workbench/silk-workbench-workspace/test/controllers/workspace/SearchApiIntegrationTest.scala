@@ -233,15 +233,17 @@ class SearchApiIntegrationTest extends FlatSpec
     def toAutoComplete: Seq[(String, String)] => Seq[AutoCompletionResult] = values => values.map { case (value, label) => AutoCompletionResult(value, Some(label))}
     PluginRegistry.registerPlugin(classOf[AutoCompletableTestPlugin])
     // All values
-    pluginParameterAutoCompletion(ParameterAutoCompletionRequest("autoCompletableTestPlugin", "completableParam", projectId)) mustBe
+    pluginParameterAutoCompletion(ParameterAutoCompletionRequest("autoCompletableTestPlugin", "completableParam", projectId, dependsOnParameterValues = Some(Seq("a")))) mustBe
       Json.toJson(testAutoCompletionProvider.values.map{case (value, label) => AutoCompletionResult(value, Some(label))})
+    // No dependsOn value, should fail.
+    pluginParameterAutoCompletion(ParameterAutoCompletionRequest("autoCompletableTestPlugin", "completableParam", projectId), expectedStatus = '4')
     // With offset and limit
     pluginParameterAutoCompletion(ParameterAutoCompletionRequest("autoCompletableTestPlugin", "completableParam", projectId,
-      offset = Some(1), limit = Some(1))) mustBe
+      offset = Some(1), limit = Some(1), dependsOnParameterValues = Some(Seq("a")))) mustBe
         Json.toJson(toAutoComplete(testAutoCompletionProvider.values.slice(1, 2)))
     // With search query
     pluginParameterAutoCompletion(ParameterAutoCompletionRequest("autoCompletableTestPlugin", "completableParam", projectId,
-      textQuery = Some("ir"))) mustBe
+      textQuery = Some("ir"), dependsOnParameterValues = Some(Seq("a")))) mustBe
         Json.toJson(toAutoComplete(testAutoCompletionProvider.values.filter(_._1 != "val2")))
   }
 
@@ -253,8 +255,8 @@ class SearchApiIntegrationTest extends FlatSpec
 
   private lazy val pluginParameterAutoCompleteUrl = s"$baseUrl/api/workspace/pluginParameterAutoCompletion"
 
-  private def pluginParameterAutoCompletion(request: ParameterAutoCompletionRequest): JsValue = {
-    val result = checkResponse(client.url(pluginParameterAutoCompleteUrl).post(Json.toJson(request)))
+  private def pluginParameterAutoCompletion(request: ParameterAutoCompletionRequest, expectedStatus: Char = '2'): JsValue = {
+    val result = checkResponse(client.url(pluginParameterAutoCompleteUrl).post(Json.toJson(request)), responseCodePrefix = expectedStatus)
     result.json
   }
 

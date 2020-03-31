@@ -46,7 +46,7 @@ class PluginApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers
 )
 case class AutoCompletableTestPlugin(@Param(value = "Some param", autoCompletionProvider = classOf[TestAutoCompletionProvider],
                                             autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true, autoCompletionDependsOnParameters = Array("otherParam"))
-                                            completableParam: String,
+                                     completableParam: String,
                                      otherParam: String) extends Transformer {
   override def apply(values: Seq[Seq[String]]): Seq[String] = Seq.empty
 }
