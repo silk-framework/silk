@@ -11,6 +11,7 @@ import { ProjectForm } from "./ArtefactForms/ProjectForm";
 import { globalOp, globalSel } from "@ducks/global";
 import { GenericForm } from "./ArtefactForms/GenericForm";
 import { IArtefactItem } from "@ducks/global/typings";
+import { useForm } from "react-hook-form";
 
 const ARTEFACT_FORM_COMPONENTS_MAP = {
     project: ProjectForm
@@ -18,12 +19,15 @@ const ARTEFACT_FORM_COMPONENTS_MAP = {
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
+    const form = useForm({
+        mode: 'onChange'
+    });
+
     const modalStore = useSelector(globalSel.artefactModalSelector);
     const {selectedArtefact, isOpen, artefactsList} = modalStore;
 
     const [loading, setLoading] = useState<boolean>(false);
     const [selected, setSelected] = useState<IArtefactItem>(selectedArtefact);
-    const [formData, setFormData] = useState<any>({});
 
     const handleAdd = () => {
         dispatch(globalOp.selectArtefact(selected))
@@ -38,21 +42,18 @@ export function CreateArtefactModal() {
         dispatch(globalOp.selectArtefact(null));
     };
 
-    const handleCreate = () => {
-        dispatch(globalOp.createArtefactAsync(formData));
-        closeModal();
+    const handleCreate = (e) => {
+        e.preventDefault();
+
+        const isValidFields = form.triggerValidation();
+        if (isValidFields) {
+            dispatch(globalOp.createArtefactAsync(form.getValues()));
+            closeModal();
+        }
     };
 
     const closeModal = () => {
         dispatch(globalOp.closeArtefactModal());
-        setFormData({});
-    };
-
-    const handleFormChange = (field: string, value:any) => {
-        setFormData({
-            ...formData,
-            [field]: value
-        });
     };
 
     const _TEMP_handleProjectSelect = () => {
@@ -63,12 +64,12 @@ export function CreateArtefactModal() {
 
     let artefactForm = null;
     if (modalStore.selectedArtefact) {
-        const {key, properties} = modalStore.selectedArtefact;
-        const Form = ARTEFACT_FORM_COMPONENTS_MAP[key];
+        const {key, properties, required} = modalStore.selectedArtefact;
+        const ComponentForm = ARTEFACT_FORM_COMPONENTS_MAP[key];
 
-        artefactForm = Form
-            ? <Form onChange={handleFormChange} />
-            : <GenericForm onChange={handleFormChange} properties={properties} />
+        artefactForm = ComponentForm
+            ? <ComponentForm form={form} />
+            : <GenericForm form={form} properties={properties} required={required}/>
     }
 
     return (
@@ -121,7 +122,7 @@ export function CreateArtefactModal() {
                                 selectedArtefact
                                     ? <>
                                         <Button onClick={handleBack}>Back</Button>
-                                        <Button disabled={!formData.label} affirmative={true} onClick={handleCreate}>Create</Button>
+                                        <Button affirmative={true} onClick={handleCreate}>Create</Button>
                                     </>
                                     : <Button
                                         affirmative={true}

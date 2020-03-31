@@ -29,6 +29,9 @@ import MenuDivider from './src/components/Menu/MenuDivider';
 import ContextOverlay from './src/components/ContextOverlay/ContextOverlay';
 import ContextMenu from './src/components/ContextOverlay/ContextMenu';
 
+import Switch from './src/components/Switch/Switch';
+import NumericInput from './src/components/NumericInput/NumericInput';
+
 import {
     OverviewItem,
     OverviewItemDepiction,
@@ -109,4 +112,6 @@ export {
 
     Tooltip,
 
+    Switch, // TODO: scss styles
+    NumericInput, // TODO: scss styles
 };
