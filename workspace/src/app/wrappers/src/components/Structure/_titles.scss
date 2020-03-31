@@ -1,0 +1,17 @@
+$ecc-size-typo-title-subsection: $ecc-size-typo-caption !default;
+$ecc-size-typo-title-subsection-lineheight: $ecc-size-typo-caption-lineheight !default;
+$ecc-font-weight-title-subsection: $ecc-font-weight-bold !default;
+$ecc-font-spacing-title-subsection: $ecc-font-spacing-wide !default;
+
+.ecc-structure__title-subsection {
+    font-size: $ecc-size-typo-title-subsection;
+    line-height: $ecc-size-typo-title-subsection-lineheight;
+    font-weight: $ecc-font-weight-title-subsection;
+    text-transform: uppercase;
+    letter-spacing: $ecc-font-spacing-title-subsection;
+
+    & > * {
+        font-size: inherit;
+        line-height: inherit;
+    }
+}

@@ -58,6 +58,8 @@ import Divider from './src/components/Separation/Divider';
 
 import Tooltip from './src/components/Tooltip/Tooltip';
 
+import TitleSubsection from './src/components/Structure/TitleSubsection';
+
 export {
     ApplicationContainer,
     ApplicationHeader,
@@ -114,4 +116,6 @@ export {
 
     Switch, // TODO: scss styles
     NumericInput, // TODO: scss styles
+
+    TitleSubsection,
 };

@@ -43,6 +43,13 @@ $ecc-size-typo-base: 14px !default; // size including absolute unit, preferable 
 $ecc-size-typo-base-lineheight: 1.39 !default; // only ratio to font size, no unit!
 $ecc-size-type-levelratio: 7/6 !default; // ratio without unit! used to calculate different text sizes, etc ...
 
+$ecc-font-weight-light: 300 !default;
+$ecc-font-weight-regular: 400 !default;
+$ecc-font-weight-bold: 600 !default;
+$ecc-font-spacing-condensed: -0.5px !default;
+$ecc-font-spacing-regular: 0 !default;
+$ecc-font-spacing-wide: 0.5px !default;
+
 // -- Configuration stack of sizes ---------------------------------------------
 
 $ecc-size-block-whitespace: $ecc-size-typo-base !default;
