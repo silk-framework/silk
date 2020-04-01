@@ -113,6 +113,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       activity.control.cancel()
     }
     provider.deleteProject(name)
+    repository.removeProjectResources(name)
     cachedProjects = cachedProjects.filterNot(_.name == name)
     log.info(s"Removed project '$name'. " + userContext.logInfo)
   }
