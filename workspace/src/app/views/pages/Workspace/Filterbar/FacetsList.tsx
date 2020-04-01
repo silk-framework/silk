@@ -69,7 +69,7 @@ export default function FacetsList() {
                                 <Tooltip
                                     content={facet.description}
                                 >
-                                    <Icon name="item-info" small />
+                                    <span><Icon name="item-info" small /></span>
                                 </Tooltip>
                             </h3>
                         </TitleSubsection>
@@ -77,8 +77,7 @@ export default function FacetsList() {
                         <ul>
                             {
                                 visibleFacetsKeywords[facet.id] && visibleFacetsKeywords[facet.id].map(val =>
-                                    <li><FacetItem
-                                        key={val.id}
+                                    <li key={val.id}><FacetItem
                                         isChecked={isChecked(facet.id, val.id)}
                                         value={val.id}
                                         onSelectFacet={(valueId) => handleSetFacet(facet, valueId)}
