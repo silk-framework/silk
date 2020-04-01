@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import CodeMirror from "codemirror";
 import "codemirror/mode/sparql/sparql.js";
 
-function QueryEditor({onChange, name}: any) {
+export function QueryEditor({onChange, name}: any) {
     let editorInstance = null;
     const ref = useRef();
 
@@ -29,5 +29,3 @@ function QueryEditor({onChange, name}: any) {
     />
 
 };
-
-export default QueryEditor;

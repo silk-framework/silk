@@ -2,8 +2,9 @@ import React, { useEffect } from "react";
 import InputGroup from "@wrappers/blueprint/input-group";
 import { FormGroup } from "@blueprintjs/core";
 import { IArtefactItemProperty } from "@ducks/global/typings";
-import { Switch, NumericInput, QueryEditor } from "@wrappers/index";
+import { Switch, NumericInput } from "@wrappers/index";
 import { Intent } from "@wrappers/blueprint/constants";
+import { QueryEditor } from "../../../QueryEditor/QueryEditor";
 
 export interface IProps {
     form: any;
