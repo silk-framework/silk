@@ -9,6 +9,14 @@ val silkVersion = sys.env.getOrElse("GIT_DESCRIBE", NEXT_VERSION + "-SNAPSHOT")
 
 concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
 
+val scalaTestOptions = {
+  if(sys.env.getOrElse("BUILD_ENV", "develop").toLowerCase == "production") {
+    "-oDW"
+  } else {
+    "-oD"
+  }
+}
+
 lazy val commonSettings = Seq(
   organization := "org.silkframework",
   version := silkVersion,
@@ -31,7 +39,7 @@ lazy val commonSettings = Seq(
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
   libraryDependencies += "com.google.inject" % "guice" % "4.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
-  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", "-oD"),
+  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
   dependencyOverrides ++= Set(
     "com.google.guava" % "guava" % "18.0",
