@@ -1352,6 +1352,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/codemirror@^0.0.88":
+  version "0.0.88"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/codemirror/-/codemirror-0.0.88.tgz#429e3462ce22865dc40cc1cb27862edaeda0bbab"
+  integrity sha1-Qp40Ys4ihl3EDMHLJ4Yu2u2gu6s=
+  dependencies:
+    "@types/tern" "*"
+
 "@types/dom4@^2.0.1":
   version "2.0.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@types/dom4/-/dom4-2.0.1.tgz#506d5781b9bcab81bd9a878b198aec7dee2a6033"
@@ -1371,6 +1378,11 @@
   dependencies:
     "@types/cheerio" "*"
     "@types/react" "*"
+
+"@types/estree@*":
+  version "0.0.44"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/estree/-/estree-0.0.44.tgz#980cc5a29a3ef3bea6ff1f7d021047d7ea575e21"
+  integrity sha1-mAzFopo+876m/x99AhBH1+pXXiE=
 
 "@types/events@*":
   version "3.0.0"
@@ -1526,6 +1538,13 @@
   version "1.0.2"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@types/tapable/-/tapable-1.0.2.tgz#e13182e1b69871a422d7863e11a4a6f5b814a4bd"
   integrity sha1-4TGC4baYcaQi14Y+EaSm9bgUpL0=
+
+"@types/tern@*":
+  version "0.23.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/tern/-/tern-0.23.3.tgz#4b54538f04a88c9ff79de1f6f94f575a7f339460"
+  integrity sha1-S1RTjwSojJ/3neH2+U9XWn8zlGA=
+  dependencies:
+    "@types/estree" "*"
 
 "@types/yargs-parser@*":
   version "13.1.0"
@@ -3205,6 +3224,11 @@ code-point-at@^1.0.0:
   version "1.1.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
   integrity sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c=
+
+codemirror@^5.52.2:
+  version "5.52.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/codemirror/-/codemirror-5.52.2.tgz#c29e1f7179f85eb0dd17c0586fa810e4838ff584"
+  integrity sha1-wp4fcXn4XrDdF8BYb6gQ5IOP9YQ=
 
 collapse-white-space@^1.0.2:
   version "1.0.6"

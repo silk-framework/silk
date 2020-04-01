@@ -55,6 +55,7 @@ import {
 
 import Spacing from './src/components/Separation/Spacing';
 import Divider from './src/components/Separation/Divider';
+import QueryEditor from './src/components/QueryEditor/QueryEditor';
 
 import Tooltip from './src/components/Tooltip/Tooltip';
 
@@ -118,4 +119,6 @@ export {
     NumericInput, // TODO: scss styles
 
     TitleSubsection,
+
+    QueryEditor,
 };
