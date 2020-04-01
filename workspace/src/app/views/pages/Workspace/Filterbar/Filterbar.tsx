@@ -4,10 +4,10 @@ import { useParams } from "react-router";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { globalOp, globalSel } from "@ducks/global";
 import { routerSel } from "@ducks/router";
-import Checkbox from "@wrappers/blueprint/checkbox";
 import {
     Spacing,
     TitleSubsection,
+    Checkbox,
 } from "@wrappers/index";
 import FacetsList from "./FacetsList";
 

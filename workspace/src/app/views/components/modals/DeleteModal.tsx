@@ -2,8 +2,10 @@ import React, { ReactElement, useState } from "react";
 import { Classes } from "@wrappers/blueprint/constants";
 import Dialog from "@wrappers/blueprint/dialog";
 import Label from "@wrappers/blueprint/label";
-import Checkbox from "@wrappers/blueprint/checkbox";
-import { Button } from '@wrappers/index';
+import {
+    Button,
+    Checkbox,
+} from '@wrappers/index';
 
 export interface IDeleteModalOptions {
     isOpen: boolean;
@@ -39,12 +41,7 @@ export default function DeleteModal({isOpen, confirmationRequired, onDiscard, re
             <div className={Classes.DIALOG_FOOTER}>
                 <div className={Classes.DIALOG_FOOTER_ACTIONS}>
                     {
-                        confirmationRequired && (
-                            <>
-                                <Label>Confirm</Label>
-                                <Checkbox onChange={toggleConfirmChange}/>
-                            </>
-                        )
+                        confirmationRequired && <Checkbox onChange={toggleConfirmChange} label={"Confirm"} />
                     }
                     <Button onClick={onDiscard}>Cancel</Button>
                     <Button
