@@ -1,0 +1,14 @@
+@import "~@blueprintjs/core/src/components/forms/common";
+
+@import "~@blueprintjs/core/src/components/forms/control-group";
+// already used in own component @import "~@blueprintjs/core/src/components/forms/controls"; // Checkbox, Radio, Switch
+@import "~@blueprintjs/core/src/components/forms/file-input";
+@import "~@blueprintjs/core/src/components/forms/form-group";
+@import "~@blueprintjs/core/src/components/forms/input-group";
+@import "~@blueprintjs/core/src/components/forms/input";
+@import "~@blueprintjs/core/src/components/forms/label";
+@import "~@blueprintjs/core/src/components/forms/numeric-input";
+
+form {
+  display: block;
+}

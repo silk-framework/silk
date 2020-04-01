@@ -21,6 +21,7 @@ import Icon from './src/components/Icon/Icon';
 import IconButton from './src/components/Icon/IconButton';
 
 import Button from './src/components/Button/Button';
+import Checkbox from './src/components/Checkbox/Checkbox';
 
 import Menu from './src/components/Menu/Menu';
 import MenuItem from './src/components/Menu/MenuItem';
@@ -99,6 +100,7 @@ export {
     IconButton,
 
     Button,
+    Checkbox,
 
     BreadcrumbList,
     BreadcrumbItem,

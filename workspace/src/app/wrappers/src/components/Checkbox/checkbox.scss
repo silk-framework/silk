@@ -1,0 +1,42 @@
+// our vars
+$ecc-color-checkbox: $ecc-color-workspace-text !default;
+$ecc-color-checkbox-background: transparent !default;
+$ecc-color-checkbox-checked: $ecc-color-accent !default;
+$ecc-color-checkbox-checked-background: transparent !default;
+// library vars
+$control-background-color: $ecc-color-checkbox-background !default;
+$control-background-color-hover: $ecc-color-checkbox-background !default;
+$control-background-color-active: $ecc-color-checkbox-background !default;
+// $dark-control-background-color: $dark-button-background-color !default;
+// $dark-control-background-color-hover: $dark-button-background-color-hover !default;
+// $dark-control-background-color-active: $dark-button-background-color-active !default;
+$control-checked-background-color: $ecc-color-checkbox-checked-background !default;
+$control-checked-background-color-hover: $ecc-color-checkbox-checked-background !default;
+$control-checked-background-color-active: $ecc-color-checkbox-checked-background !default;
+$control-indicator-size: 16px; // !default;
+$control-indicator-size-large: 20px !default;
+$control-indicator-spacing: $ecc-size-inline-whitespace !default;
+
+@import "~@blueprintjs/core/src/components/forms/controls"; // Checkbox, Radio, Switch
+
+.#{$ns}-control {
+    &.#{$ns}-checkbox {
+        input ~ .#{$ns}-control-indicator,
+        input:checked ~ .#{$ns}-control-indicator,
+        input:indeterminate ~ .#{$ns}-control-indicator {
+            box-shadow: none;
+        }
+
+        input ~ .#{$ns}-control-indicator::before {
+            // TODO: set set icon line colors here we need a custom js inject like blueprint uses
+            color: $ecc-color-checkbox-checked;
+            background-image: url("~@carbon/icons/svg/32/checkbox.svg");
+        }
+        input:checked ~ .#{$ns}-control-indicator::before {
+            background-image: url("~@carbon/icons/svg/32/checkbox--checked.svg");
+        }
+        input:indeterminate ~ .#{$ns}-control-indicator::before {
+            background-image: url("~@carbon/icons/svg/32/checkbox--indeterminate.svg");
+        }
+    }
+}

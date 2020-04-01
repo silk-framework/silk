@@ -991,6 +991,11 @@
   dependencies:
     "@carbon/icon-helpers" "^10.6.0"
 
+"@carbon/icons@^10.9.3":
+  version "10.9.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@carbon/icons/-/icons-10.9.3.tgz#1e6f9cf705251964fa948f047bfe70f38c1312f2"
+  integrity sha1-Hm+c9wUlGWT6lI8Ee/5w84wTEvI=
+
 "@cnakazawa/watch@^1.0.3":
   version "1.0.3"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@cnakazawa/watch/-/watch-1.0.3.tgz#099139eaec7ebf07a27c1786a3ff64f39464d2ef"

@@ -34,7 +34,7 @@
 @import "~@blueprintjs/core/src/components/dialog/dialog";
 @import "~@blueprintjs/core/src/components/drawer/drawer";
 @import "~@blueprintjs/core/src/components/editable-text/editable-text";
-@import "~@blueprintjs/core/src/components/forms/index";
+// used in own component @import "~@blueprintjs/core/src/components/forms/index";
 @import "~@blueprintjs/core/src/components/html-select/html-select";
 @import "~@blueprintjs/core/src/components/html-table/html-table";
 @import "~@blueprintjs/core/src/components/hotkeys/hotkeys";
@@ -89,7 +89,7 @@
 // not used @import '~carbon-components/scss/components/button/button';
 @import '~carbon-components/scss/components/copy-button/copy-button';
 @import '~carbon-components/scss/components/file-uploader/file-uploader';
-@import '~carbon-components/scss/components/checkbox/checkbox';
+// not used @import '~carbon-components/scss/components/checkbox/checkbox';
 @import '~carbon-components/scss/components/combo-box/combo-box';
 @import '~carbon-components/scss/components/radio-button/radio-button';
 @import '~carbon-components/scss/components/toggle/toggle';
@@ -141,13 +141,15 @@
 @import 'src/components/Icon/icon';
 @import 'src/components/Menu/menu';
 @import 'src/components/ContextOverlay/contextoverlay';
-@import 'src/components/Button/button';
 @import 'src/components/OverviewItem/overviewitem';
 @import 'src/components/Breadcrumb/breadcrumb';
 @import 'src/components/Card/card';
 @import 'src/components/Separation/separation';
 @import 'src/components/Tooltip/tooltip';
 @import 'src/components/Structure/titles';
+@import 'src/components/Button/button';
+@import 'src/components/Form/form';
+@import 'src/components/Checkbox/checkbox';
 
 // == load tweaks ==============================================================
 
@@ -167,4 +169,3 @@
 
   @warn $deprecations--message;
 }
-

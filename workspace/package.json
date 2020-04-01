@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@blueprintjs/core": "^3.24.0",
+    "@carbon/icons": "^10.9.3",
     "@carbon/icons-react": "^10.8.2",
     "@reduxjs/toolkit": "^1.1.0",
     "@types/react-intl": "^2.3.17",
