@@ -20,6 +20,11 @@ import DiscardChangesDialog from './elements/DiscardChangesDialog';
 import EventEmitter from './utils/EventEmitter';
 import { isDebugMode } from './utils/isDebugMode';
 
+/**
+ * Legacy mappings evaluation view.
+ * Uses an inline iFrame to display the old evaluation tree.
+ * Should be replaced in the future.
+ */
 class EvaluateMapping extends React.Component {
     // define property types
     static propTypes = {
