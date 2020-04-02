@@ -1,24 +1,9 @@
 import React from 'react';
 import _ from 'lodash';
-import {
-    Button,
-    DisruptiveButton,
-    Spinner,
-} from '@eccenca/gui-elements';
-import { URI } from 'ecc-utils';
+
 import PropTypes from 'prop-types';
-
-import { ruleRemoveAsync, setApiDetails } from './store';
-
+import setApiDetails from './store';
 import MappingsTree from './containers/MappingsTree';
-import MappingsWorkview from './containers/MappingsWorkview';
-import MessageHandler from './components/MessageHandler';
-import { MAPPING_RULE_TYPE_OBJECT } from './utils/constants';
-import { MESSAGES } from './utils/constants';
-import RemoveMappingRuleDialog from './elements/RemoveMappingRuleDialog';
-import DiscardChangesDialog from './elements/DiscardChangesDialog';
-import EventEmitter from './utils/EventEmitter';
-import { isDebugMode } from './utils/isDebugMode';
 
 /**
  * Legacy mappings evaluation view.
@@ -31,9 +16,9 @@ class EvaluateMapping extends React.Component {
         baseUrl: PropTypes.string.isRequired, // DI API Base
         project: PropTypes.string.isRequired, // Current DI Project
         transformTask: PropTypes.string.isRequired, // Current Transformation
-        initialRule: PropTypes.string.isRequired,
-        offset: PropTypes.number.isRequired,
-        limit: PropTypes.number.isRequired
+        initialRule: PropTypes.string.isRequired, // Initially selected mapping rule
+        offset: PropTypes.number.isRequired, // Entity offset
+        limit: PropTypes.number.isRequired // Entity limit
     };
 
     constructor(props) {
