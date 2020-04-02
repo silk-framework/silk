@@ -3,6 +3,8 @@ package org.silkframework.workspace.resources
 abstract class SharedResourceRepositoryTest extends ResourceRepositoryTest {
 
   it should "share files from different projects" in {
+    repository.sharedResources mustBe true
+
     val resourceA = repository.get("projectA").get("resource")
     val resourceB = repository.get("projectB").get("resource")
 

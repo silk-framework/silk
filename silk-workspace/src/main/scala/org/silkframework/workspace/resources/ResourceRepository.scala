@@ -70,7 +70,7 @@ trait SharedResourceRespository { self: ResourceRepository =>
   /**
     * Returns true, because projects share resources.
     */
-  def sharedResources: Boolean = false
+  def sharedResources: Boolean = true
 
   /**
     * Retrieves all resources.

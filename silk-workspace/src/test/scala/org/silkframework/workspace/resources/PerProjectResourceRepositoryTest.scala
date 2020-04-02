@@ -3,6 +3,8 @@ package org.silkframework.workspace.resources
 abstract class PerProjectResourceRepositoryTest extends ResourceRepositoryTest {
 
   it should "separate files from different projects" in {
+    repository.sharedResources mustBe false
+
     val resourceA = repository.get("projectA").get("resource")
     val resourceB = repository.get("projectB").get("resource")
 
