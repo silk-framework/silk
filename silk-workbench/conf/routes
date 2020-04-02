@@ -10,3 +10,4 @@ GET        /workspaceNew/*x  controllers.Workbench.reactUI(x: String)
 ->         /linking        linking.Routes
 ->         /transform      transform.Routes
 ->         /workflow       workflow.Routes
+->         /api            api.Routes
