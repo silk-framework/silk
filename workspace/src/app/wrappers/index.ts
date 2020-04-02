@@ -22,6 +22,7 @@ import IconButton from './src/components/Icon/IconButton';
 
 import Button from './src/components/Button/Button';
 import Checkbox from './src/components/Checkbox/Checkbox';
+import RadioButton from './src/components/RadioButton/RadioButton';
 
 import Menu from './src/components/Menu/Menu';
 import MenuItem from './src/components/Menu/MenuItem';
@@ -100,6 +101,7 @@ export {
 
     Button,
     Checkbox,
+    RadioButton,
 
     BreadcrumbList,
     BreadcrumbItem,

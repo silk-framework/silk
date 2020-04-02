@@ -1,0 +1,29 @@
+// Checkbox need to be imported before, we won't double it here currently
+
+.#{$ns}-control {
+    &.#{$ns}-radio {
+        input ~ .#{$ns}-control-indicator,
+        input:checked ~ .#{$ns}-control-indicator {
+            box-shadow: none;
+        }
+
+        input:disabled ~ .#{$ns}-control-indicator,
+        input:disabled:checked ~ .#{$ns}-control-indicator
+        {
+            background-color: $ecc-color-checkbox-background;
+            opacity: 1;
+
+            &::before {
+                opacity: 0.25;
+            }
+        }
+
+        input ~ .#{$ns}-control-indicator::before {
+            background-image: url("~@carbon/icons/svg/32/radio-button.svg");
+        }
+        input:checked ~ .#{$ns}-control-indicator::before {
+            background-image: url("~@carbon/icons/svg/32/radio-button--checked.svg");
+        }
+
+    }
+}
