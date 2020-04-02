@@ -11,7 +11,7 @@ import org.silkframework.util.Identifier
   label = "File resources",
   description = "Holds all resources in a specified folder."
 )
-case class FileRepository(dir: String) extends ResourceRepository with SharedResourceRespository {
+case class SharedFileRepository(dir: String) extends ResourceRepository with SharedResourceRespository {
 
   val resourceManager = UrlResourceManager(FileResourceManager(new File(dir)))
 }
