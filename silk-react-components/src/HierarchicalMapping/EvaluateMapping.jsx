@@ -2,7 +2,7 @@ import React from 'react';
 import _ from 'lodash';
 
 import PropTypes from 'prop-types';
-import setApiDetails from './store';
+import {setApiDetails} from './store';
 import MappingsTree from './containers/MappingsTree';
 
 /**
