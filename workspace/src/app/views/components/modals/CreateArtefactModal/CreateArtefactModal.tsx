@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { Classes, Intent } from "@wrappers/blueprint/constants";
-import { Button } from "@wrappers/index";
-import Dialog from "@wrappers/blueprint/dialog";
-import Loading from "../../Loading";
 import { useDispatch, useSelector } from "react-redux";
-import Row from "@wrappers/carbon/grid/Row";
-import Col from "@wrappers/carbon/grid/Col";
+import { useForm } from "react-hook-form";
+import { Classes, Intent } from "@wrappers/blueprint/constants";
+import Dialog from "@wrappers/blueprint/dialog";
+import { globalOp, globalSel } from "@ducks/global";
+import { IArtefactItem } from "@ducks/global/typings";
+import {
+    Button,
+    WorkspaceGrid,
+    WorkspaceRow,
+    WorkspaceColumn,
+    Spacing,
+    TitleSubsection,
+} from "@wrappers/index";
+import { GenericForm } from "./ArtefactForms/GenericForm";
+import Loading from "../../Loading";
 import { SearchBar } from "../../SearchBar/SearchBar";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
-import { globalOp, globalSel } from "@ducks/global";
-import { GenericForm } from "./ArtefactForms/GenericForm";
-import { IArtefactItem } from "@ducks/global/typings";
-import { useForm } from "react-hook-form";
 
 const ARTEFACT_FORM_COMPONENTS_MAP = {
     project: ProjectForm
@@ -86,33 +91,38 @@ export function CreateArtefactModal() {
                         {
                             artefactForm
                                 ? artefactForm
-                                : <Row>
-                                    <Col span={4}>
-                                        <h3>Artefact Type</h3>
-                                        <ul>
-                                            <li><a href='#'>All</a></li>
-                                        </ul>
-                                    </Col>
-                                    <Col span={12}>
-                                        <Row>
-                                            <SearchBar onSort={() => {}} onApplyFilters={() => {}}/>
-                                        </Row>
-                                        <Row>
-                                            <Col>
-                                                <Button onClick={_TEMP_handleProjectSelect}>
-                                                    Project
-                                                </Button>
-                                            </Col>
-                                            {
-                                                artefactsList.map(artefact =>
-                                                    <Col key={artefact.key}>
-                                                        <Button onClick={() => handleArtefactSelect(artefact)}>{artefact.title}</Button>
-                                                    </Col>
-                                                )
-                                            }
-                                        </Row>
-                                    </Col>
-                                </Row>
+                                : (
+                                    <WorkspaceGrid>
+                                        <WorkspaceRow>
+                                           <WorkspaceColumn small>
+                                               <TitleSubsection>Artefact Type</TitleSubsection>
+                                               <ul>
+                                                   <li><a href='#'>All</a></li>
+                                               </ul>
+                                           </WorkspaceColumn>
+                                           <WorkspaceColumn>
+                                                <SearchBar onSort={() => {}} onApplyFilters={() => {}}/>
+                                                <Spacing />
+                                                <WorkspaceGrid>
+                                                    <WorkspaceRow>
+                                                        <WorkspaceColumn>
+                                                            <Button onClick={_TEMP_handleProjectSelect}>
+                                                                Project
+                                                            </Button>
+                                                        </WorkspaceColumn>
+                                                       {
+                                                           artefactsList.map(artefact =>
+                                                               <WorkspaceColumn key={artefact.key}>
+                                                                   <Button onClick={() => handleArtefactSelect(artefact)}>{artefact.title}</Button>
+                                                               </WorkspaceColumn>
+                                                           )
+                                                       }
+                                                    </WorkspaceRow>
+                                                </WorkspaceGrid>
+                                           </WorkspaceColumn>
+                                        </WorkspaceRow>
+                                    </WorkspaceGrid>
+                                )
                         }
                     </div>
                     <div className={Classes.DIALOG_FOOTER}>
