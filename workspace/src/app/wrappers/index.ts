@@ -34,6 +34,8 @@ import ContextMenu from './src/components/ContextOverlay/ContextMenu';
 import Switch from './src/components/Switch/Switch';
 import NumericInput from './src/components/NumericInput/NumericInput';
 
+import Pagination from './src/components/Pagination/Pagination';
+
 import {
     OverviewItem,
     OverviewItemDepiction,
@@ -122,4 +124,6 @@ export {
     NumericInput, // TODO: scss styles
 
     TitleSubsection,
+
+    Pagination,
 };

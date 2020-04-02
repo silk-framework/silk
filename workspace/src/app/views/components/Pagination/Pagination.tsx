@@ -1,9 +1,11 @@
 import React from 'react';
-import CPagination from "@wrappers/carbon/Pagination"
+import { Pagination } from "@wrappers/index";
 
-export function Pagination({pagination, onChangeSelect, pageSizes}) {
+// TODO: why do we not use the Pagination element directly, don't see any real benefit of this wrapper here
+
+export function AppPagination({pagination, onChangeSelect, pageSizes}) {
     return (
-        <CPagination
+        <Pagination
             onChange={({page, pageSize}) => {onChangeSelect(page, pageSize)} }
             totalItems={pagination.total}
             pageSizes={pageSizes}

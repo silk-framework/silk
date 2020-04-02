@@ -1,0 +1,12 @@
+$ecc-color-pagination-background: transparent !default;
+$ecc-color-pagination-text: $ecc-color-workspace-text !default;
+
+@import '~carbon-components/scss/components/pagination/pagination';
+
+#{$prefix}--pagination {
+    background-color: $ecc-color-pagination-background;
+}
+
+span.#{$prefix}--pagination__text {
+    color: $ecc-color-pagination-text;
+}
