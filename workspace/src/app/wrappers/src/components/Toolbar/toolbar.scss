@@ -1,0 +1,17 @@
+.ecc-toolbar {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+    align-content: center;
+}
+
+.ecc-toolbar__section {
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.ecc-toolbar__section--cangrow {
+    flex-grow: 1;
+}

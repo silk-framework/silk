@@ -62,8 +62,13 @@ import Divider from './src/components/Separation/Divider';
 
 import Tooltip from './src/components/Tooltip/Tooltip';
 
+import Toolbar from './src/components/Toolbar/Toolbar';
+import ToolbarSection from './src/components/Toolbar/ToolbarSection';
+
 import Section from './src/components/Structure/Section';
+import SectionHeader from './src/components/Structure/SectionHeader';
 import TitleSubsection from './src/components/Structure/TitleSubsection';
+import TitleMainsection from './src/components/Structure/TitleMainsection';
 
 export {
     ApplicationContainer,
@@ -125,7 +130,12 @@ export {
     NumericInput, // TODO: scss styles
 
     Section,
+    SectionHeader,
     TitleSubsection,
+    TitleMainsection,
+
+    Toolbar,
+    ToolbarSection,
 
     Pagination,
 };
