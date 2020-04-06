@@ -9,10 +9,10 @@ import {
     WorkspaceContent,
     WorkspaceMain,
     WorkspaceSide,
-    WorkspaceSection,
-    WorkspaceGrid,
-    WorkspaceRow,
-    WorkspaceColumn,
+    Section,
+    Grid,
+    GridRow,
+    GridColumn,
 } from "@wrappers/index";
 import SearchBar from "../../components/SearchBar";
 import { globalOp } from "@ducks/global";
@@ -39,29 +39,29 @@ const Projects = () => {
     return (
         <WorkspaceContent className="eccapp-di__workspace">
             <WorkspaceMain>
-                <WorkspaceSection>
+                <Section>
                     <SearchBar
                         textQuery={textQuery}
                         sorters={sorters}
                         onSort={handleSort}
                         onApplyFilters={handleApplyFilter}
                     />
-                    <WorkspaceGrid>
-                        <WorkspaceRow>
-                            <WorkspaceColumn small>
+                    <Grid>
+                        <GridRow>
+                            <GridColumn small>
                                 <Filterbar/>
-                            </WorkspaceColumn>
-                            <WorkspaceColumn full>
+                            </GridColumn>
+                            <GridColumn full>
                                 <SearchList/>
-                            </WorkspaceColumn>
-                        </WorkspaceRow>
-                    </WorkspaceGrid>
-                </WorkspaceSection>
+                            </GridColumn>
+                        </GridRow>
+                    </Grid>
+                </Section>
             </WorkspaceMain>
             <WorkspaceSide>
-                <WorkspaceSection>
+                <Section>
                     <EmptyWorkspace />
-                </WorkspaceSection>
+                </Section>
             </WorkspaceSide>
         </WorkspaceContent>
     )

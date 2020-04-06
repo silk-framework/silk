@@ -11,7 +11,8 @@ import { useDispatch, useSelector } from "react-redux";
 import DataList from "../../../../components/Datalist";
 import Loading from "../../../../components/Loading";
 import {
-    Button
+    Button,
+    Spacing,
 } from '@wrappers/index';
 
 const PrefixesDialog = ({onCloseModal, isOpen}) => {
@@ -73,6 +74,7 @@ const PrefixesDialog = ({onCloseModal, isOpen}) => {
                                 onChangePrefix={handleUpdatePrefixFields}
                                 onAdd={() => handleAddOrUpdatePrefix(newPrefix)}
                             />
+                            <Spacing small />
                             <DataList data={prefixList} densityHigh hasSpacing hasDivider>
                                 {
                                     prefixList.map((prefix, i) =>

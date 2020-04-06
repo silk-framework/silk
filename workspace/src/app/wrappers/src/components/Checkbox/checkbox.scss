@@ -27,6 +27,17 @@ $control-indicator-spacing: $ecc-size-inline-whitespace !default;
             box-shadow: none;
         }
 
+        input:disabled ~ .#{$ns}-control-indicator,
+        input:disabled:checked ~ .#{$ns}-control-indicator,
+        {
+            background-color: $ecc-color-checkbox-background;
+            opacity: 1;
+
+            &::before {
+                opacity: 0.25;
+            }
+        }
+
         input ~ .#{$ns}-control-indicator::before {
             // TODO: set set icon line colors here we need a custom js inject like blueprint uses
             color: $ecc-color-checkbox-checked;

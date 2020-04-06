@@ -1,13 +1,14 @@
 import React from 'react';
 import InputGroup from '@wrappers/blueprint/input-group';
-import Row from "@wrappers/carbon/grid/Row";
-import Col from "@wrappers/carbon/grid/Col";
 import {
     Button,
     Card,
     CardHeader,
     CardTitle,
     CardContent,
+    Grid,
+    GridRow,
+    GridColumn,
 } from '@wrappers/index';
 
 const PrefixNew = ({onAdd, onChangePrefix, prefix}) => {
@@ -19,30 +20,32 @@ const PrefixNew = ({onAdd, onChangePrefix, prefix}) => {
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <Row>
-                    <Col span={7}>
-                        <InputGroup
-                            value={prefix.prefixName}
-                            onChange={(e) => onChangePrefix('prefixName', e.target.value)}
-                            placeholder={'Prefix Name'}/>
-                    </Col>
-                    <Col span={8}>
-                        <InputGroup
-                            value={prefix.prefixUri}
-                            onChange={(e) => onChangePrefix('prefixUri', e.target.value)}
-                            placeholder={'Prefix URI'}
-                        />
-                    </Col>
-                    <Col span={1}>
-                        <Button
-                            onClick={onAdd}
-                            elevated
-                            disabled={!prefix.prefixName || !prefix.prefixUri}
-                        >
-                            Add
-                        </Button>
-                    </Col>
-                </Row>
+                <Grid>
+                    <GridRow>
+                        <GridColumn medium>
+                            <InputGroup
+                                value={prefix.prefixName}
+                                onChange={(e) => onChangePrefix('prefixName', e.target.value)}
+                                placeholder={'Prefix Name'}/>
+                        </GridColumn>
+                        <GridColumn>
+                            <InputGroup
+                                value={prefix.prefixUri}
+                                onChange={(e) => onChangePrefix('prefixUri', e.target.value)}
+                                placeholder={'Prefix URI'}
+                            />
+                        </GridColumn>
+                        <GridColumn small>
+                            <Button
+                                onClick={onAdd}
+                                elevated
+                                disabled={!prefix.prefixName || !prefix.prefixUri}
+                            >
+                                Add
+                            </Button>
+                        </GridColumn>
+                    </GridRow>
+                </Grid>
             </CardContent>
         </Card>
     );

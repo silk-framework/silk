@@ -8,13 +8,13 @@ import ApplicationToolbarSection from './src/components/Application/ApplicationT
 import ApplicationToolbarAction from './src/components/Application/ApplicationToolbarAction';
 import ApplicationToolbarPanel from './src/components/Application/ApplicationToolbarPanel';
 
-import WorkspaceGrid from './src/components/Workspace/WorkspaceGrid';
-import WorkspaceRow from './src/components/Workspace/WorkspaceRow';
-import WorkspaceColumn from './src/components/Workspace/WorkspaceColumn';
+import Grid from './src/components/Grid/Grid';
+import GridRow from './src/components/Grid/GridRow';
+import GridColumn from './src/components/Grid/GridColumn';
+
 import WorkspaceContent from './src/components/Workspace/WorkspaceContent';
 import WorkspaceMain from './src/components/Workspace/WorkspaceMain';
 import WorkspaceSide from './src/components/Workspace/WorkspaceSide';
-import WorkspaceSection from './src/components/Workspace/WorkspaceSection';
 import WorkspaceHeader from './src/components/Workspace/WorkspaceHeader';
 
 import Icon from './src/components/Icon/Icon';
@@ -22,6 +22,7 @@ import IconButton from './src/components/Icon/IconButton';
 
 import Button from './src/components/Button/Button';
 import Checkbox from './src/components/Checkbox/Checkbox';
+import RadioButton from './src/components/RadioButton/RadioButton';
 
 import Menu from './src/components/Menu/Menu';
 import MenuItem from './src/components/Menu/MenuItem';
@@ -32,6 +33,8 @@ import ContextMenu from './src/components/ContextOverlay/ContextMenu';
 
 import Switch from './src/components/Switch/Switch';
 import NumericInput from './src/components/NumericInput/NumericInput';
+
+import Pagination from './src/components/Pagination/Pagination';
 
 import {
     OverviewItem,
@@ -59,6 +62,7 @@ import Divider from './src/components/Separation/Divider';
 
 import Tooltip from './src/components/Tooltip/Tooltip';
 
+import Section from './src/components/Structure/Section';
 import TitleSubsection from './src/components/Structure/TitleSubsection';
 
 export {
@@ -72,13 +76,13 @@ export {
     ApplicationToolbarAction,
     ApplicationToolbarPanel,
 
-    WorkspaceGrid,
-    WorkspaceRow,
-    WorkspaceColumn,
+    Grid,
+    GridRow,
+    GridColumn,
+
     WorkspaceContent,
     WorkspaceMain,
     WorkspaceSide,
-    WorkspaceSection,
     WorkspaceHeader,
 
     Menu,
@@ -100,6 +104,7 @@ export {
 
     Button,
     Checkbox,
+    RadioButton,
 
     BreadcrumbList,
     BreadcrumbItem,
@@ -119,5 +124,8 @@ export {
     Switch, // TODO: scss styles
     NumericInput, // TODO: scss styles
 
+    Section,
     TitleSubsection,
+
+    Pagination,
 };

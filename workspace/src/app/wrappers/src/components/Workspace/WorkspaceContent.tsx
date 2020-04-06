@@ -1,20 +1,20 @@
 import React from "react";
 // import PropTypes from 'prop-types';
-import WorkspaceGrid from "./WorkspaceGrid";
-import WorkspaceRow from "./WorkspaceRow";
+import Grid from "./../Grid/Grid";
+import GridRow from "./../Grid/GridRow";
 
 function WorkspaceContent({ children, className = '', ...restProps }: any) {
     return (
-        <WorkspaceGrid
+        <Grid
             {...restProps}
             as={'article'}
             className={'ecc-workspace__content '+className}
             fullWidth={true}
         >
-            <WorkspaceRow>
+            <GridRow>
                 { children }
-            </WorkspaceRow>
-        </WorkspaceGrid>
+            </GridRow>
+        </Grid>
     )
 }
 

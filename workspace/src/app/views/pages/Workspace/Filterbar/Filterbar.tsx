@@ -7,7 +7,7 @@ import { routerSel } from "@ducks/router";
 import {
     Spacing,
     TitleSubsection,
-    Checkbox,
+    RadioButton,
 } from "@wrappers/index";
 import FacetsList from "./FacetsList";
 
@@ -44,16 +44,26 @@ export function Filterbar() {
                     <TitleSubsection>{typeModifier.label}</TitleSubsection>
                     <Spacing size="tiny" />
                     <ul>
-                    {
-                        typeModifier.options.map(opt =>
-                            <li key={opt.id}><Checkbox
-                                checked={appliedFilters[typeModifier.field] === opt.id}
-                                label={opt.label}
-                                onChange={() => handleFilterSelect(typeModifier.field, opt.id)}
-                                value={opt.id}
-                            /></li>
-                        )
-                    }
+                        <li key={'alltypes'}>
+                            <RadioButton
+                                checked={!appliedFilters[typeModifier.field]}
+                                label={'All types'}
+                                onChange={() => handleFilterSelect(typeModifier.field, '')}
+                                value={''}
+                            />
+                        </li>
+                        {
+                            typeModifier.options.map(opt =>
+                                <li key={opt.id}>
+                                    <RadioButton
+                                        checked={appliedFilters[typeModifier.field] === opt.id}
+                                        label={opt.label}
+                                        onChange={() => handleFilterSelect(typeModifier.field, opt.id)}
+                                        value={opt.id}
+                                    />
+                                </li>
+                            )
+                        }
                     </ul>
                     <Spacing />
                     <FacetsList/>

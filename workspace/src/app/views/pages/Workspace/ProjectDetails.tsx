@@ -15,10 +15,10 @@ import {
     WorkspaceContent,
     WorkspaceMain,
     WorkspaceSide,
-    WorkspaceSection,
-    WorkspaceGrid,
-    WorkspaceRow,
-    WorkspaceColumn,
+    Section,
+    Grid,
+    GridRow,
+    GridColumn,
     Spacing,
 } from "@wrappers/index";
 
@@ -42,32 +42,32 @@ const ProjectDetails = ({projectId}) => {
         !currentProjectId ? <Loading /> :
         <WorkspaceContent className="eccapp-di__project">
             <WorkspaceMain>
-                <WorkspaceSection>
+                <Section>
                     <Metadata taskId={projectId}/>
                     <Spacing />
-                </WorkspaceSection>
-                <WorkspaceSection>
+                </Section>
+                <Section>
                     <TopBar/>
-                    <WorkspaceGrid>
-                        <WorkspaceRow>
-                            <WorkspaceColumn small>
+                    <Grid>
+                        <GridRow>
+                            <GridColumn small>
                                 <Filterbar/>
-                            </WorkspaceColumn>
-                            <WorkspaceColumn full>
+                            </GridColumn>
+                            <GridColumn full>
                                 <SearchList/>
-                            </WorkspaceColumn>
-                        </WorkspaceRow>
-                    </WorkspaceGrid>
-                </WorkspaceSection>
+                            </GridColumn>
+                        </GridRow>
+                    </Grid>
+                </Section>
             </WorkspaceMain>
             <WorkspaceSide>
-                <WorkspaceSection>
+                <Section>
                     <FileWidget/>
                     <Spacing />
                     <ConfigurationWidget/>
                     <Spacing />
                     <WarningWidget/>
-                </WorkspaceSection>
+                </Section>
             </WorkspaceSide>
         </WorkspaceContent>
     )
