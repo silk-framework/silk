@@ -17,9 +17,9 @@
     "item-remove": "TrashCan",
     "item-add-artefact": "AddAlt",
 
-    "list-sort": "ChevronSort",
-    "list-sortasc": "ChevronSortDown",
-    "list-sortdesc": "ChevronSortUp",
+    "list-sort": "ArrowsVertical",
+    "list-sortasc": "ArrowDown",
+    "list-sortdesc": "ArrowUp",
 
     "artefact-project": "Folder"
 }
