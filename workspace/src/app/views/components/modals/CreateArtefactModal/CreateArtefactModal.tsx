@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useForm } from "react-hook-form";
 import { Classes, Intent } from "@wrappers/blueprint/constants";
 import Dialog from "@wrappers/blueprint/dialog";
-import { globalOp, globalSel } from "@ducks/global";
-import { IArtefactItem } from "@ducks/global/typings";
 import {
     Button,
     Grid,
@@ -13,7 +10,6 @@ import {
     Spacing,
     TitleSubsection,
 } from "@wrappers/index";
-import { GenericForm } from "./ArtefactForms/GenericForm";
 import Loading from "../../Loading";
 import { SearchBar } from "../../SearchBar/SearchBar";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
@@ -77,8 +73,8 @@ export function CreateArtefactModal() {
         const ComponentForm = ARTEFACT_FORM_COMPONENTS_MAP[key];
 
         artefactForm = projectId
-            ? <TaskForm form={form} artefact={selected} projectId={projectId} />
-            : <ComponentForm form={form} />
+            ? <TaskForm form={form} artefact={selected} projectId={projectId}/>
+            : <ComponentForm form={form}/>
     }
 
     return (
@@ -98,15 +94,17 @@ export function CreateArtefactModal() {
                                 : (
                                     <Grid>
                                         <GridRow>
-                                           <GridColumn small>
-                                               <TitleSubsection>Artefact Type</TitleSubsection>
-                                               <ul>
-                                                   <li><a href='#'>All</a></li>
-                                               </ul>
-                                           </GridColumn>
-                                           <GridColumn>
-                                                <SearchBar onSort={() => {}} onApplyFilters={() => {}}/>
-                                                <Spacing />
+                                            <GridColumn small>
+                                                <TitleSubsection>Artefact Type</TitleSubsection>
+                                                <ul>
+                                                    <li><a href='#'>All</a></li>
+                                                </ul>
+                                            </GridColumn>
+                                            <GridColumn>
+                                                <SearchBar onSort={() => {
+                                                }} onApplyFilters={() => {
+                                                }}/>
+                                                <Spacing/>
                                                 <Grid>
                                                     <GridRow>
                                                         <GridColumn>
@@ -114,16 +112,17 @@ export function CreateArtefactModal() {
                                                                 Project
                                                             </Button>
                                                         </GridColumn>
-                                                       {
-                                                           projectId && artefactsList.map(artefact =>
-                                                               <GridColumn key={artefact.key}>
-                                                                   <Button onClick={() => handleArtefactSelect(artefact)}>{artefact.title}</Button>
-                                                               </GridColumn>
-                                                           )
-                                                       }
+                                                        {
+                                                            projectId && artefactsList.map(artefact =>
+                                                                <GridColumn key={artefact.key}>
+                                                                    <Button
+                                                                        onClick={() => handleArtefactSelect(artefact)}>{artefact.title}</Button>
+                                                                </GridColumn>
+                                                            )
+                                                        }
                                                     </GridRow>
                                                 </Grid>
-                                           </GridColumn>
+                                            </GridColumn>
                                         </GridRow>
                                     </Grid>
                                 )
