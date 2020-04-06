@@ -13,10 +13,11 @@ import {
 import MarkdownModal from "../../../../components/modals/MarkdownModal";
 import { AppToaster } from "../../../../../services/toaster";
 import Loading from "../Configuration";
+import { globalSel } from "@ducks/global";
 
 export const WarningWidget = () => {
     const dispatch = useDispatch();
-    const projectId = useSelector(workspaceSel.currentProjectIdSelector);
+    const projectId = useSelector(globalSel.currentProjectIdSelector);
     const warningList = useSelector(workspaceSel.warningListSelector);
 
     const warnWidget = useSelector(workspaceSel.widgetsSelector).warnings;

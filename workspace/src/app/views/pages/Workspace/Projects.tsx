@@ -15,6 +15,7 @@ import {
     WorkspaceColumn,
 } from "@wrappers/index";
 import SearchBar from "../../components/SearchBar";
+import { globalOp } from "@ducks/global";
 
 const Projects = () => {
     const dispatch = useDispatch();
@@ -22,7 +23,7 @@ const Projects = () => {
     const sorters = useSelector(workspaceSel.sortersSelector);
 
     useEffect(() => {
-        dispatch(workspaceOp.unsetProject());
+        dispatch(globalOp.unsetProject());
         // Fetch the list of projects
         dispatch(workspaceOp.fetchListAsync());
     }, []);

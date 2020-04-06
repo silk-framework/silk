@@ -11,7 +11,7 @@ import { workspaceOp } from "@ducks/workspace";
 const {
     addBreadcrumb, setError, fetchAvailableDTypes,
     updateAvailableDTypes, fetchArtefactsList, setArtefactsList,
-    closeArtefactModal, selectArtefact
+    closeArtefactModal, selectArtefact, setProjectId, unsetProject
 } = globalSlice.actions;
 
 /**
@@ -87,5 +87,7 @@ export default {
     fetchArtefactsListAsync,
     closeArtefactModal,
     selectArtefact,
+    setProjectId,
+    unsetProject,
     createArtefactAsync
 };

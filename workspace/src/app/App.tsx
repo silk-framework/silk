@@ -31,7 +31,6 @@ export default function App({externalRoutes, routes}: IProps) {
             href: '',
             text: 'Data Integration'
         }));
-        dispatch(globalOp.fetchArtefactsListAsync());
     }, []);
 
     return (

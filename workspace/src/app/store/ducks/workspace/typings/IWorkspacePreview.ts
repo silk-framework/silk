@@ -38,11 +38,6 @@ export interface IPreviewState {
      */
     searchResults: ISearchResultsServer[];
     /**
-     * Used in Project details page only and store the current selected project id
-     * Received from router
-     */
-    currentProjectId: string;
-    /**
      * Loading indicator for Workspace and Project Details page
      */
     isLoading: boolean;

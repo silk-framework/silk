@@ -12,6 +12,7 @@ import {
 import Loading from "../../../../components/Loading";
 import FileUploadModal from "../../../../components/modals/FileUploadModal";
 import { getLegacyApiEndpoint } from "../../../../../utils/getApiEndpoint";
+import { globalSel } from "@ducks/global";
 
 const {
     TableContainer,
@@ -29,7 +30,7 @@ const {
 export const FileWidget = () => {
     const dispatch = useDispatch();
 
-    const projectId = useSelector(workspaceSel.currentProjectIdSelector);
+    const projectId = useSelector(globalSel.currentProjectIdSelector);
     const filesList = useSelector(workspaceSel.filesListSelector);
     const fileWidget = useSelector(workspaceSel.widgetsSelector).files;
 

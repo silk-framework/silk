@@ -1,4 +1,3 @@
-
 export interface IBreadcrumbState {
     href: string;
     text: string;
@@ -19,14 +18,19 @@ export interface IAvailableDataType {
     options: IAvailableDataTypeOption[];
 }
 
+export interface IPropertyAutocomplete {
+    allowOnlyAutoCompletedValues: boolean;
+    autoCompleteValueWithLabels: boolean;
+    autoCompletionDependsOnParameters: string[];
+}
+
 export interface IArtefactItemProperty {
-    [key: string]: {
-        title: string;
-        description: string;
-        type: string;
-        value: string;
-        advanced: boolean;
-    }
+    title: string;
+    description: string;
+    type: string;
+    value: string;
+    advanced: boolean;
+    autoCompletion?: IPropertyAutocomplete;
 }
 
 export interface IArtefactItem {
@@ -35,7 +39,9 @@ export interface IArtefactItem {
     description: string;
     type: string;
     categories: string[];
-    properties: IArtefactItemProperty;
+    properties: {
+        [key: string]: IArtefactItemProperty
+    };
     required: string[];
 }
 
@@ -46,6 +52,11 @@ export interface IArtefactModal {
 }
 
 export interface IGlobalState {
+    /**
+     * Used in Project details page only and store the current selected project id
+     * Received from router
+     */
+    currentProjectId: string;
     locale: string;
     authenticated: boolean;
     searchQuery: string;

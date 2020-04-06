@@ -9,7 +9,7 @@ import Col from "@wrappers/carbon/grid/Col";
 import { SearchBar } from "../../SearchBar/SearchBar";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
 import { globalOp, globalSel } from "@ducks/global";
-import { GenericForm } from "./ArtefactForms/GenericForm";
+import { TaskForm } from "./ArtefactForms/TaskForm";
 import { IArtefactItem } from "@ducks/global/typings";
 import { useForm } from "react-hook-form";
 
@@ -19,11 +19,11 @@ const ARTEFACT_FORM_COMPONENTS_MAP = {
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
-    const form = useForm({
-        mode: 'onChange'
-    });
+    const form = useForm();
 
     const modalStore = useSelector(globalSel.artefactModalSelector);
+    const projectId = useSelector(globalSel.currentProjectIdSelector);
+
     const {selectedArtefact, isOpen, artefactsList} = modalStore;
 
     const [loading, setLoading] = useState<boolean>(false);
@@ -64,12 +64,12 @@ export function CreateArtefactModal() {
 
     let artefactForm = null;
     if (modalStore.selectedArtefact) {
-        const {key, properties, required} = modalStore.selectedArtefact;
+        const {key} = modalStore.selectedArtefact;
         const ComponentForm = ARTEFACT_FORM_COMPONENTS_MAP[key];
 
-        artefactForm = ComponentForm
-            ? <ComponentForm form={form} />
-            : <GenericForm form={form} properties={properties} required={required}/>
+        artefactForm = projectId
+            ? <TaskForm form={form} artefact={selected} projectId={projectId} />
+            : <ComponentForm form={form} />
     }
 
     return (
@@ -104,7 +104,7 @@ export function CreateArtefactModal() {
                                                 </Button>
                                             </Col>
                                             {
-                                                artefactsList.map(artefact =>
+                                                projectId && artefactsList.map(artefact =>
                                                     <Col key={artefact.key}>
                                                         <Button onClick={() => handleArtefactSelect(artefact)}>{artefact.title}</Button>
                                                     </Col>

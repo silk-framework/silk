@@ -28,6 +28,12 @@ export const globalSlice = createSlice({
         setArtefactsList(state, action) {
             state.artefactModal.artefactsList = action.payload;
         },
+        setProjectId(state, action) {
+            state.currentProjectId = action.payload;
+        },
+        unsetProject(state) {
+            state.currentProjectId = null;
+        },
         setError(state, action) {
             let error = action.payload;
             if (isNetworkError(error)) {

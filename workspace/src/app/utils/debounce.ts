@@ -1,48 +1,41 @@
-import { curry, apply } from 'ramda';
-
 /**
- * Debounce
- *
- * @param {Boolean} immediate If true run `fn` at the start of the timeout
- * @param  timeMs {Number} Debounce timeout
- * @param  fn {Function} Function to debounce
- *
- * @return {Number} timeout
- * @example
- *
- *		const say = (x) => console.log(x)
- *		const debouncedSay = debounce_(false, 1000, say)();
- *
- *		debouncedSay("1")
- *		debouncedSay("2")
- *		debouncedSay("3")
- *
+ * A function that emits a side effect and does not return anything.
  */
-const debounce_ = curry((immediate, timeMs, fn) => () => {
-    let timeout;
+export type Procedure = (...args: any[]) => void;
 
-    return (...args) => {
-        const later = () => {
-            timeout = null;
+export type Options = {
+    isImmediate: boolean,
+}
 
-            if (!immediate) {
-                apply(fn, args);
+export function debounce<F extends Procedure>(
+    func: F,
+    waitMilliseconds = 50,
+    options: Options = {
+        isImmediate: false
+    },
+): (this: ThisParameterType<F>, ...args: Parameters<F>) => void {
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    return function(this: ThisParameterType<F>, ...args: Parameters<F>) {
+        const context = this;
+
+        const doLater = function() {
+            timeoutId = undefined;
+            if (!options.isImmediate) {
+                func.apply(context, args);
             }
-        };
-
-        const callNow = immediate && !timeout;
-
-        clearTimeout(timeout);
-        timeout = setTimeout(later, timeMs);
-
-        if (callNow) {
-            apply(fn, args);
         }
 
-        return timeout;
-    };
-});
+        const shouldCallNow = options.isImmediate && timeoutId === undefined;
 
-export const debounceImmediate = debounce_(true);
+        if (timeoutId !== undefined) {
+            clearTimeout(timeoutId);
+        }
 
-export const debounce = debounce_(false);
+        timeoutId = setTimeout(doLater, waitMilliseconds);
+
+        if (shouldCallNow) {
+            func.apply(context, args);
+        }
+    }
+}
