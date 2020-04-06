@@ -3,33 +3,34 @@ $ecc-color-separation-divider: $pt-divider-black !default;
 
 .ecc-separation__spacing-horizontal {
     margin: 0;
+    padding: 0;
     box-sizing: content-box;
     height: 1px;
     width: 100%;
 }
 
 .ecc-separation__spacing-horizontal--none {
-    padding: 0;
+    margin: 0;
 }
 
 .ecc-separation__spacing-horizontal--tiny {
-    padding: $ecc-size-separation-spacing-medium/8 0;
+    margin: $ecc-size-separation-spacing-medium/8 0;
 }
 
 .ecc-separation__spacing-horizontal--small {
-    padding: $ecc-size-separation-spacing-medium/4 0;
+    margin: $ecc-size-separation-spacing-medium/4 0;
 }
 
 .ecc-separation__spacing-horizontal--medium {
-    padding: $ecc-size-separation-spacing-medium/2 0;
+    margin: $ecc-size-separation-spacing-medium/2 0;
 }
 
 .ecc-separation__spacing-horizontal--large {
-    padding: $ecc-size-separation-spacing-medium * 0.75 0;
+    margin: $ecc-size-separation-spacing-medium * 0.75 0;
 }
 
 .ecc-separation__spacing-horizontal--xlarge {
-    padding: $ecc-size-separation-spacing-medium 0;
+    margin: $ecc-size-separation-spacing-medium 0;
 }
 
 .ecc-separation__divider-horizontal {
