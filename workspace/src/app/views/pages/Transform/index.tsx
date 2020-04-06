@@ -10,7 +10,7 @@ import { datasetSel } from "@ducks/dataset";
 import {
     WorkspaceContent,
     WorkspaceMain,
-    WorkspaceSection,
+    Section,
 } from "@wrappers/index";
 
 export default function () {
@@ -30,9 +30,9 @@ export default function () {
     return (
         <WorkspaceContent className="eccapp-di__transformation">
             <WorkspaceMain>
-                <WorkspaceSection>
+                <Section>
                     <Metadata projectId={projectId} taskId={transformId}/>
-                </WorkspaceSection>
+                </Section>
             </WorkspaceMain>
         </WorkspaceContent>
     );

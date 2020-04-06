@@ -15,7 +15,7 @@ import {
     WorkspaceContent,
     WorkspaceMain,
     WorkspaceSide,
-    WorkspaceSection,
+    Section,
     WorkspaceGrid,
     WorkspaceRow,
     WorkspaceColumn,
@@ -40,11 +40,11 @@ const ProjectDetails = ({projectId}) => {
         !currentProjectId ? <Loading /> :
         <WorkspaceContent className="eccapp-di__project">
             <WorkspaceMain>
-                <WorkspaceSection>
+                <Section>
                     <Metadata taskId={projectId}/>
                     <Spacing />
-                </WorkspaceSection>
-                <WorkspaceSection>
+                </Section>
+                <Section>
                     <TopBar/>
                     <WorkspaceGrid>
                         <WorkspaceRow>
@@ -56,16 +56,16 @@ const ProjectDetails = ({projectId}) => {
                             </WorkspaceColumn>
                         </WorkspaceRow>
                     </WorkspaceGrid>
-                </WorkspaceSection>
+                </Section>
             </WorkspaceMain>
             <WorkspaceSide>
-                <WorkspaceSection>
+                <Section>
                     <FileWidget/>
                     <Spacing />
                     <ConfigurationWidget/>
                     <Spacing />
                     <WarningWidget/>
-                </WorkspaceSection>
+                </Section>
             </WorkspaceSide>
         </WorkspaceContent>
     )

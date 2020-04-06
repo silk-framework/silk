@@ -9,7 +9,7 @@ import {
     WorkspaceContent,
     WorkspaceMain,
     WorkspaceSide,
-    WorkspaceSection,
+    Section,
     WorkspaceGrid,
     WorkspaceRow,
     WorkspaceColumn,
@@ -38,7 +38,7 @@ const Projects = () => {
     return (
         <WorkspaceContent className="eccapp-di__workspace">
             <WorkspaceMain>
-                <WorkspaceSection>
+                <Section>
                     <SearchBar
                         textQuery={textQuery}
                         sorters={sorters}
@@ -55,12 +55,12 @@ const Projects = () => {
                             </WorkspaceColumn>
                         </WorkspaceRow>
                     </WorkspaceGrid>
-                </WorkspaceSection>
+                </Section>
             </WorkspaceMain>
             <WorkspaceSide>
-                <WorkspaceSection>
+                <Section>
                     <EmptyWorkspace />
-                </WorkspaceSection>
+                </Section>
             </WorkspaceSide>
         </WorkspaceContent>
     )

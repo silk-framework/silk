@@ -14,7 +14,6 @@ import WorkspaceColumn from './src/components/Workspace/WorkspaceColumn';
 import WorkspaceContent from './src/components/Workspace/WorkspaceContent';
 import WorkspaceMain from './src/components/Workspace/WorkspaceMain';
 import WorkspaceSide from './src/components/Workspace/WorkspaceSide';
-import WorkspaceSection from './src/components/Workspace/WorkspaceSection';
 import WorkspaceHeader from './src/components/Workspace/WorkspaceHeader';
 
 import Icon from './src/components/Icon/Icon';
@@ -62,6 +61,7 @@ import Divider from './src/components/Separation/Divider';
 
 import Tooltip from './src/components/Tooltip/Tooltip';
 
+import Section from './src/components/Structure/Section';
 import TitleSubsection from './src/components/Structure/TitleSubsection';
 
 export {
@@ -81,7 +81,6 @@ export {
     WorkspaceContent,
     WorkspaceMain,
     WorkspaceSide,
-    WorkspaceSection,
     WorkspaceHeader,
 
     Menu,
@@ -123,6 +122,7 @@ export {
     Switch, // TODO: scss styles
     NumericInput, // TODO: scss styles
 
+    Section,
     TitleSubsection,
 
     Pagination,
