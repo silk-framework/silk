@@ -46,11 +46,6 @@ const paginationSelector = createSelector(
     filters => filters.pagination
 );
 
-const currentProjectIdSelector = createSelector(
-    [previewSelector],
-    preview => preview.currentProjectId
-);
-
 const prefixListSelector = createSelector(
     [widgetsSelector],
     widgets => widgets.configuration.prefixes
@@ -84,7 +79,6 @@ export default {
     facetsSelector,
     errorSelector,
     isLoadingSelector,
-    currentProjectIdSelector,
     prefixListSelector,
     newPrefixSelector,
     warningListSelector,

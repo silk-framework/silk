@@ -24,11 +24,17 @@ const artefactModalSelector = createSelector(
     global => global.artefactModal
 );
 
+const currentProjectIdSelector = createSelector(
+    [globalSelector],
+    global => global.currentProjectId
+);
+
 export default {
     globalSelector,
     searchStringSelector,
     availableDTypesSelector,
     breadcrumbsSelector,
     artefactModalSelector,
-    isAuthSelector
+    isAuthSelector,
+    currentProjectIdSelector
 }

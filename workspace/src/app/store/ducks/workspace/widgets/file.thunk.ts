@@ -2,6 +2,7 @@ import { workspaceSel } from "@ducks/workspace";
 import { getLegacyApiEndpoint } from "../../../../utils/getApiEndpoint";
 import fetch from "../../../../services/fetch";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
+import { globalSel } from "@ducks/global";
 
 const {setFiles, setWidgetError, toggleWidgetLoading} = widgetsSlice.actions;
 
@@ -16,7 +17,7 @@ const setError = e => dispatch => dispatch(setWidgetError({
 
 export const fetchResourcesListAsync = () => {
     return async (dispatch, getState) => {
-        const projectId = workspaceSel.currentProjectIdSelector(getState());
+        const projectId = globalSel.currentProjectIdSelector(getState());
         const url = getLegacyApiEndpoint(`/projects/${projectId}/resources`);
         try {
             dispatch(toggleLoading());

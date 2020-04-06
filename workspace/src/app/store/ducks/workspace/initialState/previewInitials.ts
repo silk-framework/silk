@@ -4,7 +4,6 @@ export function initialPreviewState(props: Partial<IPreviewState> = {}): IPrevie
     return {
         searchResults: [],
         isLoading: false,
-        currentProjectId: null,
         error: {},
         ...props
     }

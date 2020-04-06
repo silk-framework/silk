@@ -22,11 +22,6 @@ export const previewSlice = createSlice({
         fetchListSuccess(state, action) {
             state.searchResults = action.payload;
         },
-        setProjectId(state, action) {
-            state.currentProjectId = action.payload;
-        },
-        unsetProject(state) {
-            state.currentProjectId = null;
-        }
+
     }
 });

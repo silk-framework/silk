@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect } from "react";
-import { globalOp } from "@ducks/global";
+import { globalOp, globalSel } from "@ducks/global";
 import { useDispatch, useSelector } from "react-redux";
 import Filterbar from "./Filterbar";
 import Metadata from "../../components/Metadata";
@@ -24,11 +24,13 @@ import {
 
 const ProjectDetails = ({projectId}) => {
     const dispatch = useDispatch();
-    const currentProjectId = useSelector(workspaceSel.currentProjectIdSelector);
+    const currentProjectId = useSelector(globalSel.currentProjectIdSelector);
 
     useEffect(() => {
         // Fetch the list of projects
-        dispatch(workspaceOp.setProjectId(projectId));
+        dispatch(globalOp.setProjectId(projectId));
+        dispatch(globalOp.fetchArtefactsListAsync());
+
         dispatch(workspaceOp.fetchListAsync());
         dispatch(globalOp.addBreadcrumb({
             href: `/projects/${projectId}`,

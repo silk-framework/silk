@@ -24,3 +24,10 @@ export const DATA_TYPES = {
     LINKING: 'Linking',
     TASK: 'Task',
 };
+
+export const INPUT_VALID_TYPES = {
+    BOOLEAN: 'boolean',
+    INTEGER: 'int',
+    MULTILINE_STRING: 'multiline string',
+    STRING: 'string'
+};

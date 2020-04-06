@@ -18,6 +18,7 @@ import {
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
 import { checkIfResourceExistsAsync, fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
+import { globalSel } from "@ducks/global";
 
 const {
     updateResultTotal,
@@ -37,8 +38,6 @@ const {
     setError,
     fetchList,
     fetchListSuccess,
-    setProjectId,
-    unsetProject,
 } = previewSlice.actions;
 
 const {
@@ -169,7 +168,7 @@ const fetchListAsync = () => {
         const appliedFilters = selectors.appliedFiltersSelector(state);
         const appliedFacets = selectors.appliedFacetsSelector(state);
         const sorters = selectors.sortersSelector(state);
-        const projectId = selectors.currentProjectIdSelector(state);
+        const projectId = globalSel.currentProjectIdSelector(state);
 
         const body: any = {
             limit,
@@ -390,7 +389,5 @@ export default {
     checkIfResourceExistsAsync,
     fetchCreateProjectAsync,
     resetFilters,
-    setProjectId,
-    unsetProject,
     updateNewPrefix
 };
