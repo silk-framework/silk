@@ -10,9 +10,9 @@ import {
     WorkspaceMain,
     WorkspaceSide,
     Section,
-    WorkspaceGrid,
-    WorkspaceRow,
-    WorkspaceColumn,
+    Grid,
+    GridRow,
+    GridColumn,
 } from "@wrappers/index";
 import SearchBar from "../../components/SearchBar";
 
@@ -45,16 +45,16 @@ const Projects = () => {
                         onSort={handleSort}
                         onApplyFilters={handleApplyFilter}
                     />
-                    <WorkspaceGrid>
-                        <WorkspaceRow>
-                            <WorkspaceColumn small>
+                    <Grid>
+                        <GridRow>
+                            <GridColumn small>
                                 <Filterbar/>
-                            </WorkspaceColumn>
-                            <WorkspaceColumn full>
+                            </GridColumn>
+                            <GridColumn full>
                                 <SearchList/>
-                            </WorkspaceColumn>
-                        </WorkspaceRow>
-                    </WorkspaceGrid>
+                            </GridColumn>
+                        </GridRow>
+                    </Grid>
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>

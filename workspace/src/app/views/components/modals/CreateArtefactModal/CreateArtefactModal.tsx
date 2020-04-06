@@ -7,9 +7,9 @@ import { globalOp, globalSel } from "@ducks/global";
 import { IArtefactItem } from "@ducks/global/typings";
 import {
     Button,
-    WorkspaceGrid,
-    WorkspaceRow,
-    WorkspaceColumn,
+    Grid,
+    GridRow,
+    GridColumn,
     Spacing,
     TitleSubsection,
 } from "@wrappers/index";
@@ -92,36 +92,36 @@ export function CreateArtefactModal() {
                             artefactForm
                                 ? artefactForm
                                 : (
-                                    <WorkspaceGrid>
-                                        <WorkspaceRow>
-                                           <WorkspaceColumn small>
+                                    <Grid>
+                                        <GridRow>
+                                           <GridColumn small>
                                                <TitleSubsection>Artefact Type</TitleSubsection>
                                                <ul>
                                                    <li><a href='#'>All</a></li>
                                                </ul>
-                                           </WorkspaceColumn>
-                                           <WorkspaceColumn>
+                                           </GridColumn>
+                                           <GridColumn>
                                                 <SearchBar onSort={() => {}} onApplyFilters={() => {}}/>
                                                 <Spacing />
-                                                <WorkspaceGrid>
-                                                    <WorkspaceRow>
-                                                        <WorkspaceColumn>
+                                                <Grid>
+                                                    <GridRow>
+                                                        <GridColumn>
                                                             <Button onClick={_TEMP_handleProjectSelect}>
                                                                 Project
                                                             </Button>
-                                                        </WorkspaceColumn>
+                                                        </GridColumn>
                                                        {
                                                            artefactsList.map(artefact =>
-                                                               <WorkspaceColumn key={artefact.key}>
+                                                               <GridColumn key={artefact.key}>
                                                                    <Button onClick={() => handleArtefactSelect(artefact)}>{artefact.title}</Button>
-                                                               </WorkspaceColumn>
+                                                               </GridColumn>
                                                            )
                                                        }
-                                                    </WorkspaceRow>
-                                                </WorkspaceGrid>
-                                           </WorkspaceColumn>
-                                        </WorkspaceRow>
-                                    </WorkspaceGrid>
+                                                    </GridRow>
+                                                </Grid>
+                                           </GridColumn>
+                                        </GridRow>
+                                    </Grid>
                                 )
                         }
                     </div>

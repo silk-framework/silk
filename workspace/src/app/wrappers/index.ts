@@ -8,9 +8,10 @@ import ApplicationToolbarSection from './src/components/Application/ApplicationT
 import ApplicationToolbarAction from './src/components/Application/ApplicationToolbarAction';
 import ApplicationToolbarPanel from './src/components/Application/ApplicationToolbarPanel';
 
-import WorkspaceGrid from './src/components/Workspace/WorkspaceGrid';
-import WorkspaceRow from './src/components/Workspace/WorkspaceRow';
-import WorkspaceColumn from './src/components/Workspace/WorkspaceColumn';
+import Grid from './src/components/Grid/Grid';
+import GridRow from './src/components/Grid/GridRow';
+import GridColumn from './src/components/Grid/GridColumn';
+
 import WorkspaceContent from './src/components/Workspace/WorkspaceContent';
 import WorkspaceMain from './src/components/Workspace/WorkspaceMain';
 import WorkspaceSide from './src/components/Workspace/WorkspaceSide';
@@ -75,9 +76,10 @@ export {
     ApplicationToolbarAction,
     ApplicationToolbarPanel,
 
-    WorkspaceGrid,
-    WorkspaceRow,
-    WorkspaceColumn,
+    Grid,
+    GridRow,
+    GridColumn,
+
     WorkspaceContent,
     WorkspaceMain,
     WorkspaceSide,

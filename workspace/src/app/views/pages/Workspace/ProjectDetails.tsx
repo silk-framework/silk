@@ -16,9 +16,9 @@ import {
     WorkspaceMain,
     WorkspaceSide,
     Section,
-    WorkspaceGrid,
-    WorkspaceRow,
-    WorkspaceColumn,
+    Grid,
+    GridRow,
+    GridColumn,
     Spacing,
 } from "@wrappers/index";
 
@@ -46,16 +46,16 @@ const ProjectDetails = ({projectId}) => {
                 </Section>
                 <Section>
                     <TopBar/>
-                    <WorkspaceGrid>
-                        <WorkspaceRow>
-                            <WorkspaceColumn small>
+                    <Grid>
+                        <GridRow>
+                            <GridColumn small>
                                 <Filterbar/>
-                            </WorkspaceColumn>
-                            <WorkspaceColumn full>
+                            </GridColumn>
+                            <GridColumn full>
                                 <SearchList/>
-                            </WorkspaceColumn>
-                        </WorkspaceRow>
-                    </WorkspaceGrid>
+                            </GridColumn>
+                        </GridRow>
+                    </Grid>
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>

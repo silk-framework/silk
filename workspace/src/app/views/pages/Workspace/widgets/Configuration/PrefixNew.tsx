@@ -6,9 +6,9 @@ import {
     CardHeader,
     CardTitle,
     CardContent,
-    WorkspaceGrid,
-    WorkspaceRow,
-    WorkspaceColumn,
+    Grid,
+    GridRow,
+    GridColumn,
 } from '@wrappers/index';
 
 const PrefixNew = ({onAdd, onChangePrefix, prefix}) => {
@@ -20,22 +20,22 @@ const PrefixNew = ({onAdd, onChangePrefix, prefix}) => {
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <WorkspaceGrid>
-                    <WorkspaceRow>
-                        <WorkspaceColumn medium>
+                <Grid>
+                    <GridRow>
+                        <GridColumn medium>
                             <InputGroup
                                 value={prefix.prefixName}
                                 onChange={(e) => onChangePrefix('prefixName', e.target.value)}
                                 placeholder={'Prefix Name'}/>
-                        </WorkspaceColumn>
-                        <WorkspaceColumn>
+                        </GridColumn>
+                        <GridColumn>
                             <InputGroup
                                 value={prefix.prefixUri}
                                 onChange={(e) => onChangePrefix('prefixUri', e.target.value)}
                                 placeholder={'Prefix URI'}
                             />
-                        </WorkspaceColumn>
-                        <WorkspaceColumn small>
+                        </GridColumn>
+                        <GridColumn small>
                             <Button
                                 onClick={onAdd}
                                 elevated
@@ -43,9 +43,9 @@ const PrefixNew = ({onAdd, onChangePrefix, prefix}) => {
                             >
                                 Add
                             </Button>
-                        </WorkspaceColumn>
-                    </WorkspaceRow>
-                </WorkspaceGrid>
+                        </GridColumn>
+                    </GridRow>
+                </Grid>
             </CardContent>
         </Card>
     );

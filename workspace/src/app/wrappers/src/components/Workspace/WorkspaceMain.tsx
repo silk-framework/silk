@@ -1,16 +1,16 @@
 import React from "react";
 // import PropTypes from 'prop-types';
-import WorkspaceColumn from "./WorkspaceColumn";
+import GridColumn from "./../Grid/GridColumn";
 
 function WorkspaceMain({ children, className = '', ...restProps }: any) {
     return (
-        <WorkspaceColumn
+        <GridColumn
             {...restProps}
             className={'ecc-workspace__main '+className}
 
         >
             { children }
-        </WorkspaceColumn>
+        </GridColumn>
     )
 }
 
