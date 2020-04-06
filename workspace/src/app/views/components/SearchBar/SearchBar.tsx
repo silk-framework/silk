@@ -1,7 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { ISortersState } from "@ducks/workspace/typings";
+import {
+    Toolbar,
+    ToolbarSection,
+} from "@wrappers/index";
 import SearchInput from "./SearchInput";
 import SortButton from "../buttons/SortButton";
-import { ISortersState } from "@ducks/workspace/typings";
 
 interface IProps {
     textQuery? : string;
@@ -28,15 +32,19 @@ export function SearchBar({textQuery = '', sorters, onSort, onApplyFilters}: IPr
     }, []);
 
     return (
-        <>
-            <SearchInput
-                onFilterChange={handleSearchChange}
-                onEnter={handleSearchEnter}
-                filterValue={searchInput}
-            />
-            {
-                !!sorters && <SortButton sortersList={sorters.list} onSort={onSort} activeSort={sorters.applied}/>
-            }
-        </>
+        <Toolbar>
+            <ToolbarSection canGrow>
+                <SearchInput
+                    onFilterChange={handleSearchChange}
+                    onEnter={handleSearchEnter}
+                    filterValue={searchInput}
+                />
+            </ToolbarSection>
+            <ToolbarSection>
+                {
+                    !!sorters && <SortButton sortersList={sorters.list} onSort={onSort} activeSort={sorters.applied}/>
+                }
+            </ToolbarSection>
+        </Toolbar>
     )
 }

@@ -1,19 +1,21 @@
 import React, { useEffect } from 'react';
-import Filterbar from "./Filterbar";
-import SearchList from "./SearchList";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { useDispatch, useSelector } from "react-redux";
-import EmptyWorkspace from "./EmptyWorkspace";
-
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import {
     WorkspaceContent,
     WorkspaceMain,
     WorkspaceSide,
     Section,
+    SectionHeader,
+    TitleMainsection,
     Grid,
     GridRow,
     GridColumn,
+    Divider,
 } from "@wrappers/index";
+import EmptyWorkspace from "./EmptyWorkspace";
+import Filterbar from "./Filterbar";
+import SearchList from "./SearchList";
 import SearchBar from "../../components/SearchBar";
 
 const Projects = () => {
@@ -39,12 +41,24 @@ const Projects = () => {
         <WorkspaceContent className="eccapp-di__workspace">
             <WorkspaceMain>
                 <Section>
-                    <SearchBar
-                        textQuery={textQuery}
-                        sorters={sorters}
-                        onSort={handleSort}
-                        onApplyFilters={handleApplyFilter}
-                    />
+                    <SectionHeader>
+                        <Grid>
+                            <GridRow>
+                                <GridColumn small verticalAlign="center">
+                                    <TitleMainsection>Contents</TitleMainsection>
+                                </GridColumn>
+                                <GridColumn full>
+                                    <SearchBar
+                                        textQuery={textQuery}
+                                        sorters={sorters}
+                                        onSort={handleSort}
+                                        onApplyFilters={handleApplyFilter}
+                                    />
+                                </GridColumn>
+                            </GridRow>
+                        </Grid>
+                    </SectionHeader>
+                    <Divider addSpacing="medium" />
                     <Grid>
                         <GridRow>
                             <GridColumn small>
