@@ -15,10 +15,13 @@ import {
     WorkspaceMain,
     WorkspaceSide,
     Section,
+    SectionHeader,
+    TitleMainsection,
     Grid,
     GridRow,
     GridColumn,
     Spacing,
+    Divider,
 } from "@wrappers/index";
 
 const ProjectDetails = ({projectId}) => {
@@ -46,6 +49,19 @@ const ProjectDetails = ({projectId}) => {
                     <Spacing />
                 </Section>
                 <Section>
+                    <SectionHeader>
+                        <Grid>
+                            <GridRow>
+                                <GridColumn small verticalAlign="center">
+                                    <TitleMainsection>Contents</TitleMainsection>
+                                </GridColumn>
+                                <GridColumn full>
+                                    todo: search bar here
+                                </GridColumn>
+                            </GridRow>
+                        </Grid>
+                    </SectionHeader>
+                    <Divider addSpacing="medium" />
                     <Grid>
                         <GridRow>
                             <GridColumn small>
