@@ -5,6 +5,7 @@ import { IFacetState } from "@ducks/workspace/typings";
 import {
     Tag,
     TagList,
+    Spacing,
 } from "@wrappers/index";
 
 
@@ -47,6 +48,9 @@ export function AppliedFacets() {
                         }
                     </TagList>
                 )
+            }
+            {
+                facetsList.length > 0 && <Spacing size="small" />
             }
         </>
     )
