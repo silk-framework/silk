@@ -1,0 +1,62 @@
+// own vars
+$ecc-size-typo-tag: $ecc-size-typo-caption !default;
+$ecc-size-typo-tag-lineheight: $ecc-size-typo-caption-lineheight !default;
+$ecc-size-typo-tag-large: $ecc-size-typo-text !default;
+$ecc-size-typo-tag-large-lineheight: $ecc-size-typo-text-lineheight !default;
+$ecc-size-margin-tag: $ecc-size-inline-whitespace / 2 !default;
+$ecc-color-tag-background-emphasized: $ecc-color-workspace-text !default;
+// lib vars
+$tag-default-color: $ecc-color-tag-background-emphasized; // !default;
+// $dark-tag-default-color: $gray5 !default;
+$tag-height: $ecc-size-typo-tag * $ecc-size-typo-tag-lineheight; // !default;
+$tag-line-height: $ecc-size-typo-tag; // !default;
+$tag-padding-top: ($tag-height - $tag-line-height) / 2; // !default;
+$tag-padding: $tag-padding-top * 2; // !default;
+$tag-margin: 0; // !default;
+$tag-height-large: $ecc-size-typo-tag-large * $ecc-size-typo-tag-large-lineheight; // !default;
+$tag-line-height-large: $ecc-size-typo-tag-large; // !default;
+$tag-padding-large: ($tag-height-large - $tag-line-height-large); // !default;
+// $tag-icon-spacing: ($tag-height - 12px) / 2 !default;
+// $tag-icon-spacing-large: ($tag-height-large - $pt-icon-size-standard) / 2 !default;
+// $tag-round-adjustment: 2px !default;
+
+@import "~@blueprintjs/core/src/components/tag/tag";
+
+.ecc-tag__list-wrapper,
+.ecc-tag__list-label,
+.ecc-tag__list-content,
+.ecc-tag__list,
+.ecc-tag__list-item {
+    display: inline;
+    vertical-align: baseline;
+    font-size: $ecc-size-typo-tag;
+    line-height: $ecc-size-typo-tag-lineheight;
+    font-weight: $ecc-font-weight-light;
+}
+
+.ecc-tag__list-label {
+    white-space: nowrap;
+}
+
+.ecc-tag__list-wrapper:not(:last-child),
+.ecc-tag__list:not(:last-child) {
+    margin-right: $ecc-size-margin-tag * 2;
+}
+
+.ecc-tag__list-item {
+    margin-bottom: $ecc-size-margin-tag;
+    display: inline-block;
+}
+
+.ecc-tag__list-label,
+.ecc-tag__list-item:not(:last-child) {
+    margin-right: $ecc-size-margin-tag;
+}
+
+.#{$ns}-tag-remove {
+    .#{$ns}-icon,
+    svg {
+        height: $ecc-size-typo-tag;
+        width: $ecc-size-typo-tag;
+    }
+}

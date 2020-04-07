@@ -36,6 +36,9 @@ import NumericInput from './src/components/NumericInput/NumericInput';
 
 import Pagination from './src/components/Pagination/Pagination';
 
+import Tag from './src/components/Tag/Tag';
+import TagList from './src/components/Tag/TagList';
+
 import {
     OverviewItem,
     OverviewItemDepiction,
@@ -136,6 +139,9 @@ export {
 
     Toolbar,
     ToolbarSection,
+
+    Tag,
+    TagList,
 
     Pagination,
 };
