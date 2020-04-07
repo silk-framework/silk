@@ -106,6 +106,7 @@ export function SearchList() {
     return (
         <>
             <AppliedFacets/>
+            <Spacing size="small" />
             <DataList isLoading={isLoading} data={data} hasSpacing>
                 {
                     data.map(item => (
