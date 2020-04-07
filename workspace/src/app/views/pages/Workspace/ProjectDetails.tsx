@@ -5,7 +5,6 @@ import Filterbar from "./Filterbar";
 import Metadata from "../../components/Metadata";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import SearchList from "./SearchList";
-import TopBar from "./AppliedFacets";
 import ConfigurationWidget from "./widgets/Configuration";
 import WarningWidget from "./widgets/Warning";
 import FileWidget from "./widgets/File";
@@ -47,7 +46,6 @@ const ProjectDetails = ({projectId}) => {
                     <Spacing />
                 </Section>
                 <Section>
-                    <TopBar/>
                     <Grid>
                         <GridRow>
                             <GridColumn small>
