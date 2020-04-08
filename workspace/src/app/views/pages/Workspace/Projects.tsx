@@ -21,8 +21,10 @@ import { globalOp } from "@ducks/global";
 
 const Projects = () => {
     const dispatch = useDispatch();
-    const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
+    const {textQuery} = useSelector(workspaceSel.appliedFiltersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
+
+    const isEmpty = useSelector(workspaceSel.isEmptyPageSelector);
 
     useEffect(() => {
         dispatch(globalOp.unsetProject());
@@ -42,42 +44,54 @@ const Projects = () => {
         <WorkspaceContent className="eccapp-di__workspace">
             <WorkspaceMain>
                 <Section>
-                    <SectionHeader>
-                        <Grid>
-                            <GridRow>
-                                <GridColumn small verticalAlign="center">
-                                    <TitleMainsection>Contents</TitleMainsection>
-                                </GridColumn>
-                                <GridColumn full>
-                                    <SearchBar
-                                        textQuery={textQuery}
-                                        sorters={sorters}
-                                        onSort={handleSort}
-                                        onApplyFilters={handleApplyFilter}
-                                    />
-                                </GridColumn>
-                            </GridRow>
-                        </Grid>
-                    </SectionHeader>
-                    <Divider addSpacing="medium" />
-                    <Grid>
-                        <GridRow>
-                            <GridColumn small>
-                                <Filterbar/>
-                            </GridColumn>
-                            <GridColumn full>
-                                <SearchList/>
-                            </GridColumn>
-                        </GridRow>
-                    </Grid>
+                    {
+                        isEmpty ?
+                            <Grid>
+                                <GridRow>
+                                    <GridColumn>
+                                        <EmptyWorkspace/>
+                                    </GridColumn>
+                                </GridRow>
+                            </Grid>
+                            : <>
+                                <SectionHeader>
+                                    <Grid>
+                                        <GridRow>
+                                            <GridColumn small verticalAlign="center">
+                                                <TitleMainsection>Contents</TitleMainsection>
+                                            </GridColumn>
+                                            <GridColumn full>
+                                                <SearchBar
+                                                    textQuery={textQuery}
+                                                    sorters={sorters}
+                                                    onSort={handleSort}
+                                                    onApplyFilters={handleApplyFilter}
+                                                />
+                                            </GridColumn>
+                                        </GridRow>
+                                    </Grid>
+                                </SectionHeader>
+                                <Divider addSpacing="medium"/>
+                                <Grid>
+                                    <GridRow>
+                                        <GridColumn small>
+                                            <Filterbar/>
+                                        </GridColumn>
+                                        <GridColumn full>
+                                            <SearchList/>
+                                        </GridColumn>
+                                    </GridRow>
+                                </Grid>
+                            </>
+                    }
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>
                 <Section>
-                    <EmptyWorkspace />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>
+
     )
 };
 

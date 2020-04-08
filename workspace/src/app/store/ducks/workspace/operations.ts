@@ -277,6 +277,40 @@ const fetchCloneTaskAsync = (taskId: string, projectId: string, taskNewId: strin
     }
 };
 
+const fetchCreateTaskAsync = (formData) => {
+    return async (dispatch, getState) => {
+        const currentProjectId = globalSel.currentProjectIdSelector(getState());
+        const { label, description, ...restFormData} = formData;
+        const metadata = {
+            label,
+            description
+        };
+
+        const payload = {
+            metadata,
+            data: {
+                // @FIXME: HARDCODED
+                taskType: 'Dataset',
+                parameters: {
+                    ...restFormData
+                }
+            }
+        };
+
+        dispatch(setError({}));
+        try {
+            const {data} = await fetch({
+                url: getLegacyApiEndpoint(`/projects/${currentProjectId}/tasks`),
+                method: 'POST',
+                body: payload
+            });
+            dispatch(routerOp.goToPage(`/projects/${data.name}`));
+        } catch (e) {
+            dispatch(setError(e.response.data));
+        }
+    }
+};
+
 const fetchCreateProjectAsync = (formData: {
     label: string,
     description?: string
@@ -388,6 +422,7 @@ export default {
     fetchResourcesListAsync,
     checkIfResourceExistsAsync,
     fetchCreateProjectAsync,
+    fetchCreateTaskAsync,
     resetFilters,
     updateNewPrefix
 };

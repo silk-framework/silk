@@ -70,6 +70,11 @@ const newPrefixSelector = createSelector(
     widgets => widgets.configuration.newPrefix
 );
 
+const isEmptyPageSelector = createSelector(
+    [isLoadingSelector, resultsSelector],
+    (isLoading, results) => !isLoading && !results.length
+);
+
 export default {
     appliedFiltersSelector,
     appliedFacetsSelector,
@@ -83,5 +88,6 @@ export default {
     newPrefixSelector,
     warningListSelector,
     filesListSelector,
+    isEmptyPageSelector,
     widgetsSelector
 }

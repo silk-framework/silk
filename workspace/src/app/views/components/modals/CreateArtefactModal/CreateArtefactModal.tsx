@@ -59,7 +59,10 @@ export function CreateArtefactModal() {
 
     const closeModal = () => {
         dispatch(globalOp.closeArtefactModal());
+        form.clearError();
     };
+
+    const isErrorPresented = () => !!Object.keys(form.errors).length;
 
     const _TEMP_handleProjectSelect = () => {
         handleArtefactSelect({
@@ -72,7 +75,7 @@ export function CreateArtefactModal() {
         const {key} = modalStore.selectedArtefact;
         const ComponentForm = ARTEFACT_FORM_COMPONENTS_MAP[key];
 
-        artefactForm = projectId
+        artefactForm = projectId && !ComponentForm
             ? <TaskForm form={form} artefact={selected} projectId={projectId}/>
             : <ComponentForm form={form}/>
     }
@@ -135,7 +138,11 @@ export function CreateArtefactModal() {
                                 selectedArtefact
                                     ? <>
                                         <Button onClick={handleBack}>Back</Button>
-                                        <Button affirmative={true} onClick={handleCreate}>Create</Button>
+                                        <Button
+                                            affirmative={true}
+                                            onClick={handleCreate}
+                                            disabled={isErrorPresented()}
+                                        >Create</Button>
                                     </>
                                     : <Button
                                         affirmative={true}

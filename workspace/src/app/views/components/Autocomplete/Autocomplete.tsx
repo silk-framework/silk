@@ -6,11 +6,10 @@ import { debounce } from "../../../utils/debounce";
 import { IPropertyAutocomplete } from "@ducks/global/typings";
 
 interface IProps {
-    pluginId: string;
+    artefactId: string;
     parameterId: string;
     projectId: string;
-
-    options: IPropertyAutocomplete;
+    autoCompletion: IPropertyAutocomplete;
 
     onChange(value: string);
     name: string;
@@ -36,12 +35,12 @@ export function Autocomplete(props: IProps) {
 
     const updateSuggestions = async (input) => {
         try {
-            const { parameterId, pluginId, projectId, options } =  props;
+            const { parameterId, artefactId, projectId, autoCompletion } =  props;
             const list = await sharedOp.getAutocompleteResultsAsync({
-                pluginId,
+                pluginId: artefactId,
                 parameterId,
                 projectId,
-                dependsOnParameterValues: options.autoCompletionDependsOnParameters,
+                dependsOnParameterValues: autoCompletion.autoCompletionDependsOnParameters,
                 textQuery: input
             });
 
@@ -88,7 +87,7 @@ export function Autocomplete(props: IProps) {
         if (e.keyCode === 13) {
             let selectedValue = filtered[active];
             if (active === -1) {
-                selectedValue = props.options.allowOnlyAutoCompletedValues ? null : userInput;
+                selectedValue = props.autoCompletion.allowOnlyAutoCompletedValues ? null : userInput;
             }
 
             if (selectedValue) {

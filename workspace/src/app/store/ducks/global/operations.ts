@@ -64,12 +64,14 @@ const fetchArtefactsListAsync = () => {
 
 const createArtefactAsync = (formData) => {
     return (dispatch, getState) => {
-        const artefactType = globalSel.artefactModalSelector(getState()).selectedArtefact;
-        switch (artefactType) {
+        const {selectedArtefact} = globalSel.artefactModalSelector(getState());
+
+        switch (selectedArtefact) {
             case "project":
                 dispatch(workspaceOp.fetchCreateProjectAsync(formData));
                 break;
             default:
+                dispatch(workspaceOp.fetchCreateTaskAsync(formData));
                 console.warn('Artefact type not defined');
                 break;
         }

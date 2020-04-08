@@ -17,10 +17,12 @@ export function TaskForm({form, projectId, artefact}: IProps) {
     const {properties, required, key: artefactId} = artefact;
 
     const [fieldValues, setFieldValues] = useState<any>({});
-    const {register, errors, getValues, setValue} = form;
+    const {register, errors, getValues, setValue, unregister} = form;
 
     useEffect(() => {
         const values = {};
+        register({name: 'label'}, {required: true});
+        register({name: 'description'});
 
         Object.keys(properties).map(key => {
             const property = properties[key];
@@ -35,7 +37,6 @@ export function TaskForm({form, projectId, artefact}: IProps) {
                 value = +property.value;
             }
 
-            // @Note: Register should work there for 3rd party libs such a Codemirror
             register({name: key}, {required: required.includes(key)});
             setValue(key, value);
 
@@ -43,6 +44,13 @@ export function TaskForm({form, projectId, artefact}: IProps) {
         });
 
         setFieldValues(values);
+
+        // Unsubscribe
+        return () =>  {
+            unregister('label');
+            unregister('description');
+            Object.keys(properties).map(key => unregister(key));
+        };
 
     }, [properties, register]);
 
@@ -60,6 +68,39 @@ export function TaskForm({form, projectId, artefact}: IProps) {
     }, [fieldValues]);
 
     return <form>
+        <FormGroup
+            key='label'
+            inline={false}
+            label='Label'
+            labelFor={'label'}
+            labelInfo="(required)"
+        >
+            <InputMapper
+                type={'string'}
+                inputAttributes={{
+                    id: 'label',
+                    name: 'label',
+                    onChange: handleChange('label'),
+                    intent: errors.label ? Intent.DANGER : Intent.NONE
+                }}
+            />
+        </FormGroup>
+        <FormGroup
+            key='description'
+            inline={false}
+            label='Description'
+            labelFor={'description'}
+        >
+            <InputMapper
+                type={'string'}
+                inputAttributes={{
+                    id: 'description',
+                    name: 'description',
+                    onChange: handleChange('description'),
+                }}
+            />
+        </FormGroup>
+
         {
             Object.keys(properties).map(key =>
                 <FormGroup
@@ -77,10 +118,13 @@ export function TaskForm({form, projectId, artefact}: IProps) {
                             value: fieldValues[key],
                             intent: errors[key] ? Intent.DANGER : Intent.NONE
                         }}
-                        property={properties[key]}
-                        artefactId={artefactId}
-                        projectId={projectId}
-                        parameterId={key}
+                        type={properties[key].type}
+                        extraInfo={{
+                            autoCompletion: properties[key].autoCompletion,
+                            artefactId,
+                            projectId,
+                            parameterId: key
+                        }}
                     />
                     {
                         errors[key] && <span style={{color: 'red'}}>{properties[key].title} not specified</span>

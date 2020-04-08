@@ -25,11 +25,11 @@ export function SearchBar({textQuery = '', sorters, onSort, onApplyFilters}: IPr
         setSearchInput(e.target.value);
     };
 
-    const handleSearchEnter = useCallback(() => {
+    const handleSearchEnter = () => {
         onApplyFilters({
             textQuery: searchInput
         });
-    }, []);
+    };
 
     return (
         <Toolbar>
