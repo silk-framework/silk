@@ -73,6 +73,12 @@ import SectionHeader from './src/components/Structure/SectionHeader';
 import TitleSubsection from './src/components/Structure/TitleSubsection';
 import TitleMainsection from './src/components/Structure/TitleMainsection';
 
+import * as TypographyClassNames from './src/components/Typography/classnames';
+
+const HelperClasses = {
+    Typography: TypographyClassNames
+};
+
 export {
     ApplicationContainer,
     ApplicationHeader,
@@ -144,4 +150,6 @@ export {
     TagList,
 
     Pagination,
+
+    HelperClasses,
 };

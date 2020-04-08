@@ -1,0 +1,15 @@
+
+// helpers
+
+.ecc-typography--nooverflow {
+    overflow: none;
+}
+
+.ecc-typography--forcelinebreak {
+    word-break: break-all;
+}
+
+.ecc-typography--preventlinebreak {
+    word-break: keep-all;
+    white-space: nowrap;
+}
