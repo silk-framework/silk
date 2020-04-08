@@ -14,7 +14,7 @@ import { ThingIcon } from '../components/ThingIcon';
 import RuleTitle from '../elements/RuleTitle';
 import RuleTypes from '../elements/RuleTypes';
 import ObjectRule from './MappingRule/ObjectRule/ObjectRule';
-import { MAPPING_RULE_TYPE_COMPLEX_URI, MESSAGES, MAPPING_RULE_TYPE_URI } from '../utils/constants';
+import { MAPPING_RULE_TYPE_COMPLEX_URI, MESSAGES, MAPPING_RULE_TYPE_URI, MAPPING_RULE_TYPE_ROOT } from '../utils/constants';
 import EventEmitter from '../utils/EventEmitter';
 import ExpandButton from '../elements/buttons/ExpandButton';
 
@@ -170,6 +170,7 @@ class RootMappingRule extends React.Component {
                         handleCopy={this.props.handleCopy}
                         handleClone={this.props.handleClone}
                         onClickedRemove={this.props.onClickedRemove}
+                        type={this.props.rule.type}
                     />}
                 </Card>
             </div>
