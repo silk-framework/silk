@@ -9,6 +9,7 @@ import {
     Button,
     TitleSubsection,
     Icon,
+    HelperClasses,
 } from "@wrappers/index";
 
 export default function FacetsList() {
@@ -61,7 +62,10 @@ export default function FacetsList() {
         <div>
             {
                 facets.map(facet =>
-                    <div key={facet.id}>
+                    <div
+                        className={HelperClasses.Typography.NOOVERFLOW}
+                        key={facet.id}
+                    >
                         <TitleSubsection>
                             <h3>
                                 {facet.label}
@@ -81,7 +85,12 @@ export default function FacetsList() {
                                         isChecked={isChecked(facet.id, val.id)}
                                         value={val.id}
                                         onSelectFacet={(valueId) => handleSetFacet(facet, valueId)}
-                                        label={`${val.label} (${val.count})`}
+                                        label={<>
+                                            <span className={HelperClasses.Typography.FORCELINEBREAK}>
+                                                {val.label}
+                                            </span>
+                                            <span> ({val.count})</span>
+                                        </>}
                                     /></li>
                                 )
                             }

@@ -1,12 +1,12 @@
 import React from 'react';
-import {Checkbox} from '@wrappers/index';
+import { Checkbox } from '@wrappers/index';
 
 interface IProps {
     isChecked?: boolean;
 
     onSelectFacet(valueId: string),
 
-    label?: string;
+    label?: any;
     value: string;
 }
 
