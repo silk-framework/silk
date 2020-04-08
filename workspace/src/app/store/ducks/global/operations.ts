@@ -66,12 +66,26 @@ const createArtefactAsync = (formData) => {
     return (dispatch, getState) => {
         const {selectedArtefact} = globalSel.artefactModalSelector(getState());
 
-        switch (selectedArtefact) {
+        switch (selectedArtefact.key) {
             case "project":
                 dispatch(workspaceOp.fetchCreateProjectAsync(formData));
                 break;
             default:
-                dispatch(workspaceOp.fetchCreateTaskAsync(formData));
+                // @TODO: REMOVE LATER
+                // @FIXME: currently backend accept only string values, so we need to transform it
+                const requestData = {};
+                Object.keys(formData).map(key => {
+                    const value = formData[key];
+                    if (typeof value === 'number' || typeof value === 'boolean') {
+                        requestData[key] = ''+value;
+                    } else if (typeof value === 'object') {
+                        requestData[key] = JSON.stringify(value);
+                    } else {
+                        requestData[key] = value;
+                    }
+                });
+
+                dispatch(workspaceOp.fetchCreateTaskAsync(requestData, selectedArtefact.key));
                 console.warn('Artefact type not defined');
                 break;
         }

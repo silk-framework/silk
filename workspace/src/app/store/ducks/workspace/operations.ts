@@ -277,7 +277,7 @@ const fetchCloneTaskAsync = (taskId: string, projectId: string, taskNewId: strin
     }
 };
 
-const fetchCreateTaskAsync = (formData) => {
+const fetchCreateTaskAsync = (formData: any, artefactId: string) => {
     return async (dispatch, getState) => {
         const currentProjectId = globalSel.currentProjectIdSelector(getState());
         const { label, description, ...restFormData} = formData;
@@ -291,6 +291,7 @@ const fetchCreateTaskAsync = (formData) => {
             data: {
                 // @FIXME: HARDCODED
                 taskType: 'Dataset',
+                type: artefactId,
                 parameters: {
                     ...restFormData
                 }
@@ -298,6 +299,7 @@ const fetchCreateTaskAsync = (formData) => {
         };
 
         dispatch(setError({}));
+
         try {
             const {data} = await fetch({
                 url: getLegacyApiEndpoint(`/projects/${currentProjectId}/tasks`),

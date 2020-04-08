@@ -6,6 +6,7 @@ import { createLogger } from 'redux-logger'
 import { isDevelopment } from "../constants";
 import monitorReducerEnhancer from "./enhancers/monitorPerformanceEnhancer";
 import storeDevEnhancer from "./enhancers/reduxDevEnhancer";
+import React from "react";
 
 let store;
 let history = createBrowserHistory();
@@ -22,7 +23,7 @@ export default function (options: any = {}) {
         routerMiddleware(getHistory()),
     ];
     if (isDevelopment) {
-        const {enableStoreDevUtils, monitorPerformance, logReduxActions} = options;
+        const {enableStoreDevUtils, monitorPerformance, logReduxActions, logUselessRenders} = options;
         // Enable redux development actions, e.g. reset store
         if (enableStoreDevUtils) {
             enhancers.push(storeDevEnhancer);
@@ -36,6 +37,23 @@ export default function (options: any = {}) {
                 collapsed: true
             });
             middleware.push(logger);
+        }
+
+        if (logUselessRenders) {
+            try {
+                const whyDidYouRender = require('@welldone-software/why-did-you-render');
+                whyDidYouRender(React, {
+                    trackHooks: true,
+                    trackAllPureComponents: true,
+                    collapseGroups: true,
+                    titleColor: "green",
+                    exclude: [/^Blueprint/],
+                    diffNameColor: "darkturquoise",
+                    diffPathColor: "goldenrod"
+                });
+            } catch (e) {
+                console.log(e);
+            }
         }
     }
 
