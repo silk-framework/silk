@@ -96,6 +96,7 @@ class RulePlugins extends PluginModule {
         classOf[RandomNumberTransformer] ::
         classOf[EmptyValueTransformer] ::
         classOf[ReadParameter] ::
+        classOf[GenerateUUID] ::
         // Conditional
         classOf[IfContains] ::
         classOf[IfExists] ::
