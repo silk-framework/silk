@@ -25,8 +25,8 @@ import {
     MenuItem,
     BreadcrumbList,
 } from "@wrappers/index";
-import CreateButton from "../../components/buttons/CreateButton";
-import { CreateArtefactModal } from "../../components/modals/CreateArtefactModal/CreateArtefactModal";
+import CreateButton from "../../shared/buttons/CreateButton";
+import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
 
 interface IProps {
     externalRoutes: any;

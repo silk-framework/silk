@@ -9,9 +9,9 @@ import {
     CardContent,
     Divider,
 } from "@wrappers/index";
-import Loading from "../../../../components/Loading";
-import FileUploadModal from "../../../../components/modals/FileUploadModal";
-import { getLegacyApiEndpoint } from "../../../../../utils/getApiEndpoint";
+import Loading from "../../../shared/Loading";
+import FileUploadModal from "../../../shared/modals/FileUploadModal";
+import { getLegacyApiEndpoint } from "../../../../utils/getApiEndpoint";
 import { globalSel } from "@ducks/global";
 
 const {

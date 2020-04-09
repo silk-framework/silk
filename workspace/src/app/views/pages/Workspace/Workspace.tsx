@@ -6,8 +6,8 @@ import { workspaceSel } from "@ducks/workspace";
 import { AppToaster } from "../../../services/toaster";
 import { Intent } from "@wrappers/blueprint/constants";
 import { useParams } from "react-router";
-import Projects from "./Projects";
-import ProjectDetails from "./ProjectDetails";
+import Artefacts from "./Artefacts";
+import Project from "../Project/Project";
 
 export function Workspace() {
     const error = useSelector(workspaceSel.errorSelector);
@@ -24,6 +24,6 @@ export function Workspace() {
     }, [error.detail]);
 
     return projectId
-        ? <ProjectDetails projectId={projectId}/>
-        : <Projects />
+        ? <Project projectId={projectId}/>
+        : <Artefacts />
 }

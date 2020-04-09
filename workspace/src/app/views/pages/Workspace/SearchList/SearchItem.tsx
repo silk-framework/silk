@@ -1,5 +1,4 @@
 import React from "react";
-import DataList from "../../../components/Datalist";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import {
     OverviewItem,

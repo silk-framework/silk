@@ -10,9 +10,9 @@ import {
     CardContent,
     Divider,
 } from "@wrappers/index";
-import MarkdownModal from "../../../../components/modals/MarkdownModal";
-import { AppToaster } from "../../../../../services/toaster";
-import Loading from "../Configuration";
+import MarkdownModal from "../../../shared/modals/MarkdownModal";
+import { AppToaster } from "../../../../services/toaster";
+import Loading from "../ConfigWidget";
 import { globalSel } from "@ducks/global";
 
 export const WarningWidget = () => {
