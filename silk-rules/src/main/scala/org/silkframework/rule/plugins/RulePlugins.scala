@@ -53,6 +53,7 @@ class RulePlugins extends PluginModule {
 
   private def transformers =
     classOf[RemoveDuplicates] ::
+        classOf[GenerateUUID] ::
         classOf[ReplaceTransformer] ::
         classOf[RegexReplaceTransformer] ::
         classOf[RegexExtractionTransformer] ::
