@@ -4,5 +4,6 @@ POST          /searchTasks                                                      
 POST          /searchItems                                                      controllers.workspaceApi.SearchApi.facetedSearch()
 POST          /pluginParameterAutoCompletion                                    controllers.workspaceApi.SearchApi.parameterAutoCompletion()
 GET           /recentlyViewedItems                                              controllers.workspaceApi.SearchApi.recentlyViewedItems()
+GET           /initFrontend                                                     controllers.workspaceApi.InitApi.init()
 
 ->            /projects                   projectsApi.Routes
