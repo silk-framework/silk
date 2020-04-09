@@ -39,24 +39,5 @@ registerGlobalListeners();
 // Bootstrap plugins from settings.js
 const pluginRoutes = bootstrapPlugins(configs.plugins);
 
-
-if (configs.dev.logUselessRenders) {
-    try {
-        const whyDidYouRender = require('@welldone-software/why-did-you-render');
-        const ReactRedux = require('react-redux');
-        whyDidYouRender(React, {
-            trackHooks: true,
-            trackAllPureComponents: true,
-            collapseGroups: true,
-            titleColor: "green",
-            exclude: [/^Blueprint/],
-            diffNameColor: "darkturquoise",
-            diffPathColor: "goldenrod"
-        });
-    } catch (e) {
-        console.log(e);
-    }
-}
-
 // Bootstrap the React application
 bootstrapApp(appRoutes, pluginRoutes);
