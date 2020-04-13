@@ -12,8 +12,8 @@ import {
 } from "@wrappers/index";
 import MarkdownModal from "../../../shared/modals/MarkdownModal";
 import { AppToaster } from "../../../../services/toaster";
-import Loading from "../ConfigWidget";
 import { globalSel } from "@ducks/global";
+import Loading from "../../../shared/Loading";
 
 export const WarningWidget = () => {
     const dispatch = useDispatch();

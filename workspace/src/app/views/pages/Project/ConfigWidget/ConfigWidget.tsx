@@ -3,6 +3,8 @@ import PrefixesDialog from "./PrefixesDialog";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { IPrefixState } from "@ducks/workspace/typings";
+import Loading from "../../../shared/Loading";
+
 import {
     IconButton,
     Card,
@@ -17,14 +19,18 @@ import {
     OverviewItemActions,
 } from '@wrappers/index';
 
+const VISIBLE_COUNT = 5;
+
 export const ConfigurationWidget = () => {
     const dispatch = useDispatch();
     const prefixList = useSelector(workspaceSel.prefixListSelector);
 
     const [visiblePrefixes, setVisiblePrefixes] = useState<IPrefixState[]>([]);
     const [isOpen, setIsOpen] = useState<boolean>(false);
+    const configurationWidget = useSelector(workspaceSel.widgetsSelector).configuration;
 
-    const VISIBLE_COUNT = 5;
+    const {isLoading} = configurationWidget;
+
 
     useEffect(() => {
         getPrefixesList();
@@ -54,38 +60,40 @@ export const ConfigurationWidget = () => {
             </CardHeader>
             <Divider />
             <CardContent>
-                <OverviewItemList hasSpacing hasDivider>
-                    <OverviewItem>
-                        <OverviewItemDescription>
-                            <OverviewItemLine>
-                                <strong>Prefixes&nbsp;({(getFullSizeOfList())})</strong>
-                            </OverviewItemLine>
-                            <OverviewItemLine small>
-                                <span>
-                                {
-                                    visiblePrefixes.map((o, index) =>
-                                        <span key={index}>
-                                            {o.prefixName}
-                                            {
-                                                index < visiblePrefixes.length - 1
-                                                    ? ', '
-                                                    : moreCount > 0 && <>and {moreCount} more</>
-                                            }
-                                        </span>
-                                    )
-                                }
-                                </span>
-                            </OverviewItemLine>
-                        </OverviewItemDescription>
-                        <OverviewItemActions>
-                            <IconButton onClick={handleOpen} name="item-edit" text="Edit prefix settings" />
-                        </OverviewItemActions>
-                    </OverviewItem>
-                </OverviewItemList>
-                <PrefixesDialog
-                    isOpen={isOpen}
-                    onCloseModal={handleClose}
-                />
+                {isLoading ? <Loading/> : <>
+                    <OverviewItemList hasSpacing hasDivider>
+                        <OverviewItem>
+                            <OverviewItemDescription>
+                                <OverviewItemLine>
+                                    <strong>Prefixes&nbsp;({(getFullSizeOfList())})</strong>
+                                </OverviewItemLine>
+                                <OverviewItemLine small>
+                                    <span>
+                                    {
+                                        visiblePrefixes.map((o, index) =>
+                                            <span key={index}>
+                                                {o.prefixName}
+                                                {
+                                                    index < visiblePrefixes.length - 1
+                                                        ? ', '
+                                                        : moreCount > 0 && <>and {moreCount} more</>
+                                                }
+                                            </span>
+                                        )
+                                    }
+                                    </span>
+                                </OverviewItemLine>
+                            </OverviewItemDescription>
+                            <OverviewItemActions>
+                                <IconButton onClick={handleOpen} name="item-edit" text="Edit prefix settings"/>
+                            </OverviewItemActions>
+                        </OverviewItem>
+                    </OverviewItemList>
+                    <PrefixesDialog
+                        isOpen={isOpen}
+                        onCloseModal={handleClose}
+                    />
+                </>}
             </CardContent>
         </Card>
     )
