@@ -73,8 +73,9 @@ import ToolbarSection from './src/components/Toolbar/ToolbarSection';
 
 import Section from './src/components/Structure/Section';
 import SectionHeader from './src/components/Structure/SectionHeader';
-import TitleSubsection from './src/components/Structure/TitleSubsection';
+import TitlePage from './src/components/Structure/TitlePage';
 import TitleMainsection from './src/components/Structure/TitleMainsection';
+import TitleSubsection from './src/components/Structure/TitleSubsection';
 
 import * as TypographyClassNames from './src/components/Typography/classnames';
 
@@ -146,8 +147,9 @@ export {
 
     Section,
     SectionHeader,
-    TitleSubsection,
+    TitlePage,
     TitleMainsection,
+    TitleSubsection,
 
     Toolbar,
     ToolbarSection,

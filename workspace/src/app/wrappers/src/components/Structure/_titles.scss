@@ -1,5 +1,10 @@
-$ecc-size-typo-title-mainsection: $ecc-size-typo-title !default;
-$ecc-size-typo-title-mainsection-lineheight: $ecc-size-typo-title-lineheight !default;
+$ecc-size-typo-title-page: $ecc-size-typo-title !default;
+$ecc-size-typo-title-page-lineheight: $ecc-size-typo-title-lineheight !default;
+$ecc-font-weight-title-page: $ecc-font-weight-bold !default;
+$ecc-font-spacing-title-page: $ecc-font-spacing-condensed !default;
+
+$ecc-size-typo-title-mainsection: $ecc-size-typo-title-page !default;
+$ecc-size-typo-title-mainsection-lineheight: $ecc-size-typo-title-page-lineheight !default;
 $ecc-font-weight-title-mainsection: $ecc-font-weight-regular !default;
 $ecc-font-spacing-title-mainsection: $ecc-font-spacing-regular !default;
 
@@ -7,6 +12,18 @@ $ecc-size-typo-title-subsection: $ecc-size-typo-caption !default;
 $ecc-size-typo-title-subsection-lineheight: $ecc-size-typo-caption-lineheight !default;
 $ecc-font-weight-title-subsection: $ecc-font-weight-bold !default;
 $ecc-font-spacing-title-subsection: $ecc-font-spacing-wide !default;
+
+.ecc-structure__title-page {
+    font-size: $ecc-size-typo-title-page;
+    line-height: $ecc-size-typo-title-page-lineheight;
+    font-weight: $ecc-font-weight-title-page;
+    letter-spacing: $ecc-font-spacing-title-page;
+
+    & > * {
+        font-size: inherit;
+        line-height: inherit;
+    }
+}
 
 .ecc-structure__title-mainsection {
     font-size: $ecc-size-typo-title-mainsection;
