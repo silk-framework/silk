@@ -1,14 +1,17 @@
 package org.silkframework.serialization.json
 
-import org.silkframework.config.MetaData
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.serialization.json.JsonSerializers.{ID, METADATA, MetaDataJsonFormat}
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.Identifier
 import play.api.libs.json._
 
+/**
+  * Helper methods for handling (Play) JSON.
+  */
 object JsonHelpers {
+
+  final val ID = "id"
 
   def mustBeDefined(value: JsValue, attributeName: String): JsValue = {
     (value \ attributeName).toOption.
@@ -102,6 +105,14 @@ object JsonHelpers {
     }
   }
 
+  def objectValue(json: JsValue, attributeName: String): JsObject = {
+    requiredValue(json, attributeName) match {
+      case jsObject: JsObject => jsObject
+      case _ =>
+        throw JsonParseException("Value for attribute '" + attributeName + "' is not a JSON object!")
+    }
+  }
+
   def optionalValue(json: JsValue, attributeName: String): Option[JsValue] = {
     (json \ attributeName).toOption.filterNot(_ == JsNull)
   }
@@ -133,20 +144,4 @@ object JsonHelpers {
         readContext.identifierGenerator.generate(defaultId)
     }
   }
-
-  /**
-    * Reads meta data.
-    *
-    * @param json The json to read the meta data from.
-    * @param identifier If no label is provided in the json, use this identifier to generate a label.
-    */
-  def metaData(json: JsValue, identifier: String)(implicit readContext: ReadContext): MetaData = {
-    optionalValue(json, METADATA) match {
-      case Some(metaDataJson) =>
-        MetaDataJsonFormat.read(metaDataJson, identifier)
-      case None =>
-        MetaData(MetaData.labelFromId(identifier))
-    }
-  }
-
 }

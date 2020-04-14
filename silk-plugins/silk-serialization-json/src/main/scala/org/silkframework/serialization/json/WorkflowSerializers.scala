@@ -9,7 +9,6 @@ object WorkflowSerializers {
 
   implicit object WorkflowJsonFormat extends JsonFormat[Workflow] {
 
-    private final val TASKTYPE = "taskType"
     private final val OPERATORS = "operators"
     private final val DATASETS = "datasets"
 
@@ -23,9 +22,7 @@ object WorkflowSerializers {
     private final val ID = "id"
     private final val OUTPUT_PRIORITY = "outputPriority"
 
-    private final val WORKFLOW_TYPE = "Workflow"
-
-    override def typeNames: Set[String] = Set(WORKFLOW_TYPE)
+    override def typeNames: Set[String] = Set(JsonSerializers.TASK_TYPE_WORKFLOW)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Workflow = {
       Workflow(
@@ -36,7 +33,7 @@ object WorkflowSerializers {
 
     override def write(value: Workflow)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
-        TASKTYPE -> WORKFLOW_TYPE,
+        JsonSerializers.TASKTYPE -> JsonSerializers.TASK_TYPE_WORKFLOW,
         OPERATORS -> value.operators.map(writeOperator),
         DATASETS -> value.datasets.map(writeDataset)
       )

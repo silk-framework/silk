@@ -33,7 +33,7 @@ object SilkConfigImporter {
     }
 
     //Add all outputs
-    for(output <- config.outputs) {
+    for(output <- config.output) {
       project.addTask(output.id, output.data)
     }
 

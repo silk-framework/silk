@@ -2,6 +2,7 @@ package controllers.workflow
 
 import controllers.workflow.WorkflowClient.VariableDatasetPayload
 import controllers.workspace.ActivityClient
+import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.util.Identifier
 import play.api.http.Writeable
 import play.api.libs.json.{JsArray, JsObject, JsString, JsValue}
@@ -107,7 +108,7 @@ object WorkflowClient {
       JsObject(Seq(
         "id" -> JsString(datasetId),
         "data" -> JsObject(Seq(
-          "taskType" -> JsString("Dataset"),
+          "taskType" -> JsString(JsonSerializers.TASK_TYPE_DATASET),
           "type" -> JsString(datasetPluginType),
           "parameters" -> JsObject(for ((key, value) <- pluginParams ++ additionalParam) yield {
             key -> JsString(value)

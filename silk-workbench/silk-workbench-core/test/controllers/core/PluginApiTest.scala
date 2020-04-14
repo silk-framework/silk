@@ -7,6 +7,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginParameterAutoCompletionProvider, PluginRegistry}
 import org.silkframework.serialization.json.{PluginParameterJsonPayload, PluginSerializers}
+import org.silkframework.workspace.WorkspaceReadTrait
 import play.api.libs.json.{JsValue, Json}
 
 class PluginApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers {
@@ -54,13 +55,13 @@ case class AutoCompletableTestPlugin(@Param(value = "Some param", autoCompletion
 case class TestAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
   val values = Seq("val1" -> "First value", "val2" -> "Second value", "val3" -> "Third value")
 
-  override protected def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String])
+  override protected def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String], workspace: WorkspaceReadTrait)
                                      (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
     val multiWordQuery = extractSearchTerms(searchQuery)
     values.filter(v => matchesSearchTerm(multiWordQuery, v._2)).map{ case (value, label) => AutoCompletionResult(value, Some(label))}
   }
 
-  override def valueToLabel(projectId: String, value: String, dependOnParameterValues: Seq[String])
+  override def valueToLabel(projectId: String, value: String, dependOnParameterValues: Seq[String], workspace: WorkspaceReadTrait)
                            (implicit userContext: UserContext): Option[String] = {
     values.find(_._1 == value).map(_._2)
   }

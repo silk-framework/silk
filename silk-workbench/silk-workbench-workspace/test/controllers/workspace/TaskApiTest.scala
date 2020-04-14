@@ -9,6 +9,7 @@ import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.plugins.dataset.rdf.datasets.{InMemoryDataset, SparqlDataset}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginRegistry}
+import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.workspace.TestCustomTask
 import play.api.http.Status
 import play.api.libs.json._
@@ -61,7 +62,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
             ),
         "data" -> Json.obj(
           "uriProperty" -> "URI",
-          "taskType" -> "Dataset",
+          JsonSerializers.TASKTYPE -> "Dataset",
           "type" -> "internal",
           "parameters" ->
               Json.obj(
@@ -173,9 +174,9 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     val json = response.json
     (json \ "id").get mustBe JsString(transformId)
     (json \ "taskType").get mustBe JsString("Transform")
-    (json \ "data" \ "selection" \ "inputId").get mustBe JsString(datasetId)
-    (json \ "data" \ "selection" \ "typeUri").as[String] mustBe typeUri
-    (json \ "data" \ "root" \ "rules" \ "uriRule" \ "operator").as[JsObject].toString mustBe
+    (json \ "data" \ "parameters" \ "selection" \ "inputId").as[String] mustBe datasetId
+    (json \ "data" \ "parameters" \ "selection" \ "typeUri").as[String] mustBe typeUri
+    (json \ "data" \ "parameters" \ "mappingRule" \ "rules" \ "uriRule" \ "operator").as[JsObject].toString mustBe
         """{"type":"transformInput","id":"constant","function":"constant","inputs":[],"parameters":{"value":"http://example.org/"}}"""
   }
 
@@ -187,14 +188,16 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     val updateJson = s"""{
                        |    "id": "$transformId",
                        |    "data": {
-                       |      "outputs": [],
-                       |      "selection": {
-                       |        "inputId": "$datasetId",
-                       |        "restriction": "",
-                       |        "typeUri": "someType"
-                       |      },
-                       |      "targetVocabularies": [],
-                       |      "taskType": "Transform"
+                       |      "parameters": {
+                       |        "outputs": [],
+                       |        "selection": {
+                       |          "inputId": "$datasetId",
+                       |          "restriction": "",
+                       |          "typeUri": "someType"
+                       |        },
+                       |        "targetVocabularies": [],
+                       |        "taskType": "Transform"
+                       |      }
                        |    }
                        |}""".stripMargin
     val request = client.url(s"$baseUrl/workspace/projects/$project/tasks/$transformId")
@@ -241,9 +244,9 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     val response = checkResponse(request.get())
 
     (response.json \ "id").get mustBe JsString(linkTaskId)
-    (response.json \ "data" \ "source" \ "typeUri").get mustBe JsString("<http://dbpedia.org/ontology/Film>")
-    (response.json \ "data" \ "target" \ "typeUri").get mustBe JsString("<http://data.linkedmdb.org/resource/movie/film>")
-    (response.json \ "data" \ "rule" \ "linkType").get mustBe JsString("owl:sameAs")
+    (response.json \ "data" \ "parameters" \ "source" \ "typeUri").get mustBe JsString("<http://dbpedia.org/ontology/Film>")
+    (response.json \ "data" \ "parameters" \ "target" \ "typeUri").get mustBe JsString("<http://data.linkedmdb.org/resource/movie/film>")
+    (response.json \ "data" \ "parameters" \ "rule" \ "linkType").get mustBe JsString("owl:sameAs")
   }
 
   "patch linking task" in {
@@ -252,15 +255,17 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
          | {
          |  "id": "$linkTaskId",
          |  "data": {
-         |    "source": {
-         |      "inputId": "$datasetId",
-         |      "typeUri": "owl:Class",
-         |      "restriction": ""
-         |    },
-         |    "target": {
-         |      "inputId": "$datasetId",
-         |      "typeUri": "<urn:schema:targetType>",
-         |      "restriction": ""
+         |    "parameters": {
+         |      "source": {
+         |        "inputId": "$datasetId",
+         |        "typeUri": "owl:Class",
+         |        "restriction": ""
+         |      },
+         |      "target": {
+         |        "inputId": "$datasetId",
+         |        "typeUri": "<urn:schema:targetType>",
+         |        "restriction": ""
+         |      }
          |    }
          |  }
          | }
@@ -276,9 +281,9 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     val response = checkResponse(request.get())
 
     (response.json \ "id").get mustBe JsString(linkTaskId)
-    (response.json \ "data" \ "source" \ "typeUri").get mustBe JsString("owl:Class")
-    (response.json \ "data" \ "target" \ "typeUri").get mustBe JsString("<urn:schema:targetType>")
-    (response.json \ "data" \ "rule" \ "linkType").get mustBe JsString("owl:sameAs")
+    (response.json \ "data" \ "parameters" \ "source" \ "typeUri").get mustBe JsString("owl:Class")
+    (response.json \ "data" \ "parameters" \ "target" \ "typeUri").get mustBe JsString("<urn:schema:targetType>")
+    (response.json \ "data" \ "parameters" \ "rule" \ "linkType").get mustBe JsString("owl:sameAs")
   }
 
   "post workflow task" in {

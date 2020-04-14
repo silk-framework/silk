@@ -36,8 +36,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     // A label has been generated for this transform
     (response \ "metadata" \ "label").as[String] mustBe "Test Transform"
     // An id and a label has been generated for the root mapping
-    (response \ "data" \ ROOT_RULE_ID \ "id").as[String] mustBe ROOT_RULE_ID
-    (response \ "data" \ ROOT_RULE_ID \ "metadata" \ "label").as[String] mustBe "Root Mapping"
+    (response \ "data" \ "parameters" \ "mappingRule" \ "id").as[String] mustBe ROOT_RULE_ID
+    (response \ "data" \ "parameters" \ "mappingRule" \ "metadata" \ "label").as[String] mustBe "Root Mapping"
   }
 
   "Check that we can GET the transform task as XML" in {

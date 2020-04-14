@@ -81,7 +81,8 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1",
     libraryDependencies += "commons-io" % "commons-io" % "2.4",
-    libraryDependencies += "org.lz4" % "lz4-java" % "1.4.0"
+    libraryDependencies += "org.lz4" % "lz4-java" % "1.4.0",
+    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.6.12"
   )
 
 lazy val rules = (project in file("silk-rules"))
@@ -144,7 +145,6 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins JSON",
-    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.6.12",
     libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.8.6"
   )
 
@@ -173,8 +173,7 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .dependsOn(core, rules, workspace)
   .settings(commonSettings: _*)
   .settings(
-    name := "Silk Serialization JSON",
-    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.6.12"
+    name := "Silk Serialization JSON"
   )
 
 // Aggregate all plugins

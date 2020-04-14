@@ -33,7 +33,7 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
       linkLimit = Some(LinkSpec.adaptLinkLimit(task.linkLimit)),
       executionTimeout = Some(task.matchingExecutionTimeout * 1000L).filter(_ > 0)
     )
-    val activity = new GenerateLinks(task.id, task.taskLabel(), sources, linkSpec, Seq(), linkConfig)
+    val activity = new GenerateLinks(task.id, task.taskLabel(), sources, linkSpec, None, linkConfig)
     val linking = context.child(activity).startBlockingAndGetValue()
     context.value() = linking
     Some(LinksTable(linking.links, linkSpec.rule.linkType, task))
@@ -83,6 +83,6 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
   private def updateSelection(linkSpec: LinkSpec, source: LocalEntities, target: LocalEntities): LinkSpec = {
     val sourceSelection = linkSpec.dataSelections.source.copy(inputId = source.task.id)
     val targetSelection = linkSpec.dataSelections.target.copy(inputId = target.task.id)
-    linkSpec.copy(dataSelections = DPair(sourceSelection, targetSelection))
+    linkSpec.copy(source = sourceSelection, target = targetSelection)
   }
 }

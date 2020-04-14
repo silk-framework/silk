@@ -62,7 +62,7 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
                   } else {
                     val result = autoCompletion.autoCompletionProvider.autoComplete(request.textQuery.getOrElse(""),
                       request.projectId, request.dependsOnParameterValues.getOrElse(Seq.empty),
-                      limit = request.workingLimit, offset = request.workingOffset)
+                      limit = request.workingLimit, offset = request.workingOffset, workspace = workspace)
                     Ok(Json.toJson(result.map(_.withNonEmptyLabels)))
                   }
                 case None =>

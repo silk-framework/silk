@@ -27,7 +27,7 @@ trait WorkspaceFactory {
 }
 
 object WorkspaceFactory {
-  private lazy val defaultWorkspaceFactory = new FileWorkspaceFactory
+  private lazy val defaultWorkspaceFactory = new PluginBasedWorkspaceFactory
 
   @volatile // factory method for creating the workspace factory
   var factory: WorkspaceFactory = defaultWorkspaceFactory

@@ -5,7 +5,7 @@ import java.util.logging.Logger
 
 import javax.crypto.BadPaddingException
 import org.silkframework.execution.{AbortExecutionException, ExecutionException}
-import org.silkframework.runtime.plugin.ParameterType.PasswordParameterType
+import org.silkframework.runtime.plugin.StringParameterType.PasswordParameterType
 import org.silkframework.util.AesCrypto
 
 /**

@@ -33,7 +33,7 @@ import scala.util.Try
   * @param provider    the workspace provider
   * @param repository  the resource repository
   */
-class Workspace(val provider: WorkspaceProvider, val repository: ResourceRepository) {
+class Workspace(val provider: WorkspaceProvider, val repository: ResourceRepository) extends WorkspaceReadTrait {
 
   private val log = Logger.getLogger(classOf[Workspace].getName)
 
@@ -69,7 +69,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     }
   }
 
-  def projects(implicit userContext: UserContext): Seq[Project] = {
+  override def projects(implicit userContext: UserContext): Seq[Project] = {
     loadUserProjects()
     cachedProjects
   }
@@ -79,12 +79,12 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
    *
    * @throws java.util.NoSuchElementException If no project with the given name has been found
    */
-  def project(name: Identifier)(implicit userContext: UserContext): Project = {
+  override def project(name: Identifier)(implicit userContext: UserContext): Project = {
     loadUserProjects()
     findProject(name).getOrElse(throw ProjectNotFoundException(name))
   }
 
-  def findProject(name: Identifier)(implicit userContext: UserContext): Option[Project] = {
+  override def findProject(name: Identifier)(implicit userContext: UserContext): Option[Project] = {
     loadUserProjects()
     projects.find(_.name == name)
   }

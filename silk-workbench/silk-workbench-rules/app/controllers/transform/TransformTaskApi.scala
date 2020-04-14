@@ -25,6 +25,7 @@ import play.api.libs.json._
 import play.api.mvc._
 import TransformTaskApi._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.runtime.plugin.IdentifierOptionParameter
 
 class TransformTaskApi @Inject() () extends InjectedController {
 
@@ -47,18 +48,18 @@ class TransformTaskApi @Inject() () extends InjectedController {
         val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
         val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes),
           Restriction.custom(values.getOrElse("restriction", "")))
-        val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
+        val output = values.get("output").filter(_.nonEmpty).map(Identifier(_))
         val targetVocabularies = values.get("targetVocabularies").toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
 
         project.tasks[TransformSpec].find(_.id.toString == taskName) match {
           //Update existing task
           case Some(oldTask) if !createOnly =>
-            val updatedTransformSpec = oldTask.data.copy(selection = input, outputs = outputs, targetVocabularies = targetVocabularies)
+            val updatedTransformSpec = oldTask.data.copy(selection = input, outputOpt = output, targetVocabularies = targetVocabularies)
             project.updateTask(taskName, updatedTransformSpec)
           //Create new task with no rule
           case _ =>
             val rule = RootMappingRule(rules = MappingRules.empty)
-            val transformSpec = TransformSpec(input, rule, outputs, Seq.empty, targetVocabularies)
+            val transformSpec = TransformSpec(input, rule, output, None, targetVocabularies)
             project.addTask(taskName, transformSpec, MetaData(MetaData.labelFromId(taskName)))
         }
 

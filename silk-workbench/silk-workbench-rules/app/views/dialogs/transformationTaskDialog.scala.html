@@ -11,7 +11,7 @@
 
 @currentInput = @{ transformationTask.map(_.data.selection) }
 
-@currentOutput = @{ transformationTask.flatMap(_.data.outputs.headOption) }
+@currentOutput = @{ transformationTask.flatMap(_.data.output) }
 
 @prefixes = @{ WorkspaceFactory().workspace.project(project).config.prefixes }
 

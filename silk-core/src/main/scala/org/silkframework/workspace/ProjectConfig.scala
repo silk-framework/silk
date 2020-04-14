@@ -16,13 +16,10 @@ package org.silkframework.workspace
 
 import java.util.logging.Logger
 
-import javax.inject.Inject
 import com.typesafe.config.ConfigException
+import javax.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig, MetaData, Prefixes}
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Identifier
-
-import scala.xml.Node
 
 /**
   * The project specific config.

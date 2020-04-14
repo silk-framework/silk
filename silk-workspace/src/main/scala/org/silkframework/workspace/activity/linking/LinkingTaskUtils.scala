@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.linking
 
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, LinkSink}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.DPair
@@ -38,8 +38,8 @@ object LinkingTaskUtils {
     /**
       * Retrieves all link sinks for this linking task.
       */
-    def linkSinks(implicit userContext: UserContext) = {
-      task.data.outputs.flatMap(o => task.project.taskOption[DatasetSpec[Dataset]](o)).map(_.data.linkSink)
+    def linkSink(implicit userContext: UserContext): Option[LinkSink] = {
+      task.data.output.flatMap(o => task.project.taskOption[DatasetSpec[Dataset]](o)).map(_.data.linkSink)
     }
   }
 

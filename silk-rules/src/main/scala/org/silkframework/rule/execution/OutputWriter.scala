@@ -22,20 +22,20 @@ import org.silkframework.util.Uri
 /**
  * Writes the links to the output.
  */
-class OutputWriter(links: Seq[Link], linkType: Uri, outputs: Seq[LinkSink]) extends Activity[Unit] {
+class OutputWriter(links: Seq[Link], linkType: Uri, output: Option[LinkSink]) extends Activity[Unit] {
 
   override def name = "Writing output"
 
   override def run(context: ActivityContext[Unit])
                   (implicit userContext: UserContext) {
-    outputs.foreach(_.clear())
-    outputs.foreach(_.init())
+    output.foreach(_.clear())
+    output.foreach(_.init())
 
     for (link <- links;
-         output <- outputs) {
+         output <- output) {
       output.writeLink(link, linkType.toString)
     }
 
-    outputs.foreach(_.close())
+    output.foreach(_.close())
   }
 }

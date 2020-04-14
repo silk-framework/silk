@@ -34,7 +34,7 @@ import scala.util.control.NonFatal
 /**
  * A project.
  */
-class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val resources: ResourceManager) {
+class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val resources: ResourceManager) extends ProjectTrait {
 
   private implicit val logger = Logger.getLogger(classOf[Project].getName)
 
@@ -66,7 +66,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   /**
     * The name of this project.
     */
-  def name: Identifier = cachedConfig.id
+  override def name: Identifier = cachedConfig.id
 
   /**
     * Retrieves all errors that occurred during loading this project.
@@ -106,7 +106,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     *
     * @param activityName The name of the requested activity
     * @return The activity control for the requested activity
-    * @throws org.silkframework.runtime.validation.NotFoundException
+    * @throws NotFoundException
     */
   def activity(activityName: String): ProjectActivity[_ <: HasValue] = {
     projectActivities.find(_.name == activityName)
@@ -146,7 +146,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   /**
    * Retrieves all tasks of a specific type.
    */
-  def tasks[T <: TaskSpec : ClassTag](implicit userContext: UserContext): Seq[ProjectTask[T]] = {
+  override def tasks[T <: TaskSpec : ClassTag](implicit userContext: UserContext): Seq[ProjectTask[T]] = {
     val targetType = implicitly[ClassTag[T]].runtimeClass
     module[T].tasks.filter(task => targetType.isAssignableFrom(task.data.getClass))
   }
@@ -163,7 +163,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     module[T].task(taskName)
   }
 
-  def taskOption[T <: TaskSpec : ClassTag](taskName: Identifier)
+  override def taskOption[T <: TaskSpec : ClassTag](taskName: Identifier)
                                           (implicit userContext: UserContext): Option[ProjectTask[T]] = {
     module[T].taskOption(taskName)
   }
@@ -172,7 +172,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
    * Retrieves a task of any type by name.
    *
    * @param taskName The name of the task
-   * @throws org.silkframework.workspace.TaskNotFoundException If no task with the given name has been found
+   * @throws TaskNotFoundException If no task with the given name has been found
    */
   def anyTask(taskName: Identifier)
              (implicit userContext: UserContext): ProjectTask[_ <: TaskSpec] = {

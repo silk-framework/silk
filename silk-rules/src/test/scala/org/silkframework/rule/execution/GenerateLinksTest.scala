@@ -157,7 +157,7 @@ object GenerateLinksTest {
                             linkSpec: LinkSpec,
                             runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig()): GenerateLinks = {
       val sourcePair = linkSpec.findSources(datasets)
-      val outputs = linkSpec.outputs.flatMap(o => datasets.find(_.id == o)).map(_.linkSink)
+      val outputs = linkSpec.output.flatMap(o => datasets.find(_.id == o)).map(_.linkSink)
       new GenerateLinks(id, id, sourcePair, linkSpec, outputs, runtimeConfig)
     }
 

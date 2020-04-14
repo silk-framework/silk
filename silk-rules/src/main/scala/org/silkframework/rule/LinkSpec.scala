@@ -19,40 +19,60 @@ import java.util.logging.Logger
 import org.silkframework.config.{DefaultConfig, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.entity.{EntitySchema, StringValueType, ValueType}
+import org.silkframework.entity.{EntitySchema, Restriction, StringValueType, ValueType}
 import org.silkframework.execution.local.LinksTable
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.IdentifierOptionParameter
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, ValidatingXMLReader, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
+import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
 
 import scala.xml.Node
 
 /**
  * Represents a Silk Link Specification.
  */
-case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.emptyPair,
+@Plugin(
+  id = "linking",
+  label = "Linking",
+  categories = Array("Linking"),
+  description =
+      """Generates links between instances from different sources according to a link specification."""
+)
+case class LinkSpec(@Param(label = "Source input", value = "The source input to select.")
+                    source: DatasetSelection = DatasetSelection("SourceDatasetSelection", Uri(""), Restriction.empty),
+                    @Param(label = "Target input", value = "The target input to select.")
+                    target: DatasetSelection = DatasetSelection("TargetDatasetSelection", Uri(""), Restriction.empty),
+                    @Param(label = "Linkage rule", value = "The linkage rule that specifies when entities match and are linked.", visibleInDialog = false)
                     rule: LinkageRule = LinkageRule(),
-                    outputs: Seq[Identifier] = Seq.empty,
+                    @Param(label = "Output", value = "The output dataset to write the links to.", autoCompletionProvider = classOf[DatasetTaskReferenceAutoCompletionProvider],
+                      autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
+                    outputOpt: IdentifierOptionParameter = None,
+                    @Param(label = "Reference links", value = "The source input to select.", visibleInDialog = false)
                     referenceLinks: ReferenceLinks = ReferenceLinks.empty,
+                    @Param(label = "Link Limit", value = "The maximum number of links that should be generated. The execution will stop once this limit is reached.",
+                      advanced = true)
                     linkLimit: Int = LinkSpec.DEFAULT_LINK_LIMIT,
+                    @Param(label = "Matching timeout", value = "The timeout for the matching phase. If the matching takes longer the execution will be stopped.",
+                      advanced = true)
                     matchingExecutionTimeout: Int = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS) extends TaskSpec {
 
   assert(linkLimit >= 0, "The link limit must be greater equal 0!")
   assert(matchingExecutionTimeout >= 0, "The matching execution timeout must be greater equal 0!")
 
+  def output: Option[Identifier] = outputOpt.value
+
+  def dataSelections: DPair[DatasetSelection] = DPair(source, target)
+
   def findSources(datasets: Traversable[Task[DatasetSpec[Dataset]]])
                  (implicit userContext: UserContext): DPair[DataSource] = {
     DPair.fromSeq(dataSelections.map(_.inputId).map(id => datasets.find(_.id == id).map(_.source).getOrElse(EmptySource)))
-  }
-
-  def findOutputs(datasets: Traversable[Task[DatasetSpec[Dataset]]])
-                 (implicit userContext: UserContext): Seq[LinkSink] = {
-    outputs.flatMap(id => datasets.find(_.id == id)).map(_.linkSink)
   }
 
   def entityDescriptions: DPair[EntitySchema] = {
@@ -111,7 +131,7 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
 
   override def inputTasks: Set[Identifier] = dataSelections.map(_.inputId).toSet
 
-  override def outputTasks: Set[Identifier] = outputs.toSet
+  override def outputTasks: Set[Identifier] = output.toSet
 
   override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
     Seq(
@@ -179,14 +199,15 @@ object LinkSpec {
       if (linkConditionNode.isDefined) throw new ValidationException("<LinkCondition> has been renamed to <LinkageRule>. Please update the link specification.")
 
       LinkSpec(
-        dataSelections = new DPair(DatasetSelection.fromXML((node \ "SourceDataset").head),
-          DatasetSelection.fromXML((node \ "TargetDataset").head)),
+        source = DatasetSelection.fromXML((node \ "SourceDataset").head),
+        target = DatasetSelection.fromXML((node \ "TargetDataset").head),
         rule = fromXml[LinkageRule](linkageRuleNode),
-        outputs =
-          for(outputNode <- node \ "Outputs" \ "Output") yield {
+        outputOpt =
+          (node \ "Outputs" \ "Output").headOption map { outputNode =>
             val id = (outputNode \ "@id").text
-            if(id.isEmpty)
+            if (id.isEmpty) {
               throw new ValidationException(s"Link specification $id contains an output that does not reference a predefined output by id")
+            }
             Identifier(id)
           },
         linkLimit = (node \ "@linkLimit").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
@@ -203,7 +224,7 @@ object LinkSpec {
         {spec.dataSelections.target.toXML(asSource = false)}
         {toXml(spec.rule)}
         <Outputs>
-          {spec.outputs.map(o => <Output id={o}></Output>)}
+          {spec.output.toSeq.map(o => <Output id={o}></Output>)}
         </Outputs>
       </Interlink>
   }

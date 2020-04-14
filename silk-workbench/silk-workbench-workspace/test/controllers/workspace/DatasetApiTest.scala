@@ -2,6 +2,7 @@ package controllers.workspace
 
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
+import org.silkframework.serialization.json.JsonSerializers
 import play.api.libs.json.{JsObject, Json}
 
 class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
@@ -38,7 +39,7 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
     request = request.addHttpHeaders("Accept" -> "application/json")
     val response = request.put(
       Json.obj(
-        "taskType" -> "Dataset",
+        "taskType" -> JsonSerializers.TASK_TYPE_DATASET,
         "id" -> dataset,
         "metadata" ->
           Json.obj(

@@ -4,10 +4,11 @@ import java.io.File
 import java.net.{URL, URLClassLoader}
 import java.util.ServiceLoader
 import java.util.logging.Logger
-import javax.inject.Inject
 
+import javax.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig, Prefixes}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.runtime.serialization.Serialization
 import org.silkframework.util.Identifier
 
 import scala.collection.JavaConversions._
@@ -50,6 +51,27 @@ object PluginRegistry {
     registerJars(new File(configMgr().getString("pluginRegistry.pluginFolder")))
   } else {
     registerFromClasspath()
+  }
+
+  checkPluginParametersPlugins()
+
+  private def checkPluginParametersPlugins(): Unit =  {
+    var pluginsWithoutXmlFormat: List[String] = Nil
+    var pluginsWithoutJsonFormat: List[String] = Nil
+    for(plugin <- plugins.values if classOf[PluginObjectParameter].isAssignableFrom(plugin.pluginClass)) {
+      if(Serialization.formatForMimeOption(plugin.pluginClass, "application/json").isEmpty) {
+        pluginsWithoutJsonFormat ::= plugin.label
+      }
+      // TODO: XmlFormat not consistently used, e.g. DatasetSelection has methods in class instead.
+//      if(Serialization.formatForMimeOption(plugin.pluginClass, "application/xml").isEmpty) {
+//        pluginsWithoutXmlFormat ::= plugin.label
+//      }
+    }
+    if(pluginsWithoutJsonFormat.nonEmpty || pluginsWithoutXmlFormat.nonEmpty) {
+      log.severe(s"Plugin parameter plugins found that do not have a XML and/or JSON format implementations." +
+          s" Missing JSON format: ${pluginsWithoutJsonFormat.mkString(", ")}, missing XML format: ${pluginsWithoutXmlFormat.mkString(", ")}")
+      throw new RuntimeException("Could not initialize plugin registry.")
+    }
   }
 
   /**
@@ -127,6 +149,7 @@ object PluginRegistry {
         .sortBy(_.label)
   }
 
+  /** Get a specific plugin description by plugin ID. */
   def pluginDescriptionById(pluginId: String): Option[PluginDescription[_]] = pluginsById.get(pluginId)
 
   /**

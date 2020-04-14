@@ -44,7 +44,7 @@ trait Task[+TaskType <: TaskSpec] {
     metaData.formattedLabel(id, maxLength)
   }
 
-  override def equals(obj: scala.Any) = obj match {
+  override def equals(obj: scala.Any): Boolean = obj match {
     case task: Task[_] =>
       id == task.id &&
       data == task.data &&

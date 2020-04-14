@@ -1,6 +1,6 @@
 @import org.silkframework.dataset.DatasetPluginAutoConfigurable
-@import org.silkframework.runtime.plugin.ParameterType._
-@import org.silkframework.runtime.plugin.{AnyPlugin, Parameter, ParameterType, PluginDescription}
+@import org.silkframework.runtime.plugin.StringParameterType._
+@import org.silkframework.runtime.plugin.{AnyPlugin, Parameter, StringParameterType, PluginDescription}
 @import org.silkframework.workspace.Project
 @import org.silkframework.runtime.activity.UserContext
 
@@ -217,8 +217,8 @@
  *@
 @createField(pluginId: String, param: Parameter) = @{
   param.dataType match {
-    case ParameterType.ResourceType | ParameterType.WritableResourceType => createResourceField(pluginId, param)
-    case enum @ ParameterType.EnumerationType(_) => createEnumerationField(pluginId, param, enum.enumerationValues, enum.displayNames)
+    case StringParameterType.ResourceType | StringParameterType.WritableResourceType => createResourceField(pluginId, param)
+    case enum @ StringParameterType.EnumerationType(_) => createEnumerationField(pluginId, param, enum.enumerationValues, enum.displayNames)
     case BooleanType => createEnumerationField(pluginId, param, Seq("true", "false"), Seq("True", "False"))
     case MultilineStringParameterType => createMultilineTextField(pluginId, param)
     case SparqlEndpointDatasetParameterType => createSparqlEndpointDatasetField(pluginId, param)
@@ -289,7 +289,7 @@
     }
   // Convert parameter value to string
   implicit val prefixes = project.config.prefixes
-  val paramType = param.dataType.asInstanceOf[ParameterType[AnyRef]]
+  val paramType = param.dataType.asInstanceOf[StringParameterType[AnyRef]]
   val paramStr = paramObj.map(paramType.toString).getOrElse("")
   paramStr
 }

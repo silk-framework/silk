@@ -1,24 +1,26 @@
 package org.silkframework.workspace.project
 
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.AutoCompletionResult
-import org.silkframework.workspace.{WorkspaceFactory, WorkspacePluginParameterAutoCompletionProvider}
+import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginParameterAutoCompletionProvider}
+import org.silkframework.workspace.WorkspaceReadTrait
 
 /**
   * Auto-completion for workspace projects.
   */
-case class ProjectReferenceAutoCompletionProvider() extends WorkspacePluginParameterAutoCompletionProvider {
-  override protected def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String])
+case class ProjectReferenceAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
+  override protected def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String],
+                                      workspace: WorkspaceReadTrait)
                                      (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
-    filterResults(searchQuery, results)
+    filterResults(searchQuery, results(workspace))
   }
 
-  override def valueToLabel(projectId: String, value: String, dependOnParameterValues: Seq[String])
+  override def valueToLabel(projectId: String, value: String, dependOnParameterValues: Seq[String],
+                            workspace: WorkspaceReadTrait)
                            (implicit userContext: UserContext): Option[String] = {
-    results.find(_.value == value).flatMap(_.label)
+    results(workspace).find(_.value == value).flatMap(_.label)
   }
 
-  private def results(implicit userContext: UserContext): Seq[AutoCompletionResult] = {
+  private def results(workspace: WorkspaceReadTrait)(implicit userContext: UserContext): Seq[AutoCompletionResult] = {
     workspace.projects.map(_.config) map { projectConfig=>
       val label = projectConfig.metaData.label
       val value = projectConfig.id.toString

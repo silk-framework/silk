@@ -54,6 +54,13 @@ object Serialization {
   }
 
   /**
+    * Retrieves a format for a static value type and a given MIME type.
+    */
+  def formatForMimeOption[T: ClassTag](mimeType: String): Option[SerializationFormat[T, Any]] = {
+    formatForMimeOption(implicitly[ClassTag[T]].runtimeClass, mimeType).map(_.asInstanceOf[SerializationFormat[T, Any]])
+  }
+
+  /**
     * Retrieves a format for a dynamic value type and a given MIME type.
     */
   def formatForMime(valueType: Class[_], mimeType: String): SerializationFormat[Any, Any] = {
@@ -62,6 +69,16 @@ object Serialization {
         format
       case None =>
         throw new NoSuchElementException(s"No serialization format for type $valueType for content type $mimeType available.")
+    }
+  }
+
+  def formatForDynamicType[U: ClassTag](valueType: Class[_]): SerializationFormat[Any, U] = {
+    val serializedType = implicitly[ClassTag[U]].runtimeClass
+    serializationFormats.find(f => f.valueType == valueType && f.serializedType == serializedType) match {
+      case Some(format) =>
+        format.asInstanceOf[SerializationFormat[Any, U]]
+      case None =>
+        throw new NoSuchElementException(s"No serialization format for type $valueType for serialization type $serializedType available.")
     }
   }
 

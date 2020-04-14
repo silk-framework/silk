@@ -1,11 +1,9 @@
 package org.silkframework.serialization.json
 
 import org.silkframework.runtime.serialization.{ReadContext, SerializationFormat, WriteContext}
-import play.api.libs.json.{JsError, JsPath, JsResult, JsResultException, JsSuccess, JsValue, Json, JsonValidationError, Reads}
+import play.api.libs.json._
 
-import scala.collection.Seq
 import scala.reflect.ClassTag
-import scala.util.control.NonFatal
 
 /**
   * JSON serialization format.

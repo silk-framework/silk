@@ -6,7 +6,7 @@ import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
 import javax.inject.Inject
-import org.silkframework.config.MetaData
+import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.{Entity, FullLink, Link, MinimalLink, Restriction}
 import org.silkframework.learning.LearningActivity
@@ -42,26 +42,26 @@ class LinkingTaskApi @Inject() () extends InjectedController {
     val values = request.body.asFormUrlEncoded.getOrElse(request.queryString).mapValues(_.head)
 
     val proj: Project = WorkspaceFactory().workspace.project(project)
-    implicit val prefixes = proj.config.prefixes
+    implicit val prefixes: Prefixes = proj.config.prefixes
 
-    val datasets =
-      DPair(DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values.getOrElse("sourceRestriction", ""))),
-            DatasetSelection(values("target"), Uri.parse(values.getOrElse("targetType", ""), prefixes), Restriction.custom(values.getOrElse("targetRestriction", ""))))
-    val outputs = values.get("output").filter(_.nonEmpty).map(str => str.split(",").map(Identifier(_))).toSeq.flatten
+    val sourceDataset = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values.getOrElse("sourceRestriction", "")))
+    val targetDataset = DatasetSelection(values("target"), Uri.parse(values.getOrElse("targetType", ""), prefixes), Restriction.custom(values.getOrElse("targetRestriction", "")))
+    val output = values.get("output").filter(_.nonEmpty).map(str => str.split(",").map(Identifier(_))).toSeq.flatten.headOption
 
-    proj.tasks[LinkSpec].find(_.id == task) match {
+    proj.tasks[LinkSpec].find(_.id.toString == task) match {
       //Update existing task
       case Some(oldTask) if !createOnly => {
-        val updatedLinkSpec = oldTask.data.copy(dataSelections = datasets, outputs = outputs)
+        val updatedLinkSpec = oldTask.data.copy(source = sourceDataset, target = targetDataset, outputOpt = output)
         proj.updateTask(task, updatedLinkSpec)
       }
       //Create new task
       case _ => {
         val linkSpec =
           LinkSpec(
-            dataSelections = datasets,
+            source = sourceDataset,
+            target = targetDataset,
             rule = LinkageRule(None),
-            outputs = outputs
+            outputOpt = output
           )
 
         proj.addTask(task, linkSpec, MetaData(MetaData.labelFromId(task)))
@@ -356,7 +356,7 @@ class LinkingTaskApi @Inject() () extends InjectedController {
           val linkSource = createDataSource(xmlRoot, Some("sourceDataset"))
           val linkTarget = createDataSource(xmlRoot, Some("targetDataset"))
           val (model, linkSink) = createLinkSink(xmlRoot)
-          val link = new GenerateLinksActivity(taskName, task.taskLabel(), DPair(linkSource, linkTarget), task.data, Seq(linkSink))
+          val link = new GenerateLinksActivity(taskName, task.taskLabel(), DPair(linkSource, linkTarget), task.data, Some(linkSink))
           Activity(link).startBlocking()
           val acceptedContentType = request.acceptedTypes.headOption.map(_.mediaType).getOrElse("application/n-triples")
           result(model, acceptedContentType, "Successfully generated links")
@@ -389,7 +389,7 @@ class LinkingTaskApi @Inject() () extends InjectedController {
       val updatedLinkSpec = task.data.copy(rule = linkageRule)
       val runtimeConfig = RuntimeLinkingConfig(executionTimeout = Some(timeoutInMs), linkLimit = Some(linkLimit),
         generateLinksWithEntities = true, includeReferenceLinks = includeReferenceLinks)
-      val linksActivity = new GenerateLinksActivity(linkingTaskName, task.taskLabel(), sources, updatedLinkSpec, Seq(), runtimeConfig)
+      val linksActivity = new GenerateLinksActivity(linkingTaskName, task.taskLabel(), sources, updatedLinkSpec, None, runtimeConfig)
       val control = Activity(linksActivity)
       control.startBlocking()
       control.value.get match {

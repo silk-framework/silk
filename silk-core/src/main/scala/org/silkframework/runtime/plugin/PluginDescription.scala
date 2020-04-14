@@ -22,6 +22,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager, ResourceNotFoundException}
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.WorkspaceReadTrait
 
 import scala.io.Source
 import scala.language.existentials
@@ -83,7 +84,12 @@ class PluginDescription[+T](val id: Identifier, val categories: Seq[String], val
       parameterValues.get(parameter.name) match {
         case Some(v) =>
           try {
-            parameter.dataType.fromString(v).asInstanceOf[AnyRef]
+            parameter.dataType match {
+              case stringParam: StringParameterType[_] =>
+                stringParam.fromString(v).asInstanceOf[AnyRef]
+              case _: PluginObjectParameterType =>
+                throw new RuntimeException(s"Plugin parameter '${parameter.name}' of plugin '$id' has no simple string representation, but is a complex object.") // TODO: What to do with that?
+            }
           } catch {
             case NonFatal(ex) =>
               throw new InvalidPluginParameterValueException(label + " has an invalid value for parameter " + parameter.name + ". Value must be a valid " + parameter.dataType + ". Issue: " + ex.getMessage, ex)
@@ -277,14 +283,16 @@ object PluginDescription {
     }
     override protected def autoComplete(searchQuery: String,
                                         projectId: String,
-                                        dependOnParameterValues: Seq[String])
+                                        dependOnParameterValues: Seq[String],
+                                        workspace: WorkspaceReadTrait)
                                        (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
       filterResults(searchQuery, enumValues)
     }
 
     override def valueToLabel(projectId: String,
                               value: String,
-                              dependOnParameterValues: Seq[String])
+                              dependOnParameterValues: Seq[String],
+                              workspace: WorkspaceReadTrait)
                              (implicit userContext: UserContext): Option[String] = {
       enumValues.find(_.value == value).flatMap(_.label)
     }

@@ -29,18 +29,17 @@ import scala.xml.Node
  * @param prefixes The prefixes which are used throughout the configuration to shorten URIs
  * @param sources The sources which should be interlinked
  * @param linkSpecs The Silk link specifications
- * @param outputs The outputs
+ * @param output  The output
  */
 case class LinkingConfig(prefixes: Prefixes,
                          runtime: RuntimeLinkingConfig,
                          sources: Traversable[Task[DatasetSpec[Dataset]]],
                          linkSpecs: Traversable[Task[LinkSpec]],
-                         outputs: Seq[Task[DatasetSpec[Dataset]]] = Seq.empty,
+                         output: Option[Task[DatasetSpec[Dataset]]] = None,
                          transforms: Traversable[Task[TransformSpec]] = Seq.empty) {
 
   private val sourceMap = sources.map(s => (s.id, s)).toMap
   private val linkSpecMap = linkSpecs.map(s => (s.id, s)).toMap
-  private val outputMap = outputs.map(s => (s.id, s)).toMap
 
   /**
    * Selects a datasource by id.
@@ -71,29 +70,11 @@ case class LinkingConfig(prefixes: Prefixes,
    */
   def transform(id: Identifier) = transforms.find(id == _.id)
 
-  /**
-   * Selects an output by id.
-   */
-  def output(id: Identifier) = outputMap(id)
-
-  /**
-   * Merges this configuration with another configuration.
-   */
-  def merge(config: LinkingConfig) = {
-    LinkingConfig(
-      prefixes = prefixes ++ config.prefixes,
-      runtime = runtime,
-      sources = sources ++ config.sources,
-      linkSpecs = linkSpecs ++ config.linkSpecs,
-      outputs = outputs ++ config.outputs,
-      transforms = transforms ++ config.transforms
-    )
-  }
 }
 
 object LinkingConfig {
 
-  def empty = LinkingConfig(Prefixes.empty, RuntimeLinkingConfig(), Nil, Nil, Nil)
+  def empty = LinkingConfig(Prefixes.empty, RuntimeLinkingConfig(), Nil, Nil, None)
 
   /**
    * XML serialization format.
@@ -130,9 +111,9 @@ object LinkingConfig {
 
       val oldOutputs = (node \ "Outputs" \ "Output").map(fromXml[Task[DatasetSpec[Dataset]]])
       val newOutputs = (node \ "Outputs" \ "Dataset").map(fromXml[Task[DatasetSpec[Dataset]]])
-      val outputs = oldOutputs ++ newOutputs
+      val output = (oldOutputs ++ newOutputs).headOption
 
-      LinkingConfig(readContext.prefixes, RuntimeLinkingConfig(blocking = blocking), sources, linkSpecifications, outputs, transforms)
+      LinkingConfig(readContext.prefixes, RuntimeLinkingConfig(blocking = blocking), sources, linkSpecifications, output, transforms)
     }
 
     /**
@@ -151,7 +132,7 @@ object LinkingConfig {
           {value.transforms.map(spec => XmlSerialization.toXml(spec))}
         </Transforms>
         <Outputs>
-          {value.outputs.map(toXml[Task[DatasetSpec[Dataset]]])}
+          {value.output.toSeq.map(toXml[Task[DatasetSpec[Dataset]]])}
         </Outputs>
       </Silk>
     }

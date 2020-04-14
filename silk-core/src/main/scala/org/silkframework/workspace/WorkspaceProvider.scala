@@ -8,7 +8,6 @@ import org.silkframework.util.Identifier
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
-import scala.util.Try
 
 trait WorkspaceProvider {
 

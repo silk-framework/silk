@@ -71,14 +71,14 @@ class EvaluateLinkingActivity(task: ProjectTask[LinkSpec], runtimeConfig: Runtim
   private def createGenerateLinksActivity(linkSpec: LinkSpec)
                                          (implicit userContext: UserContext): GenerateLinks = {
     val inputs = task.dataSources
-    val outputs = if (writeOutputs) task.linkSinks else Nil
+    val output = task.linkSink.filter(_ => writeOutputs)
 
     new GenerateLinks(
       task.id,
       task.taskLabel(),
       inputs = inputs,
       linkSpec = linkSpec,
-      outputs = outputs,
+      output = output,
       runtimeConfig = runtimeConfig
     )
   }

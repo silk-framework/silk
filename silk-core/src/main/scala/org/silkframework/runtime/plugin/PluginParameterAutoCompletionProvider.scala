@@ -3,6 +3,7 @@ package org.silkframework.runtime.plugin
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.workspace.WorkspaceReadTrait
 
 /**
   * Plugin type where each implementation can be used to auto-complete a specific type of parameter, e.g. over workflow tasks
@@ -14,7 +15,8 @@ trait PluginParameterAutoCompletionProvider {
   /** Auto-completion based on a text based search query */
   protected def autoComplete(searchQuery: String,
                              projectId: String,
-                             dependOnParameterValues: Seq[String])
+                             dependOnParameterValues: Seq[String],
+                             workspace: WorkspaceReadTrait)
                             (implicit userContext: UserContext): Traversable[AutoCompletionResult]
 
   /** Returns the label if exists for the given auto-completion value. This is needed if a value should
@@ -26,7 +28,8 @@ trait PluginParameterAutoCompletionProvider {
     * */
   def valueToLabel(projectId: String,
                    value: String,
-                   dependOnParameterValues: Seq[String])
+                   dependOnParameterValues: Seq[String],
+                   workspace: WorkspaceReadTrait)
                   (implicit userContext: UserContext): Option[String]
 
   /** Match search terms against string. Returns only true if all search terms match. */
@@ -49,10 +52,11 @@ trait PluginParameterAutoCompletionProvider {
   def autoComplete(searchQuery: String,
                    projectId: String,
                    dependOnParameterValues: Seq[String],
+                   workspace: WorkspaceReadTrait,
                    limit: Int,
                    offset: Int)
                   (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
-    autoComplete(searchQuery, projectId, dependOnParameterValues).slice(offset, offset + limit)
+    autoComplete(searchQuery, projectId, dependOnParameterValues, workspace).slice(offset, offset + limit)
   }
 
   /** Filters an auto-completion result list by the search query. */
@@ -77,10 +81,12 @@ case class AutoCompletionResult(value: String, label: Option[String]) {
 
 /** Default auto-completion provider. This one always returns empty results. */
 case class NopPluginParameterAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
-  override protected def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String])
+  override protected def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String],
+                                      workspace: WorkspaceReadTrait)
                                      (implicit userContext: UserContext): Traversable[AutoCompletionResult] = Seq.empty
 
-  override def valueToLabel(projectId: String, value: String, dependOnParameterValues: Seq[String])
+  override def valueToLabel(projectId: String, value: String, dependOnParameterValues: Seq[String],
+                            workspace: WorkspaceReadTrait)
                            (implicit userContext: UserContext): Option[String] = None
 
 }

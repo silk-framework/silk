@@ -9,7 +9,7 @@ import org.silkframework.workspace.activity.linking._
 import org.silkframework.workspace.activity.transform.CachedEntitySchemata.CachedEntitySchemaXmlFormat
 import org.silkframework.workspace.activity.transform._
 import org.silkframework.workspace.activity.workflow.Workflow.WorkflowXmlFormat
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorFactory, NopPersistWorkflowProvenance}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorFactory, NopPersistWorkflowProvenance, Workflow}
 import org.silkframework.workspace.xml.{FileWorkspaceProvider, XmlZipProjectMarshaling}
 
 import scala.language.existentials
@@ -25,7 +25,11 @@ class WorkspacePlugins extends PluginModule {
         projectMarshaller :::
         provenancePlugins :::
         rulePlugins :::
+        workspaceTaskPlugins :::
         formats
+
+  def workspaceTaskPlugins: List[Class[_]] =
+    classOf[Workflow] :: Nil
 
   def workspaceProviders: List[Class[_]] =
     classOf[FileWorkspaceProvider] ::

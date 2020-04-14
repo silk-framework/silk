@@ -1,13 +1,16 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.config.TaskSpec
-import org.silkframework.dataset.{Dataset, DatasetSpec, VariableDataset}
+import org.silkframework.dataset.{Dataset, DatasetCategories, DatasetSpec, VariableDataset}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginObjectParameterNoSchema
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
 
+import scala.language.implicitConversions
 import scala.xml.{Node, Text}
 
 /**
@@ -16,7 +19,15 @@ import scala.xml.{Node, Text}
   * @param operators Operators, e.g. transformations and link specs.
   * @param datasets
   */
-case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowDataset]) extends TaskSpec {
+@Plugin(
+  id = "workflow",
+  label = "Workflow",
+  categories = Array("Workflow"),
+  description =
+      """A workflow describes a directed data processing pipeline bringing together datasets and processing tasks."""
+)
+case class Workflow(operators: WorkflowOperatorsParameter,
+                    datasets: WorkflowDatasetsParameter) extends TaskSpec {
 
   lazy val nodes: Seq[WorkflowNode] = operators ++ datasets
 
@@ -230,6 +241,22 @@ case class Workflow(operators: Seq[WorkflowOperator], datasets: Seq[WorkflowData
       element.copyNode(position = newPosition)
     }
   }
+}
+
+/** Plugin parameter for the workflow operators. */
+case class WorkflowOperatorsParameter(value: Seq[WorkflowOperator]) extends PluginObjectParameterNoSchema
+
+object WorkflowOperatorsParameter {
+  implicit def toWorkflowOperatorParameter(v: Seq[WorkflowOperator]): WorkflowOperatorsParameter = WorkflowOperatorsParameter(v)
+  implicit def fromWorkflowOperatorParameter(v: WorkflowOperatorsParameter): Seq[WorkflowOperator] = v.value
+}
+
+/** Plugin parameter for the workflow datasets. */
+case class WorkflowDatasetsParameter(value: Seq[WorkflowDataset]) extends PluginObjectParameterNoSchema
+
+object WorkflowDatasetsParameter {
+  implicit def toWorkflowDatasetParameter(v: Seq[WorkflowDataset]): WorkflowDatasetsParameter = WorkflowDatasetsParameter(v)
+  implicit def fromWorkflowDatasetParameter(v: WorkflowDatasetsParameter): Seq[WorkflowDataset] = v.value
 }
 
 /** All IDs of variable datasets in a workflow */

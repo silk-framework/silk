@@ -36,7 +36,7 @@ class GenerateLinks(id: Identifier,
                     label: String,
                     inputs: DPair[DataSource],
                     linkSpec: LinkSpec,
-                    outputs: Seq[LinkSink],
+                    output: Option[LinkSink],
                     runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig()) extends Activity[Linking] {
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
@@ -123,7 +123,7 @@ class GenerateLinks(id: Identifier,
 
     //Output links
     // TODO dont commit links to context if the task is not configured to hold links
-    val outputTask = new OutputWriter(context.value().links, linkSpec.rule.linkType, outputs)
+    val outputTask = new OutputWriter(context.value().links, linkSpec.rule.linkType, output)
     context.child(outputTask, 0.02).startBlocking()
     logStatistics(context)
   }

@@ -8,10 +8,14 @@ import org.silkframework.entity._
 import org.silkframework.entity.paths._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.RuleSchemata
+import org.silkframework.rule.task.DatasetOrTransformTaskAutoCompletionProvider
+import org.silkframework.runtime.plugin.{IdentifierOptionParameter, StringTraversableParameter}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.{Identifier, IdentifierGenerator}
+import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
 
 import scala.util.Try
 import scala.xml.{Node, Null}
@@ -22,23 +26,41 @@ import scala.language.implicitConversions
   *
   * @param selection          Selects the entities that are covered by this transformation.
   * @param mappingRule        The root mapping rule
-  * @param outputs            The identifier of the output to which all transformed entities are to be written
-  * @param errorOutputs       The identifier of the output to received erroneous entities.
+  * @param outputOpt          The optional identifier of the output to which all transformed entities are to be written
+  * @param errorOutputOpt     The optional identifier of the output to received erroneous entities.
   * @param targetVocabularies The URIs of the target vocabularies to which this transformation maps.
-  * @param parentTask     May add additional references to tasks (in addition to input and output)
   * @since 2.6.1
   * @see org.silkframework.execution.ExecuteTransform
   */
-case class TransformSpec(selection: DatasetSelection,
+@Plugin(
+  id = "transform",
+  label = "Transform",
+  categories = Array("Transform"),
+  description =
+      """A transform task defines a mapping from a source structure to a target structure."""
+)
+case class TransformSpec(@Param(label = "Input task", value = "The source from which data will be transformed when executed as a single task outside" +
+                                  " of a workflow.", autoCompletionProvider = classOf[DatasetOrTransformTaskAutoCompletionProvider])
+                         selection: DatasetSelection,
+                         @Param(label = "", value = "", visibleInDialog = false)
                          mappingRule: RootMappingRule,
-                         outputs: Seq[Identifier] = Seq.empty,
-                         errorOutputs: Seq[Identifier] = Seq.empty,
-                         targetVocabularies: Traversable[String] = Seq.empty,
-                         parentTask: Option[Identifier] = None
+                         @Param(label = "Output dataset", value = "An optional dataset where the transformation results should be written to when executed" +
+                             " as single task outside of a workflow.")
+                         outputOpt: IdentifierOptionParameter = IdentifierOptionParameter(None),
+                         @Param(label = "Error output", value = "An optional dataset to write invalid input entities to.", visibleInDialog = false,
+                           autoCompletionProvider = classOf[DatasetTaskReferenceAutoCompletionProvider],
+                           autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
+                         errorOutputOpt: IdentifierOptionParameter = IdentifierOptionParameter(None),
+                         @Param(label = "Target vocabularies", value = "Target vocabularies this transformation maps to.")
+                         targetVocabularies: StringTraversableParameter = Seq.empty
                         ) extends TaskSpec {
 
   /** Retrieves the root rules of this transform spec. */
   def rules: MappingRules = mappingRule.rules
+
+  def output: Option[Identifier] = outputOpt.value
+
+  def errorOutput: Option[Identifier] = errorOutputOpt.value
 
   /**
     * Retrieves a rule by its identifier.
@@ -64,13 +86,13 @@ case class TransformSpec(selection: DatasetSelection,
   /**
     * The tasks that this task writes to.
     */
-  override def outputTasks: Set[Identifier] = outputs.toSet
+  override def outputTasks: Set[Identifier] = output.toSet
 
   /**
     * The tasks that are directly referenced by this task.
     * This includes input tasks and output tasks.
     */
-  override def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks ++ parentTask
+  override def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks
 
   /**
     * Input and output schemata of all object rules in the tree.
@@ -100,7 +122,7 @@ case class TransformSpec(selection: DatasetSelection,
       ("Source", selection.inputId.toString),
       ("Type", selection.typeUri.toString),
       ("Restriction", selection.restriction.toString),
-      ("Outputs", outputs.mkString(", "))
+      ("Output", output.mkString(", "))
     )
   }
 
@@ -291,8 +313,8 @@ object TransformSpec {
     override def read(node: Node)(implicit readContext: ReadContext): TransformSpec = {
       // Get the required parameters from the XML configuration.
       val datasetSelection = DatasetSelection.fromXML((node \ "SourceDataset").head)
-      val sinks = (node \ "Outputs" \ "Output" \ "@id").map(_.text).map(Identifier(_))
-      val errorSinks = (node \ "ErrorOutputs" \ "ErrorOutput" \ "@id").map(_.text).map(Identifier(_))
+      val sink = (node \ "Outputs" \ "Output" \ "@id").headOption.map(_.text).map(Identifier(_))
+      val errorSink = (node \ "ErrorOutputs" \ "ErrorOutput" \ "@id").headOption.map(_.text).map(Identifier(_))
       val targetVocabularies = (node \ "TargetVocabularies" \ "Vocabulary").map(n => (n \ "@uri").text).filter(_.nonEmpty)
 
       val rootMappingRule = {
@@ -311,7 +333,7 @@ object TransformSpec {
       }
 
       // Create and return a TransformSpecification instance.
-      TransformSpec(datasetSelection, rootMappingRule, sinks, errorSinks, targetVocabularies)
+      TransformSpec(datasetSelection, rootMappingRule, sink, errorSink, targetVocabularies)
     }
 
     /**
@@ -320,12 +342,12 @@ object TransformSpec {
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[Node]): Node = {
       <TransformSpec>
         {value.selection.toXML(true)}{toXml(value.mappingRule)}<Outputs>
-        {value.outputs.map(o => <Output id={o}></Output>)}
-      </Outputs>{if (value.errorOutputs.isEmpty) {
+        {value.output.map(o => <Output id={o}></Output>)}
+      </Outputs>{if (value.errorOutput.isEmpty) {
         Null
       } else {
         <ErrorOutputs>
-          {value.errorOutputs.map(o => <ErrorOutput id={o}></ErrorOutput>)}
+          {value.errorOutput.map(o => <ErrorOutput id={o}></ErrorOutput>)}
         </ErrorOutputs>
       }}<TargetVocabularies>
         {for (targetVocabulary <- value.targetVocabularies) yield {
