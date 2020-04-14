@@ -1,19 +1,22 @@
 import React from 'react';
-import { Intent } from "@wrappers/blueprint/constants";
-import Alert from "@wrappers/blueprint/alert";
+import {
+    AlertDialog,
+    Button,
+} from "@wrappers/index";
 
 const AbortAlert = ({ isOpen, onCancel, onConfirm }) => {
-    return <Alert
-        cancelButtonText="Cancel"
-        confirmButtonText="Abort"
-        icon="trash"
-        intent={Intent.DANGER}
+    return <AlertDialog
+        danger
         isOpen={isOpen}
-        onCancel={onCancel}
-        onConfirm={onConfirm}
+        actions={
+            [
+                <Button onClick={onConfirm}>Abort</Button>,
+                <Button onClick={onCancel}>Cancel</Button>
+            ]
+        }
     >
-        <p>Are you sure you want to <b>abort</b> upload process?</p>
-    </Alert>
+        <p>Are you sure you want to abort upload process?</p>
+    </AlertDialog>
 };
 
 export default AbortAlert;

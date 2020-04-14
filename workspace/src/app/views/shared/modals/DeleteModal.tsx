@@ -3,7 +3,7 @@ import Label from "@wrappers/blueprint/label";
 import {
     Button,
     Checkbox,
-    SimpleDialog,
+    AlertDialog,
 } from '@wrappers/index';
 
 export interface IDeleteModalOptions {
@@ -25,8 +25,8 @@ export default function DeleteModal({isOpen, confirmationRequired, onDiscard, re
     };
 
     return (
-        <SimpleDialog
-            size="tiny"
+        <AlertDialog
+            danger
             title="Confirm Deletion"
             isOpen={isOpen}
             onClose={onDiscard}
@@ -50,6 +50,6 @@ export default function DeleteModal({isOpen, confirmationRequired, onDiscard, re
                     confirmationRequired && <Checkbox onChange={toggleConfirmChange} label={"Confirm"} />
                 }
             </div>
-        </SimpleDialog>
+        </AlertDialog>
     )
 }

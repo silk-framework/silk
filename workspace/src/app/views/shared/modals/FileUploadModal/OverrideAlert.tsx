@@ -1,19 +1,22 @@
 import React from 'react';
-import { Intent } from "@wrappers/blueprint/constants";
-import Alert from "@wrappers/blueprint/alert";
+import {
+    AlertDialog,
+    Button,
+} from "@wrappers/index";
 
 const OverrideAlert = ({ isOpen, onCancel, onConfirm }) => {
-    return <Alert
-        cancelButtonText="Cancel"
-        confirmButtonText="Replace"
-        icon="issue"
-        intent={Intent.WARNING}
+    return <AlertDialog
+        warning
         isOpen={isOpen}
-        onCancel={onCancel}
-        onConfirm={onConfirm}
+        actions={
+            [
+                <Button onClick={onConfirm}>Replace</Button>,
+                <Button onClick={onCancel}>Cancel</Button>
+            ]
+        }
     >
-        <p>File already exists. Are you sure you want to <b>replace</b> it?</p>
-    </Alert>
+        <p>File already exists. Are you sure you want to replace it?</p>
+    </AlertDialog>
 };
 
 export default OverrideAlert;
