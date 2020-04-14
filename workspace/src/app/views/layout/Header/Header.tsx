@@ -1,9 +1,6 @@
 import React, { memo, useState } from 'react';
-
-import { globalOp, globalSel } from "@ducks/global";
 import { useDispatch, useSelector } from "react-redux";
-import NavbarHeading from "@wrappers/blueprint/navbar-heading";
-import HomeButton from "./HomeButton";
+import { globalOp, globalSel } from "@ducks/global";
 import {
     ApplicationHeader,
     ApplicationSidebarToggler,
@@ -18,6 +15,7 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     OverviewItemActions,
+    TitlePage,
     Icon,
     IconButton,
     Button,
@@ -25,6 +23,7 @@ import {
     MenuItem,
     BreadcrumbList,
 } from "@wrappers/index";
+import HomeButton from "./HomeButton";
 import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
 
@@ -65,7 +64,7 @@ export const Header = ({onClickApplicationSidebarExpand, isApplicationSidebarExp
                                 {
                                     lastBreadcrumb &&
                                     <OverviewItemLine large>
-                                        <NavbarHeading style={{fontWeight: 'bold'}}>{lastBreadcrumb.text}</NavbarHeading>
+                                        <TitlePage>{lastBreadcrumb.text}</TitlePage>
                                     </OverviewItemLine>
                                 }
                         </OverviewItemDescription>
