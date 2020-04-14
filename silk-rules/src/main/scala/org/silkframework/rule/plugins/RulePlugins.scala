@@ -52,8 +52,7 @@ class RulePlugins extends PluginModule {
   override def pluginClasses = transformers ++ measures ++ aggregators ++ serializers
 
   private def transformers =
-    classOf[RemoveDuplicates] ::
-        classOf[GenerateUUID] ::
+        classOf[RemoveDuplicates] ::
         classOf[ReplaceTransformer] ::
         classOf[RegexReplaceTransformer] ::
         classOf[RegexExtractionTransformer] ::
