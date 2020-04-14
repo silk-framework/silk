@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Classes, Intent } from "@wrappers/blueprint/constants";
-import Dialog from "@wrappers/blueprint/dialog";
+import { useForm } from "react-hook-form";
 import {
     Button,
     Grid,
@@ -9,14 +8,14 @@ import {
     GridColumn,
     Spacing,
     TitleSubsection,
+    SimpleDialog,
 } from "@wrappers/index";
+import { globalOp, globalSel } from "@ducks/global";
+import { IArtefactItem } from "@ducks/global/typings";
 import Loading from "../../Loading";
 import { SearchBar } from "../../SearchBar/SearchBar";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
-import { globalOp, globalSel } from "@ducks/global";
 import { TaskForm } from "./ArtefactForms/TaskForm";
-import { IArtefactItem } from "@ducks/global/typings";
-import { useForm } from "react-hook-form";
 
 const ARTEFACT_FORM_COMPONENTS_MAP = {
     project: ProjectForm
@@ -81,82 +80,78 @@ export function CreateArtefactModal() {
     }
 
     return (
-        <Dialog
-            icon="info-sign"
-            onClose={closeModal}
+        <SimpleDialog
+            size="large"
+            hasBorder
             title={`Create a new artefact${selectedArtefact ? `: ${selectedArtefact.title}` : ''}`}
+            onClose={closeModal}
             isOpen={isOpen}
-            style={{width: '800px'}}
+            actions={
+                selectedArtefact ? [
+                    <Button
+                        affirmative={true}
+                        onClick={handleCreate}
+                        disabled={isErrorPresented()}
+                    >
+                        Create
+                    </Button>,
+                    <Button onClick={closeModal}>Cancel</Button>,
+                    <Button onClick={handleBack}>Back</Button>
+                ] : [
+                    <Button
+                        affirmative={true}
+                        onClick={handleAdd}
+                        disabled={!selected}
+                    >
+                        Add
+                    </Button>,
+                    <Button onClick={closeModal}>Cancel</Button>
+                ]
+            }
         >
             {
-                loading ? <Loading/> : <>
-                    <div className={Classes.DIALOG_BODY}>
-                        {
-                            artefactForm
-                                ? artefactForm
-                                : (
-                                    <Grid>
-                                        <GridRow>
-                                            <GridColumn small>
-                                                <TitleSubsection>Artefact Type</TitleSubsection>
-                                                <ul>
-                                                    <li><a href='#'>All</a></li>
-                                                </ul>
-                                            </GridColumn>
-                                            <GridColumn>
-                                                <SearchBar onSort={() => {
-                                                }} onApplyFilters={() => {
-                                                }}/>
-                                                <Spacing/>
-                                                <Grid>
-                                                    <GridRow>
-                                                        <GridColumn>
-                                                            <Button onClick={_TEMP_handleProjectSelect}>
-                                                                Project
-                                                            </Button>
+                loading ?
+                <Loading/> : <>
+                    {
+                        artefactForm ?
+                        artefactForm : (
+                            <Grid>
+                                <GridRow>
+                                    <GridColumn small>
+                                        <TitleSubsection>Artefact Type</TitleSubsection>
+                                        <ul>
+                                            <li><a href='#'>All</a></li>
+                                        </ul>
+                                    </GridColumn>
+                                    <GridColumn>
+                                        <SearchBar onSort={() => {
+                                        }} onApplyFilters={() => {
+                                        }}/>
+                                        <Spacing/>
+                                        <Grid>
+                                            <GridRow>
+                                                <GridColumn>
+                                                    <Button onClick={_TEMP_handleProjectSelect}>
+                                                        Project
+                                                    </Button>
+                                                </GridColumn>
+                                                {
+                                                    projectId && artefactsList.map(artefact =>
+                                                        <GridColumn key={artefact.key}>
+                                                            <Button
+                                                                onClick={() => handleArtefactSelect(artefact)}>{artefact.title}</Button>
                                                         </GridColumn>
-                                                        {
-                                                            projectId && artefactsList.map(artefact =>
-                                                                <GridColumn key={artefact.key}>
-                                                                    <Button
-                                                                        onClick={() => handleArtefactSelect(artefact)}>{artefact.title}</Button>
-                                                                </GridColumn>
-                                                            )
-                                                        }
-                                                    </GridRow>
-                                                </Grid>
-                                            </GridColumn>
-                                        </GridRow>
-                                    </Grid>
-                                )
-                        }
-                    </div>
-                    <div className={Classes.DIALOG_FOOTER}>
-                        <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-
-                            {
-                                selectedArtefact
-                                    ? <>
-                                        <Button onClick={handleBack}>Back</Button>
-                                        <Button
-                                            affirmative={true}
-                                            onClick={handleCreate}
-                                            disabled={isErrorPresented()}
-                                        >Create</Button>
-                                    </>
-                                    : <Button
-                                        affirmative={true}
-                                        onClick={handleAdd}
-                                        disabled={!selected}>
-                                        Add
-                                    </Button>
-                            }
-
-                            <Button onClick={closeModal}>Cancel</Button>
-                        </div>
-                    </div>
+                                                    )
+                                                }
+                                            </GridRow>
+                                        </Grid>
+                                    </GridColumn>
+                                </GridRow>
+                            </Grid>
+                        )
+                    }
                 </>
             }
-        </Dialog>
+        </SimpleDialog>
     )
 }

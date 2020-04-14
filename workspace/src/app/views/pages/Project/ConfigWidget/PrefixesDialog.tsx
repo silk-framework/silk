@@ -1,19 +1,17 @@
 import React, { useState } from 'react';
-import { Classes } from "@wrappers/blueprint/constants";
-import Dialog from "@wrappers/blueprint/dialog";
-
-import PrefixRow from "./PrefixRow";
-import DeleteModal from "../../../shared/modals/DeleteModal";
-import PrefixNew from "./PrefixNew";
+import { useDispatch, useSelector } from "react-redux";
 import { IPrefixState } from "@ducks/workspace/typings";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { useDispatch, useSelector } from "react-redux";
-import DataList from "../../../shared/Datalist";
-import Loading from "../../../shared/Loading";
 import {
     Button,
     Spacing,
+    SimpleDialog,
 } from '@wrappers/index';
+import PrefixRow from "./PrefixRow";
+import DeleteModal from "../../../shared/modals/DeleteModal";
+import PrefixNew from "./PrefixNew";
+import DataList from "../../../shared/Datalist";
+import Loading from "../../../shared/Loading";
 
 const PrefixesDialog = ({onCloseModal, isOpen}) => {
     const dispatch = useDispatch();
@@ -56,44 +54,37 @@ const PrefixesDialog = ({onCloseModal, isOpen}) => {
     };
 
     return (
-        <Dialog
-            onClose={onCloseModal}
+        <SimpleDialog
             title="Manage Prefixes"
             isOpen={isOpen}
-            style={{width: '850px'}}
+            onClose={onCloseModal}
+            actions={
+                <Button onClick={() => onCloseModal()}>
+                    Close
+                </Button>
+            }
         >
             {
-                isLoading ? <Loading /> :
+                isLoading ?
+                    <Loading /> :
                     <>
-                        <div className={Classes.DIALOG_BODY} style={{
-                            maxHeight: '600px',
-                            overflow: 'auto'
-                        }}>
-                            <PrefixNew
-                                prefix={newPrefix}
-                                onChangePrefix={handleUpdatePrefixFields}
-                                onAdd={() => handleAddOrUpdatePrefix(newPrefix)}
-                            />
-                            <Spacing small />
-                            <DataList data={prefixList} densityHigh hasSpacing hasDivider>
-                                {
-                                    prefixList.map((prefix, i) =>
-                                        <PrefixRow
-                                            key={i}
-                                            prefix={prefix}
-                                            onRemove={() => toggleRemoveDialog(prefix)}
-                                        />
-                                    )
-                                }
-                            </DataList>
-                        </div>
-                        <div className={Classes.DIALOG_FOOTER}>
-                            <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                                <Button onClick={() => onCloseModal()}>
-                                    Close
-                                </Button>
-                            </div>
-                        </div>
+                        <PrefixNew
+                            prefix={newPrefix}
+                            onChangePrefix={handleUpdatePrefixFields}
+                            onAdd={() => handleAddOrUpdatePrefix(newPrefix)}
+                        />
+                        <Spacing small />
+                        <DataList data={prefixList} densityHigh hasSpacing hasDivider>
+                            {
+                                prefixList.map((prefix, i) =>
+                                    <PrefixRow
+                                        key={i}
+                                        prefix={prefix}
+                                        onRemove={() => toggleRemoveDialog(prefix)}
+                                    />
+                                )
+                            }
+                        </DataList>
                     </>
             }
             <DeleteModal
@@ -101,11 +92,9 @@ const PrefixesDialog = ({onCloseModal, isOpen}) => {
                 onDiscard={() => toggleRemoveDialog()}
                 onConfirm={handleConfirmRemove}
             >
-                <div>
-                    <p>Are you sure you want to delete prefix?</p>
-                </div>
+                <p>Are you sure you want to delete prefix?</p>
             </DeleteModal>
-        </Dialog>
+        </SimpleDialog>
     )
 };
 

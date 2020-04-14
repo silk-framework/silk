@@ -1,10 +1,9 @@
 import React, { ReactElement, useState } from "react";
-import { Classes } from "@wrappers/blueprint/constants";
-import Dialog from "@wrappers/blueprint/dialog";
 import Label from "@wrappers/blueprint/label";
 import {
     Button,
     Checkbox,
+    SimpleDialog,
 } from '@wrappers/index';
 
 export interface IDeleteModalOptions {
@@ -26,34 +25,31 @@ export default function DeleteModal({isOpen, confirmationRequired, onDiscard, re
     };
 
     return (
-        <Dialog
-            icon="info-sign"
-            onClose={onDiscard}
+        <SimpleDialog
+            size="tiny"
             title="Confirm Deletion"
             isOpen={isOpen}
-        >
-
-            <div className={Classes.DIALOG_BODY}>
-                {render && render()}
-                {children && children}
-            </div>
-
-            <div className={Classes.DIALOG_FOOTER}>
-                <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                    {
-                        confirmationRequired && <Checkbox onChange={toggleConfirmChange} label={"Confirm"} />
-                    }
-                    <Button onClick={onDiscard}>Cancel</Button>
+            onClose={onDiscard}
+            actions={
+                [
                     <Button
                         disruptive
                         onClick={onConfirm}
                         disabled={confirmationRequired && !isConfirmed}
                     >
                         Remove
-                    </Button>
-                </div>
+                    </Button>,
+                    <Button onClick={onDiscard}>Cancel</Button>
+                ]
+            }
+        >
+            <div>{render && render()}</div>
+            <div>{children && children}</div>
+            <div>
+                {
+                    confirmationRequired && <Checkbox onChange={toggleConfirmChange} label={"Confirm"} />
+                }
             </div>
-
-        </Dialog>
+        </SimpleDialog>
     )
 }

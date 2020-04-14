@@ -1,8 +1,9 @@
-import { Classes, Intent } from "@wrappers/blueprint/constants";
 import React from "react";
-import Dialog from "@wrappers/blueprint/dialog";
 import ReactMarkdown from "react-markdown";
-import { Button } from '@wrappers/index';
+import {
+    Button,
+    SimpleDialog,
+} from '@wrappers/index';
 
 const MarkdownModal = ({onDiscard, isOpen, markdown, title = 'Report'}) => {
 
@@ -18,28 +19,22 @@ const MarkdownModal = ({onDiscard, isOpen, markdown, title = 'Report'}) => {
     };
 
     return (
-        <Dialog
-            icon="info-sign"
-            onClose={onDiscard}
+        <SimpleDialog
             title={title}
             isOpen={isOpen}
-            style={{width: 'auto'}}
+            onClose={onDiscard}
+            actions={[
+                <Button
+                    affirmative
+                    onClick={handleDownload}
+                >
+                    Download
+                </Button>,
+                <Button onClick={onDiscard}>Close</Button>
+            ]}
         >
-            <div className={Classes.DIALOG_BODY}>
-                <ReactMarkdown source={markdown}/>
-            </div>
-            <div className={Classes.DIALOG_FOOTER}>
-                <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                    <Button onClick={onDiscard}>Cancel</Button>
-                    <Button
-                        affirmative
-                        onClick={handleDownload}
-                    >
-                        Download
-                    </Button>
-                </div>
-            </div>
-        </Dialog>
+            <ReactMarkdown source={markdown}/>
+        </SimpleDialog>
     )
 };
 

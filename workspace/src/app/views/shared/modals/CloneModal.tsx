@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Classes } from "@wrappers/blueprint/constants";
-import Dialog from "@wrappers/blueprint/dialog";
 import InputGroup from "@wrappers/blueprint/input-group";
-import { Button } from '@wrappers/index';
+import {
+    Button,
+    SimpleDialog,
+} from '@wrappers/index';
 
 export interface ICloneOptions {
     isOpen: boolean;
@@ -20,32 +21,26 @@ export default function CloneModal({isOpen, oldId, onDiscard, onConfirm}: IClone
     }, [oldId]);
 
     return (
-        <Dialog
-            icon="info-sign"
-            onClose={onDiscard}
+        <SimpleDialog
+            size="small"
             title="Cloning"
             isOpen={isOpen}
+            onClose={onDiscard}
+            actions={[
+                <Button
+                    affirmative
+                    onClick={() => onConfirm(newId)}
+                    disabled={!newId}
+                >
+                    Clone
+                </Button>,
+                <Button onClick={onDiscard}>Cancel</Button>
+            ]}
         >
-            <div className={Classes.DIALOG_BODY}>
-                <InputGroup
-                    onChange={e => setNewId(e.target.value)}
-                    value={newId}
-                />
-            </div>
-
-            <div className={Classes.DIALOG_FOOTER}>
-                <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                    <Button onClick={onDiscard}>Cancel</Button>
-                    <Button
-                        affirmative
-                        onClick={() => onConfirm(newId)}
-                        disabled={!newId}
-                    >
-                        Clone
-                    </Button>
-                </div>
-            </div>
-
-        </Dialog>
+            <InputGroup
+                onChange={e => setNewId(e.target.value)}
+                value={newId}
+            />
+        </SimpleDialog>
     )
 }

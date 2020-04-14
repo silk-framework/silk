@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { Classes } from "@wrappers/blueprint/constants";
-import { Button } from '@wrappers/index';
-import Dialog from "../../../../wrappers/blueprint/dialog";
+import {
+    Button,
+    SimpleDialog,
+} from '@wrappers/index';
 import AbortAlert from "./AbortAlert";
 import OverrideAlert from "./OverrideAlert";
-
 import FileUploader from "../../FileUploader";
 
 export interface IFileUploadModalProps {
@@ -73,33 +73,27 @@ export default function FileUploadModal({isOpen, onDiscard, onCheckFileExists, u
     };
 
     return <>
-        <Dialog
-            onClose={handleDiscard}
+        <SimpleDialog
             title="Upload New File"
             isOpen={isOpen}
+            onClose={handleDiscard}
+            actions={
+                isUploading ?
+                    <Button
+                        onClick={handleDiscard}
+                    >
+                        Abort Upload
+                    </Button> : <Button onClick={onDiscard}>
+                        Close
+                    </Button>
+            }
         >
-            <div className={Classes.DIALOG_BODY}>
-                <FileUploader
-                    getInstance={getUploaderInstance}
-                    onFileAdded={onFileAdded}
-                    disabled={isCheckingFile}
-                />
-            </div>
-            <div className={Classes.DIALOG_FOOTER}>
-                <div className={Classes.DIALOG_FOOTER_ACTIONS}>
-                    {
-                        isUploading && <Button
-                            onClick={handleDiscard}
-                        >
-                            Abort Upload
-                        </Button>
-                    }
-                    {
-                        !isUploading && <Button onClick={onDiscard}>Close</Button>
-                    }
-                </div>
-            </div>
-        </Dialog>
+            <FileUploader
+                getInstance={getUploaderInstance}
+                onFileAdded={onFileAdded}
+                disabled={isCheckingFile}
+            />
+        </SimpleDialog>
         <AbortAlert
             isOpen={openAbortDialog}
             onCancel={() => setOpenAbortDialog(false)}
