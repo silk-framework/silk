@@ -58,6 +58,13 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
   override def parent: Option[ResourceManager] = parentMgr
 
   override def delete(name: String): Unit = {
+    val childToDelete = child(name)
+    for(childFolders <- childToDelete.listChildren) {
+      childToDelete.delete(childFolders)
+    }
+    for(childResources <- childToDelete.list) {
+      childToDelete.get(childResources).delete()
+    }
     resources -= name
     children -= name
   }
