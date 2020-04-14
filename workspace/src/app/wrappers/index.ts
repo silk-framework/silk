@@ -53,6 +53,7 @@ import BreadcrumbItem from './src/components/Breadcrumb/BreadcrumbItem';
 
 import Modal from './src/components/Dialog/Modal';
 import SimpleDialog from './src/components/Dialog/SimpleDialog';
+import AlertDialog from './src/components/Dialog/AlertDialog';
 
 import {
     Card,
@@ -78,9 +79,11 @@ import TitleMainsection from './src/components/Structure/TitleMainsection';
 import TitleSubsection from './src/components/Structure/TitleSubsection';
 
 import * as TypographyClassNames from './src/components/Typography/classnames';
+import * as IntentClassNames from './src/components/Intent/classnames';
 
 const HelperClasses = {
-    Typography: TypographyClassNames
+    Typography: TypographyClassNames,
+    Intent: IntentClassNames
 };
 
 export {
@@ -129,6 +132,7 @@ export {
 
     Modal,
     SimpleDialog,
+    AlertDialog,
 
     Card,
     CardHeader,

@@ -21,6 +21,7 @@ function SimpleDialog({
     actions=<></>,
     hasBorder=false,
     preventSimpleClosing=false,
+    intent='',
     ...otherProps
 }: any) {
 
@@ -30,10 +31,16 @@ function SimpleDialog({
             canOutsideClickClose={canOutsideClickClose || !preventSimpleClosing}
             canEscapeKeyClose={canEscapeKeyClose || !preventSimpleClosing}
         >
-            <Card>
+            <Card
+                className={intent ? intent : ''}
+            >
                 {
                     title && <CardHeader>
-                        <CardTitle>{title}</CardTitle>
+                        <CardTitle
+                            className={intent ? intent : ''}
+                        >
+                            {title}
+                        </CardTitle>
                     </CardHeader>
                 }
                 { hasBorder && <Divider /> }
@@ -42,7 +49,10 @@ function SimpleDialog({
                 </CardContent>
                 { hasBorder && <Divider /> }
                 {
-                    actions && <CardActions inverseDirection>
+                    actions && <CardActions
+                        inverseDirection
+                        className={intent ? intent : ''}
+                    >
                         {actions}
                     </CardActions>
                 }
