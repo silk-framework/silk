@@ -13,7 +13,7 @@ import scala.util.{Failure, Success, Try}
 
 @Plugin(
   id = "sparqlCopyOperator",
-  label = "SPARQL Copy Task",
+  label = "SPARQL copy",
   description = "A task that executes a SPARQL Construct query on a SPARQL enabled data source and outputs the SPARQL result."
 )
 case class SparqlCopyCustomTask(

@@ -9,7 +9,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "durationInSeconds",
   categories = Array("Date"),
-  label = "Duration in Seconds",
+  label = "Duration in seconds",
   description = "Converts an xsd:duration to seconds."
 )
 case class DurationInSecondsTransformer() extends SimpleTransformer {

@@ -32,7 +32,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "regexSelect",
   categories = Array("Selection"),
-  label = "Regex Selection",
+  label = "Regex selection",
   description =
     """
       This transformer takes 3 inputs.

@@ -9,7 +9,7 @@ import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory
 
 @Plugin(
   id = "ReferenceEntitiesCache",
-  label = "Reference Entities Cache",
+  label = "Reference entities cache",
   categories = Array("LinkSpecification"),
   description = "For each reference link, the reference entities cache holds all values of the linked entities."
 )

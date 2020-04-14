@@ -9,7 +9,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
    id = "numberToDuration",
    categories = Array("Date"),
-   label = "Number to Duration",
+   label = "Number to duration",
    description = "Converts a number to an xsd:duration. The base unit may be one of the following: 'day', 'month', 'year'."
  )
 case class NumberToDurationTransformer(unit: DateUnit = DateUnit.day) extends SimpleTransformer {

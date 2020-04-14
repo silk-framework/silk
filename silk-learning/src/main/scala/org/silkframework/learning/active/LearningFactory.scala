@@ -10,7 +10,7 @@ import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 
 @Plugin(
   id = LearningFactory.pluginId,
-  label = "Supervised Learning",
+  label = "Supervised learning",
   categories = Array("LinkSpecification"),
   description = "Executes the supervised learning."
 )

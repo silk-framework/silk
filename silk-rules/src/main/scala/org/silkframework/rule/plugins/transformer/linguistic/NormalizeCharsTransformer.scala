@@ -15,7 +15,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "normalizeChars",
   categories = Array("Linguistic"),
-  label = "normalizeChars",
+  label = "Normalize chars",
   description = "Replaces diacritical characters with non-diacritical ones (eg, ö -> o), plus some specialities like transforming æ -> ae, ß -> ss."
 )
 case class NormalizeCharsTransformer() extends SimpleTransformer {

@@ -26,7 +26,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "SOverlapsMetric",
   categories = Array("Spatial"),
-  label = "Spatial Overlaps",
+  label = "Spatial overlaps",
   description = "Computes the relation \"overlaps\" between two geometries.")
 case class OverlapsMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 

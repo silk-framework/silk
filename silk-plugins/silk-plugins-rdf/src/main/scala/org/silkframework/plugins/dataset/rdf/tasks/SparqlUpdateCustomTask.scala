@@ -9,7 +9,7 @@ import org.silkframework.runtime.plugin.MultilineStringParameter
 
 @Plugin(
   id = "sparqlUpdateOperator",
-  label = "SPARQL Update Task",
+  label = "SPARQL update",
   description =
 """A task that outputs SPARQL Update queries for every entity from the input based on a SPARQL Update template.
 The output of this operator should be connected to the SPARQL datasets to which the results should be written."""

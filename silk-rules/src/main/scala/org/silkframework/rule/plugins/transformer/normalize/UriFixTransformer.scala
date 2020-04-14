@@ -11,7 +11,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, T
 @Plugin(
   id = "uriFix",
   categories = Array("Normalize"),
-  label = "URI Fixer",
+  label = "Fix URI",
   description = "Generates valid absolute URIs from the given values. Already valid absolute URIs are left untouched."
 )
 @TransformExamples(Array(

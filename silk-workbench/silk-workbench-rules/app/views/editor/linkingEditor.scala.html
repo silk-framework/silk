@@ -52,7 +52,7 @@
         <i class="material-icons">cached</i>
       </button>
       <div class="mdl-tooltip mdl-tooltip--large" for="button_reload_paths">
-        Reload Property Paths
+        Reload paths
       </div>
     </li>
     <li>
@@ -64,18 +64,10 @@
       </div>
     </li>
     <li>
-      <a id="button_editor_help" class="mdl-button mdl-js-button mdl-button--icon" href="http://www.assembla.com/spaces/silk/wiki/Linkage_Rule_Editor" target="_help">
-        <i class="material-icons">help_outline</i>
-      </a>
-      <div class="mdl-tooltip mdl-tooltip--large" for="button_editor_help">
-        Show linkage rule editor documentation
-      </div>
-    </li>
-    <li>
       <div class="spacer"/>
     </li>
     <li>
-      <label>Link Limit:</label>
+      <label>Link limit:</label>
       <div id="select_link_limit" class="mdl-selectfield mdl-js-selectfield" style="width: 90px;">
         <select id="linklimit" class="mdl-selectfield__select" onchange="modifyLinkSpec()">
           <option value="unlimited">unlimited</option>
@@ -92,7 +84,7 @@
       <div class="spacer"/>
     </li>
     <li>
-      <label>Link Type:</label>
+      <label>Link type:</label>
       <div id="input_link_type" class="mdl-textfield mdl-js-textfield">
         <input id="linktype" class="mdl-textfield__input" type="text" onchange="modifyLinkSpec()" value="@context.project.config.prefixes.shorten(context.task.data.rule.linkType.uri)" />
       </div>

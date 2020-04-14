@@ -26,7 +26,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "IsOverlappedByMetric",
   categories = Array("Temporal"),
-  label = "IsOverlappedBy",
+  label = "Is overlapped by",
   description = "Computes the relation \"isOverlappedBy\" between two time periods or instants.")
 case class IsOverlappedByMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 

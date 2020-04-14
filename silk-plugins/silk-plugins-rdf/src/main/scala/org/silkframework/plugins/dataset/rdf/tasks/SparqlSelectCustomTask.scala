@@ -19,7 +19,7 @@ import scala.collection.JavaConverters._
   */
 @Plugin(
   id = "sparqlSelectOperator",
-  label = "SPARQL Select Task",
+  label = "SPARQL select",
   description = "A task that executes a SPARQL Select query on a SPARQL enabled data source and outputs the SPARQL result."
 )
 case class SparqlSelectCustomTask(@Param(label = "Select query", value = "A SPARQL 1.1 select query", example = "select * where { ?s ?p ?o }")

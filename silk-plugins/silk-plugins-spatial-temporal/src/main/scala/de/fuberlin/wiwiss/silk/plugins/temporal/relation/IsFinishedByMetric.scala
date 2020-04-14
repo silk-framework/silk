@@ -26,7 +26,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "IsFinishedByMetric",
   categories = Array("Temporal"),
-  label = "IsFinishedBy",
+  label = "Is finished by",
   description = "Computes the relation \"isFinishedBy\" between two time periods or instants.")
 case class IsFinishedByMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 

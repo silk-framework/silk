@@ -23,7 +23,7 @@ import org.silkframework.runtime.validation.ValidationException
 @Plugin(
   id = "validateDateAfter",
   categories = Array("Validation", "Date"),
-  label = "validate date after",
+  label = "Validate date after",
   description = "Validates if the first input data is after the first input data."
 )
 case class ValidateDateAfter(

@@ -14,7 +14,7 @@ import org.silkframework.workspace.activity.TaskActivityFactory
 
 @Plugin(
   id = "ExecuteLinking",
-  label = "Execute Linking",
+  label = "Execute linking",
   categories = Array("LinkSpecification"),
   description = "Executes the linking task using the configured execution."
 )

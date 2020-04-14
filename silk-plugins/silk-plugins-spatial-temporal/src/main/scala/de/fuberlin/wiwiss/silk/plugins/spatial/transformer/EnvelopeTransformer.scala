@@ -28,7 +28,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "EnvelopeTransformer",
   categories = Array("Spatial"),
-  label = "Envelope Transformer",
+  label = "Compute enveloper",
   description = "Returns the Envelope (Minimum Bounding Rectangle) of the input geometry.")
 case class EnvelopeTransformer() extends SimpleTransformer {
 

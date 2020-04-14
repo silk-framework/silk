@@ -23,7 +23,7 @@ import scala.util.matching.Regex
 @Plugin(
   id = "validateRegex",
   categories = Array("Validation"),
-  label = "validate regex",
+  label = "Validate regex",
   description = "Validates if all values match a regular expression."
 )
 case class ValidateRegex(

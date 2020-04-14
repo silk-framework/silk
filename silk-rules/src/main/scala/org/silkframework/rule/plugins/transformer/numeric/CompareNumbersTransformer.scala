@@ -12,7 +12,7 @@ import org.silkframework.util.StringUtils.DoubleLiteral
 @Plugin(
   id = "compareNumbers",
   categories = Array("Numeric"),
-  label = "Compare Numbers",
+  label = "Compare numbers",
   description =
     """ | Compares the numbers of two sets.
       | Returns 1 if the comparison yields true and 0 otherwise.

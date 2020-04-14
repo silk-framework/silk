@@ -8,7 +8,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "NegateRelationMetric",
   categories = Array("Spatial"),
-  label = "Negate Relation (NOT)",
+  label = "Negate relation (NOT)",
   description = "Computes every relation from DE-9IM between two geometries and negates its result."
 )
 case class NegateMetric(blockingParameter: Double = 1.0, relation: String = "") extends SimpleDistanceMeasure {

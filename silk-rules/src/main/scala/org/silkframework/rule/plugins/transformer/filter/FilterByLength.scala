@@ -9,7 +9,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "filterByLength",
   categories = Array("Filter"),
-  label = "filter by length",
+  label = "Filter by length",
   description = "Removes all strings that are shorter than 'min' characters and longer than 'max' characters."
 )
 case class FilterByLength(min: Int = 0, max: Int = Int.MaxValue) extends Transformer {

@@ -13,7 +13,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, T
 @Plugin(
   id = "compareDates",
   categories = Array("Date"),
-  label = "Compare Dates",
+  label = "Compare dates",
   description =
     """ | Compares two dates.
       | Returns 1 if the comparison yields true and 0 otherwise.

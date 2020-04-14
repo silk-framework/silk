@@ -11,7 +11,7 @@ import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 
 @Plugin(
   id = ExecuteTransformFactory.pluginId,
-  label = "Execute Transform",
+  label = "Execute transform",
   categories = Array("TransformSpecification"),
   description = "Executes the transformation."
 )

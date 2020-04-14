@@ -19,7 +19,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "ExecuteWorkflowWithPayload",
-  label = "Execute with Payload",
+  label = "Execute with payload",
   categories = Array("WorkflowExecution"),
   description = "Executes a workflow with custom payload."
 )

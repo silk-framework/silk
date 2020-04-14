@@ -26,7 +26,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "SEqualsMetric",
   categories = Array("Spatial"),
-  label = "Spatial Equals",
+  label = "Spatial equals",
   description = "Computes the relation \"equals\" between two geometries.")
 case class EqualsMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 

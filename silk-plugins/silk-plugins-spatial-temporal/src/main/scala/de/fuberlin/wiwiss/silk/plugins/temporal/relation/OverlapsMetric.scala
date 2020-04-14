@@ -26,7 +26,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "TOverlapsMetric",
   categories = Array("Temporal"),
-  label = "Temporal Overlaps",
+  label = "Temporal overlap",
   description = "Computes the relation \"overlaps\" between two time periods or instants.")
 case class OverlapsMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 

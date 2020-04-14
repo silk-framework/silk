@@ -26,7 +26,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "SContainsMetric",
   categories = Array("Spatial"),
-  label = "Spatial Contains",
+  label = "Spatial contains",
   description = "Computes the relation \"contains\" between two geometries.")
 case class ContainsMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 

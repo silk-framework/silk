@@ -7,7 +7,7 @@ import org.silkframework.workspace.activity.TaskActivityFactory
 
 @Plugin(
   id = "VocabularyCache",
-  label = "Target Vocabulary Cache",
+  label = "Target vocabulary cache",
   categories = Array("TransformSpecification"),
   description = "Holds the target vocabularies"
 )

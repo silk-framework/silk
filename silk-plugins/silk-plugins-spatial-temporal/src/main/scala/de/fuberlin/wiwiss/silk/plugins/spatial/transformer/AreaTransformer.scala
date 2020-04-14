@@ -28,7 +28,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "AreaTransformer",
   categories = Array("Spatial"),
-  label = "Area Transformer",
+  label = "Compute area",
   description = "Returns the Area of the input geometry.")
 case class AreaTransformer() extends SimpleTransformer {
 

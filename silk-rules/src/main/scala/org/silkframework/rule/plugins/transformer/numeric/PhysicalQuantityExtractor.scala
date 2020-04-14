@@ -11,7 +11,7 @@ import scala.util.matching.Regex.Match
 
 @Plugin(
   id = "extractPhysicalQuantity",
-  label = "Physical Quantity Extractor",
+  label = "Extract physical quantity",
   categories = Array("Numeric", "Normalize"),
   description =
 """Extracts physical quantities, such as length or weight values.

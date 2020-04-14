@@ -23,7 +23,7 @@ import org.silkframework.runtime.validation.ValidationException
 @Plugin(
   id = "validateDateRange",
   categories = Array("Validation", "Date"),
-  label = "validate date range",
+  label = "Validate date range",
   description = "Validates if dates are within a specified range."
 )
 case class ValidateDateRange(

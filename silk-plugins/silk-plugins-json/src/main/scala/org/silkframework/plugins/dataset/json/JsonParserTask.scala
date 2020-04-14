@@ -8,7 +8,7 @@ import org.silkframework.util.Uri
 
 @Plugin(
   id = "JsonParserOperator",
-  label = "JSON Parser Operator",
+  label = "Parse JSON",
   description = "Takes exactly one input and reads either the defined inputPath or the first value of the first entity as " +
       "a JSON document. Then executes incoming requests as if this were a JSON dataset, e.g. form a transformation task."
 )
