@@ -1,0 +1,64 @@
+// our vars
+$ecc-size-modal-tiny-width: 4/16 * 100vw !default;
+$ecc-size-modal-tiny-height: 9/32 * $ecc-size-modal-tiny-width !default;
+$ecc-size-modal-small-width: 6/16 * 100vw !default;
+$ecc-size-modal-small-height: 2 * $ecc-size-modal-tiny-height !default;
+$ecc-size-modal-regular-width: $ecc-size-modal-small-width !default;
+$ecc-size-modal-regular-height: 1/2 * $ecc-size-modal-small-width !default;
+$ecc-size-modal-large-width: 8/16 * 100vw !default;
+$ecc-size-modal-large-height: 3/4 * $ecc-size-modal-large-width !default;
+$ecc-color-modal-backdrop: rgba(invert($ecc-color-workspace-background), 0.69) !default;
+
+@import "~@blueprintjs/core/src/components/dialog/dialog";
+
+.ecc-dialog__backdrop {
+    background-color: $ecc-color-modal-backdrop;
+}
+
+.ecc-dialog__wrapper {
+    margin: 2rem;
+    max-width: calc(100vw - 4rem);
+    max-height: calc(100vh - 4rem);
+    pointer-events: all;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    align-content: stretch;
+
+    & > * {
+        flex-grow: 1;
+        flex-shrink: 1;
+    }
+
+    & * {
+        pointer-events: all;
+    }
+}
+
+.ecc-dialog__wrapper--tiny {
+    width: $ecc-size-modal-tiny-width;
+    min-height: $ecc-size-modal-tiny-height;
+}
+
+.ecc-dialog__wrapper--small {
+    width: $ecc-size-modal-small-width;
+    min-height: $ecc-size-modal-small-height;
+}
+
+.ecc-dialog__wrapper--regular {
+    width: $ecc-size-modal-regular-width;
+    min-height: $ecc-size-modal-regular-height;
+}
+
+.ecc-dialog__wrapper--large {
+    width: $ecc-size-modal-large-width;
+    min-height: $ecc-size-modal-large-height;
+}
+
+.ecc-dialog__wrapper--fullscreen {
+    margin: 0;
+    height: 100vh;
+    width: 100vw;
+    max-height: 100vh;
+    max-width: 100vw
+}

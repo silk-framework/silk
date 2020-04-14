@@ -51,6 +51,9 @@ import {
 import BreadcrumbList from './src/components/Breadcrumb/BreadcrumbList';
 import BreadcrumbItem from './src/components/Breadcrumb/BreadcrumbItem';
 
+import Modal from './src/components/Dialog/Modal';
+import SimpleDialog from './src/components/Dialog/SimpleDialog';
+
 import {
     Card,
     CardHeader,
@@ -122,6 +125,9 @@ export {
 
     BreadcrumbList,
     BreadcrumbItem,
+
+    Modal,
+    SimpleDialog,
 
     Card,
     CardHeader,

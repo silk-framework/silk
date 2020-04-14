@@ -31,7 +31,7 @@
 @import "~@blueprintjs/core/src/components/collapse/collapse";
 @import "~@blueprintjs/core/src/components/context-menu/context-menu";
 @import "~@blueprintjs/core/src/components/divider/divider";
-@import "~@blueprintjs/core/src/components/dialog/dialog";
+// used in own component @import "~@blueprintjs/core/src/components/dialog/dialog";
 @import "~@blueprintjs/core/src/components/drawer/drawer";
 @import "~@blueprintjs/core/src/components/editable-text/editable-text";
 // used in own component @import "~@blueprintjs/core/src/components/forms/index";
@@ -144,6 +144,7 @@
 @import 'src/components/ContextOverlay/contextoverlay';
 @import 'src/components/OverviewItem/overviewitem';
 @import 'src/components/Breadcrumb/breadcrumb';
+@import 'src/components/Dialog/dialog';
 @import 'src/components/Card/card';
 @import 'src/components/Separation/separation';
 @import 'src/components/Tooltip/tooltip';
