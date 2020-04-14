@@ -29,9 +29,11 @@ const setQueryString = (queryParams: IQueryParams) => {
     }
 };
 
-const goToPage = (path: string) => {
+const goToPage = (path: string, isAbsolute: boolean = false) => {
     return dispatch => {
-        dispatch(push(SERVE_PATH + path))
+        dispatch(push(
+            isAbsolute ? path : SERVE_PATH + path
+        ))
     }
 };
 

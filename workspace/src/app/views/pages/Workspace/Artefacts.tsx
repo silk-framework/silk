@@ -16,10 +16,10 @@ import {
 import EmptyWorkspace from "./EmptyWorkspace";
 import Filterbar from "./Filterbar";
 import SearchList from "./SearchList";
-import SearchBar from "../../components/SearchBar";
+import SearchBar from "../../shared/SearchBar";
 import { globalOp } from "@ducks/global";
 
-const Projects = () => {
+const Artefacts = () => {
     const dispatch = useDispatch();
     const {textQuery} = useSelector(workspaceSel.appliedFiltersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
@@ -95,4 +95,4 @@ const Projects = () => {
     )
 };
 
-export default Projects;
+export default Artefacts;

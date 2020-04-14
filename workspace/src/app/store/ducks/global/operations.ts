@@ -2,7 +2,7 @@ import { authorize, getTokenFromStore, isAuthenticated, logout } from "./thunks/
 import { changeLocale } from "./thunks/locale.thunk";
 import { globalSlice } from "@ducks/global/globalSlice";
 import { batch } from "react-redux";
-import { getApiEndpoint } from "../../../utils/getApiEndpoint";
+import { getApiEndpoint, getLegacyApiEndpoint, getRootEndpoint } from "../../../utils/getApiEndpoint";
 import fetch from '../../../services/fetch';
 import asModifier from "../../../utils/asModifier";
 import { globalOp, globalSel } from "@ducks/global/index";
@@ -48,7 +48,7 @@ const fetchArtefactsListAsync = () => {
         try {
             // @FIXME: Replace with correct plugins list
             const {data} = await fetch({
-                url: '/dataintegration/core/plugins/org.silkframework.dataset.Dataset',
+                url: getRootEndpoint('/core/plugins/org.silkframework.dataset.Dataset')
             });
             const result = Object.keys(data).map(key => ({
                 key,

@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { AppToaster } from "../../../services/toaster";
 import { Intent } from "@wrappers/blueprint/constants";
 import { useParams } from "react-router";
-import Metadata from "../../components/Metadata";
+import Metadata from "../../shared/Metadata";
 import { datasetSel } from "@ducks/dataset";
 
 import {

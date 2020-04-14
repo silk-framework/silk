@@ -1,5 +1,4 @@
 import React from "react";
-import DataList from "../../../components/Datalist";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import {
     OverviewItem,
@@ -14,6 +13,8 @@ import {
     IconButton,
     Card,
 } from "@wrappers/index";
+import { routerOp } from "@ducks/router";
+import { useDispatch } from "react-redux";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -26,7 +27,11 @@ interface IProps {
     onRowClick?();
 }
 
-export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpenDuplicateModal, onRowClick = () => {}}: IProps) {
+export default function SearchItem({
+    item, searchValue, onOpenDeleteModal, onOpenDuplicateModal, onRowClick = () => {}
+}: IProps) {
+    const dispatch = useDispatch();
+
     const getItemLinkIcons = (label: string) => {
         switch (label) {
             case 'Mapping editor':
@@ -76,49 +81,66 @@ export default function SearchItem({item, searchValue, onOpenDeleteModal, onOpen
 
     };
 
-    const getContextMenuItems = (item: any) => {
-        const {itemLinks} = item;
-        return itemLinks.map(link =>
-            <MenuItem key={link.path} text={link.label} href={link.path} icon={getItemLinkIcons(link.label)} target={'_blank'}/>
+    // Remove detailsPath
+    const contextMenuItems = item.itemLinks
+        .slice(1)
+        .map(link =>
+            <MenuItem
+                key={link.path}
+                text={link.label}
+                href={link.path}
+                icon={getItemLinkIcons(link.label)}
+                target={'_blank'}
+            />
         );
+
+    const goToDetailsPage = (e) => {
+        e.preventDefault();
+        const detailsPath = item.itemLinks[0].path;
+
+        dispatch(routerOp.goToPage(detailsPath, true));
     };
 
-    return (
-        <Card isOnlyLayout>
-            <OverviewItem hasSpacing onClick={onRowClick}>
-                <OverviewItemDepiction>
-                    <Icon name='artefact-project' large />
-                </OverviewItemDepiction>
-                <OverviewItemDescription>
-                    <OverviewItemLine>
-                        <p dangerouslySetInnerHTML={{
-                            __html: getSearchHighlight(item.label || item.id)
-                        }}/>
+return (
+    <Card isOnlyLayout>
+        <OverviewItem hasSpacing onClick={onRowClick}>
+            <OverviewItemDepiction>
+                <Icon name='artefact-project' large/>
+            </OverviewItemDepiction>
+            <OverviewItemDescription>
+                <OverviewItemLine>
+                    <p dangerouslySetInnerHTML={{
+                        __html: getSearchHighlight(item.label || item.id)
+                    }}/>
+                </OverviewItemLine>
+                {
+                    item.description && <OverviewItemLine>
+                        <p>{item.description}</p>
                     </OverviewItemLine>
-                    {   item.description &&
-                        <OverviewItemLine>
-                            <p>{item.description}</p>
-                        </OverviewItemLine>
-                    }
-                </OverviewItemDescription>
-                <OverviewItemActions>
-                    <IconButton
-                        data-test-id={'open-duplicate-modal'}
-                        name='item-clone'
-                        text='Clone'
-                        onClick={onOpenDuplicateModal}
-                    />
+                }
+            </OverviewItemDescription>
+            <OverviewItemActions>
+                <IconButton
+                    data-test-id={'open-duplicate-modal'}
+                    name='item-clone'
+                    text='Clone'
+                    onClick={onOpenDuplicateModal}
+                />
+                {
+                    !!item.itemLinks.length &&
+                    <IconButton name='item-viewdetails' text='Show details' onClick={goToDetailsPage}/>
+                }
+                <ContextMenu togglerText="Show more options">
                     {
-                        !!item.itemLinks.length &&
-                        <IconButton name='item-viewdetails' text='Show details' href={item.itemLinks[0].path} />
+                        contextMenuItems.length ? <>
+                            <MenuDivider />
+                            {contextMenuItems}
+                        </> : null
                     }
-                    <ContextMenu togglerText="Show more options">
-                        {getContextMenuItems(item)}
-                        <MenuDivider />
-                        <MenuItem key='delete' icon={'item-remove'} onClick={onOpenDeleteModal} text={'Delete'} />
-                    </ContextMenu>
-                </OverviewItemActions>
-            </OverviewItem>
-        </Card>
-    )
+                    <MenuItem key='delete' icon={'item-remove'} onClick={onOpenDeleteModal} text={'Delete'}/>
+                </ContextMenu>
+            </OverviewItemActions>
+        </OverviewItem>
+    </Card>
+)
 }

@@ -1,7 +1,13 @@
 import { API_ENDPOINT, HOST, LEGACY_API_ENDPOINT } from "../constants";
 
+// Root path of DI
+export const getRootEndpoint = (path: string) => {
+    return HOST + path;
+};
+
+// API Endpoint
 export const getApiEndpoint = (query: string) => {
-    return HOST + API_ENDPOINT + query;
+    return getRootEndpoint(API_ENDPOINT) + query;
 };
 
 /**
@@ -9,5 +15,6 @@ export const getApiEndpoint = (query: string) => {
  * @param query
  */
 export const getLegacyApiEndpoint = (query: string) => {
-    return HOST + LEGACY_API_ENDPOINT + query;
+    return getRootEndpoint(LEGACY_API_ENDPOINT) + query;
 };
+

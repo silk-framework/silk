@@ -1,14 +1,14 @@
 import React, { useEffect, useLayoutEffect } from "react";
 import { globalOp, globalSel } from "@ducks/global";
 import { useDispatch, useSelector } from "react-redux";
-import Filterbar from "./Filterbar";
-import Metadata from "../../components/Metadata";
+import Filterbar from "../Workspace/Filterbar";
+import Metadata from "../../shared/Metadata";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import SearchList from "./SearchList";
-import ConfigurationWidget from "./widgets/Configuration";
-import WarningWidget from "./widgets/Warning";
-import FileWidget from "./widgets/File";
-import Loading from "../../components/Loading";
+import SearchList from "../Workspace/SearchList";
+import ConfigurationWidget from "./ConfigWidget";
+import WarningWidget from "./WarningWidget";
+import FileWidget from "./FileWidget";
+import Loading from "../../shared/Loading";
 
 import {
     WorkspaceContent,
@@ -24,7 +24,7 @@ import {
     Divider,
 } from "@wrappers/index";
 
-const ProjectDetails = ({projectId}) => {
+const Project = ({projectId}) => {
     const dispatch = useDispatch();
     const currentProjectId = useSelector(globalSel.currentProjectIdSelector);
 
@@ -87,4 +87,4 @@ const ProjectDetails = ({projectId}) => {
     )
 };
 
-export default ProjectDetails;
+export default Project;

@@ -3,13 +3,13 @@ import { Classes } from "@wrappers/blueprint/constants";
 import Dialog from "@wrappers/blueprint/dialog";
 
 import PrefixRow from "./PrefixRow";
-import DeleteModal from "../../../../components/modals/DeleteModal";
+import DeleteModal from "../../../shared/modals/DeleteModal";
 import PrefixNew from "./PrefixNew";
 import { IPrefixState } from "@ducks/workspace/typings";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { useDispatch, useSelector } from "react-redux";
-import DataList from "../../../../components/Datalist";
-import Loading from "../../../../components/Loading";
+import DataList from "../../../shared/Datalist";
+import Loading from "../../../shared/Loading";
 import {
     Button,
     Spacing,
