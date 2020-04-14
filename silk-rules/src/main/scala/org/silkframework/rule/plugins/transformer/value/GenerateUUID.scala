@@ -10,11 +10,11 @@ import GenerateUUID._
 @Plugin(
   id = "generateUUID",
   categories = Array("Value"),
-  label = "Generate UUID",
+  label = "UUID",
   description =
 """ Generates UUIDs.
-If no input value is provided, a random UUID is generated using a cryptographically strong pseudo random number generator.
-If input values are provided, a name-based UUID is generated for each input value.
+If no input value is provided, a random UUID (type 4) is generated using a cryptographically strong pseudo random number generator.
+If input values are provided, a name-based UUID (type 3) is generated for each input value.
 """
 )
 @TransformExamples(Array(
