@@ -32,6 +32,7 @@ $ecc-size-card-spacing: $ecc-size-typo-base !default;
     padding: $ecc-size-card-spacing/2 $ecc-size-card-spacing $ecc-size-card-spacing $ecc-size-card-spacing;
     flex-grow: 1;
     flex-shrink: 1;
+    overflow: auto;
 
     .ecc-separation__divider-horizontal + & {
         padding-top: $ecc-size-card-spacing;

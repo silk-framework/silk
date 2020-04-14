@@ -28,6 +28,7 @@ $ecc-color-modal-backdrop: rgba(invert($ecc-color-workspace-background), 0.69) !
     & > * {
         flex-grow: 1;
         flex-shrink: 1;
+        max-width: 100%;
     }
 
     & * {
