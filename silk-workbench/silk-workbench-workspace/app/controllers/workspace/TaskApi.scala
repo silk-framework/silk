@@ -102,8 +102,9 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     val remainingParametersWithoutLabel = parameterValue.filter(p => !updatedParameters.contains(p._1)).map { case (key, value) =>
       (key, JsObject(Seq("value" -> value)))
     }
-    val updatedData = data.deepMerge(JsObject(Seq("parameters" -> JsObject(updatedParameters ++ remainingParametersWithoutLabel))))
-    val updatedJsObj = jsObj.deepMerge(JsObject(Seq("data" -> updatedData)))
+    val updatedDataFields = data.fields ++ Seq("parameters" -> JsObject(updatedParameters ++ remainingParametersWithoutLabel))
+    val updatedData = JsObject(updatedDataFields)
+    val updatedJsObj = JsObject(jsObj.fields.filterNot(_._1 == "data") ++ Seq("data" -> updatedData))
     Ok(updatedJsObj)
   }
 

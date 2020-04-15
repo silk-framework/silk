@@ -43,7 +43,7 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
                                   " of a workflow.", autoCompletionProvider = classOf[DatasetOrTransformTaskAutoCompletionProvider])
                          selection: DatasetSelection,
                          @Param(label = "", value = "", visibleInDialog = false)
-                         mappingRule: RootMappingRule,
+                         mappingRule: RootMappingRule = RootMappingRule.empty,
                          @Param(label = "Output dataset", value = "An optional dataset where the transformation results should be written to when executed" +
                              " as single task outside of a workflow.")
                          outputOpt: IdentifierOptionParameter = IdentifierOptionParameter(None),

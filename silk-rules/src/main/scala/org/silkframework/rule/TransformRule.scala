@@ -186,7 +186,7 @@ object RootMappingRule {
 
   def defaultLabel: String = "Root Mapping"
 
-  def empty: RootMappingRule = RootMappingRule(MappingRules.empty)
+  final val empty: RootMappingRule = RootMappingRule(MappingRules.empty)
 
   /**
     * XML serialization format.

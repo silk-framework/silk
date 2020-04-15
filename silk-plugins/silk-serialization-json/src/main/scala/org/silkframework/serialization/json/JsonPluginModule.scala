@@ -7,7 +7,7 @@ import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.LinkingSerializers.{LinkingJsonFormat, ReferenceLinksJsonFormat}
 import org.silkframework.serialization.json.PluginSerializers.PluginListJsonFormat
 import org.silkframework.serialization.json.ExecutionReportSerializers._
-import org.silkframework.serialization.json.WorkflowSerializers.WorkflowJsonFormat
+import org.silkframework.serialization.json.WorkflowSerializers.{WorkflowDatasetsParameterFormat, WorkflowJsonFormat, WorkflowOperatorsParameterFormat}
 
 class JsonPluginModule extends PluginModule {
 
@@ -36,6 +36,8 @@ class JsonPluginModule extends PluginModule {
       VocabularyClassJsonFormat.getClass ::
       InputJsonFormat.getClass ::
       WorkflowJsonFormat.getClass ::
+      WorkflowOperatorsParameterFormat.getClass ::
+      WorkflowDatasetsParameterFormat.getClass ::
       ExecutionReportJsonFormat.getClass ::
       TransformReportJsonFormat.getClass ::
       WorkflowExecutionReportJsonFormat.getClass ::

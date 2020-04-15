@@ -13,6 +13,7 @@ import org.silkframework.util.Identifier
 
 import scala.collection.JavaConversions._
 import scala.collection.immutable.ListMap
+import scala.collection.mutable
 import scala.reflect.ClassTag
 
 /**
@@ -46,6 +47,9 @@ object PluginRegistry {
   /** Map holding all plugins by their ID. */
   private var pluginsById = Map[String, PluginDescription[_]]()
 
+  /** All object plugin parameters. */
+  private val objectPluginParameterClasses = new mutable.HashMap[Class[_], mutable.HashSet[Parameter]]
+
   // Register all plugins at instantiation of this singleton object.
   if(configMgr().hasPath("pluginRegistry.pluginFolder")) {
     registerJars(new File(configMgr().getString("pluginRegistry.pluginFolder")))
@@ -55,23 +59,53 @@ object PluginRegistry {
 
   checkPluginParametersPlugins()
 
+
+
   private def checkPluginParametersPlugins(): Unit =  {
     var pluginsWithoutXmlFormat: List[String] = Nil
     var pluginsWithoutJsonFormat: List[String] = Nil
-    for(plugin <- plugins.values if classOf[PluginObjectParameter].isAssignableFrom(plugin.pluginClass)) {
-      if(Serialization.formatForMimeOption(plugin.pluginClass, "application/json").isEmpty) {
-        pluginsWithoutJsonFormat ::= plugin.label
+    var pluginsNestingInvalid: List[String] = Nil
+    for((pluginClass, usageInParameters) <- objectPluginParameterClasses) {
+      if(Serialization.formatForMimeOption(pluginClass, "application/json").isEmpty) {
+        pluginsWithoutJsonFormat ::= pluginClass.getCanonicalName
       }
       // TODO: XmlFormat not consistently used, e.g. DatasetSelection has methods in class instead.
-//      if(Serialization.formatForMimeOption(plugin.pluginClass, "application/xml").isEmpty) {
-//        pluginsWithoutXmlFormat ::= plugin.label
+//      if(Serialization.formatForMimeOption(pluginClass, "application/xml").isEmpty) {
+//        pluginsWithoutXmlFormat ::= pluginClass.getCanonicalName
 //      }
+      checkInvalidObjectPluginParameterType(pluginClass, usageInParameters.toSeq) foreach { errorMessage =>
+        pluginsNestingInvalid ::= errorMessage
+      }
     }
     if(pluginsWithoutJsonFormat.nonEmpty || pluginsWithoutXmlFormat.nonEmpty) {
-      log.severe(s"Plugin parameter plugins found that do not have a XML and/or JSON format implementations." +
-          s" Missing JSON format: ${pluginsWithoutJsonFormat.mkString(", ")}, missing XML format: ${pluginsWithoutXmlFormat.mkString(", ")}")
+      log.severe(s"Invalid plugin parameter classes found. Details: " + errorPart("Classes missing JSON format implementation", pluginsWithoutJsonFormat) +
+          errorPart("Classes missing XML format implementation", pluginsWithoutXmlFormat) + errorPart("Other validation problems", pluginsNestingInvalid))
       throw new RuntimeException("Could not initialize plugin registry.")
     }
+  }
+
+  private def errorPart(errorType: String, errorDetails: List[String]): String = {
+    if(errorDetails.isEmpty) {
+      ""
+    } else {
+      s" $errorType: ${errorDetails.mkString(", ")}."
+    }
+  }
+
+  // Returns an error message string if the object type is invalid.
+  def checkInvalidObjectPluginParameterType(parameterType: Class[_],
+                                            usageInParams: Seq[Parameter]): Option[String] = {
+    var errorMessage = ""
+    val needsCheck = usageInParams.exists(_.visibleInDialog)
+    if(needsCheck) {
+      for (param <- PluginDescription(parameterType).parameters if errorMessage.isEmpty && needsCheck) {
+        if (param.dataType.isInstanceOf[PluginObjectParameterTypeTrait]) {
+          errorMessage = s"Found multiple nestings in object plugin parameter. Parameter '${param.label}' of parameter class " +
+              s"'${parameterType.getSimpleName}' is itself a nested object parameter."
+        }
+      }
+    }
+    Some(errorMessage).filter(_.nonEmpty)
   }
 
   /**
@@ -222,10 +256,21 @@ object PluginRegistry {
     }
   }
 
+  // Checks if a plugin description is valid
+  def checkPluginDescription(pluginDesc: PluginDescription[_]): Unit = {
+    pluginDesc.parameters foreach { param =>
+      if(!param.visibleInDialog && param.defaultValue.isEmpty) {
+        throw new InvalidPluginException(s"Plugin '${pluginDesc.label}' is invalid. Parameter '${param.name}' must " +
+            s"either be visible in a dialog or needs a default value.")
+      }
+    }
+  }
+
   /**
     * Registers a single plugin.
     */
   def registerPlugin(pluginDesc: PluginDescription[_]): Unit = {
+    checkPluginDescription(pluginDesc)
     if(!blacklistedPlugins.contains(pluginDesc.id)) {
       for (superType <- getSuperTypes(pluginDesc.pluginClass)) {
         val pluginType = pluginTypes.getOrElse(superType.getName, new PluginType)
@@ -234,6 +279,15 @@ object PluginRegistry {
       }
       plugins += ((pluginDesc.pluginClass.getName, pluginDesc))
       pluginsById += ((pluginDesc.id.toString, pluginDesc))
+    }
+    // Collect object parameter type in order to check them at the end of the initialization
+    pluginDesc.parameters.foreach { param =>
+      param.dataType match {
+        case paramType: PluginObjectParameterTypeTrait =>
+          val parameters = objectPluginParameterClasses.getOrElseUpdate(paramType.pluginObjectParameterClass, mutable.HashSet.empty)
+          parameters.add(param)
+        case _ => // Do nothing
+      }
     }
   }
 

@@ -343,10 +343,9 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     // Check tasks
     taskValuesWithLabel(sparqlSelect).filter(_._2.isDefined) mustBe Seq(inMemoryDataset -> Some(inMemoryDatasetLabel))
     taskValuesWithLabel(sparqlDataset).filter(_._2.isDefined) mustBe Seq("parallel" -> Some("parallel"))
-    // TODO: These are not supported, since they are no regular DI plugins
-//    taskValuesWithLabel(workflowId)
-//    taskValuesWithLabel(linkTaskId)
-//    taskValuesWithLabel(transformId)
+    taskValuesWithLabel(workflowId)
+    taskValuesWithLabel(linkTaskId)
+    taskValuesWithLabel(transformId)
     // Remove tasks
     for(taskId <- Seq(inMemoryDataset, sparqlDataset, sparqlSelect)) {
       p.removeAnyTask(taskId, false)

@@ -12,34 +12,60 @@ object WorkflowSerializers {
     private final val OPERATORS = "operators"
     private final val DATASETS = "datasets"
 
-    private final val POSX = "posX"
-    private final val POSY = "posY"
-    private final val TASK = "task"
-    private final val INPUTS = "inputs"
-    private final val CONFIG_INPUTS = "configInputs"
-    private final val OUTPUTS = "outputs"
-    private final val ERROR_OUTPUTS = "errorOutputs"
-    private final val ID = "id"
-    private final val OUTPUT_PRIORITY = "outputPriority"
-
     override def typeNames: Set[String] = Set(JsonSerializers.TASK_TYPE_WORKFLOW)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Workflow = {
+      val parameters = (value \ JsonSerializers.PARAMETERS).as[JsObject]
       Workflow(
-        operators = mustBeJsArray(requiredValue(value, OPERATORS))(_.value.map(readOperator)),
-        datasets = mustBeJsArray(requiredValue(value, DATASETS))(_.value.map(readDataset))
+        operators = mustBeJsArray(requiredValue(parameters, OPERATORS))(_.value.map(WorkflowOperatorJsonFormat.read)),
+        datasets = mustBeJsArray(requiredValue(parameters, DATASETS))(_.value.map(WorkflowDatasetJsonFormat.read))
       )
     }
 
     override def write(value: Workflow)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         JsonSerializers.TASKTYPE -> JsonSerializers.TASK_TYPE_WORKFLOW,
-        OPERATORS -> value.operators.map(writeOperator),
-        DATASETS -> value.datasets.map(writeDataset)
+        JsonSerializers.PARAMETERS -> Json.obj(
+          OPERATORS -> value.operators.map(WorkflowOperatorJsonFormat.write),
+          DATASETS -> value.datasets.map(WorkflowDatasetJsonFormat.write)
+        )
       )
     }
+  }
 
-    private def readOperator(value: JsValue): WorkflowOperator = {
+  implicit object WorkflowOperatorsParameterFormat extends JsonFormat[WorkflowOperatorsParameter] {
+    override def read(value: JsValue)(implicit readContext: ReadContext): WorkflowOperatorsParameter = {
+      mustBeJsArray(value)(_.value.map(WorkflowOperatorJsonFormat.read))
+    }
+
+    override def write(value: WorkflowOperatorsParameter)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsArray(value.value.map(WorkflowOperatorJsonFormat.write))
+    }
+  }
+
+  implicit object WorkflowDatasetsParameterFormat extends JsonFormat[WorkflowDatasetsParameter] {
+    override def read(value: JsValue)(implicit readContext: ReadContext): WorkflowDatasetsParameter = {
+      mustBeJsArray(value)(_.value.map(WorkflowDatasetJsonFormat.read))
+    }
+
+    override def write(value: WorkflowDatasetsParameter)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      JsArray(value.value.map(WorkflowDatasetJsonFormat.write))
+    }
+  }
+
+  private final val POSX = "posX"
+  private final val POSY = "posY"
+  private final val TASK = "task"
+  private final val INPUTS = "inputs"
+  private final val CONFIG_INPUTS = "configInputs"
+  private final val OUTPUTS = "outputs"
+  private final val ERROR_OUTPUTS = "errorOutputs"
+  private final val ID = "id"
+  private final val OUTPUT_PRIORITY = "outputPriority"
+
+  implicit object WorkflowOperatorJsonFormat extends JsonFormat[WorkflowOperator] with WorkflowNodeFormatTrait {
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): WorkflowOperator = {
       WorkflowOperator(
         inputs = inputs(value),
         task = task(value),
@@ -52,7 +78,7 @@ object WorkflowSerializers {
       )
     }
 
-    private def writeOperator(op: WorkflowOperator): JsObject = {
+    override def write(op: WorkflowOperator)(implicit writeContext: WriteContext[JsValue]): JsObject = {
       Json.obj(
         POSX -> op.position._1,
         POSY -> op.position._2,
@@ -65,8 +91,10 @@ object WorkflowSerializers {
         CONFIG_INPUTS -> JsArray(op.configInputs.map(JsString))
       )
     }
+  }
 
-    private def readDataset(value: JsValue): WorkflowDataset = {
+  implicit object WorkflowDatasetJsonFormat extends JsonFormat[WorkflowDataset] with WorkflowNodeFormatTrait {
+    override def read(value: JsValue)(implicit readContext: ReadContext): WorkflowDataset = {
       WorkflowDataset(
         inputs = inputs(value),
         task = task(value),
@@ -78,7 +106,7 @@ object WorkflowSerializers {
       )
     }
 
-    private def writeDataset(op: WorkflowDataset): JsObject = {
+    override def write(op: WorkflowDataset)(implicit writeContext: WriteContext[JsValue]): JsObject = {
       Json.obj(
         POSX -> op.position._1,
         POSY -> op.position._2,
@@ -89,32 +117,34 @@ object WorkflowSerializers {
         OUTPUT_PRIORITY -> op.outputPriority
       )
     }
+  }
 
-    private def nodeId(value: JsValue): String = {
+  trait WorkflowNodeFormatTrait {
+    protected def nodeId(value: JsValue): String = {
       stringValue(value, ID)
     }
 
-    private def outputPriority(value: JsValue): Option[Double] = {
+    protected def outputPriority(value: JsValue): Option[Double] = {
       numberValueOption(value, OUTPUT_PRIORITY).map(_.toDouble)
     }
 
-    private def nodePosition(value: JsValue): (Int, Int) = {
+    protected def nodePosition(value: JsValue): (Int, Int) = {
       (numberValue(value, POSX).toInt, numberValue(value, POSY).toInt)
     }
 
-    private def task(value: JsValue): String = {
+    protected def task(value: JsValue): String = {
       stringValue(value, TASK)
     }
 
-    private def inputs(value: JsValue): IndexedSeq[String] = {
+    protected def inputs(value: JsValue): IndexedSeq[String] = {
       mustBeJsArray(requiredValue(value, INPUTS))(_.value.map(_.as[JsString].value))
     }
 
-    private def outputs(value: JsValue): IndexedSeq[String] = {
+    protected def outputs(value: JsValue): IndexedSeq[String] = {
       mustBeJsArray(requiredValue(value, OUTPUTS))(_.value.map(_.as[JsString].value))
     }
 
-    private def configInputs(value: JsValue): Seq[String] = {
+    protected def configInputs(value: JsValue): Seq[String] = {
       optionalValue(value, CONFIG_INPUTS).map(js => mustBeJsArray(js)(_.value.map(_.as[JsString].value))).getOrElse(Seq.empty)
     }
   }

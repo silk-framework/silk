@@ -21,7 +21,7 @@ case class MappingRules(uriRule: Option[UriMapping] = None,
 
 object MappingRules {
 
-  def empty: MappingRules = MappingRules(None, Seq.empty, Seq.empty)
+  final val empty: MappingRules = MappingRules(None, Seq.empty, Seq.empty)
 
   implicit def toSeq(rules: MappingRules): Seq[TransformRule] = rules.allRules
 

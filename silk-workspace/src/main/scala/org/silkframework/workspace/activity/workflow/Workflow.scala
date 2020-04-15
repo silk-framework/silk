@@ -1,11 +1,11 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.config.TaskSpec
-import org.silkframework.dataset.{Dataset, DatasetCategories, DatasetSpec, VariableDataset}
+import org.silkframework.dataset.{Dataset, DatasetSpec, VariableDataset}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginObjectParameterNoSchema
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
@@ -26,8 +26,10 @@ import scala.xml.{Node, Text}
   description =
       """A workflow describes a directed data processing pipeline bringing together datasets and processing tasks."""
 )
-case class Workflow(operators: WorkflowOperatorsParameter,
-                    datasets: WorkflowDatasetsParameter) extends TaskSpec {
+case class Workflow(@Param(label = "Workflow operators", value = "Workflow operators process input data or access external non-dataset services.", visibleInDialog = false)
+                    operators: WorkflowOperatorsParameter = WorkflowOperatorsParameter(Seq.empty),
+                    @Param(label = "Workflow datasets", value = "Workflow datasets allow reading and writing data from/to a data source/sink.", visibleInDialog = false)
+                    datasets: WorkflowDatasetsParameter = WorkflowDatasetsParameter(Seq.empty)) extends TaskSpec {
 
   lazy val nodes: Seq[WorkflowNode] = operators ++ datasets
 
