@@ -128,7 +128,12 @@ return (
                 />
                 {
                     !!item.itemLinks.length &&
-                    <IconButton name='item-viewdetails' text='Show details' onClick={goToDetailsPage}/>
+                    <IconButton
+                        name='item-viewdetails'
+                        text='Show details'
+                        onClick={goToDetailsPage}
+                        href={item.itemLinks[0].path}
+                    />
                 }
                 <ContextMenu togglerText="Show more options">
                     {
