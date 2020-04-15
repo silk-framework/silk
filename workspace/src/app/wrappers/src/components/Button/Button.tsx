@@ -12,7 +12,6 @@ function Button({
     affirmative=false,
     disruptive=false,
     elevated=false,
-    href='',
     icon=false,
     rightIcon=false,
     ...restProps
@@ -22,7 +21,7 @@ function Button({
     if (affirmative || elevated) intention = BlueprintIntent.PRIMARY;
     if (disruptive) intention = BlueprintIntent.DANGER;
 
-    let ButtonType = (href) ? BlueprintAnchorButton : BlueprintButton;
+    let ButtonType = (restProps.href) ? BlueprintAnchorButton : BlueprintButton;
 
     return (
         <ButtonType
@@ -35,7 +34,6 @@ function Button({
             rightIcon={
                 typeof rightIcon === 'string' ? <Icon name={rightIcon} /> : rightIcon
             }
-            href={href}
         >
             {children}
         </ButtonType>
