@@ -89,68 +89,70 @@ export function CreateArtefactModal() {
             actions={
                 selectedArtefact ? [
                     <Button
+                        key='create'
                         affirmative={true}
                         onClick={handleCreate}
                         disabled={isErrorPresented()}
                     >
                         Create
                     </Button>,
-                    <Button onClick={closeModal}>Cancel</Button>,
-                    <Button onClick={handleBack}>Back</Button>
+                    <Button key='cancel' onClick={closeModal}>Cancel</Button>,
+                    <Button key='back' onClick={handleBack}>Back</Button>
                 ] : [
                     <Button
+                        key='add'
                         affirmative={true}
                         onClick={handleAdd}
                         disabled={!selected}
                     >
                         Add
                     </Button>,
-                    <Button onClick={closeModal}>Cancel</Button>
+                    <Button key='cancel' onClick={closeModal}>Cancel</Button>
                 ]
             }
         >
             {
                 loading ?
-                <Loading/> : <>
-                    {
-                        artefactForm ?
-                        artefactForm : (
-                            <Grid>
-                                <GridRow>
-                                    <GridColumn small>
-                                        <TitleSubsection>Artefact Type</TitleSubsection>
-                                        <ul>
-                                            <li><a href='#'>All</a></li>
-                                        </ul>
-                                    </GridColumn>
-                                    <GridColumn>
-                                        <SearchBar onSort={() => {
-                                        }} onApplyFilters={() => {
-                                        }}/>
-                                        <Spacing/>
-                                        <Grid>
-                                            <GridRow>
-                                                <GridColumn>
-                                                    <Button onClick={_TEMP_handleProjectSelect}>
-                                                        Project
-                                                    </Button>
-                                                </GridColumn>
-                                                {
-                                                    projectId && artefactsList.map(artefact =>
-                                                        <GridColumn key={artefact.key}>
-                                                            <Button
-                                                                onClick={() => handleArtefactSelect(artefact)}>{artefact.title}</Button>
+                    <Loading/> : <>
+                        {
+                            artefactForm ?
+                                artefactForm : (
+                                    <Grid>
+                                        <GridRow>
+                                            <GridColumn small>
+                                                <TitleSubsection>Artefact Type</TitleSubsection>
+                                                <ul>
+                                                    <li><a href='#'>All</a></li>
+                                                </ul>
+                                            </GridColumn>
+                                            <GridColumn>
+                                                <SearchBar onSort={() => {
+                                                }} onApplyFilters={() => {
+                                                }}/>
+                                                <Spacing/>
+                                                <Grid>
+                                                    <GridRow>
+                                                        <GridColumn>
+                                                            <Button onClick={_TEMP_handleProjectSelect}>
+                                                                Project
+                                                            </Button>
                                                         </GridColumn>
-                                                    )
-                                                }
-                                            </GridRow>
-                                        </Grid>
-                                    </GridColumn>
-                                </GridRow>
-                            </Grid>
-                        )
-                    }
-                </>
+                                                        {
+                                                            projectId && artefactsList.map(artefact =>
+                                                                <GridColumn key={artefact.key}>
+                                                                    <Button
+                                                                        onClick={() => handleArtefactSelect(artefact)}>{artefact.title}</Button>
+                                                                </GridColumn>
+                                                            )
+                                                        }
+                                                    </GridRow>
+                                                </Grid>
+                                            </GridColumn>
+                                        </GridRow>
+                                    </Grid>
+                                )
+                        }
+                    </>
             }
         </SimpleDialog>
     )

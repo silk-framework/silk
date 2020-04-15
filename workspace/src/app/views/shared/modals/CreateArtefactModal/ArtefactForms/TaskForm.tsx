@@ -92,11 +92,14 @@ export function TaskForm({form, projectId, artefact}: IProps) {
             labelFor={'description'}
         >
             <InputMapper
-                type={'string'}
+                type={'textarea'}
                 inputAttributes={{
                     id: 'description',
                     name: 'description',
                     onChange: handleChange('description'),
+                    style: {
+                        width: '100%'
+                    }
                 }}
             />
         </FormGroup>

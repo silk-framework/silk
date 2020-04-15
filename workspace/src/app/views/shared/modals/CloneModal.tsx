@@ -28,13 +28,14 @@ export default function CloneModal({isOpen, oldId, onDiscard, onConfirm}: IClone
             onClose={onDiscard}
             actions={[
                 <Button
+                    key='clone'
                     affirmative
                     onClick={() => onConfirm(newId)}
                     disabled={!newId}
                 >
                     Clone
                 </Button>,
-                <Button onClick={onDiscard}>Cancel</Button>
+                <Button key='cancel' onClick={onDiscard}>Cancel</Button>
             ]}
         >
             <InputGroup

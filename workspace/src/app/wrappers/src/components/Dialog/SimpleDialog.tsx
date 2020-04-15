@@ -18,7 +18,7 @@ function SimpleDialog({
     canOutsideClickClose=false,
     canEscapeKeyClose=false,
     title='',
-    actions=<></>,
+    actions=null,
     hasBorder=false,
     preventSimpleClosing=false,
     intent='',

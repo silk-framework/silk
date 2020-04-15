@@ -13,6 +13,7 @@ import Loading from "../../../shared/Loading";
 import FileUploadModal from "../../../shared/modals/FileUploadModal";
 import { getLegacyApiEndpoint } from "../../../../utils/getApiEndpoint";
 import { globalSel } from "@ducks/global";
+import { EmptyFileWidget } from "./EmptyFileWidget";
 
 const {
     TableContainer,
@@ -75,6 +76,7 @@ export const FileWidget = () => {
                 <Divider />
                 <CardContent>
                     {isLoading ? <Loading/> :
+                        filesList.length ?
                         <DataTable
                             rows={filesList}
                             headers={headers}
@@ -109,6 +111,7 @@ export const FileWidget = () => {
                                 </TableContainer>
                             )}
                         />
+                        : <EmptyFileWidget onFileAdd={toggleFileUploader}/>
                     }
                 </CardContent>
             </Card>

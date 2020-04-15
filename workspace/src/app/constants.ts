@@ -27,7 +27,12 @@ export const DATA_TYPES = {
 
 export const INPUT_VALID_TYPES = {
     BOOLEAN: 'boolean',
+    TEXTAREA: 'textarea',
     INTEGER: 'int',
     MULTILINE_STRING: 'multiline string',
-    STRING: 'string'
+    STRING: 'string',
+    OPTION_INT: 'option[int]',
+    ENUMERATION: 'enumeration',
+    PASSWORD: 'password',
+    RESOURCE: 'resource',
 };

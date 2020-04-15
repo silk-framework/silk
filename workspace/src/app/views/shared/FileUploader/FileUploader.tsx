@@ -1,4 +1,4 @@
-import React from "react";
+import React  from "react";
 import { DragDrop } from "@uppy/react";
 import ProgressBar from "@wrappers/blueprint/progressbar";
 import XHR from '@uppy/xhr-upload';
@@ -6,6 +6,7 @@ import Uppy from '@uppy/core';
 import '@uppy/core/dist/style.css';
 import '@uppy/drag-drop/dist/style.css'
 import '@uppy/progress-bar/dist/style.css';
+
 import Loading from "../Loading";
 
 interface IUploaderInstance {
@@ -30,6 +31,8 @@ interface IProps {
     allowMultiple?: boolean;
 
     disabled?: boolean;
+
+    simpleInput?: boolean;
 }
 
 interface IState {
@@ -104,6 +107,28 @@ export class FileUploader extends React.Component<IProps, IState> {
         }
     };
 
+    handleInputChange = (event) => {
+        const files = Array.from(event.target.files);
+        files.forEach((file: File) => {
+            try {
+                this.uppy.addFile({
+                    source: 'file input',
+                    name: file.name,
+                    type: file.type,
+                    data: file
+                })
+            } catch (err) {
+                if (err.isRestriction) {
+                    // handle restrictions
+                    console.log('Restriction error:', err)
+                } else {
+                    // handle other errors
+                    console.error(err)
+                }
+            }
+        })
+    };
+
     reset = () => {
         this.setState({
             progress: 0
@@ -114,13 +139,16 @@ export class FileUploader extends React.Component<IProps, IState> {
 
     render() {
         const {progress} = this.state;
-        const {disabled, allowMultiple} = this.props;
+        const {disabled, allowMultiple, simpleInput} = this.props;
 
         return (
             disabled
                 ? <Loading/>
                 : <>
-                    <DragDrop uppy={this.uppy} allowMultipleFiles={allowMultiple}/>
+                    {simpleInput
+                        ? <input type="file" id="fileInput" onChange={this.handleInputChange}/>
+                        : <DragDrop uppy={this.uppy} allowMultipleFiles={allowMultiple}/>
+                    }
                     {
                         !!progress && <div>
                             <p>Waiting for finished file upload to show data preview.
