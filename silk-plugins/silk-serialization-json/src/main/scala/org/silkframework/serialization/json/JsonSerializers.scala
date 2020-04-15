@@ -29,6 +29,7 @@ object JsonSerializers {
 
   final val ID = "id"
   final val TYPE = "type"
+  final val DATA = "data"
   final val TASKTYPE = "taskType"
   final val TASK_TYPE_DATASET = "Dataset"
   final val TASK_TYPE_CUSTOM_TASK = "CustomTask"
@@ -691,7 +692,7 @@ object JsonSerializers {
       TransformSpec(
         selection = fromJson[DatasetSelection](mustBeDefined(parametersObj, SELECTION)),
         mappingRule = optionalValue(parametersObj, RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty),
-        outputOpt = stringValueOption(parametersObj, OUTPUT).filter(_.trim.nonEmpty).map(v => Identifier(v.trim)),
+        output = stringValueOption(parametersObj, OUTPUT).filter(_.trim.nonEmpty).map(v => Identifier(v.trim)),
         targetVocabularies = mustBeJsArray(mustBeDefined(parametersObj, TARGET_VOCABULARIES))(_.value.map(_.as[JsString].value))
       )
     }
@@ -942,7 +943,6 @@ object JsonSerializers {
                                       userContext: Option[UserContext] = None)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
 
     final val PROJECT = "project"
-    final val DATA = "data"
     final val PROPERTIES = "properties"
     final val RELATIONS = "relations"
     final val SCHEMATA = "schemata"

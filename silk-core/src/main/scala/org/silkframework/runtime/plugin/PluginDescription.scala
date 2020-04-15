@@ -87,7 +87,7 @@ class PluginDescription[+T](val id: Identifier, val categories: Seq[String], val
             parameter.dataType match {
               case stringParam: StringParameterType[_] =>
                 stringParam.fromString(v).asInstanceOf[AnyRef]
-              case _: PluginObjectParameterType =>
+              case _: PluginObjectParameterTypeTrait =>
                 throw new RuntimeException(s"Plugin parameter '${parameter.name}' of plugin '$id' has no simple string representation, but is a complex object.") // TODO: What to do with that?
             }
           } catch {

@@ -2,7 +2,7 @@ package controllers.workspace
 
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
-import org.silkframework.serialization.json.JsonSerializers
+import org.silkframework.serialization.json.JsonSerializers.{DATA, PARAMETERS, TASK_TYPE_DATASET, TYPE, TASKTYPE, ID}
 import play.api.libs.json.{JsObject, Json}
 
 class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
@@ -39,17 +39,17 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
     request = request.addHttpHeaders("Accept" -> "application/json")
     val response = request.put(
       Json.obj(
-        "taskType" -> JsonSerializers.TASK_TYPE_DATASET,
-        "id" -> dataset,
+        TASKTYPE -> TASK_TYPE_DATASET,
+        ID -> dataset,
         "metadata" ->
           Json.obj(
             "label" -> "label 2",
             "description" -> "description 2"
           ),
-        "data" -> Json.obj(
+        DATA -> Json.obj(
           "uriProperty" -> "URI",
-          "type" -> "internal",
-          "parameters" ->
+          TYPE -> "internal",
+          PARAMETERS ->
             Json.obj(
               "graphUri" -> "urn:dataset2"
             )
@@ -72,11 +72,11 @@ class DatasetApiTest extends PlaySpec with IntegrationTestTrait {
     (metaData \ "created").asOpt[String] mustBe defined
     (json \ "id").as[String] mustBe dataset
     (json \ "project").as[String] mustBe project
-    (json \ "taskType").as[String] mustBe "Dataset"
-    (json \ "data").as[JsObject] mustBe Json.obj(
-      "taskType" -> "Dataset",
-      "type" -> "internal",
-      "parameters" -> Json.obj(
+    (json \ TASKTYPE).as[String] mustBe "Dataset"
+    (json \ DATA).as[JsObject] mustBe Json.obj(
+      TASKTYPE -> "Dataset",
+      TYPE -> "internal",
+      PARAMETERS -> Json.obj(
         "graphUri" -> "urn:dataset1"
       )
     )

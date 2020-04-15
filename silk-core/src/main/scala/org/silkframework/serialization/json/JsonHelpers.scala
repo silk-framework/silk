@@ -105,6 +105,14 @@ object JsonHelpers {
     }
   }
 
+  def arrayValue(json: JsValue, attributeName: String): JsArray = {
+    requiredValue(json, attributeName) match {
+      case array: JsArray => array
+      case _ =>
+        throw JsonParseException("Value for attribute '" + attributeName + "' is not a JSON array!")
+    }
+  }
+
   def objectValue(json: JsValue, attributeName: String): JsObject = {
     requiredValue(json, attributeName) match {
       case jsObject: JsObject => jsObject

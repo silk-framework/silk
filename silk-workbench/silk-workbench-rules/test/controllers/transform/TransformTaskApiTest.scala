@@ -1,13 +1,14 @@
 package controllers.transform
 
-import org.silkframework.entity.{UriValueType, ValueType}
+import org.silkframework.entity.ValueType
 import org.silkframework.rule._
+import org.silkframework.serialization.json.JsonSerializers.{DATA, PARAMETERS}
 import org.silkframework.workspace.ProjectTask
 import play.api.libs.json.{JsArray, JsString, Json}
 
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 import scala.xml.XML
 
 class TransformTaskApiTest extends TransformTaskApiTestBase {
@@ -36,8 +37,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     // A label has been generated for this transform
     (response \ "metadata" \ "label").as[String] mustBe "Test Transform"
     // An id and a label has been generated for the root mapping
-    (response \ "data" \ "parameters" \ "mappingRule" \ "id").as[String] mustBe ROOT_RULE_ID
-    (response \ "data" \ "parameters" \ "mappingRule" \ "metadata" \ "label").as[String] mustBe "Root Mapping"
+    (response \ DATA \ PARAMETERS \ "mappingRule" \ "id").as[String] mustBe ROOT_RULE_ID
+    (response \ DATA \ PARAMETERS \ "mappingRule" \ "metadata" \ "label").as[String] mustBe "Root Mapping"
   }
 
   "Check that we can GET the transform task as XML" in {

@@ -16,14 +16,14 @@ package org.silkframework.rule
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.Restriction
+import org.silkframework.rule.task.DatasetOrTransformTaskAutoCompletionProvider
 import org.silkframework.runtime.plugin.PluginObjectParameter
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonFormat
-import org.silkframework.util.{Identifier, Uri}
-import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
-import play.api.libs.json.{JsValue, Json}
 import org.silkframework.serialization.json.JsonHelpers._
+import org.silkframework.util.{Identifier, Uri}
+import play.api.libs.json.{JsValue, Json}
 
 import scala.xml.{Elem, Node}
 
@@ -40,7 +40,8 @@ import scala.xml.{Elem, Node}
       " further restrict the selected instances."
 ) // TODO: Better name, since we select a set of entities, not just a dataset
 case class DatasetSelection(@Param(label = "Dataset", value = "The dataset to select.",
-                                   autoCompletionProvider = classOf[DatasetTaskReferenceAutoCompletionProvider], autoCompleteValueWithLabels = true)
+                            autoCompletionProvider = classOf[DatasetOrTransformTaskAutoCompletionProvider],
+                                   autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
                             inputId: Identifier,
                             @Param(label = "Type", value = "The type of the dataset. If left empty, the default type will be selected.")
                             typeUri: Uri, // TODO: How to auto-complete the type?

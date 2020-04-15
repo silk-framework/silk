@@ -31,7 +31,7 @@ object PluginSerializers {
         "categories" -> JsArray(plugin.categories.map(JsString)),
         "description" -> JsString(plugin.description)
       )
-      val tt = taskType.map(t => "tasktype" -> JsString(t)).toSeq
+      val tt = taskType.map(t => JsonSerializers.TASKTYPE -> JsString(t)).toSeq
       val details = Seq (
         "type" -> JsString("object"),
         "properties" -> JsObject(serializeParams(plugin.parameters)),
@@ -55,6 +55,12 @@ object PluginSerializers {
         case (_, None) => JsNull
       }
 
+      val parameters: Option[JsArray] = param.dataType match {
+        case objectType: PluginObjectParameterTypeTrait if param.visibleInDialog =>
+          val pluginDescription = PluginDescription(objectType.pluginObjectParameterClass)
+          Some(JsArray(pluginDescription.parameters.map(serializeParam)))
+        case _ => None
+      }
       Json.toJson(PluginParameterJsonPayload(
         title = param.label,
         description = param.description,
@@ -67,7 +73,8 @@ object PluginSerializers {
           allowOnlyAutoCompletedValues = autoComplete.allowOnlyAutoCompletedValues,
           autoCompleteValueWithLabels = autoComplete.autoCompleteValueWithLabels,
           autoCompletionDependsOnParameters = autoComplete.autoCompletionDependsOnParameters
-        ))
+        )),
+        properties = parameters
       ))
     }
   }
@@ -80,7 +87,8 @@ case class PluginParameterJsonPayload(title: String,
                                       value: JsValue,
                                       advanced: Boolean,
                                       visibleInDialog: Boolean,
-                                      autoCompletion: Option[ParameterAutoCompletionJsonPayload])
+                                      autoCompletion: Option[ParameterAutoCompletionJsonPayload],
+                                      properties: Option[JsArray])
 
 case class ParameterAutoCompletionJsonPayload(allowOnlyAutoCompletedValues: Boolean,
                                               autoCompleteValueWithLabels: Boolean,

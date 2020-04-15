@@ -8,8 +8,8 @@ import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.plugins.dataset.rdf.datasets.{InMemoryDataset, SparqlDataset}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
-import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginRegistry}
-import org.silkframework.serialization.json.JsonSerializers
+import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.serialization.json.JsonSerializers.{DATA, ID, PARAMETERS, TASKTYPE, TYPE}
 import org.silkframework.workspace.TestCustomTask
 import play.api.http.Status
 import play.api.libs.json._
@@ -60,11 +60,11 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
             Json.obj(
               "label" -> "some label"
             ),
-        "data" -> Json.obj(
+        DATA -> Json.obj(
           "uriProperty" -> "URI",
-          JsonSerializers.TASKTYPE -> "Dataset",
-          "type" -> "internal",
-          "parameters" ->
+          TASKTYPE -> "Dataset",
+          TYPE -> "internal",
+          PARAMETERS ->
               Json.obj(
                 "graphUri" -> "urn:dataset2"
               )
@@ -102,13 +102,13 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     (metaData \ "description").as[String] mustBe "description 1"
     (metaData \ "modified").asOpt[String] mustBe defined
     (metaData \ "created").asOpt[String] mustBe defined
-    (json \ "id").as[String] mustBe datasetId
+    (json \ ID).as[String] mustBe datasetId
     (json \ "project").as[String] mustBe project
-    (json \ "taskType").as[String] mustBe "Dataset"
-    (json \ "data").as[JsObject] mustBe Json.obj(
-      "taskType" -> "Dataset",
-      "type" -> "internal",
-      "parameters" -> Json.obj(
+    (json \ TASKTYPE).as[String] mustBe "Dataset"
+    (json \ DATA).as[JsObject] mustBe Json.obj(
+      TASKTYPE -> "Dataset",
+      TYPE -> "internal",
+      PARAMETERS -> Json.obj(
         "graphUri" -> "urn:dataset1"
       )
     )
@@ -119,17 +119,17 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     request = request.addHttpHeaders("Accept" -> "application/json")
     val response = request.put(
       Json.obj(
-        "id" -> datasetId,
+        ID -> datasetId,
         "metadata" ->
           Json.obj(
             "label" -> "label 2",
             "description" -> "description 2"
           ),
-        "data" -> Json.obj(
+        DATA -> Json.obj(
           "uriProperty" -> "URI",
-          "taskType" -> "Dataset",
-          "type" -> "internal",
-          "parameters" ->
+          TASKTYPE -> "Dataset",
+          TYPE -> "internal",
+          PARAMETERS ->
             Json.obj(
               "graphUri" -> "urn:dataset2"
             )
@@ -172,11 +172,11 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     request = request.addHttpHeaders("Accept" -> "application/json")
     val response = checkResponse(request.get())
     val json = response.json
-    (json \ "id").get mustBe JsString(transformId)
-    (json \ "taskType").get mustBe JsString("Transform")
-    (json \ "data" \ "parameters" \ "selection" \ "inputId").as[String] mustBe datasetId
-    (json \ "data" \ "parameters" \ "selection" \ "typeUri").as[String] mustBe typeUri
-    (json \ "data" \ "parameters" \ "mappingRule" \ "rules" \ "uriRule" \ "operator").as[JsObject].toString mustBe
+    (json \ ID).get mustBe JsString(transformId)
+    (json \ TASKTYPE).get mustBe JsString("Transform")
+    (json \ DATA \ PARAMETERS \ "selection" \ "inputId").as[String] mustBe datasetId
+    (json \ DATA \ PARAMETERS \ "selection" \ "typeUri").as[String] mustBe typeUri
+    (json \ DATA \ PARAMETERS \ "mappingRule" \ "rules" \ "uriRule" \ "operator").as[JsObject].toString mustBe
         """{"type":"transformInput","id":"constant","function":"constant","inputs":[],"parameters":{"value":"http://example.org/"}}"""
   }
 
@@ -184,12 +184,17 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
    checkTransformTask("")
   }
 
+  val TRANSFORM_OUTPUT_DATASET = "outData"
+  val OUTPUT_DATASET_LABEL = "output dataset"
+
   "patch transform task" in {
+    createCsvFileDataset(project, TRANSFORM_OUTPUT_DATASET, "none.csv")
+    retrieveOrCreateProject(project).anyTask(TRANSFORM_OUTPUT_DATASET).updateMetaData(MetaData(label = OUTPUT_DATASET_LABEL))
     val updateJson = s"""{
                        |    "id": "$transformId",
                        |    "data": {
                        |      "parameters": {
-                       |        "outputs": [],
+                       |        "output": "$TRANSFORM_OUTPUT_DATASET",
                        |        "selection": {
                        |          "inputId": "$datasetId",
                        |          "restriction": "",
@@ -243,10 +248,10 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     request = request.addHttpHeaders("Accept" -> "application/json")
     val response = checkResponse(request.get())
 
-    (response.json \ "id").get mustBe JsString(linkTaskId)
-    (response.json \ "data" \ "parameters" \ "source" \ "typeUri").get mustBe JsString("<http://dbpedia.org/ontology/Film>")
-    (response.json \ "data" \ "parameters" \ "target" \ "typeUri").get mustBe JsString("<http://data.linkedmdb.org/resource/movie/film>")
-    (response.json \ "data" \ "parameters" \ "rule" \ "linkType").get mustBe JsString("owl:sameAs")
+    (response.json \ ID).get mustBe JsString(linkTaskId)
+    (response.json \ DATA \ PARAMETERS \ "source" \ "typeUri").get mustBe JsString("<http://dbpedia.org/ontology/Film>")
+    (response.json \ DATA \ PARAMETERS \ "target" \ "typeUri").get mustBe JsString("<http://data.linkedmdb.org/resource/movie/film>")
+    (response.json \ DATA \ PARAMETERS \ "rule" \ "linkType").get mustBe JsString("owl:sameAs")
   }
 
   "patch linking task" in {
@@ -280,10 +285,10 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     request = request.addHttpHeaders("Accept" -> "application/json")
     val response = checkResponse(request.get())
 
-    (response.json \ "id").get mustBe JsString(linkTaskId)
-    (response.json \ "data" \ "parameters" \ "source" \ "typeUri").get mustBe JsString("owl:Class")
-    (response.json \ "data" \ "parameters" \ "target" \ "typeUri").get mustBe JsString("<urn:schema:targetType>")
-    (response.json \ "data" \ "parameters" \ "rule" \ "linkType").get mustBe JsString("owl:sameAs")
+    (response.json \ ID).get mustBe JsString(linkTaskId)
+    (response.json \ DATA \ PARAMETERS \ "source" \ "typeUri").get mustBe JsString("owl:Class")
+    (response.json \ DATA \ PARAMETERS \ "target" \ "typeUri").get mustBe JsString("<urn:schema:targetType>")
+    (response.json \ DATA \ PARAMETERS \ "rule" \ "linkType").get mustBe JsString("owl:sameAs")
   }
 
   "post workflow task" in {
@@ -325,11 +330,11 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
   }
 
   "get tasks with parameter value labels" in {
-    def taskValuesWithLabel(taskId: String): Seq[(String, Option[String])] = {
+    def taskValuesWithLabel(taskId: String): Seq[(JsValue, Option[String])] = {
       val parameters = (checkResponse(client.url(s"$baseUrl/workspace/projects/$project/tasks/$taskId?withLabels=true").
           withHttpHeaders("Accept" -> "application/json").
-          get()).json.as[JsObject] \ "data" \ "parameters").as[JsObject].fields
-      parameters.map(p => ((p._2 \ "value").as[String], (p._2 \ "label").asOpt[String]))
+          get()).json.as[JsObject] \ DATA \ PARAMETERS).as[JsObject].fields
+      parameters.map(p => ((p._2 \ "value").as[JsValue], (p._2 \ "label").asOpt[String]))
     }
     val sparqlSelect = "sparqlSelect"
     val sparqlDataset = "sparqlDataset"
@@ -341,11 +346,13 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     p.addAnyTask(sparqlSelect, SparqlSelectCustomTask("SELECT * WHERE {?s ?p ?o}", optionalInputDataset = SparqlEndpointDatasetParameter(inMemoryDataset)))
     p.addAnyTask(sparqlDataset, DatasetSpec(SparqlDataset("http://endpoint")))
     // Check tasks
-    taskValuesWithLabel(sparqlSelect).filter(_._2.isDefined) mustBe Seq(inMemoryDataset -> Some(inMemoryDatasetLabel))
-    taskValuesWithLabel(sparqlDataset).filter(_._2.isDefined) mustBe Seq("parallel" -> Some("parallel"))
-    taskValuesWithLabel(workflowId)
+    taskValuesWithLabel(sparqlSelect).filter(_._2.isDefined) mustBe Seq(JsString(inMemoryDataset) -> Some(inMemoryDatasetLabel))
+    taskValuesWithLabel(sparqlDataset).filter(_._2.isDefined) mustBe Seq(JsString("parallel") -> Some("parallel"))
+    taskValuesWithLabel(workflowId) // Just check that it returns anything
     taskValuesWithLabel(linkTaskId)
-    taskValuesWithLabel(transformId)
+    val transformParameters = taskValuesWithLabel(transformId)
+    transformParameters.flatMap(_._2) mustBe Seq(OUTPUT_DATASET_LABEL)
+    transformParameters.flatMap(p => (p._1 \ "inputId").asOpt[JsString]) mustBe Seq(JsString(datasetId))
     // Remove tasks
     for(taskId <- Seq(inMemoryDataset, sparqlDataset, sparqlSelect)) {
       p.removeAnyTask(taskId, false)
@@ -369,7 +376,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
         ))
 
       val responseJson = checkResponse(response).json
-      (responseJson \ "copiedTasks").asStringArray must contain theSameElementsAs Seq(datasetId, transformId)
+      (responseJson \ "copiedTasks").asStringArray must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
       (responseJson \ "overwrittenTasks").asStringArray mustBe Seq.empty
 
       // Assert that no tasks have been copied
@@ -389,13 +396,13 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
         ))
 
       val responseJson = checkResponse(response).json
-      (responseJson \ "copiedTasks").asStringArray must contain theSameElementsAs Seq(datasetId, transformId)
+      (responseJson \ "copiedTasks").asStringArray must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
       (responseJson \ "overwrittenTasks").asStringArray mustBe Seq.empty
 
       // Assert that tasks have been copied
       val projectResponse = client.url(s"$baseUrl/workspace/projects/$targetProject").get()
       val projectJson = checkResponse(projectResponse).json
-      (projectJson \ "tasks" \ "dataset").asStringArray mustBe Seq(datasetId)
+      (projectJson \ "tasks" \ "dataset").asStringArray.toSet mustBe Set(datasetId, TRANSFORM_OUTPUT_DATASET)
       (projectJson \ "tasks" \ "transform").asStringArray mustBe Seq(transformId)
     }
 
@@ -414,8 +421,8 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
           """.stripMargin
         ))
       val responseJson = checkResponse(response).json
-      (responseJson \ "copiedTasks").asStringArray must contain theSameElementsAs Seq(datasetId, transformId)
-      (responseJson \ "overwrittenTasks").asStringArray must contain theSameElementsAs Seq(datasetId, transformId)
+      (responseJson \ "copiedTasks").asStringArray must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
+      (responseJson \ "overwrittenTasks").asStringArray must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
 
       // Assert that the dataset has been overwritten
       val datasetResponse = client.url(s"$baseUrl/workspace/projects/$targetProject/tasks/$datasetId")

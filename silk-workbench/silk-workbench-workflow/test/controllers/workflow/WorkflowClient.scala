@@ -2,16 +2,14 @@ package controllers.workflow
 
 import controllers.workflow.WorkflowClient.VariableDatasetPayload
 import controllers.workspace.ActivityClient
-import org.silkframework.serialization.json.JsonSerializers
+import org.silkframework.serialization.json.JsonSerializers.{DATA, PARAMETERS, TASK_TYPE_DATASET, TYPE, TASKTYPE, ID}
 import org.silkframework.util.Identifier
-import play.api.http.Writeable
 import play.api.libs.json.{JsArray, JsObject, JsString, JsValue}
 import play.api.libs.ws.{BodyWritable, WSClient, WSRequest, WSResponse}
 
-import scala.collection.AbstractIterable
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.xml.{Elem, Equality, Null}
+import scala.xml.{Elem, Null}
 
 class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identifier)(implicit client: WSClient) {
 
@@ -106,11 +104,11 @@ object WorkflowClient {
 
     lazy val datasetJson: JsValue = {
       JsObject(Seq(
-        "id" -> JsString(datasetId),
-        "data" -> JsObject(Seq(
-          "taskType" -> JsString(JsonSerializers.TASK_TYPE_DATASET),
-          "type" -> JsString(datasetPluginType),
-          "parameters" -> JsObject(for ((key, value) <- pluginParams ++ additionalParam) yield {
+        ID -> JsString(datasetId),
+        DATA -> JsObject(Seq(
+          TASKTYPE -> JsString(TASK_TYPE_DATASET),
+          TYPE -> JsString(datasetPluginType),
+          PARAMETERS -> JsObject(for ((key, value) <- pluginParams ++ additionalParam) yield {
             key -> JsString(value)
           })
         ))

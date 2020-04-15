@@ -95,16 +95,16 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes, projectId = Some(project.config.id))
     // JSON only
     val jsObj: JsObject = JsonSerialization.toJson[Task[TaskSpec]](task).as[JsObject]
-    val data = (jsObj \ "data").as[JsObject]
-    val parameters = (data \ "parameters").as[JsObject]
+    val data = (jsObj \ DATA).as[JsObject]
+    val parameters = (data \ PARAMETERS).as[JsObject]
     val parameterValue = parameters.value
     val updatedParameters: Map[String, JsObject] = parametersWithLabel(projectName, task, parameterValue)
     val remainingParametersWithoutLabel = parameterValue.filter(p => !updatedParameters.contains(p._1)).map { case (key, value) =>
       (key, JsObject(Seq("value" -> value)))
     }
-    val updatedDataFields = data.fields ++ Seq("parameters" -> JsObject(updatedParameters ++ remainingParametersWithoutLabel))
+    val updatedDataFields = data.fields ++ Seq(PARAMETERS -> JsObject(updatedParameters ++ remainingParametersWithoutLabel))
     val updatedData = JsObject(updatedDataFields)
-    val updatedJsObj = JsObject(jsObj.fields.filterNot(_._1 == "data") ++ Seq("data" -> updatedData))
+    val updatedJsObj = JsObject(jsObj.fields.filterNot(_._1 == DATA) ++ Seq(DATA -> updatedData))
     Ok(updatedJsObj)
   }
 

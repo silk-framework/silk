@@ -39,28 +39,24 @@ import scala.language.implicitConversions
   description =
       """A transform task defines a mapping from a source structure to a target structure."""
 )
-case class TransformSpec(@Param(label = "Input task", value = "The source from which data will be transformed when executed as a single task outside" +
-                                  " of a workflow.", autoCompletionProvider = classOf[DatasetOrTransformTaskAutoCompletionProvider])
+case class TransformSpec(@Param(label = "Input task", value = "The source from which data will be transformed when executed as a single task outside of a workflow.")
                          selection: DatasetSelection,
                          @Param(label = "", value = "", visibleInDialog = false)
                          mappingRule: RootMappingRule = RootMappingRule.empty,
                          @Param(label = "Output dataset", value = "An optional dataset where the transformation results should be written to when executed" +
-                             " as single task outside of a workflow.")
-                         outputOpt: IdentifierOptionParameter = IdentifierOptionParameter(None),
+                             " as single task outside of a workflow.", autoCompletionProvider = classOf[DatasetTaskReferenceAutoCompletionProvider],
+                           autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
+                         output: IdentifierOptionParameter = IdentifierOptionParameter(None),
                          @Param(label = "Error output", value = "An optional dataset to write invalid input entities to.", visibleInDialog = false,
                            autoCompletionProvider = classOf[DatasetTaskReferenceAutoCompletionProvider],
                            autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
-                         errorOutputOpt: IdentifierOptionParameter = IdentifierOptionParameter(None),
+                         errorOutput: IdentifierOptionParameter = IdentifierOptionParameter(None),
                          @Param(label = "Target vocabularies", value = "Target vocabularies this transformation maps to.")
                          targetVocabularies: StringTraversableParameter = Seq.empty
                         ) extends TaskSpec {
 
   /** Retrieves the root rules of this transform spec. */
   def rules: MappingRules = mappingRule.rules
-
-  def output: Option[Identifier] = outputOpt.value
-
-  def errorOutput: Option[Identifier] = errorOutputOpt.value
 
   /**
     * Retrieves a rule by its identifier.
@@ -86,7 +82,7 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
   /**
     * The tasks that this task writes to.
     */
-  override def outputTasks: Set[Identifier] = output.toSet
+  override def outputTasks: Set[Identifier] = output.value.toSet
 
   /**
     * The tasks that are directly referenced by this task.
@@ -122,7 +118,7 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
       ("Source", selection.inputId.toString),
       ("Type", selection.typeUri.toString),
       ("Restriction", selection.restriction.toString),
-      ("Output", output.mkString(", "))
+      ("Output", output.value.map(_.toString).getOrElse(""))
     )
   }
 
