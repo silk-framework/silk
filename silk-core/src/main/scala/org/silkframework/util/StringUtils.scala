@@ -106,11 +106,34 @@ class StringUtils(str: String) {
   }
 
   /**
-    * Undos all camel case words in this string.
-    * e.g. helloWorld is converted to "Hello World"
+    * Converts a string to sentence case.
+    * Undos camel case, e.g., helloWorld is converted to "Hello world"
     */
-  def undoCamelCase: String = {
-    str.flatMap(c => if (c.isUpper) " " + c else c.toString).capitalize.trim
+  def toSentenceCase: String = {
+    val sb = new StringBuilder()
+    sb += str.charAt(0).toUpper
+    for(i <- 1 until str.length) {
+      val prevChar: Char = str.charAt(i - 1)
+      val curChar = str.charAt(i)
+      val nextIsUpper = i + 1 < str.length && str.charAt(i + 1).isUpper
+      if(prevChar.isSpaceChar) {
+        if(i == 0 || (curChar.isUpper && nextIsUpper)) {
+          sb += curChar.toUpper
+        } else {
+          sb += curChar.toLower
+        }
+      } else if(prevChar.isLower && curChar.isUpper) {
+        sb += ' '
+        if(nextIsUpper) {
+          sb += curChar
+        } else {
+          sb += curChar.toLower
+        }
+      } else {
+        sb += curChar
+      }
+    }
+    sb.toString
   }
 
   /**

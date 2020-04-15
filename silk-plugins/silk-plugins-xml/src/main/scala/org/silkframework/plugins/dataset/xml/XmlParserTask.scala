@@ -16,7 +16,7 @@ case class XmlParserTask(@Param(XmlParserTask.INPUT_PATH_PARAM_DESCRIPTION)
                          inputPath: String = "",
                          @Param(XmlParserTask.BASE_PATH_PARAM_DESCRIPTION)
                          basePath: String = "",
-                         @Param(XmlParserTask.URI_SUFFIX_PATTERN_PARAM_DESCRIPTION)
+                         @Param(label = "URI suffix pattern", value = XmlParserTask.URI_SUFFIX_PATTERN_PARAM_DESCRIPTION)
                          uriSuffixPattern: String = "") extends CustomTask {
   val parsedInputPath = {
     if (inputPath != "") {

@@ -18,7 +18,9 @@ case class JsonParserTask(@Param("The Silk path expression of the input entity t
                           @Param("The path to the elements to be read, starting from the root element, " +
                               "e.g., '/Persons/Person'. If left empty, all direct children of the root element will be read.")
                           basePath: String = "",
-                          @Param("A URI pattern that is relative to the base URI of the input entity, e.g., /{ID}, " +
+                          @Param(
+                            label = "URI suffix pattern",
+                            value = "A URI pattern that is relative to the base URI of the input entity, e.g., /{ID}, " +
                               "where {path} may contain relative paths to elements. This relative part is appended to the input entity URI to construct the full URI pattern.")
                           uriSuffixPattern: String = "") extends CustomTask {
   val parsedInputPath: Option[UntypedPath] = {

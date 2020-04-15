@@ -24,7 +24,7 @@ trait Activity[T] extends HasValue {
    * By default, the name is generated from the name of the implementing class.
    * Can be overridden in implementing classes.
    */
-  def name: String = getClass.getSimpleName.undoCamelCase
+  def name: String = getClass.getSimpleName.toSentenceCase
 
   /**
    * Executes this activity.
@@ -89,7 +89,7 @@ object Activity {
   def regenerating[ActivityType <: Activity[ActivityData] : ClassTag, ActivityData](generateActivity: => ActivityType): Activity[ActivityData] = {
     new Activity[ActivityData] {
       @volatile var currentActivity: Option[ActivityType] = None
-      override def name: String = implicitly[ClassTag[ActivityType]].runtimeClass.getSimpleName.undoCamelCase
+      override def name: String = implicitly[ClassTag[ActivityType]].runtimeClass.getSimpleName.toSentenceCase
       override def initialValue: Option[ActivityData] = generateActivity.initialValue
       override def run(context: ActivityContext[ActivityData])
                       (implicit userContext: UserContext): Unit = {
