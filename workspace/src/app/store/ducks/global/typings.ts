@@ -1,8 +1,3 @@
-export interface IBreadcrumbState {
-    href: string;
-    text: string;
-}
-
 export interface IAvailableDataTypes {
     [key: string]: IAvailableDataType
 }
@@ -58,10 +53,10 @@ export interface IGlobalState {
      */
     currentProjectId: string;
     locale: string;
+    initialSettings: any;
     authenticated: boolean;
     searchQuery: string;
     error?: any;
-    breadcrumbs: IBreadcrumbState[];
     availableDataTypes: IAvailableDataTypes;
     artefactModal: IArtefactModal;
 }

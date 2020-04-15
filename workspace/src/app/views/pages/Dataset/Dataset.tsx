@@ -15,7 +15,7 @@ import {
 
 export function Dataset() {
     const error = useSelector(datasetSel.errorSelector);
-    const {datasetId, projectId} = useParams();
+    const {taskId, projectId} = useParams();
 
     useEffect(() => {
         if (error.detail) {
@@ -31,7 +31,7 @@ export function Dataset() {
         <WorkspaceContent className="eccapp-di__dataset">
             <WorkspaceMain>
                 <Section>
-                    <Metadata projectId={projectId} taskId={datasetId}/>
+                    <Metadata projectId={projectId} taskId={taskId}/>
                 </Section>
             </WorkspaceMain>
         </WorkspaceContent>

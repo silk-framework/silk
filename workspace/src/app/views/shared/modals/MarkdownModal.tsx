@@ -27,10 +27,11 @@ const MarkdownModal = ({onDiscard, isOpen, markdown, title = 'Report'}) => {
                 <Button
                     affirmative
                     onClick={handleDownload}
+                    key='download'
                 >
                     Download
                 </Button>,
-                <Button onClick={onDiscard}>Close</Button>
+                <Button key='close' onClick={onDiscard}>Close</Button>
             ]}
         >
             <ReactMarkdown source={markdown}/>

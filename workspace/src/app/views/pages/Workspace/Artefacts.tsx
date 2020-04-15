@@ -17,10 +17,11 @@ import EmptyWorkspace from "./EmptyWorkspace";
 import Filterbar from "./Filterbar";
 import SearchList from "./SearchList";
 import SearchBar from "../../shared/SearchBar";
-import { globalOp } from "@ducks/global";
+import { globalOp, globalSel } from "@ducks/global";
 
 const Artefacts = () => {
     const dispatch = useDispatch();
+
     const {textQuery} = useSelector(workspaceSel.appliedFiltersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
 

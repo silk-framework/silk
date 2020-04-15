@@ -41,7 +41,6 @@ export function InputMapper(props: IProps) {
 
     };
 
-
     switch (type) {
         case INPUT_VALID_TYPES.BOOLEAN:
             return <Switch {...inputAttributes}/>;

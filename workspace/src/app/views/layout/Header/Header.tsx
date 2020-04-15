@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { globalOp, globalSel } from "@ducks/global";
 import {
@@ -26,6 +26,10 @@ import {
 import HomeButton from "./HomeButton";
 import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
+import { useHistory, useLocation, useParams, matchPath } from "react-router";
+import appRoutes from "../../../appRoutes";
+import { getFullRoutePath } from "../../../utils/routerUtils";
+import { SERVE_PATH } from "../../../constants";
 
 interface IProps {
     externalRoutes: any;
@@ -33,9 +37,47 @@ interface IProps {
     isApplicationSidebarExpanded: any;
 }
 
+export interface IBreadcrumb {
+    href: string;
+    text: string;
+}
+
 export const Header = ({onClickApplicationSidebarExpand, isApplicationSidebarExpanded}: IProps) => {
     const dispatch = useDispatch();
-    const breadcrumbs = useSelector(globalSel.breadcrumbsSelector);
+    const location = useLocation();
+    const [breadcrumbs, setBreadcrumbs] = useState<IBreadcrumb[]>([]);
+
+    useEffect(() => {
+        // @TODO: Add label values for breadcrumbs
+        const match = appRoutes
+            .map(route => matchPath(location.pathname, {
+                path: getFullRoutePath(route.path),
+                exact: route.exact,
+            })).filter(Boolean);
+
+        if (match) {
+            const {params, url}: any = match[0];
+            const updatedBread = [
+                {href: SERVE_PATH, text: 'Home'},
+                {href: SERVE_PATH, text: 'Data Integration'},
+            ];
+            if (params.projectId) {
+                updatedBread.push({
+                    href: getFullRoutePath(`/projects/${params.projectId}`),
+                    text: params.projectId
+                })
+            }
+            if (params.taskId) {
+                updatedBread.push({
+                    href: url,
+                    text: params.taskId
+                })
+            }
+            setBreadcrumbs(updatedBread);
+        }
+
+
+    }, [location.pathname]);
 
     const handleCreateDialog = () => {
         dispatch(globalOp.selectArtefact())

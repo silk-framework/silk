@@ -9,11 +9,23 @@ import { globalOp, globalSel } from "@ducks/global/index";
 import { workspaceOp } from "@ducks/workspace";
 
 const {
-    addBreadcrumb, setError, fetchAvailableDTypes,
+    setError, fetchAvailableDTypes,
     updateAvailableDTypes, fetchArtefactsList, setArtefactsList,
-    closeArtefactModal, selectArtefact, setProjectId, unsetProject
+    closeArtefactModal, selectArtefact, setProjectId, unsetProject, setInitialSettings
 } = globalSlice.actions;
 
+const fetchCommonSettingsAsync = () => {
+    return async dispatch => {
+        try {
+            const {data} = await fetch({
+                url: getApiEndpoint('/initFrontend'),
+            });
+            setInitialSettings(data);
+        } catch (e) {
+            dispatch(setError(e.response.data));
+        }
+    };
+};
 /**
  * Fetch types modifier
  */
@@ -77,7 +89,7 @@ const createArtefactAsync = (formData) => {
                 Object.keys(formData).map(key => {
                     const value = formData[key];
                     if (typeof value === 'number' || typeof value === 'boolean') {
-                        requestData[key] = ''+value;
+                        requestData[key] = '' + value;
                     } else if (typeof value === 'object') {
                         requestData[key] = JSON.stringify(value);
                     } else {
@@ -98,12 +110,12 @@ export default {
     getTokenFromStore,
     authorize,
     logout,
-    addBreadcrumb,
     fetchAvailableDTypesAsync,
     fetchArtefactsListAsync,
     closeArtefactModal,
     selectArtefact,
     setProjectId,
     unsetProject,
-    createArtefactAsync
+    createArtefactAsync,
+    fetchCommonSettingsAsync
 };

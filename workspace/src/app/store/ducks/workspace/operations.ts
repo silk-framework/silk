@@ -306,7 +306,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string) => {
                 method: 'POST',
                 body: payload
             });
-            dispatch(routerOp.goToPage(`/projects/${data.name}`));
+            dispatch(routerOp.goToPage(`/projects/${currentProjectId}/dataset/${data.id}`));
         } catch (e) {
             dispatch(setError(e.response.data));
         }

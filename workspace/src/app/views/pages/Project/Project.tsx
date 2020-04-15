@@ -34,10 +34,6 @@ const Project = ({projectId}) => {
         dispatch(globalOp.fetchArtefactsListAsync());
 
         dispatch(workspaceOp.fetchListAsync());
-        dispatch(globalOp.addBreadcrumb({
-            href: `/projects/${projectId}`,
-            text: projectId
-        }));
     }, []);
 
     return (

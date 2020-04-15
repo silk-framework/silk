@@ -29,6 +29,11 @@ const currentProjectIdSelector = createSelector(
     global => global.currentProjectId
 );
 
+const initialSettingsSelector = createSelector(
+    [globalSelector],
+    global => global.initialSettings
+);
+
 export default {
     globalSelector,
     searchStringSelector,
@@ -36,5 +41,6 @@ export default {
     breadcrumbsSelector,
     artefactModalSelector,
     isAuthSelector,
+    initialSettingsSelector,
     currentProjectIdSelector
 }

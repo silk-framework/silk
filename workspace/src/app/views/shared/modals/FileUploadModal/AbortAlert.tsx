@@ -10,8 +10,8 @@ const AbortAlert = ({ isOpen, onCancel, onConfirm }) => {
         isOpen={isOpen}
         actions={
             [
-                <Button onClick={onConfirm}>Abort</Button>,
-                <Button onClick={onCancel}>Cancel</Button>
+                <Button key='abort' onClick={onConfirm}>Abort</Button>,
+                <Button key='cancel' onClick={onCancel}>Cancel</Button>
             ]
         }
     >

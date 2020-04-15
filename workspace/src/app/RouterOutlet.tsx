@@ -1,7 +1,8 @@
 import React, { Suspense } from "react";
 import { Route, Switch } from "react-router-dom";
 import Loading from "./views/shared/Loading";
-import { SERVE_PATH } from "./constants";
+import { getFullRoutePath } from "./utils/routerUtils";
+
 export default function RouterOutlet({routes}) {
     return (
         <Suspense fallback={<Loading/>}>
@@ -10,8 +11,8 @@ export default function RouterOutlet({routes}) {
                     routes.map(route => {
                         return (
                             <Route
-                                key={route.path as string}
-                                path={`${SERVE_PATH}${route.path}`}
+                                key={route.path}
+                                path={getFullRoutePath(route.path)}
                                 exact={route.exact}
                                 component={route.component}
                             />

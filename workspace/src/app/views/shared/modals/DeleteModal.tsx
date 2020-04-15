@@ -33,13 +33,14 @@ export default function DeleteModal({isOpen, confirmationRequired, onDiscard, re
             actions={
                 [
                     <Button
+                        key='remove'
                         disruptive
                         onClick={onConfirm}
                         disabled={confirmationRequired && !isConfirmed}
                     >
                         Remove
                     </Button>,
-                    <Button onClick={onDiscard}>Cancel</Button>
+                    <Button key='cancel' onClick={onDiscard}>Cancel</Button>
                 ]
             }
         >

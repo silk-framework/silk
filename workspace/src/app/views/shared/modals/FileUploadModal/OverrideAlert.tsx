@@ -10,8 +10,8 @@ const OverrideAlert = ({ isOpen, onCancel, onConfirm }) => {
         isOpen={isOpen}
         actions={
             [
-                <Button onClick={onConfirm}>Replace</Button>,
-                <Button onClick={onCancel}>Cancel</Button>
+                <Button key='replace' onClick={onConfirm}>Replace</Button>,
+                <Button key='cancel' onClick={onCancel}>Cancel</Button>
             ]
         }
     >

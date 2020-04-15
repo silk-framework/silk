@@ -1,12 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { initialGlobalState } from "./initialState";
-import { SERVE_PATH } from "../../../constants";
 import { generateNetworkError, isNetworkError } from "../../../services/errorLogger";
 
 export const globalSlice = createSlice({
     name: 'global',
     initialState: initialGlobalState(),
     reducers: {
+        setInitialSettings(state, action) {
+            state.initialSettings = action.payload;
+        },
         fetchAvailableDTypes(state) {
             state.availableDataTypes = {};
         },
@@ -50,12 +52,5 @@ export const globalSlice = createSlice({
         logoutUser(state) {
             state.authenticated = false;
         },
-        addBreadcrumb(state, action) {
-            const { href, text } = action.payload;
-            state.breadcrumbs.push({
-                href: SERVE_PATH + href,
-                text
-            })
-        }
     }
 });

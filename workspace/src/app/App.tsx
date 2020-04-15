@@ -23,14 +23,7 @@ interface IProps {
 export default function App({externalRoutes, routes}: IProps) {
     const dispatch = useDispatch();
     useEffect(() => {
-        dispatch(globalOp.addBreadcrumb({
-            href: '',
-            text: 'Home'
-        }));
-        dispatch(globalOp.addBreadcrumb({
-            href: '',
-            text: 'Data Integration'
-        }));
+        dispatch(globalOp.fetchCommonSettingsAsync());
     }, []);
 
     return (

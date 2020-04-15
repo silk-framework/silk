@@ -78,12 +78,11 @@ export default function FileUploadModal({isOpen, onDiscard, onCheckFileExists, u
             isOpen={isOpen}
             onClose={handleDiscard}
             actions={
-                isUploading ?
-                    <Button
-                        onClick={handleDiscard}
-                    >
+                isUploading
+                    ? <Button onClick={handleDiscard}>
                         Abort Upload
-                    </Button> : <Button onClick={onDiscard}>
+                    </Button>
+                    : <Button onClick={onDiscard}>
                         Close
                     </Button>
             }

@@ -7,9 +7,9 @@ export function initialGlobalState(): IGlobalState {
         currentProjectId: null,
         authenticated: true,
         searchQuery: '',
-        breadcrumbs: [],
         error: {},
         availableDataTypes: {},
+        initialSettings: {},
         artefactModal: {
             isOpen: false,
             artefactsList: [],

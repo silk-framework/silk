@@ -31,14 +31,10 @@ function SimpleDialog({
             canOutsideClickClose={canOutsideClickClose || !preventSimpleClosing}
             canEscapeKeyClose={canEscapeKeyClose || !preventSimpleClosing}
         >
-            <Card
-                className={intent ? intent : ''}
-            >
+            <Card className={intent ? intent : ''}>
                 {
                     title && <CardHeader>
-                        <CardTitle
-                            className={intent ? intent : ''}
-                        >
+                        <CardTitle className={intent ? intent : ''}>
                             {title}
                         </CardTitle>
                     </CardHeader>
