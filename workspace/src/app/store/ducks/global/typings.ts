@@ -44,6 +44,7 @@ export interface IArtefactModal {
     isOpen: boolean;
     artefactsList: IArtefactItem[];
     selectedArtefact: IArtefactItem;
+    selectedDType: string;
 }
 
 export interface IGlobalState {

@@ -10,11 +10,14 @@ import Artefacts from "./Artefacts";
 import Project from "../Project/Project";
 import { routerSel } from "@ducks/router";
 import { globalOp } from "@ducks/global";
+import { Grid, GridColumn, GridRow } from "@wrappers/index";
+import { EmptyWorkspace } from "./EmptyWorkspace/EmptyWorkspace";
 
 export function Workspace() {
     const dispatch = useDispatch();
     const error = useSelector(workspaceSel.errorSelector);
     const qs = useSelector(routerSel.routerSearchSelector);
+    const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
 
     const location = useLocation();
     const {projectId} = useParams();
@@ -44,7 +47,17 @@ export function Workspace() {
         dispatch(workspaceOp.fetchListAsync());
     }, [location.pathname, qs]);
 
-    return projectId
-        ? <Project projectId={projectId}/>
-        : <Artefacts />
+    if (projectId) {
+        return <Project projectId={projectId}/>
+    }
+
+    return isEmptyWorkspace
+        ? <Grid>
+            <GridRow>
+                <GridColumn>
+                    <EmptyWorkspace/>
+                </GridColumn>
+            </GridRow>
+        </Grid>
+        : <Artefacts/>
 }

@@ -13,7 +13,8 @@ export function initialGlobalState(): IGlobalState {
         artefactModal: {
             isOpen: false,
             artefactsList: [],
-            selectedArtefact: null
+            selectedArtefact: null,
+            selectedDType: 'all'
         }
     }
 }
