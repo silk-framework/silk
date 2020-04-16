@@ -1,9 +1,23 @@
-@import '~carbon-components/scss/globals/grid/grid';
+// own vars
+$ecc-size-grid-gutter: $ecc-size-block-whitespace !default;
+
+// import lib requisits
+@import '~carbon-components/scss/globals/scss/feature-flags';
+@import '~carbon-components/scss/globals/scss/functions';
+@import '~carbon-components/scss/globals/scss/mixins';
+@import '~carbon-components/scss/globals/scss/vendor/@carbon/elements/scss/grid/mixins';
+// overwrite lib vars
+$carbon--grid-gutter: carbon--rem($ecc-size-grid-gutter);
+// load grid
+@include exports('grid') {
+  @include carbon--grid();
+}
+
+// adjustments
 
 .#{$prefix}--grid--full-width {
     max-width: 100%;
 }
-
 
 .ecc-grid__column--vertical-center {
     align-self: center;
