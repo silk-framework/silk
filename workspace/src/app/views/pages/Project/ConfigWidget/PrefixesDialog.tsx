@@ -74,7 +74,7 @@ const PrefixesDialog = ({onCloseModal, isOpen}) => {
                             onAdd={() => handleAddOrUpdatePrefix(newPrefix)}
                         />
                         <Spacing small />
-                        <DataList data={prefixList} densityHigh hasSpacing hasDivider>
+                        <DataList hasSpacing hasDivider>
                             {
                                 prefixList.map((prefix, i) =>
                                     <PrefixRow
