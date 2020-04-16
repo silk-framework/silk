@@ -6,6 +6,7 @@ function OverviewItemList({
     densityHigh = false,
     hasDivider = false,
     hasSpacing = false,
+    columns=1,
     ...restProps
 }: any) {
     return (
@@ -16,6 +17,7 @@ function OverviewItemList({
                 (densityHigh ? 'ecc-overviewitem__list--highdensity ' : '') +
                 (hasDivider ? 'ecc-overviewitem__list--hasdivider ' : '') +
                 (hasSpacing ? 'ecc-overviewitem__list--hasspacing ' : '') +
+                (columns > 1 ? 'ecc-overviewitem__list--hascolumns ' : '') + // TODO: add number
                 className
             }
         >
