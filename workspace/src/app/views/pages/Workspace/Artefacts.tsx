@@ -29,8 +29,6 @@ const Artefacts = () => {
 
     useEffect(() => {
         dispatch(globalOp.unsetProject());
-        // Fetch the list of projects
-        dispatch(workspaceOp.fetchListAsync());
     }, []);
 
     const handleSort = (sortBy: string) => {

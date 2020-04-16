@@ -32,8 +32,6 @@ const Project = ({projectId}) => {
         // Fetch the list of projects
         dispatch(globalOp.setProjectId(projectId));
         dispatch(globalOp.fetchArtefactsListAsync());
-
-        dispatch(workspaceOp.fetchListAsync());
     }, []);
 
     return (
