@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Spacing } from "@wrappers/index";
+import { Button, Spacing } from "@wrappers/index";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { sharedOp } from "@ducks/shared";
 import Pagination from "../../../shared/Pagination";
@@ -11,6 +11,8 @@ import CloneModal from "../../../shared/modals/CloneModal";
 import { DATA_TYPES } from "../../../../constants";
 import AppliedFacets from "../AppliedFacets";
 import SearchItem from "./SearchItem";
+import EmptyList from "./EmptyList";
+import { globalOp } from "@ducks/global";
 
 export function SearchList() {
 
@@ -103,10 +105,25 @@ export function SearchList() {
         dispatch(workspaceOp.changeLimitOp(pageSize));
     };
 
+    const handleCreateArtefact = () => {
+        dispatch(globalOp.setSelectedArtefactDType(appliedFilters.itemType))
+    };
+
+    const isEmpty = !isLoading && !data.length;
+
     return (
         <>
             <AppliedFacets/>
-            <DataList isLoading={isLoading} data={data} hasSpacing>
+            <DataList
+                isEmpty={isEmpty}
+                isLoading={isLoading}
+                hasSpacing
+                emptyContainer={
+                    <EmptyList actions={[
+                        <Button key={'create'} onClick={handleCreateArtefact}>Create {appliedFilters.itemType}</Button>
+                    ]}/>
+                }
+            >
                 {
                     data.map(item => (
                         <SearchItem
@@ -120,29 +137,31 @@ export function SearchList() {
                 }
             </DataList>
             {
-                !isLoading && data.length
+                isEmpty
                     ? <>
                         <Spacing size="small" />
+
                         <Pagination
                             pagination={pagination}
                             pageSizes={pageSizes}
                             onChangeSelect={handlePaginationOnChange}
                         />
+
+                        <DeleteModal
+                            isOpen={showDeleteModal}
+                            onDiscard={onDiscardModals}
+                            onConfirm={handleConfirmRemove}
+                            {...deleteModalOptions}
+                        />
+                        <CloneModal
+                            isOpen={showCloneModal}
+                            oldId={selectedItem && selectedItem.id}
+                            onDiscard={onDiscardModals}
+                            onConfirm={handleConfirmClone}
+                        />
                     </>
                     : null
             }
-            <DeleteModal
-                isOpen={showDeleteModal}
-                onDiscard={onDiscardModals}
-                onConfirm={handleConfirmRemove}
-                {...deleteModalOptions}
-            />
-            <CloneModal
-                isOpen={showCloneModal}
-                oldId={selectedItem && selectedItem.id}
-                onDiscard={onDiscardModals}
-                onConfirm={handleConfirmClone}
-            />
         </>
     )
 }

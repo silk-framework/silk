@@ -5,7 +5,7 @@ import {
     initialAppliedFiltersState,
     initialAppliedSortersState,
     initialSortersState,
-    initialFiltersState
+    initialFiltersState, initialAppliedFacetState
 } from "./initialState";
 
 const DEFAULT_SORTER = {
@@ -119,6 +119,8 @@ export const filtersSlice = createSlice({
             state.appliedFilters = initialAppliedFiltersState();
             state.sorters = initialSortersState();
             state.pagination = initialPaginationState();
+            state.appliedFacets = [];
+            state.facets = [];
         }
     }
 });

@@ -30,6 +30,10 @@ export const globalSlice = createSlice({
         setArtefactsList(state, action) {
             state.artefactModal.artefactsList = action.payload;
         },
+        setSelectedArtefactDType(state, action) {
+            state.artefactModal.selectedDType = action.payload;
+            state.artefactModal.isOpen = true;
+        },
         setProjectId(state, action) {
             state.currentProjectId = action.payload;
         },

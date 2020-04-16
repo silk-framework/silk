@@ -91,6 +91,7 @@ const setupFiltersFromQs = (queryString: string) => {
             if (parsedQs.itemType) {
                 filters.itemType = parsedQs.itemType;
             }
+
             batchQueue.push(
                 applyFilters(filters)
             );
@@ -342,7 +343,6 @@ const applyFiltersOp = (filter) => {
     return dispatch => {
         batch(() => {
             dispatch(applyFilters(filter));
-            dispatch(fetchListAsync());
             dispatch(updateQueryString());
         });
     }
@@ -354,7 +354,6 @@ const applySorterOp = (sortBy: string) => {
             dispatch(applySorter({
                 sortBy
             }));
-            dispatch(fetchListAsync());
             dispatch(updateQueryString());
         });
     }
@@ -364,7 +363,6 @@ const changePageOp = (page: number) => {
     return dispatch => {
         batch(() => {
             dispatch(changePage(page));
-            dispatch(fetchListAsync());
             dispatch(updateQueryString());
         });
     }
@@ -374,7 +372,6 @@ const changeLimitOp = (value: number) => {
     return dispatch => {
         batch(() => {
             dispatch(changeProjectsLimit(value));
-            dispatch(fetchListAsync());
             dispatch(updateQueryString());
         })
     }
@@ -400,7 +397,6 @@ const toggleFacetOp = (facet: IFacetState, keywordId: string) => {
         }
 
         batch(() => {
-            dispatch(fetchListAsync());
             dispatch(updateQueryString());
         })
     }

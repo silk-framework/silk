@@ -1,9 +1,7 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { globalOp, globalSel } from "@ducks/global";
-import { routerSel } from "@ducks/router";
+import { globalSel } from "@ducks/global";
 import {
     Spacing,
     TitleSubsection,
@@ -13,21 +11,11 @@ import FacetsList from "./FacetsList";
 
 export function Filterbar() {
     const dispatch = useDispatch();
-    const {projectId} = useParams();
 
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const modifiers = useSelector(globalSel.availableDTypesSelector);
-    const qs = useSelector(routerSel.routerSearchSelector);
 
     const typeModifier = modifiers.type;
-
-    useEffect(() => {
-        // Reset the filters, due to redirecting
-        dispatch(workspaceOp.resetFilters());
-        // Setup the filters from query string
-        dispatch(workspaceOp.setupFiltersFromQs(qs));
-        dispatch(globalOp.fetchAvailableDTypesAsync(projectId));
-    }, []);
 
     const handleFilterSelect = (field: string, val: string) => {
         let value = val !== appliedFilters[field] ? val : '';
@@ -42,7 +30,7 @@ export function Filterbar() {
                 typeModifier &&
                 <>
                     <TitleSubsection>{typeModifier.label}</TitleSubsection>
-                    <Spacing size="tiny" />
+                    <Spacing size="tiny"/>
                     <ul>
                         <li key={'alltypes'}>
                             <RadioButton
@@ -65,7 +53,7 @@ export function Filterbar() {
                             )
                         }
                     </ul>
-                    <Spacing />
+                    <Spacing/>
                     <FacetsList/>
                 </>
             }

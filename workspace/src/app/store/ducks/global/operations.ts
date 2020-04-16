@@ -2,14 +2,14 @@ import { authorize, getTokenFromStore, isAuthenticated, logout } from "./thunks/
 import { changeLocale } from "./thunks/locale.thunk";
 import { globalSlice } from "@ducks/global/globalSlice";
 import { batch } from "react-redux";
-import { getApiEndpoint, getLegacyApiEndpoint, getRootEndpoint } from "../../../utils/getApiEndpoint";
+import { getApiEndpoint, getRootEndpoint } from "../../../utils/getApiEndpoint";
 import fetch from '../../../services/fetch';
 import asModifier from "../../../utils/asModifier";
 import { globalOp, globalSel } from "@ducks/global/index";
 import { workspaceOp } from "@ducks/workspace";
 
 const {
-    setError, fetchAvailableDTypes,
+    setError, fetchAvailableDTypes, setSelectedArtefactDType,
     updateAvailableDTypes, fetchArtefactsList, setArtefactsList,
     closeArtefactModal, selectArtefact, setProjectId, unsetProject, setInitialSettings
 } = globalSlice.actions;
@@ -116,6 +116,7 @@ export default {
     selectArtefact,
     setProjectId,
     unsetProject,
+    setSelectedArtefactDType,
     createArtefactAsync,
     fetchCommonSettingsAsync
 };

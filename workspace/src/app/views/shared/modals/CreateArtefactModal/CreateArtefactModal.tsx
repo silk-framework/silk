@@ -9,8 +9,6 @@ import {
     Spacing,
     TitleSubsection,
     SimpleDialog,
-    Menu,
-    MenuItem,
     OverviewItemList,
     OverviewItem,
     OverviewItemDepiction,
@@ -26,6 +24,7 @@ import Loading from "../../Loading";
 import { SearchBar } from "../../SearchBar/SearchBar";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
 import { TaskForm } from "./ArtefactForms/TaskForm";
+import ArtefactTypesList from "./ArtefactTypesList";
 
 const ARTEFACT_FORM_COMPONENTS_MAP = {
     project: ProjectForm
@@ -34,6 +33,7 @@ const ARTEFACT_FORM_COMPONENTS_MAP = {
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
     const form = useForm();
+
 
     const modalStore = useSelector(globalSel.artefactModalSelector);
     const projectId = useSelector(globalSel.currentProjectIdSelector);
@@ -72,6 +72,10 @@ export function CreateArtefactModal() {
     };
 
     const isErrorPresented = () => !!Object.keys(form.errors).length;
+
+    const handleSelectDType = (value: string) => {
+        dispatch(globalOp.setSelectedArtefactDType(value));
+    };
 
     const _TEMP_handleProjectSelect = () => {
         handleArtefactSelect({
@@ -130,15 +134,10 @@ export function CreateArtefactModal() {
                                     <Grid>
                                         <GridRow>
                                             <GridColumn small>
-                                                <TitleSubsection>Artefact Type</TitleSubsection>
-                                                <Menu>
-                                                    <MenuItem text={'All'} active />
-                                                </Menu>
+                                                <ArtefactTypesList onSelect={handleSelectDType}/>
                                             </GridColumn>
                                             <GridColumn>
-                                                <SearchBar onSort={() => {
-                                                }} onApplyFilters={() => {
-                                                }}/>
+                                                <SearchBar onSort={() => {}} onApplyFilters={() => {}}/>
                                                 <Spacing/>
                                                 <OverviewItemList hasSpacing columns={2}>
                                                     <Card

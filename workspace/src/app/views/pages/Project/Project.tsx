@@ -23,6 +23,7 @@ import {
     Spacing,
     Divider,
 } from "@wrappers/index";
+import { SearchBar } from "../../shared/SearchBar/SearchBar";
 
 const Project = ({projectId}) => {
     const dispatch = useDispatch();
@@ -32,8 +33,6 @@ const Project = ({projectId}) => {
         // Fetch the list of projects
         dispatch(globalOp.setProjectId(projectId));
         dispatch(globalOp.fetchArtefactsListAsync());
-
-        dispatch(workspaceOp.fetchListAsync());
     }, []);
 
     return (
@@ -52,7 +51,7 @@ const Project = ({projectId}) => {
                                     <TitleMainsection>Contents</TitleMainsection>
                                 </GridColumn>
                                 <GridColumn full>
-                                    todo: search bar here
+                                    <SearchBar onSort={() => {}} onApplyFilters={() => {}} />
                                 </GridColumn>
                             </GridRow>
                         </Grid>
