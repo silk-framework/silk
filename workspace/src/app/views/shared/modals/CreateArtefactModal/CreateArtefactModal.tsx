@@ -11,6 +11,14 @@ import {
     SimpleDialog,
     Menu,
     MenuItem,
+    OverviewItemList,
+    OverviewItem,
+    OverviewItemDepiction,
+    OverviewItemDescription,
+    OverviewItemLine,
+    Card,
+    Icon,
+    HelperClasses,
 } from "@wrappers/index";
 import { globalOp, globalSel } from "@ducks/global";
 import { IArtefactItem } from "@ducks/global/typings";
@@ -132,23 +140,59 @@ export function CreateArtefactModal() {
                                                 }} onApplyFilters={() => {
                                                 }}/>
                                                 <Spacing/>
-                                                <Grid>
-                                                    <GridRow>
-                                                        <GridColumn>
-                                                            <Button onClick={_TEMP_handleProjectSelect}>
-                                                                Project
-                                                            </Button>
-                                                        </GridColumn>
+                                                <OverviewItemList hasSpacing columns={2}>
+                                                    <Card
+                                                        isOnlyLayout
+                                                        className={
+                                                            (selected && selected.key === 'project') ? HelperClasses.Intent.ACCENT : ''
+                                                        }
+                                                    >
+                                                        <OverviewItem
+                                                            hasSpacing
+                                                            onClick={_TEMP_handleProjectSelect}
+                                                        >
+                                                            <OverviewItemDepiction>
+                                                                <Icon name='artefact-project' large />
+                                                            </OverviewItemDepiction>
+                                                            <OverviewItemDescription>
+                                                                <OverviewItemLine>
+                                                                    <strong>Project</strong>
+                                                                </OverviewItemLine>
+                                                                <OverviewItemLine small>
+                                                                    <p>Lorem Ipsum</p>
+                                                                </OverviewItemLine>
+                                                            </OverviewItemDescription>
+                                                        </OverviewItem>
+                                                    </Card>
                                                         {
                                                             projectId && artefactsList.map(artefact =>
-                                                                <GridColumn key={artefact.key}>
-                                                                    <Button
-                                                                        onClick={() => handleArtefactSelect(artefact)}>{artefact.title}</Button>
-                                                                </GridColumn>
+                                                                <Card
+                                                                    isOnlyLayout
+                                                                    key={artefact.key}
+                                                                    className={
+                                                                        (selected && selected.key === artefact.key) ? HelperClasses.Intent.ACCENT : ''
+                                                                    }
+                                                                >
+                                                                    <OverviewItem
+                                                                        hasSpacing
+                                                                        onClick={() => handleArtefactSelect(artefact)}
+                                                                    >
+                                                                        <OverviewItemDepiction>
+                                                                            <Icon name={'artefact-' + artefact.key} large />
+                                                                        </OverviewItemDepiction>
+                                                                        <OverviewItemDescription>
+                                                                            <OverviewItemLine>
+                                                                                <strong>{artefact.title}</strong>
+                                                                            </OverviewItemLine>
+                                                                            <OverviewItemLine small>
+                                                                                <p>{artefact.description}</p>
+                                                                            </OverviewItemLine>
+                                                                        </OverviewItemDescription>
+                                                                    </OverviewItem>
+                                                                </Card>
                                                             )
                                                         }
-                                                    </GridRow>
-                                                </Grid>
+                                                </OverviewItemList>
                                             </GridColumn>
                                         </GridRow>
                                     </Grid>
