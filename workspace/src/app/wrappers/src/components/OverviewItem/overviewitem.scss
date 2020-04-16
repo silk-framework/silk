@@ -60,6 +60,10 @@ $ecc-size-overviewitem-line-typo-large-lineheight: $ecc-size-typo-subtitle-lineh
         box-sizing: content-box;
         padding: $ecc-size-overviewitem-spacing/2;
     }
+
+    &[tabindex]:not([tabindex="-1"]) {
+        cursor: pointer;
+    }
 }
 
 .ecc-overviewitem__depiction {
