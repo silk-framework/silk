@@ -15,10 +15,33 @@ $carbon--grid-gutter: carbon--rem($ecc-size-grid-gutter);
 
 // adjustments
 
+.#{$prefix}--grid {
+    padding-left: 0;
+    padding-right: 0;
+}
+
 .#{$prefix}--grid--full-width {
     max-width: 100%;
 }
 
+.#{$prefix}--row {
+    flex-wrap: nowrap;
+}
+
+.#{$prefix}--col {
+    /*
+        This is a workaround to a strange behaviour of flex columns, it prevents
+        growing to much if it contains a very long element even if it itself is
+        prevented from overflowing. The workaround is to use a very small width,
+        we use here the width of 1 column when 16 columns are used.
+    */
+    width: 1/16 * 100%;
+}
+
 .ecc-grid__column--vertical-center {
     align-self: center;
+}
+
+.ecc-grid__row--wrapcolumns {
+    flex-wrap: wrap;
 }
