@@ -9,6 +9,8 @@ import {
     Spacing,
     TitleSubsection,
     SimpleDialog,
+    Menu,
+    MenuItem,
 } from "@wrappers/index";
 import { globalOp, globalSel } from "@ducks/global";
 import { IArtefactItem } from "@ducks/global/typings";
@@ -121,9 +123,9 @@ export function CreateArtefactModal() {
                                         <GridRow>
                                             <GridColumn small>
                                                 <TitleSubsection>Artefact Type</TitleSubsection>
-                                                <ul>
-                                                    <li><a href='#'>All</a></li>
-                                                </ul>
+                                                <Menu>
+                                                    <MenuItem text={'All'} active />
+                                                </Menu>
                                             </GridColumn>
                                             <GridColumn>
                                                 <SearchBar onSort={() => {
