@@ -1,5 +1,6 @@
 package org.silkframework.workspace
 
+import org.silkframework.plugins.dataset.DatasetTypeAutoCompletionProvider
 import org.silkframework.plugins.filter.RemoveStopwords
 import org.silkframework.plugins.transformer.value.ReadParameter
 import org.silkframework.runtime.plugin.PluginModule
@@ -26,6 +27,7 @@ class WorkspacePlugins extends PluginModule {
         provenancePlugins :::
         rulePlugins :::
         workspaceTaskPlugins :::
+        autoCompletionProviderPlugins :::
         formats
 
   def workspaceTaskPlugins: List[Class[_]] =
@@ -71,4 +73,6 @@ class WorkspacePlugins extends PluginModule {
   }
 
   def provenancePlugins: List[Class[_]] = classOf[NopPersistWorkflowProvenance] :: Nil
+
+  def autoCompletionProviderPlugins: List[Class[_]] = classOf[DatasetTypeAutoCompletionProvider] :: Nil
 }

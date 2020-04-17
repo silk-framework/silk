@@ -245,6 +245,10 @@ class SearchApiIntegrationTest extends FlatSpec
     pluginParameterAutoCompletion(ParameterAutoCompletionRequest("autoCompletableTestPlugin", "completableParam", projectId,
       textQuery = Some("ir"), dependsOnParameterValues = Some(Seq("a")))) mustBe
         Json.toJson(toAutoComplete(testAutoCompletionProvider.values.filter(_._1 != "val2")))
+    // From a auto-completion provider reference plugin
+    pluginParameterAutoCompletion(ParameterAutoCompletionRequest("datasetSelectionParameter", "typeUri", projectId,
+      dependsOnParameterValues = Some(Seq("jsonXYZ")))) mustBe
+        JsArray(Seq("", "top", "top/middle").map(v => Json.obj("value" -> v)))
   }
 
   private def resourceNames(defaultResults: IndexedSeq[collection.Map[String, JsValue]]) = {

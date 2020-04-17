@@ -14,7 +14,7 @@ case class DatasetOrTransformTaskAutoCompletionProvider() extends PluginParamete
     * @param dependOnParameterValues If at least one value is specified, this will use the first parameter as project ID
     *                                instead of the projectId parameter.
     */
-  override protected def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String],
+  override def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String],
                                       workspace: WorkspaceReadTrait)
                                      (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
     val taskProject = dependOnParameterValues.headOption.getOrElse(projectId)

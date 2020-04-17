@@ -10,7 +10,7 @@ import org.silkframework.workspace.WorkspaceReadTrait
   * Auto-completion provider that only fetches SPARQL enabled datasets.
   */
 case class SparqlEndpointDatasetAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
-  override protected def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String], workspace: WorkspaceReadTrait)
+  override def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String], workspace: WorkspaceReadTrait)
                                      (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
     val allResults = workspace.project(projectId).tasks[GenericDatasetSpec]
         .filter(datasetSpec => datasetSpec.data.plugin.isInstanceOf[RdfDataset])

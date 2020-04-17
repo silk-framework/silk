@@ -281,7 +281,7 @@ object PluginDescription {
         case enumValue: Enum[_] => AutoCompletionResult(enumValue.name(), None)
       }
     }
-    override protected def autoComplete(searchQuery: String,
+    override def autoComplete(searchQuery: String,
                                         projectId: String,
                                         dependOnParameterValues: Seq[String],
                                         workspace: WorkspaceReadTrait)

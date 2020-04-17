@@ -13,11 +13,11 @@ import org.silkframework.workspace.WorkspaceReadTrait
   */
 trait PluginParameterAutoCompletionProvider {
   /** Auto-completion based on a text based search query */
-  protected def autoComplete(searchQuery: String,
-                             projectId: String,
-                             dependOnParameterValues: Seq[String],
-                             workspace: WorkspaceReadTrait)
-                            (implicit userContext: UserContext): Traversable[AutoCompletionResult]
+  def autoComplete(searchQuery: String,
+                   projectId: String,
+                   dependOnParameterValues: Seq[String],
+                   workspace: WorkspaceReadTrait)
+                  (implicit userContext: UserContext): Traversable[AutoCompletionResult]
 
   /** Returns the label if exists for the given auto-completion value. This is needed if a value should
     * be presented to the user and the actual internal value is e.g. not human-readable.
@@ -64,9 +64,15 @@ trait PluginParameterAutoCompletionProvider {
                               results: Traversable[AutoCompletionResult]): Traversable[AutoCompletionResult] = {
     val multiWordSearchQuery = extractSearchTerms(searchQuery)
     results filter { case AutoCompletionResult(value, labelOpt) =>
-      val filterBy = labelOpt.getOrElse(value).toLowerCase
+      val filterBy = labelOpt.getOrElse(value)
       matchesSearchTerm(multiWordSearchQuery, filterBy)
     }
+  }
+
+  protected def filterStringResults(searchQuery: String,
+                              results: Traversable[String]): Traversable[AutoCompletionResult] = {
+    val multiWordSearchQuery = extractSearchTerms(searchQuery)
+    results filter (r => matchesSearchTerm(multiWordSearchQuery, r)) map(r => AutoCompletionResult(r, None))
   }
 }
 
@@ -81,7 +87,7 @@ case class AutoCompletionResult(value: String, label: Option[String]) {
 
 /** Default auto-completion provider. This one always returns empty results. */
 case class NopPluginParameterAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
-  override protected def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String],
+  override def autoComplete(searchQuery: String, projectId: String, dependOnParameterValues: Seq[String],
                                       workspace: WorkspaceReadTrait)
                                      (implicit userContext: UserContext): Traversable[AutoCompletionResult] = Seq.empty
 
@@ -93,10 +99,9 @@ case class NopPluginParameterAutoCompletionProvider() extends PluginParameterAut
 
 object PluginParameterAutoCompletionProvider {
   private val providerTrait = classOf[PluginParameterAutoCompletionProvider]
-  /** Get an auto-completion plugin by ID. */
+  /** Get an auto-completion plugin by class. */
   def get(providerClass: Class[_ <: PluginParameterAutoCompletionProvider]): PluginParameterAutoCompletionProvider = {
-    assert(classOf[PluginParameterAutoCompletionProvider].isAssignableFrom(providerClass),
-      s"Class ${providerClass.getCanonicalName} does not implement ${providerTrait.getCanonicalName}!")
+    checkPluginClass(providerClass)
     implicit val prefixes: Prefixes = Prefixes.empty
     implicit val resourceManager: ResourceManager = EmptyResourceManager()
     try {
@@ -105,5 +110,49 @@ object PluginParameterAutoCompletionProvider {
       case _: NoSuchMethodException =>
         throw new RuntimeException(s"Auto-completion provider class '${providerClass.getCanonicalName}' does not provide an empty constructor.")
     }
+  }
+
+  private def checkPluginClass(providerClass: Class[_ <: PluginParameterAutoCompletionProvider]): Unit = {
+    assert(classOf[PluginParameterAutoCompletionProvider].isAssignableFrom(providerClass),
+      s"Class ${providerClass.getCanonicalName} does not implement ${providerTrait.getCanonicalName}!")
+  }
+
+  /** Get an auto-completion plugin by ID. */
+  def get(providerPluginId: String): Option[PluginParameterAutoCompletionProvider] = {
+    implicit val prefixes: Prefixes = Prefixes.empty
+    PluginRegistry.pluginDescriptionById(providerPluginId) map { pd =>
+        val pluginClass = pd.pluginClass.asInstanceOf[Class[PluginParameterAutoCompletionProvider]]
+      checkPluginClass(pluginClass)
+      get(pluginClass)
+    }
+  }
+}
+
+/** This represents a reference to another auto-completion provider by string ID.
+  * This unfortunately is necessary sometimes because the auto-completion provider is given as class in the annotation and
+  * an implementation could not be written, e.g. because of missing/impossible module dependencies, in the same module as the annotated class.
+  * The referenced auto completion provider plugin must be registered in the plugin registry! */
+trait ReferencePluginParameterAutoCompletionProvider extends PluginParameterAutoCompletionProvider {
+  /** The plugin ID of the auto-completion provider that should actually be used. */
+  def pluginParameterAutoCompletionProviderId: String
+
+  private lazy val autoCompletionProvider: Option[PluginParameterAutoCompletionProvider] = {
+    PluginParameterAutoCompletionProvider.get(pluginParameterAutoCompletionProviderId)
+  }
+
+  override def autoComplete(searchQuery: String,
+                                      projectId: String,
+                                      dependOnParameterValues: Seq[String],
+                                      workspace: WorkspaceReadTrait)
+                                     (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
+    autoCompletionProvider.toSeq.flatMap(_.autoComplete(searchQuery, projectId, dependOnParameterValues, workspace))
+  }
+
+  override def valueToLabel(projectId: String,
+                            value: String,
+                            dependOnParameterValues: Seq[String],
+                            workspace: WorkspaceReadTrait)
+                           (implicit userContext: UserContext): Option[String] = {
+    autoCompletionProvider.flatMap(_.valueToLabel(projectId, value, dependOnParameterValues, workspace))
   }
 }

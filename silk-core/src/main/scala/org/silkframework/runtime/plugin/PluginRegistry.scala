@@ -47,9 +47,6 @@ object PluginRegistry {
   /** Map holding all plugins by their ID. */
   private var pluginsById = Map[String, PluginDescription[_]]()
 
-  /** All object plugin parameters. */
-  private val objectPluginParameterClasses = new mutable.HashMap[Class[_], mutable.HashSet[Parameter]]
-
   // Register all plugins at instantiation of this singleton object.
   if(configMgr().hasPath("pluginRegistry.pluginFolder")) {
     registerJars(new File(configMgr().getString("pluginRegistry.pluginFolder")))
@@ -57,37 +54,8 @@ object PluginRegistry {
     registerFromClasspath()
   }
 
-  def pluginParameterPluginsValid(): Boolean =  {
-    var pluginsWithoutXmlFormat: List[String] = Nil
-    var pluginsWithoutJsonFormat: List[String] = Nil
-    var pluginsNestingInvalid: List[String] = Nil
-    for((pluginClass, usageInParameters) <- objectPluginParameterClasses) {
-      if(Serialization.formatForMimeOption(pluginClass, "application/json").isEmpty) {
-        pluginsWithoutJsonFormat ::= pluginClass.getCanonicalName
-      }
-      // TODO: XmlFormat not consistently used, e.g. DatasetSelection has methods in class instead.
-//      if(Serialization.formatForMimeOption(pluginClass, "application/xml").isEmpty) {
-//        pluginsWithoutXmlFormat ::= pluginClass.getCanonicalName
-//      }
-      checkInvalidObjectPluginParameterType(pluginClass, usageInParameters.toSeq) foreach { errorMessage =>
-        pluginsNestingInvalid ::= errorMessage
-      }
-    }
-    if(pluginsWithoutJsonFormat.nonEmpty || pluginsWithoutXmlFormat.nonEmpty || pluginsNestingInvalid.nonEmpty) {
-      log.severe(s"Invalid plugin parameter classes found. Details: " + errorPart("Classes missing JSON format implementation", pluginsWithoutJsonFormat) +
-          errorPart("Classes missing XML format implementation", pluginsWithoutXmlFormat) + errorPart("Other validation problems", pluginsNestingInvalid))
-      false
-    } else {
-      true
-    }
-  }
-
-  private def errorPart(errorType: String, errorDetails: List[String]): String = {
-    if(errorDetails.isEmpty) {
-      ""
-    } else {
-      s" $errorType: ${errorDetails.mkString(", ")}."
-    }
+  def allPlugins: Traversable[PluginDescription[_]] = {
+    plugins.values
   }
 
   // Returns an error message string if the object type is invalid.
@@ -277,15 +245,6 @@ object PluginRegistry {
       }
       plugins += ((pluginDesc.pluginClass.getName, pluginDesc))
       pluginsById += ((pluginDesc.id.toString, pluginDesc))
-    }
-    // Collect object parameter type in order to check them at the end of the initialization
-    pluginDesc.parameters.foreach { param =>
-      param.parameterType match {
-        case paramType: PluginObjectParameterTypeTrait =>
-          val parameters = objectPluginParameterClasses.getOrElseUpdate(paramType.pluginObjectParameterClass, mutable.HashSet.empty)
-          parameters.add(param)
-        case _ => // Do nothing
-      }
     }
   }
 
