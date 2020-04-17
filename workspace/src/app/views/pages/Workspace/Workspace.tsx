@@ -51,13 +51,14 @@ export function Workspace() {
         return <Project projectId={projectId}/>
     }
 
-    return isEmptyWorkspace
-        ? <Grid>
+    return !isEmptyWorkspace
+        ? <Artefacts/>
+        : <Grid>
             <GridRow>
                 <GridColumn>
                     <EmptyWorkspace/>
                 </GridColumn>
             </GridRow>
         </Grid>
-        : <Artefacts/>
+
 }

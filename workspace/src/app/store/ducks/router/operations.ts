@@ -1,4 +1,4 @@
-import qs from 'query-string';
+import qs from 'qs';
 import { getLocation, push, replace } from "connected-react-router";
 import { SERVE_PATH } from "../../../constants";
 
@@ -23,7 +23,7 @@ const setQueryString = (queryParams: IQueryParams) => {
         });
 
         const qsStr = `${location.pathname}?${qs.stringify(currentQuery, {
-            arrayFormat: "comma"
+            arrayFormat: "comma",
         })}`;
         dispatch(push(qsStr));
     }

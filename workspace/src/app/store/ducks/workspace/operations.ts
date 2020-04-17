@@ -9,7 +9,7 @@ import { getApiEndpoint, getLegacyApiEndpoint } from "../../../utils/getApiEndpo
 import { routerOp } from "@ducks/router";
 import { IFacetState } from "@ducks/workspace/typings";
 import { workspaceSel } from "@ducks/workspace";
-import qs from "query-string";
+import qs from "qs";
 import {
     fetchAddOrUpdatePrefixAsync,
     fetchProjectPrefixesAsync,
@@ -78,7 +78,11 @@ const updateQueryString = () => {
 const setupFiltersFromQs = (queryString: string) => {
     return dispatch => {
         try {
-            const parsedQs = qs.parse(queryString, {arrayFormat: "comma"});
+            const parsedQs = qs.parse(queryString, {
+                parseArrays:true,
+                comma: true,
+                ignoreQueryPrefix: true
+            });
 
             // The batch of functions that should dispatched
             const batchQueue = [];
@@ -100,12 +104,13 @@ const setupFiltersFromQs = (queryString: string) => {
             if (parsedQs.f_ids) {
                 const facetIds = parsedQs.f_ids;
                 if (!Array.isArray(facetIds)) {
+                    const fKeys = parsedQs.f_keys as string;
                     batchQueue.push(applyFacet({
                         facet: {
                             id: facetIds,
                             type: parsedQs.types
                         },
-                        keywordIds: [].concat(parsedQs.f_keys)
+                        keywordIds: fKeys.split(ARRAY_DELIMITER)
                     }));
                 } else {
                     facetIds.forEach((facetId, i) => {
@@ -396,9 +401,7 @@ const toggleFacetOp = (facet: IFacetState, keywordId: string) => {
             }));
         }
 
-        batch(() => {
-            dispatch(updateQueryString());
-        })
+        dispatch(updateQueryString());
     }
 };
 
