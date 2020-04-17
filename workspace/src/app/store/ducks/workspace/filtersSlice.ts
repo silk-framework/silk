@@ -120,7 +120,6 @@ export const filtersSlice = createSlice({
             state.sorters = initialSortersState();
             state.pagination = initialPaginationState();
             state.appliedFacets = [];
-            state.facets = [];
         }
     }
 });
