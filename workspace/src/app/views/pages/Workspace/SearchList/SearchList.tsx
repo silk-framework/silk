@@ -137,7 +137,7 @@ export function SearchList() {
                 }
             </DataList>
             {
-                isEmpty
+                !isEmpty
                     ? <>
                         <Spacing size="small" />
 
