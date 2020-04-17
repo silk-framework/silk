@@ -33,11 +33,13 @@ class PluginSerializersTest extends FlatSpec with MustMatchers {
     val (js, pd) = serialize(classOf[TransformSpec])
     stringValue(js, "title") mustBe pd.label
     stringValue(js, "type") mustBe "object"
+    stringValue(js, "pluginId") mustBe "transform"
     stringValueOption(js, TASKTYPE) mustBe empty
     val properties = objectValue(js, PROPERTIES)
     properties.keys mustBe Set("selection", "mappingRule", "output", "errorOutput", "targetVocabularies")
     mustBeJsObject(properties.value("selection")) { operatorsParam =>
       stringValue(operatorsParam, "type") mustBe "object"
+      stringValue(operatorsParam, "pluginId") mustBe "datasetSelectionParameter"
       booleanValue(operatorsParam, "visibleInDialog") mustBe true
       val properties = objectValue(operatorsParam, PROPERTIES).value
       properties.keySet mustBe Set("inputId", "typeUri", "restriction")

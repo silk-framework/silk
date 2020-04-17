@@ -36,7 +36,8 @@ object PluginSerializers {
       val details = Seq (
         "type" -> JsString("object"),
         "properties" -> JsObject(serializeParams(plugin.parameters)),
-        "required" -> JsArray(plugin.parameters.filterNot(_.defaultValue.isDefined).map(_.name).map(JsString))
+        "required" -> JsArray(plugin.parameters.filterNot(_.defaultValue.isDefined).map(_.name).map(JsString)),
+        "pluginId" -> JsString(plugin.id)
       ).filter(_ => !overviewOnly)
       JsObject(metaData ++ tt ++ details ++ markdownDocumentation)
     }
@@ -56,6 +57,10 @@ object PluginSerializers {
         case (_, Some(_)) =>
           JsString(param.stringDefaultValue(Prefixes.empty).get)
         case (_, None) => JsNull
+      }
+      val pluginId: Option[String] = param.parameterType match {
+        case objectType: PluginObjectParameterTypeTrait => objectType.pluginDescription.map(_.id.toString)
+        case _ => None
       }
 
       val parameters: Option[JsObject] = param.parameterType match {
@@ -77,7 +82,8 @@ object PluginSerializers {
           autoCompleteValueWithLabels = autoComplete.autoCompleteValueWithLabels,
           autoCompletionDependsOnParameters = autoComplete.autoCompletionDependsOnParameters
         )),
-        properties = parameters
+        properties = parameters,
+        pluginId = pluginId
       ))
     }
 
@@ -90,6 +96,18 @@ object PluginSerializers {
   }
 }
 
+/**
+  * @param title           Human-readable title of the parameter.
+  * @param description     Description of the parameter.
+  * @param `type`          The JSON type of the parameter, at the moment either "string" or "object".
+  * @param parameterType   The internal parameter type, coming from [[org.silkframework.runtime.plugin.ParameterType]]
+  * @param value           The value of the parameter.
+  * @param advanced        If this parameter is marked as advanced and should be hidden behind an 'advanced' menu in the UI.
+  * @param visibleInDialog If this parameter should be represented in a UI dialog. If set to false the parameter must not be shown in the dialog and no value must be set in any backend request.
+  * @param autoCompletion  Optional auto-completion information.
+  * @param properties      Optional properties if this is a nested object parameter that can be shown in the UI.
+  * @param pluginId        Optional plugin ID, if this parameter is itself a plugin.
+  */
 case class PluginParameterJsonPayload(title: String,
                                       description: String,
                                      `type`: String,
@@ -98,7 +116,8 @@ case class PluginParameterJsonPayload(title: String,
                                       advanced: Boolean,
                                       visibleInDialog: Boolean,
                                       autoCompletion: Option[ParameterAutoCompletionJsonPayload],
-                                      properties: Option[JsObject])
+                                      properties: Option[JsObject],
+                                      pluginId: Option[String])
 
 case class ParameterAutoCompletionJsonPayload(allowOnlyAutoCompletedValues: Boolean,
                                               autoCompleteValueWithLabels: Boolean,

@@ -88,7 +88,7 @@ trait PluginObjectParameterTypeTrait extends ParameterType[PluginObjectParameter
 
   override def jsonSchemaType: String = "object"
 
-  def pluginDescription: PluginDescription[_] = PluginDescription(pluginObjectParameterClass)
+  def pluginDescription: Option[PluginDescription[_]] = PluginRegistry.pluginDescription(pluginObjectParameterClass)
 
   override def toString(value: PluginObjectParameter)(implicit prefixes: Prefixes): String = {
     // There is no string representation
