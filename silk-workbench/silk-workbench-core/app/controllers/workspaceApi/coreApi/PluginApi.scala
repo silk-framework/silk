@@ -6,6 +6,7 @@ import org.silkframework.config.CustomTask
 import org.silkframework.dataset.Dataset
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.plugin.{PluginList, PluginRegistry}
+import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.PluginSerializers.PluginListJsonFormat
 import org.silkframework.workspace.activity.workflow.Workflow
@@ -39,6 +40,7 @@ class PluginApi @Inject() () extends InjectedController {
              pretty: Boolean): Action[AnyContent] = Action { implicit request =>
     PluginRegistry.pluginDescriptionById(pluginId) match {
       case Some(pluginDesc) =>
+        implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
         val resultJson = PluginListJsonFormat.serializePlugin(pluginDesc, addMarkdownDocumentation, overviewOnly = false, taskType = taskType(pluginDesc.pluginClass))
         result(pretty, resultJson)
       case None =>

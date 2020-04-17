@@ -216,7 +216,7 @@
  * Creates a new field for a plugin parameter
  *@
 @createField(pluginId: String, param: Parameter) = @{
-  param.dataType match {
+  param.parameterType match {
     case StringParameterType.ResourceType | StringParameterType.WritableResourceType => createResourceField(pluginId, param)
     case enum @ StringParameterType.EnumerationType(_) => createEnumerationField(pluginId, param, enum.enumerationValues, enum.displayNames)
     case BooleanType => createEnumerationField(pluginId, param, Seq("true", "false"), Seq("True", "False"))
@@ -234,7 +234,7 @@
     <div class="mdl-tooltip mdl-tooltip--right" for="@(pluginId)_@(param.name)">
       @param.description
       <br/>
-      Expected type: @param.dataType.description
+      Expected type: @param.parameterType.description
     </div>
  </div>
 }
@@ -258,7 +258,7 @@
     <div class="mdl-tooltip mdl-tooltip--right" for="@(pluginId)_@(param.name)">
       @param.description
       <br/>
-      Expected type: @param.dataType.description
+      Expected type: @param.parameterType.description
     </div>
   </div>
 }
@@ -270,7 +270,7 @@
     <div class="mdl-tooltip mdl-tooltip--right" for="@(pluginId)_@(param.name)">
       @param.description
       <br/>
-      Expected type: @param.dataType.description
+      Expected type: @param.parameterType.description
     </div>
   </div>
 }
@@ -289,7 +289,7 @@
     }
   // Convert parameter value to string
   implicit val prefixes = project.config.prefixes
-  val paramType = param.dataType.asInstanceOf[StringParameterType[AnyRef]]
+  val paramType = param.parameterType.asInstanceOf[StringParameterType[AnyRef]]
   val paramStr = paramObj.map(paramType.toString).getOrElse("")
   paramStr
 }

@@ -330,6 +330,8 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
   }
 
   "get tasks with parameter value labels" in {
+    val datasetLabel = "I am a dataset"
+    retrieveOrCreateProject(project).anyTask(datasetId).updateMetaData(MetaData(label = datasetLabel))
     def taskValuesWithLabel(taskId: String): Seq[(JsValue, Option[String])] = {
       val parameters = (checkResponse(client.url(s"$baseUrl/workspace/projects/$project/tasks/$taskId?withLabels=true").
           withHttpHeaders("Accept" -> "application/json").
@@ -352,7 +354,9 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     taskValuesWithLabel(linkTaskId)
     val transformParameters = taskValuesWithLabel(transformId)
     transformParameters.flatMap(_._2) mustBe Seq(OUTPUT_DATASET_LABEL)
-    transformParameters.flatMap(p => (p._1 \ "inputId").asOpt[JsString]) mustBe Seq(JsString(datasetId))
+    // Nested values must also have a label
+    transformParameters.flatMap(p => (p._1 \ "inputId" \ "value").asOpt[JsString]) mustBe Seq(JsString(datasetId))
+    transformParameters.flatMap(p => (p._1 \ "inputId" \ "label").asOpt[JsString]) mustBe Seq(JsString(datasetLabel))
     // Remove tasks
     for(taskId <- Seq(inMemoryDataset, sparqlDataset, sparqlSelect)) {
       p.removeAnyTask(taskId, false)

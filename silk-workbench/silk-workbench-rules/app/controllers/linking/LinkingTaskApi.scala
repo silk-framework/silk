@@ -51,7 +51,7 @@ class LinkingTaskApi @Inject() () extends InjectedController {
     proj.tasks[LinkSpec].find(_.id.toString == task) match {
       //Update existing task
       case Some(oldTask) if !createOnly => {
-        val updatedLinkSpec = oldTask.data.copy(source = sourceDataset, target = targetDataset, outputOpt = output)
+        val updatedLinkSpec = oldTask.data.copy(source = sourceDataset, target = targetDataset, output = output)
         proj.updateTask(task, updatedLinkSpec)
       }
       //Create new task
@@ -61,7 +61,7 @@ class LinkingTaskApi @Inject() () extends InjectedController {
             source = sourceDataset,
             target = targetDataset,
             rule = LinkageRule(None),
-            outputOpt = output
+            output = output
           )
 
         proj.addTask(task, linkSpec, MetaData(MetaData.labelFromId(task)))

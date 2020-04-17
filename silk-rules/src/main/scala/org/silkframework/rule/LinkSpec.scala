@@ -53,7 +53,7 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
                     rule: LinkageRule = LinkageRule(),
                     @Param(label = "Output", value = "The output dataset to write the links to.", autoCompletionProvider = classOf[DatasetTaskReferenceAutoCompletionProvider],
                       autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
-                    outputOpt: IdentifierOptionParameter = None,
+                    output: IdentifierOptionParameter = None,
                     @Param(label = "Reference links", value = "The source input to select.", visibleInDialog = false)
                     referenceLinks: ReferenceLinks = ReferenceLinks.empty,
                     @Param(label = "Link Limit", value = "The maximum number of links that should be generated. The execution will stop once this limit is reached.",
@@ -65,8 +65,6 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
 
   assert(linkLimit >= 0, "The link limit must be greater equal 0!")
   assert(matchingExecutionTimeout >= 0, "The matching execution timeout must be greater equal 0!")
-
-  def output: Option[Identifier] = outputOpt.value
 
   def dataSelections: DPair[DatasetSelection] = DPair(source, target)
 
@@ -131,7 +129,7 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
 
   override def inputTasks: Set[Identifier] = dataSelections.map(_.inputId).toSet
 
-  override def outputTasks: Set[Identifier] = output.toSet
+  override def outputTasks: Set[Identifier] = output.value.toSet
 
   override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
     Seq(
@@ -202,7 +200,7 @@ object LinkSpec {
         source = DatasetSelection.fromXML((node \ "SourceDataset").head),
         target = DatasetSelection.fromXML((node \ "TargetDataset").head),
         rule = fromXml[LinkageRule](linkageRuleNode),
-        outputOpt =
+        output =
           (node \ "Outputs" \ "Output").headOption map { outputNode =>
             val id = (outputNode \ "@id").text
             if (id.isEmpty) {
@@ -224,7 +222,7 @@ object LinkSpec {
         {spec.dataSelections.target.toXML(asSource = false)}
         {toXml(spec.rule)}
         <Outputs>
-          {spec.output.toSeq.map(o => <Output id={o}></Output>)}
+          {spec.output.value.toSeq.map(o => <Output id={o}></Output>)}
         </Outputs>
       </Interlink>
   }

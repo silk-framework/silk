@@ -26,8 +26,8 @@ import scala.language.implicitConversions
   *
   * @param selection          Selects the entities that are covered by this transformation.
   * @param mappingRule        The root mapping rule
-  * @param outputOpt          The optional identifier of the output to which all transformed entities are to be written
-  * @param errorOutputOpt     The optional identifier of the output to received erroneous entities.
+  * @param output             The optional identifier of the output to which all transformed entities are to be written
+  * @param errorOutput        The optional identifier of the output to received erroneous entities.
   * @param targetVocabularies The URIs of the target vocabularies to which this transformation maps.
   * @since 2.6.1
   * @see org.silkframework.execution.ExecuteTransform

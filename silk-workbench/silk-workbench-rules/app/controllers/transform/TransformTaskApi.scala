@@ -54,7 +54,7 @@ class TransformTaskApi @Inject() () extends InjectedController {
         project.tasks[TransformSpec].find(_.id.toString == taskName) match {
           //Update existing task
           case Some(oldTask) if !createOnly =>
-            val updatedTransformSpec = oldTask.data.copy(selection = input, outputOpt = output, targetVocabularies = targetVocabularies)
+            val updatedTransformSpec = oldTask.data.copy(selection = input, output = output, targetVocabularies = targetVocabularies)
             project.updateTask(taskName, updatedTransformSpec)
           //Create new task with no rule
           case _ =>

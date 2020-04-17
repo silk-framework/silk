@@ -14,12 +14,10 @@
 
 package org.silkframework.rule.plugins
 
-import org.silkframework.rule.DatasetSelection.DatasetSelectionJsonFormat
 import org.silkframework.rule.LinkSpec.LinkSpecificationFormat
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformRule.TransformRuleFormat
-import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.rule.TransformSpec.{TransformSpecFormat, TransformTaskXmlFormat}
 import org.silkframework.rule.plugins.aggegrator._
 import org.silkframework.rule.plugins.distance.characterbased._
@@ -42,6 +40,7 @@ import org.silkframework.rule.plugins.transformer.substring._
 import org.silkframework.rule.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
 import org.silkframework.rule.plugins.transformer.validation._
 import org.silkframework.rule.plugins.transformer.value._
+import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.plugin.PluginModule
 
 import scala.language.existentials
@@ -52,7 +51,7 @@ import scala.language.existentials
 class RulePlugins extends PluginModule {
 
   override def pluginClasses: List[Class[_]] = classOf[LinkSpec] :: classOf[TransformSpec] ::
-      transformers ++ measures ++ aggregators ++ serializers ++ pluginParameterTypes ++ jsonFormats
+      transformers ++ measures ++ aggregators ++ serializers ++ pluginParameterTypes
 
   private def transformers: List[Class[_]] =
     classOf[RemoveDuplicates] ::
@@ -181,10 +180,6 @@ class RulePlugins extends PluginModule {
     RootMappingRuleFormat.getClass ::
     LinkSpecificationFormat.getClass ::
     Nil
-
-  private def jsonFormats: List[Class[_]] =
-    DatasetSelectionJsonFormat.getClass ::
-        Nil
 
   private def pluginParameterTypes: List[Class[_]] =
     classOf[DatasetSelection] :: Nil

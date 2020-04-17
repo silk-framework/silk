@@ -15,11 +15,13 @@ import org.silkframework.rule.{MappingTarget, TransformRule, _}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
+import org.silkframework.serialization.json.EntitySerializers.EntitySchemaJsonFormat
 import org.silkframework.serialization.json.InputJsonSerializer._
 import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.LinkingSerializers._
 import org.silkframework.util.{DPair, Identifier, Uri}
+import org.silkframework.workspace.activity.transform.CachedEntitySchemata
 import play.api.libs.json._
 
 /**
@@ -124,26 +126,6 @@ object JsonSerializers {
         json += LAST_MODIFIED_BY -> JsString(lastModifiedBy.uri)
       }
       json
-    }
-  }
-
-  class PairJsonFormat[T](implicit dataFormat: JsonFormat[T]) extends JsonFormat[DPair[T]] {
-
-    private val SOURCE = "source"
-    private val TARGET = "target"
-
-    override def read(value: JsValue)(implicit readContext: ReadContext): DPair[T] = {
-      DPair[T](
-        source = dataFormat.read(mustBeDefined(value, SOURCE)),
-        target = dataFormat.read(mustBeDefined(value, TARGET))
-      )
-    }
-
-    override def write(value: DPair[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        SOURCE -> dataFormat.write(value.source),
-        TARGET -> dataFormat.write(value.target)
-      )
     }
   }
 
@@ -882,7 +864,7 @@ object JsonSerializers {
         target =
             fromJson[DatasetSelection](mustBeDefined(parametersObj, TARGET)),
         rule = optionalValue(parametersObj, RULE).map(fromJson[LinkageRule]).getOrElse(LinkageRule()),
-        outputOpt = stringValueOption(parametersObj, OUTPUT).filter(_.trim.nonEmpty).map(o => Identifier(o.trim)),
+        output = stringValueOption(parametersObj, OUTPUT).filter(_.trim.nonEmpty).map(o => Identifier(o.trim)),
         referenceLinks = optionalValue(parametersObj, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty),
         linkLimit = numberValueOption(parametersObj, LINK_LIMIT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
         matchingExecutionTimeout = numberValueOption(parametersObj, MATCHING_EXECUTION_TIMEOUT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
@@ -1234,6 +1216,47 @@ object InputJsonSerializer {
         case path: PathInput => toJson(path)
         case transform: TransformInput => toJson(transform)
       }
+    }
+  }
+
+  implicit object CachedEntitySchemataJsonFormat extends WriteOnlyJsonFormat[CachedEntitySchemata] {
+
+    override def write(value: CachedEntitySchemata)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        "configured" -> EntitySchemaJsonFormat.write(value.configuredSchema),
+        "untyped" -> value.untypedSchema.map(EntitySchemaJsonFormat.write)
+      )
+    }
+  }
+
+  /**
+    * Dataset selection.
+    */
+  implicit object DatasetSelectionJsonFormat extends JsonFormat[DatasetSelection] {
+    final val INPUT_ID: String = "inputId"
+    final val TYPE_URI: String = "typeUri"
+    final val RESTRICTION: String = "restriction"
+
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: JsValue)(implicit readContext: ReadContext): DatasetSelection = {
+      DatasetSelection(
+        inputId = stringValue(value, INPUT_ID),
+        typeUri = Uri.parse(stringValue(value, TYPE_URI), readContext.prefixes),
+        restriction = Restriction.parse(stringValue(value, RESTRICTION))(readContext.prefixes)
+      )
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(value: DatasetSelection)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        INPUT_ID -> value.inputId.toString,
+        TYPE_URI -> value.typeUri.serialize(writeContext.prefixes),
+        RESTRICTION -> value.restriction.serialize
+      )
     }
   }
 }

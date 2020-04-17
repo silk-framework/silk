@@ -5,11 +5,13 @@ import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation._
 import org.silkframework.rule.execution.Linking
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.serialization.json.EntitySerializers.{EntityJsonFormat, PairEntitySchemaJsonFormat}
-import org.silkframework.serialization.json.JsonHelpers.{mustBeDefined, mustBeJsArray, numberValueOption, stringValue, optionalValue}
-import org.silkframework.serialization.json.JsonSerializers.{PairJsonFormat, fromJson, toJson}
+import org.silkframework.serialization.json.EntitySerializers.{EntityJsonFormat, PairEntitySchemaJsonFormat, PairJsonFormat}
 import play.api.libs.json.{JsArray, JsValue, Json}
+import JsonHelpers._
 
+/**
+  *
+  */
 object LinkingSerializers {
 
   implicit object LinkingJsonFormat extends WriteOnlyJsonFormat[Linking] {
@@ -141,17 +143,17 @@ object LinkingSerializers {
 
     override def read(value: JsValue)(implicit readContext: ReadContext): ReferenceLinks = {
       ReferenceLinks(
-        positive = mustBeJsArray(mustBeDefined(value, POSITIVE))(_.value.map(fromJson[Link])).toSet,
-        negative = mustBeJsArray(mustBeDefined(value, NEGATIVE))(_.value.map(fromJson[Link])).toSet,
-        unlabeled = mustBeJsArray(mustBeDefined(value, UNLABELED))(_.value.map(fromJson[Link])).toSet
+        positive = mustBeJsArray(mustBeDefined(value, POSITIVE))(_.value.map(LinkJsonFormat.read)).toSet,
+        negative = mustBeJsArray(mustBeDefined(value, NEGATIVE))(_.value.map(LinkJsonFormat.read)).toSet,
+        unlabeled = mustBeJsArray(mustBeDefined(value, UNLABELED))(_.value.map(LinkJsonFormat.read)).toSet
       )
     }
 
     override def write(value: ReferenceLinks)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
-        POSITIVE -> JsArray(value.positive.toSeq.map(toJson(_))),
-        NEGATIVE -> JsArray(value.negative.toSeq.map(toJson(_))),
-        UNLABELED -> JsArray(value.unlabeled.toSeq.map(toJson(_)))
+        POSITIVE -> JsArray(value.positive.toSeq.map(LinkJsonFormat.write)),
+        NEGATIVE -> JsArray(value.negative.toSeq.map(LinkJsonFormat.write)),
+        UNLABELED -> JsArray(value.unlabeled.toSeq.map(LinkJsonFormat.write))
       )
     }
   }

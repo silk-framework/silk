@@ -84,7 +84,7 @@ class PluginDescription[+T](val id: Identifier, val categories: Seq[String], val
       parameterValues.get(parameter.name) match {
         case Some(v) =>
           try {
-            parameter.dataType match {
+            parameter.parameterType match {
               case stringParam: StringParameterType[_] =>
                 stringParam.fromString(v).asInstanceOf[AnyRef]
               case _: PluginObjectParameterTypeTrait =>
@@ -92,7 +92,7 @@ class PluginDescription[+T](val id: Identifier, val categories: Seq[String], val
             }
           } catch {
             case NonFatal(ex) =>
-              throw new InvalidPluginParameterValueException(label + " has an invalid value for parameter " + parameter.name + ". Value must be a valid " + parameter.dataType + ". Issue: " + ex.getMessage, ex)
+              throw new InvalidPluginParameterValueException(label + " has an invalid value for parameter " + parameter.name + ". Value must be a valid " + parameter.parameterType + ". Issue: " + ex.getMessage, ex)
           }
         case None if parameter.defaultValue.isDefined =>
           parameter.defaultValue.get

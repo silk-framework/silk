@@ -22,7 +22,7 @@ import scala.language.existentials
   * A plugin parameter.
   *
   * @param name         The parameter name as used by the plugin class
-  * @param dataType     The type of the parameter
+  * @param parameterType     The type of the parameter
   * @param label        A human-readable label of the parameter
   * @param description  A human-readable description of the parameter
   * @param defaultValue The default value, if any
@@ -32,7 +32,7 @@ import scala.language.existentials
   * @param autoCompletion The parameter auto-completion object.
   */
 case class Parameter(name: String,
-                     dataType: ParameterType[_],
+                     parameterType: ParameterType[_],
                      label: String,
                      description: String = "No description",
                      defaultValue: Option[AnyRef] = None,
@@ -64,7 +64,7 @@ case class Parameter(name: String,
   }
 
   private def formatValue(value: AnyRef)(implicit prefixes: Prefixes): String = {
-    dataType.asInstanceOf[ParameterType[AnyRef]].toString(value)
+    parameterType.asInstanceOf[ParameterType[AnyRef]].toString(value)
   }
 }
 

@@ -2,7 +2,7 @@ package org.silkframework.serialization.json
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.plugin.{Parameter, PluginDescription, PluginList, PluginObjectParameterTypeTrait}
-import org.silkframework.runtime.serialization.WriteContext
+import org.silkframework.runtime.serialization.{Serialization, WriteContext}
 import play.api.libs.json._
 
 object PluginSerializers {
@@ -22,7 +22,8 @@ object PluginSerializers {
       )
     }
 
-    def serializePlugin(plugin: PluginDescription[_], withMarkdownDocumentation: Boolean, overviewOnly: Boolean, taskType: Option[String]): JsObject = {
+    def serializePlugin(plugin: PluginDescription[_], withMarkdownDocumentation: Boolean, overviewOnly: Boolean, taskType: Option[String])
+                       (implicit writeContext: WriteContext[JsValue]): JsObject = {
       val markdownDocumentation = if(withMarkdownDocumentation && plugin.documentation.nonEmpty){
         Some((MARKDOWN_DOCUMENTATION_PARAMETER -> JsString(plugin.documentation)))
       } else { None }
@@ -40,32 +41,34 @@ object PluginSerializers {
       JsObject(metaData ++ tt ++ details ++ markdownDocumentation)
     }
 
-    private def serializeParams(params: Seq[Parameter]): Seq[(String, JsValue)] = {
+    private def serializeParams(params: Seq[Parameter])
+                               (implicit writeContext: WriteContext[JsValue]): Seq[(String, JsValue)] = {
       for(param <- params) yield {
         param.name -> serializeParam(param)
       }
     }
 
-    private def serializeParam(param: Parameter): JsValue = {
-      val defaultValue: JsValue = (param.dataType, param.defaultValue) match {
+    private def serializeParam(param: Parameter)
+                              (implicit writeContext: WriteContext[JsValue]): JsValue = {
+      val defaultValue: JsValue = (param.parameterType, param.defaultValue) match {
         case (objectType: PluginObjectParameterTypeTrait, Some(v)) =>
-          objectType.toJson(v)(Prefixes.empty)
+          serializeParameterValue(objectType.pluginObjectParameterClass, v)
         case (_, Some(_)) =>
           JsString(param.stringDefaultValue(Prefixes.empty).get)
         case (_, None) => JsNull
       }
 
-      val parameters: Option[JsArray] = param.dataType match {
+      val parameters: Option[JsObject] = param.parameterType match {
         case objectType: PluginObjectParameterTypeTrait if param.visibleInDialog =>
           val pluginDescription = PluginDescription(objectType.pluginObjectParameterClass)
-          Some(JsArray(pluginDescription.parameters.map(serializeParam)))
+          Some(JsObject(pluginDescription.parameters.map(p => (p.name -> serializeParam(p)))))
         case _ => None
       }
       Json.toJson(PluginParameterJsonPayload(
         title = param.label,
         description = param.description,
-        `type` = param.dataType.jsonSchemaType,
-        parameterType = param.dataType.name,
+        `type` = param.parameterType.jsonSchemaType,
+        parameterType = param.parameterType.name,
         value = defaultValue,
         advanced = param.advanced,
         visibleInDialog = param.visibleInDialog,
@@ -76,6 +79,13 @@ object PluginSerializers {
         )),
         properties = parameters
       ))
+    }
+
+    def serializeParameterValue(pluginObjectParameterClass: Class[_],
+                                value: AnyRef)
+                               (implicit writeContext: WriteContext[JsValue]): JsValue = {
+      val jsonFormat = Serialization.formatForDynamicType[JsValue](pluginObjectParameterClass)
+      jsonFormat.write(value)
     }
   }
 }
@@ -88,7 +98,7 @@ case class PluginParameterJsonPayload(title: String,
                                       advanced: Boolean,
                                       visibleInDialog: Boolean,
                                       autoCompletion: Option[ParameterAutoCompletionJsonPayload],
-                                      properties: Option[JsArray])
+                                      properties: Option[JsObject])
 
 case class ParameterAutoCompletionJsonPayload(allowOnlyAutoCompletedValues: Boolean,
                                               autoCompleteValueWithLabels: Boolean,

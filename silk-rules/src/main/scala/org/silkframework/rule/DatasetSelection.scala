@@ -19,11 +19,7 @@ import org.silkframework.entity.Restriction
 import org.silkframework.rule.task.DatasetOrTransformTaskAutoCompletionProvider
 import org.silkframework.runtime.plugin.PluginObjectParameter
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.serialization.json.JsonFormat
-import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.util.{Identifier, Uri}
-import play.api.libs.json.{JsValue, Json}
 
 import scala.xml.{Elem, Node}
 
@@ -93,34 +89,5 @@ object DatasetSelection {
 
   def empty = DatasetSelection("EmptyDatasetSelection", Uri(""), Restriction.empty)
 
-  /**
-    * Dataset selection.
-    */
-  implicit object DatasetSelectionJsonFormat extends JsonFormat[DatasetSelection] {
-    final val INPUT_ID: String = "inputId"
-    final val TYPE_URI: String = "typeUri"
-    final val RESTRICTION: String = "restriction"
 
-    /**
-      * Deserializes a value.
-      */
-    override def read(value: JsValue)(implicit readContext: ReadContext): DatasetSelection = {
-      DatasetSelection(
-        inputId = stringValue(value, INPUT_ID),
-        typeUri = Uri.parse(stringValue(value, TYPE_URI), readContext.prefixes),
-        restriction = Restriction.parse(stringValue(value, RESTRICTION))(readContext.prefixes)
-      )
-    }
-
-    /**
-      * Serializes a value.
-      */
-    override def write(value: DatasetSelection)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        INPUT_ID -> value.inputId.toString,
-        TYPE_URI -> value.typeUri.serialize(writeContext.prefixes),
-        RESTRICTION -> value.restriction.serialize
-      )
-    }
-  }
 }

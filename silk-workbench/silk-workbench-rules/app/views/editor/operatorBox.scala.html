@@ -46,7 +46,7 @@
 * Creates a new field for a plugin parameter
 *@
 @parameter(param: Parameter, value: String) = @{
-  param.dataType match {
+  param.parameterType match {
     case UriType =>
       stringParameter(param, project.config.prefixes.shorten(value))
     case enum: EnumerationType =>
@@ -80,7 +80,7 @@
     <div class="mdl-defer mdl-tooltip--right" for="@{GenerateId(id, display)}_param_input_@{param.name}" data-mdl-defer="tooltip">
         @param.description
         <br/>
-        Expected type: @param.dataType.description
+        Expected type: @param.parameterType.description
     </div>
 </div>
 }
@@ -96,7 +96,7 @@
     <div class="mdl-defer mdl-tooltip--right" for="@{GenerateId(id, display)}_param_input_@{param.name}" data-mdl-defer="tooltip">
         @param.description
         <br/>
-        Expected type: @param.dataType.description
+        Expected type: @param.parameterType.description
     </div>
 </div>
 }

@@ -24,7 +24,9 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.11.12",
   publishTo := {
     val artifactory = "https://artifactory.eccenca.com/"
-    if (isSnapshot.value) {
+    // Assumes that version strings for releases, e.g. v3.0.0 or v3.0.0-rc3, do not have a postfix of length 5 or longer.
+    // Length 5 was chosen as lower limit because of the "dirty" postfix. Note that isSnapshot does not do the right thing here.
+    if (silkVersion.reverse.takeWhile(c => c != '-' && c != '.').length >= 5) {
       Some("snapshots" at artifactory + "maven-ecc-snapshot")
     } else {
       Some("releases" at artifactory + "maven-ecc-release")
@@ -81,8 +83,7 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1",
     libraryDependencies += "commons-io" % "commons-io" % "2.4",
-    libraryDependencies += "org.lz4" % "lz4-java" % "1.4.0",
-    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.6.12"
+    libraryDependencies += "org.lz4" % "lz4-java" % "1.4.0"
   )
 
 lazy val rules = (project in file("silk-rules"))
@@ -145,7 +146,8 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins JSON",
-    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.8.6"
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.8.6",
+    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.6.12"
   )
 
 lazy val pluginsSpatialTemporal = (project in file("silk-plugins/silk-plugins-spatial-temporal"))
@@ -173,7 +175,8 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .dependsOn(core, rules, workspace)
   .settings(commonSettings: _*)
   .settings(
-    name := "Silk Serialization JSON"
+    name := "Silk Serialization JSON",
+    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.6.12"
   )
 
 // Aggregate all plugins

@@ -57,11 +57,7 @@ object PluginRegistry {
     registerFromClasspath()
   }
 
-  checkPluginParametersPlugins()
-
-
-
-  private def checkPluginParametersPlugins(): Unit =  {
+  def pluginParameterPluginsValid(): Boolean =  {
     var pluginsWithoutXmlFormat: List[String] = Nil
     var pluginsWithoutJsonFormat: List[String] = Nil
     var pluginsNestingInvalid: List[String] = Nil
@@ -77,10 +73,12 @@ object PluginRegistry {
         pluginsNestingInvalid ::= errorMessage
       }
     }
-    if(pluginsWithoutJsonFormat.nonEmpty || pluginsWithoutXmlFormat.nonEmpty) {
+    if(pluginsWithoutJsonFormat.nonEmpty || pluginsWithoutXmlFormat.nonEmpty || pluginsNestingInvalid.nonEmpty) {
       log.severe(s"Invalid plugin parameter classes found. Details: " + errorPart("Classes missing JSON format implementation", pluginsWithoutJsonFormat) +
           errorPart("Classes missing XML format implementation", pluginsWithoutXmlFormat) + errorPart("Other validation problems", pluginsNestingInvalid))
-      throw new RuntimeException("Could not initialize plugin registry.")
+      false
+    } else {
+      true
     }
   }
 
@@ -99,7 +97,7 @@ object PluginRegistry {
     val needsCheck = usageInParams.exists(_.visibleInDialog)
     if(needsCheck) {
       for (param <- PluginDescription(parameterType).parameters if errorMessage.isEmpty && needsCheck) {
-        if (param.dataType.isInstanceOf[PluginObjectParameterTypeTrait]) {
+        if (param.parameterType.isInstanceOf[PluginObjectParameterTypeTrait]) {
           errorMessage = s"Found multiple nestings in object plugin parameter. Parameter '${param.label}' of parameter class " +
               s"'${parameterType.getSimpleName}' is itself a nested object parameter."
         }
@@ -282,7 +280,7 @@ object PluginRegistry {
     }
     // Collect object parameter type in order to check them at the end of the initialization
     pluginDesc.parameters.foreach { param =>
-      param.dataType match {
+      param.parameterType match {
         case paramType: PluginObjectParameterTypeTrait =>
           val parameters = objectPluginParameterClasses.getOrElseUpdate(paramType.pluginObjectParameterClass, mutable.HashSet.empty)
           parameters.add(param)

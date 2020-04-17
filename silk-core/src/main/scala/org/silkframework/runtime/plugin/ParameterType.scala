@@ -12,7 +12,6 @@ import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, Resou
 import org.silkframework.runtime.serialization.{Serialization, WriteContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{AesCrypto, Identifier, Uri}
-import play.api.libs.json.JsValue
 
 import scala.language.existentials
 import scala.reflect.ClassTag
@@ -33,7 +32,7 @@ sealed abstract class ParameterType[T: ClassTag] {
   /**
     * The underlying type.
     */
-  protected val dataType: Class[_] = implicitly[ClassTag[T]].runtimeClass
+  val dataType: Class[_] = implicitly[ClassTag[T]].runtimeClass
 
   def hasType(givenType: Type): Boolean = {
     givenType match {
@@ -91,14 +90,9 @@ trait PluginObjectParameterTypeTrait extends ParameterType[PluginObjectParameter
 
   def pluginDescription: PluginDescription[_] = PluginDescription(pluginObjectParameterClass)
 
-  def toJson(value: AnyRef)(implicit prefixes: Prefixes): JsValue = {
-    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = prefixes)
-    val jsonFormat = Serialization.formatForDynamicType[JsValue](pluginObjectParameterClass)
-    jsonFormat.write(value)
-  }
-
   override def toString(value: PluginObjectParameter)(implicit prefixes: Prefixes): String = {
-    toJson(value).toString()
+    // There is no string representation
+    ???
   }
 }
 
