@@ -8,7 +8,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   id = "soundex",
   categories = Array("Linguistic"),
   label = "Soundex",
-  description = "Soundex algorithm. Provided by the StringMetric library: http://rockymadden.com/stringmetric/"
+  description = "Soundex algorithm. Provided by the StringMetric library: http://rockymadden.com/stringmetric/."
 )
 case class SoundexTransformer(refined: Boolean = true) extends SimpleTransformer {
 

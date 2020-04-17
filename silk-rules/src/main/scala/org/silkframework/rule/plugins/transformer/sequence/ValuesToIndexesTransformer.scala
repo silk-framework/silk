@@ -13,14 +13,13 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   categories = Array("Sequence"),
   label = "Sequence values to indexes",
   description =
-      """
-        Transforms the sequence of values to their respective indexes in the sequence.
-        Example:
-         - ("a", "b", "c") becomes (0, 1, 2)
+"""Transforms the sequence of values to their respective indexes in the sequence.
+  Example:
+   - ("a", "b", "c") becomes (0, 1, 2)
 
-        If there is more than one input, the values are numbered from the first input on and continued for the next inputs.
-        Applied against an RDF source the order might not be deterministic.
-      """
+  If there is more than one input, the values are numbered from the first input on and continued for the next inputs.
+  Applied against an RDF source the order might not be deterministic.
+"""
 )
 class ValuesToIndexesTransformer extends Transformer {
   override def apply(values: Seq[Seq[String]]): Seq[String] = {

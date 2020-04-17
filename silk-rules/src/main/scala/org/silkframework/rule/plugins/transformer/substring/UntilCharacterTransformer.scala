@@ -26,7 +26,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, T
   id = "untilCharacter",
   categories = Array("Substring"),
   label = "Until character",
-  description = "Give a substring until the character given"
+  description = "Extracts the substring until the character given."
 )
 @TransformExamples(Array(
   new TransformExample(

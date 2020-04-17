@@ -28,8 +28,8 @@ import org.silkframework.runtime.validation.ValidationException;
 @Plugin(
   id = "parseDate",
   categories = Array("Date"),
-  label = "Parse date",
-  description = "Parses a date, returning an xsd:date"
+  label = "Parse date pattern",
+  description = "Parses a date based on a specified pattern, returning an xsd:date."
 )
 @TransformExamples(Array(
   new TransformExample(

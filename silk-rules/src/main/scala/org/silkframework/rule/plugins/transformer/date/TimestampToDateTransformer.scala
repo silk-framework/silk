@@ -31,7 +31,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, T
   id = "timeToDate",
   categories = Array("Date"),
   label = "Timestamp to date",
-  description = "convert Unix timestamp to xsd:date"
+  description = "Convert Unix timestamp to xsd:date."
 )
 @TransformExamples(Array(
   new TransformExample(

@@ -28,7 +28,7 @@ import scala.math._
   id = "date",
   categories = Array("Numeric"),
   label = "Date",
-  description = "The distance in days between two dates ('YYYY-MM-DD' format). If the month or day is mi")
+  description = "The distance in days between two dates ('YYYY-MM-DD' format).")
 @DistanceMeasureExamples(Array(
   new DistanceMeasureExample(
     input1 = Array("2003-03-01"),

@@ -17,17 +17,41 @@ package org.silkframework.rule.plugins.transformer.validation
 import javax.xml.datatype.DatatypeFactory
 import org.silkframework.rule.input.Transformer
 import ValidateDateAfter._
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExample, TransformExamples}
 import org.silkframework.runtime.validation.ValidationException
 
 @Plugin(
   id = "validateDateAfter",
   categories = Array("Validation", "Date"),
   label = "Validate date after",
-  description = "Validates if the first input data is after the first input data."
+  description = "Validates if the first input date is after the second input date. Outputs the first input if the validation is successful."
 )
+@TransformExamples(Array(
+  new TransformExample(
+    input1 = Array("2015-04-02"),
+    input2 = Array("2015-04-03"),
+    throwsException = "org.silkframework.runtime.validation.ValidationException"
+  ),
+  new TransformExample(
+    input1 = Array("2015-04-04"),
+    input2 = Array("2015-04-03"),
+    output = Array("2015-04-04")
+  ),
+  new TransformExample(
+    parameters = Array("allowEqual", "true"),
+    input1 = Array("2015-04-03"),
+    input2 = Array("2015-04-03"),
+    output = Array("2015-04-03")
+  ),
+  new TransformExample(
+    parameters = Array("allowEqual", "false"),
+    input1 = Array("2015-04-03"),
+    input2 = Array("2015-04-03"),
+    throwsException = "org.silkframework.runtime.validation.ValidationException"
+  )
+))
 case class ValidateDateAfter(
-  @Param(value = "Allow both dates to be equal")
+  @Param(value = "Allow both dates to be equal.")
   allowEqual: Boolean = false) extends Transformer {
 
   def apply(values: Seq[Seq[String]]): Seq[String] = {

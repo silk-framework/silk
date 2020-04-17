@@ -21,7 +21,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   id = "removeValues",
   categories = Array("Filter"),
   label = "Remove values",
-  description = "Removes values that contain words from a blacklist. The blacklist values are separated with ,"
+  description = "Removes values that contain words from a blacklist. The blacklist values are separated with commas."
 )
 case class RemoveValues(blacklist: String) extends Transformer {
   val filterValues = blacklist.split(",").map(_.toLowerCase).toSet

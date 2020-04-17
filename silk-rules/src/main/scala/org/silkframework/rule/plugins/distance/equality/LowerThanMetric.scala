@@ -9,7 +9,7 @@ import org.silkframework.util.StringUtils._
   categories = Array("Equality"),
   label = "Lower than",
   description = "Checks if the source value is lower than the target value. " +
-  "If both strings are numbers, numerical order is used for comparison. Otherwise, alphanumerical order is used")
+  "If both strings are numbers, numerical order is used for comparison. Otherwise, alphanumerical order is used.")
 case class LowerThanMetric(@Param("Accept equal values")
                            orEqual: Boolean = false,
                            @Param("Reverse source and target inputs")
