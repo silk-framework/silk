@@ -28,7 +28,7 @@ interface IProps {
 }
 
 export default function SearchItem({
-    item, searchValue, onOpenDeleteModal, onOpenDuplicateModal, onRowClick = () => {}
+    item, searchValue, onOpenDeleteModal, onOpenDuplicateModal, onRowClick
 }: IProps) {
     const dispatch = useDispatch();
 
@@ -103,13 +103,13 @@ export default function SearchItem({
 
 return (
     <Card isOnlyLayout>
-        <OverviewItem hasSpacing onClick={onRowClick}>
+        <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined}>
             <OverviewItemDepiction>
-                <Icon name='artefact-project' large/>
+                <Icon name={'artefact-' + item.type} large/>
             </OverviewItemDepiction>
             <OverviewItemDescription>
                 <OverviewItemLine>
-                    <p dangerouslySetInnerHTML={{
+                    <h4 dangerouslySetInnerHTML={{
                         __html: getSearchHighlight(item.label || item.id)
                     }}/>
                 </OverviewItemLine>

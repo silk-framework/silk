@@ -1,7 +1,11 @@
 import React from 'react';
-import { TitleSubsection } from "@wrappers/index";
 import { useSelector } from "react-redux";
 import { globalSel } from "@ducks/common";
+import {
+    TitleSubsection,
+    Menu,
+    MenuItem,
+} from "@wrappers/index";
 
 function ArtefactTypesList({ onSelect }) {
     const {selectedDType} = useSelector(globalSel.artefactModalSelector);
@@ -9,24 +13,24 @@ function ArtefactTypesList({ onSelect }) {
 
     return <>
         <TitleSubsection>Artefact Type</TitleSubsection>
-        <ul>
-            <li
+        <Menu>
+            <MenuItem
+                text={'All'}
                 key='all'
                 onClick={() => onSelect('all')}
-                className={selectedDType === 'all' ? 'active' : ''}
-            >
-                All
-            </li>
+                active={selectedDType === 'all' ? true : false}
+            />
             {
                 typeModifier.options.map(type =>
-                    <li
+                    <MenuItem
+                        text={type.label}
                         key={type.id}
                         onClick={() => onSelect(type.id)}
-                        className={selectedDType === type.id ? 'active' : ''}
-                    >{type.label}</li>
+                        active={selectedDType === type.id ? true : false}
+                    />
                 )
             }
-        </ul>
+        </Menu>
     </>
 }
 

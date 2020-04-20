@@ -10,14 +10,35 @@ $ecc-size-overviewitem-line-typo-small-linheight: $ecc-size-typo-caption-linehei
 $ecc-size-overviewitem-line-typo-large: $ecc-size-typo-subtitle !default;
 $ecc-size-overviewitem-line-typo-large-lineheight: $ecc-size-typo-subtitle-lineheight !default;
 
+.ecc-overviewitem__list--hascolumns {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: stretch;
+
+    & > li {
+        width: 1/2 * 100%;
+    }
+
+    &.ecc-overviewitem__list--hasspacing {
+        margin-left: -1 * $ecc-size-overviewitem-spacing/2;
+        margin-right: -1 * $ecc-size-overviewitem-spacing/2;
+
+        & > li {
+            box-sizing: border-box;
+            padding: $ecc-size-overviewitem-spacing/2;
+        }
+    }
+}
+
 .ecc-overviewitem__list--hasdivider > li:not(:last-child) {
     border-bottom: 1px solid $ecc-color-overviewitem-divider;
 }
 
-.ecc-overviewitem__list--hasspacing > li:not(:first-child) {
+.ecc-overviewitem__list--hasspacing:not(.ecc-overviewitem__list--hascolumns) > li:not(:first-child) {
     padding-top: $ecc-size-overviewitem-spacing/2;
 }
-.ecc-overviewitem__list--hasspacing > li:not(:last-child) {
+.ecc-overviewitem__list--hasspacing:not(.ecc-overviewitem__list--hascolumns) > li:not(:last-child) {
     padding-bottom: $ecc-size-overviewitem-spacing/2;
 }
 
@@ -38,6 +59,10 @@ $ecc-size-overviewitem-line-typo-large-lineheight: $ecc-size-typo-subtitle-lineh
     &.ecc-overviewitem__item--hasspacing {
         box-sizing: content-box;
         padding: $ecc-size-overviewitem-spacing/2;
+    }
+
+    &[tabindex]:not([tabindex="-1"]) {
+        cursor: pointer;
     }
 }
 

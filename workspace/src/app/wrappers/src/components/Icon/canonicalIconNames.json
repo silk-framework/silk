@@ -21,5 +21,11 @@
     "list-sortasc": "ArrowDown",
     "list-sortdesc": "ArrowUp",
 
-    "artefact-project": "Folder"
+    "artefact-project": "Folder",
+    "artefact-workflow": "ModelBuilder",
+    "artefact-dataset": "Data_2",
+    "artefact-transform": "DataRefinery",
+    "artefact-linking": "Connect",
+    "artefact-task": "Script"
+
 }

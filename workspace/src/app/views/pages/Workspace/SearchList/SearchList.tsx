@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Spacing } from "@wrappers/index";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { sharedOp } from "@ducks/shared";
+import {
+    Button,
+    Icon,
+    Spacing,
+} from "@wrappers/index";
 import Pagination from "../../../shared/Pagination";
 import DataList from "../../../shared/Datalist";
 import DeleteModal from "../../../shared/modals/DeleteModal";
@@ -110,7 +114,7 @@ export function SearchList() {
     };
 
     const isEmpty = !isLoading && !data.length;
-
+console.log(appliedFilters);
     return (
         <>
             <AppliedFacets/>
@@ -119,9 +123,14 @@ export function SearchList() {
                 isLoading={isLoading}
                 hasSpacing
                 emptyContainer={
-                    <EmptyList actions={[
-                        <Button key={'create'} onClick={handleCreateArtefact}>Create {appliedFilters.itemType}</Button>
-                    ]}/>
+                    <EmptyList
+                        depiction={<Icon name={'artefact-'+appliedFilters.itemType} large />}
+                        textInfo={<p>No {appliedFilters.itemType} found.</p>}
+                        textCallout={<strong>Create your first {appliedFilters.itemType} now.</strong>}
+                        actionButtons={[
+                            <Button key={'create'} onClick={handleCreateArtefact} elevated>Create {appliedFilters.itemType}</Button>
+                        ]}
+                    />
                 }
             >
                 {

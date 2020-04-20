@@ -24,7 +24,7 @@ $css--plex: false !default;
 
 $feature-flags: (
     ui-shell: true,
-    grid-columns-16: true,
+    grid-columns-16: true, // not necessary, we include 16 columns grid directly
 ) !default;
 
 // ⚠️ Manage deprecations

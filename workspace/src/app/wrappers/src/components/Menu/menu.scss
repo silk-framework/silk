@@ -29,3 +29,14 @@ $dark-menu-item-color-active: $dark-minimal-button-background-color-active !defa
 */
 
 @import "~@blueprintjs/core/src/components/menu/menu";
+
+.#{$ns}-menu {
+    padding: 0;
+    min-width: 0;
+
+    .#{$ns}-popover-content > & {
+        padding: $ecc-size-inline-whitespace / 2;
+        min-width: 1/16 * 100vw;
+        max-width: 2/16 * 100vw;
+    }
+}

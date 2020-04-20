@@ -12,6 +12,12 @@ $ecc-size-card-spacing: $ecc-size-typo-base !default;
     justify-content: flex-start;
     align-items: stretch;
 
+    &.ecc-intent--primary {
+        background-color: rgba($ecc-color-primary, 0.1);
+    }
+    &.ecc-intent--accent {
+        background-color: rgba($ecc-color-accent, 0.1);
+    }
     &.ecc-intent--success {
         background-color: $ecc-color-success-background;
     }
@@ -36,6 +42,12 @@ $ecc-size-card-spacing: $ecc-size-typo-base !default;
 .ecc-card__title {
     font-weight: normal;
 
+    &.ecc-intent--primary {
+        color: $ecc-color-primary;
+    }
+    &.ecc-intent--accent {
+        color: $ecc-color-accent;
+    }
     &.ecc-intent--success {
         color: $ecc-color-success-text;
     }

@@ -5,11 +5,12 @@ function OverviewItem({
     className = '',
     densityHigh = false,
     hasSpacing = false,
-    ...restProps
+    ...otherProps
 }: any) {
-    return (
+
+    const item = (
         <div
-            {...restProps}
+            {...otherProps}
             className={
                 'ecc-overviewitem__item ' +
                 (densityHigh ? 'ecc-overviewitem__item--highdensity ' : '') +
@@ -19,7 +20,26 @@ function OverviewItem({
         >
             {children}
         </div>
-    )
+    );
+
+    let accessibilityParameters = {};
+    if (
+        typeof otherProps.onClick !== 'undefined' ||
+        typeof otherProps.onKeyDown !== 'undefined'
+    ) {
+        accessibilityParameters['tabIndex'] = 0;
+    }
+    if (
+        typeof otherProps.onClick !== 'undefined' &&
+        typeof otherProps.onKeyDown !== 'undefined'
+    ) {
+        accessibilityParameters['role'] = "button";
+    }
+
+    return React.cloneElement(
+            item,
+            accessibilityParameters
+    );
 }
 
 export default OverviewItem;
