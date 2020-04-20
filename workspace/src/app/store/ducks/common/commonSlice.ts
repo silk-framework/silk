@@ -40,11 +40,11 @@ const rootReducers = {
 const artefactModalReducers = {
     closeArtefactModal(state) {
         state.artefactModal.isOpen = false;
-        state.artefactModal.selectedArtefact = null;
+        state.artefactModal.selectedArtefact = {};
     },
     selectArtefact(state, action) {
         state.artefactModal.isOpen = true;
-        state.artefactModal.selectedArtefact = action.payload
+        state.artefactModal.selectedArtefact = action.payload || {};
     },
     fetchArtefactsList(state) {
         state.artefactModal.artefactsList = [];
@@ -57,8 +57,8 @@ const artefactModalReducers = {
         state.artefactModal.isOpen = true;
     },
     setCachedArtefactProperty(state, action) {
-        const selectedArtefactKey = state.artefactModal.selectedArtefact.key;
-        state.artefactModal.cachedArtefactProperties[selectedArtefactKey] = action.payload;
+        const {key} = state.artefactModal.selectedArtefact;
+        state.artefactModal.cachedArtefactProperties[key] = action.payload;
     },
     setArtefactLoading(state, action) {
         state.artefactModal.loading = action.payload;

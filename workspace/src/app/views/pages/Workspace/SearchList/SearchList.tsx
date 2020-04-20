@@ -114,7 +114,7 @@ export function SearchList() {
     };
 
     const isEmpty = !isLoading && !data.length;
-console.log(appliedFilters);
+
     return (
         <>
             <AppliedFacets/>

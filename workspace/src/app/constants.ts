@@ -10,7 +10,6 @@ export const HOST = DI.publicBaseUrl
 
 export const isDevelopment = process.env.NODE_ENV !== 'production';
 export const API_ENDPOINT =  process.env.API_ENDPOINT;
-
 export const AUTH_ENDPOINT = HOST + '/oauth/authorize';
 
 export const CLIENT_ID = 'eldsClient';

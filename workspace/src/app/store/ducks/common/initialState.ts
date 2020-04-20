@@ -1,11 +1,11 @@
-import { IArtefactModal, ICommonState } from "./typings";
+import { IArtefactItem, IArtefactModal, ICommonState } from "./typings";
 import { getLocale } from "./thunks/locale.thunk";
 
 export function initialArtefactModalState(): IArtefactModal {
     return {
         isOpen: false,
         artefactsList: [],
-        selectedArtefact: null,
+        selectedArtefact: {} as IArtefactItem,
         cachedArtefactProperties: {},
         selectedDType: 'all',
         loading: false,

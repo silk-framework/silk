@@ -43,9 +43,9 @@ export interface IDetailedArtefactItem {
 
 export interface IArtefactItem {
     key: string;
-    title: string;
-    description: string;
-    categories: string[];
+    title?: string;
+    description?: string;
+    categories?: string[];
 }
 
 export interface IArtefactModal {
