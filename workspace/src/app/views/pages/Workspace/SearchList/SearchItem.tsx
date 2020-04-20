@@ -100,7 +100,7 @@ export default function SearchItem({
 
         dispatch(routerOp.goToPage(detailsPath, true));
     };
-console.log(item);
+
 return (
     <Card isOnlyLayout>
         <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined}>
