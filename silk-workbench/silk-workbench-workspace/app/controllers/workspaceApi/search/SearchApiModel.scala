@@ -1,6 +1,7 @@
 package controllers.workspaceApi.search
 
 import config.WorkbenchConfig
+import controllers.util.TextSearchUtils
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
@@ -15,7 +16,6 @@ import play.api.libs.json._
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.util.{Failure, Success, Try}
 
 /**
   * Data structures used for handling search requests
@@ -159,11 +159,6 @@ object SearchApiModel {
       idMatch || labelMatch || descriptionMatch || propertiesMatch
     }
 
-    /** Split text query into multi term search */
-    protected def extractSearchTerms(term: String): Array[String] = {
-      term.toLowerCase.split("\\s+").filter(_.nonEmpty)
-    }
-
     /** Match search terms against project. */
     protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], project: Project): Boolean = {
       val idMatch = matchesSearchTerm(lowerCaseSearchTerms, project.config.id)
@@ -172,10 +167,12 @@ object SearchApiModel {
       idMatch || labelMatch || descriptionMatch
     }
 
-    /** Match search terms against string. Returns only true if all search terms match at least one of the provided strings. */
+    protected def extractSearchTerms(term: String): Array[String] = {
+      TextSearchUtils.extractSearchTerms(term)
+    }
+
     protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], searchIn: String*): Boolean = {
-      val lowerCaseTexts = searchIn.map(_.toLowerCase)
-      lowerCaseSearchTerms forall (searchTerm => lowerCaseTexts.exists(_.contains(searchTerm)))
+      matchesSearchTerm(lowerCaseSearchTerms, searchIn :_*)
     }
   }
 

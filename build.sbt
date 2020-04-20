@@ -260,7 +260,7 @@ lazy val reactComponents = (project in file("silk-react-components"))
 lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
   .enablePlugins(PlayScala)
   .enablePlugins(BuildInfoPlugin)
-  .dependsOn(workspace, workspace % "test -> test", core % "test->test", serializationJson, reactComponents, pluginsXml % "test->compile")
+  .dependsOn(workspace, workspace % "test -> test", core % "test->test", serializationJson, reactComponents, pluginsXml % "test->compile", pluginsRdf % "test->compile")
   .aggregate(workspace, reactComponents)
   .settings(commonSettings: _*)
   .settings(

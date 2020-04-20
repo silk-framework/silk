@@ -2,13 +2,16 @@ package controllers.core
 
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.rule.input.Transformer
+import org.silkframework.config.CustomTask
+import org.silkframework.entity.EntitySchema
+import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
+import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginParameterAutoCompletionProvider, PluginRegistry}
+import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginDescription, PluginParameterAutoCompletionProvider, PluginRegistry}
 import org.silkframework.serialization.json.{PluginParameterJsonPayload, PluginSerializers}
 import org.silkframework.workspace.WorkspaceReadTrait
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsObject, JsValue, Json}
 
 class PluginApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers {
   behavior of "Plugin API"
@@ -39,17 +42,47 @@ class PluginApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers
     autoComplete.get.allowOnlyAutoCompletedValues mustBe true
     autoComplete.get.autoCompletionDependsOnParameters mustBe Seq("otherParam")
   }
+
+  it should "return the correct plugins for the task plugins endpoint" in {
+    val jsonResult = checkResponse(client.url(s"$baseUrl/api/core/taskPlugins").get()).json
+    jsonResult.as[JsObject].keys must contain allOf("transform", "linking", "workflow", "csv", "sparqlSelectOperator")
+  }
+
+  it should "return all plugins of a specific category" in {
+    val transformPd = PluginDescription(classOf[TransformSpec])
+    val sparqlSelectPd = PluginDescription(classOf[SparqlSelectCustomTask])
+    val categoryOnlyInTransform = transformPd.categories.diff(sparqlSelectPd.categories)
+    categoryOnlyInTransform must not be empty
+    val jsonResult = checkResponse(client.url(s"$baseUrl/api/core/taskPlugins?category=${categoryOnlyInTransform.head}").get()).json
+    val pluginIds = jsonResult.as[JsObject].keys
+    pluginIds must contain (transformPd.id.toString)
+    pluginIds must not contain (sparqlSelectPd.id.toString)
+  }
+
+  it should "filter all plugins by text query" in {
+    // in label
+    checkResponse(client.url(s"$baseUrl/api/core/taskPlugins?textQuery=dummy+test").get()).
+        json.as[JsObject].keys mustBe Set("autoCompletableTestPlugin")
+    // in description
+    checkResponse(client.url(s"$baseUrl/api/core/taskPlugins?textQuery=unique+string+description").get()).
+        json.as[JsObject].keys mustBe Set("autoCompletableTestPlugin")
+    // In mix of label and description
+    checkResponse(client.url(s"$baseUrl/api/core/taskPlugins?textQuery=unique+dummy").get()).
+        json.as[JsObject].keys mustBe Set("autoCompletableTestPlugin")
+  }
 }
 
 @Plugin(
   id = "autoCompletableTestPlugin",
-  label = "Test dummy auto completable plugin"
+  label = "Test dummy auto completable plugin",
+  description = "Some unique description string"
 )
 case class AutoCompletableTestPlugin(@Param(value = "Some param", autoCompletionProvider = classOf[TestAutoCompletionProvider],
                                             autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true, autoCompletionDependsOnParameters = Array("otherParam"))
                                      completableParam: String,
-                                     otherParam: String) extends Transformer {
-  override def apply(values: Seq[Seq[String]]): Seq[String] = Seq.empty
+                                     otherParam: String) extends CustomTask {
+  override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
+  override def outputSchemaOpt: Option[EntitySchema] = None
 }
 
 case class TestAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {

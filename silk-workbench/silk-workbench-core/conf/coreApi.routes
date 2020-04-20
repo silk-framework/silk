@@ -1,2 +1,2 @@
-GET        /taskPlugins              controllers.workspaceApi.coreApi.PluginApi.taskPlugins(addMarkdownDocumentation: Boolean ?= false)
+GET        /taskPlugins              controllers.workspaceApi.coreApi.PluginApi.taskPlugins(addMarkdownDocumentation: Boolean ?= false, textQuery: Option[String] ?= None, category: Option[String] ?= None)
 GET        /plugins/:pluginId        controllers.workspaceApi.coreApi.PluginApi.plugin(pluginId: String, addMarkdownDocumentation: Boolean ?= false, pretty: Boolean ?= false)
