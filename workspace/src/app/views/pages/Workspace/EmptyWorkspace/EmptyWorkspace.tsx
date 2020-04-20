@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Card, CardActions, CardContent, CardHeader, CardTitle } from '@wrappers/index';
 import { useDispatch } from "react-redux";
-import { globalOp } from "@ducks/global";
+import { globalOp } from "@ducks/common";
 
 export const EmptyWorkspace = () => {
     const dispatch = useDispatch();

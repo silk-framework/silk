@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect } from "react";
-import { globalOp, globalSel } from "@ducks/global";
+import { globalOp, globalSel } from "@ducks/common";
 import { useDispatch, useSelector } from "react-redux";
 import Filterbar from "../Workspace/Filterbar";
 import Metadata from "../../shared/Metadata";

@@ -2,7 +2,7 @@ import { workspaceSel } from "@ducks/workspace";
 import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
 import fetch from "../../../../services/fetch";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
-import { globalSel } from "@ducks/global";
+import { globalSel } from "@ducks/common";
 
 const {setFiles, setWidgetError, toggleWidgetLoading} = widgetsSlice.actions;
 

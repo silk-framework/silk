@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { FormGroup } from "@blueprintjs/core";
-import { IArtefactItem, IArtefactItemProperty } from "@ducks/global/typings";
+import { IDetailedArtefactItem } from "@ducks/common/typings";
 import { Intent } from "@wrappers/blueprint/constants";
 import { INPUT_VALID_TYPES } from "../../../../../constants";
 import { InputMapper } from "./InputMapper";
@@ -8,7 +8,7 @@ import { InputMapper } from "./InputMapper";
 export interface IProps {
     form: any;
 
-    artefact: IArtefactItem;
+    artefact: IDetailedArtefactItem;
 
     projectId: string;
 }

@@ -1,7 +1,7 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { globalSel } from "@ducks/global";
+import { globalSel } from "@ducks/common";
 import {
     Spacing,
     TitleSubsection,

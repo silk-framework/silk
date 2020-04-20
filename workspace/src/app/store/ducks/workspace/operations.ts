@@ -18,7 +18,7 @@ import {
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
 import { checkIfResourceExistsAsync, fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
-import { globalSel } from "@ducks/global";
+import { globalSel } from "@ducks/common";
 
 const {
     updateResultTotal,

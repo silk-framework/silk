@@ -3,7 +3,7 @@ import { IntlProvider, addLocaleData } from 'react-intl';
 import locale_de from 'react-intl/locale-data/de';
 import messages_de from '../translations/de.json';
 import { connect } from "react-redux";
-import { globalSel } from "./store/ducks/global";
+import { globalSel } from "./store/ducks/common";
 
 addLocaleData([...locale_de ]);
 
@@ -17,7 +17,7 @@ interface IProps {
 }
 
 const mapStateToProps = (state) => ({
-    locale: globalSel.globalSelector(state).locale
+    locale: globalSel.commonSelector(state).locale
 });
 
 class LanguageContainer extends Component<IProps, {}> {

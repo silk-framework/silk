@@ -1,7 +1,7 @@
 import React from 'react';
 import { TitleSubsection } from "@wrappers/index";
 import { useSelector } from "react-redux";
-import { globalSel } from "@ducks/global";
+import { globalSel } from "@ducks/common";
 
 function ArtefactTypesList({ onSelect }) {
     const {selectedDType} = useSelector(globalSel.artefactModalSelector);

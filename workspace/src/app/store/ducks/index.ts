@@ -1,4 +1,4 @@
-export * from './global';
+export * from './common';
 export * from './workspace';
 export * from './dataset';
 export * from './router';

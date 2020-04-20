@@ -3,7 +3,7 @@ import fetch from "../../../../services/fetch";
 import { workspaceSel } from "@ducks/workspace";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { batch } from "react-redux";
-import { globalSel } from "@ducks/global";
+import { globalSel } from "@ducks/common";
 
 const {setPrefixes, resetNewPrefix, toggleWidgetLoading, setWidgetError} = widgetsSlice.actions;
 

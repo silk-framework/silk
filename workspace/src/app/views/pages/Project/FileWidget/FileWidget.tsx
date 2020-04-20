@@ -12,7 +12,7 @@ import {
 import Loading from "../../../shared/Loading";
 import FileUploadModal from "../../../shared/modals/FileUploadModal";
 import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
-import { globalSel } from "@ducks/global";
+import { globalSel } from "@ducks/common";
 import { EmptyFileWidget } from "./EmptyFileWidget";
 
 const {

@@ -10,41 +10,45 @@ import {
     TitleSubsection,
     SimpleDialog,
 } from "@wrappers/index";
-import { globalOp, globalSel } from "@ducks/global";
-import { IArtefactItem } from "@ducks/global/typings";
+import { globalOp, globalSel } from "@ducks/common";
+import { IArtefactItem, IDetailedArtefactItem } from "@ducks/common/typings";
 import Loading from "../../Loading";
 import { SearchBar } from "../../SearchBar/SearchBar";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
 import { TaskForm } from "./ArtefactForms/TaskForm";
 import ArtefactTypesList from "./ArtefactTypesList";
 
-const ARTEFACT_FORM_COMPONENTS_MAP = {
-    project: ProjectForm
-};
+const PROJECT_KEY = 'project';
+
+type TSelectedArtefact = IArtefactItem | typeof PROJECT_KEY;
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
     const form = useForm();
 
-
     const modalStore = useSelector(globalSel.artefactModalSelector);
     const projectId = useSelector(globalSel.currentProjectIdSelector);
 
-    const {selectedArtefact, isOpen, artefactsList} = modalStore;
+    const {selectedArtefact, isOpen, artefactsList, cachedArtefactProperties, loading} = modalStore;
 
-    const [loading, setLoading] = useState<boolean>(false);
-    const [selected, setSelected] = useState<IArtefactItem>(selectedArtefact);
+    // initially take from redux
+    const [selected, setSelected] = useState<TSelectedArtefact>(selectedArtefact);
 
     const handleAdd = () => {
-        dispatch(globalOp.selectArtefact(selected))
+        if (selected === PROJECT_KEY) {
+            return dispatch(globalOp.selectArtefact({
+                key: PROJECT_KEY
+            }));
+        }
+        dispatch(globalOp.getArtefactPropertiesAsync(selected as IArtefactItem))
     };
 
-    const handleArtefactSelect = (artefact: IArtefactItem) => {
-        setSelected(artefact)
+    const handleArtefactSelect = (artefact: TSelectedArtefact) => {
+        setSelected(artefact);
     };
 
     const handleBack = () => {
-        setSelected(null);
+        resetModal();
         dispatch(globalOp.selectArtefact(null));
     };
 
@@ -60,7 +64,7 @@ export function CreateArtefactModal() {
 
     const closeModal = () => {
         dispatch(globalOp.closeArtefactModal());
-        form.clearError();
+        resetModal();
     };
 
     const isErrorPresented = () => !!Object.keys(form.errors).length;
@@ -69,20 +73,25 @@ export function CreateArtefactModal() {
         dispatch(globalOp.setSelectedArtefactDType(value));
     };
 
-    const _TEMP_handleProjectSelect = () => {
-        handleArtefactSelect({
-            key: 'project'
-        } as IArtefactItem);
+    const resetModal = () => {
+        setSelected(null);
+        form.clearError();
     };
 
     let artefactForm = null;
+
+
     if (modalStore.selectedArtefact) {
         const {key} = modalStore.selectedArtefact;
-        const ComponentForm = ARTEFACT_FORM_COMPONENTS_MAP[key];
+        if (key === PROJECT_KEY) {
+            artefactForm = <ProjectForm form={form}/>
+        } else {
+            const detailedArtefact = cachedArtefactProperties[key];
+            artefactForm = projectId
+                ? <TaskForm form={form} artefact={detailedArtefact} projectId={projectId}/>
+                : null;
+        }
 
-        artefactForm = projectId && !ComponentForm
-            ? <TaskForm form={form} artefact={selected} projectId={projectId}/>
-            : <ComponentForm form={form}/>
     }
 
     return (
@@ -134,7 +143,7 @@ export function CreateArtefactModal() {
                                                 <Grid>
                                                     <GridRow>
                                                         <GridColumn>
-                                                            <Button onClick={_TEMP_handleProjectSelect}>
+                                                            <Button onClick={() => handleArtefactSelect(PROJECT_KEY)}>
                                                                 Project
                                                             </Button>
                                                         </GridColumn>

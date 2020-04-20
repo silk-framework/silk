@@ -12,7 +12,7 @@ import { DATA_TYPES } from "../../../../constants";
 import AppliedFacets from "../AppliedFacets";
 import SearchItem from "./SearchItem";
 import EmptyList from "./EmptyList";
-import { globalOp } from "@ducks/global";
+import { globalOp } from "@ducks/common";
 
 export function SearchList() {
 

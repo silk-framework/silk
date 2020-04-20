@@ -12,7 +12,7 @@ import {
 } from "@wrappers/index";
 import MarkdownModal from "../../../shared/modals/MarkdownModal";
 import { AppToaster } from "../../../../services/toaster";
-import { globalSel } from "@ducks/global";
+import { globalSel } from "@ducks/common";
 import Loading from "../../../shared/Loading";
 
 export const WarningWidget = () => {
