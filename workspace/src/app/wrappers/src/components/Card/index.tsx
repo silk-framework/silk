@@ -4,6 +4,7 @@ import CardTitle from './CardTitle';
 import CardOptions from './CardOptions';
 import CardContent from './CardContent';
 import CardActions from './CardActions';
+import CardActionsAux from './CardActionsAux';
 
 export {
     Card,
@@ -12,4 +13,5 @@ export {
     CardOptions,
     CardContent,
     CardActions,
+    CardActionsAux,
 };

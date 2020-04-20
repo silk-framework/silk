@@ -62,6 +62,7 @@ import {
     CardOptions,
     CardContent,
     CardActions,
+    CardActionsAux,
 } from './src/components/Card';
 
 import Spacing from './src/components/Separation/Spacing';
@@ -140,6 +141,7 @@ export {
     CardOptions,
     CardContent,
     CardActions,
+    CardActionsAux,
 
     Spacing,
     Divider,
