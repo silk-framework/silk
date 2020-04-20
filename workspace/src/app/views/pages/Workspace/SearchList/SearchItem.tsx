@@ -100,16 +100,16 @@ export default function SearchItem({
 
         dispatch(routerOp.goToPage(detailsPath, true));
     };
-
+console.log(item);
 return (
     <Card isOnlyLayout>
         <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined}>
             <OverviewItemDepiction>
-                <Icon name='artefact-project' large/>
+                <Icon name={'artefact-' + item.type} large/>
             </OverviewItemDepiction>
             <OverviewItemDescription>
                 <OverviewItemLine>
-                    <p dangerouslySetInnerHTML={{
+                    <h4 dangerouslySetInnerHTML={{
                         __html: getSearchHighlight(item.label || item.id)
                     }}/>
                 </OverviewItemLine>
