@@ -1,5 +1,5 @@
 import { workspaceSel } from "@ducks/workspace";
-import { getLegacyApiEndpoint } from "../../../../utils/getApiEndpoint";
+import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
 import fetch from "../../../../services/fetch";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { globalSel } from "@ducks/global";
@@ -18,7 +18,7 @@ const setError = e => dispatch => dispatch(setWidgetError({
 export const fetchResourcesListAsync = () => {
     return async (dispatch, getState) => {
         const projectId = globalSel.currentProjectIdSelector(getState());
-        const url = getLegacyApiEndpoint(`/projects/${projectId}/resources`);
+        const url = legacyApiEndpoint(`/projects/${projectId}/resources`);
         try {
             dispatch(toggleLoading());
             const {data} = await fetch({url});
@@ -32,7 +32,7 @@ export const fetchResourcesListAsync = () => {
 };
 
 export const checkIfResourceExistsAsync = async (resourceName: string, projectId: string) => {
-        const url = getLegacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/metadata`);
+        const url = legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/metadata`);
         try {
             const {data} = await fetch({url});
             return !!data.size;

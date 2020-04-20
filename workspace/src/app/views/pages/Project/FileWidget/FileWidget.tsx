@@ -11,7 +11,7 @@ import {
 } from "@wrappers/index";
 import Loading from "../../../shared/Loading";
 import FileUploadModal from "../../../shared/modals/FileUploadModal";
-import { getLegacyApiEndpoint } from "../../../../utils/getApiEndpoint";
+import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
 import { globalSel } from "@ducks/global";
 import { EmptyFileWidget } from "./EmptyFileWidget";
 
@@ -118,7 +118,7 @@ export const FileWidget = () => {
             <FileUploadModal
                 isOpen={isOpenDialog}
                 onDiscard={toggleFileUploader}
-                uploadUrl={getLegacyApiEndpoint(`/projects/${projectId}/resources`)}
+                uploadUrl={legacyApiEndpoint(`/projects/${projectId}/resources`)}
                 onCheckFileExists={isResourceExists}
             />
         </>

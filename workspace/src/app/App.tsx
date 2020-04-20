@@ -24,6 +24,7 @@ export default function App({externalRoutes, routes}: IProps) {
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(globalOp.fetchCommonSettingsAsync());
+        dispatch(globalOp.fetchArtefactsListAsync());
     }, []);
 
     return (

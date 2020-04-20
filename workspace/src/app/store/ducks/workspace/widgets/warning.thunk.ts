@@ -1,5 +1,5 @@
 import { workspaceSel } from "@ducks/workspace";
-import { getApiEndpoint } from "../../../../utils/getApiEndpoint";
+import { workspaceApi } from "../../../../utils/getApiEndpoint";
 import fetch from "../../../../services/fetch";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { globalSel } from "@ducks/global";
@@ -18,7 +18,7 @@ const setError = e => dispatch => dispatch(setWidgetError({
 export const fetchWarningListAsync = () => {
     return async (dispatch, getState) => {
         const projectId = globalSel.currentProjectIdSelector(getState());
-        const url = getApiEndpoint(`/projects/${projectId}/failedTasksReport`);
+        const url = workspaceApi(`/projects/${projectId}/failedTasksReport`);
         dispatch(toggleLoading());
         try {
             const {data} = await fetch({url});
@@ -32,7 +32,7 @@ export const fetchWarningListAsync = () => {
 };
 
 export const fetchWarningMarkdownAsync = async (projectId: string, taskId: string) => {
-    const url = getApiEndpoint(`/projects/${projectId}/failedTasksReport/${taskId}`);
+    const url = workspaceApi(`/projects/${projectId}/failedTasksReport/${taskId}`);
     try {
         const {data} = await fetch({
             url,

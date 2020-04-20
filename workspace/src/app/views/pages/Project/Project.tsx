@@ -32,7 +32,6 @@ const Project = ({projectId}) => {
     useEffect(() => {
         // Fetch the list of projects
         dispatch(globalOp.setProjectId(projectId));
-        dispatch(globalOp.fetchArtefactsListAsync());
     }, []);
 
     return (

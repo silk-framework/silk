@@ -2,10 +2,10 @@ import { authorize, getTokenFromStore, isAuthenticated, logout } from "./thunks/
 import { changeLocale } from "./thunks/locale.thunk";
 import { globalSlice } from "@ducks/global/globalSlice";
 import { batch } from "react-redux";
-import { getApiEndpoint, getRootEndpoint } from "../../../utils/getApiEndpoint";
+import { workspaceApi, coreApi } from "../../../utils/getApiEndpoint";
 import fetch from '../../../services/fetch';
 import asModifier from "../../../utils/asModifier";
-import { globalOp, globalSel } from "@ducks/global/index";
+import { globalSel } from "@ducks/global/index";
 import { workspaceOp } from "@ducks/workspace";
 
 const {
@@ -18,7 +18,7 @@ const fetchCommonSettingsAsync = () => {
     return async dispatch => {
         try {
             const {data} = await fetch({
-                url: getApiEndpoint('/initFrontend'),
+                url: workspaceApi('/initFrontend'),
             });
             setInitialSettings(data);
         } catch (e) {
@@ -39,7 +39,7 @@ const fetchAvailableDTypesAsync = (id?: string) => {
             const url = id ? `/searchConfig/types?projectId=${id}` : `/searchConfig/types`;
 
             const {data} = await fetch({
-                url: getApiEndpoint(url),
+                url: workspaceApi(url),
             });
             const validModifier = asModifier(data.label, 'itemType', data.values);
             batch(() => {
@@ -58,9 +58,8 @@ const fetchArtefactsListAsync = () => {
     return async dispatch => {
         dispatch(fetchArtefactsList());
         try {
-            // @FIXME: Replace with correct plugins list
             const {data} = await fetch({
-                url: getRootEndpoint('/core/plugins/org.silkframework.dataset.Dataset')
+                url: coreApi('/taskPlugins')
             });
             const result = Object.keys(data).map(key => ({
                 key,
