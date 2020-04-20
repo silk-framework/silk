@@ -5,10 +5,10 @@ import { Button, OverviewItemList } from '@wrappers/index'
 export function Datalist({
     children,
     isLoading = false,
-    isEmpty,
-    emptyContainer,
+    isEmpty = false,
+    emptyContainer = null,
     ...otherProps
-}: any) {
+}) {
     if (isLoading) {
         return <Spinner/>;
     } else if (isEmpty) {

@@ -22,7 +22,15 @@ export function SearchBar({textQuery = '', sorters, onSort, onApplyFilters}: IPr
     }, [textQuery]);
 
     const handleSearchChange = (e) => {
-        setSearchInput(e.target.value);
+        // when input is empty then apply filter
+        if (e.target.value === '' && searchInput) {
+            setSearchInput('');
+            onApplyFilters({
+                textQuery: ''
+            });
+        } else {
+            setSearchInput(e.target.value);
+        }
     };
 
     const handleSearchEnter = () => {
