@@ -15,6 +15,7 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     Card,
+    CardActionsAux,
     Icon,
     HelperClasses,
 } from "@wrappers/index";
@@ -111,7 +112,9 @@ export function CreateArtefactModal() {
                         Create
                     </Button>,
                     <Button key='cancel' onClick={closeModal}>Cancel</Button>,
-                    <Button key='back' onClick={handleBack}>Back</Button>
+                    <CardActionsAux key='aux'>
+                        <Button key='back' onClick={handleBack}>Back</Button>
+                    </CardActionsAux>
                 ] : [
                     <Button
                         key='add'

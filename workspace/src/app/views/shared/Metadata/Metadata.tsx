@@ -12,6 +12,7 @@ import {
     MenuItem,
     Button,
     Divider,
+    CardActionsAux,
 } from "@wrappers/index";
 import { IMetadata } from "@ducks/shared/thunks/metadata.thunk";
 import { Loading } from "../Loading/Loading";
@@ -59,9 +60,12 @@ export function Metadata({projectId = null, taskId}) {
                     </CardContent>
                     {!loading && <>
                         <Divider/>
-                        <CardActions inverseDirection>
+                        <CardActions>
                             <Button text="Remove me" disruptive/>
                             <Button text="Dummy"/>
+                            <CardActionsAux>
+                                <Button text="Auxiliary action" minimal />
+                            </CardActionsAux>
                         </CardActions>
                     </>}
                 </Card>
