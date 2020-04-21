@@ -3024,7 +3024,7 @@ caseless@~0.12.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/caseless/-/caseless-0.12.0.tgz#1b681c21ff84033c826543090689420d187151dc"
   integrity sha1-G2gcIf+EAzyCZUMJBolCDRhxUdw=
 
-chalk@2.4.2, chalk@^2.0.0, chalk@^2.0.1, chalk@^2.1.0, chalk@^2.3.2, chalk@^2.4.1, chalk@^2.4.2:
+chalk@2.4.2, chalk@^2.0.0, chalk@^2.0.1, chalk@^2.1.0, chalk@^2.4.1, chalk@^2.4.2:
   version "2.4.2"
   resolved "https://artifactory.eccenca.com/api/npm/npm/chalk/-/chalk-2.4.2.tgz#cd42541677a54333cf541a49108c1432b44c9424"
   integrity sha1-zUJUFnelQzPPVBpJEIwUMrRMlCQ=
@@ -6053,36 +6053,12 @@ interpret@1.2.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/interpret/-/interpret-1.2.0.tgz#d5061a6224be58e8083985f5014d844359576296"
   integrity sha1-1QYaYiS+WOgIOYX1AU2EQ1lXYpY=
 
-intl-format-cache@^2.0.5:
-  version "2.2.9"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/intl-format-cache/-/intl-format-cache-2.2.9.tgz#fb560de20c549cda20b569cf1ffb6dc62b5b93b4"
-  integrity sha1-+1YN4gxUnNogtWnPH/ttxitbk7Q=
-
-intl-messageformat-parser@1.4.0:
-  version "1.4.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/intl-messageformat-parser/-/intl-messageformat-parser-1.4.0.tgz#b43d45a97468cadbe44331d74bb1e8dea44fc075"
-  integrity sha1-tD1FqXRoytvkQzHXS7Ho3qRPwHU=
-
 intl-messageformat-parser@^1.8.1:
   version "1.8.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/intl-messageformat-parser/-/intl-messageformat-parser-1.8.1.tgz#0eb14c5618333be4c95c409457b66c8c33ddcc01"
   integrity sha1-DrFMVhgzO+TJXECUV7ZsjDPdzAE=
 
-intl-messageformat@^2.0.0, intl-messageformat@^2.1.0:
-  version "2.2.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/intl-messageformat/-/intl-messageformat-2.2.0.tgz#345bcd46de630b7683330c2e52177ff5eab484fc"
-  integrity sha1-NFvNRt5jC3aDMwwuUhd/9eq0hPw=
-  dependencies:
-    intl-messageformat-parser "1.4.0"
-
-intl-relativeformat@^2.1.0:
-  version "2.2.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/intl-relativeformat/-/intl-relativeformat-2.2.0.tgz#6aca95d019ec8d30b6c5653b6629f9983ea5b6c5"
-  integrity sha1-asqV0BnsjTC2xWU7Zin5mD6ltsU=
-  dependencies:
-    intl-messageformat "^2.0.0"
-
-invariant@^2.1.0, invariant@^2.1.1, invariant@^2.2.2, invariant@^2.2.3, invariant@^2.2.4:
+invariant@^2.1.0, invariant@^2.2.2, invariant@^2.2.3, invariant@^2.2.4:
   version "2.2.4"
   resolved "https://artifactory.eccenca.com/api/npm/npm/invariant/-/invariant-2.2.4.tgz#610f3c92c9359ce1db616e538008d23ff35158e6"
   integrity sha1-YQ88ksk1nOHbYW5TgAjSP/NRWOY=
@@ -9850,27 +9826,6 @@ react-i18next@^11.3.5:
   dependencies:
     "@babel/runtime" "^7.3.1"
     html-parse-stringify2 "2.0.1"
-
-react-intl-translations-manager@^5.0.3:
-  version "5.0.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/react-intl-translations-manager/-/react-intl-translations-manager-5.0.3.tgz#aee010ecf35975673e033ca5d7d3f4147894324d"
-  integrity sha1-ruAQ7PNZdWc+Azyl19P0FHiUMk0=
-  dependencies:
-    chalk "^2.3.2"
-    glob "^7.1.2"
-    json-stable-stringify "^1.0.1"
-    mkdirp "^0.5.1"
-
-react-intl@^2.8.0:
-  version "2.9.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/react-intl/-/react-intl-2.9.0.tgz#c97c5d17d4718f1575fdbd5a769f96018a3b1843"
-  integrity sha1-yXxdF9RxjxV1/b1adp+WAYo7GEM=
-  dependencies:
-    hoist-non-react-statics "^3.3.0"
-    intl-format-cache "^2.0.5"
-    intl-messageformat "^2.1.0"
-    intl-relativeformat "^2.1.0"
-    invariant "^2.1.1"
 
 react-is@^16.10.2, react-is@^16.6.0, react-is@^16.7.0, react-is@^16.8.1, react-is@^16.8.4, react-is@^16.8.6, react-is@^16.9.0:
   version "16.12.0"
