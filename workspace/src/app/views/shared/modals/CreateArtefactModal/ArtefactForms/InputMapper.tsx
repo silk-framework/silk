@@ -1,5 +1,5 @@
 import React from "react";
-import { IArtefactItemProperty, IPropertyAutocomplete } from "@ducks/global/typings";
+import { IArtefactItemProperty, IPropertyAutocomplete } from "@ducks/common/typings";
 import { INPUT_VALID_TYPES } from "../../../../../constants";
 import { NumericInput, Switch } from "@wrappers/index";
 import { QueryEditor } from "../../../QueryEditor/QueryEditor";

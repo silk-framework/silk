@@ -28,7 +28,7 @@ export interface IArtefactItemProperty {
     autoCompletion?: IPropertyAutocomplete;
 }
 
-export interface IArtefactItem {
+export interface IDetailedArtefactItem {
     key: string;
     title: string;
     description: string;
@@ -38,16 +38,28 @@ export interface IArtefactItem {
         [key: string]: IArtefactItemProperty
     };
     required: string[];
+    pluginId: string;
+}
+
+export interface IArtefactItem {
+    key: string;
+    title?: string;
+    description?: string;
+    categories?: string[];
 }
 
 export interface IArtefactModal {
     isOpen: boolean;
+    loading: boolean;
     artefactsList: IArtefactItem[];
     selectedArtefact: IArtefactItem;
+    cachedArtefactProperties: {
+        [key: string]: IDetailedArtefactItem
+    }
     selectedDType: string;
 }
 
-export interface IGlobalState {
+export interface ICommonState {
     /**
      * Used in Project details page only and store the current selected project id
      * Received from router

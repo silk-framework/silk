@@ -95,9 +95,7 @@ export default function FacetsList() {
                                 )
                             }
                             {
-                                facet.values.length <= FACETS_PREVIEW_LIMIT
-                                ? null
-                                : <li>
+                                facet.values.length <= FACETS_PREVIEW_LIMIT && <li>
                                     <Button
                                         onClick={() => toggleShowMore(facet)}
                                         text={toggledFacets.includes(facet.id) ? 'show less' : 'show more'}

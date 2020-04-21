@@ -2,21 +2,21 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { sharedOp } from "@ducks/shared";
-import { globalOp } from "@ducks/global";
 import {
     Button,
     Icon,
     Spacing,
 } from "@wrappers/index";
-import Pagination from "../../../shared/Pagination";
-import DataList from "../../../shared/Datalist";
-import DeleteModal from "../../../shared/modals/DeleteModal";
-import Loading from "../../../shared/Loading";
-import CloneModal from "../../../shared/modals/CloneModal";
-import { DATA_TYPES } from "../../../../constants";
-import AppliedFacets from "../AppliedFacets";
+import Pagination from "../Pagination";
+import DataList from "../Datalist";
+import DeleteModal from "../modals/DeleteModal";
+import Loading from "../Loading";
+import CloneModal from "../modals/CloneModal";
+import { DATA_TYPES } from "../../../constants";
+import AppliedFacets from "../../pages/Workspace/AppliedFacets";
 import SearchItem from "./SearchItem";
 import EmptyList from "./EmptyList";
+import { globalOp } from "@ducks/common";
 
 export function SearchList() {
 
@@ -114,7 +114,7 @@ export function SearchList() {
     };
 
     const isEmpty = !isLoading && !data.length;
-console.log(appliedFilters);
+
     return (
         <>
             <AppliedFacets/>

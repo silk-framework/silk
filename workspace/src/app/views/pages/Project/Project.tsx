@@ -1,10 +1,10 @@
 import React, { useEffect, useLayoutEffect } from "react";
-import { globalOp, globalSel } from "@ducks/global";
+import { globalOp, globalSel } from "@ducks/common";
 import { useDispatch, useSelector } from "react-redux";
 import Filterbar from "../Workspace/Filterbar";
 import Metadata from "../../shared/Metadata";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import SearchList from "../Workspace/SearchList";
+import SearchList from "../../shared/SearchList";
 import ConfigurationWidget from "./ConfigWidget";
 import WarningWidget from "./WarningWidget";
 import FileWidget from "./FileWidget";
@@ -27,13 +27,23 @@ import { SearchBar } from "../../shared/SearchBar/SearchBar";
 
 const Project = ({projectId}) => {
     const dispatch = useDispatch();
+
     const currentProjectId = useSelector(globalSel.currentProjectIdSelector);
+    const {textQuery} = useSelector(workspaceSel.appliedFiltersSelector);
+    const sorters = useSelector(workspaceSel.sortersSelector);
 
     useEffect(() => {
         // Fetch the list of projects
         dispatch(globalOp.setProjectId(projectId));
-        dispatch(globalOp.fetchArtefactsListAsync());
     }, []);
+
+    const handleSort = (sortBy: string) => {
+        dispatch(workspaceOp.applySorterOp(sortBy));
+    };
+
+    const handleApplyFilter = (filters: any) => {
+        dispatch(workspaceOp.applyFiltersOp(filters));
+    };
 
     return (
         !currentProjectId ? <Loading /> :
@@ -51,7 +61,12 @@ const Project = ({projectId}) => {
                                     <TitleMainsection>Contents</TitleMainsection>
                                 </GridColumn>
                                 <GridColumn full>
-                                    <SearchBar onSort={() => {}} onApplyFilters={() => {}} />
+                                    <SearchBar
+                                        textQuery={textQuery}
+                                        sorters={sorters}
+                                        onSort={handleSort}
+                                        onApplyFilters={handleApplyFilter}
+                                    />
                                 </GridColumn>
                             </GridRow>
                         </Grid>

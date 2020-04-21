@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSelector } from "react-redux";
-import { globalSel } from "@ducks/global";
+import { globalSel } from "@ducks/common";
 import {
     TitleSubsection,
     Menu,

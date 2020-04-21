@@ -7,7 +7,7 @@ import { RouteProps } from "react-router";
 import { getHistory } from "./store/configureStore";
 import { ConnectedRouter } from "connected-react-router";
 
-import { globalOp } from "@ducks/global";
+import { globalOp } from "@ducks/common";
 import { useDispatch } from "react-redux";
 
 import {
@@ -24,6 +24,7 @@ export default function App({externalRoutes, routes}: IProps) {
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(globalOp.fetchCommonSettingsAsync());
+        dispatch(globalOp.fetchArtefactsListAsync());
     }, []);
 
     return (

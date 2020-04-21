@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from "react-redux";
-import { globalOp, globalSel } from "@ducks/global";
+import { globalOp, globalSel } from "@ducks/common";
 import {
     ApplicationHeader,
     ApplicationSidebarToggler,

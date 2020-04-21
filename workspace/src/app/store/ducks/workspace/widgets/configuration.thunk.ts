@@ -1,9 +1,9 @@
-import { getApiEndpoint } from "../../../../utils/getApiEndpoint";
+import { workspaceApi } from "../../../../utils/getApiEndpoint";
 import fetch from "../../../../services/fetch";
 import { workspaceSel } from "@ducks/workspace";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { batch } from "react-redux";
-import { globalSel } from "@ducks/global";
+import { globalSel } from "@ducks/common";
 
 const {setPrefixes, resetNewPrefix, toggleWidgetLoading, setWidgetError} = widgetsSlice.actions;
 
@@ -31,7 +31,7 @@ const setError = (e) => dispatch => dispatch(setWidgetError({
 export const fetchProjectPrefixesAsync = () => {
     return async (dispatch, getState) => {
         const projectId = globalSel.currentProjectIdSelector(getState());
-        const url = getApiEndpoint(`/projects/${projectId}/prefixes`);
+        const url = workspaceApi(`/projects/${projectId}/prefixes`);
         try {
             dispatch(toggleLoading());
             const {data} = await fetch({
@@ -49,7 +49,7 @@ export const fetchProjectPrefixesAsync = () => {
 export const fetchAddOrUpdatePrefixAsync = (prefixName: string, prefixUri: string) => {
     return async (dispatch, getState) => {
         const projectId = globalSel.currentProjectIdSelector(getState());
-        const url = getApiEndpoint(`/projects/${projectId}/prefixes/${prefixName}`);
+        const url = workspaceApi(`/projects/${projectId}/prefixes/${prefixName}`);
         try {
             dispatch(toggleLoading());
             const {data} = await fetch({
@@ -73,7 +73,7 @@ export const fetchAddOrUpdatePrefixAsync = (prefixName: string, prefixUri: strin
 export const fetchRemoveProjectPrefixAsync = (prefixName: string) => {
     return async (dispatch, getState) => {
         const projectId = globalSel.currentProjectIdSelector(getState());
-        const url = getApiEndpoint(`/projects/${projectId}/prefixes/${prefixName}`);
+        const url = workspaceApi(`/projects/${projectId}/prefixes/${prefixName}`);
         try {
             dispatch(toggleLoading());
 

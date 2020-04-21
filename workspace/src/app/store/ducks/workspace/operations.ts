@@ -5,7 +5,7 @@ import fetch from '../../../services/fetch';
 import selectors from "./selectors";
 import { filtersSlice } from "./filtersSlice";
 import { previewSlice } from "./previewSlice";
-import { getApiEndpoint, getLegacyApiEndpoint } from "../../../utils/getApiEndpoint";
+import { workspaceApi, legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { routerOp } from "@ducks/router";
 import { IFacetState } from "@ducks/workspace/typings";
 import { workspaceSel } from "@ducks/workspace";
@@ -18,7 +18,7 @@ import {
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
 import { checkIfResourceExistsAsync, fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
-import { globalSel } from "@ducks/global";
+import { globalSel } from "@ducks/common";
 
 const {
     updateResultTotal,
@@ -203,7 +203,7 @@ const fetchListAsync = () => {
 
         try {
             const res = await fetch({
-                url: getApiEndpoint('/searchItems'),
+                url: workspaceApi('/searchItems'),
                 method: 'post',
                 body
             });
@@ -237,9 +237,9 @@ const fetchRemoveTaskAsync = (itemId: string, parentId?: string) => {
         });
 
         try {
-            let url = getLegacyApiEndpoint(`/projects/${itemId}`);
+            let url = legacyApiEndpoint(`/projects/${itemId}`);
             if (parentId) {
-                url = getLegacyApiEndpoint(`/projects/${parentId}/tasks/${itemId}?removeDependentTasks=true`)
+                url = legacyApiEndpoint(`/projects/${parentId}/tasks/${itemId}?removeDependentTasks=true`)
             }
             await fetch({
                 url,
@@ -267,7 +267,7 @@ const fetchCloneTaskAsync = (taskId: string, projectId: string, taskNewId: strin
 
         try {
             await fetch({
-                url: getLegacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/clone?newTask=${taskNewId}`),
+                url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/clone?newTask=${taskNewId}`),
                 method: 'POST',
             });
             batch(() => {
@@ -308,7 +308,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string) => {
 
         try {
             const {data} = await fetch({
-                url: getLegacyApiEndpoint(`/projects/${currentProjectId}/tasks`),
+                url: legacyApiEndpoint(`/projects/${currentProjectId}/tasks`),
                 method: 'POST',
                 body: payload
             });
@@ -328,7 +328,7 @@ const fetchCreateProjectAsync = (formData: {
         const { label, description } = formData;
         try {
             const {data} = await fetch({
-                url: getApiEndpoint(`/projects`),
+                url: workspaceApi(`/projects`),
                 method: 'POST',
                 body: {
                     metaData: {

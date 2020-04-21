@@ -1,9 +1,9 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { IFiltersState, IPreviewState, IWidgetsState } from "./typings";
 import { IStore } from "../../typings/IStore";
-import { IGlobalState } from "@ducks/global/typings";
+import { ICommonState } from "@ducks/common/typings";
 
-const globalSelector = (state: IStore): IGlobalState => state.global;
+const commonSelector = (state: IStore): ICommonState => state.common;
 const filtersSelector = (state: IStore): IFiltersState => state.workspace.filters;
 const previewSelector = (state: IStore): IPreviewState => state.workspace.preview;
 const widgetsSelector = (state: IStore): IWidgetsState => state.workspace.widgets;
@@ -73,9 +73,9 @@ const newPrefixSelector = createSelector(
 );
 
 const isEmptyPageSelector = createSelector(
-    [isLoadingSelector, resultsSelector, globalSelector],
-    (isLoading, results, globalStore) =>
-        !isLoading && !results.length && globalStore.initialSettings.emptyWorkspace
+    [isLoadingSelector, resultsSelector, commonSelector],
+    (isLoading, results, commonStore) =>
+        !isLoading && !results.length && commonStore.initialSettings.emptyWorkspace
 );
 
 export default {

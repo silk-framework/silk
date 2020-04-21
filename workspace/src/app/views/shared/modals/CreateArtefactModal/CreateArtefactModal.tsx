@@ -19,41 +19,40 @@ import {
     Icon,
     HelperClasses,
 } from "@wrappers/index";
-import { globalOp, globalSel } from "@ducks/global";
-import { IArtefactItem } from "@ducks/global/typings";
+import { globalOp, globalSel } from "@ducks/common";
+import { IArtefactItem, IDetailedArtefactItem } from "@ducks/common/typings";
 import Loading from "../../Loading";
 import { SearchBar } from "../../SearchBar/SearchBar";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
 import { TaskForm } from "./ArtefactForms/TaskForm";
 import ArtefactTypesList from "./ArtefactTypesList";
-
-const ARTEFACT_FORM_COMPONENTS_MAP = {
-    project: ProjectForm
-};
+import { DATA_TYPES } from "../../../../constants";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
     const form = useForm();
 
-
     const modalStore = useSelector(globalSel.artefactModalSelector);
     const projectId = useSelector(globalSel.currentProjectIdSelector);
 
-    const {selectedArtefact, isOpen, artefactsList} = modalStore;
+    const {selectedArtefact, isOpen, artefactsList, cachedArtefactProperties, loading} = modalStore;
 
-    const [loading, setLoading] = useState<boolean>(false);
+    // initially take from redux
     const [selected, setSelected] = useState<IArtefactItem>(selectedArtefact);
 
     const handleAdd = () => {
-        dispatch(globalOp.selectArtefact(selected))
+        if (selected.key === DATA_TYPES.PROJECT) {
+            return dispatch(globalOp.selectArtefact(selected));
+        }
+        dispatch(globalOp.getArtefactPropertiesAsync(selected))
     };
 
     const handleArtefactSelect = (artefact: IArtefactItem) => {
-        setSelected(artefact)
+        setSelected(artefact);
     };
 
     const handleBack = () => {
-        setSelected(null);
+        resetModal();
         dispatch(globalOp.selectArtefact(null));
     };
 
@@ -69,7 +68,7 @@ export function CreateArtefactModal() {
 
     const closeModal = () => {
         dispatch(globalOp.closeArtefactModal());
-        form.clearError();
+        resetModal();
     };
 
     const isErrorPresented = () => !!Object.keys(form.errors).length;
@@ -78,31 +77,33 @@ export function CreateArtefactModal() {
         dispatch(globalOp.setSelectedArtefactDType(value));
     };
 
-    const _TEMP_handleProjectSelect = () => {
-        handleArtefactSelect({
-            key: 'project'
-        } as IArtefactItem);
+    const resetModal = () => {
+        setSelected({} as IArtefactItem);
+        form.clearError();
     };
 
     let artefactForm = null;
-    if (modalStore.selectedArtefact) {
-        const {key} = modalStore.selectedArtefact;
-        const ComponentForm = ARTEFACT_FORM_COMPONENTS_MAP[key];
+    if (selectedArtefact.key) {
+        if (selectedArtefact.key === DATA_TYPES.PROJECT) {
+            artefactForm = <ProjectForm form={form}/>
+        } else {
+            const detailedArtefact = cachedArtefactProperties[selectedArtefact.key];
+            artefactForm = projectId
+                ? <TaskForm form={form} artefact={detailedArtefact} projectId={projectId}/>
+                : null;
+        }
 
-        artefactForm = projectId && !ComponentForm
-            ? <TaskForm form={form} artefact={selected} projectId={projectId}/>
-            : <ComponentForm form={form}/>
     }
 
     return (
         <SimpleDialog
             size="large"
             hasBorder
-            title={`Create a new artefact${selectedArtefact ? `: ${selectedArtefact.title}` : ''}`}
+            title={`Create a new artefact${selectedArtefact.title || ''}`}
             onClose={closeModal}
             isOpen={isOpen}
             actions={
-                selectedArtefact ? [
+                selectedArtefact.key ? [
                     <Button
                         key='create'
                         affirmative={true}
@@ -146,12 +147,12 @@ export function CreateArtefactModal() {
                                                     <Card
                                                         isOnlyLayout
                                                         className={
-                                                            (selected && selected.key === 'project') ? HelperClasses.Intent.ACCENT : ''
+                                                            (selected.key === DATA_TYPES.PROJECT) ? HelperClasses.Intent.ACCENT : ''
                                                         }
                                                     >
                                                         <OverviewItem
                                                             hasSpacing
-                                                            onClick={_TEMP_handleProjectSelect}
+                                                            onClick={() => handleArtefactSelect({key: DATA_TYPES.PROJECT})}
                                                         >
                                                             <OverviewItemDepiction>
                                                                 <Icon name='artefact-project' large />
@@ -172,7 +173,7 @@ export function CreateArtefactModal() {
                                                                     isOnlyLayout
                                                                     key={artefact.key}
                                                                     className={
-                                                                        (selected && selected.key === artefact.key) ? HelperClasses.Intent.ACCENT : ''
+                                                                        (selected.key === artefact.key) ? HelperClasses.Intent.ACCENT : ''
                                                                     }
                                                                 >
                                                                     <OverviewItem

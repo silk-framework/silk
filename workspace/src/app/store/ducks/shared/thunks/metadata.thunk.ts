@@ -1,4 +1,4 @@
-import { getLegacyApiEndpoint } from "../../../../utils/getApiEndpoint";
+import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
 import fetch from "../../../../services/fetch";
 import { AxiosResponse } from "axios";
 
@@ -41,9 +41,9 @@ export interface IMetadata {
 }
 
 export const getTaskMetadataAsync = async (itemId: string, parentId?: string): Promise<IMetadata> => {
-    let url = getLegacyApiEndpoint(`/projects/${itemId}`);
+    let url = legacyApiEndpoint(`/projects/${itemId}`);
     if (parentId) {
-        url = getLegacyApiEndpoint(`/projects/${parentId}/tasks/${itemId}/metadata`);
+        url = legacyApiEndpoint(`/projects/${parentId}/tasks/${itemId}/metadata`);
     }
 
     try {

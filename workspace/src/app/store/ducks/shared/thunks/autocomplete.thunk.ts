@@ -1,4 +1,4 @@
-import { getApiEndpoint } from "../../../../utils/getApiEndpoint";
+import { workspaceApi } from "../../../../utils/getApiEndpoint";
 import fetch from "../../../../services/fetch";
 
 interface IPayload {
@@ -9,7 +9,7 @@ interface IPayload {
     textQuery: string;
 }
 export const getAutocompleteResultsAsync = async (payload: IPayload) => {
-    let url = getApiEndpoint(`/pluginParameterAutoCompletion`);
+    let url = workspaceApi(`/pluginParameterAutoCompletion`);
     try {
         const {data} = await fetch({
             url,
