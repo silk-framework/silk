@@ -80,13 +80,15 @@
       id: @if(!task.isEmpty) {'@task'} else {$("#transformation_task_name").val()},
       data: {
         taskType: "Transform",
-        selection: {
-          inputId: $("#source_dataset").val(),
-          typeUri: $("#transformation_type").val(),
-          restriction: $("#source").val()
-        },
-        outputs: $("#output_dataset").val().split(/[,\s]+/).filter(String),
-        targetVocabularies: $("#target_vocabularies").val().split(/[,\s]+/).filter(String)
+        parameters: {
+          selection: {
+            inputId: $("#source_dataset").val(),
+            typeUri: $("#transformation_type").val(),
+            restriction: $("#source").val()
+          },
+          output: $("#output_dataset").val(),
+          targetVocabularies: $("#target_vocabularies").val().split(/[,\s]+/).filter(String)
+        }
       }
     };
 
