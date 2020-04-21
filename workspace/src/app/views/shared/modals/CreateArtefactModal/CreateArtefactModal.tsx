@@ -19,7 +19,7 @@ import {
     Icon,
     HelperClasses,
 } from "@wrappers/index";
-import { globalOp, globalSel } from "@ducks/common";
+import { commonOp, commonSel } from "@ducks/common";
 import { IArtefactItem, IDetailedArtefactItem } from "@ducks/common/typings";
 import Loading from "../../Loading";
 import { SearchBar } from "../../SearchBar/SearchBar";
@@ -32,8 +32,8 @@ export function CreateArtefactModal() {
     const dispatch = useDispatch();
     const form = useForm();
 
-    const modalStore = useSelector(globalSel.artefactModalSelector);
-    const projectId = useSelector(globalSel.currentProjectIdSelector);
+    const modalStore = useSelector(commonSel.artefactModalSelector);
+    const projectId = useSelector(commonSel.currentProjectIdSelector);
 
     const {selectedArtefact, isOpen, artefactsList, cachedArtefactProperties, loading} = modalStore;
 
@@ -42,9 +42,9 @@ export function CreateArtefactModal() {
 
     const handleAdd = () => {
         if (selected.key === DATA_TYPES.PROJECT) {
-            return dispatch(globalOp.selectArtefact(selected));
+            return dispatch(commonOp.selectArtefact(selected));
         }
-        dispatch(globalOp.getArtefactPropertiesAsync(selected))
+        dispatch(commonOp.getArtefactPropertiesAsync(selected))
     };
 
     const handleArtefactSelect = (artefact: IArtefactItem) => {
@@ -53,7 +53,7 @@ export function CreateArtefactModal() {
 
     const handleBack = () => {
         resetModal();
-        dispatch(globalOp.selectArtefact(null));
+        dispatch(commonOp.selectArtefact(null));
     };
 
     const handleCreate = (e) => {
@@ -61,20 +61,20 @@ export function CreateArtefactModal() {
 
         const isValidFields = form.triggerValidation();
         if (isValidFields) {
-            dispatch(globalOp.createArtefactAsync(form.getValues()));
+            dispatch(commonOp.createArtefactAsync(form.getValues()));
             closeModal();
         }
     };
 
     const closeModal = () => {
-        dispatch(globalOp.closeArtefactModal());
+        dispatch(commonOp.closeArtefactModal());
         resetModal();
     };
 
     const isErrorPresented = () => !!Object.keys(form.errors).length;
 
     const handleSelectDType = (value: string) => {
-        dispatch(globalOp.setSelectedArtefactDType(value));
+        dispatch(commonOp.setSelectedArtefactDType(value));
     };
 
     const resetModal = () => {

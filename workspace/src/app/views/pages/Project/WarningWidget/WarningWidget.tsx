@@ -12,12 +12,12 @@ import {
 } from "@wrappers/index";
 import MarkdownModal from "../../../shared/modals/MarkdownModal";
 import { AppToaster } from "../../../../services/toaster";
-import { globalSel } from "@ducks/common";
+import { commonSel } from "@ducks/common";
 import Loading from "../../../shared/Loading";
 
 export const WarningWidget = () => {
     const dispatch = useDispatch();
-    const projectId = useSelector(globalSel.currentProjectIdSelector);
+    const projectId = useSelector(commonSel.currentProjectIdSelector);
     const warningList = useSelector(workspaceSel.warningListSelector);
 
     const warnWidget = useSelector(workspaceSel.widgetsSelector).warnings;

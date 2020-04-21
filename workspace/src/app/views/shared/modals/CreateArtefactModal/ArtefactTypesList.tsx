@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSelector } from "react-redux";
-import { globalSel } from "@ducks/common";
+import { commonSel } from "@ducks/common";
 import {
     TitleSubsection,
     Menu,
@@ -8,8 +8,8 @@ import {
 } from "@wrappers/index";
 
 function ArtefactTypesList({ onSelect }) {
-    const {selectedDType} = useSelector(globalSel.artefactModalSelector);
-    const typeModifier = useSelector(globalSel.availableDTypesSelector).type;
+    const {selectedDType} = useSelector(commonSel.artefactModalSelector);
+    const typeModifier = useSelector(commonSel.availableDTypesSelector).type;
 
     return <>
         <TitleSubsection>Artefact Type</TitleSubsection>

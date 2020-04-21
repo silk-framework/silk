@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from "react-redux";
-import { globalOp, globalSel } from "@ducks/common";
+import { commonOp, commonSel } from "@ducks/common";
 import {
     ApplicationHeader,
     ApplicationSidebarToggler,
@@ -30,6 +30,7 @@ import { useHistory, useLocation, useParams, matchPath } from "react-router";
 import appRoutes from "../../../appRoutes";
 import { getFullRoutePath } from "../../../utils/routerUtils";
 import { SERVE_PATH } from "../../../constants";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     externalRoutes: any;
@@ -45,6 +46,8 @@ export interface IBreadcrumb {
 export const Header = ({onClickApplicationSidebarExpand, isApplicationSidebarExpanded}: IProps) => {
     const dispatch = useDispatch();
     const location = useLocation();
+    const [t] = useTranslation();
+
     const [breadcrumbs, setBreadcrumbs] = useState<IBreadcrumb[]>([]);
 
     useEffect(() => {
@@ -58,8 +61,8 @@ export const Header = ({onClickApplicationSidebarExpand, isApplicationSidebarExp
         if (match) {
             const {params, url}: any = match[0];
             const updatedBread = [
-                {href: SERVE_PATH, text: 'Home'},
-                {href: SERVE_PATH, text: 'Data Integration'},
+                {href: SERVE_PATH, text: t("common.home")},
+                {href: SERVE_PATH, text: t('Data Integration')},
             ];
             if (params.projectId) {
                 updatedBread.push({
@@ -80,10 +83,10 @@ export const Header = ({onClickApplicationSidebarExpand, isApplicationSidebarExp
     }, [location.pathname]);
 
     const handleCreateDialog = () => {
-        dispatch(globalOp.selectArtefact())
+        dispatch(commonOp.selectArtefact())
     };
 
-    const isAuth = useSelector(globalSel.isAuthSelector);
+    const isAuth = useSelector(commonSel.isAuthSelector);
     const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
     return (
         !isAuth ? null :

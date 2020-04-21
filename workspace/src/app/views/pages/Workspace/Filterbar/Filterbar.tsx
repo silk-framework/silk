@@ -1,7 +1,7 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { globalSel } from "@ducks/common";
+import { commonSel } from "@ducks/common";
 import {
     Spacing,
     TitleSubsection,
@@ -13,7 +13,7 @@ export function Filterbar() {
     const dispatch = useDispatch();
 
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
-    const modifiers = useSelector(globalSel.availableDTypesSelector);
+    const modifiers = useSelector(commonSel.availableDTypesSelector);
 
     const typeModifier = modifiers.type;
 

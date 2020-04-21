@@ -18,7 +18,7 @@ import {
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
 import { checkIfResourceExistsAsync, fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
-import { globalSel } from "@ducks/common";
+import { commonSel } from "@ducks/common";
 
 const {
     updateResultTotal,
@@ -174,7 +174,7 @@ const fetchListAsync = () => {
         const appliedFilters = selectors.appliedFiltersSelector(state);
         const appliedFacets = selectors.appliedFacetsSelector(state);
         const sorters = selectors.sortersSelector(state);
-        const projectId = globalSel.currentProjectIdSelector(state);
+        const projectId = commonSel.currentProjectIdSelector(state);
 
         const body: any = {
             limit,
@@ -285,7 +285,7 @@ const fetchCloneTaskAsync = (taskId: string, projectId: string, taskNewId: strin
 
 const fetchCreateTaskAsync = (formData: any, artefactId: string) => {
     return async (dispatch, getState) => {
-        const currentProjectId = globalSel.currentProjectIdSelector(getState());
+        const currentProjectId = commonSel.currentProjectIdSelector(getState());
         const { label, description, ...restFormData} = formData;
         const metadata = {
             label,

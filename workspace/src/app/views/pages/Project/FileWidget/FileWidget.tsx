@@ -12,7 +12,7 @@ import {
 import Loading from "../../../shared/Loading";
 import FileUploadModal from "../../../shared/modals/FileUploadModal";
 import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
-import { globalSel } from "@ducks/common";
+import { commonSel } from "@ducks/common";
 import { EmptyFileWidget } from "./EmptyFileWidget";
 
 const {
@@ -31,7 +31,7 @@ const {
 export const FileWidget = () => {
     const dispatch = useDispatch();
 
-    const projectId = useSelector(globalSel.currentProjectIdSelector);
+    const projectId = useSelector(commonSel.currentProjectIdSelector);
     const filesList = useSelector(workspaceSel.filesListSelector);
     const fileWidget = useSelector(workspaceSel.widgetsSelector).files;
 
