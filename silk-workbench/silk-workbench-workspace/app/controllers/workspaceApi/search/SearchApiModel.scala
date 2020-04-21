@@ -172,7 +172,7 @@ object SearchApiModel {
     }
 
     protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], searchIn: String*): Boolean = {
-      matchesSearchTerm(lowerCaseSearchTerms, searchIn :_*)
+      TextSearchUtils.matchesSearchTerm(lowerCaseSearchTerms, searchIn :_*)
     }
   }
 
