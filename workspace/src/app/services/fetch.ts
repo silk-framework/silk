@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosPromise, AxiosRequestConfig, Method } from 'axios';
 import {is} from 'ramda';
 import { getStore } from "../store/configureStore";
-import { globalOp } from "../store/ducks/common";
+import { commonOp } from "../store/ducks/common";
 import { logError } from "./errorLogger";
 
 interface IFetchOptions {
@@ -59,7 +59,7 @@ const responseInterceptorOnError = (error: AxiosError) => {
         return Promise.reject({response: {data: error}})
     }
     if (401 === error.response.status) {
-        getStore().dispatch(globalOp.logout());
+        getStore().dispatch(commonOp.logout());
         return Promise.reject(error);
     } else {
         // Store the logs and ignore the promise

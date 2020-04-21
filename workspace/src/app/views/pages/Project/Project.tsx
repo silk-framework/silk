@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect } from "react";
-import { globalOp, globalSel } from "@ducks/common";
+import { commonOp, commonSel } from "@ducks/common";
 import { useDispatch, useSelector } from "react-redux";
 import Filterbar from "../Workspace/Filterbar";
 import Metadata from "../../shared/Metadata";
@@ -28,13 +28,13 @@ import { SearchBar } from "../../shared/SearchBar/SearchBar";
 const Project = ({projectId}) => {
     const dispatch = useDispatch();
 
-    const currentProjectId = useSelector(globalSel.currentProjectIdSelector);
+    const currentProjectId = useSelector(commonSel.currentProjectIdSelector);
     const {textQuery} = useSelector(workspaceSel.appliedFiltersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
 
     useEffect(() => {
         // Fetch the list of projects
-        dispatch(globalOp.setProjectId(projectId));
+        dispatch(commonOp.setProjectId(projectId));
     }, []);
 
     const handleSort = (sortBy: string) => {

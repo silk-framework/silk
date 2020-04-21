@@ -10,6 +10,7 @@ import { createPlugin } from "./app/services/pluginApi";
 import configureStore  from './app/store/configureStore';
 
 import "@wrappers/index.scss";
+import './language';
 
 const bootstrapPlugins = (plugins) => {
     const arr = [];

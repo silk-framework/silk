@@ -2,12 +2,11 @@ import React, { useEffect } from "react";
 
 import Header from "./views/layout/Header";
 import RouterOutlet from "./RouterOutlet";
-import LanguageContainer from "./LanguageContainer";
 import { RouteProps } from "react-router";
 import { getHistory } from "./store/configureStore";
 import { ConnectedRouter } from "connected-react-router";
 
-import { globalOp } from "@ducks/common";
+import { commonOp } from "@ducks/common";
 import { useDispatch } from "react-redux";
 
 import {
@@ -23,27 +22,25 @@ interface IProps {
 export default function App({externalRoutes, routes}: IProps) {
     const dispatch = useDispatch();
     useEffect(() => {
-        dispatch(globalOp.fetchCommonSettingsAsync());
-        dispatch(globalOp.fetchArtefactsListAsync());
+        dispatch(commonOp.fetchCommonSettingsAsync());
+        dispatch(commonOp.fetchArtefactsListAsync());
     }, []);
 
     return (
-        <LanguageContainer>
-            <ConnectedRouter history={getHistory()}>
-                <ApplicationContainer
-                    render = {({ isApplicationSidebarExpanded, onClickApplicationSidebarExpand }) => (
-                        <>
-                            <Header
-                                externalRoutes={externalRoutes}
-                                isApplicationSidebarExpanded={isApplicationSidebarExpanded}
-                                onClickApplicationSidebarExpand={onClickApplicationSidebarExpand} />
-                            <ApplicationContent>
-                                <RouterOutlet routes={routes}/>
-                            </ApplicationContent>
-                        </>
-                    )}
-                />
-            </ConnectedRouter>
-        </LanguageContainer>
+        <ConnectedRouter history={getHistory()}>
+            <ApplicationContainer
+                render={({isApplicationSidebarExpanded, onClickApplicationSidebarExpand}) => (
+                    <>
+                        <Header
+                            externalRoutes={externalRoutes}
+                            isApplicationSidebarExpanded={isApplicationSidebarExpanded}
+                            onClickApplicationSidebarExpand={onClickApplicationSidebarExpand}/>
+                        <ApplicationContent>
+                            <RouterOutlet routes={routes}/>
+                        </ApplicationContent>
+                    </>
+                )}
+            />
+        </ConnectedRouter>
     );
 }

@@ -16,7 +16,7 @@ import { DATA_TYPES } from "../../../constants";
 import AppliedFacets from "../../pages/Workspace/AppliedFacets";
 import SearchItem from "./SearchItem";
 import EmptyList from "./EmptyList";
-import { globalOp } from "@ducks/common";
+import { commonOp } from "@ducks/common";
 
 export function SearchList() {
 
@@ -110,7 +110,7 @@ export function SearchList() {
     };
 
     const handleCreateArtefact = () => {
-        dispatch(globalOp.setSelectedArtefactDType(appliedFilters.itemType))
+        dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType))
     };
 
     const isEmpty = !isLoading && !data.length;

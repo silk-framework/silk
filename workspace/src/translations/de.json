@@ -1,4 +1,5 @@
 {
-  "Query.tabs.catalog": "Katalog",
-  "Query.tabs.editor": "Editor"
+  "common": {
+    "home": "Startseite"
+  }
 }

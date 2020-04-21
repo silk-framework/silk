@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Card, CardActions, CardContent, CardHeader, CardTitle } from '@wrappers/index';
 import { useDispatch } from "react-redux";
-import { globalOp } from "@ducks/common";
+import { commonOp } from "@ducks/common";
 import { DATA_TYPES } from "../../../../constants";
 
 export const EmptyWorkspace = () => {
@@ -9,7 +9,7 @@ export const EmptyWorkspace = () => {
 
     const openCreateProjectModal = () => {
         dispatch(
-            globalOp.selectArtefact({
+            commonOp.selectArtefact({
                 key: DATA_TYPES.PROJECT
             })
         );
