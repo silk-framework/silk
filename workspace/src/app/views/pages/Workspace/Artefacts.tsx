@@ -14,7 +14,7 @@ import {
     Divider,
 } from "@wrappers/index";
 import Filterbar from "./Filterbar";
-import SearchList from "./SearchList";
+import SearchList from "../../shared/SearchList";
 import SearchBar from "../../shared/SearchBar";
 import { globalOp } from "@ducks/common";
 

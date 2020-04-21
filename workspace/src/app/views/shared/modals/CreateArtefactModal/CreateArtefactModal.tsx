@@ -98,7 +98,7 @@ export function CreateArtefactModal() {
         <SimpleDialog
             size="large"
             hasBorder
-            title={`Create a new artefact${selectedArtefact ? `: ${selectedArtefact.title}` : ''}`}
+            title={`Create a new artefact${selectedArtefact.title || ''}`}
             onClose={closeModal}
             isOpen={isOpen}
             actions={
