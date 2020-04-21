@@ -449,7 +449,8 @@ object SearchApiModel {
       valueMapping.getOrElseUpdate(
         jsObject,
         by match {
-          case SortBy.label => jsObject.value(LABEL).as[String].toLowerCase()
+          case SortBy.label =>
+            jsObject.value(LABEL).asOpt[String].filter(_.nonEmpty).getOrElse(jsObject.value(ID).as[String]).toLowerCase
         }
       )
     }
