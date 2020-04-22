@@ -1,6 +1,5 @@
 import React, { memo } from 'react';
-import InputGroup from "@wrappers/blueprint/input-group";
-import { IconNames } from "@wrappers/blueprint/constants";
+import { SearchField } from "@wrappers/index";
 
 interface IProps {
     onFilterChange(e);
@@ -17,10 +16,7 @@ const SearchInput = ({ onFilterChange, filterValue, onEnter, onBlur = () => {} }
     };
 
     return (
-        <InputGroup
-            className={'searchField'}
-            type={'search'}
-            leftIcon={IconNames.SEARCH}
+        <SearchField
             onChange={onFilterChange}
             onBlur={onBlur}
             onKeyDown={handleKeyDown}
