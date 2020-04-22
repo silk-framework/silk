@@ -1,5 +1,4 @@
 import React from 'react';
-import InputGroup from '@wrappers/blueprint/input-group';
 import {
     Button,
     Card,
@@ -9,6 +8,7 @@ import {
     Grid,
     GridRow,
     GridColumn,
+    TextField,
 } from '@wrappers/index';
 
 const PrefixNew = ({onAdd, onChangePrefix, prefix}) => {
@@ -23,13 +23,13 @@ const PrefixNew = ({onAdd, onChangePrefix, prefix}) => {
                 <Grid>
                     <GridRow>
                         <GridColumn medium>
-                            <InputGroup
+                            <TextField
                                 value={prefix.prefixName}
                                 onChange={(e) => onChangePrefix('prefixName', e.target.value)}
                                 placeholder={'Prefix Name'}/>
                         </GridColumn>
                         <GridColumn>
-                            <InputGroup
+                            <TextField
                                 value={prefix.prefixUri}
                                 onChange={(e) => onChangePrefix('prefixUri', e.target.value)}
                                 placeholder={'Prefix URI'}

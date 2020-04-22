@@ -1,7 +1,7 @@
 import React from "react";
-import InputGroup from "@wrappers/blueprint/input-group";
 import { FormGroup } from "@blueprintjs/core";
 import TextArea from "@wrappers/blueprint/textarea";
+import { TextField } from "@wrappers/index";
 import FileUploader from "../../../FileUploader";
 
 export interface IProps {
@@ -12,20 +12,20 @@ export function ProjectForm({form}: IProps) {
     return <>
         <FormGroup
             inline={false}
-            label={"Project Title"}
+            label={"Title"}
             labelFor="title-input"
             labelInfo={"(required)"}
         >
-            <InputGroup
+            <TextField
                 id="title-input"
-                placeholder="Project Title"
+                placeholder="Project title"
                 name={'label'}
                 inputRef={form.register({required: true})}
             />
         </FormGroup>
         <FormGroup
             inline={false}
-            label={"Project Description"}
+            label={"Description"}
             labelFor="desc-input"
         >
             <TextArea
@@ -33,13 +33,13 @@ export function ProjectForm({form}: IProps) {
                 id="desc-input"
                 name={'description'}
                 growVertically={true}
-                placeholder="Project Description"
+                placeholder="Project description"
                 inputRef={form.register()}
             />
         </FormGroup>
         <FormGroup
             inline={false}
-            label={"Import Project"}
+            label={"Import project backup file"}
         >
             <FileUploader/>
         </FormGroup>

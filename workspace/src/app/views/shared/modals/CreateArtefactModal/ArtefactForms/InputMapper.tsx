@@ -1,12 +1,15 @@
 import React from "react";
 import { IArtefactItemProperty, IPropertyAutocomplete } from "@ducks/common/typings";
 import { INPUT_VALID_TYPES } from "../../../../../constants";
-import { NumericInput, Switch } from "@wrappers/index";
+import {
+    NumericInput,
+    Switch,
+    TextField,
+} from "@wrappers/index";
+import TextArea from "@wrappers/blueprint/textarea";
 import { QueryEditor } from "../../../QueryEditor/QueryEditor";
-import InputGroup from "@wrappers/blueprint/input-group";
 import { Autocomplete } from "../../../Autocomplete/Autocomplete";
 import { FileUploader } from "../../../FileUploader/FileUploader";
-import TextArea from "@wrappers/blueprint/textarea";
 
 interface IProps {
     type: string;
@@ -51,7 +54,7 @@ export function InputMapper(props: IProps) {
         case INPUT_VALID_TYPES.MULTILINE_STRING:
             return <QueryEditor {...inputAttributes} />;
         case INPUT_VALID_TYPES.PASSWORD:
-            return <InputGroup {...inputAttributes} type={'password'} />;
+            return <TextField {...inputAttributes} type={'password'} />;
         case INPUT_VALID_TYPES.RESOURCE:
             return <FileUploader
                 simpleInput={true}
@@ -60,6 +63,6 @@ export function InputMapper(props: IProps) {
         case INPUT_VALID_TYPES.OPTION_INT:
         case INPUT_VALID_TYPES.STRING:
         default:
-            return <InputGroup {...inputAttributes} />
+            return <TextField {...inputAttributes} />
     }
 };

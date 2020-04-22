@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import InputGroup from "@wrappers/blueprint/input-group";
 import {
     Button,
     SimpleDialog,
+    TextField,
 } from '@wrappers/index';
 
 export interface ICloneOptions {
@@ -38,7 +38,7 @@ export default function CloneModal({isOpen, oldId, onDiscard, onConfirm}: IClone
                 <Button key='cancel' onClick={onDiscard}>Cancel</Button>
             ]}
         >
-            <InputGroup
+            <TextField
                 onChange={e => setNewId(e.target.value)}
                 value={newId}
             />
