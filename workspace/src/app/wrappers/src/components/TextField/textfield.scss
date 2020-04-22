@@ -1,0 +1,33 @@
+// own vars
+$ecc-size-textfield-height-small: $ecc-size-block-whitespace * 2 !default;
+$ecc-size-textfield-height-regular: $ecc-size-textfield-height-small * $ecc-size-type-levelratio !default;
+$ecc-size-textfield-height-large: $ecc-size-textfield-height-regular * $ecc-size-type-levelratio * $ecc-size-type-levelratio !default;
+$ecc-size-textfield-padding-horizontal-regular: $ecc-size-inline-whitespace !default;
+$ecc-size-textfield-padding-horizontal-small: $ecc-size-inline-whitespace / 2 !default;
+$ecc-typo-textfield-fontweight: $ecc-font-weight-regular !default;
+$ecc-color-textfield-text: $ecc-color-application-text !default;
+$ecc-color-textfield-background: white !default; // TODO define global var for it
+// lib vars
+$pt-input-height: $ecc-size-textfield-height-regular; // !default;
+$pt-input-height-large: $ecc-size-textfield-height-large; // !default;
+$pt-input-height-small: $ecc-size-textfield-height-small; // !default;
+$input-padding-horizontal: $ecc-size-textfield-padding-horizontal-regular; // !default;
+$input-small-padding: $ecc-size-textfield-padding-horizontal-small; // !default;
+$input-font-weight: $ecc-typo-textfield-fontweight; // !default;
+// $input-transition: box-shadow $pt-transition-duration $pt-transition-ease;
+$input-color: $ecc-color-textfield-text; // !default;
+$input-color-disabled: rgba($ecc-color-textfield-text, 0.39); // !default;
+$input-placeholder-color: rgba($ecc-color-textfield-text, 0.61); // !default;
+$input-background-color: $ecc-color-textfield-background; // !default;
+// $input-background-color-disabled: rgba($light-gray1, 0.5) !default;
+// $input-shadow-color-focus: $pt-intent-primary !default;
+// $pt-input-box-shadow: inset border-shadow(0.15), inset 0 1px 1px rgba($black, $pt-drop-shadow-opacity) !default;
+// $input-box-shadow-focus: inset 0 1px 1px rgba($black, $pt-drop-shadow-opacity) !default;
+$input-button-height: $ecc-size-textfield-height-regular / $ecc-size-type-levelratio; // !default;
+$input-button-height-large: $ecc-size-textfield-height-large / $ecc-size-type-levelratio; // !default;
+$input-button-height-small: $ecc-size-textfield-height-small / $ecc-size-type-levelratio; // !default;
+// lib includes
+@import "~@blueprintjs/core/src/components/forms/input-group";
+@import "~@blueprintjs/core/src/components/forms/input";
+
+// enhancements

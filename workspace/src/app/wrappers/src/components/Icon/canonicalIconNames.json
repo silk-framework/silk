@@ -17,6 +17,8 @@
     "item-remove": "TrashCan",
     "item-add-artefact": "AddAlt",
 
+    "operation-search": "Search",
+
     "list-sort": "ArrowsVertical",
     "list-sortasc": "ArrowDown",
     "list-sortdesc": "ArrowUp",
