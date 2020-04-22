@@ -6,14 +6,18 @@ function IconButton({
     className='',
     name = 'undefined',
     text,
-    large,
     ...restProps
 }: any) {
 
     return (
         <Button
             {...restProps}
-            icon={<Icon name={name} large={large} description={text} />}
+            icon={<Icon
+                name={name}
+                small={restProps.small}
+                large={restProps.large}
+                description={text}
+            />}
             className={'ecc-button--icon ' + className}
             minimal
         />
