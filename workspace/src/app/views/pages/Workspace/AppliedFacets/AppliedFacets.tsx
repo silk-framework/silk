@@ -2,12 +2,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { IFacetState } from "@ducks/workspace/typings";
-import {
-    Tag,
-    TagList,
-    Spacing,
-} from "@wrappers/index";
-
+import { Spacing, Tag, TagList, } from "@wrappers/index";
 
 export function AppliedFacets() {
     const dispatch = useDispatch();

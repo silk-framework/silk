@@ -2,11 +2,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { sharedOp } from "@ducks/shared";
-import {
-    Button,
-    Icon,
-    Spacing,
-} from "@wrappers/index";
+import { Button, Icon, Spacing, } from "@wrappers/index";
 import Pagination from "../Pagination";
 import DataList from "../Datalist";
 import DeleteModal from "../modals/DeleteModal";
@@ -31,9 +27,9 @@ export function SearchList() {
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const isLoading = useSelector(workspaceSel.isLoadingSelector);
 
-    const [selectedItem, setSelectedItem] = useState();
-    const [showDeleteModal, setShowDeleteModal] = useState();
-    const [showCloneModal, setShowCloneModal] = useState();
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showCloneModal, setShowCloneModal] = useState(false);
 
     const onDiscardModals = () => {
         setShowDeleteModal(false);
@@ -110,7 +106,7 @@ export function SearchList() {
     };
 
     const handleCreateArtefact = () => {
-        dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType))
+        dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType));
     };
 
     const isEmpty = !isLoading && !data.length;
@@ -162,6 +158,7 @@ export function SearchList() {
                             onConfirm={handleConfirmRemove}
                             {...deleteModalOptions}
                         />
+
                         <CloneModal
                             isOpen={showCloneModal}
                             oldId={selectedItem && selectedItem.id}

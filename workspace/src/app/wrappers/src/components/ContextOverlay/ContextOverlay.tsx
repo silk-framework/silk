@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-    Popover as BlueprintPropover,
-    Position as BlueprintPosition
-} from "@blueprintjs/core";
+import { Popover as BlueprintPropover, Position as BlueprintPosition } from "@blueprintjs/core";
 
 /*
 

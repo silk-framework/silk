@@ -1,15 +1,6 @@
 import React from 'react';
 import InputGroup from '@wrappers/blueprint/input-group';
-import {
-    Button,
-    Card,
-    CardHeader,
-    CardTitle,
-    CardContent,
-    Grid,
-    GridRow,
-    GridColumn,
-} from '@wrappers/index';
+import { Button, Card, CardContent, CardHeader, CardTitle, Grid, GridColumn, GridRow, } from '@wrappers/index';
 
 const PrefixNew = ({onAdd, onChangePrefix, prefix}) => {
     return (

@@ -1,4 +1,4 @@
-import React  from "react";
+import React from "react";
 import { DragDrop } from "@uppy/react";
 import ProgressBar from "@wrappers/blueprint/progressbar";
 import XHR from '@uppy/xhr-upload';

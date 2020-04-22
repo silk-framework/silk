@@ -1,4 +1,4 @@
-import { HOST, API_ENDPOINT } from "../constants";
+import { API_ENDPOINT, HOST } from "../constants";
 
 /**
  * Root path of DI

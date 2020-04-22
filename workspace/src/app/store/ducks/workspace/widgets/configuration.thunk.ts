@@ -1,6 +1,5 @@
 import { workspaceApi } from "../../../../utils/getApiEndpoint";
 import fetch from "../../../../services/fetch";
-import { workspaceSel } from "@ducks/workspace";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { batch } from "react-redux";
 import { commonSel } from "@ducks/common";

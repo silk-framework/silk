@@ -1,5 +1,5 @@
 import qs from 'qs';
-import { getLocation, push, replace } from "connected-react-router";
+import { getLocation, push } from "connected-react-router";
 import { SERVE_PATH } from "../../../constants";
 
 interface IQueryParams {

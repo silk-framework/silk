@@ -1,16 +1,9 @@
-import React, {useEffect, useState} from 'react';
-import {IFacetState} from "@ducks/workspace/typings";
-import {useDispatch, useSelector} from "react-redux";
-import {workspaceOp, workspaceSel} from "@ducks/workspace";
+import React, { useEffect, useState } from 'react';
+import { IFacetState } from "@ducks/workspace/typings";
+import { useDispatch, useSelector } from "react-redux";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import FacetItem from "./FacetItem";
-import {
-    Spacing,
-    Tooltip,
-    Button,
-    TitleSubsection,
-    Icon,
-    HelperClasses,
-} from "@wrappers/index";
+import { Button, HelperClasses, Icon, Spacing, TitleSubsection, Tooltip, } from "@wrappers/index";
 
 export default function FacetsList() {
     const dispatch = useDispatch();

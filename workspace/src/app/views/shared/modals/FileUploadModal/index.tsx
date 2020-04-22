@@ -1,8 +1,5 @@
 import React, { useState } from "react";
-import {
-    Button,
-    SimpleDialog,
-} from '@wrappers/index';
+import { Button, SimpleDialog, } from '@wrappers/index';
 import AbortAlert from "./AbortAlert";
 import OverrideAlert from "./OverrideAlert";
 import FileUploader from "../../FileUploader";

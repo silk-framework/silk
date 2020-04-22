@@ -1,20 +1,19 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ISortersState } from "@ducks/workspace/typings";
-import {
-    Toolbar,
-    ToolbarSection,
-} from "@wrappers/index";
+import { Toolbar, ToolbarSection, } from "@wrappers/index";
 import SearchInput from "./SearchInput";
 import SortButton from "../buttons/SortButton";
 
 interface IProps {
-    textQuery? : string;
+    textQuery?: string;
     sorters?: ISortersState;
-    onSort(sortBy: string): void;
-    onApplyFilters({textQuery: string}): void;
+
+    onSort?(sortBy: string): void;
+
+    onSearch(textQuery: string): void;
 }
 
-export function SearchBar({textQuery = '', sorters, onSort, onApplyFilters}: IProps) {
+export function SearchBar({textQuery = '', sorters, onSort, onSearch}: IProps) {
     const [searchInput, setSearchInput] = useState(textQuery);
 
     useEffect(() => {
@@ -25,18 +24,14 @@ export function SearchBar({textQuery = '', sorters, onSort, onApplyFilters}: IPr
         // when input is empty then apply filter
         if (e.target.value === '' && searchInput) {
             setSearchInput('');
-            onApplyFilters({
-                textQuery: ''
-            });
+            onSearch('');
         } else {
             setSearchInput(e.target.value);
         }
     };
 
     const handleSearchEnter = () => {
-        onApplyFilters({
-            textQuery: searchInput
-        });
+        onSearch(searchInput);
     };
 
     return (
@@ -50,7 +45,8 @@ export function SearchBar({textQuery = '', sorters, onSort, onApplyFilters}: IPr
             </ToolbarSection>
             <ToolbarSection>
                 {
-                    !!sorters && <SortButton sortersList={sorters.list} onSort={onSort} activeSort={sorters.applied}/>
+                    !!sorters && onSort &&
+                    <SortButton sortersList={sorters.list} onSort={onSort} activeSort={sorters.applied}/>
                 }
             </ToolbarSection>
         </Toolbar>

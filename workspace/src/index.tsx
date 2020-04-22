@@ -7,7 +7,7 @@ import App from "./app/App";
 import configs from './configs';
 import appRoutes from "./app/appRoutes";
 import { createPlugin } from "./app/services/pluginApi";
-import configureStore  from './app/store/configureStore';
+import configureStore from './app/store/configureStore';
 
 import "@wrappers/index.scss";
 import './language';

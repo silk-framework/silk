@@ -1,10 +1,5 @@
 import React, { ReactElement, useState } from "react";
-import Label from "@wrappers/blueprint/label";
-import {
-    Button,
-    Checkbox,
-    AlertDialog,
-} from '@wrappers/index';
+import { AlertDialog, Button, Checkbox, } from '@wrappers/index';
 
 export interface IDeleteModalOptions {
     isOpen: boolean;

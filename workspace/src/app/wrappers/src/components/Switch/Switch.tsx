@@ -1,6 +1,5 @@
-import React from 'react';
-import { Switch as B_Switch} from "@blueprintjs/core";
-import { memo } from "react";
+import React, { memo } from 'react';
+import { Switch as B_Switch } from "@blueprintjs/core";
 
 function Switch(props) {
     const handleChange = (e) => {

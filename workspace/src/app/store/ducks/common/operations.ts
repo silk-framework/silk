@@ -5,11 +5,7 @@ import { batch } from "react-redux";
 import { workspaceApi } from "../../../utils/getApiEndpoint";
 import fetch from '../../../services/fetch';
 import asModifier from "../../../utils/asModifier";
-import {
-    createArtefactAsync,
-    fetchArtefactsListAsync,
-    getArtefactPropertiesAsync
-} from "./thunks/artefactModal.thunk";
+import { createArtefactAsync, fetchArtefactsListAsync, getArtefactPropertiesAsync } from "./thunks/artefactModal.thunk";
 
 const {
     setError, fetchAvailableDTypes, updateAvailableDTypes, setProjectId,

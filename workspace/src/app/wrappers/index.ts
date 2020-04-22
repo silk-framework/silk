@@ -41,10 +41,10 @@ import TagList from './src/components/Tag/TagList';
 
 import {
     OverviewItem,
+    OverviewItemActions,
     OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
-    OverviewItemActions,
     OverviewItemList,
 } from './src/components/OverviewItem';
 
@@ -55,14 +55,7 @@ import Modal from './src/components/Dialog/Modal';
 import SimpleDialog from './src/components/Dialog/SimpleDialog';
 import AlertDialog from './src/components/Dialog/AlertDialog';
 
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardOptions,
-    CardContent,
-    CardActions,
-} from './src/components/Card';
+import { Card, CardActions, CardContent, CardHeader, CardOptions, CardTitle, } from './src/components/Card';
 
 import Spacing from './src/components/Separation/Spacing';
 import Divider from './src/components/Separation/Divider';

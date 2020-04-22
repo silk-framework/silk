@@ -2,16 +2,16 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import {
-    WorkspaceContent,
-    WorkspaceMain,
-    WorkspaceSide,
+    Divider,
+    Grid,
+    GridColumn,
+    GridRow,
     Section,
     SectionHeader,
     TitleMainsection,
-    Grid,
-    GridRow,
-    GridColumn,
-    Divider,
+    WorkspaceContent,
+    WorkspaceMain,
+    WorkspaceSide,
 } from "@wrappers/index";
 import Filterbar from "./Filterbar";
 import SearchList from "../../shared/SearchList";
@@ -32,8 +32,8 @@ const Artefacts = () => {
         dispatch(workspaceOp.applySorterOp(sortBy));
     };
 
-    const handleApplyFilter = (filters: any) => {
-        dispatch(workspaceOp.applyFiltersOp(filters));
+    const handleSearch = (textQuery: string) => {
+        dispatch(workspaceOp.applyFiltersOp({textQuery}));
     };
 
     return (
@@ -51,7 +51,7 @@ const Artefacts = () => {
                                         textQuery={textQuery}
                                         sorters={sorters}
                                         onSort={handleSort}
-                                        onApplyFilters={handleApplyFilter}
+                                        onSearch={handleSearch}
                                     />
                                 </GridColumn>
                             </GridRow>

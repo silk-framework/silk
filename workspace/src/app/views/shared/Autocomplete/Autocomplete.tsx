@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import InputGroup from "@wrappers/blueprint/input-group";
 import styles from './styles.module.scss';
 import { sharedOp } from "@ducks/shared";
-import { debounce } from "../../../utils/debounce";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 
 interface IProps {
