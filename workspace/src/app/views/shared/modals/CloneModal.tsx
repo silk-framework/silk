@@ -1,9 +1,6 @@
 import React, { useEffect, useState } from "react";
 import InputGroup from "@wrappers/blueprint/input-group";
-import {
-    Button,
-    SimpleDialog,
-} from '@wrappers/index';
+import { Button, SimpleDialog, } from '@wrappers/index';
 
 export interface ICloneOptions {
     isOpen: boolean;

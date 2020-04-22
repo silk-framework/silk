@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from "react-redux";
 import { commonOp, commonSel } from "@ducks/common";
 import {
@@ -6,27 +6,27 @@ import {
     ApplicationSidebarToggler,
     ApplicationTitle,
     ApplicationToolbar,
-    ApplicationToolbarSection,
     ApplicationToolbarAction,
     ApplicationToolbarPanel,
-    WorkspaceHeader,
+    ApplicationToolbarSection,
+    BreadcrumbList,
+    Button,
+    ContextMenu,
+    Icon,
+    IconButton,
+    MenuItem,
     OverviewItem,
+    OverviewItemActions,
     OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
-    OverviewItemActions,
     TitlePage,
-    Icon,
-    IconButton,
-    Button,
-    ContextMenu,
-    MenuItem,
-    BreadcrumbList,
+    WorkspaceHeader,
 } from "@wrappers/index";
 import HomeButton from "./HomeButton";
 import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
-import { useHistory, useLocation, useParams, matchPath } from "react-router";
+import { matchPath, useLocation } from "react-router";
 import appRoutes from "../../../appRoutes";
 import { getFullRoutePath } from "../../../utils/routerUtils";
 import { SERVE_PATH } from "../../../constants";
@@ -79,11 +79,10 @@ export const Header = ({onClickApplicationSidebarExpand, isApplicationSidebarExp
             setBreadcrumbs(updatedBread);
         }
 
-
-    }, [location.pathname]);
+    }, [location.pathname, t]);
 
     const handleCreateDialog = () => {
-        dispatch(commonOp.selectArtefact())
+        dispatch(commonOp.selectArtefact({}))
     };
 
     const isAuth = useSelector(commonSel.isAuthSelector);

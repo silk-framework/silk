@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { initialNewPrefixState, initialWidgetsState} from "./initialState";
+import { initialNewPrefixState, initialWidgetsState } from "./initialState";
 
 export const widgetsSlice = createSlice({
     name: 'widgets',

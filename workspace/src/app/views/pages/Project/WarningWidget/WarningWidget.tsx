@@ -2,14 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { Intent } from "@wrappers/blueprint/constants";
-import {
-    Icon,
-    Card,
-    CardHeader,
-    CardTitle,
-    CardContent,
-    Divider,
-} from "@wrappers/index";
+import { Card, CardContent, CardHeader, CardTitle, Divider, Icon, } from "@wrappers/index";
 import MarkdownModal from "../../../shared/modals/MarkdownModal";
 import { AppToaster } from "../../../../services/toaster";
 import { commonSel } from "@ducks/common";

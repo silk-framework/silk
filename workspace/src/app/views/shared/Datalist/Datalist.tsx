@@ -1,6 +1,6 @@
 import React from "react";
 import Spinner from "@wrappers/blueprint/spinner";
-import { Button, OverviewItemList } from '@wrappers/index'
+import { OverviewItemList } from '@wrappers/index'
 
 export function Datalist({
     children,

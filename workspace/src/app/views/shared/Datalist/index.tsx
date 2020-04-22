@@ -1,3 +1,3 @@
-import {Datalist} from "./Datalist";
+import { Datalist } from "./Datalist";
 
 export default Datalist;

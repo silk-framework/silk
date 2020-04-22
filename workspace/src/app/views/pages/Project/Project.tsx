@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect } from "react";
+import React, { useEffect } from "react";
 import { commonOp, commonSel } from "@ducks/common";
 import { useDispatch, useSelector } from "react-redux";
 import Filterbar from "../Workspace/Filterbar";
@@ -11,17 +11,17 @@ import FileWidget from "./FileWidget";
 import Loading from "../../shared/Loading";
 
 import {
+    Divider,
+    Grid,
+    GridColumn,
+    GridRow,
+    Section,
+    SectionHeader,
+    Spacing,
+    TitleMainsection,
     WorkspaceContent,
     WorkspaceMain,
     WorkspaceSide,
-    Section,
-    SectionHeader,
-    TitleMainsection,
-    Grid,
-    GridRow,
-    GridColumn,
-    Spacing,
-    Divider,
 } from "@wrappers/index";
 import { SearchBar } from "../../shared/SearchBar/SearchBar";
 
@@ -41,18 +41,18 @@ const Project = ({projectId}) => {
         dispatch(workspaceOp.applySorterOp(sortBy));
     };
 
-    const handleApplyFilter = (filters: any) => {
-        dispatch(workspaceOp.applyFiltersOp(filters));
+    const handleSearch = (textQuery: string) => {
+        dispatch(workspaceOp.applyFiltersOp({textQuery}));
     };
 
     return (
-        !currentProjectId ? <Loading /> :
-        <WorkspaceContent className="eccapp-di__project">
-            <WorkspaceMain>
-                <Section>
-                    <Metadata taskId={projectId}/>
-                    <Spacing />
-                </Section>
+        !currentProjectId ? <Loading/> :
+            <WorkspaceContent className="eccapp-di__project">
+                <WorkspaceMain>
+                    <Section>
+                        <Metadata taskId={projectId}/>
+                        <Spacing/>
+                    </Section>
                 <Section>
                     <SectionHeader>
                         <Grid>
@@ -65,7 +65,7 @@ const Project = ({projectId}) => {
                                         textQuery={textQuery}
                                         sorters={sorters}
                                         onSort={handleSort}
-                                        onApplyFilters={handleApplyFilter}
+                                        onSearch={handleSort}
                                     />
                                 </GridColumn>
                             </GridRow>

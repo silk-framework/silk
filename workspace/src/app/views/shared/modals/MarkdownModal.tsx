@@ -1,9 +1,6 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
-import {
-    Button,
-    SimpleDialog,
-} from '@wrappers/index';
+import { Button, SimpleDialog, } from '@wrappers/index';
 
 const MarkdownModal = ({onDiscard, isOpen, markdown, title = 'Report'}) => {
 

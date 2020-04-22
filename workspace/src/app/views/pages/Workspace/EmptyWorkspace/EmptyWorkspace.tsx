@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Button, Card, CardActions, CardContent, CardHeader, CardTitle } from '@wrappers/index';
+import React from 'react';
+import { Button, Card, CardActions, CardHeader, CardTitle } from '@wrappers/index';
 import { useDispatch } from "react-redux";
 import { commonOp } from "@ducks/common";
 import { DATA_TYPES } from "../../../../constants";

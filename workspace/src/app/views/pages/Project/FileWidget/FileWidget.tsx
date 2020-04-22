@@ -2,13 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button, DataTable } from 'carbon-components-react';
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardContent,
-    Divider,
-} from "@wrappers/index";
+import { Card, CardContent, CardHeader, CardTitle, Divider, } from "@wrappers/index";
 import Loading from "../../../shared/Loading";
 import FileUploadModal from "../../../shared/modals/FileUploadModal";
 import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";

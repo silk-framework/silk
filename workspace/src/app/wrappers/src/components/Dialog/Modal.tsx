@@ -4,10 +4,7 @@
 */
 
 import React from 'react';
-import {
-    Overlay as BlueprintOverlay,
-    Classes as BlueprintClassNames,
-} from "@blueprintjs/core";
+import { Classes as BlueprintClassNames, Overlay as BlueprintOverlay, } from "@blueprintjs/core";
 import { Card } from "./../Card";
 
 function Modal({
@@ -59,6 +56,6 @@ function Modal({
             </div>
         </BlueprintOverlay>
     );
-};
+}
 
 export default Modal;

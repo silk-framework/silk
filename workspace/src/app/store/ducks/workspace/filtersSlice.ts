@@ -4,8 +4,8 @@ import { initialPaginationState } from "../../typings";
 import {
     initialAppliedFiltersState,
     initialAppliedSortersState,
-    initialSortersState,
-    initialFiltersState, initialAppliedFacetState
+    initialFiltersState,
+    initialSortersState
 } from "./initialState";
 
 const DEFAULT_SORTER = {

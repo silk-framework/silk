@@ -66,7 +66,7 @@ function logSpentTime() {
             }
         }
     }
-};
+}
 
 // We require that you explicitly set browsers and do not fall back to
 // browserslist defaults.
@@ -100,19 +100,8 @@ checkBrowsers(paths.appPath, isInteractive)
             if (warnings.length) {
                 console.log(chalk.yellow('Compiled with warnings.\n'));
                 console.log(warnings.join('\n\n'));
-                console.log(
-                    '\nSearch for the ' +
-                    chalk.underline(chalk.yellow('keywords')) +
-                    ' to learn more about each warning.'
-                );
-                console.log(
-                    'To ignore, add ' +
-                    chalk.cyan('// eslint-disable-next-line') +
-                    ' to the line before.\n'
-                );
-            } else {
-                console.log(chalk.green('Compiled successfully.\n'));
             }
+            console.log(chalk.green('Compiled successfully.\n'));
             console.log('File sizes after gzip:\n');
             printFileSizesAfterBuild(
                 stats,

@@ -415,8 +415,9 @@ module.exports = function (webpackEnv) {
                             use: getStyleLoaders({
                                 importLoaders: 1,
                                 sourceMap: false,
-                                modules: true,
-                                getLocalIdent: getCSSModuleLocalIdent,
+                                modules: {
+                                    getLocalIdent: getCSSModuleLocalIdent,
+                                },
                             }),
                         },
                         // Opt-in support for SASS (using .scss or .sass extensions).
@@ -446,8 +447,9 @@ module.exports = function (webpackEnv) {
                                 {
                                     importLoaders: 3,
                                     sourceMap: false,
-                                    modules: true,
-                                    getLocalIdent: getCSSModuleLocalIdent,
+                                    modules: {
+                                        getLocalIdent: getCSSModuleLocalIdent,
+                                    },
                                 },
                                 'sass-loader'
                             ),
@@ -594,9 +596,9 @@ module.exports = function (webpackEnv) {
                 typescript: resolve.sync('typescript', {
                     basedir: paths.appNodeModules,
                 }),
-                async: isEnvDevelopment,
                 useTypescriptIncrementalApi: true,
                 checkSyntacticErrors: true,
+                measureCompilationTime: isEnvProduction,
                 tsconfig: paths.appTsConfig,
                 resolveModuleNameModule: process.versions.pnp
                     ? `${__dirname}/pnpTs.js`
@@ -612,6 +614,7 @@ module.exports = function (webpackEnv) {
                     '!**/src/setupTests.*',
                 ],
                 watch: paths.appSrc,
+                async: isEnvDevelopment,
                 silent: isEnvProduction,
                 formatter: isEnvProduction ? typescriptFormatter : undefined,
             }),
