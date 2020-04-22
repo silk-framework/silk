@@ -54,7 +54,7 @@ class RulePlugins extends PluginModule {
       transformers ++ measures ++ aggregators ++ serializers ++ pluginParameterTypes
 
   private def transformers: List[Class[_]] =
-    classOf[RemoveDuplicates] ::
+        classOf[RemoveDuplicates] ::
         classOf[ReplaceTransformer] ::
         classOf[RegexReplaceTransformer] ::
         classOf[RegexExtractionTransformer] ::
@@ -96,6 +96,8 @@ class RulePlugins extends PluginModule {
         classOf[ConstantUriTransformer] ::
         classOf[RandomNumberTransformer] ::
         classOf[EmptyValueTransformer] ::
+        classOf[ReadParameter] ::
+        classOf[GenerateUUID] ::
         // Conditional
         classOf[IfContains] ::
         classOf[IfExists] ::

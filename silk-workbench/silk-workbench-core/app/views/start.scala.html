@@ -16,27 +16,31 @@
 }
 
 @content = {
-  <div id="welcome">
-    <img class="logo" src="@Branding.logo.url"/>
-    @welcome
+  <div class="mdl-card mdl-shadow--2dp mdl-card--stretch">
+    <div class="mdl-card__content">
+      <div id="welcome">
+        <img class="logo" src="@Branding.logo.url"/>
+        @welcome
+      </div>
+
+      <p>
+        Your current workspace contains @projects.size project(s).
+      </p>
+
+      <button id="open-workspace-btn" class="mdl-button mdl-js-button mdl-button--raised" onclick="window.location = '@config.baseUrl/workspace'">Open Workspace</button>
+      @if(!projects.exists(_.name == exampleName)) {
+        <button id="start-load-example" class="mdl-button mdl-js-button mdl-button--raised" onclick="loadExample()" style="margin-left: 5px;">Load Example</button>
+      }
+
+      <script type="text/javascript">
+        function loadExample() {
+          $.post('@config.baseUrl/workspace/@exampleName/importExample')
+          .success(function(request) { window.location = '@config.baseUrl/workspace' })
+          .fail(function(request) { alert(request.responseText); })
+        }
+      </script>
+    </div>
   </div>
-
-  <p>
-    Your current workspace contains @projects.size project(s).
-  </p>
-
-  <button id="open-workspace-btn" class="mdl-button mdl-js-button mdl-button--raised" onclick="window.location = '@config.baseUrl/workspace'">Open Workspace</button>
-  @if(!projects.exists(_.name == exampleName)) {
-    <button id="start-load-example" class="mdl-button mdl-js-button mdl-button--raised" onclick="loadExample()" style="margin-left: 5px;">Load Example</button>
-  }
-
-  <script type="text/javascript">
-    function loadExample() {
-      $.post('@config.baseUrl/workspace/@exampleName/importExample')
-      .success(function(request) { window.location = '@config.baseUrl/workspace' })
-      .fail(function(request) { alert(request.responseText); })
-    }
-  </script>
 }
 
 @main(None, "start")(header)(toolbar)(content)

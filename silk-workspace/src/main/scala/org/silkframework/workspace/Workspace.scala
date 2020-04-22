@@ -130,6 +130,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       activity.control.cancel()
     }
     provider.deleteProject(name)
+    repository.removeProjectResources(name)
     provider.removeExternalTaskLoadingErrors(name)
     removeProjectFromCache(name)
     log.info(s"Removed project '$name'. " + userContext.logInfo)
