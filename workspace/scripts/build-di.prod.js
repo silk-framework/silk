@@ -50,22 +50,49 @@ const writeStatsJson = argv.indexOf('--stats') !== -1;
 // Generate configuration
 const config = configFactory('production');
 
+function logSpentTime() {
+    const timers = [];
+    return {
+        startLog: (label) => {
+            
+            timers.push(label);
+            console.time(chalk.blue(label));
+        },
+        stopLog: (label) => {
+            const ind = timers.indexOf(label);
+            if (ind > -1) {
+                timers.splice(0, ind);
+                return console.timeEnd(chalk.blue(label));
+            }
+        }
+    }
+};
+
 // We require that you explicitly set browsers and do not fall back to
 // browserslist defaults.
 const {checkBrowsers} = require('react-dev-utils/browsersHelper');
+const {startLog, stopLog} = logSpentTime();
+
 checkBrowsers(paths.appPath, isInteractive)
     .then(() => {
         // First, read the current file sizes in build directory.
         // This lets us display how much they changed later.
+        startLog('Time for file size measurement:');
         return measureFileSizesBeforeBuild(paths.appDIBuild);
     })
     .then(previousFileSizes => {
+        stopLog('Time for file size measurement:');
         // Remove all content but keep the directory so that
         // if you're in it, you don't end up in Trash
+        startLog('Cleared old build folder:');
         fs.emptyDirSync(paths.appDIBuild);
+        stopLog('Cleared old build folder:');
+        
         // Merge with the public folder
         copyPublicFolder();
+        
         // Start the webpack build
+        console.log(chalk.white('Creating a production build...'));
         return build(previousFileSizes);
     })
     .then(
@@ -86,7 +113,6 @@ checkBrowsers(paths.appPath, isInteractive)
             } else {
                 console.log(chalk.green('Compiled successfully.\n'));
             }
-            
             console.log('File sizes after gzip:\n');
             printFileSizesAfterBuild(
                 stats,
@@ -110,11 +136,13 @@ checkBrowsers(paths.appPath, isInteractive)
             console.log(err.message);
         }
         process.exit(1);
+    })
+    .finally(() => {
+        stopLog('Production built ready:');
     });
 
 // Create the production build and print the deployment instructions.
 function build(previousFileSizes) {
-    console.log('Creating a production build...');
     const compiler = webpack(config);
     
     return new Promise((resolve, reject) => {
@@ -162,10 +190,14 @@ function build(previousFileSizes) {
                 warnings: messages.warnings,
             };
             if (writeStatsJson) {
+                startLog('Generated bundle-stat.json');
                 return bfj
                     .write(paths.appDIBuild + '/bundle-stats.json', stats.toJson())
                     .then(() => resolve(resolveArgs))
-                    .catch(error => reject(new Error(error)));
+                    .catch(error => reject(new Error(error)))
+                    .finally(() => {
+                        stopLog('Generated bundle-stat.json:');
+                    });
             }
             
             return resolve(resolveArgs);
@@ -174,16 +206,20 @@ function build(previousFileSizes) {
 }
 
 function copyPublicFolder() {
+    startLog('Copied public folder:');
     fs.copySync(paths.appPublic, paths.appDIBuild, {
         dereference: true,
         filter: file => file !== paths.appHtml,
     });
+    stopLog('Copied public folder:');
 }
 
 function copyAssetsToPublicFolder() {
+    startLog('Cleared and copied assets folder to DI assets:');
     fs.emptyDirSync(paths.appDIAssets);
     fs.copySync(
         path.join(paths.appDIBuild, 'assets'),
         path.join(paths.appDIAssets, 'assets')
     );
+    stopLog('Cleared and copied assets folder to DI assets:');
 }
