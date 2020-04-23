@@ -25,7 +25,7 @@ $carbon--grid-gutter: carbon--rem($ecc-size-grid-gutter);
 }
 
 .#{$prefix}--row {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
 }
 
 .#{$prefix}--col {
@@ -43,5 +43,5 @@ $carbon--grid-gutter: carbon--rem($ecc-size-grid-gutter);
 }
 
 .ecc-grid__row--wrapcolumns {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 }

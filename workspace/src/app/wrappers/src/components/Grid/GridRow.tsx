@@ -5,7 +5,7 @@ import { Row as CarbonRow } from "carbon-components-react/lib/components/Grid";
 function GridRow({
     children,
     className = '',
-    wrapColumns = false,
+    dontWrapColumns = true,
     ...otherProps
 }: any) {
     return (
@@ -13,7 +13,7 @@ function GridRow({
             {...otherProps}
             className={
                 'ecc-grid__row' +
-                (wrapColumns ? ' ecc-grid__row--wrapcolumns' : '') +
+                (dontWrapColumns ? ' ecc-grid__row--dontwrapcolumns' : '') +
                 (className ? ' ' + className : '')
             }
         >

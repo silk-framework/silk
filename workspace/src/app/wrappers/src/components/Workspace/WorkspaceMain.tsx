@@ -7,7 +7,6 @@ function WorkspaceMain({ children, className = '', ...restProps }: any) {
         <GridColumn
             {...restProps}
             className={'ecc-workspace__main '+className}
-
         >
             { children }
         </GridColumn>
