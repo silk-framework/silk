@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { Intent } from "@wrappers/blueprint/constants";
-import { Card, CardContent, CardHeader, CardTitle, Divider, Icon, } from "@wrappers/index";
+import { Card, CardContent, CardHeader, CardTitle, Divider, Icon } from "@wrappers/index";
 import MarkdownModal from "../../../shared/modals/MarkdownModal";
 import { AppToaster } from "../../../../services/toaster";
 import { commonSel } from "@ducks/common";
@@ -14,23 +14,19 @@ export const WarningWidget = () => {
     const warningList = useSelector(workspaceSel.warningListSelector);
 
     const warnWidget = useSelector(workspaceSel.widgetsSelector).warnings;
-    const {error, isLoading} = warnWidget;
+    const { isLoading } = warnWidget;
 
-    const [currentMarkdown, setCurrentMarkdown] = useState('');
+    const [currentMarkdown, setCurrentMarkdown] = useState("");
     const [isOpen, setIsOpen] = useState<boolean>(false);
 
     useEffect(() => {
-        getWarningList();
-    }, []);
+        dispatch(workspaceOp.fetchWarningListAsync());
+    }, [workspaceOp]);
 
     const handleOpen = () => setIsOpen(true);
     const handleClose = () => {
-        setCurrentMarkdown('');
+        setCurrentMarkdown("");
         setIsOpen(false);
-    };
-
-    const getWarningList = () => {
-        dispatch(workspaceOp.fetchWarningListAsync());
     };
 
     const handleOpenMarkDown = async (taskId) => {
@@ -42,7 +38,7 @@ export const WarningWidget = () => {
             AppToaster.show({
                 message: `Sorry but we can't find the markdown information for this report`,
                 intent: Intent.DANGER,
-                timeout: 2000
+                timeout: 2000,
             });
         }
     };
@@ -54,23 +50,22 @@ export const WarningWidget = () => {
                     <h3>Warning</h3>
                 </CardTitle>
             </CardHeader>
-            {
-                isLoading ? <Loading/> :
-                    <>
-                        <Divider />
-                        <CardContent>
-                            {
-                                warningList.map(warn =>
-                                    <div>
-                                        {warn.errorSummary}
-                                        <Icon name="item-info" onClick={() => handleOpenMarkDown(warn.taskId)}/>
-                                    </div>
-                                )
-                            }
-                            <MarkdownModal isOpen={isOpen} onDiscard={handleClose} markdown={currentMarkdown}/>
-                        </CardContent>
-                    </>
-            }
+            {isLoading ? (
+                <Loading />
+            ) : (
+                <>
+                    <Divider />
+                    <CardContent>
+                        {warningList.map((warn) => (
+                            <div>
+                                {warn.errorSummary}
+                                <Icon name="item-info" onClick={() => handleOpenMarkDown(warn.taskId)} />
+                            </div>
+                        ))}
+                        <MarkdownModal isOpen={isOpen} onDiscard={handleClose} markdown={currentMarkdown} />
+                    </CardContent>
+                </>
+            )}
         </Card>
-    )
+    );
 };

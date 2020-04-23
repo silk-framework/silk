@@ -66,7 +66,7 @@ const Project = ({ projectId }) => {
                                         textQuery={textQuery}
                                         sorters={sorters}
                                         onSort={handleSort}
-                                        onSearch={handleSort}
+                                        onSearch={handleSearch}
                                     />
                                 </GridColumn>
                             </GridRow>

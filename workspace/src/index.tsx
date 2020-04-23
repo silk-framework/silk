@@ -1,26 +1,18 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { Provider } from 'react-redux'
+import React from "react";
+import ReactDOM from "react-dom";
+import { Provider } from "react-redux";
 import ErrorBoundary from "./app/ErrorBoundary";
 import registerGlobalListeners from "./global";
 import App from "./app/App";
-import configs from './configs';
+import configs from "./configs";
 import appRoutes from "./app/appRoutes";
 import { createPlugin } from "./app/services/pluginApi";
-import configureStore from './app/store/configureStore';
+import configureStore from "./app/store/configureStore";
 
 import "@wrappers/index.scss";
-import './language';
+import "./language";
 
-const bootstrapPlugins = (plugins) => {
-    const arr = [];
-    plugins.map(plugin => {
-        arr.push(
-            createPlugin(plugin)
-        );
-    });
-    return arr;
-};
+const bootstrapPlugins = (plugins) => plugins.map((plugin) => createPlugin(plugin));
 
 const bootstrapApp = (routes, externalRoutes) => {
     const store = configureStore(configs.dev);
@@ -30,7 +22,7 @@ const bootstrapApp = (routes, externalRoutes) => {
                 <App routes={routes} externalRoutes={externalRoutes} />
             </Provider>
         </ErrorBoundary>,
-        document.getElementById('root')
+        document.getElementById("root")
     );
 };
 

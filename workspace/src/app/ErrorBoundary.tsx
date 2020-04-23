@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { Component } from "react";
 import { logError } from "./services/errorLogger";
 import { isDevelopment } from "./constants";
 
@@ -8,7 +8,6 @@ import { isDevelopment } from "./constants";
  * @see https://github.com/facebook/react/issues/11334#issuecomment-338656383
  */
 class ErrorBoundary extends Component {
-
     componentDidCatch(error, info) {
         logError(error, info);
         if (isDevelopment) {

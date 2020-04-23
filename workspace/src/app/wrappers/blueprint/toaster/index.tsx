@@ -1,3 +1,1 @@
-import React from 'react';
-
-export {Toaster as default} from "@blueprintjs/core";
+export { Toaster as default } from "@blueprintjs/core";

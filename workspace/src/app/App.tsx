@@ -9,30 +9,31 @@ import { ConnectedRouter } from "connected-react-router";
 import { commonOp } from "@ducks/common";
 import { useDispatch } from "react-redux";
 
-import { ApplicationContainer, ApplicationContent, } from "@wrappers/index";
+import { ApplicationContainer, ApplicationContent } from "@wrappers/index";
 
 interface IProps {
     routes: RouteProps[];
     externalRoutes: any;
 }
 
-export default function App({externalRoutes, routes}: IProps) {
+export default function App({ externalRoutes, routes }: IProps) {
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(commonOp.fetchCommonSettingsAsync());
-    }, []);
+    }, [commonOp]);
 
     return (
         <ConnectedRouter history={getHistory()}>
             <ApplicationContainer
-                render={({isApplicationSidebarExpanded, onClickApplicationSidebarExpand}) => (
+                render={({ isApplicationSidebarExpanded, onClickApplicationSidebarExpand }) => (
                     <>
                         <Header
                             externalRoutes={externalRoutes}
                             isApplicationSidebarExpanded={isApplicationSidebarExpanded}
-                            onClickApplicationSidebarExpand={onClickApplicationSidebarExpand}/>
+                            onClickApplicationSidebarExpand={onClickApplicationSidebarExpand}
+                        />
                         <ApplicationContent>
-                            <RouterOutlet routes={routes}/>
+                            <RouterOutlet routes={routes} />
                         </ApplicationContent>
                     </>
                 )}
