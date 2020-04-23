@@ -109,7 +109,13 @@
     "trans": "node scripts/manageTranslations.js"
   },
   "eslintConfig": {
-    "extends": "react-app"
+    "extends": [
+      "react-app",
+      "prettier"
+    ],
+    "plugins": [
+      "prettier"
+    ]
   },
   "browserslist": {
     "production": [
@@ -201,6 +207,11 @@
     "babel-core": "7.0.0-bridge.0",
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.12.1",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.3",
+    "husky": "^4.2.5",
+    "lint-staged": "^10.1.7",
+    "prettier": "^2.0.5",
     "react-test-renderer": "^16.8.6",
     "redux-mock-store": "^1.5.3",
     "speed-measure-webpack-plugin": "^1.3.3",
