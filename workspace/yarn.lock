@@ -1577,7 +1577,7 @@
   resolved "https://artifactory.eccenca.com/api/npm/npm/@types/json-schema/-/json-schema-7.0.4.tgz#38fd73ddfd9b55abb1e1b2ed578cb55bd7b7d339"
   integrity sha1-OP1z3f2bVaux4bLtV4y1W9e30zk=
 
-"@types/minimatch@*", "@types/minimatch@^3.0.3":
+"@types/minimatch@*":
   version "3.0.3"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@types/minimatch/-/minimatch-3.0.3.tgz#3dca0e3f33b200fc7d1139c0cd96c1268cadfd9d"
   integrity sha1-PcoOPzOyAPx9ETnAzZbBJoyt/Z0=
@@ -2317,11 +2317,6 @@ arr-union@^3.1.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/arr-union/-/arr-union-3.1.0.tgz#e39b09aea9def866a8f206e288af63919bae39c4"
   integrity sha1-45sJrqne+Gao8gbiiK9jkZuuOcQ=
 
-array-differ@^3.0.0:
-  version "3.0.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/array-differ/-/array-differ-3.0.0.tgz#3cbb3d0f316810eafcc47624734237d6aee4ae6b"
-  integrity sha1-PLs9DzFoEOr8xHYkc0I31q7krms=
-
 array-equal@^1.0.0:
   version "1.0.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/array-equal/-/array-equal-1.0.0.tgz#8c2a5ef2472fd9ea742b04c77a75093ba2757c93"
@@ -2363,11 +2358,6 @@ array-union@^1.0.1:
   dependencies:
     array-uniq "^1.0.1"
 
-array-union@^2.1.0:
-  version "2.1.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/array-union/-/array-union-2.1.0.tgz#b798420adbeb1de828d84acd8a2e23d3efe85e8d"
-  integrity sha1-t5hCCtvrHego2ErNii4j0+/oXo0=
-
 array-uniq@^1.0.1:
   version "1.0.3"
   resolved "https://artifactory.eccenca.com/api/npm/npm/array-uniq/-/array-uniq-1.0.3.tgz#af6ac877a25cc7f74e058894753858dfdb24fdb6"
@@ -2398,11 +2388,6 @@ arrify@^1.0.1:
   version "1.0.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/arrify/-/arrify-1.0.1.tgz#898508da2226f380df904728456849c1501a4b0d"
   integrity sha1-iYUI2iIm84DfkEcoRWhJwVAaSw0=
-
-arrify@^2.0.1:
-  version "2.0.1"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/arrify/-/arrify-2.0.1.tgz#c9655e9331e0abcd588d2a7cad7e9956f66701fa"
-  integrity sha1-yWVekzHgq81YjSp8rX6ZVvZnAfo=
 
 asap@~2.0.6:
   version "2.0.6"
@@ -4741,13 +4726,6 @@ escodegen@^1.11.0, escodegen@^1.9.1:
   optionalDependencies:
     source-map "~0.6.1"
 
-eslint-config-prettier@^6.11.0:
-  version "6.11.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/eslint-config-prettier/-/eslint-config-prettier-6.11.0.tgz#f6d2238c1290d01c859a8b5c1f7d352a0b0da8b1"
-  integrity sha1-9tIjjBKQ0ByFmotcH301KgsNqLE=
-  dependencies:
-    get-stdin "^6.0.0"
-
 eslint-config-react-app@^5.2.1:
   version "5.2.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/eslint-config-react-app/-/eslint-config-react-app-5.2.1.tgz#698bf7aeee27f0cea0139eaef261c7bf7dd623df"
@@ -4821,13 +4799,6 @@ eslint-plugin-jsx-a11y@6.2.3:
     emoji-regex "^7.0.2"
     has "^1.0.3"
     jsx-ast-utils "^2.2.1"
-
-eslint-plugin-prettier@^3.1.3:
-  version "3.1.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/eslint-plugin-prettier/-/eslint-plugin-prettier-3.1.3.tgz#ae116a0fc0e598fdae48743a4430903de5b4e6ca"
-  integrity sha1-rhFqD8DlmP2uSHQ6RDCQPeW05so=
-  dependencies:
-    prettier-linter-helpers "^1.0.0"
 
 eslint-plugin-react-hooks@^1.6.1:
   version "1.7.0"
@@ -5021,21 +4992,6 @@ execa@^1.0.0:
     signal-exit "^3.0.0"
     strip-eof "^1.0.0"
 
-execa@^2.1.0:
-  version "2.1.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/execa/-/execa-2.1.0.tgz#e5d3ecd837d2a60ec50f3da78fd39767747bbe99"
-  integrity sha1-5dPs2DfSpg7FDz2nj9OXZ3R7vpk=
-  dependencies:
-    cross-spawn "^7.0.0"
-    get-stream "^5.0.0"
-    is-stream "^2.0.0"
-    merge-stream "^2.0.0"
-    npm-run-path "^3.0.0"
-    onetime "^5.1.0"
-    p-finally "^2.0.0"
-    signal-exit "^3.0.2"
-    strip-final-newline "^2.0.0"
-
 execa@^4.0.0:
   version "4.0.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/execa/-/execa-4.0.0.tgz#7f37d6ec17f09e6b8fc53288611695b6d12b9daf"
@@ -5194,11 +5150,6 @@ fast-deep-equal@^3.1.1:
   resolved "https://artifactory.eccenca.com/api/npm/npm/fast-deep-equal/-/fast-deep-equal-3.1.1.tgz#545145077c501491e33b15ec408c294376e94ae4"
   integrity sha1-VFFFB3xQFJHjOxXsQIwpQ3bpSuQ=
 
-fast-diff@^1.1.2:
-  version "1.2.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/fast-diff/-/fast-diff-1.2.0.tgz#73ee11982d86caaf7959828d519cfe927fac5f03"
-  integrity sha1-c+4RmC2Gyq95WYKNUZz+kn+sXwM=
-
 fast-glob@^2.0.2:
   version "2.2.7"
   resolved "https://artifactory.eccenca.com/api/npm/npm/fast-glob/-/fast-glob-2.2.7.tgz#6953857c3afa475fff92ee6015d52da70a4cd39d"
@@ -5351,7 +5302,7 @@ find-cache-dir@^3.2.0:
     make-dir "^3.0.2"
     pkg-dir "^4.1.0"
 
-find-up@4.1.0, find-up@^4.0.0, find-up@^4.1.0:
+find-up@4.1.0, find-up@^4.0.0:
   version "4.1.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/find-up/-/find-up-4.1.0.tgz#97afe7d6cdc0bc5928584b7c8d7b16e8a9aa5d19"
   integrity sha1-l6/n1s3AvFkoWEt8jXsW6KmqXRk=
@@ -5655,11 +5606,6 @@ get-stdin@^4.0.1:
   version "4.0.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/get-stdin/-/get-stdin-4.0.1.tgz#b968c6b0a04384324902e8bf1a5df32579a450fe"
   integrity sha1-uWjGsKBDhDJJAui/Gl3zJXmkUP4=
-
-get-stdin@^6.0.0:
-  version "6.0.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/get-stdin/-/get-stdin-6.0.0.tgz#9e09bf712b360ab9225e812048f71fde9c89657b"
-  integrity sha1-ngm/cSs2CrkiXoEgSPcf3pyJZXs=
 
 get-stream@^4.0.0:
   version "4.1.0"
@@ -6245,11 +6191,6 @@ ignore@^4.0.6:
   version "4.0.6"
   resolved "https://artifactory.eccenca.com/api/npm/npm/ignore/-/ignore-4.0.6.tgz#750e3db5862087b4737ebac8207ffd1ef27b25fc"
   integrity sha1-dQ49tYYgh7RzfrrIIH/9HvJ7Jfw=
-
-ignore@^5.1.4:
-  version "5.1.4"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/ignore/-/ignore-5.1.4.tgz#84b7b3dbe64552b6ef0eca99f6743dbec6d97adf"
-  integrity sha1-hLez2+ZFUrbvDsqZ9nQ9vsbZet8=
 
 immer@1.10.0:
   version "1.10.0"
@@ -8293,11 +8234,6 @@ move-concurrently@^1.0.1:
     rimraf "^2.5.4"
     run-queue "^1.0.3"
 
-mri@^1.1.4:
-  version "1.1.5"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/mri/-/mri-1.1.5.tgz#ce21dba2c69f74a9b7cf8a1ec62307e089e223e0"
-  integrity sha1-ziHbosafdKm3z4oexiMH4IniI+A=
-
 ms@2.0.0:
   version "2.0.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
@@ -8325,17 +8261,6 @@ multicast-dns@^6.0.1:
   dependencies:
     dns-packet "^1.3.1"
     thunky "^1.0.2"
-
-multimatch@^4.0.0:
-  version "4.0.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/multimatch/-/multimatch-4.0.0.tgz#8c3c0f6e3e8449ada0af3dd29efb491a375191b3"
-  integrity sha1-jDwPbj6ESa2grz3SnvtJGjdRkbM=
-  dependencies:
-    "@types/minimatch" "^3.0.3"
-    array-differ "^3.0.0"
-    array-union "^2.1.0"
-    arrify "^2.0.1"
-    minimatch "^3.0.4"
 
 mute-stream@0.0.8:
   version "0.0.8"
@@ -8586,13 +8511,6 @@ npm-run-path@^2.0.0:
   integrity sha1-NakjLfo11wZ7TLLd8jV7GHFTbF8=
   dependencies:
     path-key "^2.0.0"
-
-npm-run-path@^3.0.0:
-  version "3.1.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/npm-run-path/-/npm-run-path-3.1.0.tgz#7f91be317f6a466efed3c9f2980ad8a4ee8b0fa5"
-  integrity sha1-f5G+MX9qRm7+08nymArYpO6LD6U=
-  dependencies:
-    path-key "^3.0.0"
 
 npm-run-path@^4.0.0:
   version "4.0.1"
@@ -8882,11 +8800,6 @@ p-finally@^1.0.0:
   version "1.0.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/p-finally/-/p-finally-1.0.0.tgz#3fbcfb15b899a44123b34b6dcc18b724336a2cae"
   integrity sha1-P7z7FbiZpEEjs0ttzBi3JDNqLK4=
-
-p-finally@^2.0.0:
-  version "2.0.1"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/p-finally/-/p-finally-2.0.1.tgz#bd6fcaa9c559a096b680806f4d657b3f0f240561"
-  integrity sha1-vW/KqcVZoJa2gIBvTWV7Pw8kBWE=
 
 p-is-promise@^2.0.0:
   version "2.1.0"
@@ -9988,13 +9901,6 @@ prepend-http@^1.0.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/prepend-http/-/prepend-http-1.0.4.tgz#d4f4562b0ce3696e41ac52d0e002e57a635dc6dc"
   integrity sha1-1PRWKwzjaW5BrFLQ4ALlemNdxtw=
 
-prettier-linter-helpers@^1.0.0:
-  version "1.0.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/prettier-linter-helpers/-/prettier-linter-helpers-1.0.0.tgz#d23d41fe1375646de2d0104d3454a3008802cf7b"
-  integrity sha1-0j1B/hN1ZG3i0BBNNFSjAIgCz3s=
-  dependencies:
-    fast-diff "^1.1.2"
-
 prettier@^2.0.5:
   version "2.0.5"
   resolved "https://artifactory.eccenca.com/api/npm/npm/prettier/-/prettier-2.0.5.tgz#d6d56282455243f2f92cc1716692c08aa31522d4"
@@ -10032,18 +9938,6 @@ pretty-format@^25.1.0:
     ansi-regex "^5.0.0"
     ansi-styles "^4.0.0"
     react-is "^16.12.0"
-
-pretty-quick@^2.0.1:
-  version "2.0.1"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/pretty-quick/-/pretty-quick-2.0.1.tgz#417ee605ade98ecc686e72f63b5d28a2c35b43e9"
-  integrity sha1-QX7mBa3pjsxobnL2O10oosNbQ+k=
-  dependencies:
-    chalk "^2.4.2"
-    execa "^2.1.0"
-    find-up "^4.1.0"
-    ignore "^5.1.4"
-    mri "^1.1.4"
-    multimatch "^4.0.0"
 
 private@^0.1.8:
   version "0.1.8"
