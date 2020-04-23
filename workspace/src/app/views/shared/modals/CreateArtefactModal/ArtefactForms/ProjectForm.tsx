@@ -1,7 +1,9 @@
 import React from "react";
 import { FormGroup } from "@blueprintjs/core";
-import TextArea from "@wrappers/blueprint/textarea";
-import { TextField } from "@wrappers/index";
+import {
+    TextField,
+    TextArea
+} from "@wrappers/index";
 import FileUploader from "../../../FileUploader";
 
 export interface IProps {

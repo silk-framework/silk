@@ -5,8 +5,8 @@ import {
     NumericInput,
     Switch,
     TextField,
+    TextArea,
 } from "@wrappers/index";
-import TextArea from "@wrappers/blueprint/textarea";
 import { QueryEditor } from "../../../QueryEditor/QueryEditor";
 import { Autocomplete } from "../../../Autocomplete/Autocomplete";
 import { FileUploader } from "../../../FileUploader/FileUploader";
