@@ -47,7 +47,7 @@ function Modal({
                 <section
                     className={
                         'ecc-dialog__wrapper' +
-                        (typeof size === 'string' ? ' ' + 'ecc-dialog__wrapper--' + size : '') +
+                        (typeof size === 'string' ? ' ecc-dialog__wrapper--' + size : '') +
                         (className ? ' ' + className : '')
                     }
                 >

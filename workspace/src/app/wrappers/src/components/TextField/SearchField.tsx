@@ -1,5 +1,4 @@
 import React from 'react';
-import Icon from '../Icon/Icon';
 import IconButton from '../Icon/IconButton';
 import TextField from './TextField';
 
