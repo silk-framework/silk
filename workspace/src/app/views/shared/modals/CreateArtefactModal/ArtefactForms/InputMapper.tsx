@@ -1,5 +1,5 @@
 import React from "react";
-import { IArtefactItemProperty, IPropertyAutocomplete } from "@ducks/common/typings";
+import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { INPUT_VALID_TYPES } from "../../../../../constants";
 import {
     NumericInput,
@@ -65,4 +65,4 @@ export function InputMapper(props: IProps) {
         default:
             return <TextField {...inputAttributes} />
     }
-};
+}

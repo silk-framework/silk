@@ -6,17 +6,17 @@ import { IPrefixState } from "@ducks/workspace/typings";
 import Loading from "../../../shared/Loading";
 
 import {
-    IconButton,
     Card,
+    CardContent,
     CardHeader,
     CardTitle,
-    CardContent,
     Divider,
-    OverviewItemList,
+    IconButton,
     OverviewItem,
+    OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
-    OverviewItemActions,
+    OverviewItemList,
 } from '@wrappers/index';
 
 const VISIBLE_COUNT = 5;

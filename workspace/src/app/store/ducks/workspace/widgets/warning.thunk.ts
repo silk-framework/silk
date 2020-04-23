@@ -1,4 +1,3 @@
-import { workspaceSel } from "@ducks/workspace";
 import { workspaceApi } from "../../../../utils/getApiEndpoint";
 import fetch from "../../../../services/fetch";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";

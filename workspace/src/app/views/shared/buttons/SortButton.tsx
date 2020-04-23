@@ -1,10 +1,7 @@
 import React from "react";
-import {IAppliedSorterState, ISorterListItemState} from "@ducks/workspace/typings";
+import { IAppliedSorterState, ISorterListItemState } from "@ducks/workspace/typings";
 
-import {
-    ContextMenu,
-    MenuItem,
-} from '@wrappers/index';
+import { ContextMenu, MenuItem, } from '@wrappers/index';
 
 interface IProps {
     sortersList: ISorterListItemState[],

@@ -1,9 +1,9 @@
 import React from 'react';
 import {
-    Button as BlueprintButton,
     AnchorButton as BlueprintAnchorButton,
+    Button as BlueprintButton,
     Intent as BlueprintIntent,
- } from "@blueprintjs/core";
+} from "@blueprintjs/core";
 import Icon from '../Icon/Icon';
 
 function Button({
@@ -38,6 +38,6 @@ function Button({
             {children}
         </ButtonType>
     );
-};
+}
 
 export default Button;

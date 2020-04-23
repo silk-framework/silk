@@ -7,11 +7,7 @@ import { useParams } from "react-router";
 import Metadata from "../../shared/Metadata";
 import { datasetSel } from "@ducks/dataset";
 
-import {
-    WorkspaceContent,
-    WorkspaceMain,
-    Section,
-} from "@wrappers/index";
+import { Section, WorkspaceContent, WorkspaceMain, } from "@wrappers/index";
 
 export default function () {
     const error = useSelector(datasetSel.errorSelector);

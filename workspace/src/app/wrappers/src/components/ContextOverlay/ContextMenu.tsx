@@ -1,5 +1,4 @@
 import React from 'react';
-import { Position as BlueprintPosition } from "@blueprintjs/core";
 import ContextOverlay from './ContextOverlay';
 import Menu from '../Menu/Menu';
 import IconButton from '../Icon/IconButton';

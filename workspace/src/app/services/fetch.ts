@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosPromise, AxiosRequestConfig, Method } from 'axios';
-import {is} from 'ramda';
+import { is } from 'ramda';
 import { getStore } from "../store/configureStore";
 import { commonOp } from "../store/ducks/common";
 import { logError } from "./errorLogger";

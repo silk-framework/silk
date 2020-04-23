@@ -3,13 +3,7 @@
 */
 
 import React from 'react';
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardContent,
-    CardActions,
-} from "./../Card";
+import { Card, CardActions, CardContent, CardHeader, CardTitle, } from "./../Card";
 import Divider from "./../Separation/Divider";
 import Modal from './Modal';
 
@@ -55,6 +49,6 @@ function SimpleDialog({
             </Card>
         </Modal>
     );
-};
+}
 
 export default SimpleDialog;

@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-    AlertDialog,
-    Button,
-} from "@wrappers/index";
+import { AlertDialog, Button, } from "@wrappers/index";
 
 const AbortAlert = ({ isOpen, onCancel, onConfirm }) => {
     return <AlertDialog

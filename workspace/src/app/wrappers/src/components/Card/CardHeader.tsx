@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-    OverviewItem,
-    OverviewItemDescription,
-}from './../OverviewItem';
+import { OverviewItem, OverviewItemDescription, } from './../OverviewItem';
 import CardTitle from './CardTitle';
 import CardOptions from './CardOptions';
 
@@ -24,7 +21,7 @@ function CardHeader({
                 actions.push(child);
                 break;
         }
-    })
+    });
 
     return (
         <header>
@@ -38,6 +35,6 @@ function CardHeader({
             </OverviewItem>
         </header>
     );
-};
+}
 
 export default CardHeader;

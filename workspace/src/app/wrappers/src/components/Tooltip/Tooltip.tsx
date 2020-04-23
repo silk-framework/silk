@@ -1,8 +1,5 @@
 import React from "react";
-import {
-    Tooltip as BlueprintTooltip,
-    Classes as BlueprintClassNames,
-} from "@blueprintjs/core";
+import { Classes as BlueprintClassNames, Tooltip as BlueprintTooltip, } from "@blueprintjs/core";
 
 function Tooltip({
     children,
@@ -25,6 +22,6 @@ function Tooltip({
             {children}
         </BlueprintTooltip>
     );
-};
+}
 
 export default Tooltip;

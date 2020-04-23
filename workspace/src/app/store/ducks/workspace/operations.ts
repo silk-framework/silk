@@ -5,7 +5,7 @@ import fetch from '../../../services/fetch';
 import selectors from "./selectors";
 import { filtersSlice } from "./filtersSlice";
 import { previewSlice } from "./previewSlice";
-import { workspaceApi, legacyApiEndpoint } from "../../../utils/getApiEndpoint";
+import { legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
 import { routerOp } from "@ducks/router";
 import { IFacetState } from "@ducks/workspace/typings";
 import { workspaceSel } from "@ducks/workspace";

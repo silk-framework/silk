@@ -1,13 +1,13 @@
 import React from "react";
-import styles from './index.module.scss';
 import { IPrefixState } from "@ducks/workspace/typings";
 import {
+    IconButton,
     OverviewItem,
+    OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
-    OverviewItemActions,
-    IconButton,
 } from "@wrappers/index";
+
 interface IProps {
     prefix: IPrefixState;
 

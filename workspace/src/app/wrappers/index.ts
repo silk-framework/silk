@@ -43,10 +43,10 @@ import TagList from './src/components/Tag/TagList';
 
 import {
     OverviewItem,
+    OverviewItemActions,
     OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
-    OverviewItemActions,
     OverviewItemList,
 } from './src/components/OverviewItem';
 

@@ -1,5 +1,5 @@
 // @ts-ignore
-const {DI} = window;
+const {DI = {}} = window;
 
 export const BASE_PATH = DI.basePath || '';
 export const SERVE_PATH = BASE_PATH + '/workspaceNew';

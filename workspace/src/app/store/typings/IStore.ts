@@ -1,4 +1,4 @@
-import { IWorkspaceState} from "@ducks/workspace/typings";
+import { IWorkspaceState } from "@ducks/workspace/typings";
 import { ICommonState } from "@ducks/common/typings";
 import { RouterState } from "connected-react-router";
 import { IDatasetState } from "@ducks/dataset/typings";

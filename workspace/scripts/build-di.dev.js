@@ -98,22 +98,12 @@ function runCallback(err, stats) {
     if (messages.warnings.length) {
         console.log(chalk.yellow('Compiled with warnings.\n'));
         console.log(messages.warnings.join('\n\n'));
-        console.log(
-            '\nSearch for the ' +
-            chalk.underline(chalk.yellow('keywords')) +
-            ' to learn more about each warning.'
-        );
-        console.log(
-            'To ignore, add ' +
-            chalk.cyan('// eslint-disable-next-line') +
-            ' to the line before.\n'
-        );
-    } else {
-        fs.emptyDirSync(paths.appDIAssets + '/assets');
-        // Copy assets into assets public folder
-        copyAssetsToPublicFolder();
-        console.log(chalk.green('Compiled successfully.\n'));
     }
+    
+    fs.emptyDirSync(paths.appDIAssets + '/assets');
+    // Copy assets into assets public folder
+    copyAssetsToPublicFolder();
+    console.log(chalk.green('Compiled successfully.\n'));
     
     if (writeStatsJson) {
         return bfj
