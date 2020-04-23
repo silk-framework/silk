@@ -11,86 +11,91 @@ import FileWidget from "./FileWidget";
 import Loading from "../../shared/Loading";
 
 import {
-  Divider,
-  Grid,
-  GridColumn,
-  GridRow,
-  Section,
-  SectionHeader,
-  Spacing,
-  TitleMainsection,
-  WorkspaceContent,
-  WorkspaceMain,
-  WorkspaceSide,
+    Divider,
+    Grid,
+    GridColumn,
+    GridRow,
+    Section,
+    SectionHeader,
+    Spacing,
+    TitleMainsection,
+    WorkspaceContent,
+    WorkspaceMain,
+    WorkspaceSide,
 } from "@wrappers/index";
 import { SearchBar } from "../../shared/SearchBar/SearchBar";
 
 const Project = ({ projectId }) => {
-  const dispatch = useDispatch();
+    const dispatch = useDispatch();
 
-  const currentProjectId = useSelector(commonSel.currentProjectIdSelector);
-  const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
-  const sorters = useSelector(workspaceSel.sortersSelector);
+    const currentProjectId = useSelector(commonSel.currentProjectIdSelector);
+    const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
+    const sorters = useSelector(workspaceSel.sortersSelector);
 
-  useEffect(() => {
-    // Fetch the list of projects
-    dispatch(commonOp.setProjectId(projectId));
-  }, [projectId]);
+    useEffect(() => {
+        // Fetch the list of projects
+        dispatch(commonOp.setProjectId(projectId));
+    }, [projectId]);
 
-  const handleSort = (sortBy: string) => {
-    dispatch(workspaceOp.applySorterOp(sortBy));
-  };
+    const handleSort = (sortBy: string) => {
+        dispatch(workspaceOp.applySorterOp(sortBy));
+    };
 
-  const handleSearch = (textQuery: string) => {
-    dispatch(workspaceOp.applyFiltersOp({ textQuery }));
-  };
+    const handleSearch = (textQuery: string) => {
+        dispatch(workspaceOp.applyFiltersOp({ textQuery }));
+    };
 
-  return !currentProjectId ? (
-    <Loading />
-  ) : (
-    <WorkspaceContent className="eccapp-di__project">
-      <WorkspaceMain>
-        <Section>
-          <Metadata taskId={projectId} />
-          <Spacing />
-        </Section>
-        <Section>
-          <SectionHeader>
-            <Grid>
-              <GridRow>
-                <GridColumn small verticalAlign="center">
-                  <TitleMainsection>Contents</TitleMainsection>
-                </GridColumn>
-                <GridColumn full>
-                  <SearchBar textQuery={textQuery} sorters={sorters} onSort={handleSort} onSearch={handleSort} />
-                </GridColumn>
-              </GridRow>
-            </Grid>
-          </SectionHeader>
-          <Divider addSpacing="medium" />
-          <Grid>
-            <GridRow>
-              <GridColumn small>
-                <Filterbar />
-              </GridColumn>
-              <GridColumn full>
-                <SearchList />
-              </GridColumn>
-            </GridRow>
-          </Grid>
-        </Section>
-      </WorkspaceMain>
-      <WorkspaceSide>
-        <Section>
-          <FileWidget />
-          <Spacing />
-          <ConfigurationWidget />
-          <Spacing />
-          <WarningWidget />
-        </Section>
-      </WorkspaceSide>
-    </WorkspaceContent>
-  );
+    return !currentProjectId ? (
+        <Loading />
+    ) : (
+        <WorkspaceContent className="eccapp-di__project">
+            <WorkspaceMain>
+                <Section>
+                    <Metadata taskId={projectId} />
+                    <Spacing />
+                </Section>
+                <Section>
+                    <SectionHeader>
+                        <Grid>
+                            <GridRow>
+                                <GridColumn small verticalAlign="center">
+                                    <TitleMainsection>Contents</TitleMainsection>
+                                </GridColumn>
+                                <GridColumn full>
+                                    <SearchBar
+                                        textQuery={textQuery}
+                                        sorters={sorters}
+                                        onSort={handleSort}
+                                        onSearch={handleSort}
+                                    />
+                                </GridColumn>
+                            </GridRow>
+                        </Grid>
+                    </SectionHeader>
+                    <Divider addSpacing="medium" />
+                    <Grid>
+                        <GridRow>
+                            <GridColumn small>
+                                <Filterbar />
+                            </GridColumn>
+                            <GridColumn full>
+                                <SearchList />
+                            </GridColumn>
+                        </GridRow>
+                    </Grid>
+                </Section>
+            </WorkspaceMain>
+            <WorkspaceSide>
+                <Section>
+                    <FileWidget />
+                    <Spacing />
+                    <ConfigurationWidget />
+                    <Spacing />
+                    <WarningWidget />
+                </Section>
+            </WorkspaceSide>
+        </WorkspaceContent>
+    );
 };
 
 export default Project;
