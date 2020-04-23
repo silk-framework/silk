@@ -11,6 +11,7 @@ function TextArea({
     hasStateWarning=false,
     hasStateDanger=false,
     fullWidth=false,
+    rows=5,
     ...otherProps
 }: any) {
 
@@ -37,6 +38,7 @@ function TextArea({
             className={'ecc-textarea ' + className}
             intent={intent}
             fill={fullWidth}
+            rows={rows ? rows : false}
             {...otherProps}
             dir={'auto'}
         />
