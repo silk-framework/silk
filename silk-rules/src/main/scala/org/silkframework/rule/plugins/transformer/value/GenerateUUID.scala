@@ -8,7 +8,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, T
 import GenerateUUID._
 
 @Plugin(
-  id = "generateUUID",
+  id = "uuid",
   categories = Array("Value"),
   label = "UUID",
   description =
