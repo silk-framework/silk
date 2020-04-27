@@ -1,5 +1,5 @@
 export interface IAvailableDataTypes {
-    [key: string]: IAvailableDataType
+    [key: string]: IAvailableDataType;
 }
 
 export interface IAvailableDataTypeOption {
@@ -25,6 +25,8 @@ export interface IArtefactItemProperty {
     type: string;
     value: string;
     advanced: boolean;
+    parameterType: string;
+    visibleInDialog: boolean;
     autoCompletion?: IPropertyAutocomplete;
 }
 
@@ -35,7 +37,7 @@ export interface IDetailedArtefactItem {
     type: string;
     categories: string[];
     properties: {
-        [key: string]: IArtefactItemProperty
+        [key: string]: IArtefactItemProperty;
     };
     required: string[];
     pluginId: string;
@@ -54,8 +56,8 @@ export interface IArtefactModal {
     artefactsList: IArtefactItem[];
     selectedArtefact: IArtefactItem;
     cachedArtefactProperties: {
-        [key: string]: IDetailedArtefactItem
-    }
+        [key: string]: IDetailedArtefactItem;
+    };
     selectedDType: string;
 }
 
