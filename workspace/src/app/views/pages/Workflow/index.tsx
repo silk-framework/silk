@@ -7,19 +7,19 @@ import { useParams } from "react-router";
 import Metadata from "../../shared/Metadata";
 import { datasetSel } from "@ducks/dataset";
 
-import { Section, WorkspaceContent, WorkspaceMain, } from "@wrappers/index";
+import { Section, WorkspaceContent, WorkspaceMain } from "@wrappers/index";
 
 export default function () {
     const error = useSelector(datasetSel.errorSelector);
-    const {taskId, projectId} = useParams();
+    const { taskId, projectId } = useParams();
 
     useEffect(() => {
         if (error.detail) {
             AppToaster.show({
                 message: error.detail,
                 intent: Intent.DANGER,
-                timeout: 2000
-            })
+                timeout: 0,
+            });
         }
     }, [error.detail]);
 
@@ -27,7 +27,7 @@ export default function () {
         <WorkspaceContent className="eccapp-di__workflow">
             <WorkspaceMain>
                 <Section>
-                    <Metadata projectId={projectId} taskId={taskId}/>
+                    <Metadata projectId={projectId} taskId={taskId} />
                 </Section>
             </WorkspaceMain>
         </WorkspaceContent>

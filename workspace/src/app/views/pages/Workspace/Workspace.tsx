@@ -31,7 +31,7 @@ export function Workspace() {
             AppToaster.show({
                 message: error.detail,
                 intent: Intent.DANGER,
-                timeout: 2000,
+                timeout: 0,
             });
         }
     }, [error.detail]);

@@ -38,7 +38,7 @@ export const WarningWidget = () => {
             AppToaster.show({
                 message: `Sorry but we can't find the markdown information for this report`,
                 intent: Intent.DANGER,
-                timeout: 2000,
+                timeout: 0,
             });
         }
     };
