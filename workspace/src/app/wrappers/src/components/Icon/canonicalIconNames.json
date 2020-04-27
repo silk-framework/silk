@@ -24,6 +24,11 @@
     "list-sortasc": "ArrowDown",
     "list-sortdesc": "ArrowUp",
 
+    "state-info": "InformationFilled",
+    "state-success": "CheckmarkFilled",
+    "state-warning": "WarningAltFilled",
+    "state-danger": "ErrorFilled",
+
     "artefact-project": "Folder",
     "artefact-workflow": "ModelBuilder",
     "artefact-dataset": "Data_2",

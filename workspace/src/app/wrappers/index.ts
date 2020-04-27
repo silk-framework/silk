@@ -42,6 +42,9 @@ import Pagination from "./src/components/Pagination/Pagination";
 import Tag from "./src/components/Tag/Tag";
 import TagList from "./src/components/Tag/TagList";
 
+import Notification from "./src/components/Notification/Notification";
+import Toast from "./src/components/Notification/Toast";
+
 import {
     OverviewItem,
     OverviewItemActions,
@@ -153,5 +156,7 @@ export {
     Tag,
     TagList,
     Pagination,
+    Notification,
+    Toast,
     HelperClasses,
 };

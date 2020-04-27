@@ -1,0 +1,51 @@
+// TODO: add vars and process them
+
+@import "~@blueprintjs/core/src/components/toast/toast";
+
+.ecc-notification {
+    border-style: solid;
+    border-width: 1px 1px 1px 0.25rem;
+    font-size: 1rem;
+    line-height: $ecc-size-typo-base-lineheight;
+    min-width: 4/16 * 100vw;
+    width: 100%;
+    max-width: 40rem;
+    margin-top: $ecc-size-block-whitespace;
+
+    & > .ecc-icon {
+        color: inherit;
+    }
+
+    &.ecc-notification--static > .#{$ns}-button-group {
+        &:last-child {
+            display: none;
+        }
+    }
+
+    &:not(.ecc-notification--toast) {
+        max-width: none;
+        box-shadow: none;
+        margin-top: 0;
+    }
+
+    &.ecc-intent--info {
+        border-color: $ecc-color-info-text;
+        color: $ecc-color-info-text;
+        background-color: $ecc-color-info-background;
+    }
+    &.ecc-intent--success {
+        border-color: $ecc-color-success-text;
+        color: $ecc-color-success-text;
+        background-color: $ecc-color-success-background;
+    }
+    &.ecc-intent--warning {
+        border-color: $ecc-color-warning-text;
+        color: $ecc-color-warning-text;
+        background-color: $ecc-color-warning-background;
+    }
+    &.ecc-intent--danger {
+        border-color: $ecc-color-danger-text;
+        color: $ecc-color-danger-text;
+        background-color: $ecc-color-danger-background;
+    }
+}

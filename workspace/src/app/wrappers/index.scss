@@ -1,6 +1,6 @@
 // == load default configuration ===============================================
 
-@import 'src/configuration/variables';
+@import "src/configuration/variables";
 
 // == Necessary imports from libraries =========================================
 
@@ -14,7 +14,7 @@
 // -- BlueprintJS --------------------------------------------------------------
 
 // calculate blueprintjs configuration
-@import 'src/includes/blueprintjs/variables';
+@import "src/includes/blueprintjs/variables";
 // load blueprintjs requsists
 @import "~@blueprintjs/core/src/common/variables";
 @import "~@blueprintjs/core/src/common/colors";
@@ -22,17 +22,17 @@
 @import "~@blueprintjs/core/src/typography";
 @import "~@blueprintjs/core/src/accessibility/focus-states";
 // load blueprintjs components
-@import "~@blueprintjs/core/src/components/alert/alert";
+// currently not needed @import "~@blueprintjs/core/src/components/alert/alert";
 // used in own component @import "~@blueprintjs/core/src/components/breadcrumbs/breadcrumbs";
 // used in own component @import "~@blueprintjs/core/src/components/button/button";
 @import "~@blueprintjs/core/src/components/button/button-group";
-@import "~@blueprintjs/core/src/components/callout/callout";
+// currently not needed @import "~@blueprintjs/core/src/components/callout/callout";
 // used in own component @import "~@blueprintjs/core/src/components/card/card";
 @import "~@blueprintjs/core/src/components/collapse/collapse";
 @import "~@blueprintjs/core/src/components/context-menu/context-menu";
 @import "~@blueprintjs/core/src/components/divider/divider";
 // used in own component @import "~@blueprintjs/core/src/components/dialog/dialog";
-@import "~@blueprintjs/core/src/components/drawer/drawer";
+// currently not needed @import "~@blueprintjs/core/src/components/drawer/drawer";
 @import "~@blueprintjs/core/src/components/editable-text/editable-text";
 // used in own component @import "~@blueprintjs/core/src/components/forms/index";
 @import "~@blueprintjs/core/src/components/html-select/html-select";
@@ -54,7 +54,7 @@
 @import "~@blueprintjs/core/src/components/tabs/tabs";
 // used in own component @import "~@blueprintjs/core/src/components/tag/tag";
 @import "~@blueprintjs/core/src/components/tag-input/tag-input";
-@import "~@blueprintjs/core/src/components/toast/toast";
+// used in own component @import "~@blueprintjs/core/src/components/toast/toast";
 // used in own component @import "~@blueprintjs/core/src/components/tooltip/tooltip";
 @import "~@blueprintjs/core/src/components/tree/tree";
 
@@ -69,64 +69,64 @@
 */
 
 // calculate carbon configuration
-@import 'src/includes/carbon-components/variables';
+@import "src/includes/carbon-components/variables";
 // load carbon requsists
-@import '~carbon-components/scss/globals/scss/feature-flags';
-@import '~carbon-components/scss/globals/scss/vars';
-@import '~carbon-components/scss/globals/scss/colors';
-@import '~carbon-components/scss/globals/scss/theme';
-@import '~carbon-components/scss/globals/scss/mixins';
-@import '~carbon-components/scss/globals/scss/layout';
-@import '~carbon-components/scss/globals/scss/spacing';
-@import '~carbon-components/scss/globals/scss/typography';
-@import '~carbon-components/scss/globals/scss/vendor/@carbon/elements/scss/import-once/import-once';
-@import '~carbon-components/scss/globals/scss/css--reset';
-@import '~carbon-components/scss/globals/scss/css--font-face';
-@import '~carbon-components/scss/globals/scss/css--helpers';
-@import '~carbon-components/scss/globals/scss/css--body';
+@import "~carbon-components/scss/globals/scss/feature-flags";
+@import "~carbon-components/scss/globals/scss/vars";
+@import "~carbon-components/scss/globals/scss/colors";
+@import "~carbon-components/scss/globals/scss/theme";
+@import "~carbon-components/scss/globals/scss/mixins";
+@import "~carbon-components/scss/globals/scss/layout";
+@import "~carbon-components/scss/globals/scss/spacing";
+@import "~carbon-components/scss/globals/scss/typography";
+@import "~carbon-components/scss/globals/scss/vendor/@carbon/elements/scss/import-once/import-once";
+@import "~carbon-components/scss/globals/scss/css--reset";
+@import "~carbon-components/scss/globals/scss/css--font-face";
+@import "~carbon-components/scss/globals/scss/css--helpers";
+@import "~carbon-components/scss/globals/scss/css--body";
 // used in own component @import '~carbon-components/scss/globals/grid/grid';
 // load carbon components
 // not used @import '~carbon-components/scss/components/button/button';
-@import '~carbon-components/scss/components/copy-button/copy-button';
-@import '~carbon-components/scss/components/file-uploader/file-uploader';
+@import "~carbon-components/scss/components/copy-button/copy-button";
+@import "~carbon-components/scss/components/file-uploader/file-uploader";
 // not used @import '~carbon-components/scss/components/checkbox/checkbox';
-@import '~carbon-components/scss/components/combo-box/combo-box';
+@import "~carbon-components/scss/components/combo-box/combo-box";
 // not used @import '~carbon-components/scss/components/radio-button/radio-button';
-@import '~carbon-components/scss/components/toggle/toggle';
-@import '~carbon-components/scss/components/search/search';
-@import '~carbon-components/scss/components/select/select';
-@import '~carbon-components/scss/components/text-input/text-input';
-@import '~carbon-components/scss/components/text-area/text-area';
-@import '~carbon-components/scss/components/number-input/number-input';
-@import '~carbon-components/scss/components/form/form';
-@import '~carbon-components/scss/components/link/link';
-@import '~carbon-components/scss/components/list-box/list-box';
-@import '~carbon-components/scss/components/list/list';
-@import '~carbon-components/scss/components/data-table/data-table';
+@import "~carbon-components/scss/components/toggle/toggle";
+@import "~carbon-components/scss/components/search/search";
+@import "~carbon-components/scss/components/select/select";
+@import "~carbon-components/scss/components/text-input/text-input";
+@import "~carbon-components/scss/components/text-area/text-area";
+@import "~carbon-components/scss/components/number-input/number-input";
+@import "~carbon-components/scss/components/form/form";
+@import "~carbon-components/scss/components/link/link";
+@import "~carbon-components/scss/components/list-box/list-box";
+@import "~carbon-components/scss/components/list/list";
+@import "~carbon-components/scss/components/data-table/data-table";
 // not used @import '~carbon-components/scss/components/structured-list/structured-list';
-@import '~carbon-components/scss/components/code-snippet/code-snippet';
-@import '~carbon-components/scss/components/overflow-menu/overflow-menu';
-@import '~carbon-components/scss/components/content-switcher/content-switcher';
-@import '~carbon-components/scss/components/date-picker/date-picker';
-@import '~carbon-components/scss/components/dropdown/dropdown';
-@import '~carbon-components/scss/components/loading/loading';
-@import '~carbon-components/scss/components/modal/modal';
-@import '~carbon-components/scss/components/multi-select/multi-select';
-@import '~carbon-components/scss/components/notification/inline-notification';
-@import '~carbon-components/scss/components/notification/toast-notification';
+@import "~carbon-components/scss/components/code-snippet/code-snippet";
+@import "~carbon-components/scss/components/overflow-menu/overflow-menu";
+@import "~carbon-components/scss/components/content-switcher/content-switcher";
+@import "~carbon-components/scss/components/date-picker/date-picker";
+@import "~carbon-components/scss/components/dropdown/dropdown";
+@import "~carbon-components/scss/components/loading/loading";
+@import "~carbon-components/scss/components/modal/modal";
+@import "~carbon-components/scss/components/multi-select/multi-select";
+// currently not needed @import '~carbon-components/scss/components/notification/inline-notification';
+// currently not needed @import '~carbon-components/scss/components/notification/toast-notification';
 // not used @import '~carbon-components/scss/components/tooltip/tooltip';
-@import '~carbon-components/scss/components/tabs/tabs';
+@import "~carbon-components/scss/components/tabs/tabs";
 // not used @import '~carbon-components/scss/components/tag/tag';
 // used in own component @import '~carbon-components/scss/components/pagination/pagination';
-@import '~carbon-components/scss/components/accordion/accordion';
-@import '~carbon-components/scss/components/progress-indicator/progress-indicator';
+@import "~carbon-components/scss/components/accordion/accordion";
+@import "~carbon-components/scss/components/progress-indicator/progress-indicator";
 // not used @import '~carbon-components/scss/components/breadcrumb/breadcrumb';
-@import '~carbon-components/scss/components/toolbar/toolbar';
-@import '~carbon-components/scss/components/time-picker/time-picker';
-@import '~carbon-components/scss/components/slider/slider';
-@import '~carbon-components/scss/components/tile/tile';
-@import '~carbon-components/scss/components/skeleton/skeleton';
-@import '~carbon-components/scss/components/inline-loading/inline-loading';
+@import "~carbon-components/scss/components/toolbar/toolbar";
+@import "~carbon-components/scss/components/time-picker/time-picker";
+@import "~carbon-components/scss/components/slider/slider";
+@import "~carbon-components/scss/components/tile/tile";
+@import "~carbon-components/scss/components/skeleton/skeleton";
+@import "~carbon-components/scss/components/inline-loading/inline-loading";
 // currently not needed @import '~carbon-components/scss/components/pagination-nav/pagination-nav';
 // used in own component @import '~carbon-components/scss/components/ui-shell/ui-shell'; // experimental
 
@@ -136,31 +136,33 @@
 
 // == Load element styles ======================================================
 
-@import 'src/components/Application/application';
-@import 'src/components/Workspace/workspace';
-@import 'src/components/Grid/grid';
-@import 'src/components/Icon/icon';
-@import 'src/components/Menu/menu';
-@import 'src/components/ContextOverlay/contextoverlay';
-@import 'src/components/OverviewItem/overviewitem';
-@import 'src/components/Breadcrumb/breadcrumb';
-@import 'src/components/Dialog/dialog';
-@import 'src/components/Card/card';
-@import 'src/components/Separation/separation';
-@import 'src/components/Tooltip/tooltip';
-@import 'src/components/Structure/titles';
-@import 'src/components/Button/button';
-@import 'src/components/Form/form';
-@import 'src/components/Checkbox/checkbox';
-@import 'src/components/RadioButton/radiobutton';
-@import 'src/components/TextField/textfield';
-@import 'src/components/Pagination/pagination';
-@import 'src/components/Toolbar/toolbar';
-@import 'src/components/Tag/tag';
-@import 'src/components/Typography/typography';
+@import "src/components/Application/application";
+@import "src/components/Workspace/workspace";
+@import "src/components/Grid/grid";
+@import "src/components/Icon/icon";
+@import "src/components/Menu/menu";
+@import "src/components/ContextOverlay/contextoverlay";
+@import "src/components/OverviewItem/overviewitem";
+@import "src/components/Breadcrumb/breadcrumb";
+@import "src/components/Dialog/dialog";
+@import "src/components/Card/card";
+@import "src/components/Separation/separation";
+@import "src/components/Tooltip/tooltip";
+@import "src/components/Structure/titles";
+@import "src/components/Button/button";
+@import "src/components/Form/form";
+@import "src/components/Checkbox/checkbox";
+@import "src/components/RadioButton/radiobutton";
+@import "src/components/TextField/textfield";
+@import "src/components/Pagination/pagination";
+@import "src/components/Toolbar/toolbar";
+@import "src/components/Tag/tag";
+@import "src/components/Typography/typography";
+@import "src/components/Notification/notification";
+
 // == load tweaks ==============================================================
 
-@import 'src/shame';
+@import "src/shame";
 
 // == Some aftermath ===========================================================
 
@@ -169,10 +171,10 @@
 // Cycle through all the deprecation reasons, if any exist, that have been
 // accumulated through the @import process.
 @if (length($deprecations--reasons) > 0) {
-  $deprecations--message: '';
-  @each $reason in $deprecations--reasons {
-    $deprecations--message: '#{$deprecations--message} REASON: #{$reason}';
-  }
+    $deprecations--message: "";
+    @each $reason in $deprecations--reasons {
+        $deprecations--message: "#{$deprecations--message} REASON: #{$reason}";
+    }
 
-  @warn $deprecations--message;
+    @warn $deprecations--message;
 }
