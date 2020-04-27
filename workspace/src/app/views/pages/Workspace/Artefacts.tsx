@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import {
@@ -6,6 +6,8 @@ import {
     Grid,
     GridColumn,
     GridRow,
+    Notification,
+    Toast,
     Section,
     SectionHeader,
     TitleMainsection,
@@ -21,8 +23,9 @@ import { commonOp } from "@ducks/common";
 const Artefacts = () => {
     const dispatch = useDispatch();
 
-    const {textQuery} = useSelector(workspaceSel.appliedFiltersSelector);
+    const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
+    const error = useSelector(workspaceSel.errorSelector);
 
     useEffect(() => {
         dispatch(commonOp.unsetProject());
@@ -33,7 +36,7 @@ const Artefacts = () => {
     };
 
     const handleSearch = (textQuery: string) => {
-        dispatch(workspaceOp.applyFiltersOp({textQuery}));
+        dispatch(workspaceOp.applyFiltersOp({ textQuery }));
     };
 
     return (
@@ -57,26 +60,31 @@ const Artefacts = () => {
                             </GridRow>
                         </Grid>
                     </SectionHeader>
-                    <Divider addSpacing="medium"/>
+                    <Divider addSpacing="medium" />
                     <Grid>
                         <GridRow>
                             <GridColumn small>
-                                <Filterbar/>
+                                <Filterbar />
                             </GridColumn>
                             <GridColumn full>
-                                <SearchList/>
+                                {error.detail ? (
+                                    <Notification danger>
+                                        <h3>Error, cannot fetch results.</h3>
+                                        <p>{error.detail}</p>
+                                    </Notification>
+                                ) : (
+                                    <SearchList />
+                                )}
                             </GridColumn>
                         </GridRow>
                     </Grid>
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>
-                <Section>
-                </Section>
+                <Section></Section>
             </WorkspaceSide>
         </WorkspaceContent>
-
-    )
+    );
 };
 
 export default Artefacts;
