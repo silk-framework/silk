@@ -121,13 +121,10 @@
     ]
   },
   "eslintConfig": {
-    "extends": [
-      "react-app"
-    ],
-    "plugins": [
-      "react-hooks"
-    ],
+    "extends": ["react-app"],
+    "plugins": ["react-hooks"],
     "rules": {
+      "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "off"
     }
   },
