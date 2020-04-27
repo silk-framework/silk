@@ -32,12 +32,12 @@ export function CreateArtefactModal() {
     const dispatch = useDispatch();
     const form = useForm();
 
-    const [searchValue, setSearchValue] = useState('');
+    const [searchValue, setSearchValue] = useState("");
 
     const modalStore = useSelector(commonSel.artefactModalSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
 
-    const {selectedArtefact, isOpen, artefactsList, cachedArtefactProperties, loading} = modalStore;
+    const { selectedArtefact, isOpen, artefactsList, cachedArtefactProperties, loading } = modalStore;
 
     // initially take from redux
     const [selected, setSelected] = useState<IArtefactItem>(selectedArtefact);
@@ -52,14 +52,16 @@ export function CreateArtefactModal() {
         if (selected.key === DATA_TYPES.PROJECT) {
             return dispatch(commonOp.selectArtefact(selected));
         }
-        dispatch(commonOp.getArtefactPropertiesAsync(selected))
+        dispatch(commonOp.getArtefactPropertiesAsync(selected));
     };
 
     const handleSearch = (textQuery: string) => {
         setSearchValue(textQuery);
-        dispatch(commonOp.fetchArtefactsListAsync({
-            textQuery
-        }));
+        dispatch(
+            commonOp.fetchArtefactsListAsync({
+                textQuery,
+            })
+        );
     };
 
     const handleArtefactSelect = (artefact: IArtefactItem) => {
@@ -100,133 +102,131 @@ export function CreateArtefactModal() {
     let artefactForm = null;
     if (selectedArtefact.key) {
         if (selectedArtefact.key === DATA_TYPES.PROJECT) {
-            artefactForm = <ProjectForm form={form}/>
+            artefactForm = <ProjectForm form={form} />;
         } else {
             const detailedArtefact = cachedArtefactProperties[selectedArtefact.key];
-            artefactForm = projectId
-                ? <TaskForm form={form} artefact={detailedArtefact} projectId={projectId}/>
-                : null;
+            if (detailedArtefact && projectId) {
+                artefactForm = <TaskForm form={form} artefact={detailedArtefact} projectId={projectId} />;
+            }
         }
-
     }
 
     return (
         <SimpleDialog
             size="large"
             hasBorder
-            title={`Create a new artefact${selectedArtefact.title || ''}`}
+            title={`Create a new artefact${selectedArtefact.title || ""}`}
             onClose={closeModal}
             isOpen={isOpen}
             actions={
-                selectedArtefact.key ? [
-                    <Button
-                        key='create'
-                        affirmative={true}
-                        onClick={handleCreate}
-                        disabled={isErrorPresented()}
-                    >
-                        Create
-                    </Button>,
-                    <Button key='cancel' onClick={closeModal}>Cancel</Button>,
-                    <CardActionsAux key='aux'>
-                        <Button key='back' onClick={handleBack}>Back</Button>
-                    </CardActionsAux>
-                ] : [
-                    <Button
-                        key='add'
-                        affirmative={true}
-                        onClick={handleAdd}
-                        disabled={!selected}
-                    >
-                        Add
-                    </Button>,
-                    <Button key='cancel' onClick={closeModal}>Cancel</Button>
-                ]
+                selectedArtefact.key
+                    ? [
+                          <Button key="create" affirmative={true} onClick={handleCreate} disabled={isErrorPresented()}>
+                              Create
+                          </Button>,
+                          <Button key="cancel" onClick={closeModal}>
+                              Cancel
+                          </Button>,
+                          <CardActionsAux key="aux">
+                              <Button key="back" onClick={handleBack}>
+                                  Back
+                              </Button>
+                          </CardActionsAux>,
+                      ]
+                    : [
+                          <Button key="add" affirmative={true} onClick={handleAdd} disabled={!selected}>
+                              Add
+                          </Button>,
+                          <Button key="cancel" onClick={closeModal}>
+                              Cancel
+                          </Button>,
+                      ]
             }
         >
             {
                 <>
-                    {
-                        artefactForm ?
-                            artefactForm : (
-                                <Grid>
-                                    <GridRow>
-                                        <GridColumn small>
-                                            <ArtefactTypesList onSelect={handleSelectDType}/>
-                                        </GridColumn>
-                                        <GridColumn>
-                                            <SearchBar onSearch={handleSearch}/>
-                                            <Spacing/>
-                                            {
-                                                loading
-                                                    ? <Loading/>
-                                                    : <OverviewItemList hasSpacing columns={2}>
-                                                        <Card
-                                                            isOnlyLayout
-                                                            className={
-                                                                (selected.key === DATA_TYPES.PROJECT) ? HelperClasses.Intent.ACCENT : ''
-                                                            }
-                                                        >
-                                                            <OverviewItem
-                                                                hasSpacing
-                                                                onClick={() => handleArtefactSelect({key: DATA_TYPES.PROJECT})}
-                                                            >
-                                                                <OverviewItemDepiction>
-                                                                    <Icon name='artefact-project' large/>
-                                                                </OverviewItemDepiction>
-                                                                <OverviewItemDescription>
-                                                                    <OverviewItemLine>
-                                                                        <strong>Project</strong>
-                                                                    </OverviewItemLine>
-                                                                    <OverviewItemLine small>
-                                                                        <p>Lorem Ipsum</p>
-                                                                    </OverviewItemLine>
-                                                                </OverviewItemDescription>
-                                                            </OverviewItem>
-                                                        </Card>
-                                                        {
-                                                            projectId && artefactsList.map(artefact =>
-                                                                <Card
-                                                                    isOnlyLayout
-                                                                    key={artefact.key}
-                                                                    className={
-                                                                        (selected.key === artefact.key) ? HelperClasses.Intent.ACCENT : ''
-                                                                    }
-                                                                >
-                                                                    <OverviewItem
-                                                                        hasSpacing
-                                                                        onClick={() => handleArtefactSelect(artefact)}
-                                                                    >
-                                                                        <OverviewItemDepiction>
-                                                                            <Icon name={'artefact-' + artefact.key}
-                                                                                  large/>
-                                                                        </OverviewItemDepiction>
-                                                                        <OverviewItemDescription>
-                                                                            <OverviewItemLine>
-                                                                                <strong>
-                                                                                    <Highlighter
-                                                                                        label={artefact.title}
-                                                                                        searchValue={searchValue}
-                                                                                    />
-                                                                                </strong>
-                                                                            </OverviewItemLine>
-                                                                            <OverviewItemLine small>
-                                                                                <p>{artefact.description}</p>
-                                                                            </OverviewItemLine>
-                                                                        </OverviewItemDescription>
-                                                                    </OverviewItem>
-                                                                </Card>
-                                                            )
+                    {artefactForm ? (
+                        artefactForm
+                    ) : (
+                        <Grid>
+                            <GridRow>
+                                <GridColumn small>
+                                    <ArtefactTypesList onSelect={handleSelectDType} />
+                                </GridColumn>
+                                <GridColumn>
+                                    <SearchBar onSearch={handleSearch} />
+                                    <Spacing />
+                                    {loading ? (
+                                        <Loading />
+                                    ) : (
+                                        <OverviewItemList hasSpacing columns={2}>
+                                            <Card
+                                                isOnlyLayout
+                                                className={
+                                                    selected.key === DATA_TYPES.PROJECT
+                                                        ? HelperClasses.Intent.ACCENT
+                                                        : ""
+                                                }
+                                            >
+                                                <OverviewItem
+                                                    hasSpacing
+                                                    onClick={() => handleArtefactSelect({ key: DATA_TYPES.PROJECT })}
+                                                >
+                                                    <OverviewItemDepiction>
+                                                        <Icon name="artefact-project" large />
+                                                    </OverviewItemDepiction>
+                                                    <OverviewItemDescription>
+                                                        <OverviewItemLine>
+                                                            <strong>Project</strong>
+                                                        </OverviewItemLine>
+                                                        <OverviewItemLine small>
+                                                            <p>Lorem Ipsum</p>
+                                                        </OverviewItemLine>
+                                                    </OverviewItemDescription>
+                                                </OverviewItem>
+                                            </Card>
+                                            {projectId &&
+                                                artefactsList.map((artefact) => (
+                                                    <Card
+                                                        isOnlyLayout
+                                                        key={artefact.key}
+                                                        className={
+                                                            selected.key === artefact.key
+                                                                ? HelperClasses.Intent.ACCENT
+                                                                : ""
                                                         }
-                                                    </OverviewItemList>
-                                            }
-                                        </GridColumn>
-                                    </GridRow>
-                                </Grid>
-                            )
-                    }
+                                                    >
+                                                        <OverviewItem
+                                                            hasSpacing
+                                                            onClick={() => handleArtefactSelect(artefact)}
+                                                        >
+                                                            <OverviewItemDepiction>
+                                                                <Icon name={"artefact-" + artefact.key} large />
+                                                            </OverviewItemDepiction>
+                                                            <OverviewItemDescription>
+                                                                <OverviewItemLine>
+                                                                    <strong>
+                                                                        <Highlighter
+                                                                            label={artefact.title}
+                                                                            searchValue={searchValue}
+                                                                        />
+                                                                    </strong>
+                                                                </OverviewItemLine>
+                                                                <OverviewItemLine small>
+                                                                    <p>{artefact.description}</p>
+                                                                </OverviewItemLine>
+                                                            </OverviewItemDescription>
+                                                        </OverviewItem>
+                                                    </Card>
+                                                ))}
+                                        </OverviewItemList>
+                                    )}
+                                </GridColumn>
+                            </GridRow>
+                        </Grid>
+                    )}
                 </>
             }
         </SimpleDialog>
-    )
+    );
 }
