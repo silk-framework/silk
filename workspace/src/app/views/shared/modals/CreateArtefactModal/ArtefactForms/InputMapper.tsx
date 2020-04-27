@@ -1,8 +1,7 @@
 import React from "react";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { INPUT_VALID_TYPES } from "../../../../../constants";
-import { NumericInput, Switch, TextField } from "@wrappers/index";
-import TextArea from "@wrappers/blueprint/textarea";
+import { NumericInput, Switch, TextField, TextArea } from "@wrappers/index";
 import { QueryEditor } from "../../../QueryEditor/QueryEditor";
 import { Autocomplete } from "../../../Autocomplete/Autocomplete";
 import { FileUploader } from "../../../FileUploader/FileUploader";
@@ -35,6 +34,8 @@ export function InputMapper(props: IProps) {
             return <Autocomplete {...extraInfo} {...inputAttributes} />;
         }
     }
+
+    const handleFileAdded = () => {};
 
     switch (type) {
         case INPUT_VALID_TYPES.BOOLEAN:

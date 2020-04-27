@@ -2,15 +2,15 @@
 $ecc-size-grid-gutter: $ecc-size-block-whitespace !default;
 
 // import lib requisits
-@import '~carbon-components/scss/globals/scss/feature-flags';
-@import '~carbon-components/scss/globals/scss/functions';
-@import '~carbon-components/scss/globals/scss/mixins';
-@import '~carbon-components/scss/globals/scss/vendor/@carbon/elements/scss/grid/mixins';
+@import "~carbon-components/scss/globals/scss/feature-flags";
+@import "~carbon-components/scss/globals/scss/functions";
+@import "~carbon-components/scss/globals/scss/mixins";
+@import "~carbon-components/scss/globals/scss/vendor/@carbon/elements/scss/grid/mixins";
 // overwrite lib vars
 $carbon--grid-gutter: carbon--rem($ecc-size-grid-gutter);
 // load grid
-@include exports('grid') {
-  @include carbon--grid();
+@include exports("grid") {
+    @include carbon--grid();
 }
 
 // adjustments
@@ -25,7 +25,7 @@ $carbon--grid-gutter: carbon--rem($ecc-size-grid-gutter);
 }
 
 .#{$prefix}--row {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
 }
 
 .#{$prefix}--col {
@@ -43,5 +43,5 @@ $carbon--grid-gutter: carbon--rem($ecc-size-grid-gutter);
 }
 
 .ecc-grid__row--wrapcolumns {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 }
