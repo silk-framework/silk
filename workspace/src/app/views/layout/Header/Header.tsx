@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { commonOp, commonSel } from "@ducks/common";
 import {
@@ -43,7 +43,7 @@ export interface IBreadcrumb {
     text: string;
 }
 
-export const Header = ({onClickApplicationSidebarExpand, isApplicationSidebarExpanded}: IProps) => {
+export const Header = ({ onClickApplicationSidebarExpand, isApplicationSidebarExpanded }: IProps) => {
     const dispatch = useDispatch();
     const location = useLocation();
     const [t] = useTranslation();
@@ -53,99 +53,99 @@ export const Header = ({onClickApplicationSidebarExpand, isApplicationSidebarExp
     useEffect(() => {
         // @TODO: Add label values for breadcrumbs
         const match = appRoutes
-            .map(route => matchPath(location.pathname, {
-                path: getFullRoutePath(route.path),
-                exact: route.exact,
-            })).filter(Boolean);
+            .map((route) =>
+                matchPath(location.pathname, {
+                    path: getFullRoutePath(route.path),
+                    exact: route.exact,
+                })
+            )
+            .filter(Boolean);
 
         if (match) {
-            const {params, url}: any = match[0];
+            const { params, url }: any = match[0];
             const updatedBread = [
-                {href: SERVE_PATH, text: t("common.home")},
-                {href: SERVE_PATH, text: t('Data Integration')},
+                { href: SERVE_PATH, text: t("common.home") },
+                { href: SERVE_PATH, text: t("Data Integration") },
             ];
             if (params.projectId) {
                 updatedBread.push({
                     href: getFullRoutePath(`/projects/${params.projectId}`),
-                    text: params.projectId
-                })
+                    text: params.projectId,
+                });
             }
             if (params.taskId) {
                 updatedBread.push({
                     href: url,
-                    text: params.taskId
-                })
+                    text: params.taskId,
+                });
             }
             setBreadcrumbs(updatedBread);
         }
-
     }, [location.pathname, t]);
 
     const handleCreateDialog = () => {
-        dispatch(commonOp.selectArtefact({}))
+        dispatch(commonOp.selectArtefact({}));
     };
 
     const isAuth = useSelector(commonSel.isAuthSelector);
     const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
-    return (
-        !isAuth ? null :
-            <ApplicationHeader aria-label={"TODO: eccenca DI"}>
+
+    /*
+        TODO: this is only a simple test to have a workaround for a while, we need
+        to remove the check for iFrameDetection later again.
+    */
+    const iFrameDetection = window === window.parent ? true : false;
+
+    return !isAuth ? null : (
+        <ApplicationHeader aria-label={"TODO: eccenca DI"}>
+            {iFrameDetection && (
                 <ApplicationSidebarToggler
                     aria-label="TODO: Open menu"
                     onClick={onClickApplicationSidebarExpand}
                     isActive={isApplicationSidebarExpanded}
                 />
-                <ApplicationTitle prefix="eccenca">DataIntegration</ApplicationTitle>
-                <WorkspaceHeader>
-                    <OverviewItem>
-                        <OverviewItemDepiction>
-                            <HomeButton/>
-                        </OverviewItemDepiction>
-                        <OverviewItemDescription>
-                            <OverviewItemLine small>
-                                <BreadcrumbList items={breadcrumbs} />
+            )}
+            {iFrameDetection && <ApplicationTitle prefix="eccenca">DataIntegration</ApplicationTitle>}
+            <WorkspaceHeader>
+                <OverviewItem>
+                    <OverviewItemDepiction>
+                        <HomeButton />
+                    </OverviewItemDepiction>
+                    <OverviewItemDescription>
+                        <OverviewItemLine small>
+                            <BreadcrumbList items={breadcrumbs} />
+                        </OverviewItemLine>
+                        {lastBreadcrumb && (
+                            <OverviewItemLine large>
+                                <TitlePage>{lastBreadcrumb.text}</TitlePage>
                             </OverviewItemLine>
-                                {
-                                    lastBreadcrumb &&
-                                    <OverviewItemLine large>
-                                        <TitlePage>{lastBreadcrumb.text}</TitlePage>
-                                    </OverviewItemLine>
-                                }
-                        </OverviewItemDescription>
-                        <OverviewItemActions>
-                            <Button text="Dummy" outlined={'true'} elevated />
-                            <IconButton name="item-remove" text="Remove" disruptive />
-                            <ContextMenu>
-                                <MenuItem text={'This'} disabled />
-                                <MenuItem text={'Is just a'} disabled />
-                                <MenuItem text={'Dummy'} disabled />
-                            </ContextMenu>
-                        </OverviewItemActions>
-                    </OverviewItem>
-                </WorkspaceHeader>
-                <ApplicationToolbar>
-                    <ApplicationToolbarSection>
-                        <CreateButton onClick={handleCreateDialog}/>
-                    </ApplicationToolbarSection>
-                    <ApplicationToolbarAction
-                        aria-label="TODO: User menu"
-                        isActive={false}
-                        onClick={() => {}}
-                    >
-                        <Icon
-                            name="application-useraccount"
-                            description="TODO: Open user menu"
-                            large
-                        />
+                        )}
+                    </OverviewItemDescription>
+                    <OverviewItemActions>
+                        <Button text="Dummy" outlined={"true"} elevated />
+                        <IconButton name="item-remove" text="Remove" disruptive />
+                        <ContextMenu>
+                            <MenuItem text={"This"} disabled />
+                            <MenuItem text={"Is just a"} disabled />
+                            <MenuItem text={"Dummy"} disabled />
+                        </ContextMenu>
+                    </OverviewItemActions>
+                </OverviewItem>
+            </WorkspaceHeader>
+            <ApplicationToolbar>
+                <ApplicationToolbarSection>
+                    <CreateButton onClick={handleCreateDialog} />
+                </ApplicationToolbarSection>
+                {iFrameDetection && (
+                    <ApplicationToolbarAction aria-label="TODO: User menu" isActive={false} onClick={() => {}}>
+                        <Icon name="application-useraccount" description="TODO: Open user menu" large />
                     </ApplicationToolbarAction>
-                    <ApplicationToolbarPanel
-                        aria-label="TODO: User panel"
-                        expanded={false}
-                    >
-                        TODO
-                    </ApplicationToolbarPanel>
-                </ApplicationToolbar>
-                <CreateArtefactModal />
-            </ApplicationHeader>
-    )
+                )}
+                <ApplicationToolbarPanel aria-label="TODO: User panel" expanded={false}>
+                    TODO
+                </ApplicationToolbarPanel>
+            </ApplicationToolbar>
+            <CreateArtefactModal />
+        </ApplicationHeader>
+    );
 };
