@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { TextField } from '@wrappers/index';
+import { TextField } from "@wrappers/index";
 import { sharedOp } from "@ducks/shared";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
-import { debounce } from "../../../utils/debounce";
-import styles from './styles.module.scss';
+import styles from "./styles.module.scss";
 
 interface IProps {
     artefactId: string;
@@ -25,7 +24,7 @@ export function Autocomplete(props: IProps) {
     // Whether or not the suggestion list is shown
     const [visible, setVisible] = useState<boolean>(false);
     // What the user has entered
-    const [userInput, setUserInput] = useState<string>('');
+    const [userInput, setUserInput] = useState<string>("");
 
     // const getSuggestionsDelayed: any = debounce(sharedOp.getAutocompleteResultsAsync,  1000);
 
@@ -35,18 +34,18 @@ export function Autocomplete(props: IProps) {
 
     const updateSuggestions = async (input) => {
         try {
-            const { parameterId, artefactId, projectId, autoCompletion } =  props;
+            const { parameterId, artefactId, projectId, autoCompletion } = props;
             const list = await sharedOp.getAutocompleteResultsAsync({
                 pluginId: artefactId,
                 parameterId,
                 projectId,
                 dependsOnParameterValues: autoCompletion.autoCompletionDependsOnParameters,
-                textQuery: input
+                textQuery: input,
             });
 
             // Filter our suggestions that don't contain the user's input
             const filteredSuggestions = list.filter(
-                ({label, value}) =>
+                ({ label, value }) =>
                     value.toLowerCase().indexOf(input.toLowerCase()) > -1 ||
                     label.toLowerCase().indexOf(input.toLowerCase()) > -1
             );
@@ -63,7 +62,7 @@ export function Autocomplete(props: IProps) {
         updateSuggestions(userInput);
     };
 
-    const onChange = e => {
+    const onChange = (e) => {
         const input = e.currentTarget.value;
         setUserInput(input);
 
@@ -71,17 +70,17 @@ export function Autocomplete(props: IProps) {
     };
 
     // Event fired when the user clicks on a suggestion
-    const onClick = value => {
+    const onClick = (value) => {
         // Update the user input and reset the rest of the state
         setActive(0);
         setFiltered([]);
-        setVisible( false);
+        setVisible(false);
         setUserInput(value);
 
         props.onChange(value);
     };
 
-    const onKeyDown = e => {
+    const onKeyDown = (e) => {
         // User pressed the enter key, update the input and close the
         // suggestions
         if (e.keyCode === 13) {
@@ -128,11 +127,7 @@ export function Autocomplete(props: IProps) {
                         }
 
                         return (
-                            <li
-                                className={className}
-                                key={suggestion.value}
-                                onClick={() => onClick(suggestion.value)}
-                            >
+                            <li className={className} key={suggestion.value} onClick={() => onClick(suggestion.value)}>
                                 {suggestion.label || suggestion.value}
                             </li>
                         );
@@ -162,5 +157,4 @@ export function Autocomplete(props: IProps) {
             {suggestionsListComponent}
         </>
     );
-
 }

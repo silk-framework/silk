@@ -7,8 +7,8 @@ import { HOST } from "./app/constants";
  */
 const registerGlobals = () => {
     window.onerror = onErrorHandler;
-    (<any>window).DMInstance = {
-        createPlugin
+    (window as any).DMInstance = {
+        createPlugin,
     };
     /**
      * @Global: __webpack_public_path__

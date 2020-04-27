@@ -1,31 +1,23 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 import CodeMirror from "codemirror";
 import "codemirror/mode/sparql/sparql.js";
 
-export function QueryEditor({onChange, name}: any) {
-    let editorInstance = null;
+export function QueryEditor({ onChange, name }: any) {
     const ref = useRef();
 
     useEffect(() => {
-        editorInstance = CodeMirror.fromTextArea(ref.current, {
+        const editorInstance = CodeMirror.fromTextArea(ref.current, {
             mode: "sparql",
             lineWrapping: true,
             lineNumbers: true,
             tabSize: 2,
-            theme: 'xq-light',
+            theme: "xq-light",
         });
 
-        editorInstance.on('change', (api) => {
-            onChange(api.getValue())
+        editorInstance.on("change", (api) => {
+            onChange(api.getValue());
         });
+    }, [onChange]);
 
-    }, []);
-
-    return <textarea
-        data-test-id="codemirror-wrapper"
-        ref={ref}
-        id={'codemirror'}
-        name={name}
-    />
-
-};
+    return <textarea data-test-id="codemirror-wrapper" ref={ref} id={"codemirror"} name={name} />;
+}

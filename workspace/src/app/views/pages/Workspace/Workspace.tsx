@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 
-import './index.scss';
+import "./index.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { AppToaster } from "../../../services/toaster";
@@ -20,7 +20,7 @@ export function Workspace() {
     const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
 
     const location = useLocation();
-    const {projectId} = useParams();
+    const { projectId } = useParams();
 
     useEffect(() => {
         dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
@@ -31,8 +31,8 @@ export function Workspace() {
             AppToaster.show({
                 message: error.detail,
                 intent: Intent.DANGER,
-                timeout: 2000
-            })
+                timeout: 2000,
+            });
         }
     }, [error.detail]);
 
@@ -45,20 +45,21 @@ export function Workspace() {
 
         // Fetch the list of projects
         dispatch(workspaceOp.fetchListAsync());
-    }, [location.pathname, qs]);
+    }, [location.pathname, qs, dispatch]);
 
     if (projectId) {
-        return <Project projectId={projectId}/>
+        return <Project projectId={projectId} />;
     }
 
-    return !isEmptyWorkspace
-        ? <Artefacts/>
-        : <Grid>
+    return !isEmptyWorkspace ? (
+        <Artefacts />
+    ) : (
+        <Grid>
             <GridRow>
                 <GridColumn>
-                    <EmptyWorkspace/>
+                    <EmptyWorkspace />
                 </GridColumn>
             </GridRow>
         </Grid>
-
+    );
 }

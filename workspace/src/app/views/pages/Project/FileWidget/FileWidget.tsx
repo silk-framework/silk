@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, DataTable } from 'carbon-components-react';
+import { Button, DataTable } from "carbon-components-react";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { Card, CardContent, CardHeader, CardTitle, Divider, } from "@wrappers/index";
+import { Card, CardContent, CardHeader, CardTitle, Divider } from "@wrappers/index";
 import Loading from "../../../shared/Loading";
 import FileUploadModal from "../../../shared/modals/FileUploadModal";
 import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
@@ -30,26 +30,18 @@ export const FileWidget = () => {
     const fileWidget = useSelector(workspaceSel.widgetsSelector).files;
 
     const [isOpenDialog, setIsOpenDialog] = useState<boolean>(false);
-    const {error, isLoading} = fileWidget;
+    const { isLoading } = fileWidget;
 
     const headers = [
-        {key: 'name', header: 'Name'},
-        {key: 'type', header: 'Type'},
-        {key: 'formattedDate', header: 'Date'},
-        {key: 'state', header: 'State'},
+        { key: "name", header: "Name" },
+        { key: "type", header: "Type" },
+        { key: "formattedDate", header: "Date" },
+        { key: "state", header: "State" },
     ];
 
     useEffect(() => {
-        getFilesList();
-    }, []);
-
-    const getFilesList = () => {
         dispatch(workspaceOp.fetchResourcesListAsync());
-    };
-
-    const handleSearch = (e) => {
-        const {value} = e.target;
-    };
+    }, []);
 
     const toggleFileUploader = () => {
         setIsOpenDialog(!isOpenDialog);
@@ -69,33 +61,36 @@ export const FileWidget = () => {
                 </CardHeader>
                 <Divider />
                 <CardContent>
-                    {isLoading ? <Loading/> :
-                        filesList.length ?
+                    {isLoading ? (
+                        <Loading />
+                    ) : filesList.length ? (
                         <DataTable
                             rows={filesList}
                             headers={headers}
-                            render={({rows, headers, getHeaderProps}) => (
+                            render={({ rows, headers, getHeaderProps }) => (
                                 <TableContainer>
                                     <TableToolbar>
                                         <TableToolbarContent>
-                                            <TableToolbarSearch/>
-                                            <Button kind={'primary'} onClick={toggleFileUploader}>+ Add File</Button>
+                                            <TableToolbarSearch />
+                                            <Button kind={"primary"} onClick={toggleFileUploader}>
+                                                + Add File
+                                            </Button>
                                         </TableToolbarContent>
                                     </TableToolbar>
                                     <Table>
                                         <TableHead>
                                             <TableRow>
-                                                {headers.map(header => (
-                                                    <TableHeader {...getHeaderProps({header})}>
+                                                {headers.map((header) => (
+                                                    <TableHeader {...getHeaderProps({ header })}>
                                                         {header.header}
                                                     </TableHeader>
                                                 ))}
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {rows.map(row => (
+                                            {rows.map((row) => (
                                                 <TableRow key={row.id}>
-                                                    {row.cells.map(cell => (
+                                                    {row.cells.map((cell) => (
                                                         <TableCell key={cell.id}>{cell.value}</TableCell>
                                                     ))}
                                                 </TableRow>
@@ -105,8 +100,9 @@ export const FileWidget = () => {
                                 </TableContainer>
                             )}
                         />
-                        : <EmptyFileWidget onFileAdd={toggleFileUploader}/>
-                    }
+                    ) : (
+                        <EmptyFileWidget onFileAdd={toggleFileUploader} />
+                    )}
                 </CardContent>
             </Card>
             <FileUploadModal
@@ -116,5 +112,5 @@ export const FileWidget = () => {
                 onCheckFileExists={isResourceExists}
             />
         </>
-    )
+    );
 };

@@ -25,34 +25,35 @@ import {
 } from "@wrappers/index";
 import { SearchBar } from "../../shared/SearchBar/SearchBar";
 
-const Project = ({projectId}) => {
+const Project = ({ projectId }) => {
     const dispatch = useDispatch();
 
     const currentProjectId = useSelector(commonSel.currentProjectIdSelector);
-    const {textQuery} = useSelector(workspaceSel.appliedFiltersSelector);
+    const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
 
     useEffect(() => {
         // Fetch the list of projects
         dispatch(commonOp.setProjectId(projectId));
-    }, []);
+    }, [projectId]);
 
     const handleSort = (sortBy: string) => {
         dispatch(workspaceOp.applySorterOp(sortBy));
     };
 
     const handleSearch = (textQuery: string) => {
-        dispatch(workspaceOp.applyFiltersOp({textQuery}));
+        dispatch(workspaceOp.applyFiltersOp({ textQuery }));
     };
 
-    return (
-        !currentProjectId ? <Loading/> :
-            <WorkspaceContent className="eccapp-di__project">
-                <WorkspaceMain>
-                    <Section>
-                        <Metadata taskId={projectId}/>
-                        <Spacing/>
-                    </Section>
+    return !currentProjectId ? (
+        <Loading />
+    ) : (
+        <WorkspaceContent className="eccapp-di__project">
+            <WorkspaceMain>
+                <Section>
+                    <Metadata taskId={projectId} />
+                    <Spacing />
+                </Section>
                 <Section>
                     <SectionHeader>
                         <Grid>
@@ -65,7 +66,7 @@ const Project = ({projectId}) => {
                                         textQuery={textQuery}
                                         sorters={sorters}
                                         onSort={handleSort}
-                                        onSearch={handleSort}
+                                        onSearch={handleSearch}
                                     />
                                 </GridColumn>
                             </GridRow>
@@ -75,10 +76,10 @@ const Project = ({projectId}) => {
                     <Grid>
                         <GridRow>
                             <GridColumn small>
-                                <Filterbar/>
+                                <Filterbar />
                             </GridColumn>
                             <GridColumn full>
-                                <SearchList/>
+                                <SearchList />
                             </GridColumn>
                         </GridRow>
                     </Grid>
@@ -86,15 +87,15 @@ const Project = ({projectId}) => {
             </WorkspaceMain>
             <WorkspaceSide>
                 <Section>
-                    <FileWidget/>
+                    <FileWidget />
                     <Spacing />
-                    <ConfigurationWidget/>
+                    <ConfigurationWidget />
                     <Spacing />
-                    <WarningWidget/>
+                    <WarningWidget />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>
-    )
+    );
 };
 
 export default Project;

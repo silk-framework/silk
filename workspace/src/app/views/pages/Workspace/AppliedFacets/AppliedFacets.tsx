@@ -2,7 +2,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { IFacetState } from "@ducks/workspace/typings";
-import { Spacing, Tag, TagList, } from "@wrappers/index";
+import { Spacing, Tag, TagList } from "@wrappers/index";
 
 export function AppliedFacets() {
     const dispatch = useDispatch();
@@ -15,38 +15,29 @@ export function AppliedFacets() {
     };
 
     const facetsList = [];
-    appliedFacets.map(appliedFacet => {
-        const facet = facets.find(o => o.id === appliedFacet.facetId);
+    appliedFacets.forEach((appliedFacet) => {
+        const facet = facets.find((o) => o.id === appliedFacet.facetId);
         if (facet) {
             facetsList.push({
                 label: facet.label,
                 id: facet.id,
-                keywords: facet.values.filter(key => appliedFacet.keywordIds.includes(key.id))
+                keywords: facet.values.filter((key) => appliedFacet.keywordIds.includes(key.id)),
             });
         }
     });
 
     return (
         <>
-            {
-                facetsList.map(facet =>
-                    <TagList key={facet.id} label={facet.label}>
-                        {
-                            facet.keywords.map(keyword =>
-                                <Tag
-                                    key={keyword.id}
-                                    onRemove={() => handleFacetRemove(facet, keyword.id)}
-                                >
-                                    {keyword.label}
-                                </Tag>
-                            )
-                        }
-                    </TagList>
-                )
-            }
-            {
-                facetsList.length > 0 && <Spacing size="small" />
-            }
+            {facetsList.map((facet) => (
+                <TagList key={facet.id} label={facet.label}>
+                    {facet.keywords.map((keyword) => (
+                        <Tag key={keyword.id} onRemove={() => handleFacetRemove(facet, keyword.id)}>
+                            {keyword.label}
+                        </Tag>
+                    ))}
+                </TagList>
+            ))}
+            {facetsList.length > 0 && <Spacing size="small" />}
         </>
-    )
+    );
 }

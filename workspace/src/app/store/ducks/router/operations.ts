@@ -1,4 +1,4 @@
-import qs from 'qs';
+import qs from "qs";
 import { getLocation, push } from "connected-react-router";
 import { SERVE_PATH } from "../../../constants";
 
@@ -11,7 +11,7 @@ const setQueryString = (queryParams: IQueryParams) => {
         const location = getLocation(getState());
         const currentQuery = {};
 
-        Object.keys(queryParams).map(paramName => {
+        Object.keys(queryParams).forEach((paramName) => {
             const values = queryParams[paramName];
             const validValue = Array.isArray(values) ? values : values.toString();
 
@@ -26,19 +26,16 @@ const setQueryString = (queryParams: IQueryParams) => {
             arrayFormat: "comma",
         })}`;
         dispatch(push(qsStr));
-    }
+    };
 };
 
 const goToPage = (path: string, isAbsolute: boolean = false) => {
-    return dispatch => {
-        dispatch(push(
-            isAbsolute ? path : SERVE_PATH + path
-        ))
-    }
+    return (dispatch) => {
+        dispatch(push(isAbsolute ? path : SERVE_PATH + path));
+    };
 };
-
 
 export default {
     setQueryString,
-    goToPage
+    goToPage,
 };
