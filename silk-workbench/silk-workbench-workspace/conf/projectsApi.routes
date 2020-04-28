@@ -10,3 +10,9 @@ DELETE        /:projectId/prefixes/:prefixName                         controlle
 
 GET           /:projectId/failedTasksReport                            controllers.workspaceApi.ProjectApi.projectTasksLoadingErrorReport(projectId: String)
 GET           /:projectId/failedTasksReport/:taskId                    controllers.workspaceApi.ProjectApi.projectTaskLoadingErrorReport(projectId: String, taskId: String)
+
+#################
+# Project Tasks
+#################
+
+GET           /:projectId/tasks/:taskId/relatedItems                   controllers.workspaceApi.ProjectTaskApi.relatedItems(projectId: String, taskId: String, textQuery: Option[String] ?= None)

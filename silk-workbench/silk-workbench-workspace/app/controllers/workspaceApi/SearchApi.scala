@@ -4,7 +4,7 @@ import java.util.logging.Logger
 
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
-import controllers.workspaceApi.search.ParameterAutoCompletionRequest
+import controllers.workspaceApi.search.{ItemType, ParameterAutoCompletionRequest}
 import controllers.workspaceApi.search.SearchApiModel._
 import javax.inject.Inject
 import org.silkframework.config.Prefixes

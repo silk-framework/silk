@@ -1,6 +1,5 @@
 package controllers.workspaceApi.search
 
-import config.WorkbenchConfig
 import controllers.util.TextSearchUtils
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
@@ -33,18 +32,6 @@ object SearchApiModel {
   /* JSON serialization */
   lazy implicit val responseOptionsReader: Reads[TaskFormatOptions] = Json.reads[TaskFormatOptions]
   lazy implicit val searchRequestReader: Reads[SearchRequest] = Json.reads[SearchRequest]
-  lazy implicit val itemTypeReads: Format[ItemType] = new Format[ItemType] {
-    override def reads(json: JsValue): JsResult[ItemType] = {
-      json match {
-        case JsString(value) =>ItemType.idToItemType.get(value) match {
-          case Some(itemType) => JsSuccess(itemType)
-          case None => throw BadUserInputException(s"Invalid value for itemType. Got '$value'. Value values: " + ItemType.ordered.map(_.id).mkString(", "))
-        }
-        case _ => throw BadUserInputException("Invalid value for itemType. String value expected.")
-      }
-    }
-    override def writes(o: ItemType): JsValue = JsString(o.id)
-  }
   lazy implicit val sortOrderReads: Reads[SortOrder.Value] = Reads.enumNameReads(SortOrder)
   lazy implicit val sortByReads: Reads[SortBy.Value] = Reads.enumNameReads(SortBy)
   lazy implicit val facetTypesReads: Reads[FacetType.Value] = Reads.enumNameReads(FacetType)
@@ -76,21 +63,6 @@ object SearchApiModel {
         VALUES -> JsArray(facetValues)
       ))
     }
-  }
-
-  /** The item types the search can be restricted to. */
-  sealed abstract class ItemType(val id: String, val label: String)
-
-  object ItemType {
-    case object project extends ItemType(PROJECT_TYPE, "Project")
-    case object dataset extends ItemType("dataset", "Dataset")
-    case object transform extends ItemType("transform", "Transform")
-    case object linking extends ItemType("linking", "Linking")
-    case object workflow extends ItemType("workflow", "Workflow")
-    case object task extends ItemType("task", "Task")
-
-    val ordered: Seq[ItemType] = Seq(project, workflow, dataset, transform, linking, task)
-    val idToItemType: Map[String, ItemType] = ordered.map(it => (it.id, it)).toMap
   }
 
   /** The properties that can be sorted by. */
@@ -311,58 +283,24 @@ object SearchApiModel {
       matchesSearchTerm(lowerCaseSearchTerms, name, task.metaData.description.getOrElse(""))
     }
 
-    // TODO: Update URL after deciding on path for new workspace
-    private def workspaceProjectPath(projectId: String) = s"workspaceNew/projects/$projectId"
     // Adds links to related pages to the result item
     private def addItemLinks(results: Seq[JsObject]): Seq[JsObject] = {
 
       results map { result =>
         val project = jsonPropertyStringValue(result, PROJECT_ID)
         val itemId = jsonPropertyStringValue(result, ID)
-        val context = WorkbenchConfig.applicationContext
-        val detailsPageBase = s"$context/${workspaceProjectPath(project)}"
-        val links: Seq[ItemLink] = itemTypeReads.reads(result.value(TYPE)).asOpt match {
+        val links: Seq[ItemLink] = ItemType.itemTypeFormat.reads(result.value(TYPE)).asOpt match {
           case Some(itemType) =>
-            itemType match {
-              case ItemType.dataset => Seq(
-                ItemLink("Dataset details page", s"$detailsPageBase/${ItemType.dataset.id}/$itemId")
-              )
-              case ItemType.transform => Seq(
-                ItemLink("Transform details page", s"$detailsPageBase/${ItemType.transform.id}/$itemId"),
-                ItemLink("Mapping editor", s"$context/transform/$project/$itemId/editor"),
-                ItemLink("Transform evaluation", s"$context/transform/$project/$itemId/evaluate"),
-                ItemLink("Transform execution", s"$context/transform/$project/$itemId/execute")
-              )
-              case ItemType.linking => Seq(
-                ItemLink("Linking details page", s"$detailsPageBase/${ItemType.linking.id}/$itemId"),
-                ItemLink("Linking editor", s"$context/linking/$project/$itemId/editor"),
-                ItemLink("Linking evaluation", s"$context/linking/$project/$itemId/evaluate"),
-                ItemLink("Linking execution", s"$context/linking/$project/$itemId/execute")
-              )
-              case ItemType.workflow => Seq(
-                ItemLink("Workflow details page", s"$detailsPageBase/${ItemType.workflow.id}/$itemId"),
-                ItemLink("Workflow editor", s"$context/workflow/editor/$project/$itemId")
-              )
-              case ItemType.task => Seq(
-                ItemLink("Task details page", s"$detailsPageBase/${ItemType.task.id}/$itemId")
-              )
-              case ItemType.project => Seq(
-                ItemLink("Project details page", s"$context/${workspaceProjectPath(itemId)}")
-              )
-            }
-          case None => Seq.empty
+            ItemType.itemTypeLinks(itemType, project, itemId)
+          case None =>
+            Seq.empty
         }
-        result + ("itemLinks" -> JsArray(links.map(ItemLink.itemLinkWrites.writes)))
+        result + ("itemLinks" -> JsArray(links.map(ItemLink.itemLinkFormat.writes)))
       }
     }
 
     private def jsonPropertyStringValue(result: JsObject, property: String): String = {
       result.value.get(property).map(_.as[String]).getOrElse("")
-    }
-
-    case class ItemLink(label: String, path: String)
-    object ItemLink {
-      val itemLinkWrites: Writes[ItemLink] = Json.writes[ItemLink]
     }
 
     private def filterTasksByTextQuery(typedTasks: TypedTasks,

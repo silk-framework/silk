@@ -1,11 +1,11 @@
 package controllers.workspaceApi.search
 
-import controllers.workspaceApi.search.SearchApiModel.{Facet, FacetSetting, ItemType, KeywordFacetSetting}
+import controllers.workspaceApi.search.SearchApiModel.{Facet, FacetSetting, KeywordFacetSetting}
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.{LinkSpec, TransformSpec}
-import org.silkframework.workspace.{Project, ProjectTask}
 import org.silkframework.workspace.activity.workflow.Workflow
+import org.silkframework.workspace.{Project, ProjectTask}
 
 import scala.collection.immutable.ListMap
 import scala.collection.mutable

@@ -1,14 +1,12 @@
 package controllers.workspace
 
 import controllers.core.{AutoCompletableTestPlugin, TestAutoCompletionProvider}
-import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, Facets, ItemType, KeywordFacetSetting, SortBy, SortOrder, SortableProperty}
+import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, Facets, KeywordFacetSetting, SortBy, SortOrder, SortableProperty}
 import controllers.workspaceApi.search._
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.MetaData
-import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginParameterAutoCompletionProvider, PluginRegistry}
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginRegistry}
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
 import play.api.libs.json._
