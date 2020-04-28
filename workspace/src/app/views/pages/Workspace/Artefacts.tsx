@@ -7,7 +7,6 @@ import {
     GridColumn,
     GridRow,
     Notification,
-    Toast,
     Section,
     SectionHeader,
     TitleMainsection,
