@@ -23,6 +23,7 @@ import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivity, TaskActivityFactory}
 
 import scala.reflect.ClassTag
@@ -179,6 +180,14 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       allDependentTaskIds ++= dependentTasks.flatMap(_.findDependentTasks(true))
     }
     allDependentTaskIds.distinct.toSet
+  }
+
+  override def findRelatedTasksInsideWorkflows()(implicit userContext: UserContext): Set[Identifier] = {
+    val relatedWorkflowItems = for(workflow <- project.tasks[Workflow];
+        workflowNode <- workflow.data.nodes if workflowNode.inputs.contains(id.toString) || workflowNode.outputs.contains(id.toString)) yield {
+      workflowNode.task
+    }
+    relatedWorkflowItems.toSet
   }
 
   private def persistTask(implicit userContext: UserContext): Unit = {

@@ -36,6 +36,9 @@ trait Task[+TaskType <: TaskSpec] {
   def findDependentTasks(recursive: Boolean)
                         (implicit userContext: UserContext): Set[Identifier] = Set.empty
 
+  /** Find tasks that are either input or output to this task. */
+  def findRelatedTasksInsideWorkflows()(implicit userContext: UserContext): Set[Identifier] = Set.empty
+
   /**
     * Returns the label if defined or the task ID. Truncates the label to maxLength characters.
     * @param maxLength the max length in characters

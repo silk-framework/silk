@@ -17,7 +17,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with ControllerUtils
   def relatedItems(projectId: String, taskId: String, textQuery: Option[String]): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)
     val task = project.anyTask(taskId)
-    val relatedTasks = (task.data.referencedTasks.toSeq ++ task.findDependentTasks(recursive = false).toSeq).
+    val relatedTasks = (task.data.referencedTasks.toSeq ++ task.findDependentTasks(recursive = false).toSeq ++ task.findRelatedTasksInsideWorkflows.toSeq).distinct.
         flatMap(id => project.anyTaskOption(id))
     val relatedItems = relatedTasks map { task =>
       val itemType = ItemType.itemType(task)
