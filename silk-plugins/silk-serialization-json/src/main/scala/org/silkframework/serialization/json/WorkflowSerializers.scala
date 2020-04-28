@@ -2,6 +2,7 @@ package org.silkframework.serialization.json
 
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonHelpers._
+import org.silkframework.serialization.json.JsonSerializers.PARAMETERS
 import org.silkframework.workspace.activity.workflow._
 import play.api.libs.json.{JsArray, _}
 
@@ -15,10 +16,13 @@ object WorkflowSerializers {
     override def typeNames: Set[String] = Set(JsonSerializers.TASK_TYPE_WORKFLOW)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Workflow = {
-      val parameters = (value \ JsonSerializers.PARAMETERS).as[JsObject]
+      val parameterObject = optionalValue(value, PARAMETERS) match {
+        case None => value
+        case _ => objectValue(value, PARAMETERS)
+      }
       Workflow(
-        operators = mustBeJsArray(requiredValue(parameters, OPERATORS))(_.value.map(WorkflowOperatorJsonFormat.read)),
-        datasets = mustBeJsArray(requiredValue(parameters, DATASETS))(_.value.map(WorkflowDatasetJsonFormat.read))
+        operators = mustBeJsArray(requiredValue(parameterObject, OPERATORS))(_.value.map(WorkflowOperatorJsonFormat.read)),
+        datasets = mustBeJsArray(requiredValue(parameterObject, DATASETS))(_.value.map(WorkflowDatasetJsonFormat.read))
       )
     }
 

@@ -18,6 +18,7 @@ import org.silkframework.runtime.validation.{BadUserInputException, ValidationEx
 import org.silkframework.serialization.json.EntitySerializers.EntitySchemaJsonFormat
 import org.silkframework.serialization.json.InputJsonSerializer._
 import org.silkframework.serialization.json.JsonHelpers._
+import org.silkframework.serialization.json.JsonSerializers.LinkSpecJsonFormat.OUTPUTS
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.LinkingSerializers._
 import org.silkframework.util.{DPair, Identifier, Uri}
@@ -664,18 +665,38 @@ object JsonSerializers {
     final val OUTPUT: String = "output"
     final val TARGET_VOCABULARIES: String = "targetVocabularies"
 
+    /** Deprecated property names */
+    final val DEPRECATED_RULES_PROPERTY: String = "root"
+    // A transform task can only have one output (outside of a workflow)
+    final val DEPRECATED_OUTPUTS: String = "outputs"
+
     override def typeNames: Set[String] = Set(TASK_TYPE_TRANSFORM)
 
     /**
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): TransformSpec = {
-      val parametersObj = objectValue(value, PARAMETERS)
+      optionalValue(value, PARAMETERS) match {
+        case None =>
+          readDeprecated(value)
+        case _ =>
+          val parametersObj = objectValue(value, PARAMETERS)
+          TransformSpec(
+            selection = fromJson[DatasetSelection](mustBeDefined(parametersObj, SELECTION)),
+            mappingRule = optionalValue(parametersObj, RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty),
+            output = stringValueOption(parametersObj, OUTPUT).filter(_.trim.nonEmpty).map(v => Identifier(v.trim)),
+            targetVocabularies = mustBeJsArray(mustBeDefined(parametersObj, TARGET_VOCABULARIES))(_.value.map(_.as[JsString].value))
+          )
+      }
+    }
+
+    // Reads the deprecated JSON model
+    private def readDeprecated(value: JsValue)(implicit readContext: ReadContext): TransformSpec = {
       TransformSpec(
-        selection = fromJson[DatasetSelection](mustBeDefined(parametersObj, SELECTION)),
-        mappingRule = optionalValue(parametersObj, RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty),
-        output = stringValueOption(parametersObj, OUTPUT).filter(_.trim.nonEmpty).map(v => Identifier(v.trim)),
-        targetVocabularies = mustBeJsArray(mustBeDefined(parametersObj, TARGET_VOCABULARIES))(_.value.map(_.as[JsString].value))
+        selection = fromJson[DatasetSelection](mustBeDefined(value, SELECTION)),
+        mappingRule = optionalValue(value, RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty),
+        output = mustBeJsArray(mustBeDefined(value, DEPRECATED_OUTPUTS))(_.value.map(v => Identifier(v.as[JsString].value))).headOption,
+        targetVocabularies = mustBeJsArray(mustBeDefined(value, TARGET_VOCABULARIES))(_.value.map(_.as[JsString].value))
       )
     }
 
@@ -854,20 +875,42 @@ object JsonSerializers {
     final val LINK_LIMIT = "linkLimit"
     final val MATCHING_EXECUTION_TIMEOUT = "matchingExecutionTimeout"
 
+    /** Deprecated properties */
+    final val DEPRECATED_OUTPUTS = "outputs"
+
     override def typeNames: Set[String] = Set(TASK_TYPE_LINKING)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): LinkSpec = {
-      val parametersObj = objectValue(value, PARAMETERS)
+      optionalValue(value, PARAMETERS) match {
+        case None =>
+          deprecatedRead(value)
+        case _ =>
+          val parametersObj = objectValue(value, PARAMETERS)
+          LinkSpec(
+            source =
+                fromJson[DatasetSelection](mustBeDefined(parametersObj, SOURCE)),
+            target =
+                fromJson[DatasetSelection](mustBeDefined(parametersObj, TARGET)),
+            rule = optionalValue(parametersObj, RULE).map(fromJson[LinkageRule]).getOrElse(LinkageRule()),
+            output = stringValueOption(parametersObj, OUTPUT).filter(_.trim.nonEmpty).map(o => Identifier(o.trim)),
+            referenceLinks = optionalValue(parametersObj, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty),
+            linkLimit = numberValueOption(parametersObj, LINK_LIMIT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
+            matchingExecutionTimeout = numberValueOption(parametersObj, MATCHING_EXECUTION_TIMEOUT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
+          )
+      }
+    }
+
+    private def deprecatedRead(value: JsValue)(implicit readContext: ReadContext): LinkSpec = {
       LinkSpec(
         source =
-            fromJson[DatasetSelection](mustBeDefined(parametersObj, SOURCE)),
+            fromJson[DatasetSelection](mustBeDefined(value, SOURCE)),
         target =
-            fromJson[DatasetSelection](mustBeDefined(parametersObj, TARGET)),
-        rule = optionalValue(parametersObj, RULE).map(fromJson[LinkageRule]).getOrElse(LinkageRule()),
-        output = stringValueOption(parametersObj, OUTPUT).filter(_.trim.nonEmpty).map(o => Identifier(o.trim)),
-        referenceLinks = optionalValue(parametersObj, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty),
-        linkLimit = numberValueOption(parametersObj, LINK_LIMIT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
-        matchingExecutionTimeout = numberValueOption(parametersObj, MATCHING_EXECUTION_TIMEOUT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
+            fromJson[DatasetSelection](mustBeDefined(value, TARGET)),
+        rule = optionalValue(value, RULE).map(fromJson[LinkageRule]).getOrElse(LinkageRule()),
+        output = mustBeJsArray(mustBeDefined(value, DEPRECATED_OUTPUTS))(_.value.map(v => Identifier(v.as[JsString].value))).headOption,
+        referenceLinks = optionalValue(value, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty),
+        linkLimit = numberValueOption(value, LINK_LIMIT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
+        matchingExecutionTimeout = numberValueOption(value, MATCHING_EXECUTION_TIMEOUT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
       )
     }
 
