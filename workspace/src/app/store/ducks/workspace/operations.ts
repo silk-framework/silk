@@ -1,6 +1,6 @@
 import { batch } from "react-redux";
 
-import fetch from '../../../services/fetch';
+import fetch from "../../../services/fetch";
 
 import selectors from "./selectors";
 import { filtersSlice } from "./filtersSlice";
@@ -13,7 +13,7 @@ import qs from "qs";
 import {
     fetchAddOrUpdatePrefixAsync,
     fetchProjectPrefixesAsync,
-    fetchRemoveProjectPrefixAsync
+    fetchRemoveProjectPrefixAsync,
 } from "@ducks/workspace/widgets/configuration.thunk";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
@@ -30,21 +30,15 @@ const {
     changePage,
     changeProjectsLimit,
     removeFacet,
-    resetFilters
+    resetFilters,
 } = filtersSlice.actions;
 
-const {
-    setLoading,
-    setError,
-    fetchList,
-    fetchListSuccess,
-} = previewSlice.actions;
+const { setLoading, setError, fetchList, fetchListSuccess } = previewSlice.actions;
 
-const {
-    updateNewPrefix
-} = widgetsSlice.actions;
+const { updateNewPrefix } = widgetsSlice.actions;
 
-const ARRAY_DELIMITER = '|';
+const ARRAY_DELIMITER = "|";
+const VALUE_DELIMITER = ",";
 
 /**
  * Update the search query in url
@@ -54,34 +48,34 @@ const updateQueryString = () => {
         const state = getState();
 
         const appliedFilters = workspaceSel.appliedFiltersSelector(state);
-        const {applied: appliedSorters} = workspaceSel.sortersSelector(state);
+        const { applied: appliedSorters } = workspaceSel.sortersSelector(state);
         const appliedFacets = workspaceSel.appliedFacetsSelector(state);
-        const {current, limit} = workspaceSel.paginationSelector(state);
+        const { current, limit } = workspaceSel.paginationSelector(state);
 
         const queryParams = {
             ...appliedFilters,
             ...appliedSorters,
             page: current,
             limit: limit,
-            f_ids: appliedFacets.map(o => o.facetId),
-            types: appliedFacets.map(o => o.type),
-            f_keys: appliedFacets.map(o => o.keywordIds.join(ARRAY_DELIMITER))
+            f_ids: appliedFacets.map((o) => o.facetId),
+            types: appliedFacets.map((o) => o.type),
+            f_keys: appliedFacets.map((o) => o.keywordIds.join(ARRAY_DELIMITER)),
         };
 
         dispatch(routerOp.setQueryString(queryParams));
-    }
+    };
 };
 
 /*
-* Setup Filters, Sorting, Pagination, Facets from Query string
-**/
+ * Setup Filters, Sorting, Pagination, Facets from Query string
+ **/
 const setupFiltersFromQs = (queryString: string) => {
-    return dispatch => {
+    return (dispatch) => {
         try {
             const parsedQs = qs.parse(queryString, {
-                parseArrays:true,
+                parseArrays: true,
                 comma: true,
-                ignoreQueryPrefix: true
+                ignoreQueryPrefix: true,
             });
 
             // The batch of functions that should dispatched
@@ -96,65 +90,65 @@ const setupFiltersFromQs = (queryString: string) => {
                 filters.itemType = parsedQs.itemType;
             }
 
-            batchQueue.push(
-                applyFilters(filters)
-            );
+            batchQueue.push(applyFilters(filters));
 
             // Facets
             if (parsedQs.f_ids) {
                 const facetIds = parsedQs.f_ids;
                 if (!Array.isArray(facetIds)) {
-                    const fKeys = parsedQs.f_keys as string;
-                    batchQueue.push(applyFacet({
-                        facet: {
-                            id: facetIds,
-                            type: parsedQs.types
-                        },
-                        keywordIds: fKeys.split(ARRAY_DELIMITER)
-                    }));
+                    const fIds = facetIds.split(VALUE_DELIMITER);
+                    const fValues = parsedQs.f_keys.split(VALUE_DELIMITER);
+                    const fTypes = parsedQs.types.split(VALUE_DELIMITER);
+                    fIds.forEach((fId, idx) => {
+                        batchQueue.push(
+                            applyFacet({
+                                facet: {
+                                    id: fId,
+                                    type: fTypes[idx],
+                                },
+                                keywordIds: fValues[idx].split(ARRAY_DELIMITER),
+                            })
+                        );
+                    });
                 } else {
                     facetIds.forEach((facetId, i) => {
                         const facet: Partial<IFacetState> = {
                             id: facetId,
-                            type: parsedQs.types[i]
+                            type: parsedQs.types[i],
                         };
-                        batchQueue.push(applyFacet({
-                            facet,
-                            keywordIds: parsedQs.f_keys[i].split(ARRAY_DELIMITER)
-                        }));
+                        batchQueue.push(
+                            applyFacet({
+                                facet,
+                                keywordIds: parsedQs.f_keys[i].split(ARRAY_DELIMITER),
+                            })
+                        );
                     });
                 }
-
             }
 
             // Pagination
             if (parsedQs.page) {
-                batchQueue.push(
-                    changePage(+parsedQs.page)
-                )
+                batchQueue.push(changePage(+parsedQs.page));
             }
 
             //DropDown
             if (parsedQs.limit) {
-                batchQueue.push(
-                    changeProjectsLimit(+parsedQs.limit)
-                )
+                batchQueue.push(changeProjectsLimit(+parsedQs.limit));
             }
 
             // Sorting
             if (parsedQs.sortBy) {
-                batchQueue.push(applySorter({
-                    sortBy: parsedQs.sortBy,
-                    sortOrder: parsedQs.sortOrder
-                }))
+                batchQueue.push(
+                    applySorter({
+                        sortBy: parsedQs.sortBy,
+                        sortOrder: parsedQs.sortOrder,
+                    })
+                );
             }
 
             batch(() => batchQueue.forEach(dispatch));
-
-        } catch {
-        }
-
-    }
+        } catch {}
+    };
 };
 
 /**
@@ -170,7 +164,7 @@ const fetchListAsync = () => {
         });
         // get applied pagination values
         const state = getState();
-        const {limit, offset} = selectors.paginationSelector(state);
+        const { limit, offset } = selectors.paginationSelector(state);
         const appliedFilters = selectors.appliedFiltersSelector(state);
         const appliedFacets = selectors.appliedFacetsSelector(state);
         const sorters = selectors.sortersSelector(state);
@@ -191,24 +185,23 @@ const fetchListAsync = () => {
         }
 
         // get filters
-        Object.keys(appliedFilters)
-            .forEach(filter => {
-                if (filter.length) {
-                    body[filter] = appliedFilters[filter]
-                }
-            });
+        Object.keys(appliedFilters).forEach((filter) => {
+            if (filter.length) {
+                body[filter] = appliedFilters[filter];
+            }
+        });
 
         // get facets
-        body.facets = appliedFacets.map(facet => facet);
+        body.facets = appliedFacets.map((facet) => facet);
 
         try {
             const res = await fetch({
-                url: workspaceApi('/searchItems'),
-                method: 'post',
-                body
+                url: workspaceApi("/searchItems"),
+                method: "post",
+                body,
             });
 
-            const {total, facets, results, sortByProperties} = res.data;
+            const { total, facets, results, sortByProperties } = res.data;
             batch(() => {
                 // Apply results
                 dispatch(fetchListSuccess(results));
@@ -219,18 +212,18 @@ const fetchListAsync = () => {
                 dispatch(updateFacets(facets));
                 // Add sorters
                 dispatch(updateSorters(sortByProperties));
-            })
+            });
         } catch (e) {
             batch(() => {
                 dispatch(setLoading(false));
                 dispatch(setError(e.response.data));
-            })
+            });
         }
-    }
+    };
 };
 
 const fetchRemoveTaskAsync = (itemId: string, parentId?: string) => {
-    return async dispatch => {
+    return async (dispatch) => {
         batch(() => {
             dispatch(setLoading(true));
             dispatch(setError({}));
@@ -239,11 +232,11 @@ const fetchRemoveTaskAsync = (itemId: string, parentId?: string) => {
         try {
             let url = legacyApiEndpoint(`/projects/${itemId}`);
             if (parentId) {
-                url = legacyApiEndpoint(`/projects/${parentId}/tasks/${itemId}?removeDependentTasks=true`)
+                url = legacyApiEndpoint(`/projects/${parentId}/tasks/${itemId}?removeDependentTasks=true`);
             }
             await fetch({
                 url,
-                method: 'DELETE',
+                method: "DELETE",
             });
             batch(() => {
                 dispatch(fetchListAsync());
@@ -255,11 +248,11 @@ const fetchRemoveTaskAsync = (itemId: string, parentId?: string) => {
                 dispatch(setLoading(false));
             });
         }
-    }
+    };
 };
 
 const fetchCloneTaskAsync = (taskId: string, projectId: string, taskNewId: string) => {
-    return async dispatch => {
+    return async (dispatch) => {
         batch(() => {
             dispatch(setError({}));
             dispatch(setLoading(true));
@@ -268,7 +261,7 @@ const fetchCloneTaskAsync = (taskId: string, projectId: string, taskNewId: strin
         try {
             await fetch({
                 url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/clone?newTask=${taskNewId}`),
-                method: 'POST',
+                method: "POST",
             });
             batch(() => {
                 dispatch(fetchListAsync());
@@ -280,129 +273,132 @@ const fetchCloneTaskAsync = (taskId: string, projectId: string, taskNewId: strin
                 dispatch(setLoading(false));
             });
         }
-    }
+    };
 };
 
 const fetchCreateTaskAsync = (formData: any, artefactId: string) => {
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
-        const { label, description, ...restFormData} = formData;
+        const { label, description, ...restFormData } = formData;
         const metadata = {
             label,
-            description
+            description,
         };
 
         const payload = {
             metadata,
             data: {
                 // @FIXME: HARDCODED
-                taskType: 'Dataset',
+                taskType: "Dataset",
                 type: artefactId,
                 parameters: {
-                    ...restFormData
-                }
-            }
+                    ...restFormData,
+                },
+            },
         };
 
         dispatch(setError({}));
 
         try {
-            const {data} = await fetch({
+            const { data } = await fetch({
                 url: legacyApiEndpoint(`/projects/${currentProjectId}/tasks`),
-                method: 'POST',
-                body: payload
+                method: "POST",
+                body: payload,
             });
             dispatch(routerOp.goToPage(`/projects/${currentProjectId}/dataset/${data.id}`));
         } catch (e) {
             dispatch(setError(e.response.data));
         }
-    }
+    };
 };
 
-const fetchCreateProjectAsync = (formData: {
-    label: string,
-    description?: string
-}) => {
-    return async dispatch => {
+const fetchCreateProjectAsync = (formData: { label: string; description?: string }) => {
+    return async (dispatch) => {
         dispatch(setError({}));
         const { label, description } = formData;
         try {
-            const {data} = await fetch({
+            const { data } = await fetch({
                 url: workspaceApi(`/projects`),
-                method: 'POST',
+                method: "POST",
                 body: {
                     metaData: {
                         label,
-                        description
-                    }
-                }
+                        description,
+                    },
+                },
             });
             dispatch(routerOp.goToPage(`/projects/${data.name}`));
         } catch (e) {
             dispatch(setError(e.response.data));
         }
-    }
+    };
 };
 
 const applyFiltersOp = (filter) => {
-    return dispatch => {
+    return (dispatch) => {
         batch(() => {
             dispatch(applyFilters(filter));
             dispatch(updateQueryString());
         });
-    }
+    };
 };
 
 const applySorterOp = (sortBy: string) => {
-    return dispatch => {
+    return (dispatch) => {
         batch(() => {
-            dispatch(applySorter({
-                sortBy
-            }));
+            dispatch(
+                applySorter({
+                    sortBy,
+                })
+            );
             dispatch(updateQueryString());
         });
-    }
+    };
 };
 
 const changePageOp = (page: number) => {
-    return dispatch => {
+    return (dispatch) => {
         batch(() => {
             dispatch(changePage(page));
             dispatch(updateQueryString());
         });
-    }
+    };
 };
 
 const changeLimitOp = (value: number) => {
-    return dispatch => {
+    return (dispatch) => {
         batch(() => {
             dispatch(changeProjectsLimit(value));
             dispatch(updateQueryString());
-        })
-    }
+        });
+    };
 };
 
 const toggleFacetOp = (facet: IFacetState, keywordId: string) => {
     return (dispatch, getState) => {
         const facets = workspaceSel.appliedFacetsSelector(getState());
-        const foundFacet = facets.find(o => o.facetId === facet.id);
+        const foundFacet = facets.find((o) => o.facetId === facet.id);
 
         const isKeywordMissing = foundFacet && !foundFacet.keywordIds.includes(keywordId);
 
         if (!foundFacet || isKeywordMissing) {
-            dispatch(applyFacet({
-                facet,
-                keywordIds: [keywordId]
-            }));
+            dispatch(
+                applyFacet({
+                    facet,
+                    keywordIds: [keywordId],
+                })
+            );
         } else {
-            dispatch(removeFacet({
-                facet: foundFacet,
-                keywordId
-            }));
+            dispatch(
+                removeFacet({
+                    facet: foundFacet,
+                    keywordId,
+                })
+            );
         }
 
         dispatch(updateQueryString());
-    }
+    };
 };
 
 export default {
@@ -425,5 +421,5 @@ export default {
     fetchCreateProjectAsync,
     fetchCreateTaskAsync,
     resetFilters,
-    updateNewPrefix
+    updateNewPrefix,
 };
