@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { Intent } from "@wrappers/blueprint/constants";
-import { Card, CardContent, CardHeader, CardTitle, Divider, Icon } from "@wrappers/index";
+import { Card, CardContent, CardHeader, CardTitle, Divider, Button, Notification, Spacing } from "@wrappers/index";
 import MarkdownModal from "../../../shared/modals/MarkdownModal";
 import { AppToaster } from "../../../../services/toaster";
 import { commonSel } from "@ducks/common";
@@ -43,29 +43,38 @@ export const WarningWidget = () => {
         }
     };
 
-    return (
+    if (isLoading) return <Loading />;
+
+    return warningList.length > 0 ? (
         <Card>
             <CardHeader>
                 <CardTitle>
-                    <h3>Warning</h3>
+                    <h3>Error log</h3>
                 </CardTitle>
             </CardHeader>
-            {isLoading ? (
-                <Loading />
-            ) : (
-                <>
-                    <Divider />
-                    <CardContent>
-                        {warningList.map((warn) => (
-                            <div>
+            <Divider />
+            <CardContent>
+                <ul>
+                    {warningList.map((warn, id) => (
+                        <li key={"notification_" + id}>
+                            <Notification
+                                danger
+                                actions={
+                                    <Button
+                                        minimal
+                                        text="Show report"
+                                        onClick={() => handleOpenMarkDown(warn.taskId)}
+                                    />
+                                }
+                            >
                                 {warn.errorSummary}
-                                <Icon name="item-info" onClick={() => handleOpenMarkDown(warn.taskId)} />
-                            </div>
-                        ))}
-                        <MarkdownModal isOpen={isOpen} onDiscard={handleClose} markdown={currentMarkdown} />
-                    </CardContent>
-                </>
-            )}
+                            </Notification>
+                            <Spacing size={"tiny"} />
+                        </li>
+                    ))}
+                </ul>
+                <MarkdownModal isOpen={isOpen} onDiscard={handleClose} markdown={currentMarkdown} />
+            </CardContent>
         </Card>
-    );
+    ) : null;
 };

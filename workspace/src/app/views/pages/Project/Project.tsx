@@ -15,6 +15,7 @@ import {
     Grid,
     GridColumn,
     GridRow,
+    Notification,
     Section,
     SectionHeader,
     Spacing,
@@ -31,6 +32,7 @@ const Project = ({ projectId }) => {
     const currentProjectId = useSelector(commonSel.currentProjectIdSelector);
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
+    const error = useSelector(workspaceSel.errorSelector);
 
     useEffect(() => {
         // Fetch the list of projects
@@ -79,7 +81,14 @@ const Project = ({ projectId }) => {
                                 <Filterbar />
                             </GridColumn>
                             <GridColumn full>
-                                <SearchList />
+                                {error.detail ? (
+                                    <Notification danger>
+                                        <h3>Error, cannot fetch results.</h3>
+                                        <p>{error.detail}</p>
+                                    </Notification>
+                                ) : (
+                                    <SearchList />
+                                )}
                             </GridColumn>
                         </GridRow>
                     </Grid>

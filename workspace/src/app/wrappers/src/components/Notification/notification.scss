@@ -14,10 +14,12 @@
 
     & > .ecc-icon {
         color: inherit;
+        flex-grow: 0;
+        flex-shrink: 0;
     }
 
     &.ecc-notification--static > .#{$ns}-button-group {
-        &:last-child {
+        :last-child {
             display: none;
         }
     }
@@ -47,5 +49,27 @@
         border-color: $ecc-color-danger-text;
         color: $ecc-color-danger-text;
         background-color: $ecc-color-danger-background;
+    }
+}
+
+.ecc-notification__content {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin: -10px; // TODO: use blueprint var ofr toast padding here
+}
+
+.ecc-notification__messagebody {
+    padding: 10px; // TODO: use blueprint var ofr toast padding here
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.ecc-notification__actions {
+    flex-grow: 0;
+    flex-shrink: 0;
+
+    .#{$ns}-button {
+        color: inherit;
     }
 }

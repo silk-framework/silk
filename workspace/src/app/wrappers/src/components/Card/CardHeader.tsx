@@ -1,35 +1,28 @@
-import React from 'react';
-import { OverviewItem, OverviewItemDescription, } from './../OverviewItem';
-import CardTitle from './CardTitle';
-import CardOptions from './CardOptions';
+import React from "react";
+import { OverviewItem, OverviewItemDescription } from "./../OverviewItem";
+import CardTitle from "./CardTitle";
+import CardOptions from "./CardOptions";
 
-function CardHeader({
-    children,
-    className='',
-    densityHigh = true,
-    ...otherProps
-}: any) {
+function CardHeader({ children, className = "", densityHigh = true, ...otherProps }: any) {
     let actions = [];
     let description = [];
 
     React.Children.map(children, (child, i) => {
-        switch (child.type) {
-            case CardTitle:
-                description.push(child);
-                break;
-            case CardOptions:
-                actions.push(child);
-                break;
+        if (child) {
+            switch (child.type) {
+                case CardTitle:
+                    description.push(child);
+                    break;
+                case CardOptions:
+                    actions.push(child);
+                    break;
+            }
         }
     });
 
     return (
         <header>
-            <OverviewItem
-                {...otherProps}
-                className={'ecc-card__header ' + className}
-                densityHigh={densityHigh}
-            >
+            <OverviewItem {...otherProps} className={"ecc-card__header " + className} densityHigh={densityHigh}>
                 {description.length > 0 && <OverviewItemDescription>{description}</OverviewItemDescription>}
                 {actions}
             </OverviewItem>
