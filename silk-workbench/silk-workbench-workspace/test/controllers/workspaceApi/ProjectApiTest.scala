@@ -54,8 +54,9 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
     val projectId = (createProjectByLabel("will be overwritten", Some("will also be overwritten")).json \ "name").as[String]
     val (newLabel, newDescription) = ("new label", Some("new description"))
     val response = client.url(s"$baseUrl${projectsMetaDataUrl(projectId)}").put(Json.toJson(ItemMetaData(newLabel, newDescription)))
-    checkResponse(response)
+    val metaDataResponse = JsonSerializers.fromJson[MetaData](checkResponse(response).json)
     val metaData = retrieveOrCreateProject(projectId).config.metaData
+    metaData mustBe metaDataResponse
     metaData.label mustBe newLabel
     metaData.description mustBe newDescription
   }

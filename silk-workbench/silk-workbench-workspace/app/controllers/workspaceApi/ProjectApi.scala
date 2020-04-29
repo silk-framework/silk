@@ -2,19 +2,21 @@ package controllers.workspaceApi
 
 import java.util.UUID
 
-import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.core.util.ControllerUtilsTrait
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.workspace.JsonSerializer
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
-import controllers.workspaceApi.project.ProjectLoadingErrors.{ProjectTaskLoadingErrorResponse, Stacktrace}
+import controllers.workspaceApi.project.ProjectLoadingErrors.ProjectTaskLoadingErrorResponse
 import javax.inject.Inject
 import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectConfig
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Accepting, Action, AnyContent, InjectedController, Result}
+import play.api.mvc.{Accepting, Action, AnyContent, InjectedController}
+import JsonSerializers.MetaDataJsonFormat
 
 /**
   * REST API for project artifacts.
@@ -48,8 +50,8 @@ class ProjectApi @Inject()() extends InjectedController with ControllerUtilsTrai
       val cleanedNewMetaData = newMetaData
       val oldProjectMetaData = workspace.project(projectId).config.metaData
       val mergedMetaData = oldProjectMetaData.copy(label = cleanedNewMetaData.label, description = cleanedNewMetaData.description)
-      workspace.updateProjectMetaData(projectId, mergedMetaData.asUpdatedMetaData)
-      NoContent
+      val updatedMetaData = workspace.updateProjectMetaData(projectId, mergedMetaData.asUpdatedMetaData)
+      Ok(JsonSerializers.toJson(updatedMetaData))
     }
   }
 

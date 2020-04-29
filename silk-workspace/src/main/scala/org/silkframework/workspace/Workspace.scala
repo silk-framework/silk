@@ -107,7 +107,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   /** Update the meta data of a project. */
   def updateProjectMetaData(projectId: Identifier,
                             metaData: MetaData)
-                           (implicit userContext: UserContext): Unit = synchronized {
+                           (implicit userContext: UserContext): MetaData = synchronized {
     loadUserProjects()
     val diProject = project(projectId)
     val projectConfig = diProject.config
@@ -118,6 +118,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     removeProjectFromCache(projectId)
     addProjectToCache(new Project(updatedProjectConfig, provider, repository.get(projectId)))
     log.info(s"Project meta data updated for '$projectId'.")
+    updatedProjectConfig.metaData
   }
 
   def removeProject(name: Identifier)

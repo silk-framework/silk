@@ -174,18 +174,24 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
   def putTaskMetadata(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
-    implicit val readContext = ReadContext()
+    implicit val readContext: ReadContext = ReadContext()
 
     SerializationUtils.deserializeCompileTime[MetaData](defaultMimeType = "application/json") { metaData =>
       task.updateMetaData(metaData)
-      Ok
+      Ok(taskMetaDataJson(task))
     }
   }
 
   def getTaskMetadata(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
+    val metaDataJson = taskMetaDataJson(task)
+    accessMonitor.saveProjectTaskAccess(project.config.id, task.id)
+    Ok(metaDataJson)
+  }
 
+  // Task meta data object as JSON
+  private def taskMetaDataJson(task: ProjectTask[_ <: TaskSpec])(implicit userContext: UserContext): JsObject = {
     val formatOptions =
       TaskFormatOptions(
         includeMetaData = Some(false),
@@ -195,12 +201,11 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
         includeSchemata = Some(true)
       )
     val taskFormat = new TaskJsonFormat(formatOptions, Some(userContext))(TaskSpecJsonFormat)
-    implicit val writeContext = WriteContext[JsValue](projectId = Some(projectName))
+    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](projectId = Some(task.project.config.id))
     val taskJson = taskFormat.write(task)
     val metaDataJson = JsonSerializers.toJson(task.metaData)
     val mergedJson = metaDataJson.as[JsObject].deepMerge(taskJson.as[JsObject])
-    accessMonitor.saveProjectTaskAccess(project.config.id, task.id)
-    Ok(mergedJson)
+    mergedJson
   }
 
   def cloneTask(projectName: String, oldTask: String, newTask: String): Action[AnyContent] = UserContextAction { implicit userContext =>
