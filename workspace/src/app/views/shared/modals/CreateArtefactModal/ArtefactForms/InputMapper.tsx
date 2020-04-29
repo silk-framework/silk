@@ -35,7 +35,7 @@ export function InputMapper(props: IProps) {
         }
     }
 
-    const handleFileAdded = () => {};
+    // const handleFileAdded = () => {};
 
     switch (type) {
         case INPUT_VALID_TYPES.BOOLEAN:
