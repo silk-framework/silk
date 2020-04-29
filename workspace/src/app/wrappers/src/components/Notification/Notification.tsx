@@ -4,6 +4,7 @@ import * as IntentClassNames from "./../Intent/classnames";
 import Icon from "./../Icon/Icon";
 
 function Notification({
+    actions,
     children,
     className,
     message,
@@ -30,6 +31,17 @@ function Notification({
             break;
     }
 
+    const content = actions ? (
+        <div className="ecc-notification__content">
+            <div className="ecc-notification__messagebody">{message ? message : children}</div>
+            <div className="ecc-notification__actions">{actions}</div>
+        </div>
+    ) : message ? (
+        message
+    ) : (
+        children
+    );
+
     return (
         <BlueprintToast
             className={
@@ -38,7 +50,7 @@ function Notification({
                 (className ? " " + className : "") +
                 (otherProps.onDismiss ? "" : " ecc-notification--static")
             }
-            message={message ? message : children}
+            message={content}
             timeout={timeout ? timeout : 0}
             icon={<Icon name={iconSymbol} className={BlueprintClassNames.ICON} />}
             {...otherProps}
