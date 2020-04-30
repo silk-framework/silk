@@ -1,15 +1,9 @@
-import { ISortersState } from "@ducks/workspace/typings";
 import React, { useEffect, useState } from "react";
 import { Toolbar, ToolbarSection } from "@wrappers/index";
 import SearchInput from "../SearchBar/SearchInput";
-import SortButton from "../buttons/SortButton";
 
 interface IProps {
     textQuery?: string;
-    sorters?: ISortersState;
-
-    onSort?(sortBy: string): void;
-
     onSearch(textQuery: string): void;
 }
 
@@ -34,6 +28,11 @@ export function RelatedItemsSearch({ textQuery = "", onSearch }: IProps) {
         onSearch(searchInput);
     };
 
+    const clearSearchInput = () => {
+        setSearchInput("");
+        onSearch("");
+    };
+
     return (
         <Toolbar>
             <ToolbarSection canGrow>
@@ -41,6 +40,7 @@ export function RelatedItemsSearch({ textQuery = "", onSearch }: IProps) {
                     onFilterChange={handleSearchChange}
                     onEnter={handleSearchEnter}
                     filterValue={searchInput}
+                    onClearanceHandler={clearSearchInput}
                 />
             </ToolbarSection>
         </Toolbar>
