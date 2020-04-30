@@ -17,13 +17,10 @@ import {
 } from "@wrappers/index";
 import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/thunks/metadata.thunk";
 import { Loading } from "../Loading/Loading";
-import { useDispatch } from "react-redux";
 import { InputGroup } from "@blueprintjs/core";
 import { useForm, Controller } from "react-hook-form";
 
 export function Metadata({ projectId = null, taskId }) {
-    const dispatch = useDispatch();
-
     const { control, handleSubmit } = useForm();
 
     const [loading, setLoading] = useState(false);
