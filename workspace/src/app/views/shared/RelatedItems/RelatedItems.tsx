@@ -1,30 +1,22 @@
 import React, { useEffect, useRef, useState } from "react";
 import { IRelatedItem, IRelatedItems } from "@ducks/shared/thunks/relatedItems.thunk";
 import {
-    Button,
     Card,
-    CardActions,
-    CardActionsAux,
     CardContent,
     CardHeader,
-    CardOptions,
     CardTitle,
     ContextMenu,
     Divider,
-    IconButton,
     MenuDivider,
     MenuItem,
-    Notification,
     OverviewItem,
     OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
-    Spacing,
 } from "@wrappers/index";
 import { sharedOp } from "@ducks/shared";
 import DataList from "../Datalist";
-import { getItemLinkIcons } from "../SearchList/SearchItem";
-import MarkdownModal from "../modals/MarkdownModal";
+import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 
 export function RelatedItems({ projectId, taskId }) {
     const [loading, setLoading] = useState(true);
@@ -37,7 +29,7 @@ export function RelatedItems({ projectId, taskId }) {
     const getRelatedItemsData = async (projectId: string, taskId: string) => {
         setLoading(true);
         const data = await sharedOp.getRelatedItemsAsync(projectId, taskId);
-        if (data.items !== undefined) {
+        if (!data.items) {
             setData(data);
         }
         setLoading(false);
@@ -52,7 +44,7 @@ export function RelatedItems({ projectId, taskId }) {
             </CardHeader>
             <Divider />
             <CardContent>
-                <DataList isEmpty={data.items.length === 0} isLoading={loading} hasSpacing hasDivider>
+                <DataList isEmpty={!data.items.length} isLoading={loading} hasSpacing hasDivider>
                     {data.items.map((relatedItem: IRelatedItem) => {
                         const contextMenuItems = relatedItem.itemLinks.map((link) => (
                             <MenuItem

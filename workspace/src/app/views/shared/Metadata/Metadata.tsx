@@ -14,10 +14,10 @@ import {
     IconButton,
     MenuItem,
     TextArea,
+    TextField,
 } from "@wrappers/index";
 import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/thunks/metadata.thunk";
 import { Loading } from "../Loading/Loading";
-import { InputGroup } from "@blueprintjs/core";
 import { useForm, Controller } from "react-hook-form";
 
 export function Metadata({ projectId = null, taskId }) {
@@ -39,15 +39,24 @@ export function Metadata({ projectId = null, taskId }) {
         getTaskMetadata(taskId, projectId);
     }, [taskId, projectId]);
 
-    const getTaskMetadata = async (taskId: string, projectId: string) => {
+    const letLoading = async (callback) => {
         setLoading(true);
-        const data = await sharedOp.getTaskMetadataAsync(taskId, projectId);
-        setData(data);
+
+        const result = await callback();
+
         setLoading(false);
+        return result;
     };
 
     const toggleEdit = () => {
         setIsEditing(!isEditing);
+    };
+
+    const getTaskMetadata = async (taskId: string, projectId: string) => {
+        const result = await letLoading(() => {
+            return sharedOp.getTaskMetadataAsync(taskId, projectId);
+        });
+        setData(result);
     };
 
     const onSubmit = async (inputs: IMetadataUpdatePayload) => {
@@ -66,10 +75,14 @@ export function Metadata({ projectId = null, taskId }) {
                 label: false,
             },
         });
-        setLoading(true);
-        const data = await sharedOp.updateTaskMetadataAsync(taskId, inputs, projectId);
-        setData(data);
-        setLoading(false);
+
+        const result = await letLoading(() => {
+            return sharedOp.updateTaskMetadataAsync(taskId, inputs, projectId);
+        });
+
+        setData(result);
+
+        toggleEdit();
     };
 
     return (
@@ -97,7 +110,7 @@ export function Metadata({ projectId = null, taskId }) {
                     ) : isEditing ? (
                         <form onSubmit={handleSubmit(onSubmit)}>
                             <CardContent>
-                                <Controller as={InputGroup} name="label" control={control} defaultValue={label} />
+                                <Controller as={TextField} name="label" control={control} defaultValue={label} />
                                 {errors.form.label && "Label is required"}
                                 <Controller
                                     as={TextArea}
