@@ -7,7 +7,7 @@ import { useParams } from "react-router";
 import Metadata from "../../shared/Metadata";
 import { datasetSel } from "@ducks/dataset";
 
-import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@wrappers/index";
+import { Section, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@wrappers/index";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 
 export function Dataset() {

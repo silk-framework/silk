@@ -7,6 +7,11 @@ interface IProps {
     onSearch(textQuery: string): void;
 }
 
+/**
+ * Simple search widget for the related items widget.
+ * @param textQuery The multi-word text query that related items should be filtered by.
+ * @param onSearch  The callback to execute if the text query has changed.
+ */
 export function RelatedItemsSearch({ textQuery = "", onSearch }: IProps) {
     const [searchInput, setSearchInput] = useState(textQuery);
 
