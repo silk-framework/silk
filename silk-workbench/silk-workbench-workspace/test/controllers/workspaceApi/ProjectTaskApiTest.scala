@@ -45,6 +45,7 @@ class ProjectTaskApiTest extends FlatSpec with SingleProjectWorkspaceProviderTes
     relatedItems(workflowTask, textQuery = Some(ItemType.task.label)).items.map(_.id) mustBe Seq(customTask)
     // Multi word search in label
     relatedItems(workflowTask, textQuery = Some("spar elect")).items.map(_.id) mustBe Seq(customTask)
+    relatedItems(workflowTask, textQuery = Some("spar elect")).total mustBe 4
     // Multi word search in label and type
     relatedItems(workflowTask, textQuery = Some("spar elect " + ItemType.task.label)).items.map(_.id) mustBe Seq(customTask)
   }

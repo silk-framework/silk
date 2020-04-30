@@ -25,7 +25,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with ControllerUtils
       RelatedItem(task.id, task.taskLabel(Int.MaxValue), task.metaData.description, itemType.label, itemLinks)
     }
     val filteredItems = filterRelatedItems(relatedItems, textQuery)
-    val total = filteredItems.size
+    val total = relatedItems.size
     val result = RelatedItems(total, filteredItems)
     Ok(Json.toJson(result))
   }
