@@ -30,7 +30,7 @@ import org.silkframework.runtime.serialization.{ReadContext, ValidatingXMLReader
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
 
-import scala.xml.Node
+import scala.xml.{Node, NodeSeq}
 
 /**
  * Represents a Silk Link Specification.
@@ -40,7 +40,8 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
                     outputs: Seq[Identifier] = Seq.empty,
                     referenceLinks: ReferenceLinks = ReferenceLinks.empty,
                     linkLimit: Int = LinkSpec.DEFAULT_LINK_LIMIT,
-                    matchingExecutionTimeout: Int = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS) extends TaskSpec {
+                    matchingExecutionTimeout: Int = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS,
+                    applicationData: Option[String] = None) extends TaskSpec {
 
   assert(linkLimit >= 0, "The link limit must be greater equal 0!")
   assert(matchingExecutionTimeout >= 0, "The matching execution timeout must be greater equal 0!")
@@ -190,7 +191,8 @@ object LinkSpec {
             Identifier(id)
           },
         linkLimit = (node \ "@linkLimit").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
-        matchingExecutionTimeout = (node \ "@matchingExecutionTimeout").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
+        matchingExecutionTimeout = (node \ "@matchingExecutionTimeout").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS),
+        applicationData = (node \ "ApplicationData").headOption.map(_.text)
       )
     }
 
@@ -205,6 +207,7 @@ object LinkSpec {
         <Outputs>
           {spec.outputs.map(o => <Output id={o}></Output>)}
         </Outputs>
+        { spec.applicationData.map(data => <ApplicationData>{data}</ApplicationData>).getOrElse(NodeSeq.Empty) }
       </Interlink>
   }
 }

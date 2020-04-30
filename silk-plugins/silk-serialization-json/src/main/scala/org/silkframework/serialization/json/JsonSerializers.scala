@@ -878,6 +878,7 @@ object JsonSerializers {
     final val REFERENCE_LINKS = "referenceLinks"
     final val LINK_LIMIT = "linkLimit"
     final val MATCHING_EXECUTION_TIMEOUT = "matchingExecutionTimeout"
+    final val APPLICATION_DATA = "applicationData"
 
     override def typeNames: Set[String] = Set("Linking")
 
@@ -892,21 +893,29 @@ object JsonSerializers {
         outputs = mustBeJsArray(mustBeDefined(value, OUTPUTS))(_.value.map(v => Identifier(v.as[JsString].value))),
         referenceLinks = optionalValue(value, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty),
         linkLimit = numberValueOption(value, LINK_LIMIT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
-        matchingExecutionTimeout = numberValueOption(value, MATCHING_EXECUTION_TIMEOUT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
+        matchingExecutionTimeout = numberValueOption(value, MATCHING_EXECUTION_TIMEOUT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS),
+        applicationData = stringValueOption(value, APPLICATION_DATA)
       )
     }
 
     override def write(value: LinkSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        TASKTYPE -> "Linking",
-        SOURCE -> toJson(value.dataSelections.source),
-        TARGET -> toJson(value.dataSelections.target),
-        RULE -> toJson(value.rule),
-        OUTPUTS -> JsArray(value.outputs.map(id => JsString(id.toString))),
-        REFERENCE_LINKS -> toJson(value.referenceLinks),
-        LINK_LIMIT -> JsNumber(value.linkLimit),
-        MATCHING_EXECUTION_TIMEOUT -> JsNumber(value.matchingExecutionTimeout)
-      )
+      var jsObject =
+        Json.obj(
+          TASKTYPE -> "Linking",
+          SOURCE -> toJson(value.dataSelections.source),
+          TARGET -> toJson(value.dataSelections.target),
+          RULE -> toJson(value.rule),
+          OUTPUTS -> JsArray(value.outputs.map(id => JsString(id.toString))),
+          REFERENCE_LINKS -> toJson(value.referenceLinks),
+          LINK_LIMIT -> JsNumber(value.linkLimit),
+          MATCHING_EXECUTION_TIMEOUT -> JsNumber(value.matchingExecutionTimeout)
+        )
+
+      for(data <- value.applicationData) {
+        jsObject += (APPLICATION_DATA -> JsString(data))
+      }
+
+      jsObject
     }
   }
 

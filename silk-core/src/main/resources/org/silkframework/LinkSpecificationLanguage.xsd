@@ -285,6 +285,8 @@
 
                 <xs:element ref="Outputs" minOccurs="0"/>
 
+                <xs:element name="ApplicationData" type="xs:string" minOccurs="0"/>
+
             </xs:sequence>
             <xs:attribute name="id" type="xs:string" use="required"/>
             <xs:attribute name="linkLimit" type="xs:string" />
