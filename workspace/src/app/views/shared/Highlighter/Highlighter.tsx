@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 /** Escapes strings to match literally.
  *  taken from https://stackoverflow.com/questions/6318710/javascript-equivalent-of-perls-q-e-or-quotemeta
@@ -16,28 +16,31 @@ const getSearchHighlight = (label: string, searchValue: string) => {
         return label;
     }
 
-    const searchStringParts = searchValue.split(RegExp('\\s+'));
-    const lowerCaseLabel = label.toLowerCase();
-    const validString = searchStringParts.map(escapeRegexWord).join('|');
-    const multiWordRegex = RegExp(validString, 'g');
+    const searchStringParts = searchValue.split(RegExp("\\s+"));
+    const validString = searchStringParts.map(escapeRegexWord).join("|");
+    const multiWordRegex = RegExp(validString, "gi");
     const result = [];
 
     let offset = 0;
     // loop through matches and add unmatched and matched parts to result array
-    let matchArray = multiWordRegex.exec(lowerCaseLabel);
+    let matchArray = multiWordRegex.exec(label);
     while (matchArray !== null) {
         result.push(label.slice(offset, matchArray.index));
         result.push(`<mark>${matchArray[0]}</mark>`);
         offset = multiWordRegex.lastIndex;
-        matchArray = multiWordRegex.exec(lowerCaseLabel);
+        matchArray = multiWordRegex.exec(label);
     }
     // Add remaining unmatched string
     result.push(label.slice(offset));
-    return result.join('');
+    return result.join("");
 };
 
-export function Highlighter({label, searchValue}) {
-    return <span dangerouslySetInnerHTML={{
-        __html: getSearchHighlight(label, searchValue)
-    }}/>
+export function Highlighter({ label, searchValue }) {
+    return (
+        <span
+            dangerouslySetInnerHTML={{
+                __html: getSearchHighlight(label, searchValue),
+            }}
+        />
+    );
 }
