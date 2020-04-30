@@ -51,17 +51,17 @@ object ItemType {
   def itemTypeLinks(itemType: ItemType, projectId: String, itemId: String): Seq[ItemLink] = {
     val itemTypeSpecificLinks = itemType match {
       case ItemType.transform => Seq(
-        ItemLink("Mapping editor", s"$context/transform/$project/$itemId/editor"),
-        ItemLink("Transform evaluation", s"$context/transform/$project/$itemId/evaluate"),
-        ItemLink("Transform execution", s"$context/transform/$project/$itemId/execute")
+        ItemLink("Mapping editor", s"$context/transform/$projectId/$itemId/editor"),
+        ItemLink("Transform evaluation", s"$context/transform/$projectId/$itemId/evaluate"),
+        ItemLink("Transform execution", s"$context/transform/$projectId/$itemId/execute")
       )
       case ItemType.linking => Seq(
-        ItemLink("Linking editor", s"$context/linking/$project/$itemId/editor"),
-        ItemLink("Linking evaluation", s"$context/linking/$project/$itemId/evaluate"),
-        ItemLink("Linking execution", s"$context/linking/$project/$itemId/execute")
+        ItemLink("Linking editor", s"$context/linking/$projectId/$itemId/editor"),
+        ItemLink("Linking evaluation", s"$context/linking/$projectId/$itemId/evaluate"),
+        ItemLink("Linking execution", s"$context/linking/$projectId/$itemId/execute")
       )
       case ItemType.workflow => Seq(
-        ItemLink("Workflow editor", s"$context/workflow/editor/$project/$itemId")
+        ItemLink("Workflow editor", s"$context/workflow/editor/$projectId/$itemId")
       )
       case _ => Seq()
     }
