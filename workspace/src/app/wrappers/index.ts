@@ -8,6 +8,8 @@ import ApplicationToolbarSection from "./src/components/Application/ApplicationT
 import ApplicationToolbarAction from "./src/components/Application/ApplicationToolbarAction";
 import ApplicationToolbarPanel from "./src/components/Application/ApplicationToolbarPanel";
 
+import HtmlContentBlock from "./src/components/Typography/HtmlContentBlock";
+
 import Grid from "./src/components/Grid/Grid";
 import GridRow from "./src/components/Grid/GridRow";
 import GridColumn from "./src/components/Grid/GridColumn";
@@ -103,6 +105,7 @@ export {
     ApplicationToolbarSection,
     ApplicationToolbarAction,
     ApplicationToolbarPanel,
+    HtmlContentBlock,
     Grid,
     GridRow,
     GridColumn,
