@@ -16,6 +16,7 @@ import {
 import { routerOp } from "@ducks/router";
 import { useDispatch } from "react-redux";
 import { Highlighter } from "../Highlighter/Highlighter";
+import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -26,19 +27,6 @@ interface IProps {
     onOpenDuplicateModal(item: ISearchResultsServer);
 
     onRowClick?();
-}
-
-export function getItemLinkIcons(label: string) {
-    switch (label) {
-        case "Mapping editor":
-            return "application-mapping";
-        case "Transform evaluation":
-            return "item-evaluation";
-        case "Transform execution":
-            return "item-execution";
-        default:
-            return null;
-    }
 }
 
 export default function SearchItem({ item, searchValue, onOpenDeleteModal, onOpenDuplicateModal, onRowClick }: IProps) {

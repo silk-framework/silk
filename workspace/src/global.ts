@@ -20,7 +20,10 @@ const registerGlobals = () => {
      * which provided by back-end
      */
     //@ts-ignore
-    __webpack_public_path__ = HOST + __webpack_public_path__;
+    try {
+        //@ts-ignore
+        __webpack_public_path__ = HOST + __webpack_public_path__;
+    } catch {}
 };
 
 export default registerGlobals;

@@ -13,13 +13,13 @@ import {
     OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
-    Spacing,
 } from "@wrappers/index";
 import { sharedOp } from "@ducks/shared";
 import DataList from "../Datalist";
-import { getItemLinkIcons } from "../SearchList/SearchItem";
 import { RelatedItemsSearch } from "./RelatedItemsSearch";
 import Tag from "@wrappers/src/components/Tag/Tag";
+import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
+import Spacing from "@wrappers/src/components/Separation/Spacing";
 
 export function RelatedItems({ projectId, taskId }) {
     const [loading, setLoading] = useState(true);
@@ -33,7 +33,7 @@ export function RelatedItems({ projectId, taskId }) {
     const getRelatedItemsData = async (projectId: string, taskId: string, textQuery: string) => {
         setLoading(true);
         const data = await sharedOp.getRelatedItemsAsync(projectId, taskId, textQuery);
-        if (data.items !== undefined) {
+        if (data.items) {
             setData(data);
         }
         setLoading(false);
@@ -62,7 +62,7 @@ export function RelatedItems({ projectId, taskId }) {
             <CardContent>
                 {data.items.length > 0 || textQuery != "" ? <RelatedItemsSearch onSearch={searchFired} /> : false}
                 <Spacing size="small" />
-                <DataList isEmpty={data.items.length === 0} isLoading={loading} hasSpacing hasDivider>
+                <DataList isEmpty={data.items.length == 0} isLoading={loading} hasSpacing hasDivider>
                     {data.items.map((relatedItem: IRelatedItem) => {
                         const contextMenuItems = relatedItem.itemLinks.map((link) => (
                             <MenuItem
