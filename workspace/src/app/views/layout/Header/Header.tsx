@@ -43,7 +43,7 @@ export interface IBreadcrumb {
     text: string;
 }
 
-export const Header = ({ onClickApplicationSidebarExpand, isApplicationSidebarExpanded }: IProps) => {
+export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarExpanded }: IProps) {
     const dispatch = useDispatch();
     const location = useLocation();
     const [t] = useTranslation();
@@ -148,4 +148,4 @@ export const Header = ({ onClickApplicationSidebarExpand, isApplicationSidebarEx
             <CreateArtefactModal />
         </ApplicationHeader>
     );
-};
+}
