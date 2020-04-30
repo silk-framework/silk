@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo } from "react";
 import { SearchField } from "@wrappers/index";
 
 interface IProps {
@@ -6,11 +6,12 @@ interface IProps {
     onBlur?();
     onEnter();
     filterValue?: string;
+    onClearanceHandler?();
 }
 
-const SearchInput = ({ onFilterChange, filterValue, onEnter, onBlur = () => {} }) => {
+const SearchInput = ({ onFilterChange, filterValue, onEnter, onBlur = () => {}, onClearanceHandler = () => {} }) => {
     const handleKeyDown = (e) => {
-        if (e.key === 'Enter') {
+        if (e.key === "Enter") {
             onEnter();
         }
     };
@@ -21,8 +22,9 @@ const SearchInput = ({ onFilterChange, filterValue, onEnter, onBlur = () => {} }
             onBlur={onBlur}
             onKeyDown={handleKeyDown}
             value={filterValue}
+            onClearanceHandler={onClearanceHandler}
         />
-    )
+    );
 };
 
 const areEqual = (p: IProps, n: IProps) => p.filterValue === n.filterValue;

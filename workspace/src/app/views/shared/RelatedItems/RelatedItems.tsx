@@ -47,7 +47,7 @@ export function RelatedItems({ projectId, taskId }) {
         <Card>
             <CardHeader>
                 <CardTitle>
-                    <h3>Related Items</h3>
+                    <h3>Related Items ({data.items.length})</h3>
                 </CardTitle>
             </CardHeader>
             <Divider />
