@@ -32,6 +32,7 @@ export function SearchBar({ textQuery = "", sorters, onSort, onSearch }: IProps)
 
     const onClearanceHandler = () => {
         setSearchInput("");
+        onSearch("");
     };
 
     const handleSearchEnter = () => {

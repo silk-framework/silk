@@ -9,7 +9,8 @@ const escapeRegexWord = (str: string) => {
 
 /**
  * Returns a highlighted string according to the words of the search query.
- * @param label The string to highlight.
+ * @param label       The string to highlight.
+ * @param searchValue The mutli-word search query from which single words should be highlighted in the label.
  */
 const getSearchHighlight = (label: string, searchValue: string) => {
     if (!searchValue) {

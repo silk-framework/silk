@@ -21,6 +21,7 @@ import Tag from "@wrappers/src/components/Tag/Tag";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import Spacing from "@wrappers/src/components/Separation/Spacing";
 import { Highlighter } from "../Highlighter/Highlighter";
+import Pagination from "@wrappers/src/components/Pagination/Pagination";
 
 /** Project ID and task ID of the project task */
 interface IRelatedItemsParams {
@@ -37,6 +38,7 @@ export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState({ total: 0, items: [] } as IRelatedItems);
     const [textQuery, setTextQuery] = useState("");
+    const [pagination, setPagination] = useState({ total: 0, current: 1, limit: 5 });
 
     useEffect(() => {
         getRelatedItemsData(projectId, taskId, textQuery);
@@ -69,6 +71,12 @@ export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
         setTextQuery(searchInput);
     };
 
+    const pageSizes = [2, 3, 5, 10, 20];
+
+    const onChangeSelect = (page, pageSize) => {
+        setPagination({ total: pagination.total, current: page, limit: pageSize });
+    };
+
     return (
         <Card>
             <CardHeader>
@@ -78,7 +86,7 @@ export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
             </CardHeader>
             <Divider />
             <CardContent>
-                {data.items.length > 0 || textQuery !== "" ? <RelatedItemsSearch onSearch={searchFired} /> : false}
+                {data.total > 0 || textQuery !== "" ? <RelatedItemsSearch onSearch={searchFired} /> : false}
                 <Spacing size="small" />
                 <DataList
                     isEmpty={data.items.length === 0}
@@ -87,41 +95,61 @@ export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
                     hasSpacing
                     hasDivider
                 >
-                    {data.items.map((relatedItem: IRelatedItem) => {
-                        const contextMenuItems = relatedItem.itemLinks.map((link) => (
-                            <MenuItem
-                                key={link.path}
-                                text={link.label}
-                                href={link.path}
-                                icon={getItemLinkIcons(link.label)}
-                            />
-                        ));
-                        return (
-                            <OverviewItem key={relatedItem.id} densityHigh>
-                                <OverviewItemDescription>
-                                    <OverviewItemLine>
-                                        <span>
-                                            <Tag>
-                                                <Highlighter label={relatedItem.type} searchValue={textQuery} />
-                                            </Tag>{" "}
-                                            <Highlighter label={relatedItem.label} searchValue={textQuery} />
-                                        </span>
-                                    </OverviewItemLine>
-                                </OverviewItemDescription>
-                                <OverviewItemActions>
-                                    <ContextMenu togglerText="Show more options">
-                                        {contextMenuItems.length ? (
-                                            <>
-                                                <MenuDivider />
-                                                {contextMenuItems}
-                                            </>
-                                        ) : null}
-                                    </ContextMenu>
-                                </OverviewItemActions>
-                            </OverviewItem>
-                        );
-                    })}
+                    {data.items
+                        .slice((pagination.current - 1) * pagination.limit, pagination.current * pagination.limit)
+                        .map((relatedItem: IRelatedItem) => {
+                            const contextMenuItems = relatedItem.itemLinks.map((link) => (
+                                <MenuItem
+                                    key={link.path}
+                                    text={link.label}
+                                    href={link.path}
+                                    icon={getItemLinkIcons(link.label)}
+                                />
+                            ));
+                            return (
+                                <OverviewItem key={relatedItem.id} densityHigh>
+                                    <OverviewItemDescription>
+                                        <OverviewItemLine>
+                                            <span>
+                                                <Tag>
+                                                    <Highlighter label={relatedItem.type} searchValue={textQuery} />
+                                                </Tag>{" "}
+                                                <Highlighter label={relatedItem.label} searchValue={textQuery} />
+                                            </span>
+                                        </OverviewItemLine>
+                                    </OverviewItemDescription>
+                                    <OverviewItemActions>
+                                        <ContextMenu togglerText="Show more options">
+                                            {contextMenuItems.length ? (
+                                                <>
+                                                    <MenuDivider />
+                                                    {contextMenuItems}
+                                                </>
+                                            ) : null}
+                                        </ContextMenu>
+                                    </OverviewItemActions>
+                                </OverviewItem>
+                            );
+                        })}
                 </DataList>
+                <Spacing size="small" />
+                {data.items.length > Math.min(pagination.total, 5) ? ( // Don't show if no pagination is needed
+                    <Pagination
+                        backwardText={""}
+                        forwardText={""}
+                        itemsPerPageText={"Show:"}
+                        pageNumberText={"Page:"}
+                        onChange={({ page, pageSize }) => {
+                            onChangeSelect(page, pageSize);
+                        }}
+                        totalItems={pagination.total}
+                        pageSizes={pageSizes}
+                        page={pagination.current}
+                        pageSize={pagination.limit}
+                    />
+                ) : (
+                    false
+                )}
             </CardContent>
         </Card>
     );
