@@ -16,6 +16,7 @@ import {
 import { routerOp } from "@ducks/router";
 import { useDispatch } from "react-redux";
 import { Highlighter } from "../Highlighter/Highlighter";
+import { ResourceLink } from "../ResourceLink/ResourceLink";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 
 interface IProps {
@@ -48,7 +49,6 @@ export default function SearchItem({ item, searchValue, onOpenDeleteModal, onOpe
     const goToDetailsPage = (e) => {
         e.preventDefault();
         const detailsPath = item.itemLinks[0].path;
-
         dispatch(routerOp.goToPage(detailsPath, true));
     };
 
@@ -61,7 +61,12 @@ export default function SearchItem({ item, searchValue, onOpenDeleteModal, onOpe
                 <OverviewItemDescription>
                     <OverviewItemLine>
                         <h4>
-                            <Highlighter label={item.label || item.id} searchValue={searchValue} />
+                            <ResourceLink
+                                url={!!item.itemLinks.length ? item.itemLinks[0].path : false}
+                                handlerResourcePageLoader={!!item.itemLinks.length ? goToDetailsPage : false}
+                            >
+                                <Highlighter label={item.label || item.id} searchValue={searchValue} />
+                            </ResourceLink>
                         </h4>
                     </OverviewItemLine>
                     {item.description && (
@@ -88,8 +93,8 @@ export default function SearchItem({ item, searchValue, onOpenDeleteModal, onOpe
                     <ContextMenu togglerText="Show more options">
                         {contextMenuItems.length ? (
                             <>
-                                <MenuDivider />
                                 {contextMenuItems}
+                                <MenuDivider />
                             </>
                         ) : null}
                         <MenuItem key="delete" icon={"item-remove"} onClick={onOpenDeleteModal} text={"Delete"} />
