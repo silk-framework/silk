@@ -5,7 +5,6 @@ import java.io.File
 import com.typesafe.config.{Config => TypesafeConfig}
 import config.WorkbenchConfig.Tabs
 import javax.inject.Inject
-import org.silkframework.buildInfo.BuildInfo
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.resource._
 import play.api.{Configuration, Environment, Mode}
@@ -124,14 +123,14 @@ object WorkbenchConfig {
   }
 
   // The version of the workbench
-  lazy val version = {
+  lazy val version: String = {
     Try(
       DefaultConfig.instance.apply().getString("workbench.version")
     ) match {
       case Success(versionString) =>
         versionString
-      case Failure(ex) =>
-        BuildInfo.version
+      case Failure(_) =>
+        throw new RuntimeException("No version string ist set!")
     }
   }
   /**

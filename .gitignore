@@ -27,3 +27,4 @@ silk-workbench/silk-workbench-workflow/public/editor/serializeWorkflow.js
 silk-workbench/silk-workbench-workspace/public/workspace.js
 silk-react-components/mocha.json
 silk-workbench/silk-workbench-core/public/new-workspace/
+silk-workbench/silk-workbench-core/conf/reference.conf

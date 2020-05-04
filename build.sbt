@@ -1,11 +1,20 @@
 import sbt._
+import java.io._
 
 //////////////////////////////////////////////////////////////////////////////
 // Common Settings
 //////////////////////////////////////////////////////////////////////////////
 
 val NEXT_VERSION = "3.1.0"
-val silkVersion = sys.env.getOrElse("GIT_DESCRIBE", NEXT_VERSION + "-SNAPSHOT")
+val silkVersion = {
+  val version = sys.env.getOrElse("GIT_DESCRIBE", NEXT_VERSION + "-SNAPSHOT")
+  val outFile = new File("silk/silk-workbench/silk-workbench-core/conf/reference.conf")
+  val os = new FileWriter(outFile)
+  os.append(s"workbench.version = $version")
+  os.flush()
+  os.close()
+  version
+}
 
 concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
 
@@ -260,14 +269,11 @@ lazy val reactComponents = (project in file("silk-react-components"))
 
 lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
   .enablePlugins(PlayScala)
-  .enablePlugins(BuildInfoPlugin)
   .dependsOn(workspace, workspace % "test -> test", core % "test->test", serializationJson, reactComponents, pluginsXml % "test->compile", pluginsRdf % "test->compile")
   .aggregate(workspace, reactComponents)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench Core",
-    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
-    buildInfoPackage := "org.silkframework.buildInfo",
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % "test",
