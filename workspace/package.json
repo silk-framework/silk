@@ -147,9 +147,7 @@
     ]
   },
   "jest": {
-    "roots": [
-      "<rootDir>"
-    ],
+    "roots": ["<rootDir>/src/", "<rootDir>/test/"],
     "collectCoverageFrom": [
       "test/**/*.{js,jsx,ts,tsx}",
       "src/**/*.{js,jsx,ts,tsx}",
@@ -226,6 +224,7 @@
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.12.1",
     "husky": "^4.2.5",
+    "jest-mock-axios": "^4.0.0",
     "lint-staged": "^10.1.7",
     "prettier": "^2.0.5",
     "react-test-renderer": "^16.8.6",

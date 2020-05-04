@@ -7037,6 +7037,13 @@ jest-message-util@^24.9.0:
     slash "^2.0.0"
     stack-utils "^1.0.1"
 
+jest-mock-axios@^4.0.0:
+  version "4.0.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/jest-mock-axios/-/jest-mock-axios-4.0.0.tgz#f59ac5dcdb4ae51c4ec21203382bc4c001dd26f4"
+  integrity sha1-9ZrF3NtK5RxOwhIDOCvEwAHdJvQ=
+  dependencies:
+    synchronous-promise "^2.0.10"
+
 jest-mock@^24.0.0, jest-mock@^24.9.0:
   version "24.9.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/jest-mock/-/jest-mock-24.9.0.tgz#c22835541ee379b908673ad51087a2185c13f1c6"
@@ -11775,6 +11782,11 @@ symbol-tree@^3.2.2:
   version "3.2.4"
   resolved "https://artifactory.eccenca.com/api/npm/npm/symbol-tree/-/symbol-tree-3.2.4.tgz#430637d248ba77e078883951fb9aa0eed7c63fa2"
   integrity sha1-QwY30ki6d+B4iDlR+5qg7tfGP6I=
+
+synchronous-promise@^2.0.10:
+  version "2.0.10"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/synchronous-promise/-/synchronous-promise-2.0.10.tgz#e64c6fd3afd25f423963353043f4a68ebd397fd8"
+  integrity sha1-5kxv06/SX0I5YzUwQ/Smjr05f9g=
 
 table@^5.2.3:
   version "5.4.6"
