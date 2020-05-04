@@ -1684,13 +1684,6 @@
     "@types/prop-types" "*"
     csstype "^2.2.0"
 
-"@types/redux-mock-store@^1.0.0":
-  version "1.0.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/redux-mock-store/-/redux-mock-store-1.0.2.tgz#c27d5deadfb29d8514bdb0fc2cadae6feea1922d"
-  integrity sha1-wn1d6t+ynYUUvbD8LK2ub+6hki0=
-  dependencies:
-    redux "^4.0.5"
-
 "@types/stack-utils@^1.0.1":
   version "1.0.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@types/stack-utils/-/stack-utils-1.0.1.tgz#0a851d3bd96498fa25c33ab7278ed3bd65f06c3e"
@@ -7751,11 +7744,6 @@ lodash.isequal@^4.5.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/lodash.isequal/-/lodash.isequal-4.5.0.tgz#415c4478f2bcc30120c22ce10ed3226f7d3e18e0"
   integrity sha1-QVxEePK8wwEgwizhDtMib30+GOA=
 
-lodash.isplainobject@^4.0.6:
-  version "4.0.6"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/lodash.isplainobject/-/lodash.isplainobject-4.0.6.tgz#7c526a52d89b45c45cc690b88163be0497f550cb"
-  integrity sha1-fFJqUtibRcRcxpC4gWO+BJf1UMs=
-
 lodash.memoize@^4.1.2:
   version "4.1.2"
   resolved "https://artifactory.eccenca.com/api/npm/npm/lodash.memoize/-/lodash.memoize-4.1.2.tgz#bcc6c49a42a2840ed997f323eada5ecd182e0bfe"
@@ -9951,9 +9939,9 @@ postcss@7.0.21:
     supports-color "^6.1.0"
 
 postcss@^7, postcss@^7.0.0, postcss@^7.0.1, postcss@^7.0.14, postcss@^7.0.16, postcss@^7.0.17, postcss@^7.0.2, postcss@^7.0.23, postcss@^7.0.27, postcss@^7.0.5, postcss@^7.0.6:
-  version "7.0.28"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/postcss/-/postcss-7.0.28.tgz#d349ced7743475717ba91f6810efb58c51fb5dbb"
-  integrity sha1-00nO13Q0dXF7qR9oEO+1jFH7Xbs=
+  version "7.0.29"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/postcss/-/postcss-7.0.29.tgz#d3a903872bd52280b83bce38cdc83ce55c06129e"
+  integrity sha1-06kDhyvVIoC4O844zcg85VwGEp4=
   dependencies:
     chalk "^2.4.2"
     source-map "^0.6.1"
@@ -10565,19 +10553,12 @@ redux-logger@^3.0.6:
   dependencies:
     deep-diff "^0.3.5"
 
-redux-mock-store@^1.5.4:
-  version "1.5.4"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/redux-mock-store/-/redux-mock-store-1.5.4.tgz#90d02495fd918ddbaa96b83aef626287c9ab5872"
-  integrity sha1-kNAklf2Rjduqlrg672Jih8mrWHI=
-  dependencies:
-    lodash.isplainobject "^4.0.6"
-
 redux-thunk@^2.3.0:
   version "2.3.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/redux-thunk/-/redux-thunk-2.3.0.tgz#51c2c19a185ed5187aaa9a2d08b666d0d6467622"
   integrity sha1-UcLBmhhe1Rh6qpotCLZm0NZGdiI=
 
-redux@^4.0.0, redux@^4.0.5:
+redux@^4.0.0:
   version "4.0.5"
   resolved "https://artifactory.eccenca.com/api/npm/npm/redux/-/redux-4.0.5.tgz#4db5de5816e17891de8a80c424232d06f051d93f"
   integrity sha1-TbXeWBbheJHeioDEJCMtBvBR2T8=
