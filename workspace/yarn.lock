@@ -1462,6 +1462,14 @@
   dependencies:
     "@babel/types" "^7.3.0"
 
+"@types/carbon-components-react@^7.10.2":
+  version "7.10.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/carbon-components-react/-/carbon-components-react-7.10.2.tgz#378068b7ac3046f35a43234f8bffeed9ff205769"
+  integrity sha1-N4Bot6wwRvNaQyNPi//u2f8gV2k=
+  dependencies:
+    "@types/react" "*"
+    flatpickr "4.6.1"
+
 "@types/cheerio@*":
   version "0.22.18"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@types/cheerio/-/cheerio-0.22.18.tgz#19018dceae691509901e339d63edf1e935978fe6"
@@ -1678,14 +1686,7 @@
   dependencies:
     "@types/estree" "*"
 
-"@types/testing-library__dom@*":
-  version "7.0.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/testing-library__dom/-/testing-library__dom-7.0.2.tgz#2906f8a0dce58b0746c6ab606f786bd06fe6940e"
-  integrity sha1-KQb4oNzliwdGxqtgb3hr0G/mlA4=
-  dependencies:
-    pretty-format "^25.1.0"
-
-"@types/testing-library__dom@^7.0.0":
+"@types/testing-library__dom@*", "@types/testing-library__dom@^7.0.0":
   version "7.0.2"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@types/testing-library__dom/-/testing-library__dom-7.0.2.tgz#2906f8a0dce58b0746c6ab606f786bd06fe6940e"
   integrity sha1-KQb4oNzliwdGxqtgb3hr0G/mlA4=
