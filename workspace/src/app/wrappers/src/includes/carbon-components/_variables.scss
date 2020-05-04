@@ -88,3 +88,8 @@ $heading-02: (
 
 $ui-02: $ecc-color-workspace-background !default;
 $ui-03: rgba($ecc-color-workspace-text, 0.1) !default;
+$text-01: $ecc-color-workspace-text !default;
+$link-01: $ecc-color-accent !default;
+$hover-primary-text: $ecc-color-info-text !default;
+$visited-link: purple !default;
+$disabled-02: rgba($text-01, $ecc-opacity-disabled) !default;
