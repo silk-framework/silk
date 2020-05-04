@@ -11,10 +11,19 @@ import { waitFor } from "@testing-library/dom";
 import { render } from "@testing-library/react";
 import mockAxios from "../../__mocks__/axios";
 
-const getWrapper = (props = {}, history) => {
-    const store = configureStore({
+const createStore = (history = createBrowserHistory()) =>
+    configureStore({
         reducer: rootReducer(history),
     });
+
+const getWrapper = (props = {}, h) => {
+    let history = h;
+    if (!history) {
+        history = createBrowserHistory();
+        history.location.pathname = "/dataintegration/workspaceNew";
+    }
+
+    const store = createStore(history);
 
     return render(
         <Provider store={store}>
@@ -30,8 +39,7 @@ describe("Search Items", () => {
         mockAxios.reset();
     });
 
-    it("should search");
-    it("should filter items, by given criteria from search url", async () => {
+    it("should filter items, by given criteria from URL search params", async () => {
         const filteredQueryParams = qs.stringify(
             {
                 textQuery: "some text",
@@ -42,9 +50,7 @@ describe("Search Items", () => {
                 f_keys: ["facet1Key1|facet1Key2", "facet2Key"],
                 types: ["keyword", "keyword"],
             },
-            {
-                arrayFormat: "comma",
-            }
+            { arrayFormat: "comma" }
         );
 
         let history = createBrowserHistory();
