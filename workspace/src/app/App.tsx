@@ -25,7 +25,7 @@ export default function App({ externalRoutes, routes }: IProps) {
     return (
         <ConnectedRouter history={getHistory()}>
             <ApplicationContainer
-                render={({ isApplicationSidebarExpanded, onClickApplicationSidebarExpand }) => (
+                render={({ isApplicationSidebarExpanded, onClickApplicationSidebarExpand }: any) => (
                     <>
                         <Header
                             externalRoutes={externalRoutes}
