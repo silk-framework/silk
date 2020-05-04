@@ -1,3 +1,153 @@
+// TODO: add vars and process them
+
+// lib requisites
+// @import "~carbon-components/scss/globals/scss/css--reset";
+// @import "~@blueprintjs/core/src/reset";
+@import "reset";
+@import "~@blueprintjs/core/src/typography";
+
+// basics
+
+html {
+    font-size: $ecc-size-typo-base;
+    line-height: $ecc-size-typo-base-lineheight;
+}
+
+body {
+    font-family: $ecc-font-family-default;
+    font-weight: $ecc-font-weight-regular;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+    font-family: $ecc-font-family-monospace;
+    font-size: 0.9em;
+}
+
+strong {
+    font-weight: $ecc-font-weight-bold;
+}
+
+em {
+    font-family: $ecc-font-family-cursive;
+    font-style: italic;
+}
+
+sup {
+    vertical-align: super;
+}
+
+sub {
+    vertical-align: sub;
+}
+
+a {
+    color: $ecc-color-accent;
+}
+
+// elements
+
+.ecc-typography__contentblock,
+.ecc-typography__text {
+    line-height: $ecc-size-typo-text-lineheight;
+}
+
+h1 {
+    .ecc-typography__contentblock &,
+    &.ecc-typography__text {
+        font-size: $ecc-size-typo-headline;
+        line-height: $ecc-size-typo-headline-lineheight;
+        font-weight: $ecc-font-weight-light;
+    }
+}
+
+h2 {
+    .ecc-typography__contentblock &,
+    &.ecc-typography__text {
+        font-size: $ecc-size-typo-title;
+        line-height: $ecc-size-typo-title-lineheight;
+        font-weight: $ecc-font-weight-light;
+    }
+}
+
+h3 {
+    .ecc-typography__contentblock &,
+    &.ecc-typography__text {
+        font-size: $ecc-size-typo-subtitle;
+        line-height: $ecc-size-typo-subtitle-lineheight;
+        font-weight: $ecc-font-weight-regular;
+    }
+}
+
+h4 {
+    .ecc-typography__contentblock &,
+    &.ecc-typography__text {
+        font-size: $ecc-size-typo-text;
+        line-height: $ecc-size-typo-text-lineheight;
+        font-weight: $ecc-font-weight-bold;
+    }
+}
+
+h5 {
+    .ecc-typography__contentblock &,
+    &.ecc-typography__text {
+        font-size: $ecc-size-typo-caption;
+        line-height: $ecc-size-typo-caption-lineheight;
+        font-weight: $ecc-font-weight-bold;
+        font-style: italic;
+    }
+}
+
+h6 {
+    .ecc-typography__contentblock &,
+    &.ecc-typography__text {
+        font-size: $ecc-size-typo-caption;
+        line-height: $ecc-size-typo-caption-lineheight;
+        font-weight: $ecc-font-weight-bold;
+    }
+}
+
+ol,
+ul {
+    .ecc-typography__contentblock &,
+    &.ecc-typography__text {
+        list-style: unset;
+    }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+ul,
+ol {
+    .ecc-typography__contentblock &,
+    &.ecc-typography__text {
+        margin-bottom: $ecc-size-block-whitespace;
+    }
+}
+
+li {
+    .ecc-typography__contentblock &,
+    &.ecc-typography__text {
+        margin-left: $ecc-size-block-whitespace * 2;
+        margin-bottom: $ecc-size-block-whitespace / 2;
+    }
+}
+
+blockquote {
+    .ecc-typography__contentblock &,
+    &.ecc-typography__text {
+        margin: $ecc-size-block-whitespace * 2;
+    }
+}
 
 // helpers
 

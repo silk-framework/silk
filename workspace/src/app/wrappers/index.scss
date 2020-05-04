@@ -18,8 +18,8 @@
 // load blueprintjs requsists
 @import "~@blueprintjs/core/src/common/variables";
 @import "~@blueprintjs/core/src/common/colors";
-@import "~@blueprintjs/core/src/reset";
-@import "~@blueprintjs/core/src/typography";
+// currently not needed @import "~@blueprintjs/core/src/reset";
+// used in own component @import "~@blueprintjs/core/src/typography";
 @import "~@blueprintjs/core/src/accessibility/focus-states";
 // load blueprintjs components
 // currently not needed @import "~@blueprintjs/core/src/components/alert/alert";
@@ -78,12 +78,12 @@
 @import "~carbon-components/scss/globals/scss/mixins";
 @import "~carbon-components/scss/globals/scss/layout";
 @import "~carbon-components/scss/globals/scss/spacing";
-@import "~carbon-components/scss/globals/scss/typography";
+// currently not needed @import "~carbon-components/scss/globals/scss/typography";
 @import "~carbon-components/scss/globals/scss/vendor/@carbon/elements/scss/import-once/import-once";
-@import "~carbon-components/scss/globals/scss/css--reset";
-@import "~carbon-components/scss/globals/scss/css--font-face";
-@import "~carbon-components/scss/globals/scss/css--helpers";
-@import "~carbon-components/scss/globals/scss/css--body";
+// currently not needed @import "~carbon-components/scss/globals/scss/css--reset";
+// currently not needed @import "~carbon-components/scss/globals/scss/css--font-face";
+// currently not needed @import "~carbon-components/scss/globals/scss/css--helpers";
+// currently not needed @import "~carbon-components/scss/globals/scss/css--body";
 // used in own component @import '~carbon-components/scss/globals/grid/grid';
 // load carbon components
 // not used @import '~carbon-components/scss/components/button/button';
@@ -136,6 +136,7 @@
 
 // == Load element styles ======================================================
 
+@import "src/components/Typography/typography";
 @import "src/components/Application/application";
 @import "src/components/Workspace/workspace";
 @import "src/components/Grid/grid";
@@ -157,7 +158,6 @@
 @import "src/components/Pagination/pagination";
 @import "src/components/Toolbar/toolbar";
 @import "src/components/Tag/tag";
-@import "src/components/Typography/typography";
 @import "src/components/Notification/notification";
 
 // == load tweaks ==============================================================

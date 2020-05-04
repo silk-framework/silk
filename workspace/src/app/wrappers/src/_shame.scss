@@ -1,25 +1,12 @@
 // Add stuff to test fast and dirty.
 // This file should not contain any styles because we do not work dirty!
 
-/*
-.searchField {
-    // FIXME: respect guidelines regarding class naming
-  width: 80%;
-  float: left
-}
-.sortButton {
-    // FIXME: respect guidelines regarding class naming
-  float: left;
-  margin: 0 15px;
-}
-*/
-
-html {
-    background-color: $ecc-color-workspace-background;
-    color: $ecc-color-workspace-text;
-    font-size: $ecc-size-typo-base;
-}
-
 .bp3-portal {
     z-index: 6001; // higher than carbon ui shell header
+}
+
+html {
+    // TODO: move to application or workspace element
+    background-color: $ecc-color-workspace-background;
+    color: $ecc-color-workspace-text;
 }
