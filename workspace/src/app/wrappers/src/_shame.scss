@@ -10,3 +10,21 @@ html {
     background-color: $ecc-color-workspace-background;
     color: $ecc-color-workspace-text;
 }
+
+.#{$prefix}--assistive-text,
+.#{$prefix}--visually-hidden {
+    /*
+        TODO: move to better place, originally from ~carbon-components/scss/globals/scss/css--helpers
+        but we cannot use it directly because of other included rules there.
+    */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+    visibility: inherit;
+    white-space: nowrap;
+}
