@@ -11,31 +11,11 @@ import { waitFor } from "@testing-library/dom";
 import { render } from "@testing-library/react";
 import mockAxios from "../../__mocks__/axios";
 
-const filteredQueryParams = qs.stringify(
-    {
-        textQuery: "some text",
-        itemType: "dataset",
-        limit: 15,
-        page: 2,
-        f_ids: ["facetId1", "facetId2"],
-        f_keys: ["facet1Key1|facet1Key2", "facet2Key"],
-        types: ["keyword", "keyword"],
-    },
-    {
-        arrayFormat: "comma",
-    }
-);
+const getWrapper = (props = {}, history) => {
+    const store = configureStore({
+        reducer: rootReducer(history),
+    });
 
-let history = createBrowserHistory();
-
-history.location.pathname = "/dataintegration/workspaceNew";
-history.location.search = filteredQueryParams;
-
-const store = configureStore({
-    reducer: rootReducer(history),
-});
-
-const getWrapper = (props = {}) => {
     return render(
         <Provider store={store}>
             <ConnectedRouter history={history}>
@@ -45,16 +25,46 @@ const getWrapper = (props = {}) => {
     );
 };
 
-describe("when query params provided", () => {
-    let wrapper = beforeEach(() => {
-        wrapper = getWrapper();
-    });
-
+describe("Search Items", () => {
     afterEach(() => {
         mockAxios.reset();
     });
 
-    it("should setup the filters from address bar", async () => {
+    it("should search");
+    it("should filter items, by given criteria from search url", async () => {
+        const filteredQueryParams = qs.stringify(
+            {
+                textQuery: "some text",
+                itemType: "dataset",
+                limit: 15,
+                page: 2,
+                f_ids: ["facetId1", "facetId2"],
+                f_keys: ["facet1Key1|facet1Key2", "facet2Key"],
+                types: ["keyword", "keyword"],
+            },
+            {
+                arrayFormat: "comma",
+            }
+        );
+
+        let history = createBrowserHistory();
+        history.location.pathname = "/dataintegration/workspaceNew";
+        history.location.search = filteredQueryParams;
+
+        getWrapper({}, history);
+
+        const reqInfo = mockAxios.getReqMatching("/searchItems");
+        expect(reqInfo.data).toEqual({
+            textQuery: "some text",
+            itemType: "dataset",
+            limit: 15,
+            offset: 10,
+            facets: [
+                { facetId: "facetId1", type: "keyword", keywordIds: ["facet1Key1", "facet1Key2"] },
+                { facetId: "facetId2", type: "keyword", keywordIds: ["facet2Key"] },
+            ],
+        });
+
         // mockAxios.mockResponseFor({
         //     url: 'undefinedundefined/workspace/searchItems'
         // }, {
@@ -72,18 +82,6 @@ describe("when query params provided", () => {
         //     headers: {},
         //     config: {},
         // });
-
-        const reqInfo = mockAxios.getReqMatching("/searchItems");
-        expect(reqInfo.data).toEqual({
-            textQuery: "some text",
-            itemType: "dataset",
-            limit: 15,
-            offset: 10,
-            facets: [
-                { facetId: "facetId1", type: "keyword", keywordIds: ["facet1Key1", "facet1Key2"] },
-                { facetId: "facetId2", type: "keyword", keywordIds: ["facet2Key"] },
-            ],
-        });
 
         // await waitFor(() => {
         //     expect(wrapper.getByText('FOR_TEST')).toHaveLength(1);
