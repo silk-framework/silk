@@ -49,6 +49,7 @@ export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
         setLoading(true);
         const data = await sharedOp.getRelatedItemsAsync(projectId, taskId, textQuery);
         if (data.items) {
+            setPagination({ total: data.total, current: pagination.current, limit: pagination.limit });
             setData(data);
         }
         setLoading(false);
@@ -73,10 +74,10 @@ export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
 
     const pageSizes = [2, 3, 5, 10, 20];
 
-    const onChangeSelect = (page, pageSize) => {
+    const onChangeSelect = ({ page, pageSize }) => {
         setPagination({ total: pagination.total, current: page, limit: pageSize });
     };
-
+    console.log(pagination);
     return (
         <Card>
             <CardHeader>
@@ -135,21 +136,13 @@ export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
                 <Spacing size="small" />
                 {data.items.length > Math.min(pagination.total, 5) ? ( // Don't show if no pagination is needed
                     <Pagination
-                        backwardText={""}
-                        forwardText={""}
-                        itemsPerPageText={"Show:"}
-                        pageNumberText={"Page:"}
-                        onChange={({ page, pageSize }) => {
-                            onChangeSelect(page, pageSize);
-                        }}
+                        onChange={onChangeSelect}
                         totalItems={pagination.total}
                         pageSizes={pageSizes}
                         page={pagination.current}
                         pageSize={pagination.limit}
                     />
-                ) : (
-                    false
-                )}
+                ) : null}
             </CardContent>
         </Card>
     );
