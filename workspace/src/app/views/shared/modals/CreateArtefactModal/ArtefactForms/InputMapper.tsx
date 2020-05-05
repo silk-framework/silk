@@ -1,10 +1,9 @@
 import React from "react";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
-import { INPUT_VALID_TYPES } from "../../../../../constants";
-import { NumericInput, Switch, TextField, TextArea } from "@wrappers/index";
+import { INPUT_TYPES } from "../../../../../constants";
+import { NumericInput, Switch, TextField, TextArea, Button } from "@wrappers/index";
 import { QueryEditor } from "../../../QueryEditor/QueryEditor";
 import { Autocomplete } from "../../../Autocomplete/Autocomplete";
-import { FileUploader } from "../../../FileUploader/FileUploader";
 
 interface IProps {
     type: string;
@@ -28,31 +27,28 @@ interface IProps {
 export function InputMapper(props: IProps) {
     const { type, inputAttributes, extraInfo } = props;
 
-    if (extraInfo) {
-        if (extraInfo.autoCompletion) {
-            // @ts-ignore
-            return <Autocomplete {...extraInfo} {...inputAttributes} />;
-        }
+    if (extraInfo && extraInfo.autoCompletion) {
+        // @ts-ignore
+        return <Autocomplete {...extraInfo} {...inputAttributes} />;
     }
 
-    // const handleFileAdded = () => {};
-
     switch (type) {
-        case INPUT_VALID_TYPES.BOOLEAN:
+        case INPUT_TYPES.BOOLEAN:
             return <Switch {...inputAttributes} />;
-        case INPUT_VALID_TYPES.INTEGER:
+        case INPUT_TYPES.INTEGER:
             return <NumericInput {...inputAttributes} buttonPosition={"none"} />;
-        case INPUT_VALID_TYPES.TEXTAREA:
+        case INPUT_TYPES.TEXTAREA:
             return <TextArea {...inputAttributes} />;
-        case INPUT_VALID_TYPES.MULTILINE_STRING:
+        case INPUT_TYPES.MULTILINE_STRING:
             return <QueryEditor {...inputAttributes} />;
-        case INPUT_VALID_TYPES.PASSWORD:
+        case INPUT_TYPES.PASSWORD:
             return <TextField {...inputAttributes} type={"password"} />;
-        case INPUT_VALID_TYPES.RESOURCE:
-            return <FileUploader simpleInput={true} />;
-        case INPUT_VALID_TYPES.ENUMERATION:
-        case INPUT_VALID_TYPES.OPTION_INT:
-        case INPUT_VALID_TYPES.STRING:
+        case INPUT_TYPES.RESOURCE:
+            // File uploader handled in TaskForm
+            return null;
+        case INPUT_TYPES.ENUMERATION:
+        case INPUT_TYPES.OPTION_INT:
+        case INPUT_TYPES.STRING:
         default:
             return <TextField {...inputAttributes} />;
     }
