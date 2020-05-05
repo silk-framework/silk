@@ -14,7 +14,7 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
 } from "@wrappers/index";
-import { IRelatedItem, IRelatedItems } from "@ducks/shared/thunks/relatedItems.thunk";
+import { IItemLink, IRelatedItem, IRelatedItems } from "@ducks/shared/thunks/relatedItems.thunk";
 import { sharedOp } from "@ducks/shared";
 import { routerOp } from "@ducks/router";
 import DataList from "../Datalist";
@@ -76,15 +76,15 @@ export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
         setTextQuery(searchInput);
     };
 
-    const pageSizes = [2, 3, 5, 10, 20];
+    const pageSizes = [5, 10, 20];
 
     const onChangeSelect = ({ page, pageSize }) => {
         setPagination({ total: pagination.total, current: page, limit: pageSize });
     };
 
-    const goToDetailsPage = (resourceitem, event) => {
+    const goToDetailsPage = (resourceItem: IItemLink, taskLabel: string, event) => {
         event.preventDefault();
-        dispatch(routerOp.goToPage(resourceitem.path, true));
+        dispatch(routerOp.goToPage(resourceItem.path, { taskLabel }));
     };
 
     return (
@@ -132,7 +132,12 @@ export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
                                                     }
                                                     handlerResourcePageLoader={
                                                         !!relatedItem.itemLinks.length
-                                                            ? (e) => goToDetailsPage(relatedItem.itemLinks[0], e)
+                                                            ? (e) =>
+                                                                  goToDetailsPage(
+                                                                      relatedItem.itemLinks[0],
+                                                                      relatedItem.label,
+                                                                      e
+                                                                  )
                                                             : false
                                                     }
                                                 >
@@ -146,7 +151,9 @@ export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
                                             <IconButton
                                                 name="item-viewdetails"
                                                 text="Show details"
-                                                onClick={(e) => goToDetailsPage(relatedItem.itemLinks[0], e)}
+                                                onClick={(e) =>
+                                                    goToDetailsPage(relatedItem.itemLinks[0], relatedItem.label, e)
+                                                }
                                                 href={relatedItem.itemLinks[0].path}
                                             />
                                         )}
