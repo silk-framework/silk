@@ -110,7 +110,7 @@ trait ProjectMarshallingTrait extends AnyPlugin {
       // Reset URI
       val projectConfig = project.copy(id = targetProject, projectResourceUriOpt = None)
 
-      WorkspaceIO.copyProject(importFromWorkspace, workspaceProvider, resources, importResources, projectConfig)
+      workspaceProvider.importProject(projectConfig, importFromWorkspace, resources, importResources)
     }
   }
 

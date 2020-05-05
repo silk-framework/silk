@@ -11,8 +11,9 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.FileResource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.serialization.json.JsonFormat
 import org.silkframework.serialization.json.JsonSerializers
-import org.silkframework.serialization.json.JsonSerializers._
+import org.silkframework.serialization.json.JsonSerializers.{TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat, fromJson, toJson, MetaDataJsonFormat, GenericTaskJsonFormat}
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.{Project, WorkspaceFactory}
@@ -104,7 +105,7 @@ class TaskApi @Inject() () extends InjectedController with ControllerUtilsTrait 
         includeRelations = Some(true),
         includeSchemata = Some(true)
       )
-    val taskFormat = new TaskJsonFormat(formatOptions, Some(userContext))(TaskSpecJsonFormat)
+    val taskFormat = new TaskJsonFormat(formatOptions, Some(userContext))
     implicit val writeContext = WriteContext[JsValue](projectId = Some(projectName))
     val taskJson = taskFormat.write(task)
     val metaDataJson = JsonSerializers.toJson(task.metaData)

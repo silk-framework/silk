@@ -5,6 +5,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFo
 import org.silkframework.util.Identifier
 
 import scala.language.implicitConversions
+import scala.reflect.ClassTag
 import scala.xml._
 
 /**
@@ -21,6 +22,11 @@ trait Task[+TaskType <: TaskSpec] {
 
   /** Meta data about this task. */
   def metaData: MetaData
+
+  /**
+    * Type of task data.
+    */
+  def taskType: Class[_]
 
   /**
     * Returns this task as a [[Task]]. For some reason the type inference mechanism of Scala is not able
@@ -54,10 +60,14 @@ trait Task[+TaskType <: TaskSpec] {
   }
 }
 
-case class PlainTask[+TaskType <: TaskSpec](id: Identifier, data: TaskType, metaData: MetaData = MetaData.empty) extends Task[TaskType]
+case class PlainTask[+TaskType <: TaskSpec : ClassTag](id: Identifier, data: TaskType, metaData: MetaData = MetaData.empty) extends Task[TaskType] {
+
+  override def taskType: Class[_] = implicitly[ClassTag[TaskType]].runtimeClass
+
+}
 
 object PlainTask {
-  def fromTask[T <: TaskSpec](task: Task[T]): PlainTask[T] = {
+  def fromTask[T <: TaskSpec : ClassTag](task: Task[T]): PlainTask[T] = {
     PlainTask(task.id, task.data, task.metaData)
   }
 }
@@ -74,7 +84,7 @@ object Task {
     *
     * @param xmlFormat The xml serialization format for type T.
     */
-  implicit def taskFormat[T <: TaskSpec](implicit xmlFormat: XmlFormat[T]): XmlFormat[Task[T]] = new TaskFormat[T]
+  implicit def taskFormat[T <: TaskSpec : ClassTag](implicit xmlFormat: XmlFormat[T]): XmlFormat[Task[T]] = new TaskFormat[T]
 
   /**
     * Enables pattern matching over tasks.
@@ -86,7 +96,7 @@ object Task {
   /**
     * XML serialization format.
     */
-  class TaskFormat[T <: TaskSpec](implicit xmlFormat: XmlFormat[T]) extends XmlFormat[Task[T]] {
+  class TaskFormat[T <: TaskSpec : ClassTag](implicit xmlFormat: XmlFormat[T]) extends XmlFormat[Task[T]] {
 
     import XmlSerialization._
 
