@@ -4,21 +4,20 @@ import {
     Button,
     Card,
     CardActions,
-    CardActionsAux,
     CardContent,
     CardHeader,
     CardOptions,
     CardTitle,
-    ContextMenu,
     Divider,
     IconButton,
-    MenuItem,
     TextArea,
     TextField,
 } from "@wrappers/index";
 import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/thunks/metadata.thunk";
 import { Loading } from "../Loading/Loading";
-import { useForm, Controller } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import { Intent } from "@wrappers/blueprint/constants";
+import { FormGroup } from "@blueprintjs/core";
 
 export function Metadata({ projectId = null, taskId }) {
     const { control, handleSubmit } = useForm();
@@ -96,11 +95,6 @@ export function Metadata({ projectId = null, taskId }) {
                         {!isEditing && (
                             <CardOptions>
                                 <IconButton name="item-edit" text="Edit" onClick={toggleEdit} />
-                                <ContextMenu>
-                                    <MenuItem text={"This"} disabled />
-                                    <MenuItem text={"Is just a"} disabled />
-                                    <MenuItem text={"Dummy"} disabled />
-                                </ContextMenu>
                             </CardOptions>
                         )}
                     </CardHeader>
@@ -109,16 +103,31 @@ export function Metadata({ projectId = null, taskId }) {
                         <Loading />
                     ) : isEditing ? (
                         <form onSubmit={handleSubmit(onSubmit)}>
-                            <CardContent>
-                                <Controller as={TextField} name="label" control={control} defaultValue={label} />
+                            <FormGroup
+                                key="label"
+                                inline={false}
+                                label="Label"
+                                labelFor={"label"}
+                                labelInfo="(required)"
+                            >
+                                <Controller
+                                    as={TextField}
+                                    name="label"
+                                    control={control}
+                                    defaultValue={label}
+                                    intent={errors.form.label ? Intent.DANGER : Intent.NONE}
+                                />
                                 {errors.form.label && "Label is required"}
+                            </FormGroup>
+                            <FormGroup key="description" inline={false} label="Description" labelFor={"description"}>
                                 <Controller
                                     as={TextArea}
                                     name="description"
                                     control={control}
                                     defaultValue={description}
+                                    fullWidth={true}
                                 />
-                            </CardContent>
+                            </FormGroup>
                             <Divider />
                             <CardActions>
                                 <Button affirmative text="Save" type={"submit"} />
@@ -128,19 +137,8 @@ export function Metadata({ projectId = null, taskId }) {
                     ) : (
                         <>
                             <CardContent>
-                                <div>
-                                    <p>Name: {label}</p>
-                                    {!!description && <p>Description: {description}</p>}
-                                </div>
+                                <div>{!!description && <p>Description: {description}</p>}</div>
                             </CardContent>
-                            <Divider />
-                            <CardActions>
-                                <Button text="Remove me" disruptive />
-                                <Button text="Dummy" />
-                                <CardActionsAux>
-                                    <Button text="Auxiliary action" minimal />
-                                </CardActionsAux>
-                            </CardActions>
                         </>
                     )}
                 </Card>

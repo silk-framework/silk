@@ -1,4 +1,4 @@
-import { legacyApiEndpoint, workspaceApi } from "../../../../utils/getApiEndpoint";
+import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../../utils/getApiEndpoint";
 import fetch from "../../../../services/fetch";
 import { AxiosResponse } from "axios";
 
@@ -45,10 +45,15 @@ export interface IMetadataUpdatePayload {
     description?: string;
 }
 
-export const getTaskMetadataAsync = async (itemId: string, parentId?: string): Promise<IMetadata> => {
-    let url = legacyApiEndpoint(`/projects/${itemId}`);
-    if (parentId) {
-        url = legacyApiEndpoint(`/projects/${parentId}/tasks/${itemId}/metadata`);
+/**
+ * Returns the meta data of a specific item.
+ * @param itemId    The ID of the item. This also includes project IDs.
+ * @param projectId For project items, this parameter must be specified, else the item ID is treated as the project ID.
+ */
+export const getTaskMetadataAsync = async (itemId: string, projectId?: string): Promise<IMetadata> => {
+    let url = projectApi(`/${itemId}/metaData`);
+    if (projectId) {
+        url = legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}/metadata`);
     }
 
     try {

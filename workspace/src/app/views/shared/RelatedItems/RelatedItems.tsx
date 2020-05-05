@@ -77,7 +77,6 @@ export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
     const onChangeSelect = ({ page, pageSize }) => {
         setPagination({ total: pagination.total, current: page, limit: pageSize });
     };
-    console.log(pagination);
     return (
         <Card>
             <CardHeader>

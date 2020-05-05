@@ -17,6 +17,7 @@ import { routerOp } from "@ducks/router";
 import { useDispatch } from "react-redux";
 import { Highlighter } from "../Highlighter/Highlighter";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
+import { IPageLabels } from "@ducks/router/operations";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -48,8 +49,14 @@ export default function SearchItem({ item, searchValue, onOpenDeleteModal, onOpe
     const goToDetailsPage = (e) => {
         e.preventDefault();
         const detailsPath = item.itemLinks[0].path;
+        const labels: IPageLabels = {};
+        if (item.type === "project") {
+            labels.projectLabel = item.label;
+        } else {
+            labels.taskLabel = item.label;
+        }
 
-        dispatch(routerOp.goToPage(detailsPath, true));
+        dispatch(routerOp.goToPage(detailsPath, labels));
     };
 
     return (

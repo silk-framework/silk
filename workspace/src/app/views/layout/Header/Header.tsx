@@ -31,6 +31,7 @@ import appRoutes from "../../../appRoutes";
 import { getFullRoutePath } from "../../../utils/routerUtils";
 import { SERVE_PATH } from "../../../constants";
 import { useTranslation } from "react-i18next";
+import { sharedOp } from "@ducks/shared";
 
 interface IProps {
     externalRoutes: any;
@@ -41,6 +42,57 @@ interface IProps {
 export interface IBreadcrumb {
     href: string;
     text: string;
+}
+
+/** Utility methods for breadcrumbs in the application header. */
+class HeaderBreadcrumb {
+    // Valid breadcrumb IDs
+    static breadcrumbOrder = ["projectId", "taskId"];
+    // Mappings from breadcrumb IDs to breadcrumb label properties
+    static breadcrumbIdMap = { projectId: "projectLabel", taskId: "taskLabel" };
+    // Functions to fetch the label for a specific breadcrumb item
+    static fetchLabel = async (breadcrumbId: string, params: any): Promise<string> => {
+        switch (breadcrumbId) {
+            case "projectId": {
+                return sharedOp.getTaskMetadataAsync(params.projectId).then((metaData) => metaData.label);
+            }
+            case "taskId": {
+                return sharedOp
+                    .getTaskMetadataAsync(params.taskId, params.projectId)
+                    .then((metaData) => metaData.label);
+            }
+            default: {
+                return Promise.resolve(params[breadcrumbId]);
+            }
+        }
+    };
+
+    // Returns a function that returns the label for a specific breadcrumb ID
+    static labelForBreadCrumb = (location, params: any): ((string) => Promise<string>) => {
+        const actualBreadcrumbs = HeaderBreadcrumb.breadcrumbOrder.filter((breadcrumbId) => params[breadcrumbId]);
+        const pageLabels = location.state?.pageLabels;
+        const resultLabels = {};
+        actualBreadcrumbs.forEach((breadcrumbId, idx) => {
+            if (idx + 1 === actualBreadcrumbs.length && pageLabels?.pageTitle) {
+                resultLabels[breadcrumbId] = pageLabels.pageTitle;
+            } else if (pageLabels && pageLabels[HeaderBreadcrumb.breadcrumbIdMap[breadcrumbId]]) {
+                resultLabels[breadcrumbId] = pageLabels[HeaderBreadcrumb.breadcrumbIdMap[breadcrumbId]];
+            }
+        });
+        return async (breadcrumbId: string) => {
+            if (resultLabels[breadcrumbId]) {
+                // Label exists
+                return resultLabels[breadcrumbId];
+            } else if (HeaderBreadcrumb.breadcrumbIdMap[breadcrumbId]) {
+                // Label does not exists, but it is a valid breadcrumb ID
+                return HeaderBreadcrumb.fetchLabel(breadcrumbId, params);
+            } else {
+                // return the value for breadcrumb ID specified in params. We are not able to get a label for is yet.
+                console.warn(`Invalid breadcrumb ID for label substitution: '${breadcrumbId}'.`);
+                return params[breadcrumbId];
+            }
+        };
+    };
 }
 
 export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarExpanded }: IProps) {
@@ -63,25 +115,30 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
 
         if (match) {
             const { params, url }: any = match[0];
-            const updatedBread = [
-                { href: SERVE_PATH, text: t("common.home") },
-                { href: SERVE_PATH, text: t("Data Integration") },
-            ];
-            if (params.projectId) {
-                updatedBread.push({
-                    href: getFullRoutePath(`/projects/${params.projectId}`),
-                    text: params.projectId,
-                });
-            }
-            if (params.taskId) {
-                updatedBread.push({
-                    href: url,
-                    text: params.taskId,
-                });
-            }
-            setBreadcrumbs(updatedBread);
+            updateBreadCrumbs(location, params, url);
         }
     }, [location.pathname, t]);
+
+    const updateBreadCrumbs = async (location, params: any, url: string) => {
+        const labelFunction = HeaderBreadcrumb.labelForBreadCrumb(location, params);
+        const updatedBread = [
+            { href: SERVE_PATH, text: t("common.home") },
+            { href: SERVE_PATH, text: t("Data Integration") },
+        ];
+        if (params.projectId) {
+            updatedBread.push({
+                href: getFullRoutePath(`/projects/${params.projectId}`),
+                text: await labelFunction("projectId"),
+            });
+        }
+        if (params.taskId) {
+            updatedBread.push({
+                href: url,
+                text: await labelFunction("taskId"),
+            });
+        }
+        setBreadcrumbs(updatedBread);
+    };
 
     const handleCreateDialog = () => {
         dispatch(commonOp.selectArtefact({}));
@@ -122,7 +179,6 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         )}
                     </OverviewItemDescription>
                     <OverviewItemActions>
-                        <Button text="Dummy" outlined={"true"} elevated />
                         <IconButton name="item-remove" text="Remove" disruptive />
                         <ContextMenu>
                             <MenuItem text={"This"} disabled />
