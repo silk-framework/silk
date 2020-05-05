@@ -62,6 +62,14 @@ $ecc-font-spacing-wide: 0.5px !default;
 $ecc-size-block-whitespace: $ecc-size-typo-base !default;
 $ecc-size-inline-whitespace: $ecc-size-typo-base / 2 !default;
 
+// -- Configuration stack of opacities -----------------------------------------
+
+$ecc-opacity-regular: 1 !default;
+$ecc-opacity-narrow: 0.8 !default;
+$ecc-opacity-muted: 0.61 !default;
+$ecc-opacity-disabled: 0.39 !default;
+$ecc-opacity-invisible: 0 !default;
+
 // -- Calculation of more config vars ------------------------------------------
 
 /*

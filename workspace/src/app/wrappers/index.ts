@@ -87,6 +87,8 @@ import TitlePage from "./src/components/Structure/TitlePage";
 import TitleMainsection from "./src/components/Structure/TitleMainsection";
 import TitleSubsection from "./src/components/Structure/TitleSubsection";
 
+import Link from "./src/components/Link/Link";
+
 import * as TypographyClassNames from "./src/components/Typography/classnames";
 import * as IntentClassNames from "./src/components/Intent/classnames";
 
@@ -160,6 +162,7 @@ export {
     TagList,
     Pagination,
     Notification,
+    Link,
     Toast,
     HelperClasses,
 };

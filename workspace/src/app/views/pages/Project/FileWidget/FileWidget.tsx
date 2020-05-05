@@ -25,7 +25,6 @@ const {
 export const FileWidget = () => {
     const dispatch = useDispatch();
 
-    const projectId = useSelector(commonSel.currentProjectIdSelector);
     const filesList = useSelector(workspaceSel.filesListSelector);
     const fileWidget = useSelector(workspaceSel.widgetsSelector).files;
 
@@ -45,10 +44,6 @@ export const FileWidget = () => {
 
     const toggleFileUploader = () => {
         setIsOpenDialog(!isOpenDialog);
-    };
-
-    const isResourceExists = (fileName: string) => {
-        return workspaceOp.checkIfResourceExistsAsync(fileName, projectId);
     };
 
     return (
@@ -105,12 +100,7 @@ export const FileWidget = () => {
                     )}
                 </CardContent>
             </Card>
-            <FileUploadModal
-                isOpen={isOpenDialog}
-                onDiscard={toggleFileUploader}
-                uploadUrl={legacyApiEndpoint(`/projects/${projectId}/resources`)}
-                onCheckFileExists={isResourceExists}
-            />
+            <FileUploadModal isOpen={isOpenDialog} onDiscard={toggleFileUploader} />
         </>
     );
 };

@@ -17,7 +17,7 @@ export function QueryEditor({ onChange, name }: any) {
         editorInstance.on("change", (api) => {
             onChange(api.getValue());
         });
-    }, [onChange]);
+    }, []);
 
     return <textarea data-test-id="codemirror-wrapper" ref={ref} id={"codemirror"} name={name} />;
 }

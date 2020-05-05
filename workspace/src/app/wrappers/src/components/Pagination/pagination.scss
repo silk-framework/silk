@@ -1,12 +1,47 @@
 $ecc-color-pagination-background: transparent !default;
 $ecc-color-pagination-text: $ecc-color-workspace-text !default;
+$ecc-size-typo-pagination: $ecc-size-typo-caption !default;
 
-@import '~carbon-components/scss/components/pagination/pagination';
+@import "~carbon-components/scss/components/pagination/pagination";
 
-#{$prefix}--pagination {
+.#{$prefix}--pagination {
     background-color: $ecc-color-pagination-background;
+    font-size: $ecc-size-typo-pagination;
+
+    .#{$prefix}--form-item,
+    .#{$prefix}--select-input {
+        font-size: 100%;
+    }
 }
 
 span.#{$prefix}--pagination__text {
     color: $ecc-color-pagination-text;
+}
+
+.ecc-pagination--hidepagesize {
+    .#{$prefix}--pagination__left {
+        padding-left: 0;
+
+        & > *:not(:last-child) {
+            display: none;
+        }
+    }
+}
+
+.ecc-pagination--hideinfotext {
+    .#{$prefix}--pagination__left > .#{$prefix}--pagination__text:last-child {
+        display: none;
+    }
+}
+
+.ecc-pagination--hidepageselect {
+    .#{$prefix}--pagination__right > *:not(button) {
+        display: none;
+    }
+}
+
+.ecc-pagination--hidenavigation {
+    .#{$prefix}--pagination__right > button {
+        display: none;
+    }
 }

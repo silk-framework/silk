@@ -99,7 +99,7 @@
 @import "~carbon-components/scss/components/text-area/text-area";
 @import "~carbon-components/scss/components/number-input/number-input";
 @import "~carbon-components/scss/components/form/form";
-@import "~carbon-components/scss/components/link/link";
+// used in own component @import "~carbon-components/scss/components/link/link";
 @import "~carbon-components/scss/components/list-box/list-box";
 @import "~carbon-components/scss/components/list/list";
 @import "~carbon-components/scss/components/data-table/data-table";
@@ -159,6 +159,7 @@
 @import "src/components/Toolbar/toolbar";
 @import "src/components/Tag/tag";
 @import "src/components/Notification/notification";
+@import "src/components/Link/link";
 
 // == load tweaks ==============================================================
 

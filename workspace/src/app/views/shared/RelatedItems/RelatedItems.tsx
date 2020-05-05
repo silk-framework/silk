@@ -1,26 +1,29 @@
 import React, { useEffect, useState } from "react";
-import { IRelatedItem, IRelatedItems } from "@ducks/shared/thunks/relatedItems.thunk";
+import { useDispatch } from "react-redux";
 import {
+    IconButton,
     Card,
     CardContent,
     CardHeader,
     CardTitle,
     ContextMenu,
     Divider,
-    MenuDivider,
     MenuItem,
     OverviewItem,
     OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
 } from "@wrappers/index";
+import { IRelatedItem, IRelatedItems } from "@ducks/shared/thunks/relatedItems.thunk";
 import { sharedOp } from "@ducks/shared";
+import { routerOp } from "@ducks/router";
 import DataList from "../Datalist";
 import { RelatedItemsSearch } from "./RelatedItemsSearch";
 import Tag from "@wrappers/src/components/Tag/Tag";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import Spacing from "@wrappers/src/components/Separation/Spacing";
 import { Highlighter } from "../Highlighter/Highlighter";
+import { ResourceLink } from "../ResourceLink/ResourceLink";
 import Pagination from "@wrappers/src/components/Pagination/Pagination";
 
 /** Project ID and task ID of the project task */
@@ -39,6 +42,7 @@ export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
     const [data, setData] = useState({ total: 0, items: [] } as IRelatedItems);
     const [textQuery, setTextQuery] = useState("");
     const [pagination, setPagination] = useState({ total: 0, current: 1, limit: 5 });
+    const dispatch = useDispatch();
 
     useEffect(() => {
         getRelatedItemsData(projectId, taskId, textQuery);
@@ -77,6 +81,12 @@ export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
     const onChangeSelect = ({ page, pageSize }) => {
         setPagination({ total: pagination.total, current: page, limit: pageSize });
     };
+
+    const goToDetailsPage = (resourceitem, event) => {
+        event.preventDefault();
+        dispatch(routerOp.goToPage(resourceitem.path, true));
+    };
+
     return (
         <Card>
             <CardHeader>
@@ -114,33 +124,54 @@ export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
                                                 <Tag>
                                                     <Highlighter label={relatedItem.type} searchValue={textQuery} />
                                                 </Tag>{" "}
-                                                <Highlighter label={relatedItem.label} searchValue={textQuery} />
+                                                <ResourceLink
+                                                    url={
+                                                        !!relatedItem.itemLinks.length
+                                                            ? relatedItem.itemLinks[0].path
+                                                            : false
+                                                    }
+                                                    handlerResourcePageLoader={
+                                                        !!relatedItem.itemLinks.length
+                                                            ? (e) => goToDetailsPage(relatedItem.itemLinks[0], e)
+                                                            : false
+                                                    }
+                                                >
+                                                    <Highlighter label={relatedItem.label} searchValue={textQuery} />
+                                                </ResourceLink>
                                             </span>
                                         </OverviewItemLine>
                                     </OverviewItemDescription>
                                     <OverviewItemActions>
-                                        <ContextMenu togglerText="Show more options">
-                                            {contextMenuItems.length ? (
-                                                <>
-                                                    <MenuDivider />
-                                                    {contextMenuItems}
-                                                </>
-                                            ) : null}
-                                        </ContextMenu>
+                                        {!!relatedItem.itemLinks.length && (
+                                            <IconButton
+                                                name="item-viewdetails"
+                                                text="Show details"
+                                                onClick={(e) => goToDetailsPage(relatedItem.itemLinks[0], e)}
+                                                href={relatedItem.itemLinks[0].path}
+                                            />
+                                        )}
+                                        {contextMenuItems.length && (
+                                            <ContextMenu togglerText="Show more options">
+                                                {contextMenuItems}
+                                            </ContextMenu>
+                                        )}
                                     </OverviewItemActions>
                                 </OverviewItem>
                             );
                         })}
                 </DataList>
-                <Spacing size="small" />
                 {data.items.length > Math.min(pagination.total, 5) ? ( // Don't show if no pagination is needed
-                    <Pagination
-                        onChange={onChangeSelect}
-                        totalItems={pagination.total}
-                        pageSizes={pageSizes}
-                        page={pagination.current}
-                        pageSize={pagination.limit}
-                    />
+                    <>
+                        <Spacing size="small" />
+                        <Pagination
+                            onChange={onChangeSelect}
+                            totalItems={pagination.total}
+                            pageSizes={pageSizes}
+                            page={pagination.current}
+                            pageSize={pagination.limit}
+                            hideInfoText
+                        />
+                    </>
                 ) : null}
             </CardContent>
         </Card>
