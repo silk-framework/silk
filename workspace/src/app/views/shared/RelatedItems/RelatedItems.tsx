@@ -160,15 +160,18 @@ export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
                             );
                         })}
                 </DataList>
-                <Spacing size="small" />
                 {data.items.length > Math.min(pagination.total, 5) ? ( // Don't show if no pagination is needed
-                    <Pagination
-                        onChange={onChangeSelect}
-                        totalItems={pagination.total}
-                        pageSizes={pageSizes}
-                        page={pagination.current}
-                        pageSize={pagination.limit}
-                    />
+                    <>
+                        <Spacing size="small" />
+                        <Pagination
+                            onChange={onChangeSelect}
+                            totalItems={pagination.total}
+                            pageSizes={pageSizes}
+                            page={pagination.current}
+                            pageSize={pagination.limit}
+                            hideInfoText
+                        />
+                    </>
                 ) : null}
             </CardContent>
         </Card>
