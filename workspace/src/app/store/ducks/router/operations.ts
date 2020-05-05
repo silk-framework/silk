@@ -1,5 +1,5 @@
 import qs from "qs";
-import { getLocation, push } from "connected-react-router";
+import { getLocation, push, replace } from "connected-react-router";
 import { SERVE_PATH } from "../../../constants";
 
 interface IQueryParams {
@@ -48,7 +48,15 @@ const goToPage = (path: string, pageLabels: IPageLabels) => {
     };
 };
 
+const replacePage = (path: string, pageLabels: IPageLabels) => {
+    const isAbsolute = path.startsWith("/");
+    return (dispatch) => {
+        dispatch(replace(isAbsolute ? path : SERVE_PATH + path, { pageLabels: pageLabels }));
+    };
+};
+
 export default {
     setQueryString,
     goToPage,
+    replacePage,
 };

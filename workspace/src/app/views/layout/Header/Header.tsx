@@ -10,7 +10,6 @@ import {
     ApplicationToolbarPanel,
     ApplicationToolbarSection,
     BreadcrumbList,
-    Button,
     ContextMenu,
     Icon,
     IconButton,
@@ -62,7 +61,7 @@ class HeaderBreadcrumb {
                     .then((metaData) => metaData.label);
             }
             default: {
-                return Promise.resolve(params[breadcrumbId]);
+                return params[breadcrumbId];
             }
         }
     };
@@ -72,6 +71,7 @@ class HeaderBreadcrumb {
         const actualBreadcrumbs = HeaderBreadcrumb.breadcrumbOrder.filter((breadcrumbId) => params[breadcrumbId]);
         const pageLabels = location.state?.pageLabels;
         const resultLabels = {};
+        // Extract labels from location state if existent
         actualBreadcrumbs.forEach((breadcrumbId, idx) => {
             if (idx + 1 === actualBreadcrumbs.length && pageLabels?.pageTitle) {
                 resultLabels[breadcrumbId] = pageLabels.pageTitle;
@@ -81,10 +81,10 @@ class HeaderBreadcrumb {
         });
         return async (breadcrumbId: string) => {
             if (resultLabels[breadcrumbId]) {
-                // Label exists
+                // Label exists in location state, use it.
                 return resultLabels[breadcrumbId];
             } else if (HeaderBreadcrumb.breadcrumbIdMap[breadcrumbId]) {
-                // Label does not exists, but it is a valid breadcrumb ID
+                // Label does not exists, but it is a valid breadcrumb ID, fetch label from backend.
                 return HeaderBreadcrumb.fetchLabel(breadcrumbId, params);
             } else {
                 // return the value for breadcrumb ID specified in params. We are not able to get a label for is yet.
@@ -117,7 +117,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
             const { params, url }: any = match[0];
             updateBreadCrumbs(location, params, url);
         }
-    }, [location.pathname, t]);
+    }, [location.pathname, t, location.state]);
 
     const updateBreadCrumbs = async (location, params: any, url: string) => {
         const labelFunction = HeaderBreadcrumb.labelForBreadCrumb(location, params);

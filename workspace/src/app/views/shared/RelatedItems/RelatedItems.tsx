@@ -108,12 +108,17 @@ export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
                     {data.items
                         .slice((pagination.current - 1) * pagination.limit, pagination.current * pagination.limit)
                         .map((relatedItem: IRelatedItem) => {
-                            const contextMenuItems = relatedItem.itemLinks.map((link) => (
+                            const contextMenuItems = relatedItem.itemLinks.map((link, idx) => (
                                 <MenuItem
                                     key={link.path}
                                     text={link.label}
                                     href={link.path}
                                     icon={getItemLinkIcons(link.label)}
+                                    onClick={
+                                        idx === 0
+                                            ? (e) => goToDetailsPage(relatedItem.itemLinks[0], relatedItem.label, e)
+                                            : null
+                                    }
                                 />
                             ));
                             return (
