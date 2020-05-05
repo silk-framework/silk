@@ -27,6 +27,7 @@ object SearchApiModel {
   final val VALUES = "values"
   final val DESCRIPTION = "description"
   final val PROJECT_ID = "projectId"
+  final val PROJECT_LABEL = "projectLabel"
   // type values
   final val PROJECT_TYPE = "project"
   /* JSON serialization */
@@ -336,6 +337,7 @@ object SearchApiModel {
 
     /** Tasks of a specific item type, e.g. dataset, transform, workflow... */
     case class TypedTasks(project: String,
+                          projectLabel: String,
                           itemType: ItemType,
                           tasks: Seq[ProjectTask[_ <: TaskSpec]])
 
@@ -351,7 +353,7 @@ object SearchApiModel {
         case ItemType.task => project.tasks[CustomTask]
         case ItemType.project => Seq.empty
       }
-      TypedTasks(project.name, itemType, tasks)
+      TypedTasks(project.name, project.config.metaData.label ,itemType, tasks)
     }
 
     private def toJson(project: Project): JsObject = {
@@ -370,6 +372,7 @@ object SearchApiModel {
       typedTask.tasks map { task =>
         JsObject(Seq(
           PROJECT_ID -> JsString(typedTask.project),
+          PROJECT_LABEL -> JsString(typedTask.projectLabel),
           TYPE -> JsString(typedTask.itemType.id),
           ID -> JsString(task.id),
           LABEL -> JsString(task.metaData.label),

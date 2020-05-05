@@ -55,6 +55,11 @@ class ProjectApi @Inject()() extends InjectedController with ControllerUtilsTrai
     }
   }
 
+  /** Fetches the meta data of a project. */
+  def getProjectMetaData(projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    Ok(JsonSerializers.toJson(getProject(projectId).config.metaData))
+  }
+
   private def generateProjectId(label: String)
                                (implicit userContext: UserContext): Identifier = {
     val defaultSuffix = "project"

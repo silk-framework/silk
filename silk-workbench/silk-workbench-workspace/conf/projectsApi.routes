@@ -2,6 +2,7 @@
 
 POST          /                                                        controllers.workspaceApi.ProjectApi.createNewProject()
 PUT           /:projectId/metaData                                     controllers.workspaceApi.ProjectApi.updateProjectMetaData(projectId: String)
+GET           /:projectId/metaData                                     controllers.workspaceApi.ProjectApi.getProjectMetaData(projectId: String)
 GET           /:projectId/prefixes                                     controllers.workspaceApi.ProjectApi.fetchProjectPrefixes(projectId: String)
 PUT           /:projectId/prefixes/:prefixName                         controllers.workspaceApi.ProjectApi.addProjectPrefix(projectId: String, prefixName: String)
 DELETE        /:projectId/prefixes/:prefixName                         controllers.workspaceApi.ProjectApi.deleteProjectPrefix(projectId: String, prefixName: String)
