@@ -17,7 +17,7 @@ form {
     display: block;
 }
 
-.ecc-formitem {
+.ecc-fielditem {
     display: block;
 
     &:not(:last-child) {
@@ -25,20 +25,20 @@ form {
     }
 }
 
-.ecc-formitem__helpertext,
-.ecc-formitem__message {
+.ecc-fielditem__helpertext,
+.ecc-fielditem__message {
     display: block;
     font-size: $ecc-size-typo-formitem;
     line-height: $ecc-size-typo-formitem-lineheight;
     color: $ecc-color-formitem-text;
 
-    .ecc-formitem--disabled > & {
+    .ecc-fielditem--disabled > & {
         color: rgba($ecc-color-formitem-text, 1) !important;
         opacity: $ecc-opacity-disabled !important;
     }
 }
 
-.ecc-formitem__inputfields {
+.ecc-fielditem__inputfields {
     &:not(:first-child) {
         margin-top: $ecc-size-block-whitespace / 4;
     }
@@ -47,7 +47,7 @@ form {
     }
 }
 
-.ecc-formitem__message {
+.ecc-fielditem__message {
     &.ecc-intent--primary {
         color: $ecc-color-accent;
     }

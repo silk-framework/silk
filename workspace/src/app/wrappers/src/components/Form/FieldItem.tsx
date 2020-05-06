@@ -2,7 +2,7 @@ import React from "react";
 import Label from "../Label/Label";
 import * as IntentClassNames from "../Intent/classnames";
 
-function Formitem({
+function FieldItem({
     hasStatePrimary = false,
     hasStateSuccess = false,
     hasStateWarning = false,
@@ -38,25 +38,25 @@ function Formitem({
     const userhelp =
         helperText &&
         (typeof helperText === "string" ? (
-            <p className={"ecc-formitem__helpertext"}>{helperText}</p>
+            <p className={"ecc-fielditem__helpertext"}>{helperText}</p>
         ) : (
-            <div className={"ecc-formitem__helpertext"}>{helperText}</div>
+            <div className={"ecc-fielditem__helpertext"}>{helperText}</div>
         ));
 
-    const inputfields = children && <div className={"ecc-formitem__inputfields"}>{children}</div>;
+    const inputfields = children && <div className={"ecc-fielditem__inputfields"}>{children}</div>;
 
     const notification =
         messageText &&
         (typeof messageText === "string" ? (
-            <p className={"ecc-formitem__message" + classIntent}>{messageText}</p>
+            <p className={"ecc-fielditem__message" + classIntent}>{messageText}</p>
         ) : (
-            <div className={"ecc-formitem__message" + classIntent}>{messageText}</div>
+            <div className={"ecc-fielditem__message" + classIntent}>{messageText}</div>
         ));
 
     return (
         <div
             className={
-                "ecc-formitem" + (className ? " " + className : "") + (disabled ? " ecc-formitem--disabled" : "")
+                "ecc-fielditem" + (className ? " " + className : "") + (disabled ? " ecc-fielditem--disabled" : "")
             }
         >
             {label}
@@ -67,4 +67,4 @@ function Formitem({
     );
 }
 
-export default Formitem;
+export default FieldItem;
