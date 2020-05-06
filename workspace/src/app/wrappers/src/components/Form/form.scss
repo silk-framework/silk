@@ -1,3 +1,7 @@
+$ecc-size-typo-formitem: $ecc-size-typo-caption !default;
+$ecc-size-typo-formitem-lineheight: $ecc-size-typo-caption-lineheight !default;
+$ecc-color-formitem-text: rgba($ecc-color-workspace-text, $ecc-opacity-narrow);
+
 @import "~@blueprintjs/core/src/components/forms/common";
 
 @import "~@blueprintjs/core/src/components/forms/control-group";
@@ -10,5 +14,50 @@
 @import "~@blueprintjs/core/src/components/forms/numeric-input";
 
 form {
-  display: block;
+    display: block;
+}
+
+.ecc-formitem {
+    display: block;
+
+    &:not(:last-child) {
+        margin-bottom: $ecc-size-block-whitespace;
+    }
+}
+
+.ecc-formitem__helpertext,
+.ecc-formitem__message {
+    display: block;
+    font-size: $ecc-size-typo-formitem;
+    line-height: $ecc-size-typo-formitem-lineheight;
+    color: $ecc-color-formitem-text;
+
+    .ecc-formitem--disabled > & {
+        color: rgba($ecc-color-formitem-text, 1) !important;
+        opacity: $ecc-opacity-disabled !important;
+    }
+}
+
+.ecc-formitem__inputfields {
+    &:not(:first-child) {
+        margin-top: $ecc-size-block-whitespace / 4;
+    }
+    &:not(:last-child) {
+        margin-bottom: $ecc-size-block-whitespace / 4;
+    }
+}
+
+.ecc-formitem__message {
+    &.ecc-intent--primary {
+        color: $ecc-color-accent;
+    }
+    &.ecc-intent--success {
+        color: $ecc-color-success-text;
+    }
+    &.ecc-intent--warning {
+        color: $ecc-color-warning-text;
+    }
+    &.ecc-intent--danger {
+        color: $ecc-color-danger-text;
+    }
 }
