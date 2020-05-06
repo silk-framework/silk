@@ -19,8 +19,12 @@ private object LinkPoolGeneratorUtils {
     * Enriches a sequence of links with new links by recombining the linked entities.
     */
   def shuffleLinks(links: Seq[Link]): Seq[Link] = {
-    val shuffledLinks = for ((s, t) <- links zip (links.tail :+ links.head)) yield new LinkWithEntities(s.source, t.target, DPair(s.entities.get.source, t.entities.get.target))
-    links ++ shuffledLinks
+    if(links.nonEmpty) {
+      val shuffledLinks = for ((s, t) <- links zip (links.tail :+ links.head)) yield new LinkWithEntities(s.source, t.target, DPair(s.entities.get.source, t.entities.get.target))
+      links ++ shuffledLinks
+    } else {
+      links
+    }
   }
 
 }

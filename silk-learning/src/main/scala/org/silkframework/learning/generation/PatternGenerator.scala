@@ -20,11 +20,11 @@ import org.silkframework.learning.LearningConfiguration.Components
 import org.silkframework.learning.individual._
 import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.similarity.DistanceMeasure
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.DPair
 
-class PatternGenerator(components: Components) {
-
-  implicit val prefixes = Prefixes.empty
+class PatternGenerator(components: Components)
+                      (implicit prefixes: Prefixes, resourceManager: ResourceManager) {
 
   private val handlers = LabelHandler :: Wgs84Handler :: Nil
 

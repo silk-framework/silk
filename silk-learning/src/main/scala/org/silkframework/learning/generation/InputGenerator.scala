@@ -14,9 +14,11 @@
 
 package org.silkframework.learning.generation
 
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.learning.individual.{FunctionNode, InputNode, PathInputNode, TransformNode}
 import org.silkframework.rule.input.Transformer
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.DPair
 
 import scala.util.Random
@@ -24,7 +26,8 @@ import scala.util.Random
 /**
  * Generates random inputs.
  */
-case class InputGenerator(input: InputNode, useTransformations: Boolean) {
+case class InputGenerator(input: InputNode, useTransformations: Boolean)
+                         (implicit prefixes: Prefixes, resourceManager: ResourceManager){
 
   /** The maximum number of transformations */
   val maxTransformations = 2
@@ -61,14 +64,16 @@ case class InputGenerator(input: InputNode, useTransformations: Boolean) {
 
 object InputGenerator {
 
-  def fromPathPair(pathPair: DPair[UntypedPath], useTransformations: Boolean) = {
+  def fromPathPair(pathPair: DPair[UntypedPath], useTransformations: Boolean)
+                  (implicit prefixes: Prefixes, resourceManager: ResourceManager) = {
     DPair(
       source = new InputGenerator(PathInputNode(pathPair.source, true), useTransformations),
       target = new InputGenerator(PathInputNode(pathPair.target, false), useTransformations)
     )
   }
 
-  def fromInputPair(inputPair: DPair[InputNode], useTransformations: Boolean) = {
+  def fromInputPair(inputPair: DPair[InputNode], useTransformations: Boolean)
+                   (implicit prefixes: Prefixes, resourceManager: ResourceManager) = {
     DPair(
       source = new InputGenerator(inputPair.source, useTransformations),
       target = new InputGenerator(inputPair.target, useTransformations)

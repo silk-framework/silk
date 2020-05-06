@@ -50,7 +50,7 @@ class GeneratePopulation(seedLinkageRules: Traversable[LinkageRule],
   private def generateRule(random: Random) = {
     val nonEmptyRules = seedLinkageRules.filter(_.operator.isDefined).toIndexedSeq
     if(!nonEmptyRules.isEmpty && random.nextDouble() < 0.1)
-      LinkageRuleNode.load(nonEmptyRules(random.nextInt(nonEmptyRules.size)))
+      generator.load(nonEmptyRules(random.nextInt(nonEmptyRules.size)))
     else
       generator(random)
   }

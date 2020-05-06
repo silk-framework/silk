@@ -15,13 +15,20 @@
 package org.silkframework.learning.active
 
 import org.silkframework.learning.active.linkselector.{JensenShannonDivergenceSelector, LinkSelector, LinkSelectorCombinator, MaximumAgreementSelector, SamplingLinkSelector}
-import org.silkframework.learning.active.poolgenerator.{IndexLinkPoolGenerator, LinkPoolGenerator}
+import org.silkframework.learning.active.poolgenerator.{CombinedLinkPoolGenerator, IndexLinkPoolGenerator, LinkPoolGenerator, LinkSpecLinkPoolGenerator}
 
 
-case class ActiveLearningConfiguration(linkPoolGenerator: LinkPoolGenerator = new IndexLinkPoolGenerator(),
+case class ActiveLearningConfiguration(linkPoolGenerator: LinkPoolGenerator = ActiveLearningConfigurationDefaults.defaultLinkPoolGenerator,
                                        selector: LinkSelector = ActiveLearningConfigurationDefaults.defaultLinkSelector)
 
 object ActiveLearningConfigurationDefaults {
+
+  val defaultLinkPoolGenerator: LinkPoolGenerator = {
+    new CombinedLinkPoolGenerator(
+      new LinkSpecLinkPoolGenerator(),
+      new IndexLinkPoolGenerator()
+    )
+  }
 
   val defaultLinkSelector: LinkSelector = {
     // We sample the rules and pool links to limit the runtime of the selectors

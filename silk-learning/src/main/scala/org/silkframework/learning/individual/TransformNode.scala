@@ -14,7 +14,9 @@
 
 package org.silkframework.learning.individual
 
+import org.silkframework.config.Prefixes
 import org.silkframework.rule.input.{TransformInput, Transformer}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.IdentifierGenerator
 
 case class TransformNode(isSource: Boolean, inputs: List[InputNode], transformer: FunctionNode[Transformer]) extends InputNode {
@@ -41,7 +43,7 @@ case class TransformNode(isSource: Boolean, inputs: List[InputNode], transformer
 }
 
 object TransformNode {
-  def load(input: TransformInput, isSource: Boolean) = {
+  def load(input: TransformInput, isSource: Boolean)(implicit prefixes: Prefixes, resourceManager: ResourceManager) = {
     val inputNodes = input.inputs.map(i => InputNode.load(i, isSource)).toList
     val transformerNode = FunctionNode.load(input.transformer, Transformer)
 

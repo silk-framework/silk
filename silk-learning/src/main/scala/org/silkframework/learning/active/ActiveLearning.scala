@@ -14,9 +14,10 @@
 
 package org.silkframework.learning.active
 
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.paths.TypedPath
-import org.silkframework.learning.LearningConfiguration
+import org.silkframework.learning.{LearningConfiguration, LearningException}
 import org.silkframework.learning.active.linkselector.WeightedLinkageRule
 import org.silkframework.learning.cleaning.CleanPopulationTask
 import org.silkframework.learning.generation.{GeneratePopulation, LinkageRuleGenerator}
@@ -25,6 +26,7 @@ import org.silkframework.rule.evaluation.{LinkageRuleEvaluator, ReferenceEntitie
 import org.silkframework.rule.{LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.{DPair, Timer}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
@@ -46,6 +48,8 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     val datasets = task.dataSources
     val paths = getPaths()
     val referenceEntities = getReferenceEntities()
+    implicit val prefixes = task.project.config.prefixes
+    implicit val projectResources = task.project.resources
 
     // Update random seed
     val newRandomSeed = new Random(context.value().randomSeed).nextLong()
@@ -125,6 +129,10 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
         }
       val generator = config.active.linkPoolGenerator.generator(datasets, linkSpec, pathPairs, random.nextLong())
       pool = context.child(generator, 0.5).startBlockingAndGetValue()
+
+      if(pool.links.isEmpty) {
+        throw new LearningException("Could not find any link candidates. Learning is not possible on this dataset(s).")
+      }
     }
 
     //Assert that no reference links are in the pool
@@ -136,7 +144,8 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
   }
 
   private def linkageRuleGenerator(context: ActivityContext[ActiveLearningState],
-                                   referenceEntities: ReferenceEntities): LinkageRuleGenerator = {
+                                   referenceEntities: ReferenceEntities)
+                                  (implicit prefixes: Prefixes, resourceManager: ResourceManager): LinkageRuleGenerator = {
     val generator = Timer("LinkageRuleGenerator") {
       LinkageRuleGenerator(referenceEntities merge ReferenceEntities.fromEntities(context.value().pool.links.map(_.entities.get), Nil), config.components)
     }

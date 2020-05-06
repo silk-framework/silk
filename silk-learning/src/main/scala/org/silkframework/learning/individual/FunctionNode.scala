@@ -16,18 +16,20 @@ package org.silkframework.learning.individual
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
-import org.silkframework.runtime.resource.EmptyResourceManager
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.IdentifierGenerator
 
-case class FunctionNode[T <: AnyPlugin](id: String, parameters: List[ParameterNode], factory: PluginFactory[T]) extends Node {
+case class FunctionNode[T <: AnyPlugin](id: String, parameters: List[ParameterNode], factory: PluginFactory[T])
+                                       (implicit prefixes: Prefixes, resourceManager: ResourceManager) extends Node {
 
-  def build(implicit identifiers: IdentifierGenerator = new IdentifierGenerator) = {
-    factory(id, parameters.map(p => (p.key, p.value)).toMap)(Prefixes.empty, EmptyResourceManager())
+  def build(implicit identifiers: IdentifierGenerator = new IdentifierGenerator): T = {
+    factory(id, parameters.map(p => (p.key, p.value)).toMap)
   }
 }
 
 object FunctionNode {
-  def load[T <: AnyPlugin](plugin: T, factory: PluginFactory[T]) = factory.unapply(plugin) match {
+  def load[T <: AnyPlugin](plugin: T, factory: PluginFactory[T])
+                          (implicit prefixes: Prefixes, resourceManager: ResourceManager): FunctionNode[T] = factory.unapply(plugin) match {
     case Some((pluginDesc, parameters)) => FunctionNode(pluginDesc.id, parameters.map {
       case (key, value) => ParameterNode(key, value)
     }.toList, factory)

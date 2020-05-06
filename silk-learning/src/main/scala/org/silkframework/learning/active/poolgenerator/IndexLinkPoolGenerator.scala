@@ -58,10 +58,6 @@ class IndexLinkPoolGenerator extends LinkPoolGenerator {
         findLinks(sourceCache, sourceIndex, targetCache, targetIndex, links)
       }
 
-      if(links.isEmpty) {
-        throw new LearningException("Could not find any link candidates. Learning is not possible on this dataset(s).")
-      }
-
       context.value() = UnlabeledLinkPool(fullEntitySchema, shuffleLinks(links.toSeq))
     }
 

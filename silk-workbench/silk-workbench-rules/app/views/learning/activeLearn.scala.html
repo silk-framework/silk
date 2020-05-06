@@ -52,7 +52,7 @@
           if(err.responseJSON.detail !== undefined) {
             message = err.responseJSON.detail;
           }
-          $('#link-candidate-wrapper').html("<div class=\"alert alert-warning\"><strong>" + message + "</strong></div>");
+          $('#link-candidate-wrapper').html("<div class=\"alert alert-warning\"><strong></strong></div>").find('strong').text(message);
         })
     }
 

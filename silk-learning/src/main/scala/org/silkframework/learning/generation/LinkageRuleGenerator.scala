@@ -14,13 +14,17 @@
 
 package org.silkframework.learning.generation
 
+import org.silkframework.config.Prefixes
 import org.silkframework.learning.LearningConfiguration.Components
 import org.silkframework.learning.individual.{AggregationNode, LinkageRuleNode}
+import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation.ReferenceEntities
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 
 import scala.util.Random
 
-case class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator], components: Components) {
+case class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator], components: Components)
+                               (implicit prefixes: Prefixes, resourceManager: ResourceManager) {
   //require(!comparisonGenerators.isEmpty, "comparisonGenerators must not be empty")
   
   private val aggregations = {
@@ -36,8 +40,18 @@ case class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGener
 
   private val maxOperatorCount = 2
 
+  /**
+    * Generates a new random rule.
+    */
   def apply(random: Random): LinkageRuleNode = {
     LinkageRuleNode(Some(generateAggregation(random)))
+  }
+
+  /**
+    * Generate a node from an existing rule.
+    */
+  def load(rule: LinkageRule): LinkageRuleNode = {
+    LinkageRuleNode.load(rule)
   }
 
   /**
@@ -73,10 +87,13 @@ case class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGener
 object LinkageRuleGenerator {
 
   def empty: LinkageRuleGenerator = {
+    implicit val prefixes = Prefixes.empty
+    implicit val projectResources = EmptyResourceManager()
     new LinkageRuleGenerator(IndexedSeq.empty, Components())
   }
 
-  def apply(entities: ReferenceEntities, components: Components = Components()): LinkageRuleGenerator = {
+  def apply(entities: ReferenceEntities, components: Components = Components())
+           (implicit prefixes: Prefixes, resourceManager: ResourceManager): LinkageRuleGenerator = {
     val es = entities.positiveEntities
     if(es.isEmpty)
       new LinkageRuleGenerator(IndexedSeq.empty, components)

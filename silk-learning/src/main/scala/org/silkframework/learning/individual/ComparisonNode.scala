@@ -14,7 +14,9 @@
 
 package org.silkframework.learning.individual
 
+import org.silkframework.config.Prefixes
 import org.silkframework.rule.similarity.{Comparison, DistanceMeasure}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.{DPair, IdentifierGenerator}
 
 case class ComparisonNode(inputs: DPair[InputNode], threshold: Double, weight: Int, required: Boolean, metric: FunctionNode[DistanceMeasure]) extends OperatorNode {
@@ -43,7 +45,7 @@ case class ComparisonNode(inputs: DPair[InputNode], threshold: Double, weight: I
 }
 
 object ComparisonNode {
-  def load(comparison: Comparison) = {
+  def load(comparison: Comparison)(implicit prefixes: Prefixes, resourceManager: ResourceManager) = {
     val sourceInputNode = InputNode.load(comparison.inputs.source, true)
     val targetInputNode = InputNode.load(comparison.inputs.target, false)
 
