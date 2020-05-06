@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { FormGroup } from "@blueprintjs/core";
 import { IDetailedArtefactItem } from "@ducks/common/typings";
 import { Intent } from "@wrappers/blueprint/constants";
 import { INPUT_TYPES } from "../../../../../constants";
 import { InputMapper } from "./InputMapper";
-import { Button, Icon, Tooltip } from "@wrappers/index";
+import { Button, FieldItem } from "@wrappers/index";
 import { FileUploadModal } from "../../FileUploadModal/FileUploadModal";
 
 export interface IProps {
@@ -78,10 +77,19 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
 
     const isFileInput = (type: string) => type === INPUT_TYPES.RESOURCE;
 
+    const MAXLENGTH_TOOLTIP = 40;
+
     return (
         <>
             <form>
-                <FormGroup key="label" inline={false} label="Label" labelFor={"label"} labelInfo="(required)">
+                <FieldItem
+                    key="label"
+                    labelAttributes={{
+                        text: "Label",
+                        info: "required",
+                        htmlFor: "label",
+                    }}
+                >
                     <InputMapper
                         type={"string"}
                         inputAttributes={{
@@ -91,37 +99,43 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                             intent: errors.label ? Intent.DANGER : Intent.NONE,
                         }}
                     />
-                </FormGroup>
-                <FormGroup key="description" inline={false} label="Description" labelFor={"description"}>
+                </FieldItem>
+                <FieldItem
+                    key="description"
+                    labelAttributes={{
+                        text: "Description",
+                        htmlFor: "description",
+                    }}
+                >
                     <InputMapper
                         type={"textarea"}
                         inputAttributes={{
                             id: "description",
                             name: "description",
                             onChange: handleChange("description"),
-                            style: {
-                                width: "100%",
-                            },
                         }}
                     />
-                </FormGroup>
+                </FieldItem>
 
                 {Object.keys(properties).map((key) => (
-                    <FormGroup
+                    <FieldItem
                         key={key}
-                        inline={false}
-                        label={properties[key].title}
-                        labelFor={key}
-                        labelInfo={
-                            <>
-                                <Tooltip content={properties[key].description}>
-                                    <span>
-                                        <Icon name="item-info" small />
-                                    </span>
-                                </Tooltip>
-                                {required.includes(key) ? "(required)" : ""}
-                            </>
+                        labelAttributes={{
+                            text: properties[key].title,
+                            info: required.includes(key) ? "required" : "",
+                            htmlFor: key,
+                            tooltip:
+                                properties[key].description && properties[key].description.length <= MAXLENGTH_TOOLTIP
+                                    ? properties[key].description
+                                    : "",
+                        }}
+                        helperText={
+                            properties[key].description && properties[key].description.length > MAXLENGTH_TOOLTIP
+                                ? properties[key].description
+                                : ""
                         }
+                        messageText={errors[key] ? properties[key].title + " not specified" : ""}
+                        hasStateDanger={errors[key] ? true : false}
                     >
                         {isFileInput(properties[key].parameterType) ? (
                             <Button onClick={() => toggleFileUploader(key)}>Upload new {properties[key].title}</Button>
@@ -143,11 +157,10 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                                 }}
                             />
                         )}
-                        {errors[key] && <span style={{ color: "red" }}>{properties[key].title} not specified</span>}
-                    </FormGroup>
+                    </FieldItem>
                 ))}
                 <button type="button" onClick={() => console.log(getValues(), errors)}>
-                    Console Form data
+                    Debug: Console Form data
                 </button>
             </form>
 

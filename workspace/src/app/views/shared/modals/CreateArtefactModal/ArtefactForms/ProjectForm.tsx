@@ -1,6 +1,5 @@
 import React from "react";
-import { FormGroup } from "@blueprintjs/core";
-import { TextField, TextArea } from "@wrappers/index";
+import { FieldItem, TextField, TextArea } from "@wrappers/index";
 import FileUploader from "../../../FileUploader";
 
 export interface IProps {
@@ -10,27 +9,44 @@ export interface IProps {
 export function ProjectForm({ form }: IProps) {
     return (
         <>
-            <FormGroup inline={false} label={"Title"} labelFor="title-input" labelInfo={"(required)"}>
+            <FieldItem
+                labelAttributes={{
+                    text: "Title",
+                    info: "required",
+                    htmlFor: "title-input",
+                }}
+            >
                 <TextField
                     id="title-input"
                     placeholder="Project title"
                     name={"label"}
                     inputRef={form.register({ required: true })}
                 />
-            </FormGroup>
-            <FormGroup inline={false} label={"Description"} labelFor="desc-input">
+            </FieldItem>
+            <FieldItem
+                labelAttributes={{
+                    text: "Description",
+                    htmlFor: "desc-input",
+                }}
+            >
                 <TextArea
-                    style={{ width: "100%" }}
                     id="desc-input"
                     name={"description"}
                     growVertically={true}
                     placeholder="Project description"
                     inputRef={form.register()}
                 />
-            </FormGroup>
-            <FormGroup inline={false} label={"Import project backup file"}>
+            </FieldItem>
+            <FieldItem
+                labelAttributes={{
+                    text: "Restore data from backup",
+                }}
+                helperText={
+                    "In case you want to restore project data you can attach the backup file that has been exported before."
+                }
+            >
                 <FileUploader />
-            </FormGroup>
+            </FieldItem>
         </>
     );
 }
