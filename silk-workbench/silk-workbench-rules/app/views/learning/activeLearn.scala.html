@@ -47,8 +47,13 @@
         },
         function(data) {
           $('#link-candidate-wrapper').html(data);
+        }).fail(function(err) {
+          var message = "Learning failed";
+          if(err.responseJSON.detail !== undefined) {
+            message = err.responseJSON.detail;
+          }
+          $('#link-candidate-wrapper').html("<div class=\"alert alert-warning\"><strong>" + message + "</strong></div>");
         })
-        .fail(errorHandler)
     }
 
     $(function() {

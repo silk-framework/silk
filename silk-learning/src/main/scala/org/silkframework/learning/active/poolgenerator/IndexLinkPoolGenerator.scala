@@ -9,6 +9,7 @@ import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.util.DPair
 import LinkPoolGeneratorUtils._
+import org.silkframework.learning.LearningException
 
 import scala.collection.mutable
 import scala.util.Random
@@ -55,6 +56,10 @@ class IndexLinkPoolGenerator extends LinkPoolGenerator {
       } {
         context.status.updateProgress(0.3 + 0.7 * (sourceIndex * targetCaches.size + targetIndex).toDouble / (sourceCaches.size * targetCaches.size).toDouble, logStatus = false)
         findLinks(sourceCache, sourceIndex, targetCache, targetIndex, links)
+      }
+
+      if(links.isEmpty) {
+        throw new LearningException("Could not find any link candidates. Learning is not possible on this dataset(s).")
       }
 
       context.value() = UnlabeledLinkPool(fullEntitySchema, shuffleLinks(links.toSeq))
