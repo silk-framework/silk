@@ -21,6 +21,9 @@ public @interface DistanceMeasureExample {
     String[] input2();
 
     // Expected distance
-    double output();
+    double output() default Double.NaN;
+
+    // Thrown exception if evaluation should fail. Defaults to Object class if no exception is thrown.
+    Class<?> throwsException() default Object.class;
 
 }
