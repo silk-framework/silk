@@ -32,6 +32,7 @@ import SearchField from "./src/components/TextField/SearchField";
 import Switch from "./src/components/Switch/Switch";
 import NumericInput from "./src/components/NumericInput/NumericInput";
 import FieldItem from "./src/components/Form/FieldItem";
+import FieldItemRow from "./src/components/Form/FieldItemRow";
 
 import Menu from "./src/components/Menu/Menu";
 import MenuItem from "./src/components/Menu/MenuItem";
@@ -139,6 +140,7 @@ export {
     Switch, // TODO: scss styles
     NumericInput, // TODO: scss styles
     FieldItem,
+    FieldItemRow,
     BreadcrumbList,
     BreadcrumbItem,
     Modal,

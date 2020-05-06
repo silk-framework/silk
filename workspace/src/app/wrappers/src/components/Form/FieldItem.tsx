@@ -2,6 +2,15 @@ import React from "react";
 import Label from "../Label/Label";
 import * as IntentClassNames from "../Intent/classnames";
 
+/*
+    TODO:
+    
+    * disabled stae could be automatically forwarded to inserted input element,
+      currently this need to be dome explicitely .
+    * input id could be forwarded to label and input element
+    * input id could be created when not given
+*/
+
 function FieldItem({
     hasStatePrimary = false,
     hasStateSuccess = false,

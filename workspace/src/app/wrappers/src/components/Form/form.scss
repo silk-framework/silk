@@ -61,3 +61,22 @@ form {
         color: $ecc-color-danger-text;
     }
 }
+
+.ecc-fielditem__row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: flex-end;
+    margin: 0 -1 * $ecc-size-block-whitespace/2;
+
+    & > .ecc-fielditem {
+        flex-shrink: 1;
+        flex-grow: 1;
+        margin: 0 $ecc-size-block-whitespace/2;
+    }
+
+    &:not(:last-child) {
+        margin-bottom: $ecc-size-block-whitespace;
+    }
+}
