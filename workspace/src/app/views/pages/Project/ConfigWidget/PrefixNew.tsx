@@ -1,53 +1,45 @@
-import React from 'react';
-import {
-    Button,
-    Card,
-    CardHeader,
-    CardTitle,
-    CardContent,
-    Grid,
-    GridRow,
-    GridColumn,
-    TextField,
-} from '@wrappers/index';
+import React from "react";
+import { Button, FieldItem, FieldItemRow, Spacing, TextField } from "@wrappers/index";
 
-const PrefixNew = ({onAdd, onChangePrefix, prefix}) => {
+const PrefixNew = ({ onAdd, onChangePrefix, prefix }) => {
     return (
-        <Card elevated={0}>
-            <CardHeader>
-                <CardTitle>
-                    <h4>Add Prefix</h4>
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <Grid>
-                    <GridRow>
-                        <GridColumn medium>
-                            <TextField
-                                value={prefix.prefixName}
-                                onChange={(e) => onChangePrefix('prefixName', e.target.value)}
-                                placeholder={'Prefix Name'}/>
-                        </GridColumn>
-                        <GridColumn>
-                            <TextField
-                                value={prefix.prefixUri}
-                                onChange={(e) => onChangePrefix('prefixUri', e.target.value)}
-                                placeholder={'Prefix URI'}
-                            />
-                        </GridColumn>
-                        <GridColumn small>
-                            <Button
-                                onClick={onAdd}
-                                elevated
-                                disabled={!prefix.prefixName || !prefix.prefixUri}
-                            >
-                                Add
-                            </Button>
-                        </GridColumn>
-                    </GridRow>
-                </Grid>
-            </CardContent>
-        </Card>
+        <fieldset>
+            <legend>Add prefix</legend>
+            <Spacing size="small" />
+            <FieldItemRow>
+                <FieldItem
+                    key={"prefix-name"}
+                    labelAttributes={{
+                        htmlFor: "prefix-name",
+                        text: "Prefix",
+                    }}
+                >
+                    <TextField
+                        id={"prefix-name"}
+                        value={prefix.prefixName}
+                        onChange={(e) => onChangePrefix("prefixName", e.target.value)}
+                    />
+                </FieldItem>
+                <FieldItem
+                    key={"prefix-name"}
+                    labelAttributes={{
+                        htmlFor: "prefix-uri",
+                        text: "URI",
+                    }}
+                >
+                    <TextField
+                        id={"prefix-uri"}
+                        value={prefix.prefixUri}
+                        onChange={(e) => onChangePrefix("prefixUri", e.target.value)}
+                    />
+                </FieldItem>
+                <FieldItem key={"prefix-submit"}>
+                    <Button onClick={onAdd} elevated disabled={!prefix.prefixName || !prefix.prefixUri}>
+                        Add
+                    </Button>
+                </FieldItem>
+            </FieldItemRow>
+        </fieldset>
     );
 };
 

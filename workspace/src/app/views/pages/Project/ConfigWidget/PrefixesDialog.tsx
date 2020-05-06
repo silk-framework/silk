@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { IPrefixState } from "@ducks/workspace/typings";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { Button, SimpleDialog, Spacing } from "@wrappers/index";
+import { Button, SimpleDialog, Divider } from "@wrappers/index";
 import PrefixRow from "./PrefixRow";
 import DeleteModal from "../../../shared/modals/DeleteModal";
 import PrefixNew from "./PrefixNew";
@@ -67,7 +67,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen }) => {
                         onChangePrefix={handleUpdatePrefixFields}
                         onAdd={() => handleAddOrUpdatePrefix(newPrefix)}
                     />
-                    <Spacing small />
+                    <Divider addSpacing="medium" />
                     <DataList isEmpty={!prefixList.length} isLoading={isLoading} hasSpacing hasDivider>
                         {prefixList.map((prefix, i) => (
                             <PrefixRow key={i} prefix={prefix} onRemove={() => toggleRemoveDialog(prefix)} />
