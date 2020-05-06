@@ -11,5 +11,9 @@ import org.silkframework.util.Identifier
 )
 case class EmptyResourceRepository() extends ResourceRepository {
 
+  override def sharedResources: Boolean = false
+
   override def get(project: Identifier): ResourceManager = EmptyResourceManager()
+
+  override def removeProjectResources(project: Identifier): Unit = {}
 }

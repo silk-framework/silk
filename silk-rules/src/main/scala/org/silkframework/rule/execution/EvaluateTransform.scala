@@ -15,7 +15,7 @@ import org.silkframework.runtime.activity.UserContext
  * containing all intermediate values of the rule evaluation.
  */
 class EvaluateTransform(source: DataSource,
-                        dataSelection: DatasetSelection,
+                        entitySchema: EntitySchema,
                         rules: Seq[TransformRule],
                         maxEntities: Int = 100) {
 
@@ -26,13 +26,7 @@ class EvaluateTransform(source: DataSource,
 
   def execute()(implicit userContext: UserContext): Seq[DetailedEntity] = {
     // Retrieve entities
-    val entityDesc =
-      EntitySchema(
-        typeUri = dataSelection.typeUri,
-        typedPaths = rules.flatMap(_.sourcePaths).map(p => TypedPath(p.operators, ValueType.STRING, xmlAttribute = false)).toIndexedSeq,
-        filter = dataSelection.restriction
-      )
-    val entities = source.retrieve(entityDesc, Some(maxEntities)).entities
+    val entities = source.retrieve(entitySchema, Some(maxEntities)).entities
 
     // Read all entities
     for(entity <- entities) {
