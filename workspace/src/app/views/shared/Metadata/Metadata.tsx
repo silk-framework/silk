@@ -1,24 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { sharedOp } from "@ducks/shared";
+import { routerOp } from "@ducks/router";
 import {
     Button,
     Card,
     CardActions,
-    CardActionsAux,
     CardContent,
     CardHeader,
     CardOptions,
     CardTitle,
-    ContextMenu,
     Divider,
     IconButton,
-    MenuItem,
     TextArea,
     TextField,
 } from "@wrappers/index";
 import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/thunks/metadata.thunk";
 import { Loading } from "../Loading/Loading";
-import { useForm, Controller } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import { Intent } from "@wrappers/blueprint/constants";
+import { FormGroup } from "@blueprintjs/core";
+import { useLocation } from "react-router";
+import { useDispatch } from "react-redux";
+import { IPageLabels } from "@ducks/router/operations";
 
 export function Metadata({ projectId = null, taskId }) {
     const { control, handleSubmit } = useForm();
@@ -26,6 +29,8 @@ export function Metadata({ projectId = null, taskId }) {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState({} as IMetadata);
     const [isEditing, setIsEditing] = useState(false);
+    const location = useLocation();
+    const dispatch = useDispatch();
     const [errors, setErrors] = useState({
         form: {
             label: false,
@@ -76,8 +81,23 @@ export function Metadata({ projectId = null, taskId }) {
             },
         });
 
+        const updateLocationState = async (forPath: string, metaData: IMetadata) => {
+            const newLabels: IPageLabels = {};
+            if (projectId) {
+                // Project ID exists, this must be a task
+                newLabels.taskLabel = metaData.label;
+            } else {
+                newLabels.projectLabel = metaData.label;
+            }
+            dispatch(routerOp.replacePage(forPath, newLabels)); // TODO: Since this is executed async this may replace the wrong page history state. How to prevent this?
+        };
+
         const result = await letLoading(() => {
-            return sharedOp.updateTaskMetadataAsync(taskId, inputs, projectId);
+            const path = location.pathname;
+            return sharedOp.updateTaskMetadataAsync(taskId, inputs, projectId).then((metaData) => {
+                updateLocationState(path, metaData);
+                return metaData;
+            });
         });
 
         setData(result);
@@ -96,11 +116,6 @@ export function Metadata({ projectId = null, taskId }) {
                         {!isEditing && (
                             <CardOptions>
                                 <IconButton name="item-edit" text="Edit" onClick={toggleEdit} />
-                                <ContextMenu>
-                                    <MenuItem text={"This"} disabled />
-                                    <MenuItem text={"Is just a"} disabled />
-                                    <MenuItem text={"Dummy"} disabled />
-                                </ContextMenu>
                             </CardOptions>
                         )}
                     </CardHeader>
@@ -109,16 +124,31 @@ export function Metadata({ projectId = null, taskId }) {
                         <Loading />
                     ) : isEditing ? (
                         <form onSubmit={handleSubmit(onSubmit)}>
-                            <CardContent>
-                                <Controller as={TextField} name="label" control={control} defaultValue={label} />
+                            <FormGroup
+                                key="label"
+                                inline={false}
+                                label="Label"
+                                labelFor={"label"}
+                                labelInfo="(required)"
+                            >
+                                <Controller
+                                    as={TextField}
+                                    name="label"
+                                    control={control}
+                                    defaultValue={label}
+                                    intent={errors.form.label ? Intent.DANGER : Intent.NONE}
+                                />
                                 {errors.form.label && "Label is required"}
+                            </FormGroup>
+                            <FormGroup key="description" inline={false} label="Description" labelFor={"description"}>
                                 <Controller
                                     as={TextArea}
                                     name="description"
                                     control={control}
                                     defaultValue={description}
+                                    fullWidth={true}
                                 />
-                            </CardContent>
+                            </FormGroup>
                             <Divider />
                             <CardActions>
                                 <Button affirmative text="Save" type={"submit"} />
@@ -128,19 +158,8 @@ export function Metadata({ projectId = null, taskId }) {
                     ) : (
                         <>
                             <CardContent>
-                                <div>
-                                    <p>Name: {label}</p>
-                                    {!!description && <p>Description: {description}</p>}
-                                </div>
+                                <div>{!!description && <p>Description: {description}</p>}</div>
                             </CardContent>
-                            <Divider />
-                            <CardActions>
-                                <Button text="Remove me" disruptive />
-                                <Button text="Dummy" />
-                                <CardActionsAux>
-                                    <Button text="Auxiliary action" minimal />
-                                </CardActionsAux>
-                            </CardActions>
                         </>
                     )}
                 </Card>

@@ -305,7 +305,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string) => {
                 method: "POST",
                 body: payload,
             });
-            dispatch(routerOp.goToPage(`/projects/${currentProjectId}/dataset/${data.id}`));
+            dispatch(routerOp.goToPage(`/projects/${currentProjectId}/dataset/${data.id}`, { taskLabel: label }));
         } catch (e) {
             dispatch(setError(e.response.data));
         }
@@ -327,7 +327,7 @@ const fetchCreateProjectAsync = (formData: { label: string; description?: string
                     },
                 },
             });
-            dispatch(routerOp.goToPage(`/projects/${data.name}`));
+            dispatch(routerOp.goToPage(`/projects/${data.name}`, { projectLabel: label }));
         } catch (e) {
             dispatch(setError(e.response.data));
         }

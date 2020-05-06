@@ -2,9 +2,10 @@ import React, { useCallback, useEffect, useState } from "react";
 import { FormGroup } from "@blueprintjs/core";
 import { IDetailedArtefactItem } from "@ducks/common/typings";
 import { Intent } from "@wrappers/blueprint/constants";
-import { INPUT_VALID_TYPES } from "../../../../../constants";
+import { INPUT_TYPES } from "../../../../../constants";
 import { InputMapper } from "./InputMapper";
-import { Icon, Tooltip } from "@wrappers/index";
+import { Button, Icon, Tooltip } from "@wrappers/index";
+import { FileUploadModal } from "../../FileUploadModal/FileUploadModal";
 
 export interface IProps {
     form: any;
@@ -17,7 +18,9 @@ export interface IProps {
 export function TaskForm({ form, projectId, artefact }: IProps) {
     const { properties, required, pluginId } = artefact;
 
+    const [selectedFileField, setSelectedFileField] = useState<string>("");
     const [fieldValues, setFieldValues] = useState<any>({});
+
     const { register, errors, getValues, setValue, unregister } = form;
 
     useEffect(() => {
@@ -29,12 +32,12 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
             const property = properties[key];
             let value: any = property.value || "";
 
-            if (property.type === INPUT_VALID_TYPES.BOOLEAN) {
+            if (property.type === INPUT_TYPES.BOOLEAN) {
                 // cast to boolean from string
                 value = property.value === "true";
             }
 
-            if (property.type === INPUT_VALID_TYPES.INTEGER) {
+            if (property.type === INPUT_TYPES.INTEGER) {
                 value = +property.value;
             }
 
@@ -66,75 +69,93 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
             });
             triggerValidation(key);
         },
-        [fieldValues]
+        []
     );
 
-    return (
-        <form>
-            <FormGroup key="label" inline={false} label="Label" labelFor={"label"} labelInfo="(required)">
-                <InputMapper
-                    type={"string"}
-                    inputAttributes={{
-                        id: "label",
-                        name: "label",
-                        onChange: handleChange("label"),
-                        intent: errors.label ? Intent.DANGER : Intent.NONE,
-                    }}
-                />
-            </FormGroup>
-            <FormGroup key="description" inline={false} label="Description" labelFor={"description"}>
-                <InputMapper
-                    type={"textarea"}
-                    inputAttributes={{
-                        id: "description",
-                        name: "description",
-                        onChange: handleChange("description"),
-                        style: {
-                            width: "100%",
-                        },
-                    }}
-                />
-            </FormGroup>
+    const toggleFileUploader = (fieldName: string = "") => {
+        setSelectedFileField(fieldName);
+    };
 
-            {Object.keys(properties).map((key) => (
-                <FormGroup
-                    key={key}
-                    inline={false}
-                    label={properties[key].title}
-                    labelFor={key}
-                    labelInfo={
-                        <>
-                            <Tooltip content={properties[key].description}>
-                                <span>
-                                    <Icon name="item-info" small />
-                                </span>
-                            </Tooltip>
-                            {required.includes(key) ? "(required)" : ""}
-                        </>
-                    }
-                >
+    const isFileInput = (type: string) => type === INPUT_TYPES.RESOURCE;
+
+    return (
+        <>
+            <form>
+                <FormGroup key="label" inline={false} label="Label" labelFor={"label"} labelInfo="(required)">
                     <InputMapper
+                        type={"string"}
                         inputAttributes={{
-                            id: key,
-                            name: key,
-                            onChange: handleChange(key),
-                            value: fieldValues[key],
-                            intent: errors[key] ? Intent.DANGER : Intent.NONE,
-                        }}
-                        type={properties[key].parameterType}
-                        extraInfo={{
-                            autoCompletion: properties[key].autoCompletion,
-                            artefactId: pluginId,
-                            projectId,
-                            parameterId: key,
+                            id: "label",
+                            name: "label",
+                            onChange: handleChange("label"),
+                            intent: errors.label ? Intent.DANGER : Intent.NONE,
                         }}
                     />
-                    {errors[key] && <span style={{ color: "red" }}>{properties[key].title} not specified</span>}
                 </FormGroup>
-            ))}
-            <button type="button" onClick={() => console.log(getValues(), errors)}>
-                Console Form data
-            </button>
-        </form>
+                <FormGroup key="description" inline={false} label="Description" labelFor={"description"}>
+                    <InputMapper
+                        type={"textarea"}
+                        inputAttributes={{
+                            id: "description",
+                            name: "description",
+                            onChange: handleChange("description"),
+                            style: {
+                                width: "100%",
+                            },
+                        }}
+                    />
+                </FormGroup>
+
+                {Object.keys(properties).map((key) => (
+                    <FormGroup
+                        key={key}
+                        inline={false}
+                        label={properties[key].title}
+                        labelFor={key}
+                        labelInfo={
+                            <>
+                                <Tooltip content={properties[key].description}>
+                                    <span>
+                                        <Icon name="item-info" small />
+                                    </span>
+                                </Tooltip>
+                                {required.includes(key) ? "(required)" : ""}
+                            </>
+                        }
+                    >
+                        {isFileInput(properties[key].parameterType) ? (
+                            <Button onClick={() => toggleFileUploader(key)}>Upload new {properties[key].title}</Button>
+                        ) : (
+                            <InputMapper
+                                inputAttributes={{
+                                    id: key,
+                                    name: properties[key].title || key,
+                                    onChange: handleChange(key),
+                                    value: fieldValues[key],
+                                    intent: errors[key] ? Intent.DANGER : Intent.NONE,
+                                }}
+                                type={properties[key].parameterType}
+                                extraInfo={{
+                                    autoCompletion: properties[key].autoCompletion,
+                                    artefactId: pluginId,
+                                    projectId,
+                                    parameterId: key,
+                                }}
+                            />
+                        )}
+                        {errors[key] && <span style={{ color: "red" }}>{properties[key].title} not specified</span>}
+                    </FormGroup>
+                ))}
+                <button type="button" onClick={() => console.log(getValues(), errors)}>
+                    Console Form data
+                </button>
+            </form>
+
+            <FileUploadModal
+                isOpen={!!selectedFileField}
+                onDiscard={() => toggleFileUploader("")}
+                onUploaded={handleChange(selectedFileField)}
+            />
+        </>
     );
 }

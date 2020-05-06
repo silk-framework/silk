@@ -73,10 +73,10 @@ export function CreateArtefactModal() {
         dispatch(commonOp.selectArtefact(null));
     };
 
-    const handleCreate = (e) => {
+    const handleCreate = async (e) => {
         e.preventDefault();
 
-        const isValidFields = form.triggerValidation();
+        const isValidFields = await form.triggerValidation();
         if (isValidFields) {
             dispatch(commonOp.createArtefactAsync(form.getValues()));
             closeModal();
@@ -134,7 +134,12 @@ export function CreateArtefactModal() {
                           </CardActionsAux>,
                       ]
                     : [
-                          <Button key="add" affirmative={true} onClick={handleAdd} disabled={!selected}>
+                          <Button
+                              key="add"
+                              affirmative={true}
+                              onClick={handleAdd}
+                              disabled={!Object.keys(selected).length}
+                          >
                               Add
                           </Button>,
                           <Button key="cancel" onClick={closeModal}>
