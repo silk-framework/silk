@@ -9,6 +9,7 @@ import ApplicationToolbarAction from "./src/components/Application/ApplicationTo
 import ApplicationToolbarPanel from "./src/components/Application/ApplicationToolbarPanel";
 
 import HtmlContentBlock from "./src/components/Typography/HtmlContentBlock";
+import OverflowText from "./src/components/Typography/OverflowText";
 
 import Grid from "./src/components/Grid/Grid";
 import GridRow from "./src/components/Grid/GridRow";
@@ -112,6 +113,7 @@ export {
     ApplicationToolbarAction,
     ApplicationToolbarPanel,
     HtmlContentBlock,
+    OverflowText,
     Grid,
     GridRow,
     GridColumn,
