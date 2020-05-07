@@ -130,7 +130,9 @@ ul,
 ol {
     .ecc-typography__contentblock &,
     &.ecc-typography__text {
-        margin-bottom: $ecc-size-block-whitespace;
+        &:not(:last-child) {
+            margin-bottom: $ecc-size-block-whitespace;
+        }
     }
 }
 
@@ -138,7 +140,9 @@ li {
     .ecc-typography__contentblock &,
     &.ecc-typography__text {
         margin-left: $ecc-size-block-whitespace * 2;
-        margin-bottom: $ecc-size-block-whitespace / 2;
+        &:not(:last-child) {
+            margin-bottom: $ecc-size-block-whitespace / 2;
+        }
     }
 }
 
@@ -146,6 +150,10 @@ blockquote {
     .ecc-typography__contentblock &,
     &.ecc-typography__text {
         margin: $ecc-size-block-whitespace * 2;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
     }
 }
 
