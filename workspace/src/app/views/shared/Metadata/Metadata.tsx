@@ -179,9 +179,7 @@ export function Metadata({ projectId = null, taskId }) {
                     <Button text="Cancel" onClick={toggleEdit} />
                 </CardActions>
             </>
-        ) : (
-            <></>
-        );
+        ) : null;
 
     const widgetFull = (
         <Card>

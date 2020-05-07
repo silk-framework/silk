@@ -1,33 +1,28 @@
-import React from 'react';
+import React from "react";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import { Menu, MenuItem, TitleSubsection, } from "@wrappers/index";
+import { Menu, MenuItem, TitleSubsection } from "@wrappers/index";
 
 function ArtefactTypesList({ onSelect }) {
-    const {selectedDType} = useSelector(commonSel.artefactModalSelector);
+    const { selectedDType } = useSelector(commonSel.artefactModalSelector);
     const typeModifier = useSelector(commonSel.availableDTypesSelector).type;
 
-    return <>
-        <TitleSubsection>Artefact Type</TitleSubsection>
-        <Menu>
-            <MenuItem
-                text={'All'}
-                key='all'
-                onClick={() => onSelect('all')}
-                active={selectedDType === 'all' ? true : false}
-            />
-            {
-                typeModifier.options.map(type =>
+    return (
+        <>
+            <TitleSubsection>Artefact Type</TitleSubsection>
+            <Menu>
+                <MenuItem text={"All"} key="all" onClick={() => onSelect("all")} active={selectedDType === "all"} />
+                {typeModifier.options.map((type) => (
                     <MenuItem
                         text={type.label}
                         key={type.id}
                         onClick={() => onSelect(type.id)}
-                        active={selectedDType === type.id ? true : false}
+                        active={selectedDType === type.id}
                     />
-                )
-            }
-        </Menu>
-    </>
+                ))}
+            </Menu>
+        </>
+    );
 }
 
 export default ArtefactTypesList;
