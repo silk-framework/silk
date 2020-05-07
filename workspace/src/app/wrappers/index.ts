@@ -48,6 +48,8 @@ import TagList from "./src/components/Tag/TagList";
 
 import Notification from "./src/components/Notification/Notification";
 import Toast from "./src/components/Notification/Toast";
+import { Select } from "@blueprintjs/select";
+import { Suggest } from "@blueprintjs/select";
 
 import {
     OverviewItem,
@@ -170,4 +172,6 @@ export {
     Link,
     Toast,
     HelperClasses,
+    Select,
+    Suggest,
 };

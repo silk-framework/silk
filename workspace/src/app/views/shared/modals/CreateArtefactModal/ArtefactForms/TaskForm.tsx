@@ -5,6 +5,9 @@ import { INPUT_TYPES } from "../../../../../constants";
 import { InputMapper } from "./InputMapper";
 import { Button, FieldItem } from "@wrappers/index";
 import { FileUploadModal } from "../../FileUploadModal/FileUploadModal";
+import { Autocomplete } from "../../../Autocomplete/Autocomplete";
+import { sharedOp } from "@ducks/shared";
+import { AppToaster } from "../../../../../services/toaster";
 
 export interface IProps {
     form: any;
@@ -75,7 +78,30 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
         setSelectedFileField(fieldName);
     };
 
+    const handleAutoCompleteInput = (key: string) => async (input = "") => {
+        try {
+            const { autoCompletion } = properties[key];
+
+            const list = await sharedOp.getAutocompleteResultsAsync({
+                pluginId,
+                parameterId: key,
+                projectId,
+                dependsOnParameterValues: autoCompletion.autoCompletionDependsOnParameters,
+                textQuery: input,
+            });
+
+            return list;
+        } catch (e) {
+            AppToaster.show({
+                message: e.detail,
+                intent: Intent.DANGER,
+                timeout: 0,
+            });
+        }
+    };
+
     const isFileInput = (type: string) => type === INPUT_TYPES.RESOURCE;
+    const isAutocomplete = (property) => !!property.autoCompletion;
 
     const MAXLENGTH_TOOLTIP = 40;
 
@@ -139,6 +165,13 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                     >
                         {isFileInput(properties[key].parameterType) ? (
                             <Button onClick={() => toggleFileUploader(key)}>Upload new {properties[key].title}</Button>
+                        ) : isAutocomplete(properties[key]) ? (
+                            <Autocomplete
+                                autoCompletion={properties[key].autoCompletion}
+                                onInputChange={handleAutoCompleteInput(key)}
+                                onChange={handleChange(key)}
+                                value={fieldValues[key]}
+                            />
                         ) : (
                             <InputMapper
                                 inputAttributes={{
@@ -149,12 +182,6 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                                     intent: errors[key] ? Intent.DANGER : Intent.NONE,
                                 }}
                                 type={properties[key].parameterType}
-                                extraInfo={{
-                                    autoCompletion: properties[key].autoCompletion,
-                                    artefactId: pluginId,
-                                    projectId,
-                                    parameterId: key,
-                                }}
                             />
                         )}
                     </FieldItem>
