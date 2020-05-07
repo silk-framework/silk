@@ -7,8 +7,9 @@ import { useParams } from "react-router";
 import Metadata from "../../shared/Metadata";
 import { datasetSel } from "@ducks/dataset";
 
-import { Section, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@wrappers/index";
+import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@wrappers/index";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
+import { DataPreview } from "../../shared/DataPreview/DataPreview";
 
 export function Dataset() {
     const error = useSelector(datasetSel.errorSelector);
@@ -29,6 +30,8 @@ export function Dataset() {
             <WorkspaceMain>
                 <Section>
                     <Metadata projectId={projectId} taskId={taskId} />
+                    <Spacing />
+                    <DataPreview title={"Dataset Preview"} preview={{ project: projectId, dataset: taskId }} />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>

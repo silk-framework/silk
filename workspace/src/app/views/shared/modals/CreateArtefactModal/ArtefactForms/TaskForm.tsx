@@ -135,7 +135,7 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                                 : ""
                         }
                         messageText={errors[key] ? properties[key].title + " not specified" : ""}
-                        hasStateDanger={errors[key] ? true : false}
+                        hasStateDanger={errors[key]}
                     >
                         {isFileInput(properties[key].parameterType) ? (
                             <Button onClick={() => toggleFileUploader(key)}>Upload new {properties[key].title}</Button>
