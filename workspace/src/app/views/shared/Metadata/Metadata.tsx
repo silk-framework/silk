@@ -89,7 +89,10 @@ export function Metadata({ projectId = null, taskId }) {
             } else {
                 newLabels.projectLabel = metaData.label;
             }
-            dispatch(routerOp.replacePage(forPath, newLabels)); // TODO: Since this is executed async this may replace the wrong page history state. How to prevent this?
+            if (window.location.pathname.endsWith(forPath)) {
+                // Only replace page if still on the same page
+                dispatch(routerOp.replacePage(forPath, newLabels));
+            }
         };
 
         const result = await letLoading(() => {
