@@ -12,6 +12,7 @@ import {
     OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
+    OverflowText,
 } from "@wrappers/index";
 import { routerOp } from "@ducks/router";
 import { useDispatch } from "react-redux";
@@ -77,8 +78,8 @@ export default function SearchItem({ item, searchValue, onOpenDeleteModal, onOpe
                         </h4>
                     </OverviewItemLine>
                     {item.description && (
-                        <OverviewItemLine>
-                            <p>{item.description}</p>
+                        <OverviewItemLine small>
+                            <OverflowText useHtmlElement="p">{item.description}</OverflowText>
                         </OverviewItemLine>
                     )}
                 </OverviewItemDescription>
