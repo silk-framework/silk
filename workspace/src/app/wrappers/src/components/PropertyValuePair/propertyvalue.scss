@@ -27,13 +27,13 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    overflow: hidden;
     min-height: $ecc-size-textfield-height-regular;
 }
 
 .ecc-propertyvalue__property {
     float: left;
     width: 3/16 * 100%;
+    overflow: hidden;
 
     & > div {
         margin-right: $ecc-size-block-whitespace;
