@@ -72,11 +72,11 @@ export const getTaskMetadataAsync = async (itemId: string, projectId?: string): 
 export const updateTaskMetadataAsync = async (
     itemId: string,
     payload: IMetadataUpdatePayload,
-    parentId?: string
+    projectId?: string
 ): Promise<IMetadata> => {
     let url = workspaceApi(`/projects/${itemId}/metaData`);
-    if (parentId) {
-        url = legacyApiEndpoint(`/projects/${parentId}/tasks/${itemId}/metadata`);
+    if (projectId) {
+        url = legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}/metadata`);
     }
 
     try {

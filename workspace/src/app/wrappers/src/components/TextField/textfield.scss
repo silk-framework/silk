@@ -1,7 +1,8 @@
 // own vars
 $ecc-size-textfield-height-small: $ecc-size-block-whitespace * 2 !default;
 $ecc-size-textfield-height-regular: $ecc-size-textfield-height-small * $ecc-size-type-levelratio !default;
-$ecc-size-textfield-height-large: $ecc-size-textfield-height-regular * $ecc-size-type-levelratio * $ecc-size-type-levelratio !default;
+$ecc-size-textfield-height-large: $ecc-size-textfield-height-regular * $ecc-size-type-levelratio *
+    $ecc-size-type-levelratio !default;
 $ecc-size-textfield-padding-horizontal-regular: $ecc-size-inline-whitespace !default;
 $ecc-size-textfield-padding-horizontal-small: $ecc-size-inline-whitespace / 2 !default;
 $ecc-typo-textfield-fontweight: $ecc-font-weight-regular !default;
@@ -32,17 +33,21 @@ $input-button-height-small: $ecc-size-textfield-height-small / $ecc-size-type-le
 
 // enhancements
 
+.ecc-textarea {
+    width: 100%;
+}
+
 .ecc-textfield--justifyclearance {
-    input[type=search]::-ms-clear,
-    input[type=search]::-ms-reveal {
+    input[type="search"]::-ms-clear,
+    input[type="search"]::-ms-reveal {
         display: none;
         width: 0;
         height: 0;
     }
-    input[type=search]::-webkit-search-decoration,
-    input[type=search]::-webkit-search-cancel-button,
-    input[type=search]::-webkit-search-results-button,
-    input[type=search]::-webkit-search-results-decoration {
-        -webkit-appearance:none;
+    input[type="search"]::-webkit-search-decoration,
+    input[type="search"]::-webkit-search-cancel-button,
+    input[type="search"]::-webkit-search-results-button,
+    input[type="search"]::-webkit-search-results-decoration {
+        -webkit-appearance: none;
     }
 }

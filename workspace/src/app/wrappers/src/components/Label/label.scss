@@ -1,0 +1,46 @@
+$ecc-size-typo-label: $ecc-size-typo-caption !default;
+$ecc-size-typo-label-lineheight: $ecc-size-typo-caption-lineheight !default;
+$ecc-color-label-text: $ecc-color-workspace-text;
+$ecc-color-label-info: rgba($ecc-color-workspace-text, $ecc-opacity-muted);
+
+.ecc-label {
+    display: block;
+    font-size: $ecc-size-typo-label;
+    line-height: $ecc-size-typo-label-lineheight;
+    color: $ecc-color-label-text;
+    vertical-align: middle;
+}
+
+.ecc-label--disabled {
+    opacity: $ecc-opacity-disabled;
+}
+
+.ecc-label__text {
+}
+
+.ecc-label__info {
+    color: $ecc-color-label-info;
+    &:before {
+        content: "(";
+    }
+    &:after {
+        content: ")";
+    }
+
+    .ecc-label__text + & {
+        margin-left: $ecc-size-inline-whitespace / 2;
+    }
+}
+
+.ecc-label__tooltip {
+    .ecc-label__text + &,
+    .ecc-label__info + & {
+        margin-left: $ecc-size-inline-whitespace / 2;
+    }
+    color: $ecc-color-label-info;
+}
+
+.ecc-label__other {
+    display: inline-block;
+    margin-left: $ecc-size-inline-whitespace;
+}

@@ -22,12 +22,17 @@ import WorkspaceHeader from "./src/components/Workspace/WorkspaceHeader";
 import Icon from "./src/components/Icon/Icon";
 import IconButton from "./src/components/Icon/IconButton";
 
+import Label from "./src/components/Label/Label";
 import Button from "./src/components/Button/Button";
 import Checkbox from "./src/components/Checkbox/Checkbox";
 import RadioButton from "./src/components/RadioButton/RadioButton";
 import TextField from "./src/components/TextField/TextField";
 import TextArea from "./src/components/TextField/TextArea";
 import SearchField from "./src/components/TextField/SearchField";
+import Switch from "./src/components/Switch/Switch";
+import NumericInput from "./src/components/NumericInput/NumericInput";
+import FieldItem from "./src/components/Form/FieldItem";
+import FieldItemRow from "./src/components/Form/FieldItemRow";
 
 import Menu from "./src/components/Menu/Menu";
 import MenuItem from "./src/components/Menu/MenuItem";
@@ -35,9 +40,6 @@ import MenuDivider from "./src/components/Menu/MenuDivider";
 
 import ContextOverlay from "./src/components/ContextOverlay/ContextOverlay";
 import ContextMenu from "./src/components/ContextOverlay/ContextMenu";
-
-import Switch from "./src/components/Switch/Switch";
-import NumericInput from "./src/components/NumericInput/NumericInput";
 
 import Pagination from "./src/components/Pagination/Pagination";
 
@@ -128,12 +130,17 @@ export {
     OverviewItemList,
     Icon,
     IconButton,
+    Label,
     Button,
     Checkbox,
     RadioButton,
     TextField,
     TextArea,
     SearchField,
+    Switch, // TODO: scss styles
+    NumericInput, // TODO: scss styles
+    FieldItem,
+    FieldItemRow,
     BreadcrumbList,
     BreadcrumbItem,
     Modal,
@@ -149,8 +156,6 @@ export {
     Spacing,
     Divider,
     Tooltip,
-    Switch, // TODO: scss styles
-    NumericInput, // TODO: scss styles
     Section,
     SectionHeader,
     TitlePage,

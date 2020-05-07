@@ -30,12 +30,13 @@ $carbon--grid-gutter: carbon--rem($ecc-size-grid-gutter);
 
 .#{$prefix}--col {
     /*
-        This is a workaround to a strange behaviour of flex columns, it prevents
-        growing to much if it contains a very long element even if it itself is
-        prevented from overflowing. The workaround is to use a very small width,
-        we use here the width of 1 column when 16 columns are used.
+        We need to explicitely remove a minimum width from flex layout columns,
+        otherwise they try to grow (if allowed) until every text can be shown
+        without overflowing, even if text is styled to be hidden overflowed.
+
+        @see https://css-tricks.com/flexbox-truncated-text/
     */
-    width: 1/16 * 100%;
+    min-width: 0;
 }
 
 .ecc-grid__column--vertical-center {

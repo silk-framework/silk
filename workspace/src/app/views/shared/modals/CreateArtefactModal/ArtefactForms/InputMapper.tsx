@@ -1,7 +1,7 @@
 import React from "react";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { INPUT_TYPES } from "../../../../../constants";
-import { NumericInput, Switch, TextField, TextArea, Button } from "@wrappers/index";
+import { NumericInput, Switch, TextField, TextArea } from "@wrappers/index";
 import { QueryEditor } from "../../../QueryEditor/QueryEditor";
 import { Autocomplete } from "../../../Autocomplete/Autocomplete";
 
