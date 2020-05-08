@@ -5,8 +5,6 @@ import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { Card, CardContent, CardHeader, CardTitle, Divider } from "@wrappers/index";
 import Loading from "../../../shared/Loading";
 import FileUploadModal from "../../../shared/modals/FileUploadModal";
-import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
-import { commonSel } from "@ducks/common";
 import { EmptyFileWidget } from "./EmptyFileWidget";
 
 const {

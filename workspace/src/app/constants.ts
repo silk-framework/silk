@@ -32,4 +32,5 @@ export const INPUT_TYPES = {
     ENUMERATION: "enumeration",
     PASSWORD: "password",
     RESOURCE: "resource",
+    OBJECT: "objectParameter",
 };

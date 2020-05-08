@@ -6,6 +6,7 @@
   "dependencies": {
     "@babel/core": "7.9.0",
     "@blueprintjs/core": "^3.24.0",
+    "@blueprintjs/select": "^3.12.3",
     "@carbon/icons": "^10.9.3",
     "@carbon/icons-react": "^10.8.2",
     "@reduxjs/toolkit": "^1.1.0",
