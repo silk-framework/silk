@@ -3,6 +3,7 @@ package controllers.workspace
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.SerializationUtils._
+import controllers.util.TextSearchUtils
 import javax.inject.Inject
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.DatasetSpec.{DataSourceWrapper, GenericDatasetSpec}
@@ -144,23 +145,32 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
   }
 
   /** Get types of a dataset including the search string */
-  def types(project: String, task: String, search: String = ""): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+  def types(project: String, task: String, search: String = "", limit: Option[Int] = None): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
     implicit val prefixes: Prefixes = context.project.config.prefixes
 
     val typesFull = context.task.activity[TypesCache].value().types
     val typesResolved = typesFull.map(t => new Uri(t).serialize)
     val filteredTypes = typesResolved.filter(_.contains(search))
+    val limitedTypes = limit.map(l => filteredTypes.take(l)).getOrElse(filteredTypes)
 
-    Ok(JsArray(filteredTypes.map(JsString)))
+    Ok(JsArray(limitedTypes.map(JsString)))
   }
 
   /** Get all types of the dataset */
-  def getDatasetTypes(project: String, task: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+  def getDatasetTypes(project: String,
+                      task: String,
+                      textQuery: String,
+                      limit: Option[Int]): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
-    val types = context.task.activity[TypesCache].value().types
+    implicit val prefixes: Prefixes = context.project.config.prefixes
 
-    Ok(JsArray(types.map(JsString)))
+    val types = context.task.activity[TypesCache].value().types
+    val multiWordQuery = TextSearchUtils.extractSearchTerms(textQuery)
+    val filteredTypes = types.filter(typ => TextSearchUtils.matchesSearchTerm(multiWordQuery, typ))
+    val limitedTypes = limit.map(l => filteredTypes.take(l)).getOrElse(filteredTypes)
+
+    Ok(JsArray(limitedTypes.map(JsString)))
   }
 
   def getMappingValueCoverage(projectName: String,

@@ -34,14 +34,14 @@ GET           /dialogs/editDatasetAutoConfigured/:project/:task/:pluginId       
 GET           /datasets/:project/:task/dataset                                  controllers.workspace.DatasetApi.dataset(project, task)
 GET           /datasets/:project/:task/table                                    controllers.workspace.DatasetApi.table(project, task, maxEntities: Int ?= 20)
 GET           /datasets/:project/:task/sparql                                   controllers.workspace.DatasetApi.sparql(project, task, query ?= "")
-GET           /datasets/:project/:task/types                                    controllers.workspace.DatasetApi.types(project, task, search)
+GET           /datasets/:project/:task/types                                    controllers.workspace.DatasetApi.types(project, task, search, limit: Option[Int] ?= None)
 
 # API
 PUT           /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.putDataset(project: String, name: String, autoConfigure: Boolean ?= false)
 GET           /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.getDataset(project: String, name: String)
 DELETE        /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.deleteDataset(project: String, name: String)
 GET           /projects/:project/datasets/:name/autoConfigured                  controllers.workspace.DatasetApi.getDatasetAutoConfigured(project: String, name: String)
-GET           /projects/:project/datasets/:name/types                           controllers.workspace.DatasetApi.getDatasetTypes(project: String, name: String)
+GET           /projects/:project/datasets/:name/types                           controllers.workspace.DatasetApi.getDatasetTypes(project: String, name: String, textQuery: String ?= "", limit: Option[Int] ?= None)
 GET           /projects/:project/datasets/:name/mappingCoverage                 controllers.workspace.DatasetApi.getMappingCoverage(project: String, name: String)
 POST          /projects/:project/datasets/:name/mappingCoverage/values          controllers.workspace.DatasetApi.getMappingValueCoverage(project: String, name: String)
 
