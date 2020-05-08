@@ -16,9 +16,10 @@ package org.silkframework.learning.active
 
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.paths.{Path, TypedPath}
 import org.silkframework.learning.{LearningConfiguration, LearningException}
 import org.silkframework.learning.active.linkselector.WeightedLinkageRule
+import org.silkframework.learning.active.poolgenerator.LinkSpecLinkPoolGenerator
 import org.silkframework.learning.cleaning.CleanPopulationTask
 import org.silkframework.learning.generation.{GeneratePopulation, LinkageRuleGenerator}
 import org.silkframework.learning.reproduction.{Randomize, Reproduction}
@@ -119,18 +120,11 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     val poolPaths = context.value().pool.entityDescs.map(_.typedPaths)
     if(context.value().pool.isEmpty || poolPaths != paths) {
       context.status.updateMessage("Loading pool")
-      val pathPairs =
-        if(paths.source.toSet.diff(paths.target.toSet).size <= paths.source.size.toDouble * 0.1) {
-          // If boths sources share most path, assume that the schemata are equal and generate direct pairs
-          for((source, target) <- paths.source zip paths.target) yield DPair(source, target)
-        } else {
-          // If both source have different paths, generate the complete cartesian product
-          for (sourcePath <- paths.source; targetPath <- paths.target) yield DPair(sourcePath, targetPath)
-        }
+      val pathPairs = generatePathPairs(paths)
       val generator = config.active.linkPoolGenerator.generator(datasets, linkSpec, pathPairs, random.nextLong())
       pool = context.child(generator, 0.5).startBlockingAndGetValue()
 
-      if(pool.links.isEmpty) {
+      if (pool.links.isEmpty) {
         throw new LearningException("Could not find any link candidates. Learning is not possible on this dataset(s).")
       }
     }
@@ -141,6 +135,16 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     // Update pool
     context.value() = context.value().copy(pool = pool)
     pool
+  }
+
+  private def generatePathPairs(paths: DPair[Seq[TypedPath]]): Seq[DPair[TypedPath]] = {
+    if(paths.source.toSet.diff(paths.target.toSet).size <= paths.source.size.toDouble * 0.1) {
+      // If boths sources share most path, assume that the schemata are equal and generate direct pairs
+      for((source, target) <- paths.source zip paths.target) yield DPair(source, target)
+    } else {
+      // If both source have different paths, generate the complete cartesian product
+      for (sourcePath <- paths.source; targetPath <- paths.target) yield DPair(sourcePath, targetPath)
+    }
   }
 
   private def linkageRuleGenerator(context: ActivityContext[ActiveLearningState],

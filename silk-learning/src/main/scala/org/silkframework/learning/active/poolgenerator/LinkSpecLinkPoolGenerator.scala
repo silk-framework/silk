@@ -12,11 +12,8 @@ import org.silkframework.util.DPair
 /**
   * Link Pool Generator that generates link candidates based on an existing linkage rule.
   */
-class LinkSpecLinkPoolGenerator extends LinkPoolGenerator {
-
-  private val maxLinks = 1000
-
-  private val timeout = 60
+class LinkSpecLinkPoolGenerator(maxLinks: Int = LinkSpecLinkPoolGenerator.defaultMaxLinks,
+                                timeout: Int = LinkSpecLinkPoolGenerator.defaultTimeout) extends LinkPoolGenerator {
 
   override def generator(inputs: DPair[DataSource], linkSpec: LinkSpec, paths: Seq[DPair[TypedPath]], randomSeed: Long): Activity[UnlabeledLinkPool] = {
     new LinkPoolGeneratorActivity(inputs, linkSpec, paths)
@@ -39,4 +36,12 @@ class LinkSpecLinkPoolGenerator extends LinkPoolGenerator {
       context.value() = UnlabeledLinkPool(linkSpec.entityDescriptions, shuffleLinks(links))
     }
   }
+}
+
+object LinkSpecLinkPoolGenerator {
+
+  val defaultMaxLinks = 1000
+
+  val defaultTimeout = 60
+
 }
