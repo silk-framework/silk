@@ -12,7 +12,7 @@ interface IProps {
  * @param textQuery The multi-word text query that related items should be filtered by.
  * @param onSearch  The callback to execute if the text query has changed.
  */
-export function RelatedItemsSearch({ textQuery = "", onSearch }: IProps) {
+export function SimpleSearchBar({ textQuery = "", onSearch }: IProps) {
     const [searchInput, setSearchInput] = useState(textQuery);
 
     useEffect(() => {

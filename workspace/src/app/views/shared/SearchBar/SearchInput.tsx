@@ -7,9 +7,18 @@ interface IProps {
     onEnter();
     filterValue?: string;
     onClearanceHandler?();
+    // The message that is shown when the search input is empty
+    emptySearchInputMessage?: string;
 }
 
-const SearchInput = ({ onFilterChange, filterValue, onEnter, onBlur = () => {}, onClearanceHandler = () => {} }) => {
+const SearchInput = ({
+    onFilterChange,
+    filterValue,
+    onEnter,
+    onBlur = () => {},
+    onClearanceHandler = () => {},
+    emptySearchInputMessage = "Enter search term",
+}) => {
     const handleKeyDown = (e) => {
         if (e.key === "Enter") {
             onEnter();
@@ -23,6 +32,7 @@ const SearchInput = ({ onFilterChange, filterValue, onEnter, onBlur = () => {}, 
             onKeyDown={handleKeyDown}
             value={filterValue}
             onClearanceHandler={onClearanceHandler}
+            emptySearchInputMessage={emptySearchInputMessage}
         />
     );
 };

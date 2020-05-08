@@ -30,6 +30,7 @@ export default function withBreadcrumbLabels(WrappedComponent) {
                 .filter(Boolean);
 
             if (match) {
+                setBreadcrumbs([]); // Remove breadcrumbs on navigation before reloading, else they will lag behind
                 updateBreadCrumbs(match);
             }
         }, [location.pathname, location.state]);

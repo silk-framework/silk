@@ -17,7 +17,7 @@ const apiPath = (path: string) => {
  * @param query
  */
 export const workspaceApi = (query: string) => {
-    return apiPath("/workspace") + query;
+    return apiPath("/workspace") + prependSlash(query);
 };
 
 export const projectApi = (relativePath: string) => {
@@ -29,7 +29,7 @@ export const projectApi = (relativePath: string) => {
  * @param query
  */
 export const coreApi = (query: string) => {
-    return apiPath("/core") + query;
+    return apiPath("/core") + prependSlash(query);
 };
 
 export const resourcesLegacyApi = (relativePath: string) => {
@@ -54,5 +54,5 @@ const prependSlash = (relativePath: string): string => {
  * @param query
  */
 export const legacyApiEndpoint = (query: string) => {
-    return rootPath("/workspace") + query;
+    return rootPath("/workspace") + prependSlash(query);
 };

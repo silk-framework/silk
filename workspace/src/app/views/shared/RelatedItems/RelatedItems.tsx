@@ -18,7 +18,7 @@ import { IItemLink, IRelatedItem, IRelatedItems } from "@ducks/shared/thunks/rel
 import { sharedOp } from "@ducks/shared";
 import { routerOp } from "@ducks/router";
 import DataList from "../Datalist";
-import { RelatedItemsSearch } from "./RelatedItemsSearch";
+import { SimpleSearchBar } from "./SimpleSearchBar";
 import Tag from "@wrappers/src/components/Tag/Tag";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import Spacing from "@wrappers/src/components/Separation/Spacing";
@@ -96,7 +96,7 @@ export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
             </CardHeader>
             <Divider />
             <CardContent>
-                {data.total > 0 || textQuery !== "" ? <RelatedItemsSearch onSearch={searchFired} /> : false}
+                {data.total > 0 || textQuery !== "" ? <SimpleSearchBar onSearch={searchFired} /> : false}
                 <Spacing size="small" />
                 <DataList
                     isEmpty={data.items.length === 0}

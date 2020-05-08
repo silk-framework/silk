@@ -1,4 +1,4 @@
-import React, { useDebugValue, useEffect, useState } from "react";
+import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { commonOp, commonSel } from "@ducks/common";
 import {
@@ -82,7 +82,12 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                         )}
                     </OverviewItemDescription>
                     <OverviewItemActions>
-                        <IconButton name="item-remove" text="Remove" disruptive />
+                        <IconButton
+                            name="item-remove"
+                            text="Remove"
+                            disruptive
+                            onClick={() => alert("Not implemented")}
+                        />
                         <ContextMenu>
                             <MenuItem text={"This"} disabled />
                             <MenuItem text={"Is just a"} disabled />
