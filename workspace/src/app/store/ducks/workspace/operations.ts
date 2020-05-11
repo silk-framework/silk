@@ -1,11 +1,8 @@
 import { batch } from "react-redux";
 
-import fetch from "../../../services/fetch";
-
 import selectors from "./selectors";
 import { filtersSlice } from "./filtersSlice";
 import { previewSlice } from "./previewSlice";
-import { legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
 import { routerOp } from "@ducks/router";
 import { IFacetState } from "@ducks/workspace/typings";
 import { workspaceSel } from "@ducks/workspace";
@@ -19,6 +16,15 @@ import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
 import { checkIfResourceExistsAsync, fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
 import { commonSel } from "@ducks/common";
+import {
+    ISearchListRequest,
+    requestCloneTask,
+    requestCreateProject,
+    requestCreateTask,
+    requestRemoveProject,
+    requestRemoveTask,
+    requestSearchList,
+} from "@ducks/workspace/requests";
 
 const {
     updateResultTotal,
@@ -170,7 +176,7 @@ const fetchListAsync = () => {
         const sorters = selectors.sortersSelector(state);
         const projectId = commonSel.currentProjectIdSelector(state);
 
-        const body: any = {
+        const body: ISearchListRequest = {
             limit,
             offset,
         };
@@ -195,13 +201,7 @@ const fetchListAsync = () => {
         body.facets = appliedFacets.map((facet) => facet);
 
         try {
-            const res = await fetch({
-                url: workspaceApi("/searchItems"),
-                method: "post",
-                body,
-            });
-
-            const { total, facets, results, sortByProperties } = res.data;
+            const { total, facets, results, sortByProperties } = await requestSearchList(body);
             batch(() => {
                 // Apply results
                 dispatch(fetchListSuccess(results));
@@ -216,13 +216,13 @@ const fetchListAsync = () => {
         } catch (e) {
             batch(() => {
                 dispatch(setLoading(false));
-                dispatch(setError(e.response.data));
+                dispatch(setError(e));
             });
         }
     };
 };
 
-const fetchRemoveTaskAsync = (itemId: string, parentId?: string) => {
+const fetchRemoveTaskAsync = (itemId: string, projectId?: string) => {
     return async (dispatch) => {
         batch(() => {
             dispatch(setLoading(true));
@@ -230,21 +230,19 @@ const fetchRemoveTaskAsync = (itemId: string, parentId?: string) => {
         });
 
         try {
-            let url = legacyApiEndpoint(`/projects/${itemId}`);
-            if (parentId) {
-                url = legacyApiEndpoint(`/projects/${parentId}/tasks/${itemId}?removeDependentTasks=true`);
+            if (projectId) {
+                await requestRemoveTask(itemId, projectId);
+            } else {
+                await requestRemoveProject(itemId);
             }
-            await fetch({
-                url,
-                method: "DELETE",
-            });
+
             batch(() => {
                 dispatch(fetchListAsync());
                 dispatch(setLoading(false));
             });
         } catch (e) {
             batch(() => {
-                dispatch(setError(e.response.data));
+                dispatch(setError(e));
                 dispatch(setLoading(false));
             });
         }
@@ -259,17 +257,14 @@ const fetchCloneTaskAsync = (taskId: string, projectId: string, taskNewId: strin
         });
 
         try {
-            await fetch({
-                url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/clone?newTask=${taskNewId}`),
-                method: "POST",
-            });
+            await requestCloneTask(taskId, projectId, taskNewId);
             batch(() => {
                 dispatch(fetchListAsync());
                 dispatch(setLoading(false));
             });
         } catch (e) {
             batch(() => {
-                dispatch(setError(e.response.data));
+                dispatch(setError(e));
                 dispatch(setLoading(false));
             });
         }
@@ -300,14 +295,15 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string) => {
         dispatch(setError({}));
 
         try {
-            const { data } = await fetch({
-                url: legacyApiEndpoint(`/projects/${currentProjectId}/tasks`),
-                method: "POST",
-                body: payload,
-            });
-            dispatch(routerOp.goToPage(`/projects/${currentProjectId}/dataset/${data.id}`, { taskLabel: label }));
+            const data = await requestCreateTask(payload, currentProjectId);
+
+            dispatch(
+                routerOp.goToPage(`/projects/${currentProjectId}/dataset/${data.id}`, {
+                    taskLabel: label,
+                })
+            );
         } catch (e) {
-            dispatch(setError(e.response.data));
+            dispatch(setError(e));
         }
     };
 };
@@ -317,14 +313,10 @@ const fetchCreateProjectAsync = (formData: { label: string; description?: string
         dispatch(setError({}));
         const { label, description } = formData;
         try {
-            const { data } = await fetch({
-                url: workspaceApi(`/projects`),
-                method: "POST",
-                body: {
-                    metaData: {
-                        label,
-                        description,
-                    },
+            const data = await requestCreateProject({
+                metaData: {
+                    label,
+                    description,
                 },
             });
             dispatch(routerOp.goToPage(`/projects/${data.name}`, { projectLabel: label }));

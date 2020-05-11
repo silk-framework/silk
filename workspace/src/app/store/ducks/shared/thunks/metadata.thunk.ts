@@ -1,49 +1,10 @@
-import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../../utils/getApiEndpoint";
-import fetch from "../../../../services/fetch";
-import { AxiosResponse } from "axios";
-
-interface IRelations {
-    inputTasks: [];
-    outputTasks: [];
-    referencedTasks: [];
-    dependentTasksDirect: [];
-    dependentTasksAll: [];
-}
-
-interface IProjectMetadataResponse {
-    name: string;
-    description?: string;
-    metaData: {
-        create: string;
-        description: string;
-        modified: string;
-        label: string;
-    };
-    tasks: any;
-}
-
-interface ITaskMetadataResponse {
-    taskType: string;
-    schemata: any;
-    type?: string;
-    modified: string;
-    project: string;
-    label: string;
-    id: string;
-    relations: IRelations;
-}
-
-export interface IMetadata {
-    label: string;
-    description: string;
-    relations: IRelations;
-    type?: string;
-}
-
-export interface IMetadataUpdatePayload {
-    label: string;
-    description?: string;
-}
+import {
+    requestProjectMetadata,
+    requestTaskMetadata,
+    requestUpdateProjectMetadata,
+    requestUpdateTaskMetadata,
+} from "@ducks/shared/requests";
+import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
 
 /**
  * Returns the meta data of a specific item.
@@ -51,18 +12,16 @@ export interface IMetadataUpdatePayload {
  * @param projectId For project items, this parameter must be specified, else the item ID is treated as the project ID.
  */
 export const getTaskMetadataAsync = async (itemId: string, projectId?: string): Promise<IMetadata> => {
-    let url = projectApi(`/${itemId}/metaData`);
-    if (projectId) {
-        url = legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}/metadata`);
-    }
-
     try {
-        const { data }: AxiosResponse<IProjectMetadataResponse & ITaskMetadataResponse> = await fetch({ url });
+        const data = projectId ? await requestTaskMetadata(itemId, projectId) : await requestProjectMetadata(itemId);
+
+        const { label, name, metaData, id, relations, description, type }: any = data;
+
         return {
-            label: data.label || (data.metaData ? data.metaData.label : data.name) || data.id,
-            description: data.description || (data.metaData ? data.metaData.description : ""),
-            relations: data.relations,
-            type: data.type || "project",
+            label: label || (metaData ? metaData.label : name) || id,
+            description: description || (metaData ? metaData.description : ""),
+            relations: relations,
+            type: type || "project",
         };
     } catch (e) {
         return e;
@@ -74,22 +33,18 @@ export const updateTaskMetadataAsync = async (
     payload: IMetadataUpdatePayload,
     projectId?: string
 ): Promise<IMetadata> => {
-    let url = workspaceApi(`/projects/${itemId}/metaData`);
-    if (projectId) {
-        url = legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}/metadata`);
-    }
-
     try {
-        const { data }: AxiosResponse<IProjectMetadataResponse & ITaskMetadataResponse> = await fetch({
-            url,
-            method: "PUT",
-            body: payload,
-        });
+        const data = projectId
+            ? await requestUpdateTaskMetadata(itemId, payload, projectId)
+            : await requestUpdateProjectMetadata(itemId, payload);
+
+        const { label, name, metaData, id, relations, description, type }: any = data;
+
         return {
-            label: data.label || (data.metaData ? data.metaData.label : data.name) || data.id,
-            description: data.description || (data.metaData ? data.metaData.description : ""),
-            relations: data.relations,
-            type: data.type || "project",
+            label: label || (metaData ? metaData.label : name) || id,
+            description: description || (metaData ? metaData.description : ""),
+            relations: relations,
+            type: type || "project",
         };
     } catch (e) {
         return e;

@@ -1,20 +1,15 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { initialPreviewState } from "./initialState";
-import { generateNetworkError, isNetworkError } from "../../../services/errorLogger";
 
 export const previewSlice = createSlice({
-    name: 'preview',
+    name: "preview",
     initialState: initialPreviewState(),
     reducers: {
         setLoading(state, action) {
             state.isLoading = action.payload;
         },
         setError(state, action) {
-            let error = action.payload;
-            if (isNetworkError(error)) {
-                error = generateNetworkError(error);
-            }
-            state.error = error;
+            state.error = action.payload;
         },
         fetchList(state) {
             state.searchResults.length = 0;
@@ -22,6 +17,5 @@ export const previewSlice = createSlice({
         fetchListSuccess(state, action) {
             state.searchResults = action.payload;
         },
-
-    }
+    },
 });

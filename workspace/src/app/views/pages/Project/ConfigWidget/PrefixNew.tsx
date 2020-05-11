@@ -21,7 +21,7 @@ const PrefixNew = ({ onAdd, onChangePrefix, prefix }) => {
                     />
                 </FieldItem>
                 <FieldItem
-                    key={"prefix-name"}
+                    key={"prefix-uri"}
                     labelAttributes={{
                         htmlFor: "prefix-uri",
                         text: "URI",

@@ -31,7 +31,7 @@ export const WarningWidget = () => {
 
     const handleOpenMarkDown = async (taskId) => {
         try {
-            const markdown: string = await workspaceOp.fetchWarningMarkdownAsync(projectId, taskId);
+            const markdown: string = await workspaceOp.fetchWarningMarkdownAsync(taskId, projectId);
             handleOpen();
             setCurrentMarkdown(markdown);
         } catch {

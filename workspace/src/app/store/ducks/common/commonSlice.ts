@@ -1,6 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { initialCommonState } from "./initialState";
-import { generateNetworkError, isNetworkError } from "../../../services/errorLogger";
 
 const rootReducers = {
     setInitialSettings(state, action) {
@@ -10,7 +9,7 @@ const rootReducers = {
         state.availableDataTypes = {};
     },
     updateAvailableDTypes(state, action) {
-        const {fieldName, modifier} = action.payload;
+        const { fieldName, modifier } = action.payload;
         state.availableDataTypes[fieldName] = modifier;
     },
     setProjectId(state, action) {
@@ -20,11 +19,7 @@ const rootReducers = {
         state.currentProjectId = null;
     },
     setError(state, action) {
-        let error = action.payload;
-        if (isNetworkError(error)) {
-            error = generateNetworkError(error);
-        }
-        state.error = error;
+        state.error = action.payload;
     },
     changeLanguage(state, action) {
         state.locale = action.payload.locale;
@@ -57,7 +52,7 @@ const artefactModalReducers = {
         state.artefactModal.isOpen = true;
     },
     setCachedArtefactProperty(state, action) {
-        const {key} = state.artefactModal.selectedArtefact;
+        const { key } = state.artefactModal.selectedArtefact;
         state.artefactModal.cachedArtefactProperties[key] = action.payload;
     },
     setArtefactLoading(state, action) {
@@ -66,10 +61,10 @@ const artefactModalReducers = {
 };
 
 export const commonSlice = createSlice({
-    name: 'common',
+    name: "common",
     initialState: initialCommonState(),
     reducers: {
         ...rootReducers,
         ...artefactModalReducers,
-    }
+    },
 });

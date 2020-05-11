@@ -1,46 +1,41 @@
-import { workspaceApi } from "../../../../utils/getApiEndpoint";
-import fetch from "../../../../services/fetch";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { commonSel } from "@ducks/common";
+import { requestWarningList, requestWarningMarkdown } from "@ducks/workspace/requests";
 
-const {setWarnings, setWidgetError, toggleWidgetLoading} = widgetsSlice.actions;
+const { setWarnings, setWidgetError, toggleWidgetLoading } = widgetsSlice.actions;
 
-const WIDGET_NAME = 'warnings';
+const WIDGET_NAME = "warnings";
 
-const toggleLoading = () => dispatch => dispatch(toggleWidgetLoading(WIDGET_NAME));
+const toggleLoading = () => (dispatch) => {
+    dispatch(toggleWidgetLoading(WIDGET_NAME));
+};
 
-const setError = e => dispatch => dispatch(setWidgetError({
-    widgetName: WIDGET_NAME,
-    error: e
-}));
+const setError = (e) => (dispatch) =>
+    dispatch(
+        setWidgetError({
+            widgetName: WIDGET_NAME,
+            error: e,
+        })
+    );
 
 export const fetchWarningListAsync = () => {
     return async (dispatch, getState) => {
         const projectId = commonSel.currentProjectIdSelector(getState());
-        const url = workspaceApi(`/projects/${projectId}/failedTasksReport`);
         dispatch(toggleLoading());
         try {
-            const {data} = await fetch({url});
-            dispatch(toggleLoading());
+            const data = await requestWarningList(projectId);
             dispatch(setWarnings(data));
         } catch (e) {
-            dispatch(toggleLoading());
             dispatch(setError(e));
+        } finally {
+            dispatch(toggleLoading());
         }
     };
 };
 
-export const fetchWarningMarkdownAsync = async (projectId: string, taskId: string) => {
-    const url = workspaceApi(`/projects/${projectId}/failedTasksReport/${taskId}`);
+export const fetchWarningMarkdownAsync = async (taskId: string, projectId: string) => {
     try {
-        const {data} = await fetch({
-            url,
-            headers: {
-                "Accept": "text/markdown",
-                'Content-Type': "text/markdown"
-            }
-        });
+        const data = await requestWarningMarkdown(taskId, projectId);
         return data;
-    } catch {
-    }
+    } catch {}
 };

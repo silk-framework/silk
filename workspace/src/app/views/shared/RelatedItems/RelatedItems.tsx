@@ -14,7 +14,6 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
 } from "@wrappers/index";
-import { IItemLink, IRelatedItem, IRelatedItems } from "@ducks/shared/thunks/relatedItems.thunk";
 import { sharedOp } from "@ducks/shared";
 import { routerOp } from "@ducks/router";
 import DataList from "../Datalist";
@@ -25,6 +24,7 @@ import Spacing from "@wrappers/src/components/Separation/Spacing";
 import { Highlighter } from "../Highlighter/Highlighter";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
 import Pagination from "@wrappers/src/components/Pagination/Pagination";
+import { IItemLink, IRelatedItem, IRelatedItemsResponse } from "@ducks/shared/typings";
 
 /** Project ID and task ID of the project task */
 interface IRelatedItemsParams {
@@ -39,7 +39,7 @@ interface IRelatedItemsParams {
  */
 export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
     const [loading, setLoading] = useState(true);
-    const [data, setData] = useState({ total: 0, items: [] } as IRelatedItems);
+    const [data, setData] = useState({ total: 0, items: [] } as IRelatedItemsResponse);
     const [textQuery, setTextQuery] = useState("");
     const [pagination, setPagination] = useState({ total: 0, current: 1, limit: 5 });
     const dispatch = useDispatch();
