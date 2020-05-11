@@ -1,9 +1,10 @@
-import React from 'react';
-import IconButton from '../Icon/IconButton';
-import TextField from './TextField';
+import React from "react";
+import IconButton from "../Icon/IconButton";
+import TextField from "./TextField";
 
 function SearchField({
-    className='',
+    className = "",
+    emptySearchInputMessage = "Enter search term",
     onClearanceHandler,
     onClearanceText,
     ...otherProps
@@ -11,28 +12,30 @@ function SearchField({
     return (
         <TextField
             className={
-                'ecc-textfield--searchinput' +
-                (onClearanceHandler ? ' ecc-textfield--justifyclearance' : '') +
-                (className ? ' ' + className : '')
+                "ecc-textfield--searchinput" +
+                (onClearanceHandler ? " ecc-textfield--justifyclearance" : "") +
+                (className ? " " + className : "")
             }
-            dir={'auto'}
-            placeholder={'Enter search term'}
-            aria-label={'Enter search term'}
+            dir={"auto"}
+            placeholder={emptySearchInputMessage}
+            aria-label={emptySearchInputMessage}
             rightElement={
-                (onClearanceHandler && otherProps.value) ? (
+                onClearanceHandler && otherProps.value ? (
                     <IconButton
                         name="operation-clear"
-                        text={onClearanceText ? onClearanceText : 'Clear current search term'}
+                        text={onClearanceText ? onClearanceText : "Clear current search term"}
                         onClick={onClearanceHandler}
                     />
-                ) : false
+                ) : (
+                    false
+                )
             }
             {...otherProps}
-            type={'search'}
-            leftIcon={'operation-search'}
+            type={"search"}
+            leftIcon={"operation-search"}
             round={true}
         />
     );
-};
+}
 
 export default SearchField;

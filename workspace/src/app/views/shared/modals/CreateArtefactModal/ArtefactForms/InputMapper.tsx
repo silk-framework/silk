@@ -1,9 +1,7 @@
 import React from "react";
-import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { INPUT_TYPES } from "../../../../../constants";
 import { NumericInput, Switch, TextField, TextArea } from "@wrappers/index";
 import { QueryEditor } from "../../../QueryEditor/QueryEditor";
-import { Autocomplete } from "../../../Autocomplete/Autocomplete";
 
 interface IProps {
     type: string;
@@ -15,22 +13,10 @@ interface IProps {
         onChange(e: any): void;
         style?: any;
     };
-
-    extraInfo?: {
-        autoCompletion?: IPropertyAutocomplete;
-        artefactId: string;
-        parameterId: string;
-        projectId: string | null;
-    };
 }
 
 export function InputMapper(props: IProps) {
-    const { type, inputAttributes, extraInfo } = props;
-
-    if (extraInfo && extraInfo.autoCompletion) {
-        // @ts-ignore
-        return <Autocomplete {...extraInfo} {...inputAttributes} />;
-    }
+    const { type, inputAttributes } = props;
 
     switch (type) {
         case INPUT_TYPES.BOOLEAN:

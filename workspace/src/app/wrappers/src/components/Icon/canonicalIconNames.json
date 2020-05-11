@@ -37,5 +37,7 @@
     "artefact-task": "Script",
 
     "preview-load": "Play",
-    "preview-reload": "Rotate"
+    "preview-reload": "Rotate",
+
+    "select-caret": "CaretSort"
 }

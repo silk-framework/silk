@@ -6,6 +6,7 @@ import {
     getDatasetPreviewAsync,
     getResourcePreviewAsync,
 } from "@ducks/shared/thunks/dataPreview.thunk";
+import { getDatasetTypesAsync } from "@ducks/shared/thunks/datasetTypes.thunk";
 
 export default {
     getTaskMetadataAsync,
@@ -15,4 +16,5 @@ export default {
     getDatasetConfigPreviewAsync,
     getResourcePreviewAsync,
     getDatasetPreviewAsync,
+    getDatasetTypesAsync,
 };

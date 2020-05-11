@@ -1,5 +1,5 @@
-import axios, { AxiosError, AxiosPromise, AxiosRequestConfig, Method } from 'axios';
-import { is } from 'ramda';
+import axios, { AxiosError, AxiosPromise, AxiosRequestConfig, Method } from "axios";
+import { is } from "ramda";
 import { getStore } from "../store/configureStore";
 import { commonOp } from "../store/ducks/common";
 import { logError } from "./errorLogger";
@@ -8,7 +8,8 @@ interface IFetchOptions {
     url: string;
     method?: Method;
     body?: any;
-    headers?: any
+    headers?: any;
+    params?: Record<string, any>;
 }
 
 /**
@@ -21,8 +22,8 @@ const _pendingRequests = [];
  * @private
  */
 const getDefaultHeaders = () => ({
-    "Accept": "application/json",
-    'Content-Type': "application/json"
+    Accept: "application/json",
+    "Content-Type": "application/json",
     // "Authorization": `Bearer ${globalOp.getTokenFromStore()}`
 });
 
@@ -32,19 +33,16 @@ const getDefaultHeaders = () => ({
  */
 const requestInterceptor = (config: AxiosRequestConfig) => {
     const cfg = {
-        ...config
+        ...config,
     };
-    if (
-        config.headers['Content-Type'] === "application/x-www-form-urlencoded" &&
-        is(Object, config.data)
-    ) {
+    if (config.headers["Content-Type"] === "application/x-www-form-urlencoded" && is(Object, config.data)) {
         const { data } = config;
 
         const serializedData = [];
         for (const key in data) {
-            serializedData.push(key + '=' + encodeURIComponent(data[key]));
+            serializedData.push(key + "=" + encodeURIComponent(data[key]));
         }
-        cfg.data = serializedData.join('&');
+        cfg.data = serializedData.join("&");
     }
 
     return cfg;
@@ -56,7 +54,7 @@ const requestInterceptor = (config: AxiosRequestConfig) => {
  */
 const responseInterceptorOnError = (error: AxiosError) => {
     if (axios.isCancel(error)) {
-        return Promise.reject({response: {data: error}})
+        return Promise.reject({ response: { data: error } });
     }
     if (401 === error.response.status) {
         getStore().dispatch(commonOp.logout());
@@ -72,26 +70,18 @@ const responseInterceptorOnError = (error: AxiosError) => {
 axios.interceptors.request.use(requestInterceptor);
 
 // Add a response interceptor
-axios.interceptors.response.use(
-    response => response,
-    responseInterceptorOnError
-);
+axios.interceptors.response.use((response) => response, responseInterceptorOnError);
 
 /**
  * @public
  * @param url
- * @param body
+ * @param body   The body of the request. In case of a GET request, these are the query parameters.
  * @param method
  * @param headers
+ * @param params the URL parameters to be sent with the request
  *
  */
-const fetch = ({
-    url,
-    body,
-    method = 'GET',
-    headers = {}
-}: IFetchOptions): AxiosPromise => {
-
+const fetch = ({ url, body, method = "GET", headers = {} }: IFetchOptions): AxiosPromise => {
     const curToken = axios.CancelToken.source();
     _pendingRequests.push(curToken);
 
@@ -99,15 +89,15 @@ const fetch = ({
         method,
         url,
         cancelToken: curToken.token,
-        data: body
+        data: body,
     };
 
     config.headers = {
         ...getDefaultHeaders(),
-        ...headers
+        ...headers,
     };
 
-    if (method === 'GET') {
+    if (method === "GET") {
         config.params = body;
     }
 
@@ -119,13 +109,10 @@ const fetch = ({
  */
 const abortPendingRequest = (): boolean => {
     if (_pendingRequests.length) {
-        _pendingRequests.map(req => req.cancel('HTTP Request aborted'));
+        _pendingRequests.map((req) => req.cancel("HTTP Request aborted"));
         return true;
     }
     return false;
 };
 
-export {
-    fetch as default,
-    abortPendingRequest
-}
+export { fetch as default, abortPendingRequest };
