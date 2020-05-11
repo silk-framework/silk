@@ -11,7 +11,13 @@ import {
     CardTitle,
     Divider,
     FieldItem,
+    HtmlContentBlock,
     IconButton,
+    PropertyValueList,
+    PropertyValuePair,
+    PropertyName,
+    PropertyValue,
+    Label,
     TextArea,
     TextField,
 } from "@wrappers/index";
@@ -128,47 +134,69 @@ export function Metadata({ projectId = null, taskId }) {
         <CardContent>
             {loading && <Loading />}
             {!loading && isEditing && (
-                <>
-                    <FieldItem
-                        key="label"
-                        labelAttributes={{
-                            text: "Label",
-                            htmlFor: "label",
-                            info: "required",
-                        }}
-                        messageText={errors.form.label ? "Label is required" : ""}
-                        hasStateDanger={errors.form.label ? true : false}
-                    >
-                        <Controller
-                            as={TextField}
-                            name="label"
-                            control={control}
-                            defaultValue={label}
-                            intent={errors.form.label ? Intent.DANGER : Intent.NONE}
-                        />
-                    </FieldItem>
-                    <FieldItem
-                        key="description"
-                        labelAttributes={{
-                            text: "Description",
-                            htmlFor: "description",
-                        }}
-                    >
-                        <Controller
-                            as={TextArea}
-                            name="description"
-                            control={control}
-                            defaultValue={description}
-                            fullWidth={true}
-                        />
-                    </FieldItem>
-                </>
+                <PropertyValueList>
+                    {!!label && (
+                        <PropertyValuePair key="label">
+                            <PropertyName>
+                                <Label text="Label" info="required" htmlFor="label" />
+                            </PropertyName>
+                            <PropertyValue>
+                                <FieldItem
+                                    messageText={errors.form.label ? "Label is required" : ""}
+                                    hasStateDanger={errors.form.label ? true : false}
+                                >
+                                    <Controller
+                                        as={TextField}
+                                        name="label"
+                                        id="label"
+                                        control={control}
+                                        defaultValue={label}
+                                        intent={errors.form.label ? Intent.DANGER : Intent.NONE}
+                                    />
+                                </FieldItem>
+                            </PropertyValue>
+                        </PropertyValuePair>
+                    )}
+                    {!!description && (
+                        <PropertyValuePair hasSpacing key="description">
+                            <PropertyName>
+                                <Label text="Description" htmlFor="description" />
+                            </PropertyName>
+                            <PropertyValue>
+                                <FieldItem>
+                                    <Controller
+                                        as={TextArea}
+                                        name="description"
+                                        id="description"
+                                        control={control}
+                                        defaultValue={description}
+                                        fullWidth={true}
+                                    />
+                                </FieldItem>
+                            </PropertyValue>
+                        </PropertyValuePair>
+                    )}
+                </PropertyValueList>
             )}
             {!loading && !isEditing && (
-                <>
-                    {!!label && <p>Label: {label}</p>}
-                    {!!description && <p>Description: {description}</p>}
-                </>
+                <PropertyValueList>
+                    {!!label && (
+                        <PropertyValuePair hasDivider>
+                            <PropertyName>Label</PropertyName>
+                            <PropertyValue>{label}</PropertyValue>
+                        </PropertyValuePair>
+                    )}
+                    {!!description && (
+                        <PropertyValuePair hasSpacing hasDivider>
+                            <PropertyName>Description</PropertyName>
+                            <PropertyValue>
+                                <HtmlContentBlock>
+                                    <p>{description}</p>
+                                </HtmlContentBlock>
+                            </PropertyValue>
+                        </PropertyValuePair>
+                    )}
+                </PropertyValueList>
             )}
         </CardContent>
     );

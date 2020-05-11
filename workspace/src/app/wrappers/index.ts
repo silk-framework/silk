@@ -9,6 +9,7 @@ import ApplicationToolbarAction from "./src/components/Application/ApplicationTo
 import ApplicationToolbarPanel from "./src/components/Application/ApplicationToolbarPanel";
 
 import HtmlContentBlock from "./src/components/Typography/HtmlContentBlock";
+import OverflowText from "./src/components/Typography/OverflowText";
 
 import Grid from "./src/components/Grid/Grid";
 import GridRow from "./src/components/Grid/GridRow";
@@ -93,6 +94,8 @@ import TitleSubsection from "./src/components/Structure/TitleSubsection";
 
 import Link from "./src/components/Link/Link";
 
+import { PropertyName, PropertyValue, PropertyValuePair, PropertyValueList } from "./src/components/PropertyValuePair";
+
 import * as TypographyClassNames from "./src/components/Typography/classnames";
 import * as IntentClassNames from "./src/components/Intent/classnames";
 
@@ -112,6 +115,7 @@ export {
     ApplicationToolbarAction,
     ApplicationToolbarPanel,
     HtmlContentBlock,
+    OverflowText,
     Grid,
     GridRow,
     GridColumn,
@@ -170,6 +174,10 @@ export {
     Pagination,
     Notification,
     Link,
+    PropertyName,
+    PropertyValue,
+    PropertyValuePair,
+    PropertyValueList,
     Toast,
     HelperClasses,
     Select,

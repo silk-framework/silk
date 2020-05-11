@@ -47,7 +47,7 @@ a {
     color: $ecc-color-accent;
 }
 
-// elements
+// HtmlContentBlock
 
 .ecc-typography__contentblock,
 .ecc-typography__text {
@@ -130,7 +130,9 @@ ul,
 ol {
     .ecc-typography__contentblock &,
     &.ecc-typography__text {
-        margin-bottom: $ecc-size-block-whitespace;
+        &:not(:last-child) {
+            margin-bottom: $ecc-size-block-whitespace;
+        }
     }
 }
 
@@ -138,7 +140,9 @@ li {
     .ecc-typography__contentblock &,
     &.ecc-typography__text {
         margin-left: $ecc-size-block-whitespace * 2;
-        margin-bottom: $ecc-size-block-whitespace / 2;
+        &:not(:last-child) {
+            margin-bottom: $ecc-size-block-whitespace / 2;
+        }
     }
 }
 
@@ -146,6 +150,44 @@ blockquote {
     .ecc-typography__contentblock &,
     &.ecc-typography__text {
         margin: $ecc-size-block-whitespace * 2;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+}
+
+// OverflowText
+
+.ecc-typography__overflowtext,
+.ecc-typography__overflowtext--passdown * {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: normal;
+    white-space: nowrap;
+    display: inherit;
+}
+
+.ecc-typography__overflowtext--inline {
+    display: inline-block;
+}
+
+.ecc-typography__overflowtext--ellipsis-none {
+    text-overflow: clip;
+}
+
+.ecc-typography__overflowtext--ellipsis-reverse {
+    direction: rtl;
+    text-overflow: ellipsis;
+    unicode-bidi: embed;
+    text-align: left;
+
+    &:after {
+        /*
+            hex value for &lrm;
+            @see https://stackoverflow.com/questions/20798667/#comment98304322_42551367
+        */
+        content: "\200e";
     }
 }
 
