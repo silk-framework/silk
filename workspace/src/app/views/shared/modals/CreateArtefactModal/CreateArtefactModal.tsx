@@ -84,17 +84,20 @@ export function CreateArtefactModal() {
         dispatch(commonOp.selectArtefact(null));
     };
 
+    const taskType = (artefactId) => {
+        if (artefactId === "project") {
+            return "Project";
+        } else {
+            return (cachedArtefactProperties[artefactId] as IDetailedArtefactItem).taskType;
+        }
+    };
+
     const handleCreate = async (e) => {
         e.preventDefault();
 
         const isValidFields = await form.triggerValidation();
         if (isValidFields) {
-            dispatch(
-                commonOp.createArtefactAsync(
-                    form.getValues(),
-                    (cachedArtefactProperties[selectedArtefact.key] as IDetailedArtefactItem).taskType
-                )
-            );
+            dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefact.key)));
             closeModal();
         }
     };

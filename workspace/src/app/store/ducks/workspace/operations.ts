@@ -276,6 +276,22 @@ const fetchCloneTaskAsync = (taskId: string, projectId: string, taskNewId: strin
     };
 };
 
+const itemTypeToPathMap = {
+    Transform: "transform",
+    Linking: "linking",
+    Workflow: "workflow",
+    CustomTask: "task",
+    Dataset: "dataset",
+};
+
+const itemTypeToPath = (itemType: string) => {
+    if (itemTypeToPathMap[itemType]) {
+        return itemTypeToPathMap[itemType];
+    } else {
+        return "task";
+    }
+};
+
 const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: string) => {
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
@@ -304,7 +320,11 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: strin
                 method: "POST",
                 body: payload,
             });
-            dispatch(routerOp.goToPage(`/projects/${currentProjectId}/dataset/${data.id}`, { taskLabel: label }));
+            dispatch(
+                routerOp.goToPage(`projects/${currentProjectId}/${itemTypeToPath(taskType)}/${data.id}`, {
+                    taskLabel: label,
+                })
+            );
         } catch (e) {
             dispatch(setError(e.response.data));
         }
@@ -326,7 +346,7 @@ const fetchCreateProjectAsync = (formData: { label: string; description?: string
                     },
                 },
             });
-            dispatch(routerOp.goToPage(`/projects/${data.name}`, { projectLabel: label }));
+            dispatch(routerOp.goToPage(`projects/${data.name}`, { projectLabel: label }));
         } catch (e) {
             dispatch(setError(e.response.data));
         }

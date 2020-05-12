@@ -44,7 +44,7 @@ const setQueryString = (queryParams: IQueryParams) => {
 const goToPage = (path: string, pageLabels: IPageLabels) => {
     const isAbsolute = path.startsWith("/");
     return (dispatch) => {
-        dispatch(push(isAbsolute ? path : SERVE_PATH + path, { pageLabels: pageLabels }));
+        dispatch(push(isAbsolute ? path : SERVE_PATH + "/" + path, { pageLabels: pageLabels }));
     };
 };
 
