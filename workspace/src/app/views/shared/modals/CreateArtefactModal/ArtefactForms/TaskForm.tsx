@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { IDetailedArtefactItem } from "@ducks/common/typings";
+import { IDetailedArtefactItem, ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@wrappers/blueprint/constants";
 import { INPUT_TYPES } from "../../../../../constants";
 import { InputMapper } from "./InputMapper";
-import { Button, FieldItem } from "@wrappers/index";
+import { Button, FieldItem, TextArea, TextField } from "@wrappers/index";
 import { FileUploadModal } from "../../FileUploadModal/FileUploadModal";
 import { Autocomplete } from "../../../Autocomplete/Autocomplete";
 import { sharedOp } from "@ducks/shared";
@@ -106,7 +106,7 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
 
     const MAXLENGTH_TOOLTIP = 40;
 
-    const ParameterWidget = ({ paramId, param }) => {
+    const ParameterWidget = ({ paramId, param }: ITaskParameter) => {
         return (
             <FieldItem
                 labelAttributes={{
@@ -131,14 +131,9 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                     />
                 ) : (
                     <InputMapper
-                        inputAttributes={{
-                            id: paramId,
-                            name: param.title || paramId,
-                            onChange: handleChange(paramId),
-                            value: fieldValues[paramId],
-                            intent: errors[paramId] ? Intent.DANGER : Intent.NONE,
-                        }}
-                        type={param.parameterType}
+                        parameter={{ paramId: paramId, param: param }}
+                        onChange={handleChange(paramId)}
+                        intent={errors[paramId] ? Intent.DANGER : Intent.NONE}
                     />
                 )}
             </FieldItem>
@@ -159,14 +154,11 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                         htmlFor: "label",
                     }}
                 >
-                    <InputMapper
-                        type={"string"}
-                        inputAttributes={{
-                            id: "label",
-                            name: "label",
-                            onChange: handleChange("label"),
-                            intent: errors.label ? Intent.DANGER : Intent.NONE,
-                        }}
+                    <TextField
+                        id={"label"}
+                        name={"label"}
+                        onChange={handleChange("label")}
+                        intent={errors.label ? Intent.DANGER : Intent.NONE}
                     />
                 </FieldItem>
                 <FieldItem
@@ -176,14 +168,7 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                         htmlFor: "description",
                     }}
                 >
-                    <InputMapper
-                        type={"textarea"}
-                        inputAttributes={{
-                            id: "description",
-                            name: "description",
-                            onChange: handleChange("description"),
-                        }}
-                    />
+                    <TextArea id={"description"} name={"description"} onChange={handleChange("description")} />
                 </FieldItem>
 
                 {normalParams.map(([key, param]) => (

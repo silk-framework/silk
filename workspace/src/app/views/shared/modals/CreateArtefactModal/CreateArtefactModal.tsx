@@ -19,7 +19,7 @@ import {
     Spacing,
 } from "@wrappers/index";
 import { commonOp, commonSel } from "@ducks/common";
-import { IArtefactItem } from "@ducks/common/typings";
+import { IArtefactItem, IDetailedArtefactItem } from "@ducks/common/typings";
 import Loading from "../../Loading";
 import { SearchBar } from "../../SearchBar/SearchBar";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
@@ -89,7 +89,12 @@ export function CreateArtefactModal() {
 
         const isValidFields = await form.triggerValidation();
         if (isValidFields) {
-            dispatch(commonOp.createArtefactAsync(form.getValues()));
+            dispatch(
+                commonOp.createArtefactAsync(
+                    form.getValues(),
+                    (cachedArtefactProperties[selectedArtefact.key] as IDetailedArtefactItem).taskType
+                )
+            );
             closeModal();
         }
     };

@@ -276,7 +276,7 @@ const fetchCloneTaskAsync = (taskId: string, projectId: string, taskNewId: strin
     };
 };
 
-const fetchCreateTaskAsync = (formData: any, artefactId: string) => {
+const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: string) => {
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
         const { label, description, ...restFormData } = formData;
@@ -288,8 +288,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string) => {
         const payload = {
             metadata,
             data: {
-                // @FIXME: HARDCODED
-                taskType: "Dataset",
+                taskType: taskType,
                 type: artefactId,
                 parameters: {
                     ...restFormData,

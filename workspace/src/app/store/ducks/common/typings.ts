@@ -13,27 +13,41 @@ export interface IAvailableDataType {
     options: IAvailableDataTypeOption[];
 }
 
+/** Properties for parameter auto-completion. */
 export interface IPropertyAutocomplete {
     allowOnlyAutoCompletedValues: boolean;
     autoCompleteValueWithLabels: boolean;
     autoCompletionDependsOnParameters: string[];
 }
 
+/** Description of a parameter of an item. */
 export interface IArtefactItemProperty {
     title: string;
     description: string;
+    // Either "string" or "object"
     type: string;
     value: string;
     advanced: boolean;
     parameterType: string;
     visibleInDialog: boolean;
     autoCompletion?: IPropertyAutocomplete;
+    // in case of type=="object" this will be defined
+    pluginId?: string;
+    // in case of type=="object" this will be defined
+    properties?: string[];
 }
 
+/** Parameter of a task. */
+export interface ITaskParameter {
+    paramId: string;
+    param: IArtefactItemProperty;
+}
+
+/** The full task plugin description, including detailed schema. */
 export interface IDetailedArtefactItem {
-    key: string;
     title: string;
     description: string;
+    taskType: string;
     type: string;
     categories: string[];
     properties: {
@@ -41,13 +55,16 @@ export interface IDetailedArtefactItem {
     };
     required: string[];
     pluginId: string;
+    markdownDocumentation?: string;
 }
 
+/** Overview version of an item description. */
 export interface IArtefactItem {
     key: string;
     title?: string;
     description?: string;
     categories?: string[];
+    markdownDocumentation?: string;
 }
 
 export interface IArtefactModal {
