@@ -9,7 +9,6 @@ interface IFetchOptions {
     method?: Method;
     body?: any;
     headers?: any;
-    params?: Record<string, any>;
 }
 
 /**

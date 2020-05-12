@@ -1,12 +1,15 @@
-import React, { useDebugValue, useEffect, useState } from "react";
-import { Button, MenuItem, Suggest } from "@wrappers/index";
+import React, { useEffect, useState } from "react";
+import { MenuItem, Suggest } from "@wrappers/index";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { Highlighter } from "../Highlighter/Highlighter";
 
 interface IProps {
     autoCompletion: IPropertyAutocomplete;
+
     onInputChange(value: string): any;
+
     onChange(value: string);
+
     value?: string;
     items?: any[];
 }

@@ -54,7 +54,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
         TODO: this is only a simple test to have a workaround for a while, we need
         to remove the check for iFrameDetection later again.
     */
-    const iFrameDetection = window === window.parent ? true : false;
+    const iFrameDetection = window === window.parent;
 
     return !isAuth ? null : (
         <ApplicationHeader aria-label={"TODO: eccenca DI"}>
