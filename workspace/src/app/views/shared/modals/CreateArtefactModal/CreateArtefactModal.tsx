@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import {
@@ -27,7 +27,6 @@ import { TaskForm } from "./ArtefactForms/TaskForm";
 import ArtefactTypesList from "./ArtefactTypesList";
 import { DATA_TYPES } from "../../../../constants";
 import { Highlighter } from "../../Highlighter/Highlighter";
-import { find } from "ramda";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -42,6 +41,8 @@ export function CreateArtefactModal() {
 
     // initially take from redux
     const [selected, setSelected] = useState<IArtefactItem>(selectedArtefact);
+    const [lastSelectedClick, setLastSelectedClick] = useState<number>(0);
+    const DOUBLE_CLICK_LIMIT_MS = 500;
 
     useEffect(() => {
         if (projectId) {
@@ -66,7 +67,16 @@ export function CreateArtefactModal() {
     };
 
     const handleArtefactSelect = (artefact: IArtefactItem) => {
-        setSelected(artefact);
+        if (
+            selected.key === artefact.key &&
+            lastSelectedClick &&
+            Date.now() - lastSelectedClick < DOUBLE_CLICK_LIMIT_MS
+        ) {
+            handleAdd();
+        } else {
+            setSelected(artefact);
+        }
+        setLastSelectedClick(Date.now);
     };
 
     const handleBack = () => {
