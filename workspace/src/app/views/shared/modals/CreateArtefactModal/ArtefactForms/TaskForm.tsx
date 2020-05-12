@@ -143,49 +143,51 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                     />
                 </FieldItem>
 
-                {Object.keys(properties).map((key) => (
-                    <FieldItem
-                        key={key}
-                        labelAttributes={{
-                            text: properties[key].title,
-                            info: required.includes(key) ? "required" : "",
-                            htmlFor: key,
-                            tooltip:
-                                properties[key].description && properties[key].description.length <= MAXLENGTH_TOOLTIP
-                                    ? properties[key].description
-                                    : "",
-                        }}
-                        helperText={
-                            properties[key].description && properties[key].description.length > MAXLENGTH_TOOLTIP
-                                ? properties[key].description
-                                : ""
-                        }
-                        messageText={errors[key] ? properties[key].title + " not specified" : ""}
-                        hasStateDanger={errors[key]}
-                    >
-                        {isFileInput(properties[key].parameterType) ? (
-                            <Button onClick={() => toggleFileUploader(key)}>Upload new {properties[key].title}</Button>
-                        ) : isAutocomplete(properties[key]) ? (
-                            <Autocomplete
-                                autoCompletion={properties[key].autoCompletion}
-                                onInputChange={handleAutoCompleteInput(key)}
-                                onChange={handleChange(key)}
-                                value={fieldValues[key]}
-                            />
-                        ) : (
-                            <InputMapper
-                                inputAttributes={{
-                                    id: key,
-                                    name: properties[key].title || key,
-                                    onChange: handleChange(key),
-                                    value: fieldValues[key],
-                                    intent: errors[key] ? Intent.DANGER : Intent.NONE,
-                                }}
-                                type={properties[key].parameterType}
-                            />
-                        )}
-                    </FieldItem>
-                ))}
+                {Object.entries(properties)
+                    .filter(([key, param]) => param.visibleInDialog)
+                    .map(([key, param]) => (
+                        <FieldItem
+                            key={key}
+                            labelAttributes={{
+                                text: param.title,
+                                info: required.includes(key) ? "required" : "",
+                                htmlFor: key,
+                                tooltip:
+                                    param.description && param.description.length <= MAXLENGTH_TOOLTIP
+                                        ? param.description
+                                        : "",
+                            }}
+                            helperText={
+                                param.description && param.description.length > MAXLENGTH_TOOLTIP
+                                    ? param.description
+                                    : ""
+                            }
+                            messageText={errors[key] ? param.title + " not specified" : ""}
+                            hasStateDanger={errors[key]}
+                        >
+                            {isFileInput(param.parameterType) ? (
+                                <Button onClick={() => toggleFileUploader(key)}>Upload new {param.title}</Button>
+                            ) : isAutocomplete(param) ? (
+                                <Autocomplete
+                                    autoCompletion={param.autoCompletion}
+                                    onInputChange={handleAutoCompleteInput(key)}
+                                    onChange={handleChange(key)}
+                                    value={fieldValues[key]}
+                                />
+                            ) : (
+                                <InputMapper
+                                    inputAttributes={{
+                                        id: key,
+                                        name: param.title || key,
+                                        onChange: handleChange(key),
+                                        value: fieldValues[key],
+                                        intent: errors[key] ? Intent.DANGER : Intent.NONE,
+                                    }}
+                                    type={param.parameterType}
+                                />
+                            )}
+                        </FieldItem>
+                    ))}
                 <button type="button" onClick={() => console.log(getValues(), errors)}>
                     Debug: Console Form data
                 </button>

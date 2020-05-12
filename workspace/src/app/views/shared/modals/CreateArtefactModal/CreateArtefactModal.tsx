@@ -185,7 +185,10 @@ export function CreateArtefactModal() {
                                                             <strong>Project</strong>
                                                         </OverviewItemLine>
                                                         <OverviewItemLine small>
-                                                            <p>Lorem Ipsum</p>
+                                                            <p>
+                                                                Projects let you group related items. All items that
+                                                                depend on each other need to be in the same project.
+                                                            </p>
                                                         </OverviewItemLine>
                                                     </OverviewItemDescription>
                                                 </OverviewItem>
