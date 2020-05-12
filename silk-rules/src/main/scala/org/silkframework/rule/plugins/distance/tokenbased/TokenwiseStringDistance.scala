@@ -83,8 +83,8 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "tokenwiseDistance",
   categories = Array("Tokenbased"),
-  label = "Token-wise Distance",
-  description = "Token-wise string distance using the specified metric"
+  label = "Token-wise distance",
+  description = "Token-wise string distance using the specified metric."
 )
 case class TokenwiseStringDistance(
         ignoreCase: Boolean = true,

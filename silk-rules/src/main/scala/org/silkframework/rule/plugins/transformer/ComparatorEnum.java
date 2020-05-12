@@ -1,4 +1,4 @@
-package org.silkframework.rule.plugins.transformer.date;
+package org.silkframework.rule.plugins.transformer;
 
 import org.silkframework.runtime.plugin.EnumerationParameterType;
 

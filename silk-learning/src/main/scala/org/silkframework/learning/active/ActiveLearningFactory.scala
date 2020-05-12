@@ -11,7 +11,7 @@ import scala.util.Random
 
 @Plugin(
   id = ActiveLearningFactory.pluginId,
-  label = "Active Learning",
+  label = "Active learning",
   categories = Array("LinkSpecification"),
   description = "Executes an active learning iteration."
 )

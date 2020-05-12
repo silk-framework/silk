@@ -16,26 +16,27 @@
 
 <div id="@GenerateId(id, display)" class="dragDiv @{opType.toLowerCase}Div"
      style="left: @{x}px; top: @{y}px; position: absolute; @if(!display) { display:none; }">
-    <div id="@GenerateId(id, display)_tooltip" for="@GenerateId(id, display)" class="mdl-defer operator-tooltip"
-        data-mdl-defer="tooltip"
-         style="display: none;">tooltip
-    </div>
     <small class="name">@plugin.id</small>
     <small class="type">@opType</small>
     <h5 class="handler">
-        <label class="edit_label">@id</label>
-        <input class="edit_label" type="text" value="@id" name="name" id="@id-name"/>
-        <img align="right" src="@Assets.at("img/delete.png")" style="cursor:pointer;"
-        onclick="removeElement($(this).parent().parent().attr('id'))"/>
-        <img align="right" src="@Assets.at("img/undecided.png")" style="cursor:help;" title="@plugin.description"/>
+      <label class="edit_label">@id</label>
+      <input class="edit_label" type="text" value="@id" name="name" id="@id-name"/>
+      <img id="@GenerateId(id, display)_remove" align="right" src="@Assets.at("img/delete.png")" style="cursor:pointer;" onclick="removeElement($(this).parent().parent().attr('id'))"/>
+      <img id="@GenerateId(id, display)_help" align="right" src="@Assets.at("img/undecided.png")" style="cursor:help;"/>
+      <div class="mdl-defer mdl-tooltip--right" data-mdl-defer="tooltip" for="@GenerateId(id, display)_remove">
+        Remove operator
+      </div>
+      <div class="mdl-defer mdl-tooltip--right" data-mdl-defer="tooltip" for="@GenerateId(id, display)_help">
+        @plugin.description
+      </div>
     </h5>
     <div class="content">
-        @additionalContent
-        @for((param, value) <- plugin.parameters zip parameterValues) {
-        <div class="param_element plugin_param">
-            @parameter(param, value)
-        </div>
-        }
+      @additionalContent
+      @for((param, value) <- plugin.parameters zip parameterValues) {
+      <div class="param_element plugin_param">
+        @parameter(param, value)
+      </div>
+      }
     </div>
     <div class="operator_footer @{opType.toLowerCase}Div">
         @plugin.label (@opType)
@@ -74,31 +75,31 @@
 }
 
 @stringParameter(param: Parameter, value: String) = {
-<div class="mdl-textfield mdl-textfield--floating-label mdl-defer" data-mdl-defer="js-textfield">
+  <div class="mdl-textfield mdl-textfield--floating-label mdl-defer" data-mdl-defer="js-textfield">
     <input class="mdl-textfield__input param_value" type="text" id="@{GenerateId(id, display)}_param_input_@{param.name}" name="@{param.name}" value="@value"/>
     <label class="mdl-textfield__label" for="@{GenerateId(id, display)}_param_input_@{param.name}">@param.label</label>
     <div class="mdl-defer mdl-tooltip--right" for="@{GenerateId(id, display)}_param_input_@{param.name}" data-mdl-defer="tooltip">
-        @param.description
-        <br/>
-        Expected type: @param.dataType.description
+      @param.description
+      <br/>
+      Expected type: @param.dataType.description
     </div>
-</div>
+  </div>
 }
 
 @enumParameter(param: Parameter, enumerationValues: Seq[String], displayNames: Seq[String], value: String) = {
-<div class="mdl-selectfield mdl-selectfield--floating-label mdl-defer"  data-mdl-defer="js-selectfield">
+  <div class="mdl-selectfield mdl-selectfield--floating-label mdl-defer"  data-mdl-defer="js-selectfield">
     <select class="mdl-selectfield__select param_value" id="@{GenerateId(id, display)}_param_input_@{param.name}" name="@{param.name}" >
-        @for((enumerationValue, displayName) <- enumerationValues.zip(displayNames)) {
+      @for((enumerationValue, displayName) <- enumerationValues.zip(displayNames)) {
         <option value="@(enumerationValue)" @if(enumerationValue == value) { selected="selected" }>@displayName</option>
-        }
+      }
     </select>
     <label class="mdl-selectfield__label" for="@{GenerateId(id, display)}_param_input_@{param.name}">@param.label</label>
     <div class="mdl-defer mdl-tooltip--right" for="@{GenerateId(id, display)}_param_input_@{param.name}" data-mdl-defer="tooltip">
-        @param.description
-        <br/>
-        Expected type: @param.dataType.description
+      @param.description
+      <br/>
+      Expected type: @param.dataType.description
     </div>
-</div>
+  </div>
 }
 
 
