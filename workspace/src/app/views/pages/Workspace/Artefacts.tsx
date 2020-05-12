@@ -26,10 +26,6 @@ const Artefacts = () => {
     const sorters = useSelector(workspaceSel.sortersSelector);
     const error = useSelector(workspaceSel.errorSelector);
 
-    useEffect(() => {
-        dispatch(commonOp.unsetProject());
-    }, []);
-
     const handleSort = (sortBy: string) => {
         dispatch(workspaceOp.applySorterOp(sortBy));
     };

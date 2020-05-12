@@ -26,18 +26,13 @@ import {
 } from "@wrappers/index";
 import { SearchBar } from "../../shared/SearchBar/SearchBar";
 
-const Project = ({ projectId }) => {
+const Project = () => {
     const dispatch = useDispatch();
 
     const currentProjectId = useSelector(commonSel.currentProjectIdSelector);
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
     const error = useSelector(workspaceSel.errorSelector);
-
-    useEffect(() => {
-        // Fetch the list of projects
-        dispatch(commonOp.setProjectId(projectId));
-    }, [projectId]);
 
     const handleSort = (sortBy: string) => {
         dispatch(workspaceOp.applySorterOp(sortBy));
@@ -53,7 +48,7 @@ const Project = ({ projectId }) => {
         <WorkspaceContent className="eccapp-di__project">
             <WorkspaceMain>
                 <Section>
-                    <Metadata taskId={projectId} />
+                    <Metadata taskId={currentProjectId} />
                     <Spacing />
                 </Section>
                 <Section>

@@ -23,10 +23,6 @@ export function Workspace() {
     const { projectId } = useParams();
 
     useEffect(() => {
-        dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
-    }, [projectId]);
-
-    useEffect(() => {
         if (error.detail) {
             AppToaster.show({
                 message: error.detail,
@@ -48,7 +44,7 @@ export function Workspace() {
     }, [location.pathname, qs, dispatch]);
 
     if (projectId) {
-        return <Project projectId={projectId} />;
+        return <Project />;
     }
 
     return !isEmptyWorkspace ? (

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { commonOp, commonSel } from "@ducks/common";
 import {
@@ -26,6 +26,9 @@ import HomeButton from "./HomeButton";
 import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
 import withBreadcrumbLabels from "./withBreadcrumbLabels";
+import { Helmet } from "react-helmet";
+import { COMPANY_NAME } from "../../../constants";
+import { useLocation, useParams } from "react-router";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];
@@ -41,14 +44,49 @@ export interface IBreadcrumb {
 
 function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isApplicationSidebarExpanded }: IProps) {
     const dispatch = useDispatch();
+    const location = useLocation();
 
     const isAuth = useSelector(commonSel.isAuthSelector);
+
+    const projectId = useSelector(commonSel.currentProjectIdSelector);
+    const taskId = useSelector(commonSel.currentTaskIdSelector);
+
+    const [windowTitle, setWindowTitle] = useState<string>("Build");
+
+    const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
+
+    useEffect(() => {
+        getWindowTitle(projectId);
+    }, [projectId, taskId, breadcrumbs]);
 
     const handleCreateDialog = () => {
         dispatch(commonOp.selectArtefact({}));
     };
 
-    const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
+    const getWindowTitle = (projectId) => {
+        // $title ($artefactLabel) at $breadcrumbsWithoutTitle — $companyName $applicationTitle
+        let fullTitle = "Build";
+
+        if (lastBreadcrumb && projectId) {
+            // when projectId is provided
+            const breadcrumbWithoutTitle = breadcrumbs
+                .slice(0, breadcrumbs.length - 1)
+                .map((o) => o.text)
+                .join("/");
+
+            // select datatype from the url /projectId/type/taskId pattern
+            const paths = location.pathname.split("/");
+            const projectInd = paths.indexOf(projectId);
+
+            let datasetType = "project";
+            // for task type it next to project id
+            if (paths[projectInd + 1]) {
+                datasetType = paths[projectInd + 1];
+            }
+            fullTitle = `${lastBreadcrumb.text} (${datasetType}) at ${breadcrumbWithoutTitle} — ${COMPANY_NAME}`;
+        }
+        setWindowTitle(fullTitle);
+    };
 
     /*
         TODO: this is only a simple test to have a workaround for a while, we need
@@ -67,6 +105,9 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
             )}
             {iFrameDetection && <ApplicationTitle prefix="eccenca">DataIntegration</ApplicationTitle>}
             <WorkspaceHeader>
+                <Helmet>
+                    <title>{windowTitle}</title>
+                </Helmet>
                 <OverviewItem>
                     <OverviewItemDepiction>
                         <HomeButton />

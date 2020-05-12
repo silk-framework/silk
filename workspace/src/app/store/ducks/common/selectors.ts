@@ -1,37 +1,21 @@
 import { createSelector } from "reselect";
 import { isAuthenticated } from "./thunks/auth.thunk";
 
-const commonSelector = state => state.common;
+const commonSelector = (state) => state.common;
 
-const artefactModalSelector = createSelector(
-    [commonSelector],
-    common => common.artefactModal
-);
+const artefactModalSelector = createSelector([commonSelector], (common) => common.artefactModal);
 
-const isAuthSelector = createSelector(
-    [commonSelector],
-    common => common.authenticated || isAuthenticated()
-);
+const isAuthSelector = createSelector([commonSelector], (common) => common.authenticated || isAuthenticated());
 
-const searchStringSelector = createSelector(
-    [commonSelector],
-    common => common.searchQuery || ''
-);
+const searchStringSelector = createSelector([commonSelector], (common) => common.searchQuery || "");
 
-const availableDTypesSelector = createSelector(
-    [commonSelector],
-    common => common.availableDataTypes
-);
+const availableDTypesSelector = createSelector([commonSelector], (common) => common.availableDataTypes);
 
-const currentProjectIdSelector = createSelector(
-    [commonSelector],
-    common => common.currentProjectId
-);
+const currentProjectIdSelector = createSelector([commonSelector], (common) => common.currentProjectId);
 
-const initialSettingsSelector = createSelector(
-    [commonSelector],
-    common => common.initialSettings
-);
+const currentTaskIdSelector = createSelector([commonSelector], (common) => common.currentTaskId);
+
+const initialSettingsSelector = createSelector([commonSelector], (common) => common.initialSettings);
 
 export default {
     commonSelector,
@@ -40,5 +24,6 @@ export default {
     artefactModalSelector,
     isAuthSelector,
     initialSettingsSelector,
-    currentProjectIdSelector
-}
+    currentTaskIdSelector,
+    currentProjectIdSelector,
+};
