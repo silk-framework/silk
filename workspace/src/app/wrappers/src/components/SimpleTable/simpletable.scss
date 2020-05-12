@@ -17,6 +17,14 @@ $ecc-size-tablecell-padding-tall: ($ecc-size-tablecell-height-tall - carbon--rem
 // currently not needed @import '~carbon-components/scss/components/data-table/data-table-skeleton';
 
 // changes
+.#{$prefix}--data-table thead {
+    background-color: transparent;
+}
+
+.#{$prefix}--data-table th {
+    background-color: rgba($ui-03, alpha($ui-03) * $ecc-opacity-muted);
+}
+
 .#{$prefix}--data-table thead tr,
 .#{$prefix}--data-table tbody tr,
 .#{$prefix}--data-table tbody tr th {
