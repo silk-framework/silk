@@ -25,13 +25,14 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
 
     const { register, errors, getValues, setValue, unregister } = form;
 
+    const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
+
     useEffect(() => {
         const values = {};
         register({ name: "label" }, { required: true });
         register({ name: "description" });
 
-        Object.keys(properties).forEach((key) => {
-            const property = properties[key];
+        visibleParams.forEach(([key, property]) => {
             let value: any = property.value || "";
 
             if (property.type === INPUT_TYPES.BOOLEAN) {
@@ -55,7 +56,7 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
         return () => {
             unregister("label");
             unregister("description");
-            Object.keys(properties).map((key) => unregister(key));
+            visibleParams.forEach(([key, param]) => unregister(key));
         };
     }, [properties, register]);
 
@@ -105,6 +106,48 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
 
     const MAXLENGTH_TOOLTIP = 40;
 
+    const ParameterWidget = ({ paramId, param }) => {
+        return (
+            <FieldItem
+                labelAttributes={{
+                    text: param.title,
+                    info: required.includes(paramId) ? "required" : "",
+                    htmlFor: paramId,
+                    tooltip:
+                        param.description && param.description.length <= MAXLENGTH_TOOLTIP ? param.description : "",
+                }}
+                helperText={param.description && param.description.length > MAXLENGTH_TOOLTIP ? param.description : ""}
+                messageText={errors[paramId] ? param.title + " not specified" : ""}
+                hasStateDanger={errors[paramId]}
+            >
+                {isFileInput(param.parameterType) ? (
+                    <Button onClick={() => toggleFileUploader(paramId)}>Upload new {param.title}</Button>
+                ) : isAutocomplete(param) ? (
+                    <Autocomplete
+                        autoCompletion={param.autoCompletion}
+                        onInputChange={handleAutoCompleteInput(paramId)}
+                        onChange={handleChange(paramId)}
+                        value={fieldValues[paramId]}
+                    />
+                ) : (
+                    <InputMapper
+                        inputAttributes={{
+                            id: paramId,
+                            name: param.title || paramId,
+                            onChange: handleChange(paramId),
+                            value: fieldValues[paramId],
+                            intent: errors[paramId] ? Intent.DANGER : Intent.NONE,
+                        }}
+                        type={param.parameterType}
+                    />
+                )}
+            </FieldItem>
+        );
+    };
+
+    const normalParams = visibleParams.filter(([k, param]) => !param.advanced);
+    const advancedParams = visibleParams.filter(([k, param]) => param.advanced);
+
     return (
         <>
             <form>
@@ -143,51 +186,14 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                     />
                 </FieldItem>
 
-                {Object.entries(properties)
-                    .filter(([key, param]) => param.visibleInDialog)
-                    .map(([key, param]) => (
-                        <FieldItem
-                            key={key}
-                            labelAttributes={{
-                                text: param.title,
-                                info: required.includes(key) ? "required" : "",
-                                htmlFor: key,
-                                tooltip:
-                                    param.description && param.description.length <= MAXLENGTH_TOOLTIP
-                                        ? param.description
-                                        : "",
-                            }}
-                            helperText={
-                                param.description && param.description.length > MAXLENGTH_TOOLTIP
-                                    ? param.description
-                                    : ""
-                            }
-                            messageText={errors[key] ? param.title + " not specified" : ""}
-                            hasStateDanger={errors[key]}
-                        >
-                            {isFileInput(param.parameterType) ? (
-                                <Button onClick={() => toggleFileUploader(key)}>Upload new {param.title}</Button>
-                            ) : isAutocomplete(param) ? (
-                                <Autocomplete
-                                    autoCompletion={param.autoCompletion}
-                                    onInputChange={handleAutoCompleteInput(key)}
-                                    onChange={handleChange(key)}
-                                    value={fieldValues[key]}
-                                />
-                            ) : (
-                                <InputMapper
-                                    inputAttributes={{
-                                        id: key,
-                                        name: param.title || key,
-                                        onChange: handleChange(key),
-                                        value: fieldValues[key],
-                                        intent: errors[key] ? Intent.DANGER : Intent.NONE,
-                                    }}
-                                    type={param.parameterType}
-                                />
-                            )}
-                        </FieldItem>
+                {normalParams.map(([key, param]) => (
+                    <ParameterWidget key={key} paramId={key} param={param} />
+                ))}
+                <div className={"advanced"}>
+                    {advancedParams.map(([key, param]) => (
+                        <ParameterWidget key={key} paramId={key} param={param} />
                     ))}
+                </div>
                 <button type="button" onClick={() => console.log(getValues(), errors)}>
                     Debug: Console Form data
                 </button>
