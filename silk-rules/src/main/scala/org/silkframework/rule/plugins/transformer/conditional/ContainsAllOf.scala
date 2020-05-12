@@ -5,7 +5,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, T
 
 @Plugin(
   id = "containsAllOf",
-  label = "contains all of",
+  label = "Contains all of",
   categories = Array("Conditional"),
   description = "Accepts two inputs. If the first input contains all of the second input values it returns 'true', else 'false' is returned."
 )

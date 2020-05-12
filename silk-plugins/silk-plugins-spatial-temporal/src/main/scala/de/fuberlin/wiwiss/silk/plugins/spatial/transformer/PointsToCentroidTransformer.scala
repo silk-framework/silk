@@ -30,7 +30,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "PointsToCentroidCTransformer",
   categories = Array("Spatial"),
-  label = "Points-To-Centroid Transformer",
+  label = "Points-to-centroid",
   description = "Transforms a cluster of points expressed in W3C Geo vocabulary to their centroid expressed in WKT and WGS 84 (latitude-longitude).")
 case class PointsToCentroidTransformer() extends Transformer {
 

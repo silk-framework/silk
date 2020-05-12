@@ -24,7 +24,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExa
   description =
 """Returns a substring between 'beginIndex' (inclusive) and 'endIndex' (exclusive).
 If 'endIndex' is 0 (default), it is ignored and the entire remaining string starting with 'beginIndex' is returned.
-If 'endIndex' is negative, -endIndex characters are removed from the end.'"""
+If 'endIndex' is negative, -endIndex characters are removed from the end."""
 )
 @TransformExamples(Array(
   new TransformExample(

@@ -28,7 +28,7 @@ import org.silkframework.util.StringUtils.DoubleLiteral
 @Plugin(
   id = "numOperation",
   categories = Array("Numeric"),
-  label = "Numeric Operation",
+  label = "Numeric operation",
   description =
     """ | Applies a numeric operation to the values of multiple input operators.
         | Uses double-precision floating-point numbers for computation."""

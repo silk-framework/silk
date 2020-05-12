@@ -20,7 +20,7 @@ import com.thoughtworks.paranamer.BytecodeReadingParanamer
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager, ResourceNotFoundException}
-import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.util.StringUtils._
 import org.silkframework.util.Identifier
 
 import scala.io.Source
@@ -213,7 +213,7 @@ object PluginDescription {
 
       val label = pluginParam match {
         case Some(p) if p.label().nonEmpty => p.label()
-        case _ => parName.flatMap(c => if(c.isUpper) " " + c.toLower else c.toString)
+        case _ => parName.toSentenceCase
       }
 
       val (description, exampleValue) = pluginParam map { pluginParam =>
