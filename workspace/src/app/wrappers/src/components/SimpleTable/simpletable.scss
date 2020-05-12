@@ -1,3 +1,14 @@
+// own vars
+$ecc-size-tablecell-height-regular: mini-units(5);
+$ecc-size-tablecell-padding-regular: ($ecc-size-tablecell-height-regular - carbon--rem($ecc-size-typo-text)) / 2;
+$ecc-size-tablecell-height-compact: mini-units(4);
+$ecc-size-tablecell-padding-compact: ($ecc-size-tablecell-height-compact - carbon--rem($ecc-size-typo-text)) / 2;
+$ecc-size-tablecell-height-tall: mini-units(6);
+$ecc-size-tablecell-padding-tall: ($ecc-size-tablecell-height-tall - carbon--rem($ecc-size-typo-text)) / 2;
+
+// lib vars
+/* already defined */
+// import libs
 // currently not needed @import '~carbon-components/scss/components/data-table/data-table-action';
 @import "~carbon-components/scss/components/data-table/data-table-core";
 // currently not needed @import '~carbon-components/scss/components/data-table/data-table-expandable';
@@ -6,87 +17,24 @@
 // currently not needed @import '~carbon-components/scss/components/data-table/data-table-skeleton';
 
 // changes
-.#{$prefix}--data-table thead {
-    background-color: $ui-03;
-}
-
-.#{$prefix}--data-table tbody {
-    background-color: $ui-01;
-}
-
-.#{$prefix}--data-table tr {
-    height: $layout-04;
-}
-
-.#{$prefix}--data-table tbody tr:hover {
-    background: $hover-field;
-}
-
-.#{$prefix}--data-table tbody tr:hover td,
-.#{$prefix}--data-table tbody tr:hover th {
-    color: $text-01;
-    background: $hover-field;
-    border-bottom-color: $hover-field;
-    border-top-color: $hover-field;
-}
-
-.#{$prefix}--data-table th,
-.#{$prefix}--data-table td {
-    padding-left: $spacing-05;
-    padding-right: $spacing-05;
-}
-
-.#{$prefix}--data-table th {
-    color: $text-01;
-    background-color: $ui-03;
-}
-
-.#{$prefix}--data-table th:first-of-type:not(.#{$prefix}--table-expand) {
-    padding-left: $spacing-05;
+.#{$prefix}--data-table thead tr,
+.#{$prefix}--data-table tbody tr,
+.#{$prefix}--data-table tbody tr th {
+    height: $ecc-size-tablecell-height-regular;
 }
 
 .#{$prefix}--data-table .#{$prefix}--table-header-label {
-    padding: rem(14px) 0;
+    padding: $ecc-size-tablecell-padding-regular 0;
 }
 
 .#{$prefix}--data-table td,
 .#{$prefix}--data-table tbody th {
-    background: $ui-01;
-    color: $text-02;
-    border-top-color: $ui-01;
-    border-bottom-color: $ui-03;
-    padding: rem(14px) $spacing-05;
-    padding-bottom: rem(13px);
+    padding-top: $ecc-size-tablecell-padding-regular * 1.05;
+    padding-bottom: $ecc-size-tablecell-padding-regular * 0.95;
 
     & + td:first-of-type {
-        padding-left: $spacing-04;
+        padding-left: $spacing-05;
     }
-}
-
-.#{$prefix}--data-table td:first-of-type {
-    padding-left: $spacing-05;
-}
-
-.#{$prefix}--data-table td:last-of-type {
-    padding-right: $spacing-05;
-}
-
-// ZEBRA
-
-.#{$prefix}--data-table--zebra tbody tr:nth-child(even) td {
-    border-bottom-color: 1px solid $ui-01;
-}
-
-.#{$prefix}--data-table--zebra tbody tr:nth-child(odd) td {
-    background-color: $data-table-zebra-color;
-    border-bottom-color: $data-table-zebra-color;
-    border-top-color: $data-table-zebra-color;
-}
-
-.#{$prefix}--data-table--zebra tbody tr:hover td {
-    background-color: $hover-field;
-    border-bottom-color: $hover-field;
-    border-top-color: $hover-field;
 }
 
 // Compact
@@ -94,35 +42,17 @@
 .#{$prefix}--data-table--compact thead tr,
 .#{$prefix}--data-table--compact tbody tr,
 .#{$prefix}--data-table--compact tbody tr th {
-    height: rem(24px);
+    height: $ecc-size-tablecell-height-compact;
 }
 
 .#{$prefix}--data-table--compact .#{$prefix}--table-header-label {
-    padding: rem(2px) 0;
+    padding: $ecc-size-tablecell-padding-compact 0;
 }
 
 .#{$prefix}--data-table--compact td,
 .#{$prefix}--data-table--compact tbody tr th {
-    padding-top: rem(2px);
-    padding-bottom: rem(2px);
-}
-
-// Short
-
-.#{$prefix}--data-table--short thead tr,
-.#{$prefix}--data-table--short tbody tr,
-.#{$prefix}--data-table--short tbody tr th {
-    height: rem(32px);
-}
-
-.#{$prefix}--data-table--short .#{$prefix}--table-header-label {
-    padding: rem(7px) 0;
-}
-
-.#{$prefix}--data-table--short td,
-.#{$prefix}--data-table--short tbody tr th {
-    padding-top: rem(7px);
-    padding-bottom: rem(6px);
+    padding-top: $ecc-size-tablecell-padding-compact * 1.05;
+    padding-bottom: $ecc-size-tablecell-padding-compact * 0.95;
 }
 
 // Tall
@@ -130,36 +60,27 @@
 .#{$prefix}--data-table--tall thead tr,
 .#{$prefix}--data-table--tall tbody tr,
 .#{$prefix}--data-table--tall tbody tr th {
-    height: rem(64px);
+    height: $ecc-size-tablecell-height-compact;
 }
 
 .#{$prefix}--data-table--tall .#{$prefix}--table-header-label {
-    padding: rem(16px) 0;
+    padding: $ecc-size-tablecell-padding-tall 0;
 }
 
 .#{$prefix}--data-table--tall td,
 .#{$prefix}--data-table--tall tbody tr th {
-    padding-top: 1rem;
-}
-
-// Static
-
-.#{$prefix}--data-table--static {
-    width: auto;
+    padding-top: $ecc-size-tablecell-padding-tall * 1.05;
+    padding-bottom: $ecc-size-tablecell-padding-tall * 0.95;
 }
 
 // Sticky header
 
-.#{$prefix}--data-table_inner-container {
-    background-color: $ui-03;
-}
-
 .#{$prefix}--data-table--sticky-header {
     thead tr th {
-        border-bottom-color: $active-ui;
+        // border-bottom-color: $active-ui;
     }
 
     tr {
-        min-height: rem(48px);
+        min-height: $ecc-size-tablecell-height-regular;
     }
 }
