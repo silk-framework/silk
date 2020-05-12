@@ -21,13 +21,13 @@ import {
     TextArea,
     TextField,
 } from "@wrappers/index";
-import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/thunks/metadata.thunk";
 import { Loading } from "../Loading/Loading";
 import { Controller, useForm } from "react-hook-form";
 import { Intent } from "@wrappers/blueprint/constants";
 import { useLocation } from "react-router";
 import { useDispatch } from "react-redux";
 import { IPageLabels } from "@ducks/router/operations";
+import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
 
 export function Metadata({ projectId = null, taskId }) {
     const { control, handleSubmit } = useForm();

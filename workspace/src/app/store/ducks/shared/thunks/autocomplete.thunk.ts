@@ -1,27 +1,13 @@
-import { workspaceApi } from "../../../../utils/getApiEndpoint";
-import fetch from "../../../../services/fetch";
+import { requestAutocompleteResults } from "@ducks/shared/requests";
 
-interface IPayload {
-    pluginId: string;
-    parameterId: string;
-    projectId: string;
-    dependsOnParameterValues: string[];
-    textQuery: string;
-}
-export const getAutocompleteResultsAsync = async (payload: IPayload) => {
-    let url = workspaceApi(`/pluginParameterAutoCompletion`);
+export const getAutocompleteResultsAsync = async (payload) => {
     try {
-        const {data} = await fetch({
-            url,
-            method: "POST",
-            body: {
-                ...payload,
-                limit: 10000,
-                offset: 0
-            },
+        return await requestAutocompleteResults({
+            ...payload,
+            limit: 10000,
+            offset: 0,
         });
-        return data;
-    } catch(e) {
+    } catch (e) {
         return e;
     }
 };
