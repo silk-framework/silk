@@ -39,10 +39,7 @@ export default function withBreadcrumbLabels(WrappedComponent) {
             const { params = {}, url }: any = match[0];
 
             const labelFunction = labelForBreadCrumb(params);
-            const updatedBread = [
-                { href: SERVE_PATH, text: t("common.home") },
-                { href: SERVE_PATH, text: t("Data Integration") },
-            ];
+            const updatedBread = [{ href: SERVE_PATH, text: "Build" }];
 
             if (params.projectId) {
                 updatedBread.push({

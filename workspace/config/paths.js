@@ -68,6 +68,8 @@ module.exports = {
     appBuild: resolveApp("build"),
     appDIBuild: resolveApp("../target/web/public/main"),
     appDIAssets: resolveApp("../target/web/public/main/lib/silk-workbench-core/new-workspace"),
+    watchDIBuild: resolveApp("../public"),
+    watchDIAssets: resolveApp("../silk/silk-workbench/silk-workbench-core/public/new-workspace"),
     appDIAssetsUrl: "/core/assets/new-workspace/",
     appPublic: resolveApp("public"),
     appHtml: resolveApp("public/index.html"),

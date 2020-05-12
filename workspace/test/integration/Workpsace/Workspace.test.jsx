@@ -7,7 +7,6 @@ import rootReducer from "../../../src/app/store/reducers";
 import { ConnectedRouter } from "connected-react-router";
 import qs from "qs";
 import { createBrowserHistory } from "history";
-import { waitFor } from "@testing-library/dom";
 import { render } from "@testing-library/react";
 import mockAxios from "../../__mocks__/axios";
 
