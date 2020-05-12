@@ -9,6 +9,7 @@ import qs from "qs";
 import { createBrowserHistory } from "history";
 import { render } from "@testing-library/react";
 import mockAxios from "../../__mocks__/axios";
+import { mount } from "enzyme";
 
 const createStore = (history = createBrowserHistory()) =>
     configureStore({
@@ -24,7 +25,7 @@ const getWrapper = (props = {}, h) => {
 
     const store = createStore(history);
 
-    return render(
+    return mount(
         <Provider store={store}>
             <ConnectedRouter history={history}>
                 <Workspace {...props} />
@@ -34,6 +35,7 @@ const getWrapper = (props = {}, h) => {
 };
 
 describe("Search Items", () => {
+    let hostPath = process.env.HOST;
     afterEach(() => {
         mockAxios.reset();
     });
@@ -58,7 +60,9 @@ describe("Search Items", () => {
 
         getWrapper({}, history);
 
-        const reqInfo = mockAxios.getReqMatching("/searchItems");
+        const reqInfo = mockAxios.getReqMatching({
+            url: hostPath + "/api/workspace/searchItems",
+        });
         expect(reqInfo.data).toEqual({
             textQuery: "some text",
             itemType: "dataset",
