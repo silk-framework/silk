@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ISortersState } from "@ducks/workspace/typings";
 import { Toolbar, ToolbarSection } from "@wrappers/index";
 import SearchInput from "./SearchInput";
@@ -11,10 +11,42 @@ interface IProps {
     onSort?(sortBy: string): void;
 
     onSearch(textQuery: string): void;
+    focusOnCreation?: boolean;
 }
 
-export function SearchBar({ textQuery = "", sorters, onSort, onSearch }: IProps) {
+export function SearchBar({ textQuery = "", sorters, onSort, onSearch, focusOnCreation = false }: IProps) {
     const [searchInput, setSearchInput] = useState(textQuery);
+
+    const searchBarRef = useRef(null);
+    const findInput = (element: any) => {
+        // TODO: hacky, but works, find better solution?
+        if (element.localName === "input") {
+            return element;
+        } else {
+            if (element.childNodes) {
+                let matchingChild = null;
+                Array.prototype.forEach.call(element.childNodes, (child) => {
+                    if (child.localName === "input" || child.localName === "div") {
+                        const recursiveResult = findInput(child);
+                        if (recursiveResult) {
+                            matchingChild = recursiveResult;
+                        }
+                    }
+                });
+                return matchingChild;
+            } else {
+                return null;
+            }
+        }
+    };
+    useEffect(() => {
+        if (searchBarRef !== null && searchBarRef.current !== null && focusOnCreation) {
+            const inputElem = findInput(searchBarRef.current);
+            if (inputElem) {
+                inputElem.focus();
+            }
+        }
+    }, []);
 
     useEffect(() => {
         setSearchInput(textQuery);
@@ -42,12 +74,14 @@ export function SearchBar({ textQuery = "", sorters, onSort, onSearch }: IProps)
     return (
         <Toolbar>
             <ToolbarSection canGrow>
-                <SearchInput
-                    onFilterChange={handleSearchChange}
-                    onEnter={handleSearchEnter}
-                    filterValue={searchInput}
-                    onClearanceHandler={onClearanceHandler}
-                />
+                <div ref={searchBarRef}>
+                    <SearchInput
+                        onFilterChange={handleSearchChange}
+                        onEnter={handleSearchEnter}
+                        filterValue={searchInput}
+                        onClearanceHandler={onClearanceHandler}
+                    />
+                </div>
             </ToolbarSection>
             <ToolbarSection>
                 {!!sorters && onSort && (

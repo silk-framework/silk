@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import {
@@ -27,6 +27,7 @@ import { TaskForm } from "./ArtefactForms/TaskForm";
 import ArtefactTypesList from "./ArtefactTypesList";
 import { DATA_TYPES } from "../../../../constants";
 import { Highlighter } from "../../Highlighter/Highlighter";
+import { find } from "ramda";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -159,7 +160,7 @@ export function CreateArtefactModal() {
                                     <ArtefactTypesList onSelect={handleSelectDType} />
                                 </GridColumn>
                                 <GridColumn>
-                                    <SearchBar onSearch={handleSearch} />
+                                    <SearchBar focusOnCreation={true} onSearch={handleSearch} />
                                     <Spacing />
                                     {loading ? (
                                         <Loading />
