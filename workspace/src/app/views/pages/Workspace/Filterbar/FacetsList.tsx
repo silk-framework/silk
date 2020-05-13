@@ -58,7 +58,7 @@ export default function FacetsList() {
                     <TitleSubsection>
                         <h3>
                             {facet.label}
-                            &nbsp;
+                            <Spacing size="tiny" vertical />
                             <Icon name="item-info" small tooltipText={facet.description} />
                         </h3>
                     </TitleSubsection>

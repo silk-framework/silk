@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ISortersState } from "@ducks/workspace/typings";
-import { Toolbar, ToolbarSection } from "@wrappers/index";
+import { Spacing, Toolbar, ToolbarSection } from "@wrappers/index";
 import SearchInput from "./SearchInput";
 import SortButton from "../buttons/SortButton";
 
@@ -50,6 +50,7 @@ export function SearchBar({ textQuery = "", sorters, onSort, onSearch }: IProps)
                 />
             </ToolbarSection>
             <ToolbarSection>
+                {!!sorters && onSort && <Spacing size="tiny" vertical />}
                 {!!sorters && onSort && (
                     <SortButton sortersList={sorters.list} onSort={onSort} activeSort={sorters.applied} />
                 )}

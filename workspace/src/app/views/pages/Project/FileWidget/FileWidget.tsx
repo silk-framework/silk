@@ -67,6 +67,7 @@ export const FileWidget = () => {
                                     <SearchField />
                                 </ToolbarSection>
                                 <ToolbarSection>
+                                    <Spacing size="tiny" vertical />
                                     <Button elevated text="Add file" onClick={toggleFileUploader} />
                                 </ToolbarSection>
                             </Toolbar>
