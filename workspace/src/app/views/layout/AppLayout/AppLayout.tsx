@@ -3,6 +3,11 @@ import { commonOp, commonSel } from "@ducks/common";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router";
 
+/**
+ * AppLayout includes all pages-components and provide
+ * the data which based on projectId and taskId
+ * @param children
+ */
 export function AppLayout({ children }) {
     const dispatch = useDispatch();
     const { projectId, taskId } = useParams();
@@ -26,5 +31,5 @@ export function AppLayout({ children }) {
         }
     }, [projectId, taskId]);
 
-    return <>{children}</>;
+    return { children };
 }
