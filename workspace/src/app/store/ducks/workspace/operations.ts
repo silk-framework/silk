@@ -14,7 +14,7 @@ import {
 } from "@ducks/workspace/widgets/configuration.thunk";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
-import { checkIfResourceExistsAsync, fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
+import { fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
 import { commonSel } from "@ducks/common";
 import {
     ISearchListRequest,
@@ -409,7 +409,6 @@ export default {
     fetchWarningListAsync,
     fetchWarningMarkdownAsync,
     fetchResourcesListAsync,
-    checkIfResourceExistsAsync,
     fetchCreateProjectAsync,
     fetchCreateTaskAsync,
     resetFilters,

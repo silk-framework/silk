@@ -8,6 +8,7 @@ import { FileUploadModal } from "../../FileUploadModal/FileUploadModal";
 import { Autocomplete } from "../../../Autocomplete/Autocomplete";
 import { sharedOp } from "@ducks/shared";
 import { AppToaster } from "../../../../../services/toaster";
+import { requestResourcesList } from "@ducks/shared/requests";
 
 export interface IProps {
     form: any;
@@ -16,6 +17,8 @@ export interface IProps {
 
     projectId: string;
 }
+
+const MAXLENGTH_TOOLTIP = 40;
 
 export function TaskForm({ form, projectId, artefact }: IProps) {
     const { properties, required, pluginId } = artefact;
@@ -100,13 +103,47 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
         }
     };
 
+    const handleFileSearch = async (input: string) => {
+        try {
+            return await requestResourcesList(projectId, {
+                searchText: input,
+            });
+        } catch (e) {
+            AppToaster.show({
+                message: e.detail,
+                intent: Intent.DANGER,
+                timeout: 0,
+            });
+        }
+    };
+
     const isFileInput = (type: string) => type === INPUT_TYPES.RESOURCE;
+
     const isAutocomplete = (property) => !!property.autoCompletion;
 
-    const MAXLENGTH_TOOLTIP = 40;
+    const uploaderOptions = {
+        advanced: true,
+        autocomplete: {
+            autoCompletion: {
+                allowOnlyAutoCompletedValues: true,
+                autoCompleteValueWithLabels: true,
+                autoCompletionDependsOnParameters: [],
+            },
+            onSearch: handleFileSearch,
+            itemRenderer: (item) => item.name,
+            onChange: handleChange(selectedFileField),
+        },
+    };
 
     return (
         <>
+            <FileUploadModal
+                isOpen={!!selectedFileField}
+                onDiscard={() => toggleFileUploader("")}
+                onUploaded={handleChange(selectedFileField)}
+                uploaderOptions={uploaderOptions}
+            />
+
             <form>
                 <FieldItem
                     key="label"
@@ -168,9 +205,9 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                         ) : isAutocomplete(properties[key]) ? (
                             <Autocomplete
                                 autoCompletion={properties[key].autoCompletion}
-                                onInputChange={handleAutoCompleteInput(key)}
+                                onSearch={handleAutoCompleteInput(key)}
                                 onChange={handleChange(key)}
-                                value={fieldValues[key]}
+                                initialValue={fieldValues[key]}
                             />
                         ) : (
                             <InputMapper
@@ -190,12 +227,6 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                     Debug: Console Form data
                 </button>
             </form>
-
-            <FileUploadModal
-                isOpen={!!selectedFileField}
-                onDiscard={() => toggleFileUploader("")}
-                onUploaded={handleChange(selectedFileField)}
-            />
         </>
     );
 }

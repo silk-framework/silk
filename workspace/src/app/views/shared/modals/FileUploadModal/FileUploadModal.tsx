@@ -3,10 +3,11 @@ import { Button, SimpleDialog } from "@wrappers/index";
 import AbortAlert from "./AbortAlert";
 import OverrideAlert from "./OverrideAlert";
 import FileUploader from "../../FileUploader";
-import { workspaceOp } from "@ducks/workspace";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
+import { IUploaderOptions } from "../../FileUploader/FileUploader";
+import { requestIfResourceExists } from "@ducks/workspace/requests";
 
 export interface IFileUploadModalProps {
     isOpen: boolean;
@@ -14,9 +15,11 @@ export interface IFileUploadModalProps {
     onDiscard(): void;
 
     onUploaded?(e: any): void;
+
+    uploaderOptions?: IUploaderOptions;
 }
 
-export function FileUploadModal({ isOpen, onDiscard, onUploaded }: IFileUploadModalProps) {
+export function FileUploadModal({ isOpen, onDiscard, onUploaded, uploaderOptions = {} }: IFileUploadModalProps) {
     const [fileUploaderInstance, setFileUploaderInstance] = useState<any>(null);
     const [isCheckingFile, setIsCheckingFile] = useState<boolean>(false);
     const [isUploading, setIsUploading] = useState<boolean>(false);
@@ -35,8 +38,13 @@ export function FileUploadModal({ isOpen, onDiscard, onUploaded }: IFileUploadMo
         setFileUploaderInstance(instance);
     };
 
-    const isResourceExists = (fileName: string) => {
-        return workspaceOp.checkIfResourceExistsAsync(fileName, projectId);
+    const isResourceExists = async (fileName: string) => {
+        try {
+            const res = await requestIfResourceExists(projectId, fileName);
+            return !!res.size;
+        } catch {
+            return false;
+        }
     };
 
     const resetFileDialog = () => {
@@ -58,11 +66,14 @@ export function FileUploadModal({ isOpen, onDiscard, onUploaded }: IFileUploadMo
     };
 
     const onFileAdded = async (result: File) => {
-        setIsCheckingFile(true);
-        const isExists = await isResourceExists(result.name);
-        setIsCheckingFile(false);
+        try {
+            setIsCheckingFile(true);
+            const isExists = await isResourceExists(result.name);
 
-        isExists ? setInvokeOverrideDialog(result) : upload(result);
+            isExists ? setInvokeOverrideDialog(result) : upload(result);
+        } finally {
+            setIsCheckingFile(false);
+        }
     };
 
     const handleDiscard = () => {
@@ -93,7 +104,12 @@ export function FileUploadModal({ isOpen, onDiscard, onUploaded }: IFileUploadMo
                     )
                 }
             >
-                <FileUploader getInstance={getUploaderInstance} onFileAdded={onFileAdded} disabled={isCheckingFile} />
+                <FileUploader
+                    getInstance={getUploaderInstance}
+                    onFileAdded={onFileAdded}
+                    loading={isCheckingFile}
+                    {...uploaderOptions}
+                />
             </SimpleDialog>
             <AbortAlert
                 isOpen={openAbortDialog}

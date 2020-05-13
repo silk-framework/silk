@@ -5,7 +5,6 @@ import { useDebugValue, useEffect, useState } from "react";
 import appRoutes from "../../../appRoutes";
 import { getFullRoutePath } from "../../../utils/routerUtils";
 import { IBreadcrumb } from "./Header";
-import { useTranslation } from "react-i18next";
 import { SERVE_PATH } from "../../../constants/path";
 
 export default function withBreadcrumbLabels(WrappedComponent) {
@@ -17,7 +16,7 @@ export default function withBreadcrumbLabels(WrappedComponent) {
     return function (props) {
         const location = useLocation<any>();
         const [breadcrumbs, setBreadcrumbs] = useState<IBreadcrumb[]>([]);
-        const [t] = useTranslation();
+        // const [t] = useTranslation();
 
         useEffect(() => {
             const match = appRoutes

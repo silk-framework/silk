@@ -1,6 +1,6 @@
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { commonSel } from "@ducks/common";
-import { requestIfResourceExists, requestResourcesList } from "@ducks/workspace/requests";
+import { requestResourcesList } from "@ducks/shared/requests";
 
 const { setFiles, setWidgetError, toggleWidgetLoading } = widgetsSlice.actions;
 
@@ -16,12 +16,12 @@ const setError = (e) => (dispatch) =>
         })
     );
 
-export const fetchResourcesListAsync = () => {
+export const fetchResourcesListAsync = (filters: any = {}) => {
     return async (dispatch, getState) => {
         const projectId = commonSel.currentProjectIdSelector(getState());
         try {
             dispatch(toggleLoading());
-            const data = await requestResourcesList(projectId);
+            const data = await requestResourcesList(projectId, filters);
             dispatch(setFiles(data));
         } catch (e) {
             dispatch(setError(e));
@@ -29,13 +29,4 @@ export const fetchResourcesListAsync = () => {
             dispatch(toggleLoading());
         }
     };
-};
-
-export const checkIfResourceExistsAsync = async (resourceName: string, projectId: string) => {
-    try {
-        const { data } = await requestIfResourceExists(projectId, resourceName);
-        return !!data.size;
-    } catch {
-        return false;
-    }
 };
