@@ -5,8 +5,11 @@ import { Highlighter } from "../Highlighter/Highlighter";
 
 interface IProps {
     autoCompletion: IPropertyAutocomplete;
+
     onInputChange(value: string): any;
+
     onChange(value: string);
+
     value?: string;
     items?: any[];
 }

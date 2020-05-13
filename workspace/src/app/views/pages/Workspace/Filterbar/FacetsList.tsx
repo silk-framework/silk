@@ -3,7 +3,7 @@ import { IFacetState } from "@ducks/workspace/typings";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import FacetItem from "./FacetItem";
-import { Button, HelperClasses, Icon, Spacing, TitleSubsection, Tooltip } from "@wrappers/index";
+import { Button, HelperClasses, Icon, Spacing, TitleSubsection } from "@wrappers/index";
 
 export default function FacetsList() {
     const dispatch = useDispatch();
@@ -58,12 +58,8 @@ export default function FacetsList() {
                     <TitleSubsection>
                         <h3>
                             {facet.label}
-                            &nbsp;
-                            <Tooltip content={facet.description}>
-                                <span>
-                                    <Icon name="item-info" small />
-                                </span>
-                            </Tooltip>
+                            <Spacing size="tiny" vertical />
+                            <Icon name="item-info" small tooltipText={facet.description} />
                         </h3>
                     </TitleSubsection>
                     <Spacing size="tiny" />

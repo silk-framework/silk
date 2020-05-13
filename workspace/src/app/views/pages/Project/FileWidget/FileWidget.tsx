@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, DataTable } from "carbon-components-react";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { Card, CardContent, CardHeader, CardTitle, Divider } from "@wrappers/index";
-import Loading from "../../../shared/Loading";
-import FileUploadModal from "../../../shared/modals/FileUploadModal";
-import { EmptyFileWidget } from "./EmptyFileWidget";
-
-const {
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    Divider,
     TableContainer,
     Table,
     TableHead,
@@ -15,10 +14,15 @@ const {
     TableBody,
     TableCell,
     TableHeader,
-    TableToolbar,
-    TableToolbarSearch,
-    TableToolbarContent,
-} = DataTable;
+    Toolbar,
+    ToolbarSection,
+    SearchField,
+    Button,
+    Spacing,
+} from "@wrappers/index";
+import Loading from "../../../shared/Loading";
+import FileUploadModal from "../../../shared/modals/FileUploadModal";
+import { EmptyFileWidget } from "./EmptyFileWidget";
 
 export const FileWidget = () => {
     const dispatch = useDispatch();
@@ -57,42 +61,38 @@ export const FileWidget = () => {
                     {isLoading ? (
                         <Loading />
                     ) : filesList.length ? (
-                        <DataTable
-                            rows={filesList}
-                            headers={headers}
-                            render={({ rows, headers, getHeaderProps }) => (
-                                <TableContainer>
-                                    <TableToolbar>
-                                        <TableToolbarContent>
-                                            <TableToolbarSearch />
-                                            <Button kind={"primary"} onClick={toggleFileUploader}>
-                                                + Add File
-                                            </Button>
-                                        </TableToolbarContent>
-                                    </TableToolbar>
-                                    <Table>
-                                        <TableHead>
-                                            <TableRow>
-                                                {headers.map((header) => (
-                                                    <TableHeader {...getHeaderProps({ header })}>
-                                                        {header.header}
-                                                    </TableHeader>
+                        <>
+                            <Toolbar>
+                                <ToolbarSection canGrow>
+                                    <SearchField />
+                                </ToolbarSection>
+                                <ToolbarSection>
+                                    <Spacing size="tiny" vertical />
+                                    <Button elevated text="Add file" onClick={toggleFileUploader} />
+                                </ToolbarSection>
+                            </Toolbar>
+                            <Spacing size="tiny" />
+                            <TableContainer>
+                                <Table>
+                                    <TableHead>
+                                        <TableRow>
+                                            {headers.map((property) => (
+                                                <TableHeader key={property.key}>{property.header}</TableHeader>
+                                            ))}
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {filesList.map((file) => (
+                                            <TableRow key={file.id}>
+                                                {headers.map((property) => (
+                                                    <TableCell key={property.key}>{file[property.key]}</TableCell>
                                                 ))}
                                             </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {rows.map((row) => (
-                                                <TableRow key={row.id}>
-                                                    {row.cells.map((cell) => (
-                                                        <TableCell key={cell.id}>{cell.value}</TableCell>
-                                                    ))}
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            )}
-                        />
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </>
                     ) : (
                         <EmptyFileWidget onFileAdd={toggleFileUploader} />
                     )}

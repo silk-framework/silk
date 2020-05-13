@@ -1,41 +1,41 @@
-import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
-import fetch from "../../../../services/fetch";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { commonSel } from "@ducks/common";
+import { requestIfResourceExists, requestResourcesList } from "@ducks/workspace/requests";
 
-const {setFiles, setWidgetError, toggleWidgetLoading} = widgetsSlice.actions;
+const { setFiles, setWidgetError, toggleWidgetLoading } = widgetsSlice.actions;
 
-const WIDGET_NAME = 'files';
+const WIDGET_NAME = "files";
 
-const toggleLoading = () => dispatch => dispatch(toggleWidgetLoading(WIDGET_NAME));
+const toggleLoading = () => (dispatch) => dispatch(toggleWidgetLoading(WIDGET_NAME));
 
-const setError = e => dispatch => dispatch(setWidgetError({
-    widgetName: WIDGET_NAME,
-    error: e
-}));
+const setError = (e) => (dispatch) =>
+    dispatch(
+        setWidgetError({
+            widgetName: WIDGET_NAME,
+            error: e,
+        })
+    );
 
 export const fetchResourcesListAsync = () => {
     return async (dispatch, getState) => {
         const projectId = commonSel.currentProjectIdSelector(getState());
-        const url = legacyApiEndpoint(`/projects/${projectId}/resources`);
         try {
             dispatch(toggleLoading());
-            const {data} = await fetch({url});
+            const data = await requestResourcesList(projectId);
             dispatch(setFiles(data));
-            dispatch(toggleLoading());
         } catch (e) {
-            dispatch(toggleLoading());
             dispatch(setError(e));
+        } finally {
+            dispatch(toggleLoading());
         }
     };
 };
 
 export const checkIfResourceExistsAsync = async (resourceName: string, projectId: string) => {
-        const url = legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/metadata`);
-        try {
-            const {data} = await fetch({url});
-            return !!data.size;
-        } catch {
-            return false;
-        }
+    try {
+        const { data } = await requestIfResourceExists(projectId, resourceName);
+        return !!data.size;
+    } catch {
+        return false;
+    }
 };

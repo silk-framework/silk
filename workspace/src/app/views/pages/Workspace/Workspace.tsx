@@ -9,7 +9,6 @@ import { useLocation, useParams } from "react-router";
 import Artefacts from "./Artefacts";
 import Project from "../Project/Project";
 import { routerSel } from "@ducks/router";
-import { commonOp } from "@ducks/common";
 import { Grid, GridColumn, GridRow } from "@wrappers/index";
 import { EmptyWorkspace } from "./EmptyWorkspace/EmptyWorkspace";
 
@@ -21,10 +20,6 @@ export function Workspace() {
 
     const location = useLocation();
     const { projectId } = useParams();
-
-    useEffect(() => {
-        dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
-    }, [projectId]);
 
     useEffect(() => {
         if (error.detail) {
@@ -48,7 +43,7 @@ export function Workspace() {
     }, [location.pathname, qs, dispatch]);
 
     if (projectId) {
-        return <Project projectId={projectId} />;
+        return <Project />;
     }
 
     return !isEmptyWorkspace ? (
