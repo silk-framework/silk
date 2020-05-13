@@ -19,7 +19,7 @@
 @import "~@blueprintjs/core/src/common/variables";
 @import "~@blueprintjs/core/src/common/colors";
 // currently not needed @import "~@blueprintjs/core/src/reset";
-// used in own component @import "~@blueprintjs/core/src/typography";
+// currently not needed @import "~@blueprintjs/core/src/typography";
 @import "~@blueprintjs/core/src/accessibility/focus-states";
 // load blueprintjs components
 // currently not needed @import "~@blueprintjs/core/src/components/alert/alert";
@@ -36,7 +36,7 @@
 @import "~@blueprintjs/core/src/components/editable-text/editable-text";
 // used in own component @import "~@blueprintjs/core/src/components/forms/index";
 @import "~@blueprintjs/core/src/components/html-select/html-select";
-@import "~@blueprintjs/core/src/components/html-table/html-table";
+// currently not needed @import "~@blueprintjs/core/src/components/html-table/html-table";
 @import "~@blueprintjs/core/src/components/hotkeys/hotkeys";
 // not used @import "~@blueprintjs/core/src/components/icon/icon";
 // used in own component @import "~@blueprintjs/core/src/components/menu/menu";
@@ -102,7 +102,7 @@
 // used in own component @import "~carbon-components/scss/components/link/link";
 @import "~carbon-components/scss/components/list-box/list-box";
 @import "~carbon-components/scss/components/list/list";
-@import "~carbon-components/scss/components/data-table/data-table";
+// used in own component @import "~carbon-components/scss/components/data-table/data-table";
 // not used @import '~carbon-components/scss/components/structured-list/structured-list';
 @import "~carbon-components/scss/components/code-snippet/code-snippet";
 @import "~carbon-components/scss/components/overflow-menu/overflow-menu";
@@ -143,6 +143,7 @@
 @import "src/components/Icon/icon";
 @import "src/components/Menu/menu";
 @import "src/components/ContextOverlay/contextoverlay";
+@import "src/components/SimpleTable/simpletable";
 @import "src/components/OverviewItem/overviewitem";
 @import "src/components/Breadcrumb/breadcrumb";
 @import "src/components/Dialog/dialog";

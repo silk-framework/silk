@@ -61,6 +61,16 @@ import {
     OverviewItemList,
 } from "./src/components/OverviewItem";
 
+import {
+    TableContainer,
+    Table,
+    TableHead,
+    TableRow,
+    TableBody,
+    TableCell,
+    TableHeader,
+} from "./src/components/SimpleTable";
+
 import BreadcrumbList from "./src/components/Breadcrumb/BreadcrumbList";
 import BreadcrumbItem from "./src/components/Breadcrumb/BreadcrumbItem";
 
@@ -134,6 +144,13 @@ export {
     OverviewItemLine,
     OverviewItemActions,
     OverviewItemList,
+    TableContainer,
+    Table,
+    TableHead,
+    TableRow,
+    TableBody,
+    TableCell,
+    TableHeader,
     Icon,
     IconButton,
     Label,
