@@ -45,6 +45,7 @@ const Artefacts = () => {
                                 </GridColumn>
                                 <GridColumn full>
                                     <SearchBar
+                                        focusOnCreation={true}
                                         textQuery={textQuery}
                                         sorters={sorters}
                                         onSort={handleSort}
