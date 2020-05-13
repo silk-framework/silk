@@ -102,6 +102,9 @@ import TitlePage from "./src/components/Structure/TitlePage";
 import TitleMainsection from "./src/components/Structure/TitleMainsection";
 import TitleSubsection from "./src/components/Structure/TitleSubsection";
 
+import Accordion from "./src/components/Accordion/Accordion";
+import AccordionItem from "./src/components/Accordion/AccordionItem";
+
 import Link from "./src/components/Link/Link";
 
 import { PropertyName, PropertyValue, PropertyValuePair, PropertyValueList } from "./src/components/PropertyValuePair";
@@ -184,6 +187,8 @@ export {
     TitlePage,
     TitleMainsection,
     TitleSubsection,
+    Accordion,
+    AccordionItem,
     Toolbar,
     ToolbarSection,
     Tag,
@@ -197,6 +202,6 @@ export {
     PropertyValueList,
     Toast,
     HelperClasses,
-    Select,
-    Suggest,
+    Select, // TODO: include as own element
+    Suggest, // TODO: include as own element
 };

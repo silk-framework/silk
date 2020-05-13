@@ -118,7 +118,7 @@
 @import "~carbon-components/scss/components/tabs/tabs";
 // not used @import '~carbon-components/scss/components/tag/tag';
 // used in own component @import '~carbon-components/scss/components/pagination/pagination';
-@import "~carbon-components/scss/components/accordion/accordion";
+// used in own component @import "~carbon-components/scss/components/accordion/accordion";
 @import "~carbon-components/scss/components/progress-indicator/progress-indicator";
 // not used @import '~carbon-components/scss/components/breadcrumb/breadcrumb';
 @import "~carbon-components/scss/components/toolbar/toolbar";
@@ -151,6 +151,7 @@
 @import "src/components/Separation/separation";
 @import "src/components/Tooltip/tooltip";
 @import "src/components/Structure/titles";
+@import "src/components/Accordion/accordion";
 @import "src/components/Label/label";
 @import "src/components/Button/button";
 @import "src/components/Form/form";
