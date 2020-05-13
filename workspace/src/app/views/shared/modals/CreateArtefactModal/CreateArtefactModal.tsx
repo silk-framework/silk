@@ -130,6 +130,26 @@ export function CreateArtefactModal() {
         }
     }
 
+    const showProjectItem = searchValue
+        .trim()
+        .toLowerCase()
+        .split(/\s+/)
+        .every((searchWord) => "project".includes(searchWord));
+
+    let artefactListWithProject = artefactsList;
+    if (showProjectItem) {
+        artefactListWithProject = [
+            {
+                key: DATA_TYPES.PROJECT,
+                title: "Project",
+                description:
+                    "Projects let you group related items. All items that " +
+                    "depend on each other need to be in the same project.",
+            },
+            ...artefactsList,
+        ];
+    }
+
     return (
         <SimpleDialog
             size="large"
@@ -184,68 +204,42 @@ export function CreateArtefactModal() {
                                         <Loading />
                                     ) : (
                                         <OverviewItemList hasSpacing columns={2}>
-                                            <Card
-                                                isOnlyLayout
-                                                className={
-                                                    selected.key === DATA_TYPES.PROJECT
-                                                        ? HelperClasses.Intent.ACCENT
-                                                        : ""
-                                                }
-                                            >
-                                                <OverviewItem
-                                                    hasSpacing
-                                                    onClick={() => handleArtefactSelect({ key: DATA_TYPES.PROJECT })}
+                                            {artefactListWithProject.map((artefact) => (
+                                                <Card
+                                                    isOnlyLayout
+                                                    key={artefact.key}
+                                                    className={
+                                                        selected.key === artefact.key ? HelperClasses.Intent.ACCENT : ""
+                                                    }
                                                 >
-                                                    <OverviewItemDepiction>
-                                                        <Icon name="artefact-project" large />
-                                                    </OverviewItemDepiction>
-                                                    <OverviewItemDescription>
-                                                        <OverviewItemLine>
-                                                            <strong>Project</strong>
-                                                        </OverviewItemLine>
-                                                        <OverviewItemLine small>
-                                                            <p>
-                                                                Projects let you group related items. All items that
-                                                                depend on each other need to be in the same project.
-                                                            </p>
-                                                        </OverviewItemLine>
-                                                    </OverviewItemDescription>
-                                                </OverviewItem>
-                                            </Card>
-                                            {projectId &&
-                                                artefactsList.map((artefact) => (
-                                                    <Card
-                                                        isOnlyLayout
-                                                        key={artefact.key}
-                                                        className={
-                                                            selected.key === artefact.key
-                                                                ? HelperClasses.Intent.ACCENT
-                                                                : ""
-                                                        }
+                                                    <OverviewItem
+                                                        hasSpacing
+                                                        onClick={() => handleArtefactSelect(artefact)}
                                                     >
-                                                        <OverviewItem
-                                                            hasSpacing
-                                                            onClick={() => handleArtefactSelect(artefact)}
-                                                        >
-                                                            <OverviewItemDepiction>
-                                                                <Icon name={"artefact-" + artefact.key} large />
-                                                            </OverviewItemDepiction>
-                                                            <OverviewItemDescription>
-                                                                <OverviewItemLine>
-                                                                    <strong>
-                                                                        <Highlighter
-                                                                            label={artefact.title}
-                                                                            searchValue={searchValue}
-                                                                        />
-                                                                    </strong>
-                                                                </OverviewItemLine>
-                                                                <OverviewItemLine small>
-                                                                    <p>{artefact.description}</p>
-                                                                </OverviewItemLine>
-                                                            </OverviewItemDescription>
-                                                        </OverviewItem>
-                                                    </Card>
-                                                ))}
+                                                        <OverviewItemDepiction>
+                                                            <Icon name={"artefact-" + artefact.key} large />
+                                                        </OverviewItemDepiction>
+                                                        <OverviewItemDescription>
+                                                            <OverviewItemLine>
+                                                                <strong>
+                                                                    <Highlighter
+                                                                        label={artefact.title}
+                                                                        searchValue={searchValue}
+                                                                    />
+                                                                </strong>
+                                                            </OverviewItemLine>
+                                                            <OverviewItemLine small>
+                                                                <p>
+                                                                    <Highlighter
+                                                                        label={artefact.description}
+                                                                        searchValue={searchValue}
+                                                                    />
+                                                                </p>
+                                                            </OverviewItemLine>
+                                                        </OverviewItemDescription>
+                                                    </OverviewItem>
+                                                </Card>
+                                            ))}
                                         </OverviewItemList>
                                     )}
                                 </GridColumn>
