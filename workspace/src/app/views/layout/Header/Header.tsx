@@ -27,7 +27,7 @@ import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
 import withBreadcrumbLabels from "./withBreadcrumbLabels";
 import { Helmet } from "react-helmet";
-import { COMPANY_NAME } from "../../../constants";
+import { APPLICATION_SUITE_NAME } from "../../../constants";
 import { useLocation, useParams } from "react-router";
 
 interface IProps {
@@ -50,8 +50,9 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
 
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const taskId = useSelector(commonSel.currentTaskIdSelector);
+    const startTitle = `Build — ${APPLICATION_SUITE_NAME}`;
 
-    const [windowTitle, setWindowTitle] = useState<string>("Build");
+    const [windowTitle, setWindowTitle] = useState<string>(startTitle);
 
     const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
 
@@ -65,14 +66,14 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
 
     const getWindowTitle = (projectId) => {
         // $title ($artefactLabel) at $breadcrumbsWithoutTitle — $companyName $applicationTitle
-        let fullTitle = "Build";
+        let fullTitle = startTitle;
 
         if (lastBreadcrumb && projectId) {
             // when projectId is provided
             const breadcrumbWithoutTitle = breadcrumbs
                 .slice(0, breadcrumbs.length - 1)
                 .map((o) => o.text)
-                .join("/");
+                .join(" / ");
 
             // select datatype from the url /projectId/type/taskId pattern
             const paths = location.pathname.split("/");
@@ -83,7 +84,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
             if (paths[projectInd + 1]) {
                 datasetType = paths[projectInd + 1];
             }
-            fullTitle = `${lastBreadcrumb.text} (${datasetType}) at ${breadcrumbWithoutTitle} — ${COMPANY_NAME}`;
+            fullTitle = `${lastBreadcrumb.text} (${datasetType}) at ${breadcrumbWithoutTitle} – ${APPLICATION_SUITE_NAME}`;
         }
         setWindowTitle(fullTitle);
     };

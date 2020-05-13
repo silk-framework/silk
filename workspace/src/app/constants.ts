@@ -1,7 +1,7 @@
 // @ts-ignore
 const { DI = {} } = window;
 
-export const COMPANY_NAME = "eccenca Corporate Memory";
+export const APPLICATION_SUITE_NAME = "eccenca Corporate Memory";
 
 export const BASE_PATH = DI.basePath || "";
 export const SERVE_PATH = BASE_PATH + "/workspaceNew";
