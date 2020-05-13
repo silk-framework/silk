@@ -17,37 +17,6 @@ interface IProps {
 export function SearchBar({ textQuery = "", sorters, onSort, onSearch, focusOnCreation = false }: IProps) {
     const [searchInput, setSearchInput] = useState(textQuery);
 
-    const searchBarRef = useRef(null);
-    const findInput = (element: any) => {
-        // TODO: hacky, but works, find better solution?
-        if (element.localName === "input") {
-            return element;
-        } else {
-            if (element.childNodes) {
-                let matchingChild = null;
-                Array.prototype.forEach.call(element.childNodes, (child) => {
-                    if (child.localName === "input" || child.localName === "div") {
-                        const recursiveResult = findInput(child);
-                        if (recursiveResult) {
-                            matchingChild = recursiveResult;
-                        }
-                    }
-                });
-                return matchingChild;
-            } else {
-                return null;
-            }
-        }
-    };
-    useEffect(() => {
-        if (searchBarRef !== null && searchBarRef.current !== null && focusOnCreation) {
-            const inputElem = findInput(searchBarRef.current);
-            if (inputElem) {
-                inputElem.focus();
-            }
-        }
-    }, []);
-
     useEffect(() => {
         setSearchInput(textQuery);
     }, [textQuery]);
@@ -74,14 +43,13 @@ export function SearchBar({ textQuery = "", sorters, onSort, onSearch, focusOnCr
     return (
         <Toolbar>
             <ToolbarSection canGrow>
-                <div ref={searchBarRef}>
-                    <SearchInput
-                        onFilterChange={handleSearchChange}
-                        onEnter={handleSearchEnter}
-                        filterValue={searchInput}
-                        onClearanceHandler={onClearanceHandler}
-                    />
-                </div>
+                <SearchInput
+                    focusOnCreation
+                    onFilterChange={handleSearchChange}
+                    onEnter={handleSearchEnter}
+                    filterValue={searchInput}
+                    onClearanceHandler={onClearanceHandler}
+                />
             </ToolbarSection>
             <ToolbarSection>
                 {!!sorters && onSort && <Spacing size="tiny" vertical />}

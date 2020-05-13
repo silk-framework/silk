@@ -18,6 +18,7 @@ const SearchInput = ({
     onBlur = () => {},
     onClearanceHandler = () => {},
     emptySearchInputMessage = "Enter search term",
+    focusOnCreation,
 }) => {
     const handleKeyDown = (e) => {
         if (e.key === "Enter") {
@@ -27,6 +28,7 @@ const SearchInput = ({
 
     return (
         <SearchField
+            autoFocus={focusOnCreation}
             onChange={onFilterChange}
             onBlur={onBlur}
             onKeyDown={handleKeyDown}
