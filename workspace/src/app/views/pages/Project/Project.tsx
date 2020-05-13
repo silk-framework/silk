@@ -60,7 +60,6 @@ const Project = () => {
                                 </GridColumn>
                                 <GridColumn full>
                                     <SearchBar
-                                        focusOnCreation={true}
                                         textQuery={textQuery}
                                         sorters={sorters}
                                         onSort={handleSort}
