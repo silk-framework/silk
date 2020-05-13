@@ -4,6 +4,7 @@ import { Intent } from "@wrappers/blueprint/constants";
 import { INPUT_TYPES } from "../../../../../constants";
 import { FieldItem, TextArea, TextField } from "@wrappers/index";
 import { FileUploadModal } from "../../FileUploadModal/FileUploadModal";
+import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import { ParameterWidget } from "./ParameterWidget";
 
 export interface IProps {
@@ -118,21 +119,23 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                         onChange={handleChange(key)}
                     />
                 ))}
-                <div className={"advanced"}>
-                    {advancedParams.map(([key, param]) => (
-                        <ParameterWidget
-                            key={key}
-                            projectId={projectId}
-                            pluginId={artefact.pluginId}
-                            paramId={key}
-                            required={required.includes(key)}
-                            propertyDetails={properties[key]}
-                            onFileUploadClick={() => toggleFileUploader(key)}
-                            formHooks={formHooks}
-                            onChange={handleChange(key)}
-                        />
-                    ))}
-                </div>
+                {advancedParams.length > 0 && (
+                    <AdvancedOptionsArea>
+                        {advancedParams.map(([key, param]) => (
+                            <ParameterWidget
+                                key={key}
+                                projectId={projectId}
+                                pluginId={artefact.pluginId}
+                                paramId={key}
+                                required={required.includes(key)}
+                                propertyDetails={properties[key]}
+                                onFileUploadClick={() => toggleFileUploader(key)}
+                                formHooks={formHooks}
+                                onChange={handleChange(key)}
+                            />
+                        ))}
+                    </AdvancedOptionsArea>
+                )}
                 <button type="button" onClick={() => console.log(getValues(), errors)}>
                     Debug: Console Form data
                 </button>
