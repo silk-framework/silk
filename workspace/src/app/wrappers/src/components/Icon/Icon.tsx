@@ -49,7 +49,7 @@ function Icon({
     const icon = <CarbonIcon {...restProps} {...sizeConfig} className={"ecc-icon " + className} />;
     return tooltipText ? (
         <Tooltip content={tooltipText} hoverOpenDelay={tooltipOpenDelay}>
-            {icon}
+            <span>{icon}</span>
         </Tooltip>
     ) : (
         icon
