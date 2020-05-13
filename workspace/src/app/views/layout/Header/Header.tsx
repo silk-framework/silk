@@ -27,8 +27,8 @@ import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
 import withBreadcrumbLabels from "./withBreadcrumbLabels";
 import { Helmet } from "react-helmet";
-import { COMPANY_NAME } from "../../../constants";
 import { useLocation, useParams } from "react-router";
+import { APPLICATION_NAME, COMPANY_NAME } from "../../../constants/base";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];
@@ -103,7 +103,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                     isActive={isApplicationSidebarExpanded}
                 />
             )}
-            {iFrameDetection && <ApplicationTitle prefix="eccenca">DataIntegration</ApplicationTitle>}
+            {iFrameDetection && <ApplicationTitle prefix="eccenca">{APPLICATION_NAME}</ApplicationTitle>}
             <WorkspaceHeader>
                 <Helmet>
                     <title>{windowTitle}</title>

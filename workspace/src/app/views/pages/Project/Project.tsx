@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { commonOp, commonSel } from "@ducks/common";
+import React from "react";
+import { commonSel } from "@ducks/common";
 import { useDispatch, useSelector } from "react-redux";
 import Filterbar from "../Workspace/Filterbar";
 import Metadata from "../../shared/Metadata";

@@ -9,7 +9,6 @@ import { useLocation, useParams } from "react-router";
 import Artefacts from "./Artefacts";
 import Project from "../Project/Project";
 import { routerSel } from "@ducks/router";
-import { commonOp } from "@ducks/common";
 import { Grid, GridColumn, GridRow } from "@wrappers/index";
 import { EmptyWorkspace } from "./EmptyWorkspace/EmptyWorkspace";
 

@@ -1,12 +1,12 @@
-import rootReducer from './reducers';
+import rootReducer from "./reducers";
 import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
-import { createBrowserHistory } from 'history';
+import { createBrowserHistory } from "history";
 import { routerMiddleware } from "connected-react-router";
-import { createLogger } from 'redux-logger'
-import { isDevelopment } from "../constants";
+import { createLogger } from "redux-logger";
 import monitorReducerEnhancer from "./enhancers/monitorPerformanceEnhancer";
 import storeDevEnhancer from "./enhancers/reduxDevEnhancer";
 import React from "react";
+import { isDevelopment } from "../constants/path";
 
 let store;
 let history = createBrowserHistory();
@@ -23,7 +23,7 @@ export default function (options: any = {}) {
         routerMiddleware(getHistory()),
     ];
     if (isDevelopment) {
-        const {enableStoreDevUtils, monitorPerformance, logReduxActions, logUselessRenders} = options;
+        const { enableStoreDevUtils, monitorPerformance, logReduxActions, logUselessRenders } = options;
         // Enable redux development actions, e.g. reset store
         if (enableStoreDevUtils) {
             enhancers.push(storeDevEnhancer);
@@ -34,14 +34,14 @@ export default function (options: any = {}) {
         }
         if (logReduxActions) {
             const logger = createLogger({
-                collapsed: true
+                collapsed: true,
             });
             middleware.push(logger);
         }
 
         if (logUselessRenders) {
             try {
-                const whyDidYouRender = require('@welldone-software/why-did-you-render');
+                const whyDidYouRender = require("@welldone-software/why-did-you-render");
                 whyDidYouRender(React, {
                     trackHooks: true,
                     trackAllPureComponents: true,
@@ -49,7 +49,7 @@ export default function (options: any = {}) {
                     titleColor: "green",
                     exclude: [/^Blueprint/],
                     diffNameColor: "darkturquoise",
-                    diffPathColor: "goldenrod"
+                    diffPathColor: "goldenrod",
                 });
             } catch (e) {
                 console.log(e);
@@ -61,10 +61,8 @@ export default function (options: any = {}) {
         reducer: rootReducer(getHistory()),
         middleware,
         devTools: isDevelopment,
-        enhancers
+        enhancers,
     });
-
 
     return store;
 }
-
