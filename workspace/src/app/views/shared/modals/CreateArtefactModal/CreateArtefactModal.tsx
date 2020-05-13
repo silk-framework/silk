@@ -178,7 +178,7 @@ export function CreateArtefactModal() {
                                     <ArtefactTypesList onSelect={handleSelectDType} />
                                 </GridColumn>
                                 <GridColumn>
-                                    <SearchBar focusOnCreation={false} onSearch={handleSearch} />
+                                    <SearchBar focusOnCreation={true} onSearch={handleSearch} />
                                     <Spacing />
                                     {loading ? (
                                         <Loading />
