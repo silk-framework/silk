@@ -28,7 +28,7 @@ import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/Cre
 import withBreadcrumbLabels from "./withBreadcrumbLabels";
 import { Helmet } from "react-helmet";
 import { useLocation } from "react-router";
-import { APPLICATION_NAME, COMPANY_NAME } from "../../../constants/base";
+import { APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];

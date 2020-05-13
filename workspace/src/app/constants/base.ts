@@ -1,4 +1,4 @@
-export const COMPANY_NAME = "eccenca Corporate Memory";
+export const APPLICATION_SUITE_NAME = "eccenca Corporate Memory";
 
 export const APPLICATION_NAME = "DataIntegration";
 
