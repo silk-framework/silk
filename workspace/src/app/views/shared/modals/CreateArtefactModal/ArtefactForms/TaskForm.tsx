@@ -1,13 +1,10 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { IDetailedArtefactItem, ITaskParameter } from "@ducks/common/typings";
+import { IArtefactItemProperty, IDetailedArtefactItem } from "@ducks/common/typings";
 import { Intent } from "@wrappers/blueprint/constants";
 import { INPUT_TYPES } from "../../../../../constants";
-import { InputMapper } from "./InputMapper";
-import { Button, FieldItem, TextArea, TextField } from "@wrappers/index";
+import { FieldItem, TextArea, TextField } from "@wrappers/index";
 import { FileUploadModal } from "../../FileUploadModal/FileUploadModal";
-import { Autocomplete } from "../../../Autocomplete/Autocomplete";
-import { sharedOp } from "@ducks/shared";
-import { AppToaster } from "../../../../../services/toaster";
+import { ParameterWidget } from "./ParameterWidget";
 
 export interface IProps {
     form: any;
@@ -17,14 +14,25 @@ export interface IProps {
     projectId: string;
 }
 
+/** Converts the default value to a JS value */
+export const defaultValueAsJs = function (property: IArtefactItemProperty): any {
+    let value: any = property.value || "";
+
+    if (property.type === INPUT_TYPES.BOOLEAN) {
+        // cast to boolean from string
+        value = property.value === "true";
+    }
+
+    if (property.type === INPUT_TYPES.INTEGER) {
+        value = +property.value;
+    }
+    return value;
+};
+
 export function TaskForm({ form, projectId, artefact }: IProps) {
-    const { properties, required, pluginId } = artefact;
-
+    const { properties, required } = artefact;
     const [selectedFileField, setSelectedFileField] = useState<string>("");
-    const [fieldValues, setFieldValues] = useState<any>({});
-
     const { register, errors, getValues, setValue, unregister } = form;
-
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
 
     useEffect(() => {
@@ -33,24 +41,13 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
         register({ name: "description" });
 
         visibleParams.forEach(([key, property]) => {
-            let value: any = property.value || "";
-
-            if (property.type === INPUT_TYPES.BOOLEAN) {
-                // cast to boolean from string
-                value = property.value === "true";
-            }
-
-            if (property.type === INPUT_TYPES.INTEGER) {
-                value = +property.value;
-            }
+            let value = defaultValueAsJs(property);
 
             register({ name: key }, { required: required.includes(key) });
             setValue(key, value);
 
             values[key] = value;
         });
-
-        setFieldValues(values);
 
         // Unsubscribe
         return () => {
@@ -66,10 +63,6 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
             const value = e.target ? e.target.value : e;
 
             setValue(key, value);
-            setFieldValues({
-                ...fieldValues,
-                [key]: value,
-            });
             triggerValidation(key);
         },
         []
@@ -79,69 +72,9 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
         setSelectedFileField(fieldName);
     };
 
-    const handleAutoCompleteInput = (key: string) => async (input = "") => {
-        try {
-            const { autoCompletion } = properties[key];
-
-            const list = await sharedOp.getAutocompleteResultsAsync({
-                pluginId,
-                parameterId: key,
-                projectId,
-                dependsOnParameterValues: autoCompletion.autoCompletionDependsOnParameters,
-                textQuery: input,
-            });
-
-            return list;
-        } catch (e) {
-            AppToaster.show({
-                message: e.detail,
-                intent: Intent.DANGER,
-                timeout: 0,
-            });
-        }
-    };
-
-    const isFileInput = (type: string) => type === INPUT_TYPES.RESOURCE;
-    const isAutocomplete = (property) => !!property.autoCompletion;
-
-    const MAXLENGTH_TOOLTIP = 40;
-
-    const ParameterWidget = ({ paramId, param }: ITaskParameter) => {
-        return (
-            <FieldItem
-                labelAttributes={{
-                    text: param.title,
-                    info: required.includes(paramId) ? "required" : "",
-                    htmlFor: paramId,
-                    tooltip:
-                        param.description && param.description.length <= MAXLENGTH_TOOLTIP ? param.description : "",
-                }}
-                helperText={param.description && param.description.length > MAXLENGTH_TOOLTIP ? param.description : ""}
-                messageText={errors[paramId] ? param.title + " not specified" : ""}
-                hasStateDanger={errors[paramId]}
-            >
-                {isFileInput(param.parameterType) ? (
-                    <Button onClick={() => toggleFileUploader(paramId)}>Upload new {param.title}</Button>
-                ) : isAutocomplete(param) ? (
-                    <Autocomplete
-                        autoCompletion={param.autoCompletion}
-                        onInputChange={handleAutoCompleteInput(paramId)}
-                        onChange={handleChange(paramId)}
-                        value={fieldValues[paramId]}
-                    />
-                ) : (
-                    <InputMapper
-                        parameter={{ paramId: paramId, param: param }}
-                        onChange={handleChange(paramId)}
-                        intent={errors[paramId] ? Intent.DANGER : Intent.NONE}
-                    />
-                )}
-            </FieldItem>
-        );
-    };
-
     const normalParams = visibleParams.filter(([k, param]) => !param.advanced);
     const advancedParams = visibleParams.filter(([k, param]) => param.advanced);
+    const formHooks = { errors };
 
     return (
         <>
@@ -172,11 +105,31 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                 </FieldItem>
 
                 {normalParams.map(([key, param]) => (
-                    <ParameterWidget key={key} paramId={key} param={param} />
+                    <ParameterWidget
+                        key={key}
+                        projectId={projectId}
+                        pluginId={artefact.pluginId}
+                        paramId={key}
+                        required={required.includes(key)}
+                        propertyDetails={properties[key]}
+                        onFileUploadClick={() => toggleFileUploader(key)}
+                        formHooks={formHooks}
+                        onChange={handleChange(key)}
+                    />
                 ))}
                 <div className={"advanced"}>
                     {advancedParams.map(([key, param]) => (
-                        <ParameterWidget key={key} paramId={key} param={param} />
+                        <ParameterWidget
+                            key={key}
+                            projectId={projectId}
+                            pluginId={artefact.pluginId}
+                            paramId={key}
+                            required={required.includes(key)}
+                            propertyDetails={properties[key]}
+                            onFileUploadClick={() => toggleFileUploader(key)}
+                            formHooks={formHooks}
+                            onChange={handleChange(key)}
+                        />
                     ))}
                 </div>
                 <button type="button" onClick={() => console.log(getValues(), errors)}>

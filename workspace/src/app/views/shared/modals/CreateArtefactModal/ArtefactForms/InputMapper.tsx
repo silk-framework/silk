@@ -4,23 +4,37 @@ import { NumericInput, Switch, TextField, TextArea } from "@wrappers/index";
 import { QueryEditor } from "../../../QueryEditor/QueryEditor";
 import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";
+import { defaultValueAsJs } from "./TaskForm";
 
 interface IInputMapper {
     parameter: ITaskParameter;
-    onChange: (e: any) => void;
     // Blueprint intent
     intent: Intent;
+    onChange: (value) => void;
 }
 
-export function InputMapper({ parameter, onChange, intent }: IInputMapper) {
+interface IInputAttributes {
+    id: string;
+    name: string;
+    intent: Intent;
+    onChange: (value) => void;
+    value?: any;
+    defaultValue?: any;
+}
+
+export function InputMapper({ parameter, intent, onChange }: IInputMapper) {
     const { paramId, param } = parameter;
-    const inputAttributes = {
+    const inputAttributes: IInputAttributes = {
         id: paramId,
-        name: param.title || paramId,
-        onChange: onChange,
-        value: param.value,
+        name: paramId,
         intent: intent,
+        onChange: onChange,
     };
+    if (param.parameterType === INPUT_TYPES.INTEGER) {
+        inputAttributes.value = defaultValueAsJs(param);
+    } else {
+        inputAttributes.defaultValue = defaultValueAsJs(param);
+    }
 
     if (param.type === "object") {
         return <TextField {...inputAttributes} />;

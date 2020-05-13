@@ -63,7 +63,7 @@ export function Autocomplete(props: IProps) {
                 disabled={modifiers.disabled}
                 key={item.value}
                 onClick={handleClick}
-                text={<Highlighter label={item.label || item.id} searchValue={query} />}
+                text={<Highlighter label={item.label || item.value} searchValue={query} />}
             />
         );
     };
@@ -71,7 +71,7 @@ export function Autocomplete(props: IProps) {
     return (
         <SuggestAutocomplete
             items={filtered}
-            inputValueRenderer={(item) => item.label}
+            inputValueRenderer={(item) => item.label || item.value}
             itemRenderer={optionRenderer}
             itemsEqual={areEqualItems}
             noResults={<MenuItem disabled={true} text="No results." />}
