@@ -18,6 +18,12 @@ const rootReducers = {
     unsetProject(state) {
         state.currentProjectId = null;
     },
+    setTaskId(state, action) {
+        state.currentTaskId = action.payload;
+    },
+    unsetTaskId(state) {
+        state.currentTaskId = null;
+    },
     setError(state, action) {
         state.error = action.payload;
     },

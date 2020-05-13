@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import {
@@ -17,7 +17,6 @@ import {
 import Filterbar from "./Filterbar";
 import SearchList from "../../shared/SearchList";
 import SearchBar from "../../shared/SearchBar";
-import { commonOp } from "@ducks/common";
 
 const Artefacts = () => {
     const dispatch = useDispatch();
@@ -25,10 +24,6 @@ const Artefacts = () => {
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
     const error = useSelector(workspaceSel.errorSelector);
-
-    useEffect(() => {
-        dispatch(commonOp.unsetProject());
-    }, []);
 
     const handleSort = (sortBy: string) => {
         dispatch(workspaceOp.applySorterOp(sortBy));

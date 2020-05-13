@@ -4,9 +4,9 @@ import { sharedOp } from "@ducks/shared";
 import { useDebugValue, useEffect, useState } from "react";
 import appRoutes from "../../../appRoutes";
 import { getFullRoutePath } from "../../../utils/routerUtils";
-import { SERVE_PATH } from "../../../constants";
 import { IBreadcrumb } from "./Header";
 import { useTranslation } from "react-i18next";
+import { SERVE_PATH } from "../../../constants/path";
 
 export default function withBreadcrumbLabels(WrappedComponent) {
     // Valid breadcrumb IDs
