@@ -20,6 +20,7 @@ interface IInputAttributes {
     onChange: (value) => void;
     value?: any;
     defaultValue?: any;
+    inputRef?: (e) => void;
 }
 
 export function InputMapper({ parameter, intent, onChange }: IInputMapper) {
@@ -32,6 +33,13 @@ export function InputMapper({ parameter, intent, onChange }: IInputMapper) {
     };
     if (param.parameterType === INPUT_TYPES.INTEGER) {
         inputAttributes.value = defaultValueAsJs(param);
+        // NumericInput does not support onChange, see https://github.com/palantir/blueprint/issues/3943
+        inputAttributes.inputRef = (inputElement) => {
+            // FIXME: Change as soon as NumericInput supports onChange
+            if (inputElement) {
+                inputElement.onchange = onChange;
+            }
+        };
     } else {
         inputAttributes.defaultValue = defaultValueAsJs(param);
     }
