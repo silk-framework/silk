@@ -22,7 +22,6 @@ export function AppLayout({ children }: IProps) {
         if (projectId) {
             // Fetch the list of projects
             dispatch(commonOp.setProjectId(projectId));
-            dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
         } else if (currentProjectId) {
             dispatch(commonOp.unsetProject());
         }
@@ -32,6 +31,8 @@ export function AppLayout({ children }: IProps) {
         } else if (currentTaskId) {
             dispatch(commonOp.unsetTaskId());
         }
+
+        dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
     }, [projectId, taskId]);
 
     return <>{children}</>;
