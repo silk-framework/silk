@@ -1,0 +1,56 @@
+.ecc-propertyvalue__list {
+    display: block;
+}
+
+.ecc-propertyvalue__pair {
+    display: block;
+    clear: both;
+
+    &.ecc-propertyvalue__pair--hasdivider {
+        &:not(:last-child) {
+            border-bottom: solid 1px $pt-divider-black;
+        }
+    }
+    &.ecc-propertyvalue__pair--hasspacing {
+        &:not(:last-child) {
+            padding-bottom: $ecc-size-block-whitespace / 2;
+            margin-bottom: $ecc-size-block-whitespace / 2;
+        }
+        .ecc-propertyvalue__pair + & {
+            margin-top: $ecc-size-block-whitespace / 2;
+        }
+    }
+}
+
+.ecc-propertyvalue__property,
+.ecc-propertyvalue__value {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: $ecc-size-textfield-height-regular;
+}
+
+.ecc-propertyvalue__property {
+    float: left;
+    width: 3/16 * 100%;
+    overflow: hidden;
+
+    & > div {
+        margin-right: $ecc-size-block-whitespace;
+    }
+}
+
+.ecc-propertyvalue__value {
+    margin-left: 3/16 * 100%;
+    box-sizing: content-box;
+
+    &:not(:last-child) {
+        .ecc-propertyvalue__pair--hasdivider > & {
+            border-bottom: solid 1px $pt-divider-black;
+        }
+        .ecc-propertyvalue__pair--hasspacing > & {
+            padding-bottom: $ecc-size-block-whitespace / 2;
+            margin-bottom: $ecc-size-block-whitespace / 2;
+        }
+    }
+}

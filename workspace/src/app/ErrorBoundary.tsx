@@ -1,6 +1,6 @@
 import { Component } from "react";
 import { logError } from "./services/errorLogger";
-import { isDevelopment } from "./constants";
+import { isDevelopment } from "./constants/path";
 
 /**
  * Catch the children components errors

@@ -37,7 +37,10 @@ const argv = process.argv.slice(2);
 const writeStatsJson = argv.indexOf("--stats") !== -1;
 const isWatch = argv.indexOf("--watch") !== -1;
 // Generate configuration
-const config = configFactory("development");
+const config = configFactory("development", isWatch);
+
+let diBuildPath = isWatch ? paths.watchDIBuild : paths.appDIBuild;
+let diAssetsPath = isWatch ? paths.watchDIAssets : paths.appDIAssets;
 
 // We require that you explicitly set browsers and do not fall back to
 // browserslist defaults.
@@ -46,7 +49,7 @@ checkBrowsers(paths.appPath, isInteractive)
     .then(() => {
         // Remove all content but keep the directory so that
         // if you're in it, you don't end up in Trash
-        fs.emptyDirSync(paths.appDIBuild);
+        fs.emptyDirSync(diBuildPath);
         // Merge with the public folder
         copyPublicFolder();
         // Start the webpack build
@@ -92,7 +95,7 @@ function runCallback(err, stats) {
         return exitOnError(new Error(messages.errors.join("\n\n")));
     }
 
-    fs.emptyDirSync(paths.appDIAssets + "/assets");
+    fs.emptyDirSync(diAssetsPath + "/assets");
     // Copy assets into assets public folder
     copyAssetsToPublicFolder();
 
@@ -104,7 +107,7 @@ function runCallback(err, stats) {
     }
 
     if (writeStatsJson) {
-        return bfj.write(paths.appDIBuild + "/bundle-stats.json", stats.toJson());
+        return bfj.write(diBuildPath + "/bundle-stats.json", stats.toJson());
     }
 
     console.log("listening to new changes...");
@@ -128,12 +131,12 @@ function run() {
 }
 
 function copyPublicFolder() {
-    fs.copySync(paths.appPublic, paths.appDIBuild, {
+    fs.copySync(paths.appPublic, diBuildPath, {
         dereference: true,
         filter: (file) => file !== paths.appHtml,
     });
 }
 
 function copyAssetsToPublicFolder() {
-    fs.copySync(path.join(paths.appDIBuild, "assets"), path.join(paths.appDIAssets, "assets"));
+    fs.copySync(path.join(diBuildPath, "assets"), path.join(diAssetsPath, "assets"));
 }

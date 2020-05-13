@@ -40,7 +40,7 @@ const appPackageJson = require(paths.appPackageJson);
 
 // This is the production and development configuration.
 // It is focused on developer experience, fast rebuilds, and a minimal bundle.
-module.exports = function (webpackEnv) {
+module.exports = function (webpackEnv, isWatch) {
     const isEnvDevelopment = webpackEnv === "development";
     const isEnvProduction = webpackEnv === "production";
 
@@ -60,6 +60,9 @@ module.exports = function (webpackEnv) {
 
     // Get environment variables to inject into our app.
     const env = getClientEnvironment(publicUrl);
+
+    // Set the another build path for webpack watch
+    const buildPath = isWatch ? paths.watchDIBuild : paths.appDIBuild;
 
     // common function to get style loaders
     const getStyleLoaders = (cssOptions, preProcessor) => {
@@ -146,7 +149,7 @@ module.exports = function (webpackEnv) {
         ].filter(Boolean),
         output: {
             // The build folder.
-            path: paths.appDIBuild,
+            path: buildPath,
             // Add /* filename */ comments to generated require()s in the output.
             pathinfo: isEnvDevelopment,
             // There will be one main bundle, and one file per asynchronous chunk.

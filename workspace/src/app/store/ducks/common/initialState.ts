@@ -7,20 +7,21 @@ export function initialArtefactModalState(): IArtefactModal {
         artefactsList: [],
         selectedArtefact: {} as IArtefactItem,
         cachedArtefactProperties: {},
-        selectedDType: 'all',
+        selectedDType: "all",
         loading: false,
-    }
+    };
 }
 
 export function initialCommonState(): ICommonState {
     return {
         locale: getLocale(),
         currentProjectId: null,
+        currentTaskId: null,
         authenticated: true,
-        searchQuery: '',
+        searchQuery: "",
         error: {},
         availableDataTypes: {},
         initialSettings: {},
-        artefactModal: initialArtefactModalState()
-    }
+        artefactModal: initialArtefactModalState(),
+    };
 }

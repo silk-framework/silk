@@ -31,7 +31,7 @@ export function Dataset() {
                 <Section>
                     <Metadata projectId={projectId} taskId={taskId} />
                     <Spacing />
-                    <DataPreview title={"Dataset Preview"} preview={{ project: projectId, dataset: taskId }} />
+                    <DataPreview title={"Data preview"} preview={{ project: projectId, dataset: taskId }} />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>

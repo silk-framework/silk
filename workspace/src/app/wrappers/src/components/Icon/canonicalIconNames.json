@@ -6,6 +6,8 @@
     "toggler-showmore": "ChevronDown",
     "toggler-showless": "ChevronUp",
 
+    "navigation-back": "ArrowLeft",
+
     "item-moremenu": "OverflowMenuVertical",
     "item-vertmenu": "OverflowMenuHorizontal",
     "item-viewdetails": "View",

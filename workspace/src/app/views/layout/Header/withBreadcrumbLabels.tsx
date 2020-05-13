@@ -4,9 +4,9 @@ import { sharedOp } from "@ducks/shared";
 import { useDebugValue, useEffect, useState } from "react";
 import appRoutes from "../../../appRoutes";
 import { getFullRoutePath } from "../../../utils/routerUtils";
-import { SERVE_PATH } from "../../../constants";
 import { IBreadcrumb } from "./Header";
 import { useTranslation } from "react-i18next";
+import { SERVE_PATH } from "../../../constants/path";
 
 export default function withBreadcrumbLabels(WrappedComponent) {
     // Valid breadcrumb IDs
@@ -39,10 +39,7 @@ export default function withBreadcrumbLabels(WrappedComponent) {
             const { params = {}, url }: any = match[0];
 
             const labelFunction = labelForBreadCrumb(params);
-            const updatedBread = [
-                { href: SERVE_PATH, text: t("common.home") },
-                { href: SERVE_PATH, text: t("Data Integration") },
-            ];
+            const updatedBread = [{ href: SERVE_PATH, text: "Build" }];
 
             if (params.projectId) {
                 updatedBread.push({
