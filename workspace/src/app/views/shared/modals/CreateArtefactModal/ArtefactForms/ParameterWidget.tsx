@@ -82,7 +82,7 @@ export const ParameterWidget = ({
                 <Autocomplete
                     autoCompletion={autoCompletion}
                     onInputChange={handleAutoCompleteInput(paramId)}
-                    onChange={() => {}}
+                    onChange={onChange}
                     value={defaultValueAsJs(propertyDetails)}
                 />
             ) : (

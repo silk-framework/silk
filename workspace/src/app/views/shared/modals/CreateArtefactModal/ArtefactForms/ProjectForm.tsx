@@ -6,6 +6,7 @@ export interface IProps {
     form: any;
 }
 
+/** The project create form */
 export function ProjectForm({ form }: IProps) {
     return (
         <>

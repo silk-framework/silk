@@ -1,4 +1,4 @@
-import { legacyApiEndpoint, projectApi, resourcesLegacyApi, workspaceApi } from "../../../utils/getApiEndpoint";
+import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 import fetch from "../../../services/fetch";
 import { AxiosResponse } from "axios";
 import qs from "qs";

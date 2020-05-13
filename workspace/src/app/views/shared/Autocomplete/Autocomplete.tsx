@@ -8,7 +8,7 @@ interface IProps {
 
     onInputChange(value: string): any;
 
-    onChange(value: string);
+    onChange(value: string): void;
 
     value?: string;
     items?: any[];

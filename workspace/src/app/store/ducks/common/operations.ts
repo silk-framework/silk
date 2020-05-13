@@ -110,7 +110,7 @@ const getArtefactPropertiesAsync = (artefact: IArtefactItem) => {
     };
 };
 
-const createArtefactAsync = (formData) => {
+const createArtefactAsync = (formData, taskType: string) => {
     return (dispatch, getState) => {
         const { selectedArtefact } = commonSel.artefactModalSelector(getState());
 
@@ -133,7 +133,7 @@ const createArtefactAsync = (formData) => {
                     }
                 });
 
-                dispatch(workspaceOp.fetchCreateTaskAsync(requestData, selectedArtefact.key));
+                dispatch(workspaceOp.fetchCreateTaskAsync(requestData, selectedArtefact.key, taskType));
                 console.warn("Artefact type not defined");
                 break;
         }

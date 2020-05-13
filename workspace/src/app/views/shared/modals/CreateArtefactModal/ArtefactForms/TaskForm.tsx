@@ -29,6 +29,7 @@ export const defaultValueAsJs = function (property: IArtefactItemProperty): any 
     return value;
 };
 
+/** The task creation/update form. */
 export function TaskForm({ form, projectId, artefact }: IProps) {
     const { properties, required } = artefact;
     const [selectedFileField, setSelectedFileField] = useState<string>("");

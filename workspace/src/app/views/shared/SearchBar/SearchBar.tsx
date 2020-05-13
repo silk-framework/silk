@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ISortersState } from "@ducks/workspace/typings";
 import { Spacing, Toolbar, ToolbarSection } from "@wrappers/index";
 import SearchInput from "./SearchInput";

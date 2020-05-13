@@ -10,7 +10,7 @@ interface IProps {
     // The message that is shown when the search input is empty
     emptySearchInputMessage?: string;
     // Gives the search input the focus if true
-    focusOnCreation: boolean;
+    focusOnCreation?: boolean;
 }
 
 const SearchInput = ({
@@ -20,7 +20,7 @@ const SearchInput = ({
     onBlur = () => {},
     onClearanceHandler = () => {},
     emptySearchInputMessage = "Enter search term",
-    focusOnCreation,
+    focusOnCreation = false,
 }: IProps) => {
     const handleKeyDown = (e) => {
         if (e.key === "Enter") {

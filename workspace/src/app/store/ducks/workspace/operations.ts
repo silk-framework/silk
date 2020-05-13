@@ -313,7 +313,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: strin
             const data = await requestCreateTask(payload, currentProjectId);
 
             dispatch(
-                routerOp.goToPage(`/projects/${currentProjectId}/dataset/${data.id}`, {
+                routerOp.goToPage(`projects/${currentProjectId}/${itemTypeToPath(taskType)}/${data.id}`, {
                     taskLabel: label,
                 })
             );
