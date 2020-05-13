@@ -27,6 +27,8 @@ const {
     fetchArtefactsList,
     setArtefactsList,
     setArtefactLoading,
+    setTaskId,
+    unsetTaskId,
 } = commonSlice.actions;
 
 const fetchCommonSettingsAsync = () => {
@@ -153,5 +155,7 @@ export default {
     selectArtefact,
     setProjectId,
     unsetProject,
+    setTaskId,
+    unsetTaskId,
     setSelectedArtefactDType,
 };

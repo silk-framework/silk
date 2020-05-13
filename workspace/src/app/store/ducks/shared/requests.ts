@@ -4,15 +4,11 @@ import { AxiosResponse } from "axios";
 import qs from "qs";
 import { generateNetworkError, isNetworkError } from "../../../services/errorLogger";
 import {
-    IDatasetConfigPreview,
-    IDatasetPreview,
     IDatasetTypePayload,
     IMetadataUpdatePayload,
-    IPreviewResponse,
     IProjectMetadataResponse,
     IRelatedItemsResponse,
     IRequestAutocompletePayload,
-    IResourcePreview,
     ITaskMetadataResponse,
 } from "@ducks/shared/typings";
 
@@ -100,21 +96,6 @@ export const requestRelatedItems = async (
     try {
         const { data } = await fetch({
             url: workspaceApi(`/projects/${projectId}/tasks/${taskId}/relatedItems${query}`),
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
-};
-
-export const requestDatasetPreview = async (
-    preview: IResourcePreview | IDatasetConfigPreview | IDatasetPreview
-): Promise<IPreviewResponse> => {
-    try {
-        const { data } = await fetch({
-            url: resourcesLegacyApi("preview"),
-            method: "POST",
-            body: preview,
         });
         return data;
     } catch (e) {

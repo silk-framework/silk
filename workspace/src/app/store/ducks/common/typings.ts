@@ -67,6 +67,7 @@ export interface ICommonState {
      * Received from router
      */
     currentProjectId: string;
+    currentTaskId: string;
     locale: string;
     initialSettings: any;
     authenticated: boolean;
