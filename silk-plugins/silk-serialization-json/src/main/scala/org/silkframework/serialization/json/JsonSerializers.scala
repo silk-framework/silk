@@ -684,7 +684,12 @@ object JsonSerializers {
             selection = fromJson[DatasetSelection](mustBeDefined(parametersObj, SELECTION)),
             mappingRule = optionalValue(parametersObj, RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty),
             output = stringValueOption(parametersObj, OUTPUT).filter(_.trim.nonEmpty).map(v => Identifier(v.trim)),
-            targetVocabularies = mustBeJsArray(mustBeDefined(parametersObj, TARGET_VOCABULARIES))(_.value.map(_.as[JsString].value))
+            targetVocabularies = {
+              val vocabs = stringValueOption(parametersObj, TARGET_VOCABULARIES).
+                  map(str => str.split("\\s*,\\s*").toSeq).
+                  getOrElse(Seq.empty)
+              vocabs
+            }
           )
       }
     }
@@ -709,7 +714,7 @@ object JsonSerializers {
           SELECTION -> toJson(value.selection),
           RULES_PROPERTY -> toJson(value.mappingRule),
           OUTPUT -> JsString(value.output.map(_.toString).getOrElse("")),
-          TARGET_VOCABULARIES -> JsArray(value.targetVocabularies.toSeq.map(JsString))
+          TARGET_VOCABULARIES -> JsString(value.targetVocabularies.toSeq.mkString(", "))
         ))
       )
     }
