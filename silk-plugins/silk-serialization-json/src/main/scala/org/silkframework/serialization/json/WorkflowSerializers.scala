@@ -21,8 +21,10 @@ object WorkflowSerializers {
         case _ => objectValue(value, PARAMETERS)
       }
       Workflow(
-        operators = mustBeJsArray(requiredValue(parameterObject, OPERATORS))(_.value.map(WorkflowOperatorJsonFormat.read)),
-        datasets = mustBeJsArray(requiredValue(parameterObject, DATASETS))(_.value.map(WorkflowDatasetJsonFormat.read))
+        operators =  WorkflowOperatorsParameter(
+          arrayValueOption(parameterObject, OPERATORS).map(_.value.map(WorkflowOperatorJsonFormat.read)).getOrElse(Seq.empty)),
+        datasets = WorkflowDatasetsParameter(
+          arrayValueOption(parameterObject, DATASETS).map(_.value.map(WorkflowDatasetJsonFormat.read)).getOrElse(Seq.empty))
       )
     }
 
