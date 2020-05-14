@@ -150,9 +150,9 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                         key={key}
                         projectId={projectId}
                         pluginId={artefact.pluginId}
-                        paramId={key}
+                        formParamId={key}
                         required={required.includes(key)}
-                        propertyDetails={properties[key]}
+                        taskParameter={{ paramId: key, param: properties[key] }}
                         onFileUploadClick={() => toggleFileUploader(key)}
                         formHooks={formHooks}
                         changeHandlers={changeHandlers}
@@ -165,9 +165,9 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                                 key={key}
                                 projectId={projectId}
                                 pluginId={artefact.pluginId}
-                                paramId={key}
+                                formParamId={key}
                                 required={required.includes(key)}
-                                propertyDetails={properties[key]}
+                                taskParameter={{ paramId: key, param: properties[key] }}
                                 onFileUploadClick={() => toggleFileUploader(key)}
                                 formHooks={formHooks}
                                 changeHandlers={changeHandlers}
