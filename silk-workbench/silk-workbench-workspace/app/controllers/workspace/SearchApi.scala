@@ -6,6 +6,7 @@ import javax.inject.Inject
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.WriteContext
+import org.silkframework.serialization.json.{JsonFormat, JsonSerializers}
 import org.silkframework.serialization.json.JsonSerializers.{TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat}
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
@@ -29,7 +30,8 @@ class SearchApi @Inject() () extends InjectedController with ControllerUtilsTrai
 
     // JSON format to serialize tasks according to the options
     private def taskFormat(userContext: UserContext): TaskJsonFormat[TaskSpec] = {
-      new TaskJsonFormat(formatOptions.getOrElse(TaskFormatOptions()), Some(userContext))(TaskSpecJsonFormat)
+      implicit val jsonFormat:JsonFormat[TaskSpec] = TaskSpecJsonFormat
+      new TaskJsonFormat(formatOptions.getOrElse(TaskFormatOptions()), Some(userContext))
     }
 
     /**

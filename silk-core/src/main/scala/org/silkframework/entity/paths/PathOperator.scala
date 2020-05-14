@@ -86,7 +86,7 @@ case class BackwardOperator(property: Uri) extends DirectionalPathOperator {
  * @param language The language.
  */
 case class LanguageFilter(operator: String, language: String) extends PathOperator {
-  override def serialize(implicit prefixes: Prefixes): String = "[@lang " + operator + " " + language + "]"
+  override def serialize(implicit prefixes: Prefixes): String = s"[@lang $operator '$language']"
 }
 
 /**

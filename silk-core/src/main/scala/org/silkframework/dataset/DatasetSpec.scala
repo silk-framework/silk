@@ -29,6 +29,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFo
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.language.implicitConversions
+import scala.reflect.ClassTag
 import scala.xml.Node
 
 /**
@@ -102,7 +103,10 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribut
 
 }
 
-case class DatasetTask(id: Identifier, data: DatasetSpec[Dataset], metaData: MetaData = MetaData.empty) extends Task[DatasetSpec[Dataset]]
+case class DatasetTask(id: Identifier, data: DatasetSpec[Dataset], metaData: MetaData = MetaData.empty) extends Task[DatasetSpec[Dataset]] {
+
+  override def taskType: Class[_] = classOf[DatasetSpec[Dataset]]
+}
 
 object DatasetSpec {
 
