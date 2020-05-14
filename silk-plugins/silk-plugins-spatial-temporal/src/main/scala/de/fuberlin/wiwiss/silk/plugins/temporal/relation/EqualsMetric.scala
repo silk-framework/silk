@@ -26,7 +26,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "TEqualsMetric",
   categories = Array("Temporal"),
-  label = "Temporal Equals",
+  label = "Temporal equals",
   description = "Computes the relation \"equals\" between two time periods or instants.")
 case class EqualsMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 

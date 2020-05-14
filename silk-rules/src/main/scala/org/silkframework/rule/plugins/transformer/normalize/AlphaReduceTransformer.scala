@@ -22,7 +22,7 @@ import scala.util.matching.Regex
 @Plugin(
   id = "alphaReduce",
   categories = Array("Normalize"),
-  label = "Alpha reduce",
+  label = "Strip non-alphabetic characters",
   description = "Strips all non-alphabetic characters from a string. Spaces are retained."
 )
 case class AlphaReduceTransformer() extends SimpleTransformer {

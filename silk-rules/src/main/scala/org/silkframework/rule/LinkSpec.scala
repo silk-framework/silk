@@ -115,12 +115,12 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
 
   override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
     Seq(
-      ("Source", dataSelections.source.inputId.toString),
-      ("Target", dataSelections.target.inputId.toString),
-      ("Source Type", dataSelections.source.typeUri.toString),
-      ("Target Type", dataSelections.target.typeUri.toString),
-      ("Source Restriction", dataSelections.source.restriction.toString),
-      ("Target Restriction", dataSelections.target.restriction.toString)
+      ("Source dataset", dataSelections.source.inputId.toString),
+      ("Target dataset", dataSelections.target.inputId.toString),
+      ("Source type", dataSelections.source.typeUri.toString),
+      ("Target type", dataSelections.target.typeUri.toString),
+      ("Source restriction", dataSelections.source.restriction.toString),
+      ("Target restriction", dataSelections.target.restriction.toString)
     )
   }
 }

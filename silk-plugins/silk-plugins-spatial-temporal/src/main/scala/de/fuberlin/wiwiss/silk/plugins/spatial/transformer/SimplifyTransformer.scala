@@ -28,7 +28,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "SimplifyTransformer",
   categories = Array("Spatial"),
-  label = "Simplify Transformer",
+  label = "Simplify geometry",
   description = "Simplifies a geometry according to a given distance tolerance.")
 case class SimplifyTransformer(distanceTolerance: Double = 0.0, preserveTopology: Boolean = false) extends SimpleTransformer {
 

@@ -7,7 +7,7 @@ import scala.util.Random
 
 @Plugin(
    id = "randomNumber",
-   label = "Random Number",
+   label = "Random number",
    categories = Array("Value"),
    description = "Generates a set of random numbers."
  )

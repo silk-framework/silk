@@ -9,7 +9,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
    id = "durationInYears",
    categories = Array("Date"),
-   label = "Duration in Years",
+   label = "Duration in years",
    description = "Converts an xsd:duration to years."
  )
 case class DurationInYearsTransformer() extends SimpleTransformer {

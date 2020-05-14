@@ -21,7 +21,7 @@ import org.silkframework.runtime.validation.ValidationException
 @Plugin(
   id = "validateNumberOfValues",
   categories = Array("Validation"),
-  label = "validate number of values",
+  label = "Validate number of values",
   description = "Validates that the number of values lies in a specified range."
 )
 @TransformExamples(Array(
