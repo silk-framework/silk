@@ -30,9 +30,22 @@ interface IParam {
     onFileUploadClick: (e) => void;
     // from react-hook-form
     formHooks: IHookFormParam;
-    // Called when the value changes
-    onChange: (value) => void;
+    // All change handlers
+    changeHandlers: Record<string, (value) => void>;
 }
+
+/** Renders the errors message based on the error type. */
+export const errorMessage = (title: string, errors: any) => {
+    if (!errors) {
+        return "";
+    } else if (errors.type === "pattern") {
+        return `${title} ${errors.message}.`;
+    } else if (errors.type === "required") {
+        return `${title} must be specified.`;
+    } else {
+        return "";
+    }
+};
 
 /** Widget for a single parameter of a task. */
 export const ParameterWidget = ({
@@ -43,7 +56,7 @@ export const ParameterWidget = ({
     propertyDetails,
     onFileUploadClick,
     formHooks,
-    onChange,
+    changeHandlers,
 }: IParam) => {
     const errors = formHooks.errors[paramId];
     const { title, description, parameterType, autoCompletion } = propertyDetails;
@@ -73,7 +86,7 @@ export const ParameterWidget = ({
                 tooltip: description && description.length <= MAXLENGTH_TOOLTIP ? description : "",
             }}
             helperText={description && description.length > MAXLENGTH_TOOLTIP ? description : ""}
-            messageText={errors ? title + " not specified" : ""}
+            messageText={errorMessage(title, errors)}
             hasStateDanger={errors}
         >
             {isFileInput(parameterType) ? (
@@ -82,14 +95,14 @@ export const ParameterWidget = ({
                 <Autocomplete
                     autoCompletion={autoCompletion}
                     onInputChange={handleAutoCompleteInput(paramId)}
-                    onChange={onChange}
+                    onChange={changeHandlers[paramId]}
                     value={defaultValueAsJs(propertyDetails)}
                 />
             ) : (
                 <InputMapper
                     parameter={{ paramId: paramId, param: propertyDetails }}
                     intent={errors ? Intent.DANGER : Intent.NONE}
-                    onChange={onChange}
+                    onChange={changeHandlers[paramId]}
                 />
             )}
         </FieldItem>

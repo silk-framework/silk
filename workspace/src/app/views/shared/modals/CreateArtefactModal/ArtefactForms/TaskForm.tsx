@@ -1,11 +1,11 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IArtefactItemProperty, IDetailedArtefactItem } from "@ducks/common/typings";
 import { Intent } from "@wrappers/blueprint/constants";
 import { INPUT_TYPES } from "../../../../../constants";
 import { FieldItem, TextArea, TextField } from "@wrappers/index";
 import { FileUploadModal } from "../../FileUploadModal/FileUploadModal";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
-import { ParameterWidget } from "./ParameterWidget";
+import { errorMessage, ParameterWidget } from "./ParameterWidget";
 
 export interface IProps {
     form: any;
@@ -36,26 +36,56 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
     const [selectedFileField, setSelectedFileField] = useState<string>("");
     const { register, errors, getValues, setValue, unregister } = form;
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
+    const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
+
+    // addition restriction for the hook form parameter values
+    const valueRestrictions = (param: IArtefactItemProperty) => {
+        if (param.parameterType === INPUT_TYPES.INTEGER) {
+            return {
+                pattern: {
+                    value: /^[0-9]*$/,
+                    message: "must be an integer number",
+                },
+            };
+        } else {
+            return {};
+        }
+    };
 
     useEffect(() => {
-        const values = {};
+        // All keys (also nested ones are stores in here)
+        const returnKeys: string[] = [];
+        // Register all parameters
+        const registerParameters = (prefix: string, params: [string, IArtefactItemProperty][]) => {
+            params.forEach(([paramId, param]) => {
+                const key = prefix + paramId;
+                if (param.type === "object") {
+                    // Nested type, only register nested atomic values
+                    if (param.properties) {
+                        // nested object
+                        const nestedParams = Object.entries(param.properties);
+                        registerParameters(key + ".", nestedParams);
+                    } else {
+                        console.warn(`Parameter '${key}' is of type "object", but has no parameters object defined!`);
+                    }
+                } else {
+                    let value = defaultValueAsJs(param);
+                    returnKeys.push(key);
+                    register({ name: key }, { required: required.includes(key), ...valueRestrictions(param) });
+                    setValue(key, value);
+                }
+            });
+        };
         register({ name: "label" }, { required: true });
         register({ name: "description" });
-
-        visibleParams.forEach(([key, property]) => {
-            let value = defaultValueAsJs(property);
-
-            register({ name: key }, { required: required.includes(key) });
-            setValue(key, value);
-
-            values[key] = value;
-        });
+        registerParameters("", visibleParams);
+        setFormValueKeys(returnKeys);
 
         // Unsubscribe
         return () => {
             unregister("label");
             unregister("description");
-            visibleParams.forEach(([key, param]) => unregister(key));
+            returnKeys.forEach((key) => unregister(key));
         };
     }, [properties, register]);
 
@@ -69,6 +99,14 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
         },
         []
     );
+
+    const changeHandlers = useMemo(() => {
+        const handlers = {};
+        formValueKeys.forEach((key) => {
+            handlers[key] = handleChange(key);
+        });
+        return handlers;
+    }, [formValueKeys]);
 
     const toggleFileUploader = (fieldName: string = "") => {
         setSelectedFileField(fieldName);
@@ -88,6 +126,7 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                         info: "required",
                         htmlFor: "label",
                     }}
+                    messageText={errorMessage("Label", errors.label)}
                 >
                     <TextField
                         id={"label"}
@@ -116,7 +155,7 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                         propertyDetails={properties[key]}
                         onFileUploadClick={() => toggleFileUploader(key)}
                         formHooks={formHooks}
-                        onChange={handleChange(key)}
+                        changeHandlers={changeHandlers}
                     />
                 ))}
                 {advancedParams.length > 0 && (
@@ -131,7 +170,7 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                                 propertyDetails={properties[key]}
                                 onFileUploadClick={() => toggleFileUploader(key)}
                                 formHooks={formHooks}
-                                onChange={handleChange(key)}
+                                changeHandlers={changeHandlers}
                             />
                         ))}
                     </AdvancedOptionsArea>

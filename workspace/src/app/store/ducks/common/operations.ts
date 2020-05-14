@@ -126,8 +126,8 @@ const createArtefactAsync = (formData, taskType: string) => {
                     const value = formData[key];
                     if (typeof value === "number" || typeof value === "boolean") {
                         requestData[key] = "" + value;
-                    } else if (typeof value === "object") {
-                        requestData[key] = JSON.stringify(value);
+                        // } else if (typeof value === "object") {
+                        //     requestData[key] = JSON.stringify(value);
                     } else {
                         requestData[key] = value;
                     }

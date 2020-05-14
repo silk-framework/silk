@@ -34,7 +34,7 @@ export interface IArtefactItemProperty {
     // in case of type=="object" this will be defined
     pluginId?: string;
     // in case of type=="object" this will be defined
-    properties?: string[];
+    properties?: Record<string, IArtefactItemProperty>;
 }
 
 /** Parameter of a task. */
