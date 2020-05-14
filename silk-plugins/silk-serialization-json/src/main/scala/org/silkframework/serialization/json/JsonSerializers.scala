@@ -922,8 +922,8 @@ object JsonSerializers {
           RULE -> toJson(value.rule),
           OUTPUT -> JsString(value.output.map(_.toString).getOrElse("")),
           REFERENCE_LINKS -> toJson(value.referenceLinks),
-          LINK_LIMIT -> JsNumber(value.linkLimit),
-          MATCHING_EXECUTION_TIMEOUT -> JsNumber(value.matchingExecutionTimeout)
+          LINK_LIMIT -> JsString(value.linkLimit.toString),
+          MATCHING_EXECUTION_TIMEOUT -> JsString(value.matchingExecutionTimeout.toString)
         )
       )
     }
