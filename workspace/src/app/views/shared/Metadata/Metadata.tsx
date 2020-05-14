@@ -118,7 +118,7 @@ export function Metadata({ projectId = null, taskId }) {
         <>
             <CardHeader>
                 <CardTitle>
-                    <h2>Details & Metadata</h2>
+                    <h2>Summary</h2>
                 </CardTitle>
                 {!loading && !isEditing && (
                     <CardOptions>

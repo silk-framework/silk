@@ -53,7 +53,7 @@ export const FileWidget = () => {
             <Card>
                 <CardHeader>
                     <CardTitle>
-                        <h3>Files</h3>
+                        <h2>Files</h2>
                     </CardTitle>
                 </CardHeader>
                 <Divider />

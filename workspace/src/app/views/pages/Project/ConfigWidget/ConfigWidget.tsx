@@ -50,7 +50,7 @@ export const ConfigurationWidget = () => {
         <Card>
             <CardHeader>
                 <CardTitle>
-                    <h3>Configuration</h3>
+                    <h2>Configuration</h2>
                 </CardTitle>
             </CardHeader>
             <Divider />

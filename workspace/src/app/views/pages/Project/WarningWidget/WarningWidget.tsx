@@ -49,7 +49,7 @@ export const WarningWidget = () => {
         <Card>
             <CardHeader>
                 <CardTitle>
-                    <h3>Error log</h3>
+                    <h2>Error log</h2>
                 </CardTitle>
             </CardHeader>
             <Divider />
