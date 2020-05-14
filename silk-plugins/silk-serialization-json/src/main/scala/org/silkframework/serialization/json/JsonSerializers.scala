@@ -22,6 +22,8 @@ import org.silkframework.util.StringUtils._
 import LinkingSerializers._
 import play.api.libs.json._
 
+import scala.reflect.ClassTag
+
 /**
   * Serializers for JSON.
   */
@@ -944,8 +946,8 @@ object JsonSerializers {
   /**
     * Task
     */
-  class TaskJsonFormat[T <: TaskSpec](options: TaskFormatOptions = TaskFormatOptions(),
-                                      userContext: Option[UserContext] = None)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
+  class TaskJsonFormat[T <: TaskSpec : ClassTag](options: TaskFormatOptions = TaskFormatOptions(),
+                                                 userContext: Option[UserContext] = None)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
 
     final val PROJECT = "project"
     final val DATA = "data"

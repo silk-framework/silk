@@ -5,6 +5,8 @@ import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.io.WorkspaceIO
+import org.silkframework.workspace.resources.ResourceRepository
 
 import scala.reflect.ClassTag
 import scala.util.Try
@@ -31,6 +33,16 @@ trait WorkspaceProvider {
    * Deletes a project.
    */
   def deleteProject(name: Identifier)(implicit user: UserContext): Unit
+
+  /**
+    * Imports a complete project.
+    */
+  def importProject(project: ProjectConfig,
+                    provider: WorkspaceProvider,
+                    inputResources: Option[ResourceManager],
+                    outputResources: Option[ResourceManager])(implicit user: UserContext): Unit = {
+    WorkspaceIO.copyProject(provider, this, inputResources, outputResources, project)
+  }
 
   /**
    * Retrieves the project cache folder.
