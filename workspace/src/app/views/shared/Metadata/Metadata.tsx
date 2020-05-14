@@ -118,7 +118,7 @@ export function Metadata({ projectId = null, taskId }) {
         <>
             <CardHeader>
                 <CardTitle>
-                    <h4>Details & Metadata</h4>
+                    <h2>Details & Metadata</h2>
                 </CardTitle>
                 {!loading && !isEditing && (
                     <CardOptions>
@@ -135,47 +135,43 @@ export function Metadata({ projectId = null, taskId }) {
             {loading && <Loading />}
             {!loading && isEditing && (
                 <PropertyValueList>
-                    {!!label && (
-                        <PropertyValuePair key="label">
-                            <PropertyName>
-                                <Label text="Label" info="required" htmlFor="label" />
-                            </PropertyName>
-                            <PropertyValue>
-                                <FieldItem
-                                    messageText={errors.form.label ? "Label is required" : ""}
-                                    hasStateDanger={errors.form.label ? true : false}
-                                >
-                                    <Controller
-                                        as={TextField}
-                                        name="label"
-                                        id="label"
-                                        control={control}
-                                        defaultValue={label}
-                                        intent={errors.form.label ? Intent.DANGER : Intent.NONE}
-                                    />
-                                </FieldItem>
-                            </PropertyValue>
-                        </PropertyValuePair>
-                    )}
-                    {!!description && (
-                        <PropertyValuePair hasSpacing key="description">
-                            <PropertyName>
-                                <Label text="Description" htmlFor="description" />
-                            </PropertyName>
-                            <PropertyValue>
-                                <FieldItem>
-                                    <Controller
-                                        as={TextArea}
-                                        name="description"
-                                        id="description"
-                                        control={control}
-                                        defaultValue={description}
-                                        fullWidth={true}
-                                    />
-                                </FieldItem>
-                            </PropertyValue>
-                        </PropertyValuePair>
-                    )}
+                    <PropertyValuePair key="label">
+                        <PropertyName>
+                            <Label text="Label" info="required" htmlFor="label" />
+                        </PropertyName>
+                        <PropertyValue>
+                            <FieldItem
+                                messageText={errors.form.label ? "Label is required" : ""}
+                                hasStateDanger={errors.form.label ? true : false}
+                            >
+                                <Controller
+                                    as={TextField}
+                                    name="label"
+                                    id="label"
+                                    control={control}
+                                    defaultValue={label}
+                                    intent={errors.form.label ? Intent.DANGER : Intent.NONE}
+                                />
+                            </FieldItem>
+                        </PropertyValue>
+                    </PropertyValuePair>
+                    <PropertyValuePair hasSpacing key="description">
+                        <PropertyName>
+                            <Label text="Description" htmlFor="description" />
+                        </PropertyName>
+                        <PropertyValue>
+                            <FieldItem>
+                                <Controller
+                                    as={TextArea}
+                                    name="description"
+                                    id="description"
+                                    control={control}
+                                    defaultValue={description}
+                                    fullWidth={true}
+                                />
+                            </FieldItem>
+                        </PropertyValue>
+                    </PropertyValuePair>
                 </PropertyValueList>
             )}
             {!loading && !isEditing && (
