@@ -1,0 +1,83 @@
+$ecc-size-spinner-tiny: 16px !default;
+$ecc-size-spinner-small: 32px !default;
+$ecc-size-spinner-medium: 64px !default;
+$ecc-size-spinner-large: 128px !default;
+$ecc-size-spinner-xlarge: 256px !default;
+
+// lib import
+@import "~@blueprintjs/core/src/components/spinner/spinner";
+
+.ecc-spinner {
+    overflow: hidden;
+
+    .#{$ns}-spinner-head {
+        stroke: currentColor;
+    }
+    .#{$ns}-spinner-track {
+        stroke: rgba(#000, 0.1);
+    }
+}
+
+span.ecc-spinner {
+    display: inline-flex;
+}
+
+.ecc-spinner--intent-inherit {
+    color: inherit;
+}
+
+.ecc-spinner--intent-primary {
+    color: $ecc-color-accent;
+}
+
+.ecc-spinner--intent-success {
+    color: $ecc-color-success-text;
+}
+
+.ecc-spinner--intent-warning {
+    color: $ecc-color-warning-text;
+}
+
+.ecc-spinner--intent-danger {
+    color: $ecc-color-danger-text;
+}
+
+.ecc-spinner--size-tiny svg {
+    height: $ecc-size-spinner-tiny;
+    width: $ecc-size-spinner-tiny;
+}
+.ecc-spinner--size-small svg {
+    height: $ecc-size-spinner-small;
+    width: $ecc-size-spinner-small;
+}
+.ecc-spinner--size-medium svg {
+    height: $ecc-size-spinner-medium;
+    width: $ecc-size-spinner-medium;
+}
+.ecc-spinner--size-large svg {
+    height: $ecc-size-spinner-large;
+    width: $ecc-size-spinner-large;
+}
+.ecc-spinner--size-xlarge svg {
+    height: $ecc-size-spinner-xlarge;
+    width: $ecc-size-spinner-xlarge;
+}
+.ecc-spinner--size-inherit svg {
+    height: 1em;
+    width: 1em;
+}
+
+.ecc-spinner__overlay {
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .#{$ns}-overlay-content {
+        outline: none;
+    }
+}
+
+.ecc-spinner__backdrop {
+    background-color: rgba($ecc-color-workspace-background, $ecc-opacity-muted);
+}
