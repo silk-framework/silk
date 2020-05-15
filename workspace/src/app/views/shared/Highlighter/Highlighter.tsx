@@ -17,7 +17,7 @@ const getSearchHighlight = (label: string, searchValue: string) => {
         return label;
     }
 
-    const searchStringParts = searchValue.split(RegExp("\\s+"));
+    const searchStringParts = searchValue.split(RegExp("\\s+")).filter((word) => word !== "");
     const validString = searchStringParts.map(escapeRegexWord).join("|");
     const multiWordRegex = RegExp(validString, "gi");
     const result = [];
