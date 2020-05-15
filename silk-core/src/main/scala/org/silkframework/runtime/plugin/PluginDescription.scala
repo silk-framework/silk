@@ -219,7 +219,16 @@ object PluginDescription {
 
       val label = pluginParam match {
         case Some(p) if p.label().nonEmpty => p.label()
-        case _ => parName.flatMap(c => if(c.isUpper) " " + c.toLower else c.toString)
+        case _ =>
+          val chars = parName.toCharArray.zipWithIndex.flatMap {
+            case (c, idx) =>
+              if(idx == 0) {
+                c.toString.toUpperCase
+              } else {
+                if(c.isUpper) " " + c.toLower else c.toString
+              }
+          }
+          chars.mkString
       }
 
       val (description, exampleValue) = pluginParam map { pluginParam =>
