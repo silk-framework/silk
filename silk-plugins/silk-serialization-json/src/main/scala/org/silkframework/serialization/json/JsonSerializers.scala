@@ -142,7 +142,7 @@ object JsonSerializers {
         plugin =
           Dataset(
             id = (value \ TYPE).as[JsString].value,
-            params = (value \ PARAMETERS).as[JsObject].value.mapValues(_.as[JsString].value).asInstanceOf[Map[String, String]]
+            params = taskParameters(value)
           ),
         uriAttribute = stringValueOption(value, URI_PROPERTY).filter(_.trim.nonEmpty).map(v => Uri(v.trim))
       )
@@ -162,6 +162,18 @@ object JsonSerializers {
     }
   }
 
+  // Extracts the parameter map
+  private def taskParameters(value: JsValue) = {
+    (value \ PARAMETERS).as[JsObject].value.
+        mapValues {
+          case boolean: JsBoolean => boolean.value.toString
+          case str: JsString => str.value
+          case number: JsNumber => number.value.toString()
+          case other =>
+            throw new IllegalArgumentException(s"Values of type '${other.getClass.getSimpleName}' are not supported as parameter values!")
+        }.asInstanceOf[Map[String, String]]
+  }
+
   implicit object CustomTaskJsonFormat extends JsonFormat[CustomTask] {
 
     override def typeNames: Set[String] = Set(TASK_TYPE_CUSTOM_TASK)
@@ -171,7 +183,7 @@ object JsonSerializers {
       implicit val resource = readContext.resources
       CustomTask(
         id = (value \ TYPE).as[JsString].value,
-        params = (value \ PARAMETERS).as[JsObject].value.mapValues(_.as[JsString].value).asInstanceOf[Map[String, String]]
+        params = taskParameters(value)
       )
     }
 
