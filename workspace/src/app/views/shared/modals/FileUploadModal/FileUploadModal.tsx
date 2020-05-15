@@ -8,18 +8,22 @@ import { commonSel } from "@ducks/common";
 import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
 import { IUploaderOptions } from "../../FileUploader/FileUploader";
 import { requestIfResourceExists } from "@ducks/workspace/requests";
+import { isDevelopment } from "../../../../constants/path";
 
 export interface IFileUploadModalProps {
     isOpen: boolean;
 
     onDiscard(): void;
 
-    onUploaded?(e: any): void;
-
     uploaderOptions?: IUploaderOptions;
 }
 
-export function FileUploadModal({ isOpen, onDiscard, onUploaded, uploaderOptions = {} }: IFileUploadModalProps) {
+export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFileUploadModalProps) {
+    /**
+     * Selected filename, for both 3 options
+     */
+    const [selectedFilenames, setSelectedFilename] = useState("");
+
     const [fileUploaderInstance, setFileUploaderInstance] = useState<any>(null);
     const [isCheckingFile, setIsCheckingFile] = useState<boolean>(false);
     const [isUploading, setIsUploading] = useState<boolean>(false);
@@ -34,6 +38,7 @@ export function FileUploadModal({ isOpen, onDiscard, onUploaded, uploaderOptions
     if (!projectId) {
         return null;
     }
+
     const getUploaderInstance = (instance) => {
         setFileUploaderInstance(instance);
     };
@@ -52,20 +57,11 @@ export function FileUploadModal({ isOpen, onDiscard, onUploaded, uploaderOptions
         setIsUploading(false);
         setOpenAbortDialog(false);
         setInvokeOverrideDialog(null);
+        setSelectedFilename("");
         fileUploaderInstance.reset();
     };
 
-    const upload = async (file: File) => {
-        fileUploaderInstance.setEndpoint(`${uploadUrl}/${file.name}`);
-        setIsUploading(true);
-        await fileUploaderInstance.upload();
-        setIsUploading(false);
-        resetFileDialog();
-
-        onUploaded(file.name);
-    };
-
-    const onFileAdded = async (result: File) => {
+    const onFileAdded = async (result: any) => {
         try {
             setIsCheckingFile(true);
             const isExists = await isResourceExists(result.name);
@@ -73,6 +69,21 @@ export function FileUploadModal({ isOpen, onDiscard, onUploaded, uploaderOptions
             isExists ? setInvokeOverrideDialog(result) : upload(result);
         } finally {
             setIsCheckingFile(false);
+        }
+    };
+
+    const upload = async (file: any) => {
+        fileUploaderInstance.setEndpoint(`${uploadUrl}/${file.name}`);
+        setIsUploading(true);
+        try {
+            await fileUploaderInstance.upload();
+            resetFileDialog();
+
+            setSelectedFilename(file.name);
+        } catch (e) {
+            console.log(e);
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -90,6 +101,30 @@ export function FileUploadModal({ isOpen, onDiscard, onUploaded, uploaderOptions
         setInvokeOverrideDialog(null);
     };
 
+    const handleUploaderChange = (value: any) => {
+        if (value && value.data instanceof File) {
+            onFileAdded(value);
+        } else if (typeof value === "string") {
+            setSelectedFilename(value);
+        } else if (isDevelopment) {
+            console.error("Uploaded Result not handled, please take a look into FileUploader, onAdded event");
+        }
+    };
+
+    const handleApply = () => {
+        uploaderOptions.onChange(selectedFilenames);
+        resetFileDialog();
+        onDiscard();
+    };
+
+    /**
+     * @override uploader change function and handle it
+     */
+    const overriddenUploaderOptions = {
+        ...uploaderOptions,
+        onChange: handleUploaderChange,
+    };
+
     return (
         <>
             <SimpleDialog
@@ -100,15 +135,21 @@ export function FileUploadModal({ isOpen, onDiscard, onUploaded, uploaderOptions
                     isUploading ? (
                         <Button onClick={handleDiscard}>Abort Upload</Button>
                     ) : (
-                        <Button onClick={onDiscard}>Close</Button>
+                        [
+                            <Button key="apply" onClick={handleApply}>
+                                Apply
+                            </Button>,
+                            <Button key="close" onClick={onDiscard}>
+                                Close
+                            </Button>,
+                        ]
                     )
                 }
             >
                 <FileUploader
                     getInstance={getUploaderInstance}
-                    onFileAdded={onFileAdded}
                     loading={isCheckingFile}
-                    {...uploaderOptions}
+                    {...overriddenUploaderOptions}
                 />
             </SimpleDialog>
             <AbortAlert

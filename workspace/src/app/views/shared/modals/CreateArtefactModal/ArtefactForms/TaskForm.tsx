@@ -123,6 +123,7 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
 
     const uploaderOptions = {
         advanced: true,
+        onChange: handleChange(selectedFileField),
         autocomplete: {
             autoCompletion: {
                 allowOnlyAutoCompletedValues: true,
@@ -130,8 +131,8 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                 autoCompletionDependsOnParameters: [],
             },
             onSearch: handleFileSearch,
-            itemRenderer: (item) => item.name,
-            onChange: handleChange(selectedFileField),
+            itemLabelRenderer: (item) => item.name,
+            itemValueRenderer: (item) => item.name,
         },
     };
 
@@ -140,7 +141,6 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
             <FileUploadModal
                 isOpen={!!selectedFileField}
                 onDiscard={() => toggleFileUploader("")}
-                onUploaded={handleChange(selectedFileField)}
                 uploaderOptions={uploaderOptions}
             />
 
@@ -159,6 +159,7 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                             id: "label",
                             name: "label",
                             onChange: handleChange("label"),
+                            // @TODO: REMOVE INTENT props and replace with hasState${status}
                             intent: errors.label ? Intent.DANGER : Intent.NONE,
                         }}
                     />
@@ -201,7 +202,17 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                         hasStateDanger={errors[key]}
                     >
                         {isFileInput(properties[key].parameterType) ? (
-                            <Button onClick={() => toggleFileUploader(key)}>Upload new {properties[key].title}</Button>
+                            <div>
+                                <Button onClick={() => toggleFileUploader(key)}>
+                                    Upload new {properties[key].title}
+                                </Button>
+                                <br />
+                                {fieldValues[key] && (
+                                    <p>
+                                        <b>{fieldValues[key]}</b>
+                                    </p>
+                                )}
+                            </div>
                         ) : isAutocomplete(properties[key]) ? (
                             <Autocomplete
                                 autoCompletion={properties[key].autoCompletion}

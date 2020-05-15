@@ -7,9 +7,11 @@ import "@uppy/drag-drop/dist/style.css";
 import "@uppy/progress-bar/dist/style.css";
 
 import Loading from "../Loading";
-import { UploadNew } from "./UploadNew";
-import { Autocomplete, IAutocompleteProps } from "../Autocomplete/Autocomplete";
+import { UploadNewFile } from "./UploadNewFile";
+import { IAutocompleteProps } from "../Autocomplete/Autocomplete";
 import { FileMenu, FileMenuItems } from "./FileMenu";
+import { SelectFileFromExisting } from "./SelectFileFromExisting";
+import { CreateNewFile } from "./CreateNewFile";
 
 interface IUploaderInstance {
     /**
@@ -77,6 +79,14 @@ export interface IUploaderOptions {
      * autocomplete option useful when advanced is true
      */
     autocomplete?: IAutocompleteProps;
+
+    /**
+     * Called when:
+     * - New file added
+     * - Select resource from autocomplete
+     * - Write new file name
+     */
+    onChange?(value: File | string);
 }
 
 interface IState {
@@ -103,10 +113,6 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
             fieldName: "file",
             metaFields: [],
         });
-
-        this.uppy.on("file-added", this.onFileAdded);
-        this.uppy.on("upload-progress", this.onProgress);
-        this.uppy.on("upload-success", this.onUploadSuccess);
     }
 
     componentDidMount(): void {
@@ -120,23 +126,27 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         }
     }
 
+    /**
+     * @see Uppy.upload
+     */
     upload = this.uppy.upload;
+
+    /**
+     * @see Uppy.cancelAll
+     */
     cancelAll = this.uppy.cancelAll;
 
+    /**
+     * Set upload endpoint
+     * @param endpoint
+     */
     setEndpoint = (endpoint: string) => {
-        // @ts-ignore
         this.uppy.getPlugin("XHRUpload").setOptions({
             endpoint,
         });
     };
 
-    onFileAdded = (result: File) => {
-        if (this.props.onFileAdded) {
-            this.props.onFileAdded(result);
-        }
-    };
-
-    onProgress = (file, { bytesUploaded, bytesTotal }) => {
+    handleProgress = (file, { bytesUploaded, bytesTotal }) => {
         const progress = 100.0 * (bytesUploaded / bytesTotal);
         this.setState({
             progress,
@@ -146,7 +156,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         }
     };
 
-    onUploadSuccess = () => {
+    handleUploadSuccess = () => {
         this.setState({
             progress: 0,
         });
@@ -172,21 +182,29 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
 
     render() {
         const { progress, selectedFileMenu } = this.state;
-        const { loading, simpleInput, allowMultiple, advanced, autocomplete } = this.props;
+        const { loading, simpleInput, allowMultiple, advanced, autocomplete, onChange } = this.props;
 
         return loading ? (
             <Loading />
         ) : (
             <>
-                {advanced ? (
-                    <FileMenu onChange={this.handleFileMenuChange} selectedFileMenu={selectedFileMenu} />
-                ) : null}
+                {advanced && <FileMenu onChange={this.handleFileMenuChange} selectedFileMenu={selectedFileMenu} />}
+
                 <div>
-                    {selectedFileMenu === "SELECT" && <Autocomplete {...autocomplete} />}
-                    {selectedFileMenu === "NEW" && (
-                        <UploadNew uppy={this.uppy} simpleInput={simpleInput} allowMultiple={allowMultiple} />
+                    {selectedFileMenu === "SELECT" && (
+                        <SelectFileFromExisting autocomplete={autocomplete} onChange={onChange} />
                     )}
-                    {selectedFileMenu === "EMPTY" && null}
+                    {selectedFileMenu === "NEW" && (
+                        <UploadNewFile
+                            uppy={this.uppy}
+                            simpleInput={simpleInput}
+                            allowMultiple={allowMultiple}
+                            onChange={onChange}
+                            onProgress={this.handleProgress}
+                            onUploadSuccess={this.handleUploadSuccess}
+                        />
+                    )}
+                    {selectedFileMenu === "EMPTY" && <CreateNewFile onChange={onChange} />}
                 </div>
                 {!!progress && (
                     <div>

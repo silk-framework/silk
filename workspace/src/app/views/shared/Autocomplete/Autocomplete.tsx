@@ -21,51 +21,72 @@ export interface IAutocompleteProps {
      * Fired when value selected from input
      * @param value
      */
-    onChange(value: string);
+    onChange?(value: any);
 
     /**
      * The initial value for autocomplete input
+     * @default ''
      */
     initialValue?: string;
     /**
      * The initial items,
-     * if it's not provided then fetch from onSearch or keep it empty
+     * if empty then fetch from onSearch or keep it empty
+     * @default []
      */
     items?: any[];
 
     /**
-     * item renderer
+     * item label renderer
      * @param item
+     * @default (item) => item.label || item.id
      */
-    itemRenderer?(item: any): string;
+    itemLabelRenderer?(item: any): string;
+
+    /**
+     * item value renderer
+     * @param item
+     * @default (item) => item.value || item.id
+     */
+    itemValueRenderer?(item: any): string;
 }
 
 const SuggestAutocomplete = Suggest.ofType<IAutocompleteDefaultResponse>();
 
+Autocomplete.defaultProps = {
+    items: [],
+    initialValue: "",
+    itemLabelRenderer: (item) => item.label || item.id,
+    itemValueRenderer: (item) => item.value || item.id,
+};
+
 export function Autocomplete(props: IAutocompleteProps) {
+    const { itemValueRenderer, itemLabelRenderer, items, onSearch, onChange, initialValue } = props;
+
     // The suggestions that match the user's input
     const [filtered, setFiltered] = useState<any[]>([]);
-    const itemRenderer = props.itemRenderer ? props.itemRenderer : (item) => item.label || item.id;
 
     useEffect(() => {
-        if (!props.items) {
+        if (!items.length) {
             handleQueryChange();
         }
-    }, [props.items]);
+    }, [items]);
 
-    const areEqualItems = (itemA, itemB) => itemA.value === itemB.value;
+    const areEqualItems = (itemA, itemB) => itemValueRenderer(itemA) === itemValueRenderer(itemB);
 
-    const onItemSelect = (item) => props.onChange(item.value);
+    const onItemSelect = (item) => {
+        const actualValue = itemValueRenderer(item);
+        onChange(actualValue);
+    };
 
     //@Note: issue https://github.com/palantir/blueprint/issues/2983
     const handleQueryChange = async (input = "") => {
         try {
             let result = [];
-            if (props.onSearch) {
-                result = await props.onSearch(input);
-            } else if (props.items && input) {
+            if (onSearch) {
+                result = await onSearch(input);
+            } else if (items.length && input) {
                 // Filter our suggestions that don't contain the user's input
-                result = props.items.filter(
+                result = items.filter(
                     ({ label, value }) =>
                         value.toLowerCase().indexOf(input.toLowerCase()) > -1 ||
                         label.toLowerCase().indexOf(input.toLowerCase()) > -1
@@ -86,9 +107,9 @@ export function Autocomplete(props: IAutocompleteProps) {
             <MenuItem
                 active={modifiers.active}
                 disabled={modifiers.disabled}
-                key={item.value}
+                key={itemValueRenderer(item)}
                 onClick={handleClick}
-                text={<Highlighter label={itemRenderer(item)} searchValue={query} />}
+                text={<Highlighter label={itemLabelRenderer(item)} searchValue={query} />}
             />
         );
     };
@@ -96,13 +117,13 @@ export function Autocomplete(props: IAutocompleteProps) {
     return (
         <SuggestAutocomplete
             items={filtered}
-            inputValueRenderer={itemRenderer}
+            inputValueRenderer={itemValueRenderer}
             itemRenderer={optionRenderer}
             itemsEqual={areEqualItems}
             noResults={<MenuItem disabled={true} text="No results." />}
             onItemSelect={onItemSelect}
             onQueryChange={handleQueryChange}
-            query=""
+            query={initialValue}
             popoverProps={{
                 minimal: true,
             }}
