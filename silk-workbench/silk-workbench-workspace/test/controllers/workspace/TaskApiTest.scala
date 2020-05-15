@@ -200,7 +200,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
                        |          "restriction": "",
                        |          "typeUri": "someType"
                        |        },
-                       |        "targetVocabularies": [],
+                       |        "targetVocabularies": "",
                        |        "taskType": "Transform"
                        |      }
                        |    }
