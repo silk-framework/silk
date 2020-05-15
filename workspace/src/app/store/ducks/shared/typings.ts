@@ -120,8 +120,10 @@ export interface IPreviewResponse {
 /** The actual values of the preview */
 export interface IPreviewContent {
     attributes: string[];
-    values: string[][][];
+    values: CellType[][];
 }
+
+type CellType = string | string[];
 
 export interface IMetadata {
     label: string;

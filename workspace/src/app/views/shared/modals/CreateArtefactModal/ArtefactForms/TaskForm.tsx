@@ -2,10 +2,13 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IArtefactItemProperty, IDetailedArtefactItem } from "@ducks/common/typings";
 import { Intent } from "@wrappers/blueprint/constants";
 import { INPUT_TYPES } from "../../../../../constants";
-import { FieldItem, TextArea, TextField } from "@wrappers/index";
+import { FieldItem, Spacing, TextArea, TextField } from "@wrappers/index";
 import { FileUploadModal } from "../../FileUploadModal/FileUploadModal";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import { errorMessage, ParameterWidget } from "./ParameterWidget";
+import { DataPreview } from "../../../DataPreview/DataPreview";
+import { IDatasetConfigPreview } from "@ducks/shared/typings";
+import { project } from "ramda";
 
 export interface IProps {
     form: any;
@@ -30,11 +33,25 @@ export const defaultValueAsJs = function (property: IArtefactItemProperty): any 
     return value;
 };
 
+const datasetConfigPreview = (
+    projectId: string,
+    pluginId: string,
+    parameterValues: Record<string, string>
+): IDatasetConfigPreview => {
+    return {
+        project: projectId,
+        datasetInfo: {
+            type: pluginId,
+            parameters: parameterValues,
+        },
+    };
+};
+
 /** The task creation/update form. */
 export function TaskForm({ form, projectId, artefact }: IProps) {
     const { properties, required } = artefact;
     const [selectedFileField, setSelectedFileField] = useState<string>("");
-    const { register, errors, getValues, setValue, unregister } = form;
+    const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
 
@@ -178,6 +195,19 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                 <button type="button" onClick={() => console.log(getValues(), errors)}>
                     Debug: Console Form data
                 </button>
+                {artefact.taskType === "Dataset" && (
+                    <>
+                        <Spacing />
+                        <DataPreview
+                            title={"Preview"}
+                            preview={datasetConfigPreview(projectId, artefact.pluginId, getValues())}
+                            externalValidation={{
+                                validate: triggerValidation,
+                                errorMessage: "Parameter validation failed. Please fix the issues first.",
+                            }}
+                        />
+                    </>
+                )}
             </form>
 
             <FileUploadModal
