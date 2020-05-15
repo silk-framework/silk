@@ -120,11 +120,12 @@ object PluginParameterAutoCompletionProvider {
   /** Get an auto-completion plugin by ID. */
   def get(providerPluginId: String): Option[PluginParameterAutoCompletionProvider] = {
     implicit val prefixes: Prefixes = Prefixes.empty
-    PluginRegistry.pluginDescriptionById(providerPluginId) map { pd =>
-        val pluginClass = pd.pluginClass.asInstanceOf[Class[PluginParameterAutoCompletionProvider]]
-      checkPluginClass(pluginClass)
-      get(pluginClass)
-    }
+    val plugins = PluginRegistry.pluginDescriptionsById(providerPluginId, Some(Seq(classOf[PluginParameterAutoCompletionProvider])))
+        .map { pd =>
+          val pluginClass = pd.pluginClass.asInstanceOf[Class[PluginParameterAutoCompletionProvider]]
+          get(pluginClass)
+        }
+    plugins.headOption
   }
 }
 

@@ -2,7 +2,7 @@ package controllers.workspaceApi.coreApi
 
 import controllers.util.{SerializationUtils, TextSearchUtils}
 import javax.inject.Inject
-import org.silkframework.config.CustomTask
+import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.Dataset
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.plugin.{PluginDescription, PluginList, PluginRegistry}
@@ -31,7 +31,7 @@ class PluginApi @Inject() () extends InjectedController {
       "workflow",
       "transform",
       "linking"
-    ) flatMap (pl => PluginRegistry.pluginDescriptionById(pl))
+    ) flatMap (pl => PluginRegistry.pluginDescriptionsById(pl, Some(Seq(classOf[TaskSpec]))))
     val singlePluginsList = PluginList(ListMap("singleTasks" -> singlePlugins), addMarkdownDocumentation, overviewOnly = true)
     pluginResult(addMarkdownDocumentation, pluginTypes, singlePluginsList, textQuery, category)
   }
@@ -40,7 +40,7 @@ class PluginApi @Inject() () extends InjectedController {
   def plugin(pluginId: String,
              addMarkdownDocumentation: Boolean,
              pretty: Boolean): Action[AnyContent] = Action { implicit request =>
-    PluginRegistry.pluginDescriptionById(pluginId) match {
+    PluginRegistry.pluginDescriptionsById(pluginId, Some(Seq(classOf[TaskSpec], classOf[Dataset]))).headOption match {
       case Some(pluginDesc) =>
         implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
         val resultJson = PluginListJsonFormat.serializePlugin(pluginDesc, addMarkdownDocumentation, overviewOnly = false, taskType = taskType(pluginDesc.pluginClass))

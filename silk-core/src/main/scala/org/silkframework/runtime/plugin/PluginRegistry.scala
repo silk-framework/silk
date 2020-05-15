@@ -8,12 +8,10 @@ import java.util.logging.Logger
 import javax.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig, Prefixes}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
-import org.silkframework.runtime.serialization.Serialization
 import org.silkframework.util.Identifier
 
 import scala.collection.JavaConversions._
 import scala.collection.immutable.ListMap
-import scala.collection.mutable
 import scala.reflect.ClassTag
 
 /**
@@ -45,7 +43,7 @@ object PluginRegistry {
   private var plugins = Map[String, PluginDescription[_]]()
 
   /** Map holding all plugins by their ID. */
-  private var pluginsById = Map[String, PluginDescription[_]]()
+  private var pluginsById = Map[String, Seq[PluginDescription[_]]]()
 
   // Register all plugins at instantiation of this singleton object.
   if(configMgr().hasPath("pluginRegistry.pluginFolder")) {
@@ -149,8 +147,28 @@ object PluginRegistry {
         .sortBy(_.label)
   }
 
-  /** Get a specific plugin description by plugin ID. */
-  def pluginDescriptionById(pluginId: String): Option[PluginDescription[_]] = pluginsById.get(pluginId)
+  /** Get a specific plugin description by plugin ID.
+    *
+    * @param pluginId     The ID of the plugin.
+    * @param assignableTo Optional classes that the plugin must be assignable to.
+    *                     Depending on 'forAllClassesAssignableTo' either all or at least one class must match.
+    *                     Only matching plugins will be returned.
+    * @param forAllClassesAssignableTo If this is true then all classes from the 'assignableTo' parameter must match, else
+    *                                  only one needs to match.
+    */
+  def pluginDescriptionsById(pluginId: String,
+                             assignableTo: Option[Seq[Class[_]]] = None,
+                             forAllClassesAssignableTo: Boolean = false): Seq[PluginDescription[_]] = {
+    pluginsById.get(pluginId).toSeq.flatten.filter( pluginDesc =>
+      assignableTo
+          .filter(_.nonEmpty)
+          .forall ( assignableToClasses => if(forAllClassesAssignableTo) {
+            assignableToClasses.forall(as => as.isAssignableFrom(pluginDesc.pluginClass))
+          } else {
+            assignableToClasses.exists(as => as.isAssignableFrom(pluginDesc.pluginClass))
+          })
+    )
+  }
 
   /**
     * Returns a list of all available plugins of a specific runtime type.
@@ -244,7 +262,7 @@ object PluginRegistry {
         pluginType.register(pluginDesc)
       }
       plugins += ((pluginDesc.pluginClass.getName, pluginDesc))
-      pluginsById += ((pluginDesc.id.toString, pluginDesc))
+      pluginsById += ((pluginDesc.id.toString, pluginDesc :: (pluginsById.getOrElse(pluginDesc.id, Seq()).toList)))
     }
   }
 

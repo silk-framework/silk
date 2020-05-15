@@ -7,8 +7,10 @@ import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.workspaceApi.search.{ItemType, ParameterAutoCompletionRequest}
 import controllers.workspaceApi.search.SearchApiModel._
 import javax.inject.Inject
-import org.silkframework.config.Prefixes
-import org.silkframework.runtime.plugin.{AutoCompletionResult, ParameterAutoCompletion, PluginParameterAutoCompletionProvider, PluginRegistry}
+import org.silkframework.config.{Prefixes, TaskSpec}
+import org.silkframework.dataset.Dataset
+import org.silkframework.rule.input.Transformer
+import org.silkframework.runtime.plugin.{AutoCompletionResult, ParameterAutoCompletion, PluginObjectParameter, PluginParameterAutoCompletionProvider, PluginRegistry}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
@@ -50,7 +52,11 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
   /** Auto-completion service for plugin parameters. */
   def parameterAutoCompletion(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[ParameterAutoCompletionRequest] { request =>
-      PluginRegistry.pluginDescriptionById(request.pluginId) match {
+      PluginRegistry.pluginDescriptionsById(
+        request.pluginId,
+        // Plugin ID collisions exist, we need to filter the types of plugins.
+        assignableTo = Some(Seq(classOf[TaskSpec], classOf[PluginObjectParameter], classOf[Transformer], classOf[Dataset]))
+      ).headOption match {
         case Some(pluginDescription) =>
           pluginDescription.parameters.find(_.name == request.parameterId) match {
             case Some(parameter) =>

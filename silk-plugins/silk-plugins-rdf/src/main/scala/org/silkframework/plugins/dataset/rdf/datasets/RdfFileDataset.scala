@@ -1,7 +1,5 @@
 package org.silkframework.plugins.dataset.rdf.datasets
 
-import java.io.FileNotFoundException
-
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.config.{PlainTask, Task}
