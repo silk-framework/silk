@@ -43,7 +43,7 @@ const Project = () => {
     };
 
     return !currentProjectId ? (
-        <Loading />
+        <Loading posGlobal description="Loading project data" />
     ) : (
         <WorkspaceContent className="eccapp-di__project">
             <WorkspaceMain>

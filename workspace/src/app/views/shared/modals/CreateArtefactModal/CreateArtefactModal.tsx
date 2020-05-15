@@ -162,7 +162,7 @@ export function CreateArtefactModal() {
                                     <SearchBar onSearch={handleSearch} />
                                     <Spacing />
                                     {loading ? (
-                                        <Loading />
+                                        <Loading description="Loading artefact type list." />
                                     ) : (
                                         <OverviewItemList hasSpacing columns={2}>
                                             <Card

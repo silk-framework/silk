@@ -43,7 +43,7 @@ export const WarningWidget = () => {
         }
     };
 
-    if (isLoading) return <Loading />;
+    if (isLoading) return <Loading description="Loading log messages." />;
 
     return warningList.length > 0 ? (
         <Card>

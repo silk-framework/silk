@@ -1,11 +1,11 @@
 import React from "react";
 import { DragDrop } from "@uppy/react";
 import ProgressBar from "@wrappers/blueprint/progressbar";
-import XHR from '@uppy/xhr-upload';
-import Uppy from '@uppy/core';
-import '@uppy/core/dist/style.css';
-import '@uppy/drag-drop/dist/style.css'
-import '@uppy/progress-bar/dist/style.css';
+import XHR from "@uppy/xhr-upload";
+import Uppy from "@uppy/core";
+import "@uppy/core/dist/style.css";
+import "@uppy/drag-drop/dist/style.css";
+import "@uppy/progress-bar/dist/style.css";
 
 import Loading from "../Loading";
 
@@ -16,7 +16,7 @@ interface IUploaderInstance {
 
     cancelAll();
 
-    setEndpoint(endpoint: string)
+    setEndpoint(endpoint: string);
 }
 
 interface IProps {
@@ -36,7 +36,7 @@ interface IProps {
 }
 
 interface IState {
-    progress: number
+    progress: number;
 }
 
 export class FileUploader extends React.Component<IProps, IState> {
@@ -46,18 +46,18 @@ export class FileUploader extends React.Component<IProps, IState> {
         super(props);
 
         this.state = {
-            progress: 0
+            progress: 0,
         };
 
         this.uppy.use(XHR, {
-            method: 'PUT',
-            fieldName: 'file',
+            method: "PUT",
+            fieldName: "file",
             metaFields: [],
         });
 
-        this.uppy.on('file-added', this.onFileAdded);
-        this.uppy.on('upload-progress', this.onProgress);
-        this.uppy.on('upload-success', this.onUploadSuccess);
+        this.uppy.on("file-added", this.onFileAdded);
+        this.uppy.on("upload-progress", this.onProgress);
+        this.uppy.on("upload-success", this.onUploadSuccess);
     }
 
     componentDidMount(): void {
@@ -66,7 +66,7 @@ export class FileUploader extends React.Component<IProps, IState> {
                 reset: this.reset,
                 upload: this.upload,
                 cancelAll: this.cancelAll,
-                setEndpoint: this.setEndpoint
+                setEndpoint: this.setEndpoint,
             });
         }
     }
@@ -76,18 +76,18 @@ export class FileUploader extends React.Component<IProps, IState> {
 
     setEndpoint = (endpoint: string) => {
         // @ts-ignore
-        this.uppy.getPlugin('XHRUpload').setOptions({
-            endpoint
+        this.uppy.getPlugin("XHRUpload").setOptions({
+            endpoint,
         });
     };
 
     onFileAdded = (result: File) => {
         if (this.props.onFileAdded) {
-            this.props.onFileAdded(result)
+            this.props.onFileAdded(result);
         }
     };
 
-    onProgress = (file, {bytesUploaded, bytesTotal}) => {
+    onProgress = (file, { bytesUploaded, bytesTotal }) => {
         const progress = 100.0 * (bytesUploaded / bytesTotal);
         this.setState({
             progress,
@@ -112,51 +112,54 @@ export class FileUploader extends React.Component<IProps, IState> {
         files.forEach((file: File) => {
             try {
                 this.uppy.addFile({
-                    source: 'file input',
+                    source: "file input",
                     name: file.name,
                     type: file.type,
-                    data: file
-                })
+                    data: file,
+                });
             } catch (err) {
                 if (err.isRestriction) {
                     // handle restrictions
-                    console.log('Restriction error:', err)
+                    console.log("Restriction error:", err);
                 } else {
                     // handle other errors
-                    console.error(err)
+                    console.error(err);
                 }
             }
-        })
+        });
     };
 
     reset = () => {
         this.setState({
-            progress: 0
+            progress: 0,
         });
         this.uppy.cancelAll();
         this.uppy.reset();
     };
 
     render() {
-        const {progress} = this.state;
-        const {disabled, allowMultiple, simpleInput} = this.props;
+        const { progress } = this.state;
+        const { disabled, allowMultiple, simpleInput } = this.props;
 
-        return (
-            disabled
-                ? <Loading/>
-                : <>
-                    {simpleInput
-                        ? <input type="file" id="fileInput" onChange={this.handleInputChange}/>
-                        : <DragDrop uppy={this.uppy} allowMultipleFiles={allowMultiple}/>
-                    }
-                    {
-                        !!progress && <div>
-                            <p>Waiting for finished file upload to show data preview.
-                                You can also create the dataset now and configure it later.</p>
-                            <ProgressBar value={progress}/>
-                        </div>
-                    }
-                </>
+        return disabled ? (
+            <Loading description="Waitng for file upload." />
+        ) : (
+            <>
+                {simpleInput ? (
+                    <input type="file" id="fileInput" onChange={this.handleInputChange} />
+                ) : (
+                    <DragDrop uppy={this.uppy} allowMultipleFiles={allowMultiple} />
+                )}
+                {!!progress && (
+                    <div>
+                        <p>
+                            Waiting for finished file upload to show data preview. You can also create the dataset now
+                            and configure it later.
+                        </p>
+                        <ProgressBar value={progress} />
+                    </div>
+                )}
+            </>
         );
     }
 }

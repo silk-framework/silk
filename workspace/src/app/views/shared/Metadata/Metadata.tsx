@@ -132,7 +132,7 @@ export function Metadata({ projectId = null, taskId }) {
 
     const widgetContent = (
         <CardContent>
-            {loading && <Loading />}
+            {loading && <Loading description="Loading summary data." />}
             {!loading && isEditing && (
                 <PropertyValueList>
                     <PropertyValuePair key="label">

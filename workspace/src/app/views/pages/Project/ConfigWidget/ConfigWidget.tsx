@@ -56,7 +56,7 @@ export const ConfigurationWidget = () => {
             <Divider />
             <CardContent>
                 {isLoading ? (
-                    <Loading />
+                    <Loading description="Loading configuration list." />
                 ) : (
                     <>
                         <OverviewItemList hasSpacing hasDivider>

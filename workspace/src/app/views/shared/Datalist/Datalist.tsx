@@ -1,5 +1,5 @@
 import React from "react";
-import Spinner from "@wrappers/blueprint/spinner";
+import { Loading } from "../Loading/Loading";
 import { OverviewItemList } from "@wrappers/index";
 
 export function Datalist({
@@ -11,7 +11,7 @@ export function Datalist({
     ...otherProps
 }) {
     if (isLoading) {
-        return <Spinner />;
+        return <Loading description="Loading data." />;
     } else if (isEmpty) {
         return emptyContainer || <p>{emptyListMessage}</p>;
     }

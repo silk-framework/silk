@@ -59,7 +59,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen }) => {
             actions={<Button onClick={() => onCloseModal()}>Close</Button>}
         >
             {isLoading ? (
-                <Loading />
+                <Loading description="Loading prefix configuration." />
             ) : (
                 <>
                     <PrefixNew
