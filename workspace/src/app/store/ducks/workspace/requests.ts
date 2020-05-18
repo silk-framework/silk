@@ -94,6 +94,20 @@ export const requestCreateTask = async (payload, projectId): Promise<any | never
     }
 };
 
+// Update project task
+export const requestUpdateProjectTask = async (projectId: string, itemId: string, payload): Promise<void> => {
+    try {
+        const { data } = await fetch({
+            url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}`),
+            method: "PATCH",
+            body: payload,
+        });
+        return data;
+    } catch (e) {
+        throw handleError(e);
+    }
+};
+
 //missing-type
 export const requestCreateProject = async (payload: ICreateProjectPayload): Promise<any | never> => {
     try {

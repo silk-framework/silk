@@ -33,6 +33,11 @@ interface IParam {
     formHooks: IHookFormParam;
     // All change handlers
     changeHandlers: Record<string, (value) => void>;
+    // Initial values in a flat form, e.g. "nestedParam.param1". This is either set for all parameters or not set for none.
+    // The prefixed values can be addressed with help of the 'formParamId' parameter.
+    initialValues: {
+        [key: string]: string;
+    };
 }
 
 /** Renders the errors message based on the error type. */
@@ -58,6 +63,7 @@ export const ParameterWidget = ({
     onFileUploadClick,
     formHooks,
     changeHandlers,
+    initialValues,
 }: IParam) => {
     const errors = formHooks.errors[formParamId];
     const propertyDetails = taskParameter.param;
@@ -106,6 +112,7 @@ export const ParameterWidget = ({
                             onFileUploadClick={onFileUploadClick}
                             formHooks={formHooks}
                             changeHandlers={changeHandlers}
+                            initialValues={initialValues}
                         />
                     );
                 })}
@@ -132,13 +139,16 @@ export const ParameterWidget = ({
                         autoCompletion={autoCompletion}
                         onInputChange={handleAutoCompleteInput}
                         onChange={changeHandlers[formParamId]}
-                        value={defaultValueAsJs(propertyDetails)}
+                        value={
+                            initialValues[formParamId] ? initialValues[formParamId] : defaultValueAsJs(propertyDetails)
+                        }
                     />
                 ) : (
                     <InputMapper
                         parameter={{ paramId: formParamId, param: propertyDetails }}
                         intent={errors ? Intent.DANGER : Intent.NONE}
                         onChange={changeHandlers[formParamId]}
+                        initialValues={initialValues}
                     />
                 )}
             </FieldItem>

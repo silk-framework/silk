@@ -7,6 +7,7 @@ import {
     IDatasetTypePayload,
     IMetadataUpdatePayload,
     IProjectMetadataResponse,
+    IProjectTask,
     IRelatedItemsResponse,
     IRequestAutocompletePayload,
     ITaskMetadataResponse,
@@ -47,6 +48,17 @@ export const requestTaskMetadata = async (itemId: string, projectId?: string): P
     try {
         const { data } = await fetch({
             url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}/metadata`),
+        });
+        return data;
+    } catch (e) {
+        throw handleError(e);
+    }
+};
+
+export const requestTaskData = async (projectId: string, itemId: string): Promise<IProjectTask> => {
+    try {
+        const { data } = await fetch({
+            url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}`),
         });
         return data;
     } catch (e) {

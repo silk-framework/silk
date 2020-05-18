@@ -15,7 +15,7 @@ import {
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
 import { checkIfResourceExistsAsync, fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
-import { commonSel } from "@ducks/common";
+import { commonOp, commonSel } from "@ducks/common";
 import {
     ISearchListRequest,
     requestCloneTask,
@@ -24,6 +24,7 @@ import {
     requestRemoveProject,
     requestRemoveTask,
     requestSearchList,
+    requestUpdateProjectTask,
 } from "@ducks/workspace/requests";
 
 const {
@@ -291,6 +292,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: strin
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
         const { label, description, ...restFormData } = formData;
+        const requestData = commonOp.buildTaskObject(restFormData);
         const metadata = {
             label,
             description,
@@ -302,7 +304,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: strin
                 taskType: taskType,
                 type: artefactId,
                 parameters: {
-                    ...restFormData,
+                    ...requestData,
                 },
             },
         };
@@ -317,6 +319,27 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: strin
                     taskLabel: label,
                 })
             );
+        } catch (e) {
+            dispatch(setError(e));
+        }
+    };
+};
+
+const fetchUpdateTaskAsync = (projectId: string, itemId: string, formData: any) => {
+    return async (dispatch, getState) => {
+        const requestData = commonOp.buildTaskObject(formData);
+        const payload = {
+            data: {
+                parameters: {
+                    ...requestData,
+                },
+            },
+        };
+
+        dispatch(setError({}));
+        try {
+            await requestUpdateProjectTask(projectId, itemId, payload);
+            dispatch(commonOp.closeArtefactModal());
         } catch (e) {
             dispatch(setError(e));
         }
@@ -427,6 +450,7 @@ export default {
     checkIfResourceExistsAsync,
     fetchCreateProjectAsync,
     fetchCreateTaskAsync,
+    fetchUpdateTaskAsync,
     resetFilters,
     updateNewPrefix,
 };

@@ -28,6 +28,23 @@ export interface IProjectMetadataResponse {
     tasks: any;
 }
 
+/** The data of a project task from the generic /tasks endpoint. */
+export interface IProjectTask {
+    metadata: IMetadata;
+    taskType: "Dataset" | "Linking" | "Transform" | "Workflow" | "CustomTask";
+    project: string;
+    // item ID
+    id: string;
+    data: {
+        // The plugin ID
+        type: string;
+        // current parameter values
+        parameters: {
+            [key: string]: string | object;
+        };
+    };
+}
+
 export interface ITaskMetadataResponse {
     taskType: string;
     schemata: any;
@@ -128,6 +145,6 @@ type CellType = string | string[];
 export interface IMetadata {
     label: string;
     description: string;
-    relations: IRelations;
+    relations?: IRelations;
     type?: string;
 }

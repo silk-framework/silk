@@ -27,6 +27,7 @@ import { TaskForm } from "./ArtefactForms/TaskForm";
 import ArtefactTypesList from "./ArtefactTypesList";
 import { DATA_TYPES } from "../../../../constants";
 import { Highlighter } from "../../Highlighter/Highlighter";
+import { workspaceOp } from "@ducks/workspace";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -37,7 +38,14 @@ export function CreateArtefactModal() {
     const modalStore = useSelector(commonSel.artefactModalSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
 
-    const { selectedArtefact, isOpen, artefactsList, cachedArtefactProperties, loading } = modalStore;
+    const {
+        selectedArtefact,
+        isOpen,
+        artefactsList,
+        cachedArtefactProperties,
+        loading,
+        updateExistingTask,
+    } = modalStore;
 
     // initially take from redux
     const [selected, setSelected] = useState<IArtefactItem>(selectedArtefact);
@@ -97,7 +105,17 @@ export function CreateArtefactModal() {
 
         const isValidFields = await form.triggerValidation();
         if (isValidFields) {
-            dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefact.key)));
+            if (updateExistingTask) {
+                dispatch(
+                    workspaceOp.fetchUpdateTaskAsync(
+                        updateExistingTask.projectId,
+                        updateExistingTask.taskId,
+                        form.getValues()
+                    )
+                );
+            } else {
+                dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefact.key)));
+            }
             closeModal();
         }
     };
@@ -119,13 +137,26 @@ export function CreateArtefactModal() {
     };
 
     let artefactForm = null;
-    if (selectedArtefact.key) {
-        if (selectedArtefact.key === DATA_TYPES.PROJECT) {
-            artefactForm = <ProjectForm form={form} />;
-        } else {
-            const detailedArtefact = cachedArtefactProperties[selectedArtefact.key];
-            if (detailedArtefact && projectId) {
-                artefactForm = <TaskForm form={form} artefact={detailedArtefact} projectId={projectId} />;
+    if (updateExistingTask) {
+        // Task update
+        artefactForm = (
+            <TaskForm
+                form={form}
+                artefact={updateExistingTask.taskPluginDetails}
+                projectId={updateExistingTask.projectId}
+                updateTask={{ parameterValues: updateExistingTask.currentParameterValues }}
+            />
+        );
+    } else {
+        // Project / task creation
+        if (selectedArtefact.key) {
+            if (selectedArtefact.key === DATA_TYPES.PROJECT) {
+                artefactForm = <ProjectForm form={form} />;
+            } else {
+                const detailedArtefact = cachedArtefactProperties[selectedArtefact.key];
+                if (detailedArtefact && projectId) {
+                    artefactForm = <TaskForm form={form} artefact={detailedArtefact} projectId={projectId} />;
+                }
             }
         }
     }
@@ -154,22 +185,28 @@ export function CreateArtefactModal() {
         <SimpleDialog
             size="large"
             hasBorder
-            title={`Create new item of type ${selectedArtefact.title || ""}`}
+            title={
+                updateExistingTask
+                    ? `Update '${updateExistingTask.metaData.label}' (${updateExistingTask.taskPluginDetails.title})`
+                    : `Create new item of type ${selectedArtefact.title || ""}`
+            }
             onClose={closeModal}
             isOpen={isOpen}
             actions={
-                selectedArtefact.key
+                selectedArtefact.key || updateExistingTask
                     ? [
                           <Button key="create" affirmative={true} onClick={handleCreate} disabled={isErrorPresented()}>
-                              Create
+                              {updateExistingTask ? "Update" : "Create"}
                           </Button>,
                           <Button key="cancel" onClick={closeModal}>
                               Cancel
                           </Button>,
                           <CardActionsAux key="aux">
-                              <Button key="back" onClick={handleBack}>
-                                  Back
-                              </Button>
+                              {!updateExistingTask && (
+                                  <Button key="back" onClick={handleBack}>
+                                      Back
+                                  </Button>
+                              )}
                           </CardActionsAux>,
                       ]
                     : [

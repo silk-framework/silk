@@ -4,13 +4,18 @@ import { Switch, TextField, TextArea } from "@wrappers/index";
 import { QueryEditor } from "../../../QueryEditor/QueryEditor";
 import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";
-import { defaultValueAsJs } from "./TaskForm";
+import { defaultValueAsJs, stringValueAsJs } from "./TaskForm";
 
-interface IInputMapper {
+interface IProps {
     parameter: ITaskParameter;
     // Blueprint intent
     intent: Intent;
     onChange: (value) => void;
+    // Initial values in a flat form, e.g. "nestedParam.param1". This is either set for all parameters or not set for none.
+    // The prefixed values can be addressed with help of the 'formParamId' parameter.
+    initialValues: {
+        [key: string]: string;
+    };
 }
 
 /** The attributes for the GUI components. */
@@ -22,18 +27,27 @@ interface IInputAttributes {
     value?: any;
     defaultValue?: any;
     inputRef?: (e) => void;
+    defaultChecked?: boolean;
 }
 
 /** Maps an atomic value to the corresponding value type widget. */
-export function InputMapper({ parameter, intent, onChange }: IInputMapper) {
+export function InputMapper({ parameter, intent, onChange, initialValues }: IProps) {
     const { paramId, param } = parameter;
+    const initialValue =
+        initialValues[paramId] !== undefined
+            ? stringValueAsJs(parameter.param.parameterType, initialValues[paramId])
+            : defaultValueAsJs(param);
     const inputAttributes: IInputAttributes = {
         id: paramId,
         name: paramId,
         intent: intent,
         onChange: onChange,
-        defaultValue: defaultValueAsJs(param),
+        defaultValue: initialValue,
     };
+
+    if (param.parameterType === INPUT_TYPES.BOOLEAN) {
+        inputAttributes.defaultChecked = initialValue;
+    }
 
     switch (param.parameterType) {
         case INPUT_TYPES.BOOLEAN:

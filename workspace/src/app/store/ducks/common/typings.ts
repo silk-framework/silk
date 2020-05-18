@@ -1,3 +1,5 @@
+import { IMetadata } from "@ducks/shared/typings";
+
 export interface IAvailableDataTypes {
     [key: string]: IAvailableDataType;
 }
@@ -67,15 +69,33 @@ export interface IArtefactItem {
     markdownDocumentation?: string;
 }
 
+/** Contains all data that is needed to render an update dialog. */
+export interface IProjectTaskUpdatePayload {
+    projectId: string;
+    taskId: string;
+    taskPluginDetails: IDetailedArtefactItem;
+    metaData: IMetadata;
+    currentParameterValues: {
+        [key: string]: string | object;
+    };
+}
+
 export interface IArtefactModal {
+    // If true, this modal is shown to the user
     isOpen: boolean;
     loading: boolean;
+    // The list of item types that can be selected.
     artefactsList: IArtefactItem[];
+    // The selected item type
     selectedArtefact: IArtefactItem;
+    // cached plugin descriptions
     cachedArtefactProperties: {
         [key: string]: IDetailedArtefactItem;
     };
+    // The selected item category
     selectedDType: string;
+    // If an existing task should be updated
+    updateExistingTask?: IProjectTaskUpdatePayload;
 }
 
 export interface ICommonState {

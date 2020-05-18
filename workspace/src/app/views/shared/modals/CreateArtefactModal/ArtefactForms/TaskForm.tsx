@@ -8,7 +8,6 @@ import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOption
 import { errorMessage, ParameterWidget } from "./ParameterWidget";
 import { DataPreview } from "../../../DataPreview/DataPreview";
 import { IDatasetConfigPreview } from "@ducks/shared/typings";
-import { project } from "ramda";
 
 export interface IProps {
     form: any;
@@ -16,21 +15,36 @@ export interface IProps {
     artefact: IDetailedArtefactItem;
 
     projectId: string;
+
+    // True if this is an update form instead of a create form.
+    updateTask?: {
+        parameterValues: {
+            [key: string]: string | object;
+        };
+    };
 }
 
+const LABEL = "label";
+const DESCRIPTION = "description";
+
 /** Converts the default value to a JS value */
-export const defaultValueAsJs = function (property: IArtefactItemProperty): any {
-    let value: any = property.value || "";
+export const defaultValueAsJs = (property: IArtefactItemProperty): any => {
+    return stringValueAsJs(property.parameterType, property.value);
+};
 
-    if (property.type === INPUT_TYPES.BOOLEAN) {
+/** Converts a string value to its typed equivalent based on the given value type. */
+export const stringValueAsJs = (valueType: string, value: string | null): any => {
+    let v: any = value || "";
+
+    if (valueType === INPUT_TYPES.BOOLEAN) {
         // cast to boolean from string
-        value = property.value === "true";
+        v = value === "true";
     }
 
-    if (property.type === INPUT_TYPES.INTEGER) {
-        value = +property.value;
+    if (valueType === INPUT_TYPES.INTEGER) {
+        v = +value;
     }
-    return value;
+    return v;
 };
 
 const datasetConfigPreview = (
@@ -47,13 +61,35 @@ const datasetConfigPreview = (
     };
 };
 
+/** Extracts the initial values from the parameter values of an existing task and turns them into a flat object, e.g. obj["nestedParam.param1"]. */
+export const existingTaskValuesToFlatParameters = (updateTask: any) => {
+    if (updateTask) {
+        const result: any = {};
+        const objToFlatRec = (obj: object, prefix: string) => {
+            Object.entries(obj).forEach(([paramName, paramValue]) => {
+                if (typeof paramValue === "object" && paramValue !== null) {
+                    objToFlatRec(paramValue, paramName + ".");
+                } else {
+                    result[prefix + paramName] = paramValue;
+                }
+            });
+        };
+        objToFlatRec(updateTask.parameterValues, "");
+        return result;
+    } else {
+        return {};
+    }
+};
+
 /** The task creation/update form. */
-export function TaskForm({ form, projectId, artefact }: IProps) {
+export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
     const { properties, required } = artefact;
     const [selectedFileField, setSelectedFileField] = useState<string>("");
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
+
+    const initialValues = existingTaskValuesToFlatParameters(updateTask);
 
     // addition restriction for the hook form parameter values
     const valueRestrictions = (param: IArtefactItemProperty) => {
@@ -89,19 +125,29 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                     let value = defaultValueAsJs(param);
                     returnKeys.push(key);
                     register({ name: key }, { required: required.includes(key), ...valueRestrictions(param) });
-                    setValue(key, value);
+                    if (updateTask) {
+                        // Set existing value
+                        setValue(key, updateTask.parameterValues[key]);
+                    } else {
+                        // Set default value
+                        setValue(key, value);
+                    }
                 }
             });
         };
-        register({ name: "label" }, { required: true });
-        register({ name: "description" });
+        if (!updateTask) {
+            register({ name: LABEL }, { required: true });
+            register({ name: DESCRIPTION });
+        }
         registerParameters("", visibleParams);
         setFormValueKeys(returnKeys);
 
         // Unsubscribe
         return () => {
-            unregister("label");
-            unregister("description");
+            if (!updateTask) {
+                unregister(LABEL);
+                unregister(DESCRIPTION);
+            }
             returnKeys.forEach((key) => unregister(key));
         };
     }, [properties, register]);
@@ -136,32 +182,35 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
     return (
         <>
             <form>
-                <FieldItem
-                    key="label"
-                    labelAttributes={{
-                        text: "Label",
-                        info: "required",
-                        htmlFor: "label",
-                    }}
-                    messageText={errorMessage("Label", errors.label)}
-                >
-                    <TextField
-                        id={"label"}
-                        name={"label"}
-                        onChange={handleChange("label")}
-                        intent={errors.label ? Intent.DANGER : Intent.NONE}
-                    />
-                </FieldItem>
-                <FieldItem
-                    key="description"
-                    labelAttributes={{
-                        text: "Description",
-                        htmlFor: "description",
-                    }}
-                >
-                    <TextArea id={"description"} name={"description"} onChange={handleChange("description")} />
-                </FieldItem>
-
+                {updateTask ? null : (
+                    <>
+                        <FieldItem
+                            key={LABEL}
+                            labelAttributes={{
+                                text: "Label",
+                                info: "required",
+                                htmlFor: LABEL,
+                            }}
+                            messageText={errorMessage("Label", errors.label)}
+                        >
+                            <TextField
+                                id={LABEL}
+                                name={LABEL}
+                                onChange={handleChange(LABEL)}
+                                intent={errors.label ? Intent.DANGER : Intent.NONE}
+                            />
+                        </FieldItem>
+                        <FieldItem
+                            key={DESCRIPTION}
+                            labelAttributes={{
+                                text: "Description",
+                                htmlFor: DESCRIPTION,
+                            }}
+                        >
+                            <TextArea id={DESCRIPTION} name={DESCRIPTION} onChange={handleChange(DESCRIPTION)} />
+                        </FieldItem>
+                    </>
+                )}
                 {normalParams.map(([key, param]) => (
                     <ParameterWidget
                         key={key}
@@ -173,6 +222,7 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                         onFileUploadClick={() => toggleFileUploader(key)}
                         formHooks={formHooks}
                         changeHandlers={changeHandlers}
+                        initialValues={initialValues}
                     />
                 ))}
                 {advancedParams.length > 0 && (
@@ -188,6 +238,7 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                                 onFileUploadClick={() => toggleFileUploader(key)}
                                 formHooks={formHooks}
                                 changeHandlers={changeHandlers}
+                                initialValues={initialValues}
                             />
                         ))}
                     </AdvancedOptionsArea>

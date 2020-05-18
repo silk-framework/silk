@@ -10,6 +10,7 @@ import { datasetSel } from "@ducks/dataset";
 import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@wrappers/index";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 import { DataPreview } from "../../shared/DataPreview/DataPreview";
+import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
 
 export function Dataset() {
     const error = useSelector(datasetSel.errorSelector);
@@ -37,6 +38,8 @@ export function Dataset() {
             <WorkspaceSide>
                 <Section>
                     <RelatedItems projectId={projectId} taskId={taskId} />
+                    <Spacing />
+                    <TaskConfig projectId={projectId} taskId={taskId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

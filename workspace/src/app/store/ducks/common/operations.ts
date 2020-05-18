@@ -23,6 +23,7 @@ const {
     setSelectedArtefactDType,
     closeArtefactModal,
     selectArtefact,
+    updateProjectTask,
     setCachedArtefactProperty,
     fetchArtefactsList,
     setArtefactsList,
@@ -144,11 +145,7 @@ const createArtefactAsync = (formData, taskType: string) => {
                 dispatch(workspaceOp.fetchCreateProjectAsync(formData));
                 break;
             default:
-                // @TODO: REMOVE LATER
-                // @FIXME: currently backend accept only string values, so we need to transform it
-                const requestData = buildTaskObject(formData);
-
-                dispatch(workspaceOp.fetchCreateTaskAsync(requestData, selectedArtefact.key, taskType));
+                dispatch(workspaceOp.fetchCreateTaskAsync(formData, selectedArtefact.key, taskType));
                 console.warn("Artefact type not defined");
                 break;
         }
@@ -168,6 +165,7 @@ export default {
     getArtefactPropertiesAsync,
     closeArtefactModal,
     selectArtefact,
+    updateProjectTask,
     setProjectId,
     unsetProject,
     setTaskId,
