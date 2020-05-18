@@ -120,7 +120,7 @@ const createArtefactAsync = (formData) => {
                 break;
             default:
                 // @TODO: REMOVE LATER
-                // @FIXME: currently backend accept only string values, so we need to transform it
+                // currently backend accept only string values, so we need to transform it
                 const requestData = {};
                 Object.keys(formData).forEach((key) => {
                     const value = formData[key];

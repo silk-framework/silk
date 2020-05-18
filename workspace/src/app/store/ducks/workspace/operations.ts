@@ -298,7 +298,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string) => {
             const data = await requestCreateTask(payload, currentProjectId);
 
             dispatch(
-                routerOp.goToPage(`/projects/${currentProjectId}/dataset/${data.id}`, {
+                routerOp.goToPage(`projects/${currentProjectId}/dataset/${data.id}`, {
                     taskLabel: label,
                 })
             );
@@ -319,7 +319,7 @@ const fetchCreateProjectAsync = (formData: { label: string; description?: string
                     description,
                 },
             });
-            dispatch(routerOp.goToPage(`/projects/${data.name}`, { projectLabel: label }));
+            dispatch(routerOp.goToPage(`projects/${data.name}`, { projectLabel: label }));
         } catch (e) {
             dispatch(setError(e.response.data));
         }

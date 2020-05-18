@@ -7,11 +7,16 @@ import "@uppy/drag-drop/dist/style.css";
 import "@uppy/progress-bar/dist/style.css";
 
 import Loading from "../Loading";
-import { UploadNewFile } from "./UploadNewFile";
+import { UploadNewFile } from "./cases/UploadNewFile";
 import { IAutocompleteProps } from "../Autocomplete/Autocomplete";
 import { FileMenu, FileMenuItems } from "./FileMenu";
-import { SelectFileFromExisting } from "./SelectFileFromExisting";
-import { CreateNewFile } from "./CreateNewFile";
+import { SelectFileFromExisting } from "./cases/SelectFileFromExisting";
+import { CreateNewFile } from "./cases/CreateNewFile";
+import { requestIfResourceExists } from "@ducks/workspace/requests";
+import AbortAlert from "../modals/FileUploadModal/AbortAlert";
+import OverrideAlert from "../modals/FileUploadModal/OverrideAlert";
+import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
+import { Button } from "@wrappers/index";
 
 interface IUploaderInstance {
     /**
@@ -32,6 +37,11 @@ interface IUploaderInstance {
 }
 
 export interface IUploaderOptions {
+    /**
+     * @required
+     */
+    projectId: string;
+
     /**
      * return uploader API
      * @see IUploaderInstance
@@ -60,8 +70,6 @@ export interface IUploaderOptions {
     onProgress?(progress: number);
 
     allowMultiple?: boolean;
-
-    loading?: boolean;
 
     /**
      * @default false
@@ -95,6 +103,14 @@ interface IState {
 
     // Selected File menu item
     selectedFileMenu: FileMenuItems;
+
+    loading: boolean;
+
+    overrideDialog: File | null;
+
+    abortDialog: boolean;
+
+    isUploading: boolean;
 }
 
 export class FileUploader extends React.Component<IUploaderOptions, IState> {
@@ -105,7 +121,11 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
 
         this.state = {
             progress: 0,
+            loading: false,
             selectedFileMenu: props.advanced ? "SELECT" : "NEW",
+            isUploading: false,
+            abortDialog: false,
+            overrideDialog: null,
         };
 
         this.uppy.use(XHR, {
@@ -170,19 +190,75 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         this.setState({
             selectedFileMenu: value,
         });
+        this.reset();
+    };
+
+    isResourceExists = async (fileName: string) => {
+        try {
+            const res = await requestIfResourceExists(this.props.projectId, fileName);
+            return !!res.size;
+        } catch {
+            return false;
+        }
+    };
+
+    handleFileAdded = async (result: any) => {
+        try {
+            this.setState({ loading: true });
+            const isExists = await this.isResourceExists(result.name);
+
+            isExists ? this.setState({ overrideDialog: result }) : this.handleUpload(result);
+        } finally {
+            this.setState({ loading: false });
+        }
+    };
+
+    handleUpload = async (file: any) => {
+        const { projectId } = this.props;
+
+        const uploadUrl = legacyApiEndpoint(`/projects/${projectId}/resources`);
+        this.setEndpoint(`${uploadUrl}/${file.name}`);
+
+        this.setState({ isUploading: true });
+        try {
+            await this.uppy.upload();
+            this.props.onChange(file.name);
+            this.reset();
+        } catch (e) {
+            console.log(e);
+        } finally {
+            this.setState({
+                isUploading: false,
+            });
+        }
+    };
+
+    handleAbort = () => {
+        this.setState({ abortDialog: true });
+        this.reset();
+    };
+
+    handleOverride = () => {
+        this.handleUpload(this.state.overrideDialog);
+        this.setState({
+            overrideDialog: null,
+        });
     };
 
     reset = () => {
         this.setState({
             progress: 0,
+            overrideDialog: null,
+            abortDialog: false,
+            loading: false,
         });
         this.uppy.cancelAll();
         this.uppy.reset();
     };
 
     render() {
-        const { progress, selectedFileMenu } = this.state;
-        const { loading, simpleInput, allowMultiple, advanced, autocomplete, onChange } = this.props;
+        const { progress, selectedFileMenu, loading, abortDialog, overrideDialog } = this.state;
+        const { simpleInput, allowMultiple, advanced, autocomplete, onChange } = this.props;
 
         return loading ? (
             <Loading />
@@ -199,7 +275,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                             uppy={this.uppy}
                             simpleInput={simpleInput}
                             allowMultiple={allowMultiple}
-                            onChange={onChange}
+                            onAdded={this.handleFileAdded}
                             onProgress={this.handleProgress}
                             onUploadSuccess={this.handleUploadSuccess}
                         />
@@ -208,13 +284,19 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                 </div>
                 {!!progress && (
                     <div>
-                        <p>
-                            Waiting for finished file upload to show data preview. You can also create the dataset now
-                            and configure it later.
-                        </p>
+                        <p>Waiting for finished file upload to show data preview.</p>
                         <ProgressBar value={progress} />
+
+                        <Button onClick={this.handleAbort}>Abort Upload</Button>
                     </div>
                 )}
+
+                <AbortAlert
+                    isOpen={abortDialog}
+                    onCancel={() => this.setState({ abortDialog: false })}
+                    onConfirm={this.reset}
+                />
+                <OverrideAlert isOpen={overrideDialog} onCancel={this.reset} onConfirm={this.handleOverride} />
             </>
         );
     }

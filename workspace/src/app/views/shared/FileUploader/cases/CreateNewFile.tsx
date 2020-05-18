@@ -7,6 +7,8 @@ interface IProps {
      * @param value
      */
     onChange(value: string);
+
+    onBlur?(value: string);
 }
 
 /**
@@ -14,7 +16,7 @@ interface IProps {
  * @param onChange
  * @constructor
  */
-export function CreateNewFile({ onChange }: IProps) {
+export function CreateNewFile({ onChange, onBlur }: IProps) {
     const [newFileName, setNewFileName] = useState("");
     const [error, setError] = useState(false);
 
@@ -42,6 +44,7 @@ export function CreateNewFile({ onChange }: IProps) {
                 id="fileInput"
                 name="fileInput"
                 onChange={handleNewFileNameChange}
+                onBlur={() => onBlur(newFileName)}
                 value={newFileName}
                 placeholder="Write new file name"
                 hasStateDanger={error}

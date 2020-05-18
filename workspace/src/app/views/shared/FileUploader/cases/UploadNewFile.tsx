@@ -1,6 +1,7 @@
 import { DragDrop } from "@uppy/react";
 import React, { useEffect } from "react";
 import Uppy from "@uppy/core";
+import { requestIfResourceExists } from "@ducks/workspace/requests";
 
 interface IProps {
     // Uppy instance
@@ -12,7 +13,7 @@ interface IProps {
     // Allow multiple file upload
     allowMultiple?: boolean;
 
-    onChange(file: File);
+    onAdded(file: File);
 
     onProgress?(file: File, data: any);
 
@@ -23,16 +24,23 @@ interface IProps {
  * The Widget for "Upload new file" option
  */
 export function UploadNewFile(props: IProps) {
-    const { uppy, simpleInput, allowMultiple, onChange, onProgress, onUploadSuccess } = props;
+    const { uppy, simpleInput, allowMultiple, onAdded, onProgress, onUploadSuccess } = props;
 
     useEffect(() => {
         registerEvents();
+        return unregisterEvents;
     }, []);
 
     const registerEvents = () => {
-        uppy.on("file-added", onChange);
+        uppy.on("file-added", onAdded);
         uppy.on("upload-progress", onProgress);
         uppy.on("upload-success", onUploadSuccess);
+    };
+
+    const unregisterEvents = () => {
+        uppy.off("file-added", onAdded);
+        uppy.off("upload-progress", onProgress);
+        uppy.off("upload-success", onUploadSuccess);
     };
 
     const handleFileInputChange = (event) => {
@@ -66,14 +74,6 @@ export function UploadNewFile(props: IProps) {
             ) : (
                 <DragDrop uppy={uppy} allowMultipleFiles={allowMultiple} />
             )}
-            {/*{*/}
-            {/*    !!uploadedFiles.length && <>*/}
-            {/*        <p><strong>Added Files</strong></p>*/}
-            {/*        {*/}
-            {/*            uploadedFiles.map(item => <div key={item.id}>{item.name}</div>)*/}
-            {/*        }*/}
-            {/*    </>*/}
-            {/*}*/}
         </div>
     );
 }

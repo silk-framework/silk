@@ -1,4 +1,4 @@
-import { Autocomplete, IAutocompleteProps } from "../Autocomplete/Autocomplete";
+import { Autocomplete, IAutocompleteProps } from "../../Autocomplete/Autocomplete";
 import { FieldItem } from "@wrappers/index";
 import React, { useState } from "react";
 

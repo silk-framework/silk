@@ -29,14 +29,14 @@ export function Dataset() {
         <WorkspaceContent className="eccapp-di__dataset">
             <WorkspaceMain>
                 <Section>
-                    <Metadata projectId={projectId} taskId={taskId} />
+                    <Metadata />
                     <Spacing />
                     <DataPreview title={"Data preview"} preview={{ project: projectId, dataset: taskId }} />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>
                 <Section>
-                    <RelatedItems projectId={projectId} taskId={taskId} />
+                    <RelatedItems />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

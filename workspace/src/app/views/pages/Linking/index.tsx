@@ -28,12 +28,12 @@ export default function () {
         <WorkspaceContent className="eccapp-di__linking">
             <WorkspaceMain>
                 <Section>
-                    <Metadata projectId={projectId} taskId={taskId} />
+                    <Metadata />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>
                 <Section>
-                    <RelatedItems projectId={projectId} taskId={taskId} />
+                    <RelatedItems />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>
