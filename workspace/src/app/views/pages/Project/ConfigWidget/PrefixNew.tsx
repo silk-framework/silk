@@ -1,11 +1,9 @@
 import React from "react";
-import { Button, FieldItem, FieldItemRow, Spacing, TextField } from "@wrappers/index";
+import { Button, FieldItem, FieldItemRow, FieldSet, TextField } from "@wrappers/index";
 
 const PrefixNew = ({ onAdd, onChangePrefix, prefix }) => {
     return (
-        <fieldset>
-            <legend>Add prefix</legend>
-            <Spacing size="small" />
+        <FieldSet title="Add prefix" boxed>
             <FieldItemRow>
                 <FieldItem
                     key={"prefix-name"}
@@ -39,7 +37,7 @@ const PrefixNew = ({ onAdd, onChangePrefix, prefix }) => {
                     </Button>
                 </FieldItem>
             </FieldItemRow>
-        </fieldset>
+        </FieldSet>
     );
 };
 
