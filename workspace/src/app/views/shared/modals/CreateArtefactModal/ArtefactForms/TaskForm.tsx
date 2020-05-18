@@ -143,6 +143,7 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                         info: "required",
                         htmlFor: "label",
                     }}
+                    hasStateDanger={errorMessage("Label", errors.label) ? true : false}
                     messageText={errorMessage("Label", errors.label)}
                 >
                     <TextField

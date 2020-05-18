@@ -122,11 +122,13 @@ export const ParameterWidget = ({
                     tooltip: description && description.length <= MAXLENGTH_TOOLTIP ? description : "",
                 }}
                 helperText={description && description.length > MAXLENGTH_TOOLTIP ? description : ""}
+                hasStateDanger={errorMessage(title, errors) ? true : false}
                 messageText={errorMessage(title, errors)}
-                hasStateDanger={errors}
             >
                 {isFileInput(parameterType) ? (
-                    <Button onClick={onFileUploadClick}>Upload new {title}</Button>
+                    <Button onClick={onFileUploadClick} hasStateWarning={errorMessage(title, errors) ? true : false}>
+                        Upload new {title}
+                    </Button>
                 ) : !!autoCompletion ? (
                     <Autocomplete
                         autoCompletion={autoCompletion}
