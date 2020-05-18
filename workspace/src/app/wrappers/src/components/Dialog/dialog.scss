@@ -20,6 +20,7 @@ $ecc-color-modal-backdrop: rgba(invert($ecc-color-workspace-background), 0.69) !
     max-width: calc(100vw - 4rem);
     max-height: calc(100vh - 4rem);
     pointer-events: all;
+    user-select: text;
     display: flex;
     justify-content: center;
     align-items: stretch;
@@ -61,5 +62,5 @@ $ecc-color-modal-backdrop: rgba(invert($ecc-color-workspace-background), 0.69) !
     height: 100vh;
     width: 100vw;
     max-height: 100vh;
-    max-width: 100vw
+    max-width: 100vw;
 }

@@ -34,6 +34,7 @@ import Switch from "./src/components/Switch/Switch";
 import NumericInput from "./src/components/NumericInput/NumericInput";
 import FieldItem from "./src/components/Form/FieldItem";
 import FieldItemRow from "./src/components/Form/FieldItemRow";
+import FieldSet from "./src/components/Form/FieldSet";
 
 import Menu from "./src/components/Menu/Menu";
 import MenuItem from "./src/components/Menu/MenuItem";
@@ -167,6 +168,7 @@ export {
     NumericInput, // TODO: scss styles
     FieldItem,
     FieldItemRow,
+    FieldSet,
     BreadcrumbList,
     BreadcrumbItem,
     Modal,

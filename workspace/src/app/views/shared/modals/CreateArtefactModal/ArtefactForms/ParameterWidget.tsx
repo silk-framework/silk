@@ -1,5 +1,5 @@
 import { ITaskParameter } from "@ducks/common/typings";
-import { Button, FieldItem, Icon, TitleSubsection } from "@wrappers/index";
+import { Button, FieldItem, FieldSet, Icon, TitleSubsection } from "@wrappers/index";
 import { Autocomplete } from "../../../Autocomplete/Autocomplete";
 import { InputMapper } from "./InputMapper";
 import { Intent } from "@wrappers/blueprint/constants";
@@ -87,18 +87,16 @@ export const ParameterWidget = ({
     };
     if (propertyDetails.type === "object") {
         return (
-            <div className={"parameterGroup"}>
-                <Spacing />
-                <TitleSubsection>
-                    {" "}
-                    {/* TODO: Improve sub heading */}
-                    <h3>
+            <FieldSet
+                boxed
+                title={
+                    <TitleSubsection useHtmlElement="span">
                         {propertyDetails.title}
                         <Spacing size="tiny" vertical />
                         <Icon name="item-info" small tooltipText={propertyDetails.description} />
-                    </h3>
-                </TitleSubsection>
-                <Spacing />
+                    </TitleSubsection>
+                }
+            >
                 {Object.entries(propertyDetails.properties).map(([nestedParamId, nestedParam]) => {
                     const nestedFormParamId = `${formParamId}.${nestedParamId}`;
                     return (
@@ -116,8 +114,7 @@ export const ParameterWidget = ({
                         />
                     );
                 })}
-                <Spacing />
-            </div>
+            </FieldSet>
         );
     } else {
         return (
@@ -129,11 +126,13 @@ export const ParameterWidget = ({
                     tooltip: description && description.length <= MAXLENGTH_TOOLTIP ? description : "",
                 }}
                 helperText={description && description.length > MAXLENGTH_TOOLTIP ? description : ""}
+                hasStateDanger={errorMessage(title, errors) ? true : false}
                 messageText={errorMessage(title, errors)}
-                hasStateDanger={errors}
             >
                 {isFileInput(parameterType) ? (
-                    <Button onClick={onFileUploadClick}>Upload new {title}</Button>
+                    <Button onClick={onFileUploadClick} hasStateWarning={errorMessage(title, errors) ? true : false}>
+                        Upload new {title}
+                    </Button>
                 ) : !!autoCompletion ? (
                     <Autocomplete
                         autoCompletion={autoCompletion}
