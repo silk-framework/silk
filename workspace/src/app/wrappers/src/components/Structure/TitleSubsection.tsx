@@ -1,27 +1,14 @@
 import React from "react";
 
-function TitleSubsection ({
-    children,
-    className = '',
-    ...restProps
-}: any) {
-    let htmlElement = React.createElement('div');
+function TitleSubsection({ children, className = "", useHtmlElement, ...restProps }: any) {
     const childrenArray = React.Children.toArray(children);
-
-    if (
-        childrenArray.length === 1 &&
-        typeof childrenArray[0] === 'string'
-    ) {
-        htmlElement = React.createElement('h3');
-    }
+    const defaultHtmlElement = childrenArray.length === 1 && typeof childrenArray[0] === "string" ? "h3" : "div";
+    const titleElement = useHtmlElement ? React.createElement(useHtmlElement) : React.createElement(defaultHtmlElement);
 
     return (
-        <htmlElement.type
-            {...restProps}
-            className={'ecc-structure__title-subsection ' + className}
-        >
+        <titleElement.type {...restProps} className={"ecc-structure__title-subsection " + className}>
             {children}
-        </htmlElement.type>
+        </titleElement.type>
     );
 }
 
