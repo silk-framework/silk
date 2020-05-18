@@ -722,6 +722,7 @@ object JsonSerializers {
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         TASKTYPE -> TASK_TYPE_TRANSFORM,
+        TYPE -> "transform",
         PARAMETERS -> JsObject(Seq(
           SELECTION -> toJson(value.selection),
           RULES_PROPERTY -> toJson(value.mappingRule),
@@ -933,6 +934,7 @@ object JsonSerializers {
     override def write(value: LinkSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         TASKTYPE -> TASK_TYPE_LINKING,
+        TYPE -> "linking",
         PARAMETERS -> Json.obj(
           SOURCE -> toJson(value.dataSelections.source),
           TARGET -> toJson(value.dataSelections.target),

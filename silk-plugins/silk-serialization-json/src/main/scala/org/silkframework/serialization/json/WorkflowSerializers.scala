@@ -2,7 +2,7 @@ package org.silkframework.serialization.json
 
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonHelpers._
-import org.silkframework.serialization.json.JsonSerializers.PARAMETERS
+import org.silkframework.serialization.json.JsonSerializers.{PARAMETERS, TYPE}
 import org.silkframework.workspace.activity.workflow._
 import play.api.libs.json.{JsArray, _}
 
@@ -31,6 +31,7 @@ object WorkflowSerializers {
     override def write(value: Workflow)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         JsonSerializers.TASKTYPE -> JsonSerializers.TASK_TYPE_WORKFLOW,
+        TYPE -> "workflow",
         JsonSerializers.PARAMETERS -> Json.obj(
           OPERATORS -> value.operators.map(WorkflowOperatorJsonFormat.write),
           DATASETS -> value.datasets.map(WorkflowDatasetJsonFormat.write)
