@@ -17,7 +17,8 @@ form {
     display: block;
 }
 
-.ecc-fielditem {
+.ecc-fielditem,
+.ecc-fieldset {
     display: block;
 
     &:not(:last-child) {
@@ -26,7 +27,9 @@ form {
 }
 
 .ecc-fielditem__helpertext,
-.ecc-fielditem__message {
+.ecc-fielditem__message,
+.ecc-fieldset__helpertext,
+.ecc-fieldset__message {
     display: block;
     font-size: $ecc-size-typo-formitem;
     line-height: $ecc-size-typo-formitem-lineheight;
@@ -59,6 +62,78 @@ form {
     }
     &.ecc-intent--danger {
         color: $ecc-color-danger-text;
+    }
+}
+
+.ecc-fieldset {
+    legend {
+        width: 100%;
+        color: $ecc-color-applicationheader-text;
+        display: block;
+        float: left;
+    }
+
+    &.ecc-fieldset--boxed {
+        padding: $ecc-size-block-whitespace/2 $ecc-size-block-whitespace $ecc-size-block-whitespace
+            $ecc-size-block-whitespace;
+        background-color: $data-table-zebra-color;
+
+        legend {
+            float: left;
+        }
+    }
+
+    &.ecc-intent--primary {
+        &.ecc-fieldset--boxed {
+            background-color: $ecc-color-info-background;
+        }
+        .ecc-fieldset__message,
+        legend {
+            color: $ecc-color-info-text;
+        }
+    }
+    &.ecc-intent--success {
+        &.ecc-fieldset--boxed {
+            background-color: $ecc-color-success-background;
+        }
+        .ecc-fieldset__message,
+        legend {
+            color: $ecc-color-success-text;
+        }
+    }
+    &.ecc-intent--warning {
+        &.ecc-fieldset--boxed {
+            background-color: $ecc-color-warning-background;
+        }
+        .ecc-fieldset__message,
+        legend {
+            color: $ecc-color-warning-text;
+        }
+    }
+    &.ecc-intent--danger {
+        &.ecc-fieldset--boxed {
+            background-color: $ecc-color-danger-background;
+        }
+        .ecc-fieldset__message,
+        legend {
+            color: $ecc-color-danger-text;
+        }
+    }
+}
+
+.ecc-fieldset__helpertext,
+.ecc-fieldset__message {
+    margin-top: $ecc-size-block-whitespace / 4;
+}
+
+.ecc-fieldset__fielditems {
+    &:not(:first-child) {
+        &:before {
+            content: " ";
+            height: $ecc-size-block-whitespace;
+            display: block;
+            clear: both;
+        }
     }
 }
 
