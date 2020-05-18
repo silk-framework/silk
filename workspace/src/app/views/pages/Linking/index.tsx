@@ -7,8 +7,9 @@ import { useParams } from "react-router";
 import Metadata from "../../shared/Metadata";
 import { datasetSel } from "@ducks/dataset";
 
-import { Section, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@wrappers/index";
+import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@wrappers/index";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
+import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
 
 export default function () {
     const error = useSelector(datasetSel.errorSelector);
@@ -34,6 +35,8 @@ export default function () {
             <WorkspaceSide>
                 <Section>
                     <RelatedItems projectId={projectId} taskId={taskId} />
+                    <Spacing />
+                    <TaskConfig projectId={projectId} taskId={taskId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>
