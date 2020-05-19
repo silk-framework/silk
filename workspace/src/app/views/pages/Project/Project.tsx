@@ -48,7 +48,7 @@ const Project = () => {
         <WorkspaceContent className="eccapp-di__project">
             <WorkspaceMain>
                 <Section>
-                    <Metadata taskId={currentProjectId} />
+                    <Metadata />
                     <Spacing />
                 </Section>
                 <Section>

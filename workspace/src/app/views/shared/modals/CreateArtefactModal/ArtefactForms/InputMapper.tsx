@@ -20,7 +20,7 @@ export function InputMapper(props: IProps) {
 
     switch (type) {
         case INPUT_TYPES.BOOLEAN:
-            return <Switch {...inputAttributes} />;
+            return <Switch {...inputAttributes} value={inputAttributes.value === "true"} />;
         case INPUT_TYPES.INTEGER:
             return <NumericInput {...inputAttributes} buttonPosition={"none"} />;
         case INPUT_TYPES.TEXTAREA:

@@ -1,17 +1,24 @@
-import { legacyApiEndpoint, projectApi, resourcesLegacyApi, workspaceApi } from "../../../utils/getApiEndpoint";
+import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 import fetch from "../../../services/fetch";
 import { AxiosResponse } from "axios";
 import qs from "qs";
 import { generateNetworkError, isNetworkError } from "../../../services/errorLogger";
 import {
+    IAutocompleteDefaultResponse,
     IDatasetTypePayload,
     IMetadataUpdatePayload,
     IProjectMetadataResponse,
     IRelatedItemsResponse,
     IRequestAutocompletePayload,
+    IResourceListPayload,
+    IResourceListResponse,
     ITaskMetadataResponse,
 } from "@ducks/shared/typings";
 
+/**
+ * @private
+ * @param response
+ */
 const handleError = ({ response }) => {
     if (isNetworkError(response.data)) {
         return generateNetworkError(response.data);
@@ -19,7 +26,13 @@ const handleError = ({ response }) => {
     return response.data;
 };
 
-export const requestAutocompleteResults = async (payload: IRequestAutocompletePayload) => {
+/**
+ * Default Endpoint to get autocompletion values
+ * @param payload
+ */
+export const requestAutocompleteResults = async (
+    payload: IRequestAutocompletePayload
+): Promise<IAutocompleteDefaultResponse> => {
     try {
         const { data } = await fetch({
             url: workspaceApi(`/pluginParameterAutoCompletion`),
@@ -32,6 +45,10 @@ export const requestAutocompleteResults = async (payload: IRequestAutocompletePa
     }
 };
 
+/**
+ * Get Project Metadata
+ * @param itemId
+ */
 export const requestProjectMetadata = async (itemId: string): Promise<IProjectMetadataResponse> => {
     try {
         const { data } = await fetch({
@@ -113,6 +130,21 @@ export const requestDatasetTypes = async (
             url: legacyApiEndpoint(`projects/${projectId}/datasets/${datasetId}/types`),
             method: "GET",
             body: payload,
+        });
+        return data;
+    } catch (e) {
+        throw handleError(e);
+    }
+};
+
+export const requestResourcesList = async (
+    projectId: string,
+    filters: IResourceListPayload = {}
+): Promise<IResourceListResponse | never> => {
+    try {
+        const { data } = await fetch({
+            url: legacyApiEndpoint(`/projects/${projectId}/resources`),
+            body: filters,
         });
         return data;
     } catch (e) {

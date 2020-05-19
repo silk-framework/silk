@@ -2,48 +2,91 @@ import React, { useEffect, useState } from "react";
 import { MenuItem, Suggest } from "@wrappers/index";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { Highlighter } from "../Highlighter/Highlighter";
+import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 
-interface IProps {
+export interface IAutocompleteProps {
+    /**
+     * Autocomplete options, usually it recieved from backend
+     * @see IPropertyAutocomplete
+     */
     autoCompletion: IPropertyAutocomplete;
 
-    onInputChange(value: string): any;
+    /**
+     * Fired when type in input
+     * @param value
+     */
+    onSearch?(value: string): any;
 
-    onChange(value: string);
+    /**
+     * Fired when value selected from input
+     * @param value
+     */
+    onChange?(value: any);
 
-    value?: string;
+    /**
+     * The initial value for autocomplete input
+     * @default ''
+     */
+    initialValue?: string;
+    /**
+     * The initial items,
+     * if empty then fetch from onSearch or keep it empty
+     * @default []
+     */
     items?: any[];
+
+    /**
+     * item label renderer
+     * @param item
+     * @default (item) => item.label || item.id
+     */
+    itemLabelRenderer?(item: any): string;
+
+    /**
+     * item value renderer
+     * @param item
+     * @default (item) => item.value || item.id
+     */
+    itemValueRenderer?(item: any): string;
 }
 
-interface IAutocompleteValue {
-    label: string;
-    value: string;
-}
+const SuggestAutocomplete = Suggest.ofType<IAutocompleteDefaultResponse>();
 
-const SuggestAutocomplete = Suggest.ofType<IAutocompleteValue>();
+Autocomplete.defaultProps = {
+    items: [],
+    initialValue: "",
+    itemLabelRenderer: (item) => item.label || item.value,
+    itemValueRenderer: (item) => item.value,
+};
 
-export function Autocomplete(props: IProps) {
+export function Autocomplete(props: IAutocompleteProps) {
+    const { itemValueRenderer, itemLabelRenderer, items, onSearch, onChange, initialValue } = props;
+
     // The suggestions that match the user's input
     const [filtered, setFiltered] = useState<any[]>([]);
 
     useEffect(() => {
-        if (!props.items) {
+        if (!items.length) {
             handleQueryChange();
         }
-    }, [props.items]);
+    }, [items]);
 
-    const areEqualItems = (itemA, itemB) => itemA.value === itemB.value;
+    const areEqualItems = (itemA, itemB) => itemValueRenderer(itemA) === itemValueRenderer(itemB);
 
-    const onItemSelect = (item) => props.onChange(item.value);
+    const onItemSelect = (item) => {
+        const actualValue = itemValueRenderer(item);
+        onChange(actualValue);
+    };
 
     //@Note: issue https://github.com/palantir/blueprint/issues/2983
     const handleQueryChange = async (input = "") => {
         try {
-            let result;
-            if (props.onInputChange) {
-                result = await props.onInputChange(input);
-            } else if (input) {
+            let result = [];
+            if (onSearch) {
+                result = await onSearch(input);
+            } else if (items.length && input) {
                 // Filter our suggestions that don't contain the user's input
-                result = props.items.filter(
+                result = items.filter(
                     ({ label, value }) =>
                         value.toLowerCase().indexOf(input.toLowerCase()) > -1 ||
                         label.toLowerCase().indexOf(input.toLowerCase()) > -1
@@ -64,9 +107,9 @@ export function Autocomplete(props: IProps) {
             <MenuItem
                 active={modifiers.active}
                 disabled={modifiers.disabled}
-                key={item.value}
+                key={itemValueRenderer(item)}
                 onClick={handleClick}
-                text={<Highlighter label={item.label || item.id} searchValue={query} />}
+                text={<Highlighter label={itemLabelRenderer(item)} searchValue={query} />}
             />
         );
     };
@@ -74,13 +117,13 @@ export function Autocomplete(props: IProps) {
     return (
         <SuggestAutocomplete
             items={filtered}
-            inputValueRenderer={(item) => item.label}
+            inputValueRenderer={itemValueRenderer}
             itemRenderer={optionRenderer}
             itemsEqual={areEqualItems}
             noResults={<MenuItem disabled={true} text="No results." />}
             onItemSelect={onItemSelect}
             onQueryChange={handleQueryChange}
-            query=""
+            query={initialValue}
             popoverProps={{
                 minimal: true,
             }}

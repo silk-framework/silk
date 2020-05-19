@@ -14,7 +14,7 @@ import {
 } from "@ducks/workspace/widgets/configuration.thunk";
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
-import { checkIfResourceExistsAsync, fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
+import { fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
 import { commonSel } from "@ducks/common";
 import {
     ISearchListRequest,
@@ -298,7 +298,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string) => {
             const data = await requestCreateTask(payload, currentProjectId);
 
             dispatch(
-                routerOp.goToPage(`/projects/${currentProjectId}/dataset/${data.id}`, {
+                routerOp.goToPage(`projects/${currentProjectId}/dataset/${data.id}`, {
                     taskLabel: label,
                 })
             );
@@ -319,7 +319,7 @@ const fetchCreateProjectAsync = (formData: { label: string; description?: string
                     description,
                 },
             });
-            dispatch(routerOp.goToPage(`/projects/${data.name}`, { projectLabel: label }));
+            dispatch(routerOp.goToPage(`projects/${data.name}`, { projectLabel: label }));
         } catch (e) {
             dispatch(setError(e.response.data));
         }
@@ -409,7 +409,6 @@ export default {
     fetchWarningListAsync,
     fetchWarningMarkdownAsync,
     fetchResourcesListAsync,
-    checkIfResourceExistsAsync,
     fetchCreateProjectAsync,
     fetchCreateTaskAsync,
     resetFilters,

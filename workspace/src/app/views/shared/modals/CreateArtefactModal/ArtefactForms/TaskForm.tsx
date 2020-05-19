@@ -3,11 +3,12 @@ import { IDetailedArtefactItem } from "@ducks/common/typings";
 import { Intent } from "@wrappers/blueprint/constants";
 import { INPUT_TYPES } from "../../../../../constants";
 import { InputMapper } from "./InputMapper";
-import { Button, FieldItem } from "@wrappers/index";
-import { FileUploadModal } from "../../FileUploadModal/FileUploadModal";
+import { FieldItem } from "@wrappers/index";
 import { Autocomplete } from "../../../Autocomplete/Autocomplete";
 import { sharedOp } from "@ducks/shared";
 import { AppToaster } from "../../../../../services/toaster";
+import { requestResourcesList } from "@ducks/shared/requests";
+import { FileUploader } from "../../../FileUploader/FileUploader";
 
 export interface IProps {
     form: any;
@@ -17,10 +18,11 @@ export interface IProps {
     projectId: string;
 }
 
+const MAXLENGTH_TOOLTIP = 40;
+
 export function TaskForm({ form, projectId, artefact }: IProps) {
     const { properties, required, pluginId } = artefact;
 
-    const [selectedFileField, setSelectedFileField] = useState<string>("");
     const [fieldValues, setFieldValues] = useState<any>({});
 
     const { register, errors, getValues, setValue, unregister } = form;
@@ -74,10 +76,6 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
         []
     );
 
-    const toggleFileUploader = (fieldName: string = "") => {
-        setSelectedFileField(fieldName);
-    };
-
     const handleAutoCompleteInput = (key: string) => async (input = "") => {
         try {
             const { autoCompletion } = properties[key];
@@ -100,10 +98,23 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
         }
     };
 
-    const isFileInput = (type: string) => type === INPUT_TYPES.RESOURCE;
-    const isAutocomplete = (property) => !!property.autoCompletion;
+    const handleFileSearch = async (input: string) => {
+        try {
+            return await requestResourcesList(projectId, {
+                searchText: input,
+            });
+        } catch (e) {
+            AppToaster.show({
+                message: e.detail,
+                intent: Intent.DANGER,
+                timeout: 0,
+            });
+        }
+    };
 
-    const MAXLENGTH_TOOLTIP = 40;
+    const isFileInput = (type: string) => type === INPUT_TYPES.RESOURCE;
+
+    const isAutocomplete = (property) => !!property.autoCompletion;
 
     return (
         <>
@@ -122,6 +133,7 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                             id: "label",
                             name: "label",
                             onChange: handleChange("label"),
+                            // @TODO: REMOVE INTENT props and replace with hasState${status}
                             intent: errors.label ? Intent.DANGER : Intent.NONE,
                         }}
                     />
@@ -164,13 +176,27 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                         hasStateDanger={errors[key]}
                     >
                         {isFileInput(properties[key].parameterType) ? (
-                            <Button onClick={() => toggleFileUploader(key)}>Upload new {properties[key].title}</Button>
+                            <FileUploader
+                                projectId={projectId}
+                                advanced={true}
+                                onChange={handleChange(key)}
+                                autocomplete={{
+                                    autoCompletion: {
+                                        allowOnlyAutoCompletedValues: true,
+                                        autoCompleteValueWithLabels: true,
+                                        autoCompletionDependsOnParameters: [],
+                                    },
+                                    onSearch: handleFileSearch,
+                                    itemLabelRenderer: (item) => item.name,
+                                    itemValueRenderer: (item) => item.name,
+                                }}
+                            />
                         ) : isAutocomplete(properties[key]) ? (
                             <Autocomplete
                                 autoCompletion={properties[key].autoCompletion}
-                                onInputChange={handleAutoCompleteInput(key)}
+                                onSearch={handleAutoCompleteInput(key)}
                                 onChange={handleChange(key)}
-                                value={fieldValues[key]}
+                                initialValue={fieldValues[key]}
                             />
                         ) : (
                             <InputMapper
@@ -190,12 +216,6 @@ export function TaskForm({ form, projectId, artefact }: IProps) {
                     Debug: Console Form data
                 </button>
             </form>
-
-            <FileUploadModal
-                isOpen={!!selectedFileField}
-                onDiscard={() => toggleFileUploader("")}
-                onUploaded={handleChange(selectedFileField)}
-            />
         </>
     );
 }

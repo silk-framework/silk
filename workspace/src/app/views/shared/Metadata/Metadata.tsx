@@ -25,18 +25,30 @@ import { Loading } from "../Loading/Loading";
 import { Controller, useForm } from "react-hook-form";
 import { Intent } from "@wrappers/blueprint/constants";
 import { useLocation } from "react-router";
-import { useDispatch } from "react-redux";
-import { IPageLabels } from "@ducks/router/operations";
+import { useDispatch, useSelector } from "react-redux";
 import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
+import { commonSel } from "@ducks/common";
 
-export function Metadata({ projectId = null, taskId }) {
+interface IProps {
+    projectId?: string;
+    taskId?: string;
+}
+
+export function Metadata(props: IProps) {
     const { control, handleSubmit } = useForm();
+    const location = useLocation();
+    const dispatch = useDispatch();
+
+    const _projectId = useSelector(commonSel.currentProjectIdSelector);
+    const _taskId = useSelector(commonSel.currentTaskIdSelector);
+
+    const projectId = props.projectId || _projectId;
+    const taskId = props.taskId || _taskId;
 
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState({} as IMetadata);
     const [isEditing, setIsEditing] = useState(false);
-    const location = useLocation();
-    const dispatch = useDispatch();
+
     const [errors, setErrors] = useState({
         form: {
             label: false,
@@ -87,26 +99,11 @@ export function Metadata({ projectId = null, taskId }) {
             },
         });
 
-        const updateLocationState = async (forPath: string, metaData: IMetadata) => {
-            const newLabels: IPageLabels = {};
-            if (projectId) {
-                // Project ID exists, this must be a task
-                newLabels.taskLabel = metaData.label;
-            } else {
-                newLabels.projectLabel = metaData.label;
-            }
-            if (window.location.pathname.endsWith(forPath)) {
-                // Only replace page if still on the same page
-                dispatch(routerOp.replacePage(forPath, newLabels));
-            }
-        };
-
-        const result = await letLoading(() => {
+        const result = await letLoading(async () => {
             const path = location.pathname;
-            return sharedOp.updateTaskMetadataAsync(taskId, inputs, projectId).then((metaData) => {
-                updateLocationState(path, metaData);
-                return metaData;
-            });
+            const metadata = await sharedOp.updateTaskMetadataAsync(taskId, inputs, projectId);
+            dispatch(routerOp.updateLocationState(path, projectId, metadata));
+            return metadata;
         });
 
         setData(result);

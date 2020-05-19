@@ -28,7 +28,7 @@ export default function () {
         <WorkspaceContent className="eccapp-di__task">
             <WorkspaceMain>
                 <Section>
-                    <Metadata projectId={projectId} taskId={taskId} />
+                    <Metadata />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>

@@ -3,7 +3,6 @@ import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { AppToaster } from "../../../services/toaster";
 import { Intent } from "@wrappers/blueprint/constants";
-import { useParams } from "react-router";
 import Metadata from "../../shared/Metadata";
 import { datasetSel } from "@ducks/dataset";
 
@@ -12,7 +11,6 @@ import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 
 export default function () {
     const error = useSelector(datasetSel.errorSelector);
-    const { taskId, projectId } = useParams();
 
     useEffect(() => {
         if (error.detail) {
@@ -28,12 +26,12 @@ export default function () {
         <WorkspaceContent className="eccapp-di__linking">
             <WorkspaceMain>
                 <Section>
-                    <Metadata projectId={projectId} taskId={taskId} />
+                    <Metadata />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>
                 <Section>
-                    <RelatedItems projectId={projectId} taskId={taskId} />
+                    <RelatedItems />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>
