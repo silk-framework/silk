@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardOptions, CardTitle, IconButton } from "@wrappers/index";
+import { Card, CardContent, CardHeader, CardOptions, CardTitle, Divider, IconButton } from "@wrappers/index";
 import { useDispatch } from "react-redux";
 import { commonOp } from "@ducks/common";
-import Spinner from "@wrappers/blueprint/spinner";
+import { Loading } from "./../Loading/Loading";
 import { requestTaskData } from "@ducks/shared/requests";
 import { requestArtefactProperties } from "@ducks/common/requests";
 
@@ -43,7 +43,14 @@ export function TaskConfig(props: IProps) {
                     <IconButton name={"item-edit"} text={"Configure"} onClick={openConfigModal} />
                 </CardOptions>
             </CardHeader>
-            <CardContent>{loading ? <Spinner /> : <p>TODO: Add preview of config?</p>}</CardContent>
+            <Divider />
+            <CardContent>
+                {loading ? (
+                    <Loading description="Loading configuration overview." />
+                ) : (
+                    <p>TODO: Add preview of config?</p>
+                )}
+            </CardContent>
         </Card>
     );
 }
