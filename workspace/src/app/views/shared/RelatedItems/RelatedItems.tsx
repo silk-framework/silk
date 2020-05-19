@@ -85,7 +85,7 @@ export function RelatedItems() {
         <Card>
             <CardHeader>
                 <CardTitle>
-                    <h3>Related Items{relatedItemsSizeInfo(data.items.length, data.total)}</h3>
+                    <h2>Related items{relatedItemsSizeInfo(data.items.length, data.total)}</h2>
                 </CardTitle>
             </CardHeader>
             <Divider />

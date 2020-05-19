@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { sharedOp } from "@ducks/shared";
-import { Button, Icon, Spacing, } from "@wrappers/index";
+import { Button, Icon, Spacing } from "@wrappers/index";
 import Pagination from "../Pagination";
 import DataList from "../Datalist";
 import DeleteModal from "../modals/DeleteModal";
@@ -15,7 +15,6 @@ import EmptyList from "./EmptyList";
 import { commonOp } from "@ducks/common";
 
 export function SearchList() {
-
     const dispatch = useDispatch();
 
     const pageSizes = [10, 25, 50, 100];
@@ -34,53 +33,49 @@ export function SearchList() {
     const onDiscardModals = () => {
         setShowDeleteModal(false);
         setShowCloneModal(false);
-        setSelectedItem(null)
+        setSelectedItem(null);
     };
 
     const onOpenDeleteModal = async (item?: any) => {
         setShowDeleteModal(true);
         setSelectedItem(item);
         setDeleteModalOptions({
-            render: () => <Loading/>
+            render: () => <Loading description="Loading delete dialog." />,
         });
 
         try {
             const data = await sharedOp.getTaskMetadataAsync(item.id, item.projectId);
             const isProject = data.type !== DATA_TYPES.PROJECT;
 
-            const {dependentTasksDirect} = data.relations;
+            const { dependentTasksDirect } = data.relations;
             // Skip check the relations for projects
             if (!isProject && dependentTasksDirect.length) {
                 setDeleteModalOptions({
                     confirmationRequired: true,
-                    render: () =>
+                    render: () => (
                         <div>
                             <p>There are tasks depending on task {item.label || item.id}. </p>
                             <p>Are you sure you want to delete all tasks below?</p>
                             <ul>
-                                {
-                                    dependentTasksDirect.map(rel => <li key={rel}>{rel}</li>)
-                                }
+                                {dependentTasksDirect.map((rel) => (
+                                    <li key={rel}>{rel}</li>
+                                ))}
                             </ul>
                         </div>
+                    ),
                 });
             } else {
                 setDeleteModalOptions({
                     confirmationRequired: false,
-                    render: () => <p>
-                        Are you sure you want to permanently remove this item?
-                    </p>
+                    render: () => <p>Are you sure you want to permanently remove this item?</p>,
                 });
             }
         } catch {
             setDeleteModalOptions({
                 confirmationRequired: false,
-                render: () => <p>
-                    Are you sure you want to permanently remove this item?
-                </p>
+                render: () => <p>Are you sure you want to permanently remove this item?</p>,
             });
         }
-
     };
 
     const onOpenDuplicateModal = (item) => {
@@ -89,13 +84,13 @@ export function SearchList() {
     };
 
     const handleConfirmRemove = () => {
-        const {id, projectId} = selectedItem;
+        const { id, projectId } = selectedItem;
         dispatch(workspaceOp.fetchRemoveTaskAsync(id, projectId));
         onDiscardModals();
     };
 
     const handleConfirmClone = (newId: string) => {
-        const {id, projectId} = selectedItem;
+        const { id, projectId } = selectedItem;
         dispatch(workspaceOp.fetchCloneTaskAsync(id, projectId, newId));
         onDiscardModals();
     };
@@ -113,61 +108,59 @@ export function SearchList() {
 
     return (
         <>
-            <AppliedFacets/>
+            <AppliedFacets />
             <DataList
                 isEmpty={isEmpty}
                 isLoading={isLoading}
                 hasSpacing
                 emptyContainer={
                     <EmptyList
-                        depiction={<Icon name={'artefact-'+appliedFilters.itemType} large />}
+                        depiction={<Icon name={"artefact-" + appliedFilters.itemType} large />}
                         textInfo={<p>No {appliedFilters.itemType} found.</p>}
                         textCallout={<strong>Create your first {appliedFilters.itemType} now.</strong>}
                         actionButtons={[
-                            <Button key={'create'} onClick={handleCreateArtefact} elevated>Create {appliedFilters.itemType}</Button>
+                            <Button key={"create"} onClick={handleCreateArtefact} elevated>
+                                Create {appliedFilters.itemType}
+                            </Button>,
                         ]}
                     />
                 }
             >
-                {
-                    data.map(item => (
-                        <SearchItem
-                            key={`${item.id}_${item.projectId}`}
-                            item={item}
-                            onOpenDeleteModal={() => onOpenDeleteModal(item)}
-                            onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
-                            searchValue={appliedFilters.textQuery}
-                        />
-                    ))
-                }
+                {data.map((item) => (
+                    <SearchItem
+                        key={`${item.id}_${item.projectId}`}
+                        item={item}
+                        onOpenDeleteModal={() => onOpenDeleteModal(item)}
+                        onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
+                        searchValue={appliedFilters.textQuery}
+                    />
+                ))}
             </DataList>
-            {
-                !isEmpty
-                    ? <>
-                        <Spacing size="small" />
+            {!isEmpty ? (
+                <>
+                    <Spacing size="small" />
 
-                        <Pagination
-                            pagination={pagination}
-                            pageSizes={pageSizes}
-                            onChangeSelect={handlePaginationOnChange}
-                        />
+                    <Pagination
+                        pagination={pagination}
+                        pageSizes={pageSizes}
+                        onChangeSelect={handlePaginationOnChange}
+                    />
 
-                        <DeleteModal
-                            isOpen={showDeleteModal}
-                            onDiscard={onDiscardModals}
-                            onConfirm={handleConfirmRemove}
-                            {...deleteModalOptions}
-                        />
+                    <DeleteModal
+                        isOpen={showDeleteModal}
+                        onDiscard={onDiscardModals}
+                        onConfirm={handleConfirmRemove}
+                        {...deleteModalOptions}
+                    />
 
-                        <CloneModal
-                            isOpen={showCloneModal}
-                            oldId={selectedItem && selectedItem.id}
-                            onDiscard={onDiscardModals}
-                            onConfirm={handleConfirmClone}
-                        />
-                    </>
-                    : null
-            }
+                    <CloneModal
+                        isOpen={showCloneModal}
+                        oldId={selectedItem && selectedItem.id}
+                        onDiscard={onDiscardModals}
+                        onConfirm={handleConfirmClone}
+                    />
+                </>
+            ) : null}
         </>
-    )
+    );
 }

@@ -6,7 +6,7 @@ import { AppLayout } from "./views/layout/AppLayout/AppLayout";
 
 export default function RouterOutlet({ routes }) {
     return (
-        <Suspense fallback={<Loading />}>
+        <Suspense fallback={<Loading posGlobal description="Loading page." />}>
             <Switch>
                 {routes.map((route) => {
                     return (

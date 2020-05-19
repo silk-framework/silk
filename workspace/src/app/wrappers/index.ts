@@ -104,6 +104,8 @@ import TitleSubsection from "./src/components/Structure/TitleSubsection";
 
 import Link from "./src/components/Link/Link";
 
+import Spinner from "./src/components/Spinner/Spinner";
+
 import { PropertyName, PropertyValue, PropertyValuePair, PropertyValueList } from "./src/components/PropertyValuePair";
 
 import * as TypographyClassNames from "./src/components/Typography/classnames";
@@ -191,6 +193,7 @@ export {
     Pagination,
     Notification,
     Link,
+    Spinner,
     PropertyName,
     PropertyValue,
     PropertyValuePair,

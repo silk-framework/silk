@@ -53,13 +53,13 @@ export const FileWidget = () => {
             <Card>
                 <CardHeader>
                     <CardTitle>
-                        <h3>Files</h3>
+                        <h2>Files</h2>
                     </CardTitle>
                 </CardHeader>
                 <Divider />
                 <CardContent>
                     {isLoading ? (
-                        <Loading />
+                        <Loading description="Loading file list." />
                     ) : filesList.length ? (
                         <>
                             <Toolbar>
@@ -67,6 +67,7 @@ export const FileWidget = () => {
                                     <SearchField />
                                 </ToolbarSection>
                                 <ToolbarSection>
+                                    <Spacing size="tiny" vertical />
                                     <Button elevated text="Add file" onClick={toggleFileUploader} />
                                 </ToolbarSection>
                             </Toolbar>
