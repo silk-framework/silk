@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardOptions, CardTitle, IconButton } from "@wrappers/index";
 import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
+import { Card, CardContent, CardHeader, CardOptions, CardTitle, Divider, IconButton } from "@wrappers/index";
+import { useDispatch } from "react-redux";
 import { commonOp } from "@ducks/common";
+import { Loading } from "./../Loading/Loading";
 import { requestTaskData } from "@ducks/shared/requests";
 import { requestArtefactProperties } from "@ducks/common/requests";
 import { Loading } from "../Loading/Loading";

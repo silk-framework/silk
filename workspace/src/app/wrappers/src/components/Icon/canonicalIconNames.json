@@ -37,6 +37,12 @@
     "artefact-transform": "DataRefinery",
     "artefact-linking": "Connect",
     "artefact-task": "Script",
+    "artefact-customtask": "Script",
+    "artefact-file": "Document",
+    "artefact-embedded": "DataBase",
+    "artefact-remote": "VirtualMachine",
+    "artefact-deprecated": "WarningSquare",
+    "artefact-uncategorized": "Unknown",
 
     "preview-load": "Play",
     "preview-reload": "Rotate",
