@@ -181,6 +181,23 @@ export function CreateArtefactModal() {
         ];
     }
 
+    const renderDepiction = (artefact) => {
+        const iconNameStack = []
+            .concat([(artefact.taskType ? artefact.taskType + "-" : "") + artefact.key])
+            .concat(artefact.taskType ? [artefact.taskType] : [])
+            .concat(artefact.categories ? artefact.categories : []);
+        return (
+            <Icon
+                name={iconNameStack
+                    .map((type) => {
+                        return "artefact-" + type.toLowerCase();
+                    })
+                    .filter((x, i, a) => a.indexOf(x) === i)}
+                large
+            />
+        );
+    };
+
     return (
         <SimpleDialog
             size="large"
@@ -254,7 +271,7 @@ export function CreateArtefactModal() {
                                                         onClick={() => handleArtefactSelect(artefact)}
                                                     >
                                                         <OverviewItemDepiction>
-                                                            <Icon name={"artefact-" + artefact.key} large />
+                                                            {renderDepiction(artefact)}
                                                         </OverviewItemDepiction>
                                                         <OverviewItemDescription>
                                                             <OverviewItemLine>
