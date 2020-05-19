@@ -7,16 +7,22 @@ import { requestArtefactProperties } from "@ducks/common/requests";
 import { Loading } from "../Loading/Loading";
 import { TaskConfigPreview } from "./TaskConfigPreview";
 import { IProjectTask } from "@ducks/shared/typings";
+import { IDetailedArtefactItem } from "@ducks/common/typings";
 
 interface IProps {
     projectId: string;
     taskId: string;
 }
 
+export interface ITaskSchemaAndData {
+    taskData: IProjectTask;
+    taskDescription: IDetailedArtefactItem;
+}
+
 export function TaskConfig(props: IProps) {
     const dispatch = useDispatch();
     const [loading, setLoading] = useState(false);
-    const [labelledTaskData, setLabelledTaskData] = useState<IProjectTask>(null);
+    const [labelledTaskData, setLabelledTaskData] = useState<ITaskSchemaAndData>(null);
     const { isOpen } = useSelector(commonSel.artefactModalSelector);
     const openConfigModal = async () => {
         setLoading(true);
@@ -38,15 +44,19 @@ export function TaskConfig(props: IProps) {
         }
     };
 
-    useEffect(() => {
-        if (!isOpen) {
-            setLoading(true);
-            try {
-                requestTaskData(props.projectId, props.taskId, true).then((result) => setLabelledTaskData(result));
-            } finally {
-                setLoading(false);
-            }
+    const initPreviewData = async () => {
+        setLoading(true);
+        try {
+            const taskData = await requestTaskData(props.projectId, props.taskId, true);
+            const taskDescription = await requestArtefactProperties(taskData.data.type);
+            setLabelledTaskData({ taskData, taskDescription });
+        } finally {
+            setLoading(false);
         }
+    };
+
+    useEffect(() => {
+        initPreviewData();
     }, [isOpen]);
 
     return (
@@ -63,7 +73,7 @@ export function TaskConfig(props: IProps) {
                 {loading ? (
                     <Loading description={"Loading update dialog..."} />
                 ) : (
-                    <TaskConfigPreview taskData={labelledTaskData} />
+                    <TaskConfigPreview {...labelledTaskData} />
                 )}
             </CardContent>
         </Card>

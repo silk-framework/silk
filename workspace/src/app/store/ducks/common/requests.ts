@@ -1,6 +1,7 @@
 import fetch from "../../../services/fetch";
 import { coreApi, workspaceApi } from "../../../utils/getApiEndpoint";
 import { generateNetworkError, isNetworkError } from "../../../services/errorLogger";
+import { IDetailedArtefactItem } from "@ducks/common/typings";
 
 const handleError = ({ response }) => {
     if (isNetworkError(response.data)) {
@@ -59,7 +60,7 @@ export const requestArtefactList = async (payload: any): Promise<any | never> =>
  * Get properties(form) for specific plugin
  * @param artefactKey
  */
-export const requestArtefactProperties = async (artefactKey: string): Promise<any | never> => {
+export const requestArtefactProperties = async (artefactKey: string): Promise<IDetailedArtefactItem> => {
     try {
         const { data } = await fetch({
             url: coreApi(`/plugins/${artefactKey}`),

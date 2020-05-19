@@ -16,8 +16,9 @@ export interface IProps {
 
     projectId: string;
 
-    // True if this is an update form instead of a create form.
+    // This is set if this is an update form instead of a create form.
     updateTask?: {
+        // The existing parameter values
         parameterValues: {
             [key: string]: string | object;
         };
