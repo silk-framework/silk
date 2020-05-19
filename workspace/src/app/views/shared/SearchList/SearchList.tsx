@@ -40,7 +40,7 @@ export function SearchList() {
         setShowDeleteModal(true);
         setSelectedItem(item);
         setDeleteModalOptions({
-            render: () => <Loading />,
+            render: () => <Loading description="Loading delete dialog." />,
         });
 
         try {

@@ -238,7 +238,7 @@ export function CreateArtefactModal() {
                                     <SearchBar focusOnCreation={true} onSearch={handleSearch} />
                                     <Spacing />
                                     {loading ? (
-                                        <Loading />
+                                        <Loading description="Loading artefact type list." />
                                     ) : (
                                         <OverviewItemList hasSpacing columns={2}>
                                             {artefactListWithProject.map((artefact) => (

@@ -50,7 +50,7 @@
 @import "~@blueprintjs/core/src/components/progress-bar/progress-bar";
 @import "~@blueprintjs/core/src/components/skeleton/skeleton";
 @import "~@blueprintjs/core/src/components/slider/slider";
-@import "~@blueprintjs/core/src/components/spinner/spinner";
+// used in own component @import "~@blueprintjs/core/src/components/spinner/spinner";
 @import "~@blueprintjs/core/src/components/tabs/tabs";
 // used in own component @import "~@blueprintjs/core/src/components/tag/tag";
 @import "~@blueprintjs/core/src/components/tag-input/tag-input";
@@ -109,7 +109,7 @@
 @import "~carbon-components/scss/components/content-switcher/content-switcher";
 @import "~carbon-components/scss/components/date-picker/date-picker";
 @import "~carbon-components/scss/components/dropdown/dropdown";
-@import "~carbon-components/scss/components/loading/loading";
+// currently not needed @import "~carbon-components/scss/components/loading/loading";
 @import "~carbon-components/scss/components/modal/modal";
 @import "~carbon-components/scss/components/multi-select/multi-select";
 // currently not needed @import '~carbon-components/scss/components/notification/inline-notification';
@@ -163,6 +163,7 @@
 @import "src/components/Tag/tag";
 @import "src/components/Notification/notification";
 @import "src/components/Link/link";
+@import "src/components/Spinner/spinner";
 @import "src/components/PropertyValuePair/propertyvalue";
 
 // == load tweaks ==============================================================

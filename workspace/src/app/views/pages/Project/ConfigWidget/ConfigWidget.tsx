@@ -50,13 +50,13 @@ export const ConfigurationWidget = () => {
         <Card>
             <CardHeader>
                 <CardTitle>
-                    <h3>Configuration</h3>
+                    <h2>Configuration</h2>
                 </CardTitle>
             </CardHeader>
             <Divider />
             <CardContent>
                 {isLoading ? (
-                    <Loading />
+                    <Loading description="Loading configuration list." />
                 ) : (
                     <>
                         <OverviewItemList hasSpacing hasDivider>

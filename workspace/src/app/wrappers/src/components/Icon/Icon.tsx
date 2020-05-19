@@ -41,10 +41,17 @@ function Icon({
     let sizeConfig = { height: 20, width: 20 };
     if (small) sizeConfig = { height: 16, width: 16 };
     if (large) sizeConfig = { height: 32, width: 32 };
-    let iconImportName = "Undefined" + sizeConfig.width;
-    if (typeof canonicalIconNames[name] !== "undefined") {
-        iconImportName = canonicalIconNames[name] + sizeConfig.width;
+
+    let iconNameStack = typeof name === "string" ? [name] : name;
+    const iconNameFallback = "Undefined" + sizeConfig.width;
+    let iconImportName = iconNameFallback;
+    while (iconImportName === iconNameFallback && iconNameStack.length > 0) {
+        let nameTest = iconNameStack.shift();
+        if (typeof canonicalIconNames[nameTest] !== "undefined") {
+            iconImportName = canonicalIconNames[nameTest] + sizeConfig.width;
+        }
     }
+
     const CarbonIcon = require("@carbon/icons-react")[iconImportName];
     const icon = <CarbonIcon {...restProps} {...sizeConfig} className={"ecc-icon " + className} />;
     return tooltipText ? (
