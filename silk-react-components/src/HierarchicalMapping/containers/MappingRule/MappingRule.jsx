@@ -166,6 +166,7 @@ export class MappingRule extends React.Component {
                     handleCopy={this.props.handleCopy}
                     handleClone={this.props.handleClone}
                     onClickedRemove={this.props.onClickedRemove}
+                    type={type}
                 />
             ) : (
                 <ValueMappingRule

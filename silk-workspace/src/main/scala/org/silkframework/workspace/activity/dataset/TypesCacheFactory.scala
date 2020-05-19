@@ -9,7 +9,7 @@ import org.silkframework.workspace.activity.DatasetActivityFactory
 
 @Plugin(
   id = "TypesCache",
-  label = "Types Cache",
+  label = "Types cache",
   categories = Array("Dataset"),
   description = "Holds the most frequent types in a dataset."
 )

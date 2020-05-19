@@ -19,7 +19,7 @@ import scala.collection.JavaConverters._
   */
 @Plugin(
   id = "sparqlSelectOperator",
-  label = "SPARQL Select Task",
+  label = "SPARQL Select query",
   description = "A task that executes a SPARQL Select query on a SPARQL enabled data source and outputs the SPARQL result."
 )
 case class SparqlSelectCustomTask(@Param(label = "Select query", value = "A SPARQL 1.1 select query", example = "select * where { ?s ?p ?o }")
@@ -50,7 +50,7 @@ case class SparqlSelectCustomTask(@Param(label = "Select query", value = "A SPAR
       throw new ValidationException("Query is not a SELECT query!")
     }
     val typedPaths = query.getResultVars.asScala map { v =>
-      TypedPath(UntypedPath(v), StringValueType, isAttribute = false)
+      TypedPath(UntypedPath(v), ValueType.STRING, isAttribute = false)
     }
     EntitySchema(
       typeUri = Uri(""),

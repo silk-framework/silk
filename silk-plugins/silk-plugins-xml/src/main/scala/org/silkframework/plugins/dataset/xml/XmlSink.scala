@@ -9,7 +9,7 @@ import javax.xml.transform.stream.StreamResult
 import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{EntitySink, TypedProperty}
-import org.silkframework.entity.UriValueType
+import org.silkframework.entity.{UriValueType, ValueType}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.validation.ValidationException
@@ -160,7 +160,7 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
     */
   private def addValue(entityNode: Element, property: TypedProperty, value: String): Unit = {
     property.valueType match {
-      case UriValueType =>
+      case ValueType.URI =>
         val elements = uriMap.getOrElseUpdate(value, mutable.HashSet.empty[Element])
         if(property.propertyUri.isEmpty) { // Empty target on object mapping, stay on same target node
           elements += entityNode

@@ -8,7 +8,7 @@ import org.silkframework.runtime.resource.Resource
 
 @Plugin(
   id = "xsltOperator",
-  label = "XSLT task",
+  label = "XSLT",
   description =
       """A task that converts an XML resource via an XSLT script and outputs the transformed XML into a file resource.
       """

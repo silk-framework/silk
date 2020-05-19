@@ -73,7 +73,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
         for (result <- results if result.contains("propertyToAggregateBySAPC")) yield {
           val sampleValue = result.get("objectNodeSampleSAPC")
           // Only set value or object type if value available, if not set to untyped value type which represents an unknown type
-          val valueType = sampleValue.map(v => if(v.isInstanceOf[Resource]) UriValueType else StringValueType).getOrElse(UntypedValueType)
+          val valueType = sampleValue.map(v => if(v.isInstanceOf[Resource]) ValueType.URI else ValueType.STRING).getOrElse(ValueType.UNTYPED)
           val path = UntypedPath(ForwardOperator(result("propertyToAggregateBySAPC").value) :: Nil)
           val typedPath = TypedPath(path, valueType, isAttribute = false)
           (typedPath, result("count").value.toDouble / maxCount)
@@ -110,7 +110,7 @@ object SparqlAggregatePathsCollector extends SparqlPathsCollector {
         val maxCount = results.head("count").value.toDouble
         for (result <- results if result.contains("propertyToAggregateBySAPC")) yield {
           val path = UntypedPath(BackwardOperator(result("propertyToAggregateBySAPC").value) :: Nil)
-          val typedPath = TypedPath(path, UriValueType, isAttribute = false) // backward paths are always object paths
+          val typedPath = TypedPath(path, ValueType.URI, isAttribute = false) // backward paths are always object paths
           (typedPath, result("count").value.toDouble / maxCount)
         }
       } else {

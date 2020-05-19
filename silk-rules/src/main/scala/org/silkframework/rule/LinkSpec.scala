@@ -19,7 +19,7 @@ import java.util.logging.Logger
 import org.silkframework.config.{DefaultConfig, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.entity.{EntitySchema, StringValueType}
+import org.silkframework.entity.{EntitySchema, StringValueType, ValueType}
 import org.silkframework.execution.local.LinksTable
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
@@ -89,7 +89,7 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
   private def collectPathsFromInput(param: Input): Set[TypedPath] = param match {
     case p: PathInput if p.path.operators.nonEmpty =>
       // FIXME: LinkSpecs do not support input type definitions, support other types than Strings?
-      val typedPath = TypedPath(p.path, StringValueType, isAttribute = false)
+      val typedPath = TypedPath(p.path, ValueType.STRING, isAttribute = false)
       Set(typedPath)
     case p: TransformInput => p.inputs.flatMap(collectPathsFromInput).toSet
     case _ => Set()
@@ -115,12 +115,12 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
 
   override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
     Seq(
-      ("Source", dataSelections.source.inputId.toString),
-      ("Target", dataSelections.target.inputId.toString),
-      ("Source Type", dataSelections.source.typeUri.toString),
-      ("Target Type", dataSelections.target.typeUri.toString),
-      ("Source Restriction", dataSelections.source.restriction.toString),
-      ("Target Restriction", dataSelections.target.restriction.toString)
+      ("Source dataset", dataSelections.source.inputId.toString),
+      ("Target dataset", dataSelections.target.inputId.toString),
+      ("Source type", dataSelections.source.typeUri.toString),
+      ("Target type", dataSelections.target.typeUri.toString),
+      ("Source restriction", dataSelections.source.restriction.toString),
+      ("Target restriction", dataSelections.target.restriction.toString)
     )
   }
 }

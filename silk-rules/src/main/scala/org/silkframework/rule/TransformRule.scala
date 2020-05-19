@@ -79,7 +79,7 @@ sealed trait TransformRule extends Operator {
     def collectPaths(param: Input): Seq[TypedPath] = param match {
       case p: PathInput if p.path.operators.isEmpty => Seq()
       case PathInput(_, path: TypedPath) => Seq(path)
-      case PathInput(_, path: UntypedPath) => Seq(TypedPath(path, UntypedValueType, isAttribute = false))
+      case PathInput(_, path: UntypedPath) => Seq(TypedPath(path, ValueType.UNTYPED, isAttribute = false))
       case p: TransformInput => p.inputs.flatMap(collectPaths)
     }
 
@@ -293,7 +293,7 @@ case class TypeMapping(id: Identifier = "type",
 
   override val operator = TransformInput("generateType", ConstantUriTransformer(typeUri))
 
-  override val target = Some(MappingTarget(RDF_TYPE, UriValueType))
+  override val target = Some(MappingTarget(RDF_TYPE, ValueType.URI))
 
   override val typeString = "Type"
 
@@ -331,7 +331,7 @@ case class ComplexMapping(id: Identifier = "mapping",
   */
 case class ObjectMapping(id: Identifier = "mapping",
                          sourcePath: UntypedPath = UntypedPath(Nil),
-                         target: Option[MappingTarget] = Some(MappingTarget("http://www.w3.org/2002/07/owl#sameAs", UriValueType)),
+                         target: Option[MappingTarget] = Some(MappingTarget("http://www.w3.org/2002/07/owl#sameAs", ValueType.URI)),
                          override val rules: MappingRules,
                          metaData: MetaData = MetaData.empty,
                          prefixes: Prefixes = Prefixes.empty) extends ContainerTransformRule {
@@ -472,7 +472,7 @@ object TransformRule {
     case ComplexMapping(id, operator, None, metaData) =>
       ComplexUriMapping(id, operator, metaData)
     // Object Mapping (old style, to be removed)
-    case ComplexMapping(id, TransformInput(_, ConcatTransformer("", false), inputs), Some(target), metaData) if UriPattern.isPattern(inputs) && target.valueType == UriValueType =>
+    case ComplexMapping(id, TransformInput(_, ConcatTransformer("", false), inputs), Some(target), metaData) if UriPattern.isPattern(inputs) && target.valueType == ValueType.URI =>
       ObjectMapping(id, UntypedPath.empty, Some(target), MappingRules(uriRule = Some(PatternUriMapping(id + "uri", UriPattern.build(inputs)))), metaData, prefixes = prefixes)
     // Type Mapping
     case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData) =>

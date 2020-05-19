@@ -2,7 +2,7 @@ package org.silkframework.dataset
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.StringValueType
+import org.silkframework.entity.{StringValueType, ValueType}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.runtime.validation.ValidationException
@@ -22,7 +22,7 @@ class DatasetSpecTest extends FlatSpec with Matchers {
     implicit val userContext: UserContext = UserContext.Empty
     implicit val prefixes: Prefixes = Prefixes.empty
     val sink = datasetSpec.entitySink
-    sink.openTable("someType", Seq(TypedProperty("existingProperty", StringValueType, isBackwardProperty = false)))
+    sink.openTable("someType", Seq(TypedProperty("existingProperty", ValueType.STRING, isBackwardProperty = false)))
     sink.writeEntity("entityUri", Seq(Seq("someValue")))
     sink.closeTable()
     sink.close()

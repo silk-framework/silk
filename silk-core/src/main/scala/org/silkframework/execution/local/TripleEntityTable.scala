@@ -27,10 +27,10 @@ object TripleEntityTable {
   final val schema = EntitySchema(
     typeUri = Uri(SilkVocab.TripleSchemaType),
     typedPaths = IndexedSeq(
-      TypedPath(UntypedPath(SilkVocab.tripleSubject), UriValueType, isAttribute = false),
-      TypedPath(UntypedPath(SilkVocab.triplePredicate), UriValueType, isAttribute = false),
-      TypedPath(UntypedPath(SilkVocab.tripleObject), StringValueType, isAttribute = false),
-      TypedPath(UntypedPath(SilkVocab.tripleObjectValueType), StringValueType, isAttribute = false)
+      TypedPath(UntypedPath(SilkVocab.tripleSubject), ValueType.URI, isAttribute = false),
+      TypedPath(UntypedPath(SilkVocab.triplePredicate), ValueType.URI, isAttribute = false),
+      TypedPath(UntypedPath(SilkVocab.tripleObject), ValueType.STRING, isAttribute = false),
+      TypedPath(UntypedPath(SilkVocab.tripleObjectValueType), ValueType.STRING, isAttribute = false)
     )
   )
 
@@ -61,11 +61,11 @@ object TripleEntityTable {
       case LANGUAGE_ENC_PREFIX =>
         LanguageValueType(encodedType.drop(3))
       case URI_ENC_PREFIX =>
-        UriValueType
+        ValueType.URI
       case BLANK_NODE_ENC_PREFIX =>
-        BlankNodeValueType
+        ValueType.BLANK_NODE
       case _ =>
-        StringValueType
+        ValueType.STRING
     }
   }
 }

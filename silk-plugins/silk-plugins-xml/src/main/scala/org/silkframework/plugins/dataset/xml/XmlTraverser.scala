@@ -112,9 +112,9 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     val childPaths = if(depth == 0) Seq() else children.flatMap(_.collectPathsRecursive(onlyLeafNodes, onlyInnerNodes, path, depth - 1))
     // Generate paths for all attributes
     val attributes = if(depth == 0) Seq() else node.attributes.keys.toSeq
-    val attributesPaths = attributes.map(attribute => TypedPath((path :+ ForwardOperator("@" + attribute)).toList, StringValueType, xmlAttribute = true))
+    val attributesPaths = attributes.map(attribute => TypedPath((path :+ ForwardOperator("@" + attribute)).toList, ValueType.STRING, xmlAttribute = true))
     // Paths to inner nodes become object paths (URI), else value paths (string)
-    val pathValueType: ValueType = if(children.nonEmpty || node.attributes.nonEmpty) UriValueType else StringValueType
+    val pathValueType: ValueType = if(children.nonEmpty || node.attributes.nonEmpty) ValueType.URI else ValueType.STRING
     val typedPath = TypedPath(path.toList, pathValueType, xmlAttribute = false)
 
     if(onlyInnerNodes && children.isEmpty && node.attributes.isEmpty) {
@@ -147,7 +147,7 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     * @return A sequence of nodes that are matching the path.
     */
   def evaluatePathAsString(path: TypedPath, uriPattern: String): IndexedSeq[String] = {
-    val fetchEntityUri = path.valueType == UriValueType
+    val fetchEntityUri = path.valueType == ValueType.URI
     val xml = evaluatePath(path.toUntypedPath)
     xml.flatMap(_.formatNode(uriPattern, fetchEntityUri))
   }

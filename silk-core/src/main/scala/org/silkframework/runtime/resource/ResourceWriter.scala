@@ -16,9 +16,9 @@ trait ResourceWriter {
   def get(name: String, mustExist: Boolean = false): WritableResource
 
   /**
-    * Deletes a resource by name.
+    * Deletes a resource or child resource manager by name.
     *
-    * @param name The name of the resource.
+    * @param name The name of the resource or child resource manager.
     */
   def delete(name: String)
 }

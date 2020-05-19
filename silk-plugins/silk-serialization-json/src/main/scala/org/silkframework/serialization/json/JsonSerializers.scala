@@ -22,6 +22,8 @@ import org.silkframework.util.StringUtils._
 import LinkingSerializers._
 import play.api.libs.json._
 
+import scala.reflect.ClassTag
+
 /**
   * Serializers for JSON.
   */
@@ -260,12 +262,12 @@ object JsonSerializers {
       ValueType.valueTypeById(nodeType) match {
         case Left(_) =>
           nodeType match {
-            case ValueType.OUTDATED_AUTO_DETECT => StringValueType
-            case ValueType.CUSTOM_VALUE_TYPE =>
+            case ValueType.OUTDATED_AUTO_DETECT_ID => ValueType.STRING
+            case ValueType.CUSTOM_VALUE_TYPE_ID =>
               val uriString = stringValue(value, URI)
               val uri = Uri.parse(uriString, readContext.prefixes)
               CustomValueType(uri.uri)
-            case ValueType.LANGUAGE_VALUE_TYPE =>
+            case ValueType.LANGUAGE_VALUE_TYPE_ID =>
               val lang = stringValue(value, LANG)
               LanguageValueType(lang)
           }
@@ -275,7 +277,7 @@ object JsonSerializers {
     }
 
     override def write(value: ValueType)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      val typeId = ValueType.valueTypeId(value)
+      val typeId = value.id
       val additionalAttributes = value match {
         case CustomValueType(typeUri) =>
           Some(URI -> JsString(typeUri))
@@ -944,8 +946,8 @@ object JsonSerializers {
   /**
     * Task
     */
-  class TaskJsonFormat[T <: TaskSpec](options: TaskFormatOptions = TaskFormatOptions(),
-                                      userContext: Option[UserContext] = None)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
+  class TaskJsonFormat[T <: TaskSpec : ClassTag](options: TaskFormatOptions = TaskFormatOptions(),
+                                                 userContext: Option[UserContext] = None)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
 
     final val PROJECT = "project"
     final val DATA = "data"

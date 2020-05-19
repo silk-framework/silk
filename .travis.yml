@@ -11,6 +11,7 @@ notifications:
       - markus.freudenberg@eccenca.com
     on_success: change
     on_failure: change
+
 cache:
   directories:
   - $HOME/.sbt
@@ -20,3 +21,21 @@ before_cache:
   # Cleanup the cached directories to avoid unnecessary cache updates
   - find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
   - find $HOME/.sbt        -name "*.lock"               -print -delete
+
+before_deploy:
+  - GIT_DESCRIBE=$TRAVIS_TAG sbt ++$TRAVIS_SCALA_VERSION "project workbench" universal:package-zip-tarball
+
+deploy:
+  provider: releases
+  api_key:
+    secure: C0yrDT9jaD5cYParaSmScdCYSFyEUmXCsEWWYqYUw/2KyiBYwhtadyEc9VC6R91swTY50/nImlfb7yIopejAftll1jImxFBjQvToP3JI2UQ6j6h7l3DupH+WawPV5nkaIeVscVoa9tCrumpimaQ96RijVhqLmBWCAqCwXH84TLT7e1CH1fwsRk1cM8wUvP0TntfjQTXLZVQEVvkWKb7G/zQ1xLbZNjj1OBpdmDmvQB4lv8fly3eJv0P6XZr0ldz1oYTGW4eNdpTjsn+31d3s63ugsUN7HnuYrW/hwDC12HgqDaZshnf0zm67CJi2RzUF6/CwuCGdWtIUHjRInbpEfv3UmIL70VqK5avZJ7s3AtYd3gAiLDqs0EaJK9E2Qlha0kW9N5+02/wPg6hFl1rwNSf38nS5hCWaIv0AaeT1l9oyClrWB6iz/3cRs5DojrzIqQN+ISkPR8zCriC9KSHVxiFK9MrxJQ0wF7s+9M3fKQ05Xn4Yu/taBOrO+GAspBkMLlvSlUj25QCUPihv2tNrI1SqnrgDvrKwa6EDpSxt5MxroNvJ3JQoP174GmTZrazyEes3RajtvvDDfMvdJzNyV8jGkorywkVgFQhrMpQq68TooPqZMFT44QzfKGxOwPTM9K+Tql6Q3WFUt/0NSI48cB5hWVFVfNhTH+JcGNwMO0k=
+  file_glob: true
+  file: silk-workbench/target/universal/silk-workbench-*
+  on:
+    repo: silk-framework/silk
+    tags: true
+  skip_cleanup: true
+  draft: false
+  # Title and description of the Github release
+  name: Release $TRAVIS_TAG
+  body: Silk Framework Release $TRAVIS_TAG

@@ -1,7 +1,9 @@
 package org.silkframework.runtime.resource
 
-import java.io.{ByteArrayOutputStream, InputStream}
+import java.io.{ByteArrayOutputStream, IOException, InputStream}
 import java.time.Instant
+
+import org.silkframework.config.{Config, DefaultConfig}
 
 import scala.io.{Codec, Source}
 
@@ -62,6 +64,7 @@ trait Resource {
    * Loads this resource into a string.
    */
   def loadAsString(implicit codec: Codec): String = {
+    checkSizeForInMemory()
     val source = Source.fromInputStream(inputStream)(codec)
     try {
       source.getLines.mkString("\n")
@@ -74,6 +77,7 @@ trait Resource {
     * Loads all lines of this resource into a sequence.
     */
   def loadLines(implicit codec: Codec): Seq[String] = {
+    checkSizeForInMemory()
     val source = Source.fromInputStream(inputStream)(codec)
     try {
       source.getLines.toList
@@ -86,6 +90,7 @@ trait Resource {
     * Loads this resource into a byte array.
     */
   def loadAsBytes: Array[Byte] = {
+    checkSizeForInMemory()
     val in = inputStream
     try {
       val out = new ByteArrayOutputStream()
@@ -126,4 +131,28 @@ trait Resource {
    * Returns the name of this resource.
    */
   override def toString: String = name
+
+  /**
+    * Checks if this resource is not too large to be loaded into memory.
+    *
+    * @throws IOException If this resource is too large to be loaded into memory.
+    */
+  protected def checkSizeForInMemory(): Unit = {
+    for(s <- size) {
+      if(s > Resource.maxInMemorySize) {
+        throw new IOException(s"Resource $name is too large to be loaded into memory (size: $size, maximum allowed size: ${Resource.maxInMemorySize}).")
+      }
+    }
+  }
+}
+
+object Resource {
+
+  /**
+    * Maximum resource size in bytes that should be loaded into memory.
+    */
+  private lazy val maxInMemorySize = {
+    DefaultConfig.instance.forClass(classOf[Resource]).getMemorySize("maxInMemorySize").toBytes
+  }
+
 }

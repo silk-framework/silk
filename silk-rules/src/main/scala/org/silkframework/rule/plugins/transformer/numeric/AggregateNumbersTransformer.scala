@@ -26,7 +26,7 @@ import org.silkframework.util.StringUtils.DoubleLiteral
 @Plugin(
   id = "aggregateNumbers",
   categories = Array("Numeric"),
-  label = "Aggregate Numbers",
+  label = "Aggregate numbers",
   description = "Aggregates all numbers in this set using a mathematical operation."
 )
 case class AggregateNumbersTransformer(

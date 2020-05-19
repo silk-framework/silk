@@ -73,6 +73,7 @@ export default class ExecutionReport extends React.Component {
                     currentRuleId="root"
                     showValueMappings={true}
                     handleRuleNavigation={this.onRuleNavigation}
+                    ruleValidation={this.generateIcons()}
                 />
             </div>
             <div className="mdl-cell mdl-cell--9-col">

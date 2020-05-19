@@ -69,14 +69,14 @@ sealed trait Status {
 
 object Status {
   /**
-   * Status which indicates that the task has not been started yet.
+   * Status which indicates that the activity has not been started yet.
    */
   case class Idle() extends Status {
     def message: String = "Idle"
   }
   
   /**
-   * Status which indicates that the task has been started and is waiting to be executed..
+   * Status which indicates that the activity has been started and is waiting to be executed.
    */
   case class Waiting() extends Status {
     override def message: String = "Waiting"
@@ -84,7 +84,7 @@ object Status {
   }
   
   /**
-   * Running status
+   * Running status, activity is currently being executed.
    *
    * @param message The status message
    * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
@@ -105,22 +105,8 @@ object Status {
     def apply(message: String, progress: Double): Running = Running(message, Some(progress))
   }
 
-  case class WithErrors(message: String, override val progress: Option[Double], override val exception: Option[Throwable]) extends Status {
-    override def isRunning: Boolean = true
-    override def toString: String = {
-      progress match {
-        case Some(p) =>
-          message + " (" + "%3.1f".format(p * 100.0) + "% encountered error!)"
-        case None =>
-          message
-      }
-    }
-    override def succeeded: Boolean = false
-    override def failed: Boolean = false
-  }
-  
   /**
-   * Indicating that the task has been requested to stop but has not stopped yet.
+   * Indicating that the activity has been requested to stop but has not stopped yet.
    *
    * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
    */
@@ -130,7 +116,7 @@ object Status {
   }
   
   /**
-   * Status which indicates that the task has finished execution.
+   * Status which indicates that the activity has finished execution.
    *
    * @param success True, if the computation finished successfully. False, otherwise.
    * @param runtime The time in milliseconds needed to execute the task.

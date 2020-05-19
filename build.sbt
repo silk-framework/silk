@@ -4,7 +4,7 @@ import sbt._
 // Common Settings
 //////////////////////////////////////////////////////////////////////////////
 
-val NEXT_VERSION = "3.0.0"
+val NEXT_VERSION = "3.1.0"
 val silkVersion = sys.env.getOrElse("GIT_DESCRIBE", NEXT_VERSION + "-SNAPSHOT")
 
 concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
@@ -22,6 +22,9 @@ lazy val commonSettings = Seq(
       Some("releases" at artifactory + "maven-ecc-release")
     }
   },
+  // If SBT_PUBLISH_TESTS_JARS ENV variable is set to "true" then tests jar files will be published that can be used e.g. in testing plugins
+  publishArtifact in (Test, packageBin) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
+  publishArtifact in (Test, packageSrc) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.7" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "4.0.0" % "test",
@@ -29,7 +32,7 @@ lazy val commonSettings = Seq(
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
   libraryDependencies += "com.google.inject" % "guice" % "4.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
-  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports"),
+  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", "-oD"),
 
   dependencyOverrides ++= Set(
     "com.google.guava" % "guava" % "18.0",

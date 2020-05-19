@@ -5,7 +5,7 @@ import java.io.StringReader
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset.{DataSource, DatasetSpec}
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.entity.{Entity, EntitySchema, StringValueType}
+import org.silkframework.entity.{Entity, EntitySchema, StringValueType, ValueType}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager, ReadOnlyResource}
 import org.silkframework.util.Uri
@@ -42,9 +42,9 @@ class CsvSourceTest extends FlatSpec with Matchers {
 
   it should "type all source paths as value typed paths" in {
     source.retrievePaths("") map (tp => tp.toUntypedPath.normalizedSerialization -> tp.valueType) shouldBe IndexedSeq(
-      "ID" -> StringValueType,
-      "Name" -> StringValueType,
-      "Age" -> StringValueType
+      "ID" -> ValueType.STRING,
+      "Name" -> ValueType.STRING,
+      "Age" -> ValueType.STRING
     )
   }
 

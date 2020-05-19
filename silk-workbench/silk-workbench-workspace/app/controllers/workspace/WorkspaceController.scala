@@ -32,8 +32,8 @@ class WorkspaceController @Inject() () extends InjectedController{
     Ok(views.html.workspace.importProjectDialog())
   }
 
-  def removeProjectDialog(project: String): Action[AnyContent] = Action {
-    Ok(views.html.workspace.removeProjectDialog(project))
+  def removeProjectDialog(project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    Ok(views.html.workspace.removeProjectDialog(project, WorkspaceFactory().workspace.repository.sharedResources))
   }
 
   def removeTaskDialog(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>

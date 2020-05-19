@@ -66,14 +66,11 @@ object WorkbenchPluginDataset {
     override def tabs: Seq[Tab] = {
       task.data match {
         case dataset: GenericDatasetSpec =>
-          var tabs = Seq(Tab("Dataset", s"workspace/datasets/$project/$taskId/dataset"))
           if (dataset.plugin.isInstanceOf[RdfDataset]) {
-            tabs = tabs :+ Tab("Sparql", s"workspace/datasets/$project/$taskId/sparql")
+            Seq(Tab("SPARQL", s"workspace/datasets/$project/$taskId/sparql"))
           } else {
-            tabs = tabs :+ Tab("Tableview", s"workspace/datasets/$project/$taskId/table")
+            Seq(Tab("Tableview", s"workspace/datasets/$project/$taskId/table"))
           }
-          tabs
-        case _ => Seq.empty
       }
     }
   }

@@ -20,7 +20,7 @@ import com.thoughtworks.paranamer.BytecodeReadingParanamer
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager, ResourceNotFoundException}
-import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.util.StringUtils._
 import org.silkframework.util.Identifier
 
 import scala.io.Source
@@ -85,7 +85,8 @@ class PluginDescription[+T](val id: Identifier, val categories: Seq[String], val
           try {
             parameter.dataType.fromString(v).asInstanceOf[AnyRef]
           } catch {
-            case NonFatal(ex) => throw new InvalidPluginParameterValueException(label + " has an invalid value for parameter " + parameter.name + ". Value must be a valid " + parameter.dataType + ". Issue: " + ex.getMessage, ex)
+            case NonFatal(ex) =>
+              throw new InvalidPluginParameterValueException(label + " has an invalid value for parameter " + parameter.name + ". Value must be a valid " + parameter.dataType + ". Issue: " + ex.getMessage, ex)
           }
         case None if parameter.defaultValue.isDefined =>
           parameter.defaultValue.get
@@ -212,7 +213,7 @@ object PluginDescription {
 
       val label = pluginParam match {
         case Some(p) if p.label().nonEmpty => p.label()
-        case _ => parName.flatMap(c => if(c.isUpper) " " + c.toLower else c.toString)
+        case _ => parName.toSentenceCase
       }
 
       val (description, exampleValue) = pluginParam map { pluginParam =>

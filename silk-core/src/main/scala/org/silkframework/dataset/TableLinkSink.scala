@@ -1,5 +1,5 @@
 package org.silkframework.dataset
-import org.silkframework.entity.{Link, StringValueType}
+import org.silkframework.entity.{Link, StringValueType, ValueType}
 import org.silkframework.runtime.activity.UserContext
 import TableLinkSink._
 import org.silkframework.config.Prefixes
@@ -14,8 +14,8 @@ class TableLinkSink(entitySink: EntitySink) extends LinkSink {
   override def init()(implicit userContext: UserContext): Unit = {
     implicit val prefixes = Prefixes.empty
     entitySink.openTable(LINKS_TYPE, Seq(
-      TypedProperty(SOURCE_COLUMN, StringValueType, isBackwardProperty = false),
-      TypedProperty(TARGET_COLUMN, StringValueType, isBackwardProperty = false)))
+      TypedProperty(SOURCE_COLUMN, ValueType.STRING, isBackwardProperty = false),
+      TypedProperty(TARGET_COLUMN, ValueType.STRING, isBackwardProperty = false)))
   }
 
   override def writeLink(link: Link, predicateUri: String)

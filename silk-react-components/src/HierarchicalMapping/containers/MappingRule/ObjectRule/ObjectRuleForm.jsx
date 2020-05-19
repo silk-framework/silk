@@ -43,6 +43,7 @@ export class ObjectRuleForm extends Component {
             type: PropTypes.string,
         }).isRequired,
         scrollIntoView: PropTypes.func.isRequired,
+        onAddNewRule: PropTypes.func.isRequired,
         scrollElementIntoView: PropTypes.func.isRequired,
         ruleData: PropTypes.object.isRequired,
     };
@@ -105,8 +106,13 @@ export class ObjectRuleForm extends Component {
         }, true)
             .subscribe(
                 () => {
-                    this.handleClose(event);
-                    EventEmitter.emit(MESSAGES.RELOAD, true);
+                    if (this.props.onAddNewRule) {
+                        this.props.onAddNewRule(() => {
+                            this.handleClose(event);
+                        });
+                    } else {
+                        this.handleClose(event);
+                    }
                 },
                 err => {
                     this.setState({

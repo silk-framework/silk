@@ -8,7 +8,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.resources.FileRepository
+import org.silkframework.workspace.resources.SharedFileRepository
 
 /**
   * Setups a test workspace with an in-memory workspace provider and temporary file based resource repository.
@@ -44,7 +44,7 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
   // Workaround for config problem, this should make sure that the workspace is a fresh in-memory RDF workspace
   override protected def beforeAll(): Unit = {
     super.beforeAll()
-    val replacementWorkspace = new Workspace(workspaceProvider, FileRepository(tmpDir.getAbsolutePath))
+    val replacementWorkspace = new Workspace(workspaceProvider, SharedFileRepository(tmpDir.getAbsolutePath))
     val rdfWorkspaceFactory = new WorkspaceFactory {
       /**
         * The current workspace of this user.

@@ -14,7 +14,7 @@
 
 package org.silkframework.rule.evaluation
 
-import org.silkframework.entity.{UntypedValueType, Entity}
+import org.silkframework.entity.Entity
 import org.silkframework.rule.evaluation.DetailedEvaluator.evaluateOperator
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}

@@ -167,7 +167,7 @@ case class EntitySchema(
       case es: EntitySchema =>
         EntitySchema(
           es.typeUri,
-          tps.flatMap(tp => if(tp.valueType == UntypedValueType) es.findPath(tp.toUntypedPath) else es.findTypedPath(tp) match{
+          tps.flatMap(tp => if(tp.valueType == ValueType.UNTYPED) es.findPath(tp.toUntypedPath) else es.findTypedPath(tp) match{
             case Some(_) => Some(tp)
             case None =>
               throw new IllegalArgumentException(tp + " was not found in EntitySchema: " + this.typedPaths.mkString(", "))
@@ -267,7 +267,7 @@ object EntitySchema {
     }
     val paths = if(typedPaths.isEmpty) {
       for (pathNode <- (node \ "Paths" \ "Path").toIndexedSeq) yield {
-        TypedPath(UntypedPath.parse(pathNode.text.trim), StringValueType, isAttribute = false)
+        TypedPath(UntypedPath.parse(pathNode.text.trim), ValueType.STRING, isAttribute = false)
       }
     } else {
       typedPaths

@@ -1,6 +1,6 @@
 package controllers.transform
 
-import org.silkframework.entity.UriValueType
+import org.silkframework.entity.{UriValueType, ValueType}
 import org.silkframework.rule._
 import org.silkframework.workspace.ProjectTask
 import play.api.libs.json.{JsArray, JsString, Json}
@@ -493,7 +493,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val originalLabel = originalTransformRule.metaData.label
     val clonedLabel = clonedTransformRule.metaData.label
     clonedLabel mustBe s"Copy of $originalLabel"
-    clonedTransformRule.target mustBe Some(MappingTarget(TransformTaskApi.ROOT_COPY_TARGET_PROPERTY, UriValueType))
+    clonedTransformRule.target mustBe Some(MappingTarget(TransformTaskApi.ROOT_COPY_TARGET_PROPERTY, ValueType.URI))
   }
 
   private def as[T](obj: Any): T = {

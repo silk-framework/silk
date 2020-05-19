@@ -93,6 +93,13 @@ class DefaultConfig private() extends Config {
     }
   }
 
+  /**
+    * Loads the config for a particular class.
+    */
+  def forClass(clazz: Class[_]): TypesafeConfig = {
+    apply().getConfig(clazz.getName)
+  }
+
   /** Refreshes the Config instance, e.g. load from changed config file or newly set property values. */
   override def refresh(): Unit = {
     this.synchronized {

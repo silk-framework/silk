@@ -161,6 +161,11 @@ class ObjectRule extends React.Component {
         this.props.handleClone(id, type, parentId);
     };
     
+    handleAddNewRule = (callback) => {
+        EventEmitter.emit(MESSAGES.RELOAD);
+        callback && callback();
+    };
+    
     render() {
         const {type, ruleData} = this.props;
         const {edit} = this.state;
@@ -173,6 +178,7 @@ class ObjectRule extends React.Component {
                     parent={this.props.parent}
                     parentId={this.props.parentId}
                     ruleData={transformRuleOfObjectMapping(ruleData)}
+                    onAddNewRule={this.handleAddNewRule}
                 />
             );
         }

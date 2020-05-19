@@ -18,13 +18,13 @@ import scala.xml.Node
   * @param isAttribute In data sinks that support attributes, such as XML, an attribute is generated.
   */
 case class MappingTarget(propertyUri: Uri,
-                         valueType: ValueType = StringValueType,
+                         valueType: ValueType = ValueType.STRING,
                          isBackwardProperty: Boolean = false,
                          isAttribute: Boolean = false) {
 
   override def toString: String = {
     val sb = new StringBuilder(propertyUri.uri)
-    if(valueType != UntypedValueType) {
+    if(valueType != ValueType.UNTYPED) {
       sb += ' '
       sb ++= valueType.label
     }
