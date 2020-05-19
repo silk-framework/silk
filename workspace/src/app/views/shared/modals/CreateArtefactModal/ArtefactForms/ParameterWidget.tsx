@@ -1,16 +1,13 @@
 import { ITaskParameter } from "@ducks/common/typings";
-import { Button, FieldItem, FieldSet, Icon, TitleSubsection } from "@wrappers/index";
+import { FieldItem, FieldSet, Icon, TitleSubsection } from "@wrappers/index";
 import { Autocomplete } from "../../../Autocomplete/Autocomplete";
 import { InputMapper } from "./InputMapper";
 import { Intent } from "@wrappers/blueprint/constants";
 import React from "react";
-import { INPUT_TYPES } from "../../../../../constants";
 import { sharedOp } from "@ducks/shared";
 import { AppToaster } from "../../../../../services/toaster";
 import { defaultValueAsJs } from "./TaskForm";
 import Spacing from "@wrappers/src/components/Separation/Spacing";
-
-const isFileInput = (type: string) => type === INPUT_TYPES.RESOURCE;
 
 const MAXLENGTH_TOOLTIP = 40;
 
@@ -27,8 +24,6 @@ interface IParam {
     required: boolean;
     // The details of this parameter
     taskParameter: ITaskParameter;
-    // Handler for file upload buttons
-    onFileUploadClick: (e) => void;
     // from react-hook-form
     formHooks: IHookFormParam;
     // All change handlers
@@ -60,14 +55,13 @@ export const ParameterWidget = ({
     formParamId,
     required,
     taskParameter,
-    onFileUploadClick,
     formHooks,
     changeHandlers,
     initialValues,
 }: IParam) => {
     const errors = formHooks.errors[formParamId];
     const propertyDetails = taskParameter.param;
-    const { title, description, parameterType, autoCompletion } = propertyDetails;
+    const { title, description, autoCompletion } = propertyDetails;
     const handleAutoCompleteInput = async (input: string = "") => {
         try {
             return await sharedOp.getAutocompleteResultsAsync({
@@ -107,7 +101,6 @@ export const ParameterWidget = ({
                             formParamId={nestedFormParamId}
                             required={false /* TODO: Get this information*/}
                             taskParameter={{ paramId: nestedParamId, param: nestedParam }}
-                            onFileUploadClick={onFileUploadClick}
                             formHooks={formHooks}
                             changeHandlers={changeHandlers}
                             initialValues={initialValues}
@@ -129,21 +122,18 @@ export const ParameterWidget = ({
                 hasStateDanger={errorMessage(title, errors) ? true : false}
                 messageText={errorMessage(title, errors)}
             >
-                {isFileInput(parameterType) ? (
-                    <Button onClick={onFileUploadClick} hasStateWarning={errorMessage(title, errors) ? true : false}>
-                        Upload new {title}
-                    </Button>
-                ) : !!autoCompletion ? (
+                {!!autoCompletion ? (
                     <Autocomplete
                         autoCompletion={autoCompletion}
-                        onInputChange={handleAutoCompleteInput}
+                        onSearch={handleAutoCompleteInput}
                         onChange={changeHandlers[formParamId]}
-                        value={
+                        initialValue={
                             initialValues[formParamId] ? initialValues[formParamId] : defaultValueAsJs(propertyDetails)
                         }
                     />
                 ) : (
                     <InputMapper
+                        projectId={projectId}
                         parameter={{ paramId: formParamId, param: propertyDetails }}
                         intent={errors ? Intent.DANGER : Intent.NONE}
                         onChange={changeHandlers[formParamId]}

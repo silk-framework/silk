@@ -9,6 +9,7 @@ import { datasetSel } from "@ducks/dataset";
 import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@wrappers/index";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
+import { useParams } from "react-router";
 
 export default function () {
     const error = useSelector(datasetSel.errorSelector);

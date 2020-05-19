@@ -5,8 +5,12 @@ import { QueryEditor } from "../../../QueryEditor/QueryEditor";
 import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";
 import { defaultValueAsJs, stringValueAsJs } from "./TaskForm";
+import { FileUploader } from "../../../FileUploader/FileUploader";
+import { AppToaster } from "../../../../../services/toaster";
+import { requestResourcesList } from "@ducks/shared/requests";
 
 interface IProps {
+    projectId: string;
     parameter: ITaskParameter;
     // Blueprint intent
     intent: Intent;
@@ -31,7 +35,7 @@ interface IInputAttributes {
 }
 
 /** Maps an atomic value to the corresponding value type widget. */
-export function InputMapper({ parameter, intent, onChange, initialValues }: IProps) {
+export function InputMapper({ projectId, parameter, intent, onChange, initialValues }: IProps) {
     const { paramId, param } = parameter;
     const initialValue =
         initialValues[paramId] !== undefined
@@ -43,6 +47,20 @@ export function InputMapper({ parameter, intent, onChange, initialValues }: IPro
         intent: intent,
         onChange: onChange,
         defaultValue: initialValue,
+    };
+
+    const handleFileSearch = async (input: string) => {
+        try {
+            return await requestResourcesList(projectId, {
+                searchText: input,
+            });
+        } catch (e) {
+            AppToaster.show({
+                message: e.detail,
+                intent: Intent.DANGER,
+                timeout: 0,
+            });
+        }
     };
 
     if (param.parameterType === INPUT_TYPES.BOOLEAN) {
@@ -62,8 +80,23 @@ export function InputMapper({ parameter, intent, onChange, initialValues }: IPro
         case INPUT_TYPES.PASSWORD:
             return <TextField {...inputAttributes} type={"password"} />;
         case INPUT_TYPES.RESOURCE:
-            // File uploader handled in TaskForm
-            return null;
+            return (
+                <FileUploader
+                    projectId={projectId}
+                    advanced={true}
+                    autocomplete={{
+                        autoCompletion: {
+                            allowOnlyAutoCompletedValues: true,
+                            autoCompleteValueWithLabels: true,
+                            autoCompletionDependsOnParameters: [],
+                        },
+                        onSearch: handleFileSearch,
+                        itemLabelRenderer: (item) => item.name,
+                        itemValueRenderer: (item) => item.name,
+                    }}
+                    {...inputAttributes}
+                />
+            );
         case INPUT_TYPES.ENUMERATION:
         case INPUT_TYPES.OPTION_INT:
         case INPUT_TYPES.STRING:
