@@ -27,10 +27,18 @@ import Pagination from "@wrappers/src/components/Pagination/Pagination";
 import { IItemLink, IRelatedItem, IRelatedItemsResponse } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
 
+interface IProps {
+    projectId?: string;
+    taskId?: string;
+}
+
 /** Widget that shows related items of project tasks*/
-export function RelatedItems() {
-    const projectId = useSelector(commonSel.currentProjectIdSelector);
-    const taskId = useSelector(commonSel.currentTaskIdSelector);
+export function RelatedItems(props: IProps) {
+    const _projectId = useSelector(commonSel.currentProjectIdSelector);
+    const _taskId = useSelector(commonSel.currentTaskIdSelector);
+
+    const projectId = props.projectId || _projectId;
+    const taskId = props.taskId || _taskId;
 
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState({ total: 0, items: [] } as IRelatedItemsResponse);

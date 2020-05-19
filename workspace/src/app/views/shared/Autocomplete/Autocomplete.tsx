@@ -55,8 +55,8 @@ const SuggestAutocomplete = Suggest.ofType<IAutocompleteDefaultResponse>();
 Autocomplete.defaultProps = {
     items: [],
     initialValue: "",
-    itemLabelRenderer: (item) => item.label || item.id,
-    itemValueRenderer: (item) => item.value || item.id,
+    itemLabelRenderer: (item) => item.label || item.value,
+    itemValueRenderer: (item) => item.value || item.value,
 };
 
 export function Autocomplete(props: IAutocompleteProps) {

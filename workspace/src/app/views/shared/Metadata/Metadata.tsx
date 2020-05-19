@@ -29,16 +29,26 @@ import { useDispatch, useSelector } from "react-redux";
 import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
 
-export function Metadata() {
+interface IProps {
+    projectId?: string;
+    taskId?: string;
+}
+
+export function Metadata(props: IProps) {
     const { control, handleSubmit } = useForm();
-    const projectId = useSelector(commonSel.currentProjectIdSelector);
-    const taskId = useSelector(commonSel.currentTaskIdSelector);
+    const location = useLocation();
+    const dispatch = useDispatch();
+
+    const _projectId = useSelector(commonSel.currentProjectIdSelector);
+    const _taskId = useSelector(commonSel.currentTaskIdSelector);
+
+    const projectId = props.projectId || _projectId;
+    const taskId = props.taskId || _taskId;
 
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState({} as IMetadata);
     const [isEditing, setIsEditing] = useState(false);
-    const location = useLocation();
-    const dispatch = useDispatch();
+
     const [errors, setErrors] = useState({
         form: {
             label: false,

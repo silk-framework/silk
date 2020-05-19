@@ -104,15 +104,24 @@ interface IState {
     // Selected File menu item
     selectedFileMenu: FileMenuItems;
 
+    // Loading state
     loading: boolean;
 
+    // Override dialog
     overrideDialog: File | null;
 
+    // abort dialog
     abortDialog: boolean;
 
+    //Show upload process
     isUploading: boolean;
 }
 
+/**
+ * File Uploader widget
+ * with advanced = true, provides full FileUploader with 2 extra options
+ * otherwise provides simple drang and drop uploader
+ */
 export class FileUploader extends React.Component<IUploaderOptions, IState> {
     private uppy = Uppy();
 

@@ -2,7 +2,6 @@ import qs from "qs";
 import { getLocation, push, replace } from "connected-react-router";
 import { SERVE_PATH } from "../../../constants/path";
 import { IMetadata } from "@ducks/shared/typings";
-import { routerOp } from "@ducks/router/index";
 
 interface IQueryParams {
     [key: string]: any;

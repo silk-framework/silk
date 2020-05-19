@@ -9,6 +9,12 @@ interface IProps {
     onChange(value: string);
 }
 
+/**
+ * File widget menu with 3 options: New, Select, Empty
+ * @param onChange
+ * @param selectedFileMenu
+ * @constructor
+ */
 export function FileMenu({ onChange, selectedFileMenu }: IProps) {
     const menuItems = [
         {
