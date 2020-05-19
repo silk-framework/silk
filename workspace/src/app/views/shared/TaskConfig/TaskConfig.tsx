@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardOptions, CardTitle, IconButton } from "@wrappers/index";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { commonOp } from "@ducks/common";
-import Spinner from "@wrappers/blueprint/spinner";
 import { requestTaskData } from "@ducks/shared/requests";
 import { requestArtefactProperties } from "@ducks/common/requests";
+import { Loading } from "../Loading/Loading";
+import { TaskConfigPreview } from "./TaskConfigPreview";
+import { IProjectTask } from "@ducks/shared/typings";
+import { commonSel } from "@ducks/common";
 
 interface IProps {
     projectId: string;
@@ -14,9 +17,12 @@ interface IProps {
 export function TaskConfig(props: IProps) {
     const dispatch = useDispatch();
     const [loading, setLoading] = useState(false);
+    const [labelledTaskData, setLabelledTaskData] = useState<IProjectTask>(null);
+    const { isOpen } = useSelector(commonSel.artefactModalSelector);
     const openConfigModal = async () => {
         setLoading(true);
         try {
+            // Config dialog is always opened with fresh data
             const taskData = await requestTaskData(props.projectId, props.taskId);
             const taskPluginDetails = await requestArtefactProperties(taskData.data.type);
             dispatch(
@@ -33,6 +39,17 @@ export function TaskConfig(props: IProps) {
         }
     };
 
+    useEffect(() => {
+        if (!isOpen) {
+            setLoading(true);
+            try {
+                requestTaskData(props.projectId, props.taskId, true).then((result) => setLabelledTaskData(result));
+            } finally {
+                setLoading(false);
+            }
+        }
+    }, [isOpen]);
+
     return (
         <Card>
             <CardHeader>
@@ -43,7 +60,13 @@ export function TaskConfig(props: IProps) {
                     <IconButton name={"item-edit"} text={"Configure"} onClick={openConfigModal} />
                 </CardOptions>
             </CardHeader>
-            <CardContent>{loading ? <Spinner /> : <p>TODO: Add preview of config?</p>}</CardContent>
+            <CardContent>
+                {loading ? (
+                    <Loading description={"Loading update dialog..."} />
+                ) : (
+                    <TaskConfigPreview taskData={labelledTaskData} />
+                )}
+            </CardContent>
         </Card>
     );
 }

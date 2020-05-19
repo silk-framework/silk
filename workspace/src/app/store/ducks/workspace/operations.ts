@@ -313,7 +313,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: strin
 
         try {
             const data = await requestCreateTask(payload, currentProjectId);
-
+            dispatch(commonOp.closeArtefactModal());
             dispatch(
                 routerOp.goToPage(`projects/${currentProjectId}/${itemTypeToPath(taskType)}/${data.id}`, {
                     taskLabel: label,
@@ -325,6 +325,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: strin
     };
 };
 
+/** Updates the technical parameters of a project task. */
 const fetchUpdateTaskAsync = (projectId: string, itemId: string, formData: any) => {
     return async (dispatch, getState) => {
         const requestData = commonOp.buildTaskObject(formData);
@@ -357,6 +358,7 @@ const fetchCreateProjectAsync = (formData: { label: string; description?: string
                     description,
                 },
             });
+            dispatch(commonOp.closeArtefactModal());
             dispatch(routerOp.goToPage(`projects/${data.name}`, { projectLabel: label }));
         } catch (e) {
             dispatch(setError(e.response.data));

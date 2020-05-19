@@ -116,7 +116,7 @@ export function CreateArtefactModal() {
             } else {
                 dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefact.key)));
             }
-            closeModal();
+            // closeModal(); TODO: Does this really needs to be executed?
         }
     };
 
@@ -235,7 +235,7 @@ export function CreateArtefactModal() {
                                     <ArtefactTypesList onSelect={handleSelectDType} />
                                 </GridColumn>
                                 <GridColumn>
-                                    <SearchBar focusOnCreation={true} onSearch={handleSearch} />
+                                    <SearchBar textQuery={searchValue} focusOnCreation={true} onSearch={handleSearch} />
                                     <Spacing />
                                     {loading ? (
                                         <Loading description="Loading artefact type list." />

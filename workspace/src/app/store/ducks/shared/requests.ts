@@ -55,10 +55,20 @@ export const requestTaskMetadata = async (itemId: string, projectId?: string): P
     }
 };
 
-export const requestTaskData = async (projectId: string, itemId: string): Promise<IProjectTask> => {
+export const requestTaskData = async (
+    projectId: string,
+    itemId: string,
+    withLabel: boolean = false
+): Promise<IProjectTask> => {
+    const queryParams: any = {};
+    if (withLabel) {
+        queryParams.withLabels = true;
+    }
+
     try {
         const { data } = await fetch({
             url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}`),
+            body: queryParams,
         });
         return data;
     } catch (e) {
