@@ -10,7 +10,7 @@ import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.PluginSerializers.PluginListJsonFormat
 import org.silkframework.workspace.activity.workflow.Workflow
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsObject, JsString, JsValue, Json}
 import play.api.mvc._
 
 import scala.collection.immutable.ListMap
@@ -18,7 +18,7 @@ import scala.collection.immutable.ListMap
 /**
   * Workspace task plugin related endpoints.
   */
-class PluginApi @Inject() () extends InjectedController {
+class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedController {
   /** All plugins that can be created in the workspace. */
   def taskPlugins(addMarkdownDocumentation: Boolean,
                   textQuery: Option[String],
@@ -43,7 +43,8 @@ class PluginApi @Inject() () extends InjectedController {
     PluginRegistry.pluginDescriptionsById(pluginId, Some(Seq(classOf[TaskSpec], classOf[Dataset]))).headOption match {
       case Some(pluginDesc) =>
         implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
-        val resultJson = PluginListJsonFormat.serializePlugin(pluginDesc, addMarkdownDocumentation, overviewOnly = false, taskType = taskType(pluginDesc.pluginClass))
+        val resultJson = PluginListJsonFormat.serializePlugin(pluginDesc, addMarkdownDocumentation, overviewOnly = false,
+          taskType = pluginCache.taskTypeByClass(pluginDesc.pluginClass))
         result(pretty, resultJson)
       case None =>
         NotFound
@@ -56,17 +57,6 @@ class PluginApi @Inject() () extends InjectedController {
     } else {
       Ok(resultJson)
     }
-  }
-
-  private def taskType(pluginClass: Class[_]): Option[String] = {
-    val taskTypes = Seq(
-      JsonSerializers.TASK_TYPE_DATASET -> classOf[Dataset],
-      JsonSerializers.TASK_TYPE_CUSTOM_TASK -> classOf[CustomTask],
-      JsonSerializers.TASK_TYPE_WORKFLOW -> classOf[Workflow],
-      JsonSerializers.TASK_TYPE_TRANSFORM -> classOf[TransformSpec],
-      JsonSerializers.TASK_TYPE_LINKING -> classOf[LinkSpec]
-    )
-    taskTypes.find(_._2.isAssignableFrom(pluginClass)).map(_._1)
   }
 
   private def pluginResult(addMarkdownDocumentation: Boolean,
@@ -84,12 +74,46 @@ class PluginApi @Inject() () extends InjectedController {
       }
       matchesCategory && matchesTextQuery
     }
+
     val pluginList = PluginList.load(pluginTypes, addMarkdownDocumentation, overviewOnly = true)
     val allPlugins = pluginList.pluginsByType ++ singlePluginList.pluginsByType
     val filteredPlugins = allPlugins map { case (key, pds) =>
       val filteredPDs = pds.filter(pd => filter(pd))
       (key, filteredPDs)
     }
-    SerializationUtils.serializeCompileTime(pluginList.copy(pluginsByType = filteredPlugins), None)
+    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+    val pluginListJson = JsonSerializers.toJson(pluginList.copy(pluginsByType = filteredPlugins))
+    val pluginJsonWithTaskType = pluginListJson.as[JsObject].fields.map { case (pluginId, pluginJson) =>
+      pluginCache.taskType(pluginId) match {
+        case Some(taskType) => (pluginId, pluginJson.as[JsObject] + (JsonSerializers.TASKTYPE -> JsString(taskType)))
+        case None => (pluginId, pluginJson)
+      }
+    }
+    Ok(JsObject(pluginJsonWithTaskType))
+  }
+}
+
+@javax.inject.Singleton
+class PluginApiCache @Inject()() {
+  private lazy val itemTypeMapById: Map[String, String] = {
+    PluginRegistry.allPlugins
+        .filter(pd => classOf[TaskSpec].isAssignableFrom(pd.pluginClass) || classOf[Dataset].isAssignableFrom(pd.pluginClass))
+        .flatMap(pd => taskTypeByClass(pd.pluginClass).map(taskType => (pd.id.toString, taskType)))
+        .toMap
+  }
+
+  def taskType(pluginId: String): Option[String] = {
+    itemTypeMapById.get(pluginId)
+  }
+
+  def taskTypeByClass(pluginClass: Class[_]): Option[String] = {
+    val taskTypes = Seq(
+      JsonSerializers.TASK_TYPE_DATASET -> classOf[Dataset],
+      JsonSerializers.TASK_TYPE_CUSTOM_TASK -> classOf[CustomTask],
+      JsonSerializers.TASK_TYPE_WORKFLOW -> classOf[Workflow],
+      JsonSerializers.TASK_TYPE_TRANSFORM -> classOf[TransformSpec],
+      JsonSerializers.TASK_TYPE_LINKING -> classOf[LinkSpec]
+    )
+    taskTypes.find(_._2.isAssignableFrom(pluginClass)).map(_._1)
   }
 }

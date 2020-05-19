@@ -44,8 +44,19 @@ class PluginApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers
   }
 
   it should "return the correct plugins for the task plugins endpoint" in {
-    val jsonResult = checkResponse(client.url(s"$baseUrl/api/core/taskPlugins").get()).json
+    val jsonResult = taskPlugins
     jsonResult.as[JsObject].keys must contain allOf("transform", "linking", "workflow", "csv", "sparqlSelectOperator")
+  }
+
+  it should "have all relevant properties for task plugins" in {
+    val jsonResult = taskPlugins
+    jsonResult.as[JsObject].values.take(5).foreach { pd =>
+      pd.as[JsObject].keys mustBe Set("title", "categories", "description", "taskType")
+    }
+  }
+
+  private def taskPlugins = {
+    checkResponse(client.url(s"$baseUrl/api/core/taskPlugins").get()).json
   }
 
   it should "return all plugins of a specific category" in {

@@ -53,7 +53,7 @@ object PluginRegistry {
   }
 
   def allPlugins: Traversable[PluginDescription[_]] = {
-    plugins.values
+    pluginsById.values.flatten
   }
 
   // Returns an error message string if the object type is invalid.
