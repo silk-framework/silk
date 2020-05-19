@@ -151,7 +151,7 @@ export function CreateArtefactModal() {
         // Project / task creation
         if (selectedArtefact.key) {
             if (selectedArtefact.key === DATA_TYPES.PROJECT) {
-                artefactForm = <ProjectForm form={form} />;
+                artefactForm = <ProjectForm form={form} projectId={projectId} />;
             } else {
                 const detailedArtefact = cachedArtefactProperties[selectedArtefact.key];
                 if (detailedArtefact && projectId) {

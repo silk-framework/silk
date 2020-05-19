@@ -1,82 +1,44 @@
 import React, { useDebugValue, useState } from "react";
 import { Button, SimpleDialog } from "@wrappers/index";
-import AbortAlert from "./AbortAlert";
-import OverrideAlert from "./OverrideAlert";
 import FileUploader from "../../FileUploader";
-import { workspaceOp } from "@ducks/workspace";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
+import { IUploaderOptions } from "../../FileUploader/FileUploader";
 
 export interface IFileUploadModalProps {
     isOpen: boolean;
 
     onDiscard(): void;
 
-    onUploaded?(e: any): void;
+    uploaderOptions?: Partial<IUploaderOptions>;
 }
 
-export function FileUploadModal({ isOpen, onDiscard, onUploaded }: IFileUploadModalProps) {
+export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFileUploadModalProps) {
     const [fileUploaderInstance, setFileUploaderInstance] = useState<any>(null);
-    const [isCheckingFile, setIsCheckingFile] = useState<boolean>(false);
-    const [isUploading, setIsUploading] = useState<boolean>(false);
-    const [openAbortDialog, setOpenAbortDialog] = useState<boolean>(false);
-    const [invokeOverrideDialog, setInvokeOverrideDialog] = useState<File>(null);
 
     const projectId = useSelector(commonSel.currentProjectIdSelector);
-    const uploadUrl = legacyApiEndpoint(`/projects/${projectId}/resources`);
 
     useDebugValue(!projectId ? "Project ID not provided and upload url is not valid" : "");
 
     if (!projectId) {
         return null;
     }
+
     const getUploaderInstance = (instance) => {
         setFileUploaderInstance(instance);
     };
 
-    const isResourceExists = (fileName: string) => {
-        return workspaceOp.checkIfResourceExistsAsync(fileName, projectId);
-    };
-
-    const resetFileDialog = () => {
-        setIsCheckingFile(false);
-        setIsUploading(false);
-        setOpenAbortDialog(false);
-        setInvokeOverrideDialog(null);
-        fileUploaderInstance.reset();
-    };
-
-    const upload = async (file: File) => {
-        fileUploaderInstance.setEndpoint(`${uploadUrl}/${file.name}`);
-        setIsUploading(true);
-        await fileUploaderInstance.upload();
-        setIsUploading(false);
-        resetFileDialog();
-
-        onUploaded(file.name);
-    };
-
-    const onFileAdded = async (result: File) => {
-        setIsCheckingFile(true);
-        const isExists = await isResourceExists(result.name);
-        setIsCheckingFile(false);
-
-        isExists ? setInvokeOverrideDialog(result) : upload(result);
-    };
-
     const handleDiscard = () => {
-        if (isUploading) {
-            setOpenAbortDialog(true);
-            return false;
-        }
-        resetFileDialog();
+        fileUploaderInstance.reset();
         onDiscard();
     };
 
-    const handleOverrideCancel = () => {
-        fileUploaderInstance.reset();
-        setInvokeOverrideDialog(null);
+    /**
+     * @override uploader change function and handle it
+     */
+    const overriddenUploaderOptions = {
+        ...uploaderOptions,
+        projectId,
     };
 
     return (
@@ -86,25 +48,13 @@ export function FileUploadModal({ isOpen, onDiscard, onUploaded }: IFileUploadMo
                 isOpen={isOpen}
                 onClose={handleDiscard}
                 actions={
-                    isUploading ? (
-                        <Button onClick={handleDiscard}>Abort Upload</Button>
-                    ) : (
-                        <Button onClick={onDiscard}>Close</Button>
-                    )
+                    <Button key="close" onClick={onDiscard}>
+                        Close
+                    </Button>
                 }
             >
-                <FileUploader getInstance={getUploaderInstance} onFileAdded={onFileAdded} disabled={isCheckingFile} />
+                <FileUploader getInstance={getUploaderInstance} projectId={projectId} {...overriddenUploaderOptions} />
             </SimpleDialog>
-            <AbortAlert
-                isOpen={openAbortDialog}
-                onCancel={() => setOpenAbortDialog(false)}
-                onConfirm={resetFileDialog}
-            />
-            <OverrideAlert
-                isOpen={invokeOverrideDialog}
-                onCancel={handleOverrideCancel}
-                onConfirm={() => upload(invokeOverrideDialog)}
-            />
         </>
     );
 }

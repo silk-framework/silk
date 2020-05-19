@@ -1,6 +1,7 @@
 import qs from "qs";
 import { getLocation, push, replace } from "connected-react-router";
 import { SERVE_PATH } from "../../../constants/path";
+import { IMetadata } from "@ducks/shared/typings";
 
 interface IQueryParams {
     [key: string]: any;
@@ -51,7 +52,25 @@ const goToPage = (path: string, pageLabels: IPageLabels) => {
 const replacePage = (path: string, pageLabels: IPageLabels) => {
     const isAbsolute = path.startsWith("/");
     return (dispatch) => {
-        dispatch(replace(isAbsolute ? path : SERVE_PATH + path, { pageLabels: pageLabels }));
+        dispatch(replace(isAbsolute ? path : SERVE_PATH + "/" + path, { pageLabels: pageLabels }));
+    };
+};
+
+const updateLocationState = (forPath: string, projectId: string, metaData: IMetadata) => {
+    const newLabels: IPageLabels = {};
+    if (projectId) {
+        // Project ID exists, this must be a task
+        newLabels.taskLabel = metaData.label;
+    } else {
+        newLabels.projectLabel = metaData.label;
+    }
+
+    return (dispatch, getState) => {
+        const location = getLocation(getState());
+        if (location.pathname.endsWith(forPath)) {
+            // Only replace page if still on the same page
+            dispatch(replacePage(forPath, newLabels));
+        }
     };
 };
 
@@ -59,4 +78,5 @@ export default {
     setQueryString,
     goToPage,
     replacePage,
+    updateLocationState,
 };

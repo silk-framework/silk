@@ -4,10 +4,11 @@ import FileUploader from "../../../FileUploader";
 
 export interface IProps {
     form: any;
+    projectId: string;
 }
 
 /** The project create form */
-export function ProjectForm({ form }: IProps) {
+export function ProjectForm({ form, projectId }: IProps) {
     return (
         <>
             <FieldItem
@@ -46,7 +47,7 @@ export function ProjectForm({ form }: IProps) {
                     "In case you want to restore project data you can attach the backup file that has been exported before."
                 }
             >
-                <FileUploader />
+                <FileUploader projectId={projectId} />
             </FieldItem>
         </>
     );

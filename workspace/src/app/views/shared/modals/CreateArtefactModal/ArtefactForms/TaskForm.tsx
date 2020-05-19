@@ -8,6 +8,13 @@ import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOption
 import { errorMessage, ParameterWidget } from "./ParameterWidget";
 import { DataPreview } from "../../../DataPreview/DataPreview";
 import { IDatasetConfigPreview } from "@ducks/shared/typings";
+import { InputMapper } from "./InputMapper";
+import { FieldItem } from "@wrappers/index";
+import { Autocomplete } from "../../../Autocomplete/Autocomplete";
+import { sharedOp } from "@ducks/shared";
+import { AppToaster } from "../../../../../services/toaster";
+import { requestResourcesList } from "@ducks/shared/requests";
+import { FileUploader } from "../../../FileUploader/FileUploader";
 
 export interface IProps {
     form: any;
@@ -27,6 +34,7 @@ export interface IProps {
 
 const LABEL = "label";
 const DESCRIPTION = "description";
+const MAXLENGTH_TOOLTIP = 40;
 
 /** Converts the default value to a JS value */
 export const defaultValueAsJs = (property: IArtefactItemProperty): any => {
@@ -89,6 +97,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
+    const [fieldValues, setFieldValues] = useState<any>({});
 
     const initialValues = existingTaskValuesToFlatParameters(updateTask);
 
@@ -172,13 +181,49 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
         return handlers;
     }, [formValueKeys]);
 
-    const toggleFileUploader = (fieldName: string = "") => {
-        setSelectedFileField(fieldName);
-    };
-
     const normalParams = visibleParams.filter(([k, param]) => !param.advanced);
     const advancedParams = visibleParams.filter(([k, param]) => param.advanced);
     const formHooks = { errors };
+
+    const handleAutoCompleteInput = (key: string) => async (input = "") => {
+        try {
+            const { autoCompletion } = properties[key];
+
+            const list = await sharedOp.getAutocompleteResultsAsync({
+                pluginId,
+                parameterId: key,
+                projectId,
+                dependsOnParameterValues: autoCompletion.autoCompletionDependsOnParameters,
+                textQuery: input,
+            });
+
+            return list;
+        } catch (e) {
+            AppToaster.show({
+                message: e.detail,
+                intent: Intent.DANGER,
+                timeout: 0,
+            });
+        }
+    };
+
+    const handleFileSearch = async (input: string) => {
+        try {
+            return await requestResourcesList(projectId, {
+                searchText: input,
+            });
+        } catch (e) {
+            AppToaster.show({
+                message: e.detail,
+                intent: Intent.DANGER,
+                timeout: 0,
+            });
+        }
+    };
+
+    const isFileInput = (type: string) => type === INPUT_TYPES.RESOURCE;
+
+    const isAutocomplete = (property) => !!property.autoCompletion;
 
     return (
         <>
@@ -262,12 +307,6 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                     </>
                 )}
             </form>
-
-            <FileUploadModal
-                isOpen={!!selectedFileField}
-                onDiscard={() => toggleFileUploader("")}
-                onUploaded={handleChange(selectedFileField)}
-            />
         </>
     );
 }

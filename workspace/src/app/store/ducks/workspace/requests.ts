@@ -166,18 +166,6 @@ export const requestRemoveProjectPrefix = async (prefixName: string, projectId: 
 };
 
 //missing-type
-export const requestResourcesList = async (projectId: string): Promise<any | never> => {
-    try {
-        const { data } = await fetch({
-            url: legacyApiEndpoint(`/projects/${projectId}/resources`),
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
-};
-
-//missing-type
 export const requestIfResourceExists = async (projectId: string, resourceName: string): Promise<any | never> => {
     try {
         const { data } = await fetch({

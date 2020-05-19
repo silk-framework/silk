@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
     IconButton,
     Card,
@@ -25,19 +25,21 @@ import { Highlighter } from "../Highlighter/Highlighter";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
 import Pagination from "@wrappers/src/components/Pagination/Pagination";
 import { IItemLink, IRelatedItem, IRelatedItemsResponse } from "@ducks/shared/typings";
+import { commonSel } from "@ducks/common";
 
-/** Project ID and task ID of the project task */
-interface IRelatedItemsParams {
-    projectId: string;
-    taskId: string;
+interface IProps {
+    projectId?: string;
+    taskId?: string;
 }
 
-/** Widget that shows related items of project tasks
- *
- * @param projectId The project ID of the project task.
- * @param taskId The task ID of the project task.
- */
-export function RelatedItems({ projectId, taskId }: IRelatedItemsParams) {
+/** Widget that shows related items of project tasks*/
+export function RelatedItems(props: IProps) {
+    const _projectId = useSelector(commonSel.currentProjectIdSelector);
+    const _taskId = useSelector(commonSel.currentTaskIdSelector);
+
+    const projectId = props.projectId || _projectId;
+    const taskId = props.taskId || _taskId;
+
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState({ total: 0, items: [] } as IRelatedItemsResponse);
     const [textQuery, setTextQuery] = useState("");

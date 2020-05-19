@@ -148,3 +148,44 @@ export interface IMetadata {
     relations?: IRelations;
     type?: string;
 }
+
+export interface IResourceListPayload {
+    /**
+     * description: If defined the resources will be filtered by the search text which searches over the resource names.
+     **/
+    searchText?: string;
+    /**
+     * Limits the number of resources returned by this endpoint.
+     */
+    limit?: number;
+    /**
+     * The offset in the result list. Offset and limit allow paging over the results.
+     */
+    offset?: number;
+}
+
+export interface IResourceListResponse {
+    /**
+     * Last modification Datetime
+     */
+    lastModified: string;
+    /**
+     * The name of resource/file
+     */
+    name: string;
+    /**
+     * Resource/file size on bytes
+     */
+    size: number;
+}
+
+export interface IAutocompleteDefaultResponse {
+    /**
+     * The option name
+     */
+    label: string;
+    /**
+     * The option value
+     */
+    value: string;
+}
