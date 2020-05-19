@@ -176,7 +176,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
     };
 
     handleProgress = (file, { bytesUploaded, bytesTotal }) => {
-        const progress = 100.0 * (bytesUploaded / bytesTotal);
+        const progress = bytesUploaded / bytesTotal;
         this.setState({
             progress,
         });

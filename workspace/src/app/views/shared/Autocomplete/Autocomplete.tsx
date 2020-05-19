@@ -56,7 +56,7 @@ Autocomplete.defaultProps = {
     items: [],
     initialValue: "",
     itemLabelRenderer: (item) => item.label || item.value,
-    itemValueRenderer: (item) => item.value || item.value,
+    itemValueRenderer: (item) => item.value,
 };
 
 export function Autocomplete(props: IAutocompleteProps) {
