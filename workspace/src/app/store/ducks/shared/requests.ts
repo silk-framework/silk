@@ -72,6 +72,12 @@ export const requestTaskMetadata = async (itemId: string, projectId?: string): P
     }
 };
 
+/**
+ * Returns the task data for a specific project task.
+ * @param projectId The project of the task.
+ * @param itemId    The task ID
+ * @param withLabel If true, then the returned JSON will contain optional labels in addition to the actual values, for presentation purposes.
+ */
 export const requestTaskData = async (
     projectId: string,
     itemId: string,
@@ -93,6 +99,11 @@ export const requestTaskData = async (
     }
 };
 
+/**
+ * Updates the meta data of a project.
+ * @param itemId
+ * @param payload
+ */
 export const requestUpdateProjectMetadata = async (
     itemId: string,
     payload: IMetadataUpdatePayload
@@ -109,6 +120,12 @@ export const requestUpdateProjectMetadata = async (
     }
 };
 
+/**
+ * Updates project task meta data.
+ * @param itemId    The ID of the task.
+ * @param payload   The meta data object.
+ * @param projectId The project of the task.
+ */
 export const requestUpdateTaskMetadata = async (
     itemId: string,
     payload: IMetadataUpdatePayload,
@@ -126,6 +143,12 @@ export const requestUpdateTaskMetadata = async (
     }
 };
 
+/**
+ * Returns related items of a task
+ * @param projectId The project of the task
+ * @param taskId The ID of the project task.
+ * @param textQuery A multi-word text query to filter the related items by.
+ */
 export const requestRelatedItems = async (
     projectId: string,
     taskId: string,

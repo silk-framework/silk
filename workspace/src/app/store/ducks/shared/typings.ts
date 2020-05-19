@@ -30,16 +30,20 @@ export interface IProjectMetadataResponse {
 
 /** The data of a project task from the generic /tasks endpoint. */
 export interface IProjectTask {
+    // Meta data of the project task
     metadata: IMetadata;
+    // The task type that must be send to the backend, e.g. on POST PUT requests for task creation.
     taskType: "Dataset" | "Linking" | "Transform" | "Workflow" | "CustomTask";
     project: string;
     // item ID
     id: string;
+    // The actual content
     data: {
         // The plugin ID
         type: string;
         // current parameter values
         parameters: {
+            // If requested with withLabels option, then the values will be reified like this: {label: string, value: string | object}
             [key: string]: string | object;
         };
     };
@@ -140,6 +144,7 @@ export interface IPreviewContent {
     values: CellType[][];
 }
 
+// Depending on the preview type, either multiple values or one value of concatenated values is returned
 type CellType = string | string[];
 
 export interface IMetadata {

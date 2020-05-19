@@ -8,6 +8,12 @@ interface IProps {
     taskDescription: IDetailedArtefactItem;
 }
 
+/**
+ * Shows a preview of the config data.
+ * Only lists parameters that are visible in dialogs and that have a non-empty value.
+ * @param taskData        The data value of the task.
+ * @param taskDescription The schema and description of the task type.
+ */
 export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
     if (!taskData) {
         return <p>No preview available</p>;
@@ -17,9 +23,10 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
     const taskValues = (taskData: any): Record<string, string> => {
         if (taskData) {
             const result: Record<string, string> = {};
+            // Recursively extracts (nested) parameter display values.
             const taskValuesRec = (
                 obj: object,
-                prefix: string,
+                labelPrefix: string,
                 paramDescriptions: Record<string, IArtefactItemProperty>
             ) => {
                 Object.entries(obj)
@@ -35,7 +42,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                                 paramDescriptions[paramName].properties
                             );
                         } else {
-                            result[prefix + paramDescriptions[paramName].title] = value;
+                            result[labelPrefix + paramDescriptions[paramName].title] = value;
                         }
                     });
             };
@@ -55,8 +62,10 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
         } else if (typeof parameterValue.value === "string") {
             return parameterValue.value;
         } else if (parameterValue.value) {
+            // withLabels "object" value
             return parameterValue.value;
         } else {
+            // non-labelled "object" value
             return parameterValue;
         }
     };

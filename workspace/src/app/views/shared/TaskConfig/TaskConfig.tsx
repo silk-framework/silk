@@ -19,6 +19,9 @@ export interface ITaskSchemaAndData {
     taskDescription: IDetailedArtefactItem;
 }
 
+/**
+ * Task config widget that shows config options and allows to change them.
+ */
 export function TaskConfig(props: IProps) {
     const dispatch = useDispatch();
     const [loading, setLoading] = useState(false);
@@ -47,6 +50,7 @@ export function TaskConfig(props: IProps) {
     const initPreviewData = async () => {
         setLoading(true);
         try {
+            // Fetch data for preview of config
             const taskData = await requestTaskData(props.projectId, props.taskId, true);
             const taskDescription = await requestArtefactProperties(taskData.data.type);
             setLabelledTaskData({ taskData, taskDescription });
