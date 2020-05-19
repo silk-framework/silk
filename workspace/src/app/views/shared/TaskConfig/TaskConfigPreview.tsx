@@ -1,5 +1,5 @@
 import { IProjectTask } from "@ducks/shared/typings";
-import { FieldItem } from "@wrappers/index";
+import { OverflowText, PropertyValueList, PropertyValuePair, PropertyName, PropertyValue } from "@wrappers/index";
 import React from "react";
 import { IArtefactItemProperty, IDetailedArtefactItem } from "@ducks/common/typings";
 
@@ -69,26 +69,24 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
             return parameterValue;
         }
     };
+    // TODO: only return list when it has items, so we need calculate content before rendering
     return (
-        <form>
-            <>
+        <OverflowText passDown>
+            <PropertyValueList>
                 {Object.entries(taskValues(taskData.data.parameters))
                     // Only non-empty parameter values are shown
                     .filter(([paramId, value]) => value.trim() !== "")
                     .map(([paramId, value]) => {
                         return (
-                            <FieldItem
-                                key={paramId}
-                                labelAttributes={{
-                                    text: paramId,
-                                    htmlFor: paramId,
-                                }}
-                            >
-                                {value}
-                            </FieldItem>
+                            <PropertyValuePair hasDivider key={paramId}>
+                                <PropertyName>{paramId}</PropertyName>
+                                <PropertyValue>
+                                    <code>{value}</code>
+                                </PropertyValue>
+                            </PropertyValuePair>
                         );
                     })}
-            </>
-        </form>
+            </PropertyValueList>
+        </OverflowText>
     );
 }

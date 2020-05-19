@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardOptions, CardTitle, IconButton } from "@wrappers/index";
+import { Card, CardContent, CardHeader, CardOptions, CardTitle, Divider, IconButton } from "@wrappers/index";
 import { useDispatch, useSelector } from "react-redux";
 import { commonOp, commonSel } from "@ducks/common";
 import { requestTaskData } from "@ducks/shared/requests";
@@ -73,6 +73,7 @@ export function TaskConfig(props: IProps) {
                     <IconButton name={"item-edit"} text={"Configure"} onClick={openConfigModal} />
                 </CardOptions>
             </CardHeader>
+            <Divider />
             <CardContent>
                 {loading ? (
                     <Loading description={"Loading update dialog..."} />
