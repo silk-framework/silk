@@ -157,7 +157,7 @@ export interface IResourceListResponse {
     /**
      * Resource/file size on bytes
      */
-    size: 131072;
+    size: number;
 }
 
 export interface IAutocompleteDefaultResponse {
