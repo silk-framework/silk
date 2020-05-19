@@ -15,7 +15,7 @@ import {
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
 import { fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
-import { commonSel } from "@ducks/common";
+import { commonOp, commonSel } from "@ducks/common";
 import {
     ISearchListRequest,
     requestCloneTask,
@@ -24,6 +24,7 @@ import {
     requestRemoveProject,
     requestRemoveTask,
     requestSearchList,
+    requestUpdateProjectTask,
 } from "@ducks/workspace/requests";
 
 const {
@@ -271,10 +272,27 @@ const fetchCloneTaskAsync = (taskId: string, projectId: string, taskNewId: strin
     };
 };
 
-const fetchCreateTaskAsync = (formData: any, artefactId: string) => {
+const itemTypeToPathMap = {
+    Transform: "transform",
+    Linking: "linking",
+    Workflow: "workflow",
+    CustomTask: "task",
+    Dataset: "dataset",
+};
+
+const itemTypeToPath = (itemType: string) => {
+    if (itemTypeToPathMap[itemType]) {
+        return itemTypeToPathMap[itemType];
+    } else {
+        return "task";
+    }
+};
+
+const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: string) => {
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
         const { label, description, ...restFormData } = formData;
+        const requestData = commonOp.buildTaskObject(restFormData);
         const metadata = {
             label,
             description,
@@ -283,11 +301,10 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string) => {
         const payload = {
             metadata,
             data: {
-                // @FIXME: HARDCODED
-                taskType: "Dataset",
+                taskType: taskType,
                 type: artefactId,
                 parameters: {
-                    ...restFormData,
+                    ...requestData,
                 },
             },
         };
@@ -296,12 +313,34 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string) => {
 
         try {
             const data = await requestCreateTask(payload, currentProjectId);
-
+            dispatch(commonOp.closeArtefactModal());
             dispatch(
-                routerOp.goToPage(`projects/${currentProjectId}/dataset/${data.id}`, {
+                routerOp.goToPage(`projects/${currentProjectId}/${itemTypeToPath(taskType)}/${data.id}`, {
                     taskLabel: label,
                 })
             );
+        } catch (e) {
+            dispatch(setError(e));
+        }
+    };
+};
+
+/** Updates the technical parameters of a project task. */
+const fetchUpdateTaskAsync = (projectId: string, itemId: string, formData: any) => {
+    return async (dispatch, getState) => {
+        const requestData = commonOp.buildTaskObject(formData);
+        const payload = {
+            data: {
+                parameters: {
+                    ...requestData,
+                },
+            },
+        };
+
+        dispatch(setError({}));
+        try {
+            await requestUpdateProjectTask(projectId, itemId, payload);
+            dispatch(commonOp.closeArtefactModal());
         } catch (e) {
             dispatch(setError(e));
         }
@@ -319,6 +358,7 @@ const fetchCreateProjectAsync = (formData: { label: string; description?: string
                     description,
                 },
             });
+            dispatch(commonOp.closeArtefactModal());
             dispatch(routerOp.goToPage(`projects/${data.name}`, { projectLabel: label }));
         } catch (e) {
             dispatch(setError(e.response.data));
@@ -411,6 +451,7 @@ export default {
     fetchResourcesListAsync,
     fetchCreateProjectAsync,
     fetchCreateTaskAsync,
+    fetchUpdateTaskAsync,
     resetFilters,
     updateNewPrefix,
 };

@@ -34,6 +34,7 @@ import Switch from "./src/components/Switch/Switch";
 import NumericInput from "./src/components/NumericInput/NumericInput";
 import FieldItem from "./src/components/Form/FieldItem";
 import FieldItemRow from "./src/components/Form/FieldItemRow";
+import FieldSet from "./src/components/Form/FieldSet";
 
 import Menu from "./src/components/Menu/Menu";
 import MenuItem from "./src/components/Menu/MenuItem";
@@ -102,6 +103,9 @@ import TitlePage from "./src/components/Structure/TitlePage";
 import TitleMainsection from "./src/components/Structure/TitleMainsection";
 import TitleSubsection from "./src/components/Structure/TitleSubsection";
 
+import Accordion from "./src/components/Accordion/Accordion";
+import AccordionItem from "./src/components/Accordion/AccordionItem";
+
 import Link from "./src/components/Link/Link";
 
 import Spinner from "./src/components/Spinner/Spinner";
@@ -166,6 +170,7 @@ export {
     NumericInput, // TODO: scss styles
     FieldItem,
     FieldItemRow,
+    FieldSet,
     BreadcrumbList,
     BreadcrumbItem,
     Modal,
@@ -186,6 +191,8 @@ export {
     TitlePage,
     TitleMainsection,
     TitleSubsection,
+    Accordion,
+    AccordionItem,
     Toolbar,
     ToolbarSection,
     Tag,
@@ -200,6 +207,6 @@ export {
     PropertyValueList,
     Toast,
     HelperClasses,
-    Select,
-    Suggest,
+    Select, // TODO: include as own element
+    Suggest, // TODO: include as own element
 };

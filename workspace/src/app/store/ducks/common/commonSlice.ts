@@ -42,10 +42,12 @@ const artefactModalReducers = {
     closeArtefactModal(state) {
         state.artefactModal.isOpen = false;
         state.artefactModal.selectedArtefact = {};
+        state.artefactModal.updateExistingTask = null;
     },
     selectArtefact(state, action) {
         state.artefactModal.isOpen = true;
         state.artefactModal.selectedArtefact = action.payload || {};
+        state.artefactModal.updateExistingTask = null;
     },
     fetchArtefactsList(state) {
         state.artefactModal.artefactsList = [];
@@ -63,6 +65,12 @@ const artefactModalReducers = {
     },
     setArtefactLoading(state, action) {
         state.artefactModal.loading = action.payload;
+    },
+    updateProjectTask(state, action) {
+        if (action.payload) {
+            state.artefactModal.updateExistingTask = action.payload;
+            state.artefactModal.isOpen = true;
+        }
     },
 };
 

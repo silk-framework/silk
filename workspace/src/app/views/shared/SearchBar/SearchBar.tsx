@@ -11,9 +11,10 @@ interface IProps {
     onSort?(sortBy: string): void;
 
     onSearch(textQuery: string): void;
+    focusOnCreation?: boolean;
 }
 
-export function SearchBar({ textQuery = "", sorters, onSort, onSearch }: IProps) {
+export function SearchBar({ textQuery = "", sorters, onSort, onSearch, focusOnCreation = false }: IProps) {
     const [searchInput, setSearchInput] = useState(textQuery);
 
     useEffect(() => {
@@ -43,6 +44,7 @@ export function SearchBar({ textQuery = "", sorters, onSort, onSearch }: IProps)
         <Toolbar>
             <ToolbarSection canGrow>
                 <SearchInput
+                    focusOnCreation={focusOnCreation}
                     onFilterChange={handleSearchChange}
                     onEnter={handleSearchEnter}
                     filterValue={searchInput}

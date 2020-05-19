@@ -23,6 +23,7 @@ const {
     setSelectedArtefactDType,
     closeArtefactModal,
     selectArtefact,
+    updateProjectTask,
     setCachedArtefactProperty,
     fetchArtefactsList,
     setArtefactsList,
@@ -110,7 +111,32 @@ const getArtefactPropertiesAsync = (artefact: IArtefactItem) => {
     };
 };
 
-const createArtefactAsync = (formData) => {
+/** Builds a request object for project/task create call. */
+const buildTaskObject = (formData: any): object => {
+    const returnObject = {};
+    const nestedParamsFlat = Object.entries(formData).filter(([k, v]) => k.includes("."));
+    const directParams = Object.entries(formData).filter(([k, v]) => !k.includes("."));
+    // Add direct parameters
+    directParams.forEach(([paramId, param]) => {
+        returnObject[paramId] = "" + param;
+    });
+    // Group nested parameters by first parameter ID, create nested value objects
+    const nestedParamsMap = nestedParamsFlat.reduce((obj, [combinedParamId, param]) => {
+        const firstDot = combinedParamId.indexOf(".");
+        const paramId = combinedParamId.substring(0, firstDot);
+        const nestedParamId = combinedParamId.substring(firstDot + 1);
+        obj[paramId] = obj[paramId] || {};
+        obj[paramId][nestedParamId] = param;
+        return obj;
+    }, {});
+    // Add nested parameters to result object and call buildTaskObject recursively
+    Object.entries(nestedParamsMap).forEach(([propName, value]) => {
+        returnObject[propName] = buildTaskObject(value);
+    });
+    return returnObject;
+};
+
+const createArtefactAsync = (formData, taskType: string) => {
     return (dispatch, getState) => {
         const { selectedArtefact } = commonSel.artefactModalSelector(getState());
 
@@ -119,21 +145,7 @@ const createArtefactAsync = (formData) => {
                 dispatch(workspaceOp.fetchCreateProjectAsync(formData));
                 break;
             default:
-                // @TODO: REMOVE LATER
-                // currently backend accept only string values, so we need to transform it
-                const requestData = {};
-                Object.keys(formData).forEach((key) => {
-                    const value = formData[key];
-                    if (typeof value === "number" || typeof value === "boolean") {
-                        requestData[key] = "" + value;
-                    } else if (typeof value === "object") {
-                        requestData[key] = JSON.stringify(value);
-                    } else {
-                        requestData[key] = value;
-                    }
-                });
-
-                dispatch(workspaceOp.fetchCreateTaskAsync(requestData, selectedArtefact.key));
+                dispatch(workspaceOp.fetchCreateTaskAsync(formData, selectedArtefact.key, taskType));
                 console.warn("Artefact type not defined");
                 break;
         }
@@ -153,9 +165,11 @@ export default {
     getArtefactPropertiesAsync,
     closeArtefactModal,
     selectArtefact,
+    updateProjectTask,
     setProjectId,
     unsetProject,
     setTaskId,
     unsetTaskId,
     setSelectedArtefactDType,
+    buildTaskObject,
 };

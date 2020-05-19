@@ -19,7 +19,7 @@ import {
     Spacing,
 } from "@wrappers/index";
 import { commonOp, commonSel } from "@ducks/common";
-import { IArtefactItem } from "@ducks/common/typings";
+import { IArtefactItem, IDetailedArtefactItem } from "@ducks/common/typings";
 import Loading from "../../Loading";
 import { SearchBar } from "../../SearchBar/SearchBar";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
@@ -27,6 +27,7 @@ import { TaskForm } from "./ArtefactForms/TaskForm";
 import ArtefactTypesList from "./ArtefactTypesList";
 import { DATA_TYPES } from "../../../../constants";
 import { Highlighter } from "../../Highlighter/Highlighter";
+import { workspaceOp } from "@ducks/workspace";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -37,10 +38,19 @@ export function CreateArtefactModal() {
     const modalStore = useSelector(commonSel.artefactModalSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
 
-    const { selectedArtefact, isOpen, artefactsList, cachedArtefactProperties, loading } = modalStore;
+    const {
+        selectedArtefact,
+        isOpen,
+        artefactsList,
+        cachedArtefactProperties,
+        loading,
+        updateExistingTask,
+    } = modalStore;
 
     // initially take from redux
     const [selected, setSelected] = useState<IArtefactItem>(selectedArtefact);
+    const [lastSelectedClick, setLastSelectedClick] = useState<number>(0);
+    const DOUBLE_CLICK_LIMIT_MS = 500;
 
     useEffect(() => {
         if (projectId) {
@@ -65,7 +75,16 @@ export function CreateArtefactModal() {
     };
 
     const handleArtefactSelect = (artefact: IArtefactItem) => {
-        setSelected(artefact);
+        if (
+            selected.key === artefact.key &&
+            lastSelectedClick &&
+            Date.now() - lastSelectedClick < DOUBLE_CLICK_LIMIT_MS
+        ) {
+            handleAdd();
+        } else {
+            setSelected(artefact);
+        }
+        setLastSelectedClick(Date.now);
     };
 
     const handleBack = () => {
@@ -73,13 +92,31 @@ export function CreateArtefactModal() {
         dispatch(commonOp.selectArtefact(null));
     };
 
+    const taskType = (artefactId) => {
+        if (artefactId === "project") {
+            return "Project";
+        } else {
+            return (cachedArtefactProperties[artefactId] as IDetailedArtefactItem).taskType;
+        }
+    };
+
     const handleCreate = async (e) => {
         e.preventDefault();
 
         const isValidFields = await form.triggerValidation();
         if (isValidFields) {
-            dispatch(commonOp.createArtefactAsync(form.getValues()));
-            closeModal();
+            if (updateExistingTask) {
+                dispatch(
+                    workspaceOp.fetchUpdateTaskAsync(
+                        updateExistingTask.projectId,
+                        updateExistingTask.taskId,
+                        form.getValues()
+                    )
+                );
+            } else {
+                dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefact.key)));
+            }
+            // closeModal(); TODO: Does this really needs to be executed?
         }
     };
 
@@ -100,37 +137,93 @@ export function CreateArtefactModal() {
     };
 
     let artefactForm = null;
-    if (selectedArtefact.key) {
-        if (selectedArtefact.key === DATA_TYPES.PROJECT) {
-            artefactForm = <ProjectForm form={form} projectId={projectId} />;
-        } else {
-            const detailedArtefact = cachedArtefactProperties[selectedArtefact.key];
-            if (detailedArtefact && projectId) {
-                artefactForm = <TaskForm form={form} artefact={detailedArtefact} projectId={projectId} />;
+    if (updateExistingTask) {
+        // Task update
+        artefactForm = (
+            <TaskForm
+                form={form}
+                artefact={updateExistingTask.taskPluginDetails}
+                projectId={updateExistingTask.projectId}
+                updateTask={{ parameterValues: updateExistingTask.currentParameterValues }}
+            />
+        );
+    } else {
+        // Project / task creation
+        if (selectedArtefact.key) {
+            if (selectedArtefact.key === DATA_TYPES.PROJECT) {
+                artefactForm = <ProjectForm form={form} projectId={projectId} />;
+            } else {
+                const detailedArtefact = cachedArtefactProperties[selectedArtefact.key];
+                if (detailedArtefact && projectId) {
+                    artefactForm = <TaskForm form={form} artefact={detailedArtefact} projectId={projectId} />;
+                }
             }
         }
     }
+
+    const showProjectItem = searchValue
+        .trim()
+        .toLowerCase()
+        .split(/\s+/)
+        .every((searchWord) => "project".includes(searchWord));
+
+    let artefactListWithProject = artefactsList;
+    if (showProjectItem) {
+        artefactListWithProject = [
+            {
+                key: DATA_TYPES.PROJECT,
+                title: "Project",
+                description:
+                    "Projects let you group related items. All items that " +
+                    "depend on each other need to be in the same project.",
+            },
+            ...artefactsList,
+        ];
+    }
+
+    const renderDepiction = (artefact) => {
+        const iconNameStack = []
+            .concat([(artefact.taskType ? artefact.taskType + "-" : "") + artefact.key])
+            .concat(artefact.taskType ? [artefact.taskType] : [])
+            .concat(artefact.categories ? artefact.categories : []);
+        return (
+            <Icon
+                name={iconNameStack
+                    .map((type) => {
+                        return "artefact-" + type.toLowerCase();
+                    })
+                    .filter((x, i, a) => a.indexOf(x) === i)}
+                large
+            />
+        );
+    };
 
     return (
         <SimpleDialog
             size="large"
             hasBorder
-            title={`Create a new artefact${selectedArtefact.title || ""}`}
+            title={
+                updateExistingTask
+                    ? `Update '${updateExistingTask.metaData.label}' (${updateExistingTask.taskPluginDetails.title})`
+                    : `Create new item of type ${selectedArtefact.title || ""}`
+            }
             onClose={closeModal}
             isOpen={isOpen}
             actions={
-                selectedArtefact.key
+                selectedArtefact.key || updateExistingTask
                     ? [
                           <Button key="create" affirmative={true} onClick={handleCreate} disabled={isErrorPresented()}>
-                              Create
+                              {updateExistingTask ? "Update" : "Create"}
                           </Button>,
                           <Button key="cancel" onClick={closeModal}>
                               Cancel
                           </Button>,
                           <CardActionsAux key="aux">
-                              <Button key="back" onClick={handleBack}>
-                                  Back
-                              </Button>
+                              {!updateExistingTask && (
+                                  <Button key="back" onClick={handleBack}>
+                                      Back
+                                  </Button>
+                              )}
                           </CardActionsAux>,
                       ]
                     : [
@@ -159,71 +252,48 @@ export function CreateArtefactModal() {
                                     <ArtefactTypesList onSelect={handleSelectDType} />
                                 </GridColumn>
                                 <GridColumn>
-                                    <SearchBar onSearch={handleSearch} />
+                                    <SearchBar textQuery={searchValue} focusOnCreation={true} onSearch={handleSearch} />
                                     <Spacing />
                                     {loading ? (
                                         <Loading description="Loading artefact type list." />
                                     ) : (
                                         <OverviewItemList hasSpacing columns={2}>
-                                            <Card
-                                                isOnlyLayout
-                                                className={
-                                                    selected.key === DATA_TYPES.PROJECT
-                                                        ? HelperClasses.Intent.ACCENT
-                                                        : ""
-                                                }
-                                            >
-                                                <OverviewItem
-                                                    hasSpacing
-                                                    onClick={() => handleArtefactSelect({ key: DATA_TYPES.PROJECT })}
+                                            {artefactListWithProject.map((artefact) => (
+                                                <Card
+                                                    isOnlyLayout
+                                                    key={artefact.key}
+                                                    className={
+                                                        selected.key === artefact.key ? HelperClasses.Intent.ACCENT : ""
+                                                    }
                                                 >
-                                                    <OverviewItemDepiction>
-                                                        <Icon name="artefact-project" large />
-                                                    </OverviewItemDepiction>
-                                                    <OverviewItemDescription>
-                                                        <OverviewItemLine>
-                                                            <strong>Project</strong>
-                                                        </OverviewItemLine>
-                                                        <OverviewItemLine small>
-                                                            <p>Lorem Ipsum</p>
-                                                        </OverviewItemLine>
-                                                    </OverviewItemDescription>
-                                                </OverviewItem>
-                                            </Card>
-                                            {projectId &&
-                                                artefactsList.map((artefact) => (
-                                                    <Card
-                                                        isOnlyLayout
-                                                        key={artefact.key}
-                                                        className={
-                                                            selected.key === artefact.key
-                                                                ? HelperClasses.Intent.ACCENT
-                                                                : ""
-                                                        }
+                                                    <OverviewItem
+                                                        hasSpacing
+                                                        onClick={() => handleArtefactSelect(artefact)}
                                                     >
-                                                        <OverviewItem
-                                                            hasSpacing
-                                                            onClick={() => handleArtefactSelect(artefact)}
-                                                        >
-                                                            <OverviewItemDepiction>
-                                                                <Icon name={"artefact-" + artefact.key} large />
-                                                            </OverviewItemDepiction>
-                                                            <OverviewItemDescription>
-                                                                <OverviewItemLine>
-                                                                    <strong>
-                                                                        <Highlighter
-                                                                            label={artefact.title}
-                                                                            searchValue={searchValue}
-                                                                        />
-                                                                    </strong>
-                                                                </OverviewItemLine>
-                                                                <OverviewItemLine small>
-                                                                    <p>{artefact.description}</p>
-                                                                </OverviewItemLine>
-                                                            </OverviewItemDescription>
-                                                        </OverviewItem>
-                                                    </Card>
-                                                ))}
+                                                        <OverviewItemDepiction>
+                                                            {renderDepiction(artefact)}
+                                                        </OverviewItemDepiction>
+                                                        <OverviewItemDescription>
+                                                            <OverviewItemLine>
+                                                                <strong>
+                                                                    <Highlighter
+                                                                        label={artefact.title}
+                                                                        searchValue={searchValue}
+                                                                    />
+                                                                </strong>
+                                                            </OverviewItemLine>
+                                                            <OverviewItemLine small>
+                                                                <p>
+                                                                    <Highlighter
+                                                                        label={artefact.description}
+                                                                        searchValue={searchValue}
+                                                                    />
+                                                                </p>
+                                                            </OverviewItemLine>
+                                                        </OverviewItemDescription>
+                                                    </OverviewItem>
+                                                </Card>
+                                            ))}
                                         </OverviewItemList>
                                     )}
                                 </GridColumn>

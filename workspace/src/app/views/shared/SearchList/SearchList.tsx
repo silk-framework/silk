@@ -106,6 +106,14 @@ export function SearchList() {
 
     const isEmpty = !isLoading && !data.length;
 
+    const itemTypeLabel = () => {
+        if (appliedFilters.itemType) {
+            return appliedFilters.itemType;
+        } else {
+            return "item";
+        }
+    };
+
     return (
         <>
             <AppliedFacets />
@@ -117,7 +125,7 @@ export function SearchList() {
                     <EmptyList
                         depiction={<Icon name={"artefact-" + appliedFilters.itemType} large />}
                         textInfo={<p>No {appliedFilters.itemType} found.</p>}
-                        textCallout={<strong>Create your first {appliedFilters.itemType} now.</strong>}
+                        textCallout={<strong>Create your first {itemTypeLabel()} now.</strong>}
                         actionButtons={[
                             <Button key={"create"} onClick={handleCreateArtefact} elevated>
                                 Create {appliedFilters.itemType}

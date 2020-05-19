@@ -1,19 +1,18 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import {Provider} from "react-redux";
-import {configureStore} from "@reduxjs/toolkit";
+import { Provider } from "react-redux";
+import { configureStore } from "@reduxjs/toolkit";
 import rootReducer from "../../../src/app/store/reducers";
-import {ConnectedRouter} from "connected-react-router";
-import {createBrowserHistory} from "history";
+import { ConnectedRouter } from "connected-react-router";
+import { createBrowserHistory } from "history";
 import mockAxios from "../../__mocks__/axios";
-import {mount} from "enzyme";
-import {Workspace} from "../../../src/app/views/pages/Workspace/Workspace";
-import {AppLayout} from "../../../src/app/views/layout/AppLayout/AppLayout";
-
+import { mount } from "enzyme";
+import { Workspace } from "../../../src/app/views/pages/Workspace/Workspace";
+import { AppLayout } from "../../../src/app/views/layout/AppLayout/AppLayout";
 
 const createStore = (history = createBrowserHistory()) =>
     configureStore({
-        reducer: rootReducer(history)
+        reducer: rootReducer(history),
     });
 
 const getWrapper = (props = {}, h) => {
@@ -36,24 +35,21 @@ const getWrapper = (props = {}, h) => {
     );
 };
 
-
-jest.mock('react-router', () => ({
-    ...jest.requireActual('react-router'),
+jest.mock("react-router", () => ({
+    ...jest.requireActual("react-router"),
     useParams: () => ({
-        projectId: 'cmem',
+        projectId: "cmem",
     }),
-    useRouteMatch: () => ({url: "/dataintegration/workspaceNew/projects/cmem"}),
+    useRouteMatch: () => ({ url: "/dataintegration/workspaceNew/projects/cmem" }),
 }));
 
 describe("Project page", () => {
-
     let hostPath = process.env.HOST;
     afterEach(() => {
         mockAxios.reset();
     });
 
     it("should get common data types or for specific project", async () => {
-
         let history = createBrowserHistory();
         history.location.pathname = "/dataintegration/workspaceNew/projects/cmem";
 
@@ -67,7 +63,6 @@ describe("Project page", () => {
     });
 
     it("should request meta data", async () => {
-
         let history = createBrowserHistory();
         history.location.pathname = "/dataintegration/workspaceNew/projects/cmem";
 
@@ -80,8 +75,6 @@ describe("Project page", () => {
         expect(reqInfo).toBeTruthy();
     });
 
-
-
     xit("should send the right projectId to backend", async () => {
         let history = createBrowserHistory();
         history.location.pathname = "/dataintegration/workspaceNew/projects/cmem";
@@ -93,11 +86,11 @@ describe("Project page", () => {
         });
 
         expect(reqInfo.data).toEqual({
-                    limit: 10,
-                    offset: 0,
-                    project: "cmem",
-                    textQuery: "",
-                    facets: []
-                });
-    })
+            limit: 10,
+            offset: 0,
+            project: "cmem",
+            textQuery: "",
+            facets: [],
+        });
+    });
 });

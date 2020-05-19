@@ -1,0 +1,15 @@
+// lib import
+@import "~carbon-components/scss/components/accordion/accordion";
+
+// changes
+.ecc-accordion__item--fullwidth > .#{$prefix}--accordion__content {
+    padding-right: $carbon--spacing-05;
+}
+
+.ecc-accordion__item--elevated {
+    background-color: $data-table-zebra-color; //rgba($ui-03, alpha($ui-03) * $ecc-opacity-muted);
+}
+
+.#{$prefix}--accordion__heading {
+    min-height: mini-units(5);
+}

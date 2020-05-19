@@ -7,6 +7,7 @@ export interface IProps {
     projectId: string;
 }
 
+/** The project create form */
 export function ProjectForm({ form, projectId }: IProps) {
     return (
         <>

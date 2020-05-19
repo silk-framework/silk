@@ -79,7 +79,9 @@ export default function SearchItem({ item, searchValue, onOpenDeleteModal, onOpe
                     </OverviewItemLine>
                     {item.description && (
                         <OverviewItemLine small>
-                            <OverflowText useHtmlElement="p">{item.description}</OverflowText>
+                            <OverflowText useHtmlElement="p">
+                                <Highlighter label={item.description} searchValue={searchValue} />
+                            </OverflowText>
                         </OverviewItemLine>
                     )}
                 </OverviewItemDescription>

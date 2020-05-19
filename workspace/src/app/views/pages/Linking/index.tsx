@@ -6,11 +6,14 @@ import { Intent } from "@wrappers/blueprint/constants";
 import Metadata from "../../shared/Metadata";
 import { datasetSel } from "@ducks/dataset";
 
-import { Section, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@wrappers/index";
+import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@wrappers/index";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
+import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
+import { useParams } from "react-router";
 
 export default function () {
     const error = useSelector(datasetSel.errorSelector);
+    const { taskId, projectId } = useParams();
 
     useEffect(() => {
         if (error.detail) {
@@ -26,12 +29,14 @@ export default function () {
         <WorkspaceContent className="eccapp-di__linking">
             <WorkspaceMain>
                 <Section>
-                    <Metadata />
+                    <Metadata projectId={projectId} taskId={taskId} />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>
                 <Section>
                     <RelatedItems />
+                    <Spacing />
+                    <TaskConfig projectId={projectId} taskId={taskId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>
