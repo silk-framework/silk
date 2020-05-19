@@ -13,6 +13,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
         return <p>No preview available</p>;
     }
 
+    // Generates a flat object of (nested) parameter labels and their display values, i.e. their label if it exists
     const taskValues = (taskData: any): Record<string, string> => {
         if (taskData) {
             const result: Record<string, string> = {};
