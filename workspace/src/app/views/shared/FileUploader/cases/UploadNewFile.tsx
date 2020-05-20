@@ -1,7 +1,6 @@
 import { DragDrop } from "@uppy/react";
 import React, { useEffect } from "react";
 import Uppy from "@uppy/core";
-import { all } from "ramda";
 
 interface IProps {
     // Uppy instance

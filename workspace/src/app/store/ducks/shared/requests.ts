@@ -158,6 +158,9 @@ export const requestRelatedItems = async (
     try {
         const { data } = await fetch({
             url: workspaceApi(`/projects/${projectId}/tasks/${taskId}/relatedItems${query}`),
+            body: {
+                textQuery: textQuery,
+            },
         });
         return data;
     } catch (e) {
