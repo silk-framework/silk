@@ -305,7 +305,12 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                     onCancel={() => this.setState({ abortDialog: false })}
                     onConfirm={this.reset}
                 />
-                <OverrideAlert isOpen={overrideDialog} onCancel={this.reset} onConfirm={this.handleOverride} />
+                <OverrideAlert
+                    fileName={overrideDialog ? overrideDialog.name : ""}
+                    isOpen={!!overrideDialog}
+                    onCancel={this.reset}
+                    onConfirm={this.handleOverride}
+                />
             </>
         );
     }
