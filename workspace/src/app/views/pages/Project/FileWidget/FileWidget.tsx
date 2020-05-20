@@ -24,6 +24,7 @@ import FileUploadModal from "../../../shared/modals/FileUploadModal";
 import { EmptyFileWidget } from "./EmptyFileWidget";
 import { SearchBar } from "../../../shared/SearchBar/SearchBar";
 import { Highlighter } from "../../../shared/Highlighter/Highlighter";
+import { usePagination } from "@wrappers/src/components/Pagination/Pagination";
 
 export const FileWidget = () => {
     const dispatch = useDispatch();
@@ -34,6 +35,14 @@ export const FileWidget = () => {
 
     const [isOpenDialog, setIsOpenDialog] = useState<boolean>(false);
     const { isLoading } = fileWidget;
+    const { pagination, paginationElement, onTotalChange } = usePagination({
+        pageSizes: [5, 10, 20],
+        presentation: { hideInfoText: true },
+    });
+
+    if (filesList !== undefined && filesList !== null && filesList.length !== pagination.total) {
+        onTotalChange(filesList.length);
+    }
 
     const headers = [
         { key: "name", header: "Name", highlighted: true },
@@ -46,7 +55,7 @@ export const FileWidget = () => {
     };
 
     useEffect(() => {
-        dispatch(workspaceOp.fetchResourcesListAsync({ searchText: textQuery }));
+        dispatch(workspaceOp.fetchResourcesListAsync({ searchText: textQuery, limit: 10000 }));
     }, [textQuery]);
 
     const toggleFileUploader = () => {
@@ -87,32 +96,44 @@ export const FileWidget = () => {
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {filesList.map((file) => (
-                                            <TableRow key={file.id}>
-                                                {headers.map((property) => (
-                                                    <TableCell key={property.key}>
-                                                        {property.highlighted ? (
-                                                            <Highlighter
-                                                                label={file[property.key]}
-                                                                searchValue={textQuery}
-                                                            />
-                                                        ) : (
-                                                            file[property.key]
-                                                        )}
-                                                    </TableCell>
-                                                ))}
-                                            </TableRow>
-                                        ))}
+                                        {filesList
+                                            .slice(
+                                                (pagination.current - 1) * pagination.limit,
+                                                pagination.current * pagination.limit
+                                            )
+                                            .map((file) => (
+                                                <TableRow key={file.id}>
+                                                    {headers.map((property) => (
+                                                        <TableCell key={property.key}>
+                                                            {property.highlighted ? (
+                                                                <Highlighter
+                                                                    label={file[property.key]}
+                                                                    searchValue={textQuery}
+                                                                />
+                                                            ) : (
+                                                                file[property.key]
+                                                            )}
+                                                        </TableCell>
+                                                    ))}
+                                                </TableRow>
+                                            ))}
                                     </TableBody>
                                 </Table>
                             </TableContainer>
+                            {filesList.length > Math.min(pagination.total, pagination.minPageSize) ? ( // Don't show if no pagination is needed
+                                <>{paginationElement}</>
+                            ) : null}
                         </>
                     ) : (
                         <EmptyFileWidget onFileAdd={toggleFileUploader} />
                     )}
                 </CardContent>
             </Card>
-            <FileUploadModal isOpen={isOpenDialog} onDiscard={toggleFileUploader} />
+            <FileUploadModal
+                isOpen={isOpenDialog}
+                onDiscard={toggleFileUploader}
+                uploaderOptions={{ allowMultiple: false }}
+            />
         </>
     );
 };
