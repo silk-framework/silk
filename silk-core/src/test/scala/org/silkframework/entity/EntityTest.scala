@@ -48,14 +48,6 @@ class EntityTest extends FlatSpec with Matchers {
   val se1 = Entity("http://silk-framework.com/example/subE1", IndexedSeq(Seq("value3", "value4"), Seq("value11")), subSchema1)
   val se2 = Entity("http://silk-framework.com/example/subE2", IndexedSeq(Seq("value5", "value6"), Seq()), subSchema2)
 
-  val complexEntity = Entity("http://silk-framework.com/example/complex", IndexedSeq(Seq("value1", "value2"), Seq("value3")), complexSchema, IndexedSeq(Some(se1), Some(se2)))
-  val complexEntity2 = Entity("http://silk-framework.com/example/complex2", IndexedSeq(Seq("value1", "value2"), Seq("value3")), complexSchema, IndexedSeq(None, Some(se2)))
-
-  "Complex Entity" should "be serializable" in {
-    serialized(complexEntity) should be (complexEntity)
-    serialized(complexEntity2) should be (complexEntity2)
-  }
-
   "Multiple entities" should "serialize/deserialize correctly" in {
     val outputStream = new ByteArrayOutputStream()
     val dataOutputStream = new DataOutputStream(outputStream)
