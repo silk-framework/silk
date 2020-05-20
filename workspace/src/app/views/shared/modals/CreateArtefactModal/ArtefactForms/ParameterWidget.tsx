@@ -1,13 +1,13 @@
-import { ITaskParameter } from "@ducks/common/typings";
-import { FieldItem, FieldSet, Icon, TitleSubsection } from "@wrappers/index";
-import { Autocomplete } from "../../../Autocomplete/Autocomplete";
-import { InputMapper } from "./InputMapper";
-import { Intent } from "@wrappers/blueprint/constants";
 import React from "react";
 import { sharedOp } from "@ducks/shared";
+import { ITaskParameter } from "@ducks/common/typings";
+import { FieldItem, FieldSet, TitleSubsection, Label } from "@wrappers/index";
+import { Intent } from "@wrappers/blueprint/constants";
+import { Autocomplete } from "../../../Autocomplete/Autocomplete";
+import { InputMapper } from "./InputMapper";
 import { AppToaster } from "../../../../../services/toaster";
 import { defaultValueAsJs } from "./TaskForm";
-import Spacing from "@wrappers/src/components/Separation/Spacing";
+import { INPUT_TYPES } from "../../../../../constants";
 
 const MAXLENGTH_TOOLTIP = 40;
 
@@ -79,17 +79,20 @@ export const ParameterWidget = ({
             });
         }
     };
+
     if (propertyDetails.type === "object") {
         return (
             <FieldSet
                 boxed
                 title={
-                    <TitleSubsection useHtmlElement="span">
-                        {propertyDetails.title}
-                        <Spacing size="tiny" vertical />
-                        <Icon name="item-info" small tooltipText={propertyDetails.description} />
-                    </TitleSubsection>
+                    <Label
+                        isLayoutForElement="span"
+                        text={<TitleSubsection useHtmlElement="span">{title}</TitleSubsection>}
+                        info={required ? "required" : ""}
+                        tooltip={description && description.length <= MAXLENGTH_TOOLTIP ? description : ""}
+                    />
                 }
+                helperText={description && description.length > MAXLENGTH_TOOLTIP ? description : ""}
             >
                 {Object.entries(propertyDetails.properties).map(([nestedParamId, nestedParam]) => {
                     const nestedFormParamId = `${formParamId}.${nestedParamId}`;
@@ -107,6 +110,31 @@ export const ParameterWidget = ({
                         />
                     );
                 })}
+            </FieldSet>
+        );
+    } else if (propertyDetails.parameterType === INPUT_TYPES.RESOURCE) {
+        return (
+            <FieldSet
+                boxed
+                title={
+                    <Label
+                        isLayoutForElement="span"
+                        text={<TitleSubsection useHtmlElement="span">{title}</TitleSubsection>}
+                        info={required ? "required" : ""}
+                        tooltip={description && description.length <= MAXLENGTH_TOOLTIP ? description : ""}
+                    />
+                }
+                helperText={description && description.length > MAXLENGTH_TOOLTIP ? description : ""}
+                hasStateDanger={errorMessage(title, errors) ? true : false}
+                messageText={errorMessage(title, errors)}
+            >
+                <InputMapper
+                    projectId={projectId}
+                    parameter={{ paramId: formParamId, param: propertyDetails }}
+                    intent={errors ? Intent.DANGER : Intent.NONE}
+                    onChange={changeHandlers[formParamId]}
+                    initialValues={initialValues}
+                />
             </FieldSet>
         );
     } else {

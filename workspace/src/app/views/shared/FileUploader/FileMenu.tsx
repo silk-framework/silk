@@ -1,4 +1,4 @@
-import { RadioButton } from "@wrappers/index";
+import { RadioButton, FieldItemRow, FieldItem } from "@wrappers/index";
 import React from "react";
 
 export type FileMenuItems = "SELECT" | "NEW" | "EMPTY";
@@ -37,16 +37,17 @@ export function FileMenu({ onChange, selectedFileMenu }: IProps) {
     };
 
     return (
-        <div>
+        <FieldItemRow>
             {menuItems.map((item) => (
-                <RadioButton
-                    key={item.value}
-                    checked={selectedFileMenu === item.value}
-                    label={item.label}
-                    onChange={handleSelectChange}
-                    value={item.value}
-                />
+                <FieldItem key={item.value}>
+                    <RadioButton
+                        checked={selectedFileMenu === item.value}
+                        label={item.label}
+                        onChange={handleSelectChange}
+                        value={item.value}
+                    />
+                </FieldItem>
             ))}
-        </div>
+        </FieldItemRow>
     );
 }
