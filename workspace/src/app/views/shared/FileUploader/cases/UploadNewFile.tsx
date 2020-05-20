@@ -1,6 +1,7 @@
 import { DragDrop } from "@uppy/react";
 import React, { useEffect } from "react";
 import Uppy from "@uppy/core";
+import { all } from "ramda";
 
 interface IProps {
     // Uppy instance
@@ -64,14 +65,17 @@ export function UploadNewFile(props: IProps) {
         });
     };
 
-    // const uploadedFiles = uppy.getFiles();
+    if (!allowMultiple) {
+        // Workaround because 'allowMultipleFiles' property on DragDrop does not work
+        uppy.setOptions({ allowMultipleUploads: false, restrictions: { maxNumberOfFiles: 1 } });
+    }
 
     return (
         <div>
             {simpleInput ? (
                 <input type="file" id="fileInput" onChange={handleFileInputChange} />
             ) : (
-                <DragDrop uppy={uppy} allowMultipleFiles={allowMultiple} />
+                <DragDrop uppy={uppy} />
             )}
         </div>
     );

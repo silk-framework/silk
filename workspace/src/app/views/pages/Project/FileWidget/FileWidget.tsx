@@ -112,7 +112,11 @@ export const FileWidget = () => {
                     )}
                 </CardContent>
             </Card>
-            <FileUploadModal isOpen={isOpenDialog} onDiscard={toggleFileUploader} />
+            <FileUploadModal
+                isOpen={isOpenDialog}
+                onDiscard={toggleFileUploader}
+                uploaderOptions={{ allowMultiple: false }}
+            />
         </>
     );
 };
