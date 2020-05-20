@@ -116,7 +116,6 @@ export function CreateArtefactModal() {
             } else {
                 dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefact.key)));
             }
-            // closeModal(); TODO: Does this really needs to be executed?
         }
     };
 
@@ -201,6 +200,8 @@ export function CreateArtefactModal() {
     return (
         <SimpleDialog
             size="large"
+            preventSimpleClosing={true}
+            canEscapeKeyClose={true}
             hasBorder
             title={
                 updateExistingTask
