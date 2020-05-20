@@ -752,10 +752,12 @@ function getPropertyPaths(targetElement, groupPaths) {
         url: `${editorUrl}/widgets/paths`,
         data: {groupPaths},
         complete(response, status) {
-            $(targetElement).html(response.responseText);
+            var pathBox = $(targetElement);
+            pathBox.html(response.responseText);
             if (status === 'error') {
                 setTimeout(getPropertyPaths, 2000, targetElement, groupPaths);
             } else {
+                activateDeferredMDL(pathBox);
                 updateWindowSize(true);
             }
         },
@@ -774,7 +776,8 @@ function getRelativePropertyPathsForRule(ruleId, targetElement, groupPaths) {
         url: `${editorUrl}/rule${ruleId}/widgets/paths`,
         data: {groupPaths},
         complete: function complete(response, status) {
-            $(targetElement).html(response.responseText);
+            var pathBox = $(targetElement);
+            pathBox.html(response.responseText);
             if (status === 'error') {
                 setTimeout(
                     getRelativePropertyPathsForRule,
@@ -784,6 +787,7 @@ function getRelativePropertyPathsForRule(ruleId, targetElement, groupPaths) {
                     groupPaths
                 );
             } else {
+                activateDeferredMDL(pathBox);
                 updateWindowSize(true);
             }
         },
