@@ -14,6 +14,7 @@ interface IProps {
     focusOnCreation?: boolean;
 }
 
+/** A simple search bar. */
 export function SearchBar({ textQuery = "", sorters, onSort, onSearch, focusOnCreation = false }: IProps) {
     const [searchInput, setSearchInput] = useState(textQuery);
 

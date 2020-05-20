@@ -16,33 +16,38 @@ import {
     TableHeader,
     Toolbar,
     ToolbarSection,
-    SearchField,
     Button,
     Spacing,
 } from "@wrappers/index";
 import Loading from "../../../shared/Loading";
 import FileUploadModal from "../../../shared/modals/FileUploadModal";
 import { EmptyFileWidget } from "./EmptyFileWidget";
+import { SearchBar } from "../../../shared/SearchBar/SearchBar";
+import { Highlighter } from "../../../shared/Highlighter/Highlighter";
 
 export const FileWidget = () => {
     const dispatch = useDispatch();
 
     const filesList = useSelector(workspaceSel.filesListSelector);
     const fileWidget = useSelector(workspaceSel.widgetsSelector).files;
+    const [textQuery, setTextQuery] = useState("");
 
     const [isOpenDialog, setIsOpenDialog] = useState<boolean>(false);
     const { isLoading } = fileWidget;
 
     const headers = [
-        { key: "name", header: "Name" },
-        { key: "type", header: "Type" },
-        { key: "formattedDate", header: "Date" },
-        { key: "state", header: "State" },
+        { key: "name", header: "Name", highlighted: true },
+        { key: "formattedDate", header: "Date", highlighted: false },
+        { key: "formattedSize", header: "Size (bytes)", highlighted: true },
     ];
 
+    const onSearch = (textQuery) => {
+        setTextQuery(textQuery);
+    };
+
     useEffect(() => {
-        dispatch(workspaceOp.fetchResourcesListAsync());
-    }, []);
+        dispatch(workspaceOp.fetchResourcesListAsync({ searchText: textQuery }));
+    }, [textQuery]);
 
     const toggleFileUploader = () => {
         setIsOpenDialog(!isOpenDialog);
@@ -64,7 +69,7 @@ export const FileWidget = () => {
                         <>
                             <Toolbar>
                                 <ToolbarSection canGrow>
-                                    <SearchField />
+                                    <SearchBar textQuery={textQuery} onSearch={onSearch} />
                                 </ToolbarSection>
                                 <ToolbarSection>
                                     <Spacing size="tiny" vertical />
@@ -85,7 +90,16 @@ export const FileWidget = () => {
                                         {filesList.map((file) => (
                                             <TableRow key={file.id}>
                                                 {headers.map((property) => (
-                                                    <TableCell key={property.key}>{file[property.key]}</TableCell>
+                                                    <TableCell key={property.key}>
+                                                        {property.highlighted ? (
+                                                            <Highlighter
+                                                                label={file[property.key]}
+                                                                searchValue={textQuery}
+                                                            />
+                                                        ) : (
+                                                            file[property.key]
+                                                        )}
+                                                    </TableCell>
                                                 ))}
                                             </TableRow>
                                         ))}

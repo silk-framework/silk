@@ -16,7 +16,13 @@ const setError = (e) => (dispatch) =>
         })
     );
 
-export const fetchResourcesListAsync = (filters: any = {}) => {
+interface IResourceListAsyncProps {
+    searchText?: string;
+    limit?: number;
+    offset?: number;
+}
+
+export const fetchResourcesListAsync = (filters: IResourceListAsyncProps = {}) => {
     return async (dispatch, getState) => {
         const projectId = commonSel.currentProjectIdSelector(getState());
         try {

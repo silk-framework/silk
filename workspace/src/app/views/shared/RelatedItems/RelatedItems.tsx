@@ -17,7 +17,6 @@ import {
 import { sharedOp } from "@ducks/shared";
 import { routerOp } from "@ducks/router";
 import DataList from "../Datalist";
-import { SimpleSearchBar } from "./SimpleSearchBar";
 import Tag from "@wrappers/src/components/Tag/Tag";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import Spacing from "@wrappers/src/components/Separation/Spacing";
@@ -26,6 +25,7 @@ import { ResourceLink } from "../ResourceLink/ResourceLink";
 import Pagination from "@wrappers/src/components/Pagination/Pagination";
 import { IItemLink, IRelatedItem, IRelatedItemsResponse } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
+import { SearchBar } from "../SearchBar/SearchBar";
 
 interface IProps {
     projectId?: string;
@@ -98,7 +98,11 @@ export function RelatedItems(props: IProps) {
             </CardHeader>
             <Divider />
             <CardContent>
-                {data.total > 0 || textQuery !== "" ? <SimpleSearchBar onSearch={searchFired} /> : false}
+                {data.total > 0 || textQuery !== "" ? (
+                    <SearchBar textQuery={textQuery} onSearch={searchFired} />
+                ) : (
+                    false
+                )}
                 <Spacing size="small" />
                 <DataList
                     isEmpty={data.items.length === 0}
