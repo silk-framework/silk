@@ -10,7 +10,7 @@ interface IProps {
 
 /**
  * Shows a preview of the config data.
- * Only lists parameters that are visible in dialogs and that have a non-empty value.
+ * Only lists parameters that are visible in dialogs, are not marked as 'advanced' and have a non-empty value.
  * @param taskData        The data value of the task.
  * @param taskDescription The schema and description of the task type.
  */
@@ -31,7 +31,8 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
             ) => {
                 Object.entries(obj)
                     .filter(([key, v]) => {
-                        return paramDescriptions[key] && paramDescriptions[key].visibleInDialog;
+                        const pd = paramDescriptions[key];
+                        return pd && pd.visibleInDialog && !pd.advanced;
                     })
                     .forEach(([paramName, paramValue]) => {
                         const value = paramDisplayValue(paramValue);

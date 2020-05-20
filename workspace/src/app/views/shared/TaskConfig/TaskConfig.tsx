@@ -63,11 +63,16 @@ export function TaskConfig(props: IProps) {
         initPreviewData();
     }, [isOpen]);
 
+    let titlePostfix = "";
+    if (labelledTaskData) {
+        titlePostfix = `: ${labelledTaskData.taskDescription.title}`;
+    }
+
     return (
         <Card>
             <CardHeader>
                 <CardTitle>
-                    <h3>Configuration</h3>
+                    <h3>Configuration{titlePostfix}</h3>
                 </CardTitle>
                 <CardOptions>
                     <IconButton name={"item-edit"} text={"Configure"} onClick={openConfigModal} />
