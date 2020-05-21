@@ -82,6 +82,7 @@ export function Autocomplete(props: IAutocompleteProps) {
 
     //@Note: issue https://github.com/palantir/blueprint/issues/2983
     const handleQueryChange = async (input = "") => {
+        setQuery(input);
         try {
             let result = [];
             if (onSearch) {
@@ -98,8 +99,6 @@ export function Autocomplete(props: IAutocompleteProps) {
             setFiltered(result);
         } catch (e) {
             console.log(e);
-        } finally {
-            setQuery(input);
         }
     };
 

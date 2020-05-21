@@ -28,6 +28,7 @@ import { useLocation } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
+import { AppToaster } from "../../../services/toaster";
 
 interface IProps {
     projectId?: string;
@@ -64,9 +65,7 @@ export function Metadata(props: IProps) {
 
     const letLoading = async (callback) => {
         setLoading(true);
-
         const result = await callback();
-
         setLoading(false);
         return result;
     };
@@ -76,10 +75,20 @@ export function Metadata(props: IProps) {
     };
 
     const getTaskMetadata = async (taskId: string, projectId: string) => {
-        const result = await letLoading(() => {
-            return sharedOp.getTaskMetadataAsync(taskId, projectId);
-        });
-        setData(result);
+        try {
+            const result = await letLoading(() => {
+                return sharedOp.getTaskMetadataAsync(taskId, projectId);
+            });
+            setData(result);
+        } catch (error) {
+            if (error.detail) {
+                AppToaster.show({
+                    message: error.detail,
+                    intent: Intent.DANGER,
+                    timeout: 0,
+                });
+            }
+        }
     };
 
     const onSubmit = async (inputs: IMetadataUpdatePayload) => {
