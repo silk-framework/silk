@@ -62,12 +62,14 @@ Autocomplete.defaultProps = {
 export function Autocomplete(props: IAutocompleteProps) {
     const { itemValueRenderer, itemLabelRenderer, items, onSearch, onChange, initialValue } = props;
 
+    const [query, setQuery] = useState<string>(initialValue);
+
     // The suggestions that match the user's input
     const [filtered, setFiltered] = useState<any[]>([]);
 
     useEffect(() => {
         if (!items.length) {
-            handleQueryChange();
+            handleQueryChange(query);
         }
     }, [items]);
 
@@ -96,6 +98,8 @@ export function Autocomplete(props: IAutocompleteProps) {
             setFiltered(result);
         } catch (e) {
             console.log(e);
+        } finally {
+            setQuery(input);
         }
     };
 
@@ -113,7 +117,6 @@ export function Autocomplete(props: IAutocompleteProps) {
             />
         );
     };
-
     return (
         <SuggestAutocomplete
             items={filtered}
@@ -123,7 +126,7 @@ export function Autocomplete(props: IAutocompleteProps) {
             noResults={<MenuItem disabled={true} text="No results." />}
             onItemSelect={onItemSelect}
             onQueryChange={handleQueryChange}
-            query={initialValue}
+            query={query}
             popoverProps={{
                 minimal: true,
             }}

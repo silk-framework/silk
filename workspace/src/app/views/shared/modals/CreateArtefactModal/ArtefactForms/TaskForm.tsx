@@ -7,6 +7,7 @@ import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOption
 import { errorMessage, ParameterWidget } from "./ParameterWidget";
 import { DataPreview } from "../../../DataPreview/DataPreview";
 import { IDatasetConfigPreview } from "@ducks/shared/typings";
+import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
 
 export interface IProps {
     form: any;
@@ -27,26 +28,6 @@ export interface IProps {
 const LABEL = "label";
 const DESCRIPTION = "description";
 
-/** Converts the default value to a JS value */
-export const defaultValueAsJs = (property: IArtefactItemProperty): any => {
-    return stringValueAsJs(property.parameterType, property.value);
-};
-
-/** Converts a string value to its typed equivalent based on the given value type. */
-export const stringValueAsJs = (valueType: string, value: string | null): any => {
-    let v: any = value || "";
-
-    if (valueType === INPUT_TYPES.BOOLEAN) {
-        // cast to boolean from string
-        v = value === "true";
-    }
-
-    if (valueType === INPUT_TYPES.INTEGER) {
-        v = +value;
-    }
-    return v;
-};
-
 const datasetConfigPreview = (
     projectId: string,
     pluginId: string,
@@ -61,33 +42,13 @@ const datasetConfigPreview = (
     };
 };
 
-/** Extracts the initial values from the parameter values of an existing task and turns them into a flat object, e.g. obj["nestedParam.param1"]. */
-export const existingTaskValuesToFlatParameters = (updateTask: any) => {
-    if (updateTask) {
-        const result: any = {};
-        const objToFlatRec = (obj: object, prefix: string) => {
-            Object.entries(obj).forEach(([paramName, paramValue]) => {
-                if (typeof paramValue === "object" && paramValue !== null) {
-                    objToFlatRec(paramValue, paramName + ".");
-                } else {
-                    result[prefix + paramName] = paramValue;
-                }
-            });
-        };
-        objToFlatRec(updateTask.parameterValues, "");
-        return result;
-    } else {
-        return {};
-    }
-};
-
 /** The task creation/update form. */
 export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
     const { properties, required } = artefact;
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
-    const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
 
+    const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     const initialValues = existingTaskValuesToFlatParameters(updateTask);
 
     // addition restriction for the hook form parameter values
@@ -162,6 +123,10 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
         []
     );
 
+    /**
+     * changeHandlers pass to ParameterWidget
+     * and serve for register new values, which generated when `type=object`
+     */
     const changeHandlers = useMemo(() => {
         const handlers = {};
         formValueKeys.forEach((key) => {
@@ -186,7 +151,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                                 info: "required",
                                 htmlFor: LABEL,
                             }}
-                            hasStateDanger={errorMessage("Label", errors.label) ? true : false}
+                            hasStateDanger={errorMessage("Label", errors.label)}
                             messageText={errorMessage("Label", errors.label)}
                         >
                             <TextField
