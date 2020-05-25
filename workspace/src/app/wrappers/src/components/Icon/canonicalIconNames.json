@@ -21,6 +21,8 @@
 
     "operation-search": "Search",
     "operation-clear": "Close",
+    "operation-undo": "Undo",
+    "operation-redo": "Redo",
 
     "list-sort": "ArrowsVertical",
     "list-sortasc": "ArrowDown",
