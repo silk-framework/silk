@@ -8,12 +8,12 @@ import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
 
 /**
  * Returns the meta data of a specific item.
- * @param itemId    The ID of the item. This also includes project IDs.
+ * @param taskId    The ID of the item. This also includes project IDs.
  * @param projectId For project items, this parameter must be specified, else the item ID is treated as the project ID.
  */
-export const getTaskMetadataAsync = async (itemId: string, projectId?: string): Promise<IMetadata> => {
+export const getTaskMetadataAsync = async (taskId: string, projectId: string): Promise<IMetadata> => {
     try {
-        const data = projectId ? await requestTaskMetadata(itemId, projectId) : await requestProjectMetadata(itemId);
+        const data = taskId ? await requestTaskMetadata(taskId, projectId) : await requestProjectMetadata(projectId);
 
         const { label, name, metaData, id, relations, description, type }: any = data;
 

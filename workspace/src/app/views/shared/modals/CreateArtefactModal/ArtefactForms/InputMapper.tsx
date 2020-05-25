@@ -4,10 +4,10 @@ import { Switch, TextField, TextArea } from "@wrappers/index";
 import { QueryEditor } from "../../../QueryEditor/QueryEditor";
 import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";
-import { defaultValueAsJs, stringValueAsJs } from "./TaskForm";
 import { FileUploader } from "../../../FileUploader/FileUploader";
 import { AppToaster } from "../../../../../services/toaster";
 import { requestResourcesList } from "@ducks/shared/requests";
+import { defaultValueAsJs, stringValueAsJs } from "../../../../../utils/transformers";
 
 interface IProps {
     projectId: string;

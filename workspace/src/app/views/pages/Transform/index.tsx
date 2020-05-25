@@ -29,7 +29,7 @@ export default function () {
         <WorkspaceContent className="eccapp-di__transformation">
             <WorkspaceMain>
                 <Section>
-                    <Metadata projectId={projectId} taskId={taskId} />
+                    <Metadata />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>

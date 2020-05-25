@@ -25,6 +25,7 @@ export function SearchList() {
     const pagination = useSelector(workspaceSel.paginationSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const isLoading = useSelector(workspaceSel.isLoadingSelector);
+    const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
 
     const [selectedItem, setSelectedItem] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -114,26 +115,27 @@ export function SearchList() {
         }
     };
 
+    // Show the "create" action when no search query or facets applied
+    const EmptyContainer =
+        isEmpty && !appliedFilters.textQuery && !appliedFacets.length ? (
+            <EmptyList
+                depiction={<Icon name={"artefact-" + appliedFilters.itemType} large />}
+                textInfo={<p>No {appliedFilters.itemType} found.</p>}
+                textCallout={<strong>Create your first {itemTypeLabel()} now.</strong>}
+                actionButtons={[
+                    <Button key={"create"} onClick={handleCreateArtefact} elevated>
+                        Create {appliedFilters.itemType}
+                    </Button>,
+                ]}
+            />
+        ) : (
+            <p>No Data Found</p>
+        );
+
     return (
         <>
             <AppliedFacets />
-            <DataList
-                isEmpty={isEmpty}
-                isLoading={isLoading}
-                hasSpacing
-                emptyContainer={
-                    <EmptyList
-                        depiction={<Icon name={"artefact-" + appliedFilters.itemType} large />}
-                        textInfo={<p>No {appliedFilters.itemType} found.</p>}
-                        textCallout={<strong>Create your first {itemTypeLabel()} now.</strong>}
-                        actionButtons={[
-                            <Button key={"create"} onClick={handleCreateArtefact} elevated>
-                                Create {appliedFilters.itemType}
-                            </Button>,
-                        ]}
-                    />
-                }
-            >
+            <DataList isEmpty={isEmpty} isLoading={isLoading} hasSpacing emptyContainer={EmptyContainer}>
                 {data.map((item) => (
                     <SearchItem
                         key={`${item.id}_${item.projectId}`}

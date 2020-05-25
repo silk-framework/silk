@@ -6,7 +6,8 @@ import { Intent } from "@wrappers/blueprint/constants";
 import { Autocomplete } from "../../../Autocomplete/Autocomplete";
 import { InputMapper } from "./InputMapper";
 import { AppToaster } from "../../../../../services/toaster";
-import { defaultValueAsJs } from "./TaskForm";
+import Spacing from "@wrappers/src/components/Separation/Spacing";
+import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
 
 const MAXLENGTH_TOOLTIP = 40;
@@ -14,7 +15,7 @@ const MAXLENGTH_TOOLTIP = 40;
 interface IHookFormParam {
     errors: any;
 }
-interface IParam {
+interface IProps {
     projectId: string;
     // The ID of the parent object
     pluginId: string;
@@ -58,10 +59,11 @@ export const ParameterWidget = ({
     formHooks,
     changeHandlers,
     initialValues,
-}: IParam) => {
+}: IProps) => {
     const errors = formHooks.errors[formParamId];
     const propertyDetails = taskParameter.param;
     const { title, description, autoCompletion } = propertyDetails;
+
     const handleAutoCompleteInput = async (input: string = "") => {
         try {
             return await sharedOp.getAutocompleteResultsAsync({
@@ -147,7 +149,7 @@ export const ParameterWidget = ({
                     tooltip: description && description.length <= MAXLENGTH_TOOLTIP ? description : "",
                 }}
                 helperText={description && description.length > MAXLENGTH_TOOLTIP ? description : ""}
-                hasStateDanger={errorMessage(title, errors) ? true : false}
+                hasStateDanger={errorMessage(title, errors)}
                 messageText={errorMessage(title, errors)}
             >
                 {!!autoCompletion ? (

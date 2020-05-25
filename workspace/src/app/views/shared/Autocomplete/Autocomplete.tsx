@@ -62,12 +62,14 @@ Autocomplete.defaultProps = {
 export function Autocomplete(props: IAutocompleteProps) {
     const { itemValueRenderer, itemLabelRenderer, items, onSearch, onChange, initialValue } = props;
 
+    const [query, setQuery] = useState<string>(initialValue);
+
     // The suggestions that match the user's input
     const [filtered, setFiltered] = useState<any[]>([]);
 
     useEffect(() => {
         if (!items.length) {
-            handleQueryChange();
+            handleQueryChange(query);
         }
     }, [items]);
 
@@ -80,6 +82,7 @@ export function Autocomplete(props: IAutocompleteProps) {
 
     //@Note: issue https://github.com/palantir/blueprint/issues/2983
     const handleQueryChange = async (input = "") => {
+        setQuery(input);
         try {
             let result = [];
             if (onSearch) {
@@ -113,7 +116,6 @@ export function Autocomplete(props: IAutocompleteProps) {
             />
         );
     };
-
     return (
         <SuggestAutocomplete
             items={filtered}
@@ -123,7 +125,7 @@ export function Autocomplete(props: IAutocompleteProps) {
             noResults={<MenuItem disabled={true} text="No results." />}
             onItemSelect={onItemSelect}
             onQueryChange={handleQueryChange}
-            query={initialValue}
+            query={query}
             popoverProps={{
                 minimal: true,
             }}

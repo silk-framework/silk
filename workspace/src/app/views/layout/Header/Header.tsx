@@ -29,6 +29,7 @@ import withBreadcrumbLabels from "./withBreadcrumbLabels";
 import { Helmet } from "react-helmet";
 import { useLocation } from "react-router";
 import { APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
+import { workspaceSel } from "@ducks/workspace";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];
@@ -50,6 +51,8 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
 
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const taskId = useSelector(commonSel.currentTaskIdSelector);
+    const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
+
     const startTitle = `Build — ${APPLICATION_SUITE_NAME}`;
 
     const [windowTitle, setWindowTitle] = useState<string>(startTitle);
@@ -61,7 +64,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
     }, [projectId, taskId, breadcrumbs]);
 
     const handleCreateDialog = () => {
-        dispatch(commonOp.selectArtefact({}));
+        dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType));
     };
 
     const getWindowTitle = (projectId) => {

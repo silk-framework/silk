@@ -56,7 +56,7 @@ const artefactModalReducers = {
         state.artefactModal.artefactsList = action.payload;
     },
     setSelectedArtefactDType(state, action) {
-        state.artefactModal.selectedDType = action.payload;
+        state.artefactModal.selectedDType = action.payload || "all";
         state.artefactModal.isOpen = true;
     },
     setCachedArtefactProperty(state, action) {
