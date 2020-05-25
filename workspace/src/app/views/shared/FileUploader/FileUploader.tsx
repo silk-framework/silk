@@ -289,7 +289,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
             <Loading />
         ) : (
             <>
-                {defaultValue && (
+                {defaultValue && !updateDefaultValue && (
                     <FieldItem>
                         <TextField
                             readOnly
@@ -307,7 +307,18 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                         />
                     </FieldItem>
                 )}
-                {defaultValue && updateDefaultValue && <Divider addSpacing="large" />}
+                {defaultValue && updateDefaultValue && (
+                    <>
+                        <Button
+                            outlined
+                            small
+                            text={updateDefaultValue ? "Abort and keep file" : "Change file"}
+                            icon={updateDefaultValue ? <Icon name="operation-undo" /> : <Icon name="item-edit" />}
+                            onClick={this.toggleFileResourceChange}
+                        />
+                        <Divider addSpacing="large" />
+                    </>
+                )}
                 {(!defaultValue || updateDefaultValue) && (
                     <>
                         {advanced && (
