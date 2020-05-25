@@ -188,7 +188,7 @@ export interface IAutocompleteDefaultResponse {
     /**
      * The option name
      */
-    label: string;
+    label?: string;
     /**
      * The option value
      */

@@ -201,7 +201,6 @@ export function CreateArtefactModal() {
         <SimpleDialog
             size="large"
             preventSimpleClosing={true}
-            canEscapeKeyClose={true}
             hasBorder
             title={
                 updateExistingTask

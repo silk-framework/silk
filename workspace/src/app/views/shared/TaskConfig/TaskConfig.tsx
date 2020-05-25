@@ -31,7 +31,8 @@ export function TaskConfig(props: IProps) {
         setLoading(true);
         try {
             // Config dialog is always opened with fresh data
-            const taskData = await requestTaskData(props.projectId, props.taskId);
+            const response = await requestTaskData(props.projectId, props.taskId);
+            const taskData = response.data();
             const taskPluginDetails = await requestArtefactProperties(taskData.data.type);
             dispatch(
                 commonOp.updateProjectTask({
@@ -51,7 +52,7 @@ export function TaskConfig(props: IProps) {
         setLoading(true);
         try {
             // Fetch data for preview of config
-            const taskData = await requestTaskData(props.projectId, props.taskId, true);
+            const taskData = (await requestTaskData(props.projectId, props.taskId, true)).data();
             const taskDescription = await requestArtefactProperties(taskData.data.type);
             setLabelledTaskData({ taskData, taskDescription });
         } finally {

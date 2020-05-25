@@ -8,6 +8,7 @@ import { sharedOp } from "@ducks/shared";
 import { AppToaster } from "../../../../../services/toaster";
 import Spacing from "@wrappers/src/components/Separation/Spacing";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
+import { ResponseError } from "../../../../../services/fetch";
 
 const MAXLENGTH_TOOLTIP = 40;
 
@@ -31,6 +32,10 @@ interface IProps {
     // Initial values in a flat form, e.g. "nestedParam.param1". This is either set for all parameters or not set for none.
     // The prefixed values can be addressed with help of the 'formParamId' parameter.
     initialValues: {
+        [key: string]: string;
+    };
+    // Values that the auto-completion of other parameters depends on
+    dependentValues: {
         [key: string]: string;
     };
 }
@@ -58,26 +63,50 @@ export const ParameterWidget = ({
     formHooks,
     changeHandlers,
     initialValues,
+    dependentValues,
 }: IProps) => {
     const errors = formHooks.errors[formParamId];
     const propertyDetails = taskParameter.param;
     const { title, description, autoCompletion } = propertyDetails;
 
+    const selectDependentValues = (): string[] => {
+        return autoCompletion.autoCompletionDependsOnParameters.flatMap((paramId) => {
+            const prefixedParamId =
+                formParamId.substring(0, formParamId.length - taskParameter.paramId.length) + paramId;
+            if (dependentValues[prefixedParamId]) {
+                return [dependentValues[prefixedParamId]];
+            } else {
+                return [];
+            }
+        });
+    };
+
     const handleAutoCompleteInput = async (input: string = "") => {
         try {
-            return await sharedOp.getAutocompleteResultsAsync({
+            const { data } = await sharedOp.getAutocompleteResultsAsync({
                 pluginId: pluginId,
                 parameterId: taskParameter.paramId,
                 projectId,
-                dependsOnParameterValues: autoCompletion.autoCompletionDependsOnParameters,
+                dependsOnParameterValues: selectDependentValues(),
                 textQuery: input,
+                limit: 100, // The auto-completion is only showing the first n values TODO: Make auto-completion list scrollable?
             });
+            return data;
         } catch (e) {
-            AppToaster.show({
-                message: e.detail,
-                intent: Intent.DANGER,
-                timeout: 0,
-            });
+            if (e.errorType === "errorResponse") {
+                const error = e as ResponseError;
+                if (error.httpStatus() !== 400) {
+                    // For now hide 400 errors from user, since they are not helpful.
+                    AppToaster.show({
+                        message: error.errorResponse().detail,
+                        intent: Intent.DANGER,
+                        timeout: 0,
+                    });
+                }
+            } else {
+                console.warn(e);
+            }
+            return [];
         }
     };
 
@@ -106,6 +135,7 @@ export const ParameterWidget = ({
                             formHooks={formHooks}
                             changeHandlers={changeHandlers}
                             initialValues={initialValues}
+                            dependentValues={dependentValues}
                         />
                     );
                 })}
@@ -130,8 +160,11 @@ export const ParameterWidget = ({
                         onSearch={handleAutoCompleteInput}
                         onChange={changeHandlers[formParamId]}
                         initialValue={
-                            initialValues[formParamId] ? initialValues[formParamId] : defaultValueAsJs(propertyDetails)
+                            initialValues[formParamId]
+                                ? { value: initialValues[formParamId] }
+                                : { value: defaultValueAsJs(propertyDetails) }
                         }
+                        dependentValues={selectDependentValues()}
                     />
                 ) : (
                     <InputMapper

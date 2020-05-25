@@ -1,6 +1,6 @@
 import { ErrorInfo } from "react";
-import Dexie from 'dexie';
-import { AxiosError, AxiosResponse } from "axios";
+import Dexie from "dexie";
+import { AxiosError } from "axios";
 
 interface IClientInfo {
     language: string;
@@ -11,14 +11,11 @@ interface IClientInfo {
     screen: {
         height: number;
         width: number;
-    }
+    };
 }
 
 interface INetworkError {
     url: string;
-    status: number;
-    payload?: any;
-    headers?: any;
 }
 
 interface IError {
@@ -29,13 +26,12 @@ interface IError {
     network?: INetworkError;
 }
 
-const LOG_TABLE = 'logs';
+const LOG_TABLE = "logs";
 
 const tableInstance: any = new Dexie(LOG_TABLE);
-tableInstance.version(1)
-    .stores({
-        [LOG_TABLE]: '++id, name, message, stack, client, react_stack, network',
-    });
+tableInstance.version(1).stores({
+    [LOG_TABLE]: "++id, name, message, stack, client, react_stack, network",
+});
 
 //@TODO: Periodically clear the logs table
 
@@ -48,31 +44,28 @@ tableInstance.version(1)
  * @param colNo
  * @param error
  */
-const onErrorHandler = (
-    message: string,
-    url: string,
-    lineNumber: number,
-    colNo?: number,
-    error?: Error
-): boolean => {
+const onErrorHandler = (message: string, url: string, lineNumber: number, colNo?: number, error?: Error): boolean => {
     if (error) {
         logError(error);
     } else {
         logError({
-            name: message.split(':')[0],
+            name: message.split(":")[0],
             message,
-            stack: `${url}:${lineNumber}:${colNo}`
-        })
+            stack: `${url}:${lineNumber}:${colNo}`,
+        });
     }
     return true;
 };
 
 const isNetworkError = (err: AxiosError | Error): boolean => {
+    if (err && (err as AxiosError).isAxiosError && !(err as AxiosError).response) {
+        return true;
+    }
     if (!err || !Object.keys(err).length) {
         return false;
     }
-    if (typeof err === 'object') {
-        return 'response' in err;
+    if (typeof err === "object") {
+        return "response" in err;
     }
     return err;
 };
@@ -92,29 +85,28 @@ const getClientInfo = (): IClientInfo => {
         screen: {
             height: screen.height,
             width: screen.width,
-        }
-    }
+        },
+    };
 };
 
 /**
  * Generate the network error object
- * @param response
+ * @param requestConfig The Axios request config.
  * @return INetworkError
  */
-const generateNetworkError = (response: AxiosResponse): INetworkError => {
-    const { status } = response;
-    const { headers, url, data } = response.config;
-    const netErr: INetworkError = {
-        url,
-        status,
-    };
-    if (data) {
-        netErr.payload = data;
+const generateNetworkError = (error: Error): INetworkError => {
+    if ((error as AxiosError).isAxiosError) {
+        const axiosError = error as AxiosError;
+        const { config } = axiosError;
+        const { url } = config;
+        return {
+            url,
+        };
+    } else {
+        return {
+            url: "Unknown",
+        };
     }
-    if (headers && Object.keys(headers).length) {
-        netErr.headers = headers;
-    }
-    return netErr;
 };
 
 /**
@@ -125,8 +117,8 @@ const generateNetworkError = (response: AxiosResponse): INetworkError => {
  * @return IError
  */
 const generateDefaultError = (
-    name: string = 'DEFAULT_ERROR',
-    message: string = 'DEFAULT_ERROR_MESSAGE',
+    name: string = "DEFAULT_ERROR",
+    message: string = "DEFAULT_ERROR_MESSAGE",
     stack?: string
 ): Error => {
     const err: Error = {
@@ -134,7 +126,7 @@ const generateDefaultError = (
         message,
     };
     if (stack) {
-        err.stack = stack
+        err.stack = stack;
     }
     return err;
 };
@@ -144,21 +136,16 @@ const generateDefaultError = (
  * @param error
  * @param reactErrorInfo
  */
-const logError = async (
-    error: AxiosError | Error,
-    reactErrorInfo?: ErrorInfo
-): Promise<boolean> => {
+const logError = async (error: AxiosError | Error, reactErrorInfo?: ErrorInfo): Promise<boolean> => {
     let err: IError;
 
     if (isNetworkError(error)) {
-        const { response } = error as AxiosError;
-        const { title, detail } = response.data;
+        const errorMessage = error.message ? error.message : "Could not connect to server.";
         err = {
-            ...generateDefaultError(title, detail),
+            ...generateDefaultError("Network error", errorMessage),
             client: getClientInfo(),
-            network: generateNetworkError(response)
-        }
-
+            network: generateNetworkError(error),
+        };
     } else if (error instanceof Error) {
         const { name, message, stack } = error;
         const newStack = reactErrorInfo ? reactErrorInfo.componentStack : stack;
@@ -167,7 +154,7 @@ const logError = async (
             client: getClientInfo(),
         };
     } else {
-        console.warn('Uncaught Error type received ', error);
+        console.warn("Uncaught Error type received ", error);
         return false;
     }
 
@@ -189,9 +176,4 @@ const sendError = async (error: IError) => {
     return true;
 };
 
-export {
-    logError,
-    onErrorHandler,
-    isNetworkError,
-    generateNetworkError
-}
+export { logError, onErrorHandler, isNetworkError, generateNetworkError };

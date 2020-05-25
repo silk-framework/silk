@@ -3,11 +3,11 @@ import { coreApi, workspaceApi } from "../../../utils/getApiEndpoint";
 import { generateNetworkError, isNetworkError } from "../../../services/errorLogger";
 import { IDetailedArtefactItem } from "@ducks/common/typings";
 
-const handleError = ({ response }) => {
-    if (isNetworkError(response.data)) {
-        return generateNetworkError(response.data);
+const handleError = (error) => {
+    if (isNetworkError(error)) {
+        generateNetworkError(error);
     }
-    return response.data;
+    return error;
 };
 
 /**

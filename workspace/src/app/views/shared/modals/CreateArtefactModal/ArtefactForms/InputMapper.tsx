@@ -92,7 +92,7 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
                         },
                         onSearch: handleFileSearch,
                         itemLabelRenderer: (item) => item.name,
-                        itemValueRenderer: (item) => item.name,
+                        itemValueSelector: (item) => item.name,
                     }}
                     {...inputAttributes}
                 />

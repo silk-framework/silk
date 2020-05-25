@@ -1,5 +1,5 @@
 import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
-import fetch from "../../../services/fetch";
+import fetch, { handleRequest, FetchReponse } from "../../../services/fetch";
 import { AxiosResponse } from "axios";
 import qs from "qs";
 import { generateNetworkError, isNetworkError } from "../../../services/errorLogger";
@@ -33,17 +33,14 @@ const handleError = ({ response }) => {
  */
 export const requestAutocompleteResults = async (
     payload: IRequestAutocompletePayload
-): Promise<IAutocompleteDefaultResponse> => {
-    try {
-        const { data } = await fetch({
+): Promise<FetchReponse<IAutocompleteDefaultResponse>> => {
+    return handleRequest(
+        fetch({
             url: workspaceApi(`/pluginParameterAutoCompletion`),
             method: "POST",
             body: payload,
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+        })
+    );
 };
 
 /**
@@ -82,21 +79,18 @@ export const requestTaskData = async (
     projectId: string,
     itemId: string,
     withLabel: boolean = false
-): Promise<IProjectTask> => {
+): Promise<FetchReponse<IProjectTask>> => {
     const queryParams: any = {};
     if (withLabel) {
         queryParams.withLabels = true;
     }
 
-    try {
-        const { data } = await fetch({
+    return handleRequest(
+        fetch({
             url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}`),
             body: queryParams,
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+        })
+    );
 };
 
 /**
