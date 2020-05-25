@@ -10,12 +10,13 @@ import javax.inject.Inject
 import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.dataset.Dataset
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{AutoCompletionResult, ParameterAutoCompletion, PluginObjectParameter, PluginParameterAutoCompletionProvider, PluginRegistry}
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.{AutoCompletionResult, ParameterAutoCompletion, PluginDescription, PluginObjectParameter, PluginParameterAutoCompletionProvider, PluginRegistry}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import play.api.libs.json._
-import play.api.mvc.{Action, AnyContent, InjectedController}
+import play.api.mvc.{Action, AnyContent, InjectedController, Result}
 
 /**
   * API to search for tasks in the workspace.
@@ -58,30 +59,47 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         assignableTo = Some(Seq(classOf[TaskSpec], classOf[PluginObjectParameter], classOf[Transformer], classOf[Dataset]))
       ).headOption match {
         case Some(pluginDescription) =>
-          pluginDescription.parameters.find(_.name == request.parameterId) match {
-            case Some(parameter) =>
-              parameter.autoCompletion match {
-                case Some(autoCompletion) =>
-                  if(hasInvalidDependentParameterValues(request, autoCompletion)) {
-                    throw BadUserInputException("No values for depends-on parameters supplied. Values are expected for " +
-                        s"following parameters: ${autoCompletion.autoCompletionDependsOnParameters.mkString(", ")}.")
-                  } else {
-                    val result = autoCompletion.autoCompletionProvider.autoComplete(request.textQuery.getOrElse(""),
-                      request.projectId, request.dependsOnParameterValues.getOrElse(Seq.empty),
-                      limit = request.workingLimit, offset = request.workingOffset, workspace = workspace)
-                    Ok(Json.toJson(result.map(_.withNonEmptyLabels)))
-                  }
-                case None =>
-                  log.warning(s"Parameter '${parameter.name}' of plugin '${request.pluginId}' has no auto-completion support.")
-                  NotFound
-              }
-            case None =>
-              log.warning(s"Plugin '${request.pluginId}' does not have a parameter '${request.parameterId}'.")
-              NotFound
-          }
+          parameterAutoCompletion(request, pluginDescription)
         case None =>
           log.warning(s"Requesting auto-completion for non-existing plugin: ${request.pluginId}.")
           NotFound
+      }
+    }
+  }
+
+  private def parameterAutoCompletion(request: ParameterAutoCompletionRequest,
+                                      pluginDescription: PluginDescription[_])
+                                     (implicit userContext: UserContext): Result = {
+    pluginDescription.parameters.find(_.name == request.parameterId) match {
+      case Some(parameter) =>
+        parameter.autoCompletion match {
+          case Some(autoCompletion) =>
+            parameterAutoCompletion(request, autoCompletion)
+          case None =>
+            log.warning(s"Parameter '${parameter.name}' of plugin '${request.pluginId}' has no auto-completion support.")
+            NotFound
+        }
+      case None =>
+        log.warning(s"Plugin '${request.pluginId}' does not have a parameter '${request.parameterId}'.")
+        NotFound
+    }
+  }
+
+  private def parameterAutoCompletion(request: ParameterAutoCompletionRequest,
+                                      autoCompletion: ParameterAutoCompletion)
+                                     (implicit userContext: UserContext): Result = {
+    if (hasInvalidDependentParameterValues(request, autoCompletion)) {
+      throw BadUserInputException("No values for depends-on parameters supplied. Values are expected for " +
+          s"following parameters: ${autoCompletion.autoCompletionDependsOnParameters.mkString(", ")}.")
+    } else {
+      try {
+        val result = autoCompletion.autoCompletionProvider.autoComplete(request.textQuery.getOrElse(""),
+          request.projectId, request.dependsOnParameterValues.getOrElse(Seq.empty),
+          limit = request.workingLimit, offset = request.workingOffset, workspace = workspace)
+        Ok(Json.toJson(result.map(_.withNonEmptyLabels)))
+      } catch {
+        case ex: IllegalArgumentException =>
+          throw BadUserInputException(ex)
       }
     }
   }
