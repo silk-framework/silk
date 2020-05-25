@@ -9,6 +9,7 @@ import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.{Identifier, XMLUtils}
 import org.silkframework.util.XMLUtils._
+import org.silkframework.workspace.io.WorkspaceIO
 import org.silkframework.workspace.{ProjectConfig, TaskLoadingError, WorkspaceProvider}
 
 import scala.reflect.ClassTag
@@ -79,6 +80,16 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   override def deleteProject(name: Identifier)
                             (implicit userContext: UserContext): Unit = {
     resources.delete(name)
+  }
+
+  /**
+    * Imports a complete project.
+    */
+  def importProject(project: ProjectConfig,
+                    provider: WorkspaceProvider,
+                    inputResources: Option[ResourceManager],
+                    outputResources: Option[ResourceManager])(implicit user: UserContext): Unit = {
+    WorkspaceIO.copyProject(provider, this, inputResources, outputResources, project)
   }
 
   /**

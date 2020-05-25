@@ -7,7 +7,7 @@ import org.silkframework.workspace.activity.{CachedActivity, TaskActivityFactory
 
 @Plugin(
   id = "TransformPathsCache",
-  label = "Transform Paths Cache",
+  label = "Transform paths cache",
   categories = Array("TransformSpecification"),
   description = "Holds the most frequent paths for the selected entities."
 )

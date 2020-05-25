@@ -33,6 +33,14 @@ trait WorkspaceProvider {
   def deleteProject(name: Identifier)(implicit user: UserContext): Unit
 
   /**
+    * Imports a complete project.
+    */
+  def importProject(project: ProjectConfig,
+                    provider: WorkspaceProvider,
+                    inputResources: Option[ResourceManager],
+                    outputResources: Option[ResourceManager])(implicit user: UserContext): Unit
+
+  /**
    * Retrieves the project cache folder.
    */
   def projectCache(name: Identifier): ResourceManager

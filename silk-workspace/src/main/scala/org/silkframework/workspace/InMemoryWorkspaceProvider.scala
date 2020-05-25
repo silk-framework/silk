@@ -6,6 +6,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceManager}
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.io.WorkspaceIO
 
 import scala.reflect.ClassTag
 import scala.util.{Success, Try}
@@ -39,6 +40,16 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
   override def deleteProject(name: Identifier)
                             (implicit userContext: UserContext): Unit = {
     projects -= name
+  }
+
+  /**
+    * Imports a complete project.
+    */
+  def importProject(project: ProjectConfig,
+                    provider: WorkspaceProvider,
+                    inputResources: Option[ResourceManager],
+                    outputResources: Option[ResourceManager])(implicit user: UserContext): Unit = {
+    WorkspaceIO.copyProject(provider, this, inputResources, outputResources, project)
   }
 
   /**

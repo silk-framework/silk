@@ -249,6 +249,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       project.startActivities()
     }
     reloadPrefixes()
+    log.info(s"${cachedProjects.size} projects loaded.")
   }
 }
 

@@ -21,6 +21,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager, ResourceNotFoundException}
+import org.silkframework.util.StringUtils._
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.WorkspaceReadTrait
 
@@ -219,16 +220,7 @@ object PluginDescription {
 
       val label = pluginParam match {
         case Some(p) if p.label().nonEmpty => p.label()
-        case _ =>
-          val chars = parName.toCharArray.zipWithIndex.flatMap {
-            case (c, idx) =>
-              if(idx == 0) {
-                c.toString.toUpperCase
-              } else {
-                if(c.isUpper) " " + c.toLower else c.toString
-              }
-          }
-          chars.mkString
+        case _ => parName.toSentenceCase
       }
 
       val (description, exampleValue) = pluginParam map { pluginParam =>

@@ -8,6 +8,7 @@ import org.silkframework.runtime.plugin.{DistanceMeasureExampleValue, PluginDesc
 import org.silkframework.test.PluginTest
 
 import scala.reflect.ClassTag
+import scala.util.{Failure, Success, Try}
 
 /**
   * Can be mixed into a DistanceMeasure test spec.
@@ -53,16 +54,39 @@ abstract class DistanceMeasureTest[T <: DistanceMeasure : ClassTag] extends Plug
     val distanceMeasure: T = pluginDesc(example.parameters)(Prefixes.empty)
 
     def addTest(): Unit = {
-      val description = if(example.description.isEmpty) "" else s" (${example.description})"
+      val result = Try(distanceMeasure(example.inputs.source, example.inputs.target))
+      val configurationString = s" for parameters ${format(example.parameters)} and input values ${format(example.inputs.map(format))}."
+      val descriptionString = if(example.description.isEmpty) "" else s" (${example.description})"
 
-      it should s"return ${example.output} for parameters ${format(example.parameters)} and input values ${format(example.inputs.map(format))}$description" in {
-        if(example.output.isPosInfinity) {
-          // Positive Infinity and Double.Max value is used interchangeability to signal that no distance has been computed
-          distanceMeasure(example.inputs.source, example.inputs.target) should be >= Double.MaxValue
-        } else {
-          distanceMeasure(example.inputs.source, example.inputs.target) shouldBe example.output +- epsilon
-        }
+      example.throwsException match {
+        case Some(expectedException) =>
+          it should s"throw exception ${expectedException.getName} for $configurationString$descriptionString" in {
+            result match {
+              case Success(_) =>
+                fail(s"Expected exception $expectedException has not been thrown")
+              case Failure(thrownException) =>
+                if(!expectedException.isAssignableFrom(thrownException.getClass)) {
+                  throw new RuntimeException(s"Another exception was thrown: $thrownException. Expected: s$expectedException")
+                }
+            }
+          }
+        case None =>
+          it should s"return ${example.output} for $configurationString$descriptionString" in {
+            result match {
+              case Success(value) =>
+                if(example.output.isPosInfinity) {
+                  // Positive Infinity and Double.Max value is used interchangeability to signal that no distance has been computed
+                  value should be >= Double.MaxValue
+                } else {
+                  value shouldBe example.output +- epsilon
+                }
+              case Failure(thrownException) =>
+                throw thrownException
+            }
+          }
       }
+
+
     }
 
     private def format(traversable: Traversable[_]): String = {

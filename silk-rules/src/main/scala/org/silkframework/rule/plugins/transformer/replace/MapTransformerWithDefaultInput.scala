@@ -12,7 +12,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 @Plugin(
   id = "mapWithDefaultInput",
   categories = Array("Replace"),
-  label = "MapDefaultInput",
+  label = "Map with default",
   description =
       """
 Takes two inputs.

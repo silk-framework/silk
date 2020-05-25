@@ -13,6 +13,8 @@ case class UnlabeledLinkPool(entityDescs: DPair[EntitySchema], links: Seq[Link])
 
   def isEmpty: Boolean = links.isEmpty
 
+  def withLinks(addLinks: Seq[Link]): UnlabeledLinkPool = copy(links = (links ++ addLinks).distinct)
+
   def withoutLinks(removeLinks: Set[Link]): UnlabeledLinkPool = copy(links = links.filterNot(removeLinks.contains))
 
 }

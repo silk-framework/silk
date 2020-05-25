@@ -412,7 +412,7 @@ object SearchApiModel {
 
     // JSON format to serialize tasks according to the options
     private def taskFormat(userContext: UserContext): TaskJsonFormat[TaskSpec] = {
-      new TaskJsonFormat(formatOptions.getOrElse(TaskFormatOptions()), Some(userContext))(TaskSpecJsonFormat)
+      new TaskJsonFormat[TaskSpec](formatOptions.getOrElse(TaskFormatOptions()), Some(userContext))
     }
 
     /**

@@ -28,7 +28,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "GeometryTransformer",
   categories = Array("Spatial"),
-  label = "Geometry Transformer",
+  label = "Transform geometry",
   description = "Trasforms a geometry expressed in GeoSPARQL, stSPARQL or W3C Geo vocabulary from any serialization (WKT or GML) and any Coordinate Reference System (CRS) to WKT and WGS 84 (latitude-longitude).")
 case class GeometryTransformer() extends Transformer {
 

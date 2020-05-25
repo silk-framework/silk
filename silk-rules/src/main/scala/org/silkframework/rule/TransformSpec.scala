@@ -4,6 +4,7 @@ import java.util.NoSuchElementException
 
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
+import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
@@ -232,7 +233,10 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
   private def listPath(pathOperators: List[PathOperator]) =  List(UntypedPath(pathOperators))
 }
 
-case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty) extends Task[TransformSpec]
+case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty) extends Task[TransformSpec] {
+
+  override def taskType: Class[_] = classOf[TransformSpec]
+}
 
 /**
   * Static functions for the TransformSpecification class.
