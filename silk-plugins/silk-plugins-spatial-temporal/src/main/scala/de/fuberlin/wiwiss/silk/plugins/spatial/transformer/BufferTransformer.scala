@@ -28,7 +28,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "BufferTransformer",
   categories = Array("Spatial"),
-  label = "Buffer Transformer",
+  label = "Buffered geometry",
   description = "Returns the buffered geometry of the input geometry.")
 case class BufferTransformer(distance: Double = 0.0) extends SimpleTransformer {
 

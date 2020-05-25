@@ -186,7 +186,9 @@ class FileEntityCache(val entitySchema: EntitySchema,
     }
 
     private def writePartitionToFile() {
-      if (partitionCount == 1) blockDir.mkdirs()
+      if (partitionCount == 1) {
+        blockDir.safeMkdirs()
+      }
 
       val stream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(blockDir + "/partition" + (partitionCount - 1).toString)))
 

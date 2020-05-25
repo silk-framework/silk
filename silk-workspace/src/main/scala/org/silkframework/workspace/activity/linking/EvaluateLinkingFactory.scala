@@ -11,7 +11,7 @@ import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 
 @Plugin(
   id = EvaluateLinkingFactory.ActivityId,
-  label = "Evaluate Linking",
+  label = "Evaluate linking",
   categories = Array("LinkSpecification"),
   description = "Evaluates the linking task by generating links."
 )

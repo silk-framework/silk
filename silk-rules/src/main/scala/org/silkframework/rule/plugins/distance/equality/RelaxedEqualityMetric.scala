@@ -19,7 +19,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "relaxedEquality",
   categories = Array("Equality"),
-  label = "RelaxedEquality",
+  label = "Relaxed equality",
   description = "Return success if strings are equal, failure otherwise. Lower/upper case and differences like ö/o, n/ñ, c/ç etc. are treated as equal.")
 class RelaxedEqualityMetric extends SimpleDistanceMeasure {
 

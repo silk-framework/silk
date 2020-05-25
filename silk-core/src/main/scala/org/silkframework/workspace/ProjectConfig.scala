@@ -32,7 +32,7 @@ import org.silkframework.util.Identifier
 case class ProjectConfig(id: Identifier = Identifier.random,
                          prefixes: Prefixes = Prefixes.default,
                          projectResourceUriOpt: Option[String] = None,
-                         metaData: MetaData) {
+                         metaData: MetaData = MetaData.empty) {
   def withMetaData(metaData: MetaData): ProjectConfig = this.copy(metaData = metaData)
 
   def generateDefaultUri: String = {

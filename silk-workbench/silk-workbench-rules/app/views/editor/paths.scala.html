@@ -3,6 +3,8 @@
 @import controllers.rules.routes.Assets
 
 @import org.silkframework.runtime.activity.UserContext
+@import org.silkframework.util.Identifier
+
 @(sources: DPair[String], paths: DPair[Seq[String]], onlySource: Boolean, loadingMsg: String = "",
     warning: String = "", project: Project)(implicit userContext: UserContext)
 
@@ -64,7 +66,7 @@
 
     <div class="palette-block" id="@{pathType.toLowerCase}_container">
       <div class="block-header clearfix">
-        <span style='font-weight: bold; color: #582271;' class="path_type">@pathType Paths:</span>
+        <span style='font-weight: bold; color: #582271;' class="path_type">@pathType paths:</span>
         <span id='@{pathType.toLowerCase}_id' class="path_id">@source</span>
       </div>
 
@@ -81,13 +83,15 @@
 
         @for((path, index) <- paths.zipWithIndex) {
           <div
-            id="path_@{pathType.toLowerCase}_@{java.net.URLEncoder.encode(path, "utf-8")}"
-            title=@path
+            id="@pathId(pathType, path)"
             class="draggable @{pathType.toLowerCase}Paths @if(index < maximumPaths) {visible} else {hidden}"
             style="display: none;"
             >
             <p class="non-breaking-label">@path</p>
             @pathExpanded(path, pathType)
+          </div>
+          <div class="mdl-defer mdl-tooltip--right" data-mdl-defer="tooltip" for="@pathId(pathType, path)">
+            @path
           </div>
         }
         @if(paths.length > maximumPaths) {
@@ -104,4 +108,7 @@
 @pathExpanded(path: String, pathType: String) = {
   @pathBox(pathType.toLowerCase + "Path", pathType == "Source", path, 0, 0, false, project)
 }
+
+@pathId(pathType: String, path: String) = {path_@{pathType.toLowerCase}_@{Identifier.fromAllowed(path).toString}}
+
 

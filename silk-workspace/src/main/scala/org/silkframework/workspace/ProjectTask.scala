@@ -89,6 +89,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     */
   override def metaData: MetaData = metaDataValueHolder()
 
+  override def taskType: Class[_] = implicitly[ClassTag[TaskType]].runtimeClass
+
   /**
     * Starts all autorun activities.
     */

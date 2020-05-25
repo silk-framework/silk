@@ -108,6 +108,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
                   (implicit userContext: UserContext): Unit = synchronized {
     if(cachedTasks == null) {
       try {
+        logger.fine(s"Loading tasks of type ${taskType.getSimpleName}")
         val tasks = provider.readTasksSafe[TaskData](project.name, project.resources)
         cachedTasks = TreeMap()(TaskOrdering) ++ {
           (for (taskTry <- tasks) yield {

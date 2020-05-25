@@ -74,6 +74,16 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
   }
 
   /**
+    * Imports a complete project.
+    */
+  def importProject(project: ProjectConfig,
+                    provider: WorkspaceProvider,
+                    inputResources: Option[ResourceManager],
+                    outputResources: Option[ResourceManager])(implicit user: UserContext): Unit = {
+    WorkspaceIO.copyProject(provider, this, inputResources, outputResources, project)
+  }
+
+  /**
     * Retrieves the project cache folder.
     */
   override def projectCache(name: Identifier): ResourceManager = {

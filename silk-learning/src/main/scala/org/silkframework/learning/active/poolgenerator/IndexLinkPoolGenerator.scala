@@ -9,6 +9,7 @@ import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.util.DPair
 import LinkPoolGeneratorUtils._
+import org.silkframework.learning.LearningException
 
 import scala.collection.mutable
 import scala.util.Random

@@ -3,6 +3,7 @@ package org.silkframework.runtime.resource
 import java.io._
 import java.nio.file.{Files, StandardCopyOption}
 import java.time.Instant
+import org.silkframework.util.FileUtils._
 
 /**
   * A resource on the file system.
@@ -71,9 +72,6 @@ case class FileResource(file: File)
   override def delete(): Unit = file.delete()
 
   private def createDirectory(): Unit = {
-    val baseDir = file.getParentFile
-    if(!baseDir.exists && !baseDir.mkdirs()) {
-      throw new IOException("Could not create directory at: " + baseDir.getCanonicalPath)
-    }
+    file.getParentFile.safeMkdirs()
   }
 }

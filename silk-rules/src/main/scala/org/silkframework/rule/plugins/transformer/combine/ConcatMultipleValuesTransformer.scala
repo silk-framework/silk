@@ -13,7 +13,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, T
 @Plugin(
   id = "concatMultiValues",
   categories = Array("Combine"),
-  label = "ConcatenateMultipleValues",
+  label = "Concatenate multiple values",
   description = "Concatenates multiple values received for an input. If applied to multiple inputs, yields at most one value per input. Optionally removes duplicate values."
 )
 @TransformExamples(Array(

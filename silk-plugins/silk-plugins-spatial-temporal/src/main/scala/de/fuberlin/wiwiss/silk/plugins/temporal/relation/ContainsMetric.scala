@@ -26,7 +26,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "TContainsMetric",
   categories = Array("Temporal"),
-  label = "Temporal Contains",
+  label = "Temporal contains",
   description = "Computes the relation \"contains\" between two time periods or instants.")
 case class ContainsMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 

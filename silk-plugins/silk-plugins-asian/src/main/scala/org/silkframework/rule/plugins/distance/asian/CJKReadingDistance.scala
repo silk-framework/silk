@@ -25,7 +25,7 @@ import scala.io.Source
 @Plugin(
   id = "cjkReadingDistance",
   categories = Array("Asian"),
-  label = "CJK Reading Distance",
+  label = "CJK reading distance",
   description = "CJK Reading Distance."
 )
 case class CJKReadingDistance(minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {

@@ -2,20 +2,21 @@ package org.silkframework.workspace.xml
 
 import java.io.InputStream
 
+import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlFormat, XmlSerialization}
-import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.TaskLoadingError
 
+import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 import scala.xml.{Elem, XML}
 
 /**
  * A plugin that adds a new module to the workspace.
  */
-private trait XmlSerializer[TaskType <: TaskSpec] {
+private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
 
   /**
     * A prefix that uniquely identifies this module.

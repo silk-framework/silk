@@ -9,9 +9,9 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "currentDate",
-  label = "current date",
+  label = "Current date",
   categories = Array("Date", "Value"),
-  description = "The current date."
+  description = "Outputs the current date."
 )
 case class CurrentDateTransformer() extends Transformer {
 
