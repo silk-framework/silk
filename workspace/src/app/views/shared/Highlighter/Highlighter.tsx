@@ -28,9 +28,11 @@ const getSearchHighlight = (label: string, searchValue: string) => {
     let offset = 0;
     // loop through matches and add unmatched and matched parts to result array
     let matchArray = multiWordRegex.exec(label);
+    let key = 0;
     while (matchArray !== null) {
+        key++;
         result.push(label.slice(offset, matchArray.index));
-        result.push(<mark>{matchArray[0]}</mark>);
+        result.push(<mark key={key}>{matchArray[0]}</mark>);
         offset = multiWordRegex.lastIndex;
         matchArray = multiWordRegex.exec(label);
     }
