@@ -86,7 +86,13 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                     if (param.properties) {
                         // nested object
                         const nestedParams = Object.entries(param.properties);
-                        registerParameters(key + ".", nestedParams, parameterValues ? parameterValues[paramId] : {});
+                        registerParameters(
+                            key + ".",
+                            nestedParams,
+                            parameterValues && parameterValues[paramId] !== undefined
+                                ? parameterValues[paramId].value
+                                : {}
+                        );
                     } else {
                         console.warn(`Parameter '${key}' is of type "object", but has no parameters object defined!`);
                     }
@@ -98,7 +104,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                     let currentValue = value;
                     if (updateTask) {
                         // Set existing value
-                        currentValue = parameterValues[paramId];
+                        currentValue = parameterValues[paramId].value;
                     }
                     setValue(key, currentValue);
                     // Add dependent values, the object state needs to be mutably changed, see comments in handleChange()

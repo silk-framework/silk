@@ -32,7 +32,7 @@ interface IProps {
     // Initial values in a flat form, e.g. "nestedParam.param1". This is either set for all parameters or not set for none.
     // The prefixed values can be addressed with help of the 'formParamId' parameter.
     initialValues: {
-        [key: string]: string;
+        [key: string]: any;
     };
     // Values that the auto-completion of other parameters depends on
     dependentValues: {
@@ -161,7 +161,7 @@ export const ParameterWidget = ({
                         onChange={changeHandlers[formParamId]}
                         initialValue={
                             initialValues[formParamId]
-                                ? { value: initialValues[formParamId] }
+                                ? initialValues[formParamId]
                                 : { value: defaultValueAsJs(propertyDetails) }
                         }
                         dependentValues={selectDependentValues()}

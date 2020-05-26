@@ -27,11 +27,12 @@ export function TaskConfig(props: IProps) {
     const [loading, setLoading] = useState(false);
     const [labelledTaskData, setLabelledTaskData] = useState<ITaskSchemaAndData>(null);
     const { isOpen } = useSelector(commonSel.artefactModalSelector);
+    // Open the update modal for the task
     const openConfigModal = async () => {
         setLoading(true);
         try {
             // Config dialog is always opened with fresh data
-            const response = await requestTaskData(props.projectId, props.taskId);
+            const response = await requestTaskData(props.projectId, props.taskId, true);
             const taskData = response.data();
             const taskPluginDetails = await requestArtefactProperties(taskData.data.type);
             dispatch(

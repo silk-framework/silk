@@ -18,7 +18,10 @@ interface IProps {
     // Initial values in a flat form, e.g. "nestedParam.param1". This is either set for all parameters or not set for none.
     // The prefixed values can be addressed with help of the 'formParamId' parameter.
     initialValues: {
-        [key: string]: string;
+        [key: string]: {
+            label: string;
+            value: string;
+        };
     };
 }
 
@@ -39,7 +42,7 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
     const { paramId, param } = parameter;
     const initialValue =
         initialValues[paramId] !== undefined
-            ? stringValueAsJs(parameter.param.parameterType, initialValues[paramId])
+            ? stringValueAsJs(parameter.param.parameterType, initialValues[paramId].value)
             : defaultValueAsJs(param);
     const inputAttributes: IInputAttributes = {
         id: paramId,
