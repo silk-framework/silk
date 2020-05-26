@@ -302,7 +302,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
             <Loading />
         ) : (
             <>
-                {defaultValue && !updateDefaultValue && (
+                {defaultValue && !showActionsMenu && (
                     <FieldItem>
                         <TextField
                             readOnly
@@ -311,9 +311,9 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                             rightElement={
                                 <Button
                                     minimal
-                                    text={showActionsMenu ? "Abort and keep file" : "Change file"}
-                                    icon={showActionsMenu ? <Icon name="navigation-back" /> : <Icon name="item-edit" />}
-                                    onClick={this.handleDiscardChanges}
+                                    text={"Change file"}
+                                    icon={<Icon name="item-edit" />}
+                                    onClick={this.toggleFileResourceChange}
                                 />
                             }
                         />
@@ -324,9 +324,9 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                         <Button
                             outlined
                             small
-                            text={showActionsMenu ? "Abort and keep file" : "Change file"}
-                            icon={showActionsMenu ? <Icon name="operation-undo" /> : <Icon name="item-edit" />}
-                            onClick={this.toggleFileResourceChange}
+                            text={"Abort and keep file"}
+                            icon={<Icon name="operation-undo" />}
+                            onClick={this.handleDiscardChanges}
                         />
                         <Divider addSpacing="large" />
                     </>
