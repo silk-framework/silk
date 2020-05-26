@@ -1,16 +1,26 @@
 import React from "react";
+import ReactMarkdown from "react-markdown";
 import { sharedOp } from "@ducks/shared";
 import { ITaskParameter } from "@ducks/common/typings";
-import { FieldItem, FieldSet, TitleSubsection, Label } from "@wrappers/index";
+import {
+    Accordion,
+    AccordionItem,
+    FieldItem,
+    FieldSet,
+    HtmlContentBlock,
+    OverflowText,
+    TitleSubsection,
+    Label,
+} from "@wrappers/index";
 import { Intent } from "@wrappers/blueprint/constants";
 import { Autocomplete } from "../../../Autocomplete/Autocomplete";
 import { InputMapper } from "./InputMapper";
 import { AppToaster } from "../../../../../services/toaster";
-import Spacing from "@wrappers/src/components/Separation/Spacing";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
 
 const MAXLENGTH_TOOLTIP = 40;
+const MAXLENGTH_SIMPLEHELP = 288;
 
 interface IHookFormParam {
     errors: any;
@@ -82,6 +92,27 @@ export const ParameterWidget = ({
         }
     };
 
+    let propertyHelperText = null;
+    if (description && description.length > MAXLENGTH_TOOLTIP) {
+        propertyHelperText =
+            description.length > MAXLENGTH_SIMPLEHELP ? (
+                <Accordion align="end">
+                    <AccordionItem
+                        title={<OverflowText inline>{description}</OverflowText>}
+                        fullWidth
+                        condensed
+                        noBorder
+                    >
+                        <HtmlContentBlock>
+                            <ReactMarkdown source={description} />
+                        </HtmlContentBlock>
+                    </AccordionItem>
+                </Accordion>
+            ) : (
+                description
+            );
+    }
+
     if (propertyDetails.type === "object") {
         return (
             <FieldSet
@@ -94,7 +125,7 @@ export const ParameterWidget = ({
                         tooltip={description && description.length <= MAXLENGTH_TOOLTIP ? description : ""}
                     />
                 }
-                helperText={description && description.length > MAXLENGTH_TOOLTIP ? description : ""}
+                helperText={propertyHelperText}
             >
                 {Object.entries(propertyDetails.properties).map(([nestedParamId, nestedParam]) => {
                     const nestedFormParamId = `${formParamId}.${nestedParamId}`;
@@ -126,7 +157,7 @@ export const ParameterWidget = ({
                         tooltip={description && description.length <= MAXLENGTH_TOOLTIP ? description : ""}
                     />
                 }
-                helperText={description && description.length > MAXLENGTH_TOOLTIP ? description : ""}
+                helperText={propertyHelperText}
                 hasStateDanger={errorMessage(title, errors) ? true : false}
                 messageText={errorMessage(title, errors)}
             >
@@ -148,7 +179,7 @@ export const ParameterWidget = ({
                     htmlFor: formParamId,
                     tooltip: description && description.length <= MAXLENGTH_TOOLTIP ? description : "",
                 }}
-                helperText={description && description.length > MAXLENGTH_TOOLTIP ? description : ""}
+                helperText={propertyHelperText}
                 hasStateDanger={errorMessage(title, errors)}
                 messageText={errorMessage(title, errors)}
             >
