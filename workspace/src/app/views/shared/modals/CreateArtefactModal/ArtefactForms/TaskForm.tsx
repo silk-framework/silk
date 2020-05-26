@@ -69,7 +69,6 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
     useEffect(() => {
         // All keys (also nested ones are stores in here)
         const returnKeys: string[] = [];
-        const dependsOnValues: Record<string, any> = {};
         // Register all parameters
         const registerParameters = (
             prefix: string,
@@ -102,13 +101,14 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                         currentValue = parameterValues[paramId];
                     }
                     setValue(key, currentValue);
-                    // Add dependent values
+                    // Add dependent values, the object state needs to be mutably changed, see comments in handleChange()
                     if (dependsOnParameters.includes(paramId)) {
                         dependentValues[key] = currentValue;
                     }
                 }
             });
         };
+
         if (!updateTask) {
             register({ name: LABEL }, { required: true });
             register({ name: DESCRIPTION });

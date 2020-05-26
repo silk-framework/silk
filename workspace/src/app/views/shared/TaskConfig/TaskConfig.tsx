@@ -61,7 +61,10 @@ export function TaskConfig(props: IProps) {
     };
 
     useEffect(() => {
-        initPreviewData();
+        if (!isOpen) {
+            // Always update when the update modal was closed
+            initPreviewData();
+        }
     }, [isOpen]);
 
     let titlePostfix = "";
