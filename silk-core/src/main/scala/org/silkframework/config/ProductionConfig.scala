@@ -37,4 +37,14 @@ object ProductionConfig {
   def setSafeMode(enable: Boolean): Unit = synchronized {
     _inSafeMode = enable
   }
+
+  def betaWorkspaceSwitchEnabled: Boolean = {
+    val cfg: TypesafeConfig = DefaultConfig.instance()
+    cfg.getBoolean("workspace.beta.switch.enabled")
+  }
+
+  def betaWorkspaceLink: Boolean = {
+    val cfg: TypesafeConfig = DefaultConfig.instance()
+    cfg.getBoolean("workspace.beta.switch.enabled")
+  }
 }
