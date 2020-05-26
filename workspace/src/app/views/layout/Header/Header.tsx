@@ -30,6 +30,8 @@ import { Helmet } from "react-helmet";
 import { useLocation } from "react-router";
 import { APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { workspaceSel } from "@ducks/workspace";
+import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
+import { CONTEXT_PATH } from "../../../constants/path";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];
@@ -147,7 +149,21 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                 </ApplicationToolbarSection>
                 {iFrameDetection && (
                     <ApplicationToolbarAction aria-label="TODO: User menu" isActive={false} onClick={() => {}}>
-                        <Icon name="application-useraccount" description="TODO: Open user menu" large />
+                        <ContextMenu
+                            togglerElement={"application-useraccount"}
+                            togglerText={"Open user menu"}
+                            togglerLarge={true}
+                        >
+                            <MenuItem
+                                text={"Back to old workspace"}
+                                href={CONTEXT_PATH + "/workspace"}
+                                // onClick={
+                                //     idx === 0
+                                //         ? (e) => goToDetailsPage(relatedItem.itemLinks[0], relatedItem.label, e)
+                                //         : null
+                                // }
+                            />
+                        </ContextMenu>
                     </ApplicationToolbarAction>
                 )}
                 <ApplicationToolbarPanel aria-label="TODO: User panel" expanded={false}>

@@ -20,7 +20,7 @@ const getWrapper = (props = {}, h) => {
     let history = h;
     if (!history) {
         history = createBrowserHistory();
-        history.location.pathname = "/dataintegration/workspaceNew";
+        history.location.pathname = "/dataintegration/workspace-beta";
     }
 
     const store = createStore(history);
@@ -55,7 +55,7 @@ describe("Search Items", () => {
         );
 
         let history = createBrowserHistory();
-        history.location.pathname = "/dataintegration/workspaceNew";
+        history.location.pathname = "/dataintegration/workspace-beta";
         history.location.search = filteredQueryParams;
 
         getWrapper({}, history);
