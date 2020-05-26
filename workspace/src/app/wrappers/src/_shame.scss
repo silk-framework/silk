@@ -28,3 +28,30 @@ html {
     visibility: inherit;
     white-space: nowrap;
 }
+
+.uppy-DragDrop-container {
+    // TODO: create own file upload elements
+
+    border-width: 1px;
+    //border-style: dotted;
+    border-radius: 3px;
+
+    color: inherit;
+    background-color: $data-table-zebra-color;
+
+    .uppy-DragDrop-inner {
+        line-height: inherit;
+        padding: 1rem;
+    }
+
+    .uppy-DragDrop-arrow {
+        height: 2rem;
+        width: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .uppy-DragDrop-label {
+        font-size: inherit;
+        margin-bottom: 0.5rem;
+    }
+}
