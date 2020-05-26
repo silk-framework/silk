@@ -10,7 +10,6 @@ import { Button, Icon, FieldItem, TextField, Divider } from "@wrappers/index";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import Loading from "../Loading";
 import { IAutocompleteProps } from "../Autocomplete/Autocomplete";
-import AbortAlert from "../modals/FileUploadModal/AbortAlert";
 import OverrideAlert from "../modals/FileUploadModal/OverrideAlert";
 import { UploadNewFile } from "./cases/UploadNewFile";
 import { FileMenu, FileMenuItems } from "./FileMenu";

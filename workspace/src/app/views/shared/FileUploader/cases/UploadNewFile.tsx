@@ -2,8 +2,7 @@ import { DragDrop } from "@uppy/react";
 import React, { useEffect, useState } from "react";
 import Uppy from "@uppy/core";
 import ProgressBar from "@wrappers/blueprint/progressbar";
-import { Button } from "@wrappers/index";
-import AbortAlert from "../../modals/FileUploadModal/AbortAlert";
+import { Button, Notification, Spacing } from "@wrappers/index";
 import { Intent } from "@wrappers/blueprint/constants";
 
 interface IProps {
@@ -29,10 +28,8 @@ interface IProps {
 export function UploadNewFile(props: IProps) {
     const { uppy, simpleInput, allowMultiple, onAdded, onUploadSuccess } = props;
 
-    const [progress, setProgress] = useState<number>(0);
+    const [progress, setProgress] = useState<number>(-1);
     const [uploaded, setUploaded] = useState<File>(null);
-
-    const [openAbortDialog, setOpenAbortDialog] = useState<boolean>(false);
 
     useEffect(() => {
         registerEvents();
@@ -68,8 +65,7 @@ export function UploadNewFile(props: IProps) {
     const handleAbort = () => {
         uppy.reset();
         uppy.cancelAll();
-        setProgress(0);
-        setOpenAbortDialog(false);
+        setProgress(-1);
         setUploaded(null);
     };
 
@@ -101,27 +97,31 @@ export function UploadNewFile(props: IProps) {
     }
 
     return (
-        <div>
-            {progress ? (
-                <div>
-                    <p>
-                        {!uploaded
-                            ? "Waiting for finished file upload to show data preview."
-                            : `${uploaded.name} successfully uploaded`}
-                    </p>
+        <>
+            {progress >= 0 ? (
+                <Notification
+                    success={uploaded ? true : false}
+                    actions={
+                        !uploaded && (
+                            <Button outlined onClick={handleAbort}>
+                                Abort Upload
+                            </Button>
+                        )
+                    }
+                >
+                    <p>{!uploaded ? "Wait for finished upload." : `${uploaded.name} was successfully uploaded`}</p>
+                    <Spacing />
                     <ProgressBar
                         value={progress}
                         stripes={!uploaded}
                         intent={uploaded ? Intent.SUCCESS : Intent.PRIMARY}
                     />
-                    {!uploaded && <Button onClick={() => setOpenAbortDialog(true)}>Abort Upload</Button>}
-                </div>
+                </Notification>
             ) : simpleInput ? (
                 <input type="file" id="fileInput" onChange={handleFileInputChange} />
             ) : (
                 <DragDrop uppy={uppy} />
             )}
-            <AbortAlert isOpen={openAbortDialog} onCancel={() => setOpenAbortDialog(false)} onConfirm={handleAbort} />
-        </div>
+        </>
     );
 }

@@ -44,7 +44,7 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
     return (
         <>
             <SimpleDialog
-                title="Upload New File"
+                title="Upload file"
                 isOpen={isOpen}
                 onClose={handleDiscard}
                 actions={
