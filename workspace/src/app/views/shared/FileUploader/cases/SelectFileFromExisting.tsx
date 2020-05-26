@@ -1,5 +1,5 @@
 import { Autocomplete, IAutocompleteProps } from "../../Autocomplete/Autocomplete";
-import { FieldItem } from "@wrappers/index";
+import { Button, FieldItem } from "@wrappers/index";
 import React, { useState } from "react";
 
 interface IProps {
@@ -9,24 +9,39 @@ interface IProps {
      * @param value
      */
     onChange(value: string);
+
+    /**
+     * Show Change button for extra confirmation
+     */
+    confirmationButton?: boolean;
+
+    /**
+     * Default value
+     */
+    defaultValue?: string;
 }
 
 /**
  * The widget for "select from existing" option
- * @param autocomplete
- * @param onChange
  * @constructor
  */
-export function SelectFileFromExisting({ autocomplete, onChange }: IProps) {
+export function SelectFileFromExisting(props: IProps) {
+    const { autocomplete, onChange, confirmationButton, defaultValue } = props;
+
+    const [selectedValue, setSelectedValue] = useState(defaultValue);
     const [error, setError] = useState(false);
 
     const handleChange = (value: string) => {
-        if (!value) {
-            setError(true);
-        } else {
-            setError(false);
+        setError(!value);
+        setSelectedValue(value);
+
+        if (!confirmationButton) {
+            onChange(value);
         }
-        onChange(value);
+    };
+
+    const handleConfirm = () => {
+        onChange(selectedValue);
     };
 
     return (
@@ -39,6 +54,11 @@ export function SelectFileFromExisting({ autocomplete, onChange }: IProps) {
             messageText={error ? "File not specified" : ""}
         >
             <Autocomplete {...autocomplete} onChange={handleChange} />
+            {!!confirmationButton && (
+                <Button affirmative onClick={handleConfirm}>
+                    Change
+                </Button>
+            )}
         </FieldItem>
     );
 }

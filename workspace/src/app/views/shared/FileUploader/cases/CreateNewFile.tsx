@@ -1,4 +1,4 @@
-import { FieldItem, TextField } from "@wrappers/index";
+import { Button, FieldItem, TextField } from "@wrappers/index";
 import React, { useState } from "react";
 
 interface IProps {
@@ -9,22 +9,28 @@ interface IProps {
     onChange(value: string);
 
     onBlur?(value: string);
+
+    /**
+     * Show Change button for extra confirmation
+     */
+    confirmationButton?: boolean;
 }
 
 /**
  * The Widget for create new file option
- * @param onChange
  * @constructor
  */
-export function CreateNewFile({ onChange, onBlur }: IProps) {
+export function CreateNewFile(props: IProps) {
+    const { onChange, onBlur } = props;
+
     const [newFileName, setNewFileName] = useState("");
     const [error, setError] = useState(false);
 
     const handleNewFileNameChange = (e) => {
         const { value } = e.target;
-        if (value || !newFileName) {
+        if (value || newFileName) {
             setError(false);
-        } else if (this.state.newFileName) {
+        } else if (!value) {
             setError(true);
         }
         setNewFileName(value);
