@@ -104,7 +104,7 @@ const fetch = ({ url, body, method = "GET", headers = {} }: IFetchOptions): Axio
 };
 
 /** Successful response. */
-export class FetchReponse<T = any> {
+export class FetchResponse<T = any> {
     protected axiosResponse: AxiosResponse;
     constructor(axiosResponse: AxiosResponse<T>) {
         this.axiosResponse = axiosResponse;
@@ -159,18 +159,19 @@ export class UnknownError extends FetchError {
 
 /** Adds error handling to requests and returns either a success object.
  * In case of an error it throws one of the specific error objects of type FetchError. */
-export const handleRequest = async <T>(fetchResult: AxiosPromise<T>): Promise<FetchReponse<T>> => {
+export const handleRequest = async <T>(fetchResult: AxiosPromise<T>): Promise<FetchResponse<T>> => {
     try {
         const response = await fetchResult;
-        return new FetchReponse(response);
+        return new FetchResponse(response);
     } catch (e) {
         if (e.isFetchError) {
             throw e;
         } else if (e.isAxiosError) {
             if (!e.response) {
                 throw new NetworkError(e);
+            } else {
+                throw new ResponseError(e);
             }
-            throw new ResponseError(e);
         } else {
             throw new UnknownError(e);
         }

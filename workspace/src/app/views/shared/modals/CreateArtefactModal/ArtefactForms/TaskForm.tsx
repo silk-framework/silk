@@ -104,7 +104,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                     setValue(key, currentValue);
                     // Add dependent values
                     if (dependsOnParameters.includes(paramId)) {
-                        dependsOnValues[key] = currentValue;
+                        dependentValues[key] = currentValue;
                     }
                 }
             });
@@ -114,7 +114,6 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
             register({ name: DESCRIPTION });
         }
         registerParameters("", visibleParams, updateTask ? updateTask.parameterValues : {});
-        setDependentValues(dependsOnValues);
         setFormValueKeys(returnKeys);
 
         // Unsubscribe
@@ -132,6 +131,12 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
             const { triggerValidation } = form;
             const value = e.target ? e.target.value : e;
 
+            if (dependentValues[key] !== undefined) {
+                // This is rather a hack, since the callback is memoized the clojure always captures the initial (empty) object, thus we need the state object to be mutable.
+                dependentValues[key] = value;
+                // We still need to update the state with a new object to trigger re-render though.
+                setDependentValues({ ...dependentValues });
+            }
             setValue(key, value);
             triggerValidation(key);
         },

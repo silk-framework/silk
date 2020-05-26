@@ -1,5 +1,5 @@
 import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
-import fetch, { handleRequest, FetchReponse } from "../../../services/fetch";
+import fetch, { handleRequest, FetchResponse } from "../../../services/fetch";
 import { AxiosResponse } from "axios";
 import qs from "qs";
 import { generateNetworkError, isNetworkError } from "../../../services/errorLogger";
@@ -33,7 +33,7 @@ const handleError = ({ response }) => {
  */
 export const requestAutocompleteResults = async (
     payload: IRequestAutocompletePayload
-): Promise<FetchReponse<IAutocompleteDefaultResponse>> => {
+): Promise<FetchResponse<IAutocompleteDefaultResponse>> => {
     return handleRequest(
         fetch({
             url: workspaceApi(`/pluginParameterAutoCompletion`),
@@ -79,7 +79,7 @@ export const requestTaskData = async (
     projectId: string,
     itemId: string,
     withLabel: boolean = false
-): Promise<FetchReponse<IProjectTask>> => {
+): Promise<FetchResponse<IProjectTask>> => {
     const queryParams: any = {};
     if (withLabel) {
         queryParams.withLabels = true;
