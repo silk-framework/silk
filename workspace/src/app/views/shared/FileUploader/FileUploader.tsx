@@ -342,7 +342,6 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                                 <SelectFileFromExisting
                                     autocomplete={autocomplete}
                                     onChange={this.handleFileNameChange}
-                                    confirmationButton={!!defaultValue}
                                 />
                             </>
                         )}
