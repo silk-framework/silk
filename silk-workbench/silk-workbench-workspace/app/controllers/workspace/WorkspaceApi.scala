@@ -6,10 +6,13 @@ import java.util.logging.Logger
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.workspaceApi.search.ResourceSearchRequest
 import javax.inject.Inject
 import org.silkframework.config._
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.dataset.ResourceBasedDataset
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.PluginRegistry
@@ -24,13 +27,13 @@ import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, W
 import play.api.libs.Files
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.streams.IterateeStreams
+import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.existentials
-import scala.util.Try
 
-class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController {
+class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with ControllerUtilsTrait {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
@@ -228,6 +231,16 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
       case ex: Exception =>
         ErrorResult(BadUserInputException(ex))
     }
+  }
+
+  /** The list of tasks that use this resource. */
+  def resourceUsage(projectId: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = super[ControllerUtilsTrait].getProject(projectId)
+    val dependentDatasets = project.tasks[GenericDatasetSpec]
+        .filter(_.data.plugin.isFileResourceBased)
+        .filter(_.data.plugin.asInstanceOf[ResourceBasedDataset].file.name == resourceName)
+        .map(_.taskLabel(Int.MaxValue))
+    Ok(JsArray(dependentDatasets.map(JsString)))
   }
 
   def deleteResource(projectName: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
