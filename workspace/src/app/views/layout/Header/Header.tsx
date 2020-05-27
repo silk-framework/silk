@@ -13,6 +13,8 @@ import {
     ContextMenu,
     Icon,
     IconButton,
+    Menu,
+    MenuDivider,
     MenuItem,
     OverviewItem,
     OverviewItemActions,
@@ -58,6 +60,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
     const startTitle = `Build — ${APPLICATION_SUITE_NAME}`;
 
     const [windowTitle, setWindowTitle] = useState<string>(startTitle);
+    const [displayUserMenu, toggleUserMenuDispay] = useState<boolean>(false);
 
     const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
 
@@ -147,28 +150,45 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                 <ApplicationToolbarSection>
                     <CreateButton onClick={handleCreateDialog} />
                 </ApplicationToolbarSection>
-                {iFrameDetection && (
-                    <ApplicationToolbarAction aria-label="TODO: User menu" isActive={false} onClick={() => {}}>
-                        <ContextMenu
-                            togglerElement={"application-useraccount"}
-                            togglerText={"Open user menu"}
-                            togglerLarge={true}
+                {displayUserMenu ? (
+                    <>
+                        <ApplicationToolbarAction
+                            aria-label="Close user menu"
+                            isActive={true}
+                            onClick={() => {
+                                toggleUserMenuDispay(false);
+                            }}
                         >
-                            <MenuItem
-                                text={"Back to old workspace"}
-                                href={CONTEXT_PATH + "/workspace"}
-                                // onClick={
-                                //     idx === 0
-                                //         ? (e) => goToDetailsPage(relatedItem.itemLinks[0], relatedItem.label, e)
-                                //         : null
-                                // }
-                            />
-                        </ContextMenu>
+                            <Icon name="navigation-close" description="Close icon" large />
+                        </ApplicationToolbarAction>
+                        <ApplicationToolbarPanel aria-label="TODO: User panel" expanded={true}>
+                            <Menu>
+                                <MenuItem text={"Back to old workspace"} href={CONTEXT_PATH + "/workspace"} />
+                                {iFrameDetection && (
+                                    <>
+                                        <MenuDivider />
+                                        <MenuItem
+                                            text="Logout"
+                                            onClick={() => {
+                                                dispatch(commonOp.logout());
+                                            }}
+                                        />
+                                    </>
+                                )}
+                            </Menu>
+                        </ApplicationToolbarPanel>
+                    </>
+                ) : (
+                    <ApplicationToolbarAction
+                        aria-label="Open user menu"
+                        isActive={false}
+                        onClick={() => {
+                            toggleUserMenuDispay(true);
+                        }}
+                    >
+                        <Icon name="application-useraccount" description="User menu icon" large />
                     </ApplicationToolbarAction>
                 )}
-                <ApplicationToolbarPanel aria-label="TODO: User panel" expanded={false}>
-                    TODO
-                </ApplicationToolbarPanel>
             </ApplicationToolbar>
             <CreateArtefactModal />
         </ApplicationHeader>
