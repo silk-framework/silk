@@ -32,7 +32,7 @@ import { Helmet } from "react-helmet";
 import { useLocation } from "react-router";
 import { APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { workspaceSel } from "@ducks/workspace";
-import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
+import { IProjectOrTask, ItemDeleteModal } from "../../shared/modals/ItemDeleteModal";
 import { CONTEXT_PATH } from "../../../constants/path";
 
 interface IProps {
@@ -53,6 +53,9 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
 
     const isAuth = useSelector(commonSel.isAuthSelector);
 
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<IProjectOrTask | null>(null);
+
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const taskId = useSelector(commonSel.currentTaskIdSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
@@ -70,6 +73,16 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
 
     const handleCreateDialog = () => {
         dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType));
+    };
+
+    const onOpenDeleteModal = (item: IProjectOrTask) => {
+        setSelectedItem(item);
+        setDeleteModalOpen(true);
+    };
+
+    const onCloseDeleteModal = () => {
+        setSelectedItem(null);
+        setDeleteModalOpen(false);
     };
 
     const getWindowTitle = (projectId) => {
@@ -132,12 +145,19 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                         )}
                     </OverviewItemDescription>
                     <OverviewItemActions>
-                        <IconButton
-                            name="item-remove"
-                            text="Remove"
-                            disruptive
-                            onClick={() => alert("Not implemented")}
-                        />
+                        {(projectId || taskId) && (
+                            <IconButton
+                                name="item-remove"
+                                text={taskId ? "Remove task" : "Remove project"}
+                                disruptive
+                                onClick={() =>
+                                    onOpenDeleteModal({
+                                        id: taskId ? taskId : projectId,
+                                        projectId: taskId ? projectId : undefined,
+                                    })
+                                }
+                            />
+                        )}
                         <ContextMenu>
                             <MenuItem text={"This"} disabled />
                             <MenuItem text={"Is just a"} disabled />
@@ -191,6 +211,9 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                 )}
             </ApplicationToolbar>
             <CreateArtefactModal />
+            {deleteModalOpen && selectedItem && (
+                <ItemDeleteModal selectedItem={selectedItem} onClose={onCloseDeleteModal} />
+            )}
         </ApplicationHeader>
     );
 }
