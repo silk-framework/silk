@@ -1,7 +1,7 @@
 import { ErrorInfo } from "react";
 import Dexie from "dexie";
 import { isDevelopment } from "../constants/path";
-import { HttpError } from "./fetch/responseInterceptor";
+import { FetchError } from "./fetch/responseInterceptor";
 
 interface IClientInfo {
     language: string;
@@ -96,7 +96,7 @@ const getClientInfo = (): IClientInfo => {
  * Generate the network error object
  * @param error The Error request config.
  */
-const generateNetworkError = (error: HttpError) => {
+const generateNetworkError = (error: FetchError) => {
     const { config } = error.errorDetails;
     const { url, data, headers, baseURL, method } = config;
     return {
@@ -133,7 +133,7 @@ const generateDefaultError = (name: string = "DEFAULT_ERROR", data: any, stack?:
  * @param error
  * @param reactErrorInfo
  */
-const logError = (error: HttpError | Error, reactErrorInfo?: ErrorInfo): boolean => {
+const logError = (error: FetchError | Error, reactErrorInfo?: ErrorInfo): boolean => {
     let err;
 
     try {
@@ -172,7 +172,7 @@ const logError = (error: HttpError | Error, reactErrorInfo?: ErrorInfo): boolean
 const sendError = async (logs) => {
     // @TODO: prepare endpoint for logs
     if (isDevelopment) {
-        console.log(`Send Logs: ${Date().toString()}`);
+        console.log(`Send Logs at: ${Date().toString()}`);
         console.log(logs);
     }
 

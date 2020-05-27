@@ -27,7 +27,7 @@ export class ErrorResponse {
     }
 }
 
-export class HttpError {
+export class FetchError {
     static ResponseErrorType = "responseError";
     static NetworkErrorType = "networkError";
 
@@ -35,7 +35,7 @@ export class HttpError {
 
     errorDetails: AxiosError;
 
-    errorType: typeof HttpError.ResponseErrorType | typeof HttpError.NetworkErrorType;
+    errorType: typeof FetchError.ResponseErrorType | typeof FetchError.NetworkErrorType;
 
     errorResponse: ErrorResponse;
 
@@ -45,23 +45,23 @@ export class HttpError {
 }
 
 /** Error response. */
-export class ResponseError extends HttpError {
+export class HttpError extends FetchError {
     constructor(errorDetails: AxiosError) {
         super();
 
         this.errorDetails = errorDetails;
-        this.errorType = HttpError.ResponseErrorType;
+        this.errorType = FetchError.ResponseErrorType;
 
         this.errorResponse = this.errorDetails.response.data;
     }
 }
 
-export class NetworkError extends HttpError {
+export class NetworkError extends FetchError {
     constructor(errorDetails: AxiosError) {
         super();
 
         this.errorDetails = errorDetails;
-        this.errorType = HttpError.NetworkErrorType;
+        this.errorType = FetchError.NetworkErrorType;
 
         this.errorResponse = new ErrorResponse(
             "Network Error",
@@ -88,15 +88,15 @@ export const responseInterceptorOnError = (error: AxiosError) => {
         if (!error.response) {
             const errorObj = new NetworkError(error);
             logError(errorObj);
-            return Promise.reject(new ResponseError(error));
+            return Promise.reject(errorObj);
         }
 
         // UnAuthorized
         if (401 === error.response.status) {
             getStore().dispatch(commonOp.logout());
-            return Promise.reject(new ResponseError(error));
+            return Promise.reject(new HttpError(error));
         }
-        return Promise.reject(new ResponseError(error));
+        return Promise.reject(new HttpError(error));
     } else {
         /**
          * @NOTE: This kind of errors not possible, because axios config created manually

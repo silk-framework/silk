@@ -8,7 +8,7 @@ import { sharedOp } from "@ducks/shared";
 import { AppToaster } from "../../../../../services/toaster";
 import Spacing from "@wrappers/src/components/Separation/Spacing";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
-import { HttpError } from "../../../../../services/fetch/responseInterceptor";
+import { FetchError } from "../../../../../services/fetch/responseInterceptor";
 
 const MAXLENGTH_TOOLTIP = 40;
 
@@ -95,7 +95,7 @@ export const ParameterWidget = (props: IProps) => {
             });
             return data;
         } catch (e) {
-            if (e.errorType === HttpError.ResponseErrorType && e.httpStatus !== 400) {
+            if (e.errorType === FetchError.ResponseErrorType && e.httpStatus !== 400) {
                 // For now hide 400 errors from user, since they are not helpful.
                 AppToaster.show({
                     message: e.errorResponse.detail,

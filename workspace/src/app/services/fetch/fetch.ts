@@ -36,12 +36,12 @@ export const fetch = async <T = any>({
     headers = {},
 }: IFetchOptions): Promise<FetchResponse<T> | never> => {
     const curToken = axios.CancelToken.source();
-    const lastQ = _pendingRequests.push(curToken);
+    const cToken = curToken.token;
 
     let config: AxiosRequestConfig = {
         method,
         url,
-        cancelToken: curToken.token,
+        cancelToken: cToken,
         data: body,
     };
 
@@ -59,8 +59,11 @@ export const fetch = async <T = any>({
         //@ts-ignore
         return await axios(config);
     } finally {
-        // Remove last request
-        _pendingRequests.splice(lastQ - 1, 1);
+        // Remove request
+        const index = _pendingRequests.findIndex((item) => item.token === cToken);
+        if (index > -1) {
+            _pendingRequests.splice(index, 1);
+        }
     }
 };
 
