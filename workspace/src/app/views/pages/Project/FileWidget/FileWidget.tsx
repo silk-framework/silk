@@ -171,7 +171,7 @@ export const FileWidget = () => {
                                                             )}
                                                         </TableCell>
                                                     ))}
-                                                    <TableCell key={"fileActions"}>
+                                                    <TableCell key={"fileActions"} className="bx--table-column-menu">
                                                         <IconButton
                                                             name="item-remove"
                                                             text="Remove file"
