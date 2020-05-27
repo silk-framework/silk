@@ -32,7 +32,6 @@ import { Helmet } from "react-helmet";
 import { useLocation } from "react-router";
 import { APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { workspaceSel } from "@ducks/workspace";
-import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import { CONTEXT_PATH } from "../../../constants/path";
 
 interface IProps {

@@ -1,4 +1,10 @@
-import { legacyApiEndpoint, projectApi, resourcesLegacyApi, workspaceApi } from "../../../utils/getApiEndpoint";
+import {
+    datasetsLegacyApi,
+    legacyApiEndpoint,
+    projectApi,
+    resourcesLegacyApi,
+    workspaceApi,
+} from "../../../utils/getApiEndpoint";
 import fetch from "../../../services/fetch";
 import qs from "qs";
 import {
@@ -203,7 +209,7 @@ export const requestResourcesList = async (
 export const requestPreview = async (
     preview: IResourcePreview | IDatasetConfigPreview | IDatasetPreview
 ): Promise<IPreviewResponse> => {
-    const url = resourcesLegacyApi("preview");
+    const url = (preview as IDatasetPreview).dataset ? datasetsLegacyApi("preview") : resourcesLegacyApi("preview");
     try {
         const { data } = await fetch({
             url,
