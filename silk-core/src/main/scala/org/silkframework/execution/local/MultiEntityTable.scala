@@ -9,7 +9,7 @@ case class MultiEntityTable(entities: Traversable[Entity],
                             subTables: Seq[LocalEntities],
                             override val globalErrors: Seq[String] = Seq.empty) extends LocalEntities {
 
-  override def updateEntities(newEntities: Traversable[Entity]): LocalEntities = {
-    MultiEntityTable(newEntities, entitySchema, task, subTables)
+  override def updateEntities(newEntities: Traversable[Entity], newSchema: EntitySchema): LocalEntities = {
+    MultiEntityTable(newEntities, newSchema, task, subTables)
   }
 }

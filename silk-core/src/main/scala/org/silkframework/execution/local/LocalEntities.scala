@@ -15,14 +15,18 @@ trait LocalEntities extends EntityHolder {
     */
   override def headOption: Option[Entity] = this.entities.headOption
 
-  def updateEntities(newEntities: Traversable[Entity]): LocalEntities
+  def updateEntities(newEntities: Traversable[Entity], newSchema: EntitySchema): LocalEntities
 
   def mapEntities(f: Entity => Entity): EntityHolder = {
-    updateEntities(entities.map(f))
+    updateEntities(entities.map(f), entitySchema)
+  }
+
+  def flatMapEntities(outputSchema: EntitySchema, updateTask: Task[TaskSpec] = task)(f: Entity => TraversableOnce[Entity]): EntityHolder = {
+    updateEntities(entities.flatMap(f), outputSchema)
   }
 
   def filter(f: Entity => Boolean): EntityHolder = {
-    updateEntities(entities.filter(f))
+    updateEntities(entities.filter(f), entitySchema)
   }
 }
 
