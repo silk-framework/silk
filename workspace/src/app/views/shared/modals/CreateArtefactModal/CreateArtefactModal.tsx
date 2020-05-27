@@ -58,6 +58,12 @@ export function CreateArtefactModal() {
         }
     }, [projectId]);
 
+    useEffect(() => {
+        if (artefactsList.length > 0) {
+            defaultArtefactSelected(artefactsList);
+        }
+    }, [artefactsList]);
+
     const handleAdd = () => {
         if (selected.key === DATA_TYPES.PROJECT) {
             return dispatch(commonOp.selectArtefact(selected));
@@ -72,6 +78,10 @@ export function CreateArtefactModal() {
                 textQuery,
             })
         );
+    };
+
+    const defaultArtefactSelected = (artefactsList: any) => {
+        setSelected(artefactsList[0]);
     };
 
     const handleArtefactSelect = (artefact: IArtefactItem) => {
