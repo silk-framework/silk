@@ -15,7 +15,11 @@ export const stringValueAsJs = (valueType: string, value: string | null): any =>
     }
 
     if (valueType === INPUT_TYPES.INTEGER) {
-        v = +value;
+        if (v !== "") {
+            v = +value;
+        } else {
+            v = null;
+        }
     }
     return v;
 };
