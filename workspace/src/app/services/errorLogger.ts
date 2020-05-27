@@ -1,6 +1,5 @@
 import { ErrorInfo } from "react";
 import Dexie from "dexie";
-import { AxiosError } from "axios";
 import { isDevelopment } from "../constants/path";
 import { HttpError } from "./fetch/responseInterceptor";
 

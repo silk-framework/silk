@@ -3,7 +3,6 @@ import { MenuItem, Suggest } from "@wrappers/index";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { Highlighter } from "../Highlighter/Highlighter";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import { init } from "ramda";
 
 export interface IAutocompleteProps {
     /**

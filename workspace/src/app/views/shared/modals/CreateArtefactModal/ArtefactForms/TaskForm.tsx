@@ -230,9 +230,6 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                         ))}
                     </AdvancedOptionsArea>
                 )}
-                <button type="button" onClick={() => console.log(getValues(), errors)}>
-                    Debug: Console Form data
-                </button>
                 {artefact.taskType === "Dataset" && (
                     <>
                         <Spacing />

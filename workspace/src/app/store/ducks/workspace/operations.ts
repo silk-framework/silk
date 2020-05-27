@@ -15,7 +15,7 @@ import {
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
 import { fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
-import { commonOp, commonSel } from "@ducks/common";
+import { commonSel } from "@ducks/common";
 import {
     ISearchListRequest,
     requestCloneTask,
