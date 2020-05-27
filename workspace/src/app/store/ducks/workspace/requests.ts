@@ -177,12 +177,25 @@ export const requestIfResourceExists = async (projectId: string, resourceName: s
     }
 };
 
+/** Remove a project file resource. */
 export const removeProjectFileResource = async (projectId: string, resourceName: string): Promise<void> => {
     try {
         await fetch({
             url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}`),
             method: "DELETE",
         });
+    } catch (e) {
+        throw handleError(e);
+    }
+};
+
+/** Returns all tasks that depend on a specific resource. */
+export const projectFileResourceDependents = async (projectId: string, resourceName: string): Promise<string[]> => {
+    try {
+        const { data } = await fetch({
+            url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/usage`),
+        });
+        return data;
     } catch (e) {
         throw handleError(e);
     }

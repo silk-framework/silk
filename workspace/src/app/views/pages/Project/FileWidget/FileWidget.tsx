@@ -2,23 +2,23 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import {
+    Button,
     Card,
     CardContent,
     CardHeader,
     CardTitle,
     Divider,
-    TableContainer,
+    IconButton,
+    Spacing,
     Table,
-    TableHead,
-    TableRow,
     TableBody,
     TableCell,
+    TableContainer,
+    TableHead,
     TableHeader,
+    TableRow,
     Toolbar,
     ToolbarSection,
-    Button,
-    Spacing,
-    IconButton,
 } from "@wrappers/index";
 import Loading from "../../../shared/Loading";
 import FileUploadModal from "../../../shared/modals/FileUploadModal";
@@ -28,11 +28,12 @@ import { Highlighter } from "../../../shared/Highlighter/Highlighter";
 import { usePagination } from "@wrappers/src/components/Pagination/Pagination";
 import DeleteModal from "../../../shared/modals/DeleteModal";
 import { commonSel } from "@ducks/common";
-import { removeProjectFileResource } from "@ducks/workspace/requests";
+import { projectFileResourceDependents, removeProjectFileResource } from "@ducks/workspace/requests";
 
 interface IFileDeleteModalOptions {
     isOpen: boolean;
     fileName: string | null;
+    dependentTasks: string[];
 }
 
 /** Project file management widget. */
@@ -45,7 +46,11 @@ export const FileWidget = () => {
     const projectId = useSelector(commonSel.currentProjectIdSelector);
 
     const [isOpenDialog, setIsOpenDialog] = useState<boolean>(false);
-    const [deleteModalOpts, setDeleteModalOpts] = useState<IFileDeleteModalOptions>({ isOpen: false, fileName: null });
+    const [deleteModalOpts, setDeleteModalOpts] = useState<IFileDeleteModalOptions>({
+        isOpen: false,
+        fileName: null,
+        dependentTasks: [],
+    });
     const { isLoading } = fileWidget;
     const { pagination, paginationElement, onTotalChange } = usePagination({
         pageSizes: [5, 10, 20],
@@ -59,6 +64,7 @@ export const FileWidget = () => {
             closeDeleteModal();
         }
     };
+
     if (filesList !== undefined && filesList !== null && filesList.length !== pagination.total) {
         onTotalChange(filesList.length);
     }
@@ -85,11 +91,30 @@ export const FileWidget = () => {
     };
 
     const closeDeleteModal = () => {
-        setDeleteModalOpts({ fileName: null, isOpen: false });
+        setDeleteModalOpts({ fileName: null, isOpen: false, dependentTasks: [] });
     };
 
-    const openDeleteModal = (fileName: string) => {
-        setDeleteModalOpts({ fileName: fileName, isOpen: true });
+    const openDeleteModal = async (fileName: string) => {
+        const dependentTasks = await projectFileResourceDependents(projectId, fileName);
+        setDeleteModalOpts({ fileName: fileName, isOpen: true, dependentTasks: dependentTasks });
+    };
+
+    const renderDeleteModal = () => {
+        if (deleteModalOpts.dependentTasks.length > 0) {
+            return (
+                <div>
+                    <p>Following datasets are using file '{deleteModalOpts.fileName}':</p>
+                    <ul>
+                        {deleteModalOpts.dependentTasks.map((task) => (
+                            <li key={task}>{task}</li>
+                        ))}
+                    </ul>
+                    <p>Are you sure you want to delete file '{deleteModalOpts.fileName}</p>
+                </div>
+            );
+        } else {
+            return <p>Are you sure you want to delete file '{deleteModalOpts.fileName}'?</p>;
+        }
     };
 
     return (
@@ -178,9 +203,8 @@ export const FileWidget = () => {
                 isOpen={deleteModalOpts.isOpen}
                 onDiscard={closeDeleteModal}
                 onConfirm={() => deleteFile(deleteModalOpts.fileName)}
-            >
-                <p>Are you sure you want to delete file '{deleteModalOpts.fileName}'?</p>
-            </DeleteModal>
+                render={renderDeleteModal}
+            />
         </>
     );
 };
