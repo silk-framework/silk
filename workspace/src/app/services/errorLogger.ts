@@ -1,6 +1,8 @@
 import { ErrorInfo } from "react";
 import Dexie from "dexie";
 import { AxiosError } from "axios";
+import { isDevelopment } from "../constants/path";
+import { HttpError } from "./fetch/responseInterceptor";
 
 interface IClientInfo {
     language: string;
@@ -14,26 +16,35 @@ interface IClientInfo {
     };
 }
 
-interface INetworkError {
-    url: string;
-}
-
 interface IError {
     name: string;
     message: string;
     client: IClientInfo;
     stack?: string;
-    network?: INetworkError;
+    network?: any;
 }
 
 const LOG_TABLE = "logs";
+const REQUEST_INTERVAL = 5 * 60 * 1000;
 
 const tableInstance: any = new Dexie(LOG_TABLE);
 tableInstance.version(1).stores({
     [LOG_TABLE]: "++id, name, message, stack, client, react_stack, network",
 });
 
-//@TODO: Periodically clear the logs table
+const timerId = setTimeout(async function checkLogs() {
+    const logs = await tableInstance[LOG_TABLE].toArray();
+    if (logs.length) {
+        try {
+            sendError(logs);
+        } catch (e) {
+            console.log(e);
+        } finally {
+            clearTimeout(timerId);
+            setTimeout(checkLogs, REQUEST_INTERVAL);
+        }
+    }
+}, REQUEST_INTERVAL);
 
 /**
  * Using in window.onerror => global.ts
@@ -42,11 +53,17 @@ tableInstance.version(1).stores({
  * @param url
  * @param lineNumber
  * @param colNo
- * @param error
+ * @param normalErrorObject
  */
-const onErrorHandler = (message: string, url: string, lineNumber: number, colNo?: number, error?: Error): boolean => {
-    if (error) {
-        logError(error);
+const onErrorHandler = (
+    message: string,
+    url: string,
+    lineNumber: number,
+    colNo?: number,
+    normalErrorObject?: Error
+): boolean => {
+    if (normalErrorObject) {
+        logError(normalErrorObject);
     } else {
         logError({
             name: message.split(":")[0],
@@ -55,19 +72,6 @@ const onErrorHandler = (message: string, url: string, lineNumber: number, colNo?
         });
     }
     return true;
-};
-
-const isNetworkError = (err: AxiosError | Error): boolean => {
-    if (err && (err as AxiosError).isAxiosError && !(err as AxiosError).response) {
-        return true;
-    }
-    if (!err || !Object.keys(err).length) {
-        return false;
-    }
-    if (typeof err === "object") {
-        return "response" in err;
-    }
-    return err;
 };
 
 /**
@@ -91,43 +95,37 @@ const getClientInfo = (): IClientInfo => {
 
 /**
  * Generate the network error object
- * @param requestConfig The Axios request config.
- * @return INetworkError
+ * @param error The Error request config.
  */
-const generateNetworkError = (error: Error): INetworkError => {
-    if ((error as AxiosError).isAxiosError) {
-        const axiosError = error as AxiosError;
-        const { config } = axiosError;
-        const { url } = config;
-        return {
-            url,
-        };
-    } else {
-        return {
-            url: "Unknown",
-        };
-    }
+const generateNetworkError = (error: HttpError) => {
+    const { config } = error.errorDetails;
+    const { url, data, headers, baseURL, method } = config;
+    return {
+        url,
+        data,
+        headers,
+        baseURL,
+        method,
+    };
 };
 
 /**
  * Generate the default js Error object
  * @param name
- * @param message
+ * @param data
  * @param stack
  * @return IError
  */
-const generateDefaultError = (
-    name: string = "DEFAULT_ERROR",
-    message: string = "DEFAULT_ERROR_MESSAGE",
-    stack?: string
-): Error => {
+const generateDefaultError = (name: string = "DEFAULT_ERROR", data: any, stack?: string): Error => {
     const err: Error = {
         name,
-        message,
+        message: data,
     };
+
     if (stack) {
         err.stack = stack;
     }
+
     return err;
 };
 
@@ -136,44 +134,51 @@ const generateDefaultError = (
  * @param error
  * @param reactErrorInfo
  */
-const logError = async (error: AxiosError | Error, reactErrorInfo?: ErrorInfo): Promise<boolean> => {
-    let err: IError;
+const logError = (error: HttpError | Error, reactErrorInfo?: ErrorInfo): boolean => {
+    let err;
 
-    if (isNetworkError(error)) {
-        const errorMessage = error.message ? error.message : "Could not connect to server.";
-        err = {
-            ...generateDefaultError("Network error", errorMessage),
-            client: getClientInfo(),
-            network: generateNetworkError(error),
-        };
-    } else if (error instanceof Error) {
-        const { name, message, stack } = error;
-        const newStack = reactErrorInfo ? reactErrorInfo.componentStack : stack;
-        err = {
-            ...generateDefaultError(name, message, newStack),
-            client: getClientInfo(),
-        };
-    } else {
-        console.warn("Uncaught Error type received ", error);
+    try {
+        const client = getClientInfo();
+        if ("errorType" in error && error.isHttpError) {
+            const errorMessage = error.errorResponse ? error.errorResponse.title : "Could not connect to server.";
+            err = {
+                ...generateDefaultError("Network error", errorMessage),
+                network: generateNetworkError(error),
+            };
+        } else if (error instanceof Error) {
+            const { name, message, stack } = error;
+            const newStack = reactErrorInfo ? reactErrorInfo.componentStack : stack;
+            err = generateDefaultError(name, message, newStack);
+        } else {
+            err = generateDefaultError("Uncaught Error type received ", error);
+        }
+
+        tableInstance[LOG_TABLE].put({
+            ...err,
+            client,
+        });
+
+        return true;
+    } catch (e) {
+        if (isDevelopment) {
+            console.log(`Can't store the error for logging:`, e);
+        }
         return false;
     }
-
-    const isStored = await sendError(err);
-    if (isStored) {
-        tableInstance[LOG_TABLE].clear();
-    }
-
-    return true;
 };
 
 /**
  * Send the error via http or store in indexedDB
- * @param error
  */
-const sendError = async (error: IError) => {
-    await tableInstance[LOG_TABLE].put(error);
-    // return false if not saved for network
+const sendError = async (logs) => {
+    // @TODO: prepare endpoint for logs
+    if (isDevelopment) {
+        console.log(`Send Logs: ${Date().toString()}`);
+        console.log(logs);
+    }
+
+    tableInstance[LOG_TABLE].clear();
     return true;
 };
 
-export { logError, onErrorHandler, isNetworkError, generateNetworkError };
+export { logError, onErrorHandler, generateNetworkError };

@@ -1,30 +1,30 @@
-import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
-import fetch, { handleRequest, FetchResponse } from "../../../services/fetch";
-import { AxiosResponse } from "axios";
+import { legacyApiEndpoint, projectApi, resourcesLegacyApi, workspaceApi } from "../../../utils/getApiEndpoint";
+import fetch from "../../../services/fetch";
 import qs from "qs";
-import { generateNetworkError, isNetworkError } from "../../../services/errorLogger";
 import {
     IAutocompleteDefaultResponse,
+    IDatasetConfigPreview,
+    IDatasetPreview,
     IDatasetTypePayload,
     IMetadataUpdatePayload,
+    IPreviewResponse,
     IProjectMetadataResponse,
     IProjectTask,
     IRelatedItemsResponse,
     IRequestAutocompletePayload,
     IResourceListPayload,
     IResourceListResponse,
+    IResourcePreview,
     ITaskMetadataResponse,
 } from "@ducks/shared/typings";
+import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 
 /**
  * @private
- * @param response
+ * @param error: HttpError
  */
-const handleError = ({ response }) => {
-    if (isNetworkError(response.data)) {
-        return generateNetworkError(response.data);
-    }
-    return response.data;
+const handleError = (error) => {
+    return error.errorResponse;
 };
 
 /**
@@ -33,14 +33,17 @@ const handleError = ({ response }) => {
  */
 export const requestAutocompleteResults = async (
     payload: IRequestAutocompletePayload
-): Promise<FetchResponse<IAutocompleteDefaultResponse>> => {
-    return handleRequest(
-        fetch({
+): Promise<FetchResponse<IAutocompleteDefaultResponse> | never> => {
+    try {
+        const { data } = await fetch({
             url: workspaceApi(`/pluginParameterAutoCompletion`),
             method: "POST",
             body: payload,
-        })
-    );
+        });
+        return data;
+    } catch (e) {
+        throw handleError(e);
+    }
 };
 
 /**
@@ -79,18 +82,21 @@ export const requestTaskData = async (
     projectId: string,
     itemId: string,
     withLabel: boolean = false
-): Promise<FetchResponse<IProjectTask>> => {
+): Promise<IProjectTask> => {
     const queryParams: any = {};
     if (withLabel) {
         queryParams.withLabels = true;
     }
 
-    return handleRequest(
-        fetch({
+    try {
+        const { data } = await fetch({
             url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}`),
             body: queryParams,
-        })
-    );
+        });
+        return data;
+    } catch (e) {
+        throw handleError(e);
+    }
 };
 
 /**
@@ -103,7 +109,7 @@ export const requestUpdateProjectMetadata = async (
     payload: IMetadataUpdatePayload
 ): Promise<IProjectMetadataResponse> => {
     try {
-        const { data }: AxiosResponse<IProjectMetadataResponse> = await fetch({
+        const { data }: FetchResponse<IProjectMetadataResponse> = await fetch({
             url: workspaceApi(`/projects/${itemId}/metaData`),
             method: "PUT",
             body: payload,
@@ -126,7 +132,7 @@ export const requestUpdateTaskMetadata = async (
     projectId?: string
 ): Promise<ITaskMetadataResponse> => {
     try {
-        const { data }: AxiosResponse<ITaskMetadataResponse> = await fetch({
+        const { data }: FetchResponse<ITaskMetadataResponse> = await fetch({
             url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}/metadata`),
             method: "PUT",
             body: payload,
@@ -191,5 +197,21 @@ export const requestResourcesList = async (
         return data;
     } catch (e) {
         throw handleError(e);
+    }
+};
+
+export const requestPreview = async (
+    preview: IResourcePreview | IDatasetConfigPreview | IDatasetPreview
+): Promise<IPreviewResponse> => {
+    const url = resourcesLegacyApi("preview");
+    try {
+        const { data } = await fetch({
+            url,
+            method: "POST",
+            body: preview,
+        });
+        return data;
+    } catch (e) {
+        return handleError(e);
     }
 };

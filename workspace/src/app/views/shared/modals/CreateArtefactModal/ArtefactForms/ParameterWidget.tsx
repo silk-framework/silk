@@ -8,13 +8,14 @@ import { sharedOp } from "@ducks/shared";
 import { AppToaster } from "../../../../../services/toaster";
 import Spacing from "@wrappers/src/components/Separation/Spacing";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
-import { ResponseError } from "../../../../../services/fetch";
+import { HttpError } from "../../../../../services/fetch/responseInterceptor";
 
 const MAXLENGTH_TOOLTIP = 40;
 
 interface IHookFormParam {
     errors: any;
 }
+
 interface IProps {
     projectId: string;
     // The ID of the parent object
@@ -54,17 +55,18 @@ export const errorMessage = (title: string, errors: any) => {
 };
 
 /** Widget for a single parameter of a task. */
-export const ParameterWidget = ({
-    projectId,
-    pluginId,
-    formParamId,
-    required,
-    taskParameter,
-    formHooks,
-    changeHandlers,
-    initialValues,
-    dependentValues,
-}: IProps) => {
+export const ParameterWidget = (props: IProps) => {
+    const {
+        projectId,
+        pluginId,
+        formParamId,
+        required,
+        taskParameter,
+        formHooks,
+        changeHandlers,
+        initialValues,
+        dependentValues,
+    } = props;
     const errors = formHooks.errors[formParamId];
     const propertyDetails = taskParameter.param;
     const { title, description, autoCompletion } = propertyDetails;
@@ -83,7 +85,7 @@ export const ParameterWidget = ({
 
     const handleAutoCompleteInput = async (input: string = "") => {
         try {
-            const { data } = await sharedOp.getAutocompleteResultsAsync({
+            const data = await sharedOp.getAutocompleteResultsAsync({
                 pluginId: pluginId,
                 parameterId: taskParameter.paramId,
                 projectId,
@@ -93,16 +95,13 @@ export const ParameterWidget = ({
             });
             return data;
         } catch (e) {
-            if (e.errorType === "errorResponse") {
-                const error = e as ResponseError;
-                if (error.httpStatus() !== 400) {
-                    // For now hide 400 errors from user, since they are not helpful.
-                    AppToaster.show({
-                        message: error.errorResponse().detail,
-                        intent: Intent.DANGER,
-                        timeout: 0,
-                    });
-                }
+            if (e.errorType === HttpError.ResponseErrorType && e.httpStatus !== 400) {
+                // For now hide 400 errors from user, since they are not helpful.
+                AppToaster.show({
+                    message: e.errorResponse.detail,
+                    intent: Intent.DANGER,
+                    timeout: 0,
+                });
             } else {
                 console.warn(e);
             }

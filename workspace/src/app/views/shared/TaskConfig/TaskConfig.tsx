@@ -32,8 +32,7 @@ export function TaskConfig(props: IProps) {
         setLoading(true);
         try {
             // Config dialog is always opened with fresh data
-            const response = await requestTaskData(props.projectId, props.taskId, true);
-            const taskData = response.data();
+            const taskData = await requestTaskData(props.projectId, props.taskId, true);
             const taskPluginDetails = await requestArtefactProperties(taskData.data.type);
             dispatch(
                 commonOp.updateProjectTask({
@@ -44,6 +43,8 @@ export function TaskConfig(props: IProps) {
                     currentParameterValues: taskData.data.parameters,
                 })
             );
+        } catch (e) {
+            console.log(e);
         } finally {
             setLoading(false);
         }
@@ -53,7 +54,7 @@ export function TaskConfig(props: IProps) {
         setLoading(true);
         try {
             // Fetch data for preview of config
-            const taskData = (await requestTaskData(props.projectId, props.taskId, true)).data();
+            const taskData = await requestTaskData(props.projectId, props.taskId, true);
             const taskDescription = await requestArtefactProperties(taskData.data.type);
             setLabelledTaskData({ taskData, taskDescription });
         } finally {

@@ -37,6 +37,8 @@ export interface IProjectTask {
     project: string;
     // item ID
     id: string;
+
+    type: string;
     // The actual content
     data: {
         // The plugin ID

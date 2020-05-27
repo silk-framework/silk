@@ -1,6 +1,6 @@
 import { requestAutocompleteResults } from "@ducks/shared/requests";
-import { FetchResponse } from "../../../../services/fetch";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
+import { FetchResponse } from "../../../../services/fetch/responseInterceptor";
 
 export const getAutocompleteResultsAsync = async (payload): Promise<FetchResponse<IAutocompleteDefaultResponse>> => {
     return requestAutocompleteResults({
