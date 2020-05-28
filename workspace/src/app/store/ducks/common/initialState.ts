@@ -4,6 +4,7 @@ import { getLocale } from "./thunks/locale.thunk";
 export function initialArtefactModalState(): IArtefactModal {
     return {
         isOpen: false,
+        error: {},
         artefactsList: [],
         selectedArtefact: {} as IArtefactItem,
         cachedArtefactProperties: {},

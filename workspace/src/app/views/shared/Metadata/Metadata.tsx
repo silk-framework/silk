@@ -110,7 +110,7 @@ export function Metadata(props: IProps) {
 
         const result = await letLoading(async () => {
             const path = location.pathname;
-            const metadata = await sharedOp.updateTaskMetadataAsync(taskId, inputs, projectId);
+            const metadata = await sharedOp.updateTaskMetadataAsync(inputs, taskId, projectId);
             dispatch(routerOp.updateLocationState(path, projectId, metadata));
             return metadata;
         });

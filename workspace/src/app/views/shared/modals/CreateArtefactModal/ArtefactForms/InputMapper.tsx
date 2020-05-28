@@ -1,7 +1,7 @@
 import React from "react";
 import { INPUT_TYPES } from "../../../../../constants";
 import { Switch, TextField, TextArea } from "@wrappers/index";
-import { QueryEditor } from "../../../QueryEditor/QueryEditor";
+import { CodeEditor } from "../../../QueryEditor/CodeEditor";
 import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";
 import { FileUploader } from "../../../FileUploader/FileUploader";
@@ -18,7 +18,10 @@ interface IProps {
     // Initial values in a flat form, e.g. "nestedParam.param1". This is either set for all parameters or not set for none.
     // The prefixed values can be addressed with help of the 'formParamId' parameter.
     initialValues: {
-        [key: string]: string;
+        [key: string]: {
+            label: string;
+            value: string;
+        };
     };
 }
 
@@ -39,7 +42,7 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
     const { paramId, param } = parameter;
     const initialValue =
         initialValues[paramId] !== undefined
-            ? stringValueAsJs(parameter.param.parameterType, initialValues[paramId])
+            ? stringValueAsJs(parameter.param.parameterType, initialValues[paramId].value)
             : defaultValueAsJs(param);
 
     const inputAttributes: IInputAttributes = {
@@ -76,8 +79,9 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
             return <TextField {...inputAttributes} />;
         case INPUT_TYPES.TEXTAREA:
             return <TextArea {...inputAttributes} />;
+        case INPUT_TYPES.RESTRICTION:
         case INPUT_TYPES.MULTILINE_STRING:
-            return <QueryEditor {...inputAttributes} />;
+            return <CodeEditor {...inputAttributes} />;
         case INPUT_TYPES.PASSWORD:
             return <TextField {...inputAttributes} type={"password"} />;
         case INPUT_TYPES.RESOURCE:
@@ -93,7 +97,7 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
                         },
                         onSearch: handleFileSearch,
                         itemLabelRenderer: (item) => item.name,
-                        itemValueRenderer: (item) => item.name,
+                        itemValueSelector: (item) => item.name,
                     }}
                     {...inputAttributes}
                 />

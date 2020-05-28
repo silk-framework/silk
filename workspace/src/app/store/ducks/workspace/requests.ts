@@ -1,7 +1,6 @@
 import { IAppliedFacetState, IFacetState, ISorterListItemState } from "@ducks/workspace/typings";
 import fetch from "../../../services/fetch";
 import { legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
-import { generateNetworkError, isNetworkError } from "../../../services/errorLogger";
 import { VoidOrNever } from "../../../../app";
 
 export interface ISearchListRequest {
@@ -27,11 +26,8 @@ export interface ICreateProjectPayload {
     };
 }
 
-const handleError = ({ response }) => {
-    if (isNetworkError(response.data)) {
-        return generateNetworkError(response.data);
-    }
-    return response.data;
+const handleError = (e) => {
+    return e.errorResponse;
 };
 
 export const requestSearchList = async (payload: ISearchListRequest): Promise<ISearchListResponse | never> => {
@@ -170,6 +166,30 @@ export const requestIfResourceExists = async (projectId: string, resourceName: s
     try {
         const { data } = await fetch({
             url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/metadata`),
+        });
+        return data;
+    } catch (e) {
+        throw handleError(e);
+    }
+};
+
+/** Remove a project file resource. */
+export const removeProjectFileResource = async (projectId: string, resourceName: string): Promise<void> => {
+    try {
+        await fetch({
+            url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}`),
+            method: "DELETE",
+        });
+    } catch (e) {
+        throw handleError(e);
+    }
+};
+
+/** Returns all tasks that depend on a specific resource. */
+export const projectFileResourceDependents = async (projectId: string, resourceName: string): Promise<string[]> => {
+    try {
+        const { data } = await fetch({
+            url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/usage`),
         });
         return data;
     } catch (e) {

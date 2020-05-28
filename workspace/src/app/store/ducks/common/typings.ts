@@ -83,19 +83,27 @@ export interface IProjectTaskUpdatePayload {
 export interface IArtefactModal {
     // If true, this modal is shown to the user
     isOpen: boolean;
+
     loading: boolean;
+
     // The list of item types that can be selected.
     artefactsList: IArtefactItem[];
+
     // The selected item type
     selectedArtefact: IArtefactItem;
+
     // cached plugin descriptions
     cachedArtefactProperties: {
         [key: string]: IDetailedArtefactItem;
     };
+
     // The selected item category
     selectedDType: string;
+
     // If an existing task should be updated
     updateExistingTask?: IProjectTaskUpdatePayload;
+
+    error: any;
 }
 
 export interface ICommonState {

@@ -15,20 +15,35 @@ export const stringValueAsJs = (valueType: string, value: string | null): any =>
     }
 
     if (valueType === INPUT_TYPES.INTEGER) {
-        v = +value;
+        if (v !== "") {
+            v = +value;
+        } else {
+            v = null;
+        }
     }
     return v;
 };
-/** Extracts the initial values from the parameter values of an existing task and turns them into a flat object, e.g. obj["nestedParam.param1"]. */
+/** Extracts the initial values from the parameter values of an existing task and turns them into a flat object, e.g. obj["nestedParam.param1"].
+ *  If the original values are reified values with optional labels, this reified structure is kept in the flat object.
+ **/
 export const existingTaskValuesToFlatParameters = (updateTask: any) => {
     if (updateTask) {
         const result: any = {};
         const objToFlatRec = (obj: object, prefix: string) => {
-            Object.entries(obj).forEach(([paramName, paramValue]) => {
+            Object.entries(obj).forEach(([paramName, paramLabelAndValue]) => {
+                let paramValue = paramLabelAndValue;
+                if (
+                    paramLabelAndValue !== null &&
+                    paramLabelAndValue.value !== undefined &&
+                    (Object.entries(paramLabelAndValue).length === 1 ||
+                        (Object.entries(paramLabelAndValue).length === 2 && paramLabelAndValue.label !== undefined))
+                ) {
+                    paramValue = paramLabelAndValue.value;
+                }
                 if (typeof paramValue === "object" && paramValue !== null) {
                     objToFlatRec(paramValue, paramName + ".");
                 } else {
-                    result[prefix + paramName] = paramValue;
+                    result[prefix + paramName] = paramLabelAndValue;
                 }
             });
         };

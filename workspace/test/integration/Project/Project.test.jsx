@@ -19,7 +19,7 @@ const getWrapper = (props = {}, h) => {
     let history = h;
     if (!history) {
         history = createBrowserHistory();
-        history.location.pathname = "/dataintegration/workspaceNew/projects/cmem";
+        history.location.pathname = "/dataintegration/workspace-beta/projects/cmem";
     }
 
     const store = createStore(history);
@@ -40,7 +40,7 @@ jest.mock("react-router", () => ({
     useParams: () => ({
         projectId: "cmem",
     }),
-    useRouteMatch: () => ({ url: "/dataintegration/workspaceNew/projects/cmem" }),
+    useRouteMatch: () => ({ url: "/dataintegration/workspace-beta/projects/cmem" }),
 }));
 
 describe("Project page", () => {
@@ -51,7 +51,7 @@ describe("Project page", () => {
 
     it("should get common data types or for specific project", async () => {
         let history = createBrowserHistory();
-        history.location.pathname = "/dataintegration/workspaceNew/projects/cmem";
+        history.location.pathname = "/dataintegration/workspace-beta/projects/cmem";
 
         getWrapper({}, history);
 
@@ -64,7 +64,7 @@ describe("Project page", () => {
 
     it("should request meta data", async () => {
         let history = createBrowserHistory();
-        history.location.pathname = "/dataintegration/workspaceNew/projects/cmem";
+        history.location.pathname = "/dataintegration/workspace-beta/projects/cmem";
 
         getWrapper({}, history);
 
@@ -77,7 +77,7 @@ describe("Project page", () => {
 
     xit("should send the right projectId to backend", async () => {
         let history = createBrowserHistory();
-        history.location.pathname = "/dataintegration/workspaceNew/projects/cmem";
+        history.location.pathname = "/dataintegration/workspace-beta/projects/cmem";
 
         getWrapper({}, history);
 

@@ -15,6 +15,11 @@ import { UploadNewFile } from "./cases/UploadNewFile";
 import { FileMenu, FileMenuItems } from "./FileMenu";
 import { SelectFileFromExisting } from "./cases/SelectFileFromExisting";
 import { CreateNewFile } from "./cases/CreateNewFile";
+import { requestIfResourceExists } from "@ducks/workspace/requests";
+import AbortAlert from "../modals/FileUploadModal/AbortAlert";
+import OverrideAlert from "../modals/FileUploadModal/OverrideAlert";
+import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
+import { Button, Notification } from "@wrappers/index";
 
 interface IUploaderInstance {
     /**
@@ -119,6 +124,9 @@ interface IState {
 
     //Filename which shows in input for update action
     inputFilename: string;
+
+    // If an error occurred this will contain the error message
+    error: string | null;
 }
 
 const noop = () => {
@@ -143,6 +151,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
             overrideDialog: null,
             showActionsMenu: false,
             inputFilename: props.defaultValue || "",
+            error: null,
         };
 
         this.uppy.use(XHR, {
@@ -195,6 +204,16 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         this.reset();
     };
 
+    handleUploadError = (fileData, error) => {
+        let errorDetails = error?.message ? error.message : "-";
+        const idx = errorDetails.indexOf("Source error");
+        if (idx > 0) {
+            errorDetails = errorDetails.substring(0, idx);
+        }
+        const errorMessage = `An upload error has occurred for file '${fileData.name}'. Details: ${errorDetails}`;
+        this.setState({ error: errorMessage });
+    };
+
     handleFileMenuChange = (value: FileMenuItems) => {
         this.setState({
             selectedFileMenu: value,
@@ -228,10 +247,13 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         const uploadUrl = legacyApiEndpoint(`/projects/${projectId}/resources`);
         this.setEndpoint(`${uploadUrl}/${file.name}`);
 
-        this.setState({ isUploading: true });
+        this.setState({ isUploading: true, error: null });
         try {
-            await this.uppy.upload();
-            this.props.onChange(file.name);
+            const result = await this.uppy.upload();
+
+            if (this.props.onChange && result.successful) {
+                this.props.onChange(file.name);
+            }
             this.reset();
         } catch (e) {
             console.log(e);
@@ -336,26 +358,38 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                             <FileMenu onChange={this.handleFileMenuChange} selectedFileMenu={selectedFileMenu} />
                         )}
 
-                        {selectedFileMenu === "SELECT" && (
-                            <>
+                        <div>
+                            {selectedFileMenu === "SELECT" && (
                                 <SelectFileFromExisting
                                     autocomplete={autocomplete}
                                     onChange={this.handleFileNameChange}
                                 />
-                            </>
-                        )}
-                        {selectedFileMenu === "NEW" && (
-                            <UploadNewFile
-                                uppy={this.uppy}
-                                simpleInput={simpleInput}
-                                allowMultiple={allowMultiple}
-                                onAdded={this.handleFileAdded}
-                                onProgress={this.props.onProgress}
-                                onUploadSuccess={this.handleUploadSuccess}
-                            />
-                        )}
-                        {selectedFileMenu === "EMPTY" && (
-                            <CreateNewFile onChange={this.props.onChange} confirmationButton={!!defaultValue} />
+                            )}
+                            {selectedFileMenu === "NEW" && (
+                                <>
+                                    <UploadNewFile
+                                        uppy={this.uppy}
+                                        simpleInput={simpleInput}
+                                        allowMultiple={allowMultiple}
+                                        onAdded={this.handleFileAdded}
+                                        onProgress={this.handleProgress}
+                                        onUploadSuccess={this.handleUploadSuccess}
+                                        onUploadError={this.handleUploadError}
+                                    />
+                                    {this.state.error && <Notification message={this.state.error} danger />}
+                                </>
+                            )}
+                            {selectedFileMenu === "EMPTY" && (
+                                <CreateNewFile onChange={this.props.onChange} confirmationButton={!!defaultValue} />
+                            )}
+                        </div>
+                        {!!progress && (
+                            <div>
+                                <p>Waiting for finished file upload to show data preview.</p>
+                                <ProgressBar value={progress} />
+
+                                <Button onClick={this.handleAbort}>Abort Upload</Button>
+                            </div>
                         )}
 
                         <OverrideAlert

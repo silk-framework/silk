@@ -20,13 +20,15 @@ interface IProps {
     onProgress?(progress: number);
 
     onUploadSuccess?(file: File);
+
+    onUploadError?(e, f);
 }
 
 /**
  * The Widget for "Upload new file" option
  */
 export function UploadNewFile(props: IProps) {
-    const { uppy, simpleInput, allowMultiple, onAdded, onUploadSuccess } = props;
+    const { uppy, simpleInput, allowMultiple, onAdded, onUploadSuccess, onUploadError } = props;
 
     const [progress, setProgress] = useState<number>(-1);
     const [uploaded, setUploaded] = useState<File>(null);
@@ -40,12 +42,14 @@ export function UploadNewFile(props: IProps) {
         uppy.on("file-added", onAdded);
         uppy.on("upload-progress", handleProgress);
         uppy.on("upload-success", handleUploadSuccess);
+        uppy.on("upload-error", onUploadError);
     };
 
     const unregisterEvents = () => {
         uppy.off("file-added", onAdded);
         uppy.off("upload-progress", handleProgress);
         uppy.off("upload-success", handleUploadSuccess);
+        uppy.off("upload-error", onUploadError);
     };
 
     const handleProgress = (file, { bytesUploaded, bytesTotal }) => {

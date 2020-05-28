@@ -1,5 +1,5 @@
 import React, { ReactElement, useState } from "react";
-import { AlertDialog, Button, Checkbox, } from '@wrappers/index';
+import { AlertDialog, Button, Checkbox, HtmlContentBlock, FieldItem, Spacing } from "@wrappers/index";
 
 export interface IDeleteModalOptions {
     isOpen: boolean;
@@ -12,12 +12,21 @@ export interface IDeleteModalOptions {
     children?: ReactElement;
 }
 
-export default function DeleteModal({isOpen, confirmationRequired, onDiscard, render, onConfirm, children}: IDeleteModalOptions) {
+export default function DeleteModal({
+    isOpen,
+    confirmationRequired,
+    onDiscard,
+    render,
+    onConfirm,
+    children,
+}: IDeleteModalOptions) {
     const [isConfirmed, setIsConfirmed] = useState(false);
 
     const toggleConfirmChange = () => {
         setIsConfirmed(!isConfirmed);
     };
+
+    const otherContent = !!render ? render() : null;
 
     return (
         <AlertDialog
@@ -25,27 +34,32 @@ export default function DeleteModal({isOpen, confirmationRequired, onDiscard, re
             title="Confirm Deletion"
             isOpen={isOpen}
             onClose={onDiscard}
-            actions={
-                [
-                    <Button
-                        key='remove'
-                        disruptive
-                        onClick={onConfirm}
-                        disabled={confirmationRequired && !isConfirmed}
-                    >
-                        Remove
-                    </Button>,
-                    <Button key='cancel' onClick={onDiscard}>Cancel</Button>
-                ]
-            }
+            actions={[
+                <Button key="remove" disruptive onClick={onConfirm} disabled={confirmationRequired && !isConfirmed}>
+                    Remove
+                </Button>,
+                <Button key="cancel" onClick={onDiscard}>
+                    Cancel
+                </Button>,
+            ]}
         >
-            <div>{render && render()}</div>
-            <div>{children && children}</div>
-            <div>
-                {
-                    confirmationRequired && <Checkbox onChange={toggleConfirmChange} label={"Confirm"} />
-                }
-            </div>
+            {otherContent && (
+                <>
+                    <HtmlContentBlock>{otherContent}</HtmlContentBlock>
+                    <Spacing />
+                </>
+            )}
+            {children && (
+                <>
+                    {children}
+                    <Spacing />
+                </>
+            )}
+            {confirmationRequired && (
+                <FieldItem>
+                    <Checkbox onChange={toggleConfirmChange} label={"Confirm"} />
+                </FieldItem>
+            )}
         </AlertDialog>
-    )
+    );
 }

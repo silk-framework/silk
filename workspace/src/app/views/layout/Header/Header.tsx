@@ -13,6 +13,8 @@ import {
     ContextMenu,
     Icon,
     IconButton,
+    Menu,
+    MenuDivider,
     MenuItem,
     OverviewItem,
     OverviewItemActions,
@@ -30,6 +32,8 @@ import { Helmet } from "react-helmet";
 import { useLocation } from "react-router";
 import { APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { workspaceSel } from "@ducks/workspace";
+import { IProjectOrTask, ItemDeleteModal } from "../../shared/modals/ItemDeleteModal";
+import { CONTEXT_PATH } from "../../../constants/path";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];
@@ -49,6 +53,9 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
 
     const isAuth = useSelector(commonSel.isAuthSelector);
 
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<IProjectOrTask | null>(null);
+
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const taskId = useSelector(commonSel.currentTaskIdSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
@@ -56,6 +63,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
     const startTitle = `Build — ${APPLICATION_SUITE_NAME}`;
 
     const [windowTitle, setWindowTitle] = useState<string>(startTitle);
+    const [displayUserMenu, toggleUserMenuDispay] = useState<boolean>(false);
 
     const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
 
@@ -65,6 +73,16 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
 
     const handleCreateDialog = () => {
         dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType));
+    };
+
+    const onOpenDeleteModal = (item: IProjectOrTask) => {
+        setSelectedItem(item);
+        setDeleteModalOpen(true);
+    };
+
+    const onCloseDeleteModal = () => {
+        setSelectedItem(null);
+        setDeleteModalOpen(false);
     };
 
     const getWindowTitle = (projectId) => {
@@ -87,7 +105,9 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
             if (paths[projectInd + 1]) {
                 datasetType = paths[projectInd + 1];
             }
-            fullTitle = `${lastBreadcrumb.text} (${datasetType}) at ${breadcrumbWithoutTitle} – ${APPLICATION_SUITE_NAME}`;
+            fullTitle = `${
+                lastBreadcrumb.text ? lastBreadcrumb.text : ""
+            } (${datasetType}) at ${breadcrumbWithoutTitle} – ${APPLICATION_SUITE_NAME}`;
         }
         setWindowTitle(fullTitle);
     };
@@ -127,12 +147,19 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                         )}
                     </OverviewItemDescription>
                     <OverviewItemActions>
-                        <IconButton
-                            name="item-remove"
-                            text="Remove"
-                            disruptive
-                            onClick={() => alert("Not implemented")}
-                        />
+                        {(projectId || taskId) && (
+                            <IconButton
+                                name="item-remove"
+                                text={taskId ? "Remove task" : "Remove project"}
+                                disruptive
+                                onClick={() =>
+                                    onOpenDeleteModal({
+                                        id: taskId ? taskId : projectId,
+                                        projectId: taskId ? projectId : undefined,
+                                    })
+                                }
+                            />
+                        )}
                         <ContextMenu>
                             <MenuItem text={"This"} disabled />
                             <MenuItem text={"Is just a"} disabled />
@@ -145,16 +172,50 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                 <ApplicationToolbarSection>
                     <CreateButton onClick={handleCreateDialog} />
                 </ApplicationToolbarSection>
-                {iFrameDetection && (
-                    <ApplicationToolbarAction aria-label="TODO: User menu" isActive={false} onClick={() => {}}>
-                        <Icon name="application-useraccount" description="TODO: Open user menu" large />
+                {displayUserMenu ? (
+                    <>
+                        <ApplicationToolbarAction
+                            aria-label="Close user menu"
+                            isActive={true}
+                            onClick={() => {
+                                toggleUserMenuDispay(false);
+                            }}
+                        >
+                            <Icon name="navigation-close" description="Close icon" large />
+                        </ApplicationToolbarAction>
+                        <ApplicationToolbarPanel aria-label="TODO: User panel" expanded={true}>
+                            <Menu>
+                                <MenuItem text={"Back to old workspace"} href={CONTEXT_PATH + "/workspace"} />
+                                {iFrameDetection && (
+                                    <>
+                                        <MenuDivider />
+                                        <MenuItem
+                                            text="Logout"
+                                            onClick={() => {
+                                                dispatch(commonOp.logout());
+                                            }}
+                                        />
+                                    </>
+                                )}
+                            </Menu>
+                        </ApplicationToolbarPanel>
+                    </>
+                ) : (
+                    <ApplicationToolbarAction
+                        aria-label="Open user menu"
+                        isActive={false}
+                        onClick={() => {
+                            toggleUserMenuDispay(true);
+                        }}
+                    >
+                        <Icon name="application-useraccount" description="User menu icon" large />
                     </ApplicationToolbarAction>
                 )}
-                <ApplicationToolbarPanel aria-label="TODO: User panel" expanded={false}>
-                    TODO
-                </ApplicationToolbarPanel>
             </ApplicationToolbar>
             <CreateArtefactModal />
+            {deleteModalOpen && selectedItem && (
+                <ItemDeleteModal selectedItem={selectedItem} onClose={onCloseDeleteModal} />
+            )}
         </ApplicationHeader>
     );
 }

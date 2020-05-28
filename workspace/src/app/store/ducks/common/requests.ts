@@ -1,13 +1,9 @@
 import fetch from "../../../services/fetch";
 import { coreApi, workspaceApi } from "../../../utils/getApiEndpoint";
-import { generateNetworkError, isNetworkError } from "../../../services/errorLogger";
 import { IDetailedArtefactItem } from "@ducks/common/typings";
 
-const handleError = ({ response }) => {
-    if (isNetworkError(response.data)) {
-        return generateNetworkError(response.data);
-    }
-    return response.data;
+const handleError = (error) => {
+    return error.errorResponse;
 };
 
 /**

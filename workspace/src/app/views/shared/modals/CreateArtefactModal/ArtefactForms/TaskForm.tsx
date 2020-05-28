@@ -47,6 +47,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
     const { properties, required } = artefact;
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
+    const [dependentValues, setDependentValues] = useState<Record<string, any>>({});
 
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     const initialValues = existingTaskValuesToFlatParameters(updateTask);
@@ -69,7 +70,15 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
         // All keys (also nested ones are stores in here)
         const returnKeys: string[] = [];
         // Register all parameters
-        const registerParameters = (prefix: string, params: [string, IArtefactItemProperty][]) => {
+        const registerParameters = (
+            prefix: string,
+            params: [string, IArtefactItemProperty][],
+            parameterValues: Record<string, any>
+        ) => {
+            // Construct array of parameter keys that other parameters depend on
+            const dependsOnParameters = params
+                .filter(([key, propertyDetails]) => !!propertyDetails.autoCompletion)
+                .flatMap(([key, propertyDetails]) => propertyDetails.autoCompletion.autoCompletionDependsOnParameters);
             params.forEach(([paramId, param]) => {
                 const key = prefix + paramId;
                 if (param.type === "object") {
@@ -77,7 +86,13 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                     if (param.properties) {
                         // nested object
                         const nestedParams = Object.entries(param.properties);
-                        registerParameters(key + ".", nestedParams);
+                        registerParameters(
+                            key + ".",
+                            nestedParams,
+                            parameterValues && parameterValues[paramId] !== undefined
+                                ? parameterValues[paramId].value
+                                : {}
+                        );
                     } else {
                         console.warn(`Parameter '${key}' is of type "object", but has no parameters object defined!`);
                     }
@@ -85,21 +100,26 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                     let value = defaultValueAsJs(param);
                     returnKeys.push(key);
                     register({ name: key }, { required: required.includes(key), ...valueRestrictions(param) });
+                    // Set default value
+                    let currentValue = value;
                     if (updateTask) {
                         // Set existing value
-                        setValue(key, updateTask.parameterValues[key]);
-                    } else {
-                        // Set default value
-                        setValue(key, value);
+                        currentValue = parameterValues[paramId].value;
+                    }
+                    setValue(key, currentValue);
+                    // Add dependent values, the object state needs to be mutably changed, see comments in handleChange()
+                    if (dependsOnParameters.includes(paramId)) {
+                        dependentValues[key] = currentValue;
                     }
                 }
             });
         };
+
         if (!updateTask) {
             register({ name: LABEL }, { required: true });
             register({ name: DESCRIPTION });
         }
-        registerParameters("", visibleParams);
+        registerParameters("", visibleParams, updateTask ? updateTask.parameterValues : {});
         setFormValueKeys(returnKeys);
 
         // Unsubscribe
@@ -117,6 +137,12 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
             const { triggerValidation } = form;
             const value = e.target ? e.target.value : e;
 
+            if (dependentValues[key] !== undefined) {
+                // This is rather a hack, since the callback is memoized the clojure always captures the initial (empty) object, thus we need the state object to be mutable.
+                dependentValues[key] = value;
+                // We still need to update the state with a new object to trigger re-render though.
+                setDependentValues({ ...dependentValues });
+            }
             setValue(key, value);
             triggerValidation(key);
         },
@@ -151,7 +177,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                                 info: "required",
                                 htmlFor: LABEL,
                             }}
-                            hasStateDanger={errorMessage("Label", errors.label)}
+                            hasStateDanger={errors.label}
                             messageText={errorMessage("Label", errors.label)}
                         >
                             <TextField
@@ -183,6 +209,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                         formHooks={formHooks}
                         changeHandlers={changeHandlers}
                         initialValues={initialValues}
+                        dependentValues={dependentValues}
                     />
                 ))}
                 {advancedParams.length > 0 && (
@@ -198,13 +225,11 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                                 formHooks={formHooks}
                                 changeHandlers={changeHandlers}
                                 initialValues={initialValues}
+                                dependentValues={dependentValues}
                             />
                         ))}
                     </AdvancedOptionsArea>
                 )}
-                <button type="button" onClick={() => console.log(getValues(), errors)}>
-                    Debug: Console Form data
-                </button>
                 {artefact.taskType === "Dataset" && (
                     <>
                         <Spacing />
