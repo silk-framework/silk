@@ -207,7 +207,7 @@ export const ParameterWidget = (props: IProps) => {
                     tooltip: description && description.length <= MAXLENGTH_TOOLTIP ? description : "",
                 }}
                 helperText={propertyHelperText}
-                hasStateDanger={errorMessage(title, errors)}
+                hasStateDanger={errorMessage(title, errors) ? true : false}
                 messageText={errorMessage(title, errors)}
             >
                 {!!autoCompletion ? (
