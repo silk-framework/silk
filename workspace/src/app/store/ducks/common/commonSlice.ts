@@ -51,6 +51,7 @@ const artefactModalReducers = {
     },
     fetchArtefactsList(state) {
         state.artefactModal.artefactsList = [];
+        state.artefactModal.error = {};
     },
     setArtefactsList(state, action) {
         state.artefactModal.artefactsList = action.payload;
@@ -67,10 +68,11 @@ const artefactModalReducers = {
         state.artefactModal.loading = action.payload;
     },
     updateProjectTask(state, action) {
-        if (action.payload) {
-            state.artefactModal.updateExistingTask = action.payload;
-            state.artefactModal.isOpen = true;
-        }
+        state.artefactModal.updateExistingTask = action.payload;
+        state.artefactModal.isOpen = true;
+    },
+    setModalError(state, action) {
+        state.artefactModal.error = action.payload;
     },
 };
 

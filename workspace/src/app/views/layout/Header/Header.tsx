@@ -105,7 +105,9 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
             if (paths[projectInd + 1]) {
                 datasetType = paths[projectInd + 1];
             }
-            fullTitle = `${lastBreadcrumb.text} (${datasetType}) at ${breadcrumbWithoutTitle} – ${APPLICATION_SUITE_NAME}`;
+            fullTitle = `${
+                lastBreadcrumb.text ? lastBreadcrumb.text : ""
+            } (${datasetType}) at ${breadcrumbWithoutTitle} – ${APPLICATION_SUITE_NAME}`;
         }
         setWindowTitle(fullTitle);
     };

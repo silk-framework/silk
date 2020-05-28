@@ -33,6 +33,7 @@ const Project = () => {
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
     const error = useSelector(workspaceSel.errorSelector);
+    const data = useSelector(workspaceSel.resultsSelector);
 
     const handleSort = (sortBy: string) => {
         dispatch(workspaceOp.applySorterOp(sortBy));
@@ -76,7 +77,7 @@ const Project = () => {
                                 <Filterbar />
                             </GridColumn>
                             <GridColumn full>
-                                {error.detail ? (
+                                {!data.length && error.detail ? (
                                     <Notification danger>
                                         <h3>Error, cannot fetch results.</h3>
                                         <p>{error.detail}</p>

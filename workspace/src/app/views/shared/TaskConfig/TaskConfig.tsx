@@ -27,11 +27,12 @@ export function TaskConfig(props: IProps) {
     const [loading, setLoading] = useState(false);
     const [labelledTaskData, setLabelledTaskData] = useState<ITaskSchemaAndData>(null);
     const { isOpen } = useSelector(commonSel.artefactModalSelector);
+    // Open the update modal for the task
     const openConfigModal = async () => {
         setLoading(true);
         try {
             // Config dialog is always opened with fresh data
-            const taskData = await requestTaskData(props.projectId, props.taskId);
+            const taskData = await requestTaskData(props.projectId, props.taskId, true);
             const taskPluginDetails = await requestArtefactProperties(taskData.data.type);
             dispatch(
                 commonOp.updateProjectTask({
@@ -42,6 +43,8 @@ export function TaskConfig(props: IProps) {
                     currentParameterValues: taskData.data.parameters,
                 })
             );
+        } catch (e) {
+            console.log(e);
         } finally {
             setLoading(false);
         }
@@ -60,7 +63,10 @@ export function TaskConfig(props: IProps) {
     };
 
     useEffect(() => {
-        initPreviewData();
+        if (!isOpen) {
+            // Always update when the update modal was closed
+            initPreviewData();
+        }
     }, [isOpen]);
 
     let titlePostfix = "";

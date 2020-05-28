@@ -1,7 +1,6 @@
 import { IAppliedFacetState, IFacetState, ISorterListItemState } from "@ducks/workspace/typings";
 import fetch from "../../../services/fetch";
 import { legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
-import { generateNetworkError, isNetworkError } from "../../../services/errorLogger";
 import { VoidOrNever } from "../../../../app";
 
 export interface ISearchListRequest {
@@ -27,11 +26,8 @@ export interface ICreateProjectPayload {
     };
 }
 
-const handleError = ({ response }) => {
-    if (isNetworkError(response.data)) {
-        return generateNetworkError(response.data);
-    }
-    return response.data;
+const handleError = (e) => {
+    return e.errorResponse;
 };
 
 export const requestSearchList = async (payload: ISearchListRequest): Promise<ISearchListResponse | never> => {

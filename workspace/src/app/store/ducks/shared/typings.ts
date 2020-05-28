@@ -37,6 +37,8 @@ export interface IProjectTask {
     project: string;
     // item ID
     id: string;
+
+    type: string;
     // The actual content
     data: {
         // The plugin ID
@@ -188,7 +190,7 @@ export interface IAutocompleteDefaultResponse {
     /**
      * The option name
      */
-    label: string;
+    label?: string;
     /**
      * The option value
      */
