@@ -1,22 +1,20 @@
 import React from "react";
-import ProgressBar from "@wrappers/blueprint/progressbar";
 import XHR from "@uppy/xhr-upload";
 import Uppy from "@uppy/core";
 import "@uppy/core/dist/style.css";
 import "@uppy/drag-drop/dist/style.css";
 import "@uppy/progress-bar/dist/style.css";
+import { requestIfResourceExists } from "@ducks/workspace/requests";
+import { Button, Divider, FieldItem, Icon, Notification, TextField } from "@wrappers/index";
 
+import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import Loading from "../Loading";
-import { UploadNewFile } from "./cases/UploadNewFile";
 import { IAutocompleteProps } from "../Autocomplete/Autocomplete";
+import OverrideAlert from "../modals/FileUploadModal/OverrideAlert";
+import { UploadNewFile } from "./cases/UploadNewFile";
 import { FileMenu, FileMenuItems } from "./FileMenu";
 import { SelectFileFromExisting } from "./cases/SelectFileFromExisting";
 import { CreateNewFile } from "./cases/CreateNewFile";
-import { requestIfResourceExists } from "@ducks/workspace/requests";
-import AbortAlert from "../modals/FileUploadModal/AbortAlert";
-import OverrideAlert from "../modals/FileUploadModal/OverrideAlert";
-import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
-import { Button, Notification } from "@wrappers/index";
 
 interface IUploaderInstance {
     /**
@@ -43,6 +41,12 @@ export interface IUploaderOptions {
     projectId: string;
 
     /**
+     * @default undefined
+     * holds the currently set file name
+     */
+    defaultValue?: string;
+
+    /**
      * return uploader API
      * @see IUploaderInstance
      * @param instance
@@ -60,7 +64,7 @@ export interface IUploaderOptions {
      * Fired when upload successfully completed
      * @see this.uppy.on('upload-success', this.onUploadSuccess);
      */
-    onUploadSuccess?();
+    onUploadSuccess?(file: File);
 
     /**
      * Fired file uploading progress
@@ -98,9 +102,6 @@ export interface IUploaderOptions {
 }
 
 interface IState {
-    // Uploader progress
-    progress: number;
-
     // Selected File menu item
     selectedFileMenu: FileMenuItems;
 
@@ -110,15 +111,22 @@ interface IState {
     // Override dialog
     overrideDialog: File | null;
 
-    // abort dialog
-    abortDialog: boolean;
-
     //Show upload process
     isUploading: boolean;
+
+    //Update default value in case that file is already given
+    showActionsMenu: boolean;
+
+    //Filename which shows in input for update action
+    inputFilename: string;
 
     // If an error occurred this will contain the error message
     error: string | null;
 }
+
+const noop = () => {
+    // @see https://gph.is/1Lddqze
+};
 
 /**
  * File Uploader widget
@@ -132,12 +140,12 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         super(props);
 
         this.state = {
-            progress: 0,
             loading: false,
             selectedFileMenu: props.advanced ? "SELECT" : "NEW",
             isUploading: false,
-            abortDialog: false,
             overrideDialog: null,
+            showActionsMenu: false,
+            inputFilename: props.defaultValue || "",
             error: null,
         };
 
@@ -179,24 +187,16 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         });
     };
 
-    handleProgress = (file, { bytesUploaded, bytesTotal }) => {
-        const progress = bytesUploaded / bytesTotal;
-        this.setState({
-            progress,
-        });
-        if (this.props.onProgress) {
-            this.props.onProgress(progress);
-        }
-    };
-
-    handleUploadSuccess = () => {
-        this.setState({
-            progress: 0,
-        });
-        this.reset();
+    handleUploadSuccess = (file: File) => {
         if (this.props.onUploadSuccess) {
-            this.props.onUploadSuccess();
+            this.props.onUploadSuccess(file);
         }
+        this.setState({
+            inputFilename: file.name,
+        });
+        this.toggleFileResourceChange();
+
+        this.reset();
     };
 
     handleUploadError = (fileData, error) => {
@@ -259,11 +259,6 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         }
     };
 
-    handleAbort = () => {
-        this.setState({ abortDialog: true });
-        this.reset();
-    };
-
     handleOverride = () => {
         this.handleUpload(this.state.overrideDialog);
         this.setState({
@@ -273,65 +268,125 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
 
     reset = () => {
         this.setState({
-            progress: 0,
             overrideDialog: null,
-            abortDialog: false,
             loading: false,
         });
         this.uppy.cancelAll();
         this.uppy.reset();
     };
 
+    /**
+     * "Abort and Keep File" Handler
+     * revert value back
+     */
+    handleDiscardChanges = () => {
+        const isVisible = !this.state.showActionsMenu;
+        if (!isVisible) {
+            this.handleFileNameChange(this.state.inputFilename);
+        } else {
+            // just open
+            this.toggleFileResourceChange();
+        }
+    };
+
+    /**
+     * Open/close file uploader options
+     */
+    toggleFileResourceChange = () => {
+        this.setState({
+            showActionsMenu: !this.state.showActionsMenu,
+        });
+    };
+
+    /**
+     * Change readonly input value
+     * @param value
+     */
+    handleFileNameChange = (value: string) => {
+        this.setState({
+            inputFilename: value,
+        });
+        this.props.onChange(value);
+        this.toggleFileResourceChange();
+    };
+
     render() {
-        const { progress, selectedFileMenu, loading, abortDialog, overrideDialog } = this.state;
-        const { simpleInput, allowMultiple, advanced, autocomplete, onChange } = this.props;
+        const { selectedFileMenu, loading, overrideDialog, showActionsMenu, inputFilename } = this.state;
+        const { simpleInput, allowMultiple, advanced, autocomplete, defaultValue } = this.props;
 
         return loading ? (
             <Loading />
         ) : (
             <>
-                {advanced && <FileMenu onChange={this.handleFileMenuChange} selectedFileMenu={selectedFileMenu} />}
-
-                <div>
-                    {selectedFileMenu === "SELECT" && (
-                        <SelectFileFromExisting autocomplete={autocomplete} onChange={onChange} />
-                    )}
-                    {selectedFileMenu === "NEW" && (
-                        <>
-                            <UploadNewFile
-                                uppy={this.uppy}
-                                simpleInput={simpleInput}
-                                allowMultiple={allowMultiple}
-                                onAdded={this.handleFileAdded}
-                                onProgress={this.handleProgress}
-                                onUploadSuccess={this.handleUploadSuccess}
-                                onUploadError={this.handleUploadError}
-                            />
-                            {this.state.error && <Notification message={this.state.error} danger />}
-                        </>
-                    )}
-                    {selectedFileMenu === "EMPTY" && <CreateNewFile onChange={onChange} />}
-                </div>
-                {!!progress && (
-                    <div>
-                        <p>Waiting for finished file upload to show data preview.</p>
-                        <ProgressBar value={progress} />
-
-                        <Button onClick={this.handleAbort}>Abort Upload</Button>
-                    </div>
+                {defaultValue && !showActionsMenu && (
+                    <FieldItem>
+                        <TextField
+                            readOnly
+                            value={inputFilename}
+                            onChange={noop}
+                            rightElement={
+                                <Button
+                                    minimal
+                                    text={"Change file"}
+                                    icon={<Icon name="item-edit" />}
+                                    onClick={this.toggleFileResourceChange}
+                                />
+                            }
+                        />
+                    </FieldItem>
                 )}
+                {defaultValue && showActionsMenu && (
+                    <>
+                        <Button
+                            outlined
+                            small
+                            text={"Abort and keep file"}
+                            icon={<Icon name="operation-undo" />}
+                            onClick={this.handleDiscardChanges}
+                        />
+                        <Divider addSpacing="large" />
+                    </>
+                )}
+                {(!defaultValue || showActionsMenu) && (
+                    <>
+                        {advanced && (
+                            <FileMenu onChange={this.handleFileMenuChange} selectedFileMenu={selectedFileMenu} />
+                        )}
 
-                <AbortAlert
-                    isOpen={abortDialog}
-                    onCancel={() => this.setState({ abortDialog: false })}
-                    onConfirm={this.reset}
-                />
-                <OverrideAlert
-                    fileName={overrideDialog ? overrideDialog.name : ""}
-                    isOpen={!!overrideDialog}
-                    onCancel={this.reset}
-                    onConfirm={this.handleOverride}
-                />
+                        <div>
+                            {selectedFileMenu === "SELECT" && (
+                                <SelectFileFromExisting
+                                    autocomplete={autocomplete}
+                                    onChange={this.handleFileNameChange}
+                                />
+                            )}
+                            {selectedFileMenu === "NEW" && (
+                                <>
+                                    <UploadNewFile
+                                        uppy={this.uppy}
+                                        simpleInput={simpleInput}
+                                        allowMultiple={allowMultiple}
+                                        onAdded={this.handleFileAdded}
+                                        onProgress={this.props.onProgress}
+                                        onUploadSuccess={this.handleUploadSuccess}
+                                        onUploadError={this.handleUploadError}
+                                    />
+                                    {this.state.error && <Notification message={this.state.error} danger />}
+                                </>
+                            )}
+                            {selectedFileMenu === "EMPTY" && (
+                                <CreateNewFile onChange={this.props.onChange} confirmationButton={!!defaultValue} />
+                            )}
+                        </div>
+
+                        <OverrideAlert
+                            fileName={overrideDialog ? overrideDialog.name : ""}
+                            isOpen={!!overrideDialog}
+                            onCancel={this.reset}
+                            onConfirm={this.handleOverride}
+                        />
+                    </>
+                )}
             </>
         );
     }

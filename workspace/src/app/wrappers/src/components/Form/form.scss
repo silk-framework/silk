@@ -20,6 +20,8 @@ form {
 .ecc-fielditem,
 .ecc-fieldset {
     display: block;
+    max-width: 100%;
+    min-width: 0;
 
     &:not(:last-child) {
         margin-bottom: $ecc-size-block-whitespace;

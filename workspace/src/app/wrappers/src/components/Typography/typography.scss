@@ -110,7 +110,7 @@ ol,
 ul {
     .ecc-typography__contentblock &,
     &.ecc-typography__text {
-        list-style: unset;
+        list-style: initial;
     }
 }
 
@@ -163,6 +163,7 @@ blockquote {
     word-wrap: normal;
     white-space: nowrap;
     display: inherit;
+    max-width: 100%;
 }
 
 .ecc-typography__overflowtext--inline {
