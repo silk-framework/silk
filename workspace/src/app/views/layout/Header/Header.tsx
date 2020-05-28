@@ -195,6 +195,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                         <ApplicationToolbarPanel aria-label="User menu" expanded={true}>
                             <Menu>
                                 <MenuItem text={"Back to old workspace"} href={CONTEXT_PATH + "/workspace"} />
+                                <MenuItem text={"Activity overview"} href={CONTEXT_PATH + "/workspace/allActivities"} />
                                 {iFrameDetection && (
                                     <>
                                         <MenuDivider />
