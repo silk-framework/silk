@@ -103,17 +103,17 @@ export const FileWidget = () => {
         if (deleteModalOpts.dependentTasks.length > 0) {
             return (
                 <div>
-                    <p>Following datasets are using file '{deleteModalOpts.fileName}':</p>
+                    <p>File '{deleteModalOpts.fileName}' is in use by following datasets:</p>
                     <ul>
                         {deleteModalOpts.dependentTasks.map((task) => (
                             <li key={task}>{task}</li>
                         ))}
                     </ul>
-                    <p>Are you sure you want to delete file '{deleteModalOpts.fileName}</p>
+                    <p>Do you really want to delete file '{deleteModalOpts.fileName}'?</p>
                 </div>
             );
         } else {
-            return <p>Are you sure you want to delete file '{deleteModalOpts.fileName}'?</p>;
+            return <p>File '{deleteModalOpts.fileName}' will be deleted.</p>;
         }
     };
 

@@ -38,7 +38,7 @@ export function SelectFileFromExisting(props: IProps) {
     return (
         <FieldItem
             labelAttributes={{
-                text: "Select available file from projects upload",
+                text: "Select file from projects",
                 info: "required",
                 htmlFor: "autocompleteInput",
             }}

@@ -10,7 +10,7 @@ export interface IDeleteModalOptions {
 
     render?(): ReactElement;
     children?: ReactElement;
-    title: string;
+    title?: string;
 }
 
 export default function DeleteModal({
@@ -20,7 +20,7 @@ export default function DeleteModal({
     render,
     onConfirm,
     children,
-    title,
+    title = "Delete",
 }: IDeleteModalOptions) {
     const [isConfirmed, setIsConfirmed] = useState(false);
 

@@ -80,7 +80,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen }) => {
                 onConfirm={handleConfirmRemove}
                 title={"Delete prefix"}
             >
-                <p>Are you sure you want to delete prefix?</p>
+                <p>{`Prefix '${selectedPrefix?.prefixName ? selectedPrefix.prefixName : ""}' will be deleted.`}</p>
             </DeleteModal>
         </SimpleDialog>
     );

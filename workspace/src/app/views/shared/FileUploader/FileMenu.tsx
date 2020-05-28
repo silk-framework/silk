@@ -18,7 +18,7 @@ interface IProps {
 export function FileMenu({ onChange, selectedFileMenu }: IProps) {
     const menuItems = [
         {
-            label: "Select file from project upload",
+            label: "Select file from project",
             value: "SELECT",
         },
         {
@@ -26,7 +26,7 @@ export function FileMenu({ onChange, selectedFileMenu }: IProps) {
             value: "NEW",
         },
         {
-            label: "Start without data(create empty file)",
+            label: "Create empty file",
             value: "EMPTY",
         },
     ];

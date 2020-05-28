@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { commonOp, commonSel } from "@ducks/common";
 import {
     ApplicationHeader,
-    ApplicationSidebarToggler,
     ApplicationTitle,
     ApplicationToolbar,
     ApplicationToolbarAction,

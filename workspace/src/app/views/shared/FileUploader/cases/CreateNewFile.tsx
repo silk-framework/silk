@@ -52,7 +52,7 @@ export function CreateNewFile(props: IProps) {
                 onChange={handleNewFileNameChange}
                 onBlur={() => onBlur(newFileName)}
                 value={newFileName}
-                placeholder="Write new file name"
+                placeholder={""}
                 hasStateDanger={error}
                 hasStateSuccess={!error && newFileName}
             />

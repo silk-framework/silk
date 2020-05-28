@@ -75,7 +75,7 @@ export function SearchList() {
         isEmpty && !appliedFilters.textQuery && !appliedFacets.length ? (
             <EmptyList
                 depiction={<Icon name={"artefact-" + appliedFilters.itemType} large />}
-                textInfo={<p>No {appliedFilters.itemType} found.</p>}
+                textInfo={<p>No {appliedFilters.itemType ? appliedFilters.itemType : "item"} found.</p>}
                 textCallout={<strong>Create your first {itemTypeLabel()} now.</strong>}
                 actionButtons={[
                     <Button key={"create"} onClick={handleCreateArtefact} elevated>

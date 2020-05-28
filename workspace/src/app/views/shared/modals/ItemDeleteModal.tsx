@@ -43,8 +43,8 @@ export function ItemDeleteModal({ selectedItem, onClose }: IProps) {
                     confirmationRequired: true,
                     render: () => (
                         <div>
-                            <p>There are tasks depending on task '{data.label || selectedItem.id}'. </p>
-                            <p>Are you sure you want to delete all tasks below?</p>
+                            <p>Task '{data.label || selectedItem.id}' is used by other tasks! </p>
+                            <p>Deleting this task will also delete all depending tasks listed below:</p>
                             <ul>
                                 {data.relations.dependentTasksDirect.map((rel) => (
                                     <li key={rel}>{rel}</li>
