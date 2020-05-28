@@ -22,10 +22,19 @@ $carbon--grid-gutter: carbon--rem($ecc-size-grid-gutter);
 
 .#{$prefix}--grid--full-width {
     max-width: 100%;
+    width: 100%;
 }
 
 .#{$prefix}--row {
     flex-wrap: wrap;
+}
+
+.ecc-grid__row--fullheight {
+    min-height: calc(100vh - #{2 * $ecc-size-block-whitespace});
+
+    .#{$prefix}--header ~ .#{$prefix}--content & {
+        min-height: calc(100vh - #{mini-units(8)} - #{2 * $ecc-size-block-whitespace});
+    }
 }
 
 .#{$prefix}--col {
