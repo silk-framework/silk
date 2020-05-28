@@ -1,5 +1,5 @@
 import { Autocomplete, IAutocompleteProps } from "../../Autocomplete/Autocomplete";
-import { Button, FieldItem } from "@wrappers/index";
+import { FieldItem } from "@wrappers/index";
 import React, { useState } from "react";
 
 interface IProps {

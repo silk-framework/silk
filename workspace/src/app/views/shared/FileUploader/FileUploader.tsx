@@ -5,7 +5,7 @@ import "@uppy/core/dist/style.css";
 import "@uppy/drag-drop/dist/style.css";
 import "@uppy/progress-bar/dist/style.css";
 import { requestIfResourceExists } from "@ducks/workspace/requests";
-import { Button, Icon, FieldItem, TextField, Divider } from "@wrappers/index";
+import { Button, Divider, FieldItem, Icon, Notification, TextField } from "@wrappers/index";
 
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import Loading from "../Loading";
@@ -15,11 +15,6 @@ import { UploadNewFile } from "./cases/UploadNewFile";
 import { FileMenu, FileMenuItems } from "./FileMenu";
 import { SelectFileFromExisting } from "./cases/SelectFileFromExisting";
 import { CreateNewFile } from "./cases/CreateNewFile";
-import { requestIfResourceExists } from "@ducks/workspace/requests";
-import AbortAlert from "../modals/FileUploadModal/AbortAlert";
-import OverrideAlert from "../modals/FileUploadModal/OverrideAlert";
-import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
-import { Button, Notification } from "@wrappers/index";
 
 interface IUploaderInstance {
     /**
@@ -372,7 +367,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                                         simpleInput={simpleInput}
                                         allowMultiple={allowMultiple}
                                         onAdded={this.handleFileAdded}
-                                        onProgress={this.handleProgress}
+                                        onProgress={this.props.onProgress}
                                         onUploadSuccess={this.handleUploadSuccess}
                                         onUploadError={this.handleUploadError}
                                     />
@@ -383,14 +378,6 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                                 <CreateNewFile onChange={this.props.onChange} confirmationButton={!!defaultValue} />
                             )}
                         </div>
-                        {!!progress && (
-                            <div>
-                                <p>Waiting for finished file upload to show data preview.</p>
-                                <ProgressBar value={progress} />
-
-                                <Button onClick={this.handleAbort}>Abort Upload</Button>
-                            </div>
-                        )}
 
                         <OverrideAlert
                             fileName={overrideDialog ? overrideDialog.name : ""}
