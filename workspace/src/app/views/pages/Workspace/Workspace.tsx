@@ -50,8 +50,8 @@ export function Workspace() {
         <Artefacts />
     ) : (
         <Grid>
-            <GridRow>
-                <GridColumn>
+            <GridRow fullHeight>
+                <GridColumn verticalAlign={"center"}>
                     <EmptyWorkspace />
                 </GridColumn>
             </GridRow>
