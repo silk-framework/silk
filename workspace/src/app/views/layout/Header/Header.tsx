@@ -119,10 +119,10 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
     const iFrameDetection = window === window.parent;
 
     return !isAuth ? null : (
-        <ApplicationHeader aria-label={"TODO: eccenca DI"}>
+        <ApplicationHeader aria-label={APPLICATION_SUITE_NAME + ": " + APPLICATION_NAME}>
             {iFrameDetection && (
                 <ApplicationSidebarToggler
-                    aria-label="TODO: Open menu"
+                    aria-label="Open menu"
                     onClick={onClickApplicationSidebarExpand}
                     isActive={isApplicationSidebarExpanded}
                 />
@@ -183,7 +183,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                         >
                             <Icon name="navigation-close" description="Close icon" large />
                         </ApplicationToolbarAction>
-                        <ApplicationToolbarPanel aria-label="TODO: User panel" expanded={true}>
+                        <ApplicationToolbarPanel aria-label="User menu" expanded={true}>
                             <Menu>
                                 <MenuItem text={"Back to old workspace"} href={CONTEXT_PATH + "/workspace"} />
                                 {iFrameDetection && (
