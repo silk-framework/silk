@@ -119,7 +119,7 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
     }
     val results = returnItemTypes.map(itemTypeJson)
     val result = JsObject(Seq(
-      "label" -> JsString("Type"),
+      "label" -> JsString("Item type"),
       "values" -> JsArray(results)
     ))
     Ok(result)
