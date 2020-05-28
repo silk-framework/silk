@@ -117,7 +117,7 @@ class CsvSource(file: Resource,
     if (entitySchema.filter.operator.isDefined) {
       throw new NotImplementedError("Filter restrictions are not supported on CSV datasets!") // TODO: Implement Restriction handling!
     }
-    retrieveEntities(entitySchema)
+    retrieveEntities(entitySchema, limitOpt = limitOpt)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
@@ -125,10 +125,7 @@ class CsvSource(file: Resource,
     if(entities.isEmpty) {
       GenericEntityTable(Seq.empty, entitySchema, underlyingTask)
     } else {
-      val entitySet = entities.map(_.uri.toString).toSet
-      val entityTraversal = retrieveEntities(entitySchema)
-      val filteredEntities = entityTraversal filter (e => entitySet.contains(e.uri.toString))
-      filteredEntities
+      retrieveEntities(entitySchema, entities.map(_.uri))
     }
   }
 
