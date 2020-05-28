@@ -15,9 +15,11 @@ class ResourceCacheTest extends FlatSpec with Matchers {
     val cache = new TestResourceCache(resource, updateTimeout = 5000L)
     resource.value = "test value"
 
-    // Read value twice and make sure it has only been read once
-    cache.value shouldBe "test value"
-    cache.value shouldBe "test value"
+    // Read value multiple times and make sure it has only been read once
+    for(_ <- 0 until 10) {
+      cache.value shouldBe "test value"
+    }
+    resource.modificationCheckCounter shouldBe 1
     resource.readCounter shouldBe 1
   }
 
@@ -27,26 +29,30 @@ class ResourceCacheTest extends FlatSpec with Matchers {
 
     // Set initial resource value and access it
     resource.value = "test value"
-    resource.modificationTime = Some(Instant.now())
+    resource.modificationTimeValue = Instant.now()
     cache.value shouldBe "test value"
+    resource.modificationCheckCounter shouldBe 1
     resource.readCounter shouldBe 1
 
     // Update resource value and modification date
     resource.value = "updated value"
-    resource.modificationTime = Some(resource.modificationTime.get.plus(1, ChronoUnit.MINUTES))
+    resource.modificationTimeValue = resource.modificationTimeValue.plus(1, ChronoUnit.MINUTES)
 
     // Caches returns the previous value while the timeout has not been reached
     cache.value shouldBe "test value"
+    resource.modificationCheckCounter shouldBe 1
     resource.readCounter shouldBe 1
 
     // Let timeout pass and check that the updated value is returned
     Thread.sleep(1001L)
     cache.value shouldBe "updated value"
+    resource.modificationCheckCounter shouldBe 2
     resource.readCounter shouldBe 2
 
     // Accessing the value without updating the modification time does not load again
     Thread.sleep(1001L)
     cache.value shouldBe "updated value"
+    resource.modificationCheckCounter shouldBe 3
     resource.readCounter shouldBe 2
   }
 
@@ -56,9 +62,18 @@ class ResourceCacheTest extends FlatSpec with Matchers {
 
     var value = "initial value"
 
-    var modificationTime: Option[Instant] = Some(Instant.now)
+    var modificationTimeValue: Instant = Instant.now
 
+    // The number of times the resource has been read
     var readCounter = 0
+
+    // The number of times the modification time has been checked
+    var modificationCheckCounter = 0
+
+    def modificationTime: Option[Instant] = {
+      modificationCheckCounter += 1
+      Some(modificationTimeValue)
+    }
 
     override def inputStream: InputStream = {
       readCounter += 1
