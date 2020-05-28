@@ -10,6 +10,7 @@ export interface IDeleteModalOptions {
 
     render?(): ReactElement;
     children?: ReactElement;
+    title: string;
 }
 
 export default function DeleteModal({
@@ -19,6 +20,7 @@ export default function DeleteModal({
     render,
     onConfirm,
     children,
+    title,
 }: IDeleteModalOptions) {
     const [isConfirmed, setIsConfirmed] = useState(false);
 
@@ -31,12 +33,12 @@ export default function DeleteModal({
     return (
         <AlertDialog
             danger
-            title="Confirm Deletion"
+            title={title}
             isOpen={isOpen}
             onClose={onDiscard}
             actions={[
                 <Button key="remove" disruptive onClick={onConfirm} disabled={confirmationRequired && !isConfirmed}>
-                    Remove
+                    Delete
                 </Button>,
                 <Button key="cancel" onClick={onDiscard}>
                     Cancel

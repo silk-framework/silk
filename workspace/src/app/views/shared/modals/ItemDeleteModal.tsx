@@ -52,16 +52,18 @@ export function ItemDeleteModal({ selectedItem, onClose }: IProps) {
                             </ul>
                         </div>
                     ),
+                    title: `Delete ${selectedItem.projectId ? "task" : "project"}`,
                 });
             } else {
                 setDeleteModalOptions({
                     confirmationRequired: false,
                     render: () => (
                         <p>
-                            Are you sure you want to permanently remove {selectedItem.projectId ? "task" : "project"} '
-                            {data.label || selectedItem.id}'?
+                            {selectedItem.projectId ? "Task" : "Project"} '{data.label || selectedItem.id}' will be
+                            deleted.
                         </p>
                     ),
+                    title: `Delete ${selectedItem.projectId ? "task" : "project"}`,
                 });
             }
         } catch (e) {
@@ -69,10 +71,11 @@ export function ItemDeleteModal({ selectedItem, onClose }: IProps) {
                 confirmationRequired: false,
                 render: () => (
                     <p>
-                        Are you sure you want to permanently remove {selectedItem.projectId ? "task" : "project"} '
-                        {selectedItem.label || selectedItem.id || selectedItem.projectId}'?
+                        {selectedItem.projectId ? "Task" : "Project"} '
+                        {selectedItem.label || selectedItem.id || selectedItem.projectId}' will be deleted.
                     </p>
                 ),
+                title: `Delete ${selectedItem.projectId ? "task" : "project"}`,
             });
         }
     };

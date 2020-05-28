@@ -174,7 +174,7 @@ export const FileWidget = () => {
                                                     <TableCell key={"fileActions"} className="bx--table-column-menu">
                                                         <IconButton
                                                             name="item-remove"
-                                                            text="Remove file"
+                                                            text="Delete file"
                                                             small
                                                             disruptive
                                                             onClick={() => openDeleteModal(file.id)}
@@ -204,6 +204,7 @@ export const FileWidget = () => {
                 onDiscard={closeDeleteModal}
                 onConfirm={() => deleteFile(deleteModalOpts.fileName)}
                 render={renderDeleteModal}
+                title={"Delete file"}
             />
         </>
     );

@@ -24,7 +24,8 @@ interface IProps {
 export function SelectFileFromExisting(props: IProps) {
     const { autocomplete, onChange, defaultValue } = props;
 
-    const [selectedValue, setSelectedValue] = useState(defaultValue);
+    const selectedValueState = useState(defaultValue);
+    const setSelectedValue = selectedValueState[1];
     const [error, setError] = useState(false);
 
     const handleChange = (value: string) => {

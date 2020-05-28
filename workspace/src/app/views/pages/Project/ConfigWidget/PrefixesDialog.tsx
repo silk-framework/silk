@@ -74,7 +74,12 @@ const PrefixesDialog = ({ onCloseModal, isOpen }) => {
                     </DataList>
                 </>
             )}
-            <DeleteModal isOpen={isOpenRemove} onDiscard={() => toggleRemoveDialog()} onConfirm={handleConfirmRemove}>
+            <DeleteModal
+                isOpen={isOpenRemove}
+                onDiscard={() => toggleRemoveDialog()}
+                onConfirm={handleConfirmRemove}
+                title={"Delete prefix"}
+            >
                 <p>Are you sure you want to delete prefix?</p>
             </DeleteModal>
         </SimpleDialog>
