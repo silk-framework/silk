@@ -17,13 +17,15 @@ interface IProps {
     onProgress?(file: File, data: any);
 
     onUploadSuccess?();
+
+    onUploadError?(e, f);
 }
 
 /**
  * The Widget for "Upload new file" option
  */
 export function UploadNewFile(props: IProps) {
-    const { uppy, simpleInput, allowMultiple, onAdded, onProgress, onUploadSuccess } = props;
+    const { uppy, simpleInput, allowMultiple, onAdded, onProgress, onUploadSuccess, onUploadError } = props;
 
     useEffect(() => {
         registerEvents();
@@ -34,12 +36,14 @@ export function UploadNewFile(props: IProps) {
         uppy.on("file-added", onAdded);
         uppy.on("upload-progress", onProgress);
         uppy.on("upload-success", onUploadSuccess);
+        uppy.on("upload-error", onUploadError);
     };
 
     const unregisterEvents = () => {
         uppy.off("file-added", onAdded);
         uppy.off("upload-progress", onProgress);
         uppy.off("upload-success", onUploadSuccess);
+        uppy.off("upload-error", onUploadError);
     };
 
     const handleFileInputChange = (event) => {
