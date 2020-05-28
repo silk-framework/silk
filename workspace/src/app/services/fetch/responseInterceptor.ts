@@ -18,31 +18,62 @@ export class FetchResponse<T = any> {
 export class ErrorResponse {
     title: string;
     detail: string;
-    cause: string;
+    cause?: ErrorResponse;
 
-    constructor(title: string, detail: string, cause: string) {
+    constructor(title: string, detail: string, cause: ErrorResponse = null) {
         this.title = title;
         this.detail = detail;
         this.cause = cause;
     }
 }
 
-export class FetchError {
-    static ResponseErrorType = "responseError";
-    static NetworkErrorType = "networkError";
+type ErrorType = "httpError" | "networkError";
 
-    isHttpError: boolean = true;
+export class FetchError {
+    static HTTP_ERROR: ErrorType = "httpError";
+    static NETWORK_ERROR: ErrorType = "networkError";
+
+    isFetchError: boolean = true;
 
     errorDetails: AxiosError;
 
-    errorType: typeof FetchError.ResponseErrorType | typeof FetchError.NetworkErrorType;
+    errorType: ErrorType;
 
     errorResponse: ErrorResponse;
+
+    isHttpError = () => this.errorType === FetchError.HTTP_ERROR;
+    isNetworkError = () => this.errorType === FetchError.NETWORK_ERROR;
 
     get httpStatus(): number {
         return this.errorDetails.response?.status ? this.errorDetails.response.status : null;
     }
 }
+
+const httpStatusToTitle = (status: number) => {
+    switch (status) {
+        case 401:
+            return "Not authenticated";
+        case 403:
+            return "Not authorized";
+        case 404:
+            return "Not found";
+        case 407:
+            return "Not authorized (proxy)";
+        case 413:
+            return "Request too large";
+        case 503:
+            return "Temporarily unavailable";
+        case 504:
+            return "Timeout";
+        default:
+            break;
+    }
+    if (Math.floor(status / 100) === 5) {
+        return "Server error";
+    } else if (Math.floor(status / 100) === 4) {
+        return "Invalid request";
+    }
+};
 
 /** Error response. */
 export class HttpError extends FetchError {
@@ -50,9 +81,17 @@ export class HttpError extends FetchError {
         super();
 
         this.errorDetails = errorDetails;
-        this.errorType = FetchError.ResponseErrorType;
+        this.errorType = FetchError.HTTP_ERROR;
 
-        this.errorResponse = this.errorDetails.response.data;
+        if (errorDetails.response.data.title && errorDetails.response.data.detail) {
+            this.errorResponse = this.errorDetails.response.data;
+        } else {
+            // Got no JSON response, create error response object
+            this.errorResponse = {
+                title: httpStatusToTitle(errorDetails.response.status),
+                detail: "",
+            };
+        }
     }
 }
 
@@ -61,13 +100,9 @@ export class NetworkError extends FetchError {
         super();
 
         this.errorDetails = errorDetails;
-        this.errorType = FetchError.NetworkErrorType;
+        this.errorType = FetchError.NETWORK_ERROR;
 
-        this.errorResponse = new ErrorResponse(
-            "Network Error",
-            `Please check your connection or contact with support`,
-            errorDetails.config.url
-        );
+        this.errorResponse = new ErrorResponse("Network Error", `Please check your connection or contact support`);
     }
 }
 
@@ -84,7 +119,7 @@ export const responseInterceptorOnError = (error: AxiosError) => {
         });
     }
     if (error.isAxiosError) {
-        // It's network error
+        // No response object means that it is a network error
         if (!error.response) {
             const errorObj = new NetworkError(error);
             logError(errorObj);
@@ -93,7 +128,7 @@ export const responseInterceptorOnError = (error: AxiosError) => {
 
         // UnAuthorized
         if (401 === error.response.status) {
-            getStore().dispatch(commonOp.logout());
+            getStore().dispatch(commonOp.logout()); // FIXME: Add re-login logic
             return Promise.reject(new HttpError(error));
         }
         return Promise.reject(new HttpError(error));

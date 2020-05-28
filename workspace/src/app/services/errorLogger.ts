@@ -138,7 +138,7 @@ const logError = (error: FetchError | Error, reactErrorInfo?: ErrorInfo): boolea
 
     try {
         const client = getClientInfo();
-        if ("errorType" in error && error.isHttpError) {
+        if ("errorType" in error && error.isFetchError) {
             const errorMessage = error.errorResponse ? error.errorResponse.title : "Could not connect to server.";
             err = {
                 ...generateDefaultError("Network error", errorMessage),

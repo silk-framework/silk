@@ -53,7 +53,14 @@ const SuggestAutocomplete = Suggest.ofType<IAutocompleteDefaultResponse>();
 
 Autocomplete.defaultProps = {
     initialValue: "",
-    itemLabelRenderer: (item) => item.label || item.value,
+    itemLabelRenderer: (item) => {
+        const label = item.label || item.value;
+        if (label === "") {
+            return "\u00A0";
+        } else {
+            return label;
+        }
+    },
     itemValueSelector: (item) => item.value,
     dependentValues: [],
 };

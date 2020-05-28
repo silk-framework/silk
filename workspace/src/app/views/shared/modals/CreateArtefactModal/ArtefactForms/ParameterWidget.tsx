@@ -8,7 +8,6 @@ import { sharedOp } from "@ducks/shared";
 import { AppToaster } from "../../../../../services/toaster";
 import Spacing from "@wrappers/src/components/Separation/Spacing";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
-import { FetchError } from "../../../../../services/fetch/responseInterceptor";
 
 const MAXLENGTH_TOOLTIP = 40;
 
@@ -85,7 +84,7 @@ export const ParameterWidget = (props: IProps) => {
 
     const handleAutoCompleteInput = async (input: string = "") => {
         try {
-            const data = await sharedOp.getAutocompleteResultsAsync({
+            return await sharedOp.getAutocompleteResultsAsync({
                 pluginId: pluginId,
                 parameterId: taskParameter.paramId,
                 projectId,
@@ -93,9 +92,8 @@ export const ParameterWidget = (props: IProps) => {
                 textQuery: input,
                 limit: 100, // The auto-completion is only showing the first n values TODO: Make auto-completion list scrollable?
             });
-            return data;
         } catch (e) {
-            if (e.errorType === FetchError.ResponseErrorType && e.httpStatus !== 400) {
+            if (e.isHttpError() && e.httpStatus !== 400) {
                 // For now hide 400 errors from user, since they are not helpful.
                 AppToaster.show({
                     message: e.errorResponse.detail,
