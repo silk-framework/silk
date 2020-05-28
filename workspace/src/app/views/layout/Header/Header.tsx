@@ -120,14 +120,24 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
 
     return !isAuth ? null : (
         <ApplicationHeader aria-label={APPLICATION_SUITE_NAME + ": " + APPLICATION_NAME}>
+            {/*
+            // currently not needed because we currently don't have a menu
             {iFrameDetection && (
                 <ApplicationSidebarToggler
                     aria-label="Open menu"
                     onClick={onClickApplicationSidebarExpand}
                     isActive={isApplicationSidebarExpanded}
                 />
-            )}
-            {iFrameDetection && <ApplicationTitle prefix="eccenca">{APPLICATION_NAME}</ApplicationTitle>}
+            )
+            */}
+            {
+                /* TODO: only show when application menu is opened */
+                iFrameDetection && (
+                    <ApplicationTitle prefix="eccenca" className="bx--visually-hidden">
+                        {APPLICATION_NAME}
+                    </ApplicationTitle>
+                )
+            }
             <WorkspaceHeader>
                 <Helmet>
                     <title>{windowTitle}</title>
