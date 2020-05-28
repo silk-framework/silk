@@ -1,7 +1,7 @@
 import React from "react";
 import { INPUT_TYPES } from "../../../../../constants";
 import { Switch, TextField, TextArea } from "@wrappers/index";
-import { QueryEditor } from "../../../QueryEditor/QueryEditor";
+import { CodeEditor } from "../../../QueryEditor/CodeEditor";
 import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";
 import { FileUploader } from "../../../FileUploader/FileUploader";
@@ -78,8 +78,9 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
             return <TextField {...inputAttributes} />;
         case INPUT_TYPES.TEXTAREA:
             return <TextArea {...inputAttributes} />;
+        case INPUT_TYPES.RESTRICTION:
         case INPUT_TYPES.MULTILINE_STRING:
-            return <QueryEditor {...inputAttributes} />;
+            return <CodeEditor {...inputAttributes} />;
         case INPUT_TYPES.PASSWORD:
             return <TextField {...inputAttributes} type={"password"} />;
         case INPUT_TYPES.RESOURCE:
