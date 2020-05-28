@@ -8,12 +8,19 @@ import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
 
 /**
  * Returns the meta data of a specific item.
- * @param taskId    The ID of the item. This also includes project IDs.
+ * @param itemId    The ID of the item. This also includes project IDs. If this parameter is used for project IDs, projectId
+ *                  must not be set.
  * @param projectId For project items, this parameter must be specified, else the item ID is treated as the project ID.
  */
-export const getTaskMetadataAsync = async (itemId: string, projectId: string | null = null): Promise<IMetadata> => {
+export const getTaskMetadataAsync = async (
+    itemId: string | null,
+    projectId: string | null = null
+): Promise<IMetadata> => {
     try {
-        const data = projectId ? await requestTaskMetadata(itemId, projectId) : await requestProjectMetadata(itemId);
+        const data =
+            projectId && itemId
+                ? await requestTaskMetadata(itemId, projectId)
+                : await requestProjectMetadata(itemId ? itemId : projectId);
 
         const { label, name, metaData, id, relations, description, type }: any = data;
 
@@ -29,14 +36,15 @@ export const getTaskMetadataAsync = async (itemId: string, projectId: string | n
 };
 
 export const updateTaskMetadataAsync = async (
-    itemId: string,
     payload: IMetadataUpdatePayload,
-    projectId?: string
+    itemId: string | null,
+    projectId: string | null = null
 ): Promise<IMetadata> => {
     try {
-        const data = projectId
-            ? await requestUpdateTaskMetadata(itemId, payload, projectId)
-            : await requestUpdateProjectMetadata(itemId, payload);
+        const data =
+            projectId && itemId
+                ? await requestUpdateTaskMetadata(itemId, payload, projectId)
+                : await requestUpdateProjectMetadata(itemId ? itemId : projectId, payload);
 
         const { label, name, metaData, id, relations, description, type }: any = data;
 
