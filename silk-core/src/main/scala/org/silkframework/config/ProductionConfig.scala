@@ -40,11 +40,8 @@ object ProductionConfig {
 
   def betaWorkspaceSwitchEnabled: Boolean = {
     val cfg: TypesafeConfig = DefaultConfig.instance()
-    cfg.getBoolean("workspace.beta.switch.enabled")
-  }
-
-  def betaWorkspaceLink: Boolean = {
-    val cfg: TypesafeConfig = DefaultConfig.instance()
-    cfg.getBoolean("workspace.beta.switch.enabled")
+    val configPath = "workspace.beta.switch.enabled"
+    cfg.hasPath(configPath) &&
+      cfg.getBoolean(configPath)
   }
 }
