@@ -34,7 +34,7 @@ export function ProjectForm({ form, projectId }: IProps) {
                     info: "required",
                     htmlFor: "title-input",
                 }}
-                hasStateDanger={errorMessage("Title", errors.label)}
+                hasStateDanger={errorMessage("Title", errors.label) ? true : false}
                 messageText={errorMessage("Title", errors.label)}
             >
                 <TextField
