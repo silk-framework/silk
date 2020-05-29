@@ -124,7 +124,10 @@ export function UploadNewFile(props: IProps) {
             ) : simpleInput ? (
                 <input type="file" id="fileInput" onChange={handleFileInputChange} />
             ) : (
-                <DragDrop uppy={uppy} />
+                <DragDrop
+                    uppy={uppy}
+                    locale={{ strings: { dropHereOr: "Drop file here or %{browse}", browse: "browse" } }}
+                />
             )}
         </>
     );
