@@ -61,7 +61,7 @@ class SearchApiIntegrationTest extends FlatSpec
   it should "return item types" in {
     val response = client.url(s"$baseUrl/api/workspace/searchConfig/types").get()
     val json = checkResponse(response).json
-    (json \ "label").asOpt[String] mustBe Some("Type")
+    (json \ "label").asOpt[String] mustBe Some("Item type")
     val typeIds = (json \ "values").as[JsArray].value.map(v => (v \ "id").as[String])
     typeIds mustBe Seq("project", "workflow", "dataset", "transform", "linking", "task")
   }
