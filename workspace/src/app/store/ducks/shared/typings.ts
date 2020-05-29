@@ -137,7 +137,7 @@ export interface IDatasetPreview {
 export interface IPreviewResponse {
     dataInfo: IDatasetInfo;
     previewType: string;
-    previewContent: IPreviewContent;
+    previewContent?: IPreviewContent;
 }
 
 /** The actual values of the preview */

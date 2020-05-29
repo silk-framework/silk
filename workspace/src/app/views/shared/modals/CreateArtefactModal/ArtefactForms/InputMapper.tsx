@@ -55,9 +55,11 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
 
     const handleFileSearch = async (input: string) => {
         try {
-            return await requestResourcesList(projectId, {
-                searchText: input,
-            });
+            return (
+                await requestResourcesList(projectId, {
+                    searchText: input,
+                })
+            ).data;
         } catch (e) {
             AppToaster.show({
                 message: e.detail,

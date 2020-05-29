@@ -240,6 +240,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                                 validate: triggerValidation,
                                 errorMessage: "Parameter validation failed. Please fix the issues first.",
                             }}
+                            datasetConfigValues={getValues}
                         />
                     </>
                 )}

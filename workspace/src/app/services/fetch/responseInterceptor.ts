@@ -41,8 +41,12 @@ export class FetchError {
 
     errorResponse: ErrorResponse;
 
-    isHttpError = () => this.errorType === FetchError.HTTP_ERROR;
-    isNetworkError = () => this.errorType === FetchError.NETWORK_ERROR;
+    get isHttpError(): boolean {
+        return this.errorType === FetchError.HTTP_ERROR;
+    }
+    get isNetworkError(): boolean {
+        return this.errorType === FetchError.NETWORK_ERROR;
+    }
 
     get httpStatus(): number {
         return this.errorDetails.response?.status ? this.errorDetails.response.status : null;

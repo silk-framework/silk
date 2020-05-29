@@ -27,8 +27,8 @@ export const fetchResourcesListAsync = (filters: IResourceListAsyncProps = {}) =
         const projectId = commonSel.currentProjectIdSelector(getState());
         try {
             dispatch(toggleLoading());
-            const data = await requestResourcesList(projectId, filters);
-            dispatch(setFiles(data));
+            const response = await requestResourcesList(projectId, filters);
+            dispatch(setFiles(response.data));
         } catch (e) {
             dispatch(setError(e));
         } finally {

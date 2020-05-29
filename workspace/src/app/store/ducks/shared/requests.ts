@@ -178,46 +178,31 @@ export const requestDatasetTypes = async (
     datasetId: string,
     projectId: string,
     payload: IDatasetTypePayload = {}
-): Promise<string[]> => {
-    try {
-        const { data } = await fetch({
-            url: legacyApiEndpoint(`projects/${projectId}/datasets/${datasetId}/types`),
-            method: "GET",
-            body: payload,
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+): Promise<FetchResponse<string[]>> => {
+    return await fetch({
+        url: legacyApiEndpoint(`projects/${projectId}/datasets/${datasetId}/types`),
+        method: "GET",
+        body: payload,
+    });
 };
 
 export const requestResourcesList = async (
     projectId: string,
     filters: IResourceListPayload = {}
-): Promise<IResourceListResponse | never> => {
-    try {
-        const { data } = await fetch({
-            url: legacyApiEndpoint(`/projects/${projectId}/resources`),
-            body: filters,
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+): Promise<FetchResponse<IResourceListResponse> | never> => {
+    return fetch({
+        url: legacyApiEndpoint(`/projects/${projectId}/resources`),
+        body: filters,
+    });
 };
 
 export const requestPreview = async (
     preview: IResourcePreview | IDatasetConfigPreview | IDatasetPreview
-): Promise<IPreviewResponse> => {
+): Promise<FetchResponse<IPreviewResponse>> => {
     const url = (preview as IDatasetPreview).dataset ? datasetsLegacyApi("preview") : resourcesLegacyApi("preview");
-    try {
-        const { data } = await fetch({
-            url,
-            method: "POST",
-            body: preview,
-        });
-        return data;
-    } catch (e) {
-        return handleError(e);
-    }
+    return fetch({
+        url,
+        method: "POST",
+        body: preview,
+    });
 };
