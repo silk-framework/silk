@@ -25,14 +25,13 @@ export function AppLayout({ children }: IProps) {
         } else if (currentProjectId) {
             dispatch(commonOp.unsetProject());
         }
+        dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
 
         if (taskId) {
             dispatch(commonOp.setTaskId(taskId));
         } else if (currentTaskId) {
             dispatch(commonOp.unsetTaskId());
         }
-
-        dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
     }, [projectId, taskId]);
 
     return <>{children}</>;

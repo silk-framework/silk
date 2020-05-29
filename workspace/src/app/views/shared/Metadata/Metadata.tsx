@@ -60,7 +60,9 @@ export function Metadata(props: IProps) {
     const { label, description } = data;
 
     useEffect(() => {
-        getTaskMetadata(taskId, projectId);
+        if (projectId) {
+            getTaskMetadata(taskId, projectId);
+        }
     }, [taskId, projectId]);
 
     const letLoading = async (callback) => {
