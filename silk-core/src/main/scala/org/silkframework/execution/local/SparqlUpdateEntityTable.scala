@@ -7,7 +7,7 @@ import org.silkframework.execution.{EntityHolder, InterruptibleTraversable}
 import org.silkframework.util.Uri
 
 /** Entity table that holds SPARQL Update queries */
-class SparqlUpdateEntityTable(entityTraversable: Traversable[Entity], val task: Task[TaskSpec]) extends LocalEntities {
+class SparqlUpdateEntityTable(entityTraversable: Traversable[Entity], val task: Task[TaskSpec]) extends LocalOnlyEntities {
 
   override def entitySchema: EntitySchema = SparqlUpdateEntitySchema.schema
 

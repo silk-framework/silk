@@ -6,7 +6,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.InterruptibleTraversable
 import org.silkframework.util.Uri
 
-case class QuadEntityTable(entityFunction: () => Traversable[Entity], task: Task[TaskSpec]) extends LocalEntities {
+case class QuadEntityTable(entityFunction: () => Traversable[Entity], task: Task[TaskSpec]) extends LocalOnlyEntities {
 
   override def entitySchema: EntitySchema = QuadEntityTable.schema
 

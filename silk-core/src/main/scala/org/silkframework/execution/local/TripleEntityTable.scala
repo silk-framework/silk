@@ -10,7 +10,7 @@ import org.silkframework.util.Uri
 /**
   * Holds RDF triples.
   */
-class TripleEntityTable(tripleEntities: Traversable[Entity], val task: Task[TaskSpec]) extends LocalEntities {
+class TripleEntityTable(tripleEntities: Traversable[Entity], val task: Task[TaskSpec]) extends LocalOnlyEntities {
 
   override def entities: Traversable[Entity] = {
     new InterruptibleTraversable(tripleEntities)

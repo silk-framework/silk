@@ -52,7 +52,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case datasetSpec: DatasetSpec[_] =>
         datasetSpec.plugin match {
           case dsr: ResourceBasedDataset =>
-            new LocalDatasetResourceEntityTable(dsr.file, dataset)
+            new LocalOnlyDatasetResourceEntityTable(dsr.file, dataset)
           case _: Dataset =>
             throw new ValidationException(s"Dataset task ${dataset.id} of type " +
                 s"${datasetSpec.plugin.pluginSpec.label} has no resource (file) or does not support requests for its resource!")
@@ -114,9 +114,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
                               (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit = {
     //FIXME CMEM-1759 clean this and use only plugin based implementations of LocalEntities
     data match {
-      case LinksTable(links, linkType, _) =>
+      case links: LocalLinks =>
         withLinkSink(dataset, execution) { linkSink =>
-          writeLinks(linkSink, links, linkType)
+          writeLinks(linkSink, links.links, links.linkType)
         }
       case tripleEntityTable: TripleEntityTable =>
         withEntitySink(dataset, execution) { entitySink =>
@@ -132,7 +132,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         }
       case datasetResource: DatasetResourceEntityTable =>
         writeDatasetResource(dataset, datasetResource)
-      case graphStoreFiles: LocalGraphStoreFileUploadTable =>
+      case graphStoreFiles: LocalOnlyGraphStoreFileUploadTable =>
         uploadFilesViaGraphStore(dataset, graphStoreFiles)
       case sparqlUpdateTable: SparqlUpdateEntityTable =>
         executeSparqlUpdateQueries(dataset, sparqlUpdateTable)

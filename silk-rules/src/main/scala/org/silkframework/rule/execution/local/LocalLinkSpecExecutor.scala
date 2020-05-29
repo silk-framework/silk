@@ -4,7 +4,7 @@ import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptyDataset}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.execution.local.{EmptyEntityTable, LinksTable, LocalEntities, LocalExecution, MultiEntityTable}
+import org.silkframework.execution.local.{EmptyEntityTable, LocalLinks, LocalEntities, LocalExecution, MultiEntityTable}
 import org.silkframework.execution.{EntityHolder, ExecutionReport, Executor, ExecutorOutput}
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.rule.execution._
@@ -36,7 +36,7 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
     val activity = new GenerateLinks(task.id, task.taskLabel(), sources, linkSpec, Seq(), linkConfig)
     val linking = context.child(activity).startBlockingAndGetValue()
     context.value() = linking
-    Some(LinksTable(linking.links, linkSpec.rule.linkType, task))
+    Some(LocalLinks.fromLinks(linking.links, linkSpec.rule.linkType, task))
   }
 
   private def entitySource(input: LocalEntities, typeUri: Uri): EntitySource = {

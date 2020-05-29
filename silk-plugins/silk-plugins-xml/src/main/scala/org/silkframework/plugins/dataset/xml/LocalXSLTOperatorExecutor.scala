@@ -5,7 +5,7 @@ import javax.xml.transform.stream.{StreamResult, StreamSource}
 import net.sf.saxon.TransformerFactoryImpl
 import net.sf.saxon.s9api.SaxonApiException
 import org.silkframework.config.{Prefixes, Task}
-import org.silkframework.dataset.{DatasetResourceEntityTable, LocalDatasetResourceEntityTable}
+import org.silkframework.dataset.{DatasetResourceEntityTable, LocalOnlyDatasetResourceEntityTable}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
 import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
@@ -49,7 +49,7 @@ case class LocalXSLTOperatorExecutor() extends LocalExecutor[XSLTOperator] {
         inMemoryResource.write() { os =>
           transformer.transform(text, new StreamResult(os))
         }
-        Some(new LocalDatasetResourceEntityTable(inMemoryResource, task))
+        Some(new LocalOnlyDatasetResourceEntityTable(inMemoryResource, task))
       case _ =>
         throw new ValidationException("XSLT operator executor did not receive a dataset resource table as input!")
     }

@@ -20,7 +20,7 @@ import org.silkframework.config.{DefaultConfig, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{EntitySchema, StringValueType, ValueType}
-import org.silkframework.execution.local.LinksTable
+import org.silkframework.execution.Links
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
@@ -107,7 +107,7 @@ case class LinkSpec(dataSelections: DPair[DatasetSelection] = DatasetSelection.e
     * The schema of the output data.
     * Returns None, if the schema is unknown or if no output is written by this task.
     */
-  override lazy val outputSchemaOpt: Option[EntitySchema] = Some(LinksTable.linkEntitySchema)
+  override lazy val outputSchemaOpt: Option[EntitySchema] = Some(Links.linkEntitySchema)
 
   override def inputTasks: Set[Identifier] = dataSelections.map(_.inputId).toSet
 

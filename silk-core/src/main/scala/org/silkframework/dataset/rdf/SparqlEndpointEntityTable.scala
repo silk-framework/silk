@@ -3,14 +3,14 @@ package org.silkframework.dataset.rdf
 import org.silkframework.config.{SilkVocab, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.execution.EmptyEntityHolder
-import org.silkframework.execution.local.LocalEntities
+import org.silkframework.execution.local.{LocalOnlyEntities, LocalEntities}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 /**
   * An entity table that does not contain data, but a SPARQL endpoint from the data source input that can be queried.
   */
-class SparqlEndpointEntityTable(sparqlEndpoint: SparqlEndpoint, val task: Task[TaskSpec]) extends LocalEntities with EmptyEntityHolder {
+class SparqlEndpointEntityTable(sparqlEndpoint: SparqlEndpoint, val task: Task[TaskSpec]) extends LocalOnlyEntities with EmptyEntityHolder {
 
   override def entitySchema: EntitySchema = EntitySchema.empty
 

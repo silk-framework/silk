@@ -2,7 +2,7 @@ package org.silkframework.execution
 
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.execution.local.{GenericEntityTable, LocalEntities}
+import org.silkframework.execution.local.{LocalOnlyEntities, GenericEntityTable, LocalEntities}
 
 /**
   * Holds entities that are exchanged between tasks.
@@ -45,7 +45,7 @@ trait EntityHolder {
   def filter(f: Entity => Boolean): EntityHolder
 }
 
-trait EmptyEntityHolder extends LocalEntities {
+trait EmptyEntityHolder extends LocalOnlyEntities {
 
   final def entities: Traversable[Entity] = Seq.empty
 

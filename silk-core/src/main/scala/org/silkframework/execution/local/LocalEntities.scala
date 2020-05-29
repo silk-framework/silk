@@ -14,8 +14,14 @@ trait LocalEntities extends EntityHolder {
     * get head Entity
     */
   override def headOption: Option[Entity] = this.entities.headOption
+}
 
-  def updateEntities(newEntities: Traversable[Entity], newSchema: EntitySchema): LocalEntities
+/**
+  * Base implementation for local entities.
+  */
+trait LocalOnlyEntities extends LocalEntities {
+
+  protected def updateEntities(newEntities: Traversable[Entity], newSchema: EntitySchema): LocalEntities
 
   def mapEntities(f: Entity => Entity): EntityHolder = {
     updateEntities(entities.map(f), entitySchema)
@@ -28,6 +34,7 @@ trait LocalEntities extends EntityHolder {
   def filter(f: Entity => Boolean): EntityHolder = {
     updateEntities(entities.filter(f), entitySchema)
   }
+
 }
 
 trait LocalEntitiesWithIterator extends LocalEntities with EntityHolderWithEntityIterator
@@ -35,7 +42,7 @@ trait LocalEntitiesWithIterator extends LocalEntities with EntityHolderWithEntit
 
 /** This should be used if no input is explicitly "requested". E.g. when the subsequent task signals to a data source
   * that it needs no input data, the data source should send an instance of [[EmptyEntityTable]]. */
-case class EmptyEntityTable(task: Task[TaskSpec]) extends LocalEntities with EmptyEntityHolder {
+case class EmptyEntityTable(task: Task[TaskSpec]) extends LocalOnlyEntities with EmptyEntityHolder {
   override def entitySchema: EntitySchema = EmptyEntityTable.schema
 }
 
