@@ -17,11 +17,12 @@ import org.silkframework.workspace.ProjectConfig
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Accepting, Action, AnyContent, InjectedController}
 import JsonSerializers.MetaDataJsonFormat
+import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 
 /**
   * REST API for project artifacts.
   */
-class ProjectApi @Inject()() extends InjectedController with ControllerUtilsTrait {
+class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends InjectedController with ControllerUtilsTrait {
   private val MARKDOWN_MIME = "text/markdown"
   private val AcceptsMarkdown = Accepting(MARKDOWN_MIME)
 
@@ -73,6 +74,7 @@ class ProjectApi @Inject()() extends InjectedController with ControllerUtilsTrai
   /** Returns all project prefixes */
   def fetchProjectPrefixes(projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)
+    accessMonitor.saveProjectAccess(project.config.id) // Only accessed on the project details page
     Ok(Json.toJson(project.config.prefixes.prefixMap))
   }
 
