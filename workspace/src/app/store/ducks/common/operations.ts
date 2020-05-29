@@ -80,10 +80,23 @@ const fetchArtefactsListAsync = (filters: any = {}) => {
 
         try {
             const data = await requestArtefactList(filters);
-            const result = Object.keys(data).map((key) => ({
+            let result = Object.keys(data).map((key) => ({
                 key,
                 ...data[key],
             }));
+
+            if (filters.textQuery) {
+                let labelsArray = [];
+                let descriptionsArray = [];
+                result.forEach((eachResult) => {
+                    if (eachResult.title.toLowerCase().includes(filters.textQuery.toLowerCase())) {
+                        labelsArray.push(eachResult);
+                    } else {
+                        descriptionsArray.push(eachResult);
+                    }
+                });
+                result = labelsArray.concat(descriptionsArray);
+            }
 
             dispatch(setArtefactsList(result));
         } catch (e) {
