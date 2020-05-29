@@ -185,7 +185,7 @@ export const ParameterWidget = (props: IProps) => {
                     />
                 }
                 helperText={propertyHelperText}
-                hasStateDanger={errorMessage(title, errors) ? true : false}
+                hasStateDanger={errorMessage(title, errors)}
                 messageText={errorMessage(title, errors)}
             >
                 <InputMapper
@@ -207,7 +207,7 @@ export const ParameterWidget = (props: IProps) => {
                     tooltip: description && description.length <= MAXLENGTH_TOOLTIP ? description : "",
                 }}
                 helperText={propertyHelperText}
-                hasStateDanger={errorMessage(title, errors) ? true : false}
+                hasStateDanger={errorMessage(title, errors)}
                 messageText={errorMessage(title, errors)}
             >
                 {!!autoCompletion ? (

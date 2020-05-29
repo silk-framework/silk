@@ -117,6 +117,15 @@ export function CreateArtefactModal() {
             } else {
                 dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefact.key)));
             }
+        } else {
+            const errKey = Object.keys(form.errors)[0];
+            const el = document.getElementById(errKey);
+            if (el) {
+                el.scrollIntoView({
+                    block: "start",
+                    inline: "start",
+                });
+            }
         }
     };
 
