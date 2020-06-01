@@ -68,6 +68,9 @@ export function CreateArtefactModal() {
     };
 
     const handleSearch = (textQuery: string) => {
+        if (!projectId) {
+            return;
+        }
         setSearchValue(textQuery);
         dispatch(
             commonOp.fetchArtefactsListAsync({
