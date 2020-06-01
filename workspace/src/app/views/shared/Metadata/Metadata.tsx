@@ -60,7 +60,9 @@ export function Metadata(props: IProps) {
     const { label, description } = data;
 
     useEffect(() => {
-        getTaskMetadata(taskId, projectId);
+        if (projectId) {
+            getTaskMetadata(taskId, projectId);
+        }
     }, [taskId, projectId]);
 
     const letLoading = async (callback) => {
@@ -110,7 +112,7 @@ export function Metadata(props: IProps) {
 
         const result = await letLoading(async () => {
             const path = location.pathname;
-            const metadata = await sharedOp.updateTaskMetadataAsync(taskId, inputs, projectId);
+            const metadata = await sharedOp.updateTaskMetadataAsync(inputs, taskId, projectId);
             dispatch(routerOp.updateLocationState(path, projectId, metadata));
             return metadata;
         });

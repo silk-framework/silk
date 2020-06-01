@@ -10,6 +10,7 @@ import {
     GridRow,
     HelperClasses,
     Icon,
+    Notification,
     OverviewItem,
     OverviewItemDepiction,
     OverviewItemDescription,
@@ -19,15 +20,14 @@ import {
     Spacing,
 } from "@wrappers/index";
 import { commonOp, commonSel } from "@ducks/common";
-import { IArtefactItem, IDetailedArtefactItem } from "@ducks/common/typings";
+import { IArtefactItem, IArtefactModal, IDetailedArtefactItem } from "@ducks/common/typings";
 import Loading from "../../Loading";
-import { SearchBar } from "../../SearchBar/SearchBar";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
 import { TaskForm } from "./ArtefactForms/TaskForm";
-import ArtefactTypesList from "./ArtefactTypesList";
 import { DATA_TYPES } from "../../../../constants";
 import { Highlighter } from "../../Highlighter/Highlighter";
-import { workspaceOp } from "@ducks/workspace";
+import ArtefactTypesList from "./ArtefactTypesList";
+import { SearchBar } from "../../SearchBar/SearchBar";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -45,13 +45,15 @@ export function CreateArtefactModal() {
         cachedArtefactProperties,
         loading,
         updateExistingTask,
-    } = modalStore;
+        error,
+    }: IArtefactModal = modalStore;
 
     // initially take from redux
     const [selected, setSelected] = useState<IArtefactItem>(selectedArtefact);
     const [lastSelectedClick, setLastSelectedClick] = useState<number>(0);
     const DOUBLE_CLICK_LIMIT_MS = 500;
 
+    // Fetch Artefact list
     useEffect(() => {
         if (projectId) {
             dispatch(commonOp.fetchArtefactsListAsync());
@@ -99,7 +101,6 @@ export function CreateArtefactModal() {
 
     const handleBack = () => {
         resetModal();
-        dispatch(commonOp.selectArtefact(null));
     };
 
     const taskType = (artefactId) => {
@@ -117,7 +118,7 @@ export function CreateArtefactModal() {
         if (isValidFields) {
             if (updateExistingTask) {
                 dispatch(
-                    workspaceOp.fetchUpdateTaskAsync(
+                    commonOp.fetchUpdateTaskAsync(
                         updateExistingTask.projectId,
                         updateExistingTask.taskId,
                         form.getValues()
@@ -126,12 +127,20 @@ export function CreateArtefactModal() {
             } else {
                 dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefact.key)));
             }
+        } else {
+            const errKey = Object.keys(form.errors)[0];
+            const el = document.getElementById(errKey);
+            if (el) {
+                el.scrollIntoView({
+                    block: "start",
+                    inline: "start",
+                });
+            }
         }
     };
 
     const closeModal = () => {
-        dispatch(commonOp.closeArtefactModal());
-        resetModal();
+        resetModal(true);
     };
 
     const isErrorPresented = () => !!Object.keys(form.errors).length;
@@ -140,9 +149,10 @@ export function CreateArtefactModal() {
         dispatch(commonOp.setSelectedArtefactDType(value));
     };
 
-    const resetModal = () => {
+    const resetModal = (closeModal?: boolean) => {
         setSelected({} as IArtefactItem);
         form.clearError();
+        dispatch(commonOp.resetArtefactModal(closeModal));
     };
 
     let artefactForm = null;
@@ -211,7 +221,6 @@ export function CreateArtefactModal() {
         <SimpleDialog
             size="large"
             preventSimpleClosing={true}
-            canEscapeKeyClose={true}
             hasBorder
             title={
                 updateExistingTask
@@ -255,7 +264,17 @@ export function CreateArtefactModal() {
             {
                 <>
                     {artefactForm ? (
-                        artefactForm
+                        <>
+                            {artefactForm}
+                            {!!error.detail && (
+                                <Notification
+                                    message={`${updateExistingTask ? "Update" : "Create"} action failed. Details: ${
+                                        error.detail
+                                    }`}
+                                    danger
+                                />
+                            )}
+                        </>
                     ) : (
                         <Grid>
                             <GridRow>

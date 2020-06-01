@@ -1,6 +1,9 @@
 import { DragDrop } from "@uppy/react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Uppy from "@uppy/core";
+import ProgressBar from "@wrappers/blueprint/progressbar";
+import { Button, Notification, Spacing } from "@wrappers/index";
+import { Intent } from "@wrappers/blueprint/constants";
 
 interface IProps {
     // Uppy instance
@@ -14,16 +17,21 @@ interface IProps {
 
     onAdded(file: File);
 
-    onProgress?(file: File, data: any);
+    onProgress?(progress: number);
 
-    onUploadSuccess?();
+    onUploadSuccess?(file: File);
+
+    onUploadError?(e, f);
 }
 
 /**
  * The Widget for "Upload new file" option
  */
 export function UploadNewFile(props: IProps) {
-    const { uppy, simpleInput, allowMultiple, onAdded, onProgress, onUploadSuccess } = props;
+    const { uppy, simpleInput, allowMultiple, onAdded, onUploadSuccess, onUploadError } = props;
+
+    const [progress, setProgress] = useState<number>(-1);
+    const [uploaded, setUploaded] = useState<File>(null);
 
     useEffect(() => {
         registerEvents();
@@ -32,14 +40,37 @@ export function UploadNewFile(props: IProps) {
 
     const registerEvents = () => {
         uppy.on("file-added", onAdded);
-        uppy.on("upload-progress", onProgress);
-        uppy.on("upload-success", onUploadSuccess);
+        uppy.on("upload-progress", handleProgress);
+        uppy.on("upload-success", handleUploadSuccess);
+        uppy.on("upload-error", onUploadError);
     };
 
     const unregisterEvents = () => {
         uppy.off("file-added", onAdded);
-        uppy.off("upload-progress", onProgress);
-        uppy.off("upload-success", onUploadSuccess);
+        uppy.off("upload-progress", handleProgress);
+        uppy.off("upload-success", handleUploadSuccess);
+        uppy.off("upload-error", onUploadError);
+    };
+
+    const handleProgress = (file, { bytesUploaded, bytesTotal }) => {
+        const progress = bytesUploaded / bytesTotal;
+        setProgress(progress);
+
+        if (props.onProgress) {
+            props.onProgress(progress);
+        }
+    };
+
+    const handleUploadSuccess = (file: File) => {
+        setUploaded(file);
+        onUploadSuccess(file);
+    };
+
+    const handleAbort = () => {
+        uppy.reset();
+        uppy.cancelAll();
+        setProgress(-1);
+        setUploaded(null);
     };
 
     const handleFileInputChange = (event) => {
@@ -70,12 +101,34 @@ export function UploadNewFile(props: IProps) {
     }
 
     return (
-        <div>
-            {simpleInput ? (
+        <>
+            {progress >= 0 ? (
+                <Notification
+                    success={uploaded ? true : false}
+                    actions={
+                        !uploaded && (
+                            <Button outlined onClick={handleAbort}>
+                                Abort Upload
+                            </Button>
+                        )
+                    }
+                >
+                    <p>{!uploaded ? "Wait for finished upload." : `${uploaded.name} was successfully uploaded`}</p>
+                    <Spacing />
+                    <ProgressBar
+                        value={progress}
+                        stripes={!uploaded}
+                        intent={uploaded ? Intent.SUCCESS : Intent.PRIMARY}
+                    />
+                </Notification>
+            ) : simpleInput ? (
                 <input type="file" id="fileInput" onChange={handleFileInputChange} />
             ) : (
-                <DragDrop uppy={uppy} />
+                <DragDrop
+                    uppy={uppy}
+                    locale={{ strings: { dropHereOr: "Drop file here or %{browse}", browse: "browse" } }}
+                />
             )}
-        </div>
+        </>
     );
 }

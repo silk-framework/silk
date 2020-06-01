@@ -1,4 +1,4 @@
-import { RadioButton } from "@wrappers/index";
+import { RadioButton, FieldItemRow, FieldItem } from "@wrappers/index";
 import React from "react";
 
 export type FileMenuItems = "SELECT" | "NEW" | "EMPTY";
@@ -18,7 +18,7 @@ interface IProps {
 export function FileMenu({ onChange, selectedFileMenu }: IProps) {
     const menuItems = [
         {
-            label: "Select file from project upload",
+            label: "Select file from project",
             value: "SELECT",
         },
         {
@@ -26,7 +26,7 @@ export function FileMenu({ onChange, selectedFileMenu }: IProps) {
             value: "NEW",
         },
         {
-            label: "Start without data(create empty file)",
+            label: "Create empty file",
             value: "EMPTY",
         },
     ];
@@ -37,16 +37,17 @@ export function FileMenu({ onChange, selectedFileMenu }: IProps) {
     };
 
     return (
-        <div>
+        <FieldItemRow>
             {menuItems.map((item) => (
-                <RadioButton
-                    key={item.value}
-                    checked={selectedFileMenu === item.value}
-                    label={item.label}
-                    onChange={handleSelectChange}
-                    value={item.value}
-                />
+                <FieldItem key={item.value}>
+                    <RadioButton
+                        checked={selectedFileMenu === item.value}
+                        label={item.label}
+                        onChange={handleSelectChange}
+                        value={item.value}
+                    />
+                </FieldItem>
             ))}
-        </div>
+        </FieldItemRow>
     );
 }

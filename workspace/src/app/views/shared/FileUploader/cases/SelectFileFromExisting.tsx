@@ -4,35 +4,41 @@ import React, { useState } from "react";
 
 interface IProps {
     autocomplete: IAutocompleteProps;
+
     /**
      * Fire when autocomplete value selected
      * @param value
      */
     onChange(value: string);
+
+    /**
+     * Default value
+     */
+    defaultValue?: string;
 }
 
 /**
  * The widget for "select from existing" option
- * @param autocomplete
- * @param onChange
  * @constructor
  */
-export function SelectFileFromExisting({ autocomplete, onChange }: IProps) {
+export function SelectFileFromExisting(props: IProps) {
+    const { autocomplete, onChange, defaultValue } = props;
+
+    const selectedValueState = useState(defaultValue);
+    const setSelectedValue = selectedValueState[1];
     const [error, setError] = useState(false);
 
     const handleChange = (value: string) => {
-        if (!value) {
-            setError(true);
-        } else {
-            setError(false);
-        }
+        setError(!value);
+        setSelectedValue(value);
+
         onChange(value);
     };
 
     return (
         <FieldItem
             labelAttributes={{
-                text: "Select available file from projects upload",
+                text: "Select file from projects",
                 info: "required",
                 htmlFor: "autocompleteInput",
             }}

@@ -11,7 +11,8 @@ import {
 } from "@ducks/common/requests";
 import { IArtefactItem } from "@ducks/common/typings";
 import { commonSel } from "@ducks/common/index";
-import { workspaceOp } from "@ducks/workspace";
+import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } from "@ducks/workspace/requests";
+import { routerOp } from "@ducks/router";
 
 const {
     setError,
@@ -30,7 +31,24 @@ const {
     setArtefactLoading,
     setTaskId,
     unsetTaskId,
+    setModalError,
 } = commonSlice.actions;
+
+const itemTypeToPathMap = {
+    Transform: "transform",
+    Linking: "linking",
+    Workflow: "workflow",
+    CustomTask: "task",
+    Dataset: "dataset",
+};
+
+const itemTypeToPath = (itemType: string) => {
+    if (itemTypeToPathMap[itemType]) {
+        return itemTypeToPathMap[itemType];
+    } else {
+        return "task";
+    }
+};
 
 const fetchCommonSettingsAsync = () => {
     return async (dispatch) => {
@@ -155,14 +173,98 @@ const createArtefactAsync = (formData, taskType: string) => {
 
         switch (selectedArtefact.key) {
             case "project":
-                dispatch(workspaceOp.fetchCreateProjectAsync(formData));
+                dispatch(fetchCreateProjectAsync(formData));
                 break;
             default:
-                dispatch(workspaceOp.fetchCreateTaskAsync(formData, selectedArtefact.key, taskType));
-                console.warn("Artefact type not defined");
+                dispatch(fetchCreateTaskAsync(formData, selectedArtefact.key, taskType));
                 break;
         }
     };
+};
+
+const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: string) => {
+    return async (dispatch, getState) => {
+        const currentProjectId = commonSel.currentProjectIdSelector(getState());
+        const { label, description, ...restFormData } = formData;
+        const requestData = buildTaskObject(restFormData);
+        const metadata = {
+            label,
+            description,
+        };
+
+        const payload = {
+            metadata,
+            data: {
+                taskType: taskType,
+                type: artefactId,
+                parameters: {
+                    ...requestData,
+                },
+            },
+        };
+
+        dispatch(setModalError({}));
+
+        try {
+            const data = await requestCreateTask(payload, currentProjectId);
+            dispatch(closeArtefactModal());
+            dispatch(
+                routerOp.goToPage(`projects/${currentProjectId}/${itemTypeToPath(taskType)}/${data.id}`, {
+                    taskLabel: label,
+                })
+            );
+        } catch (e) {
+            dispatch(setModalError(e));
+        }
+    };
+};
+
+/** Updates the technical parameters of a project task. */
+const fetchUpdateTaskAsync = (projectId: string, itemId: string, formData: any) => {
+    return async (dispatch) => {
+        const requestData = buildTaskObject(formData);
+        const payload = {
+            data: {
+                parameters: {
+                    ...requestData,
+                },
+            },
+        };
+        dispatch(setModalError({}));
+        try {
+            await requestUpdateProjectTask(projectId, itemId, payload);
+            dispatch(closeArtefactModal());
+        } catch (e) {
+            dispatch(setModalError(e));
+        }
+    };
+};
+
+const fetchCreateProjectAsync = (formData: { label: string; description?: string }) => {
+    return async (dispatch) => {
+        dispatch(setModalError({}));
+        const { label, description } = formData;
+        try {
+            const data = await requestCreateProject({
+                metaData: {
+                    label,
+                    description,
+                },
+            });
+            dispatch(closeArtefactModal());
+            dispatch(routerOp.goToPage(`projects/${data.name}`, { projectLabel: label }));
+        } catch (e) {
+            dispatch(setModalError(e.response.data));
+        }
+    };
+};
+
+const resetArtefactModal = (shouldClose: boolean = false) => (dispatch) => {
+    dispatch(selectArtefact(null));
+    dispatch(setModalError({}));
+    if (shouldClose) {
+        dispatch(closeArtefactModal());
+    }
 };
 
 export default {
@@ -184,5 +286,10 @@ export default {
     setTaskId,
     unsetTaskId,
     setSelectedArtefactDType,
+    setModalError,
     buildTaskObject,
+    fetchCreateTaskAsync,
+    fetchUpdateTaskAsync,
+    fetchCreateProjectAsync,
+    resetArtefactModal,
 };

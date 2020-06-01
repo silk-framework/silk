@@ -7,6 +7,7 @@
     "toggler-showless": "ChevronUp",
 
     "navigation-back": "ArrowLeft",
+    "navigation-close": "Close",
 
     "item-moremenu": "OverflowMenuVertical",
     "item-vertmenu": "OverflowMenuHorizontal",
@@ -21,6 +22,8 @@
 
     "operation-search": "Search",
     "operation-clear": "Close",
+    "operation-undo": "Undo",
+    "operation-redo": "Redo",
 
     "list-sort": "ArrowsVertical",
     "list-sortasc": "ArrowDown",

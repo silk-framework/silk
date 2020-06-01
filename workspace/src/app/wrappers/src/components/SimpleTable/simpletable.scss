@@ -45,6 +45,12 @@ $ecc-size-tablecell-padding-tall: ($ecc-size-tablecell-height-tall - carbon--rem
     }
 }
 
+.#{$prefix}--data-table .#{$prefix}--table-column-menu,
+.#{$prefix}--data-table .#{$prefix}--table-column-menu:last-of-type {
+    width: auto;
+    min-width: 0;
+}
+
 // Compact
 
 .#{$prefix}--data-table--compact thead tr,
