@@ -64,6 +64,7 @@ export default function withBreadcrumbLabels(WrappedComponent) {
         const fetchLabel = async (breadcrumbId: string, params: any): Promise<string> => {
             switch (breadcrumbId) {
                 case "projectId":
+                    return sharedOp.getTaskMetadataAsync(params.projectId).then((metadata) => metadata.label);
                 case "taskId":
                     return sharedOp
                         .getTaskMetadataAsync(params.taskId, params.projectId)

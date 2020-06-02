@@ -23,7 +23,7 @@ const OverrideAlert = ({ fileName, isOpen, onCancel, onConfirm }: IProps) => {
                 </Button>,
             ]}
         >
-            <p>File '{fileName}' already exists. Are you sure you want to replace it?</p>
+            <p>File '{fileName}' already exists. Do you want to overwrite it?</p>
         </AlertDialog>
     );
 };

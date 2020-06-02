@@ -2,13 +2,19 @@ import React, { useEffect, useRef } from "react";
 import CodeMirror from "codemirror";
 import "codemirror/mode/sparql/sparql.js";
 
-export function QueryEditor({ onChange, name }: any) {
+interface IProps {
+    name: string;
+    onChange: (v) => void;
+    mode?: string;
+}
+
+export function CodeEditor({ onChange, name, mode = "sparql" }: IProps) {
     const ref = useRef();
 
     useEffect(() => {
         if (onChange !== undefined) {
             const editorInstance = CodeMirror.fromTextArea(ref.current, {
-                mode: "sparql",
+                mode: mode,
                 lineWrapping: true,
                 lineNumbers: true,
                 tabSize: 2,

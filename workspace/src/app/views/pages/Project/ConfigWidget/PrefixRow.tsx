@@ -14,7 +14,7 @@ interface IProps {
     onRemove();
 }
 
-const PrefixRow = ({prefix, onRemove}: IProps) => {
+const PrefixRow = ({ prefix, onRemove }: IProps) => {
     return (
         <OverviewItem>
             <OverviewItemDescription>
@@ -26,14 +26,10 @@ const PrefixRow = ({prefix, onRemove}: IProps) => {
                 </OverviewItemLine>
             </OverviewItemDescription>
             <OverviewItemActions>
-                <IconButton
-                    name="item-remove"
-                    text="Remove prefix"
-                    onClick={onRemove}
-                />
+                <IconButton name="item-remove" text="Delete prefix" onClick={onRemove} />
             </OverviewItemActions>
         </OverviewItem>
-    )
+    );
 };
 
 export default PrefixRow;

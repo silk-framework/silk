@@ -51,7 +51,9 @@ export function RelatedItems(props: IProps) {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        getRelatedItemsData(projectId, taskId, textQuery);
+        if (projectId) {
+            getRelatedItemsData(projectId, taskId, textQuery);
+        }
     }, [taskId, projectId, textQuery]);
 
     // Fetches and updates the related items of the project task
@@ -105,7 +107,7 @@ export function RelatedItems(props: IProps) {
                 <DataList
                     isEmpty={data.items.length === 0}
                     isLoading={loading}
-                    emptyListMessage={"No items found"}
+                    emptyListMessage={"No items found."}
                     hasSpacing
                     hasDivider
                 >

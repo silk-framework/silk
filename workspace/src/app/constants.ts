@@ -12,6 +12,7 @@ export const INPUT_TYPES = {
     TEXTAREA: "textarea",
     INTEGER: "int",
     MULTILINE_STRING: "multiline string",
+    RESTRICTION: "restriction",
     STRING: "string",
     OPTION_INT: "option[int]",
     ENUMERATION: "enumeration",

@@ -6,7 +6,7 @@ import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 
 export interface IAutocompleteProps {
     /**
-     * Autocomplete options, usually it recieved from backend
+     * Autocomplete options, usually received from backend
      * @see IPropertyAutocomplete
      */
     autoCompletion: IPropertyAutocomplete;
@@ -15,7 +15,7 @@ export interface IAutocompleteProps {
      * Fired when type in input
      * @param value
      */
-    onSearch?(value: string): any;
+    onSearch(value: string): any;
 
     /**
      * Fired when value selected from input
@@ -27,13 +27,7 @@ export interface IAutocompleteProps {
      * The initial value for autocomplete input
      * @default ''
      */
-    initialValue?: string;
-    /**
-     * The initial items,
-     * if empty then fetch from onSearch or keep it empty
-     * @default []
-     */
-    items?: any[];
+    initialValue?: IAutocompleteDefaultResponse;
 
     /**
      * item label renderer
@@ -43,59 +37,66 @@ export interface IAutocompleteProps {
     itemLabelRenderer?(item: any): string;
 
     /**
-     * item value renderer
+     * The part from the auto-completion item that is called with the onChange callback.
      * @param item
-     * @default (item) => item.value || item.id
+     * @default (item) => item.value
      */
-    itemValueRenderer?(item: any): string;
+    itemValueSelector?(item: any): string;
+
+    /**
+     * The values of the parameters this auto-completion depends on.
+     */
+    dependentValues?: string[];
 }
 
 const SuggestAutocomplete = Suggest.ofType<IAutocompleteDefaultResponse>();
 
 Autocomplete.defaultProps = {
-    items: [],
     initialValue: "",
-    itemLabelRenderer: (item) => item.label || item.value,
-    itemValueRenderer: (item) => item.value,
+    itemLabelRenderer: (item) => {
+        const label = item.label || item.value;
+        if (label === "") {
+            return "\u00A0";
+        } else {
+            return label;
+        }
+    },
+    itemValueSelector: (item) => item.value,
+    dependentValues: [],
 };
 
 export function Autocomplete(props: IAutocompleteProps) {
-    const { itemValueRenderer, itemLabelRenderer, items, onSearch, onChange, initialValue } = props;
+    const { itemValueSelector, itemLabelRenderer, onSearch, onChange, initialValue, dependentValues } = props;
+    const [selectedItem, setSelectedItem] = useState<IAutocompleteDefaultResponse>(initialValue);
 
-    const [query, setQuery] = useState<string>(initialValue);
+    const [query, setQuery] = useState<string>("");
 
     // The suggestions that match the user's input
     const [filtered, setFiltered] = useState<any[]>([]);
 
     useEffect(() => {
-        if (!items.length) {
+        // Don't fetch auto-completion values when
+        if (dependentValues.length === props.autoCompletion.autoCompletionDependsOnParameters.length) {
             handleQueryChange(query);
         }
-    }, [items]);
+    }, [dependentValues.join("|")]);
 
-    const areEqualItems = (itemA, itemB) => itemValueRenderer(itemA) === itemValueRenderer(itemB);
+    const onSelectionChange = (value) => {
+        setSelectedItem(value);
+        onItemSelect(value);
+    };
+
+    const areEqualItems = (itemA, itemB) => itemValueSelector(itemA) === itemValueSelector(itemB);
 
     const onItemSelect = (item) => {
-        const actualValue = itemValueRenderer(item);
-        onChange(actualValue);
+        onChange(itemValueSelector(item));
     };
 
     //@Note: issue https://github.com/palantir/blueprint/issues/2983
     const handleQueryChange = async (input = "") => {
         setQuery(input);
         try {
-            let result = [];
-            if (onSearch) {
-                result = await onSearch(input);
-            } else if (items.length && input) {
-                // Filter our suggestions that don't contain the user's input
-                result = items.filter(
-                    ({ label, value }) =>
-                        value.toLowerCase().indexOf(input.toLowerCase()) > -1 ||
-                        label.toLowerCase().indexOf(input.toLowerCase()) > -1
-                );
-            }
-
+            const result = await onSearch(input);
             setFiltered(result);
         } catch (e) {
             console.log(e);
@@ -110,7 +111,7 @@ export function Autocomplete(props: IAutocompleteProps) {
             <MenuItem
                 active={modifiers.active}
                 disabled={modifiers.disabled}
-                key={itemValueRenderer(item)}
+                key={itemValueSelector(item)}
                 onClick={handleClick}
                 text={<Highlighter label={itemLabelRenderer(item)} searchValue={query} />}
             />
@@ -119,16 +120,17 @@ export function Autocomplete(props: IAutocompleteProps) {
     return (
         <SuggestAutocomplete
             items={filtered}
-            inputValueRenderer={itemValueRenderer}
+            inputValueRenderer={itemLabelRenderer}
             itemRenderer={optionRenderer}
             itemsEqual={areEqualItems}
             noResults={<MenuItem disabled={true} text="No results." />}
-            onItemSelect={onItemSelect}
+            onItemSelect={onSelectionChange}
             onQueryChange={handleQueryChange}
             query={query}
             popoverProps={{
                 minimal: true,
             }}
+            selectedItem={selectedItem}
         />
     );
 }

@@ -1,82 +1,33 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { sharedOp } from "@ducks/shared";
 import { Button, Icon, Spacing } from "@wrappers/index";
 import Pagination from "../Pagination";
 import DataList from "../Datalist";
-import DeleteModal from "../modals/DeleteModal";
-import Loading from "../Loading";
 import CloneModal from "../modals/CloneModal";
-import { DATA_TYPES } from "../../../constants";
 import AppliedFacets from "../../pages/Workspace/AppliedFacets";
 import SearchItem from "./SearchItem";
 import EmptyList from "./EmptyList";
 import { commonOp } from "@ducks/common";
+import { IProjectOrTask, ItemDeleteModal } from "../modals/ItemDeleteModal";
 
 export function SearchList() {
     const dispatch = useDispatch();
 
     const pageSizes = [10, 25, 50, 100];
 
-    const [deleteModalOptions, setDeleteModalOptions] = useState({});
-
     const data = useSelector(workspaceSel.resultsSelector);
     const pagination = useSelector(workspaceSel.paginationSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const isLoading = useSelector(workspaceSel.isLoadingSelector);
     const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
-
-    const [selectedItem, setSelectedItem] = useState(null);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<IProjectOrTask | null>(null);
     const [showCloneModal, setShowCloneModal] = useState(false);
 
     const onDiscardModals = () => {
-        setShowDeleteModal(false);
         setShowCloneModal(false);
         setSelectedItem(null);
-    };
-
-    const onOpenDeleteModal = async (item?: any) => {
-        setShowDeleteModal(true);
-        setSelectedItem(item);
-        setDeleteModalOptions({
-            render: () => <Loading description="Loading delete dialog." />,
-        });
-
-        try {
-            const data = await sharedOp.getTaskMetadataAsync(item.id, item.projectId);
-            const isProject = data.type !== DATA_TYPES.PROJECT;
-
-            const { dependentTasksDirect } = data.relations;
-            // Skip check the relations for projects
-            if (!isProject && dependentTasksDirect.length) {
-                setDeleteModalOptions({
-                    confirmationRequired: true,
-                    render: () => (
-                        <div>
-                            <p>There are tasks depending on task {item.label || item.id}. </p>
-                            <p>Are you sure you want to delete all tasks below?</p>
-                            <ul>
-                                {dependentTasksDirect.map((rel) => (
-                                    <li key={rel}>{rel}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    ),
-                });
-            } else {
-                setDeleteModalOptions({
-                    confirmationRequired: false,
-                    render: () => <p>Are you sure you want to permanently remove this item?</p>,
-                });
-            }
-        } catch {
-            setDeleteModalOptions({
-                confirmationRequired: false,
-                render: () => <p>Are you sure you want to permanently remove this item?</p>,
-            });
-        }
     };
 
     const onOpenDuplicateModal = (item) => {
@@ -84,16 +35,20 @@ export function SearchList() {
         setSelectedItem(item);
     };
 
-    const handleConfirmRemove = () => {
-        const { id, projectId } = selectedItem;
-        dispatch(workspaceOp.fetchRemoveTaskAsync(id, projectId));
-        onDiscardModals();
-    };
-
     const handleConfirmClone = (newId: string) => {
         const { id, projectId } = selectedItem;
         dispatch(workspaceOp.fetchCloneTaskAsync(id, projectId, newId));
         onDiscardModals();
+    };
+
+    const onOpenDeleteModal = (item: IProjectOrTask) => {
+        setSelectedItem(item);
+        setDeleteModalOpen(true);
+    };
+
+    const onCloseDeleteModal = () => {
+        setSelectedItem(null);
+        setDeleteModalOpen(false);
     };
 
     const handlePaginationOnChange = (n: number, pageSize: number) => {
@@ -120,7 +75,7 @@ export function SearchList() {
         isEmpty && !appliedFilters.textQuery && !appliedFacets.length ? (
             <EmptyList
                 depiction={<Icon name={"artefact-" + appliedFilters.itemType} large />}
-                textInfo={<p>No {appliedFilters.itemType} found.</p>}
+                textInfo={<p>No {appliedFilters.itemType ? appliedFilters.itemType : "item"} found.</p>}
                 textCallout={<strong>Create your first {itemTypeLabel()} now.</strong>}
                 actionButtons={[
                     <Button key={"create"} onClick={handleCreateArtefact} elevated>
@@ -156,12 +111,9 @@ export function SearchList() {
                         onChangeSelect={handlePaginationOnChange}
                     />
 
-                    <DeleteModal
-                        isOpen={showDeleteModal}
-                        onDiscard={onDiscardModals}
-                        onConfirm={handleConfirmRemove}
-                        {...deleteModalOptions}
-                    />
+                    {deleteModalOpen && selectedItem && (
+                        <ItemDeleteModal selectedItem={selectedItem} onClose={onCloseDeleteModal} />
+                    )}
 
                     <CloneModal
                         isOpen={showCloneModal}
