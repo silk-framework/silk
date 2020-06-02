@@ -9,7 +9,7 @@ function ArtefactTypesList({ onSelect }) {
 
     return (
         <>
-            <TitleSubsection>Artefact Type</TitleSubsection>
+            <TitleSubsection>Item type</TitleSubsection>
             <Menu>
                 <MenuItem text={"All"} key="all" onClick={() => onSelect("all")} active={selectedDType === "all"} />
                 {typeModifier.options.map((type) => (

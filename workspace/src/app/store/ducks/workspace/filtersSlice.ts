@@ -10,7 +10,7 @@ import {
 
 const DEFAULT_SORTER = {
     id: '',
-    label: 'Most recently viewed (default)'
+    label: 'Recently viewed'
 };
 
 export const filtersSlice = createSlice({

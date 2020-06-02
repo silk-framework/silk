@@ -20,6 +20,10 @@ export class ErrorResponse {
     detail: string;
     cause?: ErrorResponse;
 
+    asString(): string {
+        return `${this.title}.${this.detail ? ` Details: ${this.detail}` : ""}`;
+    }
+
     constructor(title: string, detail: string, cause: ErrorResponse = null) {
         this.title = title;
         this.detail = detail;
@@ -91,10 +95,7 @@ export class HttpError extends FetchError {
             this.errorResponse = this.errorDetails.response.data;
         } else {
             // Got no JSON response, create error response object
-            this.errorResponse = {
-                title: httpStatusToTitle(errorDetails.response.status),
-                detail: "",
-            };
+            this.errorResponse = new ErrorResponse(httpStatusToTitle(errorDetails.response.status), "");
         }
     }
 }

@@ -10,6 +10,7 @@ export function initialArtefactModalState(): IArtefactModal {
         cachedArtefactProperties: {},
         selectedDType: "all",
         loading: false,
+        categories: [],
     };
 }
 

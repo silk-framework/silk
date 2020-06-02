@@ -32,7 +32,7 @@ export interface IWarningWidgetItem {
     stackTrace: {
         errorMessage: string;
         lines: string[];
-    }
+    };
 }
 
 export interface IWarningWidget {
@@ -44,7 +44,7 @@ export interface IWarningWidget {
 export interface IFileWidgetItem {
     name: string;
     size: number;
-    lastModified: string;
+    modified: string;
 }
 
 export interface IFilesWidget {

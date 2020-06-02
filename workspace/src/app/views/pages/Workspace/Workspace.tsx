@@ -14,6 +14,7 @@ import { EmptyWorkspace } from "./EmptyWorkspace/EmptyWorkspace";
 
 export function Workspace() {
     const dispatch = useDispatch();
+
     const error = useSelector(workspaceSel.errorSelector);
     const qs = useSelector(routerSel.routerSearchSelector);
     const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
@@ -40,7 +41,7 @@ export function Workspace() {
 
         // Fetch the list of projects
         dispatch(workspaceOp.fetchListAsync());
-    }, [location.pathname, qs, dispatch]);
+    }, [location.pathname, qs]);
 
     if (projectId) {
         return <Project />;

@@ -56,26 +56,19 @@ export const requestAutocompleteResults = async (
  * Get Project Metadata
  * @param itemId
  */
-export const requestProjectMetadata = async (itemId: string): Promise<IProjectMetadataResponse> => {
-    try {
-        const { data } = await fetch({
-            url: projectApi(`/${itemId}/metaData`),
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+export const requestProjectMetadata = async (itemId: string): Promise<FetchResponse<IProjectMetadataResponse>> => {
+    return fetch({
+        url: projectApi(`/${itemId}/metaData`),
+    });
 };
 
-export const requestTaskMetadata = async (itemId: string, projectId?: string): Promise<ITaskMetadataResponse> => {
-    try {
-        const { data } = await fetch({
-            url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}/metadata`),
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+export const requestTaskMetadata = async (
+    itemId: string,
+    projectId?: string
+): Promise<FetchResponse<ITaskMetadataResponse>> => {
+    return fetch({
+        url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}/metadata`),
+    });
 };
 
 /**
@@ -113,17 +106,12 @@ export const requestTaskData = async (
 export const requestUpdateProjectMetadata = async (
     itemId: string,
     payload: IMetadataUpdatePayload
-): Promise<IProjectMetadataResponse> => {
-    try {
-        const { data }: FetchResponse<IProjectMetadataResponse> = await fetch({
-            url: workspaceApi(`/projects/${itemId}/metaData`),
-            method: "PUT",
-            body: payload,
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+): Promise<FetchResponse<IProjectMetadataResponse>> => {
+    return fetch({
+        url: workspaceApi(`/projects/${itemId}/metaData`),
+        method: "PUT",
+        body: payload,
+    });
 };
 
 /**
@@ -136,17 +124,12 @@ export const requestUpdateTaskMetadata = async (
     itemId: string,
     payload: IMetadataUpdatePayload,
     projectId?: string
-): Promise<ITaskMetadataResponse> => {
-    try {
-        const { data }: FetchResponse<ITaskMetadataResponse> = await fetch({
-            url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}/metadata`),
-            method: "PUT",
-            body: payload,
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+): Promise<FetchResponse<ITaskMetadataResponse>> => {
+    return fetch({
+        url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}/metadata`),
+        method: "PUT",
+        body: payload,
+    });
 };
 
 /**

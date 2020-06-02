@@ -36,7 +36,7 @@ const numberWithCommas = (x: number) => {
 const filesListSelector = createSelector([widgetsSelector], (widgets) =>
     widgets.files.results.map((item) => ({
         id: item.name,
-        formattedDate: new Date(item.lastModified).toLocaleString(),
+        formattedDate: new Date(item.modified).toLocaleString(),
         formattedSize: numberWithCommas(item.size),
         ...item,
     }))

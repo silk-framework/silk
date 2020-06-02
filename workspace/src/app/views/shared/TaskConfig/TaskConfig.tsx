@@ -27,6 +27,8 @@ export function TaskConfig(props: IProps) {
     const [loading, setLoading] = useState(false);
     const [labelledTaskData, setLabelledTaskData] = useState<ITaskSchemaAndData>(null);
     const { isOpen } = useSelector(commonSel.artefactModalSelector);
+    const taskId = useSelector(commonSel.currentTaskIdSelector);
+
     // Open the update modal for the task
     const openConfigModal = async () => {
         setLoading(true);
@@ -61,13 +63,12 @@ export function TaskConfig(props: IProps) {
             setLoading(false);
         }
     };
-
     useEffect(() => {
         if (!isOpen) {
             // Always update when the update modal was closed
             initPreviewData();
         }
-    }, [isOpen]);
+    }, [taskId]);
 
     let titlePostfix = "";
     if (labelledTaskData) {

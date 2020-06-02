@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { FieldItem, TextField, TextArea } from "@wrappers/index";
-import FileUploader from "../../../FileUploader";
 import { errorMessage } from "./ParameterWidget";
 import { Intent } from "@wrappers/blueprint/constants";
 
@@ -59,16 +58,6 @@ export function ProjectForm({ form, projectId }: IProps) {
                     placeholder="Project description"
                     inputRef={form.register()}
                 />
-            </FieldItem>
-            <FieldItem
-                labelAttributes={{
-                    text: "Restore data from backup",
-                }}
-                helperText={
-                    "In case you want to restore project data you can attach the backup file that has been exported before."
-                }
-            >
-                <FileUploader projectId={projectId} />
             </FieldItem>
         </>
     );
