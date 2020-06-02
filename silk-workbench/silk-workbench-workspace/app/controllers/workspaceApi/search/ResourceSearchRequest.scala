@@ -68,7 +68,7 @@ case class ResourceSearchRequest(searchText: Option[String] = None,
 }
 
 object ResourceSearchRequest {
-  final val DEFAULT_LIMIT = 5
+  final val DEFAULT_LIMIT = Int.MaxValue
   final val DEFAULT_OFFSET = 0
 
   final val NAME_PARAM = "name"
