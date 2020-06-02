@@ -712,7 +712,7 @@ object JsonSerializers {
     private def readDeprecated(value: JsValue)(implicit readContext: ReadContext): TransformSpec = {
       TransformSpec(
         selection = fromJson[DatasetSelection](mustBeDefined(value, SELECTION)),
-        mappingRule = optionalValue(value, RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty),
+        mappingRule = optionalValue(value, DEPRECATED_RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty),
         output = mustBeJsArray(mustBeDefined(value, DEPRECATED_OUTPUTS))(_.value.map(v => Identifier(v.as[JsString].value))).headOption,
         targetVocabularies = mustBeJsArray(mustBeDefined(value, TARGET_VOCABULARIES))(_.value.map(_.as[JsString].value))
       )
