@@ -6,6 +6,7 @@ import controllers.util.TextSearchUtils
 import controllers.workspaceApi.projectTask.{RelatedItem, RelatedItems}
 import controllers.workspaceApi.search.ItemType
 import javax.inject.Inject
+import org.silkframework.config.TaskSpec
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
@@ -28,6 +29,14 @@ class ProjectTaskApi @Inject()() extends InjectedController with ControllerUtils
     val total = relatedItems.size
     val result = RelatedItems(total, filteredItems)
     Ok(Json.toJson(result))
+  }
+
+  /** Returns a list of all relevant UI links for a task. */
+  def itemLinks(projectId: String, taskId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val task = anyTask(projectId, taskId)
+    val itemType = ItemType.itemType(task)
+    val itemLinks = ItemType.itemTypeLinks(itemType, projectId, task.id)
+    Ok(Json.toJson(itemLinks))
   }
 
   private def filterRelatedItems(relatedItems: Seq[RelatedItem], textQuery: Option[String]): Seq[RelatedItem] = {

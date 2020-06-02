@@ -43,8 +43,14 @@ trait ControllerUtilsTrait {
 
   def task[T <: TaskSpec : ClassTag](projectName: String, taskName: String)
                                     (implicit userContext: UserContext): ProjectTask[T] = {
-    val project = WorkspaceFactory().workspace.project(projectName)
+    val project = getProject(projectName)
     val task = project.task[T](taskName)
     task
+  }
+
+  def anyTask(projectId: String, taskId: String)
+          (implicit userContext: UserContext): ProjectTask[_ <: TaskSpec] = {
+    val project = getProject(projectId)
+    project.anyTask(taskId)
   }
 }

@@ -17,3 +17,4 @@ GET           /:projectId/failedTasksReport/:taskId                    controlle
 #################
 
 GET           /:projectId/tasks/:taskId/relatedItems                   controllers.workspaceApi.ProjectTaskApi.relatedItems(projectId: String, taskId: String, textQuery: Option[String] ?= None)
+GET           /:projectId/tasks/:taskId/links                          controllers.workspaceApi.ProjectTaskApi.itemLinks(projectId: String, taskId: String)
