@@ -86,16 +86,14 @@ const fetchArtefactsListAsync = (filters: any = {}) => {
             }));
 
             if (filters.textQuery) {
-                let labelsArray = [];
-                let descriptionsArray = [];
-                result.forEach((eachResult) => {
-                    if (eachResult.title.toLowerCase().includes(filters.textQuery.toLowerCase())) {
-                        labelsArray.push(eachResult);
-                    } else {
-                        descriptionsArray.push(eachResult);
-                    }
-                });
-                result = labelsArray.concat(descriptionsArray);
+                result.sort((a, b) => {
+                    let titleA = a.title.toLowerCase(), titleB = b.title.toLowerCase();
+                    let textQuery = filters.textQuery.toLowerCase();
+
+                    if (titleA.includes(textQuery) && !titleB.includes(textQuery))
+                        return -1;
+                    return 0
+                })
             }
 
             dispatch(setArtefactsList(result));
