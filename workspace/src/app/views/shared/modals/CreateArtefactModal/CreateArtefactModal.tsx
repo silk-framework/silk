@@ -61,11 +61,11 @@ export function CreateArtefactModal() {
     }, [projectId]);
 
     useEffect(() => {
+        setSelected({} as IArtefactItem);
         if (artefactsList.length > 0 && searchValue) {
             setSelected(artefactsList[0]);
         }
     }, [artefactsList]);
-
 
     const handleAdd = () => {
         if (selected.key === DATA_TYPES.PROJECT) {
