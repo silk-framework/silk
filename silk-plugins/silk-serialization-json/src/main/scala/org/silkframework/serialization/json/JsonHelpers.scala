@@ -56,6 +56,8 @@ object JsonHelpers {
     requiredValue(json, attributeName) match {
       case JsNumber(value) =>
         value
+      case JsString(value) =>
+        BigDecimal(value)
       case _ =>
         throw JsonParseException("Attribute '" + attributeName + "' must be a number!")
     }
@@ -87,6 +89,8 @@ object JsonHelpers {
     optionalValue(json, attributeName) match {
       case Some(JsNumber(value)) =>
         Some(value)
+      case Some(JsString(value)) =>
+        Some(BigDecimal(value))
       case Some(_) =>
         throw JsonParseException("Value for attribute '" + attributeName + "' is not a number!")
       case None =>
