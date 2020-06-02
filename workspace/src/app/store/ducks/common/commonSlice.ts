@@ -54,7 +54,19 @@ const artefactModalReducers = {
         state.artefactModal.error = {};
     },
     setArtefactsList(state, action) {
+        // Calculate category counts
+        const categories: Record<string, number> = {};
+        categories["All"] = action.payload.length;
+        action.payload.forEach((itemDescription) => {
+            itemDescription.categories.forEach((category) => {
+                categories[category] = (categories[category] ? categories[category] : 0) + 1;
+            });
+        });
+        const sortedCategoryCounts = Object.entries(categories)
+            .map(([category, count]) => ({ label: category, count: count }))
+            .sort((left, right) => (left.label < right.label ? -1 : 1));
         state.artefactModal.artefactsList = action.payload;
+        state.artefactModal.categories = sortedCategoryCounts;
     },
     setSelectedArtefactDType(state, action) {
         state.artefactModal.selectedDType = action.payload || "all";

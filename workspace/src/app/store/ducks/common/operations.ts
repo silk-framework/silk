@@ -267,6 +267,7 @@ export default {
     createArtefactAsync,
     fetchCommonSettingsAsync,
     getArtefactPropertiesAsync,
+    itemTypeToPath,
     closeArtefactModal,
     selectArtefact,
     updateProjectTask,
