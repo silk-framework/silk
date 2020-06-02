@@ -34,7 +34,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
         if(label == "") {
           throw BadUserInputException("The label must not be empty!")
         }
-        val generatedId = generateProjectId(label)
+        val generatedId = IdentifierUtils.generateProjectId(label)
         val project = workspace.createProject(ProjectConfig(generatedId, metaData = cleanUpMetaData(metaData).asNewMetaData))
         Created(JsonSerializer.projectJson(project)).
             withHeaders(LOCATION -> s"/api/workspace/projects/$generatedId")
@@ -59,16 +59,6 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
   /** Fetches the meta data of a project. */
   def getProjectMetaData(projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     Ok(JsonSerializers.toJson(getProject(projectId).config.metaData))
-  }
-
-  private def generateProjectId(label: String)
-                               (implicit userContext: UserContext): Identifier = {
-    val defaultSuffix = "project"
-    if(Identifier.fromAllowed(label, alternative = Some(defaultSuffix)) == Identifier(defaultSuffix)) {
-      Identifier.fromAllowed(UUID.randomUUID().toString + "_" + defaultSuffix)
-    } else {
-      Identifier.fromAllowed(UUID.randomUUID().toString + "_" + label)
-    }
   }
 
   /** Returns all project prefixes */
