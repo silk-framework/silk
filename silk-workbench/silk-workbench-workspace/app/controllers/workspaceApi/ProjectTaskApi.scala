@@ -3,7 +3,7 @@ package controllers.workspaceApi
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.TextSearchUtils
-import controllers.workspaceApi.projectTask.{RelatedItem, RelatedItems, TaskCloneRequest, TaskCloneResponse}
+import controllers.workspaceApi.projectTask.{RelatedItem, RelatedItems, ItemCloneRequest, ItemCloneResponse}
 import controllers.workspaceApi.search.ItemType
 import javax.inject.Inject
 import org.silkframework.config.Prefixes
@@ -45,7 +45,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with ControllerUtils
 
   /** Clones an existing task in the project. */
   def cloneTask(projectId: String, taskId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>implicit userContext =>
-    validateJson[TaskCloneRequest] { request =>
+    validateJson[ItemCloneRequest] { request =>
       val label = request.metaData.label.trim
       if(label == "") {
         throw BadUserInputException("The label must not be empty!")
@@ -58,8 +58,8 @@ class ProjectTaskApi @Inject()() extends InjectedController with ControllerUtils
       val clonedTaskSpec = Try(fromTask.data.withProperties(Map.empty)).getOrElse(fromTask.data)
       project.addAnyTask(generatedId, clonedTaskSpec, request.metaData.asMetaData)
       val itemType = ItemType.itemType(fromTask)
-      val taskLink = ItemType.itemTypeLinks(itemType, projectId, generatedId).headOption.map(_.path)
-      Created(Json.toJson(TaskCloneResponse(generatedId, taskLink)))
+      val taskLink = ItemType.itemDetailsPage(itemType, projectId, generatedId).path
+      Created(Json.toJson(ItemCloneResponse(generatedId, taskLink)))
     }
   }
 
