@@ -151,7 +151,7 @@ type CellType = string | string[];
 
 export interface IMetadata {
     label: string;
-    description: string;
+    description?: string;
     relations?: IRelations;
     type?: string;
 }
