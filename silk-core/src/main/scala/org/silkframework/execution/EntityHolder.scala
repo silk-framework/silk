@@ -19,6 +19,8 @@ trait EntityHolder {
     */
   def entities: Traversable[Entity]
 
+  def customFormat: Option[EntityType[_]] = None
+
   def globalErrors: Seq[String] = Seq.empty
 
   /**
