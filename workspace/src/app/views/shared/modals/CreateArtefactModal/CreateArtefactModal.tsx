@@ -61,10 +61,11 @@ export function CreateArtefactModal() {
     }, [projectId]);
 
     useEffect(() => {
-        if (artefactsList.length > 0) {
-            defaultArtefactSelected(artefactsList);
+        if (artefactsList.length > 0 && searchValue) {
+            setSelected(artefactsList[0]);
         }
     }, [artefactsList]);
+
 
     const handleAdd = () => {
         if (selected.key === DATA_TYPES.PROJECT) {
@@ -80,10 +81,6 @@ export function CreateArtefactModal() {
                 textQuery,
             })
         );
-    };
-
-    const defaultArtefactSelected = (artefactsList: any) => {
-        setSelected(artefactsList[0]);
     };
 
     const handleArtefactSelect = (artefact: IArtefactItem) => {
