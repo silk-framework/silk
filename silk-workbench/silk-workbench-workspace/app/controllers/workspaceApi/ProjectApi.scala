@@ -1,23 +1,22 @@
 package controllers.workspaceApi
 
-import java.util.UUID
-
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.workspace.JsonSerializer
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
 import controllers.workspaceApi.project.ProjectLoadingErrors.ProjectTaskLoadingErrorResponse
+import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse}
+import controllers.workspaceApi.search.ItemType
 import javax.inject.Inject
 import org.silkframework.config.{MetaData, Prefixes}
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers
-import org.silkframework.util.Identifier
-import org.silkframework.workspace.ProjectConfig
+import org.silkframework.serialization.json.JsonSerializers.MetaDataJsonFormat
+import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
+import org.silkframework.workspace.io.WorkspaceIO
+import org.silkframework.workspace.{ProjectConfig, WorkspaceFactory}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Accepting, Action, AnyContent, InjectedController}
-import JsonSerializers.MetaDataJsonFormat
-import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 
 /**
   * REST API for project artifacts.
@@ -34,11 +33,31 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
         if(label == "") {
           throw BadUserInputException("The label must not be empty!")
         }
-        val generatedId = generateProjectId(label)
+        val generatedId = IdentifierUtils.generateProjectId(label)
         val project = workspace.createProject(ProjectConfig(generatedId, metaData = cleanUpMetaData(metaData).asNewMetaData))
         Created(JsonSerializer.projectJson(project)).
             withHeaders(LOCATION -> s"/api/workspace/projects/$generatedId")
       }
+  }
+
+  /** Clone a project (resources and tasks) based on new meta data. */
+  def cloneProject(fromProjectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    validateJson[ItemCloneRequest] { request =>
+      val label = request.metaData.label.trim
+      if(label == "") {
+        throw BadUserInputException("The label must not be empty!")
+      }
+      val generatedId = IdentifierUtils.generateProjectId(label)
+      val project = getProject(fromProjectId)
+      val clonedProjectConfig = project.config.copy(id = generatedId, metaData = request.metaData.asMetaData)
+      val clonedProject = workspace.createProject(clonedProjectConfig.copy(projectResourceUriOpt = Some(clonedProjectConfig.generateDefaultUri)))
+      WorkspaceIO.copyResources(project.resources, clonedProject.resources)
+      for (task <- project.allTasks) {
+        clonedProject.addAnyTask(task.id, task.data) // FIXME: CMEM-2591, re-create task specs instead of adding the existing ones
+      }
+      val projectLink = ItemType.itemDetailsPage(ItemType.project, generatedId, generatedId).path
+      Created(Json.toJson(ItemCloneResponse(generatedId, projectLink)))
+    }
   }
 
   private def cleanUpMetaData(metaData: MetaData) = {
@@ -59,16 +78,6 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
   /** Fetches the meta data of a project. */
   def getProjectMetaData(projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     Ok(JsonSerializers.toJson(getProject(projectId).config.metaData))
-  }
-
-  private def generateProjectId(label: String)
-                               (implicit userContext: UserContext): Identifier = {
-    val defaultSuffix = "project"
-    if(Identifier.fromAllowed(label, alternative = Some(defaultSuffix)) == Identifier(defaultSuffix)) {
-      Identifier.fromAllowed(UUID.randomUUID().toString + "_" + defaultSuffix)
-    } else {
-      Identifier.fromAllowed(UUID.randomUUID().toString + "_" + label)
-    }
   }
 
   /** Returns all project prefixes */
