@@ -191,7 +191,7 @@ class SearchApiIntegrationTest extends FlatSpec
     }
     // default search
     val defaultResults = resourceSearch(ResourceSearchRequest())
-    resourceNames(defaultResults) mustBe expectedNames.take(ResourceSearchRequest.DEFAULT_LIMIT)
+    resourceNames(defaultResults) mustBe expectedNames.take(ResourceSearchRequest.DEFAULT_LIMIT) ++ Seq("xyz.json")
     // limit and offset search
     val smallPageResult = resourceSearch(ResourceSearchRequest(limit = Some(3), offset = Some(2)))
     val expectedSmallNames = expectedNames.slice(2, 5)

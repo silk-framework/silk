@@ -37,7 +37,7 @@ case class ResourceSearchRequest(searchText: Option[String] = None,
                   as soon as hierarchical folder structures are supported. resource.path actually prints the file system absolute path. */
 //        ResourceSearchRequest.FULL_PATH_PARAM -> JsString(resource.path)
       )
-        ++ resource.modificationTime.map(instant => ResourceSearchRequest.LAST_MODIFIED_PARAM -> JsString(formatDate(instant))).toSeq
+        ++ resource.modificationTime.map(instant => ResourceSearchRequest.MODIFIED_PARAM -> JsString(formatDate(instant))).toSeq
         ++ resource.size.map(size => ResourceSearchRequest.SIZE_PARAM -> JsNumber(size))
     )
   }
@@ -73,7 +73,7 @@ object ResourceSearchRequest {
 
   final val NAME_PARAM = "name"
   final val FULL_PATH_PARAM = "fullPath"
-  final val LAST_MODIFIED_PARAM = "lastModified"
+  final val MODIFIED_PARAM = "modified"
   final val SIZE_PARAM = "size"
 
   implicit val resourceSearchRequestFormat: Format[ResourceSearchRequest] = Json.format[ResourceSearchRequest]
