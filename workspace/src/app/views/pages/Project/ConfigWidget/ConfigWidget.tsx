@@ -72,7 +72,7 @@ export const ConfigurationWidget = () => {
                                                     {o.prefixName}
                                                     {index < visiblePrefixes.length - 1
                                                         ? ", "
-                                                        : moreCount > 0 && <>and {moreCount} more</>}
+                                                        : moreCount > 0 && <> and {moreCount} more</>}
                                                 </span>
                                             ))}
                                         </span>
