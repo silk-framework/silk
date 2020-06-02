@@ -175,7 +175,7 @@ export interface IResourceListResponse {
     /**
      * Last modification Datetime
      */
-    lastModified: string;
+    modified: string;
     /**
      * The name of resource/file
      */

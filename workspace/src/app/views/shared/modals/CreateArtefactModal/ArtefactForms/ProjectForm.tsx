@@ -62,7 +62,7 @@ export function ProjectForm({ form, projectId }: IProps) {
             </FieldItem>
             <FieldItem
                 labelAttributes={{
-                    text: "Restore data from backup",
+                    text: "Import project",
                 }}
                 helperText={
                     "In case you want to restore project data you can attach the backup file that has been exported before."
