@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
-import { commonOp, commonSel } from "@ducks/common";
-import { useDispatch, useSelector } from "react-redux";
+import { commonOp } from "@ducks/common";
+import { useDispatch } from "react-redux";
 import { useParams } from "react-router";
 
 interface IProps {
@@ -15,21 +15,18 @@ export function AppLayout({ children }: IProps) {
     const dispatch = useDispatch();
     const { projectId, taskId } = useParams();
 
-    const currentProjectId = useSelector(commonSel.currentProjectIdSelector);
-    const currentTaskId = useSelector(commonSel.currentTaskIdSelector);
-
     useEffect(() => {
         if (projectId) {
             // Fetch the list of projects
             dispatch(commonOp.setProjectId(projectId));
-        } else if (currentProjectId) {
+        } else {
             dispatch(commonOp.unsetProject());
         }
         dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
 
         if (taskId) {
             dispatch(commonOp.setTaskId(taskId));
-        } else if (currentTaskId) {
+        } else {
             dispatch(commonOp.unsetTaskId());
         }
     }, [projectId, taskId]);

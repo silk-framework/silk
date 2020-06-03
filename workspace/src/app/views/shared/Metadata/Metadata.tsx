@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { sharedOp } from "@ducks/shared";
-import { routerOp } from "@ducks/router";
 import {
     Button,
     Card,
@@ -23,14 +21,16 @@ import {
     TextField,
     Spacing,
 } from "@wrappers/index";
-import { Loading } from "../Loading/Loading";
 import { Controller, useForm } from "react-hook-form";
 import { Intent } from "@wrappers/blueprint/constants";
-import { useLocation } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
+import { routerOp } from "@ducks/router";
+import { sharedOp } from "@ducks/shared";
+import { Loading } from "../Loading/Loading";
+import { useLocation } from "react-router";
 
 interface IProps {
     projectId?: string;

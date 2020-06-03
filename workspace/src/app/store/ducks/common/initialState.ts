@@ -1,5 +1,6 @@
 import { IArtefactItem, IArtefactModal, ICommonState } from "./typings";
 import { getLocale } from "./thunks/locale.thunk";
+import { IMetadata } from "@ducks/shared/typings";
 
 export function initialArtefactModalState(): IArtefactModal {
     return {

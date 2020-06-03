@@ -65,11 +65,24 @@ export const requestRemoveTask = async (itemId: string, projectId?: string): Pro
     }
 };
 
-export const requestCloneTask = async (taskId: string, projectId: string, taskNewId: string): Promise<VoidOrNever> => {
+export const requestCloneTask = async (taskId: string, projectId: string, payload: any): Promise<any | never> => {
     try {
         await fetch({
-            url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/clone?newTask=${taskNewId}`),
+            url: workspaceApi(`/projects/${projectId}/tasks/${taskId}/clone`),
             method: "POST",
+            body: payload,
+        });
+    } catch (e) {
+        throw handleError(e);
+    }
+};
+
+export const requestCloneProject = async (projectId: string, payload: any): Promise<any | never> => {
+    try {
+        await fetch({
+            url: workspaceApi(`/projects/${projectId}/clone`),
+            method: "POST",
+            body: payload,
         });
     } catch (e) {
         throw handleError(e);

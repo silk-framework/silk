@@ -16,19 +16,23 @@ export const getTaskMetadataAsync = async (
     itemId: string | null,
     projectId: string | null = null
 ): Promise<IMetadata> => {
-    const response =
-        projectId && itemId
-            ? await requestTaskMetadata(itemId, projectId)
-            : await requestProjectMetadata(itemId ? itemId : projectId);
+    try {
+        const response =
+            projectId && itemId
+                ? await requestTaskMetadata(itemId, projectId)
+                : await requestProjectMetadata(itemId ? itemId : projectId);
 
-    const { label, name, metaData, id, relations, description, type }: any = response.data;
+        const { label, name, metaData, id, relations, description, type }: any = response.data;
 
-    return {
-        label: label || (metaData ? metaData.label : name) || id,
-        description: description || (metaData ? metaData.description : ""),
-        relations: relations,
-        type: type || "project",
-    };
+        return {
+            label: label || (metaData ? metaData.label : name) || id,
+            description: description || (metaData ? metaData.description : ""),
+            relations: relations,
+            type: type || "project",
+        };
+    } catch (e) {
+        return e;
+    }
 };
 
 export const updateTaskMetadataAsync = async (
@@ -36,17 +40,21 @@ export const updateTaskMetadataAsync = async (
     itemId: string | null,
     projectId: string | null = null
 ): Promise<IMetadata> => {
-    const response =
-        projectId && itemId
-            ? await requestUpdateTaskMetadata(itemId, payload, projectId)
-            : await requestUpdateProjectMetadata(itemId ? itemId : projectId, payload);
+    try {
+        const response =
+            projectId && itemId
+                ? await requestUpdateTaskMetadata(itemId, payload, projectId)
+                : await requestUpdateProjectMetadata(itemId ? itemId : projectId, payload);
 
-    const { label, name, metaData, id, relations, description, type }: any = response.data;
+        const { label, name, metaData, id, relations, description, type }: any = response.data;
 
-    return {
-        label: label || (metaData ? metaData.label : name) || id,
-        description: description || (metaData ? metaData.description : ""),
-        relations: relations,
-        type: type || "project",
-    };
+        return {
+            label: label || (metaData ? metaData.label : name) || id,
+            description: description || (metaData ? metaData.description : ""),
+            relations: relations,
+            type: type || "project",
+        };
+    } catch (e) {
+        return e;
+    }
 };

@@ -34,22 +34,6 @@ const {
     setModalError,
 } = commonSlice.actions;
 
-const itemTypeToPathMap = {
-    Transform: "transform",
-    Linking: "linking",
-    Workflow: "workflow",
-    CustomTask: "task",
-    Dataset: "dataset",
-};
-
-const itemTypeToPath = (itemType: string) => {
-    if (itemTypeToPathMap[itemType]) {
-        return itemTypeToPathMap[itemType];
-    } else {
-        return "task";
-    }
-};
-
 const fetchCommonSettingsAsync = () => {
     return async (dispatch) => {
         try {
@@ -197,8 +181,11 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: strin
             batch(() => {
                 dispatch(closeArtefactModal());
                 dispatch(
-                    routerOp.goToPage(`projects/${currentProjectId}/${itemTypeToPath(taskType)}/${data.id}`, {
-                        taskLabel: label,
+                    routerOp.goToTaskPage({
+                        id: data.id,
+                        type: taskType,
+                        projectId: currentProjectId,
+                        label,
                     })
                 );
             });
@@ -267,7 +254,6 @@ export default {
     createArtefactAsync,
     fetchCommonSettingsAsync,
     getArtefactPropertiesAsync,
-    itemTypeToPath,
     closeArtefactModal,
     selectArtefact,
     updateProjectTask,

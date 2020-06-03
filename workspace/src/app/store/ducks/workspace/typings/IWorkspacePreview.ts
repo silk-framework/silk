@@ -9,7 +9,7 @@ export interface ISearchResultsServer {
     /**
      * Description of item, project, task
      */
-    description: string;
+    description?: string;
     /**
      * id of item, project, task
      */
@@ -29,7 +29,7 @@ export interface ISearchResultsServer {
     /**
      * Contains of useful links for items
      */
-    itemLinks: ITaskItemLinks[];
+    itemLinks?: ITaskItemLinks[];
 }
 
 export interface IPreviewState {
@@ -46,4 +46,3 @@ export interface IPreviewState {
      */
     error: any;
 }
-

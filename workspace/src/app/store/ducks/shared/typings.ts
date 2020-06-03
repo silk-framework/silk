@@ -17,7 +17,7 @@ export interface IRelations {
 }
 
 export interface IProjectMetadataResponse {
-    name: string;
+    label: string;
     description?: string;
     metaData: {
         create: string;

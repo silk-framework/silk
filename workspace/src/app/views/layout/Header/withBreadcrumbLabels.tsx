@@ -1,11 +1,11 @@
 import React from "react";
 import { matchPath, useLocation } from "react-router";
-import { sharedOp } from "@ducks/shared";
 import { useDebugValue, useEffect, useState } from "react";
 import appRoutes from "../../../appRoutes";
 import { getFullRoutePath } from "../../../utils/routerUtils";
 import { IBreadcrumb } from "./Header";
 import { SERVE_PATH } from "../../../constants/path";
+import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 
 export default function withBreadcrumbLabels(WrappedComponent) {
     // Valid breadcrumb IDs
@@ -65,11 +65,11 @@ export default function withBreadcrumbLabels(WrappedComponent) {
             try {
                 switch (breadcrumbId) {
                     case "projectId":
-                        return sharedOp.getTaskMetadataAsync(params.projectId).then((metadata) => metadata.label);
+                        return requestProjectMetadata(params.projectId).then((metadata) => metadata.data.label);
                     case "taskId":
-                        return sharedOp
-                            .getTaskMetadataAsync(params.taskId, params.projectId)
-                            .then((metadata) => metadata.label);
+                        return requestTaskMetadata(params.taskId, params.projectId).then(
+                            (metadata) => metadata.data.label || metadata.data.id
+                        );
                     default: {
                         return params[breadcrumbId];
                     }

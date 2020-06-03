@@ -16,13 +16,7 @@ import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
 import { fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
 import { commonSel } from "@ducks/common";
-import {
-    ISearchListRequest,
-    requestCloneTask,
-    requestRemoveProject,
-    requestRemoveTask,
-    requestSearchList,
-} from "@ducks/workspace/requests";
+import { ISearchListRequest, requestSearchList } from "@ducks/workspace/requests";
 
 const {
     updateResultTotal,
@@ -220,55 +214,6 @@ const fetchListAsync = () => {
     };
 };
 
-const fetchRemoveTaskAsync = (itemId: string, projectId?: string) => {
-    return async (dispatch) => {
-        batch(() => {
-            dispatch(setLoading(true));
-            dispatch(setError({}));
-        });
-
-        try {
-            if (projectId) {
-                await requestRemoveTask(itemId, projectId);
-            } else {
-                await requestRemoveProject(itemId);
-            }
-
-            batch(() => {
-                dispatch(fetchListAsync());
-                dispatch(setLoading(false));
-            });
-        } catch (e) {
-            batch(() => {
-                dispatch(setError(e));
-                dispatch(setLoading(false));
-            });
-        }
-    };
-};
-
-const fetchCloneTaskAsync = (taskId: string, projectId: string, taskNewId: string) => {
-    return async (dispatch) => {
-        batch(() => {
-            dispatch(setError({}));
-            dispatch(setLoading(true));
-        });
-
-        try {
-            await requestCloneTask(taskId, projectId, taskNewId);
-            batch(() => {
-                dispatch(fetchListAsync());
-                dispatch(setLoading(false));
-            });
-        } catch (e) {
-            batch(() => {
-                dispatch(setError(e));
-                dispatch(setLoading(false));
-            });
-        }
-    };
-};
-
 const applyFiltersOp = (filter) => {
     return (dispatch) => {
         batch(() => {
@@ -338,8 +283,6 @@ const toggleFacetOp = (facet: IFacetState, keywordId: string) => {
 
 export default {
     fetchListAsync,
-    fetchRemoveTaskAsync,
-    fetchCloneTaskAsync,
     applyFiltersOp,
     applySorterOp,
     changePageOp,

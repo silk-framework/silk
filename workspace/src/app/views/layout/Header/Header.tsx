@@ -31,8 +31,12 @@ import { Helmet } from "react-helmet";
 import { useLocation } from "react-router";
 import { APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { workspaceSel } from "@ducks/workspace";
-import { IProjectOrTask, ItemDeleteModal } from "../../shared/modals/ItemDeleteModal";
+import { ItemDeleteModal } from "../../shared/modals/ItemDeleteModal";
 import { CONTEXT_PATH } from "../../../constants/path";
+import CloneModal from "../../shared/modals/CloneModal";
+import { routerOp } from "@ducks/router";
+import { IItemLink } from "@ducks/shared/typings";
+import { requestItemLinks } from "@ducks/shared/requests";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];
@@ -46,14 +50,14 @@ export interface IBreadcrumb {
     text: string;
 }
 
-function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isApplicationSidebarExpanded }: IProps) {
+function HeaderComponent({ breadcrumbs }: IProps) {
     const dispatch = useDispatch();
     const location = useLocation();
 
     const isAuth = useSelector(commonSel.isAuthSelector);
 
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [selectedItem, setSelectedItem] = useState<IProjectOrTask | null>(null);
+    const [cloneModalOpen, setCloneModalOpen] = useState(false);
 
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const taskId = useSelector(commonSel.currentTaskIdSelector);
@@ -62,26 +66,37 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
     const startTitle = `Build — ${APPLICATION_SUITE_NAME}`;
 
     const [windowTitle, setWindowTitle] = useState<string>(startTitle);
-    const [displayUserMenu, toggleUserMenuDispay] = useState<boolean>(false);
+    const [displayUserMenu, toggleUserMenuDisplay] = useState<boolean>(false);
+    const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
 
     const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
 
     useEffect(() => {
         getWindowTitle(projectId);
+        if (projectId && taskId) {
+            getItemLinks();
+        }
     }, [projectId, taskId, breadcrumbs]);
 
     const handleCreateDialog = () => {
         dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType));
     };
 
-    const onOpenDeleteModal = (item: IProjectOrTask) => {
-        setSelectedItem(item);
-        setDeleteModalOpen(true);
+    const toggleDeleteModal = () => {
+        setDeleteModalOpen(!deleteModalOpen);
     };
 
-    const onCloseDeleteModal = () => {
-        setSelectedItem(null);
-        setDeleteModalOpen(false);
+    const toggleCloneModal = () => {
+        setCloneModalOpen(!cloneModalOpen);
+    };
+
+    const handleDeleteConfirm = () => {
+        toggleDeleteModal();
+        dispatch(routerOp.goToPage(""));
+    };
+
+    const handleCloneConfirmed = () => {
+        toggleCloneModal();
     };
 
     const getWindowTitle = (projectId) => {
@@ -111,11 +126,25 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
         setWindowTitle(fullTitle);
     };
 
+    const getItemLinks = async () => {
+        try {
+            const { data } = await requestItemLinks(projectId, taskId);
+            // remove current page link
+            const result = data.filter((item) => item.path !== location.pathname);
+            setItemLinks(result);
+        } catch (e) {}
+    };
+
     /*
         TODO: this is only a simple test to have a workaround for a while, we need
         to remove the check for iFrameDetection later again.
     */
     const iFrameDetection = window === window.parent;
+
+    const itemData = {
+        id: taskId ? taskId : projectId,
+        projectId: taskId ? projectId : undefined,
+    };
 
     return !isAuth ? null : (
         <ApplicationHeader aria-label={APPLICATION_SUITE_NAME + ": " + APPLICATION_NAME}>
@@ -156,24 +185,22 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                         )}
                     </OverviewItemDescription>
                     <OverviewItemActions>
-                        {(projectId || taskId) && (
-                            <IconButton
-                                name="item-remove"
-                                text={taskId ? "Remove task" : "Remove project"}
-                                disruptive
-                                onClick={() =>
-                                    onOpenDeleteModal({
-                                        id: taskId ? taskId : projectId,
-                                        projectId: taskId ? projectId : undefined,
-                                    })
-                                }
-                            />
-                        )}
-                        <ContextMenu>
-                            <MenuItem text={"This"} disabled />
-                            <MenuItem text={"Is just a"} disabled />
-                            <MenuItem text={"Dummy"} disabled />
-                        </ContextMenu>
+                        {projectId || taskId ? (
+                            <>
+                                <IconButton
+                                    name="item-remove"
+                                    text={taskId ? "Remove task" : "Remove project"}
+                                    disruptive
+                                    onClick={toggleDeleteModal}
+                                />
+                                <ContextMenu>
+                                    <MenuItem key={"clone"} text={"Clone"} onClick={toggleCloneModal} />
+                                    {itemLinks.map((itemLink) => (
+                                        <MenuItem key={itemLink.path} text={itemLink.label} href={itemLink.path} />
+                                    ))}
+                                </ContextMenu>
+                            </>
+                        ) : null}
                     </OverviewItemActions>
                 </OverviewItem>
             </WorkspaceHeader>
@@ -187,7 +214,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                             aria-label="Close user menu"
                             isActive={true}
                             onClick={() => {
-                                toggleUserMenuDispay(false);
+                                toggleUserMenuDisplay(false);
                             }}
                         >
                             <Icon name="navigation-close" description="Close icon" large />
@@ -215,7 +242,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                         aria-label="Open user menu"
                         isActive={false}
                         onClick={() => {
-                            toggleUserMenuDispay(true);
+                            toggleUserMenuDisplay(true);
                         }}
                     >
                         <Icon name="application-useraccount" description="User menu icon" large />
@@ -223,8 +250,12 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                 )}
             </ApplicationToolbar>
             <CreateArtefactModal />
-            {deleteModalOpen && selectedItem && (
-                <ItemDeleteModal selectedItem={selectedItem} onClose={onCloseDeleteModal} />
+            {deleteModalOpen && (
+                <ItemDeleteModal item={itemData} onClose={toggleDeleteModal} onConfirmed={handleDeleteConfirm} />
+            )}
+
+            {cloneModalOpen && (
+                <CloneModal item={itemData} onDiscard={toggleCloneModal} onConfirmed={handleCloneConfirmed} />
             )}
         </ApplicationHeader>
     );
