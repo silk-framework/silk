@@ -98,21 +98,10 @@ const fetchArtefactsListAsync = (filters: any = {}) => {
 
         try {
             const data = await requestArtefactList(filters);
-            let textQuery = filters.textQuery.toLowerCase();
-            let result = Object.keys(data).map((key) => ({
+            const result = Object.keys(data).map((key) => ({
                 key,
                 ...data[key],
             }));
-
-            if (filters.textQuery) {
-                result.sort((a, b) => {
-                    let titleA = a.title.toLowerCase(), titleB = b.title.toLowerCase();
-                    
-                    if (titleA.includes(textQuery) && !titleB.includes(textQuery))
-                        return -1;
-                    return 0
-                })
-            }
 
             dispatch(setArtefactsList(result));
         } catch (e) {
