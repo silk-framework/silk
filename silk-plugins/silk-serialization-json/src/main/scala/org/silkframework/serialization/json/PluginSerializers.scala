@@ -63,11 +63,13 @@ object PluginSerializers {
         case _ => None
       }
 
-      val parameters: Option[JsObject] = param.parameterType match {
+      val (parameters, requiredList): (Option[JsObject], Option[Seq[String]]) = param.parameterType match {
         case objectType: PluginObjectParameterTypeTrait if param.visibleInDialog =>
           val pluginDescription = PluginDescription(objectType.pluginObjectParameterClass)
-          Some(JsObject(pluginDescription.parameters.map(p => (p.name -> serializeParam(p)))))
-        case _ => None
+          val parameters = JsObject(pluginDescription.parameters.map(p => p.name -> serializeParam(p)))
+          val requiredParameters = pluginDescription.parameters.filterNot(_.defaultValue.isDefined).map(_.name)
+          (Some(parameters), Some(requiredParameters))
+        case _ => (None, None)
       }
       Json.toJson(PluginParameterJsonPayload(
         title = param.label,
@@ -83,7 +85,8 @@ object PluginSerializers {
           autoCompletionDependsOnParameters = autoComplete.autoCompletionDependsOnParameters
         )),
         properties = parameters,
-        pluginId = pluginId
+        pluginId = pluginId,
+        required = requiredList
       ))
     }
 
@@ -107,6 +110,7 @@ object PluginSerializers {
   * @param autoCompletion  Optional auto-completion information.
   * @param properties      Optional properties if this is a nested object parameter that can be shown in the UI.
   * @param pluginId        Optional plugin ID, if this parameter is itself a plugin.
+  * @param required For object parameter types it will list the required parameters.
   */
 case class PluginParameterJsonPayload(title: String,
                                       description: String,
@@ -117,7 +121,8 @@ case class PluginParameterJsonPayload(title: String,
                                       visibleInDialog: Boolean,
                                       autoCompletion: Option[ParameterAutoCompletionJsonPayload],
                                       properties: Option[JsObject],
-                                      pluginId: Option[String])
+                                      pluginId: Option[String],
+                                      required: Option[Seq[String]])
 
 case class ParameterAutoCompletionJsonPayload(allowOnlyAutoCompletedValues: Boolean,
                                               autoCompleteValueWithLabels: Boolean,
