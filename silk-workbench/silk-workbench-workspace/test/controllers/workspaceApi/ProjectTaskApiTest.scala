@@ -20,7 +20,7 @@ class ProjectTaskApiTest extends FlatSpec with SingleProjectWorkspaceProviderTes
   override def routes: Option[Class[Routes]] = Some(classOf[test.Routes])
 
   private def relatedItems(taskId: String, textQuery: Option[String] = None): RelatedItems = {
-    val path = controllers.workspaceApi.routes.ProjectTaskApi.relatedItems(projectId, taskId, textQuery).url
+    val path = controllers.projectApi.routes.ProjectTaskApi.relatedItems(projectId, taskId, textQuery).url
     Json.fromJson[RelatedItems](checkResponse(client.url(s"$baseUrl$path").get()).json).get
   }
 

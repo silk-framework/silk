@@ -20,10 +20,10 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
 
   override def routes: Option[Class[_ <: Router]] = Some(classOf[test.Routes])
 
-  lazy val projectsUrl: String = controllers.workspaceApi.routes.ProjectApi.createNewProject().url
-  def projectPrefixesUrl(projectId: String): String = controllers.workspaceApi.routes.ProjectApi.fetchProjectPrefixes(projectId).url
-  def projectPrefixUrl(projectId: String, prefixName: String): String = controllers.workspaceApi.routes.ProjectApi.addProjectPrefix(projectId, prefixName).url
-  private def projectsMetaDataUrl(projectId: String): String = controllers.workspaceApi.routes.ProjectApi.updateProjectMetaData(projectId).url
+  lazy val projectsUrl: String = controllers.projectApi.routes.ProjectApi.createNewProject().url
+  def projectPrefixesUrl(projectId: String): String = controllers.projectApi.routes.ProjectApi.fetchProjectPrefixes(projectId).url
+  def projectPrefixUrl(projectId: String, prefixName: String): String = controllers.projectApi.routes.ProjectApi.addProjectPrefix(projectId, prefixName).url
+  private def projectsMetaDataUrl(projectId: String): String = controllers.projectApi.routes.ProjectApi.updateProjectMetaData(projectId).url
   implicit val readContext: ReadContext = ReadContext()
 
   it should "allow to create a new project by label" in {

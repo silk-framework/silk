@@ -1,22 +1,22 @@
 # Projects
 
-POST          /                                                        controllers.workspaceApi.ProjectApi.createNewProject()
-POST          /:projectId/clone                                        controllers.workspaceApi.ProjectApi.cloneProject(projectId: String)
-PUT           /:projectId/metaData                                     controllers.workspaceApi.ProjectApi.updateProjectMetaData(projectId: String)
-GET           /:projectId/metaData                                     controllers.workspaceApi.ProjectApi.getProjectMetaData(projectId: String)
-GET           /:projectId/prefixes                                     controllers.workspaceApi.ProjectApi.fetchProjectPrefixes(projectId: String)
-PUT           /:projectId/prefixes/:prefixName                         controllers.workspaceApi.ProjectApi.addProjectPrefix(projectId: String, prefixName: String)
-DELETE        /:projectId/prefixes/:prefixName                         controllers.workspaceApi.ProjectApi.deleteProjectPrefix(projectId: String, prefixName: String)
+POST          /createProject                                           controllers.projectApi.ProjectApi.createNewProject()
+POST          /:projectId/clone                                        controllers.projectApi.ProjectApi.cloneProject(projectId: String)
+PUT           /:projectId/metaData                                     controllers.projectApi.ProjectApi.updateProjectMetaData(projectId: String)
+GET           /:projectId/metaData                                     controllers.projectApi.ProjectApi.getProjectMetaData(projectId: String)
+GET           /:projectId/prefixes                                     controllers.projectApi.ProjectApi.fetchProjectPrefixes(projectId: String)
+PUT           /:projectId/prefixes/:prefixName                         controllers.projectApi.ProjectApi.addProjectPrefix(projectId: String, prefixName: String)
+DELETE        /:projectId/prefixes/:prefixName                         controllers.projectApi.ProjectApi.deleteProjectPrefix(projectId: String, prefixName: String)
 
 # Project error report
 
-GET           /:projectId/failedTasksReport                            controllers.workspaceApi.ProjectApi.projectTasksLoadingErrorReport(projectId: String)
-GET           /:projectId/failedTasksReport/:taskId                    controllers.workspaceApi.ProjectApi.projectTaskLoadingErrorReport(projectId: String, taskId: String)
+GET           /:projectId/failedTasksReport                            controllers.projectApi.ProjectApi.projectTasksLoadingErrorReport(projectId: String)
+GET           /:projectId/failedTasksReport/:taskId                    controllers.projectApi.ProjectApi.projectTaskLoadingErrorReport(projectId: String, taskId: String)
 
 #################
 # Project Tasks
 #################
 
-GET           /:projectId/tasks/:taskId/relatedItems                   controllers.workspaceApi.ProjectTaskApi.relatedItems(projectId: String, taskId: String, textQuery: Option[String] ?= None)
-GET           /:projectId/tasks/:taskId/links                          controllers.workspaceApi.ProjectTaskApi.itemLinks(projectId: String, taskId: String)
-POST          /:projectId/tasks/:taskId/clone                          controllers.workspaceApi.ProjectTaskApi.cloneTask(projectId: String, taskId: String)
+GET           /:projectId/tasks/:taskId/relatedItems                   controllers.projectApi.ProjectTaskApi.relatedItems(projectId: String, taskId: String, textQuery: Option[String] ?= None)
+GET           /:projectId/tasks/:taskId/links                          controllers.projectApi.ProjectTaskApi.itemLinks(projectId: String, taskId: String)
+POST          /:projectId/tasks/:taskId/clone                          controllers.projectApi.ProjectTaskApi.cloneTask(projectId: String, taskId: String)

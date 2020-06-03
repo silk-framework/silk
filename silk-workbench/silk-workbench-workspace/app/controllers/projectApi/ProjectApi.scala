@@ -1,8 +1,9 @@
-package controllers.workspaceApi
+package controllers.projectApi
 
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.workspace.JsonSerializer
+import controllers.workspaceApi.IdentifierUtils
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
 import controllers.workspaceApi.project.ProjectLoadingErrors.ProjectTaskLoadingErrorResponse
 import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse}
@@ -13,8 +14,8 @@ import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.JsonSerializers.MetaDataJsonFormat
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
+import org.silkframework.workspace.ProjectConfig
 import org.silkframework.workspace.io.WorkspaceIO
-import org.silkframework.workspace.{ProjectConfig, WorkspaceFactory}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Accepting, Action, AnyContent, InjectedController}
 

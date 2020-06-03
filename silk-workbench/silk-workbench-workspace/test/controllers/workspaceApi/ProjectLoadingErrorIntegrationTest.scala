@@ -24,11 +24,11 @@ class ProjectLoadingErrorIntegrationTest extends FlatSpec with SingleProjectWork
 
   private lazy val tasksReportEndpoint = {
     updateProjectMetaData()
-    controllers.workspaceApi.routes.ProjectApi.projectTasksLoadingErrorReport(projectId).url
+    controllers.projectApi.routes.ProjectApi.projectTasksLoadingErrorReport(projectId).url
   }
   private def taskReportEndpoint(taskId: String): String = {
     updateProjectMetaData()
-    controllers.workspaceApi.routes.ProjectApi.projectTaskLoadingErrorReport(projectId, taskId).url
+    controllers.projectApi.routes.ProjectApi.projectTaskLoadingErrorReport(projectId, taskId).url
   }
 
   private val failingDataset = "testCsv"
