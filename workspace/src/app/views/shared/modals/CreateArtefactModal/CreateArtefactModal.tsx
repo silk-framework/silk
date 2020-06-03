@@ -100,6 +100,12 @@ export function CreateArtefactModal() {
         setLastSelectedClick(Date.now);
     };
 
+    const handleEnter = (e) => {
+        if (e.key === 'Enter' && selected) {
+            handleAdd();
+        }
+    };
+
     const handleBack = () => {
         resetModal();
     };
@@ -304,6 +310,7 @@ export function CreateArtefactModal() {
                                                     <OverviewItem
                                                         hasSpacing
                                                         onClick={() => handleArtefactSelect(artefact)}
+                                                        onKeyDown={handleEnter}
                                                     >
                                                         <OverviewItemDepiction>
                                                             {renderDepiction(artefact)}
