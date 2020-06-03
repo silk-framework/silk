@@ -64,3 +64,10 @@ $ecc-color-modal-backdrop: rgba(invert($ecc-color-workspace-background), 0.69) !
     max-height: 100vh;
     max-width: 100vw;
 }
+
+.ecc-dialog__notifications {
+    &.ecc-card__content {
+        flex-grow: 0;
+        flex-shrink: 0;
+    }
+}
