@@ -295,20 +295,24 @@ export function CreateArtefactModal() {
                           </Button>,
                       ]
             }
+            notifications={
+                !!error.detail ? (
+                    <Notification
+                        message={`${updateExistingTask ? "Update" : "Create"} action failed. Details: ${
+                            error.detail
+                        }`}
+                        danger
+                    />
+                ) : (
+                    null
+                )
+            }
         >
             {
                 <>
                     {artefactForm ? (
                         <>
                             {artefactForm}
-                            {!!error.detail && (
-                                <Notification
-                                    message={`${updateExistingTask ? "Update" : "Create"} action failed. Details: ${
-                                        error.detail
-                                    }`}
-                                    danger
-                                />
-                            )}
                         </>
                     ) : (
                         <Grid>
