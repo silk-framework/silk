@@ -77,7 +77,7 @@ export const ParameterWidget = (props: IProps) => {
         initialValues,
         dependentValues,
     } = props;
-    const errors = formHooks.errors[formParamId];
+    const errors = formHooks.errors[taskParameter.paramId] ? formHooks.errors[taskParameter.paramId] : {};
     const propertyDetails = taskParameter.param;
     const { title, description, autoCompletion } = propertyDetails;
 
@@ -163,7 +163,7 @@ export const ParameterWidget = (props: IProps) => {
                             formParamId={nestedFormParamId}
                             required={false /* TODO: Get this information*/}
                             taskParameter={{ paramId: nestedParamId, param: nestedParam }}
-                            formHooks={formHooks}
+                            formHooks={{ errors: errors }}
                             changeHandlers={changeHandlers}
                             initialValues={initialValues}
                             dependentValues={dependentValues}
