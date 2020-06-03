@@ -71,7 +71,7 @@ export const FileWidget = () => {
 
     const headers = [
         { key: "name", header: "Name", highlighted: true },
-        { key: "formattedDate", header: "Date", highlighted: false },
+        { key: "formattedDate", header: "Last modified", highlighted: false },
         { key: "formattedSize", header: "Size (bytes)", highlighted: true },
     ];
 

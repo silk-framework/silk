@@ -119,6 +119,7 @@ export function Autocomplete(props: IAutocompleteProps) {
     };
     return (
         <SuggestAutocomplete
+            className="app_di-autocomplete__input"
             items={filtered}
             inputValueRenderer={itemLabelRenderer}
             itemRenderer={optionRenderer}
@@ -129,8 +130,11 @@ export function Autocomplete(props: IAutocompleteProps) {
             query={query}
             popoverProps={{
                 minimal: true,
+                popoverClassName: "app_di-autocomplete__options",
+                wrapperTagName: "div",
             }}
             selectedItem={selectedItem}
+            fill
         />
     );
 }

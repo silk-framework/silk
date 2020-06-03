@@ -13,6 +13,7 @@ import {
     FieldItem,
     HtmlContentBlock,
     IconButton,
+    Notification,
     PropertyValueList,
     PropertyValuePair,
     PropertyName,
@@ -20,6 +21,7 @@ import {
     Label,
     TextArea,
     TextField,
+    Spacing,
 } from "@wrappers/index";
 import { Loading } from "../Loading/Loading";
 import { Controller, useForm } from "react-hook-form";
@@ -28,7 +30,7 @@ import { useLocation } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
-import { AppToaster } from "../../../services/toaster";
+import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 
 interface IProps {
     projectId?: string;
@@ -48,7 +50,10 @@ export function Metadata(props: IProps) {
 
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState({} as IMetadata);
+    const [editData, setEditData] = useState({} as IMetadata);
     const [isEditing, setIsEditing] = useState(false);
+    const [getRequestError, setGetRequestError] = useState<ErrorResponse | null>(null);
+    const [updateRequestError, setUpdateRequestError] = useState<ErrorResponse | null>(null);
 
     const [errors, setErrors] = useState({
         form: {
@@ -67,33 +72,45 @@ export function Metadata(props: IProps) {
 
     const letLoading = async (callback) => {
         setLoading(true);
-        const result = await callback();
-        setLoading(false);
-        return result;
+        try {
+            return await callback();
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const toggleEdit = () => {
+    const toggleEdit = async () => {
+        if (!isEditing) {
+            let metaData = data;
+            if (!metaData.label) {
+                metaData = await getTaskMetadata(taskId, projectId);
+                if (!metaData.label) {
+                    return; // Do not toggle edit mode, request has failed
+                }
+            }
+            setEditData(metaData);
+        }
         setIsEditing(!isEditing);
     };
 
     const getTaskMetadata = async (taskId: string, projectId: string) => {
+        setGetRequestError(null);
         try {
             const result = await letLoading(() => {
                 return sharedOp.getTaskMetadataAsync(taskId, projectId);
             });
             setData(result);
+            return result;
         } catch (error) {
-            if (error.detail) {
-                AppToaster.show({
-                    message: error.detail,
-                    intent: Intent.DANGER,
-                    timeout: 0,
-                });
+            if (error.isFetchError) {
+                setGetRequestError((error as FetchError).errorResponse);
             }
+            return {};
         }
     };
 
     const onSubmit = async (inputs: IMetadataUpdatePayload) => {
+        setUpdateRequestError(null);
         if (!inputs.label) {
             return setErrors({
                 ...errors,
@@ -109,17 +126,31 @@ export function Metadata(props: IProps) {
                 label: false,
             },
         });
+        // Store if error occurs
+        setEditData(inputs);
 
-        const result = await letLoading(async () => {
-            const path = location.pathname;
-            const metadata = await sharedOp.updateTaskMetadataAsync(inputs, taskId, projectId);
-            dispatch(routerOp.updateLocationState(path, projectId, metadata));
-            return metadata;
-        });
+        try {
+            const result = await letLoading(async () => {
+                const path = location.pathname;
+                const metadata = await sharedOp.updateTaskMetadataAsync(inputs, taskId, projectId);
+                dispatch(routerOp.updateLocationState(path, projectId, metadata));
+                return metadata;
+            });
 
-        setData(result);
+            setData(result);
 
-        toggleEdit();
+            toggleEdit();
+        } catch (ex) {
+            if (ex.isFetchError) {
+                if (ex.isHttpError) {
+                    setUpdateRequestError(new ErrorResponse("Updating meta data has failed", ex.errorResponse.detail));
+                } else {
+                    setUpdateRequestError(ex.errorResponse);
+                }
+            } else {
+                console.warn("Meta data update request has failed: " + ex);
+            }
+        }
     };
 
     const widgetHeader = (
@@ -150,14 +181,14 @@ export function Metadata(props: IProps) {
                         <PropertyValue>
                             <FieldItem
                                 messageText={errors.form.label ? "Label is required" : ""}
-                                hasStateDanger={errors.form.label ? true : false}
+                                hasStateDanger={errors.form.label}
                             >
                                 <Controller
                                     as={TextField}
                                     name="label"
                                     id="label"
                                     control={control}
-                                    defaultValue={label}
+                                    defaultValue={editData.label}
                                     intent={errors.form.label ? Intent.DANGER : Intent.NONE}
                                 />
                             </FieldItem>
@@ -174,7 +205,7 @@ export function Metadata(props: IProps) {
                                     name="description"
                                     id="description"
                                     control={control}
-                                    defaultValue={description}
+                                    defaultValue={editData.description}
                                     fullWidth={true}
                                 />
                             </FieldItem>
@@ -201,6 +232,18 @@ export function Metadata(props: IProps) {
                         </PropertyValuePair>
                     )}
                 </PropertyValueList>
+            )}
+            {getRequestError && (
+                <>
+                    <Spacing />
+                    <Notification message={getRequestError.asString()} danger />
+                </>
+            )}
+            {updateRequestError && (
+                <>
+                    <Spacing />
+                    <Notification message={updateRequestError.asString()} danger />
+                </>
             )}
         </CardContent>
     );

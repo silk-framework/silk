@@ -205,12 +205,14 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: strin
 
         try {
             const data = await requestCreateTask(payload, currentProjectId);
-            dispatch(closeArtefactModal());
-            dispatch(
-                routerOp.goToPage(`projects/${currentProjectId}/${itemTypeToPath(taskType)}/${data.id}`, {
-                    taskLabel: label,
-                })
-            );
+            batch(() => {
+                dispatch(closeArtefactModal());
+                dispatch(
+                    routerOp.goToPage(`projects/${currentProjectId}/${itemTypeToPath(taskType)}/${data.id}`, {
+                        taskLabel: label,
+                    })
+                );
+            });
         } catch (e) {
             dispatch(setModalError(e));
         }
@@ -276,6 +278,7 @@ export default {
     createArtefactAsync,
     fetchCommonSettingsAsync,
     getArtefactPropertiesAsync,
+    itemTypeToPath,
     closeArtefactModal,
     selectArtefact,
     updateProjectTask,

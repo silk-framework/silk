@@ -63,6 +63,7 @@ export interface IDetailedArtefactItem {
 /** Overview version of an item description. */
 export interface IArtefactItem {
     key: string;
+    taskType: string;
     title?: string;
     description?: string;
     categories?: string[];
@@ -88,6 +89,11 @@ export interface IArtefactModal {
 
     // The list of item types that can be selected.
     artefactsList: IArtefactItem[];
+
+    categories: {
+        label: string;
+        count: number;
+    }[];
 
     // The selected item type
     selectedArtefact: IArtefactItem;

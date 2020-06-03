@@ -43,6 +43,7 @@ export function CreateArtefactModal() {
         isOpen,
         artefactsList,
         cachedArtefactProperties,
+        selectedDType,
         loading,
         updateExistingTask,
         error,
@@ -75,6 +76,9 @@ export function CreateArtefactModal() {
     };
 
     const handleSearch = (textQuery: string) => {
+        if (!projectId) {
+            return;
+        }
         setSearchValue(textQuery);
         dispatch(
             commonOp.fetchArtefactsListAsync({
@@ -189,8 +193,11 @@ export function CreateArtefactModal() {
         .split(/\s+/)
         .every((searchWord) => "project".includes(searchWord));
 
-    let artefactListWithProject = artefactsList;
-    if (showProjectItem) {
+    // Filter artefact list and add project item
+    let artefactListWithProject = artefactsList.filter(
+        (artefact) => selectedDType === "all" || commonOp.itemTypeToPath(artefact.taskType) === selectedDType
+    );
+    if (showProjectItem && selectedDType === "all") {
         artefactListWithProject = [
             {
                 key: DATA_TYPES.PROJECT,
@@ -198,8 +205,9 @@ export function CreateArtefactModal() {
                 description:
                     "Projects let you group related items. All items that " +
                     "depend on each other need to be in the same project.",
+                taskType: "project",
             },
-            ...artefactsList,
+            ...artefactListWithProject,
         ];
     }
 

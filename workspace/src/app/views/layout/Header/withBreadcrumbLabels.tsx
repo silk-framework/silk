@@ -62,16 +62,20 @@ export default function withBreadcrumbLabels(WrappedComponent) {
 
         // Functions to fetch the label for a specific breadcrumb item
         const fetchLabel = async (breadcrumbId: string, params: any): Promise<string> => {
-            switch (breadcrumbId) {
-                case "projectId":
-                    return sharedOp.getTaskMetadataAsync(params.projectId).then((metadata) => metadata.label);
-                case "taskId":
-                    return sharedOp
-                        .getTaskMetadataAsync(params.taskId, params.projectId)
-                        .then((metadata) => metadata.label);
-                default: {
-                    return params[breadcrumbId];
+            try {
+                switch (breadcrumbId) {
+                    case "projectId":
+                        return sharedOp.getTaskMetadataAsync(params.projectId).then((metadata) => metadata.label);
+                    case "taskId":
+                        return sharedOp
+                            .getTaskMetadataAsync(params.taskId, params.projectId)
+                            .then((metadata) => metadata.label);
+                    default: {
+                        return params[breadcrumbId];
+                    }
                 }
+            } catch (ex) {
+                return params[breadcrumbId];
             }
         };
 
