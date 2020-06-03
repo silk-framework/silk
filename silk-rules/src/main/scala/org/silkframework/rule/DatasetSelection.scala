@@ -42,7 +42,7 @@ case class DatasetSelection(@Param(label = "Dataset", value = "The dataset to se
                             inputId: Identifier,
                             @Param(label = "Type", value = "The type of the dataset. If left empty, the default type will be selected.",
                               autoCompletionProvider = classOf[DatasetTypeAutoCompletionProviderReference], autoCompletionDependsOnParameters = Array("inputId"))
-                            typeUri: Uri,
+                            typeUri: Uri = Uri(""),
                             @Param(label = "Restriction", value = "Additional restrictions on the enumerated entities. If this is an RDF source, " +
                                     "use SPARQL patterns that include the variable ?a to identify the enumerated entities, e.g. ?a foaf:knows <http://example.org/SomePerson>")
                             restriction: Restriction = Restriction.empty) extends PluginObjectParameter {
