@@ -43,14 +43,9 @@ export function SearchList() {
         setSelectedItem(item);
     };
 
-    const handleCloneConfirmed = () => {
+    const handleCloneConfirmed = (newLabel, detailsPage) => {
         onDiscardModals();
-        const isProject = !selectedItem.projectId;
-        if (isProject) {
-            dispatch(routerOp.goToPage(`/projects/${selectedItem.id}`));
-        } else {
-            dispatch(routerOp.goToTaskPage(selectedItem));
-        }
+        dispatch(routerOp.goToPage(detailsPage));
     };
 
     const handleDeleted = () => {

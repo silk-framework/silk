@@ -95,8 +95,9 @@ function HeaderComponent({ breadcrumbs }: IProps) {
         dispatch(routerOp.goToPage(""));
     };
 
-    const handleCloneConfirmed = () => {
+    const handleCloneConfirmed = (id, detailsPage) => {
         toggleCloneModal();
+        dispatch(routerOp.goToPage(detailsPage));
     };
 
     const getWindowTitle = (projectId) => {
