@@ -35,6 +35,7 @@ trait IntegrationTestTrait extends TaskApiClient with ActivityApiClient with Gui
   this: TestSuite =>
 
   final val APPLICATION_JSON: String = "application/json"
+  final val TEXT_MARKDOWN: String = "text/markdown"
   final val APPLICATION_XML: String = "application/xml"
   final val CONTENT_TYPE: String = "content-type"
   final val ACCEPT: String = "accept"
@@ -74,6 +75,12 @@ trait IntegrationTestTrait extends TaskApiClient with ActivityApiClient with Gui
     */
   def createProject(projectId: String): WSResponse = {
     val response = client.url(s"$baseUrl/workspace/projects/$projectId").put("")
+    checkResponse(response)
+  }
+
+  /** Remove the project from the workspace. */
+  def removeProject(projectId: String): WSResponse = {
+    val response = client.url(s"$baseUrl/workspace/projects/$projectId").delete()
     checkResponse(response)
   }
 

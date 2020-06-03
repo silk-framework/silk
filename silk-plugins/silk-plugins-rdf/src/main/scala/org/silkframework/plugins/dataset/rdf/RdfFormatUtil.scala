@@ -144,4 +144,8 @@ object RdfFormatUtil {
         throw new IllegalArgumentException(s"Cannot create RDF node from value type $valueType and lexical string '$lexicalValue'! Validation failed.")
     }
   }
+
+  def serializeSingleNode(lexicalValue: String, valueType: ValueType): String = {
+    JenaSerializationUtil.serializeSingleNode(resolveObjectValue(lexicalValue, valueType))
+  }
 }

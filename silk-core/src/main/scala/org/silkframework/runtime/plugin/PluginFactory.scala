@@ -47,7 +47,7 @@ class PluginFactory[T: ClassTag] {
    * A map from each category to all corresponding plugins
    */
   def pluginsByCategory: Map[String, Seq[PluginDescription[_]]] = {
-    PluginRegistry.pluginsByCategoty[T]
+    PluginRegistry.pluginsByCategory[T]
   }
 
   /**

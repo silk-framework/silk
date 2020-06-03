@@ -5,6 +5,7 @@ import org.silkframework.dataset.DatasetResourceEntitySchema
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.Resource
+import org.silkframework.workspace.resources.ResourceAutoCompletionProvider
 
 @Plugin(
   id = "xsltOperator",
@@ -13,7 +14,8 @@ import org.silkframework.runtime.resource.Resource
       """A task that converts an XML resource via an XSLT script and outputs the transformed XML into a file resource.
       """
 )
-case class XSLTOperator(@Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
+case class XSLTOperator(@Param(value = "File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.",
+                               autoCompletionProvider = classOf[ResourceAutoCompletionProvider], allowOnlyAutoCompletedValues = true)
                         file: Resource) extends CustomTask {
   override def inputSchemataOpt: Option[Seq[EntitySchema]] = {
     Some(Seq(DatasetResourceEntitySchema.schema))

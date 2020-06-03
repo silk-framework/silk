@@ -27,7 +27,9 @@ case class SparqlSelectCustomTask(@Param(label = "Select query", value = "A SPAR
                                   @Param(label = "Result limit", value = "If set to a positive integer, the number of results is limited")
                                   limit: String = "",
                                  @Param(label = "Optional SPARQL dataset",
-                                   value = "An optional SPARQL dataset that can be used for example data, so e.g. the transformation editor shows mapping examples.")
+                                   value = "An optional SPARQL dataset that can be used for example data, so e.g. the transformation editor shows mapping examples.",
+                                   autoCompletionProvider = classOf[SparqlEndpointDatasetAutoCompletionProvider],
+                                   autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
                                   optionalInputDataset: SparqlEndpointDatasetParameter = SparqlEndpointDatasetParameter(""),
                                   @Param(
                                     label = "SPARQL query timeout (ms)",

@@ -27,7 +27,7 @@ class LinkSpecLinkPoolGenerator(maxLinks: Int = LinkSpecLinkPoolGenerator.defaul
 
     override def run(context: ActivityContext[UnlabeledLinkPool])(implicit userContext: UserContext): Unit = {
       val entitySchemata = entitySchema(linkSpec, paths)
-      val generateLinks = new GenerateLinks("PoolGenerator", "Pool Generator", inputs, linkSpec, Seq.empty, runtimeConfig) {
+      val generateLinks = new GenerateLinks("PoolGenerator", "Pool Generator", inputs, linkSpec, None, runtimeConfig) {
         override def entityDescs = entitySchemata
       }
 

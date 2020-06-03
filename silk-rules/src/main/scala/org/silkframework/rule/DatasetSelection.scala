@@ -16,9 +16,13 @@ package org.silkframework.rule
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.Restriction
-import org.silkframework.util.{DPair, Identifier, Uri}
+import org.silkframework.rule.task.DatasetOrTransformTaskAutoCompletionProvider
+import org.silkframework.runtime.plugin.{PluginObjectParameter, ReferencePluginParameterAutoCompletionProvider}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
 
-import scala.xml.Node
+import scala.xml.{Elem, Node}
 
 /**
  * Defines a dataset.
@@ -26,14 +30,29 @@ import scala.xml.Node
  * @param inputId The id of the dataset or transformation to be used for retrieving entities.
  * @param restriction Restricts this dataset to specific resources.
  */
-case class DatasetSelection(inputId: Identifier, typeUri: Uri, restriction: Restriction = Restriction.empty) {
+@Plugin(
+  id = "datasetSelectionParameter",
+  label = "Dataset Selection",
+  description = "Select the set of input instances, defined by the data source, the type of the instances and an optional restriction pattern to" +
+      " further restrict the selected instances."
+) // TODO: Better name, since we select a set of entities, not just a dataset
+case class DatasetSelection(@Param(label = "Dataset", value = "The dataset to select.",
+                            autoCompletionProvider = classOf[DatasetOrTransformTaskAutoCompletionProvider],
+                                   autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
+                            inputId: Identifier,
+                            @Param(label = "Type", value = "The type of the dataset. If left empty, the default type will be selected.",
+                              autoCompletionProvider = classOf[DatasetTypeAutoCompletionProviderReference], autoCompletionDependsOnParameters = Array("inputId"))
+                            typeUri: Uri = Uri(""),
+                            @Param(label = "Restriction", value = "Additional restrictions on the enumerated entities. If this is an RDF source, " +
+                                    "use SPARQL patterns that include the variable ?a to identify the enumerated entities, e.g. ?a foaf:knows <http://example.org/SomePerson>")
+                            restriction: Restriction = Restriction.empty) extends PluginObjectParameter {
 
   /**
    * Serializes this dataset specification as XML.
    *
    * @param asSource If true, this dataset will be serialized as a source dataset. If false it will be serialize as target dataset.
    */
-  def toXML(asSource: Boolean) = {
+  def toXML(asSource: Boolean): Elem = {
     if (asSource) {
       <SourceDataset dataSource={inputId} var="a" typeUri={typeUri.uri}>
         <RestrictTo>
@@ -72,9 +91,10 @@ object DatasetSelection {
 
   def empty = DatasetSelection("EmptyDatasetSelection", Uri(""), Restriction.empty)
 
-  def emptyPair =
-    DPair(
-      DatasetSelection("SourceDatasetSelection", Uri(""), Restriction.empty),
-      DatasetSelection("TargetDatasetSelection", Uri(""), Restriction.empty)
-    )
+
+}
+
+
+case class DatasetTypeAutoCompletionProviderReference() extends ReferencePluginParameterAutoCompletionProvider {
+  override def pluginParameterAutoCompletionProviderId: String = "datasetTypeAutoCompletionProvider"
 }

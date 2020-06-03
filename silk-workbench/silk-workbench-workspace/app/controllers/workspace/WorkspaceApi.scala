@@ -6,28 +6,34 @@ import java.util.logging.Logger
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.workspaceApi.search.ResourceSearchRequest
 import javax.inject.Inject
 import org.silkframework.config._
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.dataset.ResourceBasedDataset
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.{ResourceManager, UrlResource, WritableResource}
+import org.silkframework.runtime.resource.{ResourceManager, ResourceNotFoundException, UrlResource, WritableResource}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
+import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace._
 import org.silkframework.workspace.activity.ProjectExecutor
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import play.api.libs.Files
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.streams.IterateeStreams
+import play.api.libs.json.{JsArray, JsString}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.existentials
 
-class WorkspaceApi  @Inject() () extends InjectedController {
+class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with ControllerUtilsTrait {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
@@ -47,6 +53,7 @@ class WorkspaceApi  @Inject() () extends InjectedController {
 
   def getProject(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
+    accessMonitor.saveProjectAccess(project.config.id)
     Ok(JsonSerializer.projectJson(project))
   }
 
@@ -54,7 +61,7 @@ class WorkspaceApi  @Inject() () extends InjectedController {
     if (WorkspaceFactory().workspace.projects.exists(_.name.toString == project)) {
       ErrorResult(CONFLICT, "Conflict", s"Project with name '$project' already exists. Creation failed.")
     } else {
-      val projectConfig = ProjectConfig(project)
+      val projectConfig = ProjectConfig(project, metaData = MetaData(project).asNewMetaData)
       projectConfig.copy(projectResourceUriOpt = Some(projectConfig.generateDefaultUri))
       val newProject = WorkspaceFactory().workspace.createProject(projectConfig)
       Created(JsonSerializer.projectJson(newProject))
@@ -134,10 +141,13 @@ class WorkspaceApi  @Inject() () extends InjectedController {
     Ok
   }
 
-  def getResources(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  def getResources(projectName: String,
+                   searchText: Option[String],
+                   limit: Option[Int],
+                   offset: Option[Int]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val resourceRequest = ResourceSearchRequest(searchText, limit, offset)
     val project = WorkspaceFactory().workspace.project(projectName)
-
-    Ok(JsonSerializer.projectResources(project))
+    Ok(resourceRequest(project))
   }
 
   def getResourceMetadata(projectName: String, resourcePath: String): Action[AnyContent] = UserContextAction { implicit userContext =>
@@ -154,11 +164,16 @@ class WorkspaceApi  @Inject() () extends InjectedController {
 
   def getResource(projectName: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    val resource = project.resources.get(resourceName, mustExist = true)
-    val enumerator = Enumerator.fromStream(resource.inputStream)
-    val source = Source.fromPublisher(IterateeStreams.enumeratorToPublisher(enumerator))
+    try {
+      val resource = project.resources.get(resourceName, mustExist = true)
+      val enumerator = Enumerator.fromStream(resource.inputStream)
+      val source = Source.fromPublisher(IterateeStreams.enumeratorToPublisher(enumerator))
 
-    Ok.chunked(source).withHeaders("Content-Disposition" -> "attachment")
+      Ok.chunked(source).withHeaders("Content-Disposition" -> "attachment")
+    } catch {
+      case _: ResourceNotFoundException =>
+        NotFound
+    }
   }
 
   def putResource(projectName: String, resourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request =>implicit userContext =>
@@ -216,6 +231,16 @@ class WorkspaceApi  @Inject() () extends InjectedController {
       case ex: Exception =>
         ErrorResult(BadUserInputException(ex))
     }
+  }
+
+  /** The list of tasks that use this resource. */
+  def resourceUsage(projectId: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = super[ControllerUtilsTrait].getProject(projectId)
+    val dependentDatasets = project.tasks[GenericDatasetSpec]
+        .filter(_.data.plugin.isFileResourceBased)
+        .filter(_.data.plugin.asInstanceOf[ResourceBasedDataset].file.name == resourceName)
+        .map(_.taskLabel(Int.MaxValue))
+    Ok(JsArray(dependentDatasets.map(JsString)))
   }
 
   def deleteResource(projectName: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>

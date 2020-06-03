@@ -5,6 +5,7 @@ import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.RdfDataset
+import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.WorkbenchPlugin
 import org.silkframework.workbench.WorkbenchPlugin.{Tab, TaskActions, TaskType}
@@ -27,7 +28,7 @@ object WorkbenchPluginDataset {
   object DatasetTaskType extends TaskType {
 
     /** The name of the task type */
-    override def typeName: String = "Dataset"
+    override def typeName: String = JsonSerializers.TASK_TYPE_DATASET
 
     /** Path to the task icon */
     override def icon: String = Assets.at("img/server.png").url

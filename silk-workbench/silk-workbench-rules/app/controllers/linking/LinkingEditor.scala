@@ -7,16 +7,18 @@ import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.LinkageRuleEvaluator
 import org.silkframework.util.DPair
 import org.silkframework.workbench.Context
+import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
-import play.api.mvc.{InjectedController, Action, AnyContent, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, InjectedController}
 
 import scala.util.control.NonFatal
 
-class LinkingEditor @Inject() () extends InjectedController {
+class LinkingEditor @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController {
 
   def editor(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
+    accessMonitor.saveProjectTaskAccess(project, task)
     Ok(views.html.editor.linkingEditor(context))
   }
 

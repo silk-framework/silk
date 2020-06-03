@@ -2,14 +2,21 @@ package org.silkframework.config
 
 import java.time.Instant
 
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
+import org.silkframework.util.Uri
 
 import scala.xml._
 
 /**
   * Holds meta data about a task.
   */
-case class MetaData(label: String, description: Option[String] = None, modified: Option[Instant] = None) {
+case class MetaData(label: String,
+                    description: Option[String] = None,
+                    modified: Option[Instant] = None,
+                    created: Option[Instant] = None,
+                    createdByUser: Option[Uri] = None,
+                    lastModifiedByUser: Option[Uri] = None) {
 
   /**
     * Returns the label if defined or a default string if the label is empty. Truncates the label to maxLength characters.
@@ -32,13 +39,40 @@ case class MetaData(label: String, description: Option[String] = None, modified:
     }
   }
 
+  def asNewMetaData(implicit userContext: UserContext): MetaData = {
+    val now = Instant.now()
+    val user = userUri
+    MetaData(
+      label,
+      description,
+      Some(now),
+      Some(now),
+      user,
+      user
+    )
+  }
+
+  def asUpdatedMetaData(implicit userContext: UserContext): MetaData = {
+    MetaData(
+      label,
+      description,
+      created = created,
+      modified = Some(Instant.now()),
+      createdByUser = createdByUser,
+      lastModifiedByUser = userUri
+    )
+  }
+
+  private def userUri(implicit userContext: UserContext): Option[Uri] = {
+    userContext.user.map(user => Uri(user.uri))
+  }
 }
 
 object MetaData {
 
   val DEFAULT_LABEL_MAX_LENGTH = 50
 
-  def empty: MetaData = MetaData("", None)
+  def empty: MetaData = MetaData("", None, None, None, None, None)
 
   // Regular expressions to detect eccenca Corporate Memory identifiers.
   private val DatasetRegex = "datasetresource_([\\d]+)_(.*)".r
@@ -103,7 +137,10 @@ object MetaData {
       MetaData(
         label = (node \ "Label").text,
         description = Some((node \ "Description").text).filter(_.nonEmpty),
-        modified = (node \ "Modified").headOption.map(node => Instant.parse(node.text))
+        modified = (node \ "Modified").headOption.map(node => Instant.parse(node.text)),
+        created = (node \ "Created").headOption.map(node => Instant.parse(node.text)),
+        createdByUser = (node \ "CreatedByUser").headOption.map(node => node.text),
+        lastModifiedByUser = (node \ "LastModifiedByUser").headOption.map(node => node.text)
       )
     }
 
@@ -115,6 +152,9 @@ object MetaData {
         <Label>{data.label}</Label>
         <Description>{data.description.getOrElse("")}</Description>
         { data.modified.map(instant => <Modified>{instant.toString}</Modified>).toSeq }
+        { data.created.map(instant => <Created>{instant.toString}</Created>).toSeq }
+        { data.createdByUser.map(userUri => <CreatedByUser>{userUri.uri}</CreatedByUser>).toSeq }
+        { data.lastModifiedByUser.map(userUri => <LastModifiedByUser>{userUri.uri}</LastModifiedByUser>).toSeq }
       </MetaData>
     }
   }

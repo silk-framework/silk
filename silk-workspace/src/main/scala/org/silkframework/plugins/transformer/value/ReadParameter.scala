@@ -1,4 +1,4 @@
-package org.silkframework.rule.plugins.transformer.value
+package org.silkframework.plugins.transformer.value
 
 import java.time.Instant
 import java.util.Properties
@@ -8,6 +8,7 @@ import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.workspace.resources.ResourceAutoCompletionProvider
 
 @Plugin(
   id = "readParameter",
@@ -16,7 +17,7 @@ import org.silkframework.runtime.validation.ValidationException
   description = "Reads a parameter from a Java Properties file."
 )
 case class ReadParameter(
-  @Param("The Java properties file to read the parameter from.")
+  @Param(value = "The Java properties file to read the parameter from.", autoCompletionProvider = classOf[ResourceAutoCompletionProvider], allowOnlyAutoCompletedValues = true)
   resource: Resource,
   @Param("The name of the parameter.")
   parameter: String) extends Transformer {

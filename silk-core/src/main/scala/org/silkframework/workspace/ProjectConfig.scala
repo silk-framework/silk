@@ -15,10 +15,10 @@
 package org.silkframework.workspace
 
 import java.util.logging.Logger
-import javax.inject.Inject
 
 import com.typesafe.config.ConfigException
-import org.silkframework.config.{Config, DefaultConfig, Prefixes}
+import javax.inject.Inject
+import org.silkframework.config.{Config, DefaultConfig, MetaData, Prefixes}
 import org.silkframework.util.Identifier
 
 /**
@@ -31,7 +31,9 @@ import org.silkframework.util.Identifier
   */
 case class ProjectConfig(id: Identifier = Identifier.random,
                          prefixes: Prefixes = Prefixes.default,
-                         projectResourceUriOpt: Option[String] = None) {
+                         projectResourceUriOpt: Option[String] = None,
+                         metaData: MetaData = MetaData.empty) {
+  def withMetaData(metaData: MetaData): ProjectConfig = this.copy(metaData = metaData)
 
   def generateDefaultUri: String = {
     ProjectConfig.defaultUriPrefix + id.toString

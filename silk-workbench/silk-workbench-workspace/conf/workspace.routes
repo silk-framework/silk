@@ -34,14 +34,14 @@ GET           /dialogs/editDatasetAutoConfigured/:project/:task/:pluginId       
 GET           /datasets/:project/:task/dataset                                  controllers.workspace.DatasetApi.dataset(project, task)
 GET           /datasets/:project/:task/table                                    controllers.workspace.DatasetApi.table(project, task, maxEntities: Int ?= 20)
 GET           /datasets/:project/:task/sparql                                   controllers.workspace.DatasetApi.sparql(project, task, query ?= "")
-GET           /datasets/:project/:task/types                                    controllers.workspace.DatasetApi.types(project, task, search)
+GET           /datasets/:project/:task/types                                    controllers.workspace.DatasetApi.types(project, task, search, limit: Option[Int] ?= None)
 
 # API
 PUT           /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.putDataset(project: String, name: String, autoConfigure: Boolean ?= false)
 GET           /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.getDataset(project: String, name: String)
 DELETE        /projects/:project/datasets/:name                                 controllers.workspace.DatasetApi.deleteDataset(project: String, name: String)
 GET           /projects/:project/datasets/:name/autoConfigured                  controllers.workspace.DatasetApi.getDatasetAutoConfigured(project: String, name: String)
-GET           /projects/:project/datasets/:name/types                           controllers.workspace.DatasetApi.getDatasetTypes(project: String, name: String)
+GET           /projects/:project/datasets/:name/types                           controllers.workspace.DatasetApi.getDatasetTypes(project: String, name: String, textQuery: String ?= "", limit: Option[Int] ?= None)
 GET           /projects/:project/datasets/:name/mappingCoverage                 controllers.workspace.DatasetApi.getMappingCoverage(project: String, name: String)
 POST          /projects/:project/datasets/:name/mappingCoverage/values          controllers.workspace.DatasetApi.getMappingValueCoverage(project: String, name: String)
 
@@ -69,7 +69,6 @@ POST          /reloadPrefixes                                                   
 POST          /import/:importPlugin                                             controllers.workspace.ProjectMarshalingApi.importWorkspaceViaPlugin(importPlugin: String)
 GET           /export/:exportPlugin                                             controllers.workspace.ProjectMarshalingApi.exportWorkspaceViaPlugin(exportPlugin: String)
 GET           /marshallingPlugins                                               controllers.workspace.ProjectMarshalingApi.availableMarshallingPlugins()
-POST          /searchTasks                                                      controllers.workspace.SearchApi.search()
 
 # Projects
 GET           /projects                                                         controllers.workspace.WorkspaceApi.projects
@@ -87,17 +86,18 @@ POST          /projects/:project/execute                                        
 POST          /projects/:project/clone                                          controllers.workspace.WorkspaceApi.cloneProject(project, newProject)
 
 # Resources
-GET           /projects/:project/resources                                      controllers.workspace.WorkspaceApi.getResources(project: String)
+GET           /projects/:project/resources                                      controllers.workspace.WorkspaceApi.getResources(project: String, searchText: Option[String] ?= None, limit: Option[Int] ?= None, offset: Option[Int] ?= None)
 GET           /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.getResource(project: String, name: String)
 PUT           /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.putResource(project: String, name: String)
 DELETE        /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.deleteResource(project: String, name: String)
+GET           /projects/:project/resources/:name/usage                          controllers.workspace.WorkspaceApi.resourceUsage(project: String, name: String)
 GET           /projects/:project/resources/:name/metadata                       controllers.workspace.WorkspaceApi.getResourceMetadata(project: String, name: String)
 
 # Tasks
 POST          /projects/:project/tasks                                          controllers.workspace.TaskApi.postTask(project: String)
 PUT           /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.putTask(project: String, task: String)
 PATCH         /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.patchTask(project: String, task: String)
-GET           /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.getTask(project: String, task: String)
+GET           /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.getTask(project: String, task: String, withLabels: Boolean ?= false)
 DELETE        /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.deleteTask(project: String, task: String, removeDependentTasks: Boolean ?= false)
 PUT           /projects/:project/tasks/:task/metadata                           controllers.workspace.TaskApi.putTaskMetadata(project: String, task: String)
 GET           /projects/:project/tasks/:task/metadata                           controllers.workspace.TaskApi.getTaskMetadata(project: String, task: String)

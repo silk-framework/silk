@@ -4,6 +4,9 @@ import java.net.HttpURLConnection
 
 import org.silkframework.runtime.validation.RequestException
 
+/**
+  * Exception thrown while parsing JSON.
+  */
 case class JsonParseException(msg: String, cause: Option[Throwable] = None) extends RequestException(msg, cause) {
   /**
     * A short description of the error type.

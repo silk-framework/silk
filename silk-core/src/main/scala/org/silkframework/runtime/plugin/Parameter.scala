@@ -22,22 +22,24 @@ import scala.language.existentials
   * A plugin parameter.
   *
   * @param name         The parameter name as used by the plugin class
-  * @param dataType     The type of the parameter
+  * @param parameterType     The type of the parameter
   * @param label        A human-readable label of the parameter
   * @param description  A human-readable description of the parameter
   * @param defaultValue The default value, if any
   * @param exampleValue An example value for this parameter
   * @param advanced     Is this an advanced parameter that should only be changed by experienced users.
   * @param visibleInDialog True, if it can be edited in the UI plugin dialogs.
+  * @param autoCompletion The parameter auto-completion object.
   */
 case class Parameter(name: String,
-                     dataType: ParameterType[_],
+                     parameterType: ParameterType[_],
                      label: String,
                      description: String = "No description",
                      defaultValue: Option[AnyRef] = None,
                      exampleValue: Option[AnyRef] = None,
                      advanced: Boolean,
-                     visibleInDialog: Boolean) {
+                     visibleInDialog: Boolean,
+                     autoCompletion: Option[ParameterAutoCompletion]) {
 
   /**
    * Retrieves the current value of this parameter.
@@ -61,7 +63,12 @@ case class Parameter(name: String,
     for(value <- exampleValue) yield formatValue(value)
   }
 
-  private def formatValue(value: AnyRef)(implicit prefixes: Prefixes) = {
-    dataType.asInstanceOf[ParameterType[AnyRef]].toString(value)
+  private def formatValue(value: AnyRef)(implicit prefixes: Prefixes): String = {
+    parameterType.asInstanceOf[ParameterType[AnyRef]].toString(value)
   }
 }
+
+case class ParameterAutoCompletion(autoCompletionProvider: PluginParameterAutoCompletionProvider,
+                                   allowOnlyAutoCompletedValues: Boolean = false,
+                                   autoCompleteValueWithLabels: Boolean = false,
+                                   autoCompletionDependsOnParameters: Seq[String] = Seq.empty)

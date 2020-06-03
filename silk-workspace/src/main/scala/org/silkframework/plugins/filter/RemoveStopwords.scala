@@ -1,4 +1,4 @@
-package org.silkframework.rule.plugins.transformer.filter
+package org.silkframework.plugins.filter
 
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.annotations.Plugin
