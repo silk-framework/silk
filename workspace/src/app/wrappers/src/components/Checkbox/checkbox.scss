@@ -16,6 +16,14 @@ $control-checked-background-color-active: $ecc-color-checkbox-checked-background
 $control-indicator-size: 16px; // !default;
 $control-indicator-size-large: 20px !default;
 $control-indicator-spacing: $ecc-size-inline-whitespace !default;
+// $switch-background-color: rgba($gray4, 0.5) !default;
+// $switch-background-color-hover: rgba($gray2, 0.5) !default;
+// $switch-background-color-active: rgba($gray1, 0.5) !default;
+// $switch-background-color-disabled: $button-background-color-disabled !default;
+$switch-checked-background-color: $ecc-color-accent !default;
+$switch-checked-background-color-hover: rgba($switch-checked-background-color, $ecc-opacity-narrow) !default;
+$switch-checked-background-color-active: $switch-checked-background-color-hover !default;
+$switch-checked-background-color-disabled: rgba($switch-checked-background-color, $ecc-opacity-disabled) !default;
 
 @import "~@blueprintjs/core/src/components/forms/controls"; // Checkbox, Radio, Switch
 

@@ -44,7 +44,7 @@ const datasetConfigPreview = (
 
 /** The task creation/update form. */
 export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
-    const { properties, required } = artefact;
+    const { properties, required: requiredRootParameters } = artefact;
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
     const [dependentValues, setDependentValues] = useState<Record<string, any>>({});
@@ -73,7 +73,8 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
         const registerParameters = (
             prefix: string,
             params: [string, IArtefactItemProperty][],
-            parameterValues: Record<string, any>
+            parameterValues: Record<string, any>,
+            requiredParameters: string[]
         ) => {
             // Construct array of parameter keys that other parameters depend on
             const dependsOnParameters = params
@@ -91,7 +92,8 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                             nestedParams,
                             parameterValues && parameterValues[paramId] !== undefined
                                 ? parameterValues[paramId].value
-                                : {}
+                                : {},
+                            param.required ? param.required : []
                         );
                     } else {
                         console.warn(`Parameter '${key}' is of type "object", but has no parameters object defined!`);
@@ -99,7 +101,10 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                 } else {
                     let value = defaultValueAsJs(param);
                     returnKeys.push(key);
-                    register({ name: key }, { required: required.includes(key), ...valueRestrictions(param) });
+                    register(
+                        { name: key },
+                        { required: requiredParameters.includes(paramId), ...valueRestrictions(param) }
+                    );
                     // Set default value
                     let currentValue = value;
                     if (updateTask) {
@@ -119,7 +124,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
             register({ name: LABEL }, { required: true });
             register({ name: DESCRIPTION });
         }
-        registerParameters("", visibleParams, updateTask ? updateTask.parameterValues : {});
+        registerParameters("", visibleParams, updateTask ? updateTask.parameterValues : {}, requiredRootParameters);
         setFormValueKeys(returnKeys);
 
         // Unsubscribe
@@ -204,7 +209,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                         projectId={projectId}
                         pluginId={artefact.pluginId}
                         formParamId={key}
-                        required={required.includes(key)}
+                        required={requiredRootParameters.includes(key)}
                         taskParameter={{ paramId: key, param: properties[key] }}
                         formHooks={formHooks}
                         changeHandlers={changeHandlers}
@@ -220,7 +225,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                                 projectId={projectId}
                                 pluginId={artefact.pluginId}
                                 formParamId={key}
-                                required={required.includes(key)}
+                                required={requiredRootParameters.includes(key)}
                                 taskParameter={{ paramId: key, param: properties[key] }}
                                 formHooks={formHooks}
                                 changeHandlers={changeHandlers}
