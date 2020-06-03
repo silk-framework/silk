@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
+import ReactMarkdown from "react-markdown";
 import {
     Button,
     Card,
@@ -9,13 +10,17 @@ import {
     GridColumn,
     GridRow,
     HelperClasses,
+    HtmlContentBlock,
     Icon,
+    IconButton,
     Notification,
     OverviewItem,
     OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
+    OverviewItemActions,
     OverviewItemList,
+    OverflowText,
     SimpleDialog,
     Spacing,
 } from "@wrappers/index";
@@ -34,6 +39,7 @@ export function CreateArtefactModal() {
     const form = useForm();
 
     const [searchValue, setSearchValue] = useState("");
+    const [idEnhancedDescription, setIdEnhancedDescription] = useState("");
 
     const modalStore = useSelector(commonSel.artefactModalSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
@@ -99,6 +105,12 @@ export function CreateArtefactModal() {
         }
         setLastSelectedClick(Date.now);
     };
+
+    const handleShowEnhancedDescription = (event, artefactId) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setIdEnhancedDescription(artefactId);
+    }
 
     const handleEnter = (e) => {
         if (e.key === 'Enter' && selected) {
@@ -211,7 +223,7 @@ export function CreateArtefactModal() {
         ];
     }
 
-    const renderDepiction = (artefact) => {
+    const renderDepiction = (artefact, large=true) => {
         const iconNameStack = []
             .concat([(artefact.taskType ? artefact.taskType + "-" : "") + artefact.key])
             .concat(artefact.taskType ? [artefact.taskType] : [])
@@ -223,7 +235,7 @@ export function CreateArtefactModal() {
                         return "artefact-" + type.toLowerCase();
                     })
                     .filter((x, i, a) => a.indexOf(x) === i)}
-                large
+                large={large}
             />
         );
     };
@@ -325,15 +337,34 @@ export function CreateArtefactModal() {
                                                                 </strong>
                                                             </OverviewItemLine>
                                                             <OverviewItemLine small>
-                                                                <p>
+                                                                <OverflowText useHtmlElement="p">
                                                                     <Highlighter
                                                                         label={artefact.description}
                                                                         searchValue={searchValue}
                                                                     />
-                                                                </p>
+                                                                </OverflowText>
                                                             </OverviewItemLine>
                                                         </OverviewItemDescription>
+                                                        <OverviewItemActions>
+                                                            <IconButton name="item-info" onClick={(e) => {handleShowEnhancedDescription(e, artefact.key)}} />
+                                                        </OverviewItemActions>
                                                     </OverviewItem>
+                                                    {
+                                                        idEnhancedDescription === artefact.key && (
+                                                            <SimpleDialog
+                                                                isOpen
+                                                                title={artefact.title}
+                                                                actions={
+                                                                    <Button text="Close" onClick={() => { setIdEnhancedDescription("") }} />
+                                                                }
+                                                                size="small"
+                                                            >
+                                                                <HtmlContentBlock>
+                                                                    <ReactMarkdown source={artefact.description} />
+                                                                </HtmlContentBlock>
+                                                            </SimpleDialog>
+                                                        )
+                                                    }
                                                 </Card>
                                             ))}
                                         </OverviewItemList>
