@@ -17,7 +17,7 @@ const getSearchHighlight = (label: string, searchValue: string) => {
         return label;
     }
 
-    const searchStringParts = searchValue.split(RegExp("\\s+")).filter((word) => word !== "");
+    const searchStringParts = extractSearchWords(searchValue);
     if (searchStringParts.length === 0) {
         return label;
     }
@@ -40,6 +40,17 @@ const getSearchHighlight = (label: string, searchValue: string) => {
     result.push(label.slice(offset));
     return result;
 };
+
+/** Extracts search words separated by white space. */
+export function extractSearchWords(textQuery: string): string[] {
+    return textQuery.split(RegExp("\\s+")).filter((word) => word !== "");
+}
+
+/** Creates a case-insensitive multi-word regex, that matches any of the given words. */
+export function multiWordRegex(multiWordQuery: string[]) {
+    const regexString = multiWordQuery.map(escapeRegexWord).join("|");
+    return RegExp(regexString, "gi");
+}
 
 export function Highlighter({ label, searchValue }) {
     return <span>{getSearchHighlight(label, searchValue)}</span>;

@@ -30,7 +30,7 @@ import Loading from "../../Loading";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
 import { TaskForm } from "./ArtefactForms/TaskForm";
 import { DATA_TYPES } from "../../../../constants";
-import { Highlighter } from "../../Highlighter/Highlighter";
+import { extractSearchWords, Highlighter, multiWordRegex } from "../../Highlighter/Highlighter";
 import ArtefactTypesList from "./ArtefactTypesList";
 import { SearchBar } from "../../SearchBar/SearchBar";
 
@@ -110,10 +110,10 @@ export function CreateArtefactModal() {
         event.preventDefault();
         event.stopPropagation();
         setIdEnhancedDescription(artefactId);
-    }
+    };
 
     const handleEnter = (e) => {
-        if (e.key === 'Enter' && selected) {
+        if (e.key === "Enter" && selected) {
             handleAdd();
         }
     };
@@ -223,7 +223,19 @@ export function CreateArtefactModal() {
         ];
     }
 
-    const renderDepiction = (artefact, large=true) => {
+    // Rank title matches higher
+    if (searchValue.trim() !== "") {
+        const regex = multiWordRegex(extractSearchWords(searchValue));
+        const titleMatches = artefactListWithProject.filter((artefactItem) => {
+            return regex.test(artefactItem.title);
+        });
+        const nonTitleMatches = artefactListWithProject.filter((artefactItem) => {
+            return !regex.test(artefactItem.title);
+        });
+        artefactListWithProject = [...titleMatches, ...nonTitleMatches];
+    }
+
+    const renderDepiction = (artefact, large = true) => {
         const iconNameStack = []
             .concat([(artefact.taskType ? artefact.taskType + "-" : "") + artefact.key])
             .concat(artefact.taskType ? [artefact.taskType] : [])
@@ -346,25 +358,33 @@ export function CreateArtefactModal() {
                                                             </OverviewItemLine>
                                                         </OverviewItemDescription>
                                                         <OverviewItemActions>
-                                                            <IconButton name="item-info" onClick={(e) => {handleShowEnhancedDescription(e, artefact.key)}} />
+                                                            <IconButton
+                                                                name="item-info"
+                                                                onClick={(e) => {
+                                                                    handleShowEnhancedDescription(e, artefact.key);
+                                                                }}
+                                                            />
                                                         </OverviewItemActions>
                                                     </OverviewItem>
-                                                    {
-                                                        idEnhancedDescription === artefact.key && (
-                                                            <SimpleDialog
-                                                                isOpen
-                                                                title={artefact.title}
-                                                                actions={
-                                                                    <Button text="Close" onClick={() => { setIdEnhancedDescription("") }} />
-                                                                }
-                                                                size="small"
-                                                            >
-                                                                <HtmlContentBlock>
-                                                                    <ReactMarkdown source={artefact.description} />
-                                                                </HtmlContentBlock>
-                                                            </SimpleDialog>
-                                                        )
-                                                    }
+                                                    {idEnhancedDescription === artefact.key && (
+                                                        <SimpleDialog
+                                                            isOpen
+                                                            title={artefact.title}
+                                                            actions={
+                                                                <Button
+                                                                    text="Close"
+                                                                    onClick={() => {
+                                                                        setIdEnhancedDescription("");
+                                                                    }}
+                                                                />
+                                                            }
+                                                            size="small"
+                                                        >
+                                                            <HtmlContentBlock>
+                                                                <ReactMarkdown source={artefact.description} />
+                                                            </HtmlContentBlock>
+                                                        </SimpleDialog>
+                                                    )}
                                                 </Card>
                                             ))}
                                         </OverviewItemList>
