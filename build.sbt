@@ -8,7 +8,13 @@ import java.io._
 val NEXT_VERSION = "3.1.0"
 val silkVersion = {
   val version = sys.env.getOrElse("GIT_DESCRIBE", NEXT_VERSION + "-SNAPSHOT")
-  val outFile = new File("silk/silk-workbench/silk-workbench-core/conf/reference.conf")
+  val configPath = "silk-workbench/silk-workbench-core/conf/reference.conf"
+  // Check if silk is located inside a sub-folder
+  val outFile = if(new File("silk").exists()) {
+    new File("silk", configPath)
+  } else {
+    new File(configPath)
+  }
   val os = new FileWriter(outFile)
   os.append(s"workbench.version = $version")
   os.flush()
