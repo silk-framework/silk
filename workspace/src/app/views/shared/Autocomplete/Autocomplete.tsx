@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { HTMLInputProps, IInputGroupProps } from "@blueprintjs/core";
 import { MenuItem, Suggest } from "@wrappers/index";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { Highlighter } from "../Highlighter/Highlighter";
@@ -47,6 +48,13 @@ export interface IAutocompleteProps {
      * The values of the parameters this auto-completion depends on.
      */
     dependentValues?: string[];
+
+    /**
+     * Props to spread to the query `InputGroup`. To control this input, use
+     * `query` and `onQueryChange` instead of `inputProps.value` and
+     * `inputProps.onChange`.
+     */
+    inputProps?: IInputGroupProps & HTMLInputProps;
 }
 
 const SuggestAutocomplete = Suggest.ofType<IAutocompleteDefaultResponse>();
@@ -66,7 +74,7 @@ Autocomplete.defaultProps = {
 };
 
 export function Autocomplete(props: IAutocompleteProps) {
-    const { itemValueSelector, itemLabelRenderer, onSearch, onChange, initialValue, dependentValues } = props;
+    const { itemValueSelector, itemLabelRenderer, onSearch, onChange, initialValue, dependentValues, ...otherProps } = props;
     const [selectedItem, setSelectedItem] = useState<IAutocompleteDefaultResponse>(initialValue);
 
     const [query, setQuery] = useState<string>("");
@@ -135,6 +143,7 @@ export function Autocomplete(props: IAutocompleteProps) {
             }}
             selectedItem={selectedItem}
             fill
+            {...otherProps}
         />
     );
 }

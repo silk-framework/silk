@@ -221,6 +221,9 @@ export const ParameterWidget = (props: IProps) => {
                                 : { value: defaultValueAsJs(propertyDetails) }
                         }
                         dependentValues={selectDependentValues()}
+                        inputProps={{
+                            intent: (errors ? Intent.DANGER : Intent.NONE)
+                        }}
                     />
                 ) : (
                     <InputMapper
