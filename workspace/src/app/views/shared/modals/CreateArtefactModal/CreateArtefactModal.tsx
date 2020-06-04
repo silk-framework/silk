@@ -33,6 +33,7 @@ import { DATA_TYPES } from "../../../../constants";
 import { extractSearchWords, Highlighter, multiWordRegex } from "../../Highlighter/Highlighter";
 import ArtefactTypesList from "./ArtefactTypesList";
 import { SearchBar } from "../../SearchBar/SearchBar";
+import { commonSlice } from "@ducks/common/commonSlice";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -64,6 +65,8 @@ export function CreateArtefactModal() {
     useEffect(() => {
         if (projectId) {
             dispatch(commonOp.fetchArtefactsListAsync());
+        } else {
+            dispatch(commonOp.resetArtefactsList());
         }
     }, [projectId]);
 

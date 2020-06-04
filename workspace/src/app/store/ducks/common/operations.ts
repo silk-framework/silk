@@ -112,6 +112,13 @@ const fetchArtefactsListAsync = (filters: any = {}) => {
     };
 };
 
+/** Resets the artefacts list to 0 elements. */
+const resetArtefactsList = () => {
+    return async (dispatch) => {
+        dispatch(setArtefactsList([]));
+    };
+};
+
 const getArtefactPropertiesAsync = (artefact: IArtefactItem) => {
     return async (dispatch, getState) => {
         const { cachedArtefactProperties } = commonSel.artefactModalSelector(getState());
@@ -264,6 +271,7 @@ export default {
     logout,
     fetchAvailableDTypesAsync,
     fetchArtefactsListAsync,
+    resetArtefactsList,
     createArtefactAsync,
     fetchCommonSettingsAsync,
     getArtefactPropertiesAsync,
