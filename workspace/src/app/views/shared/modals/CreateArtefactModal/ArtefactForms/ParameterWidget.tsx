@@ -222,8 +222,9 @@ export const ParameterWidget = (props: IProps) => {
                         }
                         dependentValues={selectDependentValues()}
                         inputProps={{
-                            intent: (errors ? Intent.DANGER : Intent.NONE)
+                            intent: errors ? Intent.DANGER : Intent.NONE,
                         }}
+                        resetPossible={!required}
                     />
                 ) : (
                     <InputMapper

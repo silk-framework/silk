@@ -4,6 +4,7 @@ import { MenuItem, Suggest } from "@wrappers/index";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { Highlighter } from "../Highlighter/Highlighter";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
+import IconButton from "@wrappers/src/components/Icon/IconButton";
 
 export interface IAutocompleteProps {
     /**
@@ -55,12 +56,14 @@ export interface IAutocompleteProps {
      * `inputProps.onChange`.
      */
     inputProps?: IInputGroupProps & HTMLInputProps;
+
+    /** If true, then a selection can be reset. */
+    resetPossible?: boolean;
 }
 
 const SuggestAutocomplete = Suggest.ofType<IAutocompleteDefaultResponse>();
 
 Autocomplete.defaultProps = {
-    initialValue: "",
     itemLabelRenderer: (item) => {
         const label = item.label || item.value;
         if (label === "") {
@@ -71,10 +74,20 @@ Autocomplete.defaultProps = {
     },
     itemValueSelector: (item) => item.value,
     dependentValues: [],
+    resetPossible: false,
 };
 
 export function Autocomplete(props: IAutocompleteProps) {
-    const { itemValueSelector, itemLabelRenderer, onSearch, onChange, initialValue, dependentValues, ...otherProps } = props;
+    const {
+        resetPossible,
+        itemValueSelector,
+        itemLabelRenderer,
+        onSearch,
+        onChange,
+        initialValue,
+        dependentValues,
+        ...otherProps
+    } = props;
     const [selectedItem, setSelectedItem] = useState<IAutocompleteDefaultResponse>(initialValue);
 
     const [query, setQuery] = useState<string>("");
@@ -125,11 +138,24 @@ export function Autocomplete(props: IAutocompleteProps) {
             />
         );
     };
+    // Resets the selection
+    const clearSelection = () => {
+        setSelectedItem(undefined);
+        onChange("");
+        setQuery("");
+    };
+    const clearButton = resetPossible &&
+        selectedItem !== undefined &&
+        selectedItem !== null &&
+        selectedItem.value !== "" && (
+            <IconButton name="operation-clear" text={"Reset selection"} onClick={clearSelection} />
+        );
+    const updatedInputProps = { rightElement: clearButton, ...otherProps.inputProps };
     return (
         <SuggestAutocomplete
             className="app_di-autocomplete__input"
             items={filtered}
-            inputValueRenderer={itemLabelRenderer}
+            inputValueRenderer={selectedItem !== undefined ? itemLabelRenderer : () => ""}
             itemRenderer={optionRenderer}
             itemsEqual={areEqualItems}
             noResults={<MenuItem disabled={true} text="No results." />}
@@ -144,6 +170,7 @@ export function Autocomplete(props: IAutocompleteProps) {
             selectedItem={selectedItem}
             fill
             {...otherProps}
+            inputProps={updatedInputProps}
         />
     );
 }
