@@ -12,6 +12,7 @@ import {
     IDatasetConfigPreview,
     IDatasetPreview,
     IDatasetTypePayload,
+    IItemLink,
     IMetadataUpdatePayload,
     IPreviewResponse,
     IProjectMetadataResponse,
@@ -187,5 +188,11 @@ export const requestPreview = async (
         url,
         method: "POST",
         body: preview,
+    });
+};
+
+export const requestItemLinks = async (projectId: string, taskId: string): Promise<FetchResponse<IItemLink[]>> => {
+    return fetch({
+        url: workspaceApi(`/projects/${projectId}/tasks/${taskId}/links`),
     });
 };

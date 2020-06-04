@@ -1,32 +1,45 @@
 import DeleteModal from "./DeleteModal";
 import React, { useEffect, useState } from "react";
-import { sharedOp } from "@ducks/shared";
-import { workspaceOp } from "@ducks/workspace";
-import { useDispatch } from "react-redux";
 import { Loading } from "../Loading/Loading";
+import { ErrorResponse } from "../../../services/fetch/responseInterceptor";
+import { requestRemoveProject, requestRemoveTask } from "@ducks/workspace/requests";
+import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
+import { ISearchResultsServer } from "@ducks/workspace/typings";
 
 interface IProps {
-    selectedItem: IProjectOrTask;
-    onClose: () => void;
-}
+    item: Partial<ISearchResultsServer>;
 
-export interface IProjectOrTask {
-    // If projectId is undefined this specifies a project ID, else a task ID
-    id: string;
-    // For tasks this is defined. For projects this is undefined.
-    projectId?: string;
-    label?: string;
+    onClose: () => void;
+
+    onConfirmed?();
 }
 
 /** Modal for task deletion. */
-export function ItemDeleteModal({ selectedItem, onClose }: IProps) {
-    const [deleteModalOptions, setDeleteModalOptions] = useState({});
-    const dispatch = useDispatch();
+export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<ErrorResponse>({} as ErrorResponse);
 
-    const handleConfirmRemove = () => {
-        const { id, projectId } = selectedItem;
-        dispatch(workspaceOp.fetchRemoveTaskAsync(id, projectId));
-        onClose();
+    const [deleteModalOptions, setDeleteModalOptions] = useState({});
+
+    useEffect(() => {
+        prepareDelete();
+    }, [item]);
+
+    const handleConfirmRemove = async () => {
+        const { id, projectId } = item;
+        try {
+            setLoading(true);
+            if (projectId) {
+                await requestRemoveTask(id, projectId);
+            } else {
+                await requestRemoveProject(id);
+            }
+            onConfirmed && onConfirmed();
+        } catch (e) {
+            setError(e);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const prepareDelete = async () => {
@@ -35,7 +48,10 @@ export function ItemDeleteModal({ selectedItem, onClose }: IProps) {
         });
 
         try {
-            const data = await sharedOp.getTaskMetadataAsync(selectedItem.id, selectedItem.projectId);
+            const data: any =
+                item.projectId && item.id
+                    ? await requestTaskMetadata(item.id, item.projectId)
+                    : await requestProjectMetadata(item.id ? item.id : item.projectId);
 
             // Skip check the relations for projects
             if (data.relations && data.relations.dependentTasksDirect.length) {
@@ -43,7 +59,7 @@ export function ItemDeleteModal({ selectedItem, onClose }: IProps) {
                     confirmationRequired: true,
                     render: () => (
                         <div>
-                            <p>Task '{data.label || selectedItem.id}' is used by other tasks! </p>
+                            <p>Task '{data.label || item.id}' is used by other tasks! </p>
                             <p>Deleting this task will also delete all depending tasks listed below:</p>
                             <ul>
                                 {data.relations.dependentTasksDirect.map((rel) => (
@@ -52,18 +68,17 @@ export function ItemDeleteModal({ selectedItem, onClose }: IProps) {
                             </ul>
                         </div>
                     ),
-                    title: `Delete ${selectedItem.projectId ? "task" : "project"}`,
+                    title: `Delete ${item.projectId ? "task" : "project"}`,
                 });
             } else {
                 setDeleteModalOptions({
                     confirmationRequired: false,
                     render: () => (
                         <p>
-                            {selectedItem.projectId ? "Task" : "Project"} '{data.label || selectedItem.id}' will be
-                            deleted.
+                            {item.projectId ? "Task" : "Project"} '{data.label || item.id}' will be deleted.
                         </p>
                     ),
-                    title: `Delete ${selectedItem.projectId ? "task" : "project"}`,
+                    title: `Delete ${item.projectId ? "task" : "project"}`,
                 });
             }
         } catch (e) {
@@ -71,18 +86,14 @@ export function ItemDeleteModal({ selectedItem, onClose }: IProps) {
                 confirmationRequired: false,
                 render: () => (
                     <p>
-                        {selectedItem.projectId ? "Task" : "Project"} '
-                        {selectedItem.label || selectedItem.id || selectedItem.projectId}' will be deleted.
+                        {item.projectId ? "Task" : "Project"} '{item.label || item.id || item.projectId}' will be
+                        deleted.
                     </p>
                 ),
-                title: `Delete ${selectedItem.projectId ? "task" : "project"}`,
+                title: `Delete ${item.projectId ? "task" : "project"}`,
             });
         }
     };
-
-    useEffect(() => {
-        prepareDelete();
-    }, [selectedItem]);
 
     return <DeleteModal isOpen={true} onDiscard={onClose} onConfirm={handleConfirmRemove} {...deleteModalOptions} />;
 }

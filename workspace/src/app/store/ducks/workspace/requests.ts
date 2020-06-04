@@ -2,6 +2,7 @@ import { IAppliedFacetState, IFacetState, ISorterListItemState } from "@ducks/wo
 import fetch from "../../../services/fetch";
 import { legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
 import { VoidOrNever } from "../../../../app";
+import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 
 export interface ISearchListRequest {
     limit: number;
@@ -65,15 +66,29 @@ export const requestRemoveTask = async (itemId: string, projectId?: string): Pro
     }
 };
 
-export const requestCloneTask = async (taskId: string, projectId: string, taskNewId: string): Promise<VoidOrNever> => {
-    try {
-        await fetch({
-            url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/clone?newTask=${taskNewId}`),
-            method: "POST",
-        });
-    } catch (e) {
-        throw handleError(e);
-    }
+interface IClonedItem {
+    id: string;
+    detailsPage: string;
+}
+
+export const requestCloneTask = async (
+    taskId: string,
+    projectId: string,
+    payload: any
+): Promise<FetchResponse<IClonedItem>> => {
+    return fetch({
+        url: workspaceApi(`/projects/${projectId}/tasks/${taskId}/clone`),
+        method: "POST",
+        body: payload,
+    });
+};
+
+export const requestCloneProject = async (projectId: string, payload: any): Promise<FetchResponse<IClonedItem>> => {
+    return fetch({
+        url: workspaceApi(`/projects/${projectId}/clone`),
+        method: "POST",
+        body: payload,
+    });
 };
 
 //missing-type

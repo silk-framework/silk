@@ -9,7 +9,9 @@ import AppliedFacets from "../../pages/Workspace/AppliedFacets";
 import SearchItem from "./SearchItem";
 import EmptyList from "./EmptyList";
 import { commonOp } from "@ducks/common";
-import { IProjectOrTask, ItemDeleteModal } from "../modals/ItemDeleteModal";
+import { ItemDeleteModal } from "../modals/ItemDeleteModal";
+import { routerOp } from "@ducks/router";
+import { ISearchResultsServer } from "@ducks/workspace/typings";
 
 export function SearchList() {
     const dispatch = useDispatch();
@@ -22,11 +24,12 @@ export function SearchList() {
     const isLoading = useSelector(workspaceSel.isLoadingSelector);
     const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [selectedItem, setSelectedItem] = useState<IProjectOrTask | null>(null);
+    const [selectedItem, setSelectedItem] = useState<ISearchResultsServer | null>(null);
     const [showCloneModal, setShowCloneModal] = useState(false);
 
     const onDiscardModals = () => {
         setShowCloneModal(false);
+        setDeleteModalOpen(false);
         setSelectedItem(null);
     };
 
@@ -35,20 +38,19 @@ export function SearchList() {
         setSelectedItem(item);
     };
 
-    const handleConfirmClone = (newId: string) => {
-        const { id, projectId } = selectedItem;
-        dispatch(workspaceOp.fetchCloneTaskAsync(id, projectId, newId));
-        onDiscardModals();
-    };
-
-    const onOpenDeleteModal = (item: IProjectOrTask) => {
-        setSelectedItem(item);
+    const onOpenDeleteModal = (item: ISearchResultsServer) => {
         setDeleteModalOpen(true);
+        setSelectedItem(item);
     };
 
-    const onCloseDeleteModal = () => {
-        setSelectedItem(null);
-        setDeleteModalOpen(false);
+    const handleCloneConfirmed = (newLabel, detailsPage) => {
+        onDiscardModals();
+        dispatch(routerOp.goToPage(detailsPage));
+    };
+
+    const handleDeleted = () => {
+        dispatch(workspaceOp.fetchListAsync());
+        onDiscardModals();
     };
 
     const handlePaginationOnChange = (n: number, pageSize: number) => {
@@ -112,15 +114,15 @@ export function SearchList() {
                     />
 
                     {deleteModalOpen && selectedItem && (
-                        <ItemDeleteModal selectedItem={selectedItem} onClose={onCloseDeleteModal} />
+                        <ItemDeleteModal item={selectedItem} onClose={onDiscardModals} onConfirmed={handleDeleted} />
                     )}
-
-                    <CloneModal
-                        isOpen={showCloneModal}
-                        oldId={selectedItem && selectedItem.id}
-                        onDiscard={onDiscardModals}
-                        onConfirm={handleConfirmClone}
-                    />
+                    {showCloneModal && selectedItem && (
+                        <CloneModal
+                            item={selectedItem}
+                            onDiscard={onDiscardModals}
+                            onConfirmed={handleCloneConfirmed}
+                        />
+                    )}
                 </>
             ) : null}
         </>

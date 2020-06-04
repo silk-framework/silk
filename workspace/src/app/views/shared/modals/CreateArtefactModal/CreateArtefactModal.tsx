@@ -33,7 +33,7 @@ import { DATA_TYPES } from "../../../../constants";
 import { extractSearchWords, Highlighter, multiWordRegex } from "../../Highlighter/Highlighter";
 import ArtefactTypesList from "./ArtefactTypesList";
 import { SearchBar } from "../../SearchBar/SearchBar";
-import { commonSlice } from "@ducks/common/commonSlice";
+import { routerOp } from "@ducks/router";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -210,7 +210,7 @@ export function CreateArtefactModal() {
 
     // Filter artefact list and add project item
     let artefactListWithProject = artefactsList.filter(
-        (artefact) => selectedDType === "all" || commonOp.itemTypeToPath(artefact.taskType) === selectedDType
+        (artefact) => selectedDType === "all" || routerOp.itemTypeToPath(artefact.taskType) === selectedDType
     );
     if (showProjectItem && (selectedDType === "all" || selectedDType === "project")) {
         artefactListWithProject = [

@@ -51,7 +51,7 @@ export function RelatedItems(props: IProps) {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        if (projectId) {
+        if (taskId) {
             getRelatedItemsData(projectId, taskId, textQuery);
         }
     }, [taskId, projectId, textQuery]);

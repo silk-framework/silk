@@ -2,6 +2,7 @@ import qs from "qs";
 import { getLocation, push, replace } from "connected-react-router";
 import { SERVE_PATH } from "../../../constants/path";
 import { IMetadata } from "@ducks/shared/typings";
+import { ISearchResultsServer } from "@ducks/workspace/typings";
 
 interface IQueryParams {
     [key: string]: any;
@@ -12,6 +13,23 @@ export interface IPageLabels {
     projectLabel?: string;
     taskLabel?: string;
 }
+
+const itemTypeToPathMap = {
+    Transform: "transform",
+    Linking: "linking",
+    Workflow: "workflow",
+    CustomTask: "task",
+    Dataset: "dataset",
+};
+
+const itemTypeToPath = (itemType: string) => {
+    const str = itemType[0].toUpperCase() + itemType.slice(1);
+    if (itemTypeToPathMap[str]) {
+        return itemTypeToPathMap[str];
+    } else {
+        return "task";
+    }
+};
 
 const setQueryString = (queryParams: IQueryParams) => {
     return (dispatch, getState) => {
@@ -42,10 +60,25 @@ const setQueryString = (queryParams: IQueryParams) => {
  *                   be considered an absolute path, else it will be considered as relative to the '/workspace' path.
  * @param pageLabels The labels of the target page, e.g. page title and labels for parts of the breadcrumb.
  */
-const goToPage = (path: string, pageLabels: IPageLabels) => {
+const goToPage = (path: string, pageLabels: IPageLabels = {} as IPageLabels) => {
     const isAbsolute = path.startsWith("/");
     return (dispatch) => {
-        dispatch(push(isAbsolute ? path : SERVE_PATH + "/" + path, { pageLabels: pageLabels }));
+        dispatch(
+            push(isAbsolute ? path : path ? SERVE_PATH + "/" + path : SERVE_PATH, {
+                pageLabels: pageLabels,
+            })
+        );
+    };
+};
+
+const goToTaskPage = (task: ISearchResultsServer) => {
+    const { projectId, type, id, label } = task;
+    return (dispatch) => {
+        dispatch(
+            goToPage(`projects/${projectId}/${itemTypeToPath(type)}/${id}`, {
+                taskLabel: label,
+            })
+        );
     };
 };
 
@@ -79,4 +112,6 @@ export default {
     goToPage,
     replacePage,
     updateLocationState,
+    goToTaskPage,
+    itemTypeToPath,
 };
