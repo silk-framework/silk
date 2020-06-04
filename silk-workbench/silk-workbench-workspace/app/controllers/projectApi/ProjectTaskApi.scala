@@ -44,6 +44,18 @@ class ProjectTaskApi @Inject()() extends InjectedController with ControllerUtils
     Ok(Json.toJson(itemLinks))
   }
 
+  /** Returns frontend related information about this task, e.g. item type. */
+  def itemInfo(projectId: String, taskId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val projectTask = anyTask(projectId, taskId)
+    val itemType = ItemType.itemType(projectTask)
+    Ok(Json.obj(
+      "itemType" -> Json.obj(
+        "id" -> itemType.id,
+        "label" -> itemType.label
+      )
+    ))
+  }
+
   /** Clones an existing task in the project. */
   def cloneTask(projectId: String, taskId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>implicit userContext =>
     validateJson[ItemCloneRequest] { request =>
