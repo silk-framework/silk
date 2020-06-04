@@ -70,13 +70,6 @@ export function CreateArtefactModal() {
         }
     }, [projectId]);
 
-    useEffect(() => {
-        setSelected({} as IArtefactItem);
-        if (artefactsList.length > 0 && searchValue) {
-            setSelected(artefactsList[0]);
-        }
-    }, [artefactsList]);
-
     const handleAdd = () => {
         if (selected.key === DATA_TYPES.PROJECT) {
             return dispatch(commonOp.selectArtefact(selected));
@@ -240,6 +233,14 @@ export function CreateArtefactModal() {
         });
         artefactListWithProject = [...titleMatches, ...nonTitleMatches];
     }
+
+    // If search is active pre-select first item in (final) list
+    useEffect(() => {
+        setSelected({} as IArtefactItem);
+        if (artefactListWithProject.length > 0 && searchValue) {
+            setSelected(artefactListWithProject[0]);
+        }
+    }, [artefactListWithProject.map((item) => item.key).join("|"), selectedDType]);
 
     const renderDepiction = (artefact, large = true) => {
         const iconNameStack = []
