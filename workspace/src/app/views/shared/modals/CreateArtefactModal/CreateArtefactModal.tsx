@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
+import ReactMarkdown from "react-markdown";
 import {
     Button,
     Card,
@@ -9,9 +10,13 @@ import {
     GridColumn,
     GridRow,
     HelperClasses,
+    HtmlContentBlock,
     Icon,
+    IconButton,
     Notification,
+    OverflowText,
     OverviewItem,
+    OverviewItemActions,
     OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
@@ -25,7 +30,7 @@ import Loading from "../../Loading";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
 import { TaskForm } from "./ArtefactForms/TaskForm";
 import { DATA_TYPES } from "../../../../constants";
-import { Highlighter } from "../../Highlighter/Highlighter";
+import { extractSearchWords, Highlighter, multiWordRegex } from "../../Highlighter/Highlighter";
 import ArtefactTypesList from "./ArtefactTypesList";
 import { SearchBar } from "../../SearchBar/SearchBar";
 import { routerOp } from "@ducks/router";
@@ -35,6 +40,7 @@ export function CreateArtefactModal() {
     const form = useForm();
 
     const [searchValue, setSearchValue] = useState("");
+    const [idEnhancedDescription, setIdEnhancedDescription] = useState("");
 
     const modalStore = useSelector(commonSel.artefactModalSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
@@ -59,8 +65,17 @@ export function CreateArtefactModal() {
     useEffect(() => {
         if (projectId) {
             dispatch(commonOp.fetchArtefactsListAsync());
+        } else {
+            dispatch(commonOp.resetArtefactsList());
         }
     }, [projectId]);
+
+    useEffect(() => {
+        setSelected({} as IArtefactItem);
+        if (artefactsList.length > 0 && searchValue) {
+            setSelected(artefactsList[0]);
+        }
+    }, [artefactsList]);
 
     const handleAdd = () => {
         if (selected.key === DATA_TYPES.PROJECT) {
@@ -92,6 +107,18 @@ export function CreateArtefactModal() {
             setSelected(artefact);
         }
         setLastSelectedClick(Date.now);
+    };
+
+    const handleShowEnhancedDescription = (event, artefactId) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setIdEnhancedDescription(artefactId);
+    };
+
+    const handleEnter = (e) => {
+        if (e.key === "Enter" && selected) {
+            handleAdd();
+        }
     };
 
     const handleBack = () => {
@@ -185,7 +212,7 @@ export function CreateArtefactModal() {
     let artefactListWithProject = artefactsList.filter(
         (artefact) => selectedDType === "all" || routerOp.itemTypeToPath(artefact.taskType) === selectedDType
     );
-    if (showProjectItem && selectedDType === "all") {
+    if (showProjectItem && (selectedDType === "all" || selectedDType === "project")) {
         artefactListWithProject = [
             {
                 key: DATA_TYPES.PROJECT,
@@ -199,7 +226,22 @@ export function CreateArtefactModal() {
         ];
     }
 
-    const renderDepiction = (artefact) => {
+    // Rank title matches higher
+    if (searchValue.trim() !== "") {
+        const regex = multiWordRegex(extractSearchWords(searchValue));
+        const titleMatches = [];
+        const nonTitleMatches = [];
+        artefactListWithProject.forEach((artefactItem) => {
+            if (regex.test(artefactItem.title)) {
+                titleMatches.push(artefactItem);
+            } else {
+                nonTitleMatches.push(artefactItem);
+            }
+        });
+        artefactListWithProject = [...titleMatches, ...nonTitleMatches];
+    }
+
+    const renderDepiction = (artefact, large = true) => {
         const iconNameStack = []
             .concat([(artefact.taskType ? artefact.taskType + "-" : "") + artefact.key])
             .concat(artefact.taskType ? [artefact.taskType] : [])
@@ -211,7 +253,7 @@ export function CreateArtefactModal() {
                         return "artefact-" + type.toLowerCase();
                     })
                     .filter((x, i, a) => a.indexOf(x) === i)}
-                large
+                large={large}
             />
         );
     };
@@ -259,21 +301,19 @@ export function CreateArtefactModal() {
                           </Button>,
                       ]
             }
+            notifications={
+                !!error.detail && (
+                    <Notification
+                        message={`${updateExistingTask ? "Update" : "Create"} action failed. Details: ${error.detail}`}
+                        danger
+                    />
+                )
+            }
         >
             {
                 <>
                     {artefactForm ? (
-                        <>
-                            {artefactForm}
-                            {!!error.detail && (
-                                <Notification
-                                    message={`${updateExistingTask ? "Update" : "Create"} action failed. Details: ${
-                                        error.detail
-                                    }`}
-                                    danger
-                                />
-                            )}
-                        </>
+                        <>{artefactForm}</>
                     ) : (
                         <Grid>
                             <GridRow>
@@ -285,6 +325,8 @@ export function CreateArtefactModal() {
                                     <Spacing />
                                     {loading ? (
                                         <Loading description="Loading artefact type list." />
+                                    ) : artefactListWithProject.length === 0 ? (
+                                        <p>No match found.</p>
                                     ) : (
                                         <OverviewItemList hasSpacing columns={2}>
                                             {artefactListWithProject.map((artefact) => (
@@ -298,6 +340,7 @@ export function CreateArtefactModal() {
                                                     <OverviewItem
                                                         hasSpacing
                                                         onClick={() => handleArtefactSelect(artefact)}
+                                                        onKeyDown={handleEnter}
                                                     >
                                                         <OverviewItemDepiction>
                                                             {renderDepiction(artefact)}
@@ -312,15 +355,42 @@ export function CreateArtefactModal() {
                                                                 </strong>
                                                             </OverviewItemLine>
                                                             <OverviewItemLine small>
-                                                                <p>
+                                                                <OverflowText useHtmlElement="p">
                                                                     <Highlighter
                                                                         label={artefact.description}
                                                                         searchValue={searchValue}
                                                                     />
-                                                                </p>
+                                                                </OverflowText>
                                                             </OverviewItemLine>
                                                         </OverviewItemDescription>
+                                                        <OverviewItemActions>
+                                                            <IconButton
+                                                                name="item-info"
+                                                                onClick={(e) => {
+                                                                    handleShowEnhancedDescription(e, artefact.key);
+                                                                }}
+                                                            />
+                                                        </OverviewItemActions>
                                                     </OverviewItem>
+                                                    {idEnhancedDescription === artefact.key && (
+                                                        <SimpleDialog
+                                                            isOpen
+                                                            title={artefact.title}
+                                                            actions={
+                                                                <Button
+                                                                    text="Close"
+                                                                    onClick={() => {
+                                                                        setIdEnhancedDescription("");
+                                                                    }}
+                                                                />
+                                                            }
+                                                            size="small"
+                                                        >
+                                                            <HtmlContentBlock>
+                                                                <ReactMarkdown source={artefact.description} />
+                                                            </HtmlContentBlock>
+                                                        </SimpleDialog>
+                                                    )}
                                                 </Card>
                                             ))}
                                         </OverviewItemList>

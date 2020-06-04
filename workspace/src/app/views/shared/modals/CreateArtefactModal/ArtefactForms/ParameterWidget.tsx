@@ -77,7 +77,7 @@ export const ParameterWidget = (props: IProps) => {
         initialValues,
         dependentValues,
     } = props;
-    const errors = formHooks.errors[formParamId];
+    const errors = formHooks.errors[taskParameter.paramId];
     const propertyDetails = taskParameter.param;
     const { title, description, autoCompletion } = propertyDetails;
 
@@ -163,7 +163,7 @@ export const ParameterWidget = (props: IProps) => {
                             formParamId={nestedFormParamId}
                             required={false /* TODO: Get this information*/}
                             taskParameter={{ paramId: nestedParamId, param: nestedParam }}
-                            formHooks={formHooks}
+                            formHooks={{ errors: errors ? errors : {} }}
                             changeHandlers={changeHandlers}
                             initialValues={initialValues}
                             dependentValues={dependentValues}
@@ -185,7 +185,7 @@ export const ParameterWidget = (props: IProps) => {
                     />
                 }
                 helperText={propertyHelperText}
-                hasStateDanger={errorMessage(title, errors)}
+                hasStateDanger={errorMessage(title, errors) ? true : false}
                 messageText={errorMessage(title, errors)}
             >
                 <InputMapper
@@ -207,7 +207,7 @@ export const ParameterWidget = (props: IProps) => {
                     tooltip: description && description.length <= MAXLENGTH_TOOLTIP ? description : "",
                 }}
                 helperText={propertyHelperText}
-                hasStateDanger={errorMessage(title, errors)}
+                hasStateDanger={errorMessage(title, errors) ? true : false}
                 messageText={errorMessage(title, errors)}
             >
                 {!!autoCompletion ? (
@@ -221,6 +221,9 @@ export const ParameterWidget = (props: IProps) => {
                                 : { value: defaultValueAsJs(propertyDetails) }
                         }
                         dependentValues={selectDependentValues()}
+                        inputProps={{
+                            intent: (errors ? Intent.DANGER : Intent.NONE)
+                        }}
                     />
                 ) : (
                     <InputMapper

@@ -1,13 +1,14 @@
 import React, { memo } from 'react';
 import { Switch as BlueprintSwitch } from "@blueprintjs/core";
 
-function Switch(props) {
+function Switch({className, ...otherProps}:any) {
     const handleChange = (e) => {
-        props.onChange(e.target.checked)
+        otherProps.onChange(e.target.checked)
     };
 
     return <BlueprintSwitch
-        {...props}
+        className="ecc-switch"
+        {...otherProps}
         onChange={handleChange}
     />
 }

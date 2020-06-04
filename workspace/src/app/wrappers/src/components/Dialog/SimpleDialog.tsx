@@ -13,6 +13,7 @@ function SimpleDialog({
     canEscapeKeyClose = false,
     title = "",
     actions = null,
+    notifications = null,
     hasBorder = false,
     preventSimpleClosing = false,
     intent = "",
@@ -33,6 +34,7 @@ function SimpleDialog({
                 {hasBorder && <Divider />}
                 <CardContent>{children}</CardContent>
                 {hasBorder && <Divider />}
+                {!!notifications && <CardContent className="ecc-dialog__notifications">{notifications}</CardContent>}
                 {actions && (
                     <CardActions inverseDirection className={intent ? intent : ""}>
                         {actions}
