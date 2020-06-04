@@ -77,6 +77,14 @@ export interface IRelatedItem {
 export interface IItemLink {
     label: string;
     path: string;
+    itemType: string;
+}
+
+export interface IItemInfo {
+    itemType: {
+        id: string;
+        label: string;
+    };
 }
 
 export interface IRelatedItemsResponse {

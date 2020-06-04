@@ -235,7 +235,7 @@ const fetchCreateProjectAsync = (formData: { label: string; description?: string
                 },
             });
             dispatch(closeArtefactModal());
-            dispatch(routerOp.goToPage(`projects/${data.name}`, { projectLabel: label }));
+            dispatch(routerOp.goToPage(`projects/${data.name}`, { projectLabel: label, itemType: "project" }));
         } catch (e) {
             dispatch(setModalError(e.response.data));
         }

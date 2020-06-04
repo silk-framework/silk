@@ -57,6 +57,7 @@ export default function SearchItem({ item, searchValue, onOpenDeleteModal, onOpe
         } else {
             labels.taskLabel = item.label;
         }
+        labels.itemType = item.type;
         dispatch(routerOp.goToPage(detailsPath, labels));
     };
 

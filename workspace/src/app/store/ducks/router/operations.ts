@@ -12,6 +12,7 @@ export interface IPageLabels {
     pageTitle?: string;
     projectLabel?: string;
     taskLabel?: string;
+    itemType?: string;
 }
 
 const itemTypeToPathMap = {
@@ -77,6 +78,7 @@ const goToTaskPage = (task: ISearchResultsServer) => {
         dispatch(
             goToPage(`projects/${projectId}/${itemTypeToPath(type)}/${id}`, {
                 taskLabel: label,
+                itemType: itemTypeToPath(type),
             })
         );
     };
