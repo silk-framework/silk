@@ -14,13 +14,13 @@ import {
     Icon,
     IconButton,
     Notification,
+    OverflowText,
     OverviewItem,
+    OverviewItemActions,
     OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
-    OverviewItemActions,
     OverviewItemList,
-    OverflowText,
     SimpleDialog,
     Spacing,
 } from "@wrappers/index";
@@ -209,7 +209,7 @@ export function CreateArtefactModal() {
     let artefactListWithProject = artefactsList.filter(
         (artefact) => selectedDType === "all" || commonOp.itemTypeToPath(artefact.taskType) === selectedDType
     );
-    if (showProjectItem && selectedDType === "all") {
+    if (showProjectItem && (selectedDType === "all" || selectedDType === "project")) {
         artefactListWithProject = [
             {
                 key: DATA_TYPES.PROJECT,
@@ -226,11 +226,14 @@ export function CreateArtefactModal() {
     // Rank title matches higher
     if (searchValue.trim() !== "") {
         const regex = multiWordRegex(extractSearchWords(searchValue));
-        const titleMatches = artefactListWithProject.filter((artefactItem) => {
-            return regex.test(artefactItem.title);
-        });
-        const nonTitleMatches = artefactListWithProject.filter((artefactItem) => {
-            return !regex.test(artefactItem.title);
+        const titleMatches = [];
+        const nonTitleMatches = [];
+        artefactListWithProject.forEach((artefactItem) => {
+            if (regex.test(artefactItem.title)) {
+                titleMatches.push(artefactItem);
+            } else {
+                nonTitleMatches.push(artefactItem);
+            }
         });
         artefactListWithProject = [...titleMatches, ...nonTitleMatches];
     }
@@ -296,24 +299,18 @@ export function CreateArtefactModal() {
                       ]
             }
             notifications={
-                !!error.detail ? (
+                !!error.detail && (
                     <Notification
-                        message={`${updateExistingTask ? "Update" : "Create"} action failed. Details: ${
-                            error.detail
-                        }`}
+                        message={`${updateExistingTask ? "Update" : "Create"} action failed. Details: ${error.detail}`}
                         danger
                     />
-                ) : (
-                    null
                 )
             }
         >
             {
                 <>
                     {artefactForm ? (
-                        <>
-                            {artefactForm}
-                        </>
+                        <>{artefactForm}</>
                     ) : (
                         <Grid>
                             <GridRow>
@@ -325,6 +322,8 @@ export function CreateArtefactModal() {
                                     <Spacing />
                                     {loading ? (
                                         <Loading description="Loading artefact type list." />
+                                    ) : artefactListWithProject.length === 0 ? (
+                                        <p>No match found.</p>
                                     ) : (
                                         <OverviewItemList hasSpacing columns={2}>
                                             {artefactListWithProject.map((artefact) => (
