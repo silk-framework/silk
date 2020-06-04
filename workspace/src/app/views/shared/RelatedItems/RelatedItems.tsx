@@ -84,9 +84,9 @@ export function RelatedItems(props: IProps) {
         setTextQuery(searchInput);
     };
 
-    const goToDetailsPage = (resourceItem: IItemLink, taskLabel: string, event) => {
+    const goToDetailsPage = (resourceItem: IItemLink, taskLabel: string, itemType: string, event) => {
         event.preventDefault();
-        dispatch(routerOp.goToPage(resourceItem.path, { taskLabel }));
+        dispatch(routerOp.goToPage(resourceItem.path, { taskLabel, itemType: itemType.toLowerCase() }));
     };
 
     return (
@@ -122,7 +122,13 @@ export function RelatedItems(props: IProps) {
                                     icon={getItemLinkIcons(link.label)}
                                     onClick={
                                         idx === 0
-                                            ? (e) => goToDetailsPage(relatedItem.itemLinks[0], relatedItem.label, e)
+                                            ? (e) =>
+                                                  goToDetailsPage(
+                                                      relatedItem.itemLinks[0],
+                                                      relatedItem.label,
+                                                      relatedItem.type,
+                                                      e
+                                                  )
                                             : null
                                     }
                                 />
@@ -147,6 +153,7 @@ export function RelatedItems(props: IProps) {
                                                                   goToDetailsPage(
                                                                       relatedItem.itemLinks[0],
                                                                       relatedItem.label,
+                                                                      relatedItem.type,
                                                                       e
                                                                   )
                                                             : false
@@ -163,7 +170,12 @@ export function RelatedItems(props: IProps) {
                                                 name="item-viewdetails"
                                                 text="Show details"
                                                 onClick={(e) =>
-                                                    goToDetailsPage(relatedItem.itemLinks[0], relatedItem.label, e)
+                                                    goToDetailsPage(
+                                                        relatedItem.itemLinks[0],
+                                                        relatedItem.label,
+                                                        relatedItem.type,
+                                                        e
+                                                    )
                                                 }
                                                 href={relatedItem.itemLinks[0].path}
                                             />
