@@ -26,6 +26,7 @@ export interface ISearchResultsServer {
      * Showing project id if it's presented
      */
     projectId: string;
+    projectLabel?: string;
     /**
      * Contains of useful links for items
      */

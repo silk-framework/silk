@@ -13,6 +13,8 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     OverflowText,
+    Spacing,
+    Tag,
 } from "@wrappers/index";
 import { routerOp } from "@ducks/router";
 import { useDispatch } from "react-redux";
@@ -30,9 +32,11 @@ interface IProps {
     onOpenDuplicateModal(item: ISearchResultsServer);
 
     onRowClick?();
+
+    parentProjectId?: string;
 }
 
-export default function SearchItem({ item, searchValue, onOpenDeleteModal, onOpenDuplicateModal, onRowClick }: IProps) {
+export default function SearchItem({ item, searchValue, onOpenDeleteModal, onOpenDuplicateModal, onRowClick, parentProjectId }: IProps) {
     const dispatch = useDispatch();
 
     // Remove detailsPath
@@ -59,7 +63,7 @@ export default function SearchItem({ item, searchValue, onOpenDeleteModal, onOpe
         }
         dispatch(routerOp.goToPage(detailsPath, labels));
     };
-
+console.log(item);
     return (
         <Card isOnlyLayout>
             <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined}>
@@ -77,10 +81,12 @@ export default function SearchItem({ item, searchValue, onOpenDeleteModal, onOpe
                             </ResourceLink>
                         </h4>
                     </OverviewItemLine>
-                    {item.description && (
+                    {(item.description || item.projectId) && (
                         <OverviewItemLine small>
                             <OverflowText useHtmlElement="p">
-                                <Highlighter label={item.description} searchValue={searchValue} />
+                                {(!parentProjectId && item.type !== "project") && <Tag>{item.projectLabel ? item.projectLabel : item.projectId}</Tag>}
+                                {(item.description && !parentProjectId && item.type !== "project") && <Spacing vertical size="small" />}
+                                {item.description && <Highlighter label={item.description} searchValue={searchValue} />}
                             </OverflowText>
                         </OverviewItemLine>
                     )}
