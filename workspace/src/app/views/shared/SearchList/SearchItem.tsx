@@ -36,7 +36,14 @@ interface IProps {
     parentProjectId?: string;
 }
 
-export default function SearchItem({ item, searchValue, onOpenDeleteModal, onOpenDuplicateModal, onRowClick, parentProjectId }: IProps) {
+export default function SearchItem({
+    item,
+    searchValue,
+    onOpenDeleteModal,
+    onOpenDuplicateModal,
+    onRowClick,
+    parentProjectId,
+}: IProps) {
     const dispatch = useDispatch();
 
     // Remove detailsPath
@@ -64,7 +71,7 @@ export default function SearchItem({ item, searchValue, onOpenDeleteModal, onOpe
         labels.itemType = item.type;
         dispatch(routerOp.goToPage(detailsPath, labels));
     };
-console.log(item);
+
     return (
         <Card isOnlyLayout>
             <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined}>
@@ -85,8 +92,12 @@ console.log(item);
                     {(item.description || item.projectId) && (
                         <OverviewItemLine small>
                             <OverflowText useHtmlElement="p">
-                                {(!parentProjectId && item.type !== "project") && <Tag>{item.projectLabel ? item.projectLabel : item.projectId}</Tag>}
-                                {(item.description && !parentProjectId && item.type !== "project") && <Spacing vertical size="small" />}
+                                {!parentProjectId && item.type !== "project" && (
+                                    <Tag>{item.projectLabel ? item.projectLabel : item.projectId}</Tag>
+                                )}
+                                {item.description && !parentProjectId && item.type !== "project" && (
+                                    <Spacing vertical size="small" />
+                                )}
                                 {item.description && <Highlighter label={item.description} searchValue={searchValue} />}
                             </OverflowText>
                         </OverviewItemLine>
