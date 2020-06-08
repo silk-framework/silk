@@ -140,6 +140,7 @@ export const ParameterWidget = (props: IProps) => {
     }
 
     if (propertyDetails.type === "object") {
+        const requiredNestedParams = taskParameter.param.required ? taskParameter.param.required : [];
         return (
             <FieldSet
                 boxed
@@ -161,7 +162,7 @@ export const ParameterWidget = (props: IProps) => {
                             projectId={projectId}
                             pluginId={propertyDetails.pluginId}
                             formParamId={nestedFormParamId}
-                            required={false /* TODO: Get this information*/}
+                            required={requiredNestedParams.includes(nestedParamId)}
                             taskParameter={{ paramId: nestedParamId, param: nestedParam }}
                             formHooks={{ errors: errors ? errors : {} }}
                             changeHandlers={changeHandlers}
