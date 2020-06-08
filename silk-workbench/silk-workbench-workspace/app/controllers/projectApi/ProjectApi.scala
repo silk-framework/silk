@@ -10,6 +10,7 @@ import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse
 import controllers.workspaceApi.search.ItemType
 import javax.inject.Inject
 import org.silkframework.config.{MetaData, Prefixes}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.JsonSerializers.MetaDataJsonFormat
@@ -18,6 +19,8 @@ import org.silkframework.workspace.ProjectConfig
 import org.silkframework.workspace.io.WorkspaceIO
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Accepting, Action, AnyContent, InjectedController}
+
+import scala.util.Try
 
 /**
   * REST API for project artifacts.
@@ -53,8 +56,12 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       val clonedProjectConfig = project.config.copy(id = generatedId, metaData = request.metaData.asMetaData)
       val clonedProject = workspace.createProject(clonedProjectConfig.copy(projectResourceUriOpt = Some(clonedProjectConfig.generateDefaultUri)))
       WorkspaceIO.copyResources(project.resources, clonedProject.resources)
+      // Clone task spec, since task specs may contain state, e.g. RDF file dataset
+      implicit val resourceManager: ResourceManager = project.resources
+      implicit val prefixes: Prefixes = project.config.prefixes
       for (task <- project.allTasks) {
-        clonedProject.addAnyTask(task.id, task.data) // FIXME: CMEM-2591, re-create task specs instead of adding the existing ones
+        val clonedTaskSpec = Try(task.data.withProperties(Map.empty)).getOrElse(task.data)
+        clonedProject.addAnyTask(task.id, clonedTaskSpec)
       }
       val projectLink = ItemType.itemDetailsPage(ItemType.project, generatedId, generatedId).path
       Created(Json.toJson(ItemCloneResponse(generatedId, projectLink)))

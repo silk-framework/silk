@@ -32,6 +32,7 @@ import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.existentials
+import scala.util.Try
 
 class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with ControllerUtilsTrait {
 
@@ -81,8 +82,12 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     val clonedProjectUri = clonedProjectConfig.generateDefaultUri
     val clonedProject = workspace.createProject(clonedProjectConfig.copy(projectResourceUriOpt = Some(clonedProjectUri)))
     WorkspaceIO.copyResources(project.resources, clonedProject.resources)
+    // Clone task spec, since task specs may contain state, e.g. RDF file dataset
+    implicit val resourceManager: ResourceManager = project.resources
+    implicit val prefixes: Prefixes = project.config.prefixes
     for(task <- project.allTasks) {
-      clonedProject.addAnyTask(task.id, task.data)
+      val clonedTaskSpec = Try(task.data.withProperties(Map.empty)).getOrElse(task.data)
+      clonedProject.addAnyTask(task.id, clonedTaskSpec)
     }
 
     Ok

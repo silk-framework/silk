@@ -5,11 +5,14 @@ import org.scalatest.MustMatchers
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.config.MetaData
 import org.silkframework.dataset.DatasetSpec
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
+import org.silkframework.entity.StringValueType
 import org.silkframework.plugins.dataset.rdf.datasets.{InMemoryDataset, SparqlDataset}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.serialization.json.JsonSerializers.{DATA, ID, PARAMETERS, TASKTYPE, TYPE}
+import org.silkframework.util.Uri
 import org.silkframework.workspace.TestCustomTask
 import play.api.http.Status
 import play.api.libs.json._
@@ -435,7 +438,23 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
       val datasetJson = checkResponse(datasetResponse).json
       (datasetJson \ "metadata" \ "label").as[JsString].value mustBe "changed label"
     }
+  }
 
+  "task clone endpoint" should {
+    "clone a dataset by creating a new instance" in {
+      val inMemoryDataset = InMemoryDataset()
+      val tripleSink = inMemoryDataset.tripleSink
+      tripleSink.init()
+      tripleSink.writeTriple("a", "http://prop", "c", StringValueType())
+      tripleSink.close()
+      inMemoryDataset.source.retrievePaths("").flatMap(_.propertyUri) mustBe Seq(Uri("http://prop"))
+      val datasetName = "oneTripleInMemoryDataset"
+      val newDatasetName = "newInmemoryDataset"
+      val p = retrieveOrCreateProject(project)
+      p.addAnyTask(datasetName, new DatasetSpec(inMemoryDataset))
+      checkResponse(client.url(s"$baseUrl/workspace/projects/$project/tasks/$datasetName/clone?newTask=$newDatasetName").post(""))
+      p.task[GenericDatasetSpec](newDatasetName).data.source.retrievePaths("") mustBe Seq()
+    }
   }
 
   /**
