@@ -91,7 +91,7 @@ export default function SearchItem({
                     </OverviewItemLine>
                     {(item.description || item.projectId) && (
                         <OverviewItemLine small>
-                            <OverflowText useHtmlElement="p">
+                            <OverflowText>
                                 {!parentProjectId && item.type !== "project" && (
                                     <Tag>{item.projectLabel ? item.projectLabel : item.projectId}</Tag>
                                 )}
