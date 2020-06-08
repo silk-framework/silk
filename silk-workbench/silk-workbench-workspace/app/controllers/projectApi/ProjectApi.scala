@@ -61,7 +61,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       implicit val prefixes: Prefixes = project.config.prefixes
       for (task <- project.allTasks) {
         val clonedTaskSpec = Try(task.data.withProperties(Map.empty)).getOrElse(task.data)
-        clonedProject.addAnyTask(task.id, clonedTaskSpec)
+        clonedProject.addAnyTask(task.id, clonedTaskSpec, task.metaData.asNewMetaData)
       }
       val projectLink = ItemType.itemDetailsPage(ItemType.project, generatedId, generatedId).path
       Created(Json.toJson(ItemCloneResponse(generatedId, projectLink)))
