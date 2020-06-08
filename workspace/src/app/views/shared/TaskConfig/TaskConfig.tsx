@@ -68,7 +68,7 @@ export function TaskConfig(props: IProps) {
             // Always update when the update modal was closed
             initPreviewData();
         }
-    }, [taskId]);
+    }, [taskId, isOpen]);
 
     let titlePostfix = "";
     if (labelledTaskData) {
