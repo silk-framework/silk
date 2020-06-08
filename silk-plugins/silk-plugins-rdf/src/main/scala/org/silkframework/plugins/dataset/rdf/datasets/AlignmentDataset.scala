@@ -14,7 +14,7 @@ import org.silkframework.runtime.resource.WritableResource
     """Writes the alignment format specified at http://alignapi.gforge.inria.fr/format.html."""
 )
 case class AlignmentDataset(
-  @Param("File name inside the resources directory. In the Workbench, this is the '(projectDir)/resources' directory.")
+  @Param("The alignment file.")
   file: WritableResource) extends Dataset with WritableResourceDataset with ResourceBasedDataset {
 
   /**
