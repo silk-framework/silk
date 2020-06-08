@@ -73,7 +73,7 @@ const artefactModalReducers = {
         state.artefactModal.isOpen = true;
     },
     setCachedArtefactProperty(state, action) {
-        const { key } = state.artefactModal.selectedArtefact;
+        const key = action.payload.pluginId;
         state.artefactModal.cachedArtefactProperties[key] = action.payload;
     },
     setArtefactLoading(state, action) {
