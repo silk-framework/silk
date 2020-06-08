@@ -245,7 +245,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         this.setState({ isUploading: true, error: null });
         try {
             const result = await this.uppy.upload();
-
+            // FIXME: This does not seem to work, the result of upload() is undefined. So the onChange method is never called.
             if (this.props.onChange && result.successful) {
                 this.props.onChange(file.name);
             }
