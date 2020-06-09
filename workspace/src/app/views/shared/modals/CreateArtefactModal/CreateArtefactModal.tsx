@@ -54,6 +54,7 @@ export function CreateArtefactModal() {
         loading,
         updateExistingTask,
         error,
+        actionLoading,
     }: IArtefactModal = modalStore;
 
     // initially take from redux
@@ -259,6 +260,8 @@ export function CreateArtefactModal() {
         );
     };
 
+    const isCreationUpdateDialog = selectedArtefact.key || updateExistingTask;
+
     return (
         <SimpleDialog
             size="large"
@@ -272,35 +275,46 @@ export function CreateArtefactModal() {
             onClose={closeModal}
             isOpen={isOpen}
             actions={
-                selectedArtefact.key || updateExistingTask
-                    ? [
-                          <Button key="create" affirmative={true} onClick={handleCreate} disabled={isErrorPresented()}>
-                              {updateExistingTask ? "Update" : "Create"}
-                          </Button>,
-                          <Button key="cancel" onClick={closeModal}>
-                              Cancel
-                          </Button>,
-                          <CardActionsAux key="aux">
-                              {!updateExistingTask && (
-                                  <Button key="back" onClick={handleBack}>
-                                      Back
-                                  </Button>
-                              )}
-                          </CardActionsAux>,
-                      ]
-                    : [
-                          <Button
-                              key="add"
-                              affirmative={true}
-                              onClick={handleAdd}
-                              disabled={!Object.keys(selected).length}
-                          >
-                              Add
-                          </Button>,
-                          <Button key="cancel" onClick={closeModal}>
-                              Cancel
-                          </Button>,
-                      ]
+                isCreationUpdateDialog ? (
+                    actionLoading ? (
+                        <Loading size={"small"} color={"primary"} />
+                    ) : (
+                        [
+                            <Button
+                                key="create"
+                                affirmative={true}
+                                onClick={handleCreate}
+                                disabled={isErrorPresented()}
+                            >
+                                {updateExistingTask ? "Update" : "Create"}
+                            </Button>,
+                            <Button key="cancel" onClick={closeModal}>
+                                Cancel
+                            </Button>,
+                            <CardActionsAux key="aux">
+                                {!updateExistingTask && (
+                                    <Button key="back" onClick={handleBack}>
+                                        Back
+                                    </Button>
+                                )}
+                            </CardActionsAux>,
+                        ]
+                    )
+                ) : (
+                    [
+                        <Button
+                            key="add"
+                            affirmative={true}
+                            onClick={handleAdd}
+                            disabled={!Object.keys(selected).length}
+                        >
+                            Add
+                        </Button>,
+                        <Button key="cancel" onClick={closeModal}>
+                            Cancel
+                        </Button>,
+                    ]
+                )
             }
             notifications={
                 !!error.detail && (

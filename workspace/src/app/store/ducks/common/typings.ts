@@ -112,6 +112,9 @@ export interface IArtefactModal {
     updateExistingTask?: IProjectTaskUpdatePayload;
 
     error: any;
+
+    // If true, shows a spinner instead of the action buttons, so the user cannot click again while waiting
+    actionLoading: boolean;
 }
 
 export interface ICommonState {
