@@ -62,8 +62,8 @@ class ErrorBoundary extends Component<any, any> {
                                     }
                                 >
                                     <HtmlContentBlock>
-                                        <TitleMainsection>An error occurred</TitleMainsection>
-                                        <p>If you think something went wrong then inform your administrator.</p>
+                                        <TitleMainsection>Unexpected error</TitleMainsection>
+                                        <p>If you think something went wrong then please inform your administrator.</p>
                                     </HtmlContentBlock>
                                 </Notification>
                             </GridColumn>
