@@ -144,15 +144,15 @@ const buildTaskObject = (formData: any): object => {
 };
 
 const createArtefactAsync = (formData, taskType: string) => {
-    return (dispatch, getState) => {
+    return async (dispatch, getState) => {
         const { selectedArtefact } = commonSel.artefactModalSelector(getState());
 
         switch (selectedArtefact.key) {
             case "project":
-                dispatch(fetchCreateProjectAsync(formData));
+                await dispatch(fetchCreateProjectAsync(formData));
                 break;
             default:
-                dispatch(fetchCreateTaskAsync(formData, selectedArtefact.key, taskType));
+                await dispatch(fetchCreateTaskAsync(formData, selectedArtefact.key, taskType));
                 break;
         }
     };
@@ -180,7 +180,6 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: strin
         };
 
         dispatch(setModalError({}));
-
         try {
             const data = await requestCreateTask(payload, currentProjectId);
             batch(() => {

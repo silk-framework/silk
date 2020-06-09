@@ -41,6 +41,7 @@ export function CreateArtefactModal() {
 
     const [searchValue, setSearchValue] = useState("");
     const [idEnhancedDescription, setIdEnhancedDescription] = useState("");
+    const [actionLoading, setActionLoading] = useState(false);
 
     const modalStore = useSelector(commonSel.artefactModalSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
@@ -128,29 +129,33 @@ export function CreateArtefactModal() {
 
     const handleCreate = async (e) => {
         e.preventDefault();
-
+        setActionLoading(true);
         const isValidFields = await form.triggerValidation();
-        if (isValidFields) {
-            if (updateExistingTask) {
-                dispatch(
-                    commonOp.fetchUpdateTaskAsync(
-                        updateExistingTask.projectId,
-                        updateExistingTask.taskId,
-                        form.getValues()
-                    )
-                );
+        try {
+            if (isValidFields) {
+                if (updateExistingTask) {
+                    await dispatch(
+                        commonOp.fetchUpdateTaskAsync(
+                            updateExistingTask.projectId,
+                            updateExistingTask.taskId,
+                            form.getValues()
+                        )
+                    );
+                } else {
+                    await dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefact.key)));
+                }
             } else {
-                dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefact.key)));
+                const errKey = Object.keys(form.errors)[0];
+                const el = document.getElementById(errKey);
+                if (el) {
+                    el.scrollIntoView({
+                        block: "start",
+                        inline: "start",
+                    });
+                }
             }
-        } else {
-            const errKey = Object.keys(form.errors)[0];
-            const el = document.getElementById(errKey);
-            if (el) {
-                el.scrollIntoView({
-                    block: "start",
-                    inline: "start",
-                });
-            }
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -259,6 +264,8 @@ export function CreateArtefactModal() {
         );
     };
 
+    const isCreationUpdateDialog = selectedArtefact.key || updateExistingTask;
+
     return (
         <SimpleDialog
             size="large"
@@ -272,35 +279,46 @@ export function CreateArtefactModal() {
             onClose={closeModal}
             isOpen={isOpen}
             actions={
-                selectedArtefact.key || updateExistingTask
-                    ? [
-                          <Button key="create" affirmative={true} onClick={handleCreate} disabled={isErrorPresented()}>
-                              {updateExistingTask ? "Update" : "Create"}
-                          </Button>,
-                          <Button key="cancel" onClick={closeModal}>
-                              Cancel
-                          </Button>,
-                          <CardActionsAux key="aux">
-                              {!updateExistingTask && (
-                                  <Button key="back" onClick={handleBack}>
-                                      Back
-                                  </Button>
-                              )}
-                          </CardActionsAux>,
-                      ]
-                    : [
-                          <Button
-                              key="add"
-                              affirmative={true}
-                              onClick={handleAdd}
-                              disabled={!Object.keys(selected).length}
-                          >
-                              Add
-                          </Button>,
-                          <Button key="cancel" onClick={closeModal}>
-                              Cancel
-                          </Button>,
-                      ]
+                isCreationUpdateDialog ? (
+                    actionLoading ? (
+                        <Loading size={"small"} color={"primary"} />
+                    ) : (
+                        [
+                            <Button
+                                key="create"
+                                affirmative={true}
+                                onClick={handleCreate}
+                                disabled={isErrorPresented()}
+                            >
+                                {updateExistingTask ? "Update" : "Create"}
+                            </Button>,
+                            <Button key="cancel" onClick={closeModal}>
+                                Cancel
+                            </Button>,
+                            <CardActionsAux key="aux">
+                                {!updateExistingTask && (
+                                    <Button key="back" onClick={handleBack}>
+                                        Back
+                                    </Button>
+                                )}
+                            </CardActionsAux>,
+                        ]
+                    )
+                ) : (
+                    [
+                        <Button
+                            key="add"
+                            affirmative={true}
+                            onClick={handleAdd}
+                            disabled={!Object.keys(selected).length}
+                        >
+                            Add
+                        </Button>,
+                        <Button key="cancel" onClick={closeModal}>
+                            Cancel
+                        </Button>,
+                    ]
+                )
             }
             notifications={
                 !!error.detail && (
