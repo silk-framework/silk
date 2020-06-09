@@ -34,6 +34,7 @@ import { extractSearchWords, Highlighter, multiWordRegex } from "../../Highlight
 import ArtefactTypesList from "./ArtefactTypesList";
 import { SearchBar } from "../../SearchBar/SearchBar";
 import { routerOp } from "@ducks/router";
+import { commonSlice } from "@ducks/common/commonSlice";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -128,29 +129,33 @@ export function CreateArtefactModal() {
 
     const handleCreate = async (e) => {
         e.preventDefault();
-
+        dispatch(commonSlice.actions.setArtefactLoading(true));
         const isValidFields = await form.triggerValidation();
-        if (isValidFields) {
-            if (updateExistingTask) {
-                dispatch(
-                    commonOp.fetchUpdateTaskAsync(
-                        updateExistingTask.projectId,
-                        updateExistingTask.taskId,
-                        form.getValues()
-                    )
-                );
+        try {
+            if (isValidFields) {
+                if (updateExistingTask) {
+                    await dispatch(
+                        commonOp.fetchUpdateTaskAsync(
+                            updateExistingTask.projectId,
+                            updateExistingTask.taskId,
+                            form.getValues()
+                        )
+                    );
+                } else {
+                    await dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefact.key)));
+                }
             } else {
-                dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefact.key)));
+                const errKey = Object.keys(form.errors)[0];
+                const el = document.getElementById(errKey);
+                if (el) {
+                    el.scrollIntoView({
+                        block: "start",
+                        inline: "start",
+                    });
+                }
             }
-        } else {
-            const errKey = Object.keys(form.errors)[0];
-            const el = document.getElementById(errKey);
-            if (el) {
-                el.scrollIntoView({
-                    block: "start",
-                    inline: "start",
-                });
-            }
+        } finally {
+            dispatch(commonSlice.actions.setArtefactLoading(false));
         }
     };
 
