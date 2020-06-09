@@ -182,7 +182,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: strin
         };
 
         dispatch(setModalError({}));
-
+        dispatch(setArtefactLoading(true));
         try {
             const data = await requestCreateTask(payload, currentProjectId);
             batch(() => {
@@ -198,6 +198,8 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: strin
             });
         } catch (e) {
             dispatch(setModalError(e));
+        } finally {
+            dispatch(setArtefactLoading(true));
         }
     };
 };
@@ -206,6 +208,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: strin
 const fetchUpdateTaskAsync = (projectId: string, itemId: string, formData: any) => {
     return async (dispatch) => {
         const requestData = buildTaskObject(formData);
+        dispatch(setArtefactLoading(true));
         const payload = {
             data: {
                 parameters: {
@@ -219,6 +222,8 @@ const fetchUpdateTaskAsync = (projectId: string, itemId: string, formData: any) 
             dispatch(closeArtefactModal());
         } catch (e) {
             dispatch(setModalError(e));
+        } finally {
+            dispatch(setArtefactLoading(false));
         }
     };
 };
@@ -226,6 +231,7 @@ const fetchUpdateTaskAsync = (projectId: string, itemId: string, formData: any) 
 const fetchCreateProjectAsync = (formData: { label: string; description?: string }) => {
     return async (dispatch) => {
         dispatch(setModalError({}));
+        dispatch(setArtefactLoading(true));
         const { label, description } = formData;
         try {
             const data = await requestCreateProject({
@@ -238,6 +244,8 @@ const fetchCreateProjectAsync = (formData: { label: string; description?: string
             dispatch(routerOp.goToPage(`projects/${data.name}`, { projectLabel: label, itemType: "project" }));
         } catch (e) {
             dispatch(setModalError(e.response.data));
+        } finally {
+            dispatch(setArtefactLoading(false));
         }
     };
 };

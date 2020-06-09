@@ -11,7 +11,6 @@ export function initialArtefactModalState(): IArtefactModal {
         selectedDType: "all",
         loading: false,
         categories: [],
-        actionLoading: false,
     };
 }
 

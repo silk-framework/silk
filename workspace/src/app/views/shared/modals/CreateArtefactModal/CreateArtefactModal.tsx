@@ -54,7 +54,6 @@ export function CreateArtefactModal() {
         loading,
         updateExistingTask,
         error,
-        actionLoading,
     }: IArtefactModal = modalStore;
 
     // initially take from redux
@@ -276,7 +275,7 @@ export function CreateArtefactModal() {
             isOpen={isOpen}
             actions={
                 isCreationUpdateDialog ? (
-                    actionLoading ? (
+                    loading ? (
                         <Loading size={"small"} color={"primary"} />
                     ) : (
                         [
