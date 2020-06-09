@@ -1,7 +1,4 @@
-import React, { useEffect } from "react";
-import { commonOp } from "@ducks/common";
-import { useDispatch } from "react-redux";
-import { useParams } from "react-router";
+import React from "react";
 
 interface IProps {
     children: JSX.Element[] | JSX.Element;
