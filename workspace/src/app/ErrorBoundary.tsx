@@ -44,17 +44,25 @@ class ErrorBoundary extends Component<any, any> {
                                 <Notification
                                     danger
                                     actions={
-                                        <Button
-                                            minimal
-                                            outlined
-                                            icon={<Icon name="application-homepage" />}
-                                            text="Go to homepage"
-                                            href={PUBLIC_URL + SERVE_PATH}
-                                        />
+                                        <>
+                                            <Button
+                                                minimal
+                                                outlined
+                                                icon={<Icon name="application-homepage" />}
+                                                text="Go to homepage"
+                                                href={PUBLIC_URL + SERVE_PATH}
+                                            />
+                                            <Button
+                                                minimal
+                                                outlined
+                                                text="Reload page"
+                                                onClick={() => window.location.reload()}
+                                            />
+                                        </>
                                     }
                                 >
                                     <HtmlContentBlock>
-                                        <TitleMainsection>Error Happened</TitleMainsection>
+                                        <TitleMainsection>An error occurred</TitleMainsection>
                                         <p>If you think something went wrong then inform your administrator.</p>
                                     </HtmlContentBlock>
                                 </Notification>
