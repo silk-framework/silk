@@ -19,7 +19,6 @@ const {
     fetchAvailableDTypes,
     updateAvailableDTypes,
     setProjectId,
-    unsetProject,
     setInitialSettings,
     setSelectedArtefactDType,
     closeArtefactModal,
@@ -30,7 +29,6 @@ const {
     setArtefactsList,
     setArtefactLoading,
     setTaskId,
-    unsetTaskId,
     setModalError,
 } = commonSlice.actions;
 
@@ -266,9 +264,7 @@ export default {
     selectArtefact,
     updateProjectTask,
     setProjectId,
-    unsetProject,
     setTaskId,
-    unsetTaskId,
     setSelectedArtefactDType,
     setModalError,
     buildTaskObject,

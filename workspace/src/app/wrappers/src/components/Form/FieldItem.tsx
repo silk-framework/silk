@@ -4,7 +4,7 @@ import * as IntentClassNames from "../Intent/classnames";
 
 /*
     TODO:
-    
+
     * disabled stae could be automatically forwarded to inserted input element,
       currently this need to be dome explicitely .
     * input id could be forwarded to label and input element
