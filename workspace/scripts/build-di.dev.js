@@ -86,6 +86,11 @@ function runCallback(err, stats) {
             })
         );
     }
+    if (messages.warnings.length) {
+        console.log(messages.warnings.join("\n"));
+        console.log(chalk.yellow("Compiled with warnings.\n"));
+    }
+
     if (messages.errors.length) {
         // Only keep the first error. Others are often indicative
         // of the same problem, but confuse the reader with noise.
@@ -95,16 +100,13 @@ function runCallback(err, stats) {
         return exitOnError(new Error(messages.errors.join("\n\n")));
     }
 
+    if (!messages.warnings.length) {
+        console.log(chalk.green("Compiled successfully.\n"));
+    }
+
     fs.emptyDirSync(diAssetsPath + "/assets");
     // Copy assets into assets public folder
     copyAssetsToPublicFolder();
-
-    if (messages.warnings.length) {
-        console.log(messages.warnings.join("\n"));
-        console.log(chalk.yellow("Compiled with warnings.\n"));
-    } else {
-        console.log(chalk.green("Compiled successfully.\n"));
-    }
 
     if (writeStatsJson) {
         return bfj.write(diBuildPath + "/bundle-stats.json", stats.toJson());

@@ -155,10 +155,11 @@ const setupFiltersFromQs = (queryString: string) => {
  */
 const fetchListAsync = () => {
     return async (dispatch, getState) => {
+        dispatch(fetchList());
+
         batch(() => {
             dispatch(setError({}));
             dispatch(setLoading(true));
-            dispatch(fetchList());
         });
         // get applied pagination values
         const state = getState();
@@ -207,9 +208,10 @@ const fetchListAsync = () => {
             });
         } catch (e) {
             batch(() => {
-                dispatch(setLoading(false));
                 dispatch(setError(e));
             });
+        } finally {
+            dispatch(setLoading(false));
         }
     };
 };

@@ -6,11 +6,10 @@ import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { AppToaster } from "../../../services/toaster";
 import { Intent } from "@wrappers/blueprint/constants";
 import Artefacts from "./Artefacts";
-import Project from "../Project/Project";
 import { routerSel } from "@ducks/router";
 import { Grid, GridColumn, GridRow } from "@wrappers/index";
 import { EmptyWorkspace } from "./EmptyWorkspace/EmptyWorkspace";
-import { commonSel } from "@ducks/common";
+import { commonOp, commonSel } from "@ducks/common";
 
 export function Workspace() {
     const dispatch = useDispatch();
@@ -19,7 +18,6 @@ export function Workspace() {
     const qs = useSelector(routerSel.routerSearchSelector);
     const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
-    const taskId = useSelector(commonSel.currentTaskIdSelector);
 
     useEffect(() => {
         if (error.detail) {
@@ -31,6 +29,13 @@ export function Workspace() {
         }
     }, [error.detail]);
 
+    /**
+     * Get available Datatypes
+     */
+    useEffect(() => {
+        dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
+    }, []);
+
     useEffect(() => {
         // Reset the filters, due to redirecting
         dispatch(workspaceOp.resetFilters());
@@ -40,11 +45,7 @@ export function Workspace() {
 
         // Fetch the list of projects
         dispatch(workspaceOp.fetchListAsync());
-    }, [projectId, taskId, qs]);
-
-    if (projectId) {
-        return <Project />;
-    }
+    }, [qs]);
 
     return !isEmptyWorkspace ? (
         <Artefacts />

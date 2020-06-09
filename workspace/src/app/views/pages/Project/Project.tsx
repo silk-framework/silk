@@ -1,5 +1,5 @@
-import React from "react";
-import { commonSel } from "@ducks/common";
+import React, { useEffect } from "react";
+import { commonOp, commonSel } from "@ducks/common";
 import { useDispatch, useSelector } from "react-redux";
 import Filterbar from "../Workspace/Filterbar";
 import Metadata from "../../shared/Metadata";
@@ -25,15 +25,35 @@ import {
     WorkspaceSide,
 } from "@wrappers/index";
 import { SearchBar } from "../../shared/SearchBar/SearchBar";
+import { routerSel } from "@ducks/router";
 
 const Project = () => {
     const dispatch = useDispatch();
 
-    const currentProjectId = useSelector(commonSel.currentProjectIdSelector);
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
     const error = useSelector(workspaceSel.errorSelector);
     const data = useSelector(workspaceSel.resultsSelector);
+    const projectId = useSelector(commonSel.currentProjectIdSelector);
+    const qs = useSelector(routerSel.routerSearchSelector);
+
+    /**
+     * Get available Datatypes
+     */
+    useEffect(() => {
+        dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
+    }, []);
+
+    useEffect(() => {
+        // Reset the filters, due to redirecting
+        dispatch(workspaceOp.resetFilters());
+
+        // Setup the filters from query string
+        dispatch(workspaceOp.setupFiltersFromQs(qs));
+
+        // Fetch the list of projects
+        dispatch(workspaceOp.fetchListAsync());
+    }, [qs]);
 
     const handleSort = (sortBy: string) => {
         dispatch(workspaceOp.applySorterOp(sortBy));
@@ -43,7 +63,7 @@ const Project = () => {
         dispatch(workspaceOp.applyFiltersOp({ textQuery }));
     };
 
-    return !currentProjectId ? (
+    return !projectId ? (
         <Loading posGlobal description="Loading project data" />
     ) : (
         <WorkspaceContent className="eccapp-di__project">

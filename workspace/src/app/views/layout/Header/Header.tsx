@@ -97,8 +97,10 @@ function HeaderComponent({ breadcrumbs }: IProps) {
         getWindowTitle(projectId);
         if (projectId && taskId) {
             getItemLinks();
+        } else {
+            setItemLinks([]);
         }
-    }, [projectId, taskId, breadcrumbs]);
+    }, [projectId, taskId]);
 
     const updateItemType = async (pageLabels: IPageLabels, locationPathName: string) => {
         if (projectId && taskId) {
