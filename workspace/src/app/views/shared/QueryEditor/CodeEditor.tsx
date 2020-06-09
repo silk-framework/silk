@@ -6,9 +6,10 @@ interface IProps {
     name: string;
     onChange: (v) => void;
     mode?: string;
+    defaultValue?: any;
 }
 
-export function CodeEditor({ onChange, name, mode = "sparql" }: IProps) {
+export function CodeEditor({ onChange, name, mode = "sparql", defaultValue }: IProps) {
     const ref = useRef();
 
     useEffect(() => {
@@ -27,5 +28,13 @@ export function CodeEditor({ onChange, name, mode = "sparql" }: IProps) {
         }
     }, [onChange]);
 
-    return <textarea data-test-id="codemirror-wrapper" ref={ref} id={"codemirror"} name={name} />;
+    return (
+        <textarea
+            data-test-id="codemirror-wrapper"
+            ref={ref}
+            id={"codemirror"}
+            name={name}
+            defaultValue={defaultValue}
+        />
+    );
 }
