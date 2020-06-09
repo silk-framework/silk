@@ -34,7 +34,6 @@ import { extractSearchWords, Highlighter, multiWordRegex } from "../../Highlight
 import ArtefactTypesList from "./ArtefactTypesList";
 import { SearchBar } from "../../SearchBar/SearchBar";
 import { routerOp } from "@ducks/router";
-import { commonSlice } from "@ducks/common/commonSlice";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -42,6 +41,7 @@ export function CreateArtefactModal() {
 
     const [searchValue, setSearchValue] = useState("");
     const [idEnhancedDescription, setIdEnhancedDescription] = useState("");
+    const [actionLoading, setActionLoading] = useState(false);
 
     const modalStore = useSelector(commonSel.artefactModalSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
@@ -129,7 +129,7 @@ export function CreateArtefactModal() {
 
     const handleCreate = async (e) => {
         e.preventDefault();
-        dispatch(commonSlice.actions.setArtefactLoading(true));
+        setActionLoading(true);
         const isValidFields = await form.triggerValidation();
         try {
             if (isValidFields) {
@@ -155,7 +155,7 @@ export function CreateArtefactModal() {
                 }
             }
         } finally {
-            dispatch(commonSlice.actions.setArtefactLoading(false));
+            setActionLoading(false);
         }
     };
 
@@ -280,7 +280,7 @@ export function CreateArtefactModal() {
             isOpen={isOpen}
             actions={
                 isCreationUpdateDialog ? (
-                    loading ? (
+                    actionLoading ? (
                         <Loading size={"small"} color={"primary"} />
                     ) : (
                         [
