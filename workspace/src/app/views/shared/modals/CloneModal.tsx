@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, FieldItem, SimpleDialog, TextField } from "@wrappers/index";
+import { Button, FieldItem, Notification, SimpleDialog, Spacing, TextField } from "@wrappers/index";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
@@ -17,7 +17,7 @@ export interface ICloneOptions {
 export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptions) {
     const [newLabel, setNewLabel] = useState(item.label || item.id);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<ErrorResponse>({} as ErrorResponse);
+    const [error, setError] = useState<ErrorResponse | null>(null);
     const [label, setLabel] = useState<string | null>(item.label);
 
     useEffect(() => {
@@ -42,7 +42,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
 
     const handleCloning = async () => {
         const { projectId, id } = item;
-
+        setError(null);
         try {
             setLoading(true);
             const payload = {
@@ -93,6 +93,12 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             >
                 <TextField onChange={(e) => setNewLabel(e.target.value)} value={newLabel} />
             </FieldItem>
+            {error && (
+                <>
+                    <Spacing />
+                    <Notification message={error.asString()} danger />
+                </>
+            )}
         </SimpleDialog>
     );
 }

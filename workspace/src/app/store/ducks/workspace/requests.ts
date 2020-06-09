@@ -45,25 +45,17 @@ export const requestSearchList = async (payload: ISearchListRequest): Promise<IS
 };
 
 export const requestRemoveProject = async (itemId: string): Promise<VoidOrNever> => {
-    try {
-        await fetch({
-            url: legacyApiEndpoint(`/projects/${itemId}`),
-            method: "DELETE",
-        });
-    } catch (e) {
-        throw handleError(e);
-    }
+    await fetch({
+        url: legacyApiEndpoint(`/projects/${itemId}`),
+        method: "DELETE",
+    });
 };
 
 export const requestRemoveTask = async (itemId: string, projectId?: string): Promise<VoidOrNever> => {
-    try {
-        await fetch({
-            url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}?removeDependentTasks=true`),
-            method: "DELETE",
-        });
-    } catch (e) {
-        throw handleError(e);
-    }
+    await fetch({
+        url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}?removeDependentTasks=true`),
+        method: "DELETE",
+    });
 };
 
 interface IClonedItem {

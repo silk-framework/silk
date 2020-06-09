@@ -1,5 +1,6 @@
 import React, { ReactElement, useState } from "react";
-import { AlertDialog, Button, Checkbox, HtmlContentBlock, FieldItem, Spacing } from "@wrappers/index";
+import { AlertDialog, Button, Checkbox, FieldItem, HtmlContentBlock, Notification, Spacing } from "@wrappers/index";
+import { Loading } from "../Loading/Loading";
 
 export interface IDeleteModalOptions {
     isOpen: boolean;
@@ -11,6 +12,9 @@ export interface IDeleteModalOptions {
     render?(): ReactElement;
     children?: ReactElement;
     title?: string;
+    // Loading status during the remove request
+    removeLoading?: boolean;
+    errorMessage?: string;
 }
 
 export default function DeleteModal({
@@ -21,6 +25,8 @@ export default function DeleteModal({
     onConfirm,
     children,
     title = "Delete",
+    removeLoading = false,
+    errorMessage,
 }: IDeleteModalOptions) {
     const [isConfirmed, setIsConfirmed] = useState(false);
 
@@ -36,14 +42,25 @@ export default function DeleteModal({
             title={title}
             isOpen={isOpen}
             onClose={onDiscard}
-            actions={[
-                <Button key="remove" disruptive onClick={onConfirm} disabled={confirmationRequired && !isConfirmed}>
-                    Delete
-                </Button>,
-                <Button key="cancel" onClick={onDiscard}>
-                    Cancel
-                </Button>,
-            ]}
+            actions={
+                removeLoading ? (
+                    <Loading />
+                ) : (
+                    [
+                        <Button
+                            key="remove"
+                            disruptive
+                            onClick={onConfirm}
+                            disabled={confirmationRequired && !isConfirmed}
+                        >
+                            Delete
+                        </Button>,
+                        <Button key="cancel" onClick={onDiscard}>
+                            Cancel
+                        </Button>,
+                    ]
+                )
+            }
         >
             {otherContent && (
                 <>
@@ -55,6 +72,12 @@ export default function DeleteModal({
                 <>
                     {children}
                     <Spacing />
+                </>
+            )}
+            {errorMessage && (
+                <>
+                    <Spacing />
+                    <Notification message={errorMessage} danger />
                 </>
             )}
             {confirmationRequired && (
