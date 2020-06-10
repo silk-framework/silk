@@ -6,17 +6,17 @@ import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.SerializationUtils
 import javax.inject.Inject
-import org.silkframework.config.{MetaData, Task, TaskSpec}
+import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.ResourceBasedDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{ParameterAutoCompletion, PluginDescription, PluginObjectParameterTypeTrait}
-import org.silkframework.runtime.resource.FileResource
+import org.silkframework.runtime.resource.{FileResource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonFormat
 import org.silkframework.serialization.json.JsonSerializers
-import org.silkframework.serialization.json.JsonSerializers.{TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat, fromJson, toJson, MetaDataJsonFormat, GenericTaskJsonFormat}
+import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, MetaDataJsonFormat, TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat, fromJson, toJson}
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.{JsonSerialization, JsonSerializers}
 import org.silkframework.util.Identifier
@@ -27,6 +27,7 @@ import play.api.libs.json._
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
+import scala.util.Try
 import scala.util.control.NonFatal
 
 class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with ControllerUtilsTrait {
@@ -213,7 +214,12 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
 
   def cloneTask(projectName: String, oldTask: String, newTask: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    project.addAnyTask(newTask, project.anyTask(oldTask))
+    val fromTask = project.anyTask(oldTask)
+    // Clone task spec, since task specs may contain state, e.g. RDF file dataset
+    implicit val resourceManager: ResourceManager = project.resources
+    implicit val prefixes: Prefixes = project.config.prefixes
+    val clonedTaskSpec = Try(fromTask.data.withProperties(Map.empty)).getOrElse(fromTask.data)
+    project.addAnyTask(newTask, clonedTaskSpec)
     Ok
   }
 

@@ -124,7 +124,7 @@
 
 @project(project: Project) = {
   <li id="project:@project.name" data-jstree='{"icon":"@Assets.at(projectIcon(project))"}' title="@project.loadingErrors.mkString(", ")" >
-    @project.name
+    @project.config.metaData.formattedLabel(project.name, maxLength = 100)
     @button("Prefixes", "Edit prefixes", "wrench-screwdriver.png", s"editPrefixes('${project.name}')")
     @button("Resources", "Manage resources", "wrench.png", s"editResources('${project.name}')")
     @button("Link Spec", "Import link specification", "document--plus.png", s"importLinkSpec('${project.name}')")
