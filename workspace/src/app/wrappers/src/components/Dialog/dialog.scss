@@ -1,12 +1,12 @@
 // our vars
 $ecc-size-modal-tiny-width: 4/16 * 100vw !default;
-$ecc-size-modal-tiny-height: 9/32 * $ecc-size-modal-tiny-width !default;
+$ecc-size-modal-tiny-height: 1/9 * 100vh !default;
 $ecc-size-modal-small-width: 6/16 * 100vw !default;
-$ecc-size-modal-small-height: 2 * $ecc-size-modal-tiny-height !default;
-$ecc-size-modal-regular-width: $ecc-size-modal-small-width !default;
-$ecc-size-modal-regular-height: 1/2 * $ecc-size-modal-small-width !default;
+$ecc-size-modal-small-height: 2/9 * 100vh !default;
+$ecc-size-modal-regular-width: 6/16 * 100vw !default;
+$ecc-size-modal-regular-height: 3/9 * 100vh !default;
 $ecc-size-modal-large-width: 8/16 * 100vw !default;
-$ecc-size-modal-large-height: 3/4 * $ecc-size-modal-large-width !default;
+$ecc-size-modal-large-height: 6/9 * 100vh !default;
 $ecc-color-modal-backdrop: rgba(invert($ecc-color-workspace-background), 0.69) !default;
 
 @import "~@blueprintjs/core/src/components/dialog/dialog";
