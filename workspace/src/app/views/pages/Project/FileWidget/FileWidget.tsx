@@ -52,7 +52,7 @@ export const FileWidget = () => {
         dependentTasks: [],
     });
     const { isLoading } = fileWidget;
-    const { pagination, paginationElement, onTotalChange } = usePagination({
+    const [pagination, paginationElement, onTotalChange] = usePagination({
         pageSizes: [5, 10, 20],
         presentation: { hideInfoText: true },
     });

@@ -1,7 +1,12 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createAction, createSlice } from "@reduxjs/toolkit";
 import { initialCommonState } from "./initialState";
+import { LOCATION_CHANGE } from "connected-react-router";
+import appRoutes from "../../../appRoutes";
+import { matchPath } from "react-router";
+import { getFullRoutePath } from "../../../utils/routerUtils";
+import { getHistory } from "../../configureStore";
 
-const rootReducers = {
+const commonReducers = {
     setInitialSettings(state, action) {
         state.initialSettings = action.payload;
     },
@@ -15,14 +20,8 @@ const rootReducers = {
     setProjectId(state, action) {
         state.currentProjectId = action.payload;
     },
-    unsetProject(state) {
-        state.currentProjectId = null;
-    },
     setTaskId(state, action) {
         state.currentTaskId = action.payload;
-    },
-    unsetTaskId(state) {
-        state.currentTaskId = null;
     },
     setError(state, action) {
         state.error = action.payload;
@@ -73,7 +72,7 @@ const artefactModalReducers = {
         state.artefactModal.isOpen = true;
     },
     setCachedArtefactProperty(state, action) {
-        const { key } = state.artefactModal.selectedArtefact;
+        const key = action.payload.pluginId;
         state.artefactModal.cachedArtefactProperties[key] = action.payload;
     },
     setArtefactLoading(state, action) {
@@ -88,11 +87,49 @@ const artefactModalReducers = {
     },
 };
 
+/**
+ * @override connect-react-router location change action
+ * set projectId and taskId on location change
+ */
+const getExtraReducers = () => {
+    const routerChange = createAction(LOCATION_CHANGE);
+    return {
+        [routerChange.toString()]: (state) => {
+            const { location } = getHistory();
+            const updatedState = {
+                ...state,
+            };
+
+            let match;
+            for (let route of appRoutes) {
+                match = matchPath<{ taskId?: string; projectId?: string }>(location.pathname, {
+                    path: getFullRoutePath(route.path),
+                    exact: true,
+                });
+
+                if (match) {
+                    updatedState.currentProjectId = match.params.projectId || null;
+                    updatedState.currentTaskId = match.params.taskId || null;
+                    break;
+                }
+            }
+
+            if (!match) {
+                updatedState.currentTaskId = null;
+                updatedState.currentProjectId = null;
+            }
+
+            return updatedState;
+        },
+    };
+};
+
 export const commonSlice = createSlice({
     name: "common",
     initialState: initialCommonState(),
     reducers: {
-        ...rootReducers,
+        ...commonReducers,
         ...artefactModalReducers,
     },
+    extraReducers: getExtraReducers(),
 });

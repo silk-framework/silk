@@ -12,6 +12,7 @@ import {
     IDatasetConfigPreview,
     IDatasetPreview,
     IDatasetTypePayload,
+    IItemInfo,
     IItemLink,
     IMetadataUpdatePayload,
     IPreviewResponse,
@@ -163,10 +164,17 @@ export const requestDatasetTypes = async (
     projectId: string,
     payload: IDatasetTypePayload = {}
 ): Promise<FetchResponse<string[]>> => {
-    return await fetch({
+    return fetch({
         url: legacyApiEndpoint(`projects/${projectId}/datasets/${datasetId}/types`),
         method: "GET",
         body: payload,
+    });
+};
+
+/** Fetches project task item information like the item type. */
+export const requestTaskItemInfo = async (projectId: string, taskId: string): Promise<FetchResponse<IItemInfo>> => {
+    return fetch({
+        url: projectApi(`${projectId}/tasks/${taskId}/itemInfo`),
     });
 };
 

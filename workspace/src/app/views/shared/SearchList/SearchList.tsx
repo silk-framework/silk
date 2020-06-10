@@ -8,7 +8,7 @@ import CloneModal from "../modals/CloneModal";
 import AppliedFacets from "../../pages/Workspace/AppliedFacets";
 import SearchItem from "./SearchItem";
 import EmptyList from "./EmptyList";
-import { commonOp } from "@ducks/common";
+import { commonOp, commonSel } from "@ducks/common";
 import { ItemDeleteModal } from "../modals/ItemDeleteModal";
 import { routerOp } from "@ducks/router";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
@@ -26,6 +26,7 @@ export function SearchList() {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<ISearchResultsServer | null>(null);
     const [showCloneModal, setShowCloneModal] = useState(false);
+    const projectId = useSelector(commonSel.currentProjectIdSelector);
 
     const onDiscardModals = () => {
         setShowCloneModal(false);
@@ -43,14 +44,9 @@ export function SearchList() {
         setSelectedItem(item);
     };
 
-    const handleCloneConfirmed = () => {
+    const handleCloneConfirmed = (newLabel, detailsPage) => {
         onDiscardModals();
-        const isProject = !selectedItem.projectId;
-        if (isProject) {
-            dispatch(routerOp.goToPage(`/projects/${selectedItem.id}`));
-        } else {
-            dispatch(routerOp.goToTaskPage(selectedItem));
-        }
+        dispatch(routerOp.goToPage(detailsPage));
     };
 
     const handleDeleted = () => {
@@ -91,7 +87,7 @@ export function SearchList() {
                 ]}
             />
         ) : (
-            <p>No Data Found</p>
+            <p>No data found.</p>
         );
 
     return (
@@ -105,6 +101,7 @@ export function SearchList() {
                         onOpenDeleteModal={() => onOpenDeleteModal(item)}
                         onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
                         searchValue={appliedFilters.textQuery}
+                        parentProjectId={projectId}
                     />
                 ))}
             </DataList>

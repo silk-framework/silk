@@ -24,18 +24,11 @@ function Pagination({
     );
 }
 
-interface IPagination {
-    // pagination details
-    pagination: {
-        total: number;
-        current: number;
-        limit: number;
-        minPageSize: number;
-    };
-    // The pagination component
-    paginationElement: any;
-    // Should be called whenever the number of total items changes
-    onTotalChange: (total: number) => void;
+interface IPaginationDetails {
+    total: number;
+    current: number;
+    limit: number;
+    minPageSize: number;
 }
 
 interface IPaginationOptions {
@@ -55,9 +48,9 @@ export const usePagination = ({
     pageSizes = [5, 10, 25, 50],
     presentation = {},
     initialPageSize,
-}: IPaginationOptions): IPagination => {
+}: IPaginationOptions) => {
     const minSize = Math.min(...pageSizes);
-    const [pagination, setPagination] = useState({
+    const [pagination, setPagination] = useState<IPaginationDetails>({
         total: 0,
         current: 1,
         limit: initialPageSize ? initialPageSize : minSize,
@@ -66,7 +59,8 @@ export const usePagination = ({
     const onPaginationChange = ({ page, pageSize }) => {
         setPagination({ ...pagination, current: page, limit: pageSize });
     };
-    const onTotalChange = (total: number) => {
+    // When the total number of pageable items changes, this function must be called
+    const onTotalChange = (total: number): void => {
         setPagination({ ...pagination, total: total, current: 1 });
     };
     const paginationElement = (
@@ -79,7 +73,7 @@ export const usePagination = ({
             {...presentation}
         />
     );
-    return { pagination, paginationElement, onTotalChange };
+    return [pagination, paginationElement, onTotalChange] as const;
 };
 
 export default Pagination;

@@ -23,7 +23,7 @@ import {
     TitlePage,
     WorkspaceHeader,
 } from "@wrappers/index";
-import HomeButton from "./HomeButton";
+import ItemDepiction from "./ItemDepiction";
 import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
 import withBreadcrumbLabels from "./withBreadcrumbLabels";
@@ -36,7 +36,8 @@ import { CONTEXT_PATH } from "../../../constants/path";
 import CloneModal from "../../shared/modals/CloneModal";
 import { routerOp } from "@ducks/router";
 import { IItemLink } from "@ducks/shared/typings";
-import { requestItemLinks } from "@ducks/shared/requests";
+import { requestItemLinks, requestTaskItemInfo } from "@ducks/shared/requests";
+import { IPageLabels } from "@ducks/router/operations";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];
@@ -52,7 +53,8 @@ export interface IBreadcrumb {
 
 function HeaderComponent({ breadcrumbs }: IProps) {
     const dispatch = useDispatch();
-    const location = useLocation();
+    const location = useLocation<any>();
+    const [itemType, setItemType] = useState<string | null>(null);
 
     const isAuth = useSelector(commonSel.isAuthSelector);
 
@@ -71,12 +73,49 @@ function HeaderComponent({ breadcrumbs }: IProps) {
 
     const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
 
+    // Update task type
+    useEffect(() => {
+        if (location.state?.pageLabels?.itemType) {
+            setItemType(location.state.pageLabels.itemType);
+        } else {
+            if (projectId && !taskId) {
+                setItemType("project");
+            } else if (projectId && taskId) {
+                if (!location.state?.pageLabels) {
+                    location.state = { ...location.state };
+                    location.state.pageLabels = {};
+                }
+                updateItemType(location.state.pageLabels, location.pathname);
+            } else {
+                setItemType(null);
+            }
+        }
+    }, [projectId, taskId]);
+
+    // Update item links for more menu
     useEffect(() => {
         getWindowTitle(projectId);
         if (projectId && taskId) {
             getItemLinks();
+        } else {
+            setItemLinks([]);
         }
-    }, [projectId, taskId, breadcrumbs]);
+    }, [projectId, taskId]);
+
+    const updateItemType = async (pageLabels: IPageLabels, locationPathName: string) => {
+        if (projectId && taskId) {
+            try {
+                const response = await requestTaskItemInfo(projectId, taskId);
+                const itemType = response.data.itemType.id;
+                pageLabels.itemType = itemType;
+                if (window.location.pathname === locationPathName) {
+                    setItemType(itemType);
+                }
+            } catch (ex) {
+                // Swallow exception, nothing we can do
+            }
+        }
+    };
 
     const handleCreateDialog = () => {
         dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType));
@@ -95,8 +134,9 @@ function HeaderComponent({ breadcrumbs }: IProps) {
         dispatch(routerOp.goToPage(""));
     };
 
-    const handleCloneConfirmed = () => {
+    const handleCloneConfirmed = (id, detailsPage) => {
         toggleCloneModal();
+        dispatch(routerOp.goToPage(detailsPage));
     };
 
     const getWindowTitle = (projectId) => {
@@ -172,7 +212,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                 </Helmet>
                 <OverviewItem>
                     <OverviewItemDepiction>
-                        <HomeButton />
+                        <ItemDepiction itemType={itemType} />
                     </OverviewItemDepiction>
                     <OverviewItemDescription>
                         <OverviewItemLine small>

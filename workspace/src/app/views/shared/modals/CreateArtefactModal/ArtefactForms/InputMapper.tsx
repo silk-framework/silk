@@ -1,6 +1,6 @@
 import React from "react";
 import { INPUT_TYPES } from "../../../../../constants";
-import { Switch, TextField, TextArea } from "@wrappers/index";
+import { Switch, TextArea, TextField } from "@wrappers/index";
 import { CodeEditor } from "../../../QueryEditor/CodeEditor";
 import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";
@@ -100,6 +100,12 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
                         onSearch: handleFileSearch,
                         itemLabelRenderer: (item) => item.name,
                         itemValueSelector: (item) => item.name,
+                    }}
+                    onUploadSuccess={(file) => {
+                        // FIXME: the onChange function is not called on upload success, so this is a workaround
+                        if (file) {
+                            onChange(file.name);
+                        }
                     }}
                     {...inputAttributes}
                 />

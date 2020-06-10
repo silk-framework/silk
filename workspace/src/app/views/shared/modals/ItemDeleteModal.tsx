@@ -1,7 +1,7 @@
 import DeleteModal from "./DeleteModal";
 import React, { useEffect, useState } from "react";
 import { Loading } from "../Loading/Loading";
-import { ErrorResponse } from "../../../services/fetch/responseInterceptor";
+import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { requestRemoveProject, requestRemoveTask } from "@ducks/workspace/requests";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
@@ -17,7 +17,7 @@ interface IProps {
 /** Modal for task deletion. */
 export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<ErrorResponse>({} as ErrorResponse);
+    const [error, setError] = useState<ErrorResponse | null>(null);
 
     const [deleteModalOptions, setDeleteModalOptions] = useState({});
 
@@ -27,6 +27,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
 
     const handleConfirmRemove = async () => {
         const { id, projectId } = item;
+        setError(null);
         try {
             setLoading(true);
             if (projectId) {
@@ -36,7 +37,11 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
             }
             onConfirmed && onConfirmed();
         } catch (e) {
-            setError(e);
+            if (e.isFetchError) {
+                setError((e as FetchError).errorResponse);
+            } else {
+                console.warn(e);
+            }
         } finally {
             setLoading(false);
         }
@@ -95,5 +100,14 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
         }
     };
 
-    return <DeleteModal isOpen={true} onDiscard={onClose} onConfirm={handleConfirmRemove} {...deleteModalOptions} />;
+    return (
+        <DeleteModal
+            isOpen={true}
+            onDiscard={onClose}
+            onConfirm={handleConfirmRemove}
+            {...deleteModalOptions}
+            removeLoading={loading}
+            errorMessage={error && error.asString()}
+        />
+    );
 }

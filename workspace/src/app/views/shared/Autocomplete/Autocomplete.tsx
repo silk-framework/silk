@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { HTMLInputProps, IInputGroupProps } from "@blueprintjs/core";
 import { MenuItem, Suggest } from "@wrappers/index";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { Highlighter } from "../Highlighter/Highlighter";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
+import IconButton from "@wrappers/src/components/Icon/IconButton";
 
 export interface IAutocompleteProps {
     /**
@@ -47,12 +49,21 @@ export interface IAutocompleteProps {
      * The values of the parameters this auto-completion depends on.
      */
     dependentValues?: string[];
+
+    /**
+     * Props to spread to the query `InputGroup`. To control this input, use
+     * `query` and `onQueryChange` instead of `inputProps.value` and
+     * `inputProps.onChange`.
+     */
+    inputProps?: IInputGroupProps & HTMLInputProps;
+
+    /** If true, then a selection can be reset. */
+    resetPossible?: boolean;
 }
 
 const SuggestAutocomplete = Suggest.ofType<IAutocompleteDefaultResponse>();
 
 Autocomplete.defaultProps = {
-    initialValue: "",
     itemLabelRenderer: (item) => {
         const label = item.label || item.value;
         if (label === "") {
@@ -63,10 +74,20 @@ Autocomplete.defaultProps = {
     },
     itemValueSelector: (item) => item.value,
     dependentValues: [],
+    resetPossible: false,
 };
 
 export function Autocomplete(props: IAutocompleteProps) {
-    const { itemValueSelector, itemLabelRenderer, onSearch, onChange, initialValue, dependentValues } = props;
+    const {
+        resetPossible,
+        itemValueSelector,
+        itemLabelRenderer,
+        onSearch,
+        onChange,
+        initialValue,
+        dependentValues,
+        ...otherProps
+    } = props;
     const [selectedItem, setSelectedItem] = useState<IAutocompleteDefaultResponse>(initialValue);
 
     const [query, setQuery] = useState<string>("");
@@ -117,10 +138,24 @@ export function Autocomplete(props: IAutocompleteProps) {
             />
         );
     };
+    // Resets the selection
+    const clearSelection = () => {
+        setSelectedItem(undefined);
+        onChange("");
+        setQuery("");
+    };
+    const clearButton = resetPossible &&
+        selectedItem !== undefined &&
+        selectedItem !== null &&
+        selectedItem.value !== "" && (
+            <IconButton name="operation-clear" text={"Reset selection"} onClick={clearSelection} />
+        );
+    const updatedInputProps = { rightElement: clearButton, ...otherProps.inputProps };
     return (
         <SuggestAutocomplete
+            className="app_di-autocomplete__input"
             items={filtered}
-            inputValueRenderer={itemLabelRenderer}
+            inputValueRenderer={selectedItem !== undefined ? itemLabelRenderer : () => ""}
             itemRenderer={optionRenderer}
             itemsEqual={areEqualItems}
             noResults={<MenuItem disabled={true} text="No results." />}
@@ -129,8 +164,13 @@ export function Autocomplete(props: IAutocompleteProps) {
             query={query}
             popoverProps={{
                 minimal: true,
+                popoverClassName: "app_di-autocomplete__options",
+                wrapperTagName: "div",
             }}
             selectedItem={selectedItem}
+            fill
+            {...otherProps}
+            inputProps={updatedInputProps}
         />
     );
 }

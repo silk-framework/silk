@@ -3,6 +3,7 @@ import { Redirect, RouteProps } from "react-router";
 import { getFullRoutePath } from "./utils/routerUtils";
 
 const DashboardPage = lazy(() => import("./views/pages/Workspace"));
+const ProjectPage = lazy(() => import("./views/pages/Project"));
 const DatasetPage = lazy(() => import("./views/pages/Dataset"));
 const WorkflowPage = lazy(() => import("./views/pages/Workflow"));
 const TransformPage = lazy(() => import("./views/pages/Transform"));
@@ -17,12 +18,12 @@ interface IRouteProps extends RouteProps {
 const appRoutes: IRouteProps[] = [
     {
         path: "/",
-        exact: true,
         component: DashboardPage,
+        exact: true,
     },
     {
         path: "/projects/:projectId",
-        component: DashboardPage,
+        component: ProjectPage,
         exact: true,
     },
     {

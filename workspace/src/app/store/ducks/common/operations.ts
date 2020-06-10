@@ -19,7 +19,6 @@ const {
     fetchAvailableDTypes,
     updateAvailableDTypes,
     setProjectId,
-    unsetProject,
     setInitialSettings,
     setSelectedArtefactDType,
     closeArtefactModal,
@@ -30,7 +29,6 @@ const {
     setArtefactsList,
     setArtefactLoading,
     setTaskId,
-    unsetTaskId,
     setModalError,
 } = commonSlice.actions;
 
@@ -96,6 +94,13 @@ const fetchArtefactsListAsync = (filters: any = {}) => {
     };
 };
 
+/** Resets the artefacts list to 0 elements. */
+const resetArtefactsList = () => {
+    return async (dispatch) => {
+        dispatch(setArtefactsList([]));
+    };
+};
+
 const getArtefactPropertiesAsync = (artefact: IArtefactItem) => {
     return async (dispatch, getState) => {
         const { cachedArtefactProperties } = commonSel.artefactModalSelector(getState());
@@ -139,15 +144,15 @@ const buildTaskObject = (formData: any): object => {
 };
 
 const createArtefactAsync = (formData, taskType: string) => {
-    return (dispatch, getState) => {
+    return async (dispatch, getState) => {
         const { selectedArtefact } = commonSel.artefactModalSelector(getState());
 
         switch (selectedArtefact.key) {
             case "project":
-                dispatch(fetchCreateProjectAsync(formData));
+                await dispatch(fetchCreateProjectAsync(formData));
                 break;
             default:
-                dispatch(fetchCreateTaskAsync(formData, selectedArtefact.key, taskType));
+                await dispatch(fetchCreateTaskAsync(formData, selectedArtefact.key, taskType));
                 break;
         }
     };
@@ -175,7 +180,6 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: strin
         };
 
         dispatch(setModalError({}));
-
         try {
             const data = await requestCreateTask(payload, currentProjectId);
             batch(() => {
@@ -228,7 +232,7 @@ const fetchCreateProjectAsync = (formData: { label: string; description?: string
                 },
             });
             dispatch(closeArtefactModal());
-            dispatch(routerOp.goToPage(`projects/${data.name}`, { projectLabel: label }));
+            dispatch(routerOp.goToPage(`projects/${data.name}`, { projectLabel: label, itemType: "project" }));
         } catch (e) {
             dispatch(setModalError(e.response.data));
         }
@@ -251,6 +255,7 @@ export default {
     logout,
     fetchAvailableDTypesAsync,
     fetchArtefactsListAsync,
+    resetArtefactsList,
     createArtefactAsync,
     fetchCommonSettingsAsync,
     getArtefactPropertiesAsync,
@@ -258,9 +263,7 @@ export default {
     selectArtefact,
     updateProjectTask,
     setProjectId,
-    unsetProject,
     setTaskId,
-    unsetTaskId,
     setSelectedArtefactDType,
     setModalError,
     buildTaskObject,

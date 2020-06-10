@@ -43,7 +43,7 @@ export function RelatedItems(props: IProps) {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState({ total: 0, items: [] } as IRelatedItemsResponse);
     const [textQuery, setTextQuery] = useState("");
-    const { pagination, paginationElement, onTotalChange } = usePagination({
+    const [pagination, paginationElement, onTotalChange] = usePagination({
         initialPageSize: 5,
         pageSizes: [5, 10, 20],
         presentation: { hideInfoText: true },
@@ -51,10 +51,8 @@ export function RelatedItems(props: IProps) {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        if (taskId) {
-            getRelatedItemsData(projectId, taskId, textQuery);
-        }
-    }, [taskId, projectId, textQuery]);
+        getRelatedItemsData(projectId, taskId, textQuery);
+    }, [textQuery]);
 
     // Fetches and updates the related items of the project task
     const getRelatedItemsData = async (projectId: string, taskId: string, textQuery: string) => {
@@ -84,9 +82,9 @@ export function RelatedItems(props: IProps) {
         setTextQuery(searchInput);
     };
 
-    const goToDetailsPage = (resourceItem: IItemLink, taskLabel: string, event) => {
+    const goToDetailsPage = (resourceItem: IItemLink, taskLabel: string, itemType: string, event) => {
         event.preventDefault();
-        dispatch(routerOp.goToPage(resourceItem.path, { taskLabel }));
+        dispatch(routerOp.goToPage(resourceItem.path, { taskLabel, itemType: itemType.toLowerCase() }));
     };
 
     return (
@@ -122,7 +120,13 @@ export function RelatedItems(props: IProps) {
                                     icon={getItemLinkIcons(link.label)}
                                     onClick={
                                         idx === 0
-                                            ? (e) => goToDetailsPage(relatedItem.itemLinks[0], relatedItem.label, e)
+                                            ? (e) =>
+                                                  goToDetailsPage(
+                                                      relatedItem.itemLinks[0],
+                                                      relatedItem.label,
+                                                      relatedItem.type,
+                                                      e
+                                                  )
                                             : null
                                     }
                                 />
@@ -147,6 +151,7 @@ export function RelatedItems(props: IProps) {
                                                                   goToDetailsPage(
                                                                       relatedItem.itemLinks[0],
                                                                       relatedItem.label,
+                                                                      relatedItem.type,
                                                                       e
                                                                   )
                                                             : false
@@ -163,7 +168,12 @@ export function RelatedItems(props: IProps) {
                                                 name="item-viewdetails"
                                                 text="Show details"
                                                 onClick={(e) =>
-                                                    goToDetailsPage(relatedItem.itemLinks[0], relatedItem.label, e)
+                                                    goToDetailsPage(
+                                                        relatedItem.itemLinks[0],
+                                                        relatedItem.label,
+                                                        relatedItem.type,
+                                                        e
+                                                    )
                                                 }
                                                 href={relatedItem.itemLinks[0].path}
                                             />
