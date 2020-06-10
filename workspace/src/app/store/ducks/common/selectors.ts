@@ -1,7 +1,8 @@
 import { createSelector } from "reselect";
 import { isAuthenticated } from "./thunks/auth.thunk";
+import { IStore } from "../../typings/IStore";
 
-const commonSelector = (state) => state.common;
+const commonSelector = (state: IStore) => state.common;
 
 const artefactModalSelector = createSelector([commonSelector], (common) => common.artefactModal);
 
