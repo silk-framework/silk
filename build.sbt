@@ -34,14 +34,20 @@ val scalaTestOptions = {
 
 lazy val commonSettings = Seq(
   organization := "org.silkframework",
-  version := silkVersion,
+  version := {
+    if(SilkBuildHelpers.isSnapshotVersion(silkVersion)) {
+      NEXT_VERSION + "-SNAPSHOT"
+    } else {
+      silkVersion
+    }
+  },
   // Building
   scalaVersion := "2.11.12",
   publishTo := {
     val artifactory = "https://artifactory.eccenca.com/"
     // Assumes that version strings for releases, e.g. v3.0.0 or v3.0.0-rc3, do not have a postfix of length 5 or longer.
     // Length 5 was chosen as lower limit because of the "dirty" postfix. Note that isSnapshot does not do the right thing here.
-    if (silkVersion.reverse.takeWhile(c => c != '-' && c != '.').length >= 5) {
+    if (SilkBuildHelpers.isSnapshotVersion(silkVersion)) {
       Some("snapshots" at artifactory + "maven-ecc-snapshot")
     } else {
       Some("releases" at artifactory + "maven-ecc-release")
