@@ -43,7 +43,7 @@ export function RelatedItems(props: IProps) {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState({ total: 0, items: [] } as IRelatedItemsResponse);
     const [textQuery, setTextQuery] = useState("");
-    const { pagination, paginationElement, onTotalChange } = usePagination({
+    const [pagination, paginationElement, onTotalChange] = usePagination({
         initialPageSize: 5,
         pageSizes: [5, 10, 20],
         presentation: { hideInfoText: true },
@@ -52,7 +52,7 @@ export function RelatedItems(props: IProps) {
 
     useEffect(() => {
         getRelatedItemsData(projectId, taskId, textQuery);
-    }, []);
+    }, [textQuery]);
 
     // Fetches and updates the related items of the project task
     const getRelatedItemsData = async (projectId: string, taskId: string, textQuery: string) => {
