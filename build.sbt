@@ -65,7 +65,7 @@ lazy val commonSettings = Seq(
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
-  dependencyOverrides ++= Set(
+  dependencyOverrides ++= Seq(
     "com.google.guava" % "guava" % "18.0",
     "com.google.inject" % "guice" % "4.0",
     "org.apache.thrift" % "libthrift" % "0.9.3",
@@ -246,16 +246,18 @@ lazy val reactComponents = (project in file("silk-react-components"))
       checkJsBuildTools.value // depend on check
       val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src"), fileRegex = """\.(jsx|js|scss|json)$""")
       def distFile(name: String): File = new File(baseDirectory.value, "dist/" + name)
+      val distRoot = silkDistRoot.value
       if (Watcher.staleTargetFiles(reactWatchConfig, Seq(distFile("main.js"), distFile("style.css")))) {
-        ReactBuildHelper.buildReactComponents(baseDirectory.value, silkDistRoot.value, "Silk")
+        ReactBuildHelper.buildReactComponents(baseDirectory.value, distRoot, "Silk")
       }
       val silkReactWorkbenchRoot = new File(baseDirectory.value, "silk-workbench")
       val changedJsFiles = Watcher.filesChanged(WatchConfig(silkReactWorkbenchRoot, fileRegex = """\.js$"""))
+      val workbenchRoot = silkWorkbenchRoot.value
       if(changedJsFiles.nonEmpty) {
         // Transpile JavaScript files to ES5
         for(file <- changedJsFiles) {
           val relativePath = silkReactWorkbenchRoot.toURI().relativize(file.toURI()).getPath()
-          val targetFile = new File(silkWorkbenchRoot.value, relativePath)
+          val targetFile = new File(workbenchRoot, relativePath)
           ReactBuildHelper.transpileJavaScript(baseDirectory.value, file, targetFile)
         }
       }
@@ -327,11 +329,9 @@ lazy val workbench = (project in file("silk-workbench"))
     .dependsOn(workbenchWorkspace, workbenchRules, workbenchWorkflow, plugins)
     .aggregate(workbenchWorkspace, workbenchRules, workbenchWorkflow, plugins)
     .settings(commonSettings: _*)
-    .settings(com.github.play2war.plugin.Play2WarPlugin.play2WarSettings: _*)
     .settings(
       name := "Silk Workbench",
       // War Packaging
-      com.github.play2war.plugin.Play2WarKeys.servletVersion := "3.0",
       libraryDependencies += guice,
       // Linux Packaging, Uncomment to generate Debian packages that register the Workbench as an Upstart service
       // packageArchetype.java_server

@@ -3,9 +3,7 @@ resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/release
 // The Play plugin
 addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.23")
 
-// Plugin for generating WAR files.
-addSbtPlugin("com.github.play2war" % "play2-war-plugin" % "1.4.0")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.10")
 
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.13.0")
-
-addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.8.1")
+// Not yet supported with sbt 1.3.x
+// addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.8.1")
