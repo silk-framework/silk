@@ -183,7 +183,7 @@ lazy val pluginsSpatialTemporal = (project in file("silk-plugins/silk-plugins-sp
     libraryDependencies += "org.geotools" % "gt-referencing" % "13.1",
     libraryDependencies += "org.geotools" % "gt-jts-wrapper" % "13.1",
     libraryDependencies += "org.geotools" % "gt-epsg-wkt" % "13.1",
-    resolvers += "OpenGeo Maven Repository" at "http://download.osgeo.org/webdav/geotools/"
+    resolvers += "OpenGeo Maven Repository" at "https://download.osgeo.org/webdav/geotools/"
   )
 
 lazy val pluginsAsian = (project in file("silk-plugins/silk-plugins-asian"))
