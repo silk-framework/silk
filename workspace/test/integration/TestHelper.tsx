@@ -55,10 +55,32 @@ export const logRequests = (mockAxios: AxiosMockType) => {
 
 /** Clicks an element specified by a selector. */
 export const clickElement = (wrapper: ReactWrapper<any, any>, cssSelector: string) => {
-    const element = wrapper.find(cssSelector);
+    const element = findSingleElement(wrapper, cssSelector);
     // There should only be one element, if there are more, the selector needs to be more selective
-    // For enzyme it often is not enough to specify the ID of an element, e.g. "#id", but prepend the concrete element type, e.g. "div#id".
     expect(element).toHaveLength(1);
     element.simulate("click");
     // console.log(`Clicked element with selector '${cssSelector}'.`);
+};
+
+/** Finds a single element corresponding to the selector or fails. */
+export const findSingleElement = (wrapper: ReactWrapper<any, any>, cssSelector: string) => {
+    const element = wrapper.find(cssSelector);
+    if (element.length === 3) {
+        // Enzyme's find() method returns not always just the DOM elements, but also companion objects for each DOM element.
+        // Filter out these companion objects and see if 1 element is left and return it.
+        let validElementIdx = -1;
+        const nrValidElements = element.getElements().filter((elem) => typeof elem.type === "string").length;
+        expect(nrValidElements).toBe(1);
+        element.getElements().forEach((elem, idx) => {
+            // The companion objects have a function as type value
+            if (typeof elem.type === "string") {
+                validElementIdx = idx;
+            }
+        });
+        expect(validElementIdx).toBeGreaterThan(-1);
+        return element.at(validElementIdx);
+    } else {
+        expect(element).toHaveLength(1);
+        return element;
+    }
 };

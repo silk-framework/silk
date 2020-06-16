@@ -14,15 +14,14 @@ describe("Header", () => {
     const loadHeader = () => {
         const history = createBrowserHistory();
         history.location.pathname = "/workspace-beta";
-        const header = <Header />;
 
-        return testWrapper(header, history);
+        return testWrapper(<Header />, history);
     };
 
     it("should have a logout action that triggers a logout", async () => {
         const wrapper = loadHeader();
-        clickElement(wrapper, "button#headerUserMenu");
-        clickElement(wrapper, "a#logoutAction");
+        clickElement(wrapper, "#headerUserMenu");
+        clickElement(wrapper, "#logoutAction");
         const reqInfo = mockAxios.getReqMatching({
             url: hostPath + "/logout",
             method: "POST",
