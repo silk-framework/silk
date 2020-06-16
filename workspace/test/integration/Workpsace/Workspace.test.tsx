@@ -1,3 +1,4 @@
+import React from "react";
 import qs from "qs";
 import { createBrowserHistory } from "history";
 import mockAxios from "../../__mocks__/axios";

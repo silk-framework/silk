@@ -41,5 +41,5 @@ export const clickElement = (wrapper: ReactWrapper<any, any>, cssSelector: strin
     // For enzyme it often is not enough to specify the ID of an element, e.g. "#id", but prepend the concrete element type, e.g. "div#id".
     expect(element).toHaveLength(1);
     element.simulate("click");
-    console.log(`Clicked element with selector '${cssSelector}'.`);
+    // console.log(`Clicked element with selector '${cssSelector}'.`);
 };

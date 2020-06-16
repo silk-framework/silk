@@ -1,5 +1,7 @@
+import React from "react";
 import mockAxios from "../../__mocks__/axios";
-import { logRequests, testWrapper } from "../TestHelper";
+import { testWrapper } from "../TestHelper";
+import { createBrowserHistory } from "history";
 import { Workspace } from "../../../src/app/views/pages/Workspace/Workspace";
 import Project from "../../../src/app/views/pages/Project";
 
@@ -22,16 +24,15 @@ describe("Project page", () => {
         mockAxios.reset();
     });
 
-    const loadProjectPage = () => {
+    const projectPage = () => {
         const history = createBrowserHistory();
         history.location.pathname = "/dataintegration/workspace-beta/projects/cmem";
 
-        testWrapper(<Workspace />, history);
+        return testWrapper(<Project />, history);
     };
 
     it("should get common data types or for specific project", async () => {
-        testWrapper(Workspace, {});
-        logRequests(mockAxios);
+        projectPage();
         const reqInfo = mockAxios.getReqMatching({
             url: hostPath + "/api/workspace/searchConfig/types?projectId=cmem",
         });
@@ -39,15 +40,15 @@ describe("Project page", () => {
     });
 
     it("should request meta data", async () => {
-        testWrapper(Project, {});
+        projectPage();
         const reqInfo = mockAxios.getReqMatching({
             url: hostPath + "/api/workspace/projects/cmem/metaData",
         });
         expect(reqInfo).toBeTruthy();
     });
 
-    xit("should send the right projectId to backend", async () => {
-        testWrapper(Workspace, {});
+    it("should send the right projectId to backend", async () => {
+        projectPage();
         const reqInfo = mockAxios.getReqMatching({
             url: hostPath + "/api/workspace/searchItems",
         });
