@@ -3,6 +3,7 @@ import "@testing-library/jest-dom";
 import { createBrowserHistory } from "history";
 import mockAxios from "../../__mocks__/axios";
 import { logRequests, testWrapper } from "../TestHelper";
+import { Workspace } from "../../../src/app/views/pages/Workspace/Workspace";
 
 describe("Project page", () => {
     let hostPath = process.env.HOST;
@@ -14,7 +15,7 @@ describe("Project page", () => {
         const history = createBrowserHistory();
         history.location.pathname = "/dataintegration/workspace-beta/projects/cmem";
 
-        testWrapper({}, history);
+        testWrapper(<Workspace />, history);
     };
 
     it("should get common data types or for specific project", async () => {
