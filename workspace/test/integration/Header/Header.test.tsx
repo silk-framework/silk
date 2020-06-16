@@ -2,7 +2,7 @@ import React from "react";
 import "@testing-library/jest-dom";
 import { createBrowserHistory } from "history";
 import mockAxios from "../../__mocks__/axios";
-import { clickElement, logRequests, testWrapper } from "../TestHelper";
+import { clickElement, testWrapper } from "../TestHelper";
 import { Header } from "../../../src/app/views/layout/Header/Header";
 
 describe("Header", () => {
