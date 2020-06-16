@@ -55,8 +55,10 @@ describe("Project page", () => {
 
         getWrapper({}, history);
 
+        console.log(mockAxios.toString());
+
         const reqInfo = mockAxios.getReqMatching({
-            url: hostPath + "/api/workspace/searchConfig/types?projectId=cmem",
+            url: hostPath + "/dataintegration/api/workspace/searchConfig/types?projectId=cmem",
         });
 
         expect(reqInfo).toBeTruthy();

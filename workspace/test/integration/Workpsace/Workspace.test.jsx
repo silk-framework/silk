@@ -1,38 +1,9 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import { Workspace } from "../../../src/app/views/pages/Workspace/Workspace";
-import { Provider } from "react-redux";
-import { configureStore } from "@reduxjs/toolkit";
-import rootReducer from "../../../src/app/store/reducers";
-import { ConnectedRouter } from "connected-react-router";
 import qs from "qs";
 import { createBrowserHistory } from "history";
-import { render } from "@testing-library/react";
 import mockAxios from "../../__mocks__/axios";
-import { mount } from "enzyme";
-
-const createStore = (history = createBrowserHistory()) =>
-    configureStore({
-        reducer: rootReducer(history),
-    });
-
-const getWrapper = (props = {}, h) => {
-    let history = h;
-    if (!history) {
-        history = createBrowserHistory();
-        history.location.pathname = "/dataintegration/workspace-beta";
-    }
-
-    const store = createStore(history);
-
-    return mount(
-        <Provider store={store}>
-            <ConnectedRouter history={history}>
-                <Workspace {...props} />
-            </ConnectedRouter>
-        </Provider>
-    );
-};
+import { testWrapper } from "../TestHelper";
 
 describe("Search Items", () => {
     let hostPath = process.env.HOST;
@@ -58,7 +29,7 @@ describe("Search Items", () => {
         history.location.pathname = "/dataintegration/workspace-beta";
         history.location.search = filteredQueryParams;
 
-        getWrapper({}, history);
+        testWrapper({}, history);
 
         const reqInfo = mockAxios.getReqMatching({
             url: hostPath + "/api/workspace/searchItems",
