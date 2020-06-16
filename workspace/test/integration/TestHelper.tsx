@@ -3,7 +3,6 @@ import { History } from "history";
 import { mount, ReactWrapper } from "enzyme";
 import { Provider } from "react-redux";
 import { AppLayout } from "../../src/app/views/layout/AppLayout/AppLayout";
-import { Workspace } from "../../src/app/views/pages/Workspace/Workspace";
 import { configureStore } from "@reduxjs/toolkit";
 import rootReducer from "../../src/app/store/reducers";
 import { ConnectedRouter } from "connected-react-router";
