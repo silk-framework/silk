@@ -8,6 +8,23 @@ import rootReducer from "../../src/app/store/reducers";
 import { ConnectedRouter } from "connected-react-router";
 import { AxiosMockType } from "jest-mock-axios/dist/lib/mock-axios-types";
 
+const mockValues = {
+    pathName: "/what?",
+};
+
+// Mock global history object
+jest.mock("../../src/app/store/configureStore", () => {
+    return {
+        getHistory: jest.fn().mockImplementation(() => {
+            return {
+                location: {
+                    pathname: mockValues.pathName,
+                },
+            };
+        }),
+    };
+});
+
 /** Creates the Redux store. */
 export const createStore = (history: History<{}>) =>
     configureStore({
@@ -17,6 +34,8 @@ export const createStore = (history: History<{}>) =>
 /** Returns a wrapper for the application. */
 export const testWrapper = (component: JSX.Element, history: History<{}>) => {
     const store = createStore(history);
+    // Set path name of global mock
+    mockValues.pathName = history?.location?.pathname;
 
     return mount(
         <Provider store={store}>

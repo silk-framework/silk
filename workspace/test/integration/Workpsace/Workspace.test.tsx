@@ -26,7 +26,7 @@ describe("Search Items", () => {
         );
 
         let history = createBrowserHistory();
-        history.location.pathname = "/dataintegration/workspace-beta";
+        history.location.pathname = "/workspace-beta";
         history.location.search = filteredQueryParams;
 
         testWrapper(<Workspace />, history);

@@ -13,7 +13,7 @@ describe("Header", () => {
 
     const loadHeader = () => {
         const history = createBrowserHistory();
-        history.location.pathname = "/dataintegration/workspace-beta";
+        history.location.pathname = "/workspace-beta";
         const header = <Header />;
 
         return testWrapper(header, history);
