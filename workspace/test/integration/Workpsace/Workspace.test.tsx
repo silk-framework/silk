@@ -1,9 +1,8 @@
-import React from "react";
-import "@testing-library/jest-dom";
 import qs from "qs";
 import { createBrowserHistory } from "history";
 import mockAxios from "../../__mocks__/axios";
 import { testWrapper } from "../TestHelper";
+import { Workspace } from "../../../src/app/views/pages/Workspace/Workspace";
 
 describe("Search Items", () => {
     let hostPath = process.env.HOST;
@@ -29,7 +28,7 @@ describe("Search Items", () => {
         history.location.pathname = "/dataintegration/workspace-beta";
         history.location.search = filteredQueryParams;
 
-        testWrapper({}, history);
+        testWrapper(Workspace, {}, history);
 
         const reqInfo = mockAxios.getReqMatching({
             url: hostPath + "/api/workspace/searchItems",
