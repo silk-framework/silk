@@ -48,7 +48,6 @@ export const fetch = async <T = any>({
     config.headers = {
         Accept: "application/json",
         "Content-Type": "application/json",
-        // "Authorization": `Bearer ${globalOp.getTokenFromStore()}`
         ...headers,
     };
 
