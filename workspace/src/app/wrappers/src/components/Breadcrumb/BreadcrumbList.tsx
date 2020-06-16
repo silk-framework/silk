@@ -1,11 +1,7 @@
 import React from "react";
-// import PropTypes from 'prop-types';
 import { Breadcrumbs as BlueprintBreadcrumbList } from "@blueprintjs/core";
-//import { BreadcrumbItem, IBreadcrumbItemProps} from "./BreadcrumbItem";
 import BreadcrumbItem from "./BreadcrumbItem";
 import { IBreadcrumbItemProps } from "./BreadcrumbItem";
-import { routerOp } from "@ducks/router";
-import { useDispatch } from "react-redux";
 
 interface IBreadcrumbListProps extends React.HTMLAttributes<HTMLUListElement> {
     /**
@@ -17,6 +13,10 @@ interface IBreadcrumbListProps extends React.HTMLAttributes<HTMLUListElement> {
     */
     items: IBreadcrumbItemProps[];
     /**
+        click handler used on breadcrumb items
+    */
+    onItemClick?(itemUrl: string, event: object): any;
+    /**
         char that devides breadcrumb items, default: "/" (currently unsupported)
     */
     itemDivider?: string;
@@ -25,19 +25,22 @@ interface IBreadcrumbListProps extends React.HTMLAttributes<HTMLUListElement> {
 function BreadcrumbList({
     className = "",
     // itemDivider = "/",
+    onItemClick,
     ...otherProps
 }: IBreadcrumbListProps) {
-    const dispatch = useDispatch();
-
-    const gotoPage = (page) => (e) => {
-        e.preventDefault();
-        if (page) {
-            dispatch(routerOp.goToPage(page, {}));
-        }
-    };
-
     const renderBreadcrumb = (propsBreadcrumb) => {
-        return <BreadcrumbItem {...propsBreadcrumb} /*itemDivider="/"*/ onClick={gotoPage(propsBreadcrumb.href)} />;
+        return (
+            <BreadcrumbItem
+                {...propsBreadcrumb}
+                /*itemDivider="/"*/ onClick={
+                    onItemClick
+                        ? (e) => {
+                              onItemClick(propsBreadcrumb.href, e);
+                          }
+                        : undefined
+                }
+            />
+        );
     };
 
     const renderCurrentBreadcrumb = (propsBreadcrumb) => {
