@@ -7090,10 +7090,10 @@ jest-message-util@^24.9.0:
     slash "^2.0.0"
     stack-utils "^1.0.1"
 
-jest-mock-axios@^4.0.0:
-  version "4.0.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/jest-mock-axios/-/jest-mock-axios-4.0.0.tgz#f59ac5dcdb4ae51c4ec21203382bc4c001dd26f4"
-  integrity sha1-9ZrF3NtK5RxOwhIDOCvEwAHdJvQ=
+jest-mock-axios@^4.2.0:
+  version "4.2.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/jest-mock-axios/-/jest-mock-axios-4.2.0.tgz#65d487b66157c1cadd39b71b3102eaea691c7f2e"
+  integrity sha1-ZdSHtmFXwcrdObcbMQLq6mkcfy4=
   dependencies:
     synchronous-promise "^2.0.10"
 
