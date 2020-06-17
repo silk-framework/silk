@@ -2,7 +2,7 @@ import React from "react";
 import "@testing-library/jest-dom";
 import { createBrowserHistory } from "history";
 import mockAxios from "../../../__mocks__/axios";
-import { eventually, findAll, findSingleElement, mockAxiosResponse, testWrapper } from "../../TestHelper";
+import { eventually, findAll, findSingleElement, mockedAxiosResponse, testWrapper } from "../../TestHelper";
 import { RelatedItems } from "../../../../src/app/views/shared/RelatedItems/RelatedItems";
 import { RelatedItemsTestHelper } from "./RelatedItemsTestHelper";
 import { SERVE_PATH } from "../../../../src/app/constants/path";
@@ -45,7 +45,7 @@ describe("Related items", () => {
     const checkRelatedItems = async function (nrItems: number, wrapper: ReactWrapper<any, any, React.Component>) {
         mockAxios.mockResponseFor(
             { url: hostPath + `/api/workspace/projects/${PROJECT_ID}/tasks/${TASK_ID}/relatedItems` },
-            mockAxiosResponse({ data: RelatedItemsTestHelper.generateRelatedItemsJson(nrItems, ITEM_PREFIX) })
+            mockedAxiosResponse({ data: RelatedItemsTestHelper.generateRelatedItemsJson(nrItems, ITEM_PREFIX) })
         );
 
         // Wait for render
