@@ -63,30 +63,35 @@ export const clickElement = (wrapper: ReactWrapper<any, any>, cssSelector: strin
 };
 
 /** Finds a single element corresponding to the selector or fails. */
-export const findSingleElement = (wrapper: ReactWrapper<any, any>, cssSelector: string) => {
-    const element = wrapper.find(cssSelector);
-    if (element.length === 3) {
-        // Enzyme's find() method returns not always just the DOM elements, but also companion objects for each DOM element.
-        // Filter out these companion objects and see if 1 element is left and return it.
-        let validElementIdx = -1;
-        const nrValidElements = element.getElements().filter((elem) => typeof elem.type === "string").length;
-        expect(nrValidElements).toBe(1);
-        element.getElements().forEach((elem, idx) => {
-            // The companion objects have a function as type value
-            if (typeof elem.type === "string") {
-                validElementIdx = idx;
-            }
-        });
-        expect(validElementIdx).toBeGreaterThan(-1);
-        return element.at(validElementIdx);
-    } else {
-        expect(element).toHaveLength(1);
-        return element;
-    }
+export const findSingleElement = (wrapper: ReactWrapper<any, any>, cssSelector: string): ReactWrapper<any, any> => {
+    wrapper.update();
+    const element = findAll(wrapper, cssSelector);
+    expect(element).toHaveLength(1);
+    return element[0];
 };
 
+/** Finds all wrapper elements that are actual elements in the DOM */
+export const findAll = (wrapper: ReactWrapper<any, any>, cssSelector: string): ReactWrapper[] => {
+    wrapper.update();
+    const element = wrapper.find(cssSelector);
+    const validElementIdx: number[] = [];
+    // Enzyme's find() method returns not always just the DOM elements, but also companion objects for each DOM element.
+    // Filter out these companion objects and see if 1 element is left and return it.
+    element.getElements().forEach((elem, idx) => {
+        if (typeof elem.type === "string") {
+            validElementIdx.push(idx);
+        }
+    });
+    return validElementIdx.map((idx) => element.at(idx));
+};
+
+interface IAxiosResponse {
+    status?: number;
+    data?: any;
+}
+
 /** Convenience method to create axios mock responses */
-export const mockAxiosResponse = (status: number = 200, data: any = "") => {
+export const mockAxiosResponse = ({ status = 200, data = "" }: IAxiosResponse = {}) => {
     return {
         status: status,
         data: data,
