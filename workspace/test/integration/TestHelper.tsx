@@ -86,7 +86,7 @@ export const findSingleElement = (wrapper: ReactWrapper<any, any>, cssSelector: 
 };
 
 /** Convenience method to create axios mock responses */
-export const mockAxiosResponse = (status: number = 200, data: any = "") => {
+export const mockedAxiosResponse = (status: number = 200, data: any = "") => {
     return {
         status: status,
         data: data,
