@@ -1,6 +1,6 @@
 import React from "react";
 import mockAxios from "../../__mocks__/axios";
-import { logRequests, testWrapper } from "../TestHelper";
+import { testWrapper } from "../TestHelper";
 import { createBrowserHistory } from "history";
 import Project from "../../../src/app/views/pages/Project";
 import qs from "qs";

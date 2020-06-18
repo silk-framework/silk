@@ -3,12 +3,11 @@ import mockAxios from "../../../../__mocks__/axios";
 import {
     apiUrl,
     legacyApiUrl,
-    logRequests,
     checkRequestMade,
     testWrapper,
     workspacePath,
     setUseParams,
-    mockAxiosResponse,
+    mockedAxiosResponse,
     eventually,
 } from "../../../TestHelper";
 import { createBrowserHistory } from "history";
@@ -43,7 +42,7 @@ describe("Task page", () => {
         const pluginId = "testPlugin";
         mockAxios.mockResponseFor(
             taskDataUrl,
-            mockAxiosResponse({ data: requestTaskDataTestResponse({ pluginId: pluginId }) })
+            mockedAxiosResponse({ data: requestTaskDataTestResponse({ pluginId: pluginId }) })
         );
         await eventually(() => checkRequestMade(apiUrl(`/core/plugins/${pluginId}`)));
     });
