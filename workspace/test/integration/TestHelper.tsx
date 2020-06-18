@@ -115,7 +115,7 @@ interface IAxiosResponse {
 }
 
 /** Convenience method to create axios mock responses */
-export const mockAxiosResponse = ({ status = 200, data = "" }: IAxiosResponse = {}) => {
+export const mockedAxiosResponse = ({ status = 200, data = "" }: IAxiosResponse = {}) => {
     return {
         status: status,
         data: data,
