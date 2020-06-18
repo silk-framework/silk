@@ -154,7 +154,7 @@ object StringParameterType {
     */
   private val allStaticTypes: Seq[StringParameterType[_]] = {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, UriType, ResourceType,
-      WritableResourceType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType, LongType,
+      WritableResourceType, ResourceOptionType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType, LongType,
       PasswordParameterType, IdentifierType, IdentifierOptionType, StringTraversableParameterType, RestrictionType)
   }
 
@@ -206,6 +206,11 @@ object StringParameterType {
   }
 
   object StringTraversableParameterType extends StringParameterType[StringTraversableParameter] {
+
+    override def name: String = "traversable[string]"
+
+    override def description: String = "A comma-separated list."
+
     override def fromString(str: String)
                            (implicit prefixes: Prefixes, resourceLoader: ResourceManager): StringTraversableParameter = {
       StringTraversableParameter(str.split("\\s*,\\s*"))
@@ -215,8 +220,6 @@ object StringParameterType {
                          (implicit prefixes: Prefixes): String = {
       value.mkString(", ")
     }
-
-    override def name: String = "traversable[string]"
   }
 
   object IntType extends StringParameterType[Int] {
@@ -375,6 +378,26 @@ object StringParameterType {
       } else {
         resourceLoader.get(str)
       }
+    }
+
+  }
+
+  object ResourceOptionType extends StringParameterType[ResourceOption] {
+
+    override def name: String = "optional resource"
+
+    override def description: String = "The name of a project resource or empty."
+
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): ResourceOption = {
+      if (str.trim.isEmpty) {
+        ResourceOption(None)
+      } else {
+        ResourceOption(Some(resourceLoader.get(str)))
+      }
+    }
+
+    override def toString(value: ResourceOption)(implicit prefixes: Prefixes): String = {
+      value.resource.map(_.name).getOrElse("")
     }
 
   }
