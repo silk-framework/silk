@@ -2,56 +2,60 @@ import React from "react";
 import mockAxios from "../../../../__mocks__/axios";
 import {
     apiUrl,
-    legacyApiUrl,
     checkRequestMade,
-    testWrapper,
-    workspacePath,
-    setUseParams,
-    mockedAxiosResponse,
     eventually,
+    findAll,
     findSingleElement,
     findSingleElementByTestId,
-    findAll,
+    legacyApiUrl,
+    mockedAxiosResponse,
+    setUseParams,
+    testWrapper,
+    workspacePath,
 } from "../../../TestHelper";
 import { createBrowserHistory } from "history";
 import Task from "../../../../../src/app/views/pages/Task";
 import {
+    ITaskParameter,
+    ParameterDescriptionGenerator,
     requestArtefactPropertiesTestResponse,
     requestTaskDataTestResponse,
-    ParameterDescriptionGenerator,
-    ITaskParameter,
 } from "../../../requests/sharedResponseStubs";
 import { waitFor } from "@testing-library/react";
 import { ReactWrapper } from "enzyme";
 import { IArtefactItemProperty } from "../../../../../src/app/store/ducks/common/typings";
+import { IMetadata } from "@ducks/shared/typings";
 
 describe("Task page", () => {
     afterEach(() => {
         mockAxios.reset();
     });
 
-    const PROJECT_ID = "cmem";
-    const TASK_ID = "taskId";
+    const projectId = "cmem";
+    const taskId = "taskId";
+    const taskLabel = "A task";
+    const taskDescription = "This is a task";
     const pluginId = "testPlugin";
     const pluginLabel = "Test Plugin";
-    const taskDataUrl = legacyApiUrl(`/workspace/projects/${PROJECT_ID}/tasks/${TASK_ID}`);
+    const taskDataUrl = legacyApiUrl(`/workspace/projects/${projectId}/tasks/${taskId}`);
+    const taskMetaDataUrl = legacyApiUrl(`/workspace/projects/${projectId}/tasks/${taskId}/metadata`);
     const pluginUrl = apiUrl(`/core/plugins/${pluginId}`);
 
     beforeAll(() => {
-        setUseParams(PROJECT_ID, TASK_ID);
+        setUseParams(projectId, taskId);
     });
 
     let taskPageWrapper: ReactWrapper<any, any> = null;
     beforeEach(() => {
         const history = createBrowserHistory();
-        history.location.pathname = workspacePath(`/projects/${PROJECT_ID}/task/${TASK_ID}`);
+        history.location.pathname = workspacePath(`/projects/${projectId}/task/${taskId}`);
 
         taskPageWrapper = testWrapper(<Task />, history);
     });
 
     it("should request meta data, related items and task config", async () => {
-        checkRequestMade(legacyApiUrl(`/workspace/projects/${PROJECT_ID}/tasks/${TASK_ID}/metadata`));
-        checkRequestMade(apiUrl(`/workspace/projects/${PROJECT_ID}/tasks/${TASK_ID}/relatedItems`));
+        checkRequestMade(taskMetaDataUrl);
+        checkRequestMade(apiUrl(`/workspace/projects/${projectId}/tasks/${taskId}/relatedItems`));
         checkRequestMade(taskDataUrl, "GET", { withLabels: true });
         mockAxios.mockResponseFor(
             taskDataUrl,
@@ -112,5 +116,20 @@ describe("Task page", () => {
         expect(propertyValues).toStrictEqual(
             params.map(([pluginId, pluginLabel, value, label]) => (label ? label : value))
         );
+    });
+
+    it("should display meta data of the task", async () => {
+        const taskMetaData: IMetadata = {
+            label: taskLabel,
+            description: taskDescription,
+        };
+        mockAxios.mockResponseFor(taskMetaDataUrl, mockedAxiosResponse({ data: taskMetaData }));
+        await waitFor(() => {
+            const metaData = findSingleElementByTestId(taskPageWrapper, "metaDataWidget");
+            expect(findAll(metaData, ".ecc-propertyvalue__value").map((elem) => elem.text())).toStrictEqual([
+                taskLabel,
+                taskDescription,
+            ]);
+        });
     });
 });
