@@ -27,7 +27,7 @@ export interface IArtefactItemProperty {
     title: string;
     description: string;
     // Either "string" or "object"
-    type: string;
+    type: "string" | "object";
     value: string;
     advanced: boolean;
     parameterType: string;

@@ -89,7 +89,7 @@ export function TaskConfig(props: IProps) {
     }
 
     return (
-        <Card>
+        <Card data-testid={"taskConfigWidget"}>
             <CardHeader>
                 <CardTitle>
                     <h3>Configuration{titlePostfix}</h3>

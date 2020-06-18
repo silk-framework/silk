@@ -1,3 +1,6 @@
+import { IProjectTask, TaskType } from "../../../src/app/store/ducks/shared/typings";
+import { IArtefactItemProperty, IDetailedArtefactItem } from "../../../src/app/store/ducks/common/typings";
+
 /** A single task parameter and value. */
 
 export interface ITaskParameter {
@@ -15,7 +18,7 @@ interface ITaskDataResponseParams {
     withLabels?: boolean;
     project?: string;
     // e.g. "Dataset", "Task" etc.
-    taskType?: string;
+    taskType?: TaskType;
     // The concrete plugin ID, e.g. "csv", "xml", "transform" etc.
     pluginId?: string;
 }
@@ -25,12 +28,12 @@ export const requestTaskDataTestResponse = ({
     parameters = [],
     withLabels = true,
     project = "unsetProjectId",
-    taskType = "Task",
+    taskType = "CustomTask",
     pluginId = "unsetPluginType",
     taskId = "unsetTaskId",
     taskLabel = "unsetTaskLabel",
     taskDescription = "unsetTaskDescription",
-}: ITaskDataResponseParams = {}) => {
+}: ITaskDataResponseParams = {}): IProjectTask => {
     const paramJSon = {};
     parameters.forEach((param) => {
         let paramValue = param.value;
@@ -56,5 +59,89 @@ export const requestTaskDataTestResponse = ({
         },
         project: project,
         taskType: taskType,
+    };
+};
+
+interface IArtefactPropertiesTestResponseParams {
+    categories?: string[];
+    description?: string;
+    pluginId?: string;
+    pluginLabel?: string;
+    taskType?: TaskType;
+    properties?: {
+        [key: string]: IArtefactItemProperty;
+    };
+}
+
+type ParameterType =
+    | "resource"
+    | "string"
+    | "int"
+    | "multiline string"
+    | "char"
+    | "traversable[string]"
+    | "Long"
+    | "double"
+    | "boolean"
+    | "option[int]"
+    | "option[identifier]"
+    | "stringmap"
+    | "uri"
+    | "project"
+    | "task"
+    | "identifier"
+    | "restriction"
+    | "enumeration"
+    | "password"
+    | "SPARQL endpoint";
+
+// Immutable class to generate parameter descriptions
+export class ParameterDescriptionGenerator {
+    private readonly value: IArtefactItemProperty;
+
+    constructor(value: Partial<IArtefactItemProperty> = {}) {
+        this.value = {
+            title: "unsetTitle",
+            description: "unsetDescription",
+            type: "string",
+            value: "",
+            advanced: false,
+            parameterType: "string",
+            visibleInDialog: true,
+            ...value,
+        };
+    }
+
+    withValues(updateValues: Partial<IArtefactItemProperty>): ParameterDescriptionGenerator {
+        return new ParameterDescriptionGenerator({ ...this.value, ...updateValues });
+    }
+
+    setParameterType(parameterType: ParameterType): ParameterDescriptionGenerator {
+        return new ParameterDescriptionGenerator({ ...this.value, parameterType: parameterType });
+    }
+
+    parameter(): IArtefactItemProperty {
+        return { ...this.value };
+    }
+}
+
+/** Returns response of the property schema of a plugin. */
+export const requestArtefactPropertiesTestResponse = ({
+    categories = ["unsetCategory"],
+    description = "unset description",
+    pluginId = "unsetPluginId",
+    pluginLabel = "unsetPluginLabel",
+    taskType = "CustomTask",
+    properties = {},
+}: IArtefactPropertiesTestResponseParams): IDetailedArtefactItem => {
+    return {
+        categories: categories,
+        description: description,
+        pluginId: pluginId,
+        properties: properties,
+        required: ["fileParameter"],
+        taskType: taskType,
+        title: pluginLabel,
+        type: "object",
     };
 };

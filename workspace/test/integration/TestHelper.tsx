@@ -88,25 +88,36 @@ export const clickElement = (wrapper: ReactWrapper<any, any>, cssSelector: strin
 
 /** Finds a single element corresponding to the selector or fails. */
 export const findSingleElement = (wrapper: ReactWrapper<any, any>, cssSelector: string): ReactWrapper<any, any> => {
-    wrapper.update();
     const element = findAll(wrapper, cssSelector);
     expect(element).toHaveLength(1);
     return element[0];
 };
 
-/** Finds all wrapper elements that are actual elements in the DOM */
-export const findAll = (wrapper: ReactWrapper<any, any>, cssSelector: string): ReactWrapper[] => {
+/** Finds the element with the given data-testid attribute value.*/
+export const findSingleElementByTestId = (wrapper: ReactWrapper<any, any>, testId: string): ReactWrapper<any, any> => {
     wrapper.update();
-    const element = wrapper.find(cssSelector);
+    const element = extractValidElements(wrapper.find({ "data-testid": testId }));
+    expect(element).toHaveLength(1);
+    return element[0];
+};
+
+/** Enzyme's find() method returns not always just the DOM elements, but also companion objects for each DOM element.
+ * Filter out these companion objects and see if 1 element is left and return it. */
+const extractValidElements = function (element: ReactWrapper<any, any>) {
     const validElementIdx: number[] = [];
-    // Enzyme's find() method returns not always just the DOM elements, but also companion objects for each DOM element.
-    // Filter out these companion objects and see if 1 element is left and return it.
     element.getElements().forEach((elem, idx) => {
         if (typeof elem.type === "string") {
             validElementIdx.push(idx);
         }
     });
     return validElementIdx.map((idx) => element.at(idx));
+};
+/** Finds all wrapper elements that are actual elements in the DOM */
+export const findAll = (wrapper: ReactWrapper<any, any>, cssSelector: string): ReactWrapper[] => {
+    wrapper.parent();
+    wrapper.update();
+    const element = wrapper.find(cssSelector);
+    return extractValidElements(element);
 };
 
 interface IAxiosResponse {
