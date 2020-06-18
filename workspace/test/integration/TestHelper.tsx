@@ -7,9 +7,15 @@ import { configureStore } from "@reduxjs/toolkit";
 import rootReducer from "../../src/app/store/reducers";
 import { ConnectedRouter } from "connected-react-router";
 import { AxiosMockType } from "jest-mock-axios/dist/lib/mock-axios-types";
+import mockAxios from "../__mocks__/axios";
+import { CONTEXT_PATH, SERVE_PATH } from "../../src/app/constants/path";
 
 const mockValues = {
     pathName: "/what?",
+    useParams: {
+        projectId: "Set me via TestHelper.setUseParams!",
+        taskId: "Set me via TestHelper.setUseParams!",
+    },
 };
 
 // Mock global history object
@@ -24,6 +30,15 @@ jest.mock("../../src/app/store/configureStore", () => {
         }),
     };
 });
+
+// Mock useParams hook
+jest.mock("react-router", () => ({
+    ...jest.requireActual("react-router"), // use actual for all non-hook parts
+    useParams: () => ({
+        projectId: mockValues.useParams.projectId,
+        taskId: mockValues.useParams.taskId,
+    }),
+}));
 
 /** Creates the Redux store. */
 export const createStore = (history: History<{}>) =>
@@ -46,9 +61,18 @@ export const testWrapper = (component: JSX.Element, history: History<{}>) => {
     );
 };
 
+/** Sets what should be returned from the useParams hook. */
+export const setUseParams = (projectId: string, taskId: string): void => {
+    mockValues.useParams = {
+        projectId: projectId,
+        taskId: taskId,
+    };
+};
+
 /** Logs all requests to the console. */
-export const logRequests = (mockAxios: AxiosMockType) => {
-    mockAxios.queue().forEach((request) => {
+export const logRequests = (axiosMock?: AxiosMockType) => {
+    const mock = axiosMock ? axiosMock : mockAxios;
+    mock.queue().forEach((request) => {
         console.log(request);
     });
 };
@@ -154,4 +178,49 @@ export const withWindowLocation = async (block: () => void, location: any = {}) 
     window.location = location;
     await block();
     window.location = oldLocation;
+};
+
+/** Returns the absolute URL under the workspace path with the given path value appended. */
+export const workspaceUrl = (path: string): string => {
+    const hostPath = process.env.HOST;
+    return hostPath + workspacePath(path);
+};
+
+/** Returns the absolute path under the workspace path with the given path value appended. */
+export const workspacePath = (path: string): string => {
+    return SERVE_PATH + prependSlash(path);
+};
+
+const host = process.env.HOST;
+
+/** Absolute URL of the legacy API. Basically all over the place. ;) */
+export const legacyApiUrl = (path: string): string => {
+    return host + CONTEXT_PATH + prependSlash(path);
+};
+
+// Prepend a "/" in front of the path if it is missing.
+const prependSlash = function (path: string) {
+    if (!path.startsWith("/")) {
+        return "/" + path;
+    } else {
+        return path;
+    }
+};
+
+/** Returns the absolute URL under the api path with the given path value appended. */
+export const apiUrl = (path: string): string => {
+    return host + CONTEXT_PATH + "/api" + prependSlash(path);
+};
+
+/** Checks if a request to a specific URL was made. */
+export const checkRequestMade = (url: string, method: string = "GET", data: any = null): void => {
+    const reqInfo = mockAxios.getReqMatching({
+        url: url,
+    });
+    if (!reqInfo) {
+        throw new Error(`No request was made to URL ${url} with method '${method}'.`);
+    }
+    if (data !== null) {
+        expect(reqInfo.data).toStrictEqual(data);
+    }
 };
