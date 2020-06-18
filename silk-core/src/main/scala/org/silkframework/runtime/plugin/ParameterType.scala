@@ -384,7 +384,7 @@ object StringParameterType {
 
   object ResourceOptionType extends StringParameterType[ResourceOption] {
 
-    override def name: String = "optional resource"
+    override def name: String = "resource"
 
     override def description: String = "The name of a project resource or empty."
 
