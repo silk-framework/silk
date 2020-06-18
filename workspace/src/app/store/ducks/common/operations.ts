@@ -1,4 +1,4 @@
-import { authorize, getTokenFromStore, isAuthenticated, logout } from "./thunks/auth.thunk";
+import { authorize, getTokenFromStore, isAuthenticated, logout, logoutFromDi } from "./thunks/auth.thunk";
 import { changeLocale } from "./thunks/locale.thunk";
 import { commonSlice } from "@ducks/common/commonSlice";
 import { batch } from "react-redux";
@@ -253,6 +253,7 @@ export default {
     getTokenFromStore,
     authorize,
     logout,
+    logoutFromDi,
     fetchAvailableDTypesAsync,
     fetchArtefactsListAsync,
     resetArtefactsList,

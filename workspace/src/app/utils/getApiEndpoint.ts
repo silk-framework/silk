@@ -4,7 +4,7 @@ import { API_ENDPOINT, HOST } from "../constants/path";
  * Root path of DI
  * @param path
  */
-const rootPath = (path: string) => {
+export const rootPath = (path: string) => {
     return HOST + path;
 };
 

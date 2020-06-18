@@ -55,7 +55,7 @@
     "identity-obj-proxy": "3.0.0",
     "jest": "24.9.0",
     "jest-environment-jsdom-fourteen": "1.0.1",
-    "jest-mock-axios": "^4.0.0",
+    "jest-mock-axios": "^4.2.0",
     "jest-pnp-resolver": "^1.2.1",
     "jest-resolve": "24.9.0",
     "jest-watch-typeahead": "0.4.2",
@@ -108,7 +108,7 @@
     "build-di-prod": "node scripts/build-di.prod.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
-    "test-ci": "export CI=true && jest --no-cache --detectOpenHandles --coverage",
+    "test-ci": "export CI=true && jest --no-cache --detectOpenHandles --reporters=\"jest-junit\"",
     "trans": "node scripts/manageTranslations.js"
   },
   "husky": {
@@ -229,6 +229,7 @@
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.12.1",
     "husky": "^4.2.5",
+    "jest-junit": "^10.0.0",
     "lint-staged": "^10.1.7",
     "prettier": "^2.0.5",
     "react-test-renderer": "^16.8.6",

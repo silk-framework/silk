@@ -267,9 +267,10 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                                     <>
                                         <MenuDivider />
                                         <MenuItem
+                                            id={"logoutAction"}
                                             text="Logout"
                                             onClick={() => {
-                                                dispatch(commonOp.logout());
+                                                dispatch(commonOp.logoutFromDi());
                                             }}
                                         />
                                     </>
@@ -279,6 +280,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                     </>
                 ) : (
                     <ApplicationToolbarAction
+                        id={"headerUserMenu"}
                         aria-label="Open user menu"
                         isActive={false}
                         onClick={() => {

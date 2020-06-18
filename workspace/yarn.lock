@@ -7058,6 +7058,17 @@ jest-jasmine2@^24.9.0:
     pretty-format "^24.9.0"
     throat "^4.0.0"
 
+jest-junit@^10.0.0:
+  version "10.0.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/jest-junit/-/jest-junit-10.0.0.tgz#c94b91c24920a327c9d2a075e897b2dba4af494b"
+  integrity sha1-yUuRwkkgoyfJ0qB16Jey26SvSUs=
+  dependencies:
+    jest-validate "^24.9.0"
+    mkdirp "^0.5.1"
+    strip-ansi "^5.2.0"
+    uuid "^3.3.3"
+    xml "^1.0.1"
+
 jest-leak-detector@^24.9.0:
   version "24.9.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/jest-leak-detector/-/jest-leak-detector-24.9.0.tgz#b665dea7c77100c5c4f7dfcb153b65cf07dcf96a"
@@ -7090,10 +7101,10 @@ jest-message-util@^24.9.0:
     slash "^2.0.0"
     stack-utils "^1.0.1"
 
-jest-mock-axios@^4.0.0:
-  version "4.0.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/jest-mock-axios/-/jest-mock-axios-4.0.0.tgz#f59ac5dcdb4ae51c4ec21203382bc4c001dd26f4"
-  integrity sha1-9ZrF3NtK5RxOwhIDOCvEwAHdJvQ=
+jest-mock-axios@^4.2.0:
+  version "4.2.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/jest-mock-axios/-/jest-mock-axios-4.2.0.tgz#65d487b66157c1cadd39b71b3102eaea691c7f2e"
+  integrity sha1-ZdSHtmFXwcrdObcbMQLq6mkcfy4=
   dependencies:
     synchronous-promise "^2.0.10"
 
@@ -12419,7 +12430,7 @@ utils-merge@1.0.1:
   resolved "https://artifactory.eccenca.com/api/npm/npm/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha1-n5VxD1CiZ5R7LMwSR0HBAoQn5xM=
 
-uuid@^3.0.1, uuid@^3.3.2:
+uuid@^3.0.1, uuid@^3.3.2, uuid@^3.3.3:
   version "3.4.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/uuid/-/uuid-3.4.0.tgz#b23e4358afa8a202fe7a100af1f5f883f02007ee"
   integrity sha1-sj5DWK+oogL+ehAK8fX4g/AgB+4=
@@ -13009,6 +13020,11 @@ xml-name-validator@^3.0.0:
   version "3.0.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/xml-name-validator/-/xml-name-validator-3.0.0.tgz#6ae73e06de4d8c6e47f9fb181f78d648ad457c6a"
   integrity sha1-auc+Bt5NjG5H+fsYH3jWSK1FfGo=
+
+xml@^1.0.1:
+  version "1.0.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/xml/-/xml-1.0.1.tgz#78ba72020029c5bc87b8a81a3cfcd74b4a2fc1e5"
+  integrity sha1-eLpyAgApxbyHuKgaPPzXS0ovweU=
 
 xmlchars@^2.1.1:
   version "2.2.0"
