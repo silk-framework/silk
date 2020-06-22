@@ -2,7 +2,7 @@ import React from "react";
 import "@testing-library/jest-dom";
 import { createBrowserHistory } from "history";
 import mockAxios from "../../../__mocks__/axios";
-import { findAll, findSingleElement, mockedAxiosResponse, testWrapper } from "../../TestHelper";
+import { findAll, findSingleElement, mockedAxiosResponse, testWrapper, workspacePath } from "../../TestHelper";
 import { RelatedItems } from "../../../../src/app/views/shared/RelatedItems/RelatedItems";
 import { RelatedItemsTestHelper } from "./RelatedItemsTestHelper";
 import { SERVE_PATH } from "../../../../src/app/constants/path";
@@ -64,7 +64,7 @@ describe("Related items", () => {
             expect(itemActions).toHaveLength(2);
             // Check detail page link
             const detailPageLink = findSingleElement(itemActions.at(0), "a").get(0);
-            expect(detailPageLink.props.href).toBe("/workspace-beta/projects/cmem/task/item" + idx);
+            expect(detailPageLink.props.href).toBe(workspacePath("/projects/cmem/task/item" + idx));
             // Check item links
             // TODO: How? Menu overlay is not part of the component.
         });

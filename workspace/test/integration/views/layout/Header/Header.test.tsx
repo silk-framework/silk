@@ -8,6 +8,7 @@ import {
     mockedAxiosResponse,
     testWrapper,
     withWindowLocation,
+    workspacePath,
 } from "../../../TestHelper";
 import { Header } from "../../../../../src/app/views/layout/Header/Header";
 import { waitFor } from "@testing-library/react";
@@ -20,7 +21,7 @@ describe("Header", () => {
 
     beforeEach(() => {
         const history = createBrowserHistory();
-        history.location.pathname = "/workspace-beta/projects/SomeProjectId/dataset/SomeTaskId";
+        history.location.pathname = workspacePath("/projects/SomeProjectId/dataset/SomeTaskId");
 
         wrapper = testWrapper(<Header breadcrumbs={[{ href: "/someHref", text: "dummy bread" }]} />, history);
     });
@@ -60,13 +61,13 @@ describe("Header", () => {
             },
             mockedAxiosResponse({
                 data: {
-                    detailsPage: "/workspace-beta/projects/SomeProjectId/dataset/SomeTaskId",
+                    detailsPage: workspacePath("/projects/SomeProjectId/dataset/SomeTaskId"),
                 },
             })
         );
 
         await waitFor(() => {
-            expect(window.location.pathname).toBe("/workspace-beta/projects/SomeProjectId/dataset/SomeTaskId");
+            expect(window.location.pathname).toBe(workspacePath("/projects/SomeProjectId/dataset/SomeTaskId"));
         });
     });
 

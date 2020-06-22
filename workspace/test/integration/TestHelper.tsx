@@ -173,15 +173,9 @@ export const withWindowLocation = async (block: () => void, location: any = {}) 
     window.location = oldLocation;
 };
 
-/** Returns the absolute URL under the workspace path with the given path value appended. */
-export const workspaceUrl = (path: string): string => {
-    const hostPath = process.env.HOST;
-    return hostPath + workspacePath(path);
-};
-
 /** Returns the absolute path under the workspace path with the given path value appended. */
-export const workspacePath = (path: string): string => {
-    return SERVE_PATH + prependSlash(path);
+export const workspacePath = (path: string = ""): string => {
+    return path ? SERVE_PATH + prependSlash(path) : SERVE_PATH;
 };
 
 const host = process.env.HOST;

@@ -1,4 +1,4 @@
-import { rangeArray } from "../../TestHelper";
+import { rangeArray, workspacePath } from "../../TestHelper";
 
 export class RelatedItemsTestHelper {
     /** Generates a JSON for response for the related items endpoint. */
@@ -12,7 +12,7 @@ export class RelatedItemsTestHelper {
                     itemLinks: [
                         {
                             label: "Item details page",
-                            path: `/workspace-beta/projects/cmem/task/${itemId}`,
+                            path: workspacePath(`/projects/cmem/task/${itemId}`),
                         },
                         {
                             label: "Item editor",

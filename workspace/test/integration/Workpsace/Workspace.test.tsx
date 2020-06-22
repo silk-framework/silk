@@ -2,7 +2,7 @@ import React from "react";
 import qs from "qs";
 import { createBrowserHistory } from "history";
 import mockAxios from "../../__mocks__/axios";
-import { testWrapper } from "../TestHelper";
+import { testWrapper, workspacePath } from "../TestHelper";
 import { Workspace } from "../../../src/app/views/pages/Workspace/Workspace";
 
 describe("Search Items", () => {
@@ -26,7 +26,7 @@ describe("Search Items", () => {
         );
 
         let history = createBrowserHistory();
-        history.location.pathname = "/workspace-beta";
+        history.location.pathname = workspacePath("");
         history.location.search = filteredQueryParams;
 
         testWrapper(<Workspace />, history);
