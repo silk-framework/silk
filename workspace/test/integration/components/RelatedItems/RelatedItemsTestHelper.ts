@@ -1,8 +1,10 @@
+import { rangeArray } from "../../TestHelper";
+
 export class RelatedItemsTestHelper {
     /** Generates a JSON for response for the related items endpoint. */
     static generateRelatedItemsJson(nrItems: number, itemIdPrefix: string): Object {
         return {
-            items: [...Array(nrItems).keys()].map((itemIdx) => {
+            items: rangeArray(nrItems).map((itemIdx) => {
                 const itemId = `${itemIdPrefix}${itemIdx}`;
                 return {
                     description: `${itemId} description`,

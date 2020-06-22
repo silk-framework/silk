@@ -1,8 +1,8 @@
 import React from "react";
 import { createBrowserHistory } from "history";
-import mockAxios from "../../__mocks__/axios";
-import { clickElement, logRequests, mockedAxiosResponse, testWrapper, withWindowLocation } from "../TestHelper";
-import { Header } from "../../../src/app/views/layout/Header/Header";
+import mockAxios from "../../../../__mocks__/axios";
+import { clickElement, mockedAxiosResponse, testWrapper, withWindowLocation } from "../TestHelper";
+import { Header } from "../../../../../src/app/views/layout/Header/Header";
 import { waitFor } from "@testing-library/react";
 import { Helmet } from "react-helmet";
 import { ContextMenu, MenuItem } from "../../../src/app/wrappers";

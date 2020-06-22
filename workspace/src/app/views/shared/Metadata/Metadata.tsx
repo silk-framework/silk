@@ -170,7 +170,7 @@ export function Metadata(props: IProps) {
     );
 
     const widgetContent = (
-        <CardContent>
+        <CardContent data-testid={"metaDataWidget"}>
             {loading && <Loading description="Loading summary data." />}
             {!loading && isEditing && (
                 <PropertyValueList>

@@ -1,6 +1,6 @@
 import React from "react";
 import mockAxios from "../../__mocks__/axios";
-import { logRequests, testWrapper } from "../TestHelper";
+import { apiUrl, checkRequestMade, legacyApiUrl, testWrapper } from "../TestHelper";
 import { createBrowserHistory } from "history";
 import Project from "../../../src/app/views/pages/Project";
 import qs from "qs";
@@ -19,31 +19,19 @@ describe("Project page", () => {
     });
 
     it("should get common data types or for specific project", async () => {
-        const reqInfo = mockAxios.getReqMatching({
-            url: hostPath + "/api/workspace/searchConfig/types?projectId=cmem",
-        });
-        expect(reqInfo).toBeTruthy();
+        checkRequestMade(apiUrl("/workspace/searchConfig/types?projectId=cmem"));
     });
 
     it("should request meta data", async () => {
-        const reqInfo = mockAxios.getReqMatching({
-            url: hostPath + "/api/workspace/projects/cmem/metaData",
-        });
-        expect(reqInfo).toBeTruthy();
+        checkRequestMade(apiUrl("/workspace/projects/cmem/metaData"));
     });
 
     it("should get available resources for file widget", () => {
-        const reqInfo = mockAxios.getReqMatching({
-            url: hostPath + "/workspace/projects/cmem/resources",
-        });
-        expect(reqInfo).toBeTruthy();
+        checkRequestMade(legacyApiUrl("/workspace/projects/cmem/resources"));
     });
 
     it("should get prefixes for configuration widget", () => {
-        const reqInfo = mockAxios.getReqMatching({
-            url: hostPath + "/api/workspace/projects/cmem/prefixes",
-        });
-        expect(reqInfo).toBeTruthy();
+        checkRequestMade(apiUrl("/workspace/projects/cmem/prefixes"));
     });
 
     it("should filter items, by given criteria from URL search params", async () => {
@@ -66,11 +54,7 @@ describe("Project page", () => {
 
         testWrapper(<Project />, history);
 
-        const reqInfo = mockAxios.getReqMatching({
-            url: hostPath + "/api/workspace/searchItems",
-        });
-
-        expect(reqInfo.data).toEqual({
+        const expectedSearchResponse = {
             textQuery: "some text",
             itemType: "dataset",
             limit: 15,
@@ -80,6 +64,8 @@ describe("Project page", () => {
                 { facetId: "facetId1", type: "keyword", keywordIds: ["facet1Key1", "facet1Key2"] },
                 { facetId: "facetId2", type: "keyword", keywordIds: ["facet2Key"] },
             ],
-        });
+        };
+
+        checkRequestMade(apiUrl("/workspace/searchItems"), "POST", expectedSearchResponse);
     });
 });

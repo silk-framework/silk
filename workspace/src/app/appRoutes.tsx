@@ -8,7 +8,7 @@ const DatasetPage = lazy(() => import("./views/pages/Dataset"));
 const WorkflowPage = lazy(() => import("./views/pages/Workflow"));
 const TransformPage = lazy(() => import("./views/pages/Transform"));
 const LinkingPage = lazy(() => import("./views/pages/Linking"));
-const ScriptTaskPage = lazy(() => import("./views/pages/ScriptTask"));
+const TaskPage = lazy(() => import("./views/pages/Task"));
 const NotFoundPage = lazy(() => import("./views/pages/NotFound"));
 
 interface IRouteProps extends RouteProps {
@@ -48,7 +48,7 @@ const appRoutes: IRouteProps[] = [
     },
     {
         path: "/projects/:projectId/task/:taskId",
-        component: ScriptTaskPage,
+        component: TaskPage,
         exact: true,
     },
     {
