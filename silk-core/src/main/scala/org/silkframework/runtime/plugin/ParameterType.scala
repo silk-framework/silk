@@ -213,7 +213,11 @@ object StringParameterType {
 
     override def fromString(str: String)
                            (implicit prefixes: Prefixes, resourceLoader: ResourceManager): StringTraversableParameter = {
-      StringTraversableParameter(str.split("\\s*,\\s*"))
+      if(str.isEmpty) {
+        StringTraversableParameter(Traversable.empty)
+      } else {
+        StringTraversableParameter(str.split("\\s*,\\s*"))
+      }
     }
 
     override def toString(value: StringTraversableParameter)
