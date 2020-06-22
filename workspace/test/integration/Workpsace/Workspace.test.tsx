@@ -44,27 +44,5 @@ describe("Search Items", () => {
                 { facetId: "facetId2", type: "keyword", keywordIds: ["facet2Key"] },
             ],
         });
-
-        // mockAxios.mockResponseFor({
-        //     url: 'undefinedundefined/workspace/searchItems'
-        // }, {
-        //     data: {
-        //         results: [{
-        //             label: 'FOR_TEST',
-        //             itemLinks: []
-        //         }],
-        //         facets: [],
-        //         sortByProperties: [],
-        //         total: 1
-        //     },
-        //     status: 200,
-        //     statusText: 'OK',
-        //     headers: {},
-        //     config: {},
-        // });
-
-        // await waitFor(() => {
-        //     expect(wrapper.getByText('FOR_TEST')).toHaveLength(1);
-        // });
     });
 });

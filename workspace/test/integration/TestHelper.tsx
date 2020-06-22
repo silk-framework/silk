@@ -113,10 +113,10 @@ export const findSingleElement = (wrapper: ReactWrapper<any, any>, cssSelector: 
     return element[0];
 };
 
-/** Finds the element with the given data-testid attribute value.*/
+/** Finds the element with the given data-test-id attribute value.*/
 export const findSingleElementByTestId = (wrapper: ReactWrapper<any, any>, testId: string): ReactWrapper<any, any> => {
     wrapper.update();
-    const element = extractValidElements(wrapper.find({ "data-testid": testId }));
+    const element = extractValidElements(wrapper.find({ "data-test-id": testId }));
     expect(element).toHaveLength(1);
     return element[0];
 };

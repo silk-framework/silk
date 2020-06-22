@@ -1,11 +1,18 @@
 import React from "react";
 import { createBrowserHistory } from "history";
 import mockAxios from "../../../../__mocks__/axios";
-import { clickElement, mockedAxiosResponse, testWrapper, withWindowLocation } from "../TestHelper";
+import {
+    clickElement,
+    clickWrapperElement,
+    findSingleElementByTestId,
+    mockedAxiosResponse,
+    testWrapper,
+    withWindowLocation,
+} from "../../../TestHelper";
 import { Header } from "../../../../../src/app/views/layout/Header/Header";
 import { waitFor } from "@testing-library/react";
 import { Helmet } from "react-helmet";
-import { ContextMenu, MenuItem } from "../../../src/app/wrappers";
+import { ContextMenu } from "../../../../../src/app/wrappers";
 
 describe("Header", () => {
     let hostPath = process.env.HOST;
@@ -27,8 +34,8 @@ describe("Header", () => {
     });
 
     it("should delete button works properly", async () => {
-        clickElement(wrapper, '[data-test-id="header-remove-button"]');
-        clickElement(wrapper, '[data-test-id="remove-item-button"]');
+        clickWrapperElement(findSingleElementByTestId(wrapper, "header-remove-button"));
+        clickWrapperElement(findSingleElementByTestId(wrapper, "remove-item-button"));
         mockAxios.mockResponseFor(
             {
                 url: hostPath + "/workspace/projects/SomeProjectId/tasks/SomeTaskId?removeDependentTasks=true",
@@ -44,7 +51,7 @@ describe("Header", () => {
 
     xit("should clone button works properly", async () => {
         wrapper.find(ContextMenu).simulate("click");
-        clickElement(wrapper, '[data-test-id="clone-modal-button"]');
+        clickWrapperElement(findSingleElementByTestId(wrapper, "clone-modal-button"));
 
         mockAxios.mockResponseFor(
             {
