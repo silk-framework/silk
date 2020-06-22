@@ -4,7 +4,6 @@ import {
     apiUrl,
     byTestId,
     checkRequestMade,
-    eventually,
     findAll,
     findSingleElement,
     legacyApiUrl,
@@ -61,7 +60,7 @@ describe("Task page", () => {
             taskDataUrl,
             mockedAxiosResponse({ data: requestTaskDataTestResponse({ pluginId: pluginId }) })
         );
-        await eventually(() => checkRequestMade(pluginUrl));
+        await waitFor(() => checkRequestMade(pluginUrl));
     });
 
     it("should display the task config with labels", async () => {
@@ -91,7 +90,7 @@ describe("Task page", () => {
             taskDataUrl,
             mockedAxiosResponse({ data: requestTaskDataTestResponse({ pluginId: pluginId, parameters: taskParams }) })
         );
-        await eventually(() => checkRequestMade(pluginUrl));
+        await waitFor(() => checkRequestMade(pluginUrl));
         // Get plugin description
         mockAxios.mockResponseFor(
             pluginUrl,

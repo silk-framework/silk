@@ -2,11 +2,12 @@ import React from "react";
 import "@testing-library/jest-dom";
 import { createBrowserHistory } from "history";
 import mockAxios from "../../../__mocks__/axios";
-import { eventually, findAll, findSingleElement, mockedAxiosResponse, testWrapper } from "../../TestHelper";
+import { findAll, findSingleElement, mockedAxiosResponse, testWrapper } from "../../TestHelper";
 import { RelatedItems } from "../../../../src/app/views/shared/RelatedItems/RelatedItems";
 import { RelatedItemsTestHelper } from "./RelatedItemsTestHelper";
 import { SERVE_PATH } from "../../../../src/app/constants/path";
 import { ReactWrapper } from "enzyme";
+import { waitFor } from "@testing-library/react";
 
 describe("Related items", () => {
     let hostPath = process.env.HOST;
@@ -49,7 +50,7 @@ describe("Related items", () => {
         );
 
         // Wait for render
-        await eventually(() => {
+        await waitFor(() => {
             expect(wrapper.text()).toContain(`(${nrItems})`);
         });
         // Check items that are displayed in the list

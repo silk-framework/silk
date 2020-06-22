@@ -163,54 +163,6 @@ export const rangeArray = (nrItems: number): number[] => {
     return [...indexes];
 };
 
-/** Checks if a predicate becomes true before the specified timeout.
- * The predicate is true if it does not throw an exception and if it's returning a boolean it evaluates to true. */
-export const eventually = async (predicate: () => any, timeoutMs: number = 2000): Promise<void> => {
-    expect(timeoutMs).toBeGreaterThan(0);
-    // Needed to complete the stacktrace to show from where eventually has been called.
-    const tempError = Error();
-    const start = Date.now();
-    let count = 0;
-    const checkPredicate = (resolve, reject): void => {
-        let success = false;
-        let error = null;
-        try {
-            count += 1;
-            const result = predicate();
-            if (typeof result === "boolean") {
-                success = result;
-            } else {
-                success = true;
-            }
-        } catch (ex) {
-            error = ex;
-        }
-        if (success) {
-            resolve();
-        } else {
-            if (Date.now() - start < timeoutMs) {
-                // Still time left, try again
-                setTimeout(() => checkPredicate(resolve, reject), 1);
-            } else {
-                // Failed
-                let timeoutError = new Error(
-                    `The predicate did not become true in the specified timeout of ${timeoutMs}ms.`
-                );
-                if (error) {
-                    timeoutError = new Error(
-                        `Tried predicate ${count} times during ${timeoutMs}ms. Last error: ${error.message}`
-                    );
-                }
-                timeoutError.stack += tempError.stack;
-                reject(timeoutError);
-            }
-        }
-    };
-    return new Promise<void>((resolve, reject) => {
-        checkPredicate(resolve, reject);
-    });
-};
-
 /** Jest does not allow to set the window.location. In order to test changes on that object, we need to mock it.
  * This function mocks the window.location object and restores it afterwards. */
 export const withWindowLocation = async (block: () => void, location: any = {}) => {
