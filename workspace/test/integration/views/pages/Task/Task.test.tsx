@@ -2,11 +2,11 @@ import React from "react";
 import mockAxios from "../../../../__mocks__/axios";
 import {
     apiUrl,
+    byTestId,
     checkRequestMade,
     eventually,
     findAll,
     findSingleElement,
-    findSingleElementByTestId,
     legacyApiUrl,
     mockedAxiosResponse,
     setUseParams,
@@ -104,10 +104,10 @@ describe("Task page", () => {
         );
         // Check widget title
         await waitFor(() => {
-            const taskConfig = findSingleElementByTestId(taskPageWrapper, "taskConfigWidget");
+            const taskConfig = findSingleElement(taskPageWrapper, byTestId("taskConfigWidget"));
             expect(findSingleElement(taskConfig, "header h3").text()).toContain(pluginLabel);
         });
-        const taskConfig = findSingleElementByTestId(taskPageWrapper, "taskConfigWidget");
+        const taskConfig = findSingleElement(taskPageWrapper, byTestId("taskConfigWidget"));
         const propertyLabels = findAll(taskConfig, ".ecc-card__content .ecc-label").map((elem) => elem.text());
         expect(propertyLabels).toStrictEqual(params.map(([paramId, paramLabel]) => paramLabel));
         const propertyValues = findAll(taskConfig, ".ecc-card__content .ecc-propertyvalue__value").map((elem) =>
@@ -125,7 +125,7 @@ describe("Task page", () => {
         };
         mockAxios.mockResponseFor(taskMetaDataUrl, mockedAxiosResponse({ data: taskMetaData }));
         await waitFor(() => {
-            const metaData = findSingleElementByTestId(taskPageWrapper, "metaDataWidget");
+            const metaData = findSingleElement(taskPageWrapper, byTestId("metaDataWidget"));
             expect(findAll(metaData, ".ecc-propertyvalue__value").map((elem) => elem.text())).toStrictEqual([
                 taskLabel,
                 taskDescription,

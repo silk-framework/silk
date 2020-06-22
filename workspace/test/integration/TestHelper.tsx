@@ -1,6 +1,6 @@
 import React from "react";
 import { History } from "history";
-import { mount, ReactWrapper } from "enzyme";
+import { EnzymePropSelector, mount, ReactWrapper } from "enzyme";
 import { Provider } from "react-redux";
 import { AppLayout } from "../../src/app/views/layout/AppLayout/AppLayout";
 import { configureStore } from "@reduxjs/toolkit";
@@ -78,7 +78,7 @@ export const logRequests = (axiosMock?: AxiosMockType) => {
 };
 
 /** Clicks an element specified by a selector. */
-export const clickElement = (wrapper: ReactWrapper<any, any>, cssSelector: string) => {
+export const clickElement = (wrapper: ReactWrapper<any, any>, cssSelector: string | EnzymePropSelector) => {
     const element = findSingleElement(wrapper, cssSelector);
     clickWrapperElement(element);
     // console.log(`Clicked element with selector '${cssSelector}'.`);
@@ -107,18 +107,19 @@ export const changeValue = (wrapper: ReactWrapper<any, any>, value: string) => {
 };
 
 /** Finds a single element corresponding to the selector or fails. */
-export const findSingleElement = (wrapper: ReactWrapper<any, any>, cssSelector: string): ReactWrapper<any, any> => {
+export const findSingleElement = (
+    wrapper: ReactWrapper<any, any>,
+    cssSelector: string | EnzymePropSelector
+): ReactWrapper<any, any> => {
+    wrapper.update();
     const element = findAll(wrapper, cssSelector);
     expect(element).toHaveLength(1);
     return element[0];
 };
 
-/** Finds the element with the given data-test-id attribute value.*/
-export const findSingleElementByTestId = (wrapper: ReactWrapper<any, any>, testId: string): ReactWrapper<any, any> => {
-    wrapper.update();
-    const element = extractValidElements(wrapper.find({ "data-test-id": testId }));
-    expect(element).toHaveLength(1);
-    return element[0];
+/** Returns a data test id selector. */
+export const byTestId = (testId: string): EnzymePropSelector => {
+    return { "data-test-id": testId };
 };
 
 /** Enzyme's find() method returns not always just the DOM elements, but also companion objects for each DOM element.
@@ -133,10 +134,13 @@ const extractValidElements = function (element: ReactWrapper<any, any>) {
     return validElementIdx.map((idx) => element.at(idx));
 };
 /** Finds all wrapper elements that are actual elements in the DOM */
-export const findAll = (wrapper: ReactWrapper<any, any>, cssSelector: string): ReactWrapper[] => {
+export const findAll = (wrapper: ReactWrapper<any, any>, cssSelector: string | EnzymePropSelector): ReactWrapper[] => {
     wrapper.parent();
     wrapper.update();
-    const element = wrapper.find(cssSelector);
+    const element =
+        typeof cssSelector === "string"
+            ? wrapper.find(cssSelector as string)
+            : wrapper.find(cssSelector as EnzymePropSelector);
     return extractValidElements(element);
 };
 
