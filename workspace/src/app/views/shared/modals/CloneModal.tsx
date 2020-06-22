@@ -76,7 +76,13 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             isOpen={true}
             onClose={onDiscard}
             actions={[
-                <Button key="clone" affirmative onClick={handleCloning} disabled={!newLabel}>
+                <Button
+                    key="clone"
+                    affirmative
+                    onClick={handleCloning}
+                    disabled={!newLabel}
+                    data-test-id={"clone-modal-button"}
+                >
                     Clone
                 </Button>,
                 <Button key="cancel" onClick={onDiscard}>

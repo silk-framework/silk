@@ -207,9 +207,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                 )
             }
             <WorkspaceHeader>
-                <Helmet>
-                    <title>{windowTitle}</title>
-                </Helmet>
+                <Helmet title={windowTitle} />
                 <OverviewItem>
                     <OverviewItemDepiction>
                         <ItemDepiction itemType={itemType} />
@@ -232,9 +230,15 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                                     text={taskId ? "Remove task" : "Remove project"}
                                     disruptive
                                     onClick={toggleDeleteModal}
+                                    data-test-id={"header-remove-button"}
                                 />
                                 <ContextMenu>
-                                    <MenuItem key={"clone"} text={"Clone"} onClick={toggleCloneModal} />
+                                    <MenuItem
+                                        key={"clone"}
+                                        text={"Clone"}
+                                        onClick={toggleCloneModal}
+                                        data-test-id={"header-clone-button"}
+                                    />
                                     {itemLinks.map((itemLink) => (
                                         <MenuItem key={itemLink.path} text={itemLink.label} href={itemLink.path} />
                                     ))}

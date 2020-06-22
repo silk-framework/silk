@@ -52,6 +52,7 @@ export default function DeleteModal({
                             disruptive
                             onClick={onConfirm}
                             disabled={confirmationRequired && !isConfirmed}
+                            data-test-id={"remove-item-button"}
                         >
                             Delete
                         </Button>,

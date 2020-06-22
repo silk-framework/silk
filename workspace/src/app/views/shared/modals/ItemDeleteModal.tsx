@@ -102,6 +102,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
 
     return (
         <DeleteModal
+            data-test-id={"deleteItemModal"}
             isOpen={true}
             onDiscard={onClose}
             onConfirm={handleConfirmRemove}
