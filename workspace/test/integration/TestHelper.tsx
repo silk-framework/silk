@@ -80,10 +80,30 @@ export const logRequests = (axiosMock?: AxiosMockType) => {
 /** Clicks an element specified by a selector. */
 export const clickElement = (wrapper: ReactWrapper<any, any>, cssSelector: string) => {
     const element = findSingleElement(wrapper, cssSelector);
-    // There should only be one element, if there are more, the selector needs to be more selective
-    expect(element).toHaveLength(1);
-    element.simulate("click");
+    clickWrapperElement(element);
     // console.log(`Clicked element with selector '${cssSelector}'.`);
+};
+
+/** Click the element represented by the given wrapper. */
+export const clickWrapperElement = (wrapper: ReactWrapper<any, any>) => {
+    // There should only be one element, if there are more, the selector needs to be more selective
+    expect(wrapper).toHaveLength(1);
+    wrapper.simulate("click");
+};
+
+/** Simulates a keyboard key press on an element. */
+export const pressKey = (wrapper: ReactWrapper<any, any>, key: string = "Enter") => {
+    wrapper.simulate("keypress", { key: key });
+};
+
+/** Simulates a key down event on the element. */
+export const keyDown = (wrapper: ReactWrapper<any, any>, key: string = "Enter") => {
+    wrapper.simulate("keydown", { key: key });
+};
+
+/** Triggers a change event on an element. */
+export const changeValue = (wrapper: ReactWrapper<any, any>, value: string) => {
+    wrapper.simulate("change", { target: { value: value } });
 };
 
 /** Finds a single element corresponding to the selector or fails. */
@@ -131,6 +151,12 @@ export const mockedAxiosResponse = ({ status = 200, data = "" }: IAxiosResponse 
         status: status,
         data: data,
     };
+};
+
+// Returns an array with values 0 ... (nrItems - 1)
+export const rangeArray = (nrItems: number): number[] => {
+    const indexes = Array(nrItems).keys();
+    return [...indexes];
 };
 
 /** Checks if a predicate becomes true before the specified timeout.
@@ -223,8 +249,19 @@ export const apiUrl = (path: string): string => {
     return host + CONTEXT_PATH + "/api" + prependSlash(path);
 };
 
-/** Checks if a request to a specific URL was made. */
-export const checkRequestMade = (url: string, method: string = "GET", data: any = null): void => {
+/** Checks if a request to a specific URL was made.
+ *
+ * @param url             The URL the request was made to.
+ * @param method          The HTTP method of the request.
+ * @param data            The expected data of the request. Either the request body or query parameters.
+ * @param partialEquality Should the request data only be checked partially, i.e. only the values that are actually given in the parameter?
+ */
+export const checkRequestMade = (
+    url: string,
+    method: string = "GET",
+    data: any = null,
+    partialEquality: boolean = false
+): void => {
     const reqInfo = mockAxios.getReqMatching({
         url: url,
     });
@@ -232,6 +269,12 @@ export const checkRequestMade = (url: string, method: string = "GET", data: any 
         throw new Error(`No request was made to URL ${url} with method '${method}'.`);
     }
     if (data !== null) {
-        expect(reqInfo.data).toStrictEqual(data);
+        if (partialEquality && typeof data === "object") {
+            Object.entries(data).forEach(([key, value]) => {
+                expect(reqInfo.data[key]).toStrictEqual(value);
+            });
+        } else {
+            expect(reqInfo.data).toStrictEqual(data);
+        }
     }
 };
