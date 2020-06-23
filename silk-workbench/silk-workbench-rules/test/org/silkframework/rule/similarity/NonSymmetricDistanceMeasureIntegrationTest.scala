@@ -16,7 +16,7 @@ class NonSymmetricDistanceMeasureIntegrationTest extends FlatSpec with MustMatch
 
   override def projectPathInClasspath: String = "org/silkframework/rule/similarity/reverseMatching.zip"
 
-  override def workspaceProvider: String = "inMemory"
+  override def workspaceProviderId: String = "inMemory"
 
   it should "produce correct results with reverse=false" in {
     linkingResult(linkTaskReverseFalse).links.size mustBe 1

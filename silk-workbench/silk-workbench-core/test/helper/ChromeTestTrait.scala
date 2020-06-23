@@ -5,7 +5,7 @@ import java.util.logging.Logger
 
 import org.openqa.selenium.interactions.Actions
 import org.openqa.selenium.{TimeoutException, WebElement}
-import org.scalatest.{MustMatchers, Suite}
+import org.scalatest.{MustMatchers, Suite, TestSuite}
 import org.scalatestplus.play.{ChromeFactory, OneBrowserPerSuite}
 
 import scala.language.implicitConversions
@@ -14,7 +14,7 @@ import scala.language.implicitConversions
   * Created on 7/20/16.
   */
 trait ChromeTestTrait extends IntegrationTestTrait with OneBrowserPerSuite with ChromeFactory with MustMatchers {
-  this: Suite =>
+  this: TestSuite =>
 
   final val DEFAULT_PAGE_LOAD_TIMEOUT: Long = 3000
 

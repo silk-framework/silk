@@ -10,6 +10,7 @@ import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
+import org.silkframework.workspace.TaskLoadingError
 
 import scala.util.Try
 import scala.xml.{Attribute, Null, Text, XML}
@@ -39,14 +40,14 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasksSafe(resources: ResourceLoader, projectResources: ResourceManager): Seq[Try[Task[TransformSpec]]] = {
+  override def loadTasksSafe(resources: ResourceLoader, projectResources: ResourceManager): Seq[Either[Task[TransformSpec], TaskLoadingError]] = {
     val tasks =
       for(name <- resources.listChildren) yield
-        Try(loadTask(name, resources.child(name), projectResources))
+        loadTask(name, resources.child(name), projectResources)
     tasks
   }
 
-  private def loadTask(name: Identifier, taskResources: ResourceLoader, projectResources: ResourceManager) = {
+  private def loadTask(name: Identifier, taskResources: ResourceLoader, projectResources: ResourceManager): Either[Task[TransformSpec], TaskLoadingError] = {
     try {
       implicit val resources = projectResources
       implicit val readContext = ReadContext(resources)
@@ -58,7 +59,7 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
       if((xml \ "@id").isEmpty) {
         xml = xml % Attribute("id", Text(name), Null)
       }
-      fromXml[Task[TransformSpec]](xml)
+      loadTaskSafelyFromXML(xml, resourceName = "rules.xml", alternativeTaskId = Some(name), taskResources, projectResources)
     } catch {
       case ex: ValidationException =>
         throw new ValidationException(s"Error loading task '$name': ${ex.getMessage}", ex)

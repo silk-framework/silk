@@ -67,6 +67,7 @@ class CsvWriter(resource: WritableResource, properties: Seq[TypedProperty], sett
     for(quoteChar <- settings.quote) {
       writerSettings.getFormat.setQuote(quoteChar)
     }
+    writerSettings.getFormat.setQuoteEscape(settings.quoteEscapeChar)
 
     settings.maxCharsPerColumn foreach {
       writerSettings.setMaxCharsPerColumn
@@ -77,6 +78,7 @@ class CsvWriter(resource: WritableResource, properties: Seq[TypedProperty], sett
     settings.commentChar foreach {
       writerSettings.getFormat.setComment(_)
     }
+    settings.nullValue foreach writerSettings.setNullValue
 
     new UniCsvWritter(writer, writerSettings)
   }

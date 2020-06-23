@@ -1,6 +1,6 @@
 package org.silkframework.dataset
 
-import org.silkframework.entity.{ForwardOperator, Path}
+import org.silkframework.entity.paths.{ForwardOperator, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
 
 import scala.collection.mutable
@@ -74,7 +74,7 @@ trait HierarchicalSampleValueAnalyzerExtractionSource extends SchemaExtractionSo
   override def extractSchema[T](analyzerFactory: ValueAnalyzerFactory[T],
                                 pathLimit: Int,
                                 sampleLimit: Option[Int],
-                                progress: (Double) => Unit = (_) => {})
+                                progress: Double => Unit = _ => {})
                                (implicit userContext: UserContext): ExtractedSchema[T] = {
     val sampleValueAnalyzer = SampleValueAnalyzer(sampleLimit.getOrElse(DEFAULT_VALUE_SAMPLE_LIMIT), analyzerFactory)
     val collectValues: (List[String], String) => Unit = (path, value) => { sampleValueAnalyzer.addValue(path, value) }
@@ -98,9 +98,9 @@ trait HierarchicalSampleValueAnalyzerExtractionSource extends SchemaExtractionSo
     val schemaClasses = for(typ <- types) yield {
       val extractedSchemaPaths = for(path <- typeMap(typ)) yield {
         val analyzerResult = pathAnalyzerResults(path)
-        ExtractedSchemaProperty(Path(path.last), analyzerResult)
+        ExtractedSchemaProperty(UntypedPath(path.last), analyzerResult)
       }
-      ExtractedSchemaClass(Path(typ.map(ForwardOperator(_))).normalizedSerialization, extractedSchemaPaths)
+      ExtractedSchemaClass(UntypedPath(typ.map(ForwardOperator(_))).normalizedSerialization, extractedSchemaPaths)
     }
     progress(1.0)
     ExtractedSchema(schemaClasses)

@@ -4,25 +4,30 @@ import java.util.logging.{Level, Logger}
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
-import org.silkframework.config.MetaData
+import controllers.util.SerializationUtils
+import javax.inject.Inject
+import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.entity.{Link, Restriction}
+import org.silkframework.entity.{Entity, FullLink, Link, MinimalLink, Restriction}
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.execution.{GenerateLinks => GenerateLinksActivity}
-import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule}
+import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
-import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSerialization}
 import org.silkframework.runtime.validation._
+import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
+import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
-import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller}
+import play.api.libs.json.{JsArray, JsValue, Json}
+import play.api.mvc.{Action, AnyContent, AnyContentAsXml, InjectedController}
 
-class LinkingTaskApi extends Controller {
+class LinkingTaskApi @Inject() () extends InjectedController {
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -37,26 +42,26 @@ class LinkingTaskApi extends Controller {
     val values = request.body.asFormUrlEncoded.getOrElse(request.queryString).mapValues(_.head)
 
     val proj: Project = WorkspaceFactory().workspace.project(project)
-    implicit val prefixes = proj.config.prefixes
+    implicit val prefixes: Prefixes = proj.config.prefixes
 
-    val datasets =
-      DPair(DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values.getOrElse("sourceRestriction", ""))),
-            DatasetSelection(values("target"), Uri.parse(values.getOrElse("targetType", ""), prefixes), Restriction.custom(values.getOrElse("targetRestriction", ""))))
-    val outputs = values.get("output").filter(_.nonEmpty).map(str => str.split(",").map(Identifier(_))).toSeq.flatten
+    val sourceDataset = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes), Restriction.custom(values.getOrElse("sourceRestriction", "")))
+    val targetDataset = DatasetSelection(values("target"), Uri.parse(values.getOrElse("targetType", ""), prefixes), Restriction.custom(values.getOrElse("targetRestriction", "")))
+    val output = values.get("output").filter(_.nonEmpty).map(str => str.split(",").map(Identifier(_))).toSeq.flatten.headOption
 
-    proj.tasks[LinkSpec].find(_.id == task) match {
+    proj.tasks[LinkSpec].find(_.id.toString == task) match {
       //Update existing task
       case Some(oldTask) if !createOnly => {
-        val updatedLinkSpec = oldTask.data.copy(dataSelections = datasets, outputs = outputs)
+        val updatedLinkSpec = oldTask.data.copy(source = sourceDataset, target = targetDataset, output = output)
         proj.updateTask(task, updatedLinkSpec)
       }
       //Create new task
       case _ => {
         val linkSpec =
           LinkSpec(
-            dataSelections = datasets,
+            source = sourceDataset,
+            target = targetDataset,
             rule = LinkageRule(None),
-            outputs = outputs
+            output = output
           )
 
         proj.addTask(task, linkSpec, MetaData(MetaData.labelFromId(task)))
@@ -168,7 +173,7 @@ class LinkingTaskApi extends Controller {
 
     for(data <- request.body.asMultipartFormData;
         file <- data.files) {
-      var referenceLinks = ReferenceLinks.fromXML(scala.xml.XML.loadFile(file.ref.file))
+      var referenceLinks = ReferenceLinks.fromXML(scala.xml.XML.loadFile(file.ref.path.toFile))
       if(generateNegative) {
         referenceLinks = referenceLinks.generateNegative
       }
@@ -219,7 +224,7 @@ class LinkingTaskApi extends Controller {
     log.info(s"Adding $linkType reference link: $source - $target")
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val link = new Link(source, target)
+    val link = new MinimalLink(source, target)
 
     linkType match {
       case "positive" => {
@@ -247,7 +252,7 @@ class LinkingTaskApi extends Controller {
   def deleteReferenceLink(projectName: String, taskName: String, source: String, target: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val link = new Link(source, target)
+    val link = new MinimalLink(source, target)
     
     val updatedTask = task.data.copy(referenceLinks = task.data.referenceLinks.without(link))
     project.updateTask(taskName, updatedTask)
@@ -295,7 +300,7 @@ class LinkingTaskApi extends Controller {
     val learningActivity = task.activity[ActiveLearning]
 
     if(task.data.referenceLinks.unlabeled.isEmpty) {
-      val updatedReferenceLinks = task.data.referenceLinks.copy(unlabeled = learningActivity.value.pool.links.toSet)
+      val updatedReferenceLinks = task.data.referenceLinks.copy(unlabeled = learningActivity.value().pool.links.toSet)
       task.update(task.data.copy(referenceLinks = updatedReferenceLinks))
     }
 
@@ -309,6 +314,39 @@ class LinkingTaskApi extends Controller {
     getProjectAndTask[LinkSpec](projectName, taskName)
   }
 
+  def referenceLinksEvaluated(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val task = project.task[LinkSpec](taskName)
+    val rule = task.data.rule
+    implicit val writeContext = WriteContext[JsValue]()
+
+    // Make sure that the reference entities cache is up-to-date
+    val referenceEntitiesCache = task.activity[ReferenceEntitiesCache].control
+    if(referenceEntitiesCache.status().isRunning) {
+      referenceEntitiesCache.waitUntilFinished()
+    }
+    referenceEntitiesCache.startBlocking()
+    val referenceEntities = referenceEntitiesCache.value()
+
+    def serializeLinks(entities: Traversable[DPair[Entity]]): JsValue = {
+      JsArray(
+        for(entities <- entities.toSeq) yield {
+          val link = new FullLink(entities.source.uri, entities.target.uri, rule(entities), entities)
+          new LinkJsonFormat(Some(rule)).write(link)
+        }
+      )
+    }
+
+    val result =
+      Json.obj(
+        "positive" -> serializeLinks(referenceEntities.positiveEntities),
+        "negative" -> serializeLinks(referenceEntities.negativeEntities)
+      )
+
+    Ok(result)
+  }
+
+  /** Executes a linking task on the data sources given in the request. */
   def postLinkDatasource(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     request.body match {
       case AnyContentAsXml(xmlRoot) =>
@@ -318,16 +356,54 @@ class LinkingTaskApi extends Controller {
           val linkSource = createDataSource(xmlRoot, Some("sourceDataset"))
           val linkTarget = createDataSource(xmlRoot, Some("targetDataset"))
           val (model, linkSink) = createLinkSink(xmlRoot)
-          val link = new GenerateLinksActivity(taskName, DPair(linkSource, linkTarget), task.data, Seq(linkSink))
+          val link = new GenerateLinksActivity(taskName, task.taskLabel(), DPair(linkSource, linkTarget), task.data, Some(linkSink))
           Activity(link).startBlocking()
           val acceptedContentType = request.acceptedTypes.headOption.map(_.mediaType).getOrElse("application/n-triples")
           result(model, acceptedContentType, "Successfully generated links")
         } catch {
-          case e: NoSuchElementException =>
-            throw new NotFoundException("Not found")
+          case ex: NoSuchElementException =>
+            throw new NotFoundException("Not found", Some(ex))
         }
       case _ =>
         throw UnsupportedMediaTypeException.supportedFormats("application/xml")
+    }
+  }
+
+  /**
+    * Evaluates a linkage rule specified in the request on the linking task.
+    * This endpoint can be used to test temporary, alternative linkage rules without having to persist them first.
+    *
+    * @param linkLimit   Max. number of links that should be returned.
+    * @param timeoutInMs Max. runtime in milliseconds the matching task should run
+    * @return
+    */
+  def evaluateLinkageRule(projectName: String,
+                          linkingTaskName: String,
+                          linkLimit: Int,
+                          timeoutInMs: Int,
+                          includeReferenceLinks: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    implicit val (project, task) = getProjectAndTask[LinkSpec](projectName, linkingTaskName)
+    val sources = task.dataSources
+    implicit val readContext: ReadContext = ReadContext(prefixes = project.config.prefixes, resources = project.resources)
+    SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>
+      val updatedLinkSpec = task.data.copy(rule = linkageRule)
+      val runtimeConfig = RuntimeLinkingConfig(executionTimeout = Some(timeoutInMs), linkLimit = Some(linkLimit),
+        generateLinksWithEntities = true, includeReferenceLinks = includeReferenceLinks)
+      val linksActivity = new GenerateLinksActivity(linkingTaskName, task.taskLabel(), sources, updatedLinkSpec, None, runtimeConfig)
+      val control = Activity(linksActivity)
+      control.startBlocking()
+      control.value.get match {
+        case Some(linking) =>
+          val linkJsonFormat = new LinkJsonFormat(Some(linking.rule))
+          implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+          Ok(JsArray(
+            for(link <- linking.links) yield {
+              linkJsonFormat.write(link)
+            }
+          ))
+        case None =>
+          ErrorResult(INTERNAL_SERVER_ERROR, "No value generated", "The linking tasks did not generate any value.")
+      }
     }
   }
 }

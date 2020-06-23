@@ -17,29 +17,57 @@ package org.silkframework.dataset
 import java.util.logging.Logger
 
 import org.silkframework.config.Task.TaskFormat
-import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
+import org.silkframework.config._
+import org.silkframework.dataset.DatasetSpec.UriAttributeNotUniqueException
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginObjectParameter
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.language.implicitConversions
+import scala.reflect.ClassTag
 import scala.xml.Node
 
 /**
   * A dataset of entities.
   *
-  * @param uriProperty Setting this URI will generate an additional property for each entity.
-                       The additional property contains the URI of each entity.
+  * @param uriAttribute Setting this URI will generate an additional attribute for each entity.
+                        The additional attribute contains the URI of each entity.
   */
-case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty: Option[Uri] = None) extends TaskSpec with DatasetAccess {
+case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribute: Option[Uri] = None)
+    extends TaskSpec with DatasetAccess {
 
-  def source(implicit userContext: UserContext): DataSource = DatasetSpec.DataSourceWrapper(plugin.source, this)
+  def source(implicit userContext: UserContext): DataSource = {
+    safeAccess(DatasetSpec.DataSourceWrapper(plugin.source, this), SafeModeDataSource)
+  }
 
-  def entitySink(implicit userContext: UserContext): EntitySink = DatasetSpec.EntitySinkWrapper(plugin.entitySink, this)
+  def entitySink(implicit userContext: UserContext): EntitySink = {
+    safeAccess(DatasetSpec.EntitySinkWrapper(plugin.entitySink, this), SafeModeSink)
+  }
 
-  def linkSink(implicit userContext: UserContext): LinkSink = DatasetSpec.LinkSinkWrapper(plugin.linkSink, this)
+  def linkSink(implicit userContext: UserContext): LinkSink = {
+    safeAccess(DatasetSpec.LinkSinkWrapper(plugin.linkSink, this), SafeModeSink)
+  }
+
+  // True if access should be prevented regarding the dataset and safe-mode config
+  private def preventAccessInSafeMode(implicit userContext: UserContext): Boolean = {
+    ProductionConfig.inSafeMode && !plugin.isFileResourceBased && !userContext.executionContext.insideWorkflow
+  }
+
+  // Create data access object or return fallback
+  private def safeAccess[T](create: T, fallback: T)
+                           (implicit userContext: UserContext): T = {
+    if (preventAccessInSafeMode) {
+      fallback
+    } else {
+      create
+    }
+  }
 
   /** Datasets don't define input schemata, because any data can be written to them. */
   override lazy val inputSchemataOpt: Option[Seq[EntitySchema]] = None
@@ -57,17 +85,29 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriProperty
         case Dataset(p, params) =>
           Seq(("type", p.label)) ++ params
       }
-    for(uriProperty <- uriProperty) {
+    for(uriProperty <- uriAttribute) {
       properties :+= ("URI Property", uriProperty.uri)
     }
     properties
   }
 
+  override def withProperties(updatedProperties: Map[String, String])(implicit prefixes: Prefixes, resourceManager: ResourceManager): DatasetSpec[DatasetType] = {
+    copy(plugin = plugin.withParameters(updatedProperties))
+  }
+
   override def toString: String = DatasetSpec.toString
 
+  def assertUriAttributeUniqueness(attributes: Traversable[String]): Unit = {
+    for(uriColumn <- uriAttribute if attributes.exists(_ == uriColumn.uri)) {
+      throw UriAttributeNotUniqueException(uriColumn)
+    }
+  }
 }
 
-case class DatasetTask(id: Identifier, data: DatasetSpec[Dataset], metaData: MetaData = MetaData.empty) extends Task[DatasetSpec[Dataset]]
+case class DatasetTask(id: Identifier, data: DatasetSpec[Dataset], metaData: MetaData = MetaData.empty) extends Task[DatasetSpec[Dataset]] {
+
+  override def taskType: Class[_] = classOf[DatasetSpec[Dataset]]
+}
 
 object DatasetSpec {
 
@@ -88,7 +128,7 @@ object DatasetSpec {
     }
 
     override def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None)
-                              (implicit userContext: UserContext): IndexedSeq[Path] = {
+                              (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
       source.retrievePaths(typeUri, depth, limit)
     }
 
@@ -100,10 +140,10 @@ object DatasetSpec {
       * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
       */
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                         (implicit userContext: UserContext): Traversable[Entity] = {
+                         (implicit userContext: UserContext): EntityHolder = {
       val adaptedSchema = adaptSchema(entitySchema)
       val entities = source.retrieve(adaptedSchema, limit)
-      adaptUris(entities, adaptedSchema)
+      adaptUris(entities)
     }
 
     /**
@@ -114,13 +154,13 @@ object DatasetSpec {
       * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
       */
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext): Traversable[Entity] = {
+                              (implicit userContext: UserContext): EntityHolder = {
       if(entities.isEmpty) {
-        Seq.empty
+        GenericEntityTable(Seq.empty, entitySchema, underlyingTask)
       } else {
         val adaptedSchema = adaptSchema(entitySchema)
         val retrievedEntities = source.retrieveByUri(adaptedSchema, entities)
-        adaptUris(retrievedEntities, adaptedSchema)
+        adaptUris(retrievedEntities)
       }
     }
 
@@ -128,9 +168,9 @@ object DatasetSpec {
       * Adds the URI property to the schema.
       */
     private def adaptSchema(entitySchema: EntitySchema): EntitySchema = {
-      datasetSpec.uriProperty match {
+      datasetSpec.uriAttribute match {
         case Some(property) =>
-          entitySchema.copy(typedPaths = entitySchema.typedPaths :+ TypedPath(Path.parse(property.uri), UriValueType, isAttribute = false))
+          entitySchema.copy(typedPaths = entitySchema.typedPaths :+ TypedPath(UntypedPath.parse(property.uri), ValueType.URI, isAttribute = false))
         case None =>
           entitySchema
       }
@@ -139,16 +179,16 @@ object DatasetSpec {
     /**
       * Rewrites the entity URIs if an URI property has been specified.
       */
-    private def adaptUris(entities: Traversable[Entity], entitySchema: EntitySchema): Traversable[Entity] = {
-      datasetSpec.uriProperty match {
+    private def adaptUris(entities: EntityHolder): EntityHolder = {
+      datasetSpec.uriAttribute match {
         case Some(property) =>
-          for (entity <- entities) yield {
+          entities.mapEntities( entity =>
             Entity(
-              uri = new Uri(entity.singleValue(TypedPath(Path.parse(property.uri), UriValueType, isAttribute = false)).getOrElse(entity.uri.toString)),
+              uri = new Uri(entity.singleValue(TypedPath(UntypedPath.parse(property.uri), ValueType.URI, isAttribute = false)).getOrElse(entity.uri.toString)),
               values = entity.values,
               schema = entity.schema
             )
-          }
+          )
         case None =>
           entities
       }
@@ -172,15 +212,17 @@ object DatasetSpec {
       * Initializes this writer.
       */
     override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
-                          (implicit userContext: UserContext){
+                          (implicit userContext: UserContext, prefixes: Prefixes){
       if (isOpen) {
         entitySink.close()
         isOpen = false
       }
 
+      datasetSpec.assertUriAttributeUniqueness(properties.map(_.propertyUri))
+
       val uriTypedProperty =
-        for(property <- datasetSpec.uriProperty.toIndexedSeq) yield {
-          TypedProperty(property.uri, UriValueType, isBackwardProperty = false)
+        for(property <- datasetSpec.uriAttribute.toIndexedSeq) yield {
+          TypedProperty(property.uri, ValueType.URI, isBackwardProperty = false)
         }
 
       entitySink.openTable(typeUri, uriTypedProperty ++ properties)
@@ -190,7 +232,7 @@ object DatasetSpec {
     override def writeEntity(subject: String, values: Seq[Seq[String]])
                             (implicit userContext: UserContext): Unit = {
       require(isOpen, "Output must be opened before writing statements to it")
-      datasetSpec.uriProperty match {
+      datasetSpec.uriAttribute match {
         case Some(_) =>
           entitySink.writeEntity(subject, Seq(subject) +: values)
         case None =>
@@ -289,7 +331,7 @@ object DatasetSpec {
         val sourceNode = (node \ "DatasetPlugin").headOption.getOrElse(node)
         new DatasetSpec(
           plugin = Dataset((sourceNode \ "@type").text, XmlSerialization.deserializeParameters(sourceNode)),
-          uriProperty = uriProperty
+          uriAttribute = uriProperty
         )
       }
     }
@@ -297,7 +339,7 @@ object DatasetSpec {
     def write(value: DatasetSpec[Dataset])(implicit writeContext: WriteContext[Node]): Node = {
       value.plugin match {
         case Dataset(pluginDesc, params) =>
-          <Dataset type={pluginDesc.id} uriProperty={value.uriProperty.map(_.uri).getOrElse("")}>
+          <Dataset type={pluginDesc.id} uriProperty={value.uriAttribute.map(_.uri).getOrElse("")}>
             {XmlSerialization.serializeParameter(params)}
           </Dataset>
       }
@@ -313,5 +355,12 @@ object DatasetSpec {
       new TaskFormat[DatasetSpec[Dataset]].write(value)
     }
   }
+
+  /**
+    * Thrown if a URI attribute has been configured in DatasetSpec that is not unique.
+    */
+  case class UriAttributeNotUniqueException(uriColumn: String) extends Exception(
+    s"Dataset is configured to add URI attribute '$uriColumn', but generated dataset already contains an attribute of that name."
+  )
 
 }

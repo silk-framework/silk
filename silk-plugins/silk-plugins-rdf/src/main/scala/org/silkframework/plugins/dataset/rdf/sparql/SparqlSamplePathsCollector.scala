@@ -17,10 +17,9 @@ package org.silkframework.plugins.dataset.rdf.sparql
 import java.util.logging.Logger
 
 import org.silkframework.dataset.rdf.SparqlEndpoint
-import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.entity.{ForwardOperator, Path, TypedPath}
+import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
+import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.Uri
 
 /**
  * Retrieves the most frequent paths of a number of random sample entities.
@@ -44,7 +43,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
            (implicit userContext: UserContext): Seq[TypedPath] = {
     val sampleEntities = {
       if (restrictions.isEmpty)
-        getEntities(endpoint, graph, SparqlRestriction.fromSparql("a", "?a ?p ?o"))
+        getEntities(endpoint, graph, SparqlRestriction.fromSparql(SparqlEntitySchema.variable, s"?${SparqlEntitySchema.variable} ?p ?o"))
       else
         getEntities(endpoint, graph, restrictions)
     }
@@ -89,11 +88,11 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
 
     logger.info("Found " + relevantProperties.size + " relevant properties in " + endpoint)
 
-    relevantProperties.map(_.asAutoDetectTypedPath) // No path type here, since the sample path collector is a fallback only
+    relevantProperties.map(_.asStringTypedPath) // No path type here, since the sample path collector is a fallback only
   }
 
   private def getEntityProperties(endpoint: SparqlEndpoint, graph: Option[String], entityUri: String, variable: String, limit: Int)
-                                 (implicit userContext: UserContext): Traversable[Path] = {
+                                 (implicit userContext: UserContext): Traversable[UntypedPath] = {
     val sparql = new StringBuilder()
     sparql ++= "SELECT DISTINCT ?p \n"
 
@@ -107,6 +106,6 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
     sparql ++= "}"
 
     for (result <- endpoint.select(sparql.toString(), limit).bindings; binding <- result.values) yield
-      Path(ForwardOperator(binding.value) :: Nil)
+      UntypedPath(ForwardOperator(binding.value) :: Nil)
   }
 }

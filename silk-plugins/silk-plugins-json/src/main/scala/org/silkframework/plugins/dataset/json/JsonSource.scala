@@ -7,6 +7,9 @@ import com.fasterxml.jackson.core.{JsonFactory, JsonToken}
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
@@ -24,22 +27,23 @@ import scala.io.Codec
  * @param uriPattern A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements
  */
 case class JsonSource(input: JsValue, basePath: String, uriPattern: String) extends DataSource
-    with PeakDataSource with HierarchicalSampleValueAnalyzerExtractionSource with TypedPathRetrieveDataSource {
+  with PeakDataSource with HierarchicalSampleValueAnalyzerExtractionSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
   private val uriRegex = "\\{([^\\}]+)\\}".r
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                       (implicit userContext: UserContext): Traversable[Entity] = {
+                       (implicit userContext: UserContext): EntityHolder = {
     logger.log(Level.FINE, "Retrieving data from JSON.")
     val jsonTraverser = JsonTraverser(underlyingTask.id, input)
     val selectedElements = jsonTraverser.select(basePathParts)
-    val subPath = Path.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
+    val subPath = UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
     val subPathElements = if(subPath.operators.nonEmpty) {
       selectedElements.flatMap(_.select(subPath.operators))
     } else { selectedElements }
-    new Entities(subPathElements, entitySchema, Set.empty)
+    val entities = new Entities(subPathElements, entitySchema, Set.empty)
+    GenericEntityTable(entities, entitySchema, underlyingTask)
   }
 
   private val basePathParts: List[String] = {
@@ -56,29 +60,25 @@ case class JsonSource(input: JsValue, basePath: String, uriPattern: String) exte
   private val basePathLength = basePathParts.length
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): Traversable[Entity] = {
+                            (implicit userContext: UserContext): EntityHolder = {
     if(entities.isEmpty) {
-      Seq.empty
+      EmptyEntityTable(underlyingTask)
     } else {
       logger.log(Level.FINE, "Retrieving data from JSON.")
       val jsonTraverser = JsonTraverser(underlyingTask.id, input)
       val selectedElements = jsonTraverser.select(basePathParts)
-      new Entities(selectedElements, entitySchema, entities.map(_.uri).toSet)
+      val retrievedEntities = new Entities(selectedElements, entitySchema, entities.map(_.uri).toSet)
+      GenericEntityTable(retrievedEntities, entitySchema, underlyingTask)
     }
   }
 
   /**
    * Retrieves the most frequent paths in this source.
    */
-  override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
-                            (implicit userContext: UserContext): IndexedSeq[Path] = {
-    retrieveJsonPaths(t, depth, limit, leafPathsOnly = false, innerPathsOnly = false).drop(1).map(_._1)
-  }
-
-  override def retrieveTypedPath(typeUri: Uri, depth: Int = Int.MaxValue, limit: Option[Int] = None)
-                                (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+  override def retrievePaths(typeUri: Uri, depth: Int = Int.MaxValue, limit: Option[Int] = None)
+                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     retrieveJsonPaths(typeUri, depth, limit, leafPathsOnly = false, innerPathsOnly = false).drop(1).map { case (path, valueType) =>
-        TypedPath(path, valueType, isAttribute = false)
+      TypedPath(path, valueType, isAttribute = false)
     }
   }
 
@@ -87,17 +87,17 @@ case class JsonSource(input: JsValue, basePath: String, uriPattern: String) exte
                         limit: Option[Int],
                         leafPathsOnly: Boolean,
                         innerPathsOnly: Boolean,
-                        json: JsonTraverser = JsonTraverser(underlyingTask.id, input)): IndexedSeq[(Path, ValueType)] = {
+                        json: JsonTraverser = JsonTraverser(underlyingTask.id, input)): IndexedSeq[(UntypedPath, ValueType)] = {
     val subSelectedElements: Seq[JsonTraverser] = navigateToType(typePath, json)
     for (element <- subSelectedElements.headOption.toIndexedSeq; // At the moment, we only retrieve the path from the first found element
          (path, valueType) <- element.collectPaths(path = Nil, leafPathsOnly = leafPathsOnly, innerPathsOnly = innerPathsOnly, depth = depth)) yield {
-      (Path(path.toList), valueType)
+      (UntypedPath(path.toList), valueType)
     }
   }
 
   private def navigateToType(typePath: Uri, json: JsonTraverser) = {
     val selectedElements = json.select(basePathParts)
-    val subSelectedElements = selectedElements.flatMap(_.select(Path.parse(typePath.uri).operators))
+    val subSelectedElements = selectedElements.flatMap(_.select(UntypedPath.parse(typePath.uri).operators))
     subSelectedElements
   }
 
@@ -113,10 +113,10 @@ case class JsonSource(input: JsValue, basePath: String, uriPattern: String) exte
         // Generate URI
         val uri =
           if (uriPattern.isEmpty) {
-            genericEntityIRI(index.toString)
+            genericEntityIRI(node.nodeId(node.value))
           } else {
             uriRegex.replaceAllIn(uriPattern, m => {
-              val path = Path.parse(m.group(1))
+              val path = UntypedPath.parse(m.group(1))
               val string = node.evaluate(path).mkString
               URLEncoder.encode(string, "UTF8")
             })
@@ -125,7 +125,7 @@ case class JsonSource(input: JsValue, basePath: String, uriPattern: String) exte
         // Check if this URI should be extracted
         if (allowedUris.isEmpty || allowedUris.contains(uri)) {
           // Extract values
-          val values = for (path <- entityDesc.typedPaths) yield node.evaluate(path)
+          val values = for (path <- entityDesc.typedPaths) yield node.evaluate(path.operators)
           f(Entity(uri, values, entityDesc))
         }
       }
@@ -201,7 +201,7 @@ case class JsonSource(input: JsValue, basePath: String, uriPattern: String) exte
 
   /** Stops analyzing when the sample limit is reached */
   private def analyzeValuePath[T](traversers: Seq[JsonTraverser],
-                                  path: Path,
+                                  path: UntypedPath,
                                   analyzer: ValueAnalyzer[T],
                                   sampleLimit: Option[Int]): Unit = {
     var analyzedValues = 0
@@ -217,7 +217,7 @@ case class JsonSource(input: JsValue, basePath: String, uriPattern: String) exte
     *
     * @return
     */
-  override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.random, DatasetSpec(EmptyDataset))     //FIXME CMEM 1352 replace with actual task
+  override lazy val underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.random, DatasetSpec(EmptyDataset))     //FIXME CMEM 1352 replace with actual task
 }
 
 object JsonSource{

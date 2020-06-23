@@ -60,32 +60,13 @@ $(function() {
     primary_dialog = document.querySelector('#primary_dialog');
     if (primary_dialog) {
         dialogs.primary = primary_dialog;
-        if (!primary_dialog.showModal) {
-            dialogPolyfill.registerDialog(primary_dialog);
-        }
-        primary_dialog
-            .querySelector('.close')
-            .addEventListener('click', function() {
-                primary_dialog.close();
-            });
     }
     secondary_dialog = document.querySelector('#secondary_dialog');
     if (secondary_dialog) {
         dialogs.secondary = secondary_dialog;
-        if (!secondary_dialog.showModal) {
-            dialogPolyfill.registerDialog(secondary_dialog);
-        }
-        secondary_dialog
-            .querySelector('.close')
-            .addEventListener('click', function() {
-                secondary_dialog.close();
-            });
     }
 });
 
-/* exported errorHandler
-silk-workbench/silk-workbench-rules/app/views/learning/activeLearn.scala.html
- */
 var errorHandler = function(request) {
     if (request.responseText) {
         alert(request.responseText);
@@ -93,42 +74,6 @@ var errorHandler = function(request) {
         alert(request.statusText);
     }
 };
-
-/* exported showDialog, reloadDialog, closeDialog
-Open/Reload Dialog:
-silk-react-components/silk-workbench/silk-workbench-workspace/public/workspace.js
-silk-workbench/silk-workbench-core/app/views/main.scala.html
-silk-workbench/silk-workbench-rules/app/views/learning/activeLearn.scala.html
-silk-workbench/silk-workbench-rules/app/views/referenceLinks/referenceLinks.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/activities.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/activity/activityControl.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/dataset/datasetDialog.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/removeResourceDialog.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/resourcesDialog.scala.html
-Close Dialog:
-silk-workbench/silk-workbench-core/app/views/aboutDialog.scala.html
-silk-workbench/silk-workbench-core/app/views/widgets/pluginDialog.scala.html
-silk-workbench/silk-workbench-rules/app/views/dialogs/deleteRuleDialog.scala.html
-silk-workbench/silk-workbench-rules/app/views/dialogs/linkingTaskDialog.scala.html
-silk-workbench/silk-workbench-rules/app/views/dialogs/transformationTaskDialog.scala.html
-silk-workbench/silk-workbench-rules/app/views/learning/activeLearnDetails.scala.html
-silk-workbench/silk-workbench-rules/app/views/learning/resetDialog.scala.html
-silk-workbench/silk-workbench-workflow/app/views/workflow/workflowTaskDialog.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/activity/projectActivityConfigDialog.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/activity/taskActivityConfigDialog.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/cloneProjectDialog.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/cloneTaskDialog.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/dataset/datasetDialog.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/executeProjectDialog.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/importLinkSpecDialog.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/importProjectDialog.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/newProjectDialog.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/prefixDialog_improved.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/prefixDialog.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/removeProjectDialog.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/removeResourceDialog.scala.html
-silk-workbench/silk-workbench-workspace/app/views/workspace/removeTaskDialog.scala.html
- */
 
 /**
  * Opens a dialog.
@@ -142,12 +87,15 @@ function showDialog(path, dialog_key = 'primary', payload = {}) {
         // enable MDL JS for dynamically added components
         componentHandler.upgradeAllRegistered();
     })
-        .done(function() {
-            dialog.showModal();
-        })
-        .fail(function(request) {
-            alert(request.responseText);
-        });
+    .done(function() {
+        if (!dialog.showModal) {
+            dialogPolyfill.registerDialog(dialog);
+        }
+        dialog.showModal();
+    })
+    .fail(function(request) {
+        alert(request.responseText);
+    });
 }
 
 /**
@@ -261,4 +209,33 @@ function generateNewIdsForTooltips($parent) {
             }
         }
     });
+}
+
+/**
+ * Connects to a WebSocket on window load and calls a provided function on every update.
+ *
+ * param webSocketUrl Address of a WebSocket endpoint that supplies updates via JSON objects.
+ * param pollingUrl Address of a polling endpoint for fallback.
+ *                  The polling endpoint must accept a parameter 'timestamp' and only return updates after the given time.
+ *                  It must return a JSON of the format { "timestamp": Server timestamp, "updates": [ update1, update2, ...] }
+ * param updateFunc Function to be called on every update. Receives a single argument, which is the received JSON object.
+ */
+function connectWebSocket(webSocketUrl, pollingUrl, updateFunc) {
+    const websocket = new WebSocket(webSocketUrl);
+    websocket.onmessage = function(evt) { updateFunc(JSON.parse(evt.data)) };
+    websocket.onerror = function(evt) {
+        console.log("Connecting to WebSocket at '" + webSocketUrl + "' failed. Falling back to polling...");
+        let lastUpdate = 0;
+        setInterval(function() {
+            let timestampedUrl = pollingUrl + (pollingUrl.indexOf('?') >= 0 ? "&" : '?') + 'timestamp=' + lastUpdate;
+            $.getJSON(timestampedUrl, function(data) {
+                if(data.timestamp === undefined || data.updates === undefined) {
+                    console.log("Invalid JSON returned by polling endpoint.")
+                } else {
+                    lastUpdate = data.timestamp;
+                    data.updates.forEach(updateFunc);
+                }
+            });
+        }, 500);
+    };
 }

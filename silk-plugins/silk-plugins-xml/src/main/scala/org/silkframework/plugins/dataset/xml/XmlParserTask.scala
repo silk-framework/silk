@@ -1,16 +1,14 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.config.CustomTask
-import org.silkframework.entity.{Path, EntitySchema}
-import org.silkframework.runtime.plugin.{Plugin, Param}
+import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.util.Uri
 
-/**
-  * Created on 8/22/16.
-  */
 @Plugin(
   id = "XmlParserOperator",
-  label = "XML Parser Operator",
+  label = "Parse XML",
   description = "Takes exactly one input and reads either the defined inputPath or the first value of the first entity as " +
       "XML document. Then executes the given output entity schema similar to the XML dataset to construct the result entities."
 )
@@ -18,11 +16,11 @@ case class XmlParserTask(@Param(XmlParserTask.INPUT_PATH_PARAM_DESCRIPTION)
                          inputPath: String = "",
                          @Param(XmlParserTask.BASE_PATH_PARAM_DESCRIPTION)
                          basePath: String = "",
-                         @Param(XmlParserTask.URI_SUFFIX_PATTERN_PARAM_DESCRIPTION)
+                         @Param(label = "URI suffix pattern", value = XmlParserTask.URI_SUFFIX_PATTERN_PARAM_DESCRIPTION)
                          uriSuffixPattern: String = "") extends CustomTask {
   val parsedInputPath = {
     if (inputPath != "") {
-      Some(Path.parse(inputPath))
+      Some(UntypedPath.parse(inputPath))
     } else {
       None
     }

@@ -15,7 +15,7 @@ object ProjectMarshallerRegistry {
     */
   def marshallingPlugins: Seq[ProjectMarshallingTrait] = {
     implicit val prefixes = Prefixes.empty
-    implicit val resources = EmptyResourceManager
+    implicit val resources = EmptyResourceManager()
     val pluginConfigs = PluginRegistry.availablePluginsForClass(classOf[ProjectMarshallingTrait])
     pluginConfigs.map(pc =>
       PluginRegistry.create[ProjectMarshallingTrait](pc.id)

@@ -2,11 +2,10 @@ package controllers.transform
 
 import controllers.transform.AutoCompletionApi.Categories
 import org.silkframework.config.PlainTask
-import org.silkframework.entity.Path
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule._
 import org.silkframework.serialization.json.JsonSerializers._
 import play.api.libs.json._
-import play.api.libs.ws.WS
 
 class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
@@ -92,17 +91,17 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
             uriRule = None,
             typeRules = Seq(TypeMapping(typeUri = uri("Person"))),
             propertyRules = Seq(
-              DirectMapping("name", sourcePath = Path(uri("name")), mappingTarget = MappingTarget(uri("name"))),
+              DirectMapping("name", sourcePath = UntypedPath(uri("name")), mappingTarget = MappingTarget(uri("name"))),
               ObjectMapping(
                 id = "addressMapping",
-                sourcePath = Path(uri("address")),
+                sourcePath = UntypedPath(uri("address")),
                 target = Some(MappingTarget(uri("address"))),
                 rules = MappingRules(
                   uriRule = None,
                   typeRules = Seq.empty,
                   propertyRules = Seq(
-                    DirectMapping("city", sourcePath = Path(uri("city")), mappingTarget = MappingTarget(uri("city"))),
-                    DirectMapping("country", sourcePath = Path(uri("country")), mappingTarget = MappingTarget(uri("country")))
+                    DirectMapping("city", sourcePath = UntypedPath(uri("city")), mappingTarget = MappingTarget(uri("city"))),
+                    DirectMapping("country", sourcePath = UntypedPath(uri("country")), mappingTarget = MappingTarget(uri("country")))
                   )
                 )
               )
@@ -112,7 +111,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
         targetVocabularies = Seq("foaf.rdf")
       )
     val transformTask = PlainTask(task, transformSpec)
-    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task")
+    val request = client.url(s"$baseUrl/transform/tasks/$project/$task")
     val response = request.put(toJson[TransformTask](transformTask))
     checkResponse(response)
 

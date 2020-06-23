@@ -18,16 +18,18 @@ import org.silkframework.learning.individual.LinkageRuleNode
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 import org.silkframework.util.DPair
 
+import scala.util.Random
+
 //TODO implement operators: toggle required, change plugin
 
 /**
  * A crossover operator takes a pair of nodes and combines them into a new node.
  */
-trait CrossoverOperator extends (DPair[LinkageRuleNode] => Option[LinkageRuleNode]) with AnyPlugin {
+trait CrossoverOperator extends ((DPair[LinkageRuleNode], Random) => Option[LinkageRuleNode]) with AnyPlugin {
   /**
    * Applies this crossover operator to a specific pair of nodes.
    */
-  def apply(nodePair: DPair[LinkageRuleNode]): Option[LinkageRuleNode]
+  def apply(nodePair: DPair[LinkageRuleNode], random: Random): Option[LinkageRuleNode]
 
   override def toString = getClass.getSimpleName
 }

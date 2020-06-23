@@ -1,20 +1,19 @@
 package controllers.linking
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
+import javax.inject.Inject
 import models.linking.EvalLink._
 import models.linking.{EvalLink, LinkSorter}
-import org.silkframework.entity.{Entity, Link}
+import org.silkframework.entity.{Entity, Link, MinimalLink}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.DetailedEvaluator
-import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.util.DPair
 import org.silkframework.workbench.Context
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
-import play.api.mvc.{Action, AnyContent, Controller}
+import play.api.mvc.{Action, AnyContent, InjectedController}
 
-class ReferenceLinksManager extends Controller {
+class ReferenceLinksManager @Inject() () extends InjectedController {
 
   def referenceLinksView(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
@@ -32,7 +31,7 @@ class ReferenceLinksManager extends Controller {
     val referenceLinks = task.data.referenceLinks
     def linkSpec = task.data
     def linkageRule = linkSpec.rule
-    def entities = task.activity[ReferenceEntitiesCache].value
+    def entities = task.activity[ReferenceEntitiesCache].value()
     val linkSorter = LinkSorter.fromId(sorting)
 
     // Checks if a pair of entities provides values for all paths in the current linkage rule
@@ -54,7 +53,7 @@ class ReferenceLinksManager extends Controller {
             )
           }
           case _ => {
-            val cleanLink = new Link(link.source, link.target)
+            val cleanLink = new MinimalLink(link.source, link.target)
 
             new EvalLink(
               link = cleanLink,
@@ -76,7 +75,7 @@ class ReferenceLinksManager extends Controller {
             )
           }
           case _ => {
-            val cleanLink = new Link(link.source, link.target)
+            val cleanLink = new MinimalLink(link.source, link.target)
 
             new EvalLink(
               link = cleanLink,
@@ -98,7 +97,7 @@ class ReferenceLinksManager extends Controller {
             )
           }
           case _ => {
-            val cleanLink = new Link(link.source, link.target)
+            val cleanLink = new MinimalLink(link.source, link.target)
 
             new EvalLink(
               link = cleanLink,

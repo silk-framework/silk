@@ -1,18 +1,19 @@
 package org.silkframework.rule.execution.methods
 
-import org.silkframework.entity.{Entity, Index, Path}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.execution.ExecutionMethod
 import org.silkframework.rule.LinkageRule
 
 import scala.math.{max, min, pow}
 
-case class SortedBlocks(sourceKey: Path, targetKey: Path, overlap: Double = 0.5) extends ExecutionMethod {
+case class SortedBlocks(sourceKey: UntypedPath, targetKey: UntypedPath, overlap: Double = 0.5) extends ExecutionMethod {
 
   private val minChar = 'a'
   private val maxChar = 'z'
   private val numChars = 3 //Maximum number of chars that will be indexed
 
-  private val blockCount = pow((maxChar - minChar + 1), 2).toInt
+  private val blockCount = pow(maxChar - minChar + 1, 2).toInt
 
   override def indexEntity(entity: Entity, rule: LinkageRule, sourceOrTarget: Boolean): Index = {
     val key = if(sourceOrTarget) sourceKey else targetKey

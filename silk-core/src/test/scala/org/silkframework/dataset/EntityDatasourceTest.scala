@@ -2,7 +2,8 @@ package org.silkframework.dataset
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.PlainTask
-import org.silkframework.entity.{Entity, EntitySchema, Path, TypedPath}
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
@@ -13,7 +14,7 @@ class EntityDatasourceTest extends FlatSpec with MustMatchers {
 
   val alibiTask = PlainTask("alibi", DatasetSpec(EmptyDataset))
   val typeUri = Uri("http://entity.com/type1")
-  val paths = nrToPaths(IndexedSeq(1, 2, 3, 4))
+  val paths: IndexedSeq[TypedPath] = nrToPaths(IndexedSeq(1, 2, 3, 4))
   val entityUri = "http://entity.com/1"
   val entitySchema = EntitySchema(typeUri, typedPaths = paths)
   val entities = Seq(
@@ -26,7 +27,7 @@ class EntityDatasourceTest extends FlatSpec with MustMatchers {
 
   it should "turn its entities into the request schema" in {
     val requestSchema = EntitySchema(typeUri, nrToPaths(IndexedSeq(4, 2)))
-    val requestEntities = entityDatasource.retrieve(requestSchema)
+    val requestEntities = entityDatasource.retrieve(requestSchema).entities
     requestEntities.size mustBe 1
     val entity = requestEntities.head
     entity.uri.toString mustBe entityUri
@@ -34,6 +35,6 @@ class EntityDatasourceTest extends FlatSpec with MustMatchers {
   }
 
   private def nrToPaths(seq: IndexedSeq[Int]): IndexedSeq[TypedPath] = {
-    seq.map(nr => Path(s"http://path$nr").asStringTypedPath)
+    seq.map(nr => UntypedPath(s"http://path$nr").asStringTypedPath)
   }
 }

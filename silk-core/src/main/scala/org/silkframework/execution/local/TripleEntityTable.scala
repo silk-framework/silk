@@ -3,24 +3,34 @@ package org.silkframework.execution.local
 import org.silkframework.config.{SilkVocab, Task, TaskSpec}
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.execution.{EntityHolder, InterruptibleTraversable}
 import org.silkframework.util.Uri
 
 /**
   * Holds RDF triples.
   */
-case class TripleEntityTable(entities: Traversable[Entity], task: Task[TaskSpec]) extends LocalEntities {
+class TripleEntityTable(tripleEntities: Traversable[Entity], val task: Task[TaskSpec]) extends LocalEntities {
+
+  override def entities: Traversable[Entity] = {
+    new InterruptibleTraversable(tripleEntities)
+  }
 
   override def entitySchema: EntitySchema = TripleEntityTable.schema
+
+  override def updateEntities(newEntities: Traversable[Entity]): LocalEntities = {
+    new TripleEntityTable(newEntities, task)
+  }
 }
 
 object TripleEntityTable {
   final val schema = EntitySchema(
     typeUri = Uri(SilkVocab.TripleSchemaType),
     typedPaths = IndexedSeq(
-      TypedPath(Path(SilkVocab.tripleSubject), UriValueType, isAttribute = false),
-      TypedPath(Path(SilkVocab.triplePredicate), UriValueType, isAttribute = false),
-      TypedPath(Path(SilkVocab.tripleObject), StringValueType, isAttribute = false),
-      TypedPath(Path(SilkVocab.tripleObjectValueType), StringValueType, isAttribute = false)
+      TypedPath(UntypedPath(SilkVocab.tripleSubject), ValueType.URI, isAttribute = false),
+      TypedPath(UntypedPath(SilkVocab.triplePredicate), ValueType.URI, isAttribute = false),
+      TypedPath(UntypedPath(SilkVocab.tripleObject), ValueType.STRING, isAttribute = false),
+      TypedPath(UntypedPath(SilkVocab.tripleObjectValueType), ValueType.STRING, isAttribute = false)
     )
   )
 
@@ -51,11 +61,11 @@ object TripleEntityTable {
       case LANGUAGE_ENC_PREFIX =>
         LanguageValueType(encodedType.drop(3))
       case URI_ENC_PREFIX =>
-        UriValueType
+        ValueType.URI
       case BLANK_NODE_ENC_PREFIX =>
-        BlankNodeValueType
+        ValueType.BLANK_NODE
       case _ =>
-        StringValueType
+        ValueType.STRING
     }
   }
 }

@@ -5,6 +5,7 @@ import java.util.logging.{Level, Logger}
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
+import javax.inject.Inject
 import org.silkframework.config.{MetaData, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
@@ -22,8 +23,11 @@ import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
+import TransformTaskApi._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.runtime.plugin.IdentifierOptionParameter
 
-class TransformTaskApi extends Controller {
+class TransformTaskApi @Inject() () extends InjectedController {
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -44,18 +48,18 @@ class TransformTaskApi extends Controller {
         val values = request.body.asFormUrlEncoded.getOrElse(Map.empty).mapValues(_.mkString)
         val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes),
           Restriction.custom(values.getOrElse("restriction", "")))
-        val outputs = values.get("output").filter(_.nonEmpty).map(Identifier(_)).toSeq
+        val output = values.get("output").filter(_.nonEmpty).map(Identifier(_))
         val targetVocabularies = values.get("targetVocabularies").toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
 
         project.tasks[TransformSpec].find(_.id.toString == taskName) match {
           //Update existing task
           case Some(oldTask) if !createOnly =>
-            val updatedTransformSpec = oldTask.data.copy(selection = input, outputs = outputs, targetVocabularies = targetVocabularies)
+            val updatedTransformSpec = oldTask.data.copy(selection = input, output = output, targetVocabularies = targetVocabularies)
             project.updateTask(taskName, updatedTransformSpec)
           //Create new task with no rule
           case _ =>
             val rule = RootMappingRule(rules = MappingRules.empty)
-            val transformSpec = TransformSpec(input, rule, outputs, Seq.empty, targetVocabularies)
+            val transformSpec = TransformSpec(input, rule, output, None, targetVocabularies)
             project.addTask(taskName, transformSpec, MetaData(MetaData.labelFromId(taskName)))
         }
 
@@ -144,19 +148,147 @@ class TransformTaskApi extends Controller {
     }
   }
 
-  def appendRule(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  /**
+    * Adds the rule provided in the request to the children of the specified transform task mapping rule.
+    *
+    * @param taskName    Transform task where the mapping rule should be added.
+    * @param ruleName    The parent rule ID that the new rule should be added to as a child.
+    * @param afterRuleId If specified then the new rule is added right after this rule. If not specified the new rule
+    *                    is appended to the end of the list.
+    * @return The newly created rule.
+    */
+  def appendRule(projectName: String,
+                 taskName: String,
+                 ruleName: String,
+                 afterRuleId: Option[String] = None): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
     task.synchronized {
       implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task))
       processRule(task, ruleName) { parentRule =>
         deserializeCompileTime[TransformRule]() { newChildRule =>
-          if(task.data.nestedRuleAndSourcePath(newChildRule.id).isDefined) {
-            throw new ValidationException(s"Rule with ID ${newChildRule.id} already exists!")
-          }
-          val updatedRule = parentRule.operator.withChildren(parentRule.operator.children :+ newChildRule)
-          updateRule(parentRule.update(updatedRule))
-          serializeCompileTime(newChildRule, Some(project))
+          addRuleToTransformTask(parentRule, newChildRule, afterRuleId)
+        }
+      }
+    }
+  }
+
+  private def addRuleToTransformTask(parentRule: RuleTraverser,
+                                     newChildRule: TransformRule,
+                                     afterRuleId: Option[String])
+                                    (implicit request: Request[AnyContent],
+                                     task: ProjectTask[TransformSpec],
+                                     userContext: UserContext,
+                                     project: Project): Result = {
+    if (task.data.nestedRuleAndSourcePath(newChildRule.id).isDefined) {
+      throw new ValidationException(s"Rule with ID ${newChildRule.id} already exists!")
+    }
+    val children = parentRule.operator.children
+    val newChildren = children.indexWhere(rule => afterRuleId.contains(rule.id.toString)) match {
+      case afterRuleIdx: Int if afterRuleIdx >= 0 =>
+        val (before, after) = children.splitAt(afterRuleIdx + 1)
+        (before :+ newChildRule) ++ after // insert after specified rule
+      case -1 => // append
+        children :+ newChildRule
+    }
+    val updatedRule = parentRule.operator.withChildren(newChildren)
+    updateRule(parentRule.update(updatedRule))
+    serializeCompileTime(newChildRule, Some(project))
+  }
+
+  private def assignNewIdsAndLabelToRule(task: ProjectTask[TransformSpec],
+                                 ruleToCopy: RuleTraverser): TransformRule = {
+    implicit val idGenerator: IdentifierGenerator = identifierGenerator(task)
+    ruleToCopy.operator match {
+      case t: TransformRule =>
+        val originalLabel = if(t.metaData.label.trim != "") t.metaData.label else t.target.map(_.propertyUri.toString).getOrElse("unlabeled")
+        val newLabel = "Copy of " + originalLabel
+        val transformRuleCopy = assignNewIdsToRule(t)
+        transformRuleCopy.withMetaData(t.metaData.copy(label = newLabel))
+      case other: Operator => throw new RuntimeException("Selected operator was not transform rule. Operator ID: " + other.id)
+    }
+  }
+
+  private def assignNewIdsToRule(t: TransformRule)
+                                (implicit idGenerator: IdentifierGenerator): TransformRule = {
+    t match {
+      case r: RootMappingRule =>
+        val updatedMappingRules = assignNewIdsToMappingRules(r.rules)
+        r.copy(id = idGenerator.generate(r.id), rules = updatedMappingRules)
+      case c: ComplexMapping => c.copy(id = idGenerator.generate(c.id))
+      case c: ComplexUriMapping => c.copy(id = idGenerator.generate(c.id))
+      case d: DirectMapping => d.copy(id = idGenerator.generate(d.id))
+      case o: ObjectMapping =>
+        val updatedMappingRules = assignNewIdsToMappingRules(o.rules)
+        o.copy(id = idGenerator.generate(o.id), rules = updatedMappingRules)
+      case typeMapping: TypeMapping => assignNewIdsToRule(typeMapping)
+      case uriMapping: UriMapping => assignNewIdsToRule(uriMapping)
+    }
+  }
+
+  private def assignNewIdsToMappingRules(mappingRules: MappingRules)
+                                        (implicit identifierGenerator: IdentifierGenerator): MappingRules = {
+    mappingRules.copy(
+      uriRule = mappingRules.uriRule.map(assignNewIdsToRule),
+      typeRules = mappingRules.typeRules.map(assignNewIdsToRule),
+      propertyRules = mappingRules.propertyRules.map(assignNewIdsToRule)
+    )
+  }
+
+  private def assignNewIdsToRule(typeMapping: TypeMapping)
+                                (implicit idGenerator: IdentifierGenerator): TypeMapping = {
+    typeMapping.copy(id = idGenerator.generate(typeMapping.id))
+  }
+
+  private def assignNewIdsToRule(uriMapping: UriMapping)
+                                (implicit idGenerator: IdentifierGenerator): UriMapping = {
+    uriMapping match {
+      case c: ComplexUriMapping =>
+        c.copy(id = idGenerator.generate(c.id))
+      case p: PatternUriMapping =>
+        p.copy(id = idGenerator.generate(p.id))
+    }
+  }
+
+  /** Converts a root mapping rule to an object mapping rule. */
+  private def convertRootMappingRule(rule: TransformRule): TransformRule = {
+    rule match {
+      case RootMappingRule(rules, id, metaData) =>
+        ObjectMapping(id, rules = rules, metaData = metaData, target = Some(MappingTarget(ROOT_COPY_TARGET_PROPERTY, ValueType.URI)))
+      case other: TransformRule =>
+        other
+    }
+  }
+
+  /**
+    * Copies a mapping rule from a source transform task to a target transform task.
+    *
+    * @param projectName   The target project where the rule is copied to.
+    * @param taskName      The target transform task the rule is copied to.
+    * @param ruleName      The target rule where the copied rule should be added as child.
+    * @param sourceProject The project the source rule is copied from.
+    * @param sourceTask    The source task the source rule is copied from.
+    * @param sourceRule    The ID of the source rule that should be copied.
+    * @param afterRuleId   An optional rule ID of one of the children of the parent rule after which the new rule should be
+    *                      added.
+    * @return The newly added rule.
+    */
+  def copyRule(projectName: String,
+               taskName: String,
+               ruleName: String,
+               sourceProject: String,
+               sourceTask: String,
+               sourceRule: String,
+               afterRuleId: Option[String] = None): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
+    val (_, fromTask) = getProjectAndTask[TransformSpec](sourceProject, sourceTask)
+    implicit val prefixes: Prefixes = project.config.prefixes
+    task.synchronized {
+      implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task))
+      processRule(fromTask, sourceRule) { ruleToCopy =>
+        processRule(task, ruleName) { parentRule =>
+          val newChildRule = convertRootMappingRule(assignNewIdsAndLabelToRule(task, ruleToCopy))
+          addRuleToTransformTask(parentRule, newChildRule, afterRuleId)
         }
       }
     }
@@ -289,7 +421,8 @@ class TransformTaskApi extends Controller {
                                dataSource: DataSource,
                                errorEntitySinkOpt: Option[EntitySink])
                               (implicit userContext: UserContext): Unit = {
-    val transform = new ExecuteTransform((_) => dataSource, task.data, (_) => entitySink)
+    implicit val prefixes: Prefixes = task.project.config.prefixes
+    val transform = new ExecuteTransform(task.taskLabel(), (_) => dataSource, task.data, (_) => entitySink)
     Activity(transform).startBlocking()
   }
 
@@ -310,8 +443,8 @@ class TransformTaskApi extends Controller {
       case Some((_, sourcePath)) =>
         val pathCache = task.activity[TransformPathsCache]
         pathCache.control.waitUntilFinished()
-        val cachedPaths = pathCache.value.fetchCachedPaths(task, sourcePath)
-        val isRdfInput = pathCache.value.isRdfInput(task)
+        val cachedPaths = pathCache.value().fetchCachedPaths(task, sourcePath)
+        val isRdfInput = pathCache.value().isRdfInput(task)
         val matchingPaths = cachedPaths filter { p =>
           val pathSize = p.operators.size
           isRdfInput ||
@@ -322,22 +455,28 @@ class TransformTaskApi extends Controller {
             if(isRdfInput) {
               p
             } else {
-              Path(p.operators.drop(sourcePath.size))
+              TypedPath.removePathPrefix(p, UntypedPath(sourcePath))
             }
         }
         val filteredPaths = if(unusedOnly) {
           val sourcePaths = task.data.valueSourcePaths(ruleId, maxDepth)
           matchingPaths.filterNot { path =>
-            sourcePaths.contains(path)
+            sourcePaths.contains(path.asUntypedPath)
           }
         } else {
           matchingPaths
         }
-        Ok(Json.toJson(filteredPaths.map(_.serialize())))
+        Ok(Json.toJson(filteredPaths.map(_.toUntypedPath.serialize())))
       case None =>
         NotFound("No rule found with ID " + ruleId)
     }
   }
+}
+
+object TransformTaskApi {
+
+  // The property that is set when copying a root mapping rule that will be converted into an object mapping rule
+  final val ROOT_COPY_TARGET_PROPERTY = "urn:temp:child"
 }
 
 // Peak API

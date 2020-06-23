@@ -2,12 +2,12 @@ package org.silkframework.plugins.dataset.rdf.vocab
 
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.rdf.model.ModelFactory
-import org.scalatest.{FlatSpec, ShouldMatchers}
+import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaDatasetEndpoint
 import org.silkframework.rule.vocab._
 import org.silkframework.runtime.activity.UserContext
 
-class VocabularyLoaderTest extends FlatSpec with ShouldMatchers {
+class VocabularyLoaderTest extends FlatSpec with Matchers {
   private implicit val userContext: UserContext = UserContext.Empty
   private val MOVIE = "Movie"
   private val FILM = "Film"

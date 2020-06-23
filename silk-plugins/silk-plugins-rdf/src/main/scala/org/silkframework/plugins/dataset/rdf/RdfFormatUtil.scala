@@ -1,26 +1,21 @@
 package org.silkframework.plugins.dataset.rdf
 
-import java.io.ByteArrayOutputStream
-
 import org.apache.jena.graph.{Node, NodeFactory}
 import org.apache.jena.rdf.model.{AnonId, ModelFactory, Statement}
-import org.apache.jena.riot.RDFDataMgr
 import org.apache.jena.riot.adapters.RDFWriterFactoryRIOT
 import org.apache.jena.vocabulary.XSD
 import org.apache.jena.sparql.core.{Quad => JenaQuad}
 import org.apache.jena.graph.{Triple => JenaTriple}
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
+import org.silkframework.rule.util.JenaSerializationUtil
 import org.silkframework.util.{StringUtils, Uri}
-
-import scala.collection.JavaConverters._
 
 /** Utility methods for serializing to RDF */
 object RdfFormatUtil {
   final val BOOLEAN_JENA_TYPE = NodeFactory.getType(XSD.xboolean.getURI)
   final val DOUBLE_JENA_TYPE = NodeFactory.getType(XSD.xdouble.getURI)
   final val FLOAT_JENA_TYPE = NodeFactory.getType(XSD.xfloat.getURI)
-  final val INT_JENA_TYPE = NodeFactory.getType(XSD.xint.getURI)
   final val INTEGER_JENA_TYPE = NodeFactory.getType(XSD.integer.getURI)
   final val LONG_JENA_TYPE = NodeFactory.getType(XSD.xlong.getURI)
 
@@ -117,9 +112,9 @@ object RdfFormatUtil {
   private val model = ModelFactory.createDefaultModel()
   def tripleValuesToNTriplesSyntax(subject: String, property: String, value: String, valueType: ValueType): String = {
     val objNode = resolveObjectValue(value, valueType)
-    val tripleString = serializeTriple(subject, property, objNode)
+    val tripleString = JenaSerializationUtil.serializeTriple(subject, property, objNode)
     valueType match {
-      case CustomValueType(typeUri) if UriValueType.validate(typeUri) =>
+      case CustomValueType(typeUri) if ValueType.URI.validate(typeUri) =>
         val cutLine = tripleString.dropRight(3) // Hack, since Jena does not provide any way to use arbitrary types without implementing a custom type
         cutLine + s"^^<$typeUri> .\n"
       case _ =>
@@ -127,78 +122,30 @@ object RdfFormatUtil {
     }
   }
 
-  private def autoDetectValueType(value: String): Node = {
-    value match {
-      // Check if value is an URI
-      case v: String if (value.startsWith("http") || value.startsWith("urn")) && new Uri(v).isValidUri =>
-        NodeFactory.createURI(v)
-      // Check if value is a number
-      case StringUtils.integerNumber() =>
-        model.createTypedLiteral(value, XSD.integer.getURI).asNode
-      case StringUtils.simpleDoubleNumber() =>
-        model.createTypedLiteral(value, XSD.xdouble.getURI).asNode
-      // Write string values
-      case _ =>
-        NodeFactory.createLiteral(value)
-    }
-  }
-
   def resolveObjectValue(lexicalValue: String, valueType: ValueType): Node = {
     valueType match {
-      case AutoDetectValueType =>
-        autoDetectValueType(lexicalValue)
-      case CustomValueType(typeUri) if UriValueType.validate(typeUri) =>
+      case CustomValueType(typeUri) if ValueType.URI.validate(typeUri) =>
         model.createLiteral(lexicalValue).asNode() // Hack: Jena needs an implementation for each type URI, so serialize as String and attach datatype later
-      case UriValueType if UriValueType.validate(lexicalValue) =>
+      case ValueType.URI if ValueType.URI.validate(lexicalValue) =>
         model.createResource(lexicalValue).asNode
-      case StringValueType =>
+      case ValueType.STRING | ValueType.UNTYPED =>
         model.createLiteral(lexicalValue).asNode
       case LanguageValueType(lang) =>
         model.createLiteral(lexicalValue, lang).asNode
-      case BlankNodeValueType =>
+      case ValueType.BLANK_NODE =>
         model.createResource(new AnonId(lexicalValue)).asNode
-      case BooleanValueType =>
-        model.createTypedLiteral(lexicalValue, BOOLEAN_JENA_TYPE).asNode()
-      case DoubleValueType =>
-        model.createTypedLiteral(lexicalValue, DOUBLE_JENA_TYPE).asNode()
-      case FloatValueType =>
-        model.createTypedLiteral(lexicalValue, FLOAT_JENA_TYPE).asNode()
-      case IntValueType =>
-        model.createTypedLiteral(lexicalValue, INT_JENA_TYPE).asNode()
-      case IntegerValueType =>
-        model.createTypedLiteral(lexicalValue, INTEGER_JENA_TYPE).asNode()
-      case LongValueType =>
-        model.createTypedLiteral(lexicalValue, LONG_JENA_TYPE).asNode()
-      case DateValueType =>
-        model.createTypedLiteral(lexicalValue, DateValueType.xmlSchemaType(lexicalValue)).asNode()
-      case DateTimeValueType =>
-        model.createTypedLiteral(lexicalValue, DateTimeValueType.xmlSchemaType(lexicalValue)).asNode()
+      case dateType: DateAndTimeValueType =>
+        model.createTypedLiteral(lexicalValue, dateType.xmlSchemaType(lexicalValue)).asNode()
+      case ValueType.DATE_TIME =>
+        model.createTypedLiteral(lexicalValue, ValueType.DATE_TIME.xmlSchemaType(lexicalValue)).asNode()
+      case valueType: ValueType if valueType.uri.isDefined =>
+        model.createTypedLiteral(lexicalValue, valueType.uri.get).asNode()
       case _ =>
         throw new IllegalArgumentException(s"Cannot create RDF node from value type $valueType and lexical string '$lexicalValue'! Validation failed.")
     }
   }
 
-  /**
-    * Serialize a single triple.
-    *
-    * @param subject Subject URI
-    * @param property Property URI
-    * @param node A Jena [[Node]].
-    * @return
-    */
-  def serializeTriple(subject: String, property: String, node: Node): String = {
-    val output = new ByteArrayOutputStream()
-    val triple = new JenaTriple(NodeFactory.createURI(subject), NodeFactory.createURI(property), node)
-    RDFDataMgr.writeTriples(output, Iterator(triple).asJava)
-    output.toString()
-  }
-
-  def serializeSingleNode(node: Node): String = {
-    val subjectPropertyLength = 8
-    val spaceDotNewLineLength = 3
-    val output = new ByteArrayOutputStream()
-    val triple = new JenaTriple(NodeFactory.createURI("a"), NodeFactory.createURI("b"), node)
-    RDFDataMgr.writeTriples(output, Iterator(triple).asJava)
-    output.toString().drop(subjectPropertyLength).dropRight(spaceDotNewLineLength)
+  def serializeSingleNode(lexicalValue: String, valueType: ValueType): String = {
+    JenaSerializationUtil.serializeSingleNode(resolveObjectValue(lexicalValue, valueType))
   }
 }

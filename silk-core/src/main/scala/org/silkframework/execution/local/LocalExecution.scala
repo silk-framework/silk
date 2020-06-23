@@ -69,3 +69,13 @@ case class LocalExecution(useLocalInternalDatasets: Boolean) extends ExecutionTy
     this.shutdownHooks.clear()
   }
 }
+
+object LocalExecution {
+
+  private lazy val instance = LocalExecution(false)
+
+  def apply(): LocalExecution = {
+    instance
+  }
+
+}

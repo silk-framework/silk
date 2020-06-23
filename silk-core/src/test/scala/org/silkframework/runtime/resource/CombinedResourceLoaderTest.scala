@@ -3,9 +3,9 @@ package org.silkframework.runtime.resource
 import java.io.{ByteArrayInputStream, InputStream}
 import java.time.Instant
 
-import org.scalatest.{FlatSpec, ShouldMatchers}
+import org.scalatest.{FlatSpec, Matchers}
 
-class CombinedResourceLoaderTest extends FlatSpec with ShouldMatchers {
+class CombinedResourceLoaderTest extends FlatSpec with Matchers {
 
   behavior of "CombinedResourceLoader"
 

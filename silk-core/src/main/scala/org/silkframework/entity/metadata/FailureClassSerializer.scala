@@ -1,6 +1,6 @@
 package org.silkframework.entity.metadata
 
-import org.silkframework.entity.Path
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.failures.{AccumulatedFailureClass, FailureClass}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.failures.FailureClass._
@@ -13,7 +13,7 @@ case class FailureClassSerializer() extends XmlMetadataSerializer[FailureClass] 
     val taskId = (node \ TASK_ID_TAG).text.trim
     val message = (node \ MESSAGE_TAG).text.trim
     val rootCause = ExceptionSerializer().readException((node \ ROOT_CAUSE_TAG).headOption.flatMap(_.child.headOption).orNull)
-    val property = (node \ PROPERTY_TAG).headOption.map(p => Path(p.text))
+    val property = (node \ PROPERTY_TAG).headOption.map(p => UntypedPath(p.text))
     val accumulated = (node \ ACCUMULATED_TAG).text.trim.toBoolean
     val fc = FailureClass(rootCause, message, taskId, property)
 

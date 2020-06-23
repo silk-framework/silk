@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset.json
 
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
+import org.silkframework.entity.paths._
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
 import play.api.libs.json._
@@ -45,15 +46,15 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
         if(leafPathsOnly) {
           childPaths
         } else {
-          Seq(path -> UriValueType) ++ childPaths
+          Seq(path -> ValueType.URI) ++ childPaths
         }
       case array: JsArray if array.value.nonEmpty =>
         keepParent(array.value.head).collectPaths(path, leafPathsOnly, innerPathsOnly, depth)
       case _ =>
         if (path.nonEmpty && !innerPathsOnly) {
-          Seq(path -> StringValueType)
+          Seq(path -> ValueType.STRING)
         } else if(innerPathsOnly && path.isEmpty) {
-          Seq(path -> UriValueType)
+          Seq(path -> ValueType.URI)
         } else {
           Seq() // also return root path, since this is a valid type in JSON
         }
@@ -117,7 +118,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
         children(prop).flatMap(child => child.evaluate(tail))
       case BackwardOperator(prop) :: tail =>
         parentOpt match {
-          case Some(parent) if parent.property == prop =>
+          case Some(parent) =>
             parent.traverser.evaluate(tail)
           case None =>
             Nil
@@ -156,14 +157,14 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
   }
 
   def generateUri(path: String, value: JsObject): String = {
-    DataSource.generateEntityUri(path, nodeId(value))
+    DataSource.generateEntityUri(taskId, nodeId(value))
   }
 
   def nodeId(value: JsValue): String = {
     nodeToString(value).hashCode.toString
   }
 
-  def evaluate(path: Path): Seq[String] = evaluate(path.operators)
+  def evaluate(path: UntypedPath): Seq[String] = evaluate(path.operators)
 
   /**
     * Converts a simple json node, such as a number, to a string.

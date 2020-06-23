@@ -2,24 +2,25 @@ package org.silkframework.plugins.dataset.json
 
 import org.silkframework.dataset._
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.Resource
 
 import scala.io.Codec
 
 @Plugin(
   id = "json",
-  label = "JSON file",
+  label = "JSON",
+  categories = Array(DatasetCategories.file),
   description =
-"""Retrieves all entities from an JSON file."""
+"""Read from or write to a JSON file."""
 )
 case class JsonDataset(
   @Param("Json file.")
   file: Resource,
-  @Param("The path to the elements to be read, starting from the root element, e.g., '/Persons/Person'. If left empty, all direct children of the root element will be read.")
+  @Param(value = "The path to the elements to be read, starting from the root element, e.g., '/Persons/Person'. If left empty, all direct children of the root element will be read.", advanced = true)
   basePath: String = "",
   @deprecated("This will be removed in the next release.", "")
-  @Param("A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements")
+  @Param(label = "URI pattern", value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
   uriPattern: String = "",
   @Param("The file encoding, e.g., UTF8, ISO-8859-1")
   charset: String = "UTF8") extends Dataset with ResourceBasedDataset {

@@ -3,7 +3,7 @@ package org.silkframework.rule.plugins.transformer.linguistic
 import java.net.{HttpURLConnection, URL, URLEncoder}
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.HttpURLConnectionUtils._
 
 import scala.collection.mutable.ArrayBuffer

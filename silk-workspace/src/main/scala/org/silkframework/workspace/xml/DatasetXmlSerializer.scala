@@ -23,9 +23,9 @@ import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
+import org.silkframework.workspace.TaskLoadingError
 
 import scala.util.Try
-import scala.xml.XML
 
 /**
  * The source module which encapsulates all data sources.
@@ -34,19 +34,19 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
 
   private val logger = Logger.getLogger(classOf[DatasetXmlSerializer].getName)
 
-  override def prefix = "dataset"
+  override def prefix: String = "dataset"
 
   private def taskNames(resources: ResourceLoader) = {
     resources.list.filter(_.endsWith(".xml")).filter(!_.contains("cache"))
   }
 
-  private def loadTask(name: String, resources: ResourceLoader, projectResources: ResourceManager) = {
+  private def loadTask(resourceName: String,
+                       resources: ResourceLoader,
+                       projectResources: ResourceManager): Either[Task[DatasetSpec[Dataset]], TaskLoadingError] = {
     // Load the data set
-    implicit val res = projectResources
-    implicit val readContext = ReadContext(projectResources)
-    val dataset = XmlSerialization.fromXml[Task[GenericDatasetSpec]](resources.get(name).read(XML.load))
-
-    dataset
+    implicit val res: ResourceManager = projectResources
+    implicit val readContext: ReadContext = ReadContext(projectResources)
+    loadTaskSafelyFromXML(resourceName, Some(resourceName.stripSuffix(".xml")), resources, projectResources)
   }
 
   /**
@@ -64,11 +64,11 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
     resources.delete(name.toString + "_cache.xml")
   }
 
-  override def loadTasksSafe(resources: ResourceLoader, projectResources: ResourceManager): Seq[Try[Task[GenericDatasetSpec]]] = {
+  override def loadTasksSafe(resources: ResourceLoader, projectResources: ResourceManager): Seq[Either[Task[GenericDatasetSpec], TaskLoadingError]] = {
     // Read dataset tasks
     val names = taskNames(resources)
     var tasks = for (name <- names) yield {
-      Try(loadTask(name, resources, projectResources))
+      loadTask(name, resources, projectResources)
     }
 
     // Also read dataset tasks from the old source folder
@@ -77,7 +77,7 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
       val oldNames = taskNames(oldResources)
       tasks =
           for (name <- oldNames) yield {
-            Try(loadTask(name, oldResources, projectResources))
+            loadTask(name, oldResources, projectResources)
           }
     }
 

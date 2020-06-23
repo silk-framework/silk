@@ -1,18 +1,30 @@
 @import org.silkframework.rule.TransformSpec
 @import controllers.rules.routes.Assets
+@import controllers.core.routes.{Assets => CoreAssets}
 @import org.silkframework.workbench.Context
 
-@(context: Context[TransformSpec], offset: Int, limit: Int)(implicit session: play.api.mvc.Session)
+@(context: Context[TransformSpec], selectedRule: String, offset: Int, limit: Int)(implicit session: play.api.mvc.Session)
 
 @header = {
+  <script src="@CoreAssets.at("libs/silk-react-components/main.js")" type="text/javascript"></script>
   <link type="text/css" href="@Assets.at("stylesheets/evaluateTransform/evaluateTransform.css")" rel="stylesheet" />
 }
 
-@toolbar = {
-}
-
 @content = {
-  <iframe id="generatedEntitiesIFrame" src="evaluate/generatedEntities?offset=@offset&limit=@limit" frameborder="0"></iframe>
+  <div id="react-evaluateMapping" style="height: 100%" ></div>
+  <script type="text/javascript">
+      silkReactComponents.evaluateMapping(
+        'react-evaluateMapping',
+        {
+          baseUrl: '@config.baseUrl',
+          project: '@context.project.name',
+          transformTask: '@context.task.id',
+          initialRule: '@selectedRule',
+          offset: @offset,
+          limit: @limit
+        }
+    );
+  </script>
 }
 
-@main(Some(context), titleLabel = context.task.taskLabel())(header)(toolbar)(content)
+@main(Some(context), titleLabel = context.task.taskLabel())(header)(null)(content)

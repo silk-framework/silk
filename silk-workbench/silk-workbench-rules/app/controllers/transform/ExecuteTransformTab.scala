@@ -1,31 +1,24 @@
 package controllers.transform
 
-import controllers.core.{RequestUserContextAction, Stream, Widgets}
+import controllers.core.RequestUserContextAction
+import javax.inject.Inject
 import org.silkframework.rule.TransformSpec
-import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.workbench.Context
-import org.silkframework.workspace.WorkspaceFactory
-import play.api.mvc.{Action, AnyContent, Controller}
+import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
+import play.api.mvc.{Action, AnyContent, InjectedController}
 
 /** Endpoints for the 'Execute' page of a transform task */
-class ExecuteTransformTab extends Controller {
+class ExecuteTransformTab @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController {
 
   def execute(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[TransformSpec](project, task, request.path)
+    accessMonitor.saveProjectTaskAccess(project, task)
     Ok(views.html.executeTransform.executeTransform(context))
   }
 
-  def executeStatistics(project: String, task: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+  def executionReport(project: String, task: String): Action[AnyContent] = RequestUserContextAction { request =>implicit userContext =>
     val context = Context.get[TransformSpec](project, task, request.path)
-    val report = context.task.activity[ExecuteTransform].value
-    Ok(views.html.executeTransform.transformStatistics(context.task, report, context.project.config.prefixes))
-  }
-
-  def statusStream(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val task = project.task[TransformSpec](taskName)
-    val stream = Stream.status(task.activity[ExecuteTransform].control.status)
-    Ok.chunked(Widgets.statusStream(stream))
+    Ok(views.html.executeTransform.transformReport(context.task))
   }
 
 }

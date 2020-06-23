@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.transform
 
-import org.silkframework.entity.Path
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.vocab.{Vocabularies, Vocabulary}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 
@@ -22,7 +22,7 @@ class VocabularyCacheValue(vocabularies: Seq[Vocabulary]) extends Vocabularies(v
   /**
     * Suggests mapping properties.
     */
-  override def suggestProperties(sourcePath: Path): Seq[MappingCandidate] = {
+  override def suggestProperties(sourcePath: UntypedPath): Seq[MappingCandidate] = {
     for (vocab <- vocabularies; prop <- vocab.properties) yield
       MappingCandidate(prop.info.uri, 0.0)
   }.distinct

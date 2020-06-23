@@ -17,6 +17,8 @@ trait GraphStoreTrait {
 
   private val UNAUTHORIZED = 401
 
+  protected val log: Logger = Logger.getLogger(getClass.getName)
+
   def graphStoreEndpoint(graph: String): String
 
   /** HTTP headers to add to the graph store requests */
@@ -28,7 +30,7 @@ trait GraphStoreTrait {
     */
   def handleError(connection: HttpURLConnection, message: String): Nothing = {
     val serverErrorMessage = connection.errorMessage(prefix = " Error message: ").getOrElse("")
-    throw new RuntimeException(message + s" Got ${connection.getResponseCode} response." + serverErrorMessage)
+    throw new RuntimeException(message + s" Got ${connection.getResponseCode} response on ${connection.getURL}." + serverErrorMessage)
   }
 
   /** This is called if an authentication error (401) happened.
@@ -59,6 +61,8 @@ trait GraphStoreTrait {
                       chunkedStreamingMode: Option[Int] = Some(1000),
                       comment: Option[String] = None)
                      (implicit userContext: UserContext): OutputStream = {
+    log.fine("Initiating Graph Store POST request to: " + graph + comment.map(c => s" ($c)").getOrElse(""))
+
     val connection: HttpURLConnection = initConnection(graph, comment)
     connection.setDoInput(true)
     connection.setDoOutput(true)
@@ -71,14 +75,20 @@ trait GraphStoreTrait {
 
   def deleteGraph(graph: String)
                  (implicit userContext: UserContext): Unit = {
+    log.fine(s"Deleting graph $graph from Graph Store")
     var tries = 0
-    while(tries < 2) {
+    var success = false
+    while(!success && tries < 2) {
       tries += 1
       val connection = initConnection(graph)
       connection.setRequestMethod("DELETE")
-      if(connection.getResponseCode / 100 != 2) {
+      success = connection.getResponseCode / 100 == 2
+      if(!success) {
         if(tries == 1 && connection.getResponseCode == UNAUTHORIZED) {
           handleAuthenticationError(userContext)
+          log.fine(s"Request to delete graph $graph has been successful.")
+        } else if(connection.getResponseCode / 100 == 5) {
+          // Try again on server error
         } else {
           handleError(connection, s"Could not delete graph $graph!")
         }
@@ -108,6 +118,7 @@ trait GraphStoreTrait {
   def getDataFromGraph(graph: String,
                        acceptType: String = "text/turtle; charset=utf-8")
                       (implicit userContext: UserContext): InputStream = {
+    log.fine(s"Initiating Graph Store GET request to: $graph")
     def connection(): HttpURLConnection = {
       val c = initConnection(graph)
       c.setRequestMethod("GET")
@@ -115,7 +126,7 @@ trait GraphStoreTrait {
       c.setRequestProperty("Accept", acceptType)
       c
     }
-    ConnectionClosingInputStream(connection, userContext, errorHandler)
+    ConnectionClosingInputStream(connection, userContext, errorHandler, s"$graph from Graph Store")
   }
 }
 
@@ -141,7 +152,7 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection,
       outputStream.close()
       val responseCode = connection.getResponseCode
       if(responseCode / 100 == 2) {
-        log.fine("Successfully written to output stream.")
+        log.fine("Successfully written to graph store output stream.")
       } else {
         if(responseCode == 401) {
           errorHandler.authenticationErrorHandler(userContext) // Nothing else we can do here, all the data has already been written
@@ -161,8 +172,10 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection,
 
 case class ConnectionClosingInputStream(createConnection: () => HttpURLConnection,
                                         userContext: UserContext,
-                                        errorHandler: ErrorHandler) extends InputStream {
+                                        errorHandler: ErrorHandler,
+                                        sourceName: String) extends InputStream {
   private val log: Logger = Logger.getLogger(this.getClass.getName)
+  @volatile
   private var connection: HttpURLConnection = null
 
   private lazy val inputStream: InputStream = {
@@ -179,7 +192,7 @@ case class ConnectionClosingInputStream(createConnection: () => HttpURLConnectio
           if(tries == 1 && connection.getResponseCode == 401 && errorHandler.authenticationErrorHandler(userContext)) {
             // Authentication problem solved, let's try again
           } else {
-            errorHandler.genericErrorHandler(connection, s"Could not read from graph store. Got ${connection.getResponseCode} response code.")
+            errorHandler.genericErrorHandler(connection, s"Could not read $sourceName. Got ${connection.getResponseCode} response code.")
           }
       }
     }
@@ -190,19 +203,22 @@ case class ConnectionClosingInputStream(createConnection: () => HttpURLConnectio
   override def read(): Int = inputStream.read()
 
   override def close(): Unit = {
-    try {
-      inputStream.close()
-      val responseCode = connection.getResponseCode
-      if(responseCode / 100 == 2) {
-        log.fine("Successfully received data from input stream.")
-      } else {
-        if(responseCode == 401) {
-          errorHandler.authenticationErrorHandler(userContext)
+    if(connection != null) {
+      try {
+        inputStream.close()
+        val responseCode = connection.getResponseCode
+        if (responseCode / 100 == 2) {
+          log.fine(s"Successfully received $sourceName")
+        } else {
+          if (responseCode == 401) {
+            errorHandler.authenticationErrorHandler(userContext)
+          }
+          errorHandler.genericErrorHandler(connection, s"Could not read $sourceName. Got $responseCode response code.")
         }
-        errorHandler.genericErrorHandler(connection, s"Could not read from graph store. Got $responseCode response code.")
+      } finally {
+        connection.disconnect()
+        connection = null
       }
-    } finally {
-      connection.disconnect()
     }
   }
 }

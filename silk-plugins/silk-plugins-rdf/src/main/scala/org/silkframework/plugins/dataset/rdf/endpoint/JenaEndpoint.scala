@@ -20,8 +20,7 @@ import org.apache.jena.query._
 import org.apache.jena.rdf.model.Model
 import org.apache.jena.update.UpdateProcessor
 import org.silkframework.dataset.rdf._
-import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
-import org.silkframework.plugins.dataset.rdf.{QueryExecutionQuadIterator, QueryExecutionTripleIterator, RdfFormatUtil}
+import org.silkframework.plugins.dataset.rdf.{QueryExecutionQuadIterator, QueryExecutionTripleIterator}
 import org.silkframework.runtime.activity.UserContext
 
 import scala.collection.immutable.SortedMap

@@ -1,6 +1,7 @@
 package org.silkframework.rule.execution.methods
 
-import org.silkframework.entity.{Entity, Index, Path}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.execution.ExecutionMethod
 import org.silkframework.rule.LinkageRule
 
@@ -17,7 +18,7 @@ import scala.math._
  * @param q The size of the q-grams that are indexed, e.g. if q = 2, bigrams will be indexed.
  * @param t The minimum threshold that defines the minimum length of the generated q-gram sub-lists.
  */
-case class QGrams(sourceKey: Path, targetKey: Path, q: Int = 2, t: Double = 0.8) extends ExecutionMethod {
+case class QGrams(sourceKey: UntypedPath, targetKey: UntypedPath, q: Int = 2, t: Double = 0.8) extends ExecutionMethod {
   require(q > 0, "q > 0")
   require(0.0 <= t && t < 1.0, "0 <= t < 1")
 
@@ -43,7 +44,7 @@ case class QGrams(sourceKey: Path, targetKey: Path, q: Int = 2, t: Double = 0.8)
 
   private def generateSubListsRecursive(list: Seq[String], minLength: Int): Set[Seq[String]] = {
     if(list.size > minLength) {
-      val subLists = for(i <- 0 until list.size) yield list.patch(i, Seq.empty, 1)
+      val subLists = for(i <- list.indices) yield list.patch(i, Seq.empty, 1)
       Set(list) ++ subLists.flatMap(l => generateSubListsRecursive(l, minLength))
     } else {
       Set(list)

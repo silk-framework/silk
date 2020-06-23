@@ -1,7 +1,7 @@
 package org.silkframework.rule
 
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.entity.Path
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.input.{PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.plugins.transformer.value.ConstantUriTransformer
@@ -78,7 +78,7 @@ class TransformRuleTest extends FlatSpec with MustMatchers {
         uriRule = None,
         typeRules = Seq.empty,
         propertyRules = Seq(
-          ComplexMapping("invalidRule", TransformInput("duplicateID", LowerCaseTransformer(), Seq(PathInput("duplicateID", Path.empty))))
+          ComplexMapping("invalidRule", TransformInput("duplicateID", LowerCaseTransformer(), Seq(PathInput("duplicateID", UntypedPath.empty))))
         )
       )
     )

@@ -17,15 +17,15 @@ package org.silkframework.learning.individual
 /**
  * Represents a population of candidate solutions.
  */
-case class Population(individuals : Traversable[Individual]) {
+case class Population(individuals : Seq[Individual]) {
 
   /** The individual with the best score */
-  lazy val bestIndividual = individuals.maxBy(_.fitness)
+  lazy val bestIndividual: Individual = individuals.maxBy(_.fitness)
 
   /** True, if the population is empty */
-  def isEmpty = individuals.isEmpty
+  def isEmpty: Boolean = individuals.isEmpty
 }
 
 object Population {
-  def empty = Population(Traversable.empty)
+  def empty: Population = Population(Seq.empty)
 }

@@ -17,12 +17,12 @@ package org.silkframework.rule.plugins.transformer.conversion
 import java.nio.charset.Charset
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "convertCharset",
   categories = Array("Conversion"),
-  label = "Convert Charset",
+  label = "Convert charset",
   description = "Convert the string from \"sourceCharset\" to \"targetCharset\"."
 )
 case class ConvertCharsetTransformer(sourceCharset: String = "ISO-8859-1", targetCharset: String = "UTF-8") extends SimpleTransformer {

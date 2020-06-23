@@ -15,4 +15,5 @@ case class MultilineStringParameter(str: String) {
 
 object MultilineStringParameter {
   implicit def str2MultilineString(str: String): MultilineStringParameter = MultilineStringParameter(str)
+  implicit def multiline2str(str: MultilineStringParameter): String = str.str
 }

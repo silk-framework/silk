@@ -14,7 +14,9 @@
 
 package org.silkframework.learning.generation
 
-import org.silkframework.entity.{Entity, Path, TypedPath}
+import org.silkframework.config.Prefixes
+import org.silkframework.entity.Entity
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.learning.LearningConfiguration.Components
 import org.silkframework.learning.individual.FunctionNode
 import org.silkframework.rule.evaluation.ReferenceEntities
@@ -22,12 +24,14 @@ import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.plugins.transformer.substring.StripUriPrefixTransformer
 import org.silkframework.rule.plugins.transformer.tokenization.Tokenizer
 import org.silkframework.rule.similarity.DistanceMeasure
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.DPair
 
 /**
   * Analyses the reference entities and generates pairs of paths.
   */
-class CompatiblePathsGenerator(components: Components) {
+class CompatiblePathsGenerator(components: Components)
+                              (implicit prefixes: Prefixes, resourceManager: ResourceManager){
 
   private val minFrequency = 0.01
 
@@ -42,20 +46,20 @@ class CompatiblePathsGenerator(components: Components) {
         //Remove paths which hold the same values (e.g. rdfs:label and drugbank:drugName)
         val distinctPaths = DuplicateRemover(paths, entities)
         //Return all path pairs
-        val pathPairs = PairGenerator(distinctPaths, entities)
+        val pathPairs = PairGenerator(distinctPaths, entities).map(_.map(_.toUntypedPath))
 
         pathPairs.flatMap(createGenerators)
       }
       else {
         for (s <- paths.source;
              t <- paths.target;
-             generator <- createGenerators(DPair(s, t)))
+             generator <- createGenerators(DPair(s.toUntypedPath, t.toUntypedPath)))
           yield generator
       }
     }
   }
 
-  private def createGenerators(pathPair: DPair[TypedPath]) = {
+  private def createGenerators(pathPair: DPair[UntypedPath]): Seq[ComparisonGenerator] = {
     ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("levenshteinDistance", Nil, DistanceMeasure), 3.0) ::
     ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("jaccard", Nil, DistanceMeasure), 1.0) ::
     // Substring is currently too slow ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("substring", Nil, DistanceMeasure), 0.6) ::

@@ -2,8 +2,9 @@ package controllers.util
 
 import controllers.util.SerializationUtilsTest._
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.scalatestplus.mockito.MockitoSugar
+import org.silkframework.config.MetaData
 import org.silkframework.rule.input.PathInput
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
@@ -24,7 +25,7 @@ class SerializationUtilsTest extends FlatSpec with MustMatchers with MockitoSuga
 
   val testObject = new TestSubSubClass()
   implicit val project: Project = mock[Project]
-  when(project.config).thenReturn(ProjectConfig())
+  when(project.config).thenReturn(ProjectConfig(metaData = MetaData("abc")))
   val request: Request[AnyContent] = mock[Request[AnyContent]]
   when(request.acceptedTypes).thenReturn(List())
   when(request.mediaType).thenReturn(None)

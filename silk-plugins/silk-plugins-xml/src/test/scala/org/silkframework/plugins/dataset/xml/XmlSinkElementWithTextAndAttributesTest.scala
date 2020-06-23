@@ -17,7 +17,7 @@ class XmlSinkElementWithTextAndAttributesTest extends FlatSpec with MustMatchers
   private final val TRANSFORM = "personTransform"
   private final val OUTPUT_RESOURCE = "person.xml"
 
-  override def workspaceProvider: String = "inMemory"
+  override def workspaceProviderId: String = "inMemory"
 
   private val expectedOutput: Elem = {
     <Persons>

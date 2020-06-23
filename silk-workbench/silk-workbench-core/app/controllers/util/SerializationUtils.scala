@@ -16,6 +16,8 @@ import scala.reflect.ClassTag
 import scala.xml.{Elem, Node}
 
 object SerializationUtils {
+  final val APPLICATION_JSON = "application/json"
+  final val APPLICATION_XML = "application/xml"
 
   /**
     * Tries to serialize a given value based on the accept header. The compile time type is used instead of the runtime
@@ -31,7 +33,7 @@ object SerializationUtils {
                                         project: Option[Project],
                                         defaultMimeTypes: Seq[String] = defaultMimeTypes)
                                        (implicit request: Request[AnyContent]): Result = {
-    implicit val writeContext = createWriteContext(project)
+    implicit val writeContext: WriteContext[Any] = createWriteContext(project)
     val valueType = implicitly[ClassTag[T]].runtimeClass
 
     applySerializationFormat[T](request.acceptedTypes, defaultMimeTypes, valueType) { (serializationFormat, mimeType) =>
@@ -195,7 +197,7 @@ object SerializationUtils {
     * @tparam T The expected parsed type.
     * @return A HTTP result. If the serialization succeeds, this will be the result returned by the user-provided function.
     */
-  def deserializeCompileTime[T: ClassTag](defaultMimeType: String = "application/xml")
+  def deserializeCompileTime[T: ClassTag](defaultMimeType: String = APPLICATION_XML)
                                          (func: T => Result)
                                          (implicit request: Request[AnyContent], readContext: ReadContext): Result = {
     val valueType = implicitly[ClassTag[T]].runtimeClass

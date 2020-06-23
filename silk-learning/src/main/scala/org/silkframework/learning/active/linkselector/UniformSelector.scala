@@ -19,13 +19,14 @@ import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation.ReferenceEntities
 
 import scala.math.log
+import scala.util.Random
 
 /**
  * Link Selector which distributes the links uniformly.
  */
 case class UniformSelector() extends LinkSelector {
 
-  def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
+  def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[Link] = {
     val proj = projection(rules, referenceEntities)
 
     val positiveLinks = referenceEntities.positiveEntities map LinkSelectorHelper.pairToLink

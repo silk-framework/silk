@@ -4,8 +4,8 @@ import java.io.File
 import java.net.{URL, URLClassLoader}
 import java.util.ServiceLoader
 import java.util.logging.Logger
-import javax.inject.Inject
 
+import javax.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig, Prefixes}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.Identifier
@@ -39,11 +39,37 @@ object PluginRegistry {
   /** Map from plugin base types to an instance holding all plugins of that type.  */
   private var pluginTypes = Map[String, PluginType]()
 
+  /** Map holding all plugins by their class name */
+  private var plugins = Map[String, PluginDescription[_]]()
+
+  /** Map holding all plugins by their ID. */
+  private var pluginsById = Map[String, Seq[PluginDescription[_]]]()
+
   // Register all plugins at instantiation of this singleton object.
   if(configMgr().hasPath("pluginRegistry.pluginFolder")) {
     registerJars(new File(configMgr().getString("pluginRegistry.pluginFolder")))
   } else {
     registerFromClasspath()
+  }
+
+  def allPlugins: Traversable[PluginDescription[_]] = {
+    pluginsById.values.flatten
+  }
+
+  // Returns an error message string if the object type is invalid.
+  def checkInvalidObjectPluginParameterType(parameterType: Class[_],
+                                            usageInParams: Seq[Parameter]): Option[String] = {
+    var errorMessage = ""
+    val needsCheck = usageInParams.exists(_.visibleInDialog)
+    if(needsCheck) {
+      for (param <- PluginDescription(parameterType).parameters if errorMessage.isEmpty && needsCheck) {
+        if (param.parameterType.isInstanceOf[PluginObjectParameterTypeTrait]) {
+          errorMessage = s"Found multiple nestings in object plugin parameter. Parameter '${param.label}' of parameter class " +
+              s"'${parameterType.getSimpleName}' is itself a nested object parameter."
+        }
+      }
+    }
+    Some(errorMessage).filter(_.nonEmpty)
   }
 
   /**
@@ -66,7 +92,7 @@ object PluginRegistry {
    * @tparam T The type of the plugin.
    * @return The plugin instance.
    */
-  def createFromConfig[T: ClassTag](configPath: String)(implicit prefixes: Prefixes = Prefixes.empty, resources: ResourceManager = EmptyResourceManager): T = {
+  def createFromConfig[T: ClassTag](configPath: String)(implicit prefixes: Prefixes = Prefixes.empty, resources: ResourceManager = EmptyResourceManager()): T = {
     createFromConfigOption[T](configPath) match {
       case Some(p) => p
       case None => throw new InvalidPluginException(s"Configuration property $configPath does not contain a plugin definition.")
@@ -82,7 +108,7 @@ object PluginRegistry {
     */
   def createFromConfigOption[T: ClassTag](configPath: String)
                                          (implicit prefixes: Prefixes = Prefixes.empty,
-                                          resources: ResourceManager = EmptyResourceManager): Option[T] = {
+                                          resources: ResourceManager = EmptyResourceManager()): Option[T] = {
     if(!configMgr().hasPath(configPath + ".plugin")) {
       None
     } else {
@@ -121,6 +147,29 @@ object PluginRegistry {
         .sortBy(_.label)
   }
 
+  /** Get a specific plugin description by plugin ID.
+    *
+    * @param pluginId     The ID of the plugin.
+    * @param assignableTo Optional classes that the plugin must be assignable to.
+    *                     Depending on 'forAllClassesAssignableTo' either all or at least one class must match.
+    *                     Only matching plugins will be returned.
+    * @param forAllClassesAssignableTo If this is true then all classes from the 'assignableTo' parameter must match, else
+    *                                  only one needs to match.
+    */
+  def pluginDescriptionsById(pluginId: String,
+                             assignableTo: Option[Seq[Class[_]]] = None,
+                             forAllClassesAssignableTo: Boolean = false): Seq[PluginDescription[_]] = {
+    pluginsById.get(pluginId).toSeq.flatten.filter( pluginDesc =>
+      assignableTo
+          .filter(_.nonEmpty)
+          .forall ( assignableToClasses => if(forAllClassesAssignableTo) {
+            assignableToClasses.forall(as => as.isAssignableFrom(pluginDesc.pluginClass))
+          } else {
+            assignableToClasses.exists(as => as.isAssignableFrom(pluginDesc.pluginClass))
+          })
+    )
+  }
+
   /**
     * Returns a list of all available plugins of a specific runtime type.
     */
@@ -134,8 +183,17 @@ object PluginRegistry {
   /**
    * Returns a map of all plugins grouped by category
    */
-  def pluginsByCategoty[T: ClassTag]: Map[String, Seq[PluginDescription[_]]] = {
+  def pluginsByCategory[T: ClassTag]: Map[String, Seq[PluginDescription[_]]] = {
     pluginType[T].pluginsByCategory
+  }
+
+  /**
+    * Returns the plugin description of a single class.
+    *
+    * @return The plugin description or None, if this class has not been registered as a plugin.
+    */
+  def pluginDescription[T](pluginClass: Class[_]): Option[PluginDescription[T]] = {
+    plugins.get(pluginClass.getName).map(_.asInstanceOf[PluginDescription[T]])
   }
 
   /**
@@ -148,7 +206,7 @@ object PluginRegistry {
     val pluginClasses = for(module <- modules; pluginClass <- module.pluginClasses) yield pluginClass
 
     // Create a plugin description for each plugin class (can be done in parallel)
-    val pluginDescs = for(pluginClass <- pluginClasses.par) yield PluginDescription(pluginClass)
+    val pluginDescs = for(pluginClass <- pluginClasses.par) yield PluginDescription.create(pluginClass)
 
     // Register plugins (must currently be done sequentially as registerPlugin is not thread safe)
     for(pluginDesc <- pluginDescs.seq)
@@ -182,16 +240,29 @@ object PluginRegistry {
     }
   }
 
+  // Checks if a plugin description is valid
+  def checkPluginDescription(pluginDesc: PluginDescription[_]): Unit = {
+    pluginDesc.parameters foreach { param =>
+      if(!param.visibleInDialog && param.defaultValue.isEmpty) {
+        throw new InvalidPluginException(s"Plugin '${pluginDesc.label}' is invalid. Parameter '${param.name}' must " +
+            s"either be visible in a dialog or needs a default value.")
+      }
+    }
+  }
+
   /**
     * Registers a single plugin.
     */
   def registerPlugin(pluginDesc: PluginDescription[_]): Unit = {
+    checkPluginDescription(pluginDesc)
     if(!blacklistedPlugins.contains(pluginDesc.id)) {
       for (superType <- getSuperTypes(pluginDesc.pluginClass)) {
         val pluginType = pluginTypes.getOrElse(superType.getName, new PluginType)
         pluginTypes += ((superType.getName, pluginType))
         pluginType.register(pluginDesc)
       }
+      plugins += ((pluginDesc.pluginClass.getName, pluginDesc))
+      pluginsById += ((pluginDesc.id.toString, pluginDesc :: (pluginsById.getOrElse(pluginDesc.id, Seq()).toList)))
     }
   }
 
@@ -199,7 +270,7 @@ object PluginRegistry {
    * Registers a single plugin.
    */
   def registerPlugin(implementingClass: Class[_]): Unit = {
-    val pluginDesc = PluginDescription(implementingClass)
+    val pluginDesc = PluginDescription.create(implementingClass)
     registerPlugin(pluginDesc)
     log.fine(s"Loaded plugin " + pluginDesc.id)
   }

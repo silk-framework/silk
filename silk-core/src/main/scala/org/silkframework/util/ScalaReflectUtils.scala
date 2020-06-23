@@ -91,6 +91,18 @@ object ScalaReflectUtils {
       case Failure(f) => throw f
     }
 
+
+  def listMembers(obj: Any): Map[String, Any] ={
+    val mi = ru.runtimeMirror(obj.getClass.getClassLoader)
+    classToTypeTag(obj.getClass) match {
+      case Success(typeTag) =>
+        typeTag.tpe.members.collect{
+          case m: TermSymbol if m.isVal => Try{mi.reflect(obj).reflectField(m.asTerm)}.map(x => (m.name.decodedName.toString, x.get)).toOption
+        }.flatten.toMap
+      case Failure(f) => throw f
+    }
+  }
+
   /**
     * Creates a new instance object of a given class
     *

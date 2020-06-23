@@ -1,15 +1,15 @@
 package org.silkframework.rule.plugins.transformer.date
 
 import java.util.Date
-import javax.xml.datatype.DatatypeFactory
 
+import javax.xml.datatype.DatatypeFactory
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
    id = "durationInYears",
    categories = Array("Date"),
-   label = "Duration in Years",
+   label = "Duration in years",
    description = "Converts an xsd:duration to years."
  )
 case class DurationInYearsTransformer() extends SimpleTransformer {

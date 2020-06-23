@@ -33,7 +33,7 @@ sealed trait Status {
    * The progress of the computation.
    * Will be 0.0 when the task has been started and 1.0 when it has finished execution.
    */
-  def progress: Double = 0.0
+  def progress: Option[Double] = None
 
   /**
    * True, if the task is running at the moment; False, otherwise.
@@ -57,6 +57,7 @@ sealed trait Status {
 
   /**
     * The timestamp when the status has been updated.
+    * Milliseconds since midnight, January 1, 1970 UTC.
     */
   val timestamp: Long = System.currentTimeMillis()
 
@@ -68,59 +69,66 @@ sealed trait Status {
 
 object Status {
   /**
-   * Status which indicates that the task has not been started yet.
+   * Status which indicates that the activity has not been started yet.
    */
   case class Idle() extends Status {
     def message: String = "Idle"
   }
   
   /**
-   * Status which indicates that the task has been started.
+   * Status which indicates that the activity has been started and is waiting to be executed.
    */
-  case class Started() extends Status {
-    override def message: String = "Started"
+  case class Waiting() extends Status {
+    override def message: String = "Waiting"
     override def isRunning: Boolean = true
   }
   
   /**
-   * Running status
+   * Running status, activity is currently being executed.
    *
    * @param message The status message
    * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
    */
-  case class Running(message: String, override val progress: Double) extends Status {
+  case class Running(message: String, override val progress: Option[Double]) extends Status {
     override def isRunning: Boolean = true
     override def toString: String = {
-      if(progress != 0.0) {
-        message + " (" + "%3.1f".format(progress * 100.0) + "%)"
-      } else {
-        message
+      progress match {
+        case Some(p) =>
+          message + " (" + "%3.1f".format(p * 100.0) + "%)"
+        case None =>
+          message
       }
     }
   }
-  
+
+  object Running {
+    def apply(message: String, progress: Double): Running = Running(message, Some(progress))
+  }
+
   /**
-   * Indicating that the task has been requested to stop but has not stopped yet.
+   * Indicating that the activity has been requested to stop but has not stopped yet.
    *
    * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
    */
-  case class Canceling(override val progress: Double) extends Status {
+  case class Canceling(override val progress: Option[Double]) extends Status {
     override def message: String = "Stopping..."
     override def isRunning: Boolean = true
   }
   
   /**
-   * Status which indicates that the task has finished execution.
+   * Status which indicates that the activity has finished execution.
    *
    * @param success True, if the computation finished successfully. False, otherwise.
    * @param runtime The time in milliseconds needed to execute the task.
    * @param exception The exception, if the task failed.
    */
   case class Finished(success: Boolean, runtime: Long, cancelled: Boolean, override val exception: Option[Throwable] = None) extends Status {
-    override def message: String = (exception, cancelled) match {
-      case (None, false) => "Finished in " + formattedTime
-      case (_, true) => "Cancelled after " + formattedTime
-      case (Some(ex), _) => "Failed after " + formattedTime + ": " + ex.getMessage
+    override def message: String = (success, exception, cancelled) match {
+      case (true, None, false) => "Finished in " + formattedTime
+      case (_, _, true) => "Cancelled after " + formattedTime
+      case (false, Some(ex), _) => "Failed after " + formattedTime + ": " + ex.getMessage
+      case (true, Some(ex), _) => "Errors occurred after " + formattedTime + ": " + ex.getMessage
+      case _ => "Unknown status"
     }
 
     private def formattedTime = {
@@ -131,7 +139,7 @@ object Status {
       }
     }
   
-    override def progress: Double = 1.0
+    override def progress: Option[Double] = Some(1.0)
   
     override def failed: Boolean = !success
   }

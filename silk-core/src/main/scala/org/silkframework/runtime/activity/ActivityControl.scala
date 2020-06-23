@@ -1,5 +1,7 @@
 package org.silkframework.runtime.activity
 
+import scala.concurrent.Future
+
 /**
  * Holds the current state of the activity.
  */
@@ -38,6 +40,9 @@ trait ActivityControl[T] {
    * @throws IllegalStateException If the activity is still running.
    */
   def start()(implicit user: UserContext): Unit
+
+  /** Cancels the currently running activity if necessary and starts it again. */
+  def restart()(implicit user: UserContext): Future[Unit]
 
   /**
    * Starts this activity in the current thread and returns after the activity has been finished.

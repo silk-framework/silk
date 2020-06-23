@@ -6,43 +6,12 @@
 @(context: Option[Context[_ <: TaskSpec]], selectedTab: String = "", titleLabel: String = "")(header: Html)(toolbar: Html)(content: Html)(implicit session: play.api.mvc.Session)
 
 @frame(header) {
-    <dialog id="primary_dialog" class="mdl-dialog mdl-dialog--modal">
-      <div class="mdl-dialog__title">
-        <strong class="mdl-dialog__title-text">Primary Modal Dialog</strong>
-      </div>
-      <div class="mdl-dialog__content">
-        <p>
-          This modal dialog needs to be filled with some actual content.
-        </p>
-        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-          <input class="mdl-textfield__input" type="text" id="sample3">
-          <label class="mdl-textfield__label" for="sample3">Text...</label>
-        </div>
-      </div>
-      <div class="mdl-dialog__actions">
-        <span><button type="button" class="mdl-button mdl-js-button mdl-button--accent submit">Agree</button></span>
-        <span><button type="button" class="mdl-button mdl-js-button mdl-button--accent close">Disagree</button></span>
-      </div>
+    <dialog id="primary_dialog" class="mdl-dialog__container">
+      @* Filled with template dialog.scala.html *@
     </dialog>
-    <dialog id="secondary_dialog" class="mdl-dialog mdl-dialog--modal">
-      <div class="mdl-dialog__title">
-        <strong class="mdl-dialog__title-text">Secondary Modal Dialog</strong>
-      </div>
-      <div class="mdl-dialog__content">
-        <p>
-          This modal dialog needs to be filled with some actual content.
-        </p>
-        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-          <input class="mdl-textfield__input" type="text" id="sample3">
-          <label class="mdl-textfield__label" for="sample3">Text...</label>
-        </div>
-      </div>
-      <div class="mdl-dialog__actions">
-        <span><button type="button" class="mdl-button mdl-js-button mdl-button--accent submit">Agree</button></span>
-        <span><button type="button" class="mdl-button mdl-js-button mdl-button--accent close">Disagree</button></span>
-      </div>
+    <dialog id="secondary_dialog" class="mdl-dialog__container">
+      @* Filled with template dialog.scala.html *@
     </dialog>
-
 
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
       <div class="mdl-layout__inner-container">

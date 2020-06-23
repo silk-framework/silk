@@ -77,6 +77,10 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
   private def setConnectionTimeouts(httpConnection: HttpURLConnection): Unit = {
     httpConnection.setConnectTimeout(RemoteSparqlEndpoint.defaultConnectionTimeout)
     httpConnection.setReadTimeout(RemoteSparqlEndpoint.defaultReadTimeout)
+    sparqlParams.timeout foreach { case timeout: Int if timeout > 0 =>
+      httpConnection.setConnectTimeout(timeout)
+      httpConnection.setReadTimeout(timeout)
+    }
   }
 
   override def construct(query: String)

@@ -7,6 +7,6 @@ import org.silkframework.util.IdentifierGenerator
 /**
   * Holds context information when deserializing data.
   */
-case class ReadContext(resources: ResourceManager = EmptyResourceManager,
+case class ReadContext(resources: ResourceManager = EmptyResourceManager(),
                        prefixes: Prefixes = Prefixes.empty,
                        identifierGenerator: IdentifierGenerator = new IdentifierGenerator())

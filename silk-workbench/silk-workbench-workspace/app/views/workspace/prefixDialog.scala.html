@@ -3,39 +3,40 @@
   knownPrefixes: org.silkframework.config.Prefixes)
 
 @widgets.dialog(title = "Edit Prefixes", submitLabel = "Save Prefixes") {
-  <table id="prefixTable" class="mdl-data-table mdl-js-data-table" style="width: 500px">
-    <thead>
-      <tr>
-        <th class="mdl-data-table__cell--non-numeric">Prefix</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-    @for(prefix <- prefixes) {
-      <tr class="prefix_dialog-row">
-        <td class="mdl-data-table__cell--non-numeric">
-          <div class="mdl-textfield mdl-js-textfield prefix_dialog-prefix" style="width: 400px" >
-            <input class="mdl-textfield__input" type="text" value="@prefix._1: @prefix._2"/>
-          </div>
-        </td>
-        <td>
-          <button type="button" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" onclick="$(this).parent().parent().remove()">
-            <i class="material-icons">remove</i>
-          </button>
-        </td>
-      </tr>
-    }
-      <tr>
-        <td></td>
-        <td>
-          <button type="button" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" onclick="addRow()">
-            <i class="material-icons">add</i>
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-
+  <div class="ecc-table__wrapper">
+    <table id="prefixTable" class="mdl-data-table mdl-data-table--full-width">
+      <thead>
+        <tr>
+          <th>Prefix</th>
+          <th style="width: 16px;" ></th>
+        </tr>
+      </thead>
+      <tbody>
+      @for(prefix <- prefixes) {
+        <tr class="prefix_dialog-row">
+          <td>
+            <div class="mdl-textfield mdl-js-textfield prefix_dialog-prefix mdl-textfield--reduced mdl-textfield--full-width" style="padding-top: 0;">
+              <input class="mdl-textfield__input" type="text" value="@prefix._1: @prefix._2"/>
+            </div>
+          </td>
+          <td>
+            <button type="button" class="mdl-button mdl-js-button mdl-button--icon" onclick="$(this).parent().parent().remove()">
+              <i class="material-icons">delete</i>
+            </button>
+          </td>
+        </tr>
+      }
+        <tr>
+          <td></td>
+          <td>
+            <button type="button" class="mdl-button mdl-js-button mdl-button--icon" onclick="addRow()">
+              <i class="material-icons">add</i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
   <script type="text/javascript">
     // Array which contains all known prefixes
     var availablePrefixes = [
@@ -48,16 +49,16 @@
 
     //Adds a new prefix row
     function addRow() {
-      var row = '<tr class="prefix_dialog-row"> \
-        <td class="mdl-data-table__cell--non-numeric"> \
-          <div class="mdl-textfield mdl-js-textfield prefix_dialog-prefix" style="width: 400px"> \
+      var row = '<tr class="prefix_dialog-row is-selected"> \
+        <td> \
+          <div class="mdl-textfield mdl-js-textfield prefix_dialog-prefix mdl-textfield--reduced mdl-textfield--full-width" style="padding-top: 0;"> \
             <input class="mdl-textfield__input" type="text" value=""/> \
           </div> \
         </td> \
         <td> \
-          <button type="button" class="mdl-button mdl-js-button mdl-button--fab mdl-button--mini-fab" onclick="$(this).parent().parent().remove()"> \
-            <i class="material-icons">remove</i> \
-          </button> \
+            <button type="button" class="mdl-button mdl-js-button mdl-button--icon" onclick="$(this).parent().parent().remove()"> \
+              <i class="material-icons">delete</i> \
+            </button> \
         </td> \
       </tr>';
       $('#prefixTable tbody tr').last().before(row);

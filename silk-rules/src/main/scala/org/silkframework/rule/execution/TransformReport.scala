@@ -11,10 +11,11 @@ import org.silkframework.util.Identifier
   * @param entityErrorCounter The number of entities that have been erroneous.
   * @param ruleResults The transformation statistics for each mapping rule by name.
   */
-case class TransformReport(
+case class TransformReport( label: String,
                             entityCounter: Long = 0L,
                             entityErrorCounter: Long = 0L,
-                            ruleResults: Map[Identifier, RuleResult] = Map.empty
+                            ruleResults: Map[Identifier, RuleResult] = Map.empty,
+                            globalErrors: Seq[String] = Seq.empty
                           ) extends ExecutionReport {
 
   lazy val summary: Seq[(String, String)] = {
@@ -22,6 +23,14 @@ case class TransformReport(
       "number of entities" -> entityCounter.toString,
       "number of errors" -> entityErrorCounter.toString
     )
+  }
+
+  def warnings: Seq[String] = {
+    var allErrors = globalErrors
+    if(entityErrorCounter != 0) {
+      allErrors :+= s"Validation issues occurred on $entityErrorCounter entities."
+    }
+    allErrors
   }
 
 }

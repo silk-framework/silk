@@ -6,6 +6,7 @@ import org.silkframework.config.MetaData.MetaDataXmlFormat
 import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.MappingTarget.MappingTargetFormat
 import org.silkframework.rule.TransformRule.RDF_TYPE
@@ -13,6 +14,7 @@ import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.{UriFixTransformer, UrlEncodeTransformer}
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer}
+import org.silkframework.runtime.plugin.PluginObjectParameter
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
@@ -34,6 +36,9 @@ sealed trait TransformRule extends Operator {
   /** The meta data for this rule. */
   def metaData: MetaData
 
+  /** The same rule with different meta data */
+  def withMetaData(metaData: MetaData): TransformRule
+
   /** The input operator tree. */
   def operator: Input
 
@@ -44,6 +49,8 @@ sealed trait TransformRule extends Operator {
   def typeString: String
 
   def rules: MappingRules = MappingRules.empty
+
+  assert(rules.allRules.forall(!_.isInstanceOf[RootMappingRule]), "No root mapping rule allowed as child of another rule!")
 
   /**
     * Generates the transformed values.
@@ -56,7 +63,7 @@ sealed trait TransformRule extends Operator {
     val values = operator(entity)
     // Validate values
     for {
-      valueType <- target.map(_.valueType) if valueType != AutoDetectValueType
+      valueType <- target.map(_.valueType)
       value <- values
     } {
       if(!valueType.validate(value)) {
@@ -73,7 +80,7 @@ sealed trait TransformRule extends Operator {
     def collectPaths(param: Input): Seq[TypedPath] = param match {
       case p: PathInput if p.path.operators.isEmpty => Seq()
       case PathInput(_, path: TypedPath) => Seq(path)
-      case PathInput(_, path: Path) => Seq(TypedPath(path, AutoDetectValueType, isAttribute = false))
+      case PathInput(_, path: UntypedPath) => Seq(TypedPath(path, ValueType.UNTYPED, isAttribute = false))
       case p: TransformInput => p.inputs.flatMap(collectPaths)
     }
 
@@ -143,7 +150,9 @@ sealed trait ValueTransformRule extends TransformRule
   */
 case class RootMappingRule(override val rules: MappingRules,
                            id: Identifier = RootMappingRule.defaultId,
-                           metaData: MetaData = MetaData(RootMappingRule.defaultLabel)) extends ContainerTransformRule {
+                           metaData: MetaData = MetaData(RootMappingRule.defaultLabel)) extends ContainerTransformRule with PluginObjectParameter {
+
+  override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 
   validate()
   validateIds()
@@ -177,7 +186,7 @@ object RootMappingRule {
 
   def defaultLabel: String = "Root Mapping"
 
-  def empty: RootMappingRule = RootMappingRule(MappingRules.empty)
+  final val empty: RootMappingRule = RootMappingRule(MappingRules.empty)
 
   /**
     * XML serialization format.
@@ -217,15 +226,17 @@ object RootMappingRule {
   * @param mappingTarget  The target property
   */
 case class DirectMapping(id: Identifier = "sourcePath",
-                         sourcePath: Path = Path(Nil),
+                         sourcePath: UntypedPath = UntypedPath(Nil),
                          mappingTarget: MappingTarget = MappingTarget("http://www.w3.org/2000/01/rdf-schema#label"),
                          metaData: MetaData = MetaData.empty) extends ValueTransformRule {
 
-  override val operator = PathInput(id, sourcePath)
+  override val operator = PathInput(id, sourcePath.asUntypedPath)
 
   override val target = Some(mappingTarget)
 
   override val typeString = "Direct"
+
+  override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 }
 
 /**
@@ -241,14 +252,16 @@ trait UriMapping extends ValueTransformRule
   */
 case class PatternUriMapping(id: Identifier = "uri",
                              pattern: String = "http://example.org/{ID}",
-                             metaData: MetaData = MetaData.empty)
-                             (implicit prefixes: Prefixes = Prefixes.empty) extends UriMapping {
+                             metaData: MetaData = MetaData.empty,
+                             prefixes: Prefixes = Prefixes.empty) extends UriMapping {
 
-  override val operator: Input = UriPattern.parse(pattern.trim())
+  override val operator: Input = UriPattern.parse(pattern.trim())(prefixes)
 
   override val target: Option[MappingTarget] = None
 
   override val typeString = "URI"
+
+  override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 }
 
 
@@ -266,6 +279,7 @@ case class ComplexUriMapping(id: Identifier = "complexUri",
 
   override val typeString = "ComplexURI"
 
+  override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 }
 
 /**
@@ -280,9 +294,11 @@ case class TypeMapping(id: Identifier = "type",
 
   override val operator = TransformInput("generateType", ConstantUriTransformer(typeUri))
 
-  override val target = Some(MappingTarget(RDF_TYPE, UriValueType))
+  override val target = Some(MappingTarget(RDF_TYPE, ValueType.URI))
 
   override val typeString = "Type"
+
+  override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 
 }
 
@@ -300,6 +316,7 @@ case class ComplexMapping(id: Identifier = "mapping",
 
   override val typeString = "Complex"
 
+  override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 }
 
 /**
@@ -314,27 +331,27 @@ case class ComplexMapping(id: Identifier = "mapping",
   * @param rules The child rules.
   */
 case class ObjectMapping(id: Identifier = "mapping",
-                         sourcePath: Path = Path(Nil),
-                         target: Option[MappingTarget] = Some(MappingTarget("http://www.w3.org/2002/07/owl#sameAs", UriValueType)),
+                         sourcePath: UntypedPath = UntypedPath(Nil),
+                         target: Option[MappingTarget] = Some(MappingTarget("http://www.w3.org/2002/07/owl#sameAs", ValueType.URI)),
                          override val rules: MappingRules,
-                         metaData: MetaData = MetaData.empty)(implicit prefixes: Prefixes = Prefixes.empty) extends ContainerTransformRule {
-
+                         metaData: MetaData = MetaData.empty,
+                         prefixes: Prefixes = Prefixes.empty) extends ContainerTransformRule {
   override val typeString = "Object"
 
-  def uriRule(pathPrefix: Path = Path.empty): Option[UriMapping] = {
+  def uriRule(pathPrefix: UntypedPath = UntypedPath.empty): Option[UriMapping] = {
     target match {
       case Some(prop) =>
         rules.uriRule match {
           case Some (rule) => {
             val rewrittenInput = Input.rewriteSourcePaths(rule.operator, path => {
-              Path(sourcePath.operators ++ path.operators)
+              UntypedPath(sourcePath.operators ++ path.operators)
             })
             Some(ComplexUriMapping(rule.id, rewrittenInput, rule.metaData))
           }
           case None if sourcePath.isEmpty =>
-            Some(PatternUriMapping(pattern = s"{}/$id"))
+            Some(PatternUriMapping(pattern = s"{}/$id", prefixes = prefixes))
           case None =>
-            Some(PatternUriMapping(pattern = s"{${pathPrefix.normalizedSerialization}}/$id"))
+            Some(PatternUriMapping(pattern = s"{${pathPrefix.normalizedSerialization}}/$id", prefixes = prefixes))
         }
       case None =>
         None
@@ -346,7 +363,7 @@ case class ObjectMapping(id: Identifier = "mapping",
       case Some(rule) =>
         rule.operator
       case None =>
-        PathInput(path = Path.empty)
+        PathInput(path = UntypedPath.empty)
     }
   }
 
@@ -363,6 +380,8 @@ case class ObjectMapping(id: Identifier = "mapping",
   }
 
   override def representsDefaultUriRule: Boolean = rules.uriRule.isEmpty
+
+  override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 }
 
 /**
@@ -390,11 +409,11 @@ object TransformRule {
     private def readObjectMapping(node: Node)(implicit readContext: ReadContext): ObjectMapping = {
       ObjectMapping(
         id = (node \ "@name").text,
-        sourcePath = Path.parse((node \ "@relativePath").text),
+        sourcePath = UntypedPath.parse((node \ "@relativePath").text),
         target = (node \ "MappingTarget").headOption.map(fromXml[MappingTarget]),
         rules = MappingRules.fromSeq((node \ "MappingRules" \ "_").map(read)),
-        metaData = (node \ "MetaData").headOption.map(MetaDataXmlFormat.read).getOrElse(MetaData.empty)
-      )(readContext.prefixes)
+        metaData = (node \ "MetaData").headOption.map(MetaDataXmlFormat.read).getOrElse(MetaData.empty),
+        readContext.prefixes)
     }
 
     private def readTransformRule(node: Node)(implicit readContext: ReadContext): TransformRule = {
@@ -424,7 +443,7 @@ object TransformRule {
 
     def write(value: TransformRule)(implicit writeContext: WriteContext[Node]): Node = {
       value match {
-        case ObjectMapping(name, relativePath, target, childRules, metaData) =>
+        case ObjectMapping(name, relativePath, target, childRules, metaData, _) =>
           <ObjectMapping name={name} relativePath={relativePath.normalizedSerialization} >
             {MetaDataXmlFormat.write(metaData)}
             {MappingRulesFormat.write(childRules)}
@@ -446,16 +465,16 @@ object TransformRule {
   def simplify(complexMapping: ComplexMapping)(implicit prefixes: Prefixes): TransformRule = complexMapping match {
     // Direct Mapping
     case ComplexMapping(id, PathInput(_, path), Some(target), metaData) =>
-      DirectMapping(id, path, target, metaData)
+      DirectMapping(id, path.asUntypedPath, target, metaData)
     // Pattern URI Mapping
-    case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), None, metaData) if UriPattern.isPattern(inputs) =>
-      PatternUriMapping(id, UriPattern.build(inputs), metaData)
+    case ComplexMapping(id, TransformInput(_, ConcatTransformer("", false), inputs), None, metaData) if UriPattern.isPattern(inputs) =>
+      PatternUriMapping(id, UriPattern.build(inputs), metaData, prefixes = prefixes)
     // Complex URI mapping
     case ComplexMapping(id, operator, None, metaData) =>
       ComplexUriMapping(id, operator, metaData)
     // Object Mapping (old style, to be removed)
-    case ComplexMapping(id, TransformInput(_, ConcatTransformer(""), inputs), Some(target), metaData) if UriPattern.isPattern(inputs) && target.valueType == UriValueType =>
-      ObjectMapping(id, Path.empty, Some(target), MappingRules(uriRule = Some(PatternUriMapping(id + "uri", UriPattern.build(inputs)))), metaData)
+    case ComplexMapping(id, TransformInput(_, ConcatTransformer("", false), inputs), Some(target), metaData) if UriPattern.isPattern(inputs) && target.valueType == ValueType.URI =>
+      ObjectMapping(id, UntypedPath.empty, Some(target), MappingRules(uriRule = Some(PatternUriMapping(id + "uri", UriPattern.build(inputs)))), metaData, prefixes = prefixes)
     // Type Mapping
     case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData) =>
       TypeMapping(id, typeUri, metaData)
@@ -478,7 +497,7 @@ private object UriPattern {
     // FIXME we should write a real parser for this
     val inputs = {
       if(pattern == "{}") {
-        Seq(TransformInput("uri", UriFixTransformer(), Seq(PathInput("path", Path.empty))))
+        Seq(TransformInput("uri", UriFixTransformer(), Seq(PathInput("path", UntypedPath.empty))))
       } else {
         var firstConstant: String = ""
         for ((str, i) <- pattern.split("[\\{\\}]").toList.zipWithIndex) yield {
@@ -490,9 +509,9 @@ private object UriPattern {
           } else {
             if(i == 1 && firstConstant == "") {
               // There is a path at the start of the URI pattern, this value needs to become a valid URI
-              TransformInput("fixUri" + i, UriFixTransformer(), Seq(PathInput("path" + i, Path.parse(str))))
+              TransformInput("fixUri" + i, UriFixTransformer(), Seq(PathInput("path" + i, UntypedPath.parse(str))))
             } else {
-              TransformInput("encode" + i, UrlEncodeTransformer(), Seq(PathInput("path" + i, Path.parse(str))))
+              TransformInput("encode" + i, UrlEncodeTransformer(), Seq(PathInput("path" + i, UntypedPath.parse(str))))
             }
           }
         }

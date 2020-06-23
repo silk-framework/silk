@@ -34,7 +34,7 @@ trait ExecutorRegistry {
     val suitableExecutors = for(plugin <- plugins; taskType <- isSuitable(taskClass, context, plugin)) yield (plugin, taskType)
 
     implicit val prefixes: Prefixes = Prefixes.empty
-    implicit val resource: ResourceManager = EmptyResourceManager
+    implicit val resource: ResourceManager = EmptyResourceManager()
 
     suitableExecutors.size match {
       case 0 =>
@@ -134,13 +134,13 @@ object ExecutorRegistry extends ExecutorRegistry {
   def execute[TaskType <: TaskSpec, ExecType <: ExecutionType](
     task: Task[TaskType],
     inputs: Seq[ExecType#DataType],
-    outputSchema: Option[EntitySchema],
+    output: ExecutorOutput,
     execution: ExecType,
     context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName)
-  )(implicit userContext: UserContext): Option[ExecType#DataType] = {
+  )(implicit userContext: UserContext, prefixes: Prefixes): Option[ExecType#DataType] = {
 
     val exec = executor(task.data, execution)
-    exec.execute(task, inputs, outputSchema, execution, context)
+    exec.execute(task, inputs, output, execution, context)
   }
 
   /** Fetch the execution specific access to a dataset.*/

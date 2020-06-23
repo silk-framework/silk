@@ -14,7 +14,8 @@
 
 package org.silkframework.learning.active
 
-import org.silkframework.entity.{Link, Path}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.Link
 import org.silkframework.learning.individual.Population
 import org.silkframework.rule.input.{PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison}
@@ -32,7 +33,7 @@ private object FilterPopulation {
     val entityPairs = links.toSeq.map(_.entities.get)
     val shuffledEntityPairs = for((s, t) <- entityPairs.map(_.source) zip (entityPairs.tail.map(_.target) :+ entityPairs.head.target)) yield DPair(s, t)
 
-    val count = (entityPairs ++ shuffledEntityPairs).filter(rule(_) > 0).size
+    val count = (entityPairs ++ shuffledEntityPairs).count(rule(_) > 0)
 
     println(formatRule(rule) + ": " + count + "/" + links.size)
 
@@ -40,11 +41,11 @@ private object FilterPopulation {
   }
 
   private def formatRule(rule: LinkageRule) = {
-    def collectPaths(op: Operator): Seq[Path] = op match {
+    def collectPaths(op: Operator): Seq[UntypedPath] = op match {
       case agg: Aggregation => agg.operators.flatMap(collectPaths)
       case cmp: Comparison => cmp.inputs.flatMap(collectPaths)
       case t: TransformInput => t.inputs.flatMap(collectPaths)
-      case i: PathInput => Seq(i.path)
+      case i: PathInput => Seq(i.path.asUntypedPath)
     }
 
     val paths = collectPaths(rule.operator.get)

@@ -1,0 +1,29 @@
+@import controllers.workspace.routes.ActivityApi
+@import org.silkframework.workbench.Context
+@import config.WorkbenchConfig
+
+@(context: Context[_], contentPath: String, activityId: String)(implicit request: RequestHeader)
+
+@id() = @{
+  "autoreload-" + activityId
+}
+
+<script type="text/javascript">
+  function statusUpdated(status) {
+    if(!status.isRunning) {
+      $.get('@contentPath', function(data) {
+        $('#@id()').html(data);
+      }).fail(function(request) { alert(request.responseText);  })
+    }
+  }
+
+  $( window ).on("load", function () {
+    connectWebSocket(
+      '@Html(ActivityApi.activityStatusUpdatesWebSocket(context.project.name, context.task.id, activityId).webSocketURL(WorkbenchConfig().useHttps))',
+      '@Html(ActivityApi.getActivityStatusUpdates(context.project.name, context.task.id, activityId).url)',
+      statusUpdated
+    );
+  });
+</script>
+
+<div id="@id()"></div>

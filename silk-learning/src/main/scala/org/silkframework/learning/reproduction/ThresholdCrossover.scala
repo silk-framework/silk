@@ -17,11 +17,13 @@ package org.silkframework.learning.reproduction
 import org.silkframework.learning.individual.ComparisonNode
 import org.silkframework.util.DPair
 
+import scala.util.Random
+
 /**
  * A crossover operator which combines the thresholds of two comparisons.
  */
 case class ThresholdCrossover() extends NodePairCrossoverOperator[ComparisonNode] {
-  def crossover(nodes: DPair[ComparisonNode]) = {
+  def crossover(nodes: DPair[ComparisonNode], random: Random) = {
     nodes.source.copy(threshold = (nodes.source.threshold + nodes.target.threshold) / 2)
   }
 }

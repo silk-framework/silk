@@ -2,7 +2,7 @@ package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.Aggregator
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "negate",
@@ -21,5 +21,8 @@ case class NegationAggregator() extends Aggregator {
     }
   }
 
-  override def combineIndexes(index1: Index, index2: Index): Index = index1 disjunction index2
+  /* Since it's impossible for the aggregator to know how to create an inverse index, map to default index */
+  override def combineIndexes(index1: Index, index2: Index): Index = Index.default
+
+  override def preProcessIndexes(indexes: Seq[Index]): Seq[Index] = Seq(Index.default)
 }

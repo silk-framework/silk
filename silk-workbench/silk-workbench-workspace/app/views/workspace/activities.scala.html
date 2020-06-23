@@ -6,12 +6,12 @@
 @import org.silkframework.workspace.activity.{CachedActivity, ProjectActivity, TaskActivity}
 @import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory, Workspace}
 @import org.silkframework.runtime.activity.UserContext
+@import config.WorkbenchConfig
 
 @**
  * Overview page of all activities and their status
  *@
-
-@()(implicit session: play.api.mvc.Session, userContext: UserContext)
+@()(implicit session: play.api.mvc.Session, userContext: UserContext, request: RequestHeader)
 
 @header = {
   <link rel="stylesheet" href="@CoreAssets.at("libs/jstree/dist/themes/default/style.css")" type="text/css" />
@@ -20,11 +20,7 @@
   <script src="@Assets.at("workspace.js")" type="text/javascript"></script>
   <script type="text/javascript">
     $( window ).on("load", function () {
-      $('#workspace_root').jstree()
-      .on('before_open.jstree', function (e, data) {
-        loadCometStream();
-      });
-      setTimeout(function() {loadCometStream();}, 1);
+      $('#workspace_root').jstree();
       // Restore scroll position on reload
       setTimeout(function() {
         const scrollTop = parseInt(sessionStorage.getItem("activityViewScrollPosition"));
@@ -34,11 +30,13 @@
         }
         sessionStorage.removeItem("activityViewScrollPosition");
       }, 1000);
+      // Register to status updates
+      connectWebSocket(
+      '@Html(ActivityApi.activityStatusUpdatesWebSocket("", "", "").webSocketURL(WorkbenchConfig().useHttps))',
+      '@Html(ActivityApi.getActivityStatusUpdates("", "", "").url)',
+      updateStatus
+    )
     });
-
-    function loadCometStream() {
-      $('#statusCometIFrame').html('<iframe src="@ActivityApi.activityUpdates("", "", "").url" style="display:none" frameborder="0" height="0" width="0"></iframe>')
-    }
 
     function updateStatus(status) {
       // Get progress bar node
@@ -57,15 +55,26 @@
 
       // Update values
       progressbar.attr('title', status.message);
-      if(status.failed) {
-        progressbar.progressbar("option", {value: 100});
+      if(status.statusName === "Idle") {
+        progressbar.progressbar("option", {disabled: true, value: 0});
+        progressbarText.text(status.message);
+        progressbarHelp.hide();
+      } else if(status.failed) {
+        progressbar.progressbar("option", {disabled: false, value: 100});
         progressbarValue.css({
           "background": '#FF5050'
         });
         progressbarText.text("Failed ");
         progressbarHelp.show();
+      } else if(status.statusName === "Waiting") {
+        progressbar.progressbar("option", {disabled: false, value: 100});
+        progressbarValue.css({
+          "background": '#fffb00'
+        });
+        progressbarText.text(status.message);
+        progressbarHelp.show();
       } else {
-        progressbar.progressbar("option", {value: parseFloat(status.progress)});
+        progressbar.progressbar("option", {disabled: false, value: parseFloat(status.progress)});
         progressbarValue.css({
           "background": 'rgb(100, ' + Math.round(100 + status.progress * 1.55) + ', 100)'
         });
@@ -96,7 +105,11 @@
 }
 
 @content = {
-  @workspaceActivities(WorkspaceFactory().workspace)
+  <div class="mdl-card mdl-shadow--2dp mdl-card--stretch">
+    <div class="mdl-card__content">
+      @workspaceActivities(WorkspaceFactory().workspace)
+    </div>
+  </div>
 
   <div id="statusCometIFrame"></div>
 }
@@ -130,11 +143,7 @@
 
 @taskActivities(project: Project, task: ProjectTask[_ <: TaskSpec]) = {
   <li id="task_@{project.name}_@task.id" class="jstree-open">
-    @if(task.metaData.label.trim != "") {
-      @task.metaData.label.trim (@task.id)
-    } else {
-      @task.id
-    }
+    @task.taskLabel()
     <ul>
     @for(activity <- task.activities) {
       @taskActivityStatus(project, task, activity)
@@ -144,8 +153,8 @@
 }
 
 @projectActivityStatus(project: Project, activity: ProjectActivity[_ <: HasValue]) = {
-  <li id="@id(project.name, "", activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
-    @activity.name
+  <li id="@id(project.name, "", activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}' title="@activity.description">
+    @activity.label
     <div class="activity-progress-small">
       <div class="activity-progress-small-text"></div>
       <img class="activity-progress-small-help" src="@Assets.at("img/help.png")"/>
@@ -165,8 +174,8 @@
 }
 
 @taskActivityStatus(project: Project, task: ProjectTask[_ <: TaskSpec], activity: TaskActivity[_, _]) = {
-  <li id="@id(project.name, task.id, activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>
-    @activity.name
+  <li id="@id(project.name, task.id, activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}' title="@activity.description">
+    @activity.label
     <div class="activity-progress-small">
       <div class="activity-progress-small-text"></div>
       <img class="activity-progress-small-help" src="@Assets.at("img/help.png")"/>

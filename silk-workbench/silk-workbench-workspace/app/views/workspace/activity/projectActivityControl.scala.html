@@ -3,7 +3,7 @@
 @import org.silkframework.runtime.activity.HasValue
 @import scala.language.existentials
 
-@(activity: ProjectActivity[_ <: HasValue], showButtons: Boolean = false)
+@(activity: ProjectActivity[_ <: HasValue], showButtons: Boolean = false)(implicit request: RequestHeader)
 
 @activityControl(
   project = activity.project.name,

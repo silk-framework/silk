@@ -137,7 +137,7 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity
         val entities = source.retrieveByUri(
           entitySchema = entityDesc,
           entities = entityUris map Uri.apply
-        )
+        ).entities
         entities.map{ e => (e.uri.toString, e) }.toMap
       }
     }

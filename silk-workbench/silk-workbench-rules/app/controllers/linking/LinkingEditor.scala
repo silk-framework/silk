@@ -1,23 +1,24 @@
 package controllers.linking
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
+import javax.inject.Inject
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.LinkageRuleEvaluator
-import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.util.DPair
 import org.silkframework.workbench.Context
+import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
-import play.api.mvc.{Action, AnyContent, Controller}
+import play.api.mvc.{Action, AnyContent, ControllerComponents, InjectedController}
 
 import scala.util.control.NonFatal
 
-class LinkingEditor extends Controller {
+class LinkingEditor @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController {
 
   def editor(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
+    accessMonitor.saveProjectTaskAccess(project, task)
     Ok(views.html.editor.linkingEditor(context))
   }
 
@@ -29,14 +30,14 @@ class LinkingEditor extends Controller {
     val sourceNames = task.data.dataSelections.map(_.inputId.toString)
 
     if(pathsCache.status().isRunning) {
-      val loadingMsg = f"Cache loading (${pathsCache.status().progress * 100}%.1f%%)"
+      val loadingMsg = f"Cache loading (${pathsCache.status().progress.getOrElse(0.0) * 100}%.1f%%)"
       ServiceUnavailable(views.html.editor.paths(sourceNames, DPair.fill(Seq.empty), onlySource = false, loadingMsg = loadingMsg, project = project))
     } else if(pathsCache.status().failed) {
       Ok(views.html.editor.paths(sourceNames, DPair.fill(Seq.empty), onlySource = false, warning = pathsCache.status().message + " Try reloading the paths.", project = project))
     } else {
 
       val entityDescs = Option(pathsCache.value()).getOrElse(DPair.fill(EntitySchema.empty))
-      val paths = entityDescs.map(_.typedPaths.map(_.serialize()(prefixes)))
+      val paths = entityDescs.map(_.typedPaths.map(_.toUntypedPath.serialize()(prefixes)))
       if (groupPaths) {
         Ok(views.html.editor.paths(sourceNames, paths, onlySource = false, project = project))
       } else {
@@ -52,7 +53,7 @@ class LinkingEditor extends Controller {
 
     // If the entity cache is still loading
     if(entitiesCache.status().isRunning) {
-      ServiceUnavailable(f"Cache loading (${entitiesCache.status().progress * 100}%.1f%%)")
+      ServiceUnavailable(f"Cache loading (${entitiesCache.status().progress.getOrElse(0.0) * 100}%.1f%%)")
     // If the cache loading failed
     } else if(entitiesCache.status().failed) {
       Ok(views.html.editor.score(

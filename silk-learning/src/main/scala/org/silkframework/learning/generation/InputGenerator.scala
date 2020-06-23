@@ -14,9 +14,11 @@
 
 package org.silkframework.learning.generation
 
-import org.silkframework.entity.Path
+import org.silkframework.config.Prefixes
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.learning.individual.{FunctionNode, InputNode, PathInputNode, TransformNode}
 import org.silkframework.rule.input.Transformer
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.DPair
 
 import scala.util.Random
@@ -24,7 +26,8 @@ import scala.util.Random
 /**
  * Generates random inputs.
  */
-case class InputGenerator(input: InputNode, useTransformations: Boolean) {
+case class InputGenerator(input: InputNode, useTransformations: Boolean)
+                         (implicit prefixes: Prefixes, resourceManager: ResourceManager){
 
   /** The maximum number of transformations */
   val maxTransformations = 2
@@ -35,9 +38,9 @@ case class InputGenerator(input: InputNode, useTransformations: Boolean) {
   /**
    * Generates a new random input.
    */
-  def apply(): InputNode = {
+  def apply(random: Random): InputNode = {
     if(useTransformations)
-      transform(input, Random.nextInt(maxTransformations + 1))
+      transform(input, random.nextInt(maxTransformations + 1), random)
     else
       input
   }
@@ -48,27 +51,29 @@ case class InputGenerator(input: InputNode, useTransformations: Boolean) {
    * @param input The input node
    * @param count The number of transformations to prepend
    */
-  private def transform(input: InputNode, count: Int): InputNode = {
+  private def transform(input: InputNode, count: Int, random: Random): InputNode = {
     if(count == 0)
       input
     else {
-      val transformer = transformers(Random.nextInt(transformers.size))
+      val transformer = transformers(random.nextInt(transformers.size))
       val transformedInput = TransformNode(input.isSource, input :: Nil, FunctionNode(transformer, Nil, Transformer))
-      transform(transformedInput, count - 1)
+      transform(transformedInput, count - 1, random)
     }
   }
 }
 
 object InputGenerator {
 
-  def fromPathPair(pathPair: DPair[Path], useTransformations: Boolean) = {
+  def fromPathPair(pathPair: DPair[UntypedPath], useTransformations: Boolean)
+                  (implicit prefixes: Prefixes, resourceManager: ResourceManager) = {
     DPair(
       source = new InputGenerator(PathInputNode(pathPair.source, true), useTransformations),
       target = new InputGenerator(PathInputNode(pathPair.target, false), useTransformations)
     )
   }
 
-  def fromInputPair(inputPair: DPair[InputNode], useTransformations: Boolean) = {
+  def fromInputPair(inputPair: DPair[InputNode], useTransformations: Boolean)
+                   (implicit prefixes: Prefixes, resourceManager: ResourceManager) = {
     DPair(
       source = new InputGenerator(inputPair.source, useTransformations),
       target = new InputGenerator(inputPair.target, useTransformations)

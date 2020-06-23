@@ -1,16 +1,15 @@
 package controllers.workspace
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
+import javax.inject.Inject
 import org.silkframework.config.{CustomTask, Task}
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.runtime.users.WebUserManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.WorkspaceFactory
-import play.api.mvc.{Action, AnyContent, Controller}
+import play.api.mvc.{InjectedController, Action, AnyContent, ControllerComponents}
 
-class CustomTasks extends Controller {
+class CustomTasks @Inject() () extends InjectedController{
 
   def getTask(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)

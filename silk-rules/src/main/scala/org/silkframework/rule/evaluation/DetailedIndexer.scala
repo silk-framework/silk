@@ -32,19 +32,20 @@ object DetailedIndexer {
         val opLimit = agg.aggregator.computeThreshold(limit, op.weight.toDouble / totalWeights)
         val index = indexOperator(op, entity, sourceOrTarget, opLimit)
 
-        if (op.required && index.index.isEmpty)
+        if (op.required && index.index.isEmpty) {
           foundRequiredEmptyIndex = true
+        }
 
         index
       }
     }.filterNot(_.index.isEmpty)
 
     //Compute the overall index from the child operator indices
-    val overallIndex =
-      if (detailedIndices.isEmpty || foundRequiredEmptyIndex)
-        Index.empty
-      else
-        detailedIndices.map(_.index).reduceLeft[Index](agg.aggregator.combineIndexes)
+    val overallIndex = if (foundRequiredEmptyIndex) {
+      Index.empty
+    } else {
+      agg.aggregator.aggregateIndexes(detailedIndices.map(_.index))
+    }
 
     AggregationIndex(overallIndex, agg, detailedIndices)
   }

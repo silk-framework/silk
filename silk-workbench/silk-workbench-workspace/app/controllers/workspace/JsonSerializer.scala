@@ -3,21 +3,20 @@ package controllers.workspace
 import java.io.File
 import java.util.logging.LogRecord
 
-import org.silkframework.config.{CustomTask, Task, TaskSpec}
+import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.{Dataset, DatasetSpec}
-import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.{LinkSpec, TransformSpec}
-import org.silkframework.runtime.activity.{HasValue, Status}
-import org.silkframework.runtime.activity.{Status, UserContext}
+import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.WriteContext
-import org.silkframework.serialization.json.JsonSerializers.MetaDataJsonFormat
+import org.silkframework.serialization.json.ActivitySerializers.ExtendedStatusJsonFormat
+import org.silkframework.serialization.json.JsonSerializers
+import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.activity.{ProjectActivity, TaskActivity, WorkspaceActivity}
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
+import JsonSerializers._
 
 import scala.reflect.ClassTag
 
@@ -26,7 +25,7 @@ import scala.reflect.ClassTag
   */
 object JsonSerializer {
 
-  def projectsJson(implicit userContext: UserContext) = {
+  def projectsJson(implicit userContext: UserContext): JsArray = {
     JsArray(
       for (project <- WorkspaceFactory().workspace.projects) yield {
         projectJson(project)
@@ -35,9 +34,10 @@ object JsonSerializer {
   }
 
   def projectJson(project: Project)
-                 (implicit userContext: UserContext)= {
+                 (implicit userContext: UserContext): JsObject = {
     Json.obj(
       "name" -> JsString(project.name),
+      "metaData" -> JsonSerializers.toJson(project.config.metaData),
       "tasks" -> Json.obj(
       "dataset" -> tasksJson[GenericDatasetSpec](project),
       "transform" -> tasksJson[TransformSpec](project),
@@ -55,7 +55,7 @@ object JsonSerializer {
     }
   )
 
-  def projectResources(project: Project) = {
+  def projectResources(project: Project): JsArray = {
     JsArray(resourcesArray(project.resources))
   }
 
@@ -133,29 +133,15 @@ object JsonSerializer {
 
 
   def activityStatus(activity: WorkspaceActivity[_ <: HasValue]): JsValue = {
-    activityStatus(activity.project.name, activity.taskOption.map(_.id.toString).getOrElse(""), activity.name, activity.control.status(), activity.startTime)
+    implicit val writeContext = WriteContext[JsValue]()
+    new ExtendedStatusJsonFormat(activity).write(activity.status())
   }
 
-  def activityStatus(project: String, task: String, activity: String, status: Status, startTime: Option[Long]): JsValue = {
-    JsObject(
-      ("project" -> JsString(project)) ::
-      ("task" -> JsString(task)) ::
-      ("activity" -> JsString(activity)) ::
-      ("statusName" -> JsString(status.name)) ::
-      ("isRunning" -> JsBoolean(status.isRunning)) ::
-      ("progress" -> JsNumber(status.progress * 100.0)) ::
-      ("message" -> JsString(status.toString)) ::
-      ("failed" -> JsBoolean(status.failed)) ::
-      ("lastUpdateTime" -> JsNumber(status.timestamp)) ::
-      ("startTime" -> startTime.map(JsNumber(_)).getOrElse(JsNull)) :: Nil
-    )
-  }
-
-  def logRecords(records: Seq[LogRecord]) = {
+  def logRecords(records: Seq[LogRecord]): JsArray = {
     JsArray(records.map(logRecord))
   }
 
-  def logRecord(record: LogRecord) = {
+  def logRecord(record: LogRecord): JsObject = {
     JsObject(
       ("activity" -> JsString(record.getLoggerName.substring(record.getLoggerName.lastIndexOf('.') + 1))) ::
       ("level" -> JsString(record.getLevel.getName)) ::
@@ -164,7 +150,7 @@ object JsonSerializer {
     )
   }
 
-  def pluginConfig(pluginConfig: PluginDescription[_]) = {
+  def pluginConfig(pluginConfig: PluginDescription[_]): JsObject = {
     JsObject(
       ("id" -> JsString(pluginConfig.id)) ::
       ("label" -> JsString(pluginConfig.label)) ::
@@ -172,10 +158,13 @@ object JsonSerializer {
     )
   }
 
-  def marshaller(marshaller: ProjectMarshallingTrait) = {
+  def marshaller(marshaller: ProjectMarshallingTrait): JsObject = {
     JsObject(
       ("id" -> JsString(marshaller.id)) ::
-      ("label" -> JsString(marshaller.name)) :: Nil
+      ("label" -> JsString(marshaller.name)) ::
+      ("description" -> JsString(marshaller.pluginSpec.description)) ::
+      ("fileExtension" -> marshaller.suffix.map(JsString).orNull) ::
+      ("mediaType" -> marshaller.mediaType.map(JsString).orNull) :: Nil
     )
   }
 }

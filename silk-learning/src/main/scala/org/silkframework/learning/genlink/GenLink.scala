@@ -1,5 +1,6 @@
 package org.silkframework.learning.genlink
 
+import org.silkframework.config.Prefixes
 import org.silkframework.learning.{LearningConfiguration, LinkageRuleLearner}
 import org.silkframework.learning.LinkageRuleLearner.Result
 import org.silkframework.learning.cleaning.CleanPopulationTask
@@ -9,6 +10,9 @@ import org.silkframework.learning.reproduction.Reproduction
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
+import org.silkframework.runtime.resource.EmptyResourceManager
+
+import scala.util.Random
 
 private class GenLink(trainingLinks: ReferenceEntities, seeds: Traversable[LinkageRule],
                       config: LearningConfiguration) extends Activity[Result] {
@@ -38,22 +42,26 @@ private class GenLink(trainingLinks: ReferenceEntities, seeds: Traversable[Linka
     learningStatus = Status.NotStarted
     ineffectiveIterations = 0
 
+    implicit val prefixes = Prefixes.empty
+    implicit val projectResources = EmptyResourceManager()
+
     val fitnessFunction = config.fitnessFunction(trainingLinks)
     val generator = LinkageRuleGenerator(trainingLinks, config.components)
+    val random = Random
 
     //Generate initial population
-    if(!cancelled) executeStep(new GeneratePopulation(seeds, generator, config), context)
+    if(!cancelled) executeStep(new GeneratePopulation(seeds, generator, config, random.nextLong()), context)
 
     while (!cancelled && !learningStatus.isInstanceOf[Status.Finished]) {
-      executeStep(new Reproduction(population, fitnessFunction, generator, config), context)
+      executeStep(new Reproduction(population, fitnessFunction, generator, config, random.nextLong()), context)
 
       if (iterations % config.params.cleanFrequency == 0 && !cancelled) {
-        executeStep(new CleanPopulationTask(population, fitnessFunction, generator), context)
+        executeStep(new CleanPopulationTask(population, fitnessFunction, generator, random.nextLong()), context)
       }
     }
 
     if(!population.isEmpty)
-      executeStep(new CleanPopulationTask(population, fitnessFunction, generator), context)
+      executeStep(new CleanPopulationTask(population, fitnessFunction, generator, random.nextLong()), context)
 
     Result(population, iterations, learningStatus.toString)
   }

@@ -15,41 +15,61 @@
 package org.silkframework.workspace
 
 import java.io._
-import java.util.logging.{Level, Logger}
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
+import java.util.logging.Logger
 
+import org.silkframework.config.{DefaultConfig, MetaData, Prefixes}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.validation.ServiceUnavailableException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
 
 import scala.util.Try
-import scala.util.control.NonFatal
 
 /**
   * The workspace that manages loading of and access to workspace projects.
   *
-  * @param provider
-  * @param repository
+  * @param provider    the workspace provider
+  * @param repository  the resource repository
   */
-class Workspace(val provider: WorkspaceProvider, val repository: ResourceRepository) {
+class Workspace(val provider: WorkspaceProvider, val repository: ResourceRepository) extends WorkspaceReadTrait {
 
   private val log = Logger.getLogger(classOf[Workspace].getName)
 
+  private val cfg = DefaultConfig.instance()
+  // Time in milliseconds to wait for the workspace to be loaded
+  private val waitForWorkspaceInitialization = cfg.getLong("workspace.timeouts.waitForWorkspaceInitialization")
+  private val loadProjectsLock = new ReentrantLock()
+
+  @volatile
   private var initialized = false
 
   @volatile
   private var cachedProjects: Seq[Project] = Seq.empty
 
+  @volatile
+  // Additional prefixes loaded from the workspace provider that will be added to every project
+  private var additionalPrefixes: Prefixes = Prefixes.empty
+
   /** Load the projects of a user into the workspace. At the moment all users have access to all projects, so this is only,
     * executed once. */
-  private def loadUserProjects()(implicit userContext: UserContext): Unit = synchronized {
+  private def loadUserProjects()(implicit userContext: UserContext): Unit = {
     // FIXME: Extension for access control should happen here.
-    if (!initialized) {
-      cachedProjects = loadProjects()
-      initialized = true
+    if (!initialized) { // Avoid lock
+      if(loadProjectsLock.tryLock(waitForWorkspaceInitialization, TimeUnit.MILLISECONDS)) {
+        if(!initialized) { // Should have changed by now, but loadProjects() could also have failed, so double-check
+          loadProjects()
+          initialized = true
+        }
+      } else {
+        // Timeout
+        throw ServiceUnavailableException("The DataIntegration workspace is currently being initialized. The request has timed out. Please try again later.")
+      }
     }
   }
 
-  def projects(implicit userContext: UserContext): Seq[Project] = {
+  override def projects(implicit userContext: UserContext): Seq[Project] = {
     loadUserProjects()
     cachedProjects
   }
@@ -59,38 +79,66 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
    *
    * @throws java.util.NoSuchElementException If no project with the given name has been found
    */
-  def project(name: Identifier)
-             (implicit userContext: UserContext): Project = {
+  override def project(name: Identifier)(implicit userContext: UserContext): Project = {
     loadUserProjects()
     findProject(name).getOrElse(throw ProjectNotFoundException(name))
   }
 
-  private def findProject(name: Identifier)
-                         (implicit userContext: UserContext): Option[Project] = {
+  override def findProject(name: Identifier)(implicit userContext: UserContext): Option[Project] = {
     loadUserProjects()
     projects.find(_.name == name)
   }
 
   def createProject(config: ProjectConfig)
                    (implicit userContext: UserContext): Project = synchronized {
+    val creationConfig = config.withMetaData(config.metaData.asNewMetaData)
     loadUserProjects()
-    if(cachedProjects.exists(_.name == config.id)) {
-      throw IdentifierAlreadyExistsException("Project " + config.id + " does already exist!")
+    if(cachedProjects.exists(_.name == creationConfig.id)) {
+      throw IdentifierAlreadyExistsException("Project " + creationConfig.id + " does already exist!")
     }
-    provider.putProject(config)
-    val newProject = new Project(config, provider, repository.get(config.id))
-    cachedProjects :+= newProject
-    log.info(s"Created new project '${config.id}'. " + userContext.logInfo)
+    provider.putProject(creationConfig)
+    val newProject = new Project(creationConfig, provider, repository.get(creationConfig.id))
+    addProjectToCache(newProject)
+    newProject.setAdditionalPrefixes(additionalPrefixes)
+    log.info(s"Created new project '${creationConfig.id}'. " + userContext.logInfo)
     newProject
+  }
+
+  /** Update the meta data of a project. */
+  def updateProjectMetaData(projectId: Identifier,
+                            metaData: MetaData)
+                           (implicit userContext: UserContext): MetaData = synchronized {
+    loadUserProjects()
+    val diProject = project(projectId)
+    val projectConfig = diProject.config
+    val oldMetaData = projectConfig.metaData
+    val mergedMetaData = oldMetaData.copy(label = metaData.label, description = metaData.description)
+    val updatedProjectConfig = projectConfig.copy(metaData = mergedMetaData.asUpdatedMetaData)
+    provider.putProject(updatedProjectConfig)
+    removeProjectFromCache(projectId)
+    addProjectToCache(new Project(updatedProjectConfig, provider, repository.get(projectId)))
+    log.info(s"Project meta data updated for '$projectId'.")
+    updatedProjectConfig.metaData
   }
 
   def removeProject(name: Identifier)
                    (implicit userContext: UserContext): Unit = synchronized {
     loadUserProjects()
+    // Cancel all project and task activities
     project(name).activities.foreach(_.control.cancel())
+    for(task <- project(name).allTasks;
+        activity <- task.activities) {
+      activity.control.cancel()
+    }
     provider.deleteProject(name)
-    cachedProjects = cachedProjects.filterNot(_.name == name)
+    repository.removeProjectResources(name)
+    provider.removeExternalTaskLoadingErrors(name)
+    removeProjectFromCache(name)
     log.info(s"Removed project '$name'. " + userContext.logInfo)
+  }
+
+  private def removeProjectFromCache(name: Identifier): Unit = {
+    cachedProjects = cachedProjects.filterNot(_.name == name)
   }
 
   /**
@@ -104,7 +152,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   def exportProject(name: Identifier, outputStream: OutputStream, marshaller: ProjectMarshallingTrait)
                    (implicit userContext: UserContext): String = {
     loadUserProjects()
-    marshaller.marshalProject(project(name).config, outputStream, provider, repository.get(name))
+    marshaller.marshalProject(project(name), outputStream, repository.get(name))
   }
 
   /**
@@ -123,9 +171,11 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       case Some(_) =>
         throw IdentifierAlreadyExistsException("Project " + name.toString + " does already exist!")
       case None =>
+        log.info(s"Starting import of project '$name'...")
+        val start = System.currentTimeMillis()
         marshaller.unmarshalProject(name, provider, repository.get(name), file)
         reloadProject(name)
-        log.info(s"Imported project '$name'. " + userContext.logInfo)
+        log.info(s"Imported project '$name' in ${(System.currentTimeMillis() - start).toDouble / 1000}s. " + userContext.logInfo)
     }
   }
 
@@ -141,12 +191,18 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       activity.control.cancel()
     }
     // Refresh workspace provider
-    provider match {
-      case refreshableProvider: RefreshableWorkspaceProvider => refreshableProvider.refresh()
-      case _ => // Do nothing
-    }
+    provider.refresh()
+
     // Reload projects
-    cachedProjects = loadProjects()
+    loadProjects()
+  }
+
+  /** Reloads the registered prefixes if the workspace provider supports this operation. */
+  def reloadPrefixes()(implicit userContext: UserContext): Unit = {
+    additionalPrefixes = provider.fetchRegisteredPrefixes()
+    cachedProjects foreach { project =>
+      project.setAdditionalPrefixes(additionalPrefixes)
+    }
   }
 
   /** Reload a project from the backend */
@@ -154,15 +210,20 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
                            (implicit userContext: UserContext): Unit = synchronized {
     // remove project
     Try(project(id).activities.foreach(_.control.cancel()))
-    cachedProjects = cachedProjects.filterNot(_.name == id)
+    removeProjectFromCache(id)
     provider.readProject(id) match {
       case Some(projectConfig) =>
         val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
-        project.initTasks()
-        cachedProjects :+= project
+        project.loadTasks()
+        project.startActivities()
+        addProjectToCache(project)
       case None =>
         log.warning(s"Project '$id' could not be reloaded in workspace, because it could not be read from the workspace provider!")
     }
+  }
+
+  private def addProjectToCache(project: Project) = {
+    cachedProjects :+= project
   }
 
   /**
@@ -175,12 +236,27 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     }
   }
 
-  private def loadProjects()(implicit userContext: UserContext): Seq[Project] = {
-    for(projectConfig <- provider.readProjects()) yield {
+  private def loadProjects()(implicit userContext: UserContext): Unit = {
+    cachedProjects = for(projectConfig <- provider.readProjects()) yield {
       log.info("Loading project: " + projectConfig.id)
       val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
-      project.initTasks()
+      project.loadTasks()
+      log.info("Finished loading project '" + projectConfig.id + "'.")
       project
     }
+    log.info("Starting project activities...")
+    for(project <- cachedProjects) {
+      project.startActivities()
+    }
+    reloadPrefixes()
+    log.info(s"${cachedProjects.size} projects loaded.")
+  }
+}
+
+object Workspace {
+  // Flag if auto-run activities should be started automatically
+  def autoRunCachedActivities: Boolean = {
+    val cfg = DefaultConfig.instance()
+    cfg.getBoolean("caches.config.enableAutoRun")
   }
 }

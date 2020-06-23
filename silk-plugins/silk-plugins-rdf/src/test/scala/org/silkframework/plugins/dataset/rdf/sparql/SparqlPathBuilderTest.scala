@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.sparql
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.entity.Path
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.rdf.SparqlPathBuilder
 import org.silkframework.testutil.equalIgnoringWhitespace
 
@@ -20,6 +20,6 @@ class SparqlPathBuilderTest extends FlatSpec with Matchers {
     build(s"?a/<1>[<2> = <3>]") should be(equalIgnoringWhitespace("OPTIONAL { ?s <1> ?v0 . ?v0 <2> ?f1 . FILTER(?f1 = <3>). }"))
   }
 
-  def build(path: String) = SparqlPathBuilder(Seq(Path.parse(path)))
+  def build(path: String) = SparqlPathBuilder(Seq(UntypedPath.parse(path)))
 
 }

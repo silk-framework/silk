@@ -14,7 +14,6 @@
 
 package org.silkframework.rule.plugins.distance.equality
 
-import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.test.PluginTest
 import org.silkframework.testutil.approximatelyEqualTo
 

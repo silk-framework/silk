@@ -4,10 +4,14 @@ import org.silkframework.entity.Link
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation._
 import org.silkframework.rule.execution.Linking
-import org.silkframework.runtime.serialization.WriteContext
-import org.silkframework.serialization.json.EntitySerializers.PairEntitySchemaJsonFormat
-import play.api.libs.json.{JsValue, Json}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.serialization.json.EntitySerializers.{EntityJsonFormat, PairEntitySchemaJsonFormat, PairJsonFormat}
+import play.api.libs.json.{JsArray, JsValue, Json}
+import JsonHelpers._
 
+/**
+  *
+  */
 object LinkingSerializers {
 
   implicit object LinkingJsonFormat extends WriteOnlyJsonFormat[Linking] {
@@ -18,7 +22,7 @@ object LinkingSerializers {
     override def write(value: Linking)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       val firstEntityOption = value.links.headOption.flatMap(_.entities)
       val entitySchemataOption = firstEntityOption.map(_.map(_.schema))
-      val linkFormat = new LinkJsonFormat(value.rule)
+      val linkFormat = new LinkJsonFormat(Some(value.rule))
 
       Json.obj(
         LINKS -> value.links.map(linkFormat.write),
@@ -32,24 +36,48 @@ object LinkingSerializers {
     }
   }
 
-  class LinkJsonFormat(rule: LinkageRule) extends WriteOnlyJsonFormat[Link] {
+  class LinkJsonFormat(rule: Option[LinkageRule], writeEntities: Boolean = false, writeEntitySchema: Boolean = false) extends JsonFormat[Link] {
+    import LinkJsonFormat._
+
     final val SOURCE = "source"
     final val TARGET = "target"
     final val CONFIDENCE = "confidence"
     final val ENTITIES = "entities"
-    final val RULE_VALUES = "ruleValues"
 
-    override def write(link: Link)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      val evaluationDetails = link.entities.flatMap(entities => DetailedEvaluator(rule, entities)).flatMap(_.details)
+    private val entityPairFormat = new PairJsonFormat()(new EntityJsonFormat(includeSchema = writeEntitySchema))
 
-      Json.obj(
-        SOURCE -> link.source,
-        TARGET -> link.target,
-        CONFIDENCE -> link.confidence,
-        // The entity values are also part of the rule values, so we don't write them currently: ENTITIES -> link.entities.map(entityPairFormat.write),
-        RULE_VALUES -> evaluationDetails.map(ConfidenceJsonFormat.write)
+    override def read(value: JsValue)(implicit readContext: ReadContext): Link = {
+      Link(
+        source = stringValue(value, SOURCE),
+        target = stringValue(value, TARGET),
+        confidence = numberValueOption(value, CONFIDENCE).map(_.doubleValue),
+        entities = optionalValue(value, ENTITIES).map(entityPairFormat.read)
       )
     }
+
+    override def write(link: Link)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      val evaluationDetails = rule.flatMap(r => link.entities.flatMap(entities => DetailedEvaluator(r, entities).details))
+
+      var json =
+        Json.obj(
+          SOURCE -> link.source,
+          TARGET -> link.target,
+          CONFIDENCE -> link.confidence,
+          RULE_VALUES -> evaluationDetails.map(ConfidenceJsonFormat.write)
+        )
+
+      if(writeEntities) {
+        for(entities <- link.entities) {
+          json += (ENTITIES -> entityPairFormat.write(entities))
+        }
+      }
+
+      json
+    }
+  }
+
+  implicit object LinkJsonFormat extends LinkJsonFormat(None, writeEntities = false, writeEntitySchema = false) {
+    final val RULE_VALUES = "ruleValues"
   }
 
   implicit object ConfidenceJsonFormat extends WriteOnlyJsonFormat[Confidence] {
@@ -105,6 +133,28 @@ object LinkingSerializers {
           )
       }
 
+    }
+  }
+
+  implicit object ReferenceLinksJsonFormat extends JsonFormat[ReferenceLinks] {
+    final val POSITIVE = "positive"
+    final val NEGATIVE = "negative"
+    final val UNLABELED = "unlabeled"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): ReferenceLinks = {
+      ReferenceLinks(
+        positive = mustBeJsArray(mustBeDefined(value, POSITIVE))(_.value.map(LinkJsonFormat.read)).toSet,
+        negative = mustBeJsArray(mustBeDefined(value, NEGATIVE))(_.value.map(LinkJsonFormat.read)).toSet,
+        unlabeled = mustBeJsArray(mustBeDefined(value, UNLABELED))(_.value.map(LinkJsonFormat.read)).toSet
+      )
+    }
+
+    override def write(value: ReferenceLinks)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        POSITIVE -> JsArray(value.positive.toSeq.map(LinkJsonFormat.write)),
+        NEGATIVE -> JsArray(value.negative.toSeq.map(LinkJsonFormat.write)),
+        UNLABELED -> JsArray(value.unlabeled.toSeq.map(LinkJsonFormat.write))
+      )
     }
   }
 }

@@ -3,7 +3,7 @@ package org.silkframework.workspace.activity.workflow
 import java.util.logging.Logger
 
 import org.silkframework.runtime.activity.{ActivityExecutionResult, UserContext}
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.workspace.ProjectTask
 
 /**

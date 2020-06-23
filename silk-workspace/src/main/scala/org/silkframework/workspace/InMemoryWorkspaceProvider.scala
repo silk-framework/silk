@@ -1,10 +1,12 @@
 package org.silkframework.workspace
 
 import org.silkframework.config.{MetaData, PlainTask, Task, TaskSpec}
+import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceManager}
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.io.WorkspaceIO
 
 import scala.reflect.ClassTag
 import scala.util.{Success, Try}
@@ -14,7 +16,7 @@ import scala.util.{Success, Try}
   label = "In-memory workspace",
   description = "Workspace provider that holds all projects in memory. All contents will be gone on restart."
 )
-case class InMemoryWorkspaceProvider() extends WorkspaceProvider with RefreshableWorkspaceProvider {
+class InMemoryWorkspaceProvider() extends WorkspaceProvider {
 
   protected var projects = Map[Identifier, InMemoryProject]()
 
@@ -41,6 +43,16 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider with Refreshabl
   }
 
   /**
+    * Imports a complete project.
+    */
+  def importProject(project: ProjectConfig,
+                    provider: WorkspaceProvider,
+                    inputResources: Option[ResourceManager],
+                    outputResources: Option[ResourceManager])(implicit user: UserContext): Unit = {
+    WorkspaceIO.copyProject(provider, this, inputResources, outputResources, project)
+  }
+
+  /**
     * Retrieves the project cache folder.
     */
   override def projectCache(name: Identifier): ResourceManager = projects(name).cache
@@ -63,9 +75,9 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider with Refreshabl
   }
 
   override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier,
-                                                       projectResources: ResourceManager)(implicit user: UserContext): Seq[Try[Task[T]]] = {
+                                                       projectResources: ResourceManager)(implicit user: UserContext): Seq[Either[Task[T], TaskLoadingError]] = {
     val taskClass = implicitly[ClassTag[T]].runtimeClass
-    projects(project).tasks.values.filter(task => taskClass.isAssignableFrom(task.data.getClass)).map(task => Success(task.asInstanceOf[Task[T]])).toSeq
+    projects(project).tasks.values.filter(task => taskClass.isAssignableFrom(task.data.getClass)).map(task => Left(task.asInstanceOf[Task[T]])).toSeq
   }
 
   /**
@@ -79,7 +91,7 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider with Refreshabl
   /**
     * No refresh needed.
     */
-  override def refresh(): Unit = {}
+  override def refresh()(implicit userContext: UserContext): Unit = {}
 
   protected class InMemoryProject(val config: ProjectConfig) {
 
@@ -95,4 +107,9 @@ case class InMemoryWorkspaceProvider() extends WorkspaceProvider with Refreshabl
                           (implicit userContext: UserContext): Option[ProjectConfig] = {
     projects.get(projectId).map(_.config)
   }
+
+  /**
+    * Returns None, because the projects are not held as RDF.
+    */
+  override def sparqlEndpoint: Option[SparqlEndpoint] = None
 }

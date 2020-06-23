@@ -1,14 +1,17 @@
 package org.silkframework.serialization.json
 
-import org.silkframework.config.MetaData
-import org.silkframework.entity.Path
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.serialization.json.JsonSerializers.{ID, MetaDataJsonFormat, METADATA}
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.Identifier
 import play.api.libs.json._
 
+/**
+  * Helper methods for handling (Play) JSON.
+  */
 object JsonHelpers {
+
+  final val ID = "id"
 
   def mustBeDefined(value: JsValue, attributeName: String): JsValue = {
     (value \ attributeName).toOption.
@@ -53,6 +56,8 @@ object JsonHelpers {
     requiredValue(json, attributeName) match {
       case JsNumber(value) =>
         value
+      case JsString(value) =>
+        BigDecimal(value)
       case _ =>
         throw JsonParseException("Attribute '" + attributeName + "' must be a number!")
     }
@@ -84,6 +89,8 @@ object JsonHelpers {
     optionalValue(json, attributeName) match {
       case Some(JsNumber(value)) =>
         Some(value)
+      case Some(JsString(value)) =>
+        Some(BigDecimal(value))
       case Some(_) =>
         throw JsonParseException("Value for attribute '" + attributeName + "' is not a number!")
       case None =>
@@ -102,6 +109,22 @@ object JsonHelpers {
     }
   }
 
+  def arrayValue(json: JsValue, attributeName: String): JsArray = {
+    requiredValue(json, attributeName) match {
+      case array: JsArray => array
+      case _ =>
+        throw JsonParseException("Value for attribute '" + attributeName + "' is not a JSON array!")
+    }
+  }
+
+  def objectValue(json: JsValue, attributeName: String): JsObject = {
+    requiredValue(json, attributeName) match {
+      case jsObject: JsObject => jsObject
+      case _ =>
+        throw JsonParseException("Value for attribute '" + attributeName + "' is not a JSON object!")
+    }
+  }
+
   def optionalValue(json: JsValue, attributeName: String): Option[JsValue] = {
     (json \ attributeName).toOption.filterNot(_ == JsNull)
   }
@@ -115,9 +138,9 @@ object JsonHelpers {
     }
   }
 
-  def silkPath(id: String, pathStr: String)(implicit readContext: ReadContext): Path = {
+  def silkPath(id: String, pathStr: String)(implicit readContext: ReadContext): UntypedPath = {
     try {
-      Path.parse(pathStr)(readContext.prefixes)
+      UntypedPath.parse(pathStr)(readContext.prefixes)
     } catch {
       case ex: Exception => throw new ValidationException(ex.getMessage, id, "path")
     }
@@ -133,20 +156,4 @@ object JsonHelpers {
         readContext.identifierGenerator.generate(defaultId)
     }
   }
-
-  /**
-    * Reads meta data.
-    *
-    * @param json The json to read the meta data from.
-    * @param identifier If no label is provided in the json, use this identifier to generate a label.
-    */
-  def metaData(json: JsValue, identifier: String)(implicit readContext: ReadContext): MetaData = {
-    optionalValue(json, METADATA) match {
-      case Some(metaDataJson) =>
-        MetaDataJsonFormat.read(metaDataJson, identifier)
-      case None =>
-        MetaData(MetaData.labelFromId(identifier))
-    }
-  }
-
 }

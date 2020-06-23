@@ -1,7 +1,7 @@
 package org.silkframework.serialization.json.metadata
 
-import org.silkframework.entity.Path
-import org.silkframework.entity.metadata.{GenericExecutionFailure, FailureClassSerializer}
+import org.silkframework.entity.metadata.{FailureClassSerializer, GenericExecutionFailure}
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.failures.{AccumulatedFailureClass, FailureClass}
 import org.silkframework.failures.FailureClass.{TASK_ID_TAG, _}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
@@ -28,7 +28,7 @@ case class FailureClassSerializerJson() extends JsonMetadataSerializer[FailureCl
     val rootCause = ExceptionSerializerJson().read((value \ ROOT_CAUSE_TAG).toOption.get)
     val originalMessage = stringValue(value, MESSAGE_TAG)
     val taskId = stringValue(value, TASK_ID_TAG)
-    val property = stringValueOption(value, PROPERTY_TAG).map(Path(_))
+    val property = stringValueOption(value, PROPERTY_TAG).map(UntypedPath(_))
     val accumulated = booleanValue(value, ACCUMULATED_TAG)
     val fc = FailureClass(rootCause, originalMessage, taskId, property)
     if(accumulated) {

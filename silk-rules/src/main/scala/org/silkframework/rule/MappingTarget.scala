@@ -2,6 +2,7 @@ package org.silkframework.rule
 
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{BackwardOperator, ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Uri
 
@@ -17,13 +18,13 @@ import scala.xml.Node
   * @param isAttribute In data sinks that support attributes, such as XML, an attribute is generated.
   */
 case class MappingTarget(propertyUri: Uri,
-                         valueType: ValueType = StringValueType,
+                         valueType: ValueType = ValueType.STRING,
                          isBackwardProperty: Boolean = false,
                          isAttribute: Boolean = false) {
 
   override def toString: String = {
     val sb = new StringBuilder(propertyUri.uri)
-    if(valueType != AutoDetectValueType) {
+    if(valueType != ValueType.UNTYPED) {
       sb += ' '
       sb ++= valueType.label
     }
@@ -37,9 +38,13 @@ case class MappingTarget(propertyUri: Uri,
   }
 
   /** Representation of the mapping target as Silk Path */
-  def asPath(): Path = {
+  def asPath(): UntypedPath = {
     val op = if (isBackwardProperty) BackwardOperator(propertyUri.uri) else ForwardOperator(propertyUri.uri)
-    Path(List(op))
+    UntypedPath(List(op))
+  }
+
+  def asTypedPath(): TypedPath = {
+    TypedPath(asPath(), valueType, isAttribute)
   }
 }
 

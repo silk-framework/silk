@@ -41,4 +41,12 @@ trait ActivityContext[T] {
    * @return The activity control for the child activity.
    */
   def child[R](activity: Activity[R], progressContribution: Double = 0.0): ActivityControl[R]
+
+  /**
+    * Blocks execution until a given condition is met.
+    * This should be called by Activities whenever they are waiting indefinitely.
+    *
+    * @param condition Evaluates the condition to wait for. Will be called frequently.
+    */
+  def blockUntil(condition: () => Boolean)
 }

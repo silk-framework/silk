@@ -1,7 +1,8 @@
 package controllers.transform
 
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.rule.ComplexMapping
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
@@ -14,11 +15,10 @@ import org.silkframework.util.Uri
   *
   */
 class PeakTransformApiTest extends FlatSpec with MustMatchers {
+
   behavior of "TransformTask API"
 
-  val transformTaskApi = new PeakTransformApi()
-
-  implicit val schema = EntitySchema(Uri("type"), IndexedSeq(Path("a").asStringTypedPath, Path("b").asStringTypedPath))
+  implicit val schema = EntitySchema(Uri("type"), IndexedSeq(UntypedPath("a").asStringTypedPath, UntypedPath("b").asStringTypedPath))
 
   it should "collect transformation examples" in {
     val rule = transformRule(CamelCaseTokenizer())
@@ -29,7 +29,7 @@ class PeakTransformApiTest extends FlatSpec with MustMatchers {
       entity(Seq(), Seq("bValue2")),
       entity(Seq(), Seq())
     )
-    val (tries, errors, errorMsg, peakResult) =  transformTaskApi.collectTransformationExamples(rule, entities, limit = 3)
+    val (tries, errors, errorMsg, peakResult) =  PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3)
     tries mustBe 4
     errors mustBe 0
     errorMsg mustBe ""
@@ -42,7 +42,7 @@ class PeakTransformApiTest extends FlatSpec with MustMatchers {
 
   private def transformRule(transformer: Transformer): ComplexMapping = {
     val transformation = TransformInput(transformer = transformer,
-      inputs = Seq(PathInput("p", Path("a")), PathInput("p", Path("b"))))
+      inputs = Seq(PathInput("p", UntypedPath("a")), PathInput("p", UntypedPath("b"))))
     ComplexMapping(operator = transformation)
   }
 
@@ -56,7 +56,7 @@ class PeakTransformApiTest extends FlatSpec with MustMatchers {
       entity(Seq("aValue3"), Seq("bValue3")),
       entity(Seq(), Seq())
     )
-    val (tries, errors, errorMsg, peakResult) =  transformTaskApi.collectTransformationExamples(rule, entities, limit = 3)
+    val (tries, errors, errorMsg, peakResult) =  PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3)
     tries mustBe 6
     errors mustBe 0
     errorMsg mustBe ""
@@ -72,7 +72,7 @@ class PeakTransformApiTest extends FlatSpec with MustMatchers {
       entity(Seq("2015"), Seq("no date")),
       entity(Seq("123"), Seq("also no date"))
     )
-    val (tries, errors, errorMsg, peakResult) =  transformTaskApi.collectTransformationExamples(rule, entities, limit = 3)
+    val (tries, errors, errorMsg, peakResult) =  PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3)
     tries mustBe 2
     errors mustBe 2
     errorMsg mustBe "IllegalArgumentException: no date"
@@ -86,7 +86,7 @@ class PeakTransformApiTest extends FlatSpec with MustMatchers {
       counter += 1
       entity(Seq("UPPER" + i), Seq("UPPER" + i))
     }
-    val (tries, errors, _, peakResult) =  transformTaskApi.collectTransformationExamples(rule, entities, limit = 3)
+    val (tries, errors, _, peakResult) =  PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3)
     tries mustBe 3
     errors mustBe 0
     counter mustBe 3

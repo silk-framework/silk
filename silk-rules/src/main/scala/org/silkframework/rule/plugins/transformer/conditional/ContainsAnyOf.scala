@@ -1,11 +1,11 @@
 package org.silkframework.rule.plugins.transformer.conditional
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
 
 @Plugin(
   id = "containsAnyOf",
-  label = "contains any of",
+  label = "Contains any of",
   categories = Array("Conditional"),
   description = "Accepts two inputs. If the first input contains any of the second input values it returns 'true', else 'false' is returned."
 )

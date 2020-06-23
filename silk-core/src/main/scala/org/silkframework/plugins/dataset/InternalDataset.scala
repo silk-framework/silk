@@ -1,20 +1,22 @@
 package org.silkframework.plugins.dataset
 
 import java.net.{URI, URISyntaxException}
-import javax.inject.Inject
 
+import javax.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{Param, Plugin, PluginRegistry}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.PluginRegistry
 
 import scala.collection.mutable
 import scala.util.Try
 
 @Plugin(
   id = "internal",
-  label = "Internal",
+  label = "Internal dataset",
+  categories = Array(DatasetCategories.embedded),
   description =
       """Dataset for storing entities between workflow steps."""
 )

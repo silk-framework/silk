@@ -14,11 +14,11 @@
 
 package org.silkframework.learning.individual
 
-import org.silkframework.entity.Path
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.input.PathInput
 import org.silkframework.util.IdentifierGenerator
 
-case class PathInputNode(path: Path, isSource: Boolean) extends InputNode {
+case class PathInputNode(path: UntypedPath, isSource: Boolean) extends InputNode {
 
   def build(implicit identifiers: IdentifierGenerator) = {
     PathInput(
@@ -30,6 +30,6 @@ case class PathInputNode(path: Path, isSource: Boolean) extends InputNode {
 
 object PathInputNode {
   def load(input: PathInput, isSource: Boolean) = {
-    PathInputNode(input.path, isSource)
+    PathInputNode(input.path.asUntypedPath, isSource)
   }
 }

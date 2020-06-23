@@ -50,7 +50,7 @@ class SparqlRestriction private(val variable: String, restrictionsFull: String, 
 
 object SparqlRestriction {
 
-  def empty: SparqlRestriction = new SparqlRestriction("a", "", "")
+  def empty: SparqlRestriction = new SparqlRestriction(SparqlEntitySchema.variable, "", "")
 
   /** Create restriction from an arbitrary SPARQL pattern. */
   def fromSparql(variable: String, restrictions: String)(implicit prefixes: Prefixes = Prefixes.empty): SparqlRestriction = {
@@ -79,7 +79,7 @@ object SparqlRestriction {
     if(typeUri.uri.isEmpty) {
       empty
     } else {
-      fromSparql("a", s"?a a <$typeUri>.")
+      fromSparql(SparqlEntitySchema.variable, s"?a a <$typeUri>.")
     }
   }
 }

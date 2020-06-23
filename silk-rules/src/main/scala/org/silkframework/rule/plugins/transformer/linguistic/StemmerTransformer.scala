@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.linguistic
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "stem",

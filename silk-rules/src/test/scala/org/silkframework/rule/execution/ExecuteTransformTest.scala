@@ -4,8 +4,11 @@ import org.mockito.Mockito._
 import org.mockito.Matchers._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.{DataSource, EntitySink}
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.rule.execution.{ExecuteTransform, TransformReport}
 import org.silkframework.rule.input.{PathInput, TransformInput, Transformer}
 import org.silkframework.rule._
@@ -19,6 +22,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
   behavior of "ExecuteTransform"
 
   implicit val userContext: UserContext = UserContext.Empty
+  implicit val prefixes: Prefixes = Prefixes.empty
 
   it should "output faulty entities to error output" in {
     val prop = "http://prop"
@@ -26,8 +30,9 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
     val outputMock = mock[EntitySink]
     val entities = Seq(entity(IndexedSeq("valid", "valid"), IndexedSeq(prop, prop2)), entity(IndexedSeq("invalid", "valid"), IndexedSeq(prop, prop2)))
     val dataSourceMock = mock[DataSource]
-    when(dataSourceMock.retrieve(any(), any())(any())).thenReturn(entities)
+    when(dataSourceMock.retrieve(any(), any())(any())).thenReturn(GenericEntityTable(entities, entities.head.schema, null))
     val execute = new ExecuteTransform(
+      taskLabel = "transform task",
       input = _ => dataSourceMock,
       transform = TransformSpec(datasetSelection(), RootMappingRule(rules = MappingRules(mapping("propTransform", prop), mapping("prop2Transform", prop2)))),
       output = _ => outputMock
@@ -63,7 +68,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
   }
 
   private def mapping(id: String, prop: String) = {
-    val transformation = TransformInput(inputs = Seq(PathInput(path = Path(prop))), transformer = transformerWithExceptions())
+    val transformation = TransformInput(inputs = Seq(PathInput(path = UntypedPath(prop))), transformer = transformerWithExceptions())
     ComplexMapping(id = Identifier(id), operator = transformation, target = Some(MappingTarget(Uri(prop + "Target"))))
   }
 
@@ -75,7 +80,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
   }
 
   private def entity(values: IndexedSeq[String], properties: IndexedSeq[String]): Entity = {
-    Entity("", values map (v => Seq(v)), EntitySchema(Uri("entity"), typedPaths = properties map (Path.apply) map (_.asStringTypedPath)))
+    Entity("", values map (v => Seq(v)), EntitySchema(Uri("entity"), typedPaths = properties.map(UntypedPath.saveApply).map(_.asStringTypedPath)))
   }
 
   private def entity(value: String, propertyUri: String): Entity = {

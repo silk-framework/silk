@@ -2,29 +2,22 @@ package controllers.workflow
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
-import org.silkframework.config.Task
-import org.silkframework.dataset.Dataset
 import controllers.util.SerializationUtils
-import org.silkframework.config.{MetaData, Task}
+import javax.inject.Inject
+import org.silkframework.config.Task
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
-import org.silkframework.workspace.activity.workflow.{AllVariableDatasets, LocalWorkflowExecutorGeneratingProvenance, Workflow}
-import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
-import play.api.libs.json.{JsArray, JsObject, JsString, JsValue}
-import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller, _}
-
-import scala.xml.NodeSeq
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
 import org.silkframework.workspace.WorkspaceFactory
-import org.silkframework.workspace.activity.workflow._
-import play.api.libs.json._
-import play.api.mvc.{Action, AnyContent, AnyContentAsXml, Controller, _}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
+import play.api.libs.json.{JsArray, JsString, _}
+import play.api.mvc.{Action, AnyContent, AnyContentAsXml, _}
 
-class WorkflowApi extends Controller {
+class WorkflowApi @Inject() () extends InjectedController {
 
   def getWorkflows(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = fetchProject(projectName)
@@ -82,7 +75,7 @@ class WorkflowApi extends Controller {
   def status(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
-    val report = workflow.activity[LocalWorkflowExecutorGeneratingProvenance].value
+    val report = workflow.activity[LocalWorkflowExecutorGeneratingProvenance].value()
 
     var lines = Seq[String]()
     lines :+= "Dataset;EntityCount;EntityErrorCount;Column;ColumnErrorCount"
@@ -123,7 +116,7 @@ class WorkflowApi extends Controller {
     val id = activity.start(workflowConfiguration)
 
     Created(Json.obj(("activityId", id.toString)))
-        .withHeaders("Location" -> controllers.workflow.routes.WorkflowApi.removeVariableWorkflowExecution(projectName, workflowTaskName, id).url)
+        .withHeaders(LOCATION -> controllers.workflow.routes.WorkflowApi.removeVariableWorkflowExecution(projectName, workflowTaskName, id).url)
   }
 
   def removeVariableWorkflowExecution(projectName: String,

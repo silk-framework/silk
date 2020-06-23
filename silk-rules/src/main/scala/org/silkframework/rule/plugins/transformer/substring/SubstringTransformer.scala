@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.substring
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.{Param, Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExample, TransformExamples}
 
 @Plugin(
   id = "substring",
@@ -24,7 +24,7 @@ import org.silkframework.runtime.plugin.{Param, Plugin, TransformExample, Transf
   description =
 """Returns a substring between 'beginIndex' (inclusive) and 'endIndex' (exclusive).
 If 'endIndex' is 0 (default), it is ignored and the entire remaining string starting with 'beginIndex' is returned.
-If 'endIndex' is negative, -endIndex characters are removed from the end.'"""
+If 'endIndex' is negative, -endIndex characters are removed from the end."""
 )
 @TransformExamples(Array(
   new TransformExample(

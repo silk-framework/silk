@@ -15,13 +15,13 @@
 package org.silkframework.rule.plugins.transformer.validation
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.validation.ValidationException
 
 @Plugin(
   id = "validateNumericRange",
   categories = Array("Validation", "Date"),
-  label = "validate numeric range",
+  label = "Validate numeric range",
   description = "Validates if a number is within a specified range."
 )
 case class ValidateNumericRange(

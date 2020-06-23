@@ -1,7 +1,7 @@
 package org.silkframework.failures
 
-import org.silkframework.entity.Path
 import org.silkframework.entity.metadata.GenericExecutionFailure
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.util.{Identifier, Uri}
 
 /**
@@ -16,7 +16,7 @@ import org.silkframework.util.{Identifier, Uri}
 class FailureClass private[failures](val rootCause: GenericExecutionFailure,
                                      val originalMessage: String,
                                      val taskId: Identifier,
-                                     val property: Option[Path]) //FIXME TypedPath needs JsValue serializer - CMEM-1368
+                                     val property: Option[UntypedPath]) //FIXME TypedPath needs JsValue serializer - CMEM-1368
     extends Serializable {
 
   assert(rootCause.cause.isEmpty, "Initializing FailureClass with an Exception which has a cause is not allowed. Use a different apply method for this purpose.")
@@ -76,10 +76,10 @@ class FailureClass private[failures](val rootCause: GenericExecutionFailure,
   * @param property - the property which is associated/caused with the current failure
   */
 class AccumulatedFailureClass private(
-  rootCause: GenericExecutionFailure,
-  originalMessage: String,
-  taskId: Identifier,
-  property: Option[Path]                              //FIXME TypedPath needs JsValue serializer CMEM-1368
+                                       rootCause: GenericExecutionFailure,
+                                       originalMessage: String,
+                                       taskId: Identifier,
+                                       property: Option[UntypedPath] //FIXME TypedPath needs JsValue serializer CMEM-1368
 ) extends FailureClass (rootCause, originalMessage, taskId, property){
 
   def this(fc: FailureClass) = this(fc.rootCause, fc.originalMessage, fc.taskId, fc.property)
@@ -113,11 +113,11 @@ object FailureClass{
     * @param taskId - the task id of the currently running task
     * @return
     */
-  def apply(failure: GenericExecutionFailure, taskId: Identifier, property: Option[Path] = None): FailureClass = {
+  def apply(failure: GenericExecutionFailure, taskId: Identifier, property: Option[UntypedPath] = None): FailureClass = {
     new FailureClass(FailureClass.getRootCause(failure), failure.getMessage, taskId, property)
   }
 
-  def apply(failure: GenericExecutionFailure, originalMessage: String, taskId: Identifier, property: Option[Path]): FailureClass = {
+  def apply(failure: GenericExecutionFailure, originalMessage: String, taskId: Identifier, property: Option[UntypedPath]): FailureClass = {
     failure.cause match {
       case Some(_) =>
         apply(failure, taskId, property) // Not the root cause failure, get root cause

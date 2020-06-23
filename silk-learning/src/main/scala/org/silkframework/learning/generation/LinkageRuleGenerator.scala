@@ -14,13 +14,17 @@
 
 package org.silkframework.learning.generation
 
+import org.silkframework.config.Prefixes
 import org.silkframework.learning.LearningConfiguration.Components
 import org.silkframework.learning.individual.{AggregationNode, LinkageRuleNode}
+import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation.ReferenceEntities
+import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 
 import scala.util.Random
 
-case class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator], components: Components) {
+case class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator], components: Components)
+                               (implicit prefixes: Prefixes, resourceManager: ResourceManager) {
   //require(!comparisonGenerators.isEmpty, "comparisonGenerators must not be empty")
   
   private val aggregations = {
@@ -36,52 +40,65 @@ case class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGener
 
   private val maxOperatorCount = 2
 
-  def apply() = {
-    LinkageRuleNode(Some(generateAggregation()))
+  /**
+    * Generates a new random rule.
+    */
+  def apply(random: Random): LinkageRuleNode = {
+    LinkageRuleNode(Some(generateAggregation(random)))
+  }
+
+  /**
+    * Generate a node from an existing rule.
+    */
+  def load(rule: LinkageRule): LinkageRuleNode = {
+    LinkageRuleNode.load(rule)
   }
 
   /**
    * Generates a random aggregation node.
    */
-  private def generateAggregation(): AggregationNode = {
+  private def generateAggregation(random: Random): AggregationNode = {
     //Choose a random aggregation
-    val aggregation = aggregations(Random.nextInt(aggregations.size))
+    val aggregation = aggregations(random.nextInt(aggregations.size))
 
     //Choose a random operator count
-    val operatorCount = minOperatorCount + Random.nextInt(maxOperatorCount - minOperatorCount + 1)
+    val operatorCount = minOperatorCount + random.nextInt(maxOperatorCount - minOperatorCount + 1)
 
     //Generate operators
     val operators =
       for (i <- List.range(1, operatorCount + 1)) yield {
-        generateComparison()
+        generateComparison(random)
       }
 
     //Build aggregation
     AggregationNode(
       aggregation = aggregation,
-      weight = Random.nextInt(maxWeight) + 1,
-      required = Random.nextBoolean(),
+      weight = random.nextInt(maxWeight) + 1,
+      required = random.nextBoolean(),
       operators = operators
     )
   }
 
-  private def generateComparison() = {
-    comparisonGenerators(Random.nextInt(comparisonGenerators.size))()
+  private def generateComparison(random: Random) = {
+    comparisonGenerators(random.nextInt(comparisonGenerators.size))(random)
   }
 }
 
 object LinkageRuleGenerator {
 
   def empty: LinkageRuleGenerator = {
+    implicit val prefixes = Prefixes.empty
+    implicit val projectResources = EmptyResourceManager()
     new LinkageRuleGenerator(IndexedSeq.empty, Components())
   }
 
-  def apply(entities: ReferenceEntities, components: Components = Components()): LinkageRuleGenerator = {
+  def apply(entities: ReferenceEntities, components: Components = Components())
+           (implicit prefixes: Prefixes, resourceManager: ResourceManager): LinkageRuleGenerator = {
     val es = entities.positiveEntities
     if(es.isEmpty)
       new LinkageRuleGenerator(IndexedSeq.empty, components)
     else {
-      val paths = es.head.map(_.schema.typedPaths)
+      val paths = es.head.map(_.schema.typedPaths.map(_.toUntypedPath))
       new LinkageRuleGenerator((new CompatiblePathsGenerator(components).apply(entities, components.compatibleOnly) ++ new PatternGenerator(components).apply(paths)).toIndexedSeq, components)
     }
   }

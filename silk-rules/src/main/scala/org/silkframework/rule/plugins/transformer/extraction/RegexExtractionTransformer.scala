@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.extraction
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
   * Extract a single value from a String based on a regular expression.

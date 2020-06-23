@@ -3,7 +3,6 @@ package controllers.transform
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.rule._
 import org.silkframework.serialization.json.JsonSerializers._
-import play.api.libs.ws.WS
 
 class TargetVocabularyApiTest extends TransformTaskApiTestBase {
 
@@ -106,7 +105,7 @@ class TargetVocabularyApiTest extends TransformTaskApiTestBase {
         targetVocabularies = Seq("foaf.rdf")
       )
     val transformTask = PlainTask(task, transformSpec)
-    val request = WS.url(s"$baseUrl/transform/tasks/$project/$task")
+    val request = client.url(s"$baseUrl/transform/tasks/$project/$task")
     val response = request.put(toJson[TransformTask](transformTask))
     checkResponse(response)
 

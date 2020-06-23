@@ -18,7 +18,7 @@ import java.util.logging.Logger
 
 import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
-import org.silkframework.entity.{Entity, EntitySchema, Path}
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 

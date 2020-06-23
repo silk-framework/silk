@@ -49,14 +49,18 @@ object Execution {
     *
     * @param name A label to be used for naming threads. Helps debugging and finding threads that belong to this pool.
     * @param numberOfThreads The number of threads in the pool
+    * @param maxPoolSize If None, the max pool size will be set to numberOfThreads, else it will be set to this value
     */
   def createFixedThreadPool(name: String,
                             numberOfThreads: Int,
                             workQueue: BlockingQueue[Runnable] = new LinkedBlockingQueue[Runnable](),
-                            rejectedExecutionHandler: Option[RejectedExecutionHandler] = None): ExecutorService = {
-    val tpe = new ThreadPoolExecutor(numberOfThreads,
+                            rejectedExecutionHandler: Option[RejectedExecutionHandler] = None,
+                            maxPoolSize: Option[Int] = None,
+                            keepAliveInMs: Long = 0L): ThreadPoolExecutor = {
+    val tpe = new ThreadPoolExecutor(
       numberOfThreads,
-      0L,
+      maxPoolSize.getOrElse(numberOfThreads),
+      keepAliveInMs,
       TimeUnit.MILLISECONDS,
       workQueue,
       new PrefixedThreadFactory(name))

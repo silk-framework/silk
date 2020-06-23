@@ -3,10 +3,11 @@ package controllers.transform
 import controllers.core.RequestUserContextAction
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
+import javax.inject.Inject
 import org.silkframework.config.{PlainTask, Prefixes, TaskSpec}
-import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpointEntityTable}
+import org.silkframework.dataset.DatasetSpec.{DataSourceWrapper, GenericDatasetSpec}
 import org.silkframework.dataset._
+import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpointEntityTable}
 import org.silkframework.entity._
 import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlSelectExecutor
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
@@ -22,8 +23,10 @@ import play.api.mvc._
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
+import PeakTransformApi._
+import org.silkframework.entity.paths.{Path, TypedPath}
 
-class PeakTransformApi extends Controller {
+class PeakTransformApi @Inject() () extends InjectedController {
 
   implicit private val peakStatusWrites: Writes[PeakStatus] = Json.writes[PeakStatus]
   implicit private val peakResultWrites: Writes[PeakResult] = Json.writes[PeakResult]
@@ -80,7 +83,7 @@ class PeakTransformApi extends Controller {
 
     project.anyTask(inputTaskId).data match {
       case dataset: GenericDatasetSpec =>
-        dataset.plugin.source match {
+        DataSource.pluginSource(dataset) match {
           case peakDataSource: PeakDataSource =>
             try {
               val exampleEntities = peakDataSource.peak(ruleSchemata.inputSchema, maxTryEntities)
@@ -125,7 +128,7 @@ class PeakTransformApi extends Controller {
         case rdfDataset: RdfDataset with Dataset =>
           val entityTable = new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, PlainTask(sparqlDataset, DatasetSpec(rdfDataset)))
           val executor = LocalSparqlSelectExecutor()
-          val entities = executor.executeOnSparqlEndpointEntityTable(sparqlSelectTask, entityTable, maxTryEntities)
+          val entities = executor.executeOnSparqlEndpointEntityTable(sparqlSelectTask, entityTable, maxTryEntities, executionReportUpdater = None)
           val entityDatasource = EntityDatasource(datasetTask, entities, sparqlSelectTask.outputSchema)
           try {
             val exampleEntities = entityDatasource.peak(ruleSchemata.inputSchema, maxTryEntities)
@@ -161,6 +164,22 @@ class PeakTransformApi extends Controller {
         status = PeakStatus("empty", s"Transformation result was always empty. Processed first $tryCounter entities."))))
     }
   }
+
+  private def serializePath(path: Path)
+                           (implicit prefixes: Prefixes): Seq[String] = {
+    path.operators.map { op =>
+      op.serialize
+    }
+  }
+
+  private def projectAndTask(projectName: String, taskName: String)
+                            (implicit userContext: UserContext): (Project, ProjectTask[TransformSpec]) = {
+    getProjectAndTask[TransformSpec](projectName, taskName)
+  }
+
+}
+
+object PeakTransformApi {
 
   /**
     *
@@ -200,7 +219,7 @@ class PeakTransformApi extends Controller {
     (tryCounter, errorCounter, errorMessage, resultBuffer)
   }
 
-  private def serializePath(path: Path)
+  private def serializePath(path: TypedPath)
                            (implicit prefixes: Prefixes): Seq[String] = {
     path.operators.map { op =>
       op.serialize

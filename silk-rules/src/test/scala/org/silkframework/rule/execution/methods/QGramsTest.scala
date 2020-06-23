@@ -1,7 +1,7 @@
 package org.silkframework.rule.execution.methods
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.entity.Path
+import org.silkframework.entity.paths.UntypedPath
 
 
 class QGramsTest extends FlatSpec with Matchers {
@@ -12,7 +12,7 @@ class QGramsTest extends FlatSpec with Matchers {
   }
 
   private def subLists(str: String, q: Int, t: Double) = {
-    QGrams(Path(Nil), Path(Nil), q, t).generateSubLists(str)
+    QGrams(UntypedPath(Nil), UntypedPath(Nil), q, t).generateSubLists(str)
   }
 
   // All sub-lists with minimum length 5

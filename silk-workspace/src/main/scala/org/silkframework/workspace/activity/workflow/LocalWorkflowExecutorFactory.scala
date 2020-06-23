@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
 
@@ -10,7 +10,7 @@ import org.silkframework.workspace.activity.TaskActivityFactory
   */
 @Plugin(
   id = "ExecuteLocalWorkflow",
-  label = "Execute local Workflow",
+  label = "Execute locally",
   categories = Array("Workflow"),
   description = "Executes the workflow locally."
 )

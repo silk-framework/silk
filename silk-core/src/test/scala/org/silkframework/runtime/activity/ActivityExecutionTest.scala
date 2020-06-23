@@ -1,5 +1,7 @@
 package org.silkframework.runtime.activity
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.runtime.users.User
 
@@ -14,14 +16,20 @@ class ActivityExecutionTest extends FlatSpec with MustMatchers {
   }
   implicit val userContext: UserContext = new UserContext {
     def user: Option[User] = Some(testUser)
+    override def executionContext: UserExecutionContext = UserExecutionContext()
+
+    override def withExecutionContext(userExecutionContext: UserExecutionContext): UserContext = this
   }
 
   it should "interrupt activities when they are cancelled by the user" in {
-    val activityExecution = new ActivityExecution(new SleepingActivity(), projectAndTaskId = None)
+    val running = new AtomicBoolean(false)
+    val activityExecution = new ActivityExecution(new SleepingActivity(running), projectAndTaskId = None)
     val start = System.currentTimeMillis()
     Future {
-      val SHORT_TIME = 50
-      Thread.sleep(SHORT_TIME)
+      while(!running.get()) {
+        val SHORT_TIME = 50
+        Thread.sleep(SHORT_TIME)
+      }
       activityExecution.cancel()
     }
     activityExecution.startBlocking()
@@ -34,11 +42,42 @@ class ActivityExecutionTest extends FlatSpec with MustMatchers {
     result.metaData.startedByUser mustBe Some(testUser)
     result.metaData.cancelledBy mustBe Some(testUser)
   }
+
+  it should "maintain parallelism if activities are blocking" in {
+    val parallelism = Activity.forkJoinPool.getParallelism
+
+    val blockingActivities =
+      for(_ <- 0 until parallelism) yield {
+        val running = new AtomicBoolean(false)
+        Activity(new BlockingActivity(running)).start()
+        running
+      }
+
+    val sleepingActivities =
+      for(_ <- 0 until (parallelism - 1)) yield {
+        val running = new AtomicBoolean(false)
+        Activity(new SleepingActivity(running)).start()
+        running
+      }
+
+    Thread.sleep(1000)
+
+    blockingActivities.forall(_.get()) mustBe true
+    sleepingActivities.forall(_.get()) mustBe true
+  }
 }
 
-class SleepingActivity() extends Activity[Unit] {
+class SleepingActivity(running: AtomicBoolean) extends Activity[Unit] {
   override def run(context: ActivityContext[Unit])(implicit userContext: UserContext): Unit = {
+    running.set(true)
     val LONG_TIME = 100000
     Thread.sleep(LONG_TIME)
+  }
+}
+
+class BlockingActivity(running: AtomicBoolean) extends Activity[Unit] {
+  override def run(context: ActivityContext[Unit])(implicit userContext: UserContext): Unit = {
+    running.set(true)
+    context.blockUntil(() => false)
   }
 }

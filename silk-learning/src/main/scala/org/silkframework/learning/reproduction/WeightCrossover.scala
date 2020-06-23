@@ -17,15 +17,14 @@ package org.silkframework.learning.reproduction
 import org.silkframework.learning.individual.{AggregationNode, ComparisonNode, OperatorNode}
 import org.silkframework.util.DPair
 
+import scala.util.Random
+
 /**
  * A crossover operator which combines the weights of two comparisons.
  */
-case class WeightCrossover() extends NodePairCrossoverOperator[ComparisonNode] {
-  def crossover(nodes: DPair[ComparisonNode]) = {
-    nodes.source.copy(weight = (nodes.source.weight + nodes.target.weight) / 2)
-  }
+case class WeightCrossover() extends NodePairCrossoverOperator[OperatorNode] {
 
-  def crossover(nodes: DPair[OperatorNode]) = nodes.source match {
+  def crossover(nodes: DPair[OperatorNode], random: Random): OperatorNode = nodes.source match {
     case c: ComparisonNode => c.copy(weight = (c.weight + nodes.target.weight) / 2)
     case a: AggregationNode => a.copy(weight = (a.weight + nodes.target.weight) / 2)
   }

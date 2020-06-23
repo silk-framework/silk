@@ -19,6 +19,11 @@ abstract class TaskActivityFactory[TaskType <: TaskSpec : ClassTag, ActivityType
   def autoRun: Boolean = false
 
   /**
+    * Should only generate activities for tasks for which this method returns true.
+    */
+  def generateForTask(task: TaskType): Boolean = true
+
+  /**
     * Generates a new activity for a given task.
     */
   def apply(task: ProjectTask[TaskType]): Activity[ActivityType#ValueType]

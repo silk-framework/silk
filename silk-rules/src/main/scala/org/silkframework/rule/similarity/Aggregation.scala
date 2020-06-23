@@ -81,10 +81,7 @@ case class Aggregation(id: Identifier = Operator.generateId,
       }
     }.filterNot(_.isEmpty)
 
-    if (indexSets.isEmpty)
-      Index.empty
-    else
-      indexSets.reduceLeft[Index](aggregator.combineIndexes)
+    aggregator.aggregateIndexes(indexSets)
   }
 
   override def children = operators

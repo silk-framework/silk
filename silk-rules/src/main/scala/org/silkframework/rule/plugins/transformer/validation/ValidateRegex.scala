@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.validation
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.matching.Regex
@@ -23,7 +23,7 @@ import scala.util.matching.Regex
 @Plugin(
   id = "validateRegex",
   categories = Array("Validation"),
-  label = "validate regex",
+  label = "Validate regex",
   description = "Validates if all values match a regular expression."
 )
 case class ValidateRegex(

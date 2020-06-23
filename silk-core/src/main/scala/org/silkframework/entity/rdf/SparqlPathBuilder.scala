@@ -15,7 +15,7 @@
 package org.silkframework.entity.rdf
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity._
+import org.silkframework.entity.paths._
 
 /**
  * Builds SPARQL patterns from paths.
@@ -41,7 +41,7 @@ object SparqlPathBuilder {
    * @param subject The subject e.g. ?s or <uri>
    * @param valuesPrefix The value of every path will be bound to a variable of the form: valuesPrefix{path.id}
    */
-  def apply(paths: Seq[Path], subject: String = "?s", valuesPrefix: String = "?v", tempVarPrefix: String = "?t", filterVarPrefix: String = "?f"): String = {
+  def apply(paths: Seq[UntypedPath], subject: String = "?s", valuesPrefix: String = "?v", tempVarPrefix: String = "?t", filterVarPrefix: String = "?f"): String = {
     val vars = new Vars(subject, valuesPrefix, tempVarPrefix, filterVarPrefix)
     paths.zipWithIndex.map {
       case (path, index) => buildPath(path, index, vars)
@@ -51,7 +51,7 @@ object SparqlPathBuilder {
   /**
    * Builds a SPARQL pattern from a single Path.
    */
-  private def buildPath(path: Path, index: Int, vars: Vars): String = {
+  private def buildPath(path: UntypedPath, index: Int, vars: Vars): String = {
     "OPTIONAL {\n" +
         buildOperators(vars.subject, path.operators, vars).replace(vars.curTempVar, vars.newValueVar(path, index)) +
     "}\n"
@@ -101,7 +101,7 @@ object SparqlPathBuilder {
 
     def curFilterVar: String = filterVarPrefix + filterVarIndex
 
-    def newValueVar(path: Path, index: Int): String = valuesPrefix + index
+    def newValueVar(path: UntypedPath, index: Int): String = valuesPrefix + index
   }
 
 }

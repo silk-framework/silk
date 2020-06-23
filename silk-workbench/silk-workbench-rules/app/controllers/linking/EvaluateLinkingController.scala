@@ -1,19 +1,27 @@
 package controllers.linking
 
-import controllers.core.{RequestUserContextAction, Stream, UserContextAction, Widgets}
+import akka.actor.ActorSystem
+import akka.stream.Materializer
+import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.util.AkkaUtils
+import javax.inject.Inject
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking.{EvalLink, LinkSorter}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.DetailedEvaluator
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workbench.Context
+import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
-import play.api.mvc.{Action, AnyContent, Controller}
+import play.api.libs.json.Json
+import play.api.mvc.{Action, AnyContent, InjectedController, WebSocket}
 
-class EvaluateLinkingController extends Controller {
+class EvaluateLinkingController @Inject() (implicit system: ActorSystem, mat: Materializer, accessMonitor: WorkbenchAccessMonitor) extends InjectedController {
 
   def generateLinks(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
+    accessMonitor.saveProjectTaskAccess(project, task)
     Ok(views.html.evaluateLinking.evaluateLinking(context))
   }
 
@@ -21,7 +29,7 @@ class EvaluateLinkingController extends Controller {
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val linkSorter = LinkSorter.fromId(sorting)
-    val linking = task.activity[EvaluateLinkingActivity].value
+    val linking = task.activity[EvaluateLinkingActivity].value()
     val schemata = task.data.entityDescriptions
 
     // We only show links if entities have been attached to them. We check this by looking at the first link.
@@ -38,8 +46,8 @@ class EvaluateLinkingController extends Controller {
     if(showLinks) {
       val referenceLinks = task.data.referenceLinks
       def links =
-        for (link <- linking.links.view;
-             detailedLink <- DetailedEvaluator(task.data.rule, link.entities.get)) yield {
+        for (link <- linking.links.view) yield {
+          val detailedLink = DetailedEvaluator(task.data.rule, link.entities.get)
           if (referenceLinks.positive.contains(link))
             new EvalLink(detailedLink, Correct, Generated)
           else if (referenceLinks.negative.contains(link))
@@ -56,18 +64,14 @@ class EvaluateLinkingController extends Controller {
     }
   }
 
-  def linksStream(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  def linksWebsocket(projectName: String, taskName: String): WebSocket = {
+    implicit val userContext = UserContext.Empty
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    val stream = Stream.activityValue(task.activity[EvaluateLinkingActivity].control)
-    Ok.chunked(Widgets.autoReload("updateLinks", stream))
-  }
+    val activity = task.activity[EvaluateLinkingActivity]
 
-  def statusStream(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val task = project.task[LinkSpec](taskName)
-    val stream = Stream.status(task.activity[EvaluateLinkingActivity].control.status)
-    Ok.chunked(Widgets.statusStream(stream))
+    // Create a source that sends an empty object on every update
+    val source = AkkaUtils.createSource(activity.value).map(_ => Json.obj())
+    AkkaUtils.createWebSocket(source)
   }
-
 }

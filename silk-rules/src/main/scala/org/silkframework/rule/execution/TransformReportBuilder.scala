@@ -1,6 +1,7 @@
 package org.silkframework.rule.execution
 
 import org.silkframework.entity.Entity
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.TransformRule
 import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
 import org.silkframework.util.Identifier
@@ -9,7 +10,7 @@ import org.silkframework.util.Identifier
   * A builder for generating transform reports.
   * Not thread safe!
   */
-private class TransformReportBuilder(rules: Seq[TransformRule], previousReport: TransformReport) {
+private class TransformReportBuilder(label: String, rules: Seq[TransformRule], previousReport: TransformReport) {
 
   private var entityCounter = previousReport.entityCounter
 
@@ -27,7 +28,7 @@ private class TransformReportBuilder(rules: Seq[TransformRule], previousReport: 
 
     val updatedRuleResult =
       if(currentRuleResult.sampleErrors.size < maxSampleErrors) {
-        val values = rule.sourcePaths.map(entity.evaluate)
+        val values = rule.sourcePaths.map(p => entity.evaluate(UntypedPath(p.operators)))
         currentRuleResult.withError(RuleError(entity.uri, values, ex))
       } else {
         currentRuleResult.withError()
@@ -45,7 +46,6 @@ private class TransformReportBuilder(rules: Seq[TransformRule], previousReport: 
   }
 
   def build(): TransformReport = {
-    TransformReport(entityCounter, entityErrorCounter, ruleResults)
+    TransformReport(label, entityCounter, entityErrorCounter, ruleResults, previousReport.globalErrors)
   }
-
 }

@@ -17,7 +17,7 @@ package org.silkframework.rule.plugins.distance.asian
 import java.util.{ArrayList, Collections}
 
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 import scala.collection.JavaConverters._
 import scala.io.Source
@@ -25,7 +25,7 @@ import scala.io.Source
 @Plugin(
   id = "cjkReadingDistance",
   categories = Array("Asian"),
-  label = "CJK Reading Distance",
+  label = "CJK reading distance",
   description = "CJK Reading Distance."
 )
 case class CJKReadingDistance(minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {

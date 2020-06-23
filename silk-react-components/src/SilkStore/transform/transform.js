@@ -289,6 +289,33 @@ silkStore
     });
 
 silkStore
+    .subject('transform.task.rule.completions.valueTypes')
+    .subscribe(({data, replySubject}) => {
+      const {
+        baseUrl,
+        project,
+        transformTask,
+        ruleId,
+        term,
+        maxResults = 30,
+      } = data;
+
+      superagent
+          .get(
+              `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/completions/valueTypes`
+          )
+          .query({
+            term,
+            maxResults,
+          })
+          .accept('application/json')
+          .type('application/json')
+          .observe()
+          .multicast(replySubject)
+          .connect();
+    });
+
+silkStore
     .subject('transform.task.targetVocabulary.type')
     .subscribe(({data, replySubject}) => {
         const {baseUrl, project, transformTask, uri} = data;
@@ -337,6 +364,23 @@ silkStore
             .query({
                 uri,
             })
+            .observe()
+            .multicast(replySubject)
+            .connect();
+    });
+
+silkStore
+    .subject('transform.task.rule.copy')
+    .subscribe(({data, replySubject}) => {
+        const { baseUrl, project, transformTask, appendTo, queryParameters } = data;
+        superagent
+            .post(
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${appendTo}/rules/copyFrom`
+            )
+            .accept('application/json')
+            .send(queryParameters)
+            .query(queryParameters)
+            .type('application/json')
             .observe()
             .multicast(replySubject)
             .connect();

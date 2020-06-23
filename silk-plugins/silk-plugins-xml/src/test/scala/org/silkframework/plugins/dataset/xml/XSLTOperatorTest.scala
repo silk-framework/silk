@@ -11,7 +11,7 @@ class XSLTOperatorTest extends FlatSpec with MustMatchers with SingleProjectWork
   private final val WORKFLOW = "xsltWorkflow"
   private final val OUTPUT_RESOURCE = "output.xml"
 
-  override def workspaceProvider: String = "inMemory"
+  override def workspaceProviderId: String = "inMemory"
 
   private val expectedOutput: Elem = {
     <GroupedPerson>
@@ -28,7 +28,7 @@ class XSLTOperatorTest extends FlatSpec with MustMatchers with SingleProjectWork
 
   it should "run the XSLT workflow and generate the correct result" in {
     implicit val userContext: UserContext = UserContext.Empty
-    project.task[Workflow](WORKFLOW).activity[LocalWorkflowExecutorGeneratingProvenance].control.startBlocking()
+    executeWorkflow(WORKFLOW)
     val result = project.resources.get(OUTPUT_RESOURCE).loadAsString
     Utility.trim(XML.loadString(result)) mustBe Utility.trim(expectedOutput)
   }

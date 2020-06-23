@@ -8,13 +8,17 @@ import java.util.regex.Pattern
 
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
-import org.silkframework.entity.Path.IDX_PATH_IDX
+import org.silkframework.entity.paths.UntypedPath.{IDX_PATH_MISSING, IDX_PATH_IDX}
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.io.Codec
+import scala.util.control.NonFatal
 
 class CsvSource(file: Resource,
                 settings: CsvSettings = CsvSettings(),
@@ -22,18 +26,17 @@ class CsvSource(file: Resource,
                 uriPattern: String = "",
                 regexFilter: String = "",
                 codec: Codec = Codec.UTF8,
-                skipLinesBeginning: Int = 0,
                 ignoreBadLines: Boolean = false,
                 detectSeparator: Boolean = false,
                 detectSkipLinesBeginning: Boolean = false,
+                specificTypeName: Option[String] = None,    // if the csv file represents a specific type which is not or can not be written as the file name
                 // If the text file fails to be read because of a MalformedInputException, try other codecs
                 fallbackCodecs: List[Codec] = List(),
                 maxLinesToDetectCodec: Option[Int] = None,
                 ignoreMalformedInputExceptionInPropertyList: Boolean = false)
     extends DataSource
         with PathCoverageDataSource
-        with PeakDataSource
-        with TypedPathRetrieveDataSource {
+        with PeakDataSource {
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -96,10 +99,13 @@ class CsvSource(file: Resource,
   override def toString: String = file.toString
 
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
-                            (implicit userContext: UserContext): IndexedSeq[Path] = {
+                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+    if(t.toString.nonEmpty && t != typeUri)
+      return IndexedSeq.empty
+
     try {
       for (property <- propertyList) yield {
-        Path(ForwardOperator(Uri.parse(property)) :: Nil)
+        UntypedPath(ForwardOperator(Uri.parse(property)) :: Nil).asStringTypedPath
       }
     } catch {
       case e: MalformedInputException =>
@@ -107,45 +113,35 @@ class CsvSource(file: Resource,
     }
   }
 
-  override def retrieveTypedPath(typeUri: Uri,
-                                 depth: Int,
-                                 limit: Option[Int])
-                                (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
-    retrievePaths(typeUri, depth, limit).map(_.asStringTypedPath)
-  }
-
   override def retrieve(entitySchema: EntitySchema, limitOpt: Option[Int] = None)
-                       (implicit userContext: UserContext): Traversable[Entity] = {
+                       (implicit userContext: UserContext): EntityHolder = {
     if (entitySchema.filter.operator.isDefined) {
       throw new NotImplementedError("Filter restrictions are not supported on CSV datasets!") // TODO: Implement Restriction handling!
     }
-    val entities = retrieveEntities(entitySchema)
-    limitOpt match {
-      case Some(limit) =>
-        entities.take(limit)
-      case None =>
-        entities
-    }
+    retrieveEntities(entitySchema, limitOpt = limitOpt)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): Traversable[Entity] = {
+                            (implicit userContext: UserContext): EntityHolder = {
     if(entities.isEmpty) {
-      Seq.empty
+      GenericEntityTable(Seq.empty, entitySchema, underlyingTask)
     } else {
-      val entitySet = entities.map(_.uri.toString).toSet
-      val entityTraversal = retrieveEntities(entitySchema)
-      val filteredEntities = entityTraversal filter (e => entitySet.contains(e.uri.toString))
-      filteredEntities
+      retrieveEntities(entitySchema, entities.map(_.uri))
     }
   }
 
+  def retrieveEntities(entityDesc: EntitySchema, entities: Seq[String] = Seq.empty, limitOpt: Option[Int] = None): EntityHolder = {
+    if(!file.exists) {
+      return GenericEntityTable(Seq.empty[Entity], entityDesc, underlyingTask, Seq.empty)
+    }
 
-  def retrieveEntities(entityDesc: EntitySchema, entities: Seq[String] = Seq.empty): Traversable[Entity] = {
+    if(entityDesc.typeUri.toString.nonEmpty && entityDesc.typeUri != Uri(typeUri))
+      return GenericEntityTable(Traversable.empty, entityDesc, underlyingTask)
 
     logger.log(Level.FINE, "Retrieving data from CSV.")
 
     // Retrieve the indices of the request paths
+    var missingColumns = Seq[String]()
     val indices =
       for (path <- entityDesc.typedPaths) yield {
         val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri
@@ -154,7 +150,8 @@ class CsvSource(file: Resource,
           if(property == "#idx") {
             IDX_PATH_IDX
           } else {
-            throw new Exception("Property " + property + " not found in CSV " + file.name + ". Available properties: " + propertyList.mkString(", "))
+            missingColumns :+= property
+            IDX_PATH_MISSING
           }
         } else {
           propertyIndex
@@ -162,7 +159,23 @@ class CsvSource(file: Resource,
       }
 
     // Return new Traversable that generates an entity for each line
-    entityTraversable(entityDesc, entities, indices)
+    val retrievedEntities = entityTraversable(entityDesc, entities, indices)
+
+    val limitedEntities = limitOpt match {
+      case Some(limit) =>
+        retrievedEntities.take(limit)
+      case None =>
+        retrievedEntities
+    }
+
+    val missingColumnMessages =
+      if(missingColumns.isEmpty) {
+        Seq.empty
+      } else {
+        Seq(s"Column(s) ${missingColumns.mkString(", ")} not found in CSV ${file.name}. Values for missing columns will be empty. Available columns: ${propertyList.mkString(", ")}.")
+      }
+
+    GenericEntityTable(limitedEntities, entityDesc, underlyingTask, missingColumnMessages)
   }
 
   private def entityTraversable(entityDesc: EntitySchema,
@@ -212,6 +225,8 @@ class CsvSource(file: Resource,
 
   private def collectValues(indices: IndexedSeq[Int], entry: Array[String], entityIdx: Int): IndexedSeq[String] = {
     indices map {
+      case IDX_PATH_MISSING =>
+        null // splitArrayValue will generate an empty sequence from this.
       case IDX_PATH_IDX =>
         entityIdx.toString
       case idx: Int if idx >= 0 =>
@@ -264,25 +279,29 @@ class CsvSource(file: Resource,
       if(skipFirst) parser.parseNext()
       parser
     } catch {
-      case e: Throwable =>
+      case NonFatal(ex) =>
         parser.stopParsing()
-        throw new RuntimeException("Problem during initialization of CSV parser: " + e.getMessage, e)
+        throw new RuntimeException("Problem during initialization of CSV parser: " + ex.getMessage, ex)
     }
   }
 
   private def firstLine: Array[String] = {
     var parser: Option[CsvParser] = None
-    try {
-      parser = Some(csvParser())
-      parser.get.parseNext().getOrElse(Array())
-    } finally {
-      parser foreach (_.stopParsing())
+    if(!file.exists) {
+      Array.empty[String]
+    } else {
+      try {
+        parser = Some(csvParser())
+        parser.get.parseNext().getOrElse(Array())
+      } finally {
+        parser foreach (_.stopParsing())
+      }
     }
   }
 
   // Skip lines that are not part of the CSV file, headers may be included
   private def initBufferedReader(reader: BufferedReader): Unit = {
-    val nrLinesToSkip = skipLinesAutomatic getOrElse skipLinesBeginning
+    val nrLinesToSkip = skipLinesAutomatic getOrElse csvSettings.linesToSkip
     for (_ <- 1 to nrLinesToSkip) {
       reader.readLine() // Skip line
     }
@@ -336,15 +355,25 @@ class CsvSource(file: Resource,
 
   override def retrieveTypes(limit: Option[Int] = None)
                             (implicit userContext: UserContext): Traversable[(String, Double)] = {
-    Seq((classUri, 1.0))
+    Seq((typeUri, 1.0))
   }
 
-  private def classUri = file.name
+  private lazy val typeUri = {
+    val uri = Uri(specificTypeName.getOrElse(file.name))
+    if(uri.isValidUri)
+      uri
+    else{
+      val segments = uri.uri.split("/")
+        .map(_.trim)
+        .map(seg => URLEncoder.encode(seg, "UTF-8"))
+      Uri(segments.mkString("/"))
+    }
+  }
 
   /**
     * returns the combined path. Depending on the data source the input path may or may not be modified based on the type URI.
     */
-  override def combinedPath(typeUri: String, inputPath: Path): Path = inputPath
+  override def combinedPath(typeUri: String, inputPath: UntypedPath): UntypedPath = inputPath
 
   def autoConfigure(): CsvAutoconfiguredParameters = {
     val csvSource = new CsvSource(file, csvSettings, properties, uriPattern, regexFilter, codec,

@@ -72,8 +72,14 @@ function serializeWorkflowOperator(op, xml, type, minPosition) {
     var incoming = jsPlumb.getConnections({target: op.id});
     var outgoing = jsPlumb.getConnections({source: op.id});
 
+    var incomingInput = incoming.filter(c => !isConfigurationEndpoint(c.endpoints[1]));
+    var incomingConfig = incoming.filter(c => isConfigurationEndpoint(c.endpoints[1]));
+
     // Create a list of source ids
-    var sources = $.map(incoming, function(connection) {
+    var inputSources = $.map(incomingInput, function(connection) {
+        return connection.sourceId;
+    }).join(',');
+    var configSources = $.map(incomingConfig, function(connection) {
         return connection.sourceId;
     }).join(',');
 
@@ -96,7 +102,16 @@ function serializeWorkflowOperator(op, xml, type, minPosition) {
         operatorXml.setAttribute('outputPriority', outputPriority);
     }
     operatorXml.setAttribute('id', op.id);
-    operatorXml.setAttribute('inputs', sources);
+    operatorXml.setAttribute('inputs', inputSources);
+    operatorXml.setAttribute('configInputs', configSources);
     operatorXml.setAttribute('outputs', targets);
     xml.appendChild(operatorXml);
+}
+
+/**
+ * Returns true, if this is a configuration endpoint. False, otherwise.
+ */
+function isConfigurationEndpoint(endpoint) {
+    // This seems to be the simplest way to distinguish between normal inputs and configuration inputs.
+    return endpoint.anchor.type === "TopCenter";
 }

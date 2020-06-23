@@ -150,9 +150,9 @@ object ReferenceEntities {
     ReferenceEntities(
       sourceEntities = sourceEntities.map(e => (e.uri.toString, e)).toMap,
       targetEntities = targetEntities.map(e => (e.uri.toString, e)).toMap,
-      positiveLinks = positiveEntities.map(i => new Link(i.source.uri, i.target.uri)).toSet,
-      negativeLinks = negativeEntities.map(i => new Link(i.source.uri, i.target.uri)).toSet,
-      unlabeledLinks = unlabeledEntities.map(i => new Link(i.source.uri, i.target.uri)).toSet
+      positiveLinks = positiveEntities.map(i => new MinimalLink(i.source.uri, i.target.uri)).toSet,
+      negativeLinks = negativeEntities.map(i => new MinimalLink(i.source.uri, i.target.uri)).toSet,
+      unlabeledLinks = unlabeledEntities.map(i => new MinimalLink(i.source.uri, i.target.uri)).toSet
     )
   }
 

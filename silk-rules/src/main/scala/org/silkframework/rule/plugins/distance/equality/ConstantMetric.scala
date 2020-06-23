@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.distance.equality
 
 import org.silkframework.rule.similarity.DistanceMeasure
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "constant",

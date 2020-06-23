@@ -2,11 +2,15 @@ package org.silkframework.util
 
 import org.scalatest.{FlatSpec, Matchers}
 
+import scala.util.Random
+
 /**
  * Created by andreas on 1/12/16.
  */
 class SampleUtilTest extends FlatSpec with Matchers {
   behavior of "SampleUtil"
+
+  private implicit val random: Random = Random
 
   it should "sample from a set close to uniformly" in {
     val values = (for(i <- 1 to 10) yield {

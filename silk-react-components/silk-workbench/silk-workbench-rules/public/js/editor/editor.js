@@ -565,14 +565,20 @@ function removeElement(elementId) {
 var lastWindowStatus = null;
 
 // FIXME: Remove this and do it solely with css?
-function updateWindowSize() {
-    var header_height =
-        $('header').height() + $('#toolbar').height() + $('#tab-bar').height();
+function updateWindowSize(forceResize = false) {
+    var header_height;
+    if($('header').length > 0) {
+      header_height = $('header').height() + $('#toolbar').height() + $('#tab-bar').height();
+    } else {
+      // Header is hidden
+      header_height = $('#toolbar').height() + $('#tab-bar').height();
+    }
+
     var window_width = $(window).width();
     var window_height = $(window).height();
     var status = `${window_height};${window_width};${header_height};${!!$canvas}`;
 
-    if (status === lastWindowStatus) {
+    if (!forceResize && status === lastWindowStatus) {
         return;
     }
     lastWindowStatus = status;
@@ -746,11 +752,13 @@ function getPropertyPaths(targetElement, groupPaths) {
         url: `${editorUrl}/widgets/paths`,
         data: {groupPaths},
         complete(response, status) {
-            $(targetElement).html(response.responseText);
+            var pathBox = $(targetElement);
+            pathBox.html(response.responseText);
             if (status === 'error') {
                 setTimeout(getPropertyPaths, 2000, targetElement, groupPaths);
             } else {
-                updateWindowSize();
+                activateDeferredMDL(pathBox);
+                updateWindowSize(true);
             }
         },
     });
@@ -768,7 +776,8 @@ function getRelativePropertyPathsForRule(ruleId, targetElement, groupPaths) {
         url: `${editorUrl}/rule${ruleId}/widgets/paths`,
         data: {groupPaths},
         complete: function complete(response, status) {
-            $(targetElement).html(response.responseText);
+            var pathBox = $(targetElement);
+            pathBox.html(response.responseText);
             if (status === 'error') {
                 setTimeout(
                     getRelativePropertyPathsForRule,
@@ -778,7 +787,8 @@ function getRelativePropertyPathsForRule(ruleId, targetElement, groupPaths) {
                     groupPaths
                 );
             } else {
-                updateWindowSize();
+                activateDeferredMDL(pathBox);
+                updateWindowSize(true);
             }
         },
     });

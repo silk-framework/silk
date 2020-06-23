@@ -3,7 +3,8 @@ package org.silkframework.rule.execution
 import java.util.logging.Logger
 
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.{EntitySchema, StringValueType, ValueType}
 import org.silkframework.rule.{DatasetSelection, TransformRule}
 import org.silkframework.rule.evaluation.{DetailedEntity, DetailedEvaluator}
 import org.silkframework.runtime.activity.UserContext
@@ -14,7 +15,7 @@ import org.silkframework.runtime.activity.UserContext
  * containing all intermediate values of the rule evaluation.
  */
 class EvaluateTransform(source: DataSource,
-                        dataSelection: DatasetSelection,
+                        entitySchema: EntitySchema,
                         rules: Seq[TransformRule],
                         maxEntities: Int = 100) {
 
@@ -25,13 +26,7 @@ class EvaluateTransform(source: DataSource,
 
   def execute()(implicit userContext: UserContext): Seq[DetailedEntity] = {
     // Retrieve entities
-    val entityDesc =
-      EntitySchema(
-        typeUri = dataSelection.typeUri,
-        typedPaths = rules.flatMap(_.sourcePaths).map(_.asStringTypedPath).toIndexedSeq,
-        filter = dataSelection.restriction
-      )
-    val entities = source.retrieve(entityDesc, Some(maxEntities))
+    val entities = source.retrieve(entitySchema, Some(maxEntities)).entities
 
     // Read all entities
     for(entity <- entities) {

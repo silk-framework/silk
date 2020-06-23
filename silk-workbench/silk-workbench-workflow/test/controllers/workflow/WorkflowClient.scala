@@ -2,17 +2,16 @@ package controllers.workflow
 
 import controllers.workflow.WorkflowClient.VariableDatasetPayload
 import controllers.workspace.ActivityClient
+import org.silkframework.serialization.json.JsonSerializers.{DATA, PARAMETERS, TASK_TYPE_DATASET, TYPE, TASKTYPE, ID}
 import org.silkframework.util.Identifier
-import play.api.Application
-import play.api.http.Writeable
 import play.api.libs.json.{JsArray, JsObject, JsString, JsValue}
-import play.api.libs.ws.{WS, WSRequest, WSResponse}
+import play.api.libs.ws.{BodyWritable, WSClient, WSRequest, WSResponse}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.xml.{Elem, Null}
 
-class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identifier)(implicit app: Application) {
+class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identifier)(implicit client: WSClient) {
 
   def executeVariableWorkflowXml(datasetPayloads: Seq[VariableDatasetPayload], blocking: Boolean = true): WSResponse = {
     val requestXML = {
@@ -39,11 +38,11 @@ class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identif
 
   def executeVariableWorkflow[T](requestBody: T,
                                  accept: String = "application/xml",
-                                 blocking: Boolean = true)(implicit wrt: Writeable[T]): WSResponse = {
+                                 blocking: Boolean = true)(implicit wrt: BodyWritable[T]): WSResponse = {
 
     var request: WSRequest = executeOnPayloadUri(projectId, workflowId, blocking)
     if(blocking) {
-      request = request.withHeaders("Accept" -> accept)
+      request = request.addHttpHeaders("Accept" -> accept)
     }
     val response = request.post(requestBody)
     val result = checkResponse(response)
@@ -65,7 +64,7 @@ class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identif
 
   private def executeOnPayloadUri(projectId: String, workflowId: String, blocking: Boolean) = {
     val urlPostfix = if(blocking) "" else "Asynchronous"
-    val request = WS.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId/executeOnPayload$urlPostfix")
+    val request = client.url(s"$baseUrl/workflow/workflows/$projectId/$workflowId/executeOnPayload$urlPostfix")
     request
   }
 
@@ -105,11 +104,11 @@ object WorkflowClient {
 
     lazy val datasetJson: JsValue = {
       JsObject(Seq(
-        "id" -> JsString(datasetId),
-        "data" -> JsObject(Seq(
-          "taskType" -> JsString("Dataset"),
-          "type" -> JsString(datasetPluginType),
-          "parameters" -> JsObject(for ((key, value) <- pluginParams ++ additionalParam) yield {
+        ID -> JsString(datasetId),
+        DATA -> JsObject(Seq(
+          TASKTYPE -> JsString(TASK_TYPE_DATASET),
+          TYPE -> JsString(datasetPluginType),
+          PARAMETERS -> JsObject(for ((key, value) <- pluginParams ++ additionalParam) yield {
             key -> JsString(value)
           })
         ))

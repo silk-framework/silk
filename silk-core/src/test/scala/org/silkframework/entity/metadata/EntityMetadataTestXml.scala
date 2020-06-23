@@ -4,7 +4,8 @@ import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.{config, dataset}
 import org.silkframework.dataset.EmptyDataset
 import org.silkframework.entity.metadata.GenericExecutionFailure.GenericExecutionException
-import org.silkframework.entity.{Entity, EntitySchema, Path, Restriction}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.{Entity, EntitySchema, Restriction}
 import org.silkframework.failures.{EntityException, FailureClass}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.util.{DPair, Uri}
@@ -12,7 +13,7 @@ import org.silkframework.util.{DPair, Uri}
 import scala.xml.Node
 
 class EntityMetadataTestXml extends FlatSpec with Matchers {
-  val schema = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(Path("path1").asStringTypedPath, Path("path2").asStringTypedPath), filter = Restriction.empty)
+  val schema = EntitySchema(typeUri = Uri(""), typedPaths = IndexedSeq(UntypedPath("path1").asStringTypedPath, UntypedPath("path2").asStringTypedPath), filter = Restriction.empty)
 
   implicit val throwableTag = classOf[FailureClass]
 

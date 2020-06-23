@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.substring
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
 
 /**
  * Give a substring until the character given.
@@ -25,8 +25,8 @@ import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExam
 @Plugin(
   id = "untilCharacter",
   categories = Array("Substring"),
-  label = "Until Character",
-  description = "Give a substring until the character given"
+  label = "Until character",
+  description = "Extracts the substring until the character given."
 )
 @TransformExamples(Array(
   new TransformExample(

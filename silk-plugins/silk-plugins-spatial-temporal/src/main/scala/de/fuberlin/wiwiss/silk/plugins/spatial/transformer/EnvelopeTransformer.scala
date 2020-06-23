@@ -16,7 +16,7 @@ package org.silkframework.plugins.spatial.transformer
 
 import org.silkframework.plugins.spatial.utils._
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
  * This plugin returns the Envelope (Minimum Bounding Rectangle) of the input geometry (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).
@@ -28,7 +28,7 @@ import org.silkframework.runtime.plugin.Plugin
 @Plugin(
   id = "EnvelopeTransformer",
   categories = Array("Spatial"),
-  label = "Envelope Transformer",
+  label = "Compute enveloper",
   description = "Returns the Envelope (Minimum Bounding Rectangle) of the input geometry.")
 case class EnvelopeTransformer() extends SimpleTransformer {
 

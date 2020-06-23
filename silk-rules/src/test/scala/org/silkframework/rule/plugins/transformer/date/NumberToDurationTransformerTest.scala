@@ -21,8 +21,8 @@ class NumberToDurationTransformerTest extends PluginTest {
   val transformer = NumberToDurationTransformer(DateUnit.day)
 
   it should "convert numbers to days" in {
-    transformer(Seq(Seq("4"))) should equal(Seq("P0Y0M4DT0H0M0.000S"))
-    transformer(Seq(Seq("0"))) should equal(Seq("P0Y0M0DT0H0M0.000S"))
+    transformer(Seq(Seq("4"))) should contain oneOf ("P0Y0M4DT0H0M0.000S", "P4DT0H0M0.000S")
+    transformer(Seq(Seq("0"))) should contain oneOf ("P0Y0M0DT0H0M0.000S", "PT0.000S")
   }
 
   override def pluginObject = NumberToDurationTransformer(DateUnit.day)

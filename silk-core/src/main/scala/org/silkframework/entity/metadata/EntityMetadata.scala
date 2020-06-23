@@ -1,6 +1,6 @@
 package org.silkframework.entity.metadata
 
-import org.silkframework.entity.Path
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.failures.FailureClass
 import org.silkframework.runtime.serialization._
 import org.silkframework.util.Identifier
@@ -56,11 +56,12 @@ trait EntityMetadata[Serialization] extends Map[String, LazyMetadata[_, Serializ
   /**
     * Shorthand version for [[addReplaceMetadata(Failure_Key, LazyMetadata(failure))]]
     * Can be used without knowledge of the correct LazyMetadata implementation (e.g. [[org.silkframework.entity.Entity.copy]]
-    * @param failure - the exception caught
-    * @param taskId - the identifier pointing out the current task
-    * @param property - the optional property pointer as [[Path]]
+ *
+    * @param failure  - the exception caught
+    * @param taskId   - the identifier pointing out the current task
+    * @param property - the optional property pointer as [[UntypedPath]]
     */
-  def addFailure(failure: Throwable, taskId: Identifier, property: Option[Path] = None): EntityMetadata[Serialization] = {
+  def addFailure(failure: Throwable, taskId: Identifier, property: Option[UntypedPath] = None): EntityMetadata[Serialization] = {
     addFailure(FailureClass(GenericExecutionFailure(failure), taskId, property))
   }
 

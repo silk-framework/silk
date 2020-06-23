@@ -1,5 +1,8 @@
 package org.silkframework.workspace
 
+import org.silkframework.plugins.dataset.DatasetTypeAutoCompletionProvider
+import org.silkframework.plugins.filter.RemoveStopwords
+import org.silkframework.plugins.transformer.value.ReadParameter
 import org.silkframework.runtime.plugin.PluginModule
 import org.silkframework.workspace.activity.dataset.Types.TypesFormat
 import org.silkframework.workspace.activity.dataset.TypesCacheFactory
@@ -7,7 +10,7 @@ import org.silkframework.workspace.activity.linking._
 import org.silkframework.workspace.activity.transform.CachedEntitySchemata.CachedEntitySchemaXmlFormat
 import org.silkframework.workspace.activity.transform._
 import org.silkframework.workspace.activity.workflow.Workflow.WorkflowXmlFormat
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorFactory, NopPersistWorkflowProvenance}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorFactory, NopPersistWorkflowProvenance, Workflow}
 import org.silkframework.workspace.xml.{FileWorkspaceProvider, XmlZipProjectMarshaling}
 
 import scala.language.existentials
@@ -22,7 +25,13 @@ class WorkspacePlugins extends PluginModule {
         workflowActivities :::
         projectMarshaller :::
         provenancePlugins :::
+        rulePlugins :::
+        workspaceTaskPlugins :::
+        autoCompletionProviderPlugins :::
         formats
+
+  def workspaceTaskPlugins: List[Class[_]] =
+    classOf[Workflow] :: Nil
 
   def workspaceProviders: List[Class[_]] =
     classOf[FileWorkspaceProvider] ::
@@ -53,9 +62,17 @@ class WorkspacePlugins extends PluginModule {
     Nil
   }
 
+  def rulePlugins: List[Class[_]] = {
+    classOf[ReadParameter] ::
+    classOf[RemoveStopwords] ::
+    Nil
+  }
+
   def projectMarshaller: List[Class[_]] = {
     classOf[XmlZipProjectMarshaling] :: Nil
   }
 
   def provenancePlugins: List[Class[_]] = classOf[NopPersistWorkflowProvenance] :: Nil
+
+  def autoCompletionProviderPlugins: List[Class[_]] = classOf[DatasetTypeAutoCompletionProvider] :: Nil
 }

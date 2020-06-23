@@ -4,13 +4,19 @@ import java.util.NoSuchElementException
 
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
+import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity._
+import org.silkframework.entity.paths._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.RuleSchemata
+import org.silkframework.rule.task.DatasetOrTransformTaskAutoCompletionProvider
+import org.silkframework.runtime.plugin.{IdentifierOptionParameter, StringTraversableParameter}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.{Identifier, IdentifierGenerator}
+import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
 
 import scala.util.Try
 import scala.xml.{Node, Null}
@@ -21,19 +27,33 @@ import scala.language.implicitConversions
   *
   * @param selection          Selects the entities that are covered by this transformation.
   * @param mappingRule        The root mapping rule
-  * @param outputs            The identifier of the output to which all transformed entities are to be written
-  * @param errorOutputs       The identifier of the output to received erroneous entities.
+  * @param output             The optional identifier of the output to which all transformed entities are to be written
+  * @param errorOutput        The optional identifier of the output to received erroneous entities.
   * @param targetVocabularies The URIs of the target vocabularies to which this transformation maps.
-  * @param parentTask     May add additional references to tasks (in addition to input and output)
   * @since 2.6.1
   * @see org.silkframework.execution.ExecuteTransform
   */
-case class TransformSpec(selection: DatasetSelection,
-                         mappingRule: RootMappingRule,
-                         outputs: Seq[Identifier] = Seq.empty,
-                         errorOutputs: Seq[Identifier] = Seq.empty,
-                         targetVocabularies: Traversable[String] = Seq.empty,
-                         parentTask: Option[Identifier] = None
+@Plugin(
+  id = "transform",
+  label = "Transform",
+  categories = Array("Transform"),
+  description =
+      """A transform task defines a mapping from a source structure to a target structure."""
+)
+case class TransformSpec(@Param(label = "Input task", value = "The source from which data will be transformed when executed as a single task outside of a workflow.")
+                         selection: DatasetSelection,
+                         @Param(label = "", value = "", visibleInDialog = false)
+                         mappingRule: RootMappingRule = RootMappingRule.empty,
+                         @Param(label = "Output dataset", value = "An optional dataset where the transformation results should be written to when executed" +
+                             " as single task outside of a workflow.", autoCompletionProvider = classOf[DatasetTaskReferenceAutoCompletionProvider],
+                           autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
+                         output: IdentifierOptionParameter = IdentifierOptionParameter(None),
+                         @Param(label = "Error output", value = "An optional dataset to write invalid input entities to.", visibleInDialog = false,
+                           autoCompletionProvider = classOf[DatasetTaskReferenceAutoCompletionProvider],
+                           autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
+                         errorOutput: IdentifierOptionParameter = IdentifierOptionParameter(None),
+                         @Param(label = "Target vocabularies", value = "Target vocabularies this transformation maps to.")
+                         targetVocabularies: StringTraversableParameter = Seq.empty
                         ) extends TaskSpec {
 
   /** Retrieves the root rules of this transform spec. */
@@ -63,19 +83,19 @@ case class TransformSpec(selection: DatasetSelection,
   /**
     * The tasks that this task writes to.
     */
-  override def outputTasks: Set[Identifier] = outputs.toSet
+  override def outputTasks: Set[Identifier] = output.value.toSet
 
   /**
     * The tasks that are directly referenced by this task.
     * This includes input tasks and output tasks.
     */
-  override def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks ++ parentTask
+  override def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks
 
   /**
     * Input and output schemata of all object rules in the tree.
     */
   lazy val ruleSchemata: Seq[RuleSchemata] = {
-    collectSchemata(mappingRule, Path.empty)
+    collectSchemata(mappingRule, UntypedPath.empty)
   }
 
   /**
@@ -98,21 +118,22 @@ case class TransformSpec(selection: DatasetSelection,
     Seq(
       ("Source", selection.inputId.toString),
       ("Type", selection.typeUri.toString),
-      ("Restriction", selection.restriction.toString)
+      ("Restriction", selection.restriction.toString),
+      ("Output", output.value.map(_.toString).getOrElse(""))
     )
   }
 
   /**
     * Collects the input and output schemata of all rules recursively.
     */
-  private def collectSchemata(rule: TransformRule, subPath: Path): Seq[RuleSchemata] = {
+  private def collectSchemata(rule: TransformRule, subPath: UntypedPath): Seq[RuleSchemata] = {
     var schemata = Seq[RuleSchemata]()
 
     // Add rule schemata for this rule
     schemata :+= RuleSchemata.create(rule, selection, subPath)
 
     // Add rule schemata of all child object rules
-    for(objectMapping @ ObjectMapping(_, relativePath, _, _, _) <- rule.rules.allRules) {
+    for(objectMapping @ ObjectMapping(_, relativePath, _, _, _, _) <- rule.rules.allRules) {
       schemata ++= collectSchemata(objectMapping.fillEmptyUriRule, subPath ++ relativePath)
     }
 
@@ -172,7 +193,7 @@ case class TransformSpec(selection: DatasetSelection,
     * create a property value. Also, source paths from complex rules are only considered if they are the only source paths
     * in that rule. */
   def valueSourcePaths(ruleName: Identifier,
-                       maxPathDepth: Int = Int.MaxValue): Seq[Path] = {
+                       maxPathDepth: Int = Int.MaxValue): Seq[UntypedPath] = {
     nestedRuleAndSourcePath(ruleName) match {
       case Some((rule, _)) =>
         rule.children flatMap (child => valueSourcePathsRecursive(child, List.empty, maxPathDepth))
@@ -183,7 +204,7 @@ case class TransformSpec(selection: DatasetSelection,
 
   private def valueSourcePathsRecursive(rule: Operator,
                                         basePath: List[PathOperator],
-                                        maxPathDepth: Int): Seq[Path] = {
+                                        maxPathDepth: Int): Seq[UntypedPath] = {
     rule match {
       case transformRule: TransformRule =>
         transformRule match {
@@ -209,10 +230,13 @@ case class TransformSpec(selection: DatasetSelection,
     }
   }
 
-  private def listPath(pathOperators: List[PathOperator]) =  List(Path(pathOperators))
+  private def listPath(pathOperators: List[PathOperator]) =  List(UntypedPath(pathOperators))
 }
 
-case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty) extends Task[TransformSpec]
+case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty) extends Task[TransformSpec] {
+
+  override def taskType: Class[_] = classOf[TransformSpec]
+}
 
 /**
   * Static functions for the TransformSpecification class.
@@ -233,8 +257,8 @@ object TransformSpec {
         Some(this)
       } else {
         for(childRule <- transformRule.rules.allRules.find(c => c.isInstanceOf[ValueTransformRule] && c.id == ruleId)) yield {
-          val inputPaths = childRule.sourcePaths.map(_.asStringTypedPath).toIndexedSeq
-          val outputPaths = childRule.target.map(t => Path(t.propertyUri).asStringTypedPath).toIndexedSeq
+          val inputPaths = childRule.sourcePaths.map(p => TypedPath(p.operators, ValueType.STRING, xmlAttribute = false)).toIndexedSeq
+          val outputPaths = childRule.target.map(t => UntypedPath(t.propertyUri).asStringTypedPath).toIndexedSeq
           RuleSchemata(
             transformRule = childRule,
             inputSchema = inputSchema.copy(typedPaths = inputPaths),
@@ -246,7 +270,7 @@ object TransformSpec {
   }
 
   object RuleSchemata {
-    def create(rule: TransformRule, selection: DatasetSelection, subPath: Path): RuleSchemata = {
+    def create(rule: TransformRule, selection: DatasetSelection, subPath: UntypedPath): RuleSchemata = {
       val inputSchema = EntitySchema(
         typeUri = selection.typeUri,
         typedPaths = extractTypedPaths(rule),
@@ -258,7 +282,7 @@ object TransformSpec {
         typeUri = rule.rules.typeRules.headOption.map(_.typeUri).getOrElse(selection.typeUri),
         typedPaths = rule.rules.allRules.flatMap(_.target).map { mt =>
           val path = if (mt.isBackwardProperty) BackwardOperator(mt.propertyUri) else ForwardOperator(mt.propertyUri)
-          TypedPath(Path(List(path)), mt.valueType, mt.isAttribute)
+          TypedPath(UntypedPath(List(path)), mt.valueType, mt.isAttribute)
         }.distinct.toIndexedSeq
       )
 
@@ -269,8 +293,8 @@ object TransformSpec {
   private def extractTypedPaths(rule: TransformRule): IndexedSeq[TypedPath] = {
     val rules = rule.rules.allRules
     val (objectRulesWithDefaultPattern, valueRules) = rules.partition ( _.representsDefaultUriRule )
-    val valuePaths = valueRules.flatMap(_.sourcePaths).map(p => TypedPath(p, StringValueType, isAttribute = false)).distinct.toIndexedSeq
-    val objectPaths = objectRulesWithDefaultPattern.flatMap(_.sourcePaths).map(p => TypedPath(p, UriValueType, isAttribute = false)).distinct.toIndexedSeq
+    val valuePaths = valueRules.flatMap(_.sourcePaths).map(p => TypedPath(p.operators, ValueType.STRING, xmlAttribute = false)).distinct.toIndexedSeq
+    val objectPaths = objectRulesWithDefaultPattern.flatMap(_.sourcePaths).map(p => TypedPath(p.operators, ValueType.URI, xmlAttribute = false)).distinct.toIndexedSeq
 
     /** Value paths must come before object paths to not, because later algorithms rely on this order, e.g. PathInput only considers the Path not the value type.
       * If an object type path would come before the value path, the path input would take the wrong values. The other way round
@@ -289,8 +313,8 @@ object TransformSpec {
     override def read(node: Node)(implicit readContext: ReadContext): TransformSpec = {
       // Get the required parameters from the XML configuration.
       val datasetSelection = DatasetSelection.fromXML((node \ "SourceDataset").head)
-      val sinks = (node \ "Outputs" \ "Output" \ "@id").map(_.text).map(Identifier(_))
-      val errorSinks = (node \ "ErrorOutputs" \ "ErrorOutput" \ "@id").map(_.text).map(Identifier(_))
+      val sink = (node \ "Outputs" \ "Output" \ "@id").headOption.map(_.text).map(Identifier(_))
+      val errorSink = (node \ "ErrorOutputs" \ "ErrorOutput" \ "@id").headOption.map(_.text).map(Identifier(_))
       val targetVocabularies = (node \ "TargetVocabularies" \ "Vocabulary").map(n => (n \ "@uri").text).filter(_.nonEmpty)
 
       val rootMappingRule = {
@@ -309,7 +333,7 @@ object TransformSpec {
       }
 
       // Create and return a TransformSpecification instance.
-      TransformSpec(datasetSelection, rootMappingRule, sinks, errorSinks, targetVocabularies)
+      TransformSpec(datasetSelection, rootMappingRule, sink, errorSink, targetVocabularies)
     }
 
     /**
@@ -318,12 +342,12 @@ object TransformSpec {
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[Node]): Node = {
       <TransformSpec>
         {value.selection.toXML(true)}{toXml(value.mappingRule)}<Outputs>
-        {value.outputs.map(o => <Output id={o}></Output>)}
-      </Outputs>{if (value.errorOutputs.isEmpty) {
+        {value.output.map(o => <Output id={o}></Output>)}
+      </Outputs>{if (value.errorOutput.isEmpty) {
         Null
       } else {
         <ErrorOutputs>
-          {value.errorOutputs.map(o => <ErrorOutput id={o}></ErrorOutput>)}
+          {value.errorOutput.map(o => <ErrorOutput id={o}></ErrorOutput>)}
         </ErrorOutputs>
       }}<TargetVocabularies>
         {for (targetVocabulary <- value.targetVocabularies) yield {

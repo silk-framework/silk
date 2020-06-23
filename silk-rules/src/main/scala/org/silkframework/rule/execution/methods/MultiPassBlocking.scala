@@ -1,6 +1,7 @@
 package org.silkframework.rule.execution.methods
 
-import org.silkframework.entity.{Entity, Index, Path}
+import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.execution.ExecutionMethod
 import org.silkframework.rule.LinkageRule
 
@@ -9,7 +10,7 @@ import org.silkframework.rule.LinkageRule
   *
   * @param blockingKeys The blocking keys.
   */
-class MultiPassBlocking(blockingKeys: Set[Path]) extends ExecutionMethod {
+class MultiPassBlocking(blockingKeys: Set[UntypedPath]) extends ExecutionMethod {
 
    override def indexEntity(entity: Entity, rule: LinkageRule, sourceOrTarget: Boolean): Index = {
      val values = blockingKeys.flatMap(key => entity.evaluate(key))

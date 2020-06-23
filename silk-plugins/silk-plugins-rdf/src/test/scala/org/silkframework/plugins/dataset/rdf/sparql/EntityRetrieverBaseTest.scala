@@ -6,7 +6,8 @@ import org.apache.jena.riot.{Lang, RDFDataMgr}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, MustMatchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.rdf.SparqlEndpoint
-import org.silkframework.entity.{EntitySchema, Path, Restriction, TypedPath}
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.{EntitySchema, Restriction}
 import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ClasspathResourceLoader
@@ -48,8 +49,8 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers with B
   private val Person = s"${pn}Person"
   private val Address = s"${pn}Address"
   private val address = s"${pn}address"
-  private val addressInBerlin = Path.parse(s"""pn:address[pn:city="Berlin"]""")
-  private val addressBackwards = Path.parse("\\pn:address")
+  private val addressInBerlin = UntypedPath.parse(s"""pn:address[pn:city="Berlin"]""")
+  private val addressBackwards = UntypedPath.parse("\\pn:address")
   private val city = s"${pn}city"
   private val country = s"${pn}country"
   private val name = s"${pn}name"
@@ -63,8 +64,8 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers with B
 
   private def retriever = entityRetriever(endpoint, graphUri = Some(GRAPH))
 
-  private def path(propertyUri: String): TypedPath = Path.parse(s"<$propertyUri>").asStringTypedPath
-  private def path(properties: Seq[String]): TypedPath = Path.parse(properties.mkString("/<", ">/<", ">")).asStringTypedPath
+  private def path(propertyUri: String): TypedPath = UntypedPath.parse(s"<$propertyUri>").asStringTypedPath
+  private def path(properties: Seq[String]): TypedPath = UntypedPath.parse(properties.mkString("/<", ">/<", ">")).asStringTypedPath
 
   it should "fetch root entities" in {
     val entitySchema = schema(Person, Seq(path(name)))
@@ -92,7 +93,7 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers with B
 
   it should "understand sub paths" in {
     val entitySchema = schema(Person, Seq(path(city), path(country)),
-      subPath = path(address))
+      subPath = path(address).toUntypedPath)
     val entities = retriever.retrieve(entitySchema, entities = Seq(), limit = None).toArray.toSeq
     entities.map(_.uri.toString) mustBe Seq(address1, address2, s"${pn}Address3")
     entities.head.values mustBe IndexedSeq(Seq("Berlin"), Seq("Germany"))
@@ -116,7 +117,7 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers with B
 
   it should "process sub paths with restricted root entities" in {
     val entitySchema = schema(Person, Seq(path(city), path(country)),
-      subPath = path(address), filter = Restriction.custom(s"?a <${pn}age> 23"))
+      subPath = path(address).toUntypedPath, filter = Restriction.custom(s"?a <${pn}age> 23"))
     val entities = retriever.retrieve(entitySchema, entities = Seq(), limit = None).toArray.toSeq
     entities.map(_.uri.toString) mustBe Seq(address1, address2)
     entities.head.values mustBe IndexedSeq(Seq("Berlin"), Seq("Germany"))
@@ -144,7 +145,7 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers with B
 
   it should "restrict the root entity URI and work with sub path" in {
     val entitySchema = schema(Person, Seq(path(city), path(country)),
-      subPath = path(address))
+      subPath = path(address).toUntypedPath)
     val entities = retriever.retrieve(entitySchema, entities = Seq(person1), limit = None).toArray.toSeq
     entities.map(_.uri.toString) mustBe Seq(address1, address2)
     entities.head.values mustBe IndexedSeq(Seq("Berlin"), Seq("Germany"))
@@ -154,7 +155,7 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers with B
   it should "restrict the root entity URI and work with sub path and restriction" in {
     for((personURI, (addressURI, expectedResult)) <- Seq(person1, person2).zip(Seq(address1, address3).zip(Seq(IndexedSeq(), IndexedSeq(Seq("Leipzig"), Seq("Germany")))))) {
       val entitySchema = schema(Person, Seq(path(city), path(country)), filter = Restriction.custom(s"?a <${pn}age> 55"),
-        subPath = path(address))
+        subPath = path(address).toUntypedPath)
       val entities = retriever.retrieve(entitySchema, entities = Seq(personURI), limit = None).toArray.toSeq
       entities.size mustBe math.min(expectedResult.size, 1)
       if(entities.nonEmpty) {
@@ -173,7 +174,7 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers with B
   private def schema(typeUri: String,
                      typedPaths: Seq[TypedPath],
                      filter: Restriction = Restriction.empty,
-                     subPath: Path = Path.empty) = {
+                     subPath: UntypedPath = UntypedPath.empty) = {
     EntitySchema(Uri(typeUri), typedPaths = typedPaths.toIndexedSeq, filter, subPath)
   }
 }

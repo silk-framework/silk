@@ -1,9 +1,10 @@
 @import org.silkframework.dataset.DatasetPluginAutoConfigurable
-@import org.silkframework.runtime.plugin.ParameterType._
-@import org.silkframework.runtime.plugin.{AnyPlugin, Parameter, ParameterType, PluginDescription}
+@import org.silkframework.runtime.plugin.StringParameterType._
+@import org.silkframework.runtime.plugin.{AnyPlugin, Parameter, StringParameterType, PluginDescription}
 @import org.silkframework.workspace.Project
 @import org.silkframework.runtime.activity.UserContext
 
+@import org.silkframework.runtime.plugin.PluginCategories
 @(project: Project,
   name: String,
   plugins: Seq[PluginDescription[_]],
@@ -18,8 +19,8 @@
   <div id="plugintabs">
     <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
       <select class="mdl-selectfield__select" id="resource_type_select" name="resource_type_select">
-        @for(plugin <- plugins) {
-          <option value="@plugin.id">@plugin.label</option>
+        @for(plugin <- sortPlugins(plugins)) {
+          <option value="@plugin.id">@pluginLabel(plugin)</option>
         }
       </select>
       <label class="mdl-selectfield__label" for="resource_type_select">Type</label>
@@ -69,6 +70,7 @@
     function addResourceAutocomplete(index, input) {
       var originalName = $(input).attr("value");
       $(input).autocomplete({
+        appendTo: "#plugintabs",
         source: function( request, response ) {
           const requestSearchTerm = request.term.toLowerCase();
           var searchTerm = requestSearchTerm;
@@ -101,6 +103,7 @@
                   value: originalName
                 });
               }
+
               response(data);
             });
         },
@@ -133,6 +136,20 @@
 
   </script>
   @contents
+}
+
+@sortPlugins(plugins: Seq[PluginDescription[_]]) = @{
+  plugins.filterNot(_.categories.contains(PluginCategories.deprecated))
+         .sortBy(_.label)
+         .sortBy(_.categories.headOption.getOrElse("").toLowerCase)
+}
+
+@pluginLabel(plugin: PluginDescription[_]) = {
+  @if(plugin.categories == Seq(PluginCategories.uncategorized)) {
+    @plugin.label
+  } else {
+    @plugin.label (@plugin.categories.mkString(", "))
+  }
 }
 
 @createTab(plugin: PluginDescription[_]) = {
@@ -199,9 +216,9 @@
  * Creates a new field for a plugin parameter
  *@
 @createField(pluginId: String, param: Parameter) = @{
-  param.dataType match {
-    case ParameterType.ResourceType | ParameterType.WritableResourceType => createResourceField(pluginId, param)
-    case enum @ ParameterType.EnumerationType(_) => createEnumerationField(pluginId, param, enum.enumerationValues, enum.displayNames)
+  param.parameterType match {
+    case StringParameterType.ResourceType | StringParameterType.WritableResourceType => createResourceField(pluginId, param)
+    case enum @ StringParameterType.EnumerationType(_) => createEnumerationField(pluginId, param, enum.enumerationValues, enum.displayNames)
     case BooleanType => createEnumerationField(pluginId, param, Seq("true", "false"), Seq("True", "False"))
     case MultilineStringParameterType => createMultilineTextField(pluginId, param)
     case SparqlEndpointDatasetParameterType => createSparqlEndpointDatasetField(pluginId, param)
@@ -217,7 +234,7 @@
     <div class="mdl-tooltip mdl-tooltip--right" for="@(pluginId)_@(param.name)">
       @param.description
       <br/>
-      Expected type: @param.dataType.description
+      Expected type: @param.parameterType.description
     </div>
  </div>
 }
@@ -241,7 +258,7 @@
     <div class="mdl-tooltip mdl-tooltip--right" for="@(pluginId)_@(param.name)">
       @param.description
       <br/>
-      Expected type: @param.dataType.description
+      Expected type: @param.parameterType.description
     </div>
   </div>
 }
@@ -253,7 +270,7 @@
     <div class="mdl-tooltip mdl-tooltip--right" for="@(pluginId)_@(param.name)">
       @param.description
       <br/>
-      Expected type: @param.dataType.description
+      Expected type: @param.parameterType.description
     </div>
   </div>
 }
@@ -272,7 +289,7 @@
     }
   // Convert parameter value to string
   implicit val prefixes = project.config.prefixes
-  val paramType = param.dataType.asInstanceOf[ParameterType[AnyRef]]
+  val paramType = param.parameterType.asInstanceOf[StringParameterType[AnyRef]]
   val paramStr = paramObj.map(paramType.toString).getOrElse("")
   paramStr
 }

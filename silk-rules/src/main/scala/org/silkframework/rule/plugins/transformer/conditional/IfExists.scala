@@ -1,11 +1,11 @@
 package org.silkframework.rule.plugins.transformer.conditional
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
 
 @Plugin(
   id = "ifExists",
-  label = "if exists",
+  label = "If exists",
   categories = Array("Conditional"),
   description = "Accepts two or three inputs. If the first input provides a value, the second input is forwarded. Otherwise, the third input is forwarded (if present)."
 )

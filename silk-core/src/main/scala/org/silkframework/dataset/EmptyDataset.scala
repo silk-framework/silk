@@ -1,5 +1,6 @@
 package org.silkframework.dataset
 
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
@@ -32,7 +33,7 @@ object EmptyDataset extends Dataset with Serializable {
      * @param properties The list of properties of the entities to be written.
      */
     override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
-                          (implicit userContext: UserContext): Unit = {}
+                          (implicit userContext: UserContext, prefixes: Prefixes): Unit = {}
 
     override def closeTable()(implicit userContext: UserContext): Unit = {}
 

@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.sequence
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
   * For each input sequence take the element with specified index and concatenate all values to a new sequence.
@@ -10,7 +10,7 @@ import org.silkframework.runtime.plugin.Plugin
 @Plugin(
   id = "getValueByIndex",
   categories = Array("Sequence"),
-  label = "get value by index",
+  label = "Get value by index",
   description =
     """Returns the value found at the specified index. Fails or returns an empty result depending on failIfNoFound is set or not.
        Please be aware that this will work only if the data source supports some kind of ordering like XML or JSON. This

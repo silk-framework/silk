@@ -1,0 +1,27 @@
+@import org.silkframework.rule.execution.TransformReport
+@import org.silkframework.rule.execution.TransformReport.RuleResult
+@import org.silkframework.rule.execution.TransformReport.RuleError
+@import org.silkframework.rule.TransformSpec
+@import org.silkframework.config.Prefixes
+@import org.silkframework.config.Task
+@import org.silkframework.workbench.Context
+@import org.silkframework.rule.TransformRule
+@import controllers.core.routes.{Assets => CoreAssets}
+@import org.silkframework.workspace.ProjectTask
+
+@(task: ProjectTask[TransformSpec])
+
+<div>
+  <script src="@CoreAssets.at("libs/silk-react-components/main.js")" type="text/javascript"></script>
+  <script type="text/javascript">
+    silkReactComponents.transformExecutionReport(
+      'react-transformExecutionReport',
+      {
+        baseUrl: '@config.baseUrl',
+        project: '@task.project.name',
+        task: '@task.id',
+      }
+    );
+  </script>
+  <div id="react-transformExecutionReport"></div>
+</div>

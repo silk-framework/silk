@@ -23,7 +23,7 @@ object PluginDocumentation {
                            pluginParameterDisplay: PluginParameterDisplay): Unit = {
     sb ++= "## " + title + "\n\n"
     sb ++= description + "\n\n"
-    val categories = PluginRegistry.availablePlugins[T].flatMap(_.categories).filter(_ != "Recommended").distinct.sorted
+    val categories = PluginRegistry.availablePlugins[T].flatMap(_.categories).filter(_ != PluginCategories.recommended).distinct.sorted
     for (category <- categories) {
       if (categories.size > 1)
         sb ++= "### " + category + "\n\n"
@@ -62,7 +62,7 @@ object PluginDocumentation {
     }
     sb ++= s"The identifier for this plugin is `${plugin.id}`.\n\n"
     sb ++= s"It can be found in the package `${plugin.pluginClass.getPackage.getName}`.\n\n"
-    sb ++= plugin.documentation + "\n"
+    sb ++= plugin.documentation + "\n\n"
   }
 
   def formatDefaultValue(value: Option[AnyRef]): String = {
