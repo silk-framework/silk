@@ -106,11 +106,17 @@ export const clickElement = (wrapper: ReactWrapper<any, any>, cssSelector: strin
     // console.log(`Clicked element with selector '${cssSelector}'.`);
 };
 
-/** Click the element represented by the given wrapper. */
-export const clickWrapperElement = (wrapper: ReactWrapper<any, any>) => {
+/** Click the element represented by the given wrapper.
+ *
+ * @param wrapper The element to click on.
+ * @param times How many times to click.
+ */
+export const clickWrapperElement = (wrapper: ReactWrapper<any, any>, times: number = 1) => {
     // There should only be one element, if there are more, the selector needs to be more selective
     expect(wrapper).toHaveLength(1);
-    wrapper.simulate("click");
+    for (let i = 0; i < times; i++) {
+        wrapper.simulate("click");
+    }
 };
 
 /** Simulates a keyboard key press on an element. */

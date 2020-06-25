@@ -25,7 +25,7 @@ function SimpleDialog({
             canOutsideClickClose={canOutsideClickClose || !preventSimpleClosing}
             canEscapeKeyClose={canEscapeKeyClose || !preventSimpleClosing}
         >
-            <Card className={intent ? intent : ""}>
+            <Card className={intent ? intent : ""} data-test-id={"simpleDialogWidget"}>
                 {title && (
                     <CardHeader>
                         <CardTitle className={intent ? intent : ""}>{title}</CardTitle>

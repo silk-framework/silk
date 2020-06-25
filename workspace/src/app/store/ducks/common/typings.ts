@@ -47,6 +47,16 @@ export interface ITaskParameter {
     param: IArtefactItemProperty;
 }
 
+export type IOverviewArtefactItemList = Record<string, IOverviewArtefactItem>;
+
+export interface IOverviewArtefactItem {
+    title: string;
+    description: string;
+    taskType: string;
+    categories: string[];
+    markdownDocumentation?: string;
+}
+
 /** The full task plugin description, including detailed schema. */
 export interface IDetailedArtefactItem {
     title: string;
