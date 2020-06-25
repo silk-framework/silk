@@ -93,7 +93,7 @@
     "style-loader": "0.23.1",
     "terser-webpack-plugin": "2.3.5",
     "ts-pnp": "1.1.6",
-    "typescript": "^3.7.2",
+    "typescript": "^3.9.5",
     "url-loader": "2.3.0",
     "webpack": "4.42.0",
     "webpack-dev-server": "3.10.3",

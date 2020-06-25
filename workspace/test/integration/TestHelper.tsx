@@ -9,6 +9,8 @@ import { ConnectedRouter } from "connected-react-router";
 import { AxiosMockType } from "jest-mock-axios/dist/lib/mock-axios-types";
 import mockAxios from "../__mocks__/axios";
 import { CONTEXT_PATH, SERVE_PATH } from "../../src/app/constants/path";
+import { mergeDeepRight } from "ramda";
+import { IStore } from "../../src/app/store/typings/IStore";
 
 const mockValues = {
     pathName: "/what?",
@@ -40,15 +42,35 @@ jest.mock("react-router", () => ({
     }),
 }));
 
-/** Creates the Redux store. */
-export const createStore = (history: History<{}>) =>
-    configureStore({
-        reducer: rootReducer(history),
+/** Creates the Redux store.
+ *
+ * @param history      The initial history.
+ * @param initialState
+ */
+export const createStore = (history: History<{}>, initialState: RecursivePartial<IStore>) => {
+    const root = rootReducer(history);
+    // Get the initial state (defaults) of the store
+    // FIXME: Is there a better way to get the initial state of the store?
+    const tempStore = configureStore({
+        reducer: root,
     });
+    const rootState = tempStore.getState();
+    // Patch the state with user supplied state
+    const state = mergeDeepRight(rootState, initialState) as IStore;
+    // Create store with merged state
+    return configureStore({
+        reducer: root,
+        preloadedState: state,
+    });
+};
 
 /** Returns a wrapper for the application. */
-export const testWrapper = (component: JSX.Element, history: History<{}>) => {
-    const store = createStore(history);
+export const testWrapper = (
+    component: JSX.Element,
+    history: History<{}>,
+    initialState: RecursivePartial<IStore> = {}
+) => {
+    const store = createStore(history, initialState);
     // Set path name of global mock
     mockValues.pathName = history?.location?.pathname;
 
