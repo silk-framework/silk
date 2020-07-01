@@ -10,6 +10,7 @@ import {
     mockedAxiosResponse,
     setUseParams,
     testWrapper,
+    withMount,
     workspacePath,
 } from "../../../TestHelper";
 import { createBrowserHistory } from "history";
@@ -49,7 +50,7 @@ describe("Task page", () => {
         const history = createBrowserHistory();
         history.location.pathname = workspacePath(`/projects/${projectId}/task/${taskId}`);
 
-        taskPageWrapper = testWrapper(<Task />, history);
+        taskPageWrapper = withMount(testWrapper(<Task />, history));
     });
 
     it("should request meta data, related items and task config", async () => {

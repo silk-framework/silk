@@ -45,6 +45,7 @@ export function SearchBar({ textQuery = "", sorters, onSort, onSearch, focusOnCr
         <Toolbar>
             <ToolbarSection canGrow>
                 <SearchInput
+                    data-testid={"search-bar"}
                     focusOnCreation={focusOnCreation}
                     onFilterChange={handleSearchChange}
                     onEnter={handleSearchEnter}

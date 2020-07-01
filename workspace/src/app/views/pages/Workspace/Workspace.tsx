@@ -42,9 +42,9 @@ export function Workspace() {
 
         // Setup the filters from query string
         dispatch(workspaceOp.setupFiltersFromQs(qs));
-
         // Fetch the list of projects
         dispatch(workspaceOp.fetchListAsync());
+        console.log("ashxatec", qs);
     }, [qs]);
 
     return !isEmptyWorkspace ? (

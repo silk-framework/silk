@@ -14,6 +14,7 @@ import {
     logRequests,
     mockedAxiosResponse,
     testWrapper,
+    withMount,
 } from "../../TestHelper";
 import { CreateArtefactModal } from "../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal";
 import { waitFor } from "@testing-library/react";
@@ -29,13 +30,15 @@ describe("Task creation widget", () => {
     const createArtefactWrapper = (currentUrl: string = `${SERVE_PATH}`) => {
         const history = createBrowserHistory();
         history.location.pathname = currentUrl;
-        return testWrapper(<CreateArtefactModal />, history, {
-            common: {
-                artefactModal: {
-                    isOpen: true,
+        return withMount(
+            testWrapper(<CreateArtefactModal />, history, {
+                common: {
+                    artefactModal: {
+                        isOpen: true,
+                    },
                 },
-            },
-        });
+            })
+        );
     };
 
     const fetchDialog = async (wrapper: ReactWrapper<any, any>) => {

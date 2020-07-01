@@ -2,7 +2,14 @@ import React from "react";
 import "@testing-library/jest-dom";
 import { createBrowserHistory } from "history";
 import mockAxios from "../../../__mocks__/axios";
-import { findAll, findSingleElement, mockedAxiosResponse, testWrapper, workspacePath } from "../../TestHelper";
+import {
+    findAll,
+    findSingleElement,
+    mockedAxiosResponse,
+    testWrapper,
+    withMount,
+    workspacePath,
+} from "../../TestHelper";
 import { RelatedItems } from "../../../../src/app/views/shared/RelatedItems/RelatedItems";
 import { RelatedItemsTestHelper } from "./RelatedItemsTestHelper";
 import { SERVE_PATH } from "../../../../src/app/constants/path";
@@ -39,7 +46,7 @@ describe("Related items", () => {
         const history = createBrowserHistory();
         history.location.pathname = currentUrl;
 
-        return testWrapper(<RelatedItems {...props} />, history);
+        return withMount(testWrapper(<RelatedItems {...props} />, history));
     };
 
     /** Check the initial representation of the related items component. */

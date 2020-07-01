@@ -11,6 +11,7 @@ import mockAxios from "../__mocks__/axios";
 import { CONTEXT_PATH, SERVE_PATH } from "../../src/app/constants/path";
 import { mergeDeepRight } from "ramda";
 import { IStore } from "../../src/app/store/typings/IStore";
+import { render } from "@testing-library/react";
 
 const mockValues = {
     pathName: "/what?",
@@ -19,6 +20,7 @@ const mockValues = {
         taskId: "Set me via TestHelper.setUseParams!",
     },
 };
+const host = process.env.HOST;
 
 // Mock global history object
 jest.mock("../../src/app/store/configureStore", () => {
@@ -47,7 +49,7 @@ jest.mock("react-router", () => ({
  * @param history      The initial history.
  * @param initialState
  */
-export const createStore = (history: History<{}>, initialState: RecursivePartial<IStore>) => {
+export const createStore = (history: History<{}>, initialState: Partial<IStore>) => {
     const root = rootReducer(history);
     // Get the initial state (defaults) of the store
     // FIXME: Is there a better way to get the initial state of the store?
@@ -64,17 +66,17 @@ export const createStore = (history: History<{}>, initialState: RecursivePartial
     });
 };
 
+export const withMount = (component) => mount(component);
+
+export const withRender = (component, rerender?: Function) => (rerender ? rerender(component) : render(component));
+
 /** Returns a wrapper for the application. */
-export const testWrapper = (
-    component: JSX.Element,
-    history: History<{}>,
-    initialState: RecursivePartial<IStore> = {}
-) => {
+export const testWrapper = (component: JSX.Element, history: History<{}>, initialState: Partial<IStore> = {}) => {
     const store = createStore(history, initialState);
     // Set path name of global mock
     mockValues.pathName = history?.location?.pathname;
 
-    return mount(
+    return (
         <Provider store={store}>
             <ConnectedRouter history={history}>
                 <AppLayout>{component}</AppLayout>
@@ -162,13 +164,11 @@ const extractValidElements = function (element: ReactWrapper<any, any>) {
     return validElementIdx.map((idx) => element.at(idx));
 };
 /** Finds all wrapper elements that are actual elements in the DOM */
-export const findAll = (wrapper: ReactWrapper<any, any>, cssSelector: string | EnzymePropSelector): ReactWrapper[] => {
+export const findAll = (wrapper: ReactWrapper<any, any>, cssSelector: string & EnzymePropSelector): ReactWrapper[] => {
     wrapper.parent();
     wrapper.update();
-    const element =
-        typeof cssSelector === "string"
-            ? wrapper.find(cssSelector as string)
-            : wrapper.find(cssSelector as EnzymePropSelector);
+    const element = wrapper.find(cssSelector);
+
     return extractValidElements(element);
 };
 
@@ -188,6 +188,7 @@ export const mockedAxiosResponse = ({ status = 200, data = "" }: IAxiosResponse 
 // Returns an array with values 0 ... (nrItems - 1)
 export const rangeArray = (nrItems: number): number[] => {
     const indexes = Array(nrItems).keys();
+    // @ts-ignore
     return [...indexes];
 };
 
@@ -205,8 +206,6 @@ export const withWindowLocation = async (block: () => void, location: any = {}) 
 export const workspacePath = (path: string = ""): string => {
     return path ? SERVE_PATH + prependSlash(path) : SERVE_PATH;
 };
-
-const host = process.env.HOST;
 
 /** Absolute URL of the legacy API. Basically all over the place. ;) */
 export const legacyApiUrl = (path: string): string => {

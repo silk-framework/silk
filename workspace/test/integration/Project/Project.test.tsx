@@ -1,6 +1,6 @@
 import React from "react";
 import mockAxios from "../../__mocks__/axios";
-import { apiUrl, checkRequestMade, legacyApiUrl, testWrapper, workspacePath } from "../TestHelper";
+import { apiUrl, checkRequestMade, legacyApiUrl, testWrapper, withMount, workspacePath } from "../TestHelper";
 import { createBrowserHistory } from "history";
 import Project from "../../../src/app/views/pages/Project";
 import qs from "qs";
@@ -11,7 +11,7 @@ describe("Project page", () => {
         const history = createBrowserHistory();
         history.location.pathname = workspacePath("/projects/cmem");
 
-        return testWrapper(<Project />, history);
+        return withMount(testWrapper(<Project />, history));
     });
 
     afterEach(() => {
@@ -52,7 +52,7 @@ describe("Project page", () => {
         history.location.pathname = workspacePath("/projects/cmem");
         history.location.search = filteredQueryParams;
 
-        testWrapper(<Project />, history);
+        withMount(testWrapper(<Project />, history));
 
         const expectedSearchResponse = {
             textQuery: "some text",

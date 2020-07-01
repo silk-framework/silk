@@ -7,6 +7,7 @@ import {
     clickWrapperElement,
     mockedAxiosResponse,
     testWrapper,
+    withMount,
     withWindowLocation,
     workspacePath,
 } from "../../../TestHelper";
@@ -23,7 +24,9 @@ describe("Header", () => {
         const history = createBrowserHistory();
         history.location.pathname = workspacePath("/projects/SomeProjectId/dataset/SomeTaskId");
 
-        wrapper = testWrapper(<Header breadcrumbs={[{ href: "/someHref", text: "dummy bread" }]} />, history);
+        wrapper = withMount(
+            testWrapper(<Header breadcrumbs={[{ href: "/someHref", text: "dummy bread" }]} />, history)
+        );
     });
 
     afterEach(() => {
