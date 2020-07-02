@@ -172,19 +172,20 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
     libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.6.12"
   )
 
-lazy val pluginsSpatialTemporal = (project in file("silk-plugins/silk-plugins-spatial-temporal"))
-  .dependsOn(rules)
-  .settings(commonSettings: _*)
-  .settings(
-    name := "Silk Plugins SpatialTemporal",
-    libraryDependencies += "com.vividsolutions" % "jts" % "1.13",
-    libraryDependencies += "org.jvnet.ogc" % "ogc-tools-gml-jts" % "1.0.3",
-    libraryDependencies += "org.geotools" % "gt-opengis" % "13.1",
-    libraryDependencies += "org.geotools" % "gt-referencing" % "13.1",
-    libraryDependencies += "org.geotools" % "gt-jts-wrapper" % "13.1",
-    libraryDependencies += "org.geotools" % "gt-epsg-wkt" % "13.1",
-    resolvers += "OpenGeo Maven Repository" at "http://download.osgeo.org/webdav/geotools/"
-  )
+// pluginsSpatialTemporal has been removed as it uses dependencies from external unreliable repositories
+//lazy val pluginsSpatialTemporal = (project in file("silk-plugins/silk-plugins-spatial-temporal"))
+//  .dependsOn(rules)
+//  .settings(commonSettings: _*)
+//  .settings(
+//    name := "Silk Plugins SpatialTemporal",
+//    libraryDependencies += "com.vividsolutions" % "jts" % "1.13",
+//    libraryDependencies += "org.jvnet.ogc" % "ogc-tools-gml-jts" % "1.0.3",
+//    libraryDependencies += "org.geotools" % "gt-opengis" % "13.1",
+//    libraryDependencies += "org.geotools" % "gt-referencing" % "13.1",
+//    libraryDependencies += "org.geotools" % "gt-jts-wrapper" % "13.1",
+//    libraryDependencies += "org.geotools" % "gt-epsg-wkt" % "13.1",
+//    resolvers += "OpenGeo Maven Repository" at "http://download.osgeo.org/webdav/geotools/"
+//  )
 
 lazy val pluginsAsian = (project in file("silk-plugins/silk-plugins-asian"))
   .dependsOn(rules)
@@ -202,7 +203,6 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   )
 
 // Aggregate all plugins
-// pluginsSpatialTemporal has been removed as it uses dependencies from external unreliable repositories
 lazy val plugins = (project in file("silk-plugins"))
   .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson)
   .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson)
