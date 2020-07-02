@@ -3,9 +3,9 @@ import { History } from "history";
 import { EnzymePropSelector, mount, ReactWrapper } from "enzyme";
 import { Provider } from "react-redux";
 import { AppLayout } from "../../src/app/views/layout/AppLayout/AppLayout";
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
 import rootReducer from "../../src/app/store/reducers";
-import { ConnectedRouter } from "connected-react-router";
+import { ConnectedRouter, routerMiddleware } from "connected-react-router";
 import { AxiosMockType } from "jest-mock-axios/dist/lib/mock-axios-types";
 import mockAxios from "../__mocks__/axios";
 import { CONTEXT_PATH, SERVE_PATH } from "../../src/app/constants/path";
@@ -51,11 +51,20 @@ jest.mock("react-router", () => ({
  */
 export const createStore = (history: History<{}>, initialState: Partial<IStore>) => {
     const root = rootReducer(history);
+    const middleware = [
+        ...getDefaultMiddleware({
+            serializableCheck: false,
+        }),
+        routerMiddleware(history),
+    ];
+
     // Get the initial state (defaults) of the store
     // FIXME: Is there a better way to get the initial state of the store?
     const tempStore = configureStore({
         reducer: root,
+        middleware,
     });
+
     const rootState = tempStore.getState();
     // Patch the state with user supplied state
     const state = mergeDeepRight(rootState, initialState) as IStore;

@@ -9,6 +9,18 @@ import { waitFor, fireEvent, screen } from "@testing-library/react";
 describe("Search Items", () => {
     let hostPath = process.env.HOST;
     let history = null;
+    const resultData = {
+        description: "123123",
+        id: "ID-",
+        itemLinks: [
+            {
+                label: "Project details page",
+                path: "/dataintegration/workspace-beta/projects/eb233297-9d72-4b82-b77c-b2d1ee193c29_NewProject",
+            },
+        ],
+        label: "New Project",
+        type: "project",
+    };
 
     const mockItemTypesRequest = () => {
         mockAxios.mockResponseFor(
@@ -25,6 +37,14 @@ describe("Search Items", () => {
     };
 
     const mockSearchItemsRequest = () => {
+        let arr = [];
+        for (let i = 0; i < 20; i++) {
+            arr.push({
+                ...resultData,
+                id: resultData.id + i,
+            });
+        }
+
         mockAxios.mockResponseFor(
             {
                 url: hostPath + "/api/workspace/searchItems",
@@ -42,8 +62,14 @@ describe("Search Items", () => {
                             ],
                         },
                     ],
-                    results: [],
-                    sortByProperties: [],
+                    results: arr,
+                    sortByProperties: [
+                        {
+                            id: "label",
+                            label: "Label",
+                        },
+                    ],
+                    total: 20,
                 },
             })
         );
@@ -120,13 +146,12 @@ describe("Search Items", () => {
     });
 
     xit("should search bar send request for filtering", async (done) => {
-        const { rerender } = getWrapper();
+        // THE QUERY STRING NOT UPDATED IN ROUTER-CONNECTED-ROUTER
+        getWrapper();
 
         const input = screen.queryByTestId(`search-bar`);
         fireEvent.change(input, { target: { value: "test" } });
         fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
-
-        withRender(testWrapper(<Workspace />, history), rerender);
 
         await waitFor(() => {
             expect(mockAxios.lastReqGet().data).toEqual({
@@ -137,6 +162,36 @@ describe("Search Items", () => {
             });
 
             done();
+        });
+    });
+
+    xit("should pagination works as expected", async () => {
+        getWrapper();
+
+        mockItemTypesRequest();
+
+        mockSearchItemsRequest();
+
+        mockAxios.reset();
+
+        const btn = await screen.findByLabelText("Next page");
+        fireEvent.click(btn);
+
+        await waitFor(() => {
+            const reqInfo = mockAxios.getReqMatching({
+                url: hostPath + "/api/workspace/searchItems",
+            });
+
+            expect(reqInfo.data).toEqual({
+                itemType: "dataset",
+                limit: 15,
+                offset: 10,
+                page: 2,
+                facets: [
+                    { facetId: "facetId1", type: "keyword", keywordIds: ["facet1Key1", "facet1Key2"] },
+                    { facetId: "facetId2", type: "keyword", keywordIds: ["facet2Key"] },
+                ],
+            });
         });
     });
 });
