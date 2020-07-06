@@ -11,7 +11,7 @@ import org.silkframework.workspace.activity.transform.CachedEntitySchemata.Cache
 import org.silkframework.workspace.activity.transform._
 import org.silkframework.workspace.activity.workflow.Workflow.WorkflowXmlFormat
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorFactory, NopPersistWorkflowProvenance, Workflow}
-import org.silkframework.workspace.xml.{FileWorkspaceProvider, XmlZipProjectMarshaling}
+import org.silkframework.workspace.xml.{FileWorkspaceProvider, XmlZipProjectMarshaling, XmlZipWithResourcesProjectMarshaling, XmlZipWithoutResourcesProjectMarshaling}
 
 import scala.language.existentials
 
@@ -69,7 +69,8 @@ class WorkspacePlugins extends PluginModule {
   }
 
   def projectMarshaller: List[Class[_]] = {
-    classOf[XmlZipProjectMarshaling] :: Nil
+    classOf[XmlZipWithResourcesProjectMarshaling] ::
+    classOf[XmlZipWithoutResourcesProjectMarshaling] :: Nil
   }
 
   def provenancePlugins: List[Class[_]] = classOf[NopPersistWorkflowProvenance] :: Nil
