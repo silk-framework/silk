@@ -3,6 +3,7 @@ import fetch from "../../../services/fetch";
 import { legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
 import { VoidOrNever } from "../../../../app";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
+import { IExportTypes } from "@ducks/common/typings";
 
 export interface ISearchListRequest {
     limit: number;
@@ -230,4 +231,10 @@ export const requestWarningMarkdown = async (taskId: string, projectId: string):
     } catch (e) {
         throw handleError(e);
     }
+};
+
+export const requestExportProject = async (projectId: string, typeId: string): Promise<FetchResponse<any>> => {
+    return fetch({
+        url: legacyApiEndpoint(`/projects/${projectId}/export/${typeId}`),
+    });
 };

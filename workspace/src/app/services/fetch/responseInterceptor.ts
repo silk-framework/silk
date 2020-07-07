@@ -7,7 +7,7 @@ import { isDevelopment } from "../../constants/path";
 /** Successful response. */
 export class FetchResponse<T = any> {
     public data: T;
-    axiosResponse: AxiosResponse;
+    public axiosResponse: AxiosResponse;
 
     constructor(axiosResponse: AxiosResponse) {
         this.axiosResponse = axiosResponse;

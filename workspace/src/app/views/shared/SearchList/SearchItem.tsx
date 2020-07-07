@@ -17,11 +17,16 @@ import {
     Tag,
 } from "@wrappers/index";
 import { routerOp } from "@ducks/router";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Highlighter } from "../Highlighter/Highlighter";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import { IPageLabels } from "@ducks/router/operations";
+import { DATA_TYPES } from "../../../constants";
+import { commonSel } from "@ducks/common";
+import { IExportTypes } from "@ducks/common/typings";
+import { requestExportProject } from "@ducks/workspace/requests";
+import { downloadResource } from "../../../utils/downloadResource";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -45,6 +50,7 @@ export default function SearchItem({
     parentProjectId,
 }: IProps) {
     const dispatch = useDispatch();
+    const exportTypes = useSelector(commonSel.exportTypesSelector);
 
     // Remove detailsPath
     const contextMenuItems = item.itemLinks
@@ -70,6 +76,11 @@ export default function SearchItem({
         }
         labels.itemType = item.type;
         dispatch(routerOp.goToPage(detailsPath, labels));
+    };
+
+    const handleExport = async (type: IExportTypes) => {
+        const { axiosResponse } = await requestExportProject(item.id, type.id);
+        downloadResource(axiosResponse);
     };
 
     return (
@@ -126,6 +137,13 @@ export default function SearchItem({
                             </>
                         ) : null}
                         <MenuItem key="delete" icon={"item-remove"} onClick={onOpenDeleteModal} text={"Delete"} />
+                        {item.type === DATA_TYPES.PROJECT && !!exportTypes.length && (
+                            <MenuItem key="export" text={"Export to"}>
+                                {exportTypes.map((type) => (
+                                    <MenuItem key={type.id} onClick={() => handleExport(type)} text={type.label} />
+                                ))}
+                            </MenuItem>
+                        )}
                     </ContextMenu>
                 </OverviewItemActions>
             </OverviewItem>
