@@ -14,6 +14,8 @@ case class XmlZipWithoutResourcesProjectMarshaling() extends XmlZipProjectMarsha
   val name = "XML/ZIP file (without resources)"
 
   def includeResources: Boolean = false
+
+  override def isPreferred: Boolean = false
 }
 
 object XmlZipWithoutResourcesProjectMarshaling {
