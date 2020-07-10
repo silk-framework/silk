@@ -3,7 +3,6 @@ import fetch from "../../../services/fetch";
 import { legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
 import { VoidOrNever } from "../../../../app";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
-import { IExportTypes } from "@ducks/common/typings";
 
 export interface ISearchListRequest {
     limit: number;
