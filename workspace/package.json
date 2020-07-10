@@ -211,7 +211,7 @@
                     "discardOldKeys": true,
                     "locales": ["en", "de"],
                     "outputPath": "src/locales/{{locale}}.json",
-                    "defaultValue": ""
+                    "defaultValue": "UNTRANSLATED"
                 }
             ]
         ]
