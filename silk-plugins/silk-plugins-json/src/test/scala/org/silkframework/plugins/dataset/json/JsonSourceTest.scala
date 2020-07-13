@@ -19,7 +19,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   private val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/json/")
 
   private def jsonExampleSource: JsonSource = {
-    val source = JsonSource(resources.get("example.json"), "", "#id", Codec.UTF8)
+    val source = JsonSource(resources.get("example.json"), "", "#id")
     source
   }
 
@@ -40,7 +40,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
       """
         |{"data":[]}
       """.stripMargin)
-    val source = JsonSource(resource, "data", "http://blah", Codec.UTF8)
+    val source = JsonSource(resource, "data", "http://blah")
     val entities = source.retrieve(EntitySchema.empty).entities
     entities mustBe empty
   }
@@ -52,7 +52,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
       """
         |{"data":{"entities":[{"id":"ID"}]}}
       """.stripMargin)
-    val source = JsonSource(resource, "data/entities", "http://blah/{id}", Codec.UTF8)
+    val source = JsonSource(resource, "data/entities", "http://blah/{id}")
     val entities = source.retrieve(EntitySchema.empty).entities
     entities.size mustBe 1
     entities.head.uri.toString mustBe "http://blah/ID"
