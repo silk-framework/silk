@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.csv
 import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.CharsetAutocompletionProvider
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource._
 
@@ -29,7 +30,7 @@ case class CsvDataset (
     uri: String = "",
   @Param("A regex filter used to match rows from the CSV file. If not set all the rows are used.")
     regexFilter: String = "",
-  @Param("The file encoding, e.g., UTF8, ISO-8859-1")
+  @Param(value = "The file encoding, e.g., UTF-8, UTF-8-BOM, ISO-8859-1", autoCompletionProvider = classOf[CharsetAutocompletionProvider])
     charset: String = "UTF-8",
   @Param("The number of lines to skip in the beginning, e.g. copyright, meta information etc.")
     linesToSkip: Int = 0,
