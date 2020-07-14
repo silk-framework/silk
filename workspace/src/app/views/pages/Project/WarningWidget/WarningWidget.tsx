@@ -7,6 +7,7 @@ import MarkdownModal from "../../../shared/modals/MarkdownModal";
 import { AppToaster } from "../../../../services/toaster";
 import { commonSel } from "@ducks/common";
 import Loading from "../../../shared/Loading";
+import { useTranslation } from "react-i18next";
 
 export const WarningWidget = () => {
     const dispatch = useDispatch();
@@ -18,6 +19,7 @@ export const WarningWidget = () => {
 
     const [currentMarkdown, setCurrentMarkdown] = useState("");
     const [isOpen, setIsOpen] = useState<boolean>(false);
+    const [t] = useTranslation();
 
     useEffect(() => {
         dispatch(workspaceOp.fetchWarningListAsync());
@@ -36,7 +38,10 @@ export const WarningWidget = () => {
             setCurrentMarkdown(markdown);
         } catch {
             AppToaster.show({
-                message: `Sorry but we can't find the markdown information for this report`,
+                message: t(
+                    "http.error.not.markdown",
+                    "Sorry but we can't find the markdown information for this report"
+                ),
                 intent: Intent.DANGER,
                 timeout: 0,
             });
@@ -49,7 +54,7 @@ export const WarningWidget = () => {
         <Card>
             <CardHeader>
                 <CardTitle>
-                    <h2>Error log</h2>
+                    <h2>{t("widget.warning.title", "Error log")}</h2>
                 </CardTitle>
             </CardHeader>
             <Divider />
@@ -62,7 +67,7 @@ export const WarningWidget = () => {
                                 actions={
                                     <Button
                                         minimal
-                                        text="Show report"
+                                        text={t("widget.warning.showReport", "Show report")}
                                         onClick={() => handleOpenMarkDown(warn.taskId)}
                                     />
                                 }

@@ -1,5 +1,6 @@
 import { RadioButton, FieldItemRow, FieldItem } from "@wrappers/index";
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 export type FileMenuItems = "SELECT" | "NEW" | "EMPTY";
 
@@ -16,17 +17,19 @@ interface IProps {
  * @constructor
  */
 export function FileMenu({ onChange, selectedFileMenu }: IProps) {
+    const [t] = useTranslation();
+
     const menuItems = [
         {
-            label: "Select file from project",
+            label: t("common.fileMenu.empty", "Select file from project"),
             value: "SELECT",
         },
         {
-            label: "Upload new file",
+            label: t("common.fileMenu.new", "Upload new file"),
             value: "NEW",
         },
         {
-            label: "Create empty file",
+            label: t("common.fileMenu.create", "Create empty file"),
             value: "EMPTY",
         },
     ];

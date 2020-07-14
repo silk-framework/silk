@@ -108,8 +108,7 @@
         "build": "node scripts/build.js",
         "test": "node scripts/test.js",
         "test-ci": "export CI=true && jest --no-cache --detectOpenHandles --reporters=\"jest-junit\"",
-        "sync-trans": "sync-i18n --files 'src/locales/*.json' --primary en --languages de --space 2",
-        "check-i18n": "yarn sync-trans --check"
+        "i18n-parser": "i18next-scanner --config config/i18next-scanner.config.js 'src/app/**/*.{ts,tsx,js,jsx}'"
     },
     "husky": {
         "hooks": {
@@ -203,17 +202,6 @@
     "babel": {
         "presets": [
             "react-app"
-        ],
-        "plugins": [
-            [
-                "i18next-extract",
-                {
-                    "discardOldKeys": true,
-                    "locales": ["en", "de"],
-                    "outputPath": "src/locales/{{locale}}.json",
-                    "defaultValue": "UNTRANSLATED"
-                }
-            ]
         ]
     },
     "devDependencies": {
@@ -236,11 +224,11 @@
         "@welldone-software/why-did-you-render": "^4.0.5",
         "axios-mock-adapter": "^1.18.1",
         "babel-core": "7.0.0-bridge.0",
-        "babel-plugin-i18next-extract": "^0.7.2",
         "enzyme": "^3.9.0",
         "enzyme-adapter-react-16": "^1.12.1",
         "husky": "^4.2.5",
         "i18next-json-sync": "^2.3.1",
+        "i18next-scanner": "^2.11.0",
         "jest-junit": "^10.0.0",
         "lint-staged": "^10.1.7",
         "prettier": "^2.0.5",

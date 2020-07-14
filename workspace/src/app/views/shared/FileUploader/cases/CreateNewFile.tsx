@@ -1,5 +1,6 @@
 import { FieldItem, TextField } from "@wrappers/index";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     /**
@@ -25,6 +26,7 @@ export function CreateNewFile(props: IProps) {
 
     const [newFileName, setNewFileName] = useState("");
     const [error, setError] = useState(false);
+    const [t] = useTranslation();
 
     const handleNewFileNameChange = (e) => {
         const { value } = e.target;
@@ -40,11 +42,11 @@ export function CreateNewFile(props: IProps) {
     return (
         <FieldItem
             labelAttributes={{
-                text: "New file name",
+                text: t("common.fileUploader.createNewFile", "New file name"),
                 info: "required",
                 htmlFor: "fileInput",
             }}
-            messageText={error ? "File name not specified" : ""}
+            messageText={error ? t("common.fileUploader.fileNotSpecified", "File name not specified") : ""}
         >
             <TextField
                 id="fileInput"

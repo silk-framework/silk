@@ -29,6 +29,7 @@ import { usePagination } from "@wrappers/src/components/Pagination/Pagination";
 import DeleteModal from "../../../shared/modals/DeleteModal";
 import { commonSel } from "@ducks/common";
 import { projectFileResourceDependents, removeProjectFileResource } from "@ducks/workspace/requests";
+import { useTranslation } from "react-i18next";
 
 interface IFileDeleteModalOptions {
     isOpen: boolean;
@@ -56,6 +57,7 @@ export const FileWidget = () => {
         pageSizes: [5, 10, 20],
         presentation: { hideInfoText: true },
     });
+    const [t] = useTranslation();
 
     const deleteFile = async (fileName: string) => {
         try {
@@ -70,9 +72,9 @@ export const FileWidget = () => {
     }
 
     const headers = [
-        { key: "name", header: "Name", highlighted: true },
-        { key: "formattedDate", header: "Last modified", highlighted: false },
-        { key: "formattedSize", header: "Size (bytes)", highlighted: true },
+        { key: "name", header: t("widget.file.sort.name", "Name"), highlighted: true },
+        { key: "formattedDate", header: t("widget.file.sort.modified", "Last modified"), highlighted: false },
+        { key: "formattedSize", header: t("widget.file.sort.size", "Size (bytes)"), highlighted: true },
     ];
 
     const onSearch = (textQuery) => {
@@ -109,7 +111,9 @@ export const FileWidget = () => {
                             <li key={task}>{task}</li>
                         ))}
                     </ul>
-                    <p>Do you really want to delete file '{deleteModalOpts.fileName}'?</p>
+                    <p>
+                        {t("widget.file.removeText", "Do you really want to delete file")} {deleteModalOpts.fileName}?
+                    </p>
                 </div>
             );
         } else {
@@ -122,7 +126,7 @@ export const FileWidget = () => {
             <Card>
                 <CardHeader>
                     <CardTitle>
-                        <h2>Files</h2>
+                        <h2>{t("widget.file.file", "File")}s</h2>
                     </CardTitle>
                 </CardHeader>
                 <Divider />
@@ -174,7 +178,9 @@ export const FileWidget = () => {
                                                     <TableCell key={"fileActions"} className="bx--table-column-menu">
                                                         <IconButton
                                                             name="item-remove"
-                                                            text="Delete file"
+                                                            text={
+                                                                t("common.action.delete") + " " + t("widget.file.file")
+                                                            }
                                                             small
                                                             disruptive
                                                             onClick={() => openDeleteModal(file.id)}
@@ -204,7 +210,7 @@ export const FileWidget = () => {
                 onDiscard={closeDeleteModal}
                 onConfirm={() => deleteFile(deleteModalOpts.fileName)}
                 render={renderDeleteModal}
-                title={"Delete file"}
+                title={t("widget.file.deleteFile", "Delete File")}
             />
         </>
     );

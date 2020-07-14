@@ -18,6 +18,7 @@ import {
     OverviewItemLine,
     OverviewItemList,
 } from "@wrappers/index";
+import { useTranslation } from "react-i18next";
 
 const VISIBLE_COUNT = 5;
 
@@ -45,6 +46,7 @@ export const ConfigurationWidget = () => {
     const handleClose = () => setIsOpen(false);
 
     const moreCount = getFullSizeOfList() - VISIBLE_COUNT;
+    const [t] = useTranslation();
 
     return (
         <Card>
@@ -63,7 +65,9 @@ export const ConfigurationWidget = () => {
                             <OverviewItem>
                                 <OverviewItemDescription>
                                     <OverviewItemLine>
-                                        <strong>Prefixes&nbsp;({getFullSizeOfList()})</strong>
+                                        <strong>
+                                            {t("widget.config.prefix", "Prefix")}es&nbsp;({getFullSizeOfList()})
+                                        </strong>
                                     </OverviewItemLine>
                                     <OverviewItemLine small>
                                         <span>
@@ -72,14 +76,23 @@ export const ConfigurationWidget = () => {
                                                     {o.prefixName}
                                                     {index < visiblePrefixes.length - 1
                                                         ? ", "
-                                                        : moreCount > 0 && <> and {moreCount} more</>}
+                                                        : moreCount > 0 && (
+                                                              <>
+                                                                  {" "}
+                                                                  and {moreCount} ${t("common.words.more", "more")}
+                                                              </>
+                                                          )}
                                                 </span>
                                             ))}
                                         </span>
                                     </OverviewItemLine>
                                 </OverviewItemDescription>
                                 <OverviewItemActions>
-                                    <IconButton onClick={handleOpen} name="item-edit" text="Edit prefix settings" />
+                                    <IconButton
+                                        onClick={handleOpen}
+                                        name="item-edit"
+                                        text={t("widget.file.edit", "Edit prefix settings")}
+                                    />
                                 </OverviewItemActions>
                             </OverviewItem>
                         </OverviewItemList>

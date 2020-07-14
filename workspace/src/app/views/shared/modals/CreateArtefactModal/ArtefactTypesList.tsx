@@ -2,16 +2,23 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { Menu, MenuItem, TitleSubsection } from "@wrappers/index";
+import { useTranslation } from "react-i18next";
 
 function ArtefactTypesList({ onSelect }) {
     const { selectedDType } = useSelector(commonSel.artefactModalSelector);
     const typeModifier = useSelector(commonSel.availableDTypesSelector).type;
 
+    const [t] = useTranslation();
     return (
         <>
             <TitleSubsection>Item type</TitleSubsection>
             <Menu>
-                <MenuItem text={"All"} key="all" onClick={() => onSelect("all")} active={selectedDType === "all"} />
+                <MenuItem
+                    text={t("common.words.all", "All")}
+                    key="all"
+                    onClick={() => onSelect("all")}
+                    active={selectedDType === "all"}
+                />
                 {typeModifier &&
                     typeModifier.options.map((type) => (
                         <MenuItem

@@ -1,0 +1,3 @@
+{
+    "UploadError": "An upload error has occurred for file {{fileName}}. Details: {{errorDetails}}"
+}

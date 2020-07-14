@@ -31,6 +31,7 @@ import { routerOp } from "@ducks/router";
 import { sharedOp } from "@ducks/shared";
 import { Loading } from "../Loading/Loading";
 import { useLocation } from "react-router";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     projectId?: string;
@@ -54,6 +55,7 @@ export function Metadata(props: IProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [getRequestError, setGetRequestError] = useState<ErrorResponse | null>(null);
     const [updateRequestError, setUpdateRequestError] = useState<ErrorResponse | null>(null);
+    const [t] = useTranslation();
 
     const [errors, setErrors] = useState({
         form: {
@@ -176,7 +178,7 @@ export function Metadata(props: IProps) {
                 <PropertyValueList>
                     <PropertyValuePair key="label">
                         <PropertyName>
-                            <Label text="Label" info="required" htmlFor="label" />
+                            <Label text={t("form.field.label", "Label")} info="required" htmlFor="label" />
                         </PropertyName>
                         <PropertyValue>
                             <FieldItem
@@ -196,7 +198,7 @@ export function Metadata(props: IProps) {
                     </PropertyValuePair>
                     <PropertyValuePair hasSpacing key="description">
                         <PropertyName>
-                            <Label text="Description" htmlFor="description" />
+                            <Label text={t("form.field.description", "Description")} htmlFor="description" />
                         </PropertyName>
                         <PropertyValue>
                             <FieldItem>
@@ -217,13 +219,13 @@ export function Metadata(props: IProps) {
                 <PropertyValueList>
                     {!!label && (
                         <PropertyValuePair hasDivider>
-                            <PropertyName>Label</PropertyName>
+                            <PropertyName>{t("form.field.label", "Label")}</PropertyName>
                             <PropertyValue>{label}</PropertyValue>
                         </PropertyValuePair>
                     )}
                     {!!description && (
                         <PropertyValuePair hasSpacing hasDivider>
-                            <PropertyName>Description</PropertyName>
+                            <PropertyName>{t("form.field.description", "Description")}</PropertyName>
                             <PropertyValue>
                                 <HtmlContentBlock>
                                     <p>{description}</p>
@@ -253,8 +255,8 @@ export function Metadata(props: IProps) {
             <>
                 <Divider />
                 <CardActions>
-                    <Button affirmative text="Save" type={"submit"} />
-                    <Button text="Cancel" onClick={toggleEdit} />
+                    <Button affirmative text={t("form.field.submit", "Submit")} type={"submit"} />
+                    <Button text={t("form.field.cancel", "Cancel")} onClick={toggleEdit} />
                 </CardActions>
             </>
         ) : null;

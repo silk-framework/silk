@@ -8,6 +8,7 @@ import DeleteModal from "../../../shared/modals/DeleteModal";
 import PrefixNew from "./PrefixNew";
 import DataList from "../../../shared/Datalist";
 import Loading from "../../../shared/Loading";
+import { useTranslation } from "react-i18next";
 
 const PrefixesDialog = ({ onCloseModal, isOpen }) => {
     const dispatch = useDispatch();
@@ -19,6 +20,8 @@ const PrefixesDialog = ({ onCloseModal, isOpen }) => {
 
     const [isOpenRemove, setIsOpenRemove] = useState<boolean>(false);
     const [selectedPrefix, setSelectedPrefix] = useState<IPrefixState>(null);
+
+    const [t] = useTranslation();
 
     const toggleRemoveDialog = (prefix?: IPrefixState) => {
         if (!prefix || isOpenRemove) {
