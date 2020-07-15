@@ -15,6 +15,7 @@ import {
     Menu,
     MenuDivider,
     MenuItem,
+    OverflowText,
     OverviewItem,
     OverviewItemActions,
     OverviewItemDepiction,
@@ -256,12 +257,15 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                                         onClick={toggleCloneModal}
                                     />
                                     {itemType === DATA_TYPES.PROJECT && !!exportTypes.length && (
-                                        <MenuItem key="export" text={"Export to"}>
+                                        <MenuItem key="export" text={t("common.action.exportTo", "Export to")}>
                                             {exportTypes.map((type) => (
                                                 <MenuItem
                                                     key={type.id}
                                                     onClick={() => handleExport(type)}
-                                                    text={type.label}
+                                                    text={
+                                                        <OverflowText inline>{type.label}</OverflowText>
+                                                        /* TODO: change this OverflowText later to a multiline=false option on MenuItem, seenms to be a new one*/
+                                                    }
                                                 />
                                             ))}
                                         </MenuItem>

@@ -65,6 +65,16 @@ export default function SearchItem({
             />
         ));
 
+    if (item.type === DATA_TYPES.PROJECT && !!exportTypes.length) {
+        contextMenuItems.push(
+            <MenuItem key="export" text={"Export to"}>
+                {exportTypes.map((type) => (
+                    <MenuItem key={type.id} onClick={() => handleExport(type)} text={<OverflowText inline>{type.label}</OverflowText>} />
+                ))}
+            </MenuItem>
+        );
+    }
+
     const goToDetailsPage = (e) => {
         e.preventDefault();
         const detailsPath = item.itemLinks[0].path;
@@ -137,13 +147,6 @@ export default function SearchItem({
                             </>
                         ) : null}
                         <MenuItem key="delete" icon={"item-remove"} onClick={onOpenDeleteModal} text={"Delete"} />
-                        {item.type === DATA_TYPES.PROJECT && !!exportTypes.length && (
-                            <MenuItem key="export" text={"Export to"}>
-                                {exportTypes.map((type) => (
-                                    <MenuItem key={type.id} onClick={() => handleExport(type)} text={type.label} />
-                                ))}
-                            </MenuItem>
-                        )}
                     </ContextMenu>
                 </OverviewItemActions>
             </OverviewItem>
