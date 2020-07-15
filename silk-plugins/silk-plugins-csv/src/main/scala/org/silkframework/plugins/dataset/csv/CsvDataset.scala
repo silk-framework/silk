@@ -2,8 +2,8 @@ package org.silkframework.plugins.dataset.csv
 
 import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
+import org.silkframework.plugins.dataset.csv.charset.CharsetAutocompletionProvider
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.CharsetAutocompletionProvider
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource._
 
@@ -60,11 +60,11 @@ case class CsvDataset (
   private def csvSource(resource: Resource, ignoreMalformed: Boolean = false): CsvSource = resource match{
     case ror: ReadOnlyResource => csvSource(ror.resource, ignoreMalformed)
     case rkt: ResourceWithKnownTypes => new CsvSource(resource, csvSettings, properties, uri,
-      regexFilter, codec, ignoreBadLines = ignoreBadLines,
+      regexFilter, ignoreBadLines = ignoreBadLines,
       ignoreMalformedInputExceptionInPropertyList = ignoreMalformed, specificTypeName = rkt.knownTypes.headOption
     )
     case _ => new CsvSource(resource, csvSettings, properties, uri,
-      regexFilter, codec, ignoreBadLines = ignoreBadLines,
+      regexFilter, ignoreBadLines = ignoreBadLines,
       ignoreMalformedInputExceptionInPropertyList = ignoreMalformed
     )
   }

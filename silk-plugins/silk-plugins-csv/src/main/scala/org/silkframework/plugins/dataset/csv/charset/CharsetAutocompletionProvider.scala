@@ -1,10 +1,8 @@
-package org.silkframework.runtime.plugin
-
-import java.nio.charset.Charset
+package org.silkframework.plugins.dataset.csv.charset
 
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginParameterAutoCompletionProvider}
 import org.silkframework.workspace.WorkspaceReadTrait
-import scala.collection.JavaConverters._
 
 /**
   * Autocompletion provider that completes available charsets.
@@ -16,7 +14,7 @@ case class CharsetAutocompletionProvider() extends PluginParameterAutoCompletion
                             workspace: WorkspaceReadTrait)
                            (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
     val multiSearchWords = extractSearchTerms(searchQuery)
-    CharsetAutocompletionProvider.charsets
+    CharsetUtils.charsetNames
       .filter(r => matchesSearchTerm(multiSearchWords, r.toLowerCase))
       .map(r => AutoCompletionResult(r, None))
   }
@@ -26,12 +24,4 @@ case class CharsetAutocompletionProvider() extends PluginParameterAutoCompletion
                            (implicit userContext: UserContext): Option[String] = {
     None
   }
-}
-
-object CharsetAutocompletionProvider {
-
-  lazy val charsets: Seq[String] = {
-    Charset.availableCharsets().keySet.asScala.toSeq.sorted
-  }
-
 }

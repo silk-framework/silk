@@ -4,6 +4,8 @@ import java.io.{File, FileInputStream, InputStream, OutputStream}
 
 import org.silkframework.util.StreamUtils
 
+import scala.io.Codec
+
 trait WritableResource extends Resource {
 
   /**
@@ -56,9 +58,9 @@ trait WritableResource extends Resource {
   /**
     * Writes a string.
     */
-  def writeString(content: String, append: Boolean = false): Unit = {
+  def writeString(content: String, append: Boolean = false)(implicit codec: Codec = Codec.UTF8): Unit = {
     write(append) { os =>
-      os.write(content.getBytes("UTF-8"))
+      os.write(content.getBytes(codec.charSet))
     }
   }
 

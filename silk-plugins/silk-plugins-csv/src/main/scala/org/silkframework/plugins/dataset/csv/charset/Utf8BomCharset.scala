@@ -1,9 +1,10 @@
-package org.silkframework.plugins.dataset.csv
+package org.silkframework.plugins.dataset.csv.charset
 
+import java.nio.charset._
 import java.nio.charset.spi.CharsetProvider
 import java.nio.{ByteBuffer, CharBuffer}
-import java.nio.charset.{Charset, CharsetDecoder, CharsetEncoder, CoderResult, StandardCharsets}
 import java.util
+
 import scala.collection.JavaConverters._
 
 /**
