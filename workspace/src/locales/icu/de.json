@@ -1,3 +1,5 @@
 {
-    "UploadError": "An upload error has occurred for file {{fileName}}. Details: {{errorDetails}}"
+    "UploadError": "An upload error has occurred for file {{fileName}}. Details: {{errorDetails}}",
+    "DeletePrefixMessage": "Das Präfix {{prefixName}} wird gelöscht."
+
 }

@@ -67,7 +67,7 @@ export const WarningWidget = () => {
                                 actions={
                                     <Button
                                         minimal
-                                        text={t("widget.warning.showReport", "Show report")}
+                                        text={t("ShowSmth", { smth: "report" })}
                                         onClick={() => handleOpenMarkDown(warn.taskId)}
                                     />
                                 }

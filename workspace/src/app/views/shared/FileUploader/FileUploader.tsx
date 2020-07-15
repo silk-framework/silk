@@ -206,11 +206,10 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         if (idx > 0) {
             errorDetails = errorDetails.substring(0, idx);
         }
-        const errorMessage = `An upload error has occurred for file '${fileData.name}'. Details: ${errorDetails}`;
-        // const errorMessage = i18next.t('UploadError', {
-        //     fileName: 'gago',
-        //     errorDetails: 'gag?'
-        // });
+        const errorMessage = i18next.t("UploadError", {
+            fileName: fileData.name,
+            errorDetails: errorDetails,
+        });
         this.setState({ error: errorMessage });
     };
 

@@ -4,9 +4,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import FacetItem from "./FacetItem";
 import { Button, HelperClasses, Icon, Spacing, TitleSubsection } from "@wrappers/index";
+import { useTranslation } from "react-i18next";
 
 export default function FacetsList() {
     const dispatch = useDispatch();
+    const [t] = useTranslation();
 
     const facets = useSelector(workspaceSel.facetsSelector);
     const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
@@ -86,7 +88,11 @@ export default function FacetsList() {
                             <li>
                                 <Button
                                     onClick={() => toggleShowMore(facet)}
-                                    text={toggledFacets.includes(facet.id) ? "show less" : "show more"}
+                                    text={t("ShowSmth", {
+                                        smth: toggledFacets.includes(facet.id)
+                                            ? t("common.words.less", "less")
+                                            : t("common.words.more"),
+                                    })}
                                     rightIcon={
                                         toggledFacets.includes(facet.id) ? "toggler-showless" : "toggler-showmore"
                                     }

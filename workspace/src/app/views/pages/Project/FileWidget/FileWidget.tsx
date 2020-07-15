@@ -126,7 +126,7 @@ export const FileWidget = () => {
             <Card>
                 <CardHeader>
                     <CardTitle>
-                        <h2>{t("widget.file.file", "File")}s</h2>
+                        <h2>{t("widget.file.files", "Files")}</h2>
                     </CardTitle>
                 </CardHeader>
                 <Divider />
@@ -178,9 +178,7 @@ export const FileWidget = () => {
                                                     <TableCell key={"fileActions"} className="bx--table-column-menu">
                                                         <IconButton
                                                             name="item-remove"
-                                                            text={
-                                                                t("common.action.delete") + " " + t("widget.file.file")
-                                                            }
+                                                            text={t("DeleteSmth", { smth: t("widget.file.file") })}
                                                             small
                                                             disruptive
                                                             onClick={() => openDeleteModal(file.id)}
