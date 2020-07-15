@@ -38,6 +38,11 @@ import { routerOp } from "@ducks/router";
 import { IItemLink } from "@ducks/shared/typings";
 import { requestItemLinks, requestTaskItemInfo } from "@ducks/shared/requests";
 import { IPageLabels } from "@ducks/router/operations";
+import { DATA_TYPES } from "../../../constants";
+import { useTranslation } from "react-i18next";
+import { IExportTypes } from "@ducks/common/typings";
+import { requestExportProject } from "@ducks/workspace/requests";
+import { downloadResource } from "../../../utils/downloadResource";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];
@@ -57,6 +62,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
     const [itemType, setItemType] = useState<string | null>(null);
 
     const isAuth = useSelector(commonSel.isAuthSelector);
+    const exportTypes = useSelector(commonSel.exportTypesSelector);
 
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [cloneModalOpen, setCloneModalOpen] = useState(false);
@@ -72,6 +78,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
     const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
 
     const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
+    const [t] = useTranslation();
 
     // Update task type
     useEffect(() => {
@@ -79,7 +86,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
             setItemType(location.state.pageLabels.itemType);
         } else {
             if (projectId && !taskId) {
-                setItemType("project");
+                setItemType(DATA_TYPES.PROJECT);
             } else if (projectId && taskId) {
                 if (!location.state?.pageLabels) {
                     location.state = { ...location.state };
@@ -154,7 +161,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
             const paths = location.pathname.split("/");
             const projectInd = paths.indexOf(projectId);
 
-            let datasetType = "project";
+            let datasetType = DATA_TYPES.PROJECT;
             // for task type it next to project id
             if (paths[projectInd + 1]) {
                 datasetType = paths[projectInd + 1];
@@ -184,6 +191,11 @@ function HeaderComponent({ breadcrumbs }: IProps) {
     const itemData = {
         id: taskId ? taskId : projectId,
         projectId: taskId ? projectId : undefined,
+    };
+
+    const handleExport = async (type: IExportTypes) => {
+        const { axiosResponse } = await requestExportProject(itemData.id, type.id);
+        downloadResource(axiosResponse);
     };
 
     return !isAuth ? null : (
@@ -229,12 +241,31 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                             <>
                                 <IconButton
                                     name="item-remove"
-                                    text={taskId ? "Remove task" : "Remove project"}
+                                    text={
+                                        taskId
+                                            ? t("common.action.removeTask", "Remove task")
+                                            : t("common.action.removeProject", "Remove project")
+                                    }
                                     disruptive
                                     onClick={toggleDeleteModal}
                                 />
                                 <ContextMenu>
-                                    <MenuItem key={"clone"} text={"Clone"} onClick={toggleCloneModal} />
+                                    <MenuItem
+                                        key={"clone"}
+                                        text={t("common.action.clone", "Clone")}
+                                        onClick={toggleCloneModal}
+                                    />
+                                    {itemType === DATA_TYPES.PROJECT && !!exportTypes.length && (
+                                        <MenuItem key="export" text={"Export to"}>
+                                            {exportTypes.map((type) => (
+                                                <MenuItem
+                                                    key={type.id}
+                                                    onClick={() => handleExport(type)}
+                                                    text={type.label}
+                                                />
+                                            ))}
+                                        </MenuItem>
+                                    )}
                                     {itemLinks.map((itemLink) => (
                                         <MenuItem key={itemLink.path} text={itemLink.label} href={itemLink.path} />
                                     ))}
@@ -261,14 +292,20 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                         </ApplicationToolbarAction>
                         <ApplicationToolbarPanel aria-label="User menu" expanded={true}>
                             <Menu>
-                                <MenuItem text={"Back to old workspace"} href={CONTEXT_PATH + "/workspace"} />
-                                <MenuItem text={"Activity overview"} href={CONTEXT_PATH + "/workspace/allActivities"} />
+                                <MenuItem
+                                    text={t("common.action.backOld", "Back to old workspace")}
+                                    href={CONTEXT_PATH + "/workspace"}
+                                />
+                                <MenuItem
+                                    text={t("common.action.activity", "Activity overview")}
+                                    href={CONTEXT_PATH + "/workspace/allActivities"}
+                                />
                                 {iFrameDetection && (
                                     <>
                                         <MenuDivider />
                                         <MenuItem
                                             id={"logoutAction"}
-                                            text="Logout"
+                                            text={t("common.action.logout", "Logout")}
                                             onClick={() => {
                                                 dispatch(commonOp.logoutFromDi());
                                             }}
