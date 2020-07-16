@@ -41,7 +41,6 @@ import { IPageLabels } from "@ducks/router/operations";
 import { DATA_TYPES } from "../../../constants";
 import { useTranslation } from "react-i18next";
 import { IExportTypes } from "@ducks/common/typings";
-import { requestExportProject } from "@ducks/workspace/requests";
 import { downloadResource } from "../../../utils/downloadResource";
 
 interface IProps {
@@ -194,8 +193,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
     };
 
     const handleExport = async (type: IExportTypes) => {
-        const { axiosResponse } = await requestExportProject(itemData.id, type.id);
-        downloadResource(axiosResponse);
+        downloadResource(itemData.id, type.id);
     };
 
     return !isAuth ? null : (

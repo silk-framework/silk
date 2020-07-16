@@ -231,9 +231,3 @@ export const requestWarningMarkdown = async (taskId: string, projectId: string):
         throw handleError(e);
     }
 };
-
-export const requestExportProject = async (projectId: string, typeId: string): Promise<FetchResponse<any>> => {
-    return fetch({
-        url: legacyApiEndpoint(`/projects/${projectId}/export/${typeId}`),
-    });
-};

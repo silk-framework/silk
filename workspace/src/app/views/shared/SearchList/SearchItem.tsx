@@ -25,7 +25,6 @@ import { IPageLabels } from "@ducks/router/operations";
 import { DATA_TYPES } from "../../../constants";
 import { commonSel } from "@ducks/common";
 import { IExportTypes } from "@ducks/common/typings";
-import { requestExportProject } from "@ducks/workspace/requests";
 import { downloadResource } from "../../../utils/downloadResource";
 
 interface IProps {
@@ -79,8 +78,7 @@ export default function SearchItem({
     };
 
     const handleExport = async (type: IExportTypes) => {
-        const { axiosResponse } = await requestExportProject(item.id, type.id);
-        downloadResource(axiosResponse);
+        downloadResource(item.id, type.id);
     };
 
     return (
