@@ -109,8 +109,7 @@
         "test": "node scripts/test.js",
         "test-ci": "export CI=true && jest --no-cache --detectOpenHandles --reporters=\"jest-junit\"",
         "i18n-parser": "node scripts/i18next-scanner.js",
-        "sync-trans": "sync-i18n --files 'src/locales/*.json' --primary en --languages de --space 2",
-        "check-i18n": "yarn sync-trans --check"
+        "sync-trans": "sync-i18n --files 'src/locales/*.json' --primary en --languages de --space 2"
     },
     "husky": {
         "hooks": {
