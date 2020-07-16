@@ -7,15 +7,18 @@ import akka.stream.scaladsl.Source
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.workspace.ProjectMarshalingApi._
 import javax.inject.Inject
+import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.execution.Execution
-import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.workbench.workspace.ProjectFileManager
+import org.silkframework.runtime.serialization.WriteContext
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
+import org.silkframework.serialization.json.ActivitySerializers.StatusJsonFormat
+import org.silkframework.workbench.workspace.ProjectImportManager
 import org.silkframework.workspace.xml.XmlZipProjectMarshaling
 import org.silkframework.workspace.{ProjectMarshallerRegistry, ProjectMarshallingTrait, WorkspaceFactory}
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.streams.IterateeStreams
-import play.api.libs.json.{JsArray, JsObject, Json}
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
@@ -88,11 +91,28 @@ class ProjectMarshalingApi @Inject() () extends InjectedController{
     }
   }
 
-  def uploadProjectFile(): Action[AnyContent] = RequestUserContextAction {  implicit request => implicit userContext =>
+  def uploadProjectFile(marshallerId: String): Action[AnyContent] = RequestUserContextAction {  implicit request => implicit userContext =>
     val file = bodyAsFile
-    val uuid = ProjectFileManager.addFile(file.asInstanceOf[TemporaryFile])
 
-    Ok(Json.obj("uuid" -> uuid.toString))
+    withMarshaller(marshallerId) { marshaller =>
+      val importId = ProjectImportManager.addFile(file.asInstanceOf[TemporaryFile], marshaller)
+      Ok(Json.obj("importId" -> importId))
+    }
+  }
+
+  def startProjectImport(importId: String, projectLabel: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    ProjectImportManager.startImport(importId, projectLabel)
+    Ok
+  }
+
+  def projectImportStatus(importId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    ProjectImportManager.getImportStatus(importId) match {
+      case Some(status) =>
+        implicit val writeContext: WriteContext[JsValue] = new WriteContext[JsValue]()
+        Ok(StatusJsonFormat.write(status))
+      case None =>
+        throw NotFoundException(s"Unknown project import identifier: $importId")
+    }
   }
 
   private def withMarshaller(marshallerId: String)(f: ProjectMarshallingTrait => Result): Result = {
