@@ -70,6 +70,9 @@ POST          /import/:importPlugin                                             
 GET           /export/:exportPlugin                                             controllers.workspace.ProjectMarshalingApi.exportWorkspaceViaPlugin(exportPlugin: String)
 GET           /marshallingPlugins                                               controllers.workspace.ProjectMarshalingApi.availableMarshallingPlugins()
 
+POST          /uploadProjectFile                                                controllers.workspace.ProjectMarshalingApi.uploadProjectFile()
+POST          /importProject                                                    controllers.workspace.ProjectMarshalingApi.importProject()
+
 # Projects
 GET           /projects                                                         controllers.workspace.WorkspaceApi.projects
 GET           /projects/:project                                                controllers.workspace.WorkspaceApi.getProject(project: String)

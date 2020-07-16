@@ -9,11 +9,13 @@ import controllers.workspace.ProjectMarshalingApi._
 import javax.inject.Inject
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.workbench.workspace.ProjectFileManager
 import org.silkframework.workspace.xml.XmlZipProjectMarshaling
 import org.silkframework.workspace.{ProjectMarshallerRegistry, ProjectMarshallingTrait, WorkspaceFactory}
+import play.api.libs.Files.TemporaryFile
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.streams.IterateeStreams
-import play.api.libs.json.JsArray
+import play.api.libs.json.{JsArray, JsObject, Json}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
@@ -84,6 +86,13 @@ class ProjectMarshalingApi @Inject() () extends InjectedController{
 
       Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(enumerator))).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
     }
+  }
+
+  def uploadProjectFile(): Action[AnyContent] = RequestUserContextAction {  implicit request => implicit userContext =>
+    val file = bodyAsFile
+    val uuid = ProjectFileManager.addFile(file.asInstanceOf[TemporaryFile])
+
+    Ok(Json.obj("uuid" -> uuid.toString))
   }
 
   private def withMarshaller(marshallerId: String)(f: ProjectMarshallingTrait => Result): Result = {
