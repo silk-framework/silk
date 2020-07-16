@@ -117,7 +117,7 @@ vfs.src(["src/app/**/*.{js,jsx,ts,tsx}", "!src/app/**/*.spec.{js,jsx,ts,tsx}", "
                 },
                 resource: {
                     // the source path is relative to current working directory
-                    loadPath: "src/locales/icu/{{lng}}.json",
+                    loadPath: "src/locales/manual/{{lng}}.json",
                     // The path to store resources. Relative to the path specified by `gulp.dest(path)`.
                     savePath: "src/locales/{{lng}}.json",
                     // Specify the number of space characters to use as white space to insert into the output JSON string for readability purpose.
