@@ -9,5 +9,11 @@
     "RemoveSmth": "Remove {{smth}}",
     "CreateItem_Title": "Create new item of type {{type}}",
     "UpdateItem_Title": "Create new item of type {{type}}",
-    "OverwriteFile":"File {{fileName}} already exists. Do you want to overwrite it?"
+    "OverwriteFile": "File {{fileName}} already exists. Do you want to overwrite it?",
+    "widget": {
+        "config": {
+            "prefix": "Prefix",
+            "prefix_plural": "Prefixes"
+        }
+    }
 }

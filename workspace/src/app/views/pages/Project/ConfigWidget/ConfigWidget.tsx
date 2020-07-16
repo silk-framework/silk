@@ -66,7 +66,7 @@ export const ConfigurationWidget = () => {
                                 <OverviewItemDescription>
                                     <OverviewItemLine>
                                         <strong>
-                                            {t("widget.config.prefix", "Prefix")}es&nbsp;({getFullSizeOfList()})
+                                            {t("widget.config.prefix", { count: 2 })}&nbsp;({getFullSizeOfList()})
                                         </strong>
                                     </OverviewItemLine>
                                     <OverviewItemLine small>
