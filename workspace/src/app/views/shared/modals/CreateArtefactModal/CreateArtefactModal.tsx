@@ -34,6 +34,7 @@ import { extractSearchWords, Highlighter, multiWordRegex } from "../../Highlight
 import ArtefactTypesList from "./ArtefactTypesList";
 import { SearchBar } from "../../SearchBar/SearchBar";
 import { routerOp } from "@ducks/router";
+import { useTranslation } from "react-i18next";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -42,6 +43,7 @@ export function CreateArtefactModal() {
     const [searchValue, setSearchValue] = useState("");
     const [idEnhancedDescription, setIdEnhancedDescription] = useState("");
     const [actionLoading, setActionLoading] = useState(false);
+    const [t] = useTranslation();
 
     const modalStore = useSelector(commonSel.artefactModalSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
@@ -273,8 +275,10 @@ export function CreateArtefactModal() {
             hasBorder
             title={
                 updateExistingTask
-                    ? `Update '${updateExistingTask.metaData.label}' (${updateExistingTask.taskPluginDetails.title})`
-                    : `Create new item of type ${selectedArtefact.title || ""}`
+                    ? t("UpdateItem_Title", {
+                          type: `'${updateExistingTask.metaData.label}' (${updateExistingTask.taskPluginDetails.title})`,
+                      })
+                    : t("CreateItem_Title", { type: selectedArtefact.title || "" })
             }
             onClose={closeModal}
             isOpen={isOpen}
@@ -290,15 +294,15 @@ export function CreateArtefactModal() {
                                 onClick={handleCreate}
                                 disabled={isErrorPresented()}
                             >
-                                {updateExistingTask ? "Update" : "Create"}
+                                {updateExistingTask ? t("UpdateSmth", { smth: "" }) : t("CreateSmth", { smth: "" })}
                             </Button>,
                             <Button key="cancel" onClick={closeModal}>
-                                Cancel
+                                {t("form.field.cancel")}
                             </Button>,
                             <CardActionsAux key="aux">
                                 {!updateExistingTask && (
                                     <Button key="back" onClick={handleBack}>
-                                        Back
+                                        {t("common.words.back", "Back")}
                                     </Button>
                                 )}
                             </CardActionsAux>,
@@ -312,10 +316,10 @@ export function CreateArtefactModal() {
                             onClick={handleAdd}
                             disabled={!Object.keys(selected).length}
                         >
-                            Add
+                            {t("AddSmth")}
                         </Button>,
                         <Button key="cancel" onClick={closeModal}>
-                            Cancel
+                            {t("form.field.cancel")}
                         </Button>,
                     ]
                 )

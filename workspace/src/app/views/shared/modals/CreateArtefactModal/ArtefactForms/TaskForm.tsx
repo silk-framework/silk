@@ -8,6 +8,7 @@ import { errorMessage, ParameterWidget } from "./ParameterWidget";
 import { DataPreview } from "../../../DataPreview/DataPreview";
 import { IDatasetConfigPreview } from "@ducks/shared/typings";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
+import { useTranslation } from "react-i18next";
 
 export interface IProps {
     form: any;
@@ -51,6 +52,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
 
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     const initialValues = existingTaskValuesToFlatParameters(updateTask);
+    const [t] = useTranslation();
 
     // addition restriction for the hook form parameter values
     const valueRestrictions = (param: IArtefactItemProperty) => {
@@ -58,7 +60,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
             return {
                 pattern: {
                     value: /^[0-9]*$/,
-                    message: "must be an integer number",
+                    message: t("form.validations.integer", "must be an integer number"),
                 },
             };
         } else {
@@ -243,7 +245,10 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                             preview={datasetConfigPreview(projectId, artefact.pluginId, getValues())}
                             externalValidation={{
                                 validate: triggerValidation,
-                                errorMessage: "Parameter validation failed. Please fix the issues first.",
+                                errorMessage: t(
+                                    "form.validations.parameter",
+                                    "Parameter validation failed. Please fix the issues first."
+                                ),
                             }}
                             datasetConfigValues={getValues}
                         />

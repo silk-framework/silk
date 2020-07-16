@@ -1,8 +1,11 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import { Button, SimpleDialog, HtmlContentBlock } from "@wrappers/index";
+import { useTranslation } from "react-i18next";
 
 const MarkdownModal = ({ onDiscard, isOpen, markdown, title = "Error report" }) => {
+    const [t] = useTranslation();
+
     const handleDownload = () => {
         const element = document.createElement("a");
         element.href = window.URL.createObjectURL(new Blob([markdown], { type: "text/markdown" }));
@@ -21,10 +24,10 @@ const MarkdownModal = ({ onDiscard, isOpen, markdown, title = "Error report" }) 
             onClose={onDiscard}
             actions={[
                 <Button affirmative onClick={handleDownload} key="download">
-                    Download
+                    {t("common.action.download", "Download")}
                 </Button>,
                 <Button key="close" onClick={onDiscard}>
-                    Close
+                    {t("common.action.close", "Close")}
                 </Button>,
             ]}
         >

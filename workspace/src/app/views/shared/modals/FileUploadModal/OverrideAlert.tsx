@@ -1,5 +1,6 @@
 import React from "react";
 import { AlertDialog, Button } from "@wrappers/index";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     fileName: string;
@@ -10,20 +11,22 @@ interface IProps {
 
 /** Alert to warn against overwriting an existing file */
 const OverrideAlert = ({ fileName, isOpen, onCancel, onConfirm }: IProps) => {
+    const [t] = useTranslation();
+
     return (
         <AlertDialog
             warning
             isOpen={isOpen}
             actions={[
                 <Button key="replace" onClick={onConfirm}>
-                    Replace
+                    {t("common.action.replace", "Replace")}
                 </Button>,
                 <Button key="cancel" onClick={onCancel}>
-                    Cancel
+                    {t("form.field.cancel")}
                 </Button>,
             ]}
         >
-            <p>File '{fileName}' already exists. Do you want to overwrite it?</p>
+            <p>{t("OverwriteFile", { fileName })}</p>
         </AlertDialog>
     );
 };

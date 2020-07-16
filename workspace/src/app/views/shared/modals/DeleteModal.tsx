@@ -1,6 +1,7 @@
 import React, { ReactElement, useState } from "react";
 import { AlertDialog, Button, Checkbox, FieldItem, HtmlContentBlock, Notification, Spacing } from "@wrappers/index";
 import { Loading } from "../Loading/Loading";
+import { useTranslation } from "react-i18next";
 
 export interface IDeleteModalOptions {
     isOpen: boolean;
@@ -35,6 +36,7 @@ export default function DeleteModal({
     };
 
     const otherContent = !!render ? render() : null;
+    const [t] = useTranslation();
 
     return (
         <AlertDialog
@@ -53,10 +55,10 @@ export default function DeleteModal({
                             onClick={onConfirm}
                             disabled={confirmationRequired && !isConfirmed}
                         >
-                            Delete
+                            {t("DeleteSmth")}
                         </Button>,
                         <Button key="cancel" onClick={onDiscard}>
-                            Cancel
+                            {t("form.field.cancel")}
                         </Button>,
                     ]
                 )

@@ -11,7 +11,7 @@ export interface IProps {
 const LABEL = "label";
 const DESCRIPTION = "description";
 /** The project create form */
-export function ProjectForm({ form, projectId }: IProps) {
+export function ProjectForm({ form }: IProps) {
     const { register, errors, triggerValidation, setValue } = form;
     useEffect(() => {
         register({ name: LABEL }, { required: true });

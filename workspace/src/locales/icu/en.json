@@ -2,6 +2,12 @@
     "UploadError": "An upload error has occurred for file {{fileName}}. Details: {{errorDetails}}",
     "DeletePrefixMessage": "Prefix {{prefixName}} will be deleted.",
     "AddSmth": "Add {{smth}}",
+    "CreateSmth": "Create {{smth}}",
+    "UpdateSmth": "Update {{smth}}",
     "DeleteSmth": "Delete {{smth}}",
-    "ShowSmth": "Show {{smth}}"
+    "ShowSmth": "Show {{smth}}",
+    "RemoveSmth": "Remove {{smth}}",
+    "CreateItem_Title": "Create new item of type {{type}}",
+    "UpdateItem_Title": "Create new item of type {{type}}",
+    "OverwriteFile":"File {{fileName}} already exists. Do you want to overwrite it?"
 }

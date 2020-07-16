@@ -241,11 +241,11 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                             <>
                                 <IconButton
                                     name="item-remove"
-                                    text={
-                                        taskId
-                                            ? t("common.action.removeTask", "Remove task")
-                                            : t("common.action.removeProject", "Remove project")
-                                    }
+                                    text={t("RemoveSmth", {
+                                        smth: taskId
+                                            ? t("common.dataTypes.task", "Task")
+                                            : t("common.dataTypes.project", "Project"),
+                                    })}
                                     disruptive
                                     onClick={toggleDeleteModal}
                                 />

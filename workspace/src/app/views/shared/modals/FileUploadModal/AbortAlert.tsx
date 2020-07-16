@@ -1,21 +1,24 @@
 import React from "react";
 import { AlertDialog, Button } from "@wrappers/index";
+import { useTranslation } from "react-i18next";
 
 const AbortAlert = ({ isOpen, onCancel, onConfirm }) => {
+    const [t] = useTranslation();
+
     return (
         <AlertDialog
             danger
             isOpen={isOpen}
             actions={[
                 <Button key="abort" onClick={onConfirm}>
-                    Abort
+                    {t("common.actions.abort", "Abort")}
                 </Button>,
                 <Button key="cancel" onClick={onCancel}>
-                    Cancel
+                    {t("form.field.cancel")}
                 </Button>,
             ]}
         >
-            <p>Abort upload process?</p>
+            <p> {t("fileUploader.abortProcess", "Abort upload process?")}</p>
         </AlertDialog>
     );
 };
