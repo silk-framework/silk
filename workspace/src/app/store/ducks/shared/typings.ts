@@ -53,7 +53,7 @@ export interface IProjectTask {
 }
 
 export interface ITaskMetadataResponse {
-    taskType: string;
+    taskType: TaskType;
     schemata: any;
     type?: string;
     modified: string;

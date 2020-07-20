@@ -34,6 +34,7 @@ import { extractSearchWords, Highlighter, multiWordRegex } from "../../Highlight
 import ArtefactTypesList from "./ArtefactTypesList";
 import { SearchBar } from "../../SearchBar/SearchBar";
 import { routerOp } from "@ducks/router";
+import { TaskType } from "@ducks/shared/typings";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -119,7 +120,7 @@ export function CreateArtefactModal() {
         resetModal();
     };
 
-    const taskType = (artefactId) => {
+    const taskType = (artefactId): TaskType | "Project" => {
         if (artefactId === "project") {
             return "Project";
         } else {

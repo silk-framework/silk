@@ -13,6 +13,7 @@ import { IArtefactItem } from "@ducks/common/typings";
 import { commonSel } from "@ducks/common/index";
 import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { routerOp } from "@ducks/router";
+import { TaskType } from "@ducks/shared/typings";
 
 const {
     setError,
@@ -143,22 +144,22 @@ const buildTaskObject = (formData: any): object => {
     return returnObject;
 };
 
-const createArtefactAsync = (formData, taskType: string) => {
+const createArtefactAsync = (formData, taskType: TaskType | "Project") => {
     return async (dispatch, getState) => {
         const { selectedArtefact } = commonSel.artefactModalSelector(getState());
 
-        switch (selectedArtefact.key) {
-            case "project":
+        switch (taskType) {
+            case "Project":
                 await dispatch(fetchCreateProjectAsync(formData));
                 break;
             default:
-                await dispatch(fetchCreateTaskAsync(formData, selectedArtefact.key, taskType));
+                await dispatch(fetchCreateTaskAsync(formData, selectedArtefact.key, taskType as TaskType));
                 break;
         }
     };
 };
 
-const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: string) => {
+const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: TaskType) => {
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
         const { label, description, ...restFormData } = formData;

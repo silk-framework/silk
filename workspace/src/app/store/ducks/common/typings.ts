@@ -1,4 +1,4 @@
-import { IMetadata } from "@ducks/shared/typings";
+import { IMetadata, TaskType } from "@ducks/shared/typings";
 
 export interface IAvailableDataTypes {
     [key: string]: IAvailableDataType;
@@ -22,12 +22,14 @@ export interface IPropertyAutocomplete {
     autoCompletionDependsOnParameters: string[];
 }
 
+type ValidPropertyJsonSchemaType = "string" | "object";
+
 /** Description of a parameter of an item. */
 export interface IArtefactItemProperty {
     title: string;
     description: string;
     // Either "string" or "object"
-    type: "string" | "object";
+    type: ValidPropertyJsonSchemaType;
     value: string;
     advanced: boolean;
     parameterType: string;
@@ -52,7 +54,7 @@ export type IOverviewArtefactItemList = Record<string, IOverviewArtefactItem>;
 export interface IOverviewArtefactItem {
     title: string;
     description: string;
-    taskType: string;
+    taskType: TaskType;
     categories: string[];
     markdownDocumentation?: string;
 }
@@ -61,8 +63,8 @@ export interface IOverviewArtefactItem {
 export interface IDetailedArtefactItem {
     title: string;
     description: string;
-    taskType: string;
-    type: string;
+    taskType: TaskType;
+    type: "object";
     categories: string[];
     properties: {
         [key: string]: IArtefactItemProperty;

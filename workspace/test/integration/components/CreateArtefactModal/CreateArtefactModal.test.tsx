@@ -18,7 +18,7 @@ import {
 } from "../../TestHelper";
 import { CreateArtefactModal } from "../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal";
 import { waitFor } from "@testing-library/react";
-import { IOverviewArtefactItemList } from "../../../../src/app/store/ducks/common/typings";
+import { IDetailedArtefactItem, IOverviewArtefactItemList } from "../../../../src/app/store/ducks/common/typings";
 
 describe("Task creation widget", () => {
     afterEach(() => {
@@ -39,6 +39,17 @@ describe("Task creation widget", () => {
                 },
             })
         );
+    };
+
+    // Loads the selection list modal with mocked artefact list
+    const createMockedListWrapper = async () => {
+        const wrapper = createArtefactWrapper(`${SERVE_PATH}/projects/${PROJECT_ID}`);
+        mockAxios.mockResponseFor(
+            { url: apiUrl("core/taskPlugins") },
+            mockedAxiosResponse({ data: mockArtefactListResponse })
+        );
+        await waitFor(() => expect(selectionItems(wrapper)).toHaveLength(3));
+        return wrapper;
     };
 
     const fetchDialog = async (wrapper: ReactWrapper<any, any>) => {
@@ -68,6 +79,28 @@ describe("Task creation widget", () => {
         },
     };
 
+    const mockPluginDescription: IDetailedArtefactItem = {
+        title: "Plugin A",
+        description: "This is plugin A",
+        type: "object",
+        taskType: "CustomTask",
+        categories: ["category A", "category B"],
+        required: [],
+        pluginId: "pluginA",
+        properties: {
+            linkLimit: {
+                advanced: true,
+                description:
+                    "The maximum number of links that should be generated. The execution will stop once this limit is reached.",
+                parameterType: "int",
+                title: "Link Limit",
+                type: "string",
+                value: "1000000",
+                visibleInDialog: true,
+            },
+        },
+    };
+
     it("should show only the project artefact to select when on the main search page", async () => {
         const wrapper = createArtefactWrapper();
         const dialog = await fetchDialog(wrapper);
@@ -77,12 +110,7 @@ describe("Task creation widget", () => {
     });
 
     it("should show the project artefact and all task artefacts when being in a project context", async () => {
-        const wrapper = createArtefactWrapper(`${SERVE_PATH}/projects/${PROJECT_ID}`);
-        mockAxios.mockResponseFor(
-            { url: apiUrl("core/taskPlugins") },
-            mockedAxiosResponse({ data: mockArtefactListResponse })
-        );
-        await waitFor(() => expect(selectionItems(wrapper)).toHaveLength(3));
+        const wrapper = await createMockedListWrapper();
         const items = selectionItems(wrapper);
         expect(items[0].html()).toContain("Project");
         expect(items[1].html()).toContain("Plugin A");
@@ -90,5 +118,21 @@ describe("Task creation widget", () => {
         // Double click list item to trigger create dialog
         clickWrapperElement(items[2], 2);
         checkRequestMade(apiUrl("/core/plugins/pluginB"));
+    });
+
+    it("should open the plugin configuration dialog when double-clicking an item from the list", async () => {
+        const wrapper = await createMockedListWrapper();
+        const pluginA = selectionItems(wrapper)[1];
+        // Double-click "Plugin A"
+        clickWrapperElement(pluginA);
+        clickWrapperElement(pluginA);
+        mockAxios.mockResponseFor(
+            { url: apiUrl("core/plugins/pluginA") },
+            mockedAxiosResponse({ data: mockPluginDescription })
+        );
+        await waitFor(() => {
+            expect(findAll(wrapper, "form label")).toHaveLength(1);
+        });
+        logRequests();
     });
 });
