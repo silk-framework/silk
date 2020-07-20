@@ -54,8 +54,8 @@ export function SearchBar({ textQuery = "", sorters, onSort, onSearch, focusOnCr
                 />
             </ToolbarSection>
             <ToolbarSection>
-                {!!sorters.list.length && onSort && <Spacing size="tiny" vertical />}
-                {!!sorters.list.length && onSort && (
+                {!!sorters?.list.length && onSort && <Spacing size="tiny" vertical />}
+                {!!sorters?.list.length && onSort && (
                     <SortButton sortersList={sorters.list} onSort={onSort} activeSort={sorters.applied} />
                 )}
             </ToolbarSection>
