@@ -187,7 +187,6 @@ const extractValidElements = function (element: ReactWrapper<any, any>) {
 };
 /** Finds all wrapper elements that are actual elements in the DOM */
 export const findAll = (wrapper: ReactWrapper<any, any>, cssSelector: string | EnzymePropSelector): ReactWrapper[] => {
-    wrapper.parent();
     wrapper.update();
     const element =
         typeof cssSelector === "string"

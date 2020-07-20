@@ -12,7 +12,7 @@ interface IProps {
 
 export default function SortButton({ sortersList, activeSort, onSort }: IProps) {
     return (
-        <div className={"sortButton"} data-testid={"sortButton"}>
+        <div className={"sortButton"} data-test-id={"sortButton"}>
             <ContextMenu togglerElement="list-sort" togglerText="Sort options">
                 {sortersList.map((item) => (
                     <MenuItem

@@ -70,7 +70,7 @@ export default function FacetsList() {
                                 return (
                                     <li key={key}>
                                         <FacetItem
-                                            data-testid={"facet-items"}
+                                            data-test-id={"facet-items"}
                                             isChecked={isChecked(facet.id, val.id)}
                                             value={val.id}
                                             onSelectFacet={(valueId) => handleSetFacet(facet, valueId)}

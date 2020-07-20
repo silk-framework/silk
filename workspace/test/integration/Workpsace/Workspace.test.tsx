@@ -2,7 +2,15 @@ import React from "react";
 import qs from "qs";
 import { createBrowserHistory, createMemoryHistory } from "history";
 import mockAxios from "../../__mocks__/axios";
-import { mockedAxiosResponse, testWrapper, withRender, workspacePath } from "../TestHelper";
+import {
+    byTestId,
+    findAll,
+    mockedAxiosResponse,
+    testWrapper,
+    withMount,
+    withRender,
+    workspacePath,
+} from "../TestHelper";
 import { Workspace } from "../../../src/app/views/pages/Workspace/Workspace";
 import { waitFor, fireEvent, screen } from "@testing-library/react";
 
@@ -83,7 +91,7 @@ describe("Search Items", () => {
             const qsStr = qs.stringify(searchParams, { arrayFormat: "comma" });
             history.push(`${rootPath}?${qsStr}`);
         }
-        return withRender(testWrapper(<Workspace />, history));
+        return withMount(testWrapper(<Workspace />, history));
     };
 
     afterEach(() => {
@@ -132,14 +140,14 @@ describe("Search Items", () => {
             itemType: "dataset",
         };
 
-        getWrapper(filteredQueryParams);
+        const wrapper = getWrapper(filteredQueryParams);
 
         mockItemTypesRequest();
 
         mockSearchItemsRequest();
 
         await waitFor(() => {
-            const elements = screen.queryAllByTestId(`facet-items`);
+            const elements = findAll(wrapper, byTestId(`facet-items`));
             expect(elements).toHaveLength(2);
             done();
         });

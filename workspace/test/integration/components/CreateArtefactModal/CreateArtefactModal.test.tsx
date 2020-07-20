@@ -7,6 +7,7 @@ import { createBrowserHistory } from "history";
 import {
     apiUrl,
     byTestId,
+    changeValue,
     checkRequestMade,
     clickWrapperElement,
     findAll,
@@ -19,6 +20,8 @@ import {
 import { CreateArtefactModal } from "../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal";
 import { waitFor } from "@testing-library/react";
 import { IDetailedArtefactItem, IOverviewArtefactItemList } from "../../../../src/app/store/ducks/common/typings";
+import { atomicParamDescription, objectParamDescription } from "./CreateArtefactModalHelper";
+import { INPUT_TYPES } from "../../../../src/app/constants";
 
 describe("Task creation widget", () => {
     afterEach(() => {
@@ -64,6 +67,25 @@ describe("Task creation widget", () => {
         return findAll(dialogWrapper, ".ecc-overviewitem__list .ecc-overviewitem__item");
     };
 
+    const pluginCreationDialogWrapper = async () => {
+        const wrapper = await createMockedListWrapper();
+        const pluginA = selectionItems(wrapper)[1];
+        // Double-click "Plugin A"
+        clickWrapperElement(pluginA);
+        clickWrapperElement(pluginA);
+        mockAxios.mockResponseFor(
+            { url: apiUrl("core/plugins/pluginA") },
+            mockedAxiosResponse({ data: mockPluginDescription })
+        );
+        await waitFor(() => {
+            const labels = findAll(wrapper, ".ecc-label .ecc-label__text").map((e) => e.text());
+            Object.entries(mockPluginDescription.properties).forEach(([paramId, attributes]) =>
+                expect(labels).toContain(attributes.title)
+            );
+        });
+        return wrapper;
+    };
+
     const mockArtefactListResponse: IOverviewArtefactItemList = {
         pluginA: {
             title: "Plugin A",
@@ -85,19 +107,37 @@ describe("Task creation widget", () => {
         type: "object",
         taskType: "CustomTask",
         categories: ["category A", "category B"],
-        required: [],
+        required: ["intParam"],
         pluginId: "pluginA",
         properties: {
-            linkLimit: {
-                advanced: true,
-                description:
-                    "The maximum number of links that should be generated. The execution will stop once this limit is reached.",
-                parameterType: "int",
-                title: "Link Limit",
-                type: "string",
-                value: "1000000",
-                visibleInDialog: true,
-            },
+            intParam: atomicParamDescription({ title: "integer param", parameterType: INPUT_TYPES.INTEGER }),
+            booleanParam: atomicParamDescription({ title: "boolean param", parameterType: INPUT_TYPES.BOOLEAN }),
+            stringParam: atomicParamDescription({ title: "string param", parameterType: INPUT_TYPES.STRING }),
+            restrictionParam: atomicParamDescription({
+                title: "restriction param",
+                parameterType: INPUT_TYPES.RESTRICTION,
+            }),
+            multiLineParam: atomicParamDescription({
+                title: "multi-line param",
+                parameterType: INPUT_TYPES.MULTILINE_STRING,
+            }),
+            passwordParam: atomicParamDescription({ title: "password param", parameterType: INPUT_TYPES.PASSWORD }),
+            resourceParam: atomicParamDescription({ title: "resource param", parameterType: INPUT_TYPES.RESOURCE }),
+            enumerationParam: atomicParamDescription(
+                { title: "enumeration param", parameterType: INPUT_TYPES.ENUMERATION },
+                {}
+            ),
+            objectParameter: objectParamDescription(
+                "pluginX",
+                {
+                    subProperty: atomicParamDescription(
+                        { title: "nested auto-complete param", parameterType: INPUT_TYPES.STRING },
+                        {}
+                    ),
+                },
+                ["subProperty"],
+                {}
+            ),
         },
     };
 
@@ -121,18 +161,39 @@ describe("Task creation widget", () => {
     });
 
     it("should open the plugin configuration dialog when double-clicking an item from the list", async () => {
-        const wrapper = await createMockedListWrapper();
-        const pluginA = selectionItems(wrapper)[1];
-        // Double-click "Plugin A"
-        clickWrapperElement(pluginA);
-        clickWrapperElement(pluginA);
-        mockAxios.mockResponseFor(
-            { url: apiUrl("core/plugins/pluginA") },
-            mockedAxiosResponse({ data: mockPluginDescription })
-        );
-        await waitFor(() => {
-            expect(findAll(wrapper, "form label")).toHaveLength(1);
-        });
-        logRequests();
+        await pluginCreationDialogWrapper();
+    });
+
+    it("should show a form with parameters of different types", async () => {
+        const wrapper = await pluginCreationDialogWrapper();
+        // boolean parameter
+        expect(findAll(wrapper, 'input[type="checkbox"]')).toHaveLength(1);
+        // password parameter
+        expect(findAll(wrapper, 'input[type="password"]')).toHaveLength(1);
+        // resource parameter radio options
+        expect(findAll(wrapper, 'input[type="radio"]')).toHaveLength(3);
+        // resource and object parameter
+        expect(findAll(wrapper, "legend")).toHaveLength(2);
+        // restriction and multi-line use code mirror widget
+        expect(findAll(wrapper, byTestId("codemirror-wrapper"))).toHaveLength(2);
+    });
+
+    it("should show validation errors for an unfinished form when clicking 'Create'", async () => {
+        window.HTMLElement.prototype.scrollIntoView = function () {};
+        const wrapper = await pluginCreationDialogWrapper();
+        const clickCreate = () => clickWrapperElement(findSingleElement(wrapper, byTestId("createArtefactButton")));
+        const expectValidationErrors = async (nrErrors: number) =>
+            await waitFor(() => {
+                // label, intParam and subProperty should be marked with validation errors
+                expect(findAll(wrapper, ".ecc-intent--danger").length).toBe(nrErrors);
+            });
+        clickCreate();
+        await expectValidationErrors(3);
+        // Enter valid value for int parameter
+        changeValue(findSingleElement(wrapper, "#intParam"), "100");
+        await expectValidationErrors(2);
+        // Enter invalid value for int parameter
+        changeValue(findSingleElement(wrapper, "#intParam"), "abc");
+        await expectValidationErrors(3);
     });
 });

@@ -286,6 +286,7 @@ export function CreateArtefactModal() {
                     ) : (
                         [
                             <Button
+                                data-test-id={"createArtefactButton"}
                                 key="create"
                                 affirmative={true}
                                 onClick={handleCreate}
