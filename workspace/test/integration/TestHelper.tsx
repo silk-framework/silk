@@ -49,7 +49,7 @@ jest.mock("react-router", () => ({
  * @param history      The initial history.
  * @param initialState
  */
-export const createStore = (history: History<{}>, initialState: Partial<IStore>) => {
+export const createStore = (history: History<{}>, initialState: RecursivePartial<IStore>) => {
     const root = rootReducer(history);
     const middleware = [
         ...getDefaultMiddleware({
@@ -75,12 +75,25 @@ export const createStore = (history: History<{}>, initialState: Partial<IStore>)
     });
 };
 
+/** Similar to Partial, but applies recursively. */
+type RecursivePartial<T> = {
+    [P in keyof T]?: T[P] extends (infer U)[]
+        ? RecursivePartial<U>[]
+        : T[P] extends object
+        ? RecursivePartial<T[P]>
+        : T[P];
+};
+
 export const withMount = (component) => mount(component);
 
 export const withRender = (component, rerender?: Function) => (rerender ? rerender(component) : render(component));
 
 /** Returns a wrapper for the application. */
-export const testWrapper = (component: JSX.Element, history: History<{}>, initialState: Partial<IStore> = {}) => {
+export const testWrapper = (
+    component: JSX.Element,
+    history: History<{}>,
+    initialState: RecursivePartial<IStore> = {}
+) => {
     const store = createStore(history, initialState);
     // Set path name of global mock
     mockValues.pathName = history?.location?.pathname;
