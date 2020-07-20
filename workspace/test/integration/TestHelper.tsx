@@ -173,10 +173,13 @@ const extractValidElements = function (element: ReactWrapper<any, any>) {
     return validElementIdx.map((idx) => element.at(idx));
 };
 /** Finds all wrapper elements that are actual elements in the DOM */
-export const findAll = (wrapper: ReactWrapper<any, any>, cssSelector: string & EnzymePropSelector): ReactWrapper[] => {
+export const findAll = (wrapper: ReactWrapper<any, any>, cssSelector: string | EnzymePropSelector): ReactWrapper[] => {
     wrapper.parent();
     wrapper.update();
-    const element = wrapper.find(cssSelector);
+    const element =
+        typeof cssSelector === "string"
+            ? wrapper.find(cssSelector as string)
+            : wrapper.find(cssSelector as EnzymePropSelector);
 
     return extractValidElements(element);
 };
