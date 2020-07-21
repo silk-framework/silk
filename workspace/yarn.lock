@@ -1545,6 +1545,11 @@
   resolved "https://artifactory.eccenca.com/api/npm/npm/@types/color-name/-/color-name-1.1.1.tgz#1c1261bbeaa10a8055bbc5d8ab84b7b2afc846a0"
   integrity sha1-HBJhu+qhCoBVu8XYq4S3sq/IRqA=
 
+"@types/core-js@^2.5.3":
+  version "2.5.3"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/core-js/-/core-js-2.5.3.tgz#d2f307f708f897f875d312501e3b4a2fd4481d41"
+  integrity sha1-0vMH9wj4l/h10xJQHjtKL9RIHUE=
+
 "@types/dom4@^2.0.1":
   version "2.0.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@types/dom4/-/dom4-2.0.1.tgz#506d5781b9bcab81bd9a878b198aec7dee2a6033"
@@ -3719,7 +3724,7 @@ core-js@^2.4.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/core-js/-/core-js-2.6.11.tgz#38831469f9922bded8ee21c9dc46985e0399308c"
   integrity sha1-OIMUafmSK97Y7iHJ3EaYXgOZMIw=
 
-core-js@^3.5.0:
+core-js@^3.5.0, core-js@^3.6.5:
   version "3.6.5"
   resolved "https://artifactory.eccenca.com/api/npm/npm/core-js/-/core-js-3.6.5.tgz#7395dc273af37fb2e50e9bd3d9fe841285231d1a"
   integrity sha1-c5XcJzrzf7LlDpvT2f6EEoUjHRo=
