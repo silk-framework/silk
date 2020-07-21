@@ -17,11 +17,15 @@ import {
     Tag,
 } from "@wrappers/index";
 import { routerOp } from "@ducks/router";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Highlighter } from "../Highlighter/Highlighter";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import { IPageLabels } from "@ducks/router/operations";
+import { DATA_TYPES } from "../../../constants";
+import { commonSel } from "@ducks/common";
+import { IExportTypes } from "@ducks/common/typings";
+import { downloadResource } from "../../../utils/downloadResource";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -45,6 +49,7 @@ export default function SearchItem({
     parentProjectId,
 }: IProps) {
     const dispatch = useDispatch();
+    const exportTypes = useSelector(commonSel.exportTypesSelector);
 
     // Remove detailsPath
     const contextMenuItems = item.itemLinks
@@ -59,6 +64,20 @@ export default function SearchItem({
             />
         ));
 
+    if (item.type === DATA_TYPES.PROJECT && !!exportTypes.length) {
+        contextMenuItems.push(
+            <MenuItem key="export" text={"Export to"}>
+                {exportTypes.map((type) => (
+                    <MenuItem
+                        key={type.id}
+                        onClick={() => handleExport(type)}
+                        text={<OverflowText inline>{type.label}</OverflowText>}
+                    />
+                ))}
+            </MenuItem>
+        );
+    }
+
     const goToDetailsPage = (e) => {
         e.preventDefault();
         const detailsPath = item.itemLinks[0].path;
@@ -70,6 +89,10 @@ export default function SearchItem({
         }
         labels.itemType = item.type;
         dispatch(routerOp.goToPage(detailsPath, labels));
+    };
+
+    const handleExport = async (type: IExportTypes) => {
+        downloadResource(item.id, type.id);
     };
 
     return (

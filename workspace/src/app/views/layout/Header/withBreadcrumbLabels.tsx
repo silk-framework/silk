@@ -6,6 +6,7 @@ import { getFullRoutePath } from "../../../utils/routerUtils";
 import { IBreadcrumb } from "./Header";
 import { SERVE_PATH } from "../../../constants/path";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
+import { useTranslation } from "react-i18next";
 
 export default function withBreadcrumbLabels(WrappedComponent) {
     // Valid breadcrumb IDs
@@ -16,7 +17,7 @@ export default function withBreadcrumbLabels(WrappedComponent) {
     return function (props) {
         const location = useLocation<any>();
         const [breadcrumbs, setBreadcrumbs] = useState<IBreadcrumb[]>([]);
-        // const [t] = useTranslation();
+        const [t] = useTranslation();
 
         useEffect(() => {
             const match = appRoutes
@@ -40,7 +41,7 @@ export default function withBreadcrumbLabels(WrappedComponent) {
             const { params = {}, url }: any = match[0];
 
             const labelFunction = labelForBreadCrumb(params);
-            const updatedBread = [{ href: SERVE_PATH, text: "Build" }];
+            const updatedBread = [{ href: SERVE_PATH, text: t("common.build") }];
 
             if (params.projectId) {
                 updatedBread.push({
