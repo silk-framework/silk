@@ -1,6 +1,6 @@
 import fetch from "../../../services/fetch";
-import { coreApi, workspaceApi } from "../../../utils/getApiEndpoint";
-import { IDetailedArtefactItem } from "@ducks/common/typings";
+import { coreApi, legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
+import { IDetailedArtefactItem, IExportTypes } from "@ducks/common/typings";
 
 const handleError = (error) => {
     return error.errorResponse;
@@ -60,6 +60,20 @@ export const requestArtefactProperties = async (artefactKey: string): Promise<ID
     try {
         const { data } = await fetch({
             url: coreApi(`/plugins/${artefactKey}`),
+        });
+        return data;
+    } catch (e) {
+        throw handleError(e);
+    }
+};
+
+/**
+ * Get all available import/export types
+ */
+export const requestExportTypes = async (): Promise<IExportTypes> => {
+    try {
+        const { data } = await fetch({
+            url: legacyApiEndpoint(`/marshallingPlugins`),
         });
         return data;
     } catch (e) {

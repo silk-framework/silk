@@ -6,6 +6,7 @@ import asModifier from "../../../utils/asModifier";
 import {
     requestArtefactList,
     requestArtefactProperties,
+    requestExportTypes,
     requestInitFrontend,
     requestSearchConfig,
 } from "@ducks/common/requests";
@@ -30,13 +31,25 @@ const {
     setArtefactLoading,
     setTaskId,
     setModalError,
+    setExportTypes,
 } = commonSlice.actions;
 
 const fetchCommonSettingsAsync = () => {
     return async (dispatch) => {
         try {
             const data = await requestInitFrontend();
-            setInitialSettings(data);
+            dispatch(setInitialSettings(data));
+        } catch (error) {
+            dispatch(setError(error));
+        }
+    };
+};
+
+const fetchExportTypesAsync = () => {
+    return async (dispatch) => {
+        try {
+            const data = await requestExportTypes();
+            dispatch(setExportTypes(data));
         } catch (error) {
             dispatch(setError(error));
         }
@@ -272,4 +285,5 @@ export default {
     fetchUpdateTaskAsync,
     fetchCreateProjectAsync,
     resetArtefactModal,
+    fetchExportTypesAsync,
 };
