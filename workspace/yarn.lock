@@ -995,13 +995,6 @@
   dependencies:
     regenerator-runtime "^0.13.4"
 
-"@babel/runtime@^7.10.1":
-  version "7.10.4"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/runtime/-/runtime-7.10.4.tgz#a6724f1a6b8d2f6ea5236dbfe58c7d7ea9c5eb99"
-  integrity sha1-pnJPGmuNL26lI22/5Yx9fqnF65k=
-  dependencies:
-    regenerator-runtime "^0.13.4"
-
 "@babel/template@^7.4.0", "@babel/template@^7.8.3", "@babel/template@^7.8.6":
   version "7.8.6"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/template/-/template-7.8.6.tgz#86b22af15f828dfb086474f964dcc3e39c43ce2b"
@@ -2639,16 +2632,6 @@ babel-plugin-dynamic-import-node@^2.3.3:
   integrity sha1-hP2hnJduxcbe/vV/lCez3vZuF6M=
   dependencies:
     object.assign "^4.1.0"
-
-babel-plugin-i18next-extract@^0.7.2:
-  version "0.7.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/babel-plugin-i18next-extract/-/babel-plugin-i18next-extract-0.7.2.tgz#846e80e56e48061dae272da1c14a26b3bbf25a76"
-  integrity sha1-hG6A5W5IBh2uJy2hwUoms7vyWnY=
-  dependencies:
-    "@babel/core" "^7.4.5"
-    "@babel/types" "^7.4.4"
-    i18next "^19.0.0"
-    json-stable-stringify "^1.0.1"
 
 babel-plugin-istanbul@^5.1.0:
   version "5.2.0"
@@ -5701,7 +5684,7 @@ glob-to-regexp@^0.3.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/glob-to-regexp/-/glob-to-regexp-0.3.0.tgz#8c5a1494d2066c570cc3bfe4496175acc4d502ab"
   integrity sha1-jFoUlNIGbFcMw7/kSWF1rMTVAqs=
 
-glob@^7.0.0, glob@^7.0.3, glob@^7.0.5, glob@^7.1.1, glob@^7.1.2, glob@^7.1.3, glob@^7.1.4, glob@^7.1.6, glob@~7.1.1:
+glob@^7.0.0, glob@^7.0.3, glob@^7.1.1, glob@^7.1.2, glob@^7.1.3, glob@^7.1.4, glob@^7.1.6, glob@~7.1.1:
   version "7.1.6"
   resolved "https://artifactory.eccenca.com/api/npm/npm/glob/-/glob-7.1.6.tgz#141f33b81a7c2492e125594307480c46679278a6"
   integrity sha1-FB8zuBp8JJLhJVlDB0gMRmeSeKY=
@@ -6192,22 +6175,6 @@ i18next-browser-languagedetector@^4.1.1:
   integrity sha1-iWVs2beLuS3Ax+hsDZYG8/Ffq/o=
   dependencies:
     "@babel/runtime" "^7.5.5"
-
-i18next-json-sync@^2.3.1:
-  version "2.3.1"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/i18next-json-sync/-/i18next-json-sync-2.3.1.tgz#c584c69e7cc5d179f5a5ff64c6b9a143e439b909"
-  integrity sha1-xYTGnnzF0Xn1pf9kxrmhQ+Q5uQk=
-  dependencies:
-    glob "^7.0.5"
-    json-stable-stringify "^1.0.1"
-    yargs "^5.0.0"
-
-i18next@^19.0.0:
-  version "19.5.5"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/i18next/-/i18next-19.5.5.tgz#e0eb84bdc81eb030079cbed13b688fc5ff1c3359"
-  integrity sha1-4OuEvcgesDAHnL7RO2iPxf8cM1k=
-  dependencies:
-    "@babel/runtime" "^7.10.1"
 
 i18next@^19.4.3:
   version "19.4.4"
@@ -7742,7 +7709,7 @@ lodash._reinterpolate@^3.0.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/lodash._reinterpolate/-/lodash._reinterpolate-3.0.0.tgz#0ccf2d89166af03b3663c796538b75ac6e114d9d"
   integrity sha1-DM8tiRZq8Ds2Y8eWU4t1rG4RTZ0=
 
-lodash.assign@^4.1.0, lodash.assign@^4.2.0:
+lodash.assign@^4.2.0:
   version "4.2.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/lodash.assign/-/lodash.assign-4.2.0.tgz#0d99f3ccd7a6d261d19bdaeb9245005d285808e7"
   integrity sha1-DZnzzNem0mHRm9rrkkUAXShYCOc=
@@ -12813,11 +12780,6 @@ window-or-global@^1.0.1:
   resolved "https://artifactory.eccenca.com/api/npm/npm/window-or-global/-/window-or-global-1.0.1.tgz#dbe45ba2a291aabc56d62cf66c45b7fa322946de"
   integrity sha1-2+RboqKRqrxW1iz2bEW3+jIpRt4=
 
-window-size@^0.2.0:
-  version "0.2.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/window-size/-/window-size-0.2.0.tgz#b4315bb4214a3d7058ebeee892e13fa24d98b075"
-  integrity sha1-tDFbtCFKPXBY6+7okuE/ok2YsHU=
-
 word-wrap@~1.2.3:
   version "1.2.3"
   resolved "https://artifactory.eccenca.com/api/npm/npm/word-wrap/-/word-wrap-1.2.3.tgz#610636f6b1f703891bd34771ccb17fb93b47079c"
@@ -13113,14 +13075,6 @@ yargs-parser@^13.1.0, yargs-parser@^13.1.2:
     camelcase "^5.0.0"
     decamelize "^1.2.0"
 
-yargs-parser@^3.2.0:
-  version "3.2.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/yargs-parser/-/yargs-parser-3.2.0.tgz#5081355d19d9d0c8c5d81ada908cb4e6d186664f"
-  integrity sha1-UIE1XRnZ0MjF2BrakIy05tGGZk8=
-  dependencies:
-    camelcase "^3.0.0"
-    lodash.assign "^4.1.0"
-
 yargs-parser@^5.0.0:
   version "5.0.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/yargs-parser/-/yargs-parser-5.0.0.tgz#275ecf0d7ffe05c77e64e7c86e4cd94bf0e1228a"
@@ -13178,26 +13132,6 @@ yargs@^13.3.0:
     which-module "^2.0.0"
     y18n "^4.0.0"
     yargs-parser "^13.1.2"
-
-yargs@^5.0.0:
-  version "5.0.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/yargs/-/yargs-5.0.0.tgz#3355144977d05757dbb86d6e38ec056123b3a66e"
-  integrity sha1-M1UUSXfQV1fbuG1uOOwFYSOzpm4=
-  dependencies:
-    cliui "^3.2.0"
-    decamelize "^1.1.1"
-    get-caller-file "^1.0.1"
-    lodash.assign "^4.2.0"
-    os-locale "^1.4.0"
-    read-pkg-up "^1.0.1"
-    require-directory "^2.1.1"
-    require-main-filename "^1.0.1"
-    set-blocking "^2.0.0"
-    string-width "^1.0.2"
-    which-module "^1.0.0"
-    window-size "^0.2.0"
-    y18n "^3.2.1"
-    yargs-parser "^3.2.0"
 
 yargs@^7.0.0:
   version "7.1.0"
