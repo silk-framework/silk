@@ -1,5 +1,8 @@
 package org.silkframework.plugins.dataset.json
 
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
+
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
@@ -18,7 +21,8 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
   def children(prop: Uri): Seq[JsonTraverser] = {
     value match {
       case obj: JsObject =>
-        obj.value.get(prop.uri).toSeq.map(value => asNewParent(prop, value))
+        val decodedProp = URLDecoder.decode(prop.uri, StandardCharsets.UTF_8.name)
+        obj.value.get(decodedProp).toSeq.map(value => asNewParent(prop, value))
       case array: JsArray if array.value.nonEmpty =>
         array.value.flatMap(v => keepParent(v).children(prop))
       case _ =>

@@ -26,9 +26,9 @@ class JsonReaderTest extends FlatSpec with Matchers {
     JsonTraverser("alibi_task_id", resources.get("example.json"))
   }
 
-  private val persons = json.select("persons" :: Nil)
+  private lazy val persons = json.select("persons" :: Nil)
 
-  private val phoneNumbers = json.select("persons" :: "phoneNumbers" :: Nil)
+  private lazy val phoneNumbers = json.select("persons" :: "phoneNumbers" :: Nil)
 
   "On example.json, JsonReader" should "return 2 persons" in {
     persons.size should equal (2)
@@ -48,6 +48,11 @@ class JsonReaderTest extends FlatSpec with Matchers {
 
   it should "support backward paths" in {
     evaluate(phoneNumbers, "\\phoneNumbers/id") should equal (Seq("0", "0", "1"))
+  }
+
+  it should "support keys with spaces" in {
+    val valuesWithSpaces = json.select("values%20with%20spaces" :: Nil)
+    evaluate(valuesWithSpaces, "space%20value") should equal (Seq("Berlin", "Hamburg"))
   }
 
   private def evaluate(values: Seq[JsonTraverser], path: String): Seq[String] = {

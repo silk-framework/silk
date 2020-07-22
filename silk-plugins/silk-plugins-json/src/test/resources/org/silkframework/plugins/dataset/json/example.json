@@ -13,6 +13,7 @@
           "number": "456"
         }
       ]
+
     },
     {
       "id": "1",
@@ -23,11 +24,20 @@
           "number": "789"
         }
       ]
+
     }
   ],
   "organizations": [
     {
       "name": "John Inc"
+    }
+  ],
+  "values with spaces": [
+    {
+      "space value": "Berlin"
+    },
+    {
+      "space value": "Hamburg"
     }
   ]
 }
