@@ -6,12 +6,22 @@ import { AppLayout } from "../../src/app/views/layout/AppLayout/AppLayout";
 import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
 import rootReducer from "../../src/app/store/reducers";
 import { ConnectedRouter, routerMiddleware } from "connected-react-router";
-import { AxiosMockType } from "jest-mock-axios/dist/lib/mock-axios-types";
+import {
+    AxiosMockQueueItem,
+    AxiosMockRequestCriteria,
+    AxiosMockType,
+    HttpResponse,
+} from "jest-mock-axios/dist/lib/mock-axios-types";
 import mockAxios from "../__mocks__/axios";
 import { CONTEXT_PATH, SERVE_PATH } from "../../src/app/constants/path";
 import { mergeDeepRight } from "ramda";
 import { IStore } from "../../src/app/store/typings/IStore";
 import { render } from "@testing-library/react";
+import {
+    responseInterceptorOnError,
+    responseInterceptorOnSuccess,
+} from "../../src/app/services/fetch/responseInterceptor";
+import { AxiosError } from "axios";
 
 const mockValues = {
     pathName: "/what?",
@@ -232,6 +242,54 @@ export const mockedAxiosResponse = ({ status = 200, data = "" }: IAxiosResponse 
         status: status,
         data: data,
     };
+};
+
+/** Returns the Axios queue item based on the given criteria. */
+const axiosMockItemByCriteria = (criteria: string | AxiosMockRequestCriteria): AxiosMockQueueItem => {
+    if (typeof criteria === "string") {
+        return mockAxios.getReqByUrl(criteria);
+    } else {
+        return mockAxios.getReqMatching(criteria);
+    }
+};
+
+/** An Axios error mock that can be used with the mockAxiosResponse method. */
+export const mockedAxiosError = (httpStatus?: number, errorData?: any): AxiosError => {
+    return {
+        name: "Mocked Axios error",
+        message: "Mocked Axios error",
+        config: {},
+        response: {
+            status: httpStatus,
+            data: errorData,
+            statusText: "error status",
+            headers: {},
+            config: {},
+        },
+        isAxiosError: true,
+        toJSON: () => ({}),
+    };
+};
+
+/** Mock an Axios request. Depending on the response object this is either a valid response or an error. */
+export const mockAxiosResponse = (
+    criteria: string | AxiosMockRequestCriteria,
+    response?: HttpResponse | AxiosError,
+    silentMode?: boolean
+): void => {
+    mockAxios.interceptors.response.use(responseInterceptorOnSuccess, responseInterceptorOnError);
+    const requestQueueItem = axiosMockItemByCriteria(criteria);
+    if (requestQueueItem) {
+        if (response) {
+            if ((response as AxiosError).isAxiosError) {
+                mockAxios.mockError(response, requestQueueItem);
+            } else {
+                mockAxios.mockResponseFor(criteria, response as HttpResponse, silentMode);
+            }
+        } else {
+            mockAxios.mockResponseFor(criteria, response as HttpResponse, silentMode);
+        }
+    }
 };
 
 // Returns an array with values 0 ... (nrItems - 1)

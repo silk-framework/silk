@@ -14,12 +14,10 @@ import {
     findAll,
     findSingleElement,
     legacyApiUrl,
-    logPageHtml,
-    logPageOnTimeoutError,
-    logRequests,
     logWrapperHtmlOnError,
+    mockAxiosResponse,
+    mockedAxiosError,
     mockedAxiosResponse,
-    pressKey,
     testWrapper,
     withMount,
 } from "../../TestHelper";
@@ -247,17 +245,18 @@ describe("Task creation widget", () => {
         await expectValidationErrors(wrapper, 0);
         const expectedErrorMsg = "internal server error ;)";
         await waitFor(() => {
-            mockAxios.mockResponseFor(
+            mockAxiosResponse(
                 legacyApiUrl("workspace/projects/projectId/tasks"),
-                mockedAxiosResponse({ status: 500, data: { detail: expectedErrorMsg } })
+                mockedAxiosError(500, { title: "error", detail: expectedErrorMsg })
             );
         });
-        await waitFor(
-            () => {
-                const error = findSingleElement(wrapper, ".ecc-intent--danger");
-                expect(error.text().toLowerCase()).toContain(expectedErrorMsg);
-            },
-            { onTimeout: logWrapperHtmlOnError(wrapper) }
-        );
+        await waitFor(() => {
+            const error = findSingleElement(wrapper, ".ecc-intent--danger");
+            expect(error.text().toLowerCase()).toContain(expectedErrorMsg);
+        });
+    });
+
+    it("should use existing values to set the initial parameter values on update", async () => {
+        const wrapper = await pluginCreationDialogWrapper();
     });
 });
