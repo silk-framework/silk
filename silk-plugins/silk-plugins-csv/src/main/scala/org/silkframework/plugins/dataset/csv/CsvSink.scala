@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.csv
 
 import java.io.{File, IOException}
+import java.nio.charset.Charset
 import java.util.logging.Logger
 
 import org.silkframework.config.Prefixes

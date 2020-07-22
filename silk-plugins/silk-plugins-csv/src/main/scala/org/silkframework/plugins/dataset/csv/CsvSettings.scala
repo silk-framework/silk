@@ -1,5 +1,7 @@
 package org.silkframework.plugins.dataset.csv
 
+import scala.io.Codec
+
 case class CsvSettings(separator: Char = ',',
                        arraySeparator: Option[Char] = None,
                        quote: Option[Char] = Some('"'),
@@ -8,4 +10,5 @@ case class CsvSettings(separator: Char = ',',
                        commentChar: Option[Char] = None,
                        quoteEscapeChar: Char = '"',
                        linesToSkip: Int = 0,
-                       nullValue: Option[String] = None)
+                       nullValue: Option[String] = None,
+                       codec: Codec = Codec.UTF8)

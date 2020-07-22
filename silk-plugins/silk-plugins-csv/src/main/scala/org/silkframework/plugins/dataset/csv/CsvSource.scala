@@ -25,7 +25,6 @@ class CsvSource(file: Resource,
                 properties: String = "",
                 uriPattern: String = "",
                 regexFilter: String = "",
-                codec: Codec = Codec.UTF8,
                 ignoreBadLines: Boolean = false,
                 detectSeparator: Boolean = false,
                 detectSkipLinesBeginning: Boolean = false,
@@ -324,14 +323,14 @@ class CsvSource(file: Resource,
 
   lazy val codecToUse: Codec = {
     if (fallbackCodecs.isEmpty) {
-      codec
+      settings.codec
     } else {
       pickWorkingCodec
     }
   }
 
   private def pickWorkingCodec: Codec = {
-    val tryCodecs = codec :: fallbackCodecs
+    val tryCodecs = settings.codec :: fallbackCodecs
     for (c <- tryCodecs) {
       val reader = getBufferedReaderForCsvFile(c)
       // Test read
@@ -350,7 +349,7 @@ class CsvSource(file: Resource,
         reader.close()
       }
     }
-    codec
+    settings.codec
   }
 
   override def retrieveTypes(limit: Option[Int] = None)
@@ -376,7 +375,7 @@ class CsvSource(file: Resource,
   override def combinedPath(typeUri: String, inputPath: UntypedPath): UntypedPath = inputPath
 
   def autoConfigure(): CsvAutoconfiguredParameters = {
-    val csvSource = new CsvSource(file, csvSettings, properties, uriPattern, regexFilter, codec,
+    val csvSource = new CsvSource(file, csvSettings, properties, uriPattern, regexFilter,
       detectSeparator = true, detectSkipLinesBeginning = true, fallbackCodecs = List(Codec.ISO8859), maxLinesToDetectCodec = Some(1000))
     val detectedSettings = csvSource.csvSettings
     val detectedSeparator = detectedSettings.separator.toString
