@@ -85,16 +85,11 @@ export const requestCloneProject = async (projectId: string, payload: any): Prom
 
 //missing-type
 export const requestCreateTask = async (payload, projectId): Promise<any | never> => {
-    try {
-        const { data } = await fetch({
-            url: legacyApiEndpoint(`/projects/${projectId}/tasks`),
-            method: "POST",
-            body: payload,
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+    return fetch({
+        url: legacyApiEndpoint(`/projects/${projectId}/tasks`),
+        method: "POST",
+        body: payload,
+    });
 };
 
 // Update project task

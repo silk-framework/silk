@@ -174,6 +174,31 @@ export const byTestId = (testId: string): EnzymePropSelector => {
     return { "data-test-id": testId };
 };
 
+/** Prints the complete page HTML string to console. */
+export const logPageHtml = (): void => {
+    process.stdout.write(window.document.documentElement.outerHTML);
+};
+
+/** Returns a function that logs the page HTML and returns the error. */
+export const logPageOnError = (err: Error) => {
+    console.log(logPageHtml());
+    return err;
+};
+
+/** Logs the wrapper HTML on error. */
+export const logWrapperHtmlOnError = (wrapper: ReactWrapper<any, any>) => {
+    wrapper.update();
+    return (err: Error) => {
+        console.log(wrapper.html());
+        return err;
+    };
+};
+
+/** Returns a name selector. */
+export const byName = (name: string): EnzymePropSelector => {
+    return { name: name };
+};
+
 /** Enzyme's find() method returns not always just the DOM elements, but also companion objects for each DOM element.
  * Filter out these companion objects and see if 1 element is left and return it. */
 const extractValidElements = function (element: ReactWrapper<any, any>) {

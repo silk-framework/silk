@@ -6,14 +6,20 @@ import { SERVE_PATH } from "../../../../src/app/constants/path";
 import { createBrowserHistory } from "history";
 import {
     apiUrl,
+    byName,
     byTestId,
     changeValue,
     checkRequestMade,
     clickWrapperElement,
     findAll,
     findSingleElement,
+    legacyApiUrl,
+    logPageHtml,
+    logPageOnTimeoutError,
     logRequests,
+    logWrapperHtmlOnError,
     mockedAxiosResponse,
+    pressKey,
     testWrapper,
     withMount,
 } from "../../TestHelper";
@@ -22,8 +28,13 @@ import { waitFor } from "@testing-library/react";
 import { IDetailedArtefactItem, IOverviewArtefactItemList } from "../../../../src/app/store/ducks/common/typings";
 import { atomicParamDescription, objectParamDescription } from "./CreateArtefactModalHelper";
 import { INPUT_TYPES } from "../../../../src/app/constants";
+import { TaskTypes } from "../../../../src/app/store/ducks/shared/typings";
 
 describe("Task creation widget", () => {
+    beforeAll(() => {
+        window.HTMLElement.prototype.scrollIntoView = function () {};
+    });
+
     afterEach(() => {
         mockAxios.reset();
     });
@@ -90,13 +101,13 @@ describe("Task creation widget", () => {
         pluginA: {
             title: "Plugin A",
             description: "This is plugin A",
-            taskType: "CustomTask",
+            taskType: TaskTypes.CUSTOM_TASK,
             categories: [],
         },
         pluginB: {
             title: "Plugin B",
             description: "This is plugin B",
-            taskType: "Dataset",
+            taskType: TaskTypes.DATASET,
             categories: [],
         },
     };
@@ -105,14 +116,18 @@ describe("Task creation widget", () => {
         title: "Plugin A",
         description: "This is plugin A",
         type: "object",
-        taskType: "CustomTask",
+        taskType: TaskTypes.CUSTOM_TASK,
         categories: ["category A", "category B"],
         required: ["intParam"],
         pluginId: "pluginA",
         properties: {
             intParam: atomicParamDescription({ title: "integer param", parameterType: INPUT_TYPES.INTEGER }),
             booleanParam: atomicParamDescription({ title: "boolean param", parameterType: INPUT_TYPES.BOOLEAN }),
-            stringParam: atomicParamDescription({ title: "string param", parameterType: INPUT_TYPES.STRING }),
+            stringParam: atomicParamDescription({
+                title: "string param",
+                parameterType: INPUT_TYPES.STRING,
+                value: "default string",
+            }),
             restrictionParam: atomicParamDescription({
                 title: "restriction param",
                 parameterType: INPUT_TYPES.RESTRICTION,
@@ -134,8 +149,12 @@ describe("Task creation widget", () => {
                         { title: "nested auto-complete param", parameterType: INPUT_TYPES.STRING },
                         {}
                     ),
+                    subStringParam: atomicParamDescription({
+                        title: "string param",
+                        parameterType: INPUT_TYPES.STRING,
+                    }),
                 },
-                ["subProperty"],
+                ["subStringParam"],
                 {}
             ),
         },
@@ -178,22 +197,67 @@ describe("Task creation widget", () => {
         expect(findAll(wrapper, byTestId("codemirror-wrapper"))).toHaveLength(2);
     });
 
+    // Click the create button in the create dialog
+    const clickCreate = (wrapper) => clickWrapperElement(findSingleElement(wrapper, byTestId("createArtefactButton")));
+    // Checks the number of expected validation errors
+    const expectValidationErrors = async (wrapper, nrErrors: number) =>
+        await waitFor(() => {
+            // label, intParam and subProperty should be marked with validation errors
+            expect(findAll(wrapper, ".ecc-intent--danger").length).toBe(nrErrors);
+        });
+
     it("should show validation errors for an unfinished form when clicking 'Create'", async () => {
-        window.HTMLElement.prototype.scrollIntoView = function () {};
         const wrapper = await pluginCreationDialogWrapper();
-        const clickCreate = () => clickWrapperElement(findSingleElement(wrapper, byTestId("createArtefactButton")));
-        const expectValidationErrors = async (nrErrors: number) =>
-            await waitFor(() => {
-                // label, intParam and subProperty should be marked with validation errors
-                expect(findAll(wrapper, ".ecc-intent--danger").length).toBe(nrErrors);
-            });
-        clickCreate();
-        await expectValidationErrors(3);
+        clickCreate(wrapper);
+        await expectValidationErrors(wrapper, 3);
         // Enter valid value for int parameter
         changeValue(findSingleElement(wrapper, "#intParam"), "100");
-        await expectValidationErrors(2);
+        await expectValidationErrors(wrapper, 2);
         // Enter invalid value for int parameter
         changeValue(findSingleElement(wrapper, "#intParam"), "abc");
-        await expectValidationErrors(3);
+        await expectValidationErrors(wrapper, 3);
+    });
+
+    it("should send the correct request when clicking 'Create' on a valid form", async () => {
+        const wrapper = await pluginCreationDialogWrapper();
+        changeValue(findSingleElement(wrapper, "#intParam"), "100");
+        changeValue(findSingleElement(wrapper, "#label"), "Some label");
+        changeValue(findSingleElement(wrapper, byName("objectParameter.subStringParam")), "Something");
+        clickCreate(wrapper);
+        await expectValidationErrors(wrapper, 0);
+        const request = mockAxios.getReqByUrl(legacyApiUrl("workspace/projects/projectId/tasks"));
+        expect(request).toBeTruthy();
+        const metaData = request.data.metadata;
+        const data = request.data.data;
+        expect(metaData.label).toBe("Some label");
+        expect(data.taskType).toBe(TaskTypes.CUSTOM_TASK);
+        expect(data.type).toBe("pluginA");
+        expect(data.parameters.intParam).toEqual("100");
+        expect(data.parameters.booleanParam).toEqual("false");
+        expect(data.parameters.objectParameter.subStringParam).toEqual("Something");
+        expect(data.parameters.stringParam).toEqual("default string");
+    });
+
+    it("should show an error message if task creation failed in the backend", async () => {
+        const wrapper = await pluginCreationDialogWrapper();
+        changeValue(findSingleElement(wrapper, "#intParam"), "100");
+        changeValue(findSingleElement(wrapper, "#label"), "Some label");
+        changeValue(findSingleElement(wrapper, byName("objectParameter.subStringParam")), "Something");
+        clickCreate(wrapper);
+        await expectValidationErrors(wrapper, 0);
+        const expectedErrorMsg = "internal server error ;)";
+        await waitFor(() => {
+            mockAxios.mockResponseFor(
+                legacyApiUrl("workspace/projects/projectId/tasks"),
+                mockedAxiosResponse({ status: 500, data: { detail: expectedErrorMsg } })
+            );
+        });
+        await waitFor(
+            () => {
+                const error = findSingleElement(wrapper, ".ecc-intent--danger");
+                expect(error.text().toLowerCase()).toContain(expectedErrorMsg);
+            },
+            { onTimeout: logWrapperHtmlOnError(wrapper) }
+        );
     });
 });

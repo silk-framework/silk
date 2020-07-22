@@ -27,6 +27,16 @@ export interface IProjectMetadataResponse {
     };
     tasks: any;
 }
+interface ITaskTypes {
+    [key: string]: TaskType;
+}
+export const TaskTypes: ITaskTypes = {
+    DATASET: "Dataset",
+    LINKING: "Linking",
+    TRANSFORM: "Transform",
+    WORKFLOW: "Workflow",
+    CUSTOM_TASK: "CustomTask",
+};
 
 export type TaskType = "Dataset" | "Linking" | "Transform" | "Workflow" | "CustomTask";
 

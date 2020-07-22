@@ -158,7 +158,7 @@ export const ParameterWidget = (props: IProps) => {
                     const nestedFormParamId = `${formParamId}.${nestedParamId}`;
                     return (
                         <ParameterWidget
-                            key={formParamId}
+                            key={nestedFormParamId}
                             projectId={projectId}
                             pluginId={propertyDetails.pluginId}
                             formParamId={nestedFormParamId}
@@ -223,6 +223,8 @@ export const ParameterWidget = (props: IProps) => {
                         }
                         dependentValues={selectDependentValues()}
                         inputProps={{
+                            name: formParamId,
+                            id: formParamId,
                             intent: errors ? Intent.DANGER : Intent.NONE,
                         }}
                         resetPossible={!required}

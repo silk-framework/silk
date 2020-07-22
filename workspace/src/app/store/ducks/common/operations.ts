@@ -14,6 +14,7 @@ import { commonSel } from "@ducks/common/index";
 import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { routerOp } from "@ducks/router";
 import { TaskType } from "@ducks/shared/typings";
+import { HttpError } from "../../../services/fetch/responseInterceptor";
 
 const {
     setError,
@@ -195,7 +196,9 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: TaskT
                 );
             });
         } catch (e) {
-            dispatch(setModalError(e));
+            if (e.isFetchError) {
+                dispatch(setModalError((e as HttpError).errorResponse));
+            }
         }
     };
 };

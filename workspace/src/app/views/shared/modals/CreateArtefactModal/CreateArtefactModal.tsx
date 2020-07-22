@@ -325,7 +325,9 @@ export function CreateArtefactModal() {
             notifications={
                 !!error.detail && (
                     <Notification
-                        message={`${updateExistingTask ? "Update" : "Create"} action failed. Details: ${error.detail}`}
+                        message={`${
+                            updateExistingTask ? "Update" : "Create"
+                        } action failed. Details: ${error.detail.replace(/^(assertion failed: )/, "")}`}
                         danger
                     />
                 )
