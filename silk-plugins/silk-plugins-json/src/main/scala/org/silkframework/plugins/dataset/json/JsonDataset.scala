@@ -21,13 +21,9 @@ case class JsonDataset(
   basePath: String = "",
   @deprecated("This will be removed in the next release.", "")
   @Param(label = "URI pattern", value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
-  uriPattern: String = "",
-  @Param("The file encoding, e.g., UTF8, ISO-8859-1")
-  charset: String = "UTF8") extends Dataset with ResourceBasedDataset {
+  uriPattern: String = "") extends Dataset with ResourceBasedDataset {
 
-  private val codec = Codec(charset)
-
-  override def source(implicit userContext: UserContext): DataSource = JsonSource(file, basePath, uriPattern, codec)
+  override def source(implicit userContext: UserContext): DataSource = JsonSource(file, basePath, uriPattern)
 
   override def linkSink(implicit userContext: UserContext): LinkSink = throw new NotImplementedError("JSON files cannot be written at the moment")
 

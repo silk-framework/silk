@@ -223,6 +223,9 @@ case class JsonSource(input: JsValue, basePath: String, uriPattern: String) exte
 object JsonSource{
 
   def apply(str: String, basePath: String, uriPattern: String): JsonSource = apply(Json.parse(str), basePath, uriPattern)
-  def apply(file: Resource, basePath: String, uriPattern: String, codec: Codec): JsonSource = apply(Json.parse(file.loadAsString(codec)), basePath, uriPattern)
+
+  def apply(file: Resource, basePath: String, uriPattern: String): JsonSource = {
+    apply(file.read(Json.parse), basePath, uriPattern)
+  }
 
 }
