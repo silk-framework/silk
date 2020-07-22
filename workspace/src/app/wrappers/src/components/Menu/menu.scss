@@ -50,7 +50,7 @@ $menu-background-color: transparent !default;
 
     .#{$ns}-popover-content > & {
         padding: $ecc-size-inline-whitespace / 2;
-        min-width: 1/16 * 100vw;
-        max-width: 2/16 * 100vw;
+        min-width: 10em;
+        max-width: 20em;
     }
 }

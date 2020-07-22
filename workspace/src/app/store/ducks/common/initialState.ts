@@ -24,6 +24,7 @@ export function initialCommonState(): ICommonState {
         error: {},
         availableDataTypes: {},
         initialSettings: {},
+        exportTypes: [],
         artefactModal: initialArtefactModalState(),
     };
 }

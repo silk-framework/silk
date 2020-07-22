@@ -20,6 +20,7 @@ export default function App({ externalRoutes, routes }: IProps) {
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(commonOp.fetchCommonSettingsAsync());
+        dispatch(commonOp.fetchExportTypesAsync());
     }, [commonOp]);
 
     return (

@@ -95,6 +95,14 @@ export interface IProjectTaskUpdatePayload {
     };
 }
 
+export interface IExportTypes {
+    description: string;
+    fileExtension: string;
+    id: string;
+    label: string;
+    mediaType: string;
+}
+
 export interface IArtefactModal {
     // If true, this modal is shown to the user
     isOpen: boolean;
@@ -139,5 +147,6 @@ export interface ICommonState {
     searchQuery: string;
     error?: any;
     availableDataTypes: IAvailableDataTypes;
+    exportTypes: IExportTypes[];
     artefactModal: IArtefactModal;
 }
