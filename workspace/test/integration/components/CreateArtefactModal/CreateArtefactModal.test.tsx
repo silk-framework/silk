@@ -14,16 +14,22 @@ import {
     findAll,
     findSingleElement,
     legacyApiUrl,
+    logRequests,
     logWrapperHtmlOnError,
     mockAxiosResponse,
     mockedAxiosError,
     mockedAxiosResponse,
+    RecursivePartial,
     testWrapper,
     withMount,
 } from "../../TestHelper";
 import { CreateArtefactModal } from "../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal";
 import { waitFor } from "@testing-library/react";
-import { IDetailedArtefactItem, IOverviewArtefactItemList } from "../../../../src/app/store/ducks/common/typings";
+import {
+    IDetailedArtefactItem,
+    IOverviewArtefactItemList,
+    IProjectTaskUpdatePayload,
+} from "../../../../src/app/store/ducks/common/typings";
 import { atomicParamDescription, objectParamDescription } from "./CreateArtefactModalHelper";
 import { INPUT_TYPES } from "../../../../src/app/constants";
 import { TaskTypes } from "../../../../src/app/store/ducks/shared/typings";
@@ -38,8 +44,12 @@ describe("Task creation widget", () => {
     });
 
     const PROJECT_ID = "projectId";
+    const TASK_ID = "taskId";
 
-    const createArtefactWrapper = (currentUrl: string = `${SERVE_PATH}`) => {
+    const createArtefactWrapper = (
+        currentUrl: string = `${SERVE_PATH}`,
+        existingTask?: RecursivePartial<IProjectTaskUpdatePayload>
+    ) => {
         const history = createBrowserHistory();
         history.location.pathname = currentUrl;
         return withMount(
@@ -47,6 +57,7 @@ describe("Task creation widget", () => {
                 common: {
                     artefactModal: {
                         isOpen: true,
+                        updateExistingTask: existingTask,
                     },
                 },
             })
@@ -54,13 +65,15 @@ describe("Task creation widget", () => {
     };
 
     // Loads the selection list modal with mocked artefact list
-    const createMockedListWrapper = async () => {
-        const wrapper = createArtefactWrapper(`${SERVE_PATH}/projects/${PROJECT_ID}`);
+    const createMockedListWrapper = async (existingTask?: RecursivePartial<IProjectTaskUpdatePayload>) => {
+        const wrapper = createArtefactWrapper(`${SERVE_PATH}/projects/${PROJECT_ID}`, existingTask);
         mockAxios.mockResponseFor(
             { url: apiUrl("core/taskPlugins") },
             mockedAxiosResponse({ data: mockArtefactListResponse })
         );
-        await waitFor(() => expect(selectionItems(wrapper)).toHaveLength(3));
+        if (!existingTask) {
+            await waitFor(() => expect(selectionItems(wrapper)).toHaveLength(3));
+        }
         return wrapper;
     };
 
@@ -76,16 +89,18 @@ describe("Task creation widget", () => {
         return findAll(dialogWrapper, ".ecc-overviewitem__list .ecc-overviewitem__item");
     };
 
-    const pluginCreationDialogWrapper = async () => {
-        const wrapper = await createMockedListWrapper();
+    const pluginCreationDialogWrapper = async (existingTask?: RecursivePartial<IProjectTaskUpdatePayload>) => {
+        const wrapper = await createMockedListWrapper(existingTask);
         const pluginA = selectionItems(wrapper)[1];
-        // Double-click "Plugin A"
-        clickWrapperElement(pluginA);
-        clickWrapperElement(pluginA);
-        mockAxios.mockResponseFor(
-            { url: apiUrl("core/plugins/pluginA") },
-            mockedAxiosResponse({ data: mockPluginDescription })
-        );
+        if (!existingTask) {
+            // Double-click "Plugin A"
+            clickWrapperElement(pluginA);
+            clickWrapperElement(pluginA);
+            mockAxios.mockResponseFor(
+                { url: apiUrl("core/plugins/pluginA") },
+                mockedAxiosResponse({ data: mockPluginDescription })
+            );
+        }
         await waitFor(() => {
             const labels = findAll(wrapper, ".ecc-label .ecc-label__text").map((e) => e.text());
             Object.entries(mockPluginDescription.properties).forEach(([paramId, attributes]) =>
@@ -256,7 +271,54 @@ describe("Task creation widget", () => {
         });
     });
 
+    const value = (value: string, label?: string) => {
+        const result: { value: string; label?: string } = { value };
+        if (label) {
+            result.label = label;
+        }
+        return result;
+    };
+    const expectedParams = {
+        intParam: value("100"),
+        booleanParam: value("true"),
+        stringParam: value("string value"),
+        restrictionParam: value("restriction value"),
+        multiLineParam: value("multiline value"),
+        passwordParam: value("password value"),
+        resourceParam: value("resource value"),
+        enumerationParam: value("enumeration value", "enumeration label"),
+        objectParameter: {
+            value: {
+                subProperty: value("subProperty value", "subProperty label"),
+                subStringParam: value("subStringParam value"),
+            },
+        },
+    };
+
     it("should use existing values to set the initial parameter values on update", async () => {
-        const wrapper = await pluginCreationDialogWrapper();
+        const wrapper = await pluginCreationDialogWrapper({
+            projectId: PROJECT_ID,
+            taskId: TASK_ID,
+            taskPluginDetails: mockPluginDescription,
+            metaData: {
+                label: "Task label",
+            },
+            currentParameterValues: expectedParams,
+        });
+        clickCreate(wrapper);
+        await expectValidationErrors(wrapper, 0);
+        const updateRequest = mockAxios.getReqMatching({
+            url: legacyApiUrl("workspace/projects/projectId/tasks/taskId"),
+            method: "PATCH",
+        }).data;
+        // Build expected request parameter object
+        const expectedObject: any = {};
+        Object.entries(expectedParams).forEach(([key, value]) => (expectedObject[key] = value.value));
+        const objectParameterObject: any = {};
+        Object.entries(expectedParams.objectParameter.value).forEach(
+            ([key, value]) => (objectParameterObject[key] = value.value)
+        );
+        expectedObject.objectParameter = objectParameterObject;
+        expect(updateRequest.data.parameters).toEqual(expectedObject);
     });
 });
