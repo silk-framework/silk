@@ -72,8 +72,6 @@ describe("Related items", () => {
             // Check detail page link
             const detailPageLink = findSingleElement(itemActions.at(0), "a").get(0);
             expect(detailPageLink.props.href).toBe(workspacePath("/projects/cmem/task/item" + idx));
-            // Check item links
-            // TODO: How? Menu overlay is not part of the component.
         });
     };
 });
