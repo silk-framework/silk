@@ -49,8 +49,8 @@ class JsonReaderTest extends FlatSpec with Matchers {
 
   it should "support keys with spaces" in {
     val example2Json = json("example2.json")
-    val valuesWithSpaces = example2Json.select("values%20with%20spaces" :: Nil)
-    evaluate(valuesWithSpaces, "space%20value") should equal (Seq("Berlin", "Hamburg"))
+    val valuesWithSpaces = example2Json.select("values+with+spaces" :: Nil)
+    evaluate(valuesWithSpaces, "space+value") should equal (Seq("Berlin", "Hamburg"))
   }
 
   private def evaluate(values: Seq[JsonTraverser], path: String): Seq[String] = {

@@ -275,6 +275,15 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
     result.head.values mustBe IndexedSeq(Seq("123", "456", "789"))
   }
 
+  it should "work with json files that use spaces in keys" in {
+    val source2 = JsonSource(resources.get("example2.json"), "", "#id")
+    source2.retrieveTypes().map(_._1).toSet mustBe Set("", "values+with+spaces")
+    source2.retrievePaths("values+with+spaces").map(_.toUntypedPath.normalizedSerialization) mustBe IndexedSeq("space+value")
+
+    val entities = source2.retrieve(EntitySchema("values+with+spaces", typedPaths = IndexedSeq(UntypedPath.parse("space+value").asStringTypedPath))).entities
+    entities.map(_.values) mustBe Seq(Seq(Seq("Berlin")), Seq(Seq("Hamburg")))
+  }
+
   private def jsonSource(json: String): JsonSource = {
     val jsonResource = InMemoryResourceManager().get("temp.json")
     jsonResource.writeString(json)

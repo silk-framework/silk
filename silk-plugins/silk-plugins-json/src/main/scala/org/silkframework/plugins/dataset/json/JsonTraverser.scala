@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.json
 
-import java.net.URLDecoder
+import java.net.{URLDecoder, URLEncoder}
 import java.nio.charset.StandardCharsets
 
 import org.silkframework.dataset.DataSource
@@ -41,7 +41,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
 
     def fetchChildPaths(obj: JsObject) = {
       obj.keys.toSeq.flatMap(key =>
-        asNewParent(key, obj.value(key)).collectPaths(path :+ ForwardOperator(key), leafPathsOnly, innerPathsOnly, depth - 1))
+        asNewParent(key, obj.value(key)).collectPaths(path :+ ForwardOperator(URLEncoder.encode(key, StandardCharsets.UTF_8.name)), leafPathsOnly, innerPathsOnly, depth - 1))
     }
 
     value match {
