@@ -25,7 +25,6 @@ import { IPageLabels } from "@ducks/router/operations";
 import { DATA_TYPES } from "../../../constants";
 import { commonSel } from "@ducks/common";
 import { IExportTypes } from "@ducks/common/typings";
-import { requestExportProject } from "@ducks/workspace/requests";
 import { downloadResource } from "../../../utils/downloadResource";
 
 interface IProps {
@@ -65,6 +64,20 @@ export default function SearchItem({
             />
         ));
 
+    if (item.type === DATA_TYPES.PROJECT && !!exportTypes.length) {
+        contextMenuItems.push(
+            <MenuItem key="export" text={"Export to"}>
+                {exportTypes.map((type) => (
+                    <MenuItem
+                        key={type.id}
+                        onClick={() => handleExport(type)}
+                        text={<OverflowText inline>{type.label}</OverflowText>}
+                    />
+                ))}
+            </MenuItem>
+        );
+    }
+
     const goToDetailsPage = (e) => {
         e.preventDefault();
         const detailsPath = item.itemLinks[0].path;
@@ -79,8 +92,7 @@ export default function SearchItem({
     };
 
     const handleExport = async (type: IExportTypes) => {
-        const { axiosResponse } = await requestExportProject(item.id, type.id);
-        downloadResource(axiosResponse);
+        downloadResource(item.id, type.id);
     };
 
     return (
@@ -137,13 +149,6 @@ export default function SearchItem({
                             </>
                         ) : null}
                         <MenuItem key="delete" icon={"item-remove"} onClick={onOpenDeleteModal} text={"Delete"} />
-                        {item.type === DATA_TYPES.PROJECT && !!exportTypes.length && (
-                            <MenuItem key="export" text={"Export to"}>
-                                {exportTypes.map((type) => (
-                                    <MenuItem key={type.id} onClick={() => handleExport(type)} text={type.label} />
-                                ))}
-                            </MenuItem>
-                        )}
                     </ContextMenu>
                 </OverviewItemActions>
             </OverviewItem>

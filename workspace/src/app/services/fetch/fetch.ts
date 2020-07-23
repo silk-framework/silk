@@ -2,6 +2,7 @@ import axios, { AxiosRequestConfig, Method } from "axios";
 import { requestInterceptor } from "./requestInterceptor";
 import { FetchResponse, responseInterceptorOnError, responseInterceptorOnSuccess } from "./responseInterceptor";
 import i18n from "../../../language";
+import { isTestEnv } from "../../constants/path";
 
 interface IFetchOptions {
     url: string;
@@ -56,8 +57,19 @@ export const fetch = async <T = any>({
         config.params = body;
     }
     try {
+        if (isTestEnv) {
+            config = requestInterceptor(config);
+            const response = await axios(config);
+
+            return responseInterceptorOnSuccess(response);
+        }
         //@ts-ignore
         return await axios(config);
+    } catch (e) {
+        if (isTestEnv) {
+            return responseInterceptorOnError(e);
+        }
+        throw e;
     } finally {
         // Remove request
         const index = _pendingRequests.findIndex((item) => item.token === cToken);

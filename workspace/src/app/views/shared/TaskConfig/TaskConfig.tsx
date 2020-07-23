@@ -70,8 +70,10 @@ export function TaskConfig(props: IProps) {
         try {
             // Fetch data for preview of config
             const taskData = await requestTaskData(props.projectId, props.taskId, true);
-            const taskDescription = await artefactProperties(taskData.data.type);
-            setLabelledTaskData({ taskData, taskDescription });
+            if (taskData?.data?.type) {
+                const taskDescription = await artefactProperties(taskData.data.type);
+                setLabelledTaskData({ taskData, taskDescription });
+            }
         } finally {
             setLoading(false);
         }
@@ -89,7 +91,7 @@ export function TaskConfig(props: IProps) {
     }
 
     return (
-        <Card>
+        <Card data-test-id={"taskConfigWidget"}>
             <CardHeader>
                 <CardTitle>
                     <h3>Configuration{titlePostfix}</h3>

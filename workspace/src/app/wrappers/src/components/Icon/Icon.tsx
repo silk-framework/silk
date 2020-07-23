@@ -53,7 +53,14 @@ function Icon({
     }
 
     const CarbonIcon = require("@carbon/icons-react")[iconImportName];
-    const icon = <CarbonIcon {...restProps} {...sizeConfig} className={"ecc-icon " + className} />;
+    // Workaround to prevent warnings because of tabIndex of type 'number' instead of 'string'
+    const restPropsWithFixedTabIndexWorkaround = {
+        ...restProps,
+        tabIndex: restProps.tabIndex !== undefined ? "" + restProps.tabIndex : undefined,
+    };
+    const icon = (
+        <CarbonIcon {...restPropsWithFixedTabIndexWorkaround} {...sizeConfig} className={"ecc-icon " + className} />
+    );
     return tooltipText ? (
         <Tooltip content={tooltipText} hoverOpenDelay={tooltipOpenDelay}>
             <span>{icon}</span>

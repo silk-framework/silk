@@ -15,6 +15,7 @@ import {
     Menu,
     MenuDivider,
     MenuItem,
+    OverflowText,
     OverviewItem,
     OverviewItemActions,
     OverviewItemDepiction,
@@ -39,10 +40,9 @@ import { IItemLink } from "@ducks/shared/typings";
 import { requestItemLinks, requestTaskItemInfo } from "@ducks/shared/requests";
 import { IPageLabels } from "@ducks/router/operations";
 import { DATA_TYPES } from "../../../constants";
-import { useTranslation } from "react-i18next";
 import { IExportTypes } from "@ducks/common/typings";
-import { requestExportProject } from "@ducks/workspace/requests";
 import { downloadResource } from "../../../utils/downloadResource";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];
@@ -194,8 +194,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
     };
 
     const handleExport = async (type: IExportTypes) => {
-        const { axiosResponse } = await requestExportProject(itemData.id, type.id);
-        downloadResource(axiosResponse);
+        downloadResource(itemData.id, type.id);
     };
 
     return !isAuth ? null : (
@@ -219,9 +218,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                 )
             }
             <WorkspaceHeader>
-                <Helmet>
-                    <title>{windowTitle}</title>
-                </Helmet>
+                <Helmet title={windowTitle} />
                 <OverviewItem>
                     <OverviewItemDepiction>
                         <ItemDepiction itemType={itemType} />
@@ -248,20 +245,25 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                                     })}
                                     disruptive
                                     onClick={toggleDeleteModal}
+                                    data-test-id={"header-remove-button"}
                                 />
                                 <ContextMenu>
                                     <MenuItem
                                         key={"clone"}
                                         text={t("common.action.clone", "Clone")}
                                         onClick={toggleCloneModal}
+                                        data-test-id={"header-clone-button"}
                                     />
                                     {itemType === DATA_TYPES.PROJECT && !!exportTypes.length && (
-                                        <MenuItem key="export" text={"Export to"}>
+                                        <MenuItem key="export" text={t("common.action.exportTo", "Export to")}>
                                             {exportTypes.map((type) => (
                                                 <MenuItem
                                                     key={type.id}
                                                     onClick={() => handleExport(type)}
-                                                    text={type.label}
+                                                    text={
+                                                        <OverflowText inline>{type.label}</OverflowText>
+                                                        /* TODO: change this OverflowText later to a multiline=false option on MenuItem, seenms to be a new one*/
+                                                    }
                                                 />
                                             ))}
                                         </MenuItem>

@@ -79,9 +79,10 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
             requiredParameters: string[]
         ) => {
             // Construct array of parameter keys that other parameters depend on
-            const dependsOnParameters = params
-                .filter(([key, propertyDetails]) => !!propertyDetails.autoCompletion)
-                .flatMap(([key, propertyDetails]) => propertyDetails.autoCompletion.autoCompletionDependsOnParameters);
+            const autoCompletionParams = params.filter(([key, propertyDetails]) => !!propertyDetails.autoCompletion);
+            const dependsOnParameters = autoCompletionParams.flatMap(
+                ([key, propertyDetails]) => propertyDetails.autoCompletion.autoCompletionDependsOnParameters
+            );
             params.forEach(([paramId, param]) => {
                 const key = prefix + paramId;
                 if (param.type === "object") {
