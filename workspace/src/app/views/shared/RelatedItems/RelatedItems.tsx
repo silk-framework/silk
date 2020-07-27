@@ -26,6 +26,7 @@ import { IItemLink, IRelatedItem, IRelatedItemsResponse } from "@ducks/shared/ty
 import { commonSel } from "@ducks/common";
 import { SearchBar } from "../SearchBar/SearchBar";
 import { usePagination } from "@wrappers/src/components/Pagination/Pagination";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     projectId?: string;
@@ -48,6 +49,8 @@ export function RelatedItems(props: IProps) {
         pageSizes: [5, 10, 20],
         presentation: { hideInfoText: true },
     });
+    const [t] = useTranslation();
+
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -105,7 +108,7 @@ export function RelatedItems(props: IProps) {
                 <DataList
                     isEmpty={data.items.length === 0}
                     isLoading={loading}
-                    emptyListMessage={"No items found."}
+                    emptyListMessage={t("common.messages.noItems", "No items found.")}
                     hasSpacing
                     hasDivider
                 >
@@ -166,7 +169,7 @@ export function RelatedItems(props: IProps) {
                                         {!!relatedItem.itemLinks.length && (
                                             <IconButton
                                                 name="item-viewdetails"
-                                                text="Show details"
+                                                text={t("common.action.showDetails", "Show details")}
                                                 onClick={(e) =>
                                                     goToDetailsPage(
                                                         relatedItem.itemLinks[0],
@@ -179,7 +182,9 @@ export function RelatedItems(props: IProps) {
                                             />
                                         )}
                                         {contextMenuItems.length && (
-                                            <ContextMenu togglerText="Show more options">
+                                            <ContextMenu
+                                                togglerText={t("common.action.moreOptions", "Show more options")}
+                                            >
                                                 {contextMenuItems}
                                             </ContextMenu>
                                         )}

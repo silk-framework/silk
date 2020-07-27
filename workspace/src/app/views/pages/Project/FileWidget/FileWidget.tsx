@@ -111,7 +111,7 @@ export const FileWidget = () => {
         if (deleteModalOpts.dependentTasks.length > 0) {
             return (
                 <div>
-                    <p>File '{deleteModalOpts.fileName}' is in use by following datasets:</p>
+                    <p>{t("widget.file.removeFromDatasets", { fileName: deleteModalOpts.fileName })}</p>
                     <ul>
                         {deleteModalOpts.dependentTasks.map((task) => (
                             <li key={task}>{task}</li>
@@ -123,7 +123,7 @@ export const FileWidget = () => {
                 </div>
             );
         } else {
-            return <p>File '{deleteModalOpts.fileName}' will be deleted.</p>;
+            return <p>{t("widget.file.deleted", { fileName: deleteModalOpts.fileName })}</p>;
         }
     };
 
@@ -147,7 +147,11 @@ export const FileWidget = () => {
                                 </ToolbarSection>
                                 <ToolbarSection>
                                     <Spacing size="tiny" vertical />
-                                    <Button elevated text="Add file" onClick={toggleFileUploader} />
+                                    <Button
+                                        elevated
+                                        text={t("AddSmth", { smth: t("widget.file.file") })}
+                                        onClick={toggleFileUploader}
+                                    />
                                 </ToolbarSection>
                             </Toolbar>
                             <Spacing size="tiny" />

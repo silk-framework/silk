@@ -22,7 +22,7 @@ const OverrideAlert = ({ fileName, isOpen, onCancel, onConfirm }: IProps) => {
                     {t("common.action.replace", "Replace")}
                 </Button>,
                 <Button key="cancel" onClick={onCancel}>
-                    {t("form.field.cancel")}
+                    {t("common.action.cancel")}
                 </Button>,
             ]}
         >

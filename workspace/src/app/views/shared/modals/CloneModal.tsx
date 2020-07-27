@@ -5,6 +5,7 @@ import { requestCloneProject, requestCloneTask } from "@ducks/workspace/requests
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { Loading } from "../Loading/Loading";
+import { useTranslation } from "react-i18next";
 
 export interface ICloneOptions {
     item: Partial<ISearchResultsServer>;
@@ -19,6 +20,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<ErrorResponse | null>(null);
     const [label, setLabel] = useState<string | null>(item.label);
+    const [t] = useTranslation();
 
     useEffect(() => {
         prepareCloning();
@@ -72,7 +74,12 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     ) : (
         <SimpleDialog
             size="small"
-            title={`Clone ${item.projectId ? "task" : "project"} '${label || item.label || item.id}'`}
+            title={
+                t("CloneSmth", { smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project") }) +
+                    label ||
+                item.label ||
+                item.id
+            }
             isOpen={true}
             onClose={onDiscard}
             actions={[
@@ -83,10 +90,10 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                     disabled={!newLabel}
                     data-test-id={"clone-modal-button"}
                 >
-                    Clone
+                    {t("common.action.clone")}
                 </Button>,
                 <Button key="cancel" onClick={onDiscard}>
-                    Cancel
+                    {t("common.action.cancel")}
                 </Button>,
             ]}
         >

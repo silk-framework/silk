@@ -6,6 +6,9 @@
     "UpdateSmth": "Update {{smth}}",
     "DeleteSmth": "Delete {{smth}}",
     "ShowSmth": "Show {{smth}}",
+    "CloneSmth": "Clone {{smth}}",
+    "DeleteResource": "{{type}} {{name}} will be deleted",
+    "DeleteConfirmMsg": "Task {{name}} is used by other tasks! Deleting this task will also delete all depending tasks listed below:",
     "RemoveSmth": "Remove {{smth}}",
     "CreateItem_Title": "Create new item of type {{type}}",
     "UpdateItem_Title": "Create new item of type {{type}}",
@@ -14,6 +17,28 @@
         "config": {
             "prefix": "Prefix",
             "prefix_plural": "Prefixes"
+        },
+        "file":{
+            "removeFromDatasets": "File '{{fileName}}' is in use by following datasets:",
+            "deleted": "File '{{fileName}}' will be deleted."
+        }
+    },
+    "common": {
+        "messages": {
+            "actionFailed": "{{action}} action failed. Details: {{error}}"
+        },
+        "action": {
+            "create": "Create",
+            "update": "Update",
+            "cancel": "Cancel"
+        },
+        "fileUploader": {
+            "successfullyUploaded": "{{uploadedName}} was successfully uploaded"
+        }
+    },
+    "form": {
+        "validations": {
+            "isRequired": "{{field}} is required"
         }
     }
 }

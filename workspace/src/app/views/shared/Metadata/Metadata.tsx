@@ -182,7 +182,9 @@ export function Metadata(props: IProps) {
                         </PropertyName>
                         <PropertyValue>
                             <FieldItem
-                                messageText={errors.form.label ? "Label is required" : ""}
+                                messageText={
+                                    errors.form.label ? t("form.validations.isRequired", { field: `Label` }) : ""
+                                }
                                 hasStateDanger={errors.form.label}
                             >
                                 <Controller
@@ -256,7 +258,7 @@ export function Metadata(props: IProps) {
                 <Divider />
                 <CardActions>
                     <Button affirmative text={t("form.field.submit", "Submit")} type={"submit"} />
-                    <Button text={t("form.field.cancel", "Cancel")} onClick={toggleEdit} />
+                    <Button text={t("common.action.cancel")} onClick={toggleEdit} />
                 </CardActions>
             </>
         ) : null;

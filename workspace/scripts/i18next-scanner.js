@@ -84,7 +84,6 @@ function customFlush(done) {
 function customTransform(file, enc, done) {
     const parser = this.parser;
     const content = fs.readFileSync(file.path, enc);
-
     parser.parseFuncFromString(content, { list: ["i18next._"] }, (key, options) => {
         if (parser.get(key) === "__STRING_NOT_TRANSLATED__") {
         }

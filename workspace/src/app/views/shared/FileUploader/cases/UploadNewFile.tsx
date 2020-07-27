@@ -118,7 +118,7 @@ export function UploadNewFile(props: IProps) {
                     <p>
                         {!uploaded
                             ? t("common.fileUploader.waitFor", "Wait for finished upload.")
-                            : `${uploaded.name} was successfully uploaded`}
+                            : t("common.fileUploader.successfullyUploaded", { uploadedName: uploaded.name })}
                     </p>
                     <Spacing />
                     <ProgressBar

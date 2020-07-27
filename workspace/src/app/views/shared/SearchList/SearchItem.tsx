@@ -26,6 +26,7 @@ import { DATA_TYPES } from "../../../constants";
 import { commonSel } from "@ducks/common";
 import { IExportTypes } from "@ducks/common/typings";
 import { downloadResource } from "../../../utils/downloadResource";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -50,7 +51,7 @@ export default function SearchItem({
 }: IProps) {
     const dispatch = useDispatch();
     const exportTypes = useSelector(commonSel.exportTypesSelector);
-
+    const [t] = useTranslation();
     // Remove detailsPath
     const contextMenuItems = item.itemLinks
         .slice(1)
@@ -66,7 +67,7 @@ export default function SearchItem({
 
     if (item.type === DATA_TYPES.PROJECT && !!exportTypes.length) {
         contextMenuItems.push(
-            <MenuItem key="export" text={"Export to"}>
+            <MenuItem key="export" text={t("common.action.export", "Export to")}>
                 {exportTypes.map((type) => (
                     <MenuItem
                         key={type.id}
@@ -130,25 +131,30 @@ export default function SearchItem({
                     <IconButton
                         data-test-id={"open-duplicate-modal"}
                         name="item-clone"
-                        text="Clone"
+                        text={t("common.action.clone", "Clone")}
                         onClick={onOpenDuplicateModal}
                     />
                     {!!item.itemLinks.length && (
                         <IconButton
                             name="item-viewdetails"
-                            text="Show details"
+                            text={t("common.action.showDetails", "Show details")}
                             onClick={goToDetailsPage}
                             href={item.itemLinks[0].path}
                         />
                     )}
-                    <ContextMenu togglerText="Show more options">
+                    <ContextMenu togglerText={t("common.action.moreOptions", "Show more options")}>
                         {contextMenuItems.length ? (
                             <>
                                 {contextMenuItems}
                                 <MenuDivider />
                             </>
                         ) : null}
-                        <MenuItem key="delete" icon={"item-remove"} onClick={onOpenDeleteModal} text={"Delete"} />
+                        <MenuItem
+                            key="delete"
+                            icon={"item-remove"}
+                            onClick={onOpenDeleteModal}
+                            text={t("common.action.delete", "Delete")}
+                        />
                     </ContextMenu>
                 </OverviewItemActions>
             </OverviewItem>

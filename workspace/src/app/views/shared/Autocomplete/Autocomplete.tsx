@@ -153,7 +153,7 @@ export function Autocomplete(props: IAutocompleteProps) {
         selectedItem.value !== "" && (
             <IconButton
                 name="operation-clear"
-                text={t("common.actions.resetSelection", "Reset selection")}
+                text={t("common.action.resetSelection", "Reset selection")}
                 onClick={clearSelection}
             />
         );

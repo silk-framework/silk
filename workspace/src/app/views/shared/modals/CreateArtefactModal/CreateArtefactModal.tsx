@@ -217,10 +217,11 @@ export function CreateArtefactModal() {
         artefactListWithProject = [
             {
                 key: DATA_TYPES.PROJECT,
-                title: "Project",
-                description:
-                    "Projects let you group related items. All items that " +
-                    "depend on each other need to be in the same project.",
+                title: t("common.dataTypes.project"),
+                description: t(
+                    "common.dataTypes.projectDesc",
+                    "Projects let you group related items. All items that depend on each other need to be in the same project."
+                ),
                 taskType: "project",
             },
             ...artefactListWithProject,
@@ -299,7 +300,7 @@ export function CreateArtefactModal() {
                                 {updateExistingTask ? t("UpdateSmth", { smth: "" }) : t("CreateSmth", { smth: "" })}
                             </Button>,
                             <Button key="cancel" onClick={closeModal}>
-                                {t("form.field.cancel")}
+                                {t("common.action.cancel")}
                             </Button>,
                             <CardActionsAux key="aux">
                                 {!updateExistingTask && (
@@ -321,7 +322,7 @@ export function CreateArtefactModal() {
                             {t("AddSmth")}
                         </Button>,
                         <Button key="cancel" onClick={closeModal}>
-                            {t("form.field.cancel")}
+                            {t("common.action.cancel")}
                         </Button>,
                     ]
                 )
@@ -329,9 +330,10 @@ export function CreateArtefactModal() {
             notifications={
                 !!error.detail && (
                     <Notification
-                        message={`${
-                            updateExistingTask ? "Update" : "Create"
-                        } action failed. Details: ${error.detail.replace(/^(assertion failed: )/, "")}`}
+                        message={t("common.messages.actionFailed", {
+                            action: updateExistingTask ? t("common.action.update") : t("common.action.create"),
+                            error: error.detail.replace(/^(assertion failed: )/, ""),
+                        })}
                         danger
                     />
                 )

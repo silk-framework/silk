@@ -12,6 +12,7 @@ import { commonOp, commonSel } from "@ducks/common";
 import { ItemDeleteModal } from "../modals/ItemDeleteModal";
 import { routerOp } from "@ducks/router";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
+import { useTranslation } from "react-i18next";
 
 export function SearchList() {
     const dispatch = useDispatch();
@@ -27,6 +28,7 @@ export function SearchList() {
     const [selectedItem, setSelectedItem] = useState<ISearchResultsServer | null>(null);
     const [showCloneModal, setShowCloneModal] = useState(false);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
+    const [t] = useTranslation();
 
     const onDiscardModals = () => {
         setShowCloneModal(false);
@@ -82,12 +84,12 @@ export function SearchList() {
                 textCallout={<strong>Create your first {itemTypeLabel()} now.</strong>}
                 actionButtons={[
                     <Button key={"create"} onClick={handleCreateArtefact} elevated>
-                        Create {appliedFilters.itemType}
+                        {t("CreateSmth", { smth: appliedFilters.itemType })}
                     </Button>,
                 ]}
             />
         ) : (
-            <p>No data found.</p>
+            <p>{t("common.messages.noItems")}</p>
         );
 
     return (

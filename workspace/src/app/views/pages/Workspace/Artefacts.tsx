@@ -17,9 +17,11 @@ import {
 import Filterbar from "./Filterbar";
 import SearchList from "../../shared/SearchList";
 import SearchBar from "../../shared/SearchBar";
+import { useTranslation } from "react-i18next";
 
 const Artefacts = () => {
     const dispatch = useDispatch();
+    const [t] = useTranslation();
 
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
@@ -41,7 +43,7 @@ const Artefacts = () => {
                         <Grid>
                             <GridRow>
                                 <GridColumn small verticalAlign="center">
-                                    <TitleMainsection>Contents</TitleMainsection>
+                                    <TitleMainsection>{t("workspace.contents", "Contents")}</TitleMainsection>
                                 </GridColumn>
                                 <GridColumn full>
                                     <SearchBar
@@ -64,7 +66,7 @@ const Artefacts = () => {
                             <GridColumn full>
                                 {error.detail ? (
                                     <Notification danger>
-                                        <h3>Error, cannot fetch results.</h3>
+                                        <h3>{t("pages.workspace.notResult", "Error, cannot fetch results.")}</h3>
                                         <p>{error.detail}</p>
                                     </Notification>
                                 ) : (

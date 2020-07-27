@@ -6,7 +6,7 @@ const PrefixNew = ({ onAdd, onChangePrefix, prefix }) => {
     const [t] = useTranslation();
 
     return (
-        <FieldSet title="Add prefix" boxed>
+        <FieldSet title={t("AddSmth", { smth: t("widget.config.prefix") })} boxed>
             <FieldItemRow>
                 <FieldItem
                     key={"prefix-name"}

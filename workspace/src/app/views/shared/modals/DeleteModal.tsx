@@ -59,7 +59,7 @@ export default function DeleteModal({
                             {t("DeleteSmth")}
                         </Button>,
                         <Button key="cancel" onClick={onDiscard}>
-                            {t("form.field.cancel")}
+                            {t("common.action.cancel", "Cancel")}
                         </Button>,
                     ]
                 )
@@ -85,7 +85,7 @@ export default function DeleteModal({
             )}
             {confirmationRequired && (
                 <FieldItem>
-                    <Checkbox onChange={toggleConfirmChange} label={"Confirm"} />
+                    <Checkbox onChange={toggleConfirmChange} label={t("common.action.confirm", "Confirm")} />
                 </FieldItem>
             )}
         </AlertDialog>

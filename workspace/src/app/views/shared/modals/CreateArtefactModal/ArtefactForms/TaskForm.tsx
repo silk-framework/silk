@@ -181,7 +181,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                         <FieldItem
                             key={LABEL}
                             labelAttributes={{
-                                text: "Label",
+                                text: t("form.field.label"),
                                 info: "required",
                                 htmlFor: LABEL,
                             }}
@@ -198,7 +198,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                         <FieldItem
                             key={DESCRIPTION}
                             labelAttributes={{
-                                text: "Description",
+                                text: t("form.field.description"),
                                 htmlFor: DESCRIPTION,
                             }}
                         >

@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { FieldItem, TextField, TextArea } from "@wrappers/index";
 import { errorMessage } from "./ParameterWidget";
 import { Intent } from "@wrappers/blueprint/constants";
+import { useTranslation } from "react-i18next";
 
 export interface IProps {
     form: any;
@@ -13,6 +14,8 @@ const DESCRIPTION = "description";
 /** The project create form */
 export function ProjectForm({ form }: IProps) {
     const { register, errors, triggerValidation, setValue } = form;
+    const [t] = useTranslation();
+
     useEffect(() => {
         register({ name: LABEL }, { required: true });
         register({ name: DESCRIPTION });
@@ -29,7 +32,7 @@ export function ProjectForm({ form }: IProps) {
             <FieldItem
                 key={LABEL}
                 labelAttributes={{
-                    text: "Title",
+                    text: t("form.projectForm.title", "Title"),
                     info: "required",
                     htmlFor: "title-input",
                 }}
@@ -38,7 +41,7 @@ export function ProjectForm({ form }: IProps) {
             >
                 <TextField
                     id={LABEL}
-                    placeholder="Project title"
+                    placeholder={t("form.projectForm.projectTitle", "Project title")}
                     name={LABEL}
                     inputRef={form.register({ required: true })}
                     intent={errors.label ? Intent.DANGER : Intent.NONE}
@@ -47,7 +50,7 @@ export function ProjectForm({ form }: IProps) {
             </FieldItem>
             <FieldItem
                 labelAttributes={{
-                    text: "Description",
+                    text: t("form.field.description"),
                     htmlFor: "desc-input",
                 }}
             >
@@ -55,7 +58,7 @@ export function ProjectForm({ form }: IProps) {
                     id={DESCRIPTION}
                     name={DESCRIPTION}
                     growVertically={true}
-                    placeholder="Project description"
+                    placeholder={t("form.projectForm.projectDesc", "Project description")}
                     inputRef={form.register()}
                 />
             </FieldItem>
