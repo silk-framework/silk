@@ -1,10 +1,9 @@
 package controllers.workspaceApi
 
-import controllers.workspaceApi.activities.TaskActivityStatus
 import helper.IntegrationTestTrait
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, MustMatchers}
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, Reads}
 import play.api.routing.Router
 
 import scala.util.Try
@@ -24,6 +23,9 @@ class ActivitiesApiTest extends FlatSpec with SingleProjectWorkspaceProviderTest
 
   val otherProject = "otherProject"
 
+  case class TestActivityStatus(project: String, task: String, concreteStatus: String, statusName: String)
+  implicit val statusReads: Reads[TestActivityStatus] = Json.reads[TestActivityStatus]
+
   override def beforeAll(): Unit = {
     super.beforeAll()
     createProject(otherProject)
@@ -33,8 +35,8 @@ class ActivitiesApiTest extends FlatSpec with SingleProjectWorkspaceProviderTest
   it should "report all activities by default" in {
     val allActivities = fetchActivities()
     allActivities.length mustBe > (5)
-    allActivities.filter(_.projectId == otherProject) must not be empty
-    allActivities.filter(_.projectId == projectId) must not be empty
+    allActivities.filter(_.project == otherProject) must not be empty
+    allActivities.filter(_.project == projectId) must not be empty
   }
 
   it should "report the current activities status" in {
@@ -60,19 +62,19 @@ class ActivitiesApiTest extends FlatSpec with SingleProjectWorkspaceProviderTest
     checkActivities(finishedActivities, Seq(successWorkflowId, failingWorkflowId))
   }
 
-  private def checkActivities(activities: Seq[TaskActivityStatus], matchingTaskIds: Seq[String], notMatchingTaskIds: Seq[String] = Seq.empty): Unit = {
-    val taskSet = activities.map(_.taskId).toSet
+  private def checkActivities(activities: Seq[TestActivityStatus], matchingTaskIds: Seq[String], notMatchingTaskIds: Seq[String] = Seq.empty): Unit = {
+    val taskSet = activities.map(_.task).toSet
     taskSet.intersect(matchingTaskIds.toSet) mustBe matchingTaskIds.toSet
     taskSet.intersect(notMatchingTaskIds.toSet).size mustBe 0
   }
 
   private def checkWorkflowStatus(workflowId: String, status: (String, String)): Unit = {
     fetchActivities().
-        filter(_.taskId == workflowId).
-        map(a => (a.concreteStatus, a.statusDetails.name)) mustBe Seq(status)
+        filter(_.task == workflowId).
+        map(a => (a.concreteStatus, a.statusName)) mustBe Seq(status)
   }
 
-  def fetchActivities(projectId: Option[String] = None, statusFilter: Option[String] = None): Seq[TaskActivityStatus] = {
+  def fetchActivities(projectId: Option[String] = None, statusFilter: Option[String] = None): Seq[TestActivityStatus] = {
     val queryParameters = Seq(
       projectId.map(id => ("projectId", id)),
       statusFilter.map(status => ("statusFilter", status))
@@ -81,6 +83,6 @@ class ActivitiesApiTest extends FlatSpec with SingleProjectWorkspaceProviderTest
         .withHttpHeaders(ACCEPT -> APPLICATION_JSON)
         .withQueryStringParameters(queryParameters: _*)
         .get()).json
-    Json.fromJson[Seq[TaskActivityStatus]](jsonResponse).get
+    Json.fromJson[Seq[TestActivityStatus]](jsonResponse).get
   }
 }
