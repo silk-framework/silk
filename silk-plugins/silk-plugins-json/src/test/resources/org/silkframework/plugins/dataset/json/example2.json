@@ -1,0 +1,10 @@
+{
+  "values with spaces": [
+    {
+      "space value": "Berlin"
+    },
+    {
+      "space value": "Hamburg"
+    }
+  ]
+}

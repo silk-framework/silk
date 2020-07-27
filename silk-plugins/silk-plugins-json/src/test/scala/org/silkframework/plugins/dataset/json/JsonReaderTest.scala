@@ -21,14 +21,11 @@ import org.silkframework.runtime.resource.ClasspathResourceLoader
 
 class JsonReaderTest extends FlatSpec with Matchers {
 
-  private val json = {
-    val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/json")
-    JsonTraverser("alibi_task_id", resources.get("example.json"))
-  }
+  private val exampleJson = json("example.json")
 
-  private val persons = json.select("persons" :: Nil)
+  private lazy val persons = exampleJson.select("persons" :: Nil)
 
-  private val phoneNumbers = json.select("persons" :: "phoneNumbers" :: Nil)
+  private lazy val phoneNumbers = exampleJson.select("persons" :: "phoneNumbers" :: Nil)
 
   "On example.json, JsonReader" should "return 2 persons" in {
     persons.size should equal (2)
@@ -50,7 +47,18 @@ class JsonReaderTest extends FlatSpec with Matchers {
     evaluate(phoneNumbers, "\\phoneNumbers/id") should equal (Seq("0", "0", "1"))
   }
 
+  it should "support keys with spaces" in {
+    val example2Json = json("example2.json")
+    val valuesWithSpaces = example2Json.select("values+with+spaces" :: Nil)
+    evaluate(valuesWithSpaces, "space+value") should equal (Seq("Berlin", "Hamburg"))
+  }
+
   private def evaluate(values: Seq[JsonTraverser], path: String): Seq[String] = {
     values.flatMap(value => value.evaluate(UntypedPath.parse(path)))
+  }
+
+  private def json(fileName: String) = {
+    val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/json")
+    JsonTraverser("alibi_task_id", resources.get(fileName))
   }
 }
