@@ -3,7 +3,7 @@ import { logError } from "../errorLogger";
 import { getStore } from "../../store/configureStore";
 import { commonOp } from "@ducks/common";
 import { isDevelopment } from "../../constants/path";
-import i18n from "../../../language";
+import i18n from "i18next";
 
 /** Successful response. */
 export class FetchResponse<T = any> {

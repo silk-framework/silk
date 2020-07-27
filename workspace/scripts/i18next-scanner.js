@@ -112,7 +112,7 @@ vfs.src(["src/app/**/*.{js,jsx,ts,tsx}", "!src/app/**/*.spec.{js,jsx,ts,tsx}", "
                 trans: false, //this is not work with typescript
                 func: {
                     list: ["i18next.t", "i18n.t", "t"],
-                    extensions: [".js", ".jsx", ".tsx", "ts"],
+                    extensions: [".js", ".jsx", ".tsx", ".ts"],
                 },
                 resource: {
                     // the source path is relative to current working directory

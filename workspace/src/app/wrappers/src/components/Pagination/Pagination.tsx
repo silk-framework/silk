@@ -7,6 +7,9 @@ function Pagination({
     hideInfoText = false,
     hidePageSelect = false,
     hideNavigationArrows = false,
+    backwardText = "Previous page",
+    forwardText = "Next page",
+    itemsPerPageText = "Items per page:",
     ...otherProps
 }: any) {
     return (
@@ -20,6 +23,9 @@ function Pagination({
                 (hidePageSelect ? " ecc-pagination--hidepageselect" : "") +
                 (hideNavigationArrows ? " ecc-pagination--hidenavigation" : "")
             }
+            backwardText={backwardText}
+            forwardText={forwardText}
+            itemsPerPageText={itemsPerPageText}
         />
     );
 }

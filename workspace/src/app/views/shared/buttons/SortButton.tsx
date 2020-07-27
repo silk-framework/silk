@@ -16,7 +16,7 @@ export default function SortButton({ sortersList, activeSort, onSort }: IProps) 
 
     return (
         <div className={"sortButton"} data-test-id={"sortButton"}>
-            <ContextMenu togglerElement="list-sort" togglerText={t("common.sortOptions", "Sort options")}>
+            <ContextMenu togglerElement="list-sort" togglerText={t("common.words.sortOptions", "Sort options")}>
                 {sortersList.map((item) => (
                     <MenuItem
                         active={activeSort.sortBy === item.id ? true : false}
