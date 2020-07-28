@@ -83,7 +83,7 @@ export default function SearchItem({
         e.preventDefault();
         const detailsPath = item.itemLinks[0].path;
         const labels: IPageLabels = {};
-        if (item.type === "project") {
+        if (item.type === DATA_TYPES.PROJECT) {
             labels.projectLabel = item.label;
         } else {
             labels.taskLabel = item.label;
@@ -116,10 +116,10 @@ export default function SearchItem({
                     {(item.description || item.projectId) && (
                         <OverviewItemLine small>
                             <OverflowText>
-                                {!parentProjectId && item.type !== "project" && (
+                                {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
                                     <Tag>{item.projectLabel ? item.projectLabel : item.projectId}</Tag>
                                 )}
-                                {item.description && !parentProjectId && item.type !== "project" && (
+                                {item.description && !parentProjectId && item.type !== DATA_TYPES.PROJECT && (
                                     <Spacing vertical size="small" />
                                 )}
                                 {item.description && <Highlighter label={item.description} searchValue={searchValue} />}

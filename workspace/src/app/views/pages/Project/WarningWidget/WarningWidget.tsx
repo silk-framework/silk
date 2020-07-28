@@ -48,7 +48,7 @@ export const WarningWidget = () => {
         }
     };
 
-    if (isLoading) return <Loading description="Loading log messages." />;
+    if (isLoading) return <Loading description={t("widget.WarningWidget.loading", "Loading log messages.")} />;
 
     return warningList.length > 0 ? (
         <Card>

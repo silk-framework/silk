@@ -101,7 +101,9 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 key={"label"}
                 labelAttributes={{
                     htmlFor: "label",
-                    text: `Label of cloned ${item.projectId ? "task" : "project"}:`,
+                    text: t("common.messages.cloneModalTitle", {
+                        item: item.projectId ? t("common.dataTypes.task") : t("common.dataTypes.project"),
+                    }),
                 }}
             >
                 <TextField onChange={(e) => setNewLabel(e.target.value)} value={newLabel} />

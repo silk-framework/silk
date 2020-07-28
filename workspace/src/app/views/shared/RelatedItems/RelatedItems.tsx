@@ -94,7 +94,10 @@ export function RelatedItems(props: IProps) {
         <Card>
             <CardHeader>
                 <CardTitle>
-                    <h2>Related items{relatedItemsSizeInfo(data.items.length, data.total)}</h2>
+                    <h2>
+                        {t("RelatedItems.title", "Related items")}
+                        {relatedItemsSizeInfo(data.items.length, data.total)}
+                    </h2>
                 </CardTitle>
             </CardHeader>
             <Divider />

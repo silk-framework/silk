@@ -353,7 +353,9 @@ export function CreateArtefactModal() {
                                     <SearchBar textQuery={searchValue} focusOnCreation={true} onSearch={handleSearch} />
                                     <Spacing />
                                     {loading ? (
-                                        <Loading description="Loading artefact type list." />
+                                        <Loading
+                                            description={t("CreateModal.loading", "Loading artefact type list.")}
+                                        />
                                     ) : artefactListWithProject.length === 0 ? (
                                         <p>No match found.</p>
                                     ) : (

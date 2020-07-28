@@ -139,7 +139,7 @@ export const FileWidget = () => {
                 <Divider />
                 <CardContent>
                     {isLoading ? (
-                        <Loading description="Loading file list." />
+                        <Loading description={t("widget.FileWidget.loading", "Loading file list.")} />
                     ) : filesList.length ? (
                         <>
                             <Toolbar>

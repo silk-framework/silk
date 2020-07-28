@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IArtefactItemProperty, IDetailedArtefactItem } from "@ducks/common/typings";
 import { Intent } from "@wrappers/blueprint/constants";
-import { INPUT_TYPES } from "../../../../../constants";
+import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
 import { FieldItem, Spacing, TextArea, TextField } from "@wrappers/index";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import { errorMessage, ParameterWidget } from "./ParameterWidget";
@@ -238,7 +238,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                         ))}
                     </AdvancedOptionsArea>
                 )}
-                {artefact.taskType === "Dataset" && (
+                {artefact.taskType?.toLowerCase() === DATA_TYPES.DATASET && (
                     <>
                         <Spacing />
                         <DataPreview

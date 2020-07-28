@@ -28,7 +28,8 @@
     },
     "common": {
         "messages": {
-            "actionFailed": "{{action}} action failed. Details: {{error}}"
+            "actionFailed": "{{action}} action failed. Details: {{error}}",
+            "cloneModalTitle": "Label of cloned {{item}}"
         },
         "action": {
             "create": "Create",

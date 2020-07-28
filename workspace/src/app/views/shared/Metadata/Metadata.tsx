@@ -145,7 +145,12 @@ export function Metadata(props: IProps) {
         } catch (ex) {
             if (ex.isFetchError) {
                 if (ex.isHttpError) {
-                    setUpdateRequestError(new ErrorResponse("Updating meta data has failed", ex.errorResponse.detail));
+                    setUpdateRequestError(
+                        new ErrorResponse(
+                            t("Metadata.updateFailed", "Updating meta data has failed"),
+                            ex.errorResponse.detail
+                        )
+                    );
                 } else {
                     setUpdateRequestError(ex.errorResponse);
                 }
@@ -159,7 +164,7 @@ export function Metadata(props: IProps) {
         <>
             <CardHeader>
                 <CardTitle>
-                    <h2>Summary</h2>
+                    <h2>{t("common.words.summary", "Summary")}</h2>
                 </CardTitle>
                 {!loading && !isEditing && (
                     <CardOptions>
@@ -173,7 +178,7 @@ export function Metadata(props: IProps) {
 
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
-            {loading && <Loading description="Loading summary data." />}
+            {loading && <Loading description={t("Metadata.loading", "Loading summary data.")} />}
             {!loading && isEditing && (
                 <PropertyValueList>
                     <PropertyValuePair key="label">

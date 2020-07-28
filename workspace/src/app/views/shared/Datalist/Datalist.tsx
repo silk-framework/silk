@@ -17,7 +17,7 @@ export function Datalist({
     }
 
     if (isLoading) {
-        return <Loading description="Loading data." />;
+        return <Loading description={t("DataList.loading", "Loading data.")} />;
     } else if (isEmpty) {
         return emptyContainer || <p>{emptyListMessage}</p>;
     }

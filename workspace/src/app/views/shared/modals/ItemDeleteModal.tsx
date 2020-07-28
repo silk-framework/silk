@@ -51,7 +51,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
 
     const prepareDelete = async () => {
         setDeleteModalOptions({
-            render: () => <Loading description="Loading delete dialog." />,
+            render: () => <Loading description={t("Deletedialog.loading", "Loading delete dialog.")} />,
         });
         const deleteTitle = t("Delete Smth", {
             smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
