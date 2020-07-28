@@ -7,13 +7,13 @@ import {
     initialFiltersState,
     initialSortersState,
 } from "./initialState";
-import i18next from "i18next";
+import i18n from "../../../../language";
 
 const DEFAULT_SORTER = {
     id: "",
-    label: i18next.t("common.sorter.recentlyViewed", "Recently viewed"),
+    label: i18n.t("common.sorter.recentlyViewed", "Recently viewed"),
 };
-
+console.log(DEFAULT_SORTER);
 export const filtersSlice = createSlice({
     name: "filters",
     initialState: initialFiltersState(),
