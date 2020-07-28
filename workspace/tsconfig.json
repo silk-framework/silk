@@ -2,7 +2,7 @@
   "compilerOptions": {
     "baseUrl": "./src/app",
     "paths": {
-      "@wrappers/*": ["./wrappers/*"],
+      "@wrappers/*": ["./../libs/gui-elements/*"],
       "@ducks/*": ["./store/ducks/*"]
     },
     "target": "es5",
