@@ -84,7 +84,7 @@ export function SearchList() {
                 textCallout={<strong>Create your first {itemTypeLabel()} now.</strong>}
                 actionButtons={[
                     <Button key={"create"} onClick={handleCreateArtefact} elevated>
-                        {t("common.action.CreateSmth", { smth: appliedFilters.itemType })}
+                        {t("common.action.CreateSmth", { smth: appliedFilters.itemType || "" })}
                     </Button>,
                 ]}
             />
