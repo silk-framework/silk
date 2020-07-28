@@ -165,7 +165,7 @@ export function Autocomplete(props: IAutocompleteProps) {
             inputValueRenderer={selectedItem !== undefined ? itemLabelRenderer : () => ""}
             itemRenderer={optionRenderer}
             itemsEqual={areEqualItems}
-            noResults={<MenuItem disabled={true} text={t("common.messages.noResults", "No results.")} />}
+            noResults={<MenuItem disabled={true} text={t("http.error.noResults", "No results.")} />}
             onItemSelect={onSelectionChange}
             onQueryChange={handleQueryChange}
             query={query}

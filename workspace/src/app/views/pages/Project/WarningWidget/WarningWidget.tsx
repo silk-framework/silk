@@ -54,7 +54,7 @@ export const WarningWidget = () => {
         <Card>
             <CardHeader>
                 <CardTitle>
-                    <h2>{t("widget.warning.title", "Error log")}</h2>
+                    <h2>{t("widget.WarningWidget.title", "Error log")}</h2>
                 </CardTitle>
             </CardHeader>
             <Divider />

@@ -72,9 +72,9 @@ export const FileWidget = () => {
     }
 
     const headers = [
-        { key: "name", header: t("widget.file.sort.name", "Name"), highlighted: true },
-        { key: "formattedDate", header: t("widget.file.sort.modified", "Last modified"), highlighted: false },
-        { key: "formattedSize", header: t("widget.file.sort.size", "Size (bytes)"), highlighted: true },
+        { key: "name", header: t("widget.FileWidget.sort.name", "Name"), highlighted: true },
+        { key: "formattedDate", header: t("widget.FileWidget.sort.modified", "Last modified"), highlighted: false },
+        { key: "formattedSize", header: t("widget.FileWidget.sort.size", "Size (bytes)"), highlighted: true },
     ];
 
     const onSearch = (textQuery) => {
@@ -111,19 +111,20 @@ export const FileWidget = () => {
         if (deleteModalOpts.dependentTasks.length > 0) {
             return (
                 <div>
-                    <p>{t("widget.file.removeFromDatasets", { fileName: deleteModalOpts.fileName })}</p>
+                    <p>{t("widget.FileWidget.removeFromDatasets", { fileName: deleteModalOpts.fileName })}</p>
                     <ul>
                         {deleteModalOpts.dependentTasks.map((task) => (
                             <li key={task}>{task}</li>
                         ))}
                     </ul>
                     <p>
-                        {t("widget.file.removeText", "Do you really want to delete file")} {deleteModalOpts.fileName}?
+                        {t("widget.FileWidget.removeText", "Do you really want to delete file")}{" "}
+                        {deleteModalOpts.fileName}?
                     </p>
                 </div>
             );
         } else {
-            return <p>{t("widget.file.deleted", { fileName: deleteModalOpts.fileName })}</p>;
+            return <p>{t("widget.FileWidget.deleted", { fileName: deleteModalOpts.fileName })}</p>;
         }
     };
 
@@ -132,7 +133,7 @@ export const FileWidget = () => {
             <Card>
                 <CardHeader>
                     <CardTitle>
-                        <h2>{t("widget.file.files", "Files")}</h2>
+                        <h2>{t("widget.FileWidget.files", "Files")}</h2>
                     </CardTitle>
                 </CardHeader>
                 <Divider />
@@ -149,7 +150,7 @@ export const FileWidget = () => {
                                     <Spacing size="tiny" vertical />
                                     <Button
                                         elevated
-                                        text={t("AddSmth", { smth: t("widget.file.file") })}
+                                        text={t("AddSmth", { smth: t("widget.FileWidget.file") })}
                                         onClick={toggleFileUploader}
                                     />
                                 </ToolbarSection>
@@ -188,7 +189,9 @@ export const FileWidget = () => {
                                                     <TableCell key={"fileActions"} className="bx--table-column-menu">
                                                         <IconButton
                                                             name="item-remove"
-                                                            text={t("DeleteSmth", { smth: t("widget.file.file") })}
+                                                            text={t("DeleteSmth", {
+                                                                smth: t("widget.FileWidget.file"),
+                                                            })}
                                                             small
                                                             disruptive
                                                             onClick={() => openDeleteModal(file.id)}
@@ -218,7 +221,7 @@ export const FileWidget = () => {
                 onDiscard={closeDeleteModal}
                 onConfirm={() => deleteFile(deleteModalOpts.fileName)}
                 render={renderDeleteModal}
-                title={t("widget.file.deleteFile", "Delete File")}
+                title={t("widget.FileWidget.deleteFile", "Delete File")}
             />
         </>
     );

@@ -43,7 +43,7 @@ const Artefacts = () => {
                         <Grid>
                             <GridRow>
                                 <GridColumn small verticalAlign="center">
-                                    <TitleMainsection>{t("workspace.contents", "Contents")}</TitleMainsection>
+                                    <TitleMainsection>{t("pages.workspace.contents", "Contents")}</TitleMainsection>
                                 </GridColumn>
                                 <GridColumn full>
                                     <SearchBar
@@ -66,7 +66,7 @@ const Artefacts = () => {
                             <GridColumn full>
                                 {error.detail ? (
                                     <Notification danger>
-                                        <h3>{t("pages.workspace.notResult", "Error, cannot fetch results.")}</h3>
+                                        <h3>{t("http.error.fetchNotResult", "Error, cannot fetch results.")}</h3>
                                         <p>{error.detail}</p>
                                     </Notification>
                                 ) : (

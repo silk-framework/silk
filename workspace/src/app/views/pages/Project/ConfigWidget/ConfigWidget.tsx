@@ -66,7 +66,7 @@ export const ConfigurationWidget = () => {
                                 <OverviewItemDescription>
                                     <OverviewItemLine>
                                         <strong>
-                                            {t("widget.config.prefix", { count: 2 })}&nbsp;({getFullSizeOfList()})
+                                            {t("widget.ConfigWidget.prefix", { count: 2 })}&nbsp;({getFullSizeOfList()})
                                         </strong>
                                     </OverviewItemLine>
                                     <OverviewItemLine small>
@@ -91,7 +91,7 @@ export const ConfigurationWidget = () => {
                                     <IconButton
                                         onClick={handleOpen}
                                         name="item-edit"
-                                        text={t("widget.file.edit", "Edit prefix settings")}
+                                        text={t("widget.FileWidget.edit", "Edit prefix settings")}
                                     />
                                 </OverviewItemActions>
                             </OverviewItem>

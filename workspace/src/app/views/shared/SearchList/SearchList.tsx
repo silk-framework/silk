@@ -89,7 +89,7 @@ export function SearchList() {
                 ]}
             />
         ) : (
-            <p>{t("common.messages.noItems")}</p>
+            <p>{t("common.messages.noItems", "No items found.")}</p>
         );
 
     return (

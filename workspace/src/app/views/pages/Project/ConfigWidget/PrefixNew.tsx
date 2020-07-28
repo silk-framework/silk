@@ -6,13 +6,13 @@ const PrefixNew = ({ onAdd, onChangePrefix, prefix }) => {
     const [t] = useTranslation();
 
     return (
-        <FieldSet title={t("AddSmth", { smth: t("widget.config.prefix") })} boxed>
+        <FieldSet title={t("AddSmth", { smth: t("widget.ConfigWidget.prefix") })} boxed>
             <FieldItemRow>
                 <FieldItem
                     key={"prefix-name"}
                     labelAttributes={{
                         htmlFor: "prefix-name",
-                        text: t("widget.config.prefix", "Prefix"),
+                        text: t("widget.ConfigWidget.prefix", "Prefix"),
                     }}
                 >
                     <TextField

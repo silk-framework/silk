@@ -40,11 +40,11 @@ export function SelectFileFromExisting(props: IProps) {
     return (
         <FieldItem
             labelAttributes={{
-                text: t("common.fileUploader.selectFromProject", "Select file from projects"),
+                text: t("FileUploader.selectFromProject", "Select file from projects"),
                 info: "required",
                 htmlFor: "autocompleteInput",
             }}
-            messageText={error ? t("common.fileUploader.fileNotSpecified") : ""}
+            messageText={error ? t("FileUploader.fileNotSpecified") : ""}
         >
             <Autocomplete {...autocomplete} onChange={handleChange} />
         </FieldItem>

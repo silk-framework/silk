@@ -15,9 +15,9 @@ export function AppPagination({ pagination, onChangeSelect, pageSizes }) {
             pageSizes={pageSizes}
             page={pagination.current}
             pageSize={pagination.limit}
-            backwardText={t("pagination.backwardText", "Previous page")}
-            forwardText={t("pagination.forwardText", "Next page")}
-            itemsPerPageText={t("pagination.itemsPerPage", "Items per page:")}
+            backwardText={t("Pagination.backwardText", "Previous page")}
+            forwardText={t("Pagination.forwardText", "Next page")}
+            itemsPerPageText={t("Pagination.itemsPerPage", "Items per page:")}
         />
     ) : null;
 }

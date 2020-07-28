@@ -14,14 +14,17 @@
     "UpdateItem_Title": "Create new item of type {{type}}",
     "OverwriteFile": "File {{fileName}} already exists. Do you want to overwrite it?",
     "widget": {
-        "config": {
+        "ConfigWidget": {
             "prefix": "Prefix",
             "prefix_plural": "Prefixes"
         },
-        "file":{
+        "FileWidget": {
             "removeFromDatasets": "File '{{fileName}}' is in use by following datasets:",
             "deleted": "File '{{fileName}}' will be deleted."
         }
+    },
+    "FileUploader": {
+        "successfullyUploaded": "{{uploadedName}} was successfully uploaded"
     },
     "common": {
         "messages": {
@@ -31,9 +34,6 @@
             "create": "Create",
             "update": "Update",
             "cancel": "Cancel"
-        },
-        "fileUploader": {
-            "successfullyUploaded": "{{uploadedName}} was successfully uploaded"
         }
     },
     "form": {

@@ -331,7 +331,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                             rightElement={
                                 <Button
                                     minimal
-                                    text={i18next.t("common.fileUploader.changeFile", "Change file")}
+                                    text={i18next.t("FileUploader.changeFile", "Change file")}
                                     icon={<Icon name="item-edit" />}
                                     onClick={this.toggleFileResourceChange}
                                 />
@@ -344,7 +344,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                         <Button
                             outlined
                             small
-                            text={i18next.t("common.fileUploader.abort", "Abort and keep file")}
+                            text={i18next.t("FileUploader.abort", "Abort and keep file")}
                             icon={<Icon name="operation-undo" />}
                             onClick={this.handleDiscardChanges}
                         />

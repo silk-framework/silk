@@ -101,7 +101,7 @@ const Project = () => {
                             <GridColumn full>
                                 {!data.length && error.detail ? (
                                     <Notification danger>
-                                        <h3>{t("pages.project.noResult", "Error, cannot fetch results.")}</h3>
+                                        <h3>{t("http.error.fetchNotResult", "Error, cannot fetch results.")}</h3>
                                         <p>{error.detail}</p>
                                     </Notification>
                                 ) : (

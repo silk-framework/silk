@@ -18,7 +18,7 @@ const AbortAlert = ({ isOpen, onCancel, onConfirm }) => {
                 </Button>,
             ]}
         >
-            <p> {t("fileUploader.abortProcess", "Abort upload process?")}</p>
+            <p> {t("FileUploader.abortProcess", "Abort upload process?")}</p>
         </AlertDialog>
     );
 };

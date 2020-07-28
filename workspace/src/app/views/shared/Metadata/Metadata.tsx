@@ -257,7 +257,7 @@ export function Metadata(props: IProps) {
             <>
                 <Divider />
                 <CardActions>
-                    <Button affirmative text={t("form.field.submit", "Submit")} type={"submit"} />
+                    <Button affirmative text={t("common.action.submit", "Submit")} type={"submit"} />
                     <Button text={t("common.action.cancel")} onClick={toggleEdit} />
                 </CardActions>
             </>

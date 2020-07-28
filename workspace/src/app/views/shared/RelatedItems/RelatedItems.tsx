@@ -108,7 +108,7 @@ export function RelatedItems(props: IProps) {
                 <DataList
                     isEmpty={data.items.length === 0}
                     isLoading={loading}
-                    emptyListMessage={t("common.messages.noItems", "No items found.")}
+                    emptyListMessage={t("common.messages.noItems")}
                     hasSpacing
                     hasDivider
                 >

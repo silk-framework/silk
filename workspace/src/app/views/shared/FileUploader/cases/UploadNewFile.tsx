@@ -110,15 +110,15 @@ export function UploadNewFile(props: IProps) {
                     actions={
                         !uploaded && (
                             <Button outlined onClick={handleAbort}>
-                                {t("common.fileUploader.abortOnly", "Abort Upload")}
+                                {t("FileUploader.abortOnly", "Abort Upload")}
                             </Button>
                         )
                     }
                 >
                     <p>
                         {!uploaded
-                            ? t("common.fileUploader.waitFor", "Wait for finished upload.")
-                            : t("common.fileUploader.successfullyUploaded", { uploadedName: uploaded.name })}
+                            ? t("FileUploader.waitFor", "Wait for finished upload.")
+                            : t("FileUploader.successfullyUploaded", { uploadedName: uploaded.name })}
                     </p>
                     <Spacing />
                     <ProgressBar

@@ -21,15 +21,15 @@ export function FileMenu({ onChange, selectedFileMenu }: IProps) {
 
     const menuItems = [
         {
-            label: t("common.fileMenu.empty", "Select file from project"),
+            label: t("FileMenu.empty", "Select file from project"),
             value: "SELECT",
         },
         {
-            label: t("common.fileMenu.new", "Upload new file"),
+            label: t("FileMenu.new", "Upload new file"),
             value: "NEW",
         },
         {
-            label: t("common.fileMenu.create", "Create empty file"),
+            label: t("FileMenu.create", "Create empty file"),
             value: "EMPTY",
         },
     ];
