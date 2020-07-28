@@ -13,7 +13,7 @@ const DEFAULT_SORTER = {
     id: "",
     label: i18n.t("common.sorter.recentlyViewed", "Recently viewed"),
 };
-console.log(DEFAULT_SORTER);
+
 export const filtersSlice = createSlice({
     name: "filters",
     initialState: initialFiltersState(),
