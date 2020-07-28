@@ -11,8 +11,8 @@ import {
     OverflowText,
     TitleSubsection,
     Label,
-} from "@wrappers/index";
-import { Intent } from "@wrappers/blueprint/constants";
+} from "@gui-elements/index";
+import { Intent } from "@gui-elements/blueprint/constants";
 import { Autocomplete } from "../../../Autocomplete/Autocomplete";
 import { InputMapper } from "./InputMapper";
 import { AppToaster } from "../../../../../services/toaster";

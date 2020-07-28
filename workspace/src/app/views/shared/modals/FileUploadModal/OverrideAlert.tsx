@@ -1,5 +1,5 @@
 import React from "react";
-import { AlertDialog, Button } from "@wrappers/index";
+import { AlertDialog, Button } from "@gui-elements/index";
 
 interface IProps {
     fileName: string;

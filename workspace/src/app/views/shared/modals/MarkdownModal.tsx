@@ -1,6 +1,6 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
-import { Button, SimpleDialog, HtmlContentBlock } from "@wrappers/index";
+import { Button, SimpleDialog, HtmlContentBlock } from "@gui-elements/index";
 
 const MarkdownModal = ({ onDiscard, isOpen, markdown, title = "Error report" }) => {
     const handleDownload = () => {

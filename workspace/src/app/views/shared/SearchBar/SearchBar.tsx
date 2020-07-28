@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ISortersState } from "@ducks/workspace/typings";
-import { Spacing, Toolbar, ToolbarSection } from "@wrappers/index";
+import { Spacing, Toolbar, ToolbarSection } from "@gui-elements/index";
 import SearchInput from "./SearchInput";
 import SortButton from "../buttons/SortButton";
 

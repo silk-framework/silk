@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { SearchField } from "@wrappers/index";
+import { SearchField } from "@gui-elements/index";
 
 interface IProps {
     onFilterChange(e);

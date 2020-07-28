@@ -1,5 +1,5 @@
 import React from "react";
-import { Checkbox } from "@wrappers/index";
+import { Checkbox } from "@gui-elements/index";
 
 interface IProps {
     isChecked?: boolean;

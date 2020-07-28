@@ -180,7 +180,7 @@
     "moduleNameMapper": {
       "^react-native$": "react-native-web",
       "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",
-      "@wrappers(.*)$": "<rootDir>/src/libs/gui-elements/$1",
+      "@gui-elements(.*)$": "<rootDir>/src/libs/gui-elements/$1",
       "@ducks(.*)$": "<rootDir>/src/app/store/ducks/$1"
     },
     "moduleFileExtensions": [

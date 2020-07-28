@@ -17,7 +17,7 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     OverviewItemList,
-} from "@wrappers/index";
+} from "@gui-elements/index";
 
 const VISIBLE_COUNT = 5;
 

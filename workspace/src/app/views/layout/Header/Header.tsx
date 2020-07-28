@@ -23,7 +23,7 @@ import {
     OverviewItemLine,
     TitlePage,
     WorkspaceHeader,
-} from "@wrappers/index";
+} from "@gui-elements/index";
 import ItemDepiction from "./ItemDepiction";
 import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";

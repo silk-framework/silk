@@ -1,4 +1,4 @@
-import { FieldItem, TextField } from "@wrappers/index";
+import { FieldItem, TextField } from "@gui-elements/index";
 import React, { useState } from "react";
 
 interface IProps {
