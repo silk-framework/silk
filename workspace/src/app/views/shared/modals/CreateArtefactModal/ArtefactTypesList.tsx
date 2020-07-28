@@ -11,7 +11,7 @@ function ArtefactTypesList({ onSelect }) {
     const [t] = useTranslation();
     return (
         <>
-            <TitleSubsection>Item type</TitleSubsection>
+            <TitleSubsection>{t("common.words.itemType", "Item type")}</TitleSubsection>
             <Menu>
                 <MenuItem
                     text={t("common.words.all", "All")}
