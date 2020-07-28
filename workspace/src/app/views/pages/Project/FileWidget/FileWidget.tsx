@@ -150,7 +150,7 @@ export const FileWidget = () => {
                                     <Spacing size="tiny" vertical />
                                     <Button
                                         elevated
-                                        text={t("AddSmth", { smth: t("widget.FileWidget.file") })}
+                                        text={t("common.action.AddSmth", { smth: t("widget.FileWidget.file") })}
                                         onClick={toggleFileUploader}
                                     />
                                 </ToolbarSection>
@@ -189,7 +189,7 @@ export const FileWidget = () => {
                                                     <TableCell key={"fileActions"} className="bx--table-column-menu">
                                                         <IconButton
                                                             name="item-remove"
-                                                            text={t("DeleteSmth", {
+                                                            text={t("common.action.DeleteSmth", {
                                                                 smth: t("widget.FileWidget.file"),
                                                             })}
                                                             small

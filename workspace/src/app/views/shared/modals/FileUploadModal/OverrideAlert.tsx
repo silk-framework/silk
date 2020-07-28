@@ -26,7 +26,7 @@ const OverrideAlert = ({ fileName, isOpen, onCancel, onConfirm }: IProps) => {
                 </Button>,
             ]}
         >
-            <p>{t("OverwriteFile", { fileName })}</p>
+            <p>{t("OverwriteModal.overwriteFile", { fileName })}</p>
         </AlertDialog>
     );
 };

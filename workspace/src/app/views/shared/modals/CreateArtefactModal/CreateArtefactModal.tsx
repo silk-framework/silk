@@ -277,10 +277,10 @@ export function CreateArtefactModal() {
             hasBorder
             title={
                 updateExistingTask
-                    ? t("UpdateItem_Title", {
+                    ? t("CreateModal.updateTitle", {
                           type: `'${updateExistingTask.metaData.label}' (${updateExistingTask.taskPluginDetails.title})`,
                       })
-                    : t("CreateItem_Title", { type: selectedArtefact.title || "" })
+                    : t("CreateModal.createTitle", { type: selectedArtefact.title || "" })
             }
             onClose={closeModal}
             isOpen={isOpen}
@@ -297,7 +297,7 @@ export function CreateArtefactModal() {
                                 onClick={handleCreate}
                                 disabled={isErrorPresented()}
                             >
-                                {updateExistingTask ? t("UpdateSmth", { smth: "" }) : t("CreateSmth", { smth: "" })}
+                                {updateExistingTask ? t("common.action.update") : t("common.action.create")}
                             </Button>,
                             <Button key="cancel" onClick={closeModal}>
                                 {t("common.action.cancel")}
@@ -319,7 +319,7 @@ export function CreateArtefactModal() {
                             onClick={handleAdd}
                             disabled={!Object.keys(selected).length}
                         >
-                            {t("AddSmth")}
+                            {t("common.action.add")}
                         </Button>,
                         <Button key="cancel" onClick={closeModal}>
                             {t("common.action.cancel")}

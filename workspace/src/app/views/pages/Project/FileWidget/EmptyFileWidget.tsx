@@ -9,7 +9,7 @@ export function EmptyFileWidget({ onFileAdd }) {
         <div>
             <p>{t("widget.FileWidget.empty", "No files are found, add them here to use it later")}</p>
             <Button kind={"primary"} onClick={onFileAdd}>
-                + {t("AddSmth", { smth: t("widget.FileWidget.file", "File") })}
+                + {t("common.action.AddSmth", { smth: t("widget.FileWidget.file", "File") })}
             </Button>
         </div>
     );

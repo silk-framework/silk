@@ -206,7 +206,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         if (idx > 0) {
             errorDetails = errorDetails.substring(0, idx);
         }
-        const errorMessage = i18next.t("UploadError", {
+        const errorMessage = i18next.t("FileUploader.uploadError", {
             fileName: fileData.name,
             errorDetails: errorDetails,
         });

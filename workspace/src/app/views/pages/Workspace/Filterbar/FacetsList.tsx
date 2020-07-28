@@ -92,7 +92,7 @@ export default function FacetsList() {
                             <li>
                                 <Button
                                     onClick={() => toggleShowMore(facet)}
-                                    text={t("ShowSmth", {
+                                    text={t("common.action.ShowSmth", {
                                         smth: toggledFacets.includes(facet.id)
                                             ? t("common.words.less", "less")
                                             : t("common.words.more"),

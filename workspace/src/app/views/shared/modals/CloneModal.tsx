@@ -75,8 +75,9 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
         <SimpleDialog
             size="small"
             title={
-                t("CloneSmth", { smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project") }) +
-                    label ||
+                t("common.action.CloneSmth", {
+                    smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
+                }) + label ||
                 item.label ||
                 item.id
             }

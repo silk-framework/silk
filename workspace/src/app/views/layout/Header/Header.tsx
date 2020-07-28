@@ -238,7 +238,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                             <>
                                 <IconButton
                                     name="item-remove"
-                                    text={t("RemoveSmth", {
+                                    text={t("common.action.RemoveSmth", {
                                         smth: taskId
                                             ? t("common.dataTypes.task", "Task")
                                             : t("common.dataTypes.project", "Project"),

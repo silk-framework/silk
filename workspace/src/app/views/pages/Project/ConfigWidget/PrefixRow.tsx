@@ -31,7 +31,7 @@ const PrefixRow = ({ prefix, onRemove }: IProps) => {
             <OverviewItemActions>
                 <IconButton
                     name="item-remove"
-                    text={t("DeleteSmth", { smth: t("widget.ConfigWidget.prefix") })}
+                    text={t("common.action.DeleteSmth", { smth: t("widget.ConfigWidget.prefix") })}
                     onClick={onRemove}
                 />
             </OverviewItemActions>

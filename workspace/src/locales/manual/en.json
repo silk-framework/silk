@@ -1,18 +1,18 @@
 {
-    "UploadError": "An upload error has occurred for file {{fileName}}. Details: {{errorDetails}}",
-    "DeletePrefixMessage": "Prefix {{prefixName}} will be deleted.",
-    "AddSmth": "Add {{smth}}",
-    "CreateSmth": "Create {{smth}}",
-    "UpdateSmth": "Update {{smth}}",
-    "DeleteSmth": "Delete {{smth}}",
-    "ShowSmth": "Show {{smth}}",
-    "CloneSmth": "Clone {{smth}}",
-    "DeleteResource": "{{type}} {{name}} will be deleted",
-    "DeleteConfirmMsg": "Task {{name}} is used by other tasks! Deleting this task will also delete all depending tasks listed below:",
-    "RemoveSmth": "Remove {{smth}}",
-    "CreateItem_Title": "Create new item of type {{type}}",
-    "UpdateItem_Title": "Create new item of type {{type}}",
-    "OverwriteFile": "File {{fileName}} already exists. Do you want to overwrite it?",
+    "OverwriteModal": {
+        "overwriteFile": "File {{fileName}} already exists. Do you want to overwrite it?"
+    },
+    "PrefixDialog": {
+        "deletePrefix": "Prefix {{prefixName}} will be deleted."
+    },
+    "CreateModal": {
+        "createTitle": "Create new item of type {{type}}",
+        "updateTitle": "Update item of type {{type}}"
+    },
+    "DeleteModal": {
+        "deleteResource": "{{type}} {{name}} will be deleted",
+        "confirmMsg": "Task {{name}} is used by other tasks! Deleting this task will also delete all depending tasks listed below:"
+    },
     "widget": {
         "ConfigWidget": {
             "prefix": "Prefix",
@@ -24,7 +24,8 @@
         }
     },
     "FileUploader": {
-        "successfullyUploaded": "{{uploadedName}} was successfully uploaded"
+        "successfullyUploaded": "{{uploadedName}} was successfully uploaded",
+        "uploadError": "An upload error has occurred for file {{fileName}}. Details: {{errorDetails}}"
     },
     "common": {
         "messages": {
@@ -34,7 +35,13 @@
         "action": {
             "create": "Create",
             "update": "Update",
-            "cancel": "Cancel"
+            "cancel": "Cancel",
+            "AddSmth": "Add {{smth}}",
+            "CreateSmth": "Create {{smth}}",
+            "DeleteSmth": "Delete {{smth}}",
+            "ShowSmth": "Show {{smth}}",
+            "CloneSmth": "Clone {{smth}}",
+            "RemoveSmth": "Remove {{smth}}"
         }
     },
     "form": {

@@ -53,7 +53,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
         setDeleteModalOptions({
             render: () => <Loading description={t("Deletedialog.loading", "Loading delete dialog.")} />,
         });
-        const deleteTitle = t("Delete Smth", {
+        const deleteTitle = t("common.action.DeleteSmth", {
             smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
         });
 
@@ -69,7 +69,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                     confirmationRequired: true,
                     render: () => (
                         <div>
-                            {t("DeleteConfirmMsg", { name: data.label || item.id })}
+                            {t("DeleteModal.confirmMsg", { name: data.label || item.id })}
                             <ul>
                                 {data.relations.dependentTasksDirect.map((rel) => (
                                     <li key={rel}>{rel}</li>
@@ -77,7 +77,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                             </ul>
                         </div>
                     ),
-                    title: t("DeleteSmth", {
+                    title: t("common.action.DeleteSmth", {
                         smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
                     }),
                 });
@@ -86,7 +86,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                     confirmationRequired: false,
                     render: () => (
                         <p>
-                            {t("DeleteResource", {
+                            {t("DeleteModal.deleteResource", {
                                 type: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
                                 name: data.label || item.id,
                             })}
@@ -100,7 +100,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                 confirmationRequired: false,
                 render: () => (
                     <p>
-                        {t("DeleteResource", {
+                        {t("DeleteModal.deleteResource", {
                             type: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
                             name: item.label || item.id || item.projectId,
                         })}

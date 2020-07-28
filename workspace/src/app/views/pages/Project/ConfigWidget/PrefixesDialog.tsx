@@ -81,9 +81,9 @@ const PrefixesDialog = ({ onCloseModal, isOpen }) => {
                 isOpen={isOpenRemove}
                 onDiscard={() => toggleRemoveDialog()}
                 onConfirm={handleConfirmRemove}
-                title={t("DeleteSmth", { smth: t("widget.ConfigWidget.prefix") })}
+                title={t("common.action.DeleteSmth", { smth: t("widget.ConfigWidget.prefix") })}
             >
-                <p>{t("DeletePrefixMessage", { prefixName: selectedPrefix ? selectedPrefix.prefixName : "" })}</p>
+                <p>{t("PrefixDialog.deletePrefix", { prefixName: selectedPrefix ? selectedPrefix.prefixName : "" })}</p>
             </DeleteModal>
         </SimpleDialog>
     );
