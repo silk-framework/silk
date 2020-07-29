@@ -61,13 +61,13 @@ describe("Related items", () => {
             expect(wrapper.text()).toContain(`(${nrItems})`);
         });
         // Check items that are displayed in the list
-        const shownRelatedItems = findAll(wrapper, "li .ecc-overviewitem__item");
+        const shownRelatedItems = findAll(wrapper, "li .eccgui-overviewitem__item");
         expect(shownRelatedItems).toHaveLength(DEFAULT_PAGE_SIZE);
         shownRelatedItems.forEach((elem, idx) => {
-            expect(findSingleElement(elem, ".ecc-link").text()).toBe(`${ITEM_PREFIX + idx} label`);
-            expect(findSingleElement(elem, ".ecc-tag__item").text()).toBe("Item");
+            expect(findSingleElement(elem, ".eccgui-link").text()).toBe(`${ITEM_PREFIX + idx} label`);
+            expect(findSingleElement(elem, ".eccgui-tag__item").text()).toBe("Item");
             // Check item actions
-            const itemActions = findSingleElement(elem, ".ecc-overviewitem__actions").children();
+            const itemActions = findSingleElement(elem, ".eccgui-overviewitem__actions").children();
             expect(itemActions).toHaveLength(2);
             // Check detail page link
             const detailPageLink = findSingleElement(itemActions.at(0), "a").get(0);
