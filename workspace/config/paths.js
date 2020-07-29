@@ -83,7 +83,7 @@ module.exports = {
     appNodeModules: resolveApp("node_modules"),
     publicUrl: getPublicUrl(resolveApp("package.json")),
     servedPath: getServedPath(resolveApp("package.json")),
-    wrappersPath: resolveApp("src/app/wrappers"),
+    appGuiElementsFolder: resolveApp("src/libs/gui-elements"),
     ducksFolder: resolveApp("src/app/store/ducks"),
     diTargetPublicFolder: resolveApp("../target/web/public/main"),
 };

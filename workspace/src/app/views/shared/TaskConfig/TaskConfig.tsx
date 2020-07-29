@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardOptions, CardTitle, Divider, IconButton } from "@wrappers/index";
+import { Card, CardContent, CardHeader, CardOptions, CardTitle, Divider, IconButton } from "@gui-elements/index";
 import { useDispatch, useSelector } from "react-redux";
 import { commonOp, commonSel } from "@ducks/common";
 import { requestTaskData } from "@ducks/shared/requests";

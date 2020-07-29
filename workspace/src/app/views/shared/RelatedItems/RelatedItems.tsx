@@ -13,19 +13,19 @@ import {
     OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
-} from "@wrappers/index";
+} from "@gui-elements/index";
 import { sharedOp } from "@ducks/shared";
 import { routerOp } from "@ducks/router";
 import DataList from "../Datalist";
-import Tag from "@wrappers/src/components/Tag/Tag";
+import Tag from "@gui-elements/src/components/Tag/Tag";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
-import Spacing from "@wrappers/src/components/Separation/Spacing";
+import Spacing from "@gui-elements/src/components/Separation/Spacing";
 import { Highlighter } from "../Highlighter/Highlighter";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
 import { IItemLink, IRelatedItem, IRelatedItemsResponse } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
 import { SearchBar } from "../SearchBar/SearchBar";
-import { usePagination } from "@wrappers/src/components/Pagination/Pagination";
+import { usePagination } from "@gui-elements/src/components/Pagination/Pagination";
 
 interface IProps {
     projectId?: string;

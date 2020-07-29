@@ -108,9 +108,9 @@ describe("Task page", () => {
             expect(findSingleElement(taskConfig, "header h3").text()).toContain(pluginLabel);
         });
         const taskConfig = findSingleElement(taskPageWrapper, byTestId("taskConfigWidget"));
-        const propertyLabels = findAll(taskConfig, ".ecc-card__content .ecc-label").map((elem) => elem.text());
+        const propertyLabels = findAll(taskConfig, ".eccgui-card__content .eccgui-label").map((elem) => elem.text());
         expect(propertyLabels).toStrictEqual(params.map(([paramId, paramLabel]) => paramLabel));
-        const propertyValues = findAll(taskConfig, ".ecc-card__content .ecc-propertyvalue__value").map((elem) =>
+        const propertyValues = findAll(taskConfig, ".eccgui-card__content .eccgui-propertyvalue__value").map((elem) =>
             elem.text()
         );
         expect(propertyValues).toStrictEqual(
@@ -126,7 +126,7 @@ describe("Task page", () => {
         mockAxios.mockResponseFor(taskMetaDataUrl, mockedAxiosResponse({ data: taskMetaData }));
         await waitFor(() => {
             const metaData = findSingleElement(taskPageWrapper, byTestId("metaDataWidget"));
-            expect(findAll(metaData, ".ecc-propertyvalue__value").map((elem) => elem.text())).toStrictEqual([
+            expect(findAll(metaData, ".eccgui-propertyvalue__value").map((elem) => elem.text())).toStrictEqual([
                 taskLabel,
                 taskDescription,
             ]);

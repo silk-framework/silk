@@ -1,5 +1,5 @@
 import React from "react";
-import { Pagination } from "@wrappers/index";
+import { Pagination } from "@gui-elements/index";
 
 // TODO: why do we not use the Pagination element directly, don't see any real benefit of this wrapper here
 export function AppPagination({ pagination, onChangeSelect, pageSizes }) {

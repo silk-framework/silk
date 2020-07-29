@@ -12,7 +12,7 @@ import appRoutes from "./app/appRoutes";
 import { createPlugin } from "./app/services/pluginApi";
 import configureStore from "./app/store/configureStore";
 
-import "@wrappers/index.scss";
+import "@gui-elements/index.scss";
 import "./language";
 
 const bootstrapPlugins = (plugins) => plugins.map((plugin) => createPlugin(plugin));

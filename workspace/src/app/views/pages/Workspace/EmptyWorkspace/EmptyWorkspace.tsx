@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Spacing, TitleMainsection } from "@wrappers/index";
+import { Button, Spacing, TitleMainsection } from "@gui-elements/index";
 import { useDispatch } from "react-redux";
 import { commonOp } from "@ducks/common";
 import { DATA_TYPES } from "../../../../constants";
