@@ -11,6 +11,7 @@ object ActivitySerializers {
   implicit object StatusJsonFormat extends JsonFormat[Status] {
 
     private final val STATUS_NAME = "statusName"
+    final val CONCRETE_STATUS = "concreteStatus"
     private final val IS_RUNNING = "isRunning"
     private final val PROGRESS = "progress"
     private final val MESSAGE = "message"
@@ -30,6 +31,7 @@ object ActivitySerializers {
       val basicParameters =
         JsObject(
           (STATUS_NAME -> JsString(status.name)) ::
+          (CONCRETE_STATUS -> JsString(status.concreteStatus)) ::
           (IS_RUNNING -> JsBoolean(status.isRunning)) ::
           (PROGRESS -> status.progress.map(p => JsNumber(p * 100.0)).getOrElse(JsNull)) ::
           (MESSAGE -> JsString(status.toString)) ::
