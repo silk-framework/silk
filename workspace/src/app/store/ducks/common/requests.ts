@@ -1,6 +1,6 @@
 import fetch from "../../../services/fetch";
 import { coreApi, legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
-import { IDetailedArtefactItem, IExportTypes } from "@ducks/common/typings";
+import { IDetailedArtefactItem, IOverviewArtefactItemList, IExportTypes } from "@ducks/common/typings";
 
 const handleError = (error) => {
     return error.errorResponse;
@@ -40,7 +40,7 @@ export const requestSearchConfig = async (projectId?: string): Promise<any | nev
  * Get plugins list
  * @param payload
  */
-export const requestArtefactList = async (payload: any): Promise<any | never> => {
+export const requestArtefactList = async (payload: any): Promise<IOverviewArtefactItemList | never> => {
     try {
         const { data } = await fetch({
             url: coreApi("/taskPlugins"),

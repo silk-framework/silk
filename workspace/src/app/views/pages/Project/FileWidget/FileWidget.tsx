@@ -82,7 +82,13 @@ export const FileWidget = () => {
     useEffect(() => {
         // Only trigger if file upload dialog is closed, since a file may have been uploaded.
         if (!isOpenDialog && !deleteModalOpts.isOpen) {
-            dispatch(workspaceOp.fetchResourcesListAsync({ searchText: textQuery, limit: 1000 }));
+            const filter: any = {
+                limit: 1000,
+            };
+            if (textQuery) {
+                filter.searchText = textQuery;
+            }
+            dispatch(workspaceOp.fetchResourcesListAsync(filter));
         }
     }, [textQuery, isOpenDialog, deleteModalOpts.isOpen]);
 

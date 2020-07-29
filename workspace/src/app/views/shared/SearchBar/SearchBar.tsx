@@ -45,6 +45,7 @@ export function SearchBar({ textQuery = "", sorters, onSort, onSearch, focusOnCr
         <Toolbar>
             <ToolbarSection canGrow>
                 <SearchInput
+                    data-test-id={"search-bar"}
                     focusOnCreation={focusOnCreation}
                     onFilterChange={handleSearchChange}
                     onEnter={handleSearchEnter}
@@ -53,8 +54,8 @@ export function SearchBar({ textQuery = "", sorters, onSort, onSearch, focusOnCr
                 />
             </ToolbarSection>
             <ToolbarSection>
-                {!!sorters && onSort && <Spacing size="tiny" vertical />}
-                {!!sorters && onSort && (
+                {!!sorters?.list.length && onSort && <Spacing size="tiny" vertical />}
+                {!!sorters?.list.length && onSort && (
                     <SortButton sortersList={sorters.list} onSort={onSort} activeSort={sorters.applied} />
                 )}
             </ToolbarSection>
