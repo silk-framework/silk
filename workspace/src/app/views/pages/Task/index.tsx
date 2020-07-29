@@ -16,7 +16,7 @@ export default function () {
     const { taskId, projectId } = useParams();
 
     useEffect(() => {
-        if (error.detail) {
+        if (error?.detail) {
             AppToaster.show({
                 message: error.detail,
                 intent: Intent.DANGER,

@@ -13,7 +13,7 @@ export default function () {
     const error = useSelector(datasetSel.errorSelector);
 
     useEffect(() => {
-        if (error.detail) {
+        if (error?.detail) {
             AppToaster.show({
                 message: error.detail,
                 intent: Intent.DANGER,

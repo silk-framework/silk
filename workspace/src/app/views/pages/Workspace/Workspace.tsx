@@ -20,7 +20,7 @@ export function Workspace() {
     const projectId = useSelector(commonSel.currentProjectIdSelector);
 
     useEffect(() => {
-        if (error.detail) {
+        if (error?.detail) {
             AppToaster.show({
                 message: error.detail,
                 intent: Intent.DANGER,
