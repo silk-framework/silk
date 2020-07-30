@@ -9,6 +9,7 @@ import {
     ApplicationToolbarPanel,
     ApplicationToolbarSection,
     BreadcrumbList,
+    Button,
     ContextMenu,
     Icon,
     IconButton,
@@ -43,6 +44,9 @@ import { DATA_TYPES } from "../../../constants";
 import { IExportTypes } from "@ducks/common/typings";
 import { downloadResource } from "../../../utils/downloadResource";
 import { useTranslation } from "react-i18next";
+import ukFlag from "../../../../images/uk.svg";
+import deFlag from "../../../../images/germany.svg";
+import { ResourceLink } from "../../shared/ResourceLink/ResourceLink";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];
@@ -193,8 +197,12 @@ function HeaderComponent({ breadcrumbs }: IProps) {
         projectId: taskId ? projectId : undefined,
     };
 
-    const handleExport = async (type: IExportTypes) => {
+    const handleExport = (type: IExportTypes) => {
         downloadResource(itemData.id, type.id);
+    };
+
+    const handleLanguageChange = (locale: string) => {
+        dispatch(commonOp.changeLocale(locale));
     };
 
     return !isAuth ? null : (
@@ -294,6 +302,11 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                         </ApplicationToolbarAction>
                         <ApplicationToolbarPanel aria-label="User menu" expanded={true}>
                             <Menu>
+                                <div>
+                                    <Button onClick={() => handleLanguageChange("en")}>En</Button>
+                                    <Button onClick={() => handleLanguageChange("de")}>De</Button>
+                                </div>
+                                <MenuDivider />
                                 <MenuItem
                                     text={t("common.action.backOld", "Back to old workspace")}
                                     href={CONTEXT_PATH + "/workspace"}
