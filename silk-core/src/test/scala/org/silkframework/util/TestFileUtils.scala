@@ -21,4 +21,14 @@ object TestFileUtils {
     }
     file
   }
+
+  /** Creates a temp directory that will be deleted at the end of the code block. */
+  def withTempDirectory[T](block: File => T, baseName: String = "tempDirectory", suffix: String = ""): T = {
+    val tempDir = createTempDirectoryForTest(baseName, suffix)
+    try {
+      block(tempDir)
+    } finally {
+      org.apache.commons.io.FileUtils.forceDelete(tempDir)
+    }
+  }
 }
