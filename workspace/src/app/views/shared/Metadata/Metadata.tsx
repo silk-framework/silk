@@ -183,7 +183,11 @@ export function Metadata(props: IProps) {
                 <PropertyValueList>
                     <PropertyValuePair key="label">
                         <PropertyName>
-                            <Label text={t("form.field.label", "Label")} info="required" htmlFor="label" />
+                            <Label
+                                text={t("form.field.label", "Label")}
+                                info={t("common.words.required")}
+                                htmlFor="label"
+                            />
                         </PropertyName>
                         <PropertyValue>
                             <FieldItem

@@ -33,7 +33,7 @@ export function ProjectForm({ form }: IProps) {
                 key={LABEL}
                 labelAttributes={{
                     text: t("form.projectForm.title", "Title"),
-                    info: "required",
+                    info: t("common.words.required"),
                     htmlFor: "title-input",
                 }}
                 hasStateDanger={errorMessage("Title", errors.label) ? true : false}

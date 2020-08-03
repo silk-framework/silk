@@ -44,6 +44,9 @@
             "ShowSmth": "Show {{smth}}",
             "CloneSmth": "Clone {{smth}}",
             "RemoveSmth": "Remove {{smth}}"
+        },
+        "words": {
+            "required": "required"
         }
     },
     "form": {

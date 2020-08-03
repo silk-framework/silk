@@ -41,7 +41,7 @@ export function SelectFileFromExisting(props: IProps) {
         <FieldItem
             labelAttributes={{
                 text: t("FileUploader.selectFromProject", "Select file from projects"),
-                info: "required",
+                info: t("common.words.required"),
                 htmlFor: "autocompleteInput",
             }}
             messageText={error ? t("FileUploader.fileNotSpecified") : ""}

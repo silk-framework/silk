@@ -43,7 +43,7 @@ export function CreateNewFile(props: IProps) {
         <FieldItem
             labelAttributes={{
                 text: t("FileUploader.createNewFile", "New file name"),
-                info: "required",
+                info: t("common.words.required"),
                 htmlFor: "fileInput",
             }}
             messageText={error ? t("FileUploader.fileNotSpecified", "File name not specified") : ""}

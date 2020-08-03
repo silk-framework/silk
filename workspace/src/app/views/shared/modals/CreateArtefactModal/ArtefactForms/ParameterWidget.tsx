@@ -18,6 +18,7 @@ import { InputMapper } from "./InputMapper";
 import { AppToaster } from "../../../../../services/toaster";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
+import { useTranslation } from "react-i18next";
 
 const MAXLENGTH_TOOLTIP = 40;
 const MAXLENGTH_SIMPLEHELP = 288;
@@ -80,6 +81,7 @@ export const ParameterWidget = (props: IProps) => {
     const errors = formHooks.errors[taskParameter.paramId];
     const propertyDetails = taskParameter.param;
     const { title, description, autoCompletion } = propertyDetails;
+    const [t] = useTranslation();
 
     const selectDependentValues = (): string[] => {
         return autoCompletion.autoCompletionDependsOnParameters.flatMap((paramId) => {
@@ -148,7 +150,7 @@ export const ParameterWidget = (props: IProps) => {
                     <Label
                         isLayoutForElement="span"
                         text={<TitleSubsection useHtmlElement="span">{title}</TitleSubsection>}
-                        info={required ? "required" : ""}
+                        info={required ? t("common.words.required") : ""}
                         tooltip={description && description.length <= MAXLENGTH_TOOLTIP ? description : ""}
                     />
                 }
@@ -181,7 +183,7 @@ export const ParameterWidget = (props: IProps) => {
                     <Label
                         isLayoutForElement="span"
                         text={<TitleSubsection useHtmlElement="span">{title}</TitleSubsection>}
-                        info={required ? "required" : ""}
+                        info={required ? t("common.words.required") : ""}
                         tooltip={description && description.length <= MAXLENGTH_TOOLTIP ? description : ""}
                     />
                 }
@@ -203,7 +205,7 @@ export const ParameterWidget = (props: IProps) => {
             <FieldItem
                 labelAttributes={{
                     text: title,
-                    info: required ? "required" : "",
+                    info: required ? t("common.words.required") : "",
                     htmlFor: formParamId,
                     tooltip: description && description.length <= MAXLENGTH_TOOLTIP ? description : "",
                 }}

@@ -182,7 +182,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                             key={LABEL}
                             labelAttributes={{
                                 text: t("form.field.label"),
-                                info: "required",
+                                info: t("common.words.required"),
                                 htmlFor: LABEL,
                             }}
                             hasStateDanger={errorMessage("Label", errors.label) ? true : false}
