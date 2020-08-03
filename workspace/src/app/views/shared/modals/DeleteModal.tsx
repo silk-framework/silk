@@ -56,7 +56,7 @@ export default function DeleteModal({
                             disabled={confirmationRequired && !isConfirmed}
                             data-test-id={"remove-item-button"}
                         >
-                            {t("common.action.delete")}
+                            {t("common.action.delete", "Delete")}
                         </Button>,
                         <Button key="cancel" onClick={onDiscard}>
                             {t("common.action.cancel", "Cancel")}

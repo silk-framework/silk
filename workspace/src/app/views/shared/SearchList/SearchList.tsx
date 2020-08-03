@@ -80,8 +80,14 @@ export function SearchList() {
         isEmpty && !appliedFilters.textQuery && !appliedFacets.length ? (
             <EmptyList
                 depiction={<Icon name={"artefact-" + appliedFilters.itemType} large />}
-                textInfo={<p>No {appliedFilters.itemType ? appliedFilters.itemType : "item"} found.</p>}
-                textCallout={<strong>Create your first {itemTypeLabel()} now.</strong>}
+                textInfo={
+                    <p>
+                        {t("common.messages.noItems", {
+                            items: appliedFilters.itemType ? appliedFilters.itemType : "items",
+                        })}
+                    </p>
+                }
+                textCallout={<strong>{t("common.messages.createFirstItems", { items: itemTypeLabel() })}</strong>}
                 actionButtons={[
                     <Button key={"create"} onClick={handleCreateArtefact} elevated>
                         {t("common.action.CreateSmth", { smth: appliedFilters.itemType || "" })}
@@ -89,7 +95,7 @@ export function SearchList() {
                 ]}
             />
         ) : (
-            <p>{t("common.messages.noItems", "No items found.")}</p>
+            <p>{t("common.messages.noItems", { items: "items" })}</p>
         );
 
     return (

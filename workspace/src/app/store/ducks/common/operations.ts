@@ -16,7 +16,6 @@ import { routerOp } from "@ducks/router";
 import { TaskType } from "@ducks/shared/typings";
 import { HttpError } from "../../../services/fetch/responseInterceptor";
 import Store from "store";
-import { DEFAULT_LANG } from "../../../constants/base";
 import i18Instance from "../../../../language";
 
 const {

@@ -13,7 +13,7 @@ export function Datalist({
 }) {
     const [t] = useTranslation();
     if (!emptyListMessage) {
-        emptyListMessage = t("common.messages.noResource", "No Resource Found");
+        emptyListMessage = t("common.messages.noItems", { items: "Resource" });
     }
 
     if (isLoading) {

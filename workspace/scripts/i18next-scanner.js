@@ -105,7 +105,7 @@ vfs.src(["src/app/**/*.{js,jsx,ts,tsx}", "!src/app/**/*.spec.{js,jsx,ts,tsx}", "
         scanner(
             {
                 debug: true,
-                removeUnusedKeys: true,
+                removeUnusedKeys: false,
                 sort: true,
                 attr: false,
                 defaultLng: "en",

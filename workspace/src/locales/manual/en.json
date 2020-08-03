@@ -30,7 +30,9 @@
     "common": {
         "messages": {
             "actionFailed": "{{action}} action failed. Details: {{error}}",
-            "cloneModalTitle": "Label of cloned {{item}}"
+            "cloneModalTitle": "Label of cloned {{item}}",
+            "noItems": "No {{items}} found.",
+            "createFirstItems": "Create your first {{items}} now."
         },
         "action": {
             "create": "Create",

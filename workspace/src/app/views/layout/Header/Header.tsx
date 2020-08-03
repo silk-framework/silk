@@ -44,9 +44,6 @@ import { DATA_TYPES } from "../../../constants";
 import { IExportTypes } from "@ducks/common/typings";
 import { downloadResource } from "../../../utils/downloadResource";
 import { useTranslation } from "react-i18next";
-import ukFlag from "../../../../images/uk.svg";
-import deFlag from "../../../../images/germany.svg";
-import { ResourceLink } from "../../shared/ResourceLink/ResourceLink";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];

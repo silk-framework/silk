@@ -132,7 +132,7 @@ export function UploadNewFile(props: IProps) {
             ) : (
                 <DragDrop
                     uppy={uppy}
-                    locale={{ strings: { dropHereOr: "Drop file here or %{browse}", browse: "browse" } }}
+                    locale={{ strings: { dropHereOr: t("FileUploader.dropzone", "Drop file here or browse") } }}
                 />
             )}
         </>
