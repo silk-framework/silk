@@ -34,6 +34,9 @@ trait ProjectMarshallingTrait extends AnyPlugin {
   /** MIME-Type */
   def mediaType: Option[String]
 
+  /** If true, this plugin is the preferred marshaller for the given suffix and mediaType */
+  def isPreferred: Boolean = true
+
   /**
     * Marshals the project from the in-memory [[Project]] object and the given resource manager.
     *

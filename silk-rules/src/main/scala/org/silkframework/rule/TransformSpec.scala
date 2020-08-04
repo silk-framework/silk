@@ -342,7 +342,7 @@ object TransformSpec {
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[Node]): Node = {
       <TransformSpec>
         {value.selection.toXML(true)}{toXml(value.mappingRule)}<Outputs>
-        {value.output.map(o => <Output id={o}></Output>)}
+        {value.output.value.toSeq.map(o => <Output id={o}></Output>)}
       </Outputs>{if (value.errorOutput.isEmpty) {
         Null
       } else {
