@@ -40,9 +40,9 @@
     "lodash": "^4.17.4",
     "mark.js": "^8.11.1",
     "mdl-selectfield": "1.0.3",
-    "react": "^15.6.1",
+    "react": "^16.13.0",
     "react-beautiful-dnd": "^2.5.0",
-    "react-dom": "^15.6.1"
+    "react-dom": "^16.13.0"
   },
   "devDependencies": {
     "@eccenca/dotfiles": "^2.3.2",
