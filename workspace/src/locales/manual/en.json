@@ -21,6 +21,49 @@
         "FileWidget": {
             "removeFromDatasets": "File '{{fileName}}' is in use by following datasets:",
             "deleted": "File '{{fileName}}' will be deleted."
+        },
+        "Filterbar": {
+            "subsections": {
+                "titles": {
+                    "itemType": "Item type"
+                },
+                "valueLabels": {
+                    "itemType": {
+                        "project": "Project"
+                    }
+                }
+            }
+        },
+        "FacetsList": {
+            "facet": {
+                "createdBy": {
+                    "label": "Created by",
+                    "valueLabel":{
+                        "": "Unknown user"
+                    }
+                },
+                "lastModifiedBy": {
+                    "label": "Last modified by",
+                    "valueLabels": {
+                        "": "Unknown user"
+                    }
+                },
+                "taskType": {
+                    "label": "Task type"
+                },
+                "workflowExecutionStatus": {
+                    "label": "Last execution status"
+                },
+                "transformInputResource": {
+                    "label": "Transformed file resource"
+                },
+                "datasetFileResource": {
+                    "label": "Dataset file"
+                },
+                "datasetType": {
+                    "label": "Dataset type"
+                }
+            }
         }
     },
     "FileUploader": {

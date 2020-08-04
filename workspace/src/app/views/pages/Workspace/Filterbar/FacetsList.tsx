@@ -59,9 +59,13 @@ export default function FacetsList() {
                 <div className={HelperClasses.Typography.NOOVERFLOW} key={facet.id}>
                     <TitleSubsection>
                         <h3>
-                            {facet.label}
+                            {t(`widget.FacetsList.facet.${facet.id}.label`, facet.label)}
                             <Spacing size="tiny" vertical />
-                            <Icon name="item-info" small tooltipText={facet.description} />
+                            <Icon
+                                name="item-info"
+                                small
+                                tooltipText={t(`widget.FacetsList.facet.${facet.id}.description`, facet.description)}
+                            />
                         </h3>
                     </TitleSubsection>
                     <Spacing size="tiny" />
@@ -79,7 +83,10 @@ export default function FacetsList() {
                                             label={
                                                 <>
                                                     <span className={HelperClasses.Typography.FORCELINEBREAK}>
-                                                        {val.label}
+                                                        {t(
+                                                            `widget.FacetsList.facet.${facet.id}.valueLabels.${val.id}`,
+                                                            val.label
+                                                        )}
                                                     </span>
                                                     <span> ({val.count})</span>
                                                 </>
