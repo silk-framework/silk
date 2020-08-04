@@ -1,5 +1,5 @@
 import { IProjectTask } from "@ducks/shared/typings";
-import { OverflowText, PropertyValueList, PropertyValuePair, PropertyName, PropertyValue } from "@wrappers/index";
+import { OverflowText, PropertyValueList, PropertyValuePair, PropertyName, PropertyValue } from "@gui-elements/index";
 import React from "react";
 import { IArtefactItemProperty, IDetailedArtefactItem } from "@ducks/common/typings";
 

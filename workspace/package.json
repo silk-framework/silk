@@ -11,9 +11,10 @@
     "@carbon/icons-react": "^10.8.2",
     "@reduxjs/toolkit": "^1.1.0",
     "@svgr/webpack": "4.3.3",
-    "@testing-library/jest-dom": "^4.2.4",
-    "@testing-library/react": "^10.0.3",
-    "@testing-library/user-event": "^10.1.0",
+    "@testing-library/jest-dom": "^5.11.0",
+    "@testing-library/react": "^10.4.3",
+    "@testing-library/user-event": "^12.0.11",
+    "@types/core-js": "^2.5.3",
     "@typescript-eslint/eslint-plugin": "^2.10.0",
     "@typescript-eslint/parser": "^2.10.0",
     "@uppy/core": "^1.8.2",
@@ -24,7 +25,6 @@
     "babel-jest": "^24.9.0",
     "babel-loader": "8.1.0",
     "babel-plugin-named-asset-import": "^0.3.6",
-    "babel-plugin-react-intl": "^3.0.1",
     "babel-preset-react-app": "^9.1.2",
     "bfj": "6.1.1",
     "camelcase": "^5.3.1",
@@ -34,6 +34,7 @@
     "case-sensitive-paths-webpack-plugin": "2.3.0",
     "codemirror": "^5.52.2",
     "connected-react-router": "^6.5.2",
+    "core-js": "^3.6.5",
     "css-loader": "3.4.2",
     "dexie": "^2.0.4",
     "dotenv": "8.2.0",
@@ -55,12 +56,12 @@
     "identity-obj-proxy": "3.0.0",
     "jest": "24.9.0",
     "jest-environment-jsdom-fourteen": "1.0.1",
-    "jest-mock-axios": "^4.0.0",
+    "jest-mock-axios": "^4.2.0",
     "jest-pnp-resolver": "^1.2.1",
     "jest-resolve": "24.9.0",
     "jest-watch-typeahead": "0.4.2",
     "mini-css-extract-plugin": "0.9.0",
-    "node-sass": "4.11.0",
+    "node-sass": "4.12.0",
     "optimize-css-assets-webpack-plugin": "5.0.3",
     "pnp-webpack-plugin": "1.6.4",
     "postcss-flexbugs-fixes": "4.1.0",
@@ -93,7 +94,7 @@
     "style-loader": "0.23.1",
     "terser-webpack-plugin": "2.3.5",
     "ts-pnp": "1.1.6",
-    "typescript": "^3.7.2",
+    "typescript": "^3.9.5",
     "url-loader": "2.3.0",
     "webpack": "4.42.0",
     "webpack-dev-server": "3.10.3",
@@ -108,8 +109,7 @@
     "build-di-prod": "node scripts/build-di.prod.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
-    "test-ci": "export CI=true && jest --no-cache --detectOpenHandles --coverage",
-    "trans": "node scripts/manageTranslations.js"
+    "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"jest-junit\""
   },
   "husky": {
     "hooks": {
@@ -138,12 +138,14 @@
     "production": [
       ">0.2%",
       "not dead",
-      "not op_mini all"
+      "not op_mini all",
+      "ie 11"
     ],
     "development": [
       "last 1 chrome version",
       "last 1 firefox version",
-      "last 1 safari version"
+      "last 1 safari version",
+      "ie 11"
     ]
   },
   "jest": {
@@ -180,7 +182,7 @@
     "moduleNameMapper": {
       "^react-native$": "react-native-web",
       "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",
-      "@wrappers(.*)$": "<rootDir>/src/app/wrappers/$1",
+      "@gui-elements(.*)$": "<rootDir>/src/libs/gui-elements/$1",
       "@ducks(.*)$": "<rootDir>/src/app/store/ducks/$1"
     },
     "moduleFileExtensions": [
@@ -218,7 +220,6 @@
     "@types/ramda": "^0.26.6",
     "@types/react": "^16.9.15",
     "@types/react-dom": "^16.9.4",
-    "@types/react-intl": "^2.3.17",
     "@types/react-redux": "^7.1.5",
     "@types/react-router": "^5.1.4",
     "@types/react-router-dom": "^5.1.3",
@@ -229,6 +230,7 @@
     "enzyme": "^3.9.0",
     "enzyme-adapter-react-16": "^1.12.1",
     "husky": "^4.2.5",
+    "jest-junit": "^10.0.0",
     "lint-staged": "^10.1.7",
     "prettier": "^2.0.5",
     "react-test-renderer": "^16.8.6",

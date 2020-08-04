@@ -13,6 +13,9 @@ const commonReducers = {
     fetchAvailableDTypes(state) {
         state.availableDataTypes = {};
     },
+    setExportTypes(state, action) {
+        state.exportTypes = action.payload;
+    },
     updateAvailableDTypes(state, action) {
         const { fieldName, modifier } = action.payload;
         state.availableDataTypes[fieldName] = modifier;

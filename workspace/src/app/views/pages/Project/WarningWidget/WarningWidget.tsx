@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { Intent } from "@wrappers/blueprint/constants";
-import { Card, CardContent, CardHeader, CardTitle, Divider, Button, Notification, Spacing } from "@wrappers/index";
+import { Intent } from "@gui-elements/blueprint/constants";
+import { Card, CardContent, CardHeader, CardTitle, Divider, Button, Notification, Spacing } from "@gui-elements/index";
 import MarkdownModal from "../../../shared/modals/MarkdownModal";
 import { AppToaster } from "../../../../services/toaster";
 import { commonSel } from "@ducks/common";

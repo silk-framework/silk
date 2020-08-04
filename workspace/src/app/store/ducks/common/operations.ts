@@ -1,4 +1,4 @@
-import { authorize, getTokenFromStore, isAuthenticated, logout } from "./thunks/auth.thunk";
+import { authorize, getTokenFromStore, isAuthenticated, logout, logoutFromDi } from "./thunks/auth.thunk";
 import { changeLocale } from "./thunks/locale.thunk";
 import { commonSlice } from "@ducks/common/commonSlice";
 import { batch } from "react-redux";
@@ -6,6 +6,7 @@ import asModifier from "../../../utils/asModifier";
 import {
     requestArtefactList,
     requestArtefactProperties,
+    requestExportTypes,
     requestInitFrontend,
     requestSearchConfig,
 } from "@ducks/common/requests";
@@ -13,6 +14,8 @@ import { IArtefactItem } from "@ducks/common/typings";
 import { commonSel } from "@ducks/common/index";
 import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { routerOp } from "@ducks/router";
+import { TaskType } from "@ducks/shared/typings";
+import { HttpError } from "../../../services/fetch/responseInterceptor";
 
 const {
     setError,
@@ -30,13 +33,25 @@ const {
     setArtefactLoading,
     setTaskId,
     setModalError,
+    setExportTypes,
 } = commonSlice.actions;
 
 const fetchCommonSettingsAsync = () => {
     return async (dispatch) => {
         try {
             const data = await requestInitFrontend();
-            setInitialSettings(data);
+            dispatch(setInitialSettings(data));
+        } catch (error) {
+            dispatch(setError(error));
+        }
+    };
+};
+
+const fetchExportTypesAsync = () => {
+    return async (dispatch) => {
+        try {
+            const data = await requestExportTypes();
+            dispatch(setExportTypes(data));
         } catch (error) {
             dispatch(setError(error));
         }
@@ -143,22 +158,22 @@ const buildTaskObject = (formData: any): object => {
     return returnObject;
 };
 
-const createArtefactAsync = (formData, taskType: string) => {
+const createArtefactAsync = (formData, taskType: TaskType | "Project") => {
     return async (dispatch, getState) => {
         const { selectedArtefact } = commonSel.artefactModalSelector(getState());
 
-        switch (selectedArtefact.key) {
-            case "project":
+        switch (taskType) {
+            case "Project":
                 await dispatch(fetchCreateProjectAsync(formData));
                 break;
             default:
-                await dispatch(fetchCreateTaskAsync(formData, selectedArtefact.key, taskType));
+                await dispatch(fetchCreateTaskAsync(formData, selectedArtefact.key, taskType as TaskType));
                 break;
         }
     };
 };
 
-const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: string) => {
+const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: TaskType) => {
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
         const { label, description, ...restFormData } = formData;
@@ -194,7 +209,9 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: strin
                 );
             });
         } catch (e) {
-            dispatch(setModalError(e));
+            if (e.isFetchError) {
+                dispatch(setModalError((e as HttpError).errorResponse));
+            }
         }
     };
 };
@@ -253,6 +270,7 @@ export default {
     getTokenFromStore,
     authorize,
     logout,
+    logoutFromDi,
     fetchAvailableDTypesAsync,
     fetchArtefactsListAsync,
     resetArtefactsList,
@@ -271,4 +289,5 @@ export default {
     fetchUpdateTaskAsync,
     fetchCreateProjectAsync,
     resetArtefactModal,
+    fetchExportTypesAsync,
 };

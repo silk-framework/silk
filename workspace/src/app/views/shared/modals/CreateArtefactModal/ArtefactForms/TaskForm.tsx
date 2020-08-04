@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IArtefactItemProperty, IDetailedArtefactItem } from "@ducks/common/typings";
-import { Intent } from "@wrappers/blueprint/constants";
+import { Intent } from "@gui-elements/blueprint/constants";
 import { INPUT_TYPES } from "../../../../../constants";
-import { FieldItem, Spacing, TextArea, TextField } from "@wrappers/index";
+import { FieldItem, Spacing, TextArea, TextField } from "@gui-elements/index";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import { errorMessage, ParameterWidget } from "./ParameterWidget";
 import { DataPreview } from "../../../DataPreview/DataPreview";
@@ -77,9 +77,10 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
             requiredParameters: string[]
         ) => {
             // Construct array of parameter keys that other parameters depend on
-            const dependsOnParameters = params
-                .filter(([key, propertyDetails]) => !!propertyDetails.autoCompletion)
-                .flatMap(([key, propertyDetails]) => propertyDetails.autoCompletion.autoCompletionDependsOnParameters);
+            const autoCompletionParams = params.filter(([key, propertyDetails]) => !!propertyDetails.autoCompletion);
+            const dependsOnParameters = autoCompletionParams.flatMap(
+                ([key, propertyDetails]) => propertyDetails.autoCompletion.autoCompletionDependsOnParameters
+            );
             params.forEach(([paramId, param]) => {
                 const key = prefix + paramId;
                 if (param.type === "object") {

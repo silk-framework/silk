@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "@wrappers/index";
+import { Link } from "@gui-elements/index";
 
 export function ResourceLink({
     children,

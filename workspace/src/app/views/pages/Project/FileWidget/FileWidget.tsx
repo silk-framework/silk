@@ -19,13 +19,13 @@ import {
     TableRow,
     Toolbar,
     ToolbarSection,
-} from "@wrappers/index";
+} from "@gui-elements/index";
 import Loading from "../../../shared/Loading";
 import FileUploadModal from "../../../shared/modals/FileUploadModal";
 import { EmptyFileWidget } from "./EmptyFileWidget";
 import { SearchBar } from "../../../shared/SearchBar/SearchBar";
 import { Highlighter } from "../../../shared/Highlighter/Highlighter";
-import { usePagination } from "@wrappers/src/components/Pagination/Pagination";
+import { usePagination } from "@gui-elements/src/components/Pagination/Pagination";
 import DeleteModal from "../../../shared/modals/DeleteModal";
 import { commonSel } from "@ducks/common";
 import { projectFileResourceDependents, removeProjectFileResource } from "@ducks/workspace/requests";
@@ -82,7 +82,13 @@ export const FileWidget = () => {
     useEffect(() => {
         // Only trigger if file upload dialog is closed, since a file may have been uploaded.
         if (!isOpenDialog && !deleteModalOpts.isOpen) {
-            dispatch(workspaceOp.fetchResourcesListAsync({ searchText: textQuery, limit: 1000 }));
+            const filter: any = {
+                limit: 1000,
+            };
+            if (textQuery) {
+                filter.searchText = textQuery;
+            }
+            dispatch(workspaceOp.fetchResourcesListAsync(filter));
         }
     }, [textQuery, isOpenDialog, deleteModalOpts.isOpen]);
 

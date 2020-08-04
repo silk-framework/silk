@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, FieldItem, Notification, SimpleDialog, Spacing, TextField } from "@wrappers/index";
+import { Button, FieldItem, Notification, SimpleDialog, Spacing, TextField } from "@gui-elements/index";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
@@ -76,7 +76,13 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             isOpen={true}
             onClose={onDiscard}
             actions={[
-                <Button key="clone" affirmative onClick={handleCloning} disabled={!newLabel}>
+                <Button
+                    key="clone"
+                    affirmative
+                    onClick={handleCloning}
+                    disabled={!newLabel}
+                    data-test-id={"clone-modal-button"}
+                >
                     Clone
                 </Button>,
                 <Button key="cancel" onClick={onDiscard}>

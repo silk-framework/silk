@@ -20,9 +20,9 @@ import {
     TextArea,
     TextField,
     Spacing,
-} from "@wrappers/index";
+} from "@gui-elements/index";
 import { Controller, useForm } from "react-hook-form";
-import { Intent } from "@wrappers/blueprint/constants";
+import { Intent } from "@gui-elements/blueprint/constants";
 import { useDispatch, useSelector } from "react-redux";
 import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
@@ -170,7 +170,7 @@ export function Metadata(props: IProps) {
     );
 
     const widgetContent = (
-        <CardContent>
+        <CardContent data-test-id={"metaDataWidget"}>
             {loading && <Loading description="Loading summary data." />}
             {!loading && isEditing && (
                 <PropertyValueList>

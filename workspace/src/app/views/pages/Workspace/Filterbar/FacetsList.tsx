@@ -3,7 +3,7 @@ import { IFacetState } from "@ducks/workspace/typings";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import FacetItem from "./FacetItem";
-import { Button, HelperClasses, Icon, Spacing, TitleSubsection } from "@wrappers/index";
+import { Button, HelperClasses, Icon, Spacing, TitleSubsection } from "@gui-elements/index";
 
 export default function FacetsList() {
     const dispatch = useDispatch();
@@ -65,23 +65,27 @@ export default function FacetsList() {
                     <Spacing size="tiny" />
                     <ul>
                         {visibleFacetsKeywords[facet.id] &&
-                            visibleFacetsKeywords[facet.id].map((val) => (
-                                <li key={val.id}>
-                                    <FacetItem
-                                        isChecked={isChecked(facet.id, val.id)}
-                                        value={val.id}
-                                        onSelectFacet={(valueId) => handleSetFacet(facet, valueId)}
-                                        label={
-                                            <>
-                                                <span className={HelperClasses.Typography.FORCELINEBREAK}>
-                                                    {val.label}
-                                                </span>
-                                                <span> ({val.count})</span>
-                                            </>
-                                        }
-                                    />
-                                </li>
-                            ))}
+                            visibleFacetsKeywords[facet.id].map((val) => {
+                                const key = `${val.id}-${facet.id}`;
+                                return (
+                                    <li key={key}>
+                                        <FacetItem
+                                            data-test-id={"facet-items"}
+                                            isChecked={isChecked(facet.id, val.id)}
+                                            value={val.id}
+                                            onSelectFacet={(valueId) => handleSetFacet(facet, valueId)}
+                                            label={
+                                                <>
+                                                    <span className={HelperClasses.Typography.FORCELINEBREAK}>
+                                                        {val.label}
+                                                    </span>
+                                                    <span> ({val.count})</span>
+                                                </>
+                                            }
+                                        />
+                                    </li>
+                                );
+                            })}
                         {facet.values.length > FACETS_PREVIEW_LIMIT && (
                             <li>
                                 <Button

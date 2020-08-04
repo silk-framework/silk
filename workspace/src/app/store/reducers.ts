@@ -4,14 +4,15 @@ import workspace from "@ducks/workspace";
 import common from "@ducks/common";
 import dataset from "@ducks/dataset";
 import routerReducers from "@ducks/router";
+import { Reducer } from "react";
+import { Action, CombinedState } from "redux";
+import { IStore } from "./typings/IStore";
 
-export default (history) => {
+export default (history): Reducer<CombinedState<IStore>, Action> => {
     return combineReducers({
         common: common.reducer,
         workspace,
         dataset: dataset.reducer,
-        router: routerReducers(history)
+        router: routerReducers(history),
     });
-}
-
-
+};

@@ -1,7 +1,7 @@
 import React from "react";
 import { IAppliedSorterState, ISorterListItemState } from "@ducks/workspace/typings";
 
-import { ContextMenu, MenuItem } from "@wrappers/index";
+import { ContextMenu, MenuItem } from "@gui-elements/index";
 
 interface IProps {
     sortersList: ISorterListItemState[];
@@ -12,7 +12,7 @@ interface IProps {
 
 export default function SortButton({ sortersList, activeSort, onSort }: IProps) {
     return (
-        <div className={"sortButton"}>
+        <div className={"sortButton"} data-test-id={"sortButton"}>
             <ContextMenu togglerElement="list-sort" togglerText="Sort options">
                 {sortersList.map((item) => (
                     <MenuItem
@@ -20,7 +20,7 @@ export default function SortButton({ sortersList, activeSort, onSort }: IProps) 
                         key={item.id}
                         text={item.label}
                         icon={
-                            (activeSort.sortBy && activeSort.sortBy === item.id)
+                            activeSort.sortBy && activeSort.sortBy === item.id
                                 ? activeSort.sortOrder === "ASC"
                                     ? "list-sortasc"
                                     : "list-sortdesc"
