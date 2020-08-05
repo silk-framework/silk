@@ -99,14 +99,14 @@ export function UploadNewFile(props: IProps) {
         // Workaround because 'allowMultipleFiles' property on DragDrop does not work
         uppy.setOptions({ allowMultipleUploads: false, restrictions: { maxNumberOfFiles: 1 } });
     }
-
     return (
         <>
             {progress >= 0 ? (
                 <Notification
                     success={uploaded ? true : false}
                     actions={
-                        !uploaded && (
+                        !uploaded &&
+                        progress !== 1 && (
                             <Button outlined onClick={handleAbort}>
                                 Abort Upload
                             </Button>
