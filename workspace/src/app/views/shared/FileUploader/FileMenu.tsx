@@ -1,4 +1,4 @@
-import { RadioButton, FieldItemRow, FieldItem } from "@wrappers/index";
+import { RadioButton, FieldItemRow, FieldItem } from "@gui-elements/index";
 import React from "react";
 
 export type FileMenuItems = "SELECT" | "NEW" | "EMPTY";

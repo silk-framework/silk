@@ -15,7 +15,7 @@
     "@testing-library/react": "^10.4.3",
     "@testing-library/user-event": "^12.0.11",
     "@types/core-js": "^2.5.3",
-        "@typescript-eslint/eslint-plugin": "^2.10.0",
+    "@typescript-eslint/eslint-plugin": "^2.10.0",
     "@typescript-eslint/parser": "^2.10.0",
     "@uppy/core": "^1.8.2",
     "@uppy/react": "^1.4.5",
@@ -35,7 +35,7 @@
     "codemirror": "^5.52.2",
     "connected-react-router": "^6.5.2",
     "core-js": "^3.6.5",
-        "css-loader": "3.4.2",
+    "css-loader": "3.4.2",
     "dexie": "^2.0.4",
     "dotenv": "8.2.0",
     "dotenv-expand": "5.1.0",
@@ -110,126 +110,126 @@
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
     "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"jest-junit\""
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.(ts|tsx|js|jsx|scss|css)": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ],
+    "plugins": [
+      "react-hooks"
+    ],
+    "rules": {
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "off"
+    }
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all",
+      "ie 11"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version",
+      "ie 11"
+    ]
+  },
+  "jest": {
+    "roots": [
+      "<rootDir>/src/",
+      "<rootDir>/test/"
+    ],
+    "collectCoverageFrom": [
+      "test/**/*.{js,jsx,ts,tsx}",
+      "src/**/*.{js,jsx,ts,tsx}",
+      "!src/**/*.d.ts"
+    ],
+    "resolver": "jest-pnp-resolver",
+    "setupFiles": [
+      "react-app-polyfill/jsdom"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/setupTests.ts"
+    ],
+    "testMatch": [
+      "<rootDir>/src/**/?(*.)(spec|test).{js,jsx,ts,tsx}",
+      "<rootDir>/test/**/?(*.)(spec|test).{js,jsx,ts,tsx}"
+    ],
+    "testEnvironment": "jest-environment-jsdom-fourteen",
+    "transform": {
+      "^.+\\.(js|jsx|ts|tsx)$": "<rootDir>/node_modules/babel-jest",
+      "^.+\\.css$": "<rootDir>/config/jest/cssTransform.js",
+      "^(?!.*\\.(js|jsx|ts|tsx|css|json)$)": "<rootDir>/config/jest/fileTransform.js"
     },
-    "husky": {
-        "hooks": {
-            "pre-commit": "lint-staged"
-        }
+    "transformIgnorePatterns": [
+      "[/\\\\]node_modules[/\\\\].+\\.(js|jsx|ts|tsx)$",
+      "^.+\\.module\\.(css|sass|scss)$"
+    ],
+    "moduleNameMapper": {
+      "^react-native$": "react-native-web",
+      "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",
+      "@gui-elements(.*)$": "<rootDir>/src/libs/gui-elements/$1",
+      "@ducks(.*)$": "<rootDir>/src/app/store/ducks/$1"
     },
-    "lint-staged": {
-        "*.(ts|tsx|js|jsx|scss|css)": [
-            "prettier --write",
-            "git add"
-        ]
-    },
-    "eslintConfig": {
-        "extends": [
-            "react-app"
-        ],
-        "plugins": [
-            "react-hooks"
-        ],
-        "rules": {
-            "react-hooks/rules-of-hooks": "error",
-            "react-hooks/exhaustive-deps": "off"
-        }
-    },
-    "browserslist": {
-        "production": [
-            ">0.2%",
-            "not dead",
-            "not op_mini all",
-            "ie 11"
-        ],
-        "development": [
-            "last 1 chrome version",
-            "last 1 firefox version",
-            "last 1 safari version",
-            "ie 11"
-        ]
-    },
-    "jest": {
-        "roots": [
-            "<rootDir>/src/",
-            "<rootDir>/test/"
-        ],
-        "collectCoverageFrom": [
-            "test/**/*.{js,jsx,ts,tsx}",
-            "src/**/*.{js,jsx,ts,tsx}",
-            "!src/**/*.d.ts"
-        ],
-        "resolver": "jest-pnp-resolver",
-        "setupFiles": [
-            "react-app-polyfill/jsdom"
-        ],
-        "setupFilesAfterEnv": [
-            "<rootDir>/src/setupTests.ts"
-        ],
-        "testMatch": [
-            "<rootDir>/src/**/?(*.)(spec|test).{js,jsx,ts,tsx}",
-            "<rootDir>/test/**/?(*.)(spec|test).{js,jsx,ts,tsx}"
-        ],
-        "testEnvironment": "jest-environment-jsdom-fourteen",
-        "transform": {
-            "^.+\\.(js|jsx|ts|tsx)$": "<rootDir>/node_modules/babel-jest",
-            "^.+\\.css$": "<rootDir>/config/jest/cssTransform.js",
-            "^(?!.*\\.(js|jsx|ts|tsx|css|json)$)": "<rootDir>/config/jest/fileTransform.js"
-        },
-        "transformIgnorePatterns": [
-            "[/\\\\]node_modules[/\\\\].+\\.(js|jsx|ts|tsx)$",
-            "^.+\\.module\\.(css|sass|scss)$"
-        ],
-        "moduleNameMapper": {
-            "^react-native$": "react-native-web",
-            "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",
-            "@wrappers(.*)$": "<rootDir>/src/app/wrappers/$1",
-            "@ducks(.*)$": "<rootDir>/src/app/store/ducks/$1"
-        },
-        "moduleFileExtensions": [
-            "web.js",
-            "js",
-            "web.ts",
-            "ts",
-            "web.tsx",
-            "tsx",
-            "json",
-            "web.jsx",
-            "jsx",
-            "node"
-        ],
-        "watchPlugins": [
-            "jest-watch-typeahead/filename",
-            "jest-watch-typeahead/testname"
-        ]
-    },
-    "babel": {
-        "presets": [
-            "react-app"
-        ]
-    },
-    "devDependencies": {
-        "@babel/plugin-transform-react-jsx": "^7.3.0",
-        "@babel/plugin-transform-react-jsx-self": "^7.2.0",
-        "@babel/plugin-transform-react-jsx-source": "^7.2.0",
-        "@types/carbon-components-react": "^7.10.2",
-        "@types/codemirror": "^0.0.88",
-        "@types/enzyme": "^3.9.1",
-        "@types/enzyme-adapter-react-16": "^1.0.5",
-        "@types/jest": "^24.0.23",
-        "@types/node": "11.13.2",
-        "@types/ramda": "^0.26.6",
-        "@types/react": "^16.9.15",
-        "@types/react-dom": "^16.9.4",
-        "@types/react-redux": "^7.1.5",
-        "@types/react-router": "^5.1.4",
-        "@types/react-router-dom": "^5.1.3",
-        "@types/store": "^2.0.1",
-        "@welldone-software/why-did-you-render": "^4.0.5",
-        "axios-mock-adapter": "^1.18.1",
-        "babel-core": "7.0.0-bridge.0",
-        "enzyme": "^3.9.0",
-        "enzyme-adapter-react-16": "^1.12.1",
-        "husky": "^4.2.5",
+    "moduleFileExtensions": [
+      "web.js",
+      "js",
+      "web.ts",
+      "ts",
+      "web.tsx",
+      "tsx",
+      "json",
+      "web.jsx",
+      "jsx",
+      "node"
+    ],
+    "watchPlugins": [
+      "jest-watch-typeahead/filename",
+      "jest-watch-typeahead/testname"
+    ]
+  },
+  "babel": {
+    "presets": [
+      "react-app"
+    ]
+  },
+  "devDependencies": {
+    "@babel/plugin-transform-react-jsx": "^7.3.0",
+    "@babel/plugin-transform-react-jsx-self": "^7.2.0",
+    "@babel/plugin-transform-react-jsx-source": "^7.2.0",
+    "@types/carbon-components-react": "^7.10.2",
+    "@types/codemirror": "^0.0.88",
+    "@types/enzyme": "^3.9.1",
+    "@types/enzyme-adapter-react-16": "^1.0.5",
+    "@types/jest": "^24.0.23",
+    "@types/node": "11.13.2",
+    "@types/ramda": "^0.26.6",
+    "@types/react": "^16.9.15",
+    "@types/react-dom": "^16.9.4",
+    "@types/react-redux": "^7.1.5",
+    "@types/react-router": "^5.1.4",
+    "@types/react-router-dom": "^5.1.3",
+    "@types/store": "^2.0.1",
+    "@welldone-software/why-did-you-render": "^4.0.5",
+    "axios-mock-adapter": "^1.18.1",
+    "babel-core": "7.0.0-bridge.0",
+    "enzyme": "^3.9.0",
+    "enzyme-adapter-react-16": "^1.12.1",
+    "husky": "^4.2.5",
     "jest-junit": "^10.0.0",
     "lint-staged": "^10.1.7",
     "prettier": "^2.0.5",

@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
-import { FieldItem, TextField, TextArea } from "@wrappers/index";
+import { FieldItem, TextField, TextArea } from "@gui-elements/index";
 import { errorMessage } from "./ParameterWidget";
-import { Intent } from "@wrappers/blueprint/constants";
+import { Intent } from "@gui-elements/blueprint/constants";
 
 export interface IProps {
     form: any;

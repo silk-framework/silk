@@ -23,7 +23,7 @@ import {
     OverviewItemLine,
     TitlePage,
     WorkspaceHeader,
-} from "@wrappers/index";
+} from "@gui-elements/index";
 import ItemDepiction from "./ItemDepiction";
 import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
@@ -146,6 +146,13 @@ function HeaderComponent({ breadcrumbs }: IProps) {
         dispatch(routerOp.goToPage(detailsPage));
     };
 
+    const handleBreadcrumbItemClick = (itemUrl, e) => {
+        e.preventDefault();
+        if (itemUrl) {
+            dispatch(routerOp.goToPage(itemUrl, {}));
+        }
+    };
+
     const getWindowTitle = (projectId) => {
         // $title ($artefactLabel) at $breadcrumbsWithoutTitle — $companyName $applicationTitle
         let fullTitle = startTitle;
@@ -225,7 +232,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                     </OverviewItemDepiction>
                     <OverviewItemDescription>
                         <OverviewItemLine small>
-                            <BreadcrumbList items={breadcrumbs} />
+                            <BreadcrumbList items={breadcrumbs} onItemClick={handleBreadcrumbItemClick} />
                         </OverviewItemLine>
                         {lastBreadcrumb && (
                             <OverviewItemLine large>

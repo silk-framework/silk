@@ -4,10 +4,10 @@ import "./index.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { AppToaster } from "../../../services/toaster";
-import { Intent } from "@wrappers/blueprint/constants";
+import { Intent } from "@gui-elements/blueprint/constants";
 import Artefacts from "./Artefacts";
 import { routerSel } from "@ducks/router";
-import { Grid, GridColumn, GridRow } from "@wrappers/index";
+import { Grid, GridColumn, GridRow } from "@gui-elements/index";
 import { EmptyWorkspace } from "./EmptyWorkspace/EmptyWorkspace";
 import { commonOp, commonSel } from "@ducks/common";
 

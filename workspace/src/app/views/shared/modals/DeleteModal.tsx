@@ -1,5 +1,5 @@
 import React, { ReactElement, useState } from "react";
-import { AlertDialog, Button, Checkbox, FieldItem, HtmlContentBlock, Notification, Spacing } from "@wrappers/index";
+import { AlertDialog, Button, Checkbox, FieldItem, HtmlContentBlock, Notification, Spacing } from "@gui-elements/index";
 import { Loading } from "../Loading/Loading";
 
 export interface IDeleteModalOptions {

@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { Spinner } from "@wrappers/index";
+import { Spinner } from "@gui-elements/index";
 
 interface IProps {
     className?: string;

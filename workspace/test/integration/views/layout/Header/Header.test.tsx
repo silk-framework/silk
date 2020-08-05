@@ -14,7 +14,7 @@ import {
 import { Header } from "../../../../../src/app/views/layout/Header/Header";
 import { waitFor } from "@testing-library/react";
 import { Helmet } from "react-helmet";
-import { ContextMenu } from "../../../../../src/app/wrappers";
+import { ContextMenu } from "../../../../../src/libs/gui-elements";
 
 describe("Header", () => {
     let hostPath = process.env.HOST;

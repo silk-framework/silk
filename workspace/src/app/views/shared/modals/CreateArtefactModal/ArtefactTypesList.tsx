@@ -1,7 +1,7 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import { Menu, MenuItem, TitleSubsection } from "@wrappers/index";
+import { Menu, MenuItem, TitleSubsection } from "@gui-elements/index";
 
 function ArtefactTypesList({ onSelect }) {
     const { selectedDType } = useSelector(commonSel.artefactModalSelector);
