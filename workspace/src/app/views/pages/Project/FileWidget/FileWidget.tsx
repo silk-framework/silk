@@ -203,7 +203,7 @@ export const FileWidget = () => {
             <FileUploadModal
                 isOpen={isOpenDialog}
                 onDiscard={toggleFileUploader}
-                uploaderOptions={{ allowMultiple: false }}
+                uploaderOptions={{ allowMultiple: true }}
             />
             <DeleteModal
                 isOpen={deleteModalOpts.isOpen}

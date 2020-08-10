@@ -1,6 +1,6 @@
 import React from "react";
 import XHR from "@uppy/xhr-upload";
-import Uppy from "@uppy/core";
+import Uppy, { UppyFile } from "@uppy/core";
 import "@uppy/core/dist/style.css";
 import "@uppy/drag-drop/dist/style.css";
 import "@uppy/progress-bar/dist/style.css";
@@ -109,7 +109,7 @@ interface IState {
     loading: boolean;
 
     // Override dialog
-    overrideDialog: File | null;
+    overrideDialog: UppyFile | null;
 
     //Show upload process
     isUploading: boolean;
@@ -225,31 +225,34 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         }
     };
 
-    handleFileAdded = async (result: any) => {
+    handleFileAdded = (files: UppyFile[]) => {
         try {
-            this.setState({ loading: true });
-            const isExists = await this.isResourceExists(result.name);
+            // this.setState({loading: true});
 
-            isExists ? this.setState({ overrideDialog: result }) : this.handleUpload(result);
+            files.map(async (file: UppyFile) => {
+                const isExists = false; //await this.isResourceExists(file.name);
+                isExists ? this.setState({ overrideDialog: file }) : await this.handleUpload(file);
+            });
         } finally {
-            this.setState({ loading: false });
+            this.reset();
+            // this.setState({loading: false});
         }
     };
 
-    handleUpload = async (file: any) => {
+    handleUpload = async (file: UppyFile) => {
         const { projectId } = this.props;
 
         const uploadUrl = legacyApiEndpoint(`/projects/${projectId}/resources`);
         this.setEndpoint(`${uploadUrl}/${file.name}`);
-
-        this.setState({ isUploading: true, error: null });
+        this.setState({
+            isUploading: true,
+            error: null,
+        });
         try {
             const result = await this.uppy.upload();
-            // FIXME: This does not seem to work, the result of upload() is undefined. So the onChange method is never called.
-            if (this.props.onChange && result.successful) {
+            if (this.props.onChange && result?.successful) {
                 this.props.onChange(file.name);
             }
-            this.reset();
         } catch (e) {
             console.log(e);
         } finally {

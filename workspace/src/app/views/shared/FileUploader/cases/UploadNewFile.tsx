@@ -1,6 +1,6 @@
 import { DragDrop } from "@uppy/react";
 import React, { useEffect, useState } from "react";
-import Uppy from "@uppy/core";
+import Uppy, { UppyFile } from "@uppy/core";
 import ProgressBar from "@gui-elements/blueprint/progressbar";
 import { Button, Notification, Spacing } from "@gui-elements/index";
 import { Intent } from "@gui-elements/blueprint/constants";
@@ -15,7 +15,7 @@ interface IProps {
     // Allow multiple file upload
     allowMultiple?: boolean;
 
-    onAdded(file: File);
+    onAdded(files: UppyFile[]);
 
     onProgress?(progress: number);
 
@@ -30,16 +30,18 @@ interface IProps {
 export function UploadNewFile(props: IProps) {
     const { uppy, simpleInput, allowMultiple, onAdded, onUploadSuccess, onUploadError } = props;
 
-    const [progress, setProgress] = useState<number>(-1);
-    const [uploaded, setUploaded] = useState<File>(null);
+    const [files, setFiles] = useState<UppyFile[]>([]);
+
+    const [progress, setProgress] = useState<{ [key: string]: number }>({});
+    const [uploaded, setUploaded] = useState<{ [key: string]: UppyFile }>({});
 
     useEffect(() => {
         registerEvents();
-        return unregisterEvents;
+        return unregisterEvents();
     }, []);
 
     const registerEvents = () => {
-        uppy.on("file-added", onAdded);
+        uppy.on("file-added", handleDropAreaAdded);
         uppy.on("upload-progress", handleProgress);
         uppy.on("upload-success", handleUploadSuccess);
         uppy.on("upload-error", onUploadError);
@@ -52,27 +54,53 @@ export function UploadNewFile(props: IProps) {
         uppy.off("upload-error", onUploadError);
     };
 
+    /**
+     * Run for every each file added
+     * @param file
+     */
+    const handleDropAreaAdded = (file: UppyFile) => {
+        const allFiles = [...files, file];
+        setFiles(allFiles);
+        onAdded(allFiles);
+    };
+
     const handleProgress = (file, { bytesUploaded, bytesTotal }) => {
-        const progress = bytesUploaded / bytesTotal;
-        setProgress(progress);
+        const progressAmount = bytesUploaded / bytesTotal;
+        setProgress({
+            ...progress,
+            [file.id]: progressAmount,
+        });
 
         if (props.onProgress) {
-            props.onProgress(progress);
+            props.onProgress(progressAmount);
         }
     };
 
-    const handleUploadSuccess = (file: File) => {
-        setUploaded(file);
+    const handleUploadSuccess = (file) => {
+        setUploaded({
+            ...uploaded,
+            [file.id]: true,
+        });
+        setFiles(files.filter((f) => f.id !== file.id));
+
         onUploadSuccess(file);
     };
 
-    const handleAbort = () => {
+    const handleAbort = (id: string) => {
         uppy.reset();
         uppy.cancelAll();
-        setProgress(-1);
-        setUploaded(null);
+
+        setFiles(files.filter((file: UppyFile) => file.id !== id));
+
+        delete progress[id];
+        setProgress(progress);
+
+        delete uploaded[id];
+        setUploaded(uploaded);
     };
 
+    // Only for input file
+    // @TODO Missing multiple uploader functionality
     const handleFileInputChange = (event) => {
         const files = Array.from(event.target.files);
         files.forEach((file: File) => {
@@ -95,34 +123,43 @@ export function UploadNewFile(props: IProps) {
         });
     };
 
-    if (!allowMultiple) {
-        // Workaround because 'allowMultipleFiles' property on DragDrop does not work
-        uppy.setOptions({ allowMultipleUploads: false, restrictions: { maxNumberOfFiles: 1 } });
-    }
+    // Workaround because 'allowMultipleFiles' property on DragDrop does not work
+    uppy.setOptions({ allowMultipleUploads: allowMultiple, restrictions: { maxNumberOfFiles: 3 } });
+
     return (
         <>
-            {progress >= 0 ? (
-                <Notification
-                    success={uploaded ? true : false}
-                    actions={
-                        !uploaded &&
-                        progress !== 1 && (
-                            <Button outlined onClick={handleAbort}>
-                                Abort Upload
-                            </Button>
-                        )
-                    }
-                >
-                    <p>{!uploaded ? "Wait for finished upload." : `${uploaded.name} was successfully uploaded`}</p>
-                    <Spacing />
-                    <ProgressBar
-                        value={progress}
-                        stripes={!uploaded}
-                        intent={uploaded ? Intent.SUCCESS : Intent.PRIMARY}
-                    />
-                </Notification>
+            {files.length ? (
+                files.map((file) => {
+                    const fileProgress = progress[file.id];
+                    const isUploaded = uploaded[file.id];
+
+                    return (
+                        <Notification
+                            key={file.id}
+                            success={isUploaded}
+                            actions={
+                                !isUploaded &&
+                                fileProgress !== 1 && (
+                                    <Button outlined onClick={() => handleAbort(file.id)}>
+                                        Abort Upload
+                                    </Button>
+                                )
+                            }
+                        >
+                            <p>
+                                {!isUploaded ? "Wait for finished upload." : `${file.name} was successfully uploaded`}
+                            </p>
+                            <Spacing />
+                            <ProgressBar
+                                value={fileProgress}
+                                stripes={!isUploaded}
+                                intent={isUploaded ? Intent.SUCCESS : Intent.PRIMARY}
+                            />
+                        </Notification>
+                    );
+                })
             ) : simpleInput ? (
-                <input type="file" id="fileInput" onChange={handleFileInputChange} />
+                <input type="file" id="fileInput" onChange={handleFileInputChange} multiple={allowMultiple} />
             ) : (
                 <DragDrop
                     uppy={uppy}
