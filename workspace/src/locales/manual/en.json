@@ -81,6 +81,7 @@
             "create": "Create",
             "update": "Update",
             "cancel": "Cancel",
+            "add": "Add",
             "AddSmth": "Add {{smth}}",
             "CreateSmth": "Create {{smth}}",
             "DeleteSmth": "Delete {{smth}}",
