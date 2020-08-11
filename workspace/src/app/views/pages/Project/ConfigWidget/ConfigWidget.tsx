@@ -52,7 +52,7 @@ export const ConfigurationWidget = () => {
         <Card>
             <CardHeader>
                 <CardTitle>
-                    <h2>Configuration</h2>
+                    <h2>{t("widget.ConfigWidget.title", "Configuration")} </h2>
                 </CardTitle>
             </CardHeader>
             <Divider />

@@ -59,7 +59,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen }) => {
             title={t("widget.ConfigWidget.prefixTitle", "Manage Prefixes")}
             isOpen={isOpen}
             onClose={onCloseModal}
-            actions={<Button onClick={() => onCloseModal()}>Close</Button>}
+            actions={<Button onClick={() => onCloseModal()}>{t("common.action.close")}</Button>}
         >
             {isLoading ? (
                 <Loading description={t("widget.ConfigWidget.loadingPrefix", "Loading prefix configuration.")} />
