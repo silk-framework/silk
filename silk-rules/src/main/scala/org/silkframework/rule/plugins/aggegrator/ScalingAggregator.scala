@@ -12,7 +12,9 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 )
 case class ScalingAggregator(
   @Param("All input similarity values are multiplied with this factor.")
-  factor: Double) extends Aggregator {
+  factor: Double = 1.0) extends Aggregator {
+
+  require(factor >= 0.0 && factor <= 1.0, "Scaling factor must be a value between 0.0 and 1.0.")
 
   override def evaluate(values: Traversable[(Int, Double)]): Option[Double] = {
     if (values.isEmpty) {
