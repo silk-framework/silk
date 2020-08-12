@@ -2,17 +2,34 @@ package models.linking
 
 import java.net.URLEncoder
 
-import org.silkframework.config.DefaultConfig
+import org.silkframework.config.{DefaultConfig, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.RdfDataset
+import org.silkframework.rule.LinkSpec
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.util.DPair
+import org.silkframework.workspace.ProjectTask
+import play.api.mvc.MultipartFormData.DataPart
 
 /**
   * Given an entity URI, generates a browser link that navigates to the entity.
   */
+trait LinkResolver {
+
+  /**
+    * Returns a browser URL for a given entity.
+    *
+    * @param entityUri The URI of the entity.
+    *
+    */
+  def apply(entityUri: String): Option[String]
+
+}
+
 object LinkResolver {
 
   /**
-    * If an eccenca DataPlatform is configured, generate Links to eccenca DataManager
+    * The URL of the configured eccenca DataManager, if any.
     */
   private val dataManagerUrl: Option[String] = {
     val config = DefaultConfig.instance()
@@ -24,26 +41,69 @@ object LinkResolver {
     }
   }
 
-  def apply(entityUri: String, dataset: GenericDatasetSpec): Option[String] = {
-    dataset.plugin match {
-      case ds: RdfDataset =>
-        generateUrl(entityUri, ds)
+  /**
+    * Returns a LinkResolver for a given task.
+    */
+  def forTask(sourceTask: TaskSpec): LinkResolver = {
+    sourceTask match {
+      case dataset: GenericDatasetSpec =>
+        dataset.plugin match {
+          case ds: RdfDataset =>
+            dataManagerUrl match {
+              case Some(url) =>
+                new DataManagerResolver(ds, url)
+              case None =>
+                new DereferencingLinkResolver()
+            }
+          case _ =>
+            NoLinkResolver
+        }
       case _ =>
-        None
+        NoLinkResolver
     }
   }
 
-  private def generateUrl(entityUri: String, dataset: RdfDataset) = {
-    dataManagerUrl match {
-      case Some(url) =>
-        dataset.sparqlEndpoint.sparqlParams.graph match {
-          case Some(graphUri) =>
-            Some(s"$url}/explore?graph=${enc(graphUri)}&resource=${enc(entityUri)}")
-          case None =>
-            None
-        }
+  def forLinkingTask(linkTask: ProjectTask[LinkSpec])(implicit userContext: UserContext): DPair[LinkResolver] = {
+    for(selection <- linkTask.dataSelections) yield {
+      forTask(linkTask.project.anyTask(selection.inputId))
+    }
+  }
+
+}
+
+/**
+  * Does not generate any links for entities.
+  * Used for entities from sources for which we do not have corresponding entity detail pages (CSV, etc.).
+  */
+object NoLinkResolver extends LinkResolver {
+
+  def apply(entityUri: String): Option[String] = None
+
+}
+
+/**
+  * Directly links to the URI of the entity.
+  * Can be used for entities that use dereferenceable URIs.
+  */
+class DereferencingLinkResolver extends LinkResolver {
+
+  def apply(entityUri: String): Option[String] = {
+    Some(entityUri)
+  }
+
+}
+
+/**
+  * Links to the entity page in the DataManager.
+  */
+class DataManagerResolver(dataset: RdfDataset, dataManagerUrl: String) extends LinkResolver {
+
+  def apply(entityUri: String): Option[String] = {
+    dataset.sparqlEndpoint.sparqlParams.graph match {
+      case Some(graphUri) =>
+        Some(s"$dataManagerUrl}/explore?graph=${enc(graphUri)}&resource=${enc(entityUri)}")
       case None =>
-        Some(entityUri)
+        None
     }
   }
 

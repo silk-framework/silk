@@ -11,11 +11,11 @@
 @import org.silkframework.rule.LinkSpec
 @import org.silkframework.runtime.activity.UserContext
 
-@import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 @(project: Project,
   task: ProjectTask[LinkSpec],
   links: Seq[EvalLink],
   linkingStatistics: Option[LinkingStatistics],
+  linkResolvers: DPair[LinkResolver],
   sorting: LinkSorter,
   filter: String,
   page: Int,
@@ -268,7 +268,7 @@
 }
 
 @generateEntityLink(entityUri: String, divClassPrefix: String) = {
-  @LinkResolver(entityUri, getDataset(divClassPrefix)) match {
+  @getResolver(divClassPrefix)(entityUri) match {
     case Some(link) => {
       <a href="@link" target="_blank">
         @project.config.prefixes.shorten(entityUri)
@@ -280,9 +280,8 @@
   }
 }
 
-@getDataset(divClassPrefix: String) = @{
-  val selection = if(divClassPrefix == "source") task.dataSelections.source else task.dataSelections.target
-  task.project.task[GenericDatasetSpec](selection.inputId).data
+@getResolver(divClassPrefix: String) = @{
+  if(divClassPrefix == "source") linkResolvers.source else linkResolvers.target
 }
 
 @renderConfidence(value: Option[Double]) = { @value match {
