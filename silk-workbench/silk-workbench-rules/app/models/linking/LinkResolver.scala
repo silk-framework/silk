@@ -101,7 +101,7 @@ class DataManagerResolver(dataset: RdfDataset, dataManagerUrl: String) extends L
   def apply(entityUri: String): Option[String] = {
     dataset.sparqlEndpoint.sparqlParams.graph match {
       case Some(graphUri) =>
-        Some(s"$dataManagerUrl}/explore?graph=${enc(graphUri)}&resource=${enc(entityUri)}")
+        Some(s"$dataManagerUrl/explore?graph=${enc(graphUri)}&resource=${enc(entityUri)}")
       case None =>
         None
     }
