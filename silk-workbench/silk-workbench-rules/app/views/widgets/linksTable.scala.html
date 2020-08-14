@@ -120,10 +120,14 @@
         <span class="ui-icon ui-icon ui-icon-triangle-1-e"></span>
       </div>
       <div class="link-source">
-        @generateEntityLink(link.source, linkResolvers.source)
+        <a href="@link.source" target="_blank">
+        @project.config.prefixes.shorten(link.source)
+        </a>
       </div>
       <div class="link-target">
-        @generateEntityLink(link.source, linkResolvers.target)
+        <a href="@link.target" target="_blank">
+        @project.config.prefixes.shorten(link.target)
+        </a>
       </div>
       <div class="link-confidence">
         @link.details.map { sim =>
