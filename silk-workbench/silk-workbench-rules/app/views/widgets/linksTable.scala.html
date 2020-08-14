@@ -120,10 +120,10 @@
         <span class="ui-icon ui-icon ui-icon-triangle-1-e"></span>
       </div>
       <div class="link-source">
-        @generateEntityLink(link.source, "source")
+        @generateEntityLink(link.source, linkResolvers.source)
       </div>
       <div class="link-target">
-        @generateEntityLink(link.source, "target")
+        @generateEntityLink(link.source, linkResolvers.target)
       </div>
       <div class="link-confidence">
         @link.details.map { sim =>
@@ -267,8 +267,8 @@
   }
 }
 
-@generateEntityLink(entityUri: String, divClassPrefix: String) = {
-  @getResolver(divClassPrefix)(entityUri) match {
+@generateEntityLink(entityUri: String, linkResolver: LinkResolver) = {
+  @linkResolver(entityUri) match {
     case Some(link) => {
       <a href="@link" target="_blank">
         @project.config.prefixes.shorten(entityUri)
@@ -278,10 +278,6 @@
       @project.config.prefixes.shorten(entityUri)
     }
   }
-}
-
-@getResolver(divClassPrefix: String) = @{
-  if(divClassPrefix == "source") linkResolvers.source else linkResolvers.target
 }
 
 @renderConfidence(value: Option[Double]) = { @value match {
