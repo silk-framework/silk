@@ -9,15 +9,17 @@
 @import org.silkframework.workspace.ProjectTask
 @import org.silkframework.rule.execution.LinkingStatistics
 @import org.silkframework.rule.LinkSpec
+@import org.silkframework.runtime.activity.UserContext
 
 @(project: Project,
   task: ProjectTask[LinkSpec],
   links: Seq[EvalLink],
   linkingStatistics: Option[LinkingStatistics],
+  linkResolvers: DPair[LinkResolver],
   sorting: LinkSorter,
   filter: String,
   page: Int,
-  showStatus: Boolean, showDetails: Boolean, showEntities: Boolean, rateButtons: Boolean)
+  showStatus: Boolean, showDetails: Boolean, showEntities: Boolean, rateButtons: Boolean)(implicit userContext: UserContext)
 
 @getPageLinks() = @{
   val pageSize = 100
@@ -118,14 +120,10 @@
         <span class="ui-icon ui-icon ui-icon-triangle-1-e"></span>
       </div>
       <div class="link-source">
-        <a href="@link.source" target="_blank">
-          @project.config.prefixes.shorten(link.source)
-        </a>
+        @generateEntityLink(link.source, "source")
       </div>
       <div class="link-target">
-        <a href="@link.target" target="_blank">
-          @project.config.prefixes.shorten(link.target)
-        </a>
+        @generateEntityLink(link.source, "target")
       </div>
       <div class="link-confidence">
         @link.details.map { sim =>
@@ -267,6 +265,23 @@
   } else {
     @valueString
   }
+}
+
+@generateEntityLink(entityUri: String, divClassPrefix: String) = {
+  @getResolver(divClassPrefix)(entityUri) match {
+    case Some(link) => {
+      <a href="@link" target="_blank">
+        @project.config.prefixes.shorten(entityUri)
+      </a>
+    }
+    case None => {
+      @project.config.prefixes.shorten(entityUri)
+    }
+  }
+}
+
+@getResolver(divClassPrefix: String) = @{
+  if(divClassPrefix == "source") linkResolvers.source else linkResolvers.target
 }
 
 @renderConfidence(value: Option[Double]) = { @value match {
