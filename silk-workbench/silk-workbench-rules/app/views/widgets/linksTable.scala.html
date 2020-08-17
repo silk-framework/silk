@@ -268,9 +268,18 @@
 }
 
 @generateEntityLink(entityUri: String, linkResolver: LinkResolver) = {
-  <a href="@entityUri" target="_blank">
-    @project.config.prefixes.shorten(entityUri)
-  </a>
+  @linkResolver(entityUri) match {
+    case Some(link) => {
+      <a href="@entityUri" target="_blank">
+        @project.config.prefixes.shorten(entityUri)
+      </a>
+    }
+    case None => {
+      <a href="@entityUri" target="_blank">
+        @project.config.prefixes.shorten(entityUri)
+      </a>
+    }
+  }
 }
 
 @renderConfidence(value: Option[Double]) = { @value match {
