@@ -53,7 +53,7 @@ object LinkResolver {
               case Some(url) =>
                 new DataManagerResolver(ds, url)
               case None =>
-                new DereferencingLinkResolver()
+                DereferencingLinkResolver
             }
           case _ =>
             NoLinkResolver
@@ -85,7 +85,7 @@ object NoLinkResolver extends LinkResolver {
   * Directly links to the URI of the entity.
   * Can be used for entities that use dereferenceable URIs.
   */
-class DereferencingLinkResolver extends LinkResolver {
+object DereferencingLinkResolver extends LinkResolver {
 
   def apply(entityUri: String): Option[String] = {
     Some(entityUri)
