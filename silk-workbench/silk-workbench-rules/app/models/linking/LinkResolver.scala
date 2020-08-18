@@ -60,10 +60,10 @@ object LinkResolver {
                   DereferencingLinkResolver
               }
             case _ =>
-              NoLinkResolver
+              DereferencingLinkResolver
           }
         case _ =>
-          NoLinkResolver
+          DereferencingLinkResolver
       }
     } catch {
       case NonFatal(ex) =>
