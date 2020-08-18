@@ -11,8 +11,8 @@ import scala.io.Codec
   id = "json",
   label = "JSON",
   categories = Array(DatasetCategories.file),
-  description =
-"""Read from or write to a JSON file."""
+  description = """Read from or write to a JSON file.""",
+  documentationFile = "JsonDatasetDocumentation.md"
 )
 case class JsonDataset(
   @Param("Json file.")

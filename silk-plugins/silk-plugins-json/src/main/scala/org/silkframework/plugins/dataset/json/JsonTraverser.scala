@@ -119,7 +119,14 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
   def evaluate(path: Seq[PathOperator]): Seq[String] = {
     path match {
       case ForwardOperator(prop) :: tail =>
-        children(prop).flatMap(child => child.evaluate(tail))
+        prop.uri match {
+          case "#id" =>
+            Seq(nodeId(value))
+          case "#text" =>
+            nodeToValue(value)
+          case _ =>
+            children(prop).flatMap(child => child.evaluate(tail))
+        }
       case BackwardOperator(prop) :: tail =>
         parentOpt match {
           case Some(parent) =>

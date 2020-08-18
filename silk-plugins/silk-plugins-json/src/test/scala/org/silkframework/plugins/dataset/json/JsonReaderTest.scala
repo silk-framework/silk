@@ -53,6 +53,13 @@ class JsonReaderTest extends FlatSpec with Matchers {
     evaluate(valuesWithSpaces, "space+value") should equal (Seq("Berlin", "Hamburg"))
   }
 
+  it should "allow retrieving ids and texts from array values" in {
+    val example = json("exampleArrays.json")
+    val arrayItems = example.select("data" :: Nil)
+    evaluate(arrayItems, "#id") should equal (Seq("65", "66"))
+    evaluate(arrayItems, "#text") should equal (Seq("A", "B"))
+  }
+
   private def evaluate(values: Seq[JsonTraverser], path: String): Seq[String] = {
     values.flatMap(value => value.evaluate(UntypedPath.parse(path)))
   }
