@@ -11,6 +11,8 @@ import org.silkframework.util.DPair
 import org.silkframework.workspace.ProjectTask
 import play.api.mvc.MultipartFormData.DataPart
 
+import scala.util.control.NonFatal
+
 /**
   * Given an entity URI, generates a browser link that navigates to the entity.
   */
@@ -35,7 +37,7 @@ object LinkResolver {
     val config = DefaultConfig.instance()
     if(config.hasPath("eccencaDataPlatform.url")) {
       val dataPlatformUrl = config.getString("eccencaDataPlatform.url").stripSuffix("/")
-      Some(dataPlatformUrl.stripSuffix("dataplatform"))
+      Some(dataPlatformUrl.stripSuffix("/dataplatform"))
     } else {
       None
     }
@@ -46,23 +48,29 @@ object LinkResolver {
     * Returns a LinkResolver for a given task.
     */
   def forTask(sourceTask: TaskSpec): LinkResolver = {
-    DereferencingLinkResolver
-//    sourceTask match {
-//      case dataset: GenericDatasetSpec =>
-//        dataset.plugin match {
-//          case ds: RdfDataset =>
-//            dataManagerUrl match {
-//              case Some(url) =>
-//                new DataManagerResolver(ds, url)
-//              case None =>
-//                DereferencingLinkResolver
-//            }
-//          case _ =>
-//            NoLinkResolver
-//        }
-//      case _ =>
-//        NoLinkResolver
-//    }
+    try {
+      sourceTask match {
+        case dataset: GenericDatasetSpec =>
+          dataset.plugin match {
+            case ds: RdfDataset =>
+              dataManagerUrl match {
+                case Some(url) =>
+                  new DataManagerResolver(ds, url)
+                case None =>
+                  DereferencingLinkResolver
+              }
+            case _ =>
+              NoLinkResolver
+          }
+        case _ =>
+          NoLinkResolver
+      }
+    } catch {
+      case NonFatal(ex) =>
+        println("LinkResolverEx" + ex)
+        ex.printStackTrace()
+        DereferencingLinkResolver
+    }
   }
 
   def forLinkingTask(linkTask: ProjectTask[LinkSpec])(implicit userContext: UserContext): DPair[LinkResolver] = {
