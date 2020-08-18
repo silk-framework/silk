@@ -357,7 +357,7 @@ export function CreateArtefactModal() {
                                             description={t("CreateModal.loading", "Loading artefact type list.")}
                                         />
                                     ) : artefactListWithProject.length === 0 ? (
-                                        <p>No match found.</p>
+                                        <p>{t("CreateModal.noMatch", "No match found.")}</p>
                                     ) : (
                                         <OverviewItemList hasSpacing columns={2}>
                                             {artefactListWithProject.map((artefact) => (
