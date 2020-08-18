@@ -31,36 +31,37 @@ object LinkResolver {
   /**
     * The URL of the configured eccenca DataManager, if any.
     */
-  private val dataManagerUrl: Option[String] = {
-    val config = DefaultConfig.instance()
-    if(config.hasPath("eccencaDataPlatform.url")) {
-      val dataPlatformUrl = config.getString("eccencaDataPlatform.url").stripSuffix("/")
-      Some(dataPlatformUrl.stripSuffix("dataplatform"))
-    } else {
-      None
-    }
-  }
+//  private val dataManagerUrl: Option[String] = {
+//    val config = DefaultConfig.instance()
+//    if(config.hasPath("eccencaDataPlatform.url")) {
+//      val dataPlatformUrl = config.getString("eccencaDataPlatform.url").stripSuffix("/")
+//      Some(dataPlatformUrl.stripSuffix("dataplatform"))
+//    } else {
+//      None
+//    }
+//  }
 
   /**
     * Returns a LinkResolver for a given task.
     */
   def forTask(sourceTask: TaskSpec): LinkResolver = {
-    sourceTask match {
-      case dataset: GenericDatasetSpec =>
-        dataset.plugin match {
-          case ds: RdfDataset =>
-            dataManagerUrl match {
-              case Some(url) =>
-                new DataManagerResolver(ds, url)
-              case None =>
-                DereferencingLinkResolver
-            }
-          case _ =>
-            NoLinkResolver
-        }
-      case _ =>
-        NoLinkResolver
-    }
+    DereferencingLinkResolver
+//    sourceTask match {
+//      case dataset: GenericDatasetSpec =>
+//        dataset.plugin match {
+//          case ds: RdfDataset =>
+//            dataManagerUrl match {
+//              case Some(url) =>
+//                new DataManagerResolver(ds, url)
+//              case None =>
+//                DereferencingLinkResolver
+//            }
+//          case _ =>
+//            NoLinkResolver
+//        }
+//      case _ =>
+//        NoLinkResolver
+//    }
   }
 
   def forLinkingTask(linkTask: ProjectTask[LinkSpec])(implicit userContext: UserContext): DPair[LinkResolver] = {

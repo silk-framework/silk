@@ -266,7 +266,7 @@
   }
 }
 
-@generateEntityLink(entityUri: String, linkResolver: LinkResolver) = { @(None: Option[String]) match {
+@generateEntityLink(entityUri: String, linkResolver: LinkResolver) = { @linkResolver(entityUri) match {
   case Some(link) => {
     <a href="@entityUri" target="_blank">
       @project.config.prefixes.shorten(entityUri)
