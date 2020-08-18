@@ -18,6 +18,8 @@ export function AppPagination({ pagination, onChangeSelect, pageSizes }) {
             backwardText={t("Pagination.backwardText", "Previous page")}
             forwardText={t("Pagination.forwardText", "Next page")}
             itemsPerPageText={t("Pagination.itemsPerPage", "Items per page:")}
+            itemRangeText={(min, max, total) => t("Pagination.itemRangeText", { min: min, max: max, total: total })}
+            pageRangeText={(current, total) => t("Pagination.pageRangeText", { total })}
         />
     ) : null;
 }

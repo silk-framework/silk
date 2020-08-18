@@ -10,6 +10,8 @@ function Pagination({
     backwardText = "Previous page",
     forwardText = "Next page",
     itemsPerPageText = "Items per page:",
+    itemRangeText = (min, max, total) => `${min}–${max} of ${total} items`,
+    pageRangeText = (current, total) => `of ${total} pages`,
     ...otherProps
 }: any) {
     return (
@@ -26,6 +28,8 @@ function Pagination({
             backwardText={backwardText}
             forwardText={forwardText}
             itemsPerPageText={itemsPerPageText}
+            itemRangeText={itemRangeText}
+            pageRangeText={pageRangeText}
         />
     );
 }

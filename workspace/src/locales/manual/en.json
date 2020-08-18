@@ -2,6 +2,13 @@
     "OverwriteModal": {
         "overwriteFile": "File {{fileName}} already exists. Do you want to overwrite it?"
     },
+    "Pagination": {
+        "backwardText": "Previous page",
+        "forwardText": "Next page",
+        "itemsPerPage": "Items per page:",
+        "itemRangeText": "{{min}}–{{max}} of {{total}} items",
+        "pageRangeText": "of {{total}} pages"
+    },
     "PrefixDialog": {
         "deletePrefix": "Prefix {{prefixName}} will be deleted."
     },
