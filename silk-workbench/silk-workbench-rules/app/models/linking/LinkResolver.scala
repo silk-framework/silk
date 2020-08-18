@@ -31,15 +31,16 @@ object LinkResolver {
   /**
     * The URL of the configured eccenca DataManager, if any.
     */
-//  private val dataManagerUrl: Option[String] = {
-//    val config = DefaultConfig.instance()
-//    if(config.hasPath("eccencaDataPlatform.url")) {
-//      val dataPlatformUrl = config.getString("eccencaDataPlatform.url").stripSuffix("/")
-//      Some(dataPlatformUrl.stripSuffix("dataplatform"))
-//    } else {
-//      None
-//    }
-//  }
+  private val dataManagerUrl: Option[String] = {
+    val config = DefaultConfig.instance()
+    if(config.hasPath("eccencaDataPlatform.url")) {
+      val dataPlatformUrl = config.getString("eccencaDataPlatform.url").stripSuffix("/")
+      Some(dataPlatformUrl.stripSuffix("dataplatform"))
+    } else {
+      None
+    }
+  }
+  println("DM URL: " + dataManagerUrl)
 
   /**
     * Returns a LinkResolver for a given task.
