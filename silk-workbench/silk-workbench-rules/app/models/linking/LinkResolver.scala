@@ -9,9 +9,6 @@ import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.DPair
 import org.silkframework.workspace.ProjectTask
-import play.api.mvc.MultipartFormData.DataPart
-
-import scala.util.control.NonFatal
 
 /**
   * Given an entity URI, generates a browser link that navigates to the entity.
@@ -42,34 +39,26 @@ object LinkResolver {
       None
     }
   }
-  println("DM URL: " + dataManagerUrl)
 
   /**
     * Returns a LinkResolver for a given task.
     */
   def forTask(sourceTask: TaskSpec): LinkResolver = {
-    try {
-      sourceTask match {
-        case dataset: GenericDatasetSpec =>
-          dataset.plugin match {
-            case ds: RdfDataset =>
-              dataManagerUrl match {
-                case Some(url) =>
-                  DereferencingLinkResolver
-                case None =>
-                  DereferencingLinkResolver
-              }
-            case _ =>
-              DereferencingLinkResolver
-          }
-        case _ =>
-          DereferencingLinkResolver
-      }
-    } catch {
-      case NonFatal(ex) =>
-        println("LinkResolverEx" + ex)
-        ex.printStackTrace()
-        DereferencingLinkResolver
+    sourceTask match {
+      case dataset: GenericDatasetSpec =>
+        dataset.plugin match {
+          case ds: RdfDataset =>
+            dataManagerUrl match {
+              case Some(url) =>
+                new DataManagerResolver(ds, url)
+              case None =>
+                DereferencingLinkResolver
+            }
+          case _ =>
+            NoLinkResolver
+        }
+      case _ =>
+        NoLinkResolver
     }
   }
 
@@ -108,12 +97,15 @@ object DereferencingLinkResolver extends LinkResolver {
   */
 class DataManagerResolver(dataset: RdfDataset, dataManagerUrl: String) extends LinkResolver {
 
+  private val graphOpt = dataset.graphOpt
+
   def apply(entityUri: String): Option[String] = {
-    dataset.sparqlEndpoint.sparqlParams.graph match {
+    graphOpt match {
       case Some(graphUri) =>
         Some(s"$dataManagerUrl/explore?graph=${enc(graphUri)}&resource=${enc(entityUri)}")
       case None =>
-        None
+        // The DataManager cannot resolve URIs without their corresponding graph so we return the URI itself
+        Some(entityUri)
     }
   }
 
