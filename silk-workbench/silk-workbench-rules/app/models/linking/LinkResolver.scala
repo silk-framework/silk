@@ -55,7 +55,7 @@ object LinkResolver {
             case ds: RdfDataset =>
               dataManagerUrl match {
                 case Some(url) =>
-                  new DataManagerResolver(ds, url)
+                  DereferencingLinkResolver
                 case None =>
                   DereferencingLinkResolver
               }
