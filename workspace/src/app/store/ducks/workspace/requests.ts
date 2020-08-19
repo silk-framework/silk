@@ -169,9 +169,9 @@ export const requestIfResourceExists = async (projectId: string, resourceName: s
         const { data } = await fetch({
             url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/metadata`),
         });
-        return data;
+        return data?.size;
     } catch (e) {
-        throw handleError(e);
+        return false;
     }
 };
 

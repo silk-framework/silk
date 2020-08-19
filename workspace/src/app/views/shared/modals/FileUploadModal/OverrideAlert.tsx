@@ -1,15 +1,16 @@
 import React from "react";
 import { AlertDialog, Button } from "@gui-elements/index";
+import { UppyFile } from "@uppy/core";
 
 interface IProps {
-    fileName: string;
+    files: UppyFile[];
     onConfirm: (e) => void;
     onCancel: (e) => void;
     isOpen: boolean;
 }
 
 /** Alert to warn against overwriting an existing file */
-const OverrideAlert = ({ fileName, isOpen, onCancel, onConfirm }: IProps) => {
+const OverrideAlert = ({ files, isOpen, onCancel, onConfirm }: IProps) => {
     return (
         <AlertDialog
             warning
@@ -23,7 +24,7 @@ const OverrideAlert = ({ fileName, isOpen, onCancel, onConfirm }: IProps) => {
                 </Button>,
             ]}
         >
-            <p>File '{fileName}' already exists. Do you want to overwrite it?</p>
+            <p>File '{files.map((f) => f.name)}' already exists. Do you want to overwrite it?</p>
         </AlertDialog>
     );
 };

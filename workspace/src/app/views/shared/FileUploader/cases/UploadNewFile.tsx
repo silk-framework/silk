@@ -15,7 +15,7 @@ interface IProps {
     // Allow multiple file upload
     allowMultiple?: boolean;
 
-    onAdded(files: UppyFile[]);
+    onAdded(file: UppyFile);
 
     onProgress?(progress: number);
 
@@ -30,17 +30,13 @@ interface IProps {
 export function UploadNewFile(props: IProps) {
     const { uppy, simpleInput, allowMultiple, onAdded, onUploadSuccess, onUploadError } = props;
 
-    const [files, setFiles] = useState<UppyFile[]>([]);
-
-    const [progress, setProgress] = useState<{ [key: string]: number }>({});
-    const [uploaded, setUploaded] = useState<{ [key: string]: UppyFile }>({});
-
     useEffect(() => {
         registerEvents();
-        return unregisterEvents();
+        return unregisterEvents;
     }, []);
 
     const registerEvents = () => {
+        console.log("register events");
         uppy.on("file-added", handleDropAreaAdded);
         uppy.on("upload-progress", handleProgress);
         uppy.on("upload-success", handleUploadSuccess);
@@ -48,7 +44,8 @@ export function UploadNewFile(props: IProps) {
     };
 
     const unregisterEvents = () => {
-        uppy.off("file-added", onAdded);
+        console.log("unregister events");
+        uppy.off("file-added", handleDropAreaAdded);
         uppy.off("upload-progress", handleProgress);
         uppy.off("upload-success", handleUploadSuccess);
         uppy.off("upload-error", onUploadError);
@@ -59,44 +56,23 @@ export function UploadNewFile(props: IProps) {
      * @param file
      */
     const handleDropAreaAdded = (file: UppyFile) => {
-        const allFiles = [...files, file];
-        setFiles(allFiles);
-        onAdded(allFiles);
+        onAdded(file);
     };
 
     const handleProgress = (file, { bytesUploaded, bytesTotal }) => {
         const progressAmount = bytesUploaded / bytesTotal;
-        setProgress({
-            ...progress,
-            [file.id]: progressAmount,
-        });
-
         if (props.onProgress) {
             props.onProgress(progressAmount);
         }
     };
 
     const handleUploadSuccess = (file) => {
-        setUploaded({
-            ...uploaded,
-            [file.id]: true,
-        });
-        setFiles(files.filter((f) => f.id !== file.id));
-
+        console.log("Uploaded successfully", file);
         onUploadSuccess(file);
     };
 
     const handleAbort = (id: string) => {
-        uppy.reset();
-        uppy.cancelAll();
-
-        setFiles(files.filter((file: UppyFile) => file.id !== id));
-
-        delete progress[id];
-        setProgress(progress);
-
-        delete uploaded[id];
-        setUploaded(uploaded);
+        uppy.removeFile(id);
     };
 
     // Only for input file
@@ -125,13 +101,15 @@ export function UploadNewFile(props: IProps) {
 
     // Workaround because 'allowMultipleFiles' property on DragDrop does not work
     uppy.setOptions({ allowMultipleUploads: allowMultiple, restrictions: { maxNumberOfFiles: 3 } });
+    const uppyFiles = uppy.getFiles();
 
     return (
         <>
-            {files.length ? (
-                files.map((file) => {
-                    const fileProgress = progress[file.id];
-                    const isUploaded = uploaded[file.id];
+            {uppyFiles.length ? (
+                uppyFiles.map((file) => {
+                    const { progress } = file;
+                    const fileProgress = progress.bytesUploaded / progress.bytesTotal;
+                    const isUploaded = file.progress.uploadComplete;
 
                     return (
                         <Notification
