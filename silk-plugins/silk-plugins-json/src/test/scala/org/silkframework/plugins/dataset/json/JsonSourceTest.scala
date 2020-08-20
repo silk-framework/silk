@@ -270,7 +270,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
 
   it should "test string based apply method" in {
     val str = resources.get("example.json").loadAsString(Codec.UTF8)
-    val result = JsonSource(str, "", "#id").peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath.parse("/persons/phoneNumbers/number").asStringTypedPath)), 3).toSeq
+    val result = JsonSource("taskId", str, "", "#id").peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath.parse("/persons/phoneNumbers/number").asStringTypedPath)), 3).toSeq
     result.size mustBe 1
     result.head.values mustBe IndexedSeq(Seq("123", "456", "789"))
   }

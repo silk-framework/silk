@@ -26,7 +26,7 @@ import scala.io.Codec
  *                 If left empty, all direct children of the root element will be read.
  * @param uriPattern A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements
  */
-case class JsonSource(input: JsValue, basePath: String, uriPattern: String) extends DataSource
+case class JsonSource(taskId: Identifier, input: JsValue, basePath: String, uriPattern: String) extends DataSource
   with PeakDataSource with HierarchicalSampleValueAnalyzerExtractionSource {
 
   private val logger = Logger.getLogger(getClass.getName)
@@ -217,15 +217,15 @@ case class JsonSource(input: JsValue, basePath: String, uriPattern: String) exte
     *
     * @return
     */
-  override lazy val underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.random, DatasetSpec(EmptyDataset))     //FIXME CMEM 1352 replace with actual task
+  override lazy val underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(taskId, DatasetSpec(EmptyDataset))     //FIXME CMEM 1352 replace with actual task
 }
 
 object JsonSource{
 
-  def apply(str: String, basePath: String, uriPattern: String): JsonSource = apply(Json.parse(str), basePath, uriPattern)
+  def apply(taskId: Identifier, str: String, basePath: String, uriPattern: String): JsonSource = apply(taskId, Json.parse(str), basePath, uriPattern)
 
   def apply(file: Resource, basePath: String, uriPattern: String): JsonSource = {
-    apply(file.read(Json.parse), basePath, uriPattern)
+    apply(Identifier.fromAllowed(file.name), file.read(Json.parse), basePath, uriPattern)
   }
 
 }
