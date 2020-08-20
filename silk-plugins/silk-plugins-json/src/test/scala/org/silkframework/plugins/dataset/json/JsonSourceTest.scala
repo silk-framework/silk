@@ -284,6 +284,17 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
     entities.map(_.values) mustBe Seq(Seq(Seq("Berlin")), Seq(Seq("Hamburg")))
   }
 
+  it should "generate consistent URIs for array values" in {
+    val source2 = JsonSource(resources.get("exampleArrays.json"), "", "")
+
+    val entities1 = source2.retrieve(EntitySchema("", typedPaths = IndexedSeq(UntypedPath.parse("data").asStringTypedPath))).entities.toList
+    val entities2 = source2.retrieve(EntitySchema("", typedPaths = IndexedSeq(UntypedPath.parse("data").asUriTypedPath))).entities.toList
+    val entities3 = source2.retrieve(EntitySchema("data", typedPaths = IndexedSeq())).entities.toList
+
+    entities1.head.values.head mustBe Seq("A", "B")
+    entities2.head.values.head mustBe entities3.map(_.uri.uri)
+  }
+
   private def jsonSource(json: String): JsonSource = {
     val jsonResource = InMemoryResourceManager().get("temp.json")
     jsonResource.writeString(json)

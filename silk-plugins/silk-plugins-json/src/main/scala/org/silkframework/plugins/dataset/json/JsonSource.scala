@@ -116,7 +116,7 @@ case class JsonSource(input: JsValue, basePath: String, uriPattern: String) exte
             genericEntityIRI(node.nodeId(node.value))
           } else {
             uriRegex.replaceAllIn(uriPattern, m => {
-              val path = UntypedPath.parse(m.group(1))
+              val path = UntypedPath.parse(m.group(1)).asStringTypedPath
               val string = node.evaluate(path).mkString
               URLEncoder.encode(string, "UTF8")
             })
@@ -125,7 +125,7 @@ case class JsonSource(input: JsValue, basePath: String, uriPattern: String) exte
         // Check if this URI should be extracted
         if (allowedUris.isEmpty || allowedUris.contains(uri)) {
           // Extract values
-          val values = for (path <- entityDesc.typedPaths) yield node.evaluate(path.operators)
+          val values = for (path <- entityDesc.typedPaths) yield node.evaluate(path)
           f(Entity(uri, values, entityDesc))
         }
       }
@@ -206,7 +206,7 @@ case class JsonSource(input: JsValue, basePath: String, uriPattern: String) exte
                                   sampleLimit: Option[Int]): Unit = {
     var analyzedValues = 0
     for(traverser <- traversers if sampleLimit.isEmpty || analyzedValues < sampleLimit.get) {
-      val values = traverser.evaluate(path)
+      val values = traverser.evaluate(path.asStringTypedPath)
       analyzer.update(values)
       analyzedValues += values.size
     }

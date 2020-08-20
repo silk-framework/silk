@@ -61,7 +61,7 @@ class JsonReaderTest extends FlatSpec with Matchers {
   }
 
   private def evaluate(values: Seq[JsonTraverser], path: String): Seq[String] = {
-    values.flatMap(value => value.evaluate(UntypedPath.parse(path)))
+    values.flatMap(value => value.evaluate(UntypedPath.parse(path).asStringTypedPath))
   }
 
   private def json(fileName: String) = {
