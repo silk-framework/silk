@@ -1,10 +1,13 @@
 package controllers.core.util
 
+import akka.util.ByteString
+import controllers.util.SerializationUtils
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.{Project, ProjectTask, Workspace, WorkspaceFactory}
+import play.api.http.HttpEntity
 import play.api.libs.json.{JsError, JsValue, Json, Reads}
-import play.api.mvc.{BaseController, Request, Result}
+import play.api.mvc.{BaseController, Request, ResponseHeader, Result}
 
 import scala.reflect.ClassTag
 
@@ -58,5 +61,13 @@ trait ControllerUtilsTrait {
           (implicit userContext: UserContext): ProjectTask[_ <: TaskSpec] = {
     val project = getProject(projectId)
     project.anyTask(taskId)
+  }
+
+  /** Creates a Result object from a byte array. */
+  def byteResult(byteArray: Array[Byte], contentType: String, status: Int = OK): Result = {
+    Result(
+      new ResponseHeader(status, Map.empty),
+      HttpEntity.Strict(ByteString(byteArray), Some(contentType))
+    )
   }
 }
