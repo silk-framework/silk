@@ -35,7 +35,7 @@ object LinkResolver {
     val config = DefaultConfig.instance()
     if(config.hasPath("eccencaDataPlatform.url")) {
       val dataPlatformUrl = config.getString("eccencaDataPlatform.url").stripSuffix("/")
-      Some(dataPlatformUrl.stripSuffix("dataplatform"))
+      Some(dataPlatformUrl.stripSuffix("/dataplatform"))
     } else {
       None
     }
@@ -53,7 +53,7 @@ object LinkResolver {
               case Some(url) =>
                 new DataManagerResolver(ds, url)
               case None =>
-                new DereferencingLinkResolver()
+                DereferencingLinkResolver
             }
           case _ =>
             NoLinkResolver
@@ -85,7 +85,7 @@ object NoLinkResolver extends LinkResolver {
   * Directly links to the URI of the entity.
   * Can be used for entities that use dereferenceable URIs.
   */
-class DereferencingLinkResolver extends LinkResolver {
+object DereferencingLinkResolver extends LinkResolver {
 
   def apply(entityUri: String): Option[String] = {
     Some(entityUri)
@@ -98,12 +98,15 @@ class DereferencingLinkResolver extends LinkResolver {
   */
 class DataManagerResolver(dataset: RdfDataset, dataManagerUrl: String) extends LinkResolver {
 
+  private val graphOpt = dataset.graphOpt
+
   def apply(entityUri: String): Option[String] = {
-    dataset.sparqlEndpoint.sparqlParams.graph match {
+    graphOpt match {
       case Some(graphUri) =>
         Some(s"$dataManagerUrl/explore?graph=${enc(graphUri)}&resource=${enc(entityUri)}")
       case None =>
-        None
+        // The DataManager cannot resolve URIs without their corresponding graph so we return the URI itself
+        Some(entityUri)
     }
   }
 

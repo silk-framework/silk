@@ -1,15 +1,14 @@
-@import org.silkframework.workspace.{PrefixRegistry, Project}
+@import controllers.rules.routes.Assets
 @import models.linking.EvalLink._
 @import models.linking._
 @import org.silkframework.entity.Entity
-@import org.silkframework.util.DPair
-@import org.silkframework.rule.evaluation._
-@import controllers.rules.routes.Assets
 @import org.silkframework.entity.paths.UntypedPath
-@import org.silkframework.workspace.ProjectTask
-@import org.silkframework.rule.execution.LinkingStatistics
 @import org.silkframework.rule.LinkSpec
+@import org.silkframework.rule.evaluation._
+@import org.silkframework.rule.execution.LinkingStatistics
 @import org.silkframework.runtime.activity.UserContext
+@import org.silkframework.util.DPair
+@import org.silkframework.workspace.{Project, ProjectTask}
 
 @(project: Project,
   task: ProjectTask[LinkSpec],
@@ -120,14 +119,10 @@
         <span class="ui-icon ui-icon ui-icon-triangle-1-e"></span>
       </div>
       <div class="link-source">
-        <a href="@link.source" target="_blank">
-        @project.config.prefixes.shorten(link.source)
-        </a>
+        @generateEntityLink(link.source, linkResolvers.source)
       </div>
       <div class="link-target">
-        <a href="@link.target" target="_blank">
-        @project.config.prefixes.shorten(link.target)
-        </a>
+        @generateEntityLink(link.target, linkResolvers.target)
       </div>
       <div class="link-confidence">
         @link.details.map { sim =>
