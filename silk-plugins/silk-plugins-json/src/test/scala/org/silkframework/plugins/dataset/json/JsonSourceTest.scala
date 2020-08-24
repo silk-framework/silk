@@ -270,7 +270,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
 
   it should "test string based apply method" in {
     val str = resources.get("example.json").loadAsString(Codec.UTF8)
-    val result = JsonSource(str, "", "#id").peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath.parse("/persons/phoneNumbers/number").asStringTypedPath)), 3).toSeq
+    val result = JsonSource("taskId", str, "", "#id").peak(EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath.parse("/persons/phoneNumbers/number").asStringTypedPath)), 3).toSeq
     result.size mustBe 1
     result.head.values mustBe IndexedSeq(Seq("123", "456", "789"))
   }
@@ -282,6 +282,17 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
 
     val entities = source2.retrieve(EntitySchema("values+with+spaces", typedPaths = IndexedSeq(UntypedPath.parse("space+value").asStringTypedPath))).entities
     entities.map(_.values) mustBe Seq(Seq(Seq("Berlin")), Seq(Seq("Hamburg")))
+  }
+
+  it should "generate consistent URIs for array values" in {
+    val source2 = JsonSource(resources.get("exampleArrays.json"), "", "")
+
+    val entities1 = source2.retrieve(EntitySchema("", typedPaths = IndexedSeq(UntypedPath.parse("data").asStringTypedPath))).entities.toList
+    val entities2 = source2.retrieve(EntitySchema("", typedPaths = IndexedSeq(UntypedPath.parse("data").asUriTypedPath))).entities.toList
+    val entities3 = source2.retrieve(EntitySchema("data", typedPaths = IndexedSeq())).entities.toList
+
+    entities1.head.values.head mustBe Seq("A", "B")
+    entities2.head.values.head mustBe entities3.map(_.uri.uri)
   }
 
   private def jsonSource(json: String): JsonSource = {
