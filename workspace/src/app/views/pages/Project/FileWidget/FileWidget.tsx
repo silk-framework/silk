@@ -19,13 +19,13 @@ import {
     TableRow,
     Toolbar,
     ToolbarSection,
-} from "@wrappers/index";
+} from "@gui-elements/index";
 import Loading from "../../../shared/Loading";
 import FileUploadModal from "../../../shared/modals/FileUploadModal";
 import { EmptyFileWidget } from "./EmptyFileWidget";
 import { SearchBar } from "../../../shared/SearchBar/SearchBar";
 import { Highlighter } from "../../../shared/Highlighter/Highlighter";
-import { usePagination } from "@wrappers/src/components/Pagination/Pagination";
+import { usePagination } from "@gui-elements/src/components/Pagination/Pagination";
 import DeleteModal from "../../../shared/modals/DeleteModal";
 import { commonSel } from "@ducks/common";
 import { projectFileResourceDependents, removeProjectFileResource } from "@ducks/workspace/requests";

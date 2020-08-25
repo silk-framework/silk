@@ -6,7 +6,7 @@ import {
     OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
-} from "@wrappers/index";
+} from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
 
 interface IProps {

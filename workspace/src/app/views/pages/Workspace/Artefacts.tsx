@@ -13,7 +13,7 @@ import {
     WorkspaceContent,
     WorkspaceMain,
     WorkspaceSide,
-} from "@wrappers/index";
+} from "@gui-elements/index";
 import Filterbar from "./Filterbar";
 import SearchList from "../../shared/SearchList";
 import SearchBar from "../../shared/SearchBar";

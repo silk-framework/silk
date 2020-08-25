@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "@wrappers/index";
+import { Button } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
 
 export function EmptyFileWidget({ onFileAdd }) {

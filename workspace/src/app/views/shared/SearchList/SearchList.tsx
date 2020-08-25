@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { Button, Icon, Spacing } from "@wrappers/index";
+import { Button, Icon, Spacing } from "@gui-elements/index";
 import Pagination from "../Pagination";
 import DataList from "../Datalist";
 import CloneModal from "../modals/CloneModal";

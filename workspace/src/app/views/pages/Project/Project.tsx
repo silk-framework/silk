@@ -23,7 +23,7 @@ import {
     WorkspaceContent,
     WorkspaceMain,
     WorkspaceSide,
-} from "@wrappers/index";
+} from "@gui-elements/index";
 import { SearchBar } from "../../shared/SearchBar/SearchBar";
 import { routerSel } from "@ducks/router";
 import { useTranslation } from "react-i18next";

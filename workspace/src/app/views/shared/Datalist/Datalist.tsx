@@ -1,6 +1,6 @@
 import React from "react";
 import { Loading } from "../Loading/Loading";
-import { OverviewItemList } from "@wrappers/index";
+import { OverviewItemList } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
 
 export function Datalist({

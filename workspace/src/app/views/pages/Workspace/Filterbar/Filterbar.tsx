@@ -2,7 +2,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { commonSel } from "@ducks/common";
-import { RadioButton, Spacing, TitleSubsection } from "@wrappers/index";
+import { RadioButton, Spacing, TitleSubsection } from "@gui-elements/index";
 import FacetsList from "./FacetsList";
 import { useTranslation } from "react-i18next";
 

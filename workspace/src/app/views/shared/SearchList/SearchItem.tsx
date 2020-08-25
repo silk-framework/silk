@@ -15,7 +15,7 @@ import {
     OverflowText,
     Spacing,
     Tag,
-} from "@wrappers/index";
+} from "@gui-elements/index";
 import { routerOp } from "@ducks/router";
 import { useDispatch, useSelector } from "react-redux";
 import { Highlighter } from "../Highlighter/Highlighter";

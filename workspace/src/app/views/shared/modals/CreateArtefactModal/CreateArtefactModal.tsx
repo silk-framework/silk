@@ -23,7 +23,7 @@ import {
     OverviewItemList,
     SimpleDialog,
     Spacing,
-} from "@wrappers/index";
+} from "@gui-elements/index";
 import { commonOp, commonSel } from "@ducks/common";
 import { IArtefactItem, IArtefactModal, IDetailedArtefactItem } from "@ducks/common/typings";
 import Loading from "../../Loading";

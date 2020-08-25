@@ -1,7 +1,7 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import { Menu, MenuItem, TitleSubsection } from "@wrappers/index";
+import { Menu, MenuItem, TitleSubsection } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
 
 function ArtefactTypesList({ onSelect }) {

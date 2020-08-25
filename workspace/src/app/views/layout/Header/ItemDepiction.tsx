@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "@wrappers/index";
+import { Icon } from "@gui-elements/index";
 
 interface IProps {
     itemType?: string;

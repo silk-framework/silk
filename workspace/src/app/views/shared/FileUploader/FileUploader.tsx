@@ -5,7 +5,7 @@ import "@uppy/core/dist/style.css";
 import "@uppy/drag-drop/dist/style.css";
 import "@uppy/progress-bar/dist/style.css";
 import { requestIfResourceExists } from "@ducks/workspace/requests";
-import { Button, Divider, FieldItem, Icon, Notification, TextField } from "@wrappers/index";
+import { Button, Divider, FieldItem, Icon, Notification, TextField } from "@gui-elements/index";
 
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import Loading from "../Loading";

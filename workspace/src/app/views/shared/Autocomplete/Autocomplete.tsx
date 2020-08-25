@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { HTMLInputProps, IInputGroupProps } from "@blueprintjs/core";
-import { MenuItem, Suggest } from "@wrappers/index";
+import { MenuItem, Suggest } from "@gui-elements/index";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { Highlighter } from "../Highlighter/Highlighter";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import IconButton from "@wrappers/src/components/Icon/IconButton";
+import IconButton from "@gui-elements/src/components/Icon/IconButton";
 import { useTranslation } from "react-i18next";
 
 export interface IAutocompleteProps {

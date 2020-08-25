@@ -1,9 +1,9 @@
 import { DragDrop } from "@uppy/react";
 import React, { useEffect, useState } from "react";
 import Uppy from "@uppy/core";
-import ProgressBar from "@wrappers/blueprint/progressbar";
-import { Button, Notification, Spacing } from "@wrappers/index";
-import { Intent } from "@wrappers/blueprint/constants";
+import ProgressBar from "@gui-elements/blueprint/progressbar";
+import { Button, Notification, Spacing } from "@gui-elements/index";
+import { Intent } from "@gui-elements/blueprint/constants";
 import { useTranslation } from "react-i18next";
 
 interface IProps {

@@ -3,7 +3,7 @@ import { IFacetState } from "@ducks/workspace/typings";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import FacetItem from "./FacetItem";
-import { Button, HelperClasses, Icon, Spacing, TitleSubsection } from "@wrappers/index";
+import { Button, HelperClasses, Icon, Spacing, TitleSubsection } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
 
 export default function FacetsList() {

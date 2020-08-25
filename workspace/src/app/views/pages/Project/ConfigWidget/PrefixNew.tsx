@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, FieldItem, FieldItemRow, FieldSet, TextField } from "@wrappers/index";
+import { Button, FieldItem, FieldItemRow, FieldSet, TextField } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
 
 const PrefixNew = ({ onAdd, onChangePrefix, prefix }) => {

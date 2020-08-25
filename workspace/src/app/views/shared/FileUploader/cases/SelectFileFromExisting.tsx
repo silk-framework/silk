@@ -1,5 +1,5 @@
 import { Autocomplete, IAutocompleteProps } from "../../Autocomplete/Autocomplete";
-import { FieldItem } from "@wrappers/index";
+import { FieldItem } from "@gui-elements/index";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
