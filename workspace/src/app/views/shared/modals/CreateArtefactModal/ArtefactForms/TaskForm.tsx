@@ -242,7 +242,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                     <>
                         <Spacing />
                         <DataPreview
-                            title={"Preview"}
+                            title={t("pages.dataset.title")}
                             preview={datasetConfigPreview(projectId, artefact.pluginId, getValues())}
                             externalValidation={{
                                 validate: triggerValidation,
