@@ -79,7 +79,8 @@ export const ConfigurationWidget = () => {
                                                         : moreCount > 0 && (
                                                               <>
                                                                   {" "}
-                                                                  and {moreCount} ${t("common.words.more", "more")}
+                                                                  {t("common.words.and")} {moreCount}{" "}
+                                                                  {t("common.words.more", "more")}
                                                               </>
                                                           )}
                                                 </span>
