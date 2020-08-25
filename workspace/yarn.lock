@@ -11306,7 +11306,7 @@ sass-loader@8.0.2:
     schema-utils "^2.6.1"
     semver "^6.3.0"
 
-sax@>=0.6.0, sax@^1.2.4, sax@~1.2.4:
+sax@^1.2.4, sax@~1.2.4:
   version "1.2.4"
   resolved "https://artifactory.eccenca.com/api/npm/npm/sax/-/sax-1.2.4.tgz#2816234e2378bddc4e5354fab5caa895df7100d9"
   integrity sha1-KBYjTiN4vdxOU1T6tcqold9xANk=
@@ -12185,13 +12185,6 @@ symbol-tree@^3.2.2:
   version "3.2.4"
   resolved "https://artifactory.eccenca.com/api/npm/npm/symbol-tree/-/symbol-tree-3.2.4.tgz#430637d248ba77e078883951fb9aa0eed7c63fa2"
   integrity sha1-QwY30ki6d+B4iDlR+5qg7tfGP6I=
-
-sync-i18n@^0.0.18:
-  version "0.0.18"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/sync-i18n/-/sync-i18n-0.0.18.tgz#1d3e71585917d840b4f3ec00d6bb78093f4e7a6e"
-  integrity sha1-HT5xWFkX2EC08+wA1rt4CT9Oem4=
-  dependencies:
-    xml2js "0.4.19"
 
 synchronous-promise@^2.0.10:
   version "2.0.10"
@@ -13456,23 +13449,10 @@ xml-name-validator@^3.0.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/xml-name-validator/-/xml-name-validator-3.0.0.tgz#6ae73e06de4d8c6e47f9fb181f78d648ad457c6a"
   integrity sha1-auc+Bt5NjG5H+fsYH3jWSK1FfGo=
 
-xml2js@0.4.19:
-  version "0.4.19"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/xml2js/-/xml2js-0.4.19.tgz#686c20f213209e94abf0d1bcf1efaa291c7827a7"
-  integrity sha1-aGwg8hMgnpSr8NG88e+qKRx4J6c=
-  dependencies:
-    sax ">=0.6.0"
-    xmlbuilder "~9.0.1"
-
 xml@^1.0.1:
   version "1.0.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/xml/-/xml-1.0.1.tgz#78ba72020029c5bc87b8a81a3cfcd74b4a2fc1e5"
   integrity sha1-eLpyAgApxbyHuKgaPPzXS0ovweU=
-
-xmlbuilder@~9.0.1:
-  version "9.0.7"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/xmlbuilder/-/xmlbuilder-9.0.7.tgz#132ee63d2ec5565c557e20f4c22df9aca686b10d"
-  integrity sha1-Ey7mPS7FVlxVfiD0wi35rKaGsQ0=
 
 xmlchars@^2.1.1:
   version "2.2.0"
