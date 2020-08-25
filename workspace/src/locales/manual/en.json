@@ -13,6 +13,7 @@
         "deletePrefix": "Prefix {{prefixName}} will be deleted."
     },
     "CreateModal": {
+        "createTitleGeneric": "Create new item",
         "createTitle": "Create new item of type {{type}}",
         "updateTitle": "Update item of type {{type}}"
     },

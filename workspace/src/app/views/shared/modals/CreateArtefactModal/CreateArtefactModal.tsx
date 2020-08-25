@@ -280,7 +280,9 @@ export function CreateArtefactModal() {
                     ? t("CreateModal.updateTitle", {
                           type: `'${updateExistingTask.metaData.label}' (${updateExistingTask.taskPluginDetails.title})`,
                       })
-                    : t("CreateModal.createTitle", { type: selectedArtefact.title || "" })
+                    : selectedArtefact.title
+                    ? t("CreateModal.createTitle", { type: selectedArtefact.title })
+                    : t("CreateModal.createTitleGeneric")
             }
             onClose={closeModal}
             isOpen={isOpen}
