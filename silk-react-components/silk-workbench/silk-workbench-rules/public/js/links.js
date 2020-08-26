@@ -83,7 +83,7 @@ function updateLinks() {
 }
 
 function reloadLinks() {
-    $.get(`${path}/${linkType}/${sorting}/filter:${filter}/${page}`, function(
+    $.get(`${path}/${linkType}/${sorting}/filter:${encodeURIComponent(filter)}/${page}`, function(
         data
     ) {
         $('#links').html(data);
