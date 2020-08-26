@@ -1,0 +1,266 @@
+{
+    "CreateModal": {
+        "createTitle": "Create new item of type {{type}}",
+        "createTitleGeneric": "Create new item",
+        "loading": "Loading artefact type list.",
+        "noMatch": "No match found.",
+        "updateTitle": "Update item of type {{type}}"
+    },
+    "DataList": {
+        "loading": "Loading data."
+    },
+    "DataPreview": {
+        "load": "Load preview",
+        "loading": "Loading preview data.",
+        "noAttributes": "No attributes found. This might be an empty dataset.",
+        "notLoading": "Validation failed. Not loading preview.",
+        "previewOf": "Preview of",
+        "reload": "Reload preview",
+        "typeSelection": "Type Selection",
+        "typeSelectionBack": "Back to type selection",
+        "typeSelectionTooltip": "The data source consists of multiple types. Select one type from the list for a preview. There are max. 1000 types fetched at any time."
+    },
+    "DeleteModal": {
+        "confirmMsg": "Task {{name}} is used by other tasks! Deleting this task will also delete all depending tasks listed below:",
+        "deleteResource": "{{type}} {{name}} will be deleted"
+    },
+    "Deletedialog": {
+        "loading": "Loading delete dialog."
+    },
+    "FileMenu": {
+        "create": "Create empty file",
+        "empty": "Select file from project",
+        "new": "Upload new file"
+    },
+    "FileUploader": {
+        "abort": "Abort and keep file",
+        "abortOnly": "Abort Upload",
+        "abortProcess": "Abort upload process?",
+        "changeFile": "Change file",
+        "createNewFile": "New file name",
+        "dropzone": "Drop file here or browse",
+        "fileNotSpecified": "File name not specified",
+        "modalTitle": "Upload file",
+        "selectFromProject": "Select file from projects",
+        "successfullyUploaded": "{{uploadedName}} was successfully uploaded",
+        "uploadError": "An upload error has occurred for file {{fileName}}. Details: {{errorDetails}}",
+        "waitFor": "Wait for finished upload."
+    },
+    "Metadata": {
+        "loading": "Loading summary data.",
+        "updateFailed": "Updating meta data has failed"
+    },
+    "OverwriteModal": {
+        "overwriteFile": "File {{fileName}} already exists. Do you want to overwrite it?"
+    },
+    "Pagination": {
+        "backwardText": "Previous page",
+        "forwardText": "Next page",
+        "itemRangeText": "{{min}}–{{max}} of {{total}} items",
+        "itemsPerPage": "Items per page:",
+        "pageRangeText": "of {{total}} pages"
+    },
+    "PrefixDialog": {
+        "deletePrefix": "Prefix {{prefixName}} will be deleted."
+    },
+    "RelatedItems": {
+        "title": "Related items"
+    },
+    "common": {
+        "action": {
+            "AddSmth": "Add {{smth}}",
+            "CloneSmth": "Clone {{smth}}",
+            "CreateSmth": "Create {{smth}}",
+            "DeleteSmth": "Delete {{smth}}",
+            "RemoveSmth": "Remove {{smth}}",
+            "ShowSmth": "Show {{smth}}",
+            "abort": "Abort",
+            "activity": "Activity overview",
+            "add": "Add",
+            "backOld": "Back to old workspace",
+            "cancel": "Cancel",
+            "clone": "Clone",
+            "close": "Close",
+            "confirm": "Confirm",
+            "create": "Create",
+            "delete": "Delete",
+            "download": "Download",
+            "export": "Export to",
+            "exportTo": "Export to",
+            "logout": "Logout",
+            "moreOptions": "Show more options",
+            "replace": "Replace",
+            "resetSelection": "Reset selection",
+            "showDetails": "Show details",
+            "submit": "Submit",
+            "update": "Update"
+        },
+        "app": {
+            "build": "Build",
+            "loading": "Loading page."
+        },
+        "dataTypes": {
+            "project": "Project",
+            "projectDesc": "Projects let you group related items. All items that depend on each other need to be in the same project.",
+            "task": "Task"
+        },
+        "messages": {
+            "actionFailed": "{{action}} action failed. Details: {{error}}",
+            "allTypes": "All types",
+            "cloneModalTitle": "Label of cloned {{item}}",
+            "createFirstItems": "Create your first {{items}} now.",
+            "errorDataTypes": "Fetch error for dataset types",
+            "noItems": "No {{items}} found.",
+            "noResults": "No results.",
+            "noTypes": "No types found"
+        },
+        "sorter": {
+            "recentlyViewed": "Recently viewed"
+        },
+        "words": {
+            "advancedOptions": "Advanced options",
+            "and": "and",
+            "all": "All",
+            "back": "Back",
+            "itemType": "Item type",
+            "less": "less",
+            "more": "more",
+            "required": "required",
+            "sortOptions": "Sort options",
+            "summary": "Summary"
+        }
+    },
+    "form": {
+        "field": {
+            "description": "Description",
+            "label": "Label",
+            "searchField": "Enter search term"
+        },
+        "projectForm": {
+            "projectDesc": "Project description",
+            "projectTitle": "Project title",
+            "title": "Title"
+        },
+        "validations": {
+            "integer": "must be an integer number",
+            "isRequired": "{{field}} is required",
+            "parameter": "Parameter validation failed. Please fix the issues first."
+        }
+    },
+    "http": {
+        "error": {
+            "aborted": "Request Aborted",
+            "fetchNotResult": "Error, cannot fetch results.",
+            "largeRequest": "Request too large",
+            "not": {
+                "authenticated": "Not authenticated",
+                "authorized": "Not authorized",
+                "available": "Temporarily unavailable",
+                "found": "Not found",
+                "markdown": "Sorry but we can't find the markdown information for this report",
+                "proxy": "Not authorized (proxy)",
+                "valid": "Invalid request"
+            },
+            "requestFailed": "Preview request failed",
+            "server": "Server error",
+            "timeout": "Timeout"
+        }
+    },
+    "pages": {
+        "dataset": {
+            "title": "Data preview"
+        },
+        "notFound": {
+            "backLink": "Go to homepage",
+            "text": "If you think something went wrong then inform your administrator.",
+            "title": "Error 404: Content not found."
+        },
+        "project": {
+            "content": "Contents",
+            "loading": "Loading project data"
+        },
+        "workspace": {
+            "contents": "Contents",
+            "createProject": "Create Project",
+            "empty": "Workspace is empty, so start please create your first project"
+        }
+    },
+    "widget": {
+        "ConfigWidget": {
+            "loading": "Loading configuration list.",
+            "loadingPrefix": "Loading prefix configuration.",
+            "prefix": "Prefix",
+            "prefixTitle": "Manage Prefixes",
+            "prefix_plural": "Prefixes",
+            "title": "Configuration"
+        },
+        "FacetsList": {
+            "facet": {
+                "createdBy": {
+                    "label": "Created by",
+                    "valueLabel": {
+                        "": "Unknown user"
+                    }
+                },
+                "datasetFileResource": {
+                    "label": "Dataset file"
+                },
+                "datasetType": {
+                    "label": "Dataset type"
+                },
+                "lastModifiedBy": {
+                    "label": "Last modified by",
+                    "valueLabels": {
+                        "": "Unknown user"
+                    }
+                },
+                "taskType": {
+                    "label": "Task type"
+                },
+                "transformInputResource": {
+                    "label": "Transformed file resource"
+                },
+                "workflowExecutionStatus": {
+                    "label": "Last execution status"
+                }
+            }
+        },
+        "FileWidget": {
+            "deleteFile": "Delete File",
+            "deleted": "File '{{fileName}}' will be deleted.",
+            "edit": "Edit prefix settings",
+            "empty": "No files are found, add them here to use it later",
+            "file": "File",
+            "files": "Files",
+            "loading": "Loading file list.",
+            "removeFromDatasets": "File '{{fileName}}' is in use by following datasets:",
+            "removeText": "Do you really want to delete file",
+            "sort": {
+                "modified": "Last modified",
+                "name": "Name",
+                "size": "Size (bytes)"
+            }
+        },
+        "Filterbar": {
+            "subsections": {
+                "titles": {
+                    "itemType": "Item type"
+                },
+                "valueLabels": {
+                    "itemType": {
+                        "project": "Project"
+                    }
+                }
+            }
+        },
+        "TaskConfigWidget": {
+            "loading": "Loading update dialog...",
+            "noPreview": "No preview available",
+            "title": "Configuration"
+        },
+        "WarningWidget": {
+            "loading": "Loading log messages.",
+            "title": "Error log"
+        }
+    }
+}

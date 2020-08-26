@@ -4,6 +4,7 @@ import Uppy from "@uppy/core";
 import ProgressBar from "@gui-elements/blueprint/progressbar";
 import { Button, Notification, Spacing } from "@gui-elements/index";
 import { Intent } from "@gui-elements/blueprint/constants";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     // Uppy instance
@@ -32,6 +33,7 @@ export function UploadNewFile(props: IProps) {
 
     const [progress, setProgress] = useState<number>(-1);
     const [uploaded, setUploaded] = useState<File>(null);
+    const [t] = useTranslation();
 
     useEffect(() => {
         registerEvents();
@@ -108,12 +110,16 @@ export function UploadNewFile(props: IProps) {
                     actions={
                         !uploaded && (
                             <Button outlined onClick={handleAbort}>
-                                Abort Upload
+                                {t("FileUploader.abortOnly", "Abort Upload")}
                             </Button>
                         )
                     }
                 >
-                    <p>{!uploaded ? "Wait for finished upload." : `${uploaded.name} was successfully uploaded`}</p>
+                    <p>
+                        {!uploaded
+                            ? t("FileUploader.waitFor", "Wait for finished upload.")
+                            : t("FileUploader.successfullyUploaded", { uploadedName: uploaded.name })}
+                    </p>
                     <Spacing />
                     <ProgressBar
                         value={progress}
@@ -126,7 +132,7 @@ export function UploadNewFile(props: IProps) {
             ) : (
                 <DragDrop
                     uppy={uppy}
-                    locale={{ strings: { dropHereOr: "Drop file here or %{browse}", browse: "browse" } }}
+                    locale={{ strings: { dropHereOr: t("FileUploader.dropzone", "Drop file here or browse") } }}
                 />
             )}
         </>

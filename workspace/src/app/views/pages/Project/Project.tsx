@@ -26,6 +26,7 @@ import {
 } from "@gui-elements/index";
 import { SearchBar } from "../../shared/SearchBar/SearchBar";
 import { routerSel } from "@ducks/router";
+import { useTranslation } from "react-i18next";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -36,6 +37,7 @@ const Project = () => {
     const data = useSelector(workspaceSel.resultsSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const qs = useSelector(routerSel.routerSearchSelector);
+    const [t] = useTranslation();
 
     /**
      * Get available Datatypes
@@ -64,7 +66,7 @@ const Project = () => {
     };
 
     return !projectId ? (
-        <Loading posGlobal description="Loading project data" />
+        <Loading posGlobal description={t("pages.project.loading", "Loading project data")} />
     ) : (
         <WorkspaceContent className="eccapp-di__project">
             <WorkspaceMain>
@@ -77,7 +79,7 @@ const Project = () => {
                         <Grid>
                             <GridRow>
                                 <GridColumn small verticalAlign="center">
-                                    <TitleMainsection>Contents</TitleMainsection>
+                                    <TitleMainsection>{t("pages.project.content", "Contents")}</TitleMainsection>
                                 </GridColumn>
                                 <GridColumn full>
                                     <SearchBar
@@ -99,7 +101,7 @@ const Project = () => {
                             <GridColumn full>
                                 {!data.length && error.detail ? (
                                     <Notification danger>
-                                        <h3>Error, cannot fetch results.</h3>
+                                        <h3>{t("http.error.fetchNotResult", "Error, cannot fetch results.")}</h3>
                                         <p>{error.detail}</p>
                                     </Notification>
                                 ) : (

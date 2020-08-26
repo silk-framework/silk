@@ -10,8 +10,11 @@ import {
     Icon,
 } from "@gui-elements/index";
 import { PUBLIC_URL, SERVE_PATH } from "../../../constants/path";
+import { useTranslation } from "react-i18next";
 
 export default function () {
+    const [t] = useTranslation();
+
     return (
         <Grid>
             <GridRow fullHeight>
@@ -24,14 +27,21 @@ export default function () {
                                     minimal
                                     outlined
                                     icon={<Icon name="application-homepage" />}
-                                    text="Go to homepage"
+                                    text={t("pages.notFound.backLink", "Go to homepage")}
                                     href={PUBLIC_URL + SERVE_PATH}
                                 />
                             }
                         >
                             <HtmlContentBlock>
-                                <TitleMainsection>Error 404: Content not found.</TitleMainsection>
-                                <p>If you think something went wrong then inform your administrator.</p>
+                                <TitleMainsection>
+                                    {t("pages.notFound.title", "Error 404: Content not found.")}
+                                </TitleMainsection>
+                                <p>
+                                    {t(
+                                        "pages.notFound.text",
+                                        "If you think something went wrong then inform your administrator."
+                                    )}
+                                </p>
                             </HtmlContentBlock>
                         </Notification>
                     </GridColumn>
