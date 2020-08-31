@@ -26,15 +26,8 @@ import { EmptyFileWidget } from "./EmptyFileWidget";
 import { SearchBar } from "../../../shared/SearchBar/SearchBar";
 import { Highlighter } from "../../../shared/Highlighter/Highlighter";
 import { usePagination } from "@gui-elements/src/components/Pagination/Pagination";
-import DeleteModal from "../../../shared/modals/DeleteModal";
 import { commonSel } from "@ducks/common";
-import { projectFileResourceDependents, removeProjectFileResource } from "@ducks/workspace/requests";
-
-interface IFileDeleteModalOptions {
-    isOpen: boolean;
-    fileName: string | null;
-    dependentTasks: string[];
-}
+import { FileRemoveModal } from "../../../shared/modals/FileRemoveModal";
 
 /** Project file management widget. */
 export const FileWidget = () => {
@@ -46,24 +39,13 @@ export const FileWidget = () => {
     const projectId = useSelector(commonSel.currentProjectIdSelector);
 
     const [isOpenDialog, setIsOpenDialog] = useState<boolean>(false);
-    const [deleteModalOpts, setDeleteModalOpts] = useState<IFileDeleteModalOptions>({
-        isOpen: false,
-        fileName: null,
-        dependentTasks: [],
-    });
+    const [visibleFileDelete, setVisibleFileDelete] = useState<string>("");
+
     const { isLoading } = fileWidget;
     const [pagination, paginationElement, onTotalChange] = usePagination({
         pageSizes: [5, 10, 20],
         presentation: { hideInfoText: true },
     });
-
-    const deleteFile = async (fileName: string) => {
-        try {
-            await removeProjectFileResource(projectId, fileName);
-        } finally {
-            closeDeleteModal();
-        }
-    };
 
     if (filesList !== undefined && filesList !== null && filesList.length !== pagination.total) {
         onTotalChange(filesList.length);
@@ -81,7 +63,7 @@ export const FileWidget = () => {
 
     useEffect(() => {
         // Only trigger if file upload dialog is closed, since a file may have been uploaded.
-        if (!isOpenDialog && !deleteModalOpts.isOpen) {
+        if (!isOpenDialog && !visibleFileDelete) {
             const filter: any = {
                 limit: 1000,
             };
@@ -90,37 +72,10 @@ export const FileWidget = () => {
             }
             dispatch(workspaceOp.fetchResourcesListAsync(filter));
         }
-    }, [textQuery, isOpenDialog, deleteModalOpts.isOpen]);
+    }, [textQuery, isOpenDialog, visibleFileDelete]);
 
     const toggleFileUploader = () => {
         setIsOpenDialog(!isOpenDialog);
-    };
-
-    const closeDeleteModal = () => {
-        setDeleteModalOpts({ fileName: null, isOpen: false, dependentTasks: [] });
-    };
-
-    const openDeleteModal = async (fileName: string) => {
-        const dependentTasks = await projectFileResourceDependents(projectId, fileName);
-        setDeleteModalOpts({ fileName: fileName, isOpen: true, dependentTasks: dependentTasks });
-    };
-
-    const renderDeleteModal = () => {
-        if (deleteModalOpts.dependentTasks.length > 0) {
-            return (
-                <div>
-                    <p>File '{deleteModalOpts.fileName}' is in use by following datasets:</p>
-                    <ul>
-                        {deleteModalOpts.dependentTasks.map((task) => (
-                            <li key={task}>{task}</li>
-                        ))}
-                    </ul>
-                    <p>Do you really want to delete file '{deleteModalOpts.fileName}'?</p>
-                </div>
-            );
-        } else {
-            return <p>File '{deleteModalOpts.fileName}' will be deleted.</p>;
-        }
     };
 
     return (
@@ -183,7 +138,7 @@ export const FileWidget = () => {
                                                             text="Delete file"
                                                             small
                                                             disruptive
-                                                            onClick={() => openDeleteModal(file.id)}
+                                                            onClick={() => setVisibleFileDelete(file.id)}
                                                         />
                                                     </TableCell>
                                                 </TableRow>
@@ -205,12 +160,11 @@ export const FileWidget = () => {
                 onDiscard={toggleFileUploader}
                 uploaderOptions={{ allowMultiple: true }}
             />
-            <DeleteModal
-                isOpen={deleteModalOpts.isOpen}
-                onDiscard={closeDeleteModal}
-                onConfirm={() => deleteFile(deleteModalOpts.fileName)}
-                render={renderDeleteModal}
-                title={"Delete file"}
+            <FileRemoveModal
+                projectId={projectId}
+                isOpen={!!visibleFileDelete}
+                onConfirm={() => setVisibleFileDelete("")}
+                fileName={visibleFileDelete}
             />
         </>
     );

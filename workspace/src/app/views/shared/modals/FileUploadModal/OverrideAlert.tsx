@@ -9,6 +9,10 @@ interface IProps {
     isOpen: boolean;
 }
 
+/**
+ * @deprecated
+ * can be removed
+ */
 /** Alert to warn against overwriting an existing file */
 const OverrideAlert = ({ files, isOpen, onCancel, onConfirm }: IProps) => {
     return (

@@ -1,18 +1,19 @@
 import React from "react";
-import XHR from "@uppy/xhr-upload";
-import Uppy, { UppyFile } from "@uppy/core";
+import Uppy from "@uppy/core";
 import "@uppy/core/dist/style.css";
 import "@uppy/drag-drop/dist/style.css";
 import "@uppy/progress-bar/dist/style.css";
-import { Button, Divider, FieldItem, Icon, Notification, TextField } from "@gui-elements/index";
+
+import { Button, Divider, FieldItem, Icon, TextField } from "@gui-elements/index";
 import { IAutocompleteProps } from "../Autocomplete/Autocomplete";
-import OverrideAlert from "../modals/FileUploadModal/OverrideAlert";
 import { UploadNewFile } from "./cases/UploadNewFile";
 import { FileMenu, FileMenuItems } from "./FileMenu";
 import { SelectFileFromExisting } from "./cases/SelectFileFromExisting";
 import { CreateNewFile } from "./cases/CreateNewFile";
 import { requestIfResourceExists } from "@ducks/workspace/requests";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
+import { FileRemoveModal } from "../modals/FileRemoveModal";
+import XHR from "@uppy/xhr-upload";
 
 interface IUploaderInstance {
     /**
@@ -97,9 +98,6 @@ interface IState {
     // Selected File menu item
     selectedFileMenu: FileMenuItems;
 
-    // Override dialog
-    onlyOverrides: UppyFile[];
-
     //Show upload process
     isUploading: boolean;
 
@@ -109,8 +107,7 @@ interface IState {
     //Filename which shows in input for update action
     inputFilename: string;
 
-    // If an error occurred this will contain the error message
-    error: string | null;
+    visibleFileDelete: string;
 }
 
 const noop = () => {
@@ -128,7 +125,20 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         logger: Uppy.debugLogger,
     });
 
-    private checkedFilesQueue = 0;
+    /**
+     * @see Uppy.upload
+     */
+    upload = this.uppy.upload;
+
+    /**
+     * @see Uppy.reset
+     */
+    reset = this.uppy.reset;
+
+    /**
+     * @see Uppy.cancelAll
+     */
+    cancelAll = this.uppy.cancelAll;
 
     constructor(props) {
         super(props);
@@ -136,17 +146,18 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         this.state = {
             selectedFileMenu: props.advanced ? "SELECT" : "NEW",
             isUploading: false,
-            onlyOverrides: [],
             showActionsMenu: false,
             inputFilename: props.defaultValue || "",
-            error: null,
+            visibleFileDelete: "",
         };
 
         this.uppy.use(XHR, {
             method: "PUT",
             fieldName: "file",
-            metaFields: [],
-            limit: 0,
+            allowMultipleUploads: props.allowMultiple,
+            restrictions: {
+                maxNumberOfFiles: 3,
+            },
         });
     }
 
@@ -160,17 +171,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         }
     }
 
-    /**
-     * @see Uppy.upload
-     */
-    upload = this.uppy.upload;
-
-    /**
-     * @see Uppy.cancelAll
-     */
-    cancelAll = this.uppy.cancelAll;
-
-    handleUploadSuccess = (file: File) => {
+    handleUploadSuccess = (file: any) => {
         if (this.props.onUploadSuccess) {
             this.props.onUploadSuccess(file);
         }
@@ -178,18 +179,6 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
             inputFilename: file.name,
         });
         this.toggleFileResourceChange();
-        console.log("Uploaded!");
-        this.reset();
-    };
-
-    handleUploadError = (fileData, error) => {
-        let errorDetails = error?.message ? error.message : "-";
-        const idx = errorDetails.indexOf("Source error");
-        if (idx > 0) {
-            errorDetails = errorDetails.substring(0, idx);
-        }
-        const errorMessage = `An upload error has occurred for file '${fileData.name}'. Details: ${errorDetails}`;
-        this.setState({ error: errorMessage });
     };
 
     handleFileMenuChange = (value: FileMenuItems) => {
@@ -197,84 +186,6 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
             selectedFileMenu: value,
         });
         this.reset();
-    };
-
-    handleFileAdded = async (file: UppyFile) => {
-        try {
-            const { projectId } = this.props;
-
-            this.uppy.setFileState(file.id, {
-                isOverride: await requestIfResourceExists(projectId, file.name),
-            });
-
-            this.checkedFilesQueue++;
-            // if all files checked and on final line
-            const isCompleteAllChecks = this.checkedFilesQueue === this.uppy.getFiles().length;
-            if (isCompleteAllChecks) {
-                const files = this.uppy.getFiles();
-                const onlyOverrides = files.filter((file: any) => file.isOverride);
-                this.setState({
-                    onlyOverrides,
-                });
-
-                onlyOverrides.forEach((f) => this.uppy.removeFile(f.id));
-
-                await this.handleUpload(this.uppy.getFiles());
-
-                this.checkedFilesQueue = 0;
-            }
-        } finally {
-        }
-    };
-
-    handleUpload = async (files) => {
-        const { projectId } = this.props;
-
-        this.setState({
-            isUploading: true,
-            error: null,
-        });
-
-        const endpoint = `${legacyApiEndpoint(`/projects/${projectId}/resources`)}`;
-        files.forEach((file) => {
-            this.uppy.setFileState(file.id, {
-                xhrUpload: {
-                    endpoint: `${endpoint}/${encodeURIComponent(file.name)}`,
-                },
-            });
-        });
-
-        try {
-            const result = await this.uppy.upload();
-            if (this.props.onChange && result?.successful) {
-                // this.props.onChange(file.name);
-            }
-        } catch (e) {
-            console.log(e);
-        } finally {
-            this.setState({ isUploading: false });
-        }
-    };
-
-    handleOverride = async () => {
-        this.state.onlyOverrides.forEach((file) => {
-            this.uppy.addFile(file);
-        });
-
-        await this.handleUpload(this.state.onlyOverrides);
-        this.handleOverrideCancel();
-    };
-
-    reset = () => {
-        this.uppy.cancelAll();
-        this.uppy.reset();
-    };
-
-    handleOverrideCancel = () => {
-        this.reset();
-        this.setState({
-            onlyOverrides: [],
-        });
     };
 
     /**
@@ -312,9 +223,31 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         this.toggleFileResourceChange();
     };
 
+    handleConfirmDelete = (fileName: string) => {
+        const file = this.uppy.getFiles().find((f) => f.name === fileName);
+        if (file) {
+            this.uppy.removeFile(file.id);
+        }
+        this.toggleFileRemoveDialog();
+    };
+
+    toggleFileRemoveDialog = (fileName: string = "") => {
+        this.setState({
+            visibleFileDelete: fileName,
+        });
+    };
+
+    validateBeforeFileAdded = async (fileName: string): Promise<boolean> => {
+        try {
+            return await requestIfResourceExists(this.props.projectId, fileName);
+        } catch {
+            return false;
+        }
+    };
+
     render() {
-        const { selectedFileMenu, showActionsMenu, inputFilename, onlyOverrides } = this.state;
-        const { simpleInput, allowMultiple, advanced, autocomplete, defaultValue } = this.props;
+        const { selectedFileMenu, showActionsMenu, inputFilename } = this.state;
+        const { allowMultiple, advanced, autocomplete, defaultValue, onProgress, projectId } = this.props;
 
         return (
             <>
@@ -364,14 +297,13 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                                 <>
                                     <UploadNewFile
                                         uppy={this.uppy}
-                                        simpleInput={simpleInput}
                                         allowMultiple={allowMultiple}
-                                        onProgress={this.props.onProgress}
-                                        onAdded={this.handleFileAdded}
+                                        onProgress={onProgress}
+                                        onRemoveFile={this.toggleFileRemoveDialog}
                                         onUploadSuccess={this.handleUploadSuccess}
-                                        onUploadError={this.handleUploadError}
+                                        validateBeforeAdd={this.validateBeforeFileAdded}
+                                        uploadEndpoint={`${legacyApiEndpoint(`/projects/${projectId}/resources`)}`}
                                     />
-                                    {this.state.error && <Notification message={this.state.error} danger />}
                                 </>
                             )}
                             {selectedFileMenu === "EMPTY" && (
@@ -379,11 +311,11 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                             )}
                         </div>
 
-                        <OverrideAlert
-                            files={onlyOverrides}
-                            isOpen={!!onlyOverrides.length}
-                            onCancel={this.handleOverrideCancel}
-                            onConfirm={this.handleOverride}
+                        <FileRemoveModal
+                            projectId={projectId}
+                            isOpen={!!this.state.visibleFileDelete}
+                            onConfirm={this.handleConfirmDelete}
+                            fileName={this.state.visibleFileDelete}
                         />
                     </>
                 )}
