@@ -1,10 +1,11 @@
 import { DragDrop } from "@uppy/react";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Uppy, { UppyFile } from "@uppy/core";
 import ProgressBar from "@gui-elements/blueprint/progressbar";
-import { Button, Notification, Spacing } from "@gui-elements/index";
+import { AlertDialog, Button, Notification, Spacing } from "@gui-elements/index";
 import { Intent } from "@gui-elements/blueprint/constants";
 import { useTranslation } from "react-i18next";
+import i18next from "../../../../../language";
 
 interface IProps {
     // Uppy instance
@@ -143,7 +144,10 @@ export function UploadNewFile(props: IProps) {
         if (idx > 0) {
             errorDetails = errorDetails.substring(0, idx);
         }
-        const errorMessage = `An upload error has occurred for file '${fileData.name}'. Details: ${errorDetails}`;
+        const errorMessage = i18next.t("FileUploader.uploadError", {
+            fileName: fileData.name,
+            errorDetails: errorDetails,
+        });
         setError(errorMessage);
     };
 
@@ -204,11 +208,11 @@ export function UploadNewFile(props: IProps) {
                             warning={true}
                             actions={
                                 <Button outlined onClick={() => handleReplace(file)}>
-                                    Replace
+                                    {t("common.action.replace", "Replace")}
                                 </Button>
                             }
                         >
-                            <p>File {file.name} already exists. Do you want to overwrite it?</p>
+                            <p>{t("OverwriteModal.overwriteFile", { fileName: file.name })}</p>
                             <Spacing />
                         </Notification>
                         <Spacing />

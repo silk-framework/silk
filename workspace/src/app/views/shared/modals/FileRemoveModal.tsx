@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import DeleteModal from "./DeleteModal";
 import { projectFileResourceDependents, removeProjectFileResource } from "@ducks/workspace/requests";
-
+import { useTranslation } from "react-i18next";
 export interface IFileDeleteModalOptions {
     fileName: string | null;
     dependentTasks: string[];
@@ -15,6 +15,7 @@ interface IProps {
 }
 
 export function FileRemoveModal({ projectId, isOpen, onConfirm, fileName }: IProps) {
+    const [t] = useTranslation();
     const [deleteModalOpts, setDeleteModalOpts] = useState<IFileDeleteModalOptions>({
         fileName: null,
         dependentTasks: [],
@@ -49,17 +50,20 @@ export function FileRemoveModal({ projectId, isOpen, onConfirm, fileName }: IPro
         if (deleteModalOpts.dependentTasks.length > 0) {
             return (
                 <div>
-                    <p>File '{deleteModalOpts.fileName}' is in use by following datasets:</p>
+                    <p>{t("widget.FileWidget.removeFromDatasets", { fileName: deleteModalOpts.fileName })}</p>
                     <ul>
                         {deleteModalOpts.dependentTasks.map((task) => (
                             <li key={task}>{task}</li>
                         ))}
                     </ul>
-                    <p>Do you really want to delete file '{deleteModalOpts.fileName}'?</p>
+                    <p>
+                        {t("widget.FileWidget.removeText", "Do you really want to delete file")}{" "}
+                        {deleteModalOpts.fileName}?
+                    </p>
                 </div>
             );
         } else {
-            return <p>File '{deleteModalOpts.fileName}' will be deleted.</p>;
+            return <p>{t("widget.FileWidget.deleted", { fileName: deleteModalOpts.fileName })}</p>;
         }
     };
 
@@ -69,7 +73,7 @@ export function FileRemoveModal({ projectId, isOpen, onConfirm, fileName }: IPro
             onDiscard={closeDeleteModal}
             onConfirm={() => deleteFile(deleteModalOpts.fileName)}
             render={renderDeleteModal}
-            title={"Delete file"}
+            title={t("widget.FileWidget.deleteFile", "Delete File")}
         />
     );
 }
