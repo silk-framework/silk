@@ -109,7 +109,9 @@
     "build-di-prod": "node scripts/build-di.prod.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
-    "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"jest-junit\""
+    "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"jest-junit\"",
+    "sync-trans": "sync-i18n --files 'src/locales/manual/*.json' --primary en --languages de --space 4 -- --check",
+    "i18n-parser": "node scripts/i18next-scanner.js"
   },
   "husky": {
     "hooks": {
@@ -228,6 +230,8 @@
     "axios-mock-adapter": "^1.18.1",
     "babel-core": "7.0.0-bridge.0",
     "enzyme": "^3.9.0",
+    "i18next-json-sync": "^2.3.1",
+    "i18next-scanner": "^2.11.0",
     "enzyme-adapter-react-16": "^1.12.1",
     "husky": "^4.2.5",
     "jest-junit": "^10.0.0",

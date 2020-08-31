@@ -4,6 +4,7 @@ import Uppy, { UppyFile } from "@uppy/core";
 import ProgressBar from "@gui-elements/blueprint/progressbar";
 import { Button, Notification, Spacing } from "@gui-elements/index";
 import { Intent } from "@gui-elements/blueprint/constants";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     // Uppy instance
@@ -37,6 +38,7 @@ export function UploadNewFile(props: IProps) {
 
     const [onlyReplacements, setOnlyReplacements] = useState([]);
     const [error, setError] = useState(null);
+    const [t] = useTranslation();
 
     useEffect(() => {
         registerEvents();
@@ -158,7 +160,7 @@ export function UploadNewFile(props: IProps) {
         <>
             <DragDrop
                 uppy={uppy}
-                locale={{ strings: { dropHereOr: "Drop file here or %{browse}", browse: "browse" } }}
+                locale={{ strings: { dropHereOr: t("FileUploader.dropzone", "Drop file here or browse") } }}
             />
             <Spacing />
             {uppyFiles.map((file) => {
@@ -172,7 +174,7 @@ export function UploadNewFile(props: IProps) {
                     </Button>
                 ) : fileProgress !== 1 ? (
                     <Button outlined onClick={() => handleAbort(file.id)}>
-                        Abort Upload
+                        {t("FileUploader.abortOnly", "Abort Upload")}
                     </Button>
                 ) : null;
 
@@ -180,7 +182,9 @@ export function UploadNewFile(props: IProps) {
                     <div key={file.id}>
                         <Notification success={isUploaded} actions={fileActionBtn}>
                             <p>
-                                {!isUploaded ? "Wait for finished upload." : `${file.name} was successfully uploaded`}
+                                {!isUploaded
+                                    ? t("FileUploader.waitFor", "Wait for finished upload.")
+                                    : t("FileUploader.successfullyUploaded", { uploadedName: file.name })}
                             </p>
                             <Spacing />
                             <ProgressBar

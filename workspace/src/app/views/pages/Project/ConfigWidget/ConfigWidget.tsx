@@ -18,6 +18,7 @@ import {
     OverviewItemLine,
     OverviewItemList,
 } from "@gui-elements/index";
+import { useTranslation } from "react-i18next";
 
 const VISIBLE_COUNT = 5;
 
@@ -45,25 +46,28 @@ export const ConfigurationWidget = () => {
     const handleClose = () => setIsOpen(false);
 
     const moreCount = getFullSizeOfList() - VISIBLE_COUNT;
+    const [t] = useTranslation();
 
     return (
         <Card>
             <CardHeader>
                 <CardTitle>
-                    <h2>Configuration</h2>
+                    <h2>{t("widget.ConfigWidget.title", "Configuration")} </h2>
                 </CardTitle>
             </CardHeader>
             <Divider />
             <CardContent>
                 {isLoading ? (
-                    <Loading description="Loading configuration list." />
+                    <Loading description={t("widget.ConfigWidget.loading", "Loading configuration list.")} />
                 ) : (
                     <>
                         <OverviewItemList hasSpacing hasDivider>
                             <OverviewItem>
                                 <OverviewItemDescription>
                                     <OverviewItemLine>
-                                        <strong>Prefixes&nbsp;({getFullSizeOfList()})</strong>
+                                        <strong>
+                                            {t("widget.ConfigWidget.prefix", { count: 2 })}&nbsp;({getFullSizeOfList()})
+                                        </strong>
                                     </OverviewItemLine>
                                     <OverviewItemLine small>
                                         <span>
@@ -72,14 +76,24 @@ export const ConfigurationWidget = () => {
                                                     {o.prefixName}
                                                     {index < visiblePrefixes.length - 1
                                                         ? ", "
-                                                        : moreCount > 0 && <> and {moreCount} more</>}
+                                                        : moreCount > 0 && (
+                                                              <>
+                                                                  {" "}
+                                                                  {t("common.words.and")} {moreCount}{" "}
+                                                                  {t("common.words.more", "more")}
+                                                              </>
+                                                          )}
                                                 </span>
                                             ))}
                                         </span>
                                     </OverviewItemLine>
                                 </OverviewItemDescription>
                                 <OverviewItemActions>
-                                    <IconButton onClick={handleOpen} name="item-edit" text="Edit prefix settings" />
+                                    <IconButton
+                                        onClick={handleOpen}
+                                        name="item-edit"
+                                        text={t("widget.FileWidget.edit", "Edit prefix settings")}
+                                    />
                                 </OverviewItemActions>
                             </OverviewItem>
                         </OverviewItemList>

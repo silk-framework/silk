@@ -12,6 +12,7 @@ import { commonOp, commonSel } from "@ducks/common";
 import { ItemDeleteModal } from "../modals/ItemDeleteModal";
 import { routerOp } from "@ducks/router";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
+import { useTranslation } from "react-i18next";
 
 export function SearchList() {
     const dispatch = useDispatch();
@@ -27,6 +28,7 @@ export function SearchList() {
     const [selectedItem, setSelectedItem] = useState<ISearchResultsServer | null>(null);
     const [showCloneModal, setShowCloneModal] = useState(false);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
+    const [t] = useTranslation();
 
     const onDiscardModals = () => {
         setShowCloneModal(false);
@@ -78,16 +80,22 @@ export function SearchList() {
         isEmpty && !appliedFilters.textQuery && !appliedFacets.length ? (
             <EmptyList
                 depiction={<Icon name={"artefact-" + appliedFilters.itemType} large />}
-                textInfo={<p>No {appliedFilters.itemType ? appliedFilters.itemType : "item"} found.</p>}
-                textCallout={<strong>Create your first {itemTypeLabel()} now.</strong>}
+                textInfo={
+                    <p>
+                        {t("common.messages.noItems", {
+                            items: appliedFilters.itemType ? appliedFilters.itemType : "items",
+                        })}
+                    </p>
+                }
+                textCallout={<strong>{t("common.messages.createFirstItems", { items: itemTypeLabel() })}</strong>}
                 actionButtons={[
                     <Button key={"create"} onClick={handleCreateArtefact} elevated>
-                        Create {appliedFilters.itemType}
+                        {t("common.action.CreateSmth", { smth: appliedFilters.itemType || "" })}
                     </Button>,
                 ]}
             />
         ) : (
-            <p>No data found.</p>
+            <p>{t("common.messages.noItems", { items: "items" })}</p>
         );
 
     return (

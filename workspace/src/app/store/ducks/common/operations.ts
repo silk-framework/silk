@@ -1,5 +1,4 @@
 import { authorize, getTokenFromStore, isAuthenticated, logout, logoutFromDi } from "./thunks/auth.thunk";
-import { changeLocale } from "./thunks/locale.thunk";
 import { commonSlice } from "@ducks/common/commonSlice";
 import { batch } from "react-redux";
 import asModifier from "../../../utils/asModifier";
@@ -16,6 +15,8 @@ import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } fro
 import { routerOp } from "@ducks/router";
 import { TaskType } from "@ducks/shared/typings";
 import { HttpError } from "../../../services/fetch/responseInterceptor";
+import Store from "store";
+import i18Instance from "../../../../language";
 
 const {
     setError,
@@ -34,6 +35,7 @@ const {
     setTaskId,
     setModalError,
     setExportTypes,
+    changeLanguage,
 } = commonSlice.actions;
 
 const fetchCommonSettingsAsync = () => {
@@ -262,6 +264,16 @@ const resetArtefactModal = (shouldClose: boolean = false) => (dispatch) => {
     if (shouldClose) {
         dispatch(closeArtefactModal());
     }
+};
+
+const changeLocale = (locale: string) => {
+    return async (dispatch) => {
+        Store.set("locale", locale);
+
+        await i18Instance.changeLanguage(locale);
+
+        dispatch(changeLanguage(locale));
+    };
 };
 
 export default {

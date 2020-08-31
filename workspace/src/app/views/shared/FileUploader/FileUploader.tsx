@@ -10,6 +10,7 @@ import { UploadNewFile } from "./cases/UploadNewFile";
 import { FileMenu, FileMenuItems } from "./FileMenu";
 import { SelectFileFromExisting } from "./cases/SelectFileFromExisting";
 import { CreateNewFile } from "./cases/CreateNewFile";
+import i18next from "../../../../language";
 import { requestIfResourceExists } from "@ducks/workspace/requests";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { FileRemoveModal } from "../modals/FileRemoveModal";
@@ -260,7 +261,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                             rightElement={
                                 <Button
                                     minimal
-                                    text={"Change file"}
+                                    text={i18next.t("FileUploader.changeFile", "Change file")}
                                     icon={<Icon name="item-edit" />}
                                     onClick={this.toggleFileResourceChange}
                                 />
@@ -273,7 +274,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                         <Button
                             outlined
                             small
-                            text={"Abort and keep file"}
+                            text={i18next.t("FileUploader.abort", "Abort and keep file")}
                             icon={<Icon name="operation-undo" />}
                             onClick={this.handleDiscardChanges}
                         />

@@ -27,6 +27,8 @@ import { SearchBar } from "../../../shared/SearchBar/SearchBar";
 import { Highlighter } from "../../../shared/Highlighter/Highlighter";
 import { usePagination } from "@gui-elements/src/components/Pagination/Pagination";
 import { commonSel } from "@ducks/common";
+import { projectFileResourceDependents } from "@ducks/workspace/requests";
+import { useTranslation } from "react-i18next";
 import { FileRemoveModal } from "../../../shared/modals/FileRemoveModal";
 
 /** Project file management widget. */
@@ -46,15 +48,16 @@ export const FileWidget = () => {
         pageSizes: [5, 10, 20],
         presentation: { hideInfoText: true },
     });
+    const [t] = useTranslation();
 
     if (filesList !== undefined && filesList !== null && filesList.length !== pagination.total) {
         onTotalChange(filesList.length);
     }
 
     const headers = [
-        { key: "name", header: "Name", highlighted: true },
-        { key: "formattedDate", header: "Last modified", highlighted: false },
-        { key: "formattedSize", header: "Size (bytes)", highlighted: true },
+        { key: "name", header: t("widget.FileWidget.sort.name", "Name"), highlighted: true },
+        { key: "formattedDate", header: t("widget.FileWidget.sort.modified", "Last modified"), highlighted: false },
+        { key: "formattedSize", header: t("widget.FileWidget.sort.size", "Size (bytes)"), highlighted: true },
     ];
 
     const onSearch = (textQuery) => {
@@ -83,13 +86,13 @@ export const FileWidget = () => {
             <Card>
                 <CardHeader>
                     <CardTitle>
-                        <h2>Files</h2>
+                        <h2>{t("widget.FileWidget.files", "Files")}</h2>
                     </CardTitle>
                 </CardHeader>
                 <Divider />
                 <CardContent>
                     {isLoading ? (
-                        <Loading description="Loading file list." />
+                        <Loading description={t("widget.FileWidget.loading", "Loading file list.")} />
                     ) : filesList.length ? (
                         <>
                             <Toolbar>
@@ -98,7 +101,11 @@ export const FileWidget = () => {
                                 </ToolbarSection>
                                 <ToolbarSection>
                                     <Spacing size="tiny" vertical />
-                                    <Button elevated text="Add file" onClick={toggleFileUploader} />
+                                    <Button
+                                        elevated
+                                        text={t("common.action.AddSmth", { smth: t("widget.FileWidget.file") })}
+                                        onClick={toggleFileUploader}
+                                    />
                                 </ToolbarSection>
                             </Toolbar>
                             <Spacing size="tiny" />
@@ -135,7 +142,9 @@ export const FileWidget = () => {
                                                     <TableCell key={"fileActions"} className="bx--table-column-menu">
                                                         <IconButton
                                                             name="item-remove"
-                                                            text="Delete file"
+                                                            text={t("common.action.DeleteSmth", {
+                                                                smth: t("widget.FileWidget.file"),
+                                                            })}
                                                             small
                                                             disruptive
                                                             onClick={() => setVisibleFileDelete(file.id)}

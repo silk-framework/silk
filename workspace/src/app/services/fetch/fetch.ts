@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig, Method } from "axios";
 import { requestInterceptor } from "./requestInterceptor";
 import { FetchResponse, responseInterceptorOnError, responseInterceptorOnSuccess } from "./responseInterceptor";
+import i18n from "../../../language";
 import { isTestEnv } from "../../constants/path";
 
 interface IFetchOptions {
@@ -83,7 +84,7 @@ export const fetch = async <T = any>({
  */
 export const abortPendingRequest = (): boolean => {
     if (_pendingRequests.length) {
-        _pendingRequests.map((req) => req.cancel("HTTP Request aborted"));
+        _pendingRequests.map((req) => req.cancel(i18n.t("http.error.aborted", "Request Aborted")));
         return true;
     }
     return false;

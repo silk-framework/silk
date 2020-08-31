@@ -4,9 +4,11 @@ import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { commonSel } from "@ducks/common";
 import { RadioButton, Spacing, TitleSubsection } from "@gui-elements/index";
 import FacetsList from "./FacetsList";
+import { useTranslation } from "react-i18next";
 
 export function Filterbar() {
     const dispatch = useDispatch();
+    const [t] = useTranslation();
 
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const modifiers = useSelector(commonSel.availableDTypesSelector);
@@ -26,13 +28,15 @@ export function Filterbar() {
         <nav>
             {typeModifier && (
                 <>
-                    <TitleSubsection>{typeModifier.label}</TitleSubsection>
+                    <TitleSubsection>
+                        {t(`widget.Filterbar.subsections.titles.${typeModifier.field}`, typeModifier.label)}
+                    </TitleSubsection>
                     <Spacing size="tiny" />
                     <ul>
                         <li key={"alltypes"}>
                             <RadioButton
                                 checked={!appliedFilters[typeModifier.field]}
-                                label={"All types"}
+                                label={t("common.messages.allTypes", "All types")}
                                 onChange={() => handleFilterSelect(typeModifier.field, "")}
                                 value={""}
                             />
@@ -41,7 +45,7 @@ export function Filterbar() {
                             <li key={opt.id}>
                                 <RadioButton
                                     checked={appliedFilters[typeModifier.field] === opt.id}
-                                    label={opt.label}
+                                    label={t(`widget.Filterbar.subsections.valueLabels.itemType.${opt.id}`, opt.label)}
                                     onChange={() => handleFilterSelect(typeModifier.field, opt.id)}
                                     value={opt.id}
                                 />
