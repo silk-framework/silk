@@ -167,11 +167,12 @@ class RulePlugins extends PluginModule {
 
   private def aggregators: List[Class[_]] =
     classOf[AverageAggregator] ::
-        classOf[MaximumAggregator] ::
-        classOf[MinimumAggregator] ::
-        classOf[QuadraticMeanAggregator] ::
-        classOf[GeometricMeanAggregator] ::
-      classOf[NegationAggregator] :: Nil
+    classOf[MaximumAggregator] ::
+    classOf[MinimumAggregator] ::
+    classOf[QuadraticMeanAggregator] ::
+    classOf[GeometricMeanAggregator] ::
+    classOf[NegationAggregator] ::
+    classOf[ScalingAggregator] :: Nil
 
   private def serializers: List[Class[_]] =
     TransformSpecFormat.getClass ::
