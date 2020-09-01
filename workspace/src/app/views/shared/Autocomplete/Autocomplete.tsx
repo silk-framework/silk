@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { HTMLInputProps, IInputGroupProps } from "@blueprintjs/core";
-import { MenuItem, Suggest } from "@wrappers/index";
+import { MenuItem, Suggest } from "@gui-elements/index";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { Highlighter } from "../Highlighter/Highlighter";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import IconButton from "@wrappers/src/components/Icon/IconButton";
+import IconButton from "@gui-elements/src/components/Icon/IconButton";
+import { useTranslation } from "react-i18next";
 
 export interface IAutocompleteProps {
     /**
@@ -95,6 +96,8 @@ export function Autocomplete(props: IAutocompleteProps) {
     // The suggestions that match the user's input
     const [filtered, setFiltered] = useState<any[]>([]);
 
+    const [t] = useTranslation();
+
     useEffect(() => {
         // Don't fetch auto-completion values when
         if (dependentValues.length === props.autoCompletion.autoCompletionDependsOnParameters.length) {
@@ -148,7 +151,11 @@ export function Autocomplete(props: IAutocompleteProps) {
         selectedItem !== undefined &&
         selectedItem !== null &&
         selectedItem.value !== "" && (
-            <IconButton name="operation-clear" text={"Reset selection"} onClick={clearSelection} />
+            <IconButton
+                name="operation-clear"
+                text={t("common.action.resetSelection", "Reset selection")}
+                onClick={clearSelection}
+            />
         );
     const updatedInputProps = { rightElement: clearButton, ...otherProps.inputProps };
     return (
@@ -158,7 +165,7 @@ export function Autocomplete(props: IAutocompleteProps) {
             inputValueRenderer={selectedItem !== undefined ? itemLabelRenderer : () => ""}
             itemRenderer={optionRenderer}
             itemsEqual={areEqualItems}
-            noResults={<MenuItem disabled={true} text="No results." />}
+            noResults={<MenuItem disabled={true} text={t("common.messages.noResults", "No results.")} />}
             onItemSelect={onSelectionChange}
             onQueryChange={handleQueryChange}
             query={query}

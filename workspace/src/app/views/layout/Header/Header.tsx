@@ -9,6 +9,7 @@ import {
     ApplicationToolbarPanel,
     ApplicationToolbarSection,
     BreadcrumbList,
+    Button,
     ContextMenu,
     Icon,
     IconButton,
@@ -23,7 +24,7 @@ import {
     OverviewItemLine,
     TitlePage,
     WorkspaceHeader,
-} from "@wrappers/index";
+} from "@gui-elements/index";
 import ItemDepiction from "./ItemDepiction";
 import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
@@ -40,9 +41,9 @@ import { IItemLink } from "@ducks/shared/typings";
 import { requestItemLinks, requestTaskItemInfo } from "@ducks/shared/requests";
 import { IPageLabels } from "@ducks/router/operations";
 import { DATA_TYPES } from "../../../constants";
-import { useTranslation } from "react-i18next";
 import { IExportTypes } from "@ducks/common/typings";
 import { downloadResource } from "../../../utils/downloadResource";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];
@@ -146,6 +147,13 @@ function HeaderComponent({ breadcrumbs }: IProps) {
         dispatch(routerOp.goToPage(detailsPage));
     };
 
+    const handleBreadcrumbItemClick = (itemUrl, e) => {
+        e.preventDefault();
+        if (itemUrl) {
+            dispatch(routerOp.goToPage(itemUrl, {}));
+        }
+    };
+
     const getWindowTitle = (projectId) => {
         // $title ($artefactLabel) at $breadcrumbsWithoutTitle — $companyName $applicationTitle
         let fullTitle = startTitle;
@@ -193,8 +201,12 @@ function HeaderComponent({ breadcrumbs }: IProps) {
         projectId: taskId ? projectId : undefined,
     };
 
-    const handleExport = async (type: IExportTypes) => {
+    const handleExport = (type: IExportTypes) => {
         downloadResource(itemData.id, type.id);
+    };
+
+    const handleLanguageChange = (locale: string) => {
+        dispatch(commonOp.changeLocale(locale));
     };
 
     return !isAuth ? null : (
@@ -225,7 +237,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                     </OverviewItemDepiction>
                     <OverviewItemDescription>
                         <OverviewItemLine small>
-                            <BreadcrumbList items={breadcrumbs} />
+                            <BreadcrumbList items={breadcrumbs} onItemClick={handleBreadcrumbItemClick} />
                         </OverviewItemLine>
                         {lastBreadcrumb && (
                             <OverviewItemLine large>
@@ -238,11 +250,11 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                             <>
                                 <IconButton
                                     name="item-remove"
-                                    text={
-                                        taskId
-                                            ? t("common.action.removeTask", "Remove task")
-                                            : t("common.action.removeProject", "Remove project")
-                                    }
+                                    text={t("common.action.RemoveSmth", {
+                                        smth: taskId
+                                            ? t("common.dataTypes.task", "Task")
+                                            : t("common.dataTypes.project", "Project"),
+                                    })}
                                     disruptive
                                     onClick={toggleDeleteModal}
                                     data-test-id={"header-remove-button"}
@@ -294,6 +306,11 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                         </ApplicationToolbarAction>
                         <ApplicationToolbarPanel aria-label="User menu" expanded={true}>
                             <Menu>
+                                <div>
+                                    <Button onClick={() => handleLanguageChange("en")}>En</Button>
+                                    <Button onClick={() => handleLanguageChange("de")}>De</Button>
+                                </div>
+                                <MenuDivider />
                                 <MenuItem
                                     text={t("common.action.backOld", "Back to old workspace")}
                                     href={CONTEXT_PATH + "/workspace"}

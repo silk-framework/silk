@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
     Card,
     HelperClasses,
@@ -7,34 +7,23 @@ import {
     OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
-} from '@wrappers/index';
+} from "@gui-elements/index";
 
 function EmptyList({
     depiction, // use large icon here
     textInfo,
     textCallout,
-    actionButtons
+    actionButtons,
 }) {
     return (
-        <Card
-            isOnlyLayout
-            className={HelperClasses.Intent.INFO}
-        >
+        <Card isOnlyLayout className={HelperClasses.Intent.INFO}>
             <OverviewItem hasSpacing>
-                {
-                    depiction && <OverviewItemDepiction>{depiction}</OverviewItemDepiction>
-                }
+                {depiction && <OverviewItemDepiction>{depiction}</OverviewItemDepiction>}
                 <OverviewItemDescription>
-                    {
-                        textInfo && <OverviewItemLine>{textInfo}</OverviewItemLine>
-                    }
-                    {
-                        textCallout && <OverviewItemLine>{textCallout}</OverviewItemLine>
-                    }
+                    {textInfo && <OverviewItemLine>{textInfo}</OverviewItemLine>}
+                    {textCallout && <OverviewItemLine>{textCallout}</OverviewItemLine>}
                 </OverviewItemDescription>
-                {
-                    actionButtons && <OverviewItemActions>{actionButtons}</OverviewItemActions>
-                }
+                {actionButtons && <OverviewItemActions>{actionButtons}</OverviewItemActions>}
             </OverviewItem>
         </Card>
     );

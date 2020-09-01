@@ -86,7 +86,7 @@ describe("Task creation widget", () => {
     const selectionItems: (dialogWrapper: ReactWrapper<any, any>) => ReactWrapper[] = (
         dialogWrapper: ReactWrapper<any, any>
     ) => {
-        return findAll(dialogWrapper, ".ecc-overviewitem__list .ecc-overviewitem__item");
+        return findAll(dialogWrapper, ".eccgui-overviewitem__list .eccgui-overviewitem__item");
     };
 
     const pluginCreationDialogWrapper = async (existingTask?: RecursivePartial<IProjectTaskUpdatePayload>) => {
@@ -102,7 +102,7 @@ describe("Task creation widget", () => {
             );
         }
         await waitFor(() => {
-            const labels = findAll(wrapper, ".ecc-label .ecc-label__text").map((e) => e.text());
+            const labels = findAll(wrapper, ".eccgui-label .eccgui-label__text").map((e) => e.text());
             Object.entries(mockPluginDescription.properties).forEach(([paramId, attributes]) =>
                 expect(labels).toContain(attributes.title)
             );
@@ -216,7 +216,7 @@ describe("Task creation widget", () => {
     const expectValidationErrors = async (wrapper, nrErrors: number) =>
         await waitFor(() => {
             // label, intParam and subProperty should be marked with validation errors
-            expect(findAll(wrapper, ".ecc-intent--danger").length).toBe(nrErrors);
+            expect(findAll(wrapper, ".eccgui-intent--danger").length).toBe(nrErrors);
         });
 
     it("should show validation errors for an unfinished form when clicking 'Create'", async () => {
@@ -266,7 +266,7 @@ describe("Task creation widget", () => {
             );
         });
         await waitFor(() => {
-            const error = findSingleElement(wrapper, ".ecc-intent--danger");
+            const error = findSingleElement(wrapper, ".eccgui-intent--danger");
             expect(error.text().toLowerCase()).toContain(expectedErrorMsg);
         });
     });

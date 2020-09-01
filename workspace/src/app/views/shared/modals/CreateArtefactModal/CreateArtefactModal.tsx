@@ -23,7 +23,7 @@ import {
     OverviewItemList,
     SimpleDialog,
     Spacing,
-} from "@wrappers/index";
+} from "@gui-elements/index";
 import { commonOp, commonSel } from "@ducks/common";
 import { IArtefactItem, IArtefactModal, IDetailedArtefactItem } from "@ducks/common/typings";
 import Loading from "../../Loading";
@@ -34,6 +34,7 @@ import { extractSearchWords, Highlighter, multiWordRegex } from "../../Highlight
 import ArtefactTypesList from "./ArtefactTypesList";
 import { SearchBar } from "../../SearchBar/SearchBar";
 import { routerOp } from "@ducks/router";
+import { useTranslation } from "react-i18next";
 import { TaskType } from "@ducks/shared/typings";
 
 export function CreateArtefactModal() {
@@ -43,6 +44,7 @@ export function CreateArtefactModal() {
     const [searchValue, setSearchValue] = useState("");
     const [idEnhancedDescription, setIdEnhancedDescription] = useState("");
     const [actionLoading, setActionLoading] = useState(false);
+    const [t] = useTranslation();
 
     const modalStore = useSelector(commonSel.artefactModalSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
@@ -215,10 +217,11 @@ export function CreateArtefactModal() {
         artefactListWithProject = [
             {
                 key: DATA_TYPES.PROJECT,
-                title: "Project",
-                description:
-                    "Projects let you group related items. All items that " +
-                    "depend on each other need to be in the same project.",
+                title: t("common.dataTypes.project"),
+                description: t(
+                    "common.dataTypes.projectDesc",
+                    "Projects let you group related items. All items that depend on each other need to be in the same project."
+                ),
                 taskType: "project",
             },
             ...artefactListWithProject,
@@ -274,8 +277,12 @@ export function CreateArtefactModal() {
             hasBorder
             title={
                 updateExistingTask
-                    ? `Update '${updateExistingTask.metaData.label}' (${updateExistingTask.taskPluginDetails.title})`
-                    : `Create new item of type ${selectedArtefact.title || ""}`
+                    ? t("CreateModal.updateTitle", {
+                          type: `'${updateExistingTask.metaData.label}' (${updateExistingTask.taskPluginDetails.title})`,
+                      })
+                    : selectedArtefact.title
+                    ? t("CreateModal.createTitle", { type: selectedArtefact.title })
+                    : t("CreateModal.createTitleGeneric")
             }
             onClose={closeModal}
             isOpen={isOpen}
@@ -292,15 +299,15 @@ export function CreateArtefactModal() {
                                 onClick={handleCreate}
                                 disabled={isErrorPresented()}
                             >
-                                {updateExistingTask ? "Update" : "Create"}
+                                {updateExistingTask ? t("common.action.update") : t("common.action.create")}
                             </Button>,
                             <Button key="cancel" onClick={closeModal}>
-                                Cancel
+                                {t("common.action.cancel")}
                             </Button>,
                             <CardActionsAux key="aux">
                                 {!updateExistingTask && (
                                     <Button key="back" onClick={handleBack}>
-                                        Back
+                                        {t("common.words.back", "Back")}
                                     </Button>
                                 )}
                             </CardActionsAux>,
@@ -314,10 +321,10 @@ export function CreateArtefactModal() {
                             onClick={handleAdd}
                             disabled={!Object.keys(selected).length}
                         >
-                            Add
+                            {t("common.action.add")}
                         </Button>,
                         <Button key="cancel" onClick={closeModal}>
-                            Cancel
+                            {t("common.action.cancel")}
                         </Button>,
                     ]
                 )
@@ -325,9 +332,10 @@ export function CreateArtefactModal() {
             notifications={
                 !!error.detail && (
                     <Notification
-                        message={`${
-                            updateExistingTask ? "Update" : "Create"
-                        } action failed. Details: ${error.detail.replace(/^(assertion failed: )/, "")}`}
+                        message={t("common.messages.actionFailed", {
+                            action: updateExistingTask ? t("common.action.update") : t("common.action.create"),
+                            error: error.detail.replace(/^(assertion failed: )/, ""),
+                        })}
                         danger
                     />
                 )
@@ -347,9 +355,11 @@ export function CreateArtefactModal() {
                                     <SearchBar textQuery={searchValue} focusOnCreation={true} onSearch={handleSearch} />
                                     <Spacing />
                                     {loading ? (
-                                        <Loading description="Loading artefact type list." />
+                                        <Loading
+                                            description={t("CreateModal.loading", "Loading artefact type list.")}
+                                        />
                                     ) : artefactListWithProject.length === 0 ? (
-                                        <p>No match found.</p>
+                                        <p>{t("CreateModal.noMatch", "No match found.")}</p>
                                     ) : (
                                         <OverviewItemList hasSpacing columns={2}>
                                             {artefactListWithProject.map((artefact) => (

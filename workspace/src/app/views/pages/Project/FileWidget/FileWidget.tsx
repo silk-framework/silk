@@ -19,16 +19,17 @@ import {
     TableRow,
     Toolbar,
     ToolbarSection,
-} from "@wrappers/index";
+} from "@gui-elements/index";
 import Loading from "../../../shared/Loading";
 import FileUploadModal from "../../../shared/modals/FileUploadModal";
 import { EmptyFileWidget } from "./EmptyFileWidget";
 import { SearchBar } from "../../../shared/SearchBar/SearchBar";
 import { Highlighter } from "../../../shared/Highlighter/Highlighter";
-import { usePagination } from "@wrappers/src/components/Pagination/Pagination";
+import { usePagination } from "@gui-elements/src/components/Pagination/Pagination";
 import DeleteModal from "../../../shared/modals/DeleteModal";
 import { commonSel } from "@ducks/common";
 import { projectFileResourceDependents, removeProjectFileResource } from "@ducks/workspace/requests";
+import { useTranslation } from "react-i18next";
 
 interface IFileDeleteModalOptions {
     isOpen: boolean;
@@ -56,6 +57,7 @@ export const FileWidget = () => {
         pageSizes: [5, 10, 20],
         presentation: { hideInfoText: true },
     });
+    const [t] = useTranslation();
 
     const deleteFile = async (fileName: string) => {
         try {
@@ -70,9 +72,9 @@ export const FileWidget = () => {
     }
 
     const headers = [
-        { key: "name", header: "Name", highlighted: true },
-        { key: "formattedDate", header: "Last modified", highlighted: false },
-        { key: "formattedSize", header: "Size (bytes)", highlighted: true },
+        { key: "name", header: t("widget.FileWidget.sort.name", "Name"), highlighted: true },
+        { key: "formattedDate", header: t("widget.FileWidget.sort.modified", "Last modified"), highlighted: false },
+        { key: "formattedSize", header: t("widget.FileWidget.sort.size", "Size (bytes)"), highlighted: true },
     ];
 
     const onSearch = (textQuery) => {
@@ -109,17 +111,20 @@ export const FileWidget = () => {
         if (deleteModalOpts.dependentTasks.length > 0) {
             return (
                 <div>
-                    <p>File '{deleteModalOpts.fileName}' is in use by following datasets:</p>
+                    <p>{t("widget.FileWidget.removeFromDatasets", { fileName: deleteModalOpts.fileName })}</p>
                     <ul>
                         {deleteModalOpts.dependentTasks.map((task) => (
                             <li key={task}>{task}</li>
                         ))}
                     </ul>
-                    <p>Do you really want to delete file '{deleteModalOpts.fileName}'?</p>
+                    <p>
+                        {t("widget.FileWidget.removeText", "Do you really want to delete file")}{" "}
+                        {deleteModalOpts.fileName}?
+                    </p>
                 </div>
             );
         } else {
-            return <p>File '{deleteModalOpts.fileName}' will be deleted.</p>;
+            return <p>{t("widget.FileWidget.deleted", { fileName: deleteModalOpts.fileName })}</p>;
         }
     };
 
@@ -128,13 +133,13 @@ export const FileWidget = () => {
             <Card>
                 <CardHeader>
                     <CardTitle>
-                        <h2>Files</h2>
+                        <h2>{t("widget.FileWidget.files", "Files")}</h2>
                     </CardTitle>
                 </CardHeader>
                 <Divider />
                 <CardContent>
                     {isLoading ? (
-                        <Loading description="Loading file list." />
+                        <Loading description={t("widget.FileWidget.loading", "Loading file list.")} />
                     ) : filesList.length ? (
                         <>
                             <Toolbar>
@@ -143,7 +148,11 @@ export const FileWidget = () => {
                                 </ToolbarSection>
                                 <ToolbarSection>
                                     <Spacing size="tiny" vertical />
-                                    <Button elevated text="Add file" onClick={toggleFileUploader} />
+                                    <Button
+                                        elevated
+                                        text={t("common.action.AddSmth", { smth: t("widget.FileWidget.file") })}
+                                        onClick={toggleFileUploader}
+                                    />
                                 </ToolbarSection>
                             </Toolbar>
                             <Spacing size="tiny" />
@@ -180,7 +189,9 @@ export const FileWidget = () => {
                                                     <TableCell key={"fileActions"} className="bx--table-column-menu">
                                                         <IconButton
                                                             name="item-remove"
-                                                            text="Delete file"
+                                                            text={t("common.action.DeleteSmth", {
+                                                                smth: t("widget.FileWidget.file"),
+                                                            })}
                                                             small
                                                             disruptive
                                                             onClick={() => openDeleteModal(file.id)}
@@ -210,7 +221,7 @@ export const FileWidget = () => {
                 onDiscard={closeDeleteModal}
                 onConfirm={() => deleteFile(deleteModalOpts.fileName)}
                 render={renderDeleteModal}
-                title={"Delete file"}
+                title={t("widget.FileWidget.deleteFile", "Delete File")}
             />
         </>
     );

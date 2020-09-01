@@ -13,19 +13,20 @@ import {
     OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
-} from "@wrappers/index";
+} from "@gui-elements/index";
 import { sharedOp } from "@ducks/shared";
 import { routerOp } from "@ducks/router";
 import DataList from "../Datalist";
-import Tag from "@wrappers/src/components/Tag/Tag";
+import Tag from "@gui-elements/src/components/Tag/Tag";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
-import Spacing from "@wrappers/src/components/Separation/Spacing";
+import Spacing from "@gui-elements/src/components/Separation/Spacing";
 import { Highlighter } from "../Highlighter/Highlighter";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
 import { IItemLink, IRelatedItem, IRelatedItemsResponse } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
 import { SearchBar } from "../SearchBar/SearchBar";
-import { usePagination } from "@wrappers/src/components/Pagination/Pagination";
+import { usePagination } from "@gui-elements/src/components/Pagination/Pagination";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     projectId?: string;
@@ -48,6 +49,8 @@ export function RelatedItems(props: IProps) {
         pageSizes: [5, 10, 20],
         presentation: { hideInfoText: true },
     });
+    const [t] = useTranslation();
+
     const dispatch = useDispatch();
 
     useEffect(() => {
@@ -91,7 +94,10 @@ export function RelatedItems(props: IProps) {
         <Card>
             <CardHeader>
                 <CardTitle>
-                    <h2>Related items{relatedItemsSizeInfo(data.items.length, data.total)}</h2>
+                    <h2>
+                        {t("RelatedItems.title", "Related items")}
+                        {relatedItemsSizeInfo(data.items.length, data.total)}
+                    </h2>
                 </CardTitle>
             </CardHeader>
             <Divider />
@@ -105,7 +111,7 @@ export function RelatedItems(props: IProps) {
                 <DataList
                     isEmpty={data.items.length === 0}
                     isLoading={loading}
-                    emptyListMessage={"No items found."}
+                    emptyListMessage={t("common.messages.noItems", { items: "items" })}
                     hasSpacing
                     hasDivider
                 >
@@ -166,7 +172,7 @@ export function RelatedItems(props: IProps) {
                                         {!!relatedItem.itemLinks.length && (
                                             <IconButton
                                                 name="item-viewdetails"
-                                                text="Show details"
+                                                text={t("common.action.showDetails", "Show details")}
                                                 onClick={(e) =>
                                                     goToDetailsPage(
                                                         relatedItem.itemLinks[0],
@@ -179,7 +185,9 @@ export function RelatedItems(props: IProps) {
                                             />
                                         )}
                                         {contextMenuItems.length && (
-                                            <ContextMenu togglerText="Show more options">
+                                            <ContextMenu
+                                                togglerText={t("common.action.moreOptions", "Show more options")}
+                                            >
                                                 {contextMenuItems}
                                             </ContextMenu>
                                         )}
