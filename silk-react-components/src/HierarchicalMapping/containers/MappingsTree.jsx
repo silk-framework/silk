@@ -295,7 +295,7 @@ MappingsTree.propTypes = {
     handleRuleNavigation: PropTypes.func,
     showValueMappings: PropTypes.bool,
     // For each rule id, contains one of the following: "ok", "warning"
-    ruleValidation: PropTypes.objectOf(React.PropTypes.oneOf(['ok', 'warning']))
+    ruleValidation: PropTypes.objectOf(PropTypes.oneOf(['ok', 'warning']))
 };
 
 MappingsTree.defaultProps = {
