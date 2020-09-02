@@ -171,6 +171,9 @@
       "<rootDir>/src/**/?(*.)(spec|test).{js,jsx,ts,tsx}",
       "<rootDir>/test/**/?(*.)(spec|test).{js,jsx,ts,tsx}"
     ],
+    "engines" : {
+        "node" : " 12.16.1"
+    },
     "testEnvironment": "jest-environment-jsdom-fourteen",
     "transform": {
       "^.+\\.(js|jsx|ts|tsx)$": "<rootDir>/node_modules/babel-jest",

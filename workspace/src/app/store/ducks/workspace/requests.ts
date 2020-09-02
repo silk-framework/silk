@@ -164,14 +164,17 @@ export const requestRemoveProjectPrefix = async (prefixName: string, projectId: 
 };
 
 //missing-type
-export const requestIfResourceExists = async (projectId: string, resourceName: string): Promise<any | never> => {
+export const requestIfResourceExists = async (projectId: string, resourceName: string): Promise<boolean> => {
     try {
         const { data } = await fetch({
             url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/metadata`),
         });
-        return data?.size;
+        return "size" in data;
     } catch (e) {
-        return false;
+        if (e.isHttpError && e.httpStatus !== 404) {
+            return false;
+        }
+        return true;
     }
 };
 

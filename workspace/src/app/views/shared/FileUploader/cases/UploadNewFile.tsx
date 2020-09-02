@@ -74,8 +74,7 @@ export function UploadNewFile(props: IProps) {
                 await upload([replacementFile]);
                 // update without upload file
                 setOnlyReplacements(onlyReplacements.filter((f) => f.id !== replacementFile.id));
-            } catch (e) {
-                console.log("Cant replace file", e);
+            } finally {
             }
         } else {
             uppy.setFileState(file.id, {
@@ -99,8 +98,7 @@ export function UploadNewFile(props: IProps) {
                 try {
                     await upload(uppy.getFiles());
                     checkedFilesQueue = 0;
-                } catch (e) {
-                    console.log("Cant upload files", e);
+                } finally {
                 }
             }
 
@@ -134,7 +132,7 @@ export function UploadNewFile(props: IProps) {
     };
 
     const handleUploadSuccess = (file: UppyFile) => {
-        setError(null);
+        setError("");
         onUploadSuccess(file);
     };
 
@@ -144,6 +142,11 @@ export function UploadNewFile(props: IProps) {
         if (idx > 0) {
             errorDetails = errorDetails.substring(0, idx);
         }
+
+        try {
+            errorDetails += ` - ${JSON.parse(error.request.response).detail}`;
+        } catch {}
+
         const errorMessage = i18next.t("FileUploader.uploadError", {
             fileName: fileData.name,
             errorDetails: errorDetails,
