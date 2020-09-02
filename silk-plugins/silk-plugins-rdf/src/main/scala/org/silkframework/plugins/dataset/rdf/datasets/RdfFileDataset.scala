@@ -70,7 +70,7 @@ case class RdfFileDataset(
     }
   }
 
-  private def graphOpt = if (graph.trim.isEmpty) None else Some(graph)
+  override def graphOpt: Option[String] = if (graph.trim.isEmpty) None else Some(graph)
 
   override def sparqlEndpoint: JenaEndpoint = {
     createSparqlEndpoint(allResources)

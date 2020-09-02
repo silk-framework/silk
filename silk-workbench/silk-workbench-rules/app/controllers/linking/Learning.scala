@@ -176,6 +176,7 @@ class Learning @Inject() (implicit mat: Materializer) extends InjectedController
     val validLinks = task.activity[ActiveLearning].value().links
     def refLinks = task.data.referenceLinks
     val linkSorter = LinkSorter.fromId(sorting)
+    val linkResolvers = LinkResolver.forLinkingTask(task)
 
     val valLinks = {
       for (link <- validLinks.view) yield {
@@ -188,7 +189,7 @@ class Learning @Inject() (implicit mat: Materializer) extends InjectedController
       }
     }
 
-    Ok(views.html.widgets.linksTable(project, task, valLinks, None, linkSorter, filter, page, showStatus = true, showDetails = false, showEntities = true, rateButtons = true))
+    Ok(views.html.widgets.linksTable(project, task, valLinks, None, linkResolvers, linkSorter, filter, page, showStatus = true, showDetails = false, showEntities = true, rateButtons = true))
   }
 
   def population(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
