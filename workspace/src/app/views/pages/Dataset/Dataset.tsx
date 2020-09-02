@@ -11,10 +11,12 @@ import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 import { DataPreview } from "../../shared/DataPreview/DataPreview";
 import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
+import { useTranslation } from "react-i18next";
 
 export function Dataset() {
     const error = useSelector(datasetSel.errorSelector);
     const { taskId, projectId } = useParams();
+    const [t] = useTranslation();
 
     useEffect(() => {
         if (error?.detail) {
@@ -32,7 +34,10 @@ export function Dataset() {
                 <Section>
                     <Metadata />
                     <Spacing />
-                    <DataPreview title={"Data preview"} preview={{ project: projectId, dataset: taskId }} />
+                    <DataPreview
+                        title={t("pages.dataset.title", "Data preview")}
+                        preview={{ project: projectId, dataset: taskId }}
+                    />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>

@@ -15,6 +15,7 @@ import { UploadNewFile } from "./cases/UploadNewFile";
 import { FileMenu, FileMenuItems } from "./FileMenu";
 import { SelectFileFromExisting } from "./cases/SelectFileFromExisting";
 import { CreateNewFile } from "./cases/CreateNewFile";
+import i18next from "../../../../language";
 
 interface IUploaderInstance {
     /**
@@ -205,7 +206,10 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         if (idx > 0) {
             errorDetails = errorDetails.substring(0, idx);
         }
-        const errorMessage = `An upload error has occurred for file '${fileData.name}'. Details: ${errorDetails}`;
+        const errorMessage = i18next.t("FileUploader.uploadError", {
+            fileName: fileData.name,
+            errorDetails: errorDetails,
+        });
         this.setState({ error: errorMessage });
     };
 
@@ -327,7 +331,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                             rightElement={
                                 <Button
                                     minimal
-                                    text={"Change file"}
+                                    text={i18next.t("FileUploader.changeFile", "Change file")}
                                     icon={<Icon name="item-edit" />}
                                     onClick={this.toggleFileResourceChange}
                                 />
@@ -340,7 +344,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                         <Button
                             outlined
                             small
-                            text={"Abort and keep file"}
+                            text={i18next.t("FileUploader.abort", "Abort and keep file")}
                             icon={<Icon name="operation-undo" />}
                             onClick={this.handleDiscardChanges}
                         />

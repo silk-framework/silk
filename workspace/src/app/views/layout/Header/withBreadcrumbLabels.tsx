@@ -41,7 +41,7 @@ export default function withBreadcrumbLabels(WrappedComponent) {
             const { params = {}, url }: any = match[0];
 
             const labelFunction = labelForBreadCrumb(params);
-            const updatedBread = [{ href: SERVE_PATH, text: t("common.build") }];
+            const updatedBread = [{ href: SERVE_PATH, text: t("common.app.build", "Build") }];
 
             if (params.projectId) {
                 updatedBread.push({
