@@ -38,7 +38,7 @@
         "abortProcess": "Abort upload process?",
         "changeFile": "Change file",
         "createNewFile": "New file name",
-        "dropzone": "Drop file here or browse",
+        "dropzone": "Drop files here or browse",
         "fileNotSpecified": "File name not specified",
         "modalTitle": "Upload file",
         "selectFromProject": "Select file from projects",

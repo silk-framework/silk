@@ -164,7 +164,7 @@ export function UploadNewFile(props: IProps) {
         <>
             <DragDrop
                 uppy={uppy}
-                locale={{ strings: { dropHereOr: t("FileUploader.dropzone", "Drop file here or browse") } }}
+                locale={{ strings: { dropHereOr: t("FileUploader.dropzone", "Drop files here or browse") } }}
             />
             <Spacing />
             {uppyFiles.map((file) => {
