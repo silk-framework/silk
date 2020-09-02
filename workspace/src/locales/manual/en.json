@@ -51,7 +51,7 @@
         "updateFailed": "Updating meta data has failed"
     },
     "OverwriteModal": {
-        "overwriteFile": "File {{fileName}} already exists. Do you want to overwrite it?"
+        "overwriteFile": "File '{{fileName}}' already exists. Do you want to overwrite it?"
     },
     "Pagination": {
         "backwardText": "Previous page",
