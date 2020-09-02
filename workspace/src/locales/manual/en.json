@@ -198,30 +198,37 @@
             "facet": {
                 "createdBy": {
                     "label": "Created by",
+                    "description": "The user who created the item.",
                     "valueLabel": {
                         "": "Unknown user"
                     }
                 },
                 "datasetFileResource": {
-                    "label": "Dataset file"
+                    "label": "Dataset file",
+                    "description": "The file resource of a file based dataset."
                 },
                 "datasetType": {
-                    "label": "Dataset type"
+                    "label": "Dataset type",
+                    "description": "The concrete type of a dataset, e.g. its data model and format etc."
                 },
                 "lastModifiedBy": {
                     "label": "Last modified by",
+                    "description": "The user who last modified the item.",
                     "valueLabels": {
                         "": "Unknown user"
                     }
                 },
                 "taskType": {
-                    "label": "Task type"
+                    "label": "Task type",
+                    "description": "The concrete type of a task."
                 },
                 "transformInputResource": {
-                    "label": "Transformed file resource"
+                    "label": "Transformed file resource",
+                    "description": "In case the input is a file resource based dataset, these are the file names of these resources."
                 },
                 "workflowExecutionStatus": {
-                    "label": "Last execution status"
+                    "label": "Last execution status",
+                    "description": "Allows to filter by the status of the last execution of the workflow."
                 }
             }
         },
