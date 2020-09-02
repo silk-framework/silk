@@ -108,6 +108,7 @@ interface IState {
     //Filename which shows in input for update action
     inputFilename: string;
 
+    //Toggle File delete dialog, contains filename or empty string
     visibleFileDelete: string;
 }
 
@@ -118,7 +119,7 @@ const noop = () => {
 /**
  * File Uploader widget
  * with advanced = true, provides full FileUploader with 2 extra options
- * otherwise provides simple drang and drop uploader
+ * otherwise provides simple drag and drop uploader
  */
 export class FileUploader extends React.Component<IUploaderOptions, IState> {
     private uppy = Uppy({
@@ -239,11 +240,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
     };
 
     validateBeforeFileAdded = async (fileName: string): Promise<boolean> => {
-        try {
-            return await requestIfResourceExists(this.props.projectId, fileName);
-        } catch {
-            return false;
-        }
+        return await requestIfResourceExists(this.props.projectId, fileName);
     };
 
     render() {
