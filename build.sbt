@@ -183,7 +183,7 @@ lazy val pluginsSpatialTemporal = (project in file("silk-plugins/silk-plugins-sp
     libraryDependencies += "org.geotools" % "gt-referencing" % "13.1",
     libraryDependencies += "org.geotools" % "gt-jts-wrapper" % "13.1",
     libraryDependencies += "org.geotools" % "gt-epsg-wkt" % "13.1",
-    resolvers += "OpenGeo Maven Repository" at "http://download.osgeo.org/webdav/geotools/"
+    resolvers += "OpenGeo Maven Repository" at "https://repo.osgeo.org/repository/release/"
   )
 
 lazy val pluginsAsian = (project in file("silk-plugins/silk-plugins-asian"))
@@ -202,10 +202,9 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   )
 
 // Aggregate all plugins
-// pluginsSpatialTemporal has been removed as it uses dependencies from external unreliable repositories
 lazy val plugins = (project in file("silk-plugins"))
-  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson)
-  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson)
+  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, pluginsSpatialTemporal)
+  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, pluginsSpatialTemporal)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins"
