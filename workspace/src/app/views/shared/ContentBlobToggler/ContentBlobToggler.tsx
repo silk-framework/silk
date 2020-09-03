@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { HtmlContentBlock, Spacing } from "@gui-elements/index";
+import { HtmlContentBlock } from "@gui-elements/index";
 
 interface IContentBlobTogglerProps {
     className?: string;
@@ -49,7 +49,7 @@ export function ContentBlobToggler({
                     <p>
                         {contentPreviewMinimized}
                         {(showAlwaysToggler || (contentFullview !== contentPreviewMinimized)) ? <>&hellip;</> : null}
-                        <Spacing vertical={true} size={'tiny'} />
+                        &nbsp;
                         {(showAlwaysToggler || (contentFullview !== contentPreviewMinimized)) ? <a href="#more" onClick={(e) => {handlerToggleView(e)}}>{textToggleExtend}</a> : null}
                     </p>
                 ) : (
