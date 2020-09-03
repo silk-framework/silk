@@ -157,14 +157,19 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
 
   def getResourceMetadata(projectName: String, resourcePath: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    val resource = project.resources.getInPath(resourcePath, File.separatorChar)
+    try {
+      val resource = project.resources.getInPath(resourcePath, File.separatorChar, mustExist = true)
 
-    val pathPrefix = resourcePath.lastIndexOf(File.separatorChar) match {
-      case -1 => ""
-      case index => resourcePath.substring(0, index + 1)
+      val pathPrefix = resourcePath.lastIndexOf(File.separatorChar) match {
+        case -1 => ""
+        case index => resourcePath.substring(0, index + 1)
+      }
+
+      Ok(JsonSerializer.resourceProperties(resource, pathPrefix))
+    } catch {
+      case _: ResourceNotFoundException =>
+        NotFound
     }
-
-    Ok(JsonSerializer.resourceProperties(resource, pathPrefix))
   }
 
   def getResource(projectName: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
