@@ -171,10 +171,10 @@ export const requestIfResourceExists = async (projectId: string, resourceName: s
         });
         return "size" in data;
     } catch (e) {
-        if (e.isHttpError && e.httpStatus !== 404) {
+        if (e.isHttpError && e.httpStatus === 404) {
             return false;
         }
-        return true;
+        throw e;
     }
 };
 
