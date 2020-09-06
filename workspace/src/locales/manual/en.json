@@ -44,7 +44,8 @@
         "selectFromProject": "Select file from projects",
         "successfullyUploaded": "{{uploadedName}} was successfully uploaded",
         "uploadError": "An upload error has occurred for file {{fileName}}. Details: {{errorDetails}}",
-        "waitFor": "Wait for finished upload."
+        "waitFor": "Wait for finished upload.",
+        "retryMessage": "Something going wrong during upload process for {{fileName}}"
     },
     "Metadata": {
         "loading": "Loading summary data.",

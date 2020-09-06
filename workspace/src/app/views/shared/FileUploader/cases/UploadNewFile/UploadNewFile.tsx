@@ -5,7 +5,9 @@ import ProgressBar from "@gui-elements/blueprint/progressbar";
 import { AlertDialog, Button, Notification, Spacing } from "@gui-elements/index";
 import { Intent } from "@gui-elements/blueprint/constants";
 import { useTranslation } from "react-i18next";
-import i18next from "../../../../../language";
+import i18next from "../../../../../../language";
+import { NewFileItem } from "./NewFileItem";
+import { ReplacementFileItem } from "./ReplacementFileItem";
 
 interface IProps {
     // Uppy instance
@@ -60,32 +62,26 @@ export function UploadNewFile(props: IProps) {
         uppy.off("upload-error", handleUploadError);
     };
 
-    /**
-     * Run for every each file added
-     * @param file
-     */
-    const handleFileAdded = async (file: UppyFile) => {
-        setError(null);
+    const uploadReplacementFile = async (replacementFile) => {
+        // then upload and remove from replacements array
+        try {
+            await upload([replacementFile]);
+            setOnlyReplacements(onlyReplacements.filter((f) => f.id !== replacementFile.id));
+        } finally {
+        }
+    };
 
-        // find if file already checked
-        const replacementFile = onlyReplacements.find((f) => f.id === file.id);
-        if (replacementFile) {
-            try {
-                await upload([replacementFile]);
-                // update without upload file
-                setOnlyReplacements(onlyReplacements.filter((f) => f.id !== replacementFile.id));
-            } finally {
-            }
-        } else {
+    const uploadNewFile = async (file: UppyFile, forceUpload: boolean = false) => {
+        try {
+            const replacement = await validateBeforeAdd(file.name);
             uppy.setFileState(file.id, {
-                replacement: await validateBeforeAdd(file.name),
+                replacement,
             });
-
             checkedFilesQueue++;
 
             // if all files added then run uploader
             const isCompleteAllChecks = checkedFilesQueue === uppy.getFiles().length;
-            if (isCompleteAllChecks) {
+            if (isCompleteAllChecks || forceUpload) {
                 const files = uppy.getFiles();
                 const replacements = files.filter((file: any) => file.replacement);
 
@@ -105,10 +101,29 @@ export function UploadNewFile(props: IProps) {
             if (onAdded) {
                 onAdded(file);
             }
+        } catch (e) {
+            // when some error happened, e.g. connection issue
+            setError(e.errorResponse?.detail);
         }
     };
 
-    const upload = async (files) => {
+    /**
+     * Run for every each file added
+     * @param file
+     */
+    const handleFileAdded = async (file: UppyFile) => {
+        setError(null);
+
+        // find if file already checked
+        const replacementFile = onlyReplacements.find((f) => f.id === file.id);
+        if (replacementFile) {
+            await uploadReplacementFile(replacementFile);
+        } else {
+            await uploadNewFile(file);
+        }
+    };
+
+    const upload = async (files): Promise<void | never> => {
         try {
             files.forEach((file) => {
                 uppy.setFileState(file.id, {
@@ -132,7 +147,7 @@ export function UploadNewFile(props: IProps) {
     };
 
     const handleUploadSuccess = (file: UppyFile) => {
-        setError("");
+        setError(null);
         onUploadSuccess(file);
     };
 
@@ -162,7 +177,27 @@ export function UploadNewFile(props: IProps) {
         uppy.addFile(file);
     };
 
-    const uppyFiles = uppy.getFiles();
+    const handleCancelReplace = (fileId: string) => {
+        setOnlyReplacements([...onlyReplacements.filter((f) => f.id !== fileId)]);
+    };
+
+    // @TODO: broken functionality
+    // const handleRetry = async () => {
+    //     setError(null);
+    //
+    //     const files = uppy.getFiles();
+    //
+    //     files.map(async (file) =>  {
+    //         // find if file already checked
+    //         const replacementFile = onlyReplacements.find((f) => f.id === file.id);
+    //         if (replacementFile) {
+    //             uploadReplacementFile(replacementFile);
+    //         } else {
+    //             uploadNewFile(file, true);
+    //         }
+    //     });
+    // };
+
     return (
         <>
             <DragDrop
@@ -170,58 +205,23 @@ export function UploadNewFile(props: IProps) {
                 locale={{ strings: { dropHereOr: t("FileUploader.dropzone", "Drop files here or browse") } }}
             />
             <Spacing />
-            {uppyFiles.map((file) => {
-                const { progress } = file;
-                const fileProgress = progress.bytesUploaded / progress.bytesTotal;
-                const isUploaded = file.progress.uploadComplete;
-
-                const fileActionBtn = isUploaded ? (
-                    <Button outlined onClick={() => onRemoveFile(file.name)}>
-                        Remove
-                    </Button>
-                ) : fileProgress !== 1 ? (
-                    <Button outlined onClick={() => handleAbort(file.id)}>
-                        {t("FileUploader.abortOnly", "Abort Upload")}
-                    </Button>
-                ) : null;
-
-                return (
-                    <div key={file.id}>
-                        <Notification success={isUploaded} actions={fileActionBtn}>
-                            <p>
-                                {!isUploaded
-                                    ? t("FileUploader.waitFor", "Wait for finished upload.")
-                                    : t("FileUploader.successfullyUploaded", { uploadedName: file.name })}
-                            </p>
-                            <Spacing />
-                            <ProgressBar
-                                value={fileProgress}
-                                stripes={!isUploaded}
-                                intent={isUploaded ? Intent.SUCCESS : Intent.PRIMARY}
-                            />
-                        </Notification>
-                        <Spacing />
-                    </div>
-                );
-            })}
-            {onlyReplacements.map((file) => {
-                return (
-                    <div key={file.id}>
-                        <Notification
-                            warning={true}
-                            actions={
-                                <Button outlined onClick={() => handleReplace(file)}>
-                                    {t("common.action.replace", "Replace")}
-                                </Button>
-                            }
-                        >
-                            <p>{t("OverwriteModal.overwriteFile", { fileName: file.name })}</p>
-                            <Spacing />
-                        </Notification>
-                        <Spacing />
-                    </div>
-                );
-            })}
+            {uppy.getFiles().map((file) => (
+                <NewFileItem
+                    key={file.id}
+                    error={error}
+                    file={file}
+                    onRemoveFile={onRemoveFile}
+                    onAbort={handleAbort}
+                />
+            ))}
+            {onlyReplacements.map((file) => (
+                <ReplacementFileItem
+                    key={file.id}
+                    file={file}
+                    onCancelReplacement={handleCancelReplace}
+                    onReplace={handleReplace}
+                />
+            ))}
             {error && <Notification message={error} danger />}
         </>
     );

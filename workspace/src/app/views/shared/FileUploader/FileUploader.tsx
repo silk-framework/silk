@@ -6,7 +6,7 @@ import "@uppy/progress-bar/dist/style.css";
 
 import { Button, Divider, FieldItem, Icon, TextField } from "@gui-elements/index";
 import { IAutocompleteProps } from "../Autocomplete/Autocomplete";
-import { UploadNewFile } from "./cases/UploadNewFile";
+import { UploadNewFile } from "./cases/UploadNewFile/UploadNewFile";
 import { FileMenu, FileMenuItems } from "./FileMenu";
 import { SelectFileFromExisting } from "./cases/SelectFileFromExisting";
 import { CreateNewFile } from "./cases/CreateNewFile";
