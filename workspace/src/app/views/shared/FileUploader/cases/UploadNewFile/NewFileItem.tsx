@@ -16,19 +16,20 @@ interface IProps {
 
     // abort action
     onAbort(fileId: string);
+
+    onDismiss(fileId: string);
 }
 
-export function NewFileItem({ file, onRemoveFile, onAbort, error }: IProps) {
+export function NewFileItem({ file, onRemoveFile, onAbort, onDismiss }: IProps) {
     const [t] = useTranslation();
 
     const { progress } = file;
     const fileProgress = progress.bytesUploaded / progress.bytesTotal;
     const isUploaded = file.progress.uploadComplete;
     const isUploadStarted = !!file.progress.uploadStarted;
-    const retryRequired = !isUploadStarted && !!error;
     const fileActionBtn = isUploaded ? (
         <Button outlined onClick={() => onRemoveFile(file.name)}>
-            Remove
+            {t("common.action.RemoveSmth", { smth: " " })}
         </Button>
     ) : isUploadStarted ? (
         <Button outlined onClick={() => onAbort(file.id)}>
@@ -38,11 +39,9 @@ export function NewFileItem({ file, onRemoveFile, onAbort, error }: IProps) {
 
     return (
         <div key={file.id}>
-            <Notification success={isUploaded} warning={retryRequired} actions={fileActionBtn}>
+            <Notification success={isUploaded} actions={fileActionBtn} onDismiss={() => onDismiss(file.id)}>
                 <p>
-                    {retryRequired
-                        ? t("FileUploader.retryMessage", { fileName: file.name })
-                        : !isUploaded
+                    {!isUploaded
                         ? t("FileUploader.waitFor", "Wait for finished upload.")
                         : t("FileUploader.successfullyUploaded", { uploadedName: file.name })}
                 </p>

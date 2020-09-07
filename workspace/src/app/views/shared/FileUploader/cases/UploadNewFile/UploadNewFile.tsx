@@ -1,13 +1,12 @@
 import { DragDrop } from "@uppy/react";
 import React, { useEffect, useState } from "react";
 import Uppy, { UppyFile } from "@uppy/core";
-import ProgressBar from "@gui-elements/blueprint/progressbar";
-import { AlertDialog, Button, Notification, Spacing } from "@gui-elements/index";
-import { Intent } from "@gui-elements/blueprint/constants";
+import { Button, Notification, Spacing } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
 import i18next from "../../../../../../language";
 import { NewFileItem } from "./NewFileItem";
 import { ReplacementFileItem } from "./ReplacementFileItem";
+import { useForceUpdate } from "../../../../../hooks/useForceUpdate";
 
 interface IProps {
     // Uppy instance
@@ -38,35 +37,44 @@ let checkedFilesQueue = 0;
  */
 export function UploadNewFile(props: IProps) {
     const { uppy, onRemoveFile, onAdded, onUploadSuccess, validateBeforeAdd, uploadEndpoint } = props;
-
+    // contains files, which need in replacements
     const [onlyReplacements, setOnlyReplacements] = useState([]);
+
+    // contains fatal error messages, if it's exists then show the Retry button
     const [error, setError] = useState(null);
+
+    // forceUpdate need when uppy updated
+    const forceUpdate = useForceUpdate();
+
     const [t] = useTranslation();
 
+    // register uppy events
     useEffect(() => {
-        registerEvents();
-        return unregisterEvents;
-    }, [onlyReplacements]);
+        const unregisterEvents = () => {
+            uppy.off("file-added", handleFileAdded);
+            uppy.off("upload-progress", handleProgress);
+            uppy.off("upload-success", handleUploadSuccess);
+            uppy.off("upload-error", handleUploadError);
 
-    const registerEvents = () => {
+            checkedFilesQueue = 0;
+        };
+
+        // reset events, because of "file-added" store old values of onlyReplacements
+        unregisterEvents();
+
         uppy.on("file-added", handleFileAdded);
         uppy.on("upload-progress", handleProgress);
         uppy.on("upload-success", handleUploadSuccess);
         uppy.on("upload-error", handleUploadError);
-    };
 
-    const unregisterEvents = () => {
-        uppy.off("file-added", handleFileAdded);
-        uppy.off("upload-progress", handleProgress);
-        uppy.off("upload-success", handleUploadSuccess);
-        uppy.off("upload-error", handleUploadError);
-    };
+        return unregisterEvents;
+    }, [onlyReplacements]);
 
-    const uploadReplacementFile = async (replacementFile) => {
-        // then upload and remove from replacements array
+    const uploadReplacementFile = async (replacementFile: UppyFile) => {
         try {
             await upload([replacementFile]);
-            setOnlyReplacements(onlyReplacements.filter((f) => f.id !== replacementFile.id));
+            setOnlyReplacements((prevState) => prevState.filter((f) => f.id !== replacementFile.id));
+            // catch is implemented in handleUploadError
         } finally {
         }
     };
@@ -74,36 +82,32 @@ export function UploadNewFile(props: IProps) {
     const uploadNewFile = async (file: UppyFile, forceUpload: boolean = false) => {
         try {
             const replacement = await validateBeforeAdd(file.name);
-            uppy.setFileState(file.id, {
-                replacement,
-            });
-            checkedFilesQueue++;
-
-            // if all files added then run uploader
-            const isCompleteAllChecks = checkedFilesQueue === uppy.getFiles().length;
-            if (isCompleteAllChecks || forceUpload) {
-                const files = uppy.getFiles();
-                const replacements = files.filter((file: any) => file.replacement);
-
-                replacements.forEach((f) => {
-                    uppy.removeFile(f.id);
-                });
-
-                setOnlyReplacements(replacements);
-
-                try {
-                    await upload(uppy.getFiles());
-                    checkedFilesQueue = 0;
-                } finally {
-                }
-            }
-
-            if (onAdded) {
-                onAdded(file);
+            if (replacement) {
+                uppy.removeFile(file.id);
+                setOnlyReplacements((prevState) => [...prevState, file]);
             }
         } catch (e) {
             // when some error happened, e.g. connection issue
             setError(e.errorResponse?.detail);
+            return;
+        }
+
+        // if all files added then run uploader
+        checkedFilesQueue++;
+
+        const notCompletedUploads = uppy.getFiles().filter((f) => !f.progress.uploadComplete);
+        const isCompleteAllChecks = checkedFilesQueue >= notCompletedUploads.length;
+
+        if (isCompleteAllChecks || forceUpload) {
+            try {
+                await upload(notCompletedUploads);
+            } catch (e) {}
+            // await upload([file]);
+            // checkedFilesQueue = 0;
+        }
+
+        if (onAdded) {
+            onAdded(file);
         }
     };
 
@@ -178,25 +182,21 @@ export function UploadNewFile(props: IProps) {
     };
 
     const handleCancelReplace = (fileId: string) => {
-        setOnlyReplacements([...onlyReplacements.filter((f) => f.id !== fileId)]);
+        setOnlyReplacements(onlyReplacements.filter((f) => f.id !== fileId));
     };
 
-    // @TODO: broken functionality
-    // const handleRetry = async () => {
-    //     setError(null);
-    //
-    //     const files = uppy.getFiles();
-    //
-    //     files.map(async (file) =>  {
-    //         // find if file already checked
-    //         const replacementFile = onlyReplacements.find((f) => f.id === file.id);
-    //         if (replacementFile) {
-    //             uploadReplacementFile(replacementFile);
-    //         } else {
-    //             uploadNewFile(file, true);
-    //         }
-    //     });
-    // };
+    const handleRetry = async () => {
+        const files = uppy.getFiles();
+
+        uppy.reset();
+
+        files.map(handleReplace);
+    };
+
+    const handleDismissUploadedFile = (fileId: string) => {
+        uppy.removeFile(fileId);
+        forceUpdate(fileId);
+    };
 
     return (
         <>
@@ -205,24 +205,34 @@ export function UploadNewFile(props: IProps) {
                 locale={{ strings: { dropHereOr: t("FileUploader.dropzone", "Drop files here or browse") } }}
             />
             <Spacing />
-            {uppy.getFiles().map((file) => (
-                <NewFileItem
-                    key={file.id}
-                    error={error}
-                    file={file}
-                    onRemoveFile={onRemoveFile}
-                    onAbort={handleAbort}
+            {!error ? (
+                <>
+                    {uppy.getFiles().map((file) => (
+                        <NewFileItem
+                            key={file.id}
+                            error={error}
+                            file={file}
+                            onRemoveFile={onRemoveFile}
+                            onAbort={handleAbort}
+                            onDismiss={handleDismissUploadedFile}
+                        />
+                    ))}
+                    {onlyReplacements.map((file) => (
+                        <ReplacementFileItem
+                            key={file.id}
+                            file={file}
+                            onCancelReplacement={handleCancelReplace}
+                            onReplace={handleReplace}
+                        />
+                    ))}
+                </>
+            ) : (
+                <Notification
+                    actions={<Button minimal outlined text={t("FileUploader.retry", "Retry")} onClick={handleRetry} />}
+                    message={error}
+                    danger
                 />
-            ))}
-            {onlyReplacements.map((file) => (
-                <ReplacementFileItem
-                    key={file.id}
-                    file={file}
-                    onCancelReplacement={handleCancelReplace}
-                    onReplace={handleReplace}
-                />
-            ))}
-            {error && <Notification message={error} danger />}
+            )}
         </>
     );
 }

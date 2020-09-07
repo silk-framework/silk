@@ -14,8 +14,6 @@ import {
     findAll,
     findSingleElement,
     legacyApiUrl,
-    logRequests,
-    logWrapperHtmlOnError,
     mockAxiosResponse,
     mockedAxiosError,
     mockedAxiosResponse,
