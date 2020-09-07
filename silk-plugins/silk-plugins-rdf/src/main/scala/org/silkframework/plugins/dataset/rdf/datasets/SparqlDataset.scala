@@ -64,6 +64,8 @@ case class SparqlDataset(
       timeout = Some(sparqlTimeout).filter(_ > 0)
     )
 
+  override def graphOpt: Option[String] = Option(graph).filterNot(_.isEmpty)
+
   override val sparqlEndpoint: RemoteSparqlEndpoint = {
     RemoteSparqlEndpoint(params)
   }

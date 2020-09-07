@@ -4,7 +4,6 @@ import java.io.{File, OutputStream}
 import java.util.zip.ZipFile
 
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource._
 import org.silkframework.runtime.resource.zip.{ZipFileResourceLoader, ZipOutputStreamResourceManager}
 import org.silkframework.runtime.validation.NotFoundException
@@ -12,16 +11,9 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.ResourceRepository
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, WorkspaceProvider}
 
-@Plugin(
-  id = "xmlZipMarshalling",
-  label = "XML/ZIP file",
-  description = "ZIP archive, which includes XML meta data and resource files."
-)
-case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
+abstract class XmlZipProjectMarshaling extends ProjectMarshallingTrait {
 
-  def id: String = XmlZipProjectMarshaling.marshallerId
-
-  val name = "XML/ZIP file"
+  def includeResources: Boolean
 
   /**
     * Marshals the project from the in-memory [[Project]] object and the given resource manager.
@@ -38,8 +30,9 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
     val zipResourceManager = new ZipOutputStreamResourceManager(outputStream)
     try {
       val outputWorkspaceProvider = new XmlWorkspaceProvider(zipResourceManager)
+      val projectResources = resourcesIfIncluded(resourceManager).getOrElse(EmptyResourceManager())
 
-      exportProject(project, outputWorkspaceProvider, resourceManager, Some(getProjectResources(outputWorkspaceProvider, project.config.id)))
+      exportProject(project, outputWorkspaceProvider, projectResources, Some(getProjectResources(outputWorkspaceProvider, project.config.id)))
     } finally {
       zipResourceManager.close()
     }
@@ -75,7 +68,7 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
 
       val xmlWorkspaceProvider = new XmlWorkspaceProvider(importResources)
       val projectResources = getProjectResources(xmlWorkspaceProvider, projectName)
-      importProject(projectName, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider, Some(projectResources), importResources = Some(resourceManager))
+      importProject(projectName, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider, Some(projectResources), importResources = resourcesIfIncluded(resourceManager))
     } finally {
       zip.close()
     }
@@ -91,8 +84,8 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
 
       // Load all projects into temporary XML workspace provider
       for (project <- projects) {
-        exportProject(project, xmlWorkspaceProvider, resourceRepository.get(project.config.id),
-          Some(getProjectResources(xmlWorkspaceProvider, project.config.id)))
+        val projectResources = resourcesIfIncluded(resourceRepository.get(project.config.id)).getOrElse(EmptyResourceManager())
+        exportProject(project, xmlWorkspaceProvider, projectResources, Some(getProjectResources(xmlWorkspaceProvider, project.config.id)))
       }
     } finally {
       // Close ZIP
@@ -115,7 +108,8 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
 
       for (project <- projects) {
         val projectResources = getProjectResources(xmlWorkspaceProvider, project.id)
-        importProject(project.id, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider, Some(projectResources), importResources = Some(resourceRepository.get(project.id)))
+        importProject(project.id, workspaceProvider, importFromWorkspace = xmlWorkspaceProvider,
+          Some(projectResources), importResources = resourcesIfIncluded(resourceRepository.get(project.id)))
       }
     } finally {
       zip.close()
@@ -126,6 +120,17 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
     provider.resources.child(project).child("resources")
   }
 
+  /**
+    * Returns the given resource manager if includeResources is true and None otherwise.
+    */
+  private def resourcesIfIncluded(resources: ResourceManager): Option[ResourceManager] = {
+    if(includeResources) {
+      Some(resources)
+    } else {
+      None
+    }
+  }
+
   /** Handler for file suffix */
   override def suffix: Option[String] = Some("zip")
 
@@ -134,6 +139,12 @@ case class XmlZipProjectMarshaling() extends ProjectMarshallingTrait {
 
 object XmlZipProjectMarshaling {
 
-  val marshallerId = "xmlZip"
+  def apply(includeResources: Boolean = true): XmlZipProjectMarshaling = {
+    if(includeResources) {
+      XmlZipWithResourcesProjectMarshaling()
+    } else {
+      XmlZipWithoutResourcesProjectMarshaling()
+    }
+  }
 
 }

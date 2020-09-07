@@ -65,6 +65,24 @@ sealed trait Status {
    * The complete status message including the progress (if running).
    */
   override def toString: String = message
+
+  /** The concrete status string. In order to distinguish different states of Finished. */
+  def concreteStatus: String = {
+    this match {
+      case st: Status.Finished =>
+        if (st.cancelled) {
+          "Cancelled"
+        } else if (st.failed) {
+          "Failed"
+        } else {
+          "Successful"
+        }
+      case _: Status.Idle =>
+        "Not executed"
+      case status: Status =>
+        status.name
+    }
+  }
 }
 
 object Status {
@@ -74,7 +92,7 @@ object Status {
   case class Idle() extends Status {
     def message: String = "Idle"
   }
-  
+
   /**
    * Status which indicates that the activity has been started and is waiting to be executed.
    */
@@ -82,7 +100,7 @@ object Status {
     override def message: String = "Waiting"
     override def isRunning: Boolean = true
   }
-  
+
   /**
    * Running status, activity is currently being executed.
    *
@@ -114,7 +132,7 @@ object Status {
     override def message: String = "Stopping..."
     override def isRunning: Boolean = true
   }
-  
+
   /**
    * Status which indicates that the activity has finished execution.
    *
@@ -138,9 +156,9 @@ object Status {
         "%.3fs".format(runtime.toDouble / 1000)
       }
     }
-  
+
     override def progress: Option[Double] = Some(1.0)
-  
+
     override def failed: Boolean = !success
   }
 }

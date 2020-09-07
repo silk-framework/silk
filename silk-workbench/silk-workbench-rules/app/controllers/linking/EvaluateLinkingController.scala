@@ -6,7 +6,7 @@ import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.AkkaUtils
 import javax.inject.Inject
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
-import models.linking.{EvalLink, LinkSorter}
+import models.linking.{EvalLink, LinkResolver, LinkSorter}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.DetailedEvaluator
 import org.silkframework.runtime.activity.UserContext
@@ -31,6 +31,7 @@ class EvaluateLinkingController @Inject() (implicit system: ActorSystem, mat: Ma
     val linkSorter = LinkSorter.fromId(sorting)
     val linking = task.activity[EvaluateLinkingActivity].value()
     val schemata = task.data.entityDescriptions
+    val linkResolvers = LinkResolver.forLinkingTask(task)
 
     // We only show links if entities have been attached to them. We check this by looking at the first link.
     val showLinks = {
@@ -55,11 +56,11 @@ class EvaluateLinkingController @Inject() (implicit system: ActorSystem, mat: Ma
           else
             new EvalLink(detailedLink, Unknown, Generated)
         }
-      Ok(views.html.widgets.linksTable(project, task, links, Some(linking.statistics), linkSorter, filter, page,
+      Ok(views.html.widgets.linksTable(project, task, links, Some(linking.statistics), linkResolvers, linkSorter, filter, page,
         showStatus = false, showDetails = true, showEntities = false, rateButtons = true))
     } else {
       // Show an empty links table
-      Ok(views.html.widgets.linksTable(project, task, Seq[EvalLink](), Some(linking.statistics), linkSorter, filter,
+      Ok(views.html.widgets.linksTable(project, task, Seq[EvalLink](), Some(linking.statistics), linkResolvers, linkSorter, filter,
         page, showStatus = false, showDetails = true, showEntities = false, rateButtons = true))
     }
   }

@@ -11,8 +11,8 @@ import scala.io.Codec
   id = "json",
   label = "JSON",
   categories = Array(DatasetCategories.file),
-  description =
-"""Read from or write to a JSON file."""
+  description = """Read from or write to a JSON file.""",
+  documentationFile = "JsonDatasetDocumentation.md"
 )
 case class JsonDataset(
   @Param("Json file.")
@@ -20,14 +20,10 @@ case class JsonDataset(
   @Param(value = "The path to the elements to be read, starting from the root element, e.g., '/Persons/Person'. If left empty, all direct children of the root element will be read.", advanced = true)
   basePath: String = "",
   @deprecated("This will be removed in the next release.", "")
-  @Param(label = "URI pattern", value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
-  uriPattern: String = "",
-  @Param("The file encoding, e.g., UTF8, ISO-8859-1")
-  charset: String = "UTF8") extends Dataset with ResourceBasedDataset {
+  @Param(label = "URI pattern (deprecated)", value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
+  uriPattern: String = "") extends Dataset with ResourceBasedDataset {
 
-  private val codec = Codec(charset)
-
-  override def source(implicit userContext: UserContext): DataSource = JsonSource(file, basePath, uriPattern, codec)
+  override def source(implicit userContext: UserContext): DataSource = JsonSource(file, basePath, uriPattern)
 
   override def linkSink(implicit userContext: UserContext): LinkSink = throw new NotImplementedError("JSON files cannot be written at the moment")
 

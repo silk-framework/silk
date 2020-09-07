@@ -20,7 +20,7 @@ class CsvWriter(resource: WritableResource, properties: Seq[TypedProperty], sett
     case f: FileResource =>
       // Use a buffered writer that directly writes to the file
       f.file.getParentFile.mkdirs()
-      new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f.file), "UTF-8"))
+      new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f.file), settings.codec.charSet))
     case _ =>
       new StringWriter()
   }
@@ -48,7 +48,7 @@ class CsvWriter(resource: WritableResource, properties: Seq[TypedProperty], sett
     // If we are using a string writer, we still need to write the data to the resource
     writer match {
       case stringWriter: StringWriter =>
-        resource.writeString(stringWriter.toString)
+        resource.writeString(stringWriter.toString)(settings.codec.charSet)
       case _ =>
     }
   }

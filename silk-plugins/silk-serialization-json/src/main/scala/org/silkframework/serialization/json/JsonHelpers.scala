@@ -156,4 +156,15 @@ object JsonHelpers {
         readContext.identifierGenerator.generate(defaultId)
     }
   }
+
+  /** Returns the parsed object or throws a JsonParseException. */
+  def fromJsonValidated[T](json: JsValue)
+                          (implicit reads: Reads[T]): T = {
+    Json.fromJson[T](json) match {
+      case JsSuccess(obj, _) =>
+        obj
+      case JsError(errors) =>
+        throw JsonParseException("JSON parse error. Details: " + JsError.toJson(errors).toString())
+    }
+  }
 }

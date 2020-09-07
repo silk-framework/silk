@@ -2,6 +2,7 @@ package org.silkframework.plugins.dataset.csv
 
 import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
+import org.silkframework.plugins.dataset.csv.charset.CharsetAutocompletionProvider
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource._
@@ -25,15 +26,15 @@ case class CsvDataset (
   @Param("Character used to quote values.")
     quote: String = "\"",
   @deprecated("This will be removed in the next release.", "")
-  @Param("A pattern used to construct the entity URI. If not provided the prefix + the line number is used. An example of such a pattern is 'urn:zyx:{id}' where *id* is a name of a property.")
+  @Param(label = "URI pattern", value = "*Deprecated* A pattern used to construct the entity URI. If not provided the prefix + the line number is used. An example of such a pattern is 'urn:zyx:{id}' where *id* is a name of a property.", advanced = true)
     uri: String = "",
+  @Param(value = "The file encoding, e.g., UTF-8, UTF-8-BOM, ISO-8859-1", autoCompletionProvider = classOf[CharsetAutocompletionProvider])
+    charset: String = "UTF-8",
   @Param("A regex filter used to match rows from the CSV file. If not set all the rows are used.")
     regexFilter: String = "",
-  @Param("The file encoding, e.g., UTF8, ISO-8859-1")
-    charset: String = "UTF-8",
   @Param("The number of lines to skip in the beginning, e.g. copyright, meta information etc.")
     linesToSkip: Int = 0,
-  @Param("The maximum characters per column. If there are more characters found, the parser will fail.")
+  @Param(value = "The maximum characters per column. *Warning*: System will request heap memory of that size (2 bytes per character) when reading the CSV. If there are more characters found, the parser will fail.", advanced = true)
     maxCharsPerColumn: Int = CsvDataset.DEFAULT_MAX_CHARS_PER_COLUMN,
   @Param("If set to true then the parser will ignore lines that have syntax errors or do not have to correct number of fields according to the current config.")
     ignoreBadLines: Boolean = false,
@@ -59,11 +60,11 @@ case class CsvDataset (
   private def csvSource(resource: Resource, ignoreMalformed: Boolean = false): CsvSource = resource match{
     case ror: ReadOnlyResource => csvSource(ror.resource, ignoreMalformed)
     case rkt: ResourceWithKnownTypes => new CsvSource(resource, csvSettings, properties, uri,
-      regexFilter, codec, ignoreBadLines = ignoreBadLines,
+      regexFilter, ignoreBadLines = ignoreBadLines,
       ignoreMalformedInputExceptionInPropertyList = ignoreMalformed, specificTypeName = rkt.knownTypes.headOption
     )
     case _ => new CsvSource(resource, csvSettings, properties, uri,
-      regexFilter, codec, ignoreBadLines = ignoreBadLines,
+      regexFilter, ignoreBadLines = ignoreBadLines,
       ignoreMalformedInputExceptionInPropertyList = ignoreMalformed
     )
   }
