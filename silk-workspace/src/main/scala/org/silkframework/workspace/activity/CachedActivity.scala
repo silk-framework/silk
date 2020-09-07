@@ -35,16 +35,20 @@ trait CachedActivity[T] extends Activity[T] {
 
   // Externally set to mark this cache as dirty, e.g. by observing the source tasks for changes
   @volatile
-  var dirty: Boolean = false
+  private var dirty: Boolean = false
 
   /**
     * Overridden in implementing classes to load the cache into the context.value.
+    *
+    * @param fullReload If true, the cache should be fully (re)loaded
+    *                   If false, the cache should make an effort to only loaded changed entities.
     */
-  protected def loadCache(context: ActivityContext[T])
+  protected def loadCache(context: ActivityContext[T], fullReload: Boolean)
                          (implicit userContext: UserContext): Unit
 
   override def run(context: ActivityContext[T])
                   (implicit userContext: UserContext): Unit = {
+    val forceReload = dirty
     var currentDirty = true
     while(currentDirty) {
       dirty = false
@@ -53,27 +57,28 @@ trait CachedActivity[T] extends Activity[T] {
         if(resource.exists) {
           readValue(context) match {
             case Some(value) => context.value() = value
-            case None => update(context)
+            case None => update(context, forceReload)
           }
         } else {
           context.log.log(Level.INFO, s"No existing cache found at $resource. Loading cache...")
-          update(context)
+          update(context, forceReload)
         }
       } else {
-        update(context)
+        update(context, forceReload || dirty)
       }
       currentDirty = dirty // dirty flag may have changed in the meantime
     }
+    dirty = false
   }
 
-  private def update(context: ActivityContext[T])
+  private def update(context: ActivityContext[T], fullReload: Boolean)
                     (implicit userContext: UserContext)= {
     // Listen for value updates
     var updated = false
     val updateFunc = (value: T) => { updated = true }
     context.value.subscribe(updateFunc)
     // Update cache
-    this.loadCache(context)
+    this.loadCache(context, fullReload)
     // Persist value (if updated)
     if (updated)
       writeValue(context)

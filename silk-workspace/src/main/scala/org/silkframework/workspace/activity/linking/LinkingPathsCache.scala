@@ -56,7 +56,7 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
   /**
    * Loads the most frequent property paths.
    */
-  override def loadCache(context: ActivityContext[DPair[EntitySchema]])
+  override def loadCache(context: ActivityContext[DPair[EntitySchema]], fullReload: Boolean)
                         (implicit userContext: UserContext): Unit = {
     if(transformSpecObserverFunctions.isEmpty) {
       setTransformSpecObserverFunction()
@@ -64,14 +64,13 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
     context.status.update("Retrieving frequent property paths", 0.0)
 
     val currentEntityDescs = linkSpec.entityDescriptions
-    val (typeChanged: Boolean, emptyPaths: Boolean, update: Boolean) = updateCache(context, currentEntityDescs)
+    val (typeChanged: Boolean, emptyPaths: Boolean, update: Boolean) = updateCache(context, currentEntityDescs, fullReload)
 
     // Update paths
     if (update) {
       val updatedSchemata =
         for((dataSelection, entitySchema) <- linkSpec.dataSelections zip currentEntityDescs) yield {
-          if(dirty && !(emptyPaths || typeChanged)) {
-            dirty = false
+          if(fullReload && !(emptyPaths || typeChanged)) {
             // Only transformation sources changed
             if(task.project.taskOption[TransformSpec](dataSelection.inputId).isDefined) {
               updateSchema(dataSelection, entitySchema)
@@ -86,7 +85,7 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
     }
   }
 
-  private def updateCache(context: ActivityContext[DPair[EntitySchema]], currentEDs: DPair[EntitySchema]) = {
+  private def updateCache(context: ActivityContext[DPair[EntitySchema]], currentEDs: DPair[EntitySchema], fullReload: Boolean) = {
     //Create an entity description from the link specification
 
     //Check if the restriction has been changed
@@ -99,7 +98,7 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
       emptyPaths ||
           restrictionChanged ||
           typeChanged ||
-          dirty
+          fullReload
     (typeChanged, emptyPaths, update)
   }
 

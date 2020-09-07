@@ -15,7 +15,7 @@ class TypesCache(dataset: ProjectTask[GenericDatasetSpec]) extends CachedActivit
 
   override def initialValue: Option[Types] = Some(Types.empty)
 
-  override def loadCache(context: ActivityContext[Types])
+  override def loadCache(context: ActivityContext[Types], fullReload: Boolean)
                         (implicit userContext: UserContext): Unit = {
     val dataSource = dataset.source
     val types = Types(dataSource.retrieveTypes().toSeq)

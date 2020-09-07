@@ -15,43 +15,72 @@ class CachedActivityTest extends FlatSpec with MustMatchers with TestUserContext
 
   behavior of "CachedActivity"
 
-  // The value to be loaded and cached
-  private var currentValue = ""
+  private val initialValue = MetaData("Initial", modified = Some(Instant.ofEpochSecond(0L)))
+  private val value1 = MetaData("Label 1", modified = Some(Instant.ofEpochSecond(1L)))
+  private val value2 = MetaData("Label 2", modified = Some(Instant.ofEpochSecond(2L)))
+  private val value3 = MetaData("Label 3", modified = Some(Instant.ofEpochSecond(2L)))
 
-  private val initialValue = "Label 1"
-  private val updatedValue = "Label 2"
+  // The value to be loaded and cached
+  private var currentValue = initialValue
 
   it must "write the cache whenever the value has been updated" in {
     val cache = new TestCache()
     val cachedActivity = Activity(cache)
 
     // Make sure that the value will be written initially
-    currentValue = initialValue
+    currentValue = value1
     CacheResource.writeCount mustBe 0
     cachedActivity.startBlocking()
     CacheResource.writeCount mustBe 1
-    cachedActivity.value().label mustBe initialValue
-    loadWrittenValue.label mustBe initialValue
+    cachedActivity.value().label mustBe value1.label
+    loadWrittenValue.label mustBe value1.label
 
     // Make sure that no write happens if the value is not updated
     cachedActivity.startBlocking()
     CacheResource.writeCount mustBe 1
-    loadWrittenValue.label mustBe initialValue
+    loadWrittenValue.label mustBe value1.label
 
     // Make sure that a write happens if the value is updated
-    currentValue = updatedValue
+    currentValue = value2
     cachedActivity.startBlocking()
     CacheResource.writeCount mustBe 2
-    loadWrittenValue.label mustBe updatedValue
+    loadWrittenValue.label mustBe value2.label
   }
 
-  it must "read the cache initially" in {
+  it must "read the cache resource only once" in {
+    val cache = new TestCache()
+    val cachedActivity = Activity(cache)
+    val initialReadCount = CacheResource.readCount
+
+    cachedActivity.startBlocking()
+    CacheResource.readCount mustBe (initialReadCount + 1)
+
+    cachedActivity.startBlocking()
+    CacheResource.readCount mustBe (initialReadCount + 1)
+  }
+
+  it must "reload the cache if the dirty flag is set" in {
     val cache = new TestCache()
     val cachedActivity = Activity(cache)
 
-    cachedActivity.value().label must not be updatedValue
+    // Make sure that the current value is loaded initially
+    cache.loadCount = 0
+    cachedActivity.value().label must not be value2.label
     cachedActivity.startBlocking()
-    cachedActivity.value().label mustBe updatedValue
+    cache.loadCount = 1
+    cachedActivity.value().label mustBe value2.label
+
+    // Set a new value with the same modified date, so the cache will not update by itself
+    currentValue = value3
+    cachedActivity.startBlocking()
+    cache.loadCount = 2
+    cachedActivity.value().label mustBe value2.label
+
+    // Setting dirty forces an update
+    cache.startDirty(cachedActivity)
+    cachedActivity.waitUntilFinished()
+    cache.loadCount = 3
+    cachedActivity.value().label mustBe value3.label
   }
 
   /**
@@ -65,18 +94,22 @@ class CachedActivityTest extends FlatSpec with MustMatchers with TestUserContext
 
   /**
     * A cache that writes some meta data for testing.
-    * We only consider the label in this test.
+    * The label will be reloaded if the modified date is newer.
     */
   class TestCache() extends CachedActivity[MetaData] {
 
+    // The number of times loadCache has been called
+    var loadCount = 0
+
     override def name: String = "Test cache"
 
-    override def initialValue: Option[MetaData] = Some(MetaData.empty)
+    override def initialValue: Option[MetaData] = Some(CachedActivityTest.this.initialValue)
 
-    override def loadCache(context: ActivityContext[MetaData])
+    override def loadCache(context: ActivityContext[MetaData], fullReload: Boolean)
                           (implicit userContext: UserContext): Unit = {
-      if(context.value().label != currentValue) {
-        context.value() = MetaData(currentValue)
+      loadCount += 1
+      if(currentValue.modified.get.isAfter(context.value().modified.get) || fullReload) {
+        context.value() = currentValue
       }
     }
 
@@ -90,10 +123,18 @@ class CachedActivityTest extends FlatSpec with MustMatchers with TestUserContext
     */
   object CacheResource extends WritableResource {
 
+    // The number of times the cache has been read
+    var readCount = 0
+
     // The number of times the cache has been written
     var writeCount = 0
 
     private val resource = InMemoryResourceManager().get("cache")
+
+    override def inputStream: InputStream = {
+      readCount += 1
+      resource.inputStream
+    }
 
     override def write(append: Boolean)(write: OutputStream => Unit): Unit = {
       resource.write(append)(write)
@@ -106,7 +147,6 @@ class CachedActivityTest extends FlatSpec with MustMatchers with TestUserContext
     override def exists: Boolean = resource.exists
     override def size: Option[Long] = resource.size
     override def modificationTime: Option[Instant] = resource.modificationTime
-    override def inputStream: InputStream = resource.inputStream
   }
 
 }
