@@ -9,12 +9,14 @@ import {
     ApplicationToolbarPanel,
     ApplicationToolbarSection,
     BreadcrumbList,
+    Button,
     ContextMenu,
     Icon,
     IconButton,
     Menu,
     MenuDivider,
     MenuItem,
+    OverflowText,
     OverviewItem,
     OverviewItemActions,
     OverviewItemDepiction,
@@ -22,7 +24,7 @@ import {
     OverviewItemLine,
     TitlePage,
     WorkspaceHeader,
-} from "@wrappers/index";
+} from "@gui-elements/index";
 import ItemDepiction from "./ItemDepiction";
 import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
@@ -38,6 +40,10 @@ import { routerOp } from "@ducks/router";
 import { IItemLink } from "@ducks/shared/typings";
 import { requestItemLinks, requestTaskItemInfo } from "@ducks/shared/requests";
 import { IPageLabels } from "@ducks/router/operations";
+import { DATA_TYPES } from "../../../constants";
+import { IExportTypes } from "@ducks/common/typings";
+import { downloadResource } from "../../../utils/downloadResource";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];
@@ -57,6 +63,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
     const [itemType, setItemType] = useState<string | null>(null);
 
     const isAuth = useSelector(commonSel.isAuthSelector);
+    const exportTypes = useSelector(commonSel.exportTypesSelector);
 
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [cloneModalOpen, setCloneModalOpen] = useState(false);
@@ -72,6 +79,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
     const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
 
     const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
+    const [t] = useTranslation();
 
     // Update task type
     useEffect(() => {
@@ -79,7 +87,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
             setItemType(location.state.pageLabels.itemType);
         } else {
             if (projectId && !taskId) {
-                setItemType("project");
+                setItemType(DATA_TYPES.PROJECT);
             } else if (projectId && taskId) {
                 if (!location.state?.pageLabels) {
                     location.state = { ...location.state };
@@ -139,6 +147,13 @@ function HeaderComponent({ breadcrumbs }: IProps) {
         dispatch(routerOp.goToPage(detailsPage));
     };
 
+    const handleBreadcrumbItemClick = (itemUrl, e) => {
+        e.preventDefault();
+        if (itemUrl) {
+            dispatch(routerOp.goToPage(itemUrl, {}));
+        }
+    };
+
     const getWindowTitle = (projectId) => {
         // $title ($artefactLabel) at $breadcrumbsWithoutTitle — $companyName $applicationTitle
         let fullTitle = startTitle;
@@ -154,7 +169,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
             const paths = location.pathname.split("/");
             const projectInd = paths.indexOf(projectId);
 
-            let datasetType = "project";
+            let datasetType = DATA_TYPES.PROJECT;
             // for task type it next to project id
             if (paths[projectInd + 1]) {
                 datasetType = paths[projectInd + 1];
@@ -186,6 +201,14 @@ function HeaderComponent({ breadcrumbs }: IProps) {
         projectId: taskId ? projectId : undefined,
     };
 
+    const handleExport = (type: IExportTypes) => {
+        downloadResource(itemData.id, type.id);
+    };
+
+    const handleLanguageChange = (locale: string) => {
+        dispatch(commonOp.changeLocale(locale));
+    };
+
     return !isAuth ? null : (
         <ApplicationHeader aria-label={APPLICATION_SUITE_NAME + ": " + APPLICATION_NAME}>
             {/*
@@ -207,16 +230,14 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                 )
             }
             <WorkspaceHeader>
-                <Helmet>
-                    <title>{windowTitle}</title>
-                </Helmet>
+                <Helmet title={windowTitle} />
                 <OverviewItem>
                     <OverviewItemDepiction>
                         <ItemDepiction itemType={itemType} />
                     </OverviewItemDepiction>
                     <OverviewItemDescription>
                         <OverviewItemLine small>
-                            <BreadcrumbList items={breadcrumbs} />
+                            <BreadcrumbList items={breadcrumbs} onItemClick={handleBreadcrumbItemClick} />
                         </OverviewItemLine>
                         {lastBreadcrumb && (
                             <OverviewItemLine large>
@@ -229,12 +250,36 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                             <>
                                 <IconButton
                                     name="item-remove"
-                                    text={taskId ? "Remove task" : "Remove project"}
+                                    text={t("common.action.RemoveSmth", {
+                                        smth: taskId
+                                            ? t("common.dataTypes.task", "Task")
+                                            : t("common.dataTypes.project", "Project"),
+                                    })}
                                     disruptive
                                     onClick={toggleDeleteModal}
+                                    data-test-id={"header-remove-button"}
                                 />
                                 <ContextMenu>
-                                    <MenuItem key={"clone"} text={"Clone"} onClick={toggleCloneModal} />
+                                    <MenuItem
+                                        key={"clone"}
+                                        text={t("common.action.clone", "Clone")}
+                                        onClick={toggleCloneModal}
+                                        data-test-id={"header-clone-button"}
+                                    />
+                                    {itemType === DATA_TYPES.PROJECT && !!exportTypes.length && (
+                                        <MenuItem key="export" text={t("common.action.exportTo", "Export to")}>
+                                            {exportTypes.map((type) => (
+                                                <MenuItem
+                                                    key={type.id}
+                                                    onClick={() => handleExport(type)}
+                                                    text={
+                                                        <OverflowText inline>{type.label}</OverflowText>
+                                                        /* TODO: change this OverflowText later to a multiline=false option on MenuItem, seenms to be a new one*/
+                                                    }
+                                                />
+                                            ))}
+                                        </MenuItem>
+                                    )}
                                     {itemLinks.map((itemLink) => (
                                         <MenuItem key={itemLink.path} text={itemLink.label} href={itemLink.path} />
                                     ))}
@@ -261,15 +306,27 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                         </ApplicationToolbarAction>
                         <ApplicationToolbarPanel aria-label="User menu" expanded={true}>
                             <Menu>
-                                <MenuItem text={"Back to old workspace"} href={CONTEXT_PATH + "/workspace"} />
-                                <MenuItem text={"Activity overview"} href={CONTEXT_PATH + "/workspace/allActivities"} />
+                                <div>
+                                    <Button onClick={() => handleLanguageChange("en")}>En</Button>
+                                    <Button onClick={() => handleLanguageChange("de")}>De</Button>
+                                </div>
+                                <MenuDivider />
+                                <MenuItem
+                                    text={t("common.action.backOld", "Back to old workspace")}
+                                    href={CONTEXT_PATH + "/workspace"}
+                                />
+                                <MenuItem
+                                    text={t("common.action.activity", "Activity overview")}
+                                    href={CONTEXT_PATH + "/workspace/allActivities"}
+                                />
                                 {iFrameDetection && (
                                     <>
                                         <MenuDivider />
                                         <MenuItem
-                                            text="Logout"
+                                            id={"logoutAction"}
+                                            text={t("common.action.logout", "Logout")}
                                             onClick={() => {
-                                                dispatch(commonOp.logout());
+                                                dispatch(commonOp.logoutFromDi());
                                             }}
                                         />
                                     </>
@@ -279,6 +336,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                     </>
                 ) : (
                     <ApplicationToolbarAction
+                        id={"headerUserMenu"}
                         aria-label="Open user menu"
                         isActive={false}
                         onClick={() => {

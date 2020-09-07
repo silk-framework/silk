@@ -1,6 +1,7 @@
 import { Autocomplete, IAutocompleteProps } from "../../Autocomplete/Autocomplete";
-import { FieldItem } from "@wrappers/index";
+import { FieldItem } from "@gui-elements/index";
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     autocomplete: IAutocompleteProps;
@@ -27,6 +28,7 @@ export function SelectFileFromExisting(props: IProps) {
     const selectedValueState = useState(defaultValue);
     const setSelectedValue = selectedValueState[1];
     const [error, setError] = useState(false);
+    const [t] = useTranslation();
 
     const handleChange = (value: string) => {
         setError(!value);
@@ -38,11 +40,11 @@ export function SelectFileFromExisting(props: IProps) {
     return (
         <FieldItem
             labelAttributes={{
-                text: "Select file from projects",
-                info: "required",
+                text: t("FileUploader.selectFromProject", "Select file from projects"),
+                info: t("common.words.required"),
                 htmlFor: "autocompleteInput",
             }}
-            messageText={error ? "File not specified" : ""}
+            messageText={error ? t("FileUploader.fileNotSpecified") : ""}
         >
             <Autocomplete {...autocomplete} onChange={handleChange} />
         </FieldItem>

@@ -1,5 +1,6 @@
 import { IArtefactItem, IArtefactModal, ICommonState } from "./typings";
-import { getLocale } from "./thunks/locale.thunk";
+import Store from "store";
+import { DEFAULT_LANG } from "../../../constants/base";
 
 export function initialArtefactModalState(): IArtefactModal {
     return {
@@ -16,7 +17,7 @@ export function initialArtefactModalState(): IArtefactModal {
 
 export function initialCommonState(): ICommonState {
     return {
-        locale: getLocale(),
+        locale: Store.get("locale") || DEFAULT_LANG,
         currentProjectId: null,
         currentTaskId: null,
         authenticated: true,
@@ -24,6 +25,7 @@ export function initialCommonState(): ICommonState {
         error: {},
         availableDataTypes: {},
         initialSettings: {},
+        exportTypes: [],
         artefactModal: initialArtefactModalState(),
     };
 }

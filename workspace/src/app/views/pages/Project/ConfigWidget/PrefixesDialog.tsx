@@ -2,12 +2,13 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { IPrefixState } from "@ducks/workspace/typings";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { Button, SimpleDialog } from "@wrappers/index";
+import { Button, SimpleDialog } from "@gui-elements/index";
 import PrefixRow from "./PrefixRow";
 import DeleteModal from "../../../shared/modals/DeleteModal";
 import PrefixNew from "./PrefixNew";
 import DataList from "../../../shared/Datalist";
 import Loading from "../../../shared/Loading";
+import { useTranslation } from "react-i18next";
 
 const PrefixesDialog = ({ onCloseModal, isOpen }) => {
     const dispatch = useDispatch();
@@ -19,6 +20,8 @@ const PrefixesDialog = ({ onCloseModal, isOpen }) => {
 
     const [isOpenRemove, setIsOpenRemove] = useState<boolean>(false);
     const [selectedPrefix, setSelectedPrefix] = useState<IPrefixState>(null);
+
+    const [t] = useTranslation();
 
     const toggleRemoveDialog = (prefix?: IPrefixState) => {
         if (!prefix || isOpenRemove) {
@@ -53,13 +56,13 @@ const PrefixesDialog = ({ onCloseModal, isOpen }) => {
 
     return (
         <SimpleDialog
-            title="Manage Prefixes"
+            title={t("widget.ConfigWidget.prefixTitle", "Manage Prefixes")}
             isOpen={isOpen}
             onClose={onCloseModal}
-            actions={<Button onClick={() => onCloseModal()}>Close</Button>}
+            actions={<Button onClick={() => onCloseModal()}>{t("common.action.close")}</Button>}
         >
             {isLoading ? (
-                <Loading description="Loading prefix configuration." />
+                <Loading description={t("widget.ConfigWidget.loadingPrefix", "Loading prefix configuration.")} />
             ) : (
                 <>
                     <PrefixNew
@@ -78,9 +81,9 @@ const PrefixesDialog = ({ onCloseModal, isOpen }) => {
                 isOpen={isOpenRemove}
                 onDiscard={() => toggleRemoveDialog()}
                 onConfirm={handleConfirmRemove}
-                title={"Delete prefix"}
+                title={t("common.action.DeleteSmth", { smth: t("widget.ConfigWidget.prefix") })}
             >
-                <p>{`Prefix '${selectedPrefix?.prefixName ? selectedPrefix.prefixName : ""}' will be deleted.`}</p>
+                <p>{t("PrefixDialog.deletePrefix", { prefixName: selectedPrefix ? selectedPrefix.prefixName : "" })}</p>
             </DeleteModal>
         </SimpleDialog>
     );

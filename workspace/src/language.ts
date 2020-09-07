@@ -1,43 +1,22 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
-import en from "./translations/en.json";
-import de from "./translations/de.json";
+import en from "./locales/en.json";
+import de from "./locales/de.json";
+import { isDevelopment } from "./app/constants/path";
+import Store from "store";
+import { DEFAULT_LANG } from "./app/constants/base";
 
-i18n
-    .use(initReactI18next)
+i18n.use(initReactI18next)
     .use(LanguageDetector)
     .init({
         resources: {
-            en: {
-                translation: {
-                    // general
-                    languageIntroduction: `This site has multi language support.
-                    The following languages are supported: '{{languages}}'.
-                    The currently choosen is '{{language}}'.
-                    The Fallback language is '{{fallbackLanguage}}'.`,
-                    switchLanguage: 'Switch language',
-                    // standard button label. the text should be provided by gui-elements
-                    cancel: 'Cancel',
-                    ...en,
-                }
-            },
-            de: {
-                translation: {
-                    // general
-                    languageIntroduction: `Diese Seite ist in mehreren Sprachen verfügrbar.
-                    Die folgenden Sprachen existieren: '{{languages}}'.
-                    Die aktuell ausgewählte ist '{{language}}'.
-                    Die Ersatzsprache ist '{{fallbackLanguage}}'.`,
-                    switchLanguage: 'Sprache wechseln',
-                    // standard button label. the text should be provided by gui-elements
-                    cancel: 'Abbrechen',
-                    ...de,
-                }
-            },
+            en: { translation: en },
+            de: { translation: de },
         },
-        fallbackLng: "en",
-        interpolation: {
-            escapeValue: false
-        }
+        debug: isDevelopment,
+        interpolation: {},
+        lng: Store.get("locale") || DEFAULT_LANG,
     });
+
+export default i18n;

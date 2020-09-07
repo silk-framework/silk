@@ -1,6 +1,6 @@
 import fetch from "../../../services/fetch";
-import { coreApi, workspaceApi } from "../../../utils/getApiEndpoint";
-import { IDetailedArtefactItem } from "@ducks/common/typings";
+import { coreApi, legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
+import { IDetailedArtefactItem, IOverviewArtefactItemList, IExportTypes } from "@ducks/common/typings";
 
 const handleError = (error) => {
     return error.errorResponse;
@@ -40,7 +40,7 @@ export const requestSearchConfig = async (projectId?: string): Promise<any | nev
  * Get plugins list
  * @param payload
  */
-export const requestArtefactList = async (payload: any): Promise<any | never> => {
+export const requestArtefactList = async (payload: any): Promise<IOverviewArtefactItemList | never> => {
     try {
         const { data } = await fetch({
             url: coreApi("/taskPlugins"),
@@ -60,6 +60,20 @@ export const requestArtefactProperties = async (artefactKey: string): Promise<ID
     try {
         const { data } = await fetch({
             url: coreApi(`/plugins/${artefactKey}`),
+        });
+        return data;
+    } catch (e) {
+        throw handleError(e);
+    }
+};
+
+/**
+ * Get all available import/export types
+ */
+export const requestExportTypes = async (): Promise<IExportTypes> => {
+    try {
+        const { data } = await fetch({
+            url: legacyApiEndpoint(`/marshallingPlugins`),
         });
         return data;
     } catch (e) {

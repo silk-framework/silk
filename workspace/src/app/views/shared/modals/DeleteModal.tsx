@@ -1,6 +1,7 @@
 import React, { ReactElement, useState } from "react";
-import { AlertDialog, Button, Checkbox, FieldItem, HtmlContentBlock, Notification, Spacing } from "@wrappers/index";
+import { AlertDialog, Button, Checkbox, FieldItem, HtmlContentBlock, Notification, Spacing } from "@gui-elements/index";
 import { Loading } from "../Loading/Loading";
+import { useTranslation } from "react-i18next";
 
 export interface IDeleteModalOptions {
     isOpen: boolean;
@@ -35,6 +36,7 @@ export default function DeleteModal({
     };
 
     const otherContent = !!render ? render() : null;
+    const [t] = useTranslation();
 
     return (
         <AlertDialog
@@ -52,11 +54,12 @@ export default function DeleteModal({
                             disruptive
                             onClick={onConfirm}
                             disabled={confirmationRequired && !isConfirmed}
+                            data-test-id={"remove-item-button"}
                         >
-                            Delete
+                            {t("common.action.delete", "Delete")}
                         </Button>,
                         <Button key="cancel" onClick={onDiscard}>
-                            Cancel
+                            {t("common.action.cancel", "Cancel")}
                         </Button>,
                     ]
                 )
@@ -82,7 +85,7 @@ export default function DeleteModal({
             )}
             {confirmationRequired && (
                 <FieldItem>
-                    <Checkbox onChange={toggleConfirmChange} label={"Confirm"} />
+                    <Checkbox onChange={toggleConfirmChange} label={t("common.action.confirm", "Confirm")} />
                 </FieldItem>
             )}
         </AlertDialog>

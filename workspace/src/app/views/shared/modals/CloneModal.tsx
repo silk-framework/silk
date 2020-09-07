@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Button, FieldItem, Notification, SimpleDialog, Spacing, TextField } from "@wrappers/index";
+import { Button, FieldItem, Notification, SimpleDialog, Spacing, TextField } from "@gui-elements/index";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { Loading } from "../Loading/Loading";
+import { useTranslation } from "react-i18next";
 
 export interface ICloneOptions {
     item: Partial<ISearchResultsServer>;
@@ -19,6 +20,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<ErrorResponse | null>(null);
     const [label, setLabel] = useState<string | null>(item.label);
+    const [t] = useTranslation();
 
     useEffect(() => {
         prepareCloning();
@@ -72,15 +74,27 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     ) : (
         <SimpleDialog
             size="small"
-            title={`Clone ${item.projectId ? "task" : "project"} '${label || item.label || item.id}'`}
+            title={
+                t("common.action.CloneSmth", {
+                    smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
+                }) + label ||
+                item.label ||
+                item.id
+            }
             isOpen={true}
             onClose={onDiscard}
             actions={[
-                <Button key="clone" affirmative onClick={handleCloning} disabled={!newLabel}>
-                    Clone
+                <Button
+                    key="clone"
+                    affirmative
+                    onClick={handleCloning}
+                    disabled={!newLabel}
+                    data-test-id={"clone-modal-button"}
+                >
+                    {t("common.action.clone")}
                 </Button>,
                 <Button key="cancel" onClick={onDiscard}>
-                    Cancel
+                    {t("common.action.cancel")}
                 </Button>,
             ]}
         >
@@ -88,7 +102,9 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 key={"label"}
                 labelAttributes={{
                     htmlFor: "label",
-                    text: `Label of cloned ${item.projectId ? "task" : "project"}:`,
+                    text: t("common.messages.cloneModalTitle", {
+                        item: item.projectId ? t("common.dataTypes.task") : t("common.dataTypes.project"),
+                    }),
                 }}
             >
                 <TextField onChange={(e) => setNewLabel(e.target.value)} value={newLabel} />

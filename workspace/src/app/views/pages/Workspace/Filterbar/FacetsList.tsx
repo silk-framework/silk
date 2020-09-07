@@ -3,10 +3,12 @@ import { IFacetState } from "@ducks/workspace/typings";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import FacetItem from "./FacetItem";
-import { Button, HelperClasses, Icon, Spacing, TitleSubsection } from "@wrappers/index";
+import { Button, HelperClasses, Icon, Spacing, TitleSubsection } from "@gui-elements/index";
+import { useTranslation } from "react-i18next";
 
 export default function FacetsList() {
     const dispatch = useDispatch();
+    const [t] = useTranslation();
 
     const facets = useSelector(workspaceSel.facetsSelector);
     const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
@@ -57,36 +59,51 @@ export default function FacetsList() {
                 <div className={HelperClasses.Typography.NOOVERFLOW} key={facet.id}>
                     <TitleSubsection>
                         <h3>
-                            {facet.label}
+                            {t(`widget.FacetsList.facet.${facet.id}.label`, facet.label)}
                             <Spacing size="tiny" vertical />
-                            <Icon name="item-info" small tooltipText={facet.description} />
+                            <Icon
+                                name="item-info"
+                                small
+                                tooltipText={t(`widget.FacetsList.facet.${facet.id}.description`, facet.description)}
+                            />
                         </h3>
                     </TitleSubsection>
                     <Spacing size="tiny" />
                     <ul>
                         {visibleFacetsKeywords[facet.id] &&
-                            visibleFacetsKeywords[facet.id].map((val) => (
-                                <li key={val.id}>
-                                    <FacetItem
-                                        isChecked={isChecked(facet.id, val.id)}
-                                        value={val.id}
-                                        onSelectFacet={(valueId) => handleSetFacet(facet, valueId)}
-                                        label={
-                                            <>
-                                                <span className={HelperClasses.Typography.FORCELINEBREAK}>
-                                                    {val.label}
-                                                </span>
-                                                <span> ({val.count})</span>
-                                            </>
-                                        }
-                                    />
-                                </li>
-                            ))}
+                            visibleFacetsKeywords[facet.id].map((val) => {
+                                const key = `${val.id}-${facet.id}`;
+                                return (
+                                    <li key={key}>
+                                        <FacetItem
+                                            data-test-id={"facet-items"}
+                                            isChecked={isChecked(facet.id, val.id)}
+                                            value={val.id}
+                                            onSelectFacet={(valueId) => handleSetFacet(facet, valueId)}
+                                            label={
+                                                <>
+                                                    <span className={HelperClasses.Typography.FORCELINEBREAK}>
+                                                        {t(
+                                                            `widget.FacetsList.facet.${facet.id}.valueLabels.${val.id}`,
+                                                            val.label
+                                                        )}
+                                                    </span>
+                                                    <span> ({val.count})</span>
+                                                </>
+                                            }
+                                        />
+                                    </li>
+                                );
+                            })}
                         {facet.values.length > FACETS_PREVIEW_LIMIT && (
                             <li>
                                 <Button
                                     onClick={() => toggleShowMore(facet)}
-                                    text={toggledFacets.includes(facet.id) ? "show less" : "show more"}
+                                    text={t("common.action.ShowSmth", {
+                                        smth: toggledFacets.includes(facet.id)
+                                            ? t("common.words.less", "less")
+                                            : t("common.words.more"),
+                                    })}
                                     rightIcon={
                                         toggledFacets.includes(facet.id) ? "toggler-showless" : "toggler-showmore"
                                     }

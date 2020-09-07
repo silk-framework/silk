@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardOptions, CardTitle, Divider, IconButton } from "@wrappers/index";
+import { Card, CardContent, CardHeader, CardOptions, CardTitle, Divider, IconButton } from "@gui-elements/index";
 import { useDispatch, useSelector } from "react-redux";
 import { commonOp, commonSel } from "@ducks/common";
 import { requestTaskData } from "@ducks/shared/requests";
@@ -9,6 +9,7 @@ import { TaskConfigPreview } from "./TaskConfigPreview";
 import { IProjectTask } from "@ducks/shared/typings";
 import { IDetailedArtefactItem } from "@ducks/common/typings";
 import { commonSlice } from "@ducks/common/commonSlice";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     projectId: string;
@@ -30,6 +31,7 @@ export function TaskConfig(props: IProps) {
     const { isOpen } = useSelector(commonSel.artefactModalSelector);
     const taskId = useSelector(commonSel.currentTaskIdSelector);
     const { cachedArtefactProperties } = useSelector(commonSel.artefactModalSelector);
+    const [t] = useTranslation();
 
     // Fetch artefact description from cache or fetch and update
     const artefactProperties = async (artefactId: string) => {
@@ -70,8 +72,10 @@ export function TaskConfig(props: IProps) {
         try {
             // Fetch data for preview of config
             const taskData = await requestTaskData(props.projectId, props.taskId, true);
-            const taskDescription = await artefactProperties(taskData.data.type);
-            setLabelledTaskData({ taskData, taskDescription });
+            if (taskData?.data?.type) {
+                const taskDescription = await artefactProperties(taskData.data.type);
+                setLabelledTaskData({ taskData, taskDescription });
+            }
         } finally {
             setLoading(false);
         }
@@ -89,10 +93,13 @@ export function TaskConfig(props: IProps) {
     }
 
     return (
-        <Card>
+        <Card data-test-id={"taskConfigWidget"}>
             <CardHeader>
                 <CardTitle>
-                    <h3>Configuration{titlePostfix}</h3>
+                    <h3>
+                        {t("widget.TaskConfigWidget.title", "Configuration")}
+                        {titlePostfix}
+                    </h3>
                 </CardTitle>
                 <CardOptions>
                     <IconButton name={"item-edit"} text={"Configure"} onClick={openConfigModal} />
@@ -101,7 +108,7 @@ export function TaskConfig(props: IProps) {
             <Divider />
             <CardContent>
                 {loading ? (
-                    <Loading description={"Loading update dialog..."} />
+                    <Loading description={t("widget.TaskConfigWidget.loading", "Loading update dialog...")} />
                 ) : (
                     <TaskConfigPreview {...labelledTaskData} />
                 )}
