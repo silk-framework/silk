@@ -33,8 +33,8 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity
     pathsCache.start()
   }
 
-  override def run(context: ActivityContext[ReferenceEntities])
-                  (implicit userContext: UserContext): Unit = {
+  override def loadCache(context: ActivityContext[ReferenceEntities])
+                        (implicit userContext: UserContext): Unit = {
     cancelled = false
     context.status.update("Waiting for paths cache", 0.0)
     val pathsCache = task.activity[LinkingPathsCache].control

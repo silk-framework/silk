@@ -56,8 +56,8 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
   /**
    * Loads the most frequent property paths.
    */
-  override def run(context: ActivityContext[DPair[EntitySchema]])
-                  (implicit userContext: UserContext): Unit = {
+  override def loadCache(context: ActivityContext[DPair[EntitySchema]])
+                        (implicit userContext: UserContext): Unit = {
     if(transformSpecObserverFunctions.isEmpty) {
       setTransformSpecObserverFunction()
     }

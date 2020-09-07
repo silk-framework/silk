@@ -16,8 +16,8 @@ class VocabularyCache(task: ProjectTask[TransformSpec]) extends CachedActivity[V
 
   override def initialValue: Option[VocabularyCacheValue] = Some(new VocabularyCacheValue(Seq.empty))
 
-  override def run(context: ActivityContext[VocabularyCacheValue])
-                  (implicit userContext: UserContext): Unit = {
+  override def loadCache(context: ActivityContext[VocabularyCacheValue])
+                        (implicit userContext: UserContext): Unit = {
     val transform = task.data
     if(transform.targetVocabularies.nonEmpty) {
       val vocabManager = VocabularyManager()

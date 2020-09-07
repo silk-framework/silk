@@ -42,8 +42,8 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
   /**
    * Loads the most frequent paths.
    */
-  override def run(context: ActivityContext[CachedEntitySchemata])
-                  (implicit userContext: UserContext): Unit = {
+  override def loadCache(context: ActivityContext[CachedEntitySchemata])
+                        (implicit userContext: UserContext): Unit = {
     val transform = transformTask.data
 
     if(datasetObserverFunctions.isEmpty) {

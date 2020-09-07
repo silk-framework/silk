@@ -37,6 +37,12 @@ trait CachedActivity[T] extends Activity[T] {
   @volatile
   var dirty: Boolean = false
 
+  /**
+    * Overridden in implementing classes to load the cache into the context.value.
+    */
+  protected def loadCache(context: ActivityContext[T])
+                         (implicit userContext: UserContext): Unit
+
   override def run(context: ActivityContext[T])
                   (implicit userContext: UserContext): Unit = {
     var currentDirty = true
@@ -67,7 +73,7 @@ trait CachedActivity[T] extends Activity[T] {
     val updateFunc = (value: T) => { updated = true }
     context.value.subscribe(updateFunc)
     // Update cache
-    this.run(context)
+    this.loadCache(context)
     // Persist value (if updated)
     if (updated)
       writeValue(context)
