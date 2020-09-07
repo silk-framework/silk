@@ -82,6 +82,7 @@ export const createStore = (history: History<{}>, initialState: RecursivePartial
     // Create store with merged state
     return configureStore({
         reducer: root,
+        middleware,
         preloadedState: state,
     });
 };

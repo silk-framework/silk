@@ -256,9 +256,13 @@ describe("Task creation widget", () => {
         expect(data.parameters.objectParameter.subStringParam).toEqual("Something");
         expect(data.parameters.stringParam).toEqual("default string");
         // Test redirection to task details page
-        // const newTaskId = "newTaskId"
-        // mockAxiosResponse(tasksUri, { data: { id: newTaskId } })
-        // For some reason the history does not reflect the latest 'push'.
+        const newTaskId = "newTaskId";
+        mockAxiosResponse(tasksUri, { data: { id: newTaskId } });
+        await waitFor(() => {
+            expect(history.location.pathname).toEqual(
+                expect.stringMatching(new RegExp(`projects/${PROJECT_ID}/task/${newTaskId}$`))
+            );
+        });
     });
 
     it("should show an error message if task creation failed in the backend", async () => {
