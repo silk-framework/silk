@@ -49,19 +49,19 @@
 
         <div class="link-source">
           @sortableHeader(SourceUriSorterAscending, SourceUriSorterDescending) {
-            Source:
-            <span class="source-value">
-              @task.data.dataSelections.source.inputId
-            </span>
+          Source:
+          <span class="source-value">
+            @linkResolvers.source.taskLabel
+          </span>
           }
         </div>
 
         <div class="link-target">
           @sortableHeader(TargetUriSorterAscending, TargetUriSorterDescending) {
           Target:
-              <span class="source-value">
-                @task.data.dataSelections.target.inputId
-              </span>
+          <span class="target-value">
+            @linkResolvers.target.taskLabel
+          </span>
           }
         </div>
 
