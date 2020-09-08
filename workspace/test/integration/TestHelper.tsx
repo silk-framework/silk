@@ -1,5 +1,5 @@
 import React from "react";
-import { History } from "history";
+import { createMemoryHistory, History } from "history";
 import { EnzymePropSelector, mount, ReactWrapper } from "enzyme";
 import { Provider } from "react-redux";
 import { AppLayout } from "../../src/app/views/layout/AppLayout/AppLayout";
@@ -23,8 +23,13 @@ import {
 } from "../../src/app/services/fetch/responseInterceptor";
 import { AxiosError } from "axios";
 
-const mockValues = {
-    pathName: "/what?",
+interface IMockValues {
+    history: History;
+    useParams: Record<string, string>;
+}
+
+const mockValues: IMockValues = {
+    history: createMemoryHistory(),
     useParams: {
         projectId: "Set me via TestHelper.setUseParams!",
         taskId: "Set me via TestHelper.setUseParams!",
@@ -36,11 +41,7 @@ const host = process.env.HOST;
 jest.mock("../../src/app/store/configureStore", () => {
     return {
         getHistory: jest.fn().mockImplementation(() => {
-            return {
-                location: {
-                    pathname: mockValues.pathName,
-                },
-            };
+            return mockValues.history;
         }),
     };
 });
@@ -81,6 +82,7 @@ export const createStore = (history: History<{}>, initialState: RecursivePartial
     // Create store with merged state
     return configureStore({
         reducer: root,
+        middleware,
         preloadedState: state,
     });
 };
@@ -106,7 +108,7 @@ export const testWrapper = (
 ) => {
     const store = createStore(history, initialState);
     // Set path name of global mock
-    mockValues.pathName = history?.location?.pathname;
+    mockValues.history = history;
 
     return (
         <Provider store={store}>
