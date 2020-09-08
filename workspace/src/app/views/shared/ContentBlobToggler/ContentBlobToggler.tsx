@@ -32,6 +32,9 @@ interface IContentBlobTogglerProps {
         render function that could alter full view content, e.g. processing markdown content
     */
     renderContentFullview?(contenFullview: JSX.Element | string): JSX.Element | string;
+    /** render function that could alter the preview content.
+     * Default: For string previews it only displays the first non-empty line. */
+    renderContentPreview?(contentPreview: JSX.Element | string): JSX.Element | string;
     /**
         show extended full view initially
     */
@@ -56,6 +59,16 @@ export function ContentBlobToggler({
     renderContentFullview = (content) => {
         return content;
     },
+    // By default only the first non-empty line of a multi-line string is shown and truncated to 'previewMaxLength'.
+    renderContentPreview = (preview) => {
+        if (typeof preview === "string") {
+            const previewString = preview.trim();
+            const result = newLineRegex.exec(previewString);
+            return result !== null ? previewString.substr(0, result.index) : previewString;
+        } else {
+            return preview;
+        }
+    },
     startExtended = false,
     showAlwaysToggler = false,
     ...otherProps
@@ -67,22 +80,13 @@ export function ContentBlobToggler({
         setViewState(!isExtended);
     };
 
-    const extractPreviewPart = () => {
-        const previewString = (contentPreview as string).trim();
-        const result = newLineRegex.exec(previewString);
-        let p = previewString;
-        if (result !== null) {
-            p = previewString.substr(0, result.index);
-        }
-        return p.substr(0, previewMaxLength);
-    };
-
     const trimmedFullContent = () => (typeof contentFullview === "string" ? contentFullview.trim() : contentFullview);
 
+    const renderedPreviewContent = renderContentPreview(contentPreview);
     const contentPreviewMinimized =
-        typeof contentPreview === "string" && (previewMaxLength > 0 || newLineRegex.test(contentPreview))
-            ? extractPreviewPart()
-            : contentPreview;
+        typeof renderedPreviewContent === "string" && previewMaxLength > 0
+            ? renderedPreviewContent.substr(0, previewMaxLength)
+            : renderedPreviewContent;
 
     return (
         <div className={className} {...otherProps}>
