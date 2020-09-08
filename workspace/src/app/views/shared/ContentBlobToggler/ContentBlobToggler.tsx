@@ -43,6 +43,8 @@ interface IContentBlobTogglerProps {
     [otherProps: string]: any;
 }
 
+const newLineRegex = new RegExp("\r|\n");
+
 export function ContentBlobToggler({
     className = "",
     previewMaxLength = -1,
@@ -51,43 +53,72 @@ export function ContentBlobToggler({
     textToggleReduce = "show less",
     contentPreview,
     contentFullview,
-    renderContentFullview = (content) => {return content},
+    renderContentFullview = (content) => {
+        return content;
+    },
     startExtended = false,
     showAlwaysToggler = false,
     ...otherProps
-
 }: IContentBlobTogglerProps) {
-
     const [isExtended, setViewState] = useState(startExtended);
     const handlerToggleView = (event) => {
         event.preventDefault();
         event.stopPropagation();
         setViewState(!isExtended);
-    }
+    };
 
-    const contentPreviewMinimized = (typeof contentPreview === "string" && previewMaxLength > 0) ? contentPreview.substring(0, previewMaxLength) : contentPreview;
+    const extractPreviewPart = () => {
+        const previewString = (contentPreview as string).trim();
+        const result = newLineRegex.exec(previewString);
+        let p = previewString;
+        if (result !== null) {
+            p = previewString.substr(0, result.index);
+        }
+        return p.substr(0, previewMaxLength);
+    };
+
+    const trimmedFullContent = () => (typeof contentFullview === "string" ? contentFullview.trim() : contentFullview);
+
+    const contentPreviewMinimized =
+        typeof contentPreview === "string" && (previewMaxLength > 0 || newLineRegex.test(contentPreview))
+            ? extractPreviewPart()
+            : contentPreview;
 
     return (
         <div className={className} {...otherProps}>
             <HtmlContentBlock>
-            {
-                !isExtended ? (
+                {!isExtended ? (
                     <p>
                         {contentPreviewMinimized}
-                        {(showAlwaysToggler || (contentFullview !== contentPreviewMinimized)) ? <>&hellip;</> : null}
+                        {showAlwaysToggler || trimmedFullContent() !== contentPreviewMinimized ? <>&hellip;</> : null}
                         &nbsp;
-                        {(showAlwaysToggler || (contentFullview !== contentPreviewMinimized)) ? <a href="#more" onClick={(e) => {handlerToggleView(e)}}>{textToggleExtend}</a> : null}
+                        {showAlwaysToggler || trimmedFullContent() !== contentPreviewMinimized ? (
+                            <a
+                                href="#more"
+                                onClick={(e) => {
+                                    handlerToggleView(e);
+                                }}
+                            >
+                                {textToggleExtend}
+                            </a>
+                        ) : null}
                     </p>
                 ) : (
                     <>
                         {renderContentFullview(contentFullview)}
                         <p>
-                            <a href="#less" onClick={(e) => {handlerToggleView(e)}}>{textToggleReduce}</a>
+                            <a
+                                href="#less"
+                                onClick={(e) => {
+                                    handlerToggleView(e);
+                                }}
+                            >
+                                {textToggleReduce}
+                            </a>
                         </p>
                     </>
-                )
-            }
+                )}
             </HtmlContentBlock>
         </div>
-    )
+    );
 }
