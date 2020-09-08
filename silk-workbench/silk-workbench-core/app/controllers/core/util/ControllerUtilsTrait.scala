@@ -62,12 +62,4 @@ trait ControllerUtilsTrait {
     val project = getProject(projectId)
     project.anyTask(taskId)
   }
-
-  /** Creates a Result object from a byte array. */
-  def byteResult(byteArray: Array[Byte], contentType: String, status: Int = OK): Result = {
-    Result(
-      new ResponseHeader(status, Map.empty),
-      HttpEntity.Strict(ByteString(byteArray), Some(contentType))
-    )
-  }
 }
