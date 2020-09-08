@@ -203,7 +203,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: TaskT
                 dispatch(closeArtefactModal());
                 dispatch(
                     routerOp.goToTaskPage({
-                        id: data.id,
+                        id: data.data.id,
                         type: taskType,
                         projectId: currentProjectId,
                         label,
