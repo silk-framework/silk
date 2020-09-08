@@ -38,6 +38,11 @@ trait CachedActivity[T] extends Activity[T] {
   private var dirty: Boolean = false
 
   /**
+    * If true, the cache value will be written to a resource and read back on initialization.
+    */
+  protected val persistent = true
+
+  /**
     * Overridden in implementing classes to load the cache into the context.value.
     *
     * @param fullReload If true, the cache should be fully (re)loaded
@@ -54,7 +59,7 @@ trait CachedActivity[T] extends Activity[T] {
       dirty = false
       if(!initialized) {
         initialized = true
-        if(resource.exists) {
+        if(resource.exists && persistent) {
           readValue(context) match {
             case Some(value) => context.value() = value
             case None => update(context, forceReload)
@@ -80,8 +85,9 @@ trait CachedActivity[T] extends Activity[T] {
     // Update cache
     this.loadCache(context, fullReload)
     // Persist value (if updated)
-    if (updated)
+    if (updated && persistent) {
       writeValue(context)
+    }
   }
 
   protected def readValue(context: ActivityContext[T]): Option[T] = {
