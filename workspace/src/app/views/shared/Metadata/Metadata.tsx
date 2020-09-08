@@ -33,6 +33,7 @@ import { sharedOp } from "@ducks/shared";
 import { Loading } from "../Loading/Loading";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { ContentBlobToggler } from "../ContentBlobToggler/ContentBlobToggler";
+import { firstNonEmptyLine } from "../ContentBlobToggler";
 
 interface IProps {
     projectId?: string;
@@ -244,7 +245,10 @@ export function Metadata(props: IProps) {
                                     contentPreview={description}
                                     previewMaxLength={128}
                                     contentFullview={description}
-                                    renderContentFullview={(content) => { return <ReactMarkdown source={description} /> }}
+                                    renderContentFullview={(content) => {
+                                        return <ReactMarkdown source={description} />;
+                                    }}
+                                    renderContentPreview={firstNonEmptyLine}
                                 />
                             </PropertyValue>
                         </PropertyValuePair>

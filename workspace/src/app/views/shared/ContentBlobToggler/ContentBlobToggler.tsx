@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { HtmlContentBlock } from "@gui-elements/index";
 
+type ContentTransformFunction = (contentPreview: JSX.Element | string) => JSX.Element | string;
 interface IContentBlobTogglerProps {
     /**
         space-delimited list of class names
@@ -31,10 +32,10 @@ interface IContentBlobTogglerProps {
     /**
         render function that could alter full view content, e.g. processing markdown content
     */
-    renderContentFullview?(contenFullview: JSX.Element | string): JSX.Element | string;
+    renderContentFullview?: ContentTransformFunction;
     /** render function that could alter the preview content.
      * Default: For string previews it only displays the first non-empty line. */
-    renderContentPreview?(contentPreview: JSX.Element | string): JSX.Element | string;
+    renderContentPreview?: ContentTransformFunction;
     /**
         show extended full view initially
     */
@@ -45,8 +46,6 @@ interface IContentBlobTogglerProps {
     showAlwaysToggler?: boolean;
     [otherProps: string]: any;
 }
-
-const newLineRegex = new RegExp("\r|\n");
 
 export function ContentBlobToggler({
     className = "",
@@ -59,16 +58,7 @@ export function ContentBlobToggler({
     renderContentFullview = (content) => {
         return content;
     },
-    // By default only the first non-empty line of a multi-line string is shown and truncated to 'previewMaxLength'.
-    renderContentPreview = (preview) => {
-        if (typeof preview === "string") {
-            const previewString = preview.trim();
-            const result = newLineRegex.exec(previewString);
-            return result !== null ? previewString.substr(0, result.index) : previewString;
-        } else {
-            return preview;
-        }
-    },
+    renderContentPreview,
     startExtended = false,
     showAlwaysToggler = false,
     ...otherProps
@@ -82,21 +72,23 @@ export function ContentBlobToggler({
 
     const trimmedFullContent = () => (typeof contentFullview === "string" ? contentFullview.trim() : contentFullview);
 
-    const renderedPreviewContent = renderContentPreview(contentPreview);
+    const renderedPreviewContent = renderContentPreview ? renderContentPreview(contentPreview) : contentPreview;
     const contentPreviewMinimized =
         typeof renderedPreviewContent === "string" && previewMaxLength > 0
             ? renderedPreviewContent.substr(0, previewMaxLength)
             : renderedPreviewContent;
-
+    const showToggler =
+        showAlwaysToggler ||
+        (trimmedFullContent() !== contentPreviewMinimized && contentFullview !== contentPreviewMinimized);
     return (
         <div className={className} {...otherProps}>
             <HtmlContentBlock>
                 {!isExtended ? (
                     <p>
                         {contentPreviewMinimized}
-                        {showAlwaysToggler || trimmedFullContent() !== contentPreviewMinimized ? <>&hellip;</> : null}
+                        {showToggler ? <>&hellip;</> : null}
                         &nbsp;
-                        {showAlwaysToggler || trimmedFullContent() !== contentPreviewMinimized ? (
+                        {showToggler ? (
                             <a
                                 href="#more"
                                 onClick={(e) => {
@@ -109,7 +101,7 @@ export function ContentBlobToggler({
                     </p>
                 ) : (
                     <>
-                        {renderContentFullview(contentFullview)}
+                        {renderContentFullview ? renderContentFullview(contentFullview) : contentFullview}
                         <p>
                             <a
                                 href="#less"
