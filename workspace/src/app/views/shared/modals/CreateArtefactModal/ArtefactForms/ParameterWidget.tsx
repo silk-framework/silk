@@ -2,16 +2,7 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import { sharedOp } from "@ducks/shared";
 import { ITaskParameter } from "@ducks/common/typings";
-import {
-    Accordion,
-    AccordionItem,
-    FieldItem,
-    FieldSet,
-    HtmlContentBlock,
-    OverflowText,
-    TitleSubsection,
-    Label,
-} from "@gui-elements/index";
+import { Card, FieldItem, FieldSet, Label, TitleSubsection } from "@gui-elements/index";
 import { Intent } from "@gui-elements/blueprint/constants";
 import { Autocomplete } from "../../../Autocomplete/Autocomplete";
 import { InputMapper } from "./InputMapper";
@@ -19,6 +10,8 @@ import { AppToaster } from "../../../../../services/toaster";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
 import { useTranslation } from "react-i18next";
+import { firstNonEmptyLine } from "../../../ContentBlobToggler";
+import { ContentBlobToggler } from "../../../ContentBlobToggler/ContentBlobToggler";
 
 const MAXLENGTH_TOOLTIP = 40;
 const MAXLENGTH_SIMPLEHELP = 288;
@@ -122,23 +115,22 @@ export const ParameterWidget = (props: IProps) => {
 
     let propertyHelperText = null;
     if (description && description.length > MAXLENGTH_TOOLTIP) {
-        propertyHelperText =
-            description.length > MAXLENGTH_SIMPLEHELP ? (
-                <Accordion align="end">
-                    <AccordionItem
-                        title={<OverflowText inline>{description}</OverflowText>}
-                        fullWidth
-                        condensed
-                        noBorder
-                    >
-                        <HtmlContentBlock>
+        propertyHelperText = (
+            <ContentBlobToggler
+                className="di__parameter_widget__description"
+                contentPreview={description}
+                previewMaxLength={MAXLENGTH_SIMPLEHELP}
+                contentFullview={description}
+                renderContentFullview={(content) => {
+                    return (
+                        <Card>
                             <ReactMarkdown source={description} />
-                        </HtmlContentBlock>
-                    </AccordionItem>
-                </Accordion>
-            ) : (
-                description
-            );
+                        </Card>
+                    );
+                }}
+                renderContentPreview={firstNonEmptyLine}
+            />
+        );
     }
 
     if (propertyDetails.type === "object") {
