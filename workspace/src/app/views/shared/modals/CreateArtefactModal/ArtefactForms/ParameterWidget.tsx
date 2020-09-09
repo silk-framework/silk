@@ -2,7 +2,7 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import { sharedOp } from "@ducks/shared";
 import { ITaskParameter } from "@ducks/common/typings";
-import { Card, FieldItem, FieldSet, Label, TitleSubsection } from "@gui-elements/index";
+import { WhiteSpaceContainer, FieldItem, FieldSet, Label, TitleSubsection } from "@gui-elements/index";
 import { Intent } from "@gui-elements/blueprint/constants";
 import { Autocomplete } from "../../../Autocomplete/Autocomplete";
 import { InputMapper } from "./InputMapper";
@@ -123,9 +123,9 @@ export const ParameterWidget = (props: IProps) => {
                 contentFullview={description}
                 renderContentFullview={(content) => {
                     return (
-                        <Card>
+                        <WhiteSpaceContainer marginTop="tiny" marginRight="xlarge" marginBottom="small" marginLeft="regular">
                             <ReactMarkdown source={description} />
-                        </Card>
+                        </WhiteSpaceContainer>
                     );
                 }}
                 renderContentPreview={firstNonEmptyLine}
