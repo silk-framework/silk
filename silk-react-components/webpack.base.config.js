@@ -2,6 +2,10 @@ var webpack = require('webpack');
 const path = require('path');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
+const fs = require("fs");
+const appDirectory = fs.realpathSync(process.cwd());
+const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
+
 module.exports = {
   entry: path.resolve(__dirname, 'src','index.jsx'),
   output: {
@@ -61,7 +65,10 @@ module.exports = {
     ]
   },
   resolve: {
-    extensions: ['*', '.js', '.jsx']
+    extensions: ['*', '.js', '.jsx'],
+    alias: {
+      "@gui-elements": resolveApp('src/libs/gui-elements'),
+    }
   },
   output: {
     path: __dirname + '/dist',

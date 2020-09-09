@@ -27,11 +27,15 @@
   "license": "Apache-2.0",
   "private": true,
   "dependencies": {
+    "@blueprintjs/core": "^3.29.0",
+    "@carbon/icons": "^10.9.3",
     "@eccenca/gui-elements": "^5.1.1",
     "@eccenca/superagent": "^1.4.1",
     "babel-polyfill": "^6.26.0",
     "babel-runtime": "^6.26.0",
+    "carbon-components": "^10.9.3",
     "classnames": "^2.2.5",
+    "codemirror": "^5.52.2",
     "dialog-polyfill": "0.4.4",
     "ecc-messagebus": "^3.6.0",
     "ecc-utils": "^1.4.0",
@@ -42,7 +46,8 @@
     "mdl-selectfield": "1.0.3",
     "react": "^16.13.0",
     "react-beautiful-dnd": "^13.0.0",
-    "react-dom": "^16.13.0"
+    "react-dom": "^16.13.0",
+    "reset-css": "^5.0.1"
   },
   "devDependencies": {
     "@eccenca/dotfiles": "^2.3.2",
