@@ -44,6 +44,11 @@ module.exports = {
         }
       },
       {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      },
+      {
           test: /\.(woff(2)?|ttf|eot)(\?v=\d+\.\d+\.\d+)?$/,
           use: [{
               loader: 'file-loader',
@@ -65,7 +70,8 @@ module.exports = {
     ]
   },
   resolve: {
-    extensions: ['*', '.js', '.jsx'],
+    extensions: ['*', '.js', '.jsx', '.ts', '.tsx', '.json'],
+    mainFields: ['es5', 'browser', 'module', 'main'],
     alias: {
       "@gui-elements": resolveApp('src/libs/gui-elements'),
     }
