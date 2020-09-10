@@ -1,6 +1,7 @@
 import {
     datasetsLegacyApi,
     legacyApiEndpoint,
+    profilingApi,
     projectApi,
     resourcesLegacyApi,
     workspaceApi,
@@ -26,6 +27,7 @@ import {
     ITaskMetadataResponse,
 } from "@ducks/shared/typings";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
+import { ITypeProfilingDetails } from "../../../views/shared/profiling/PropertyProfilingOverview/PropertyProfilingOverview";
 
 /**
  * @private
@@ -196,6 +198,18 @@ export const requestPreview = async (
         url,
         method: "POST",
         body: preview,
+    });
+};
+
+export const datasetTypeProfilingInfo = async (
+    projectId: string,
+    datasetId: string,
+    type: string
+): Promise<FetchResponse<ITypeProfilingDetails>> => {
+    const url = profilingApi(`/schemaClass/${projectId}/${datasetId}`);
+    return fetch({
+        url,
+        body: { typePath: type },
     });
 };
 
