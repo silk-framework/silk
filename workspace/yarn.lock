@@ -1518,11 +1518,6 @@
   dependencies:
     "@babel/runtime" "^7.10.2"
 
-"@transloadit/prettier-bytes@0.0.7":
-  version "0.0.7"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@transloadit/prettier-bytes/-/prettier-bytes-0.0.7.tgz#cdb5399f445fdd606ed833872fa0cabdbc51686b"
-  integrity sha1-zbU5n0Rf3WBu2DOHL6DKvbxRaGs=
-
 "@types/aria-query@^4.2.0":
   version "4.2.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@types/aria-query/-/aria-query-4.2.0.tgz#14264692a9d6e2fa4db3df5e56e94b5e25647ac0"
@@ -1587,11 +1582,6 @@
   version "1.1.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@types/color-name/-/color-name-1.1.1.tgz#1c1261bbeaa10a8055bbc5d8ab84b7b2afc846a0"
   integrity sha1-HBJhu+qhCoBVu8XYq4S3sq/IRqA=
-
-"@types/core-js@^2.5.3":
-  version "2.5.4"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/core-js/-/core-js-2.5.4.tgz#fc42ebde7d9cfa7c5f2668f117449b02348e41fd"
-  integrity sha1-/ELr3n2c+nxfJmjxF0SbAjSOQf0=
 
 "@types/dom4@^2.0.1":
   version "2.0.1"
@@ -1862,39 +1852,36 @@
     semver "^6.3.0"
     tsutils "^3.17.1"
 
-"@uppy/companion-client@^1.5.4":
-  version "1.5.4"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/companion-client/-/companion-client-1.5.4.tgz#11a9d2ee91a13789ca083f88a3ac7378b3fb20ed"
-  integrity sha1-EanS7pGhN4nKCD+Io6xzeLP7IO0=
+"@uppy/companion-client@^1.4.4":
+  version "1.4.4"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/companion-client/-/companion-client-1.4.4.tgz#d3b944e3dbd9fd3a723f2d14ff05ef08f591129f"
+  integrity sha1-07lE49vZ/TpyPy0U/wXvCPWREp8=
   dependencies:
-    "@uppy/utils" "^3.2.3"
     namespace-emitter "^2.0.1"
 
-"@uppy/core@^1.13.1":
-  version "1.13.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/core/-/core-1.13.2.tgz#78c03019ca78ebaa2920c1fa4888ee76531d2e59"
-  integrity sha1-eMAwGcp466opIMH6SIjudlMdLlk=
+"@uppy/core@^1.8.2":
+  version "1.10.4"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/core/-/core-1.10.4.tgz#d2899445c7681a2d9e211a0756214c0969f866ae"
+  integrity sha1-0omURcdoGi2eIRoHViFMCWn4Zq4=
   dependencies:
-    "@transloadit/prettier-bytes" "0.0.7"
-    "@uppy/store-default" "^1.2.4"
-    "@uppy/utils" "^3.2.3"
+    "@uppy/store-default" "^1.2.1"
+    "@uppy/utils" "^2.4.4"
     cuid "^2.1.1"
     lodash.throttle "^4.1.1"
     mime-match "^1.0.2"
     namespace-emitter "^2.0.1"
     preact "8.2.9"
 
-"@uppy/dashboard@^1.12.6":
-  version "1.12.6"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/dashboard/-/dashboard-1.12.6.tgz#7daa578a87084b2d00f6725de43aacc6ef0c5f79"
-  integrity sha1-fapXiocISy0A9nJd5Dqsxu8MX3k=
+"@uppy/dashboard@^1.8.5":
+  version "1.8.5"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/dashboard/-/dashboard-1.8.5.tgz#f63d0600d869a90cbb2dd0ba662dcf58df77e209"
+  integrity sha1-9j0GANhpqQy7LdC6Zi3PWN934gk=
   dependencies:
-    "@transloadit/prettier-bytes" "0.0.7"
-    "@uppy/informer" "^1.5.11"
-    "@uppy/provider-views" "^1.7.5"
-    "@uppy/status-bar" "^1.7.6"
-    "@uppy/thumbnail-generator" "^1.6.7"
-    "@uppy/utils" "^3.2.3"
+    "@uppy/informer" "^1.5.5"
+    "@uppy/provider-views" "^1.6.5"
+    "@uppy/status-bar" "^1.6.5"
+    "@uppy/thumbnail-generator" "^1.5.12"
+    "@uppy/utils" "^2.4.4"
     classnames "^2.2.6"
     cuid "^2.1.1"
     is-shallow-equal "^1.0.1"
@@ -1905,91 +1892,89 @@
     preact-css-transition-group "^1.3.0"
     resize-observer-polyfill "^1.5.0"
 
-"@uppy/drag-drop@^1.4.19":
-  version "1.4.19"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/drag-drop/-/drag-drop-1.4.19.tgz#b8e2748c6384cddaf42b43d55c801288d59f5e60"
-  integrity sha1-uOJ0jGOEzdr0K0PVXIASiNWfXmA=
+"@uppy/drag-drop@^1.4.12":
+  version "1.4.12"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/drag-drop/-/drag-drop-1.4.12.tgz#55ecbdb0977f8f9bcbf8744ccc8310b951250214"
+  integrity sha1-Vey9sJd/j5vL+HRMzIMQuVElAhQ=
   dependencies:
-    "@uppy/utils" "^3.2.3"
+    "@uppy/utils" "^2.4.4"
     preact "8.2.9"
 
-"@uppy/informer@^1.5.11":
-  version "1.5.11"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/informer/-/informer-1.5.11.tgz#ebd5b8960838e47ec2088a2ce0e6b914b664a283"
-  integrity sha1-69W4lgg45H7CCIos4Oa5FLZkooM=
+"@uppy/informer@^1.5.5":
+  version "1.5.5"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/informer/-/informer-1.5.5.tgz#fe349ff8e07fce855fda1e939a66c976e2488728"
+  integrity sha1-/jSf+OB/zoVf2h6TmmbJduJIhyg=
   dependencies:
-    "@uppy/utils" "^3.2.3"
+    "@uppy/utils" "^2.4.4"
     preact "8.2.9"
 
-"@uppy/progress-bar@^1.3.19":
-  version "1.3.19"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/progress-bar/-/progress-bar-1.3.19.tgz#6abf87a2c05f1d91c2d1fb2955ce0d5ca2199408"
-  integrity sha1-ar+HosBfHZHC0fspVc4NXKIZlAg=
+"@uppy/progress-bar@^1.3.13":
+  version "1.3.13"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/progress-bar/-/progress-bar-1.3.13.tgz#ee0d9907933515391223b46096eb9c4f59251faf"
+  integrity sha1-7g2ZB5M1FTkSI7RgluucT1klH68=
   dependencies:
-    "@uppy/utils" "^3.2.3"
+    "@uppy/utils" "^2.4.4"
     preact "8.2.9"
 
-"@uppy/provider-views@^1.7.5":
-  version "1.7.5"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/provider-views/-/provider-views-1.7.5.tgz#9dc7a64253d1ae289112971462d300a2b653d2c4"
-  integrity sha1-ncemQlPRriiREpcUYtMAorZT0sQ=
+"@uppy/provider-views@^1.6.5":
+  version "1.6.5"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/provider-views/-/provider-views-1.6.5.tgz#7544b2a0fefdd74a08a7b27d684bbf3b5335b4fd"
+  integrity sha1-dUSyoP7910oIp7J9aEu/O1M1tP0=
   dependencies:
-    "@uppy/utils" "^3.2.3"
+    "@uppy/utils" "^2.4.4"
     classnames "^2.2.6"
     preact "8.2.9"
 
-"@uppy/react@^1.10.5":
-  version "1.10.6"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/react/-/react-1.10.6.tgz#8d0f67fa4d2926954f8333d59d0a692fe1d3305c"
-  integrity sha1-jQ9n+k0pJpVPgzPVnQppL+HTMFw=
+"@uppy/react@^1.4.5":
+  version "1.6.5"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/react/-/react-1.6.5.tgz#e96a370a940b8ede19a05939339b22e5798bc94c"
+  integrity sha1-6Wo3CpQLjt4ZoFk5M5si5XmLyUw=
   dependencies:
-    "@uppy/dashboard" "^1.12.6"
-    "@uppy/drag-drop" "^1.4.19"
-    "@uppy/progress-bar" "^1.3.19"
-    "@uppy/status-bar" "^1.7.6"
-    "@uppy/utils" "^3.2.3"
+    "@uppy/dashboard" "^1.8.5"
+    "@uppy/drag-drop" "^1.4.12"
+    "@uppy/progress-bar" "^1.3.13"
+    "@uppy/status-bar" "^1.6.5"
+    "@uppy/utils" "^2.4.4"
     prop-types "^15.6.1"
 
-"@uppy/status-bar@^1.7.6":
-  version "1.7.6"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/status-bar/-/status-bar-1.7.6.tgz#f25b50466398b1952c8b60b16d2c491ea342992f"
-  integrity sha1-8ltQRmOYsZUsi2CxbSxJHqNCmS8=
+"@uppy/status-bar@^1.6.5":
+  version "1.6.5"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/status-bar/-/status-bar-1.6.5.tgz#b4c2efdd2f1a2d4f2ce573d787bf12542c324092"
+  integrity sha1-tMLv3S8aLU8s5XPXh78SVCwyQJI=
   dependencies:
-    "@transloadit/prettier-bytes" "0.0.7"
-    "@uppy/utils" "^3.2.3"
+    "@uppy/utils" "^2.4.4"
     classnames "^2.2.6"
     lodash.throttle "^4.1.1"
     preact "8.2.9"
 
-"@uppy/store-default@^1.2.4":
-  version "1.2.4"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/store-default/-/store-default-1.2.4.tgz#480f50cbf23f36158557a42b7699da0cf629d368"
-  integrity sha1-SA9Qy/I/NhWFV6QrdpnaDPYp02g=
+"@uppy/store-default@^1.2.1":
+  version "1.2.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/store-default/-/store-default-1.2.1.tgz#4f6f1815292388bc2fd6da2655a3ae1133598d5c"
+  integrity sha1-T28YFSkjiLwv1tomVaOuETNZjVw=
 
-"@uppy/thumbnail-generator@^1.6.7":
-  version "1.6.7"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/thumbnail-generator/-/thumbnail-generator-1.6.7.tgz#65375106dae2cfd1f4cddb073e9d8ff278ca94e5"
-  integrity sha1-ZTdRBtriz9H0zdsHPp2P8njKlOU=
+"@uppy/thumbnail-generator@^1.5.12":
+  version "1.5.12"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/thumbnail-generator/-/thumbnail-generator-1.5.12.tgz#178099a8585183a0bb9c52a0e2b33f21252a0dc3"
+  integrity sha1-F4CZqFhRg6C7nFKg4rM/ISUqDcM=
   dependencies:
-    "@uppy/utils" "^3.2.3"
-    exifr "^5.0.2"
+    "@uppy/utils" "^2.4.4"
+    exifr "^5.0.1"
     math-log2 "^1.0.1"
 
-"@uppy/utils@^3.2.3":
-  version "3.2.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/utils/-/utils-3.2.3.tgz#91cb4a133bd610b861fe3069be1f0e85036dcc20"
-  integrity sha1-kctKEzvWELhh/jBpvh8OhQNtzCA=
+"@uppy/utils@^2.4.4":
+  version "2.4.4"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/utils/-/utils-2.4.4.tgz#29520cdfaf926af58828a9c141cb7b0fa43f8bc4"
+  integrity sha1-KVIM36+SavWIKKnBQct7D6Q/i8Q=
   dependencies:
-    abortcontroller-polyfill "^1.4.0"
     lodash.throttle "^4.1.1"
 
-"@uppy/xhr-upload@^1.6.3":
-  version "1.6.4"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/xhr-upload/-/xhr-upload-1.6.4.tgz#c0d2b46626854d5c5f8ca64bad5d4213eb214ffb"
-  integrity sha1-wNK0ZiaFTVxfjKZLrV1CE+shT/s=
+"@uppy/xhr-upload@^1.5.2":
+  version "1.5.10"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@uppy/xhr-upload/-/xhr-upload-1.5.10.tgz#36706d46c0ad4e9b2ae8155b7a2b631e4ef4901c"
+  integrity sha1-NnBtRsCtTpsq6BVbeitjHk70kBw=
   dependencies:
-    "@uppy/companion-client" "^1.5.4"
-    "@uppy/utils" "^3.2.3"
+    "@uppy/companion-client" "^1.4.4"
+    "@uppy/utils" "^2.4.4"
     cuid "^2.1.1"
 
 "@webassemblyjs/ast@1.8.5":
@@ -2164,11 +2149,6 @@ abbrev@1:
   version "1.1.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/abbrev/-/abbrev-1.1.1.tgz#f8f2c887ad10bf67f634f005b6987fed3179aac8"
   integrity sha1-+PLIh60Qv2f2NPAFtph/7TF5qsg=
-
-abortcontroller-polyfill@^1.4.0:
-  version "1.5.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/abortcontroller-polyfill/-/abortcontroller-polyfill-1.5.0.tgz#2c562f530869abbcf88d949a2b60d1d402e87a7c"
-  integrity sha1-LFYvUwhpq7z4jZSaK2DR1ALoenw=
 
 accepts@~1.3.4, accepts@~1.3.5, accepts@~1.3.7:
   version "1.3.7"
@@ -3879,7 +3859,7 @@ core-js@^2.4.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/core-js/-/core-js-2.6.11.tgz#38831469f9922bded8ee21c9dc46985e0399308c"
   integrity sha1-OIMUafmSK97Y7iHJ3EaYXgOZMIw=
 
-core-js@^3.5.0, core-js@^3.6.5:
+core-js@^3.5.0:
   version "3.6.5"
   resolved "https://artifactory.eccenca.com/api/npm/npm/core-js/-/core-js-3.6.5.tgz#7395dc273af37fb2e50e9bd3d9fe841285231d1a"
   integrity sha1-c5XcJzrzf7LlDpvT2f6EEoUjHRo=
@@ -5266,10 +5246,10 @@ execa@^4.0.0:
     signal-exit "^3.0.2"
     strip-final-newline "^2.0.0"
 
-exifr@^5.0.2:
-  version "5.0.5"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/exifr/-/exifr-5.0.5.tgz#34234a9da722ec8ee743e0ae86f3e95cce4fde83"
-  integrity sha1-NCNKnaci7I7nQ+CuhvPpXM5P3oM=
+exifr@^5.0.1:
+  version "5.0.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/exifr/-/exifr-5.0.1.tgz#60c57675dc14b827f698da0acbbfd595c7729758"
+  integrity sha1-YMV2ddwUuCf2mNoKy7/Vlcdyl1g=
 
 exit@^0.1.2:
   version "0.1.2"
