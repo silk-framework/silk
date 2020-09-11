@@ -41,7 +41,9 @@ export const FileWidget = () => {
     const projectId = useSelector(commonSel.currentProjectIdSelector);
 
     const [isOpenDialog, setIsOpenDialog] = useState<boolean>(false);
-    const [visibleFileDelete, setVisibleFileDelete] = useState<string>("");
+
+    // contains file item
+    const [fileDeleteDialog, setFileDeleteDialog] = useState(null);
 
     const { isLoading } = fileWidget;
     const [pagination, paginationElement, onTotalChange] = usePagination({
@@ -50,6 +52,7 @@ export const FileWidget = () => {
     });
     const [t] = useTranslation();
 
+    // @FIXME: Improve logic, fileList can't be null or undefined, check state object
     if (filesList !== undefined && filesList !== null && filesList.length !== pagination.total) {
         onTotalChange(filesList.length);
     }
@@ -66,7 +69,7 @@ export const FileWidget = () => {
 
     useEffect(() => {
         // Only trigger if file upload dialog is closed, since a file may have been uploaded.
-        if (!isOpenDialog && !visibleFileDelete) {
+        if (!isOpenDialog && !fileDeleteDialog) {
             const filter: any = {
                 limit: 1000,
             };
@@ -75,7 +78,7 @@ export const FileWidget = () => {
             }
             dispatch(workspaceOp.fetchResourcesListAsync(filter));
         }
-    }, [textQuery, isOpenDialog, visibleFileDelete]);
+    }, [textQuery, isOpenDialog, fileDeleteDialog]);
 
     const toggleFileUploader = () => {
         setIsOpenDialog(!isOpenDialog);
@@ -93,7 +96,7 @@ export const FileWidget = () => {
                 <CardContent>
                     {isLoading ? (
                         <Loading description={t("widget.FileWidget.loading", "Loading file list.")} />
-                    ) : filesList.length ? (
+                    ) : !!filesList.length ? (
                         <>
                             <Toolbar>
                                 <ToolbarSection canGrow>
@@ -147,7 +150,7 @@ export const FileWidget = () => {
                                                             })}
                                                             small
                                                             disruptive
-                                                            onClick={() => setVisibleFileDelete(file.id)}
+                                                            onClick={() => setFileDeleteDialog(file)}
                                                         />
                                                     </TableCell>
                                                 </TableRow>
@@ -171,9 +174,8 @@ export const FileWidget = () => {
             />
             <FileRemoveModal
                 projectId={projectId}
-                isOpen={!!visibleFileDelete}
-                onConfirm={() => setVisibleFileDelete("")}
-                fileName={visibleFileDelete}
+                onConfirm={() => setFileDeleteDialog(null)}
+                file={fileDeleteDialog}
             />
         </>
     );

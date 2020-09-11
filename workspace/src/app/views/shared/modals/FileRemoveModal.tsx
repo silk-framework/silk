@@ -1,77 +1,75 @@
 import React, { useEffect, useState } from "react";
 import DeleteModal from "./DeleteModal";
-import { projectFileResourceDependents, removeProjectFileResource } from "@ducks/workspace/requests";
+import { projectFileResourceDependents, requestRemoveProjectResource } from "@ducks/workspace/requests";
 import { useTranslation } from "react-i18next";
-export interface IFileDeleteModalOptions {
-    fileName: string | null;
-    dependentTasks: string[];
-}
+import { UppyFile } from "@uppy/core";
+
+type UppyFileOrResource = UppyFile | { name: string; id: string };
 
 interface IProps {
+    file: UppyFileOrResource;
+
     projectId: string;
-    fileName: string;
-    isOpen: boolean;
-    onConfirm(fileName?: string);
+
+    onConfirm(fileId?: string | number);
 }
 
-export function FileRemoveModal({ projectId, isOpen, onConfirm, fileName }: IProps) {
+export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
     const [t] = useTranslation();
-    const [deleteModalOpts, setDeleteModalOpts] = useState<IFileDeleteModalOptions>({
-        fileName: null,
-        dependentTasks: [],
-    });
 
+    const [dependentTasks, setDependentTasks] = useState<any>([]);
+
+    // get file dependencies on open
     useEffect(() => {
         const openDeleteModal = async () => {
-            const dependentTasks = await projectFileResourceDependents(projectId, fileName);
-            setDeleteModalOpts({ fileName: fileName, dependentTasks: dependentTasks });
+            const dependentTasks = await projectFileResourceDependents(projectId, file.name);
+            setDependentTasks(dependentTasks);
         };
 
-        if (isOpen) {
+        if (file) {
             openDeleteModal();
         }
-    }, [isOpen]);
+    }, [file]);
 
     const closeDeleteModal = () => {
-        setDeleteModalOpts({ fileName: null, dependentTasks: [] });
-        onConfirm();
+        setDependentTasks([]);
+        onConfirm(file.id);
     };
 
-    const deleteFile = async (fileName: string) => {
+    const deleteFile = async () => {
         try {
-            await removeProjectFileResource(projectId, fileName);
-            onConfirm(fileName);
+            await requestRemoveProjectResource(projectId, file.name);
+            onConfirm(file.id);
         } finally {
             closeDeleteModal();
         }
     };
 
     const renderDeleteModal = () => {
-        if (deleteModalOpts.dependentTasks.length > 0) {
+        if (dependentTasks.length > 0) {
             return (
                 <div>
-                    <p>{t("widget.FileWidget.removeFromDatasets", { fileName: deleteModalOpts.fileName })}</p>
+                    <p>{t("widget.FileWidget.removeFromDatasets", { fileName: file.name })}</p>
                     <ul>
-                        {deleteModalOpts.dependentTasks.map((task) => (
+                        {dependentTasks.map((task) => (
                             <li key={task}>{task}</li>
                         ))}
                     </ul>
                     <p>
-                        {t("widget.FileWidget.removeText", "Do you really want to delete file")}{" "}
-                        {deleteModalOpts.fileName}?
+                        {t("widget.FileWidget.removeText", "Do you really want to delete file")} {file.name}?
                     </p>
                 </div>
             );
         } else {
-            return <p>{t("widget.FileWidget.deleted", { fileName: deleteModalOpts.fileName })}</p>;
+            return <p>{t("widget.FileWidget.deleted", { fileName: file?.name })}</p>;
         }
     };
 
     return (
         <DeleteModal
-            isOpen={isOpen}
+            isOpen={!!file}
             onDiscard={closeDeleteModal}
-            onConfirm={() => deleteFile(deleteModalOpts.fileName)}
+            onConfirm={deleteFile}
             render={renderDeleteModal}
             title={t("widget.FileWidget.deleteFile", "Delete File")}
         />

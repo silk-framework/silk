@@ -41,11 +41,12 @@
         "dropzone": "Drop files here or browse",
         "fileNotSpecified": "File name not specified",
         "modalTitle": "Upload file",
+        "retryAbortMessage": "The {{fileName}} upload process aborted",
+        "retryMessage": "Something going wrong during upload process for {{fileName}}",
         "selectFromProject": "Select file from projects",
         "successfullyUploaded": "{{uploadedName}} was successfully uploaded",
         "uploadError": "An upload error has occurred for file {{fileName}}. Details: {{errorDetails}}",
-        "waitFor": "Wait for finished upload.",
-        "retryMessage": "Something going wrong during upload process for {{fileName}}"
+        "waitFor": "Wait for finished upload."
     },
     "Metadata": {
         "loading": "Loading summary data.",
@@ -164,7 +165,8 @@
             },
             "requestFailed": "Preview request failed",
             "server": "Server error",
-            "timeout": "Timeout"
+            "timeout": "Timeout",
+            "networkFileUpload": "Can't upload the file, please check your connection and try again"
         }
     },
     "pages": {
@@ -198,38 +200,38 @@
         "FacetsList": {
             "facet": {
                 "createdBy": {
-                    "label": "Created by",
                     "description": "The user who created the item.",
+                    "label": "Created by",
                     "valueLabel": {
                         "": "Unknown user"
                     }
                 },
                 "datasetFileResource": {
-                    "label": "Dataset file",
-                    "description": "The file resource of a file based dataset."
+                    "description": "The file resource of a file based dataset.",
+                    "label": "Dataset file"
                 },
                 "datasetType": {
-                    "label": "Dataset type",
-                    "description": "The concrete type of a dataset, e.g. its data model and format etc."
+                    "description": "The concrete type of a dataset, e.g. its data model and format etc.",
+                    "label": "Dataset type"
                 },
                 "lastModifiedBy": {
-                    "label": "Last modified by",
                     "description": "The user who last modified the item.",
+                    "label": "Last modified by",
                     "valueLabels": {
                         "": "Unknown user"
                     }
                 },
                 "taskType": {
-                    "label": "Task type",
-                    "description": "The concrete type of a task."
+                    "description": "The concrete type of a task.",
+                    "label": "Task type"
                 },
                 "transformInputResource": {
-                    "label": "Transformed file resource",
-                    "description": "In case the input is a file resource based dataset, these are the file names of these resources."
+                    "description": "In case the input is a file resource based dataset, these are the file names of these resources.",
+                    "label": "Transformed file resource"
                 },
                 "workflowExecutionStatus": {
-                    "label": "Last execution status",
-                    "description": "Allows to filter by the status of the last execution of the workflow."
+                    "description": "Allows to filter by the status of the last execution of the workflow.",
+                    "label": "Last execution status"
                 }
             }
         },

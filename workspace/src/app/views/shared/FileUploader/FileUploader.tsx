@@ -71,12 +71,6 @@ export interface IUploaderOptions {
 
     /**
      * @default false
-     * The indicator show simple file input or drop zone
-     */
-    simpleInput?: boolean;
-
-    /**
-     * @default false
      * if advanced is true, then show file uploader with multiple options
      */
     advanced?: boolean;
@@ -158,7 +152,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
             fieldName: "file",
             allowMultipleUploads: props.allowMultiple,
             restrictions: {
-                maxNumberOfFiles: 3,
+                maxNumberOfFiles: 4,
             },
         });
     }
@@ -225,20 +219,6 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         this.toggleFileResourceChange();
     };
 
-    handleConfirmDelete = (fileName: string) => {
-        const file = this.uppy.getFiles().find((f) => f.name === fileName);
-        if (file) {
-            this.uppy.removeFile(file.id);
-        }
-        this.toggleFileRemoveDialog();
-    };
-
-    toggleFileRemoveDialog = (fileName: string = "") => {
-        this.setState({
-            visibleFileDelete: fileName,
-        });
-    };
-
     validateBeforeFileAdded = async (fileName: string): Promise<boolean> => {
         return await requestIfResourceExists(this.props.projectId, fileName);
     };
@@ -295,9 +275,9 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                                 <>
                                     <UploadNewFile
                                         uppy={this.uppy}
+                                        projectId={projectId}
                                         allowMultiple={allowMultiple}
                                         onProgress={onProgress}
-                                        onRemoveFile={this.toggleFileRemoveDialog}
                                         onUploadSuccess={this.handleUploadSuccess}
                                         validateBeforeAdd={this.validateBeforeFileAdded}
                                         uploadEndpoint={`${legacyApiEndpoint(`/projects/${projectId}/resources`)}`}
@@ -308,13 +288,6 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                                 <CreateNewFile onChange={this.props.onChange} confirmationButton={!!defaultValue} />
                             )}
                         </div>
-
-                        <FileRemoveModal
-                            projectId={projectId}
-                            isOpen={!!this.state.visibleFileDelete}
-                            onConfirm={this.handleConfirmDelete}
-                            fileName={this.state.visibleFileDelete}
-                        />
                     </>
                 )}
             </>

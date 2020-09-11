@@ -6,53 +6,41 @@ import { UppyFile } from "@uppy/core";
 import { useTranslation } from "react-i18next";
 
 interface IProps {
-    file: UppyFile;
+    file: UppyFile & { error?: string };
 
-    // some error
-    error: string;
+    progress: number;
 
-    // remove file handler for remove action
-    onRemoveFile(fileName: string);
-
-    // abort action
     onAbort(fileId: string);
 
-    onDismiss(fileId: string);
+    onRemove(fileId: string);
 }
 
-export function NewFileItem({ file, onRemoveFile, onAbort, onDismiss }: IProps) {
+export function NewFileItem({ file, progress, onAbort, onRemove }: IProps) {
     const [t] = useTranslation();
+    const { error } = file;
 
-    const { progress } = file;
-    const fileProgress = progress.bytesUploaded / progress.bytesTotal;
-    const isUploaded = file.progress.uploadComplete;
-    const isUploadStarted = !!file.progress.uploadStarted;
-    const fileActionBtn = isUploaded ? (
-        <Button outlined onClick={() => onRemoveFile(file.name)}>
-            {t("common.action.RemoveSmth", { smth: " " })}
-        </Button>
-    ) : isUploadStarted ? (
-        <Button outlined onClick={() => onAbort(file.id)}>
-            {t("FileUploader.abortOnly", "Abort Upload")}
-        </Button>
-    ) : null;
+    const props: any = {
+        danger: !!error,
+    };
+    if (error) {
+        props.onDismiss = () => onRemove(file.id);
+    }
 
     return (
         <div key={file.id}>
-            <Notification success={isUploaded} actions={fileActionBtn} onDismiss={() => onDismiss(file.id)}>
-                <p>
-                    {!isUploaded
-                        ? t("FileUploader.waitFor", "Wait for finished upload.")
-                        : t("FileUploader.successfullyUploaded", { uploadedName: file.name })}
-                </p>
+            <Notification
+                {...props}
+                actions={
+                    !error && (
+                        <Button outlined onClick={() => onAbort(file.id)}>
+                            {t("FileUploader.abortOnly", "Abort Upload")}
+                        </Button>
+                    )
+                }
+            >
+                <p>{error ? error : t("FileUploader.waitFor", "Wait for finished upload.")}</p>
                 <Spacing />
-                {isUploadStarted && (
-                    <ProgressBar
-                        value={fileProgress}
-                        stripes={!isUploaded}
-                        intent={isUploaded ? Intent.SUCCESS : Intent.PRIMARY}
-                    />
-                )}
+                {!error && <ProgressBar value={progress} stripes={true} intent={Intent.PRIMARY} />}
             </Notification>
             <Spacing />
         </div>

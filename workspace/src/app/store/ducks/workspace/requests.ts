@@ -179,7 +179,7 @@ export const requestIfResourceExists = async (projectId: string, resourceName: s
 };
 
 /** Remove a project file resource. */
-export const removeProjectFileResource = async (projectId: string, resourceName: string): Promise<void> => {
+export const requestRemoveProjectResource = async (projectId: string, resourceName: string): Promise<void> => {
     try {
         await fetch({
             url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}`),

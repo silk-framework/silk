@@ -1,5 +1,5 @@
 import { DragDrop } from "@uppy/react";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Uppy, { UppyFile } from "@uppy/core";
 import { Button, Notification, Spacing } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
@@ -7,6 +7,9 @@ import i18next from "../../../../../../language";
 import { NewFileItem } from "./NewFileItem";
 import { ReplacementFileItem } from "./ReplacementFileItem";
 import { useForceUpdate } from "../../../../../hooks/useForceUpdate";
+import { RetryFileItem } from "./RetryFileItem";
+import { CompletedFileItem } from "./CompletedFileItem";
+import { FileRemoveModal } from "../../../modals/FileRemoveModal";
 
 interface IProps {
     // Uppy instance
@@ -17,6 +20,8 @@ interface IProps {
 
     uploadEndpoint: string;
 
+    projectId: string;
+
     validateBeforeAdd(fileName: string);
 
     onAdded?(file: UppyFile);
@@ -24,8 +29,6 @@ interface IProps {
     onProgress?(progress: number);
 
     onUploadSuccess?(file: UppyFile);
-
-    onRemoveFile(fileId: string);
 
     onUploadError?(e, f);
 }
@@ -36,27 +39,39 @@ let checkedFilesQueue = 0;
  * The Widget for "Upload new file" option
  */
 export function UploadNewFile(props: IProps) {
-    const { uppy, onRemoveFile, onAdded, onUploadSuccess, validateBeforeAdd, uploadEndpoint } = props;
+    const { projectId, uppy, onAdded, onUploadSuccess, validateBeforeAdd, uploadEndpoint } = props;
+
     // contains files, which need in replacements
-    const [onlyReplacements, setOnlyReplacements] = useState([]);
+    const [onlyReplacements, setOnlyReplacements] = useState<UppyFile[]>([]);
+
+    // contains files, which need in retry action
+    const [filesForRetry, setFilesForRetry] = useState<UppyFile[]>([]);
+
+    // contains already uploaded files
+    const [uploadedFiles, setUploadedFiles] = useState<UppyFile[]>([]);
 
     // contains fatal error messages, if it's exists then show the Retry button
     const [error, setError] = useState(null);
 
-    // forceUpdate need when uppy updated
-    const forceUpdate = useForceUpdate();
+    // contains file for delete dialog
+    const [showDeleteDialog, setShowDeleteDialog] = useState<UppyFile>(null);
+
+    // there we put the file ids with progress statuses
+    const [progresses, setProgresses] = useState({});
 
     const [t] = useTranslation();
+
+    const forceUpdate = useForceUpdate();
 
     // register uppy events
     useEffect(() => {
         const unregisterEvents = () => {
+            checkedFilesQueue = 0;
+
             uppy.off("file-added", handleFileAdded);
             uppy.off("upload-progress", handleProgress);
             uppy.off("upload-success", handleUploadSuccess);
             uppy.off("upload-error", handleUploadError);
-
-            checkedFilesQueue = 0;
         };
 
         // reset events, because of "file-added" store old values of onlyReplacements
@@ -72,8 +87,8 @@ export function UploadNewFile(props: IProps) {
 
     const uploadReplacementFile = async (replacementFile: UppyFile) => {
         try {
-            await upload([replacementFile]);
             setOnlyReplacements((prevState) => prevState.filter((f) => f.id !== replacementFile.id));
+            await upload([replacementFile]);
             // catch is implemented in handleUploadError
         } finally {
         }
@@ -83,13 +98,20 @@ export function UploadNewFile(props: IProps) {
         try {
             const replacement = await validateBeforeAdd(file.name);
             if (replacement) {
-                uppy.removeFile(file.id);
+                removeFromQueue(file.id);
                 setOnlyReplacements((prevState) => [...prevState, file]);
             }
         } catch (e) {
-            // when some error happened, e.g. connection issue
-            setError(e.errorResponse?.detail);
-            return;
+            // when file is corrupted or something wrong with the file
+            if (e.isHttpError && e.httpStatus === 400) {
+                setFileError(file.id, e.errorDetails.response?.data);
+            }
+
+            // when network offline
+            if (e.isNetworkError) {
+                setError(i18next.t("http.error.networkFileUpload"));
+                return;
+            }
         }
 
         // if all files added then run uploader
@@ -102,8 +124,6 @@ export function UploadNewFile(props: IProps) {
             try {
                 await upload(notCompletedUploads);
             } catch (e) {}
-            // await upload([file]);
-            // checkedFilesQueue = 0;
         }
 
         if (onAdded) {
@@ -145,13 +165,22 @@ export function UploadNewFile(props: IProps) {
 
     const handleProgress = (file: UppyFile, { bytesUploaded, bytesTotal }) => {
         const progressAmount = bytesUploaded / bytesTotal;
+
         if (props.onProgress) {
             props.onProgress(progressAmount);
         }
+        setProgresses({
+            ...progresses,
+            [file.id]: progressAmount,
+        });
     };
 
     const handleUploadSuccess = (file: UppyFile) => {
         setError(null);
+        setUploadedFiles([...uploadedFiles, file]);
+
+        removeFromQueue(file.id);
+
         onUploadSuccess(file);
     };
 
@@ -170,14 +199,24 @@ export function UploadNewFile(props: IProps) {
             fileName: fileData.name,
             errorDetails: errorDetails,
         });
-        setError(errorMessage);
+
+        uppy.setFileState(fileData.id, {
+            error: errorMessage,
+        });
+
+        // setError(errorMessage);
+
+        setFilesForRetry([...filesForRetry, uppy.getFile(fileData.id)]);
+
+        removeFromQueue(fileData.id);
     };
 
-    const handleAbort = (id: string) => {
-        uppy.removeFile(id);
+    const handleAbort = (fileId: string) => {
+        setFilesForRetry([...filesForRetry, uppy.getFile(fileId)]);
+        removeFromQueue(fileId);
     };
 
-    const handleReplace = (file) => {
+    const handleReplace = (file: UppyFile) => {
         uppy.addFile(file);
     };
 
@@ -185,21 +224,51 @@ export function UploadNewFile(props: IProps) {
         setOnlyReplacements(onlyReplacements.filter((f) => f.id !== fileId));
     };
 
-    const handleRetry = async () => {
-        const files = uppy.getFiles();
+    const handleRetry = (fileId: string) => {
+        const files = filesForRetry.filter((f) => f.id === fileId);
+        deleteFromRetry(fileId);
 
-        uppy.reset();
-
-        files.map(handleReplace);
+        // @TODO: for replacement file this checked again
+        files.forEach(uppy.addFile);
     };
 
-    const handleDismissUploadedFile = (fileId: string) => {
+    const handleRetryAll = () => {
+        const files = uppy.getFiles();
+
+        // reset uppy if all files should retry
+        uppy.reset();
+
+        files.forEach(uppy.addFile);
+    };
+
+    const deleteFromRetry = (fileId: string) => {
+        setFilesForRetry(filesForRetry.filter((f) => f.id !== fileId));
+    };
+
+    const handleConfirmDelete = (fileId: string) => {
+        if (fileId) {
+            setUploadedFiles(uploadedFiles.filter((f) => f.id !== fileId));
+        }
+
+        setShowDeleteDialog(null);
+    };
+
+    const removeFromQueue = (fileId: string) => {
         uppy.removeFile(fileId);
-        forceUpdate(fileId);
+        forceUpdate();
+    };
+
+    const setFileError = (fileId: string, error) => {
+        uppy.setFileState(fileId, {
+            error,
+        });
+        // after every file state update forceUpdate required
+        forceUpdate();
     };
 
     return (
         <>
+            <FileRemoveModal projectId={projectId} onConfirm={handleConfirmDelete} file={showDeleteDialog} />
             <DragDrop
                 uppy={uppy}
                 locale={{ strings: { dropHereOr: t("FileUploader.dropzone", "Drop files here or browse") } }}
@@ -207,14 +276,21 @@ export function UploadNewFile(props: IProps) {
             <Spacing />
             {!error ? (
                 <>
+                    {filesForRetry.map((file) => (
+                        <RetryFileItem
+                            key={file.id}
+                            file={file}
+                            onRetry={handleRetry}
+                            onCancelRetry={deleteFromRetry}
+                        />
+                    ))}
                     {uppy.getFiles().map((file) => (
                         <NewFileItem
                             key={file.id}
-                            error={error}
                             file={file}
-                            onRemoveFile={onRemoveFile}
                             onAbort={handleAbort}
-                            onDismiss={handleDismissUploadedFile}
+                            onRemove={removeFromQueue}
+                            progress={progresses[file.id] || 0}
                         />
                     ))}
                     {onlyReplacements.map((file) => (
@@ -225,10 +301,15 @@ export function UploadNewFile(props: IProps) {
                             onReplace={handleReplace}
                         />
                     ))}
+                    {uploadedFiles.map((file) => (
+                        <CompletedFileItem key={file.id} file={file} onRemoveFile={setShowDeleteDialog} />
+                    ))}
                 </>
             ) : (
                 <Notification
-                    actions={<Button minimal outlined text={t("FileUploader.retry", "Retry")} onClick={handleRetry} />}
+                    actions={
+                        <Button minimal outlined text={t("FileUploader.retry", "Retry")} onClick={handleRetryAll} />
+                    }
                     message={error}
                     danger
                 />
