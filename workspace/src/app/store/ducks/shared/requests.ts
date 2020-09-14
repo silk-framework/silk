@@ -201,6 +201,23 @@ export const requestPreview = async (
     });
 };
 
+/** Profiles a specific type from the dataset. */
+export const profileDatasetType = async (
+    projectId: string,
+    datasetId: string,
+    typePath: string
+): Promise<FetchResponse<void>> => {
+    const url = profilingApi(`/profileType/${projectId}/${datasetId}`);
+    return fetch({
+        url,
+        method: "POST",
+        body: {
+            sourceType: typePath,
+        },
+    });
+};
+
+/** Returns profiling information about a specific type from a dataset. */
 export const datasetTypeProfilingInfo = async (
     projectId: string,
     datasetId: string,
