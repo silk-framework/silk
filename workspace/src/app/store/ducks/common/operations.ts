@@ -15,7 +15,6 @@ import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } fro
 import { routerOp } from "@ducks/router";
 import { TaskType } from "@ducks/shared/typings";
 import { HttpError } from "../../../services/fetch/responseInterceptor";
-import Store from "store";
 import i18Instance from "../../../../language";
 
 const {
@@ -268,8 +267,6 @@ const resetArtefactModal = (shouldClose: boolean = false) => (dispatch) => {
 
 const changeLocale = (locale: string) => {
     return async (dispatch) => {
-        Store.set("locale", locale);
-
         await i18Instance.changeLanguage(locale);
 
         dispatch(changeLanguage(locale));
