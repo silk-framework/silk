@@ -167,11 +167,6 @@ export interface IPreviewContent {
     attributes: string[];
     // The values for each attribute. This must have the same length as the attributes array.
     values: CellType[][];
-    /* Additional information for each attribute that should be shown. Either an array of elements that has the same
-       length as the attributes array or a single element that will be shown instead in the header row.
-       This is never returned by the profiling endpoint.
-     */
-    attributeOverviewProfiles?: JSX.Element[] | JSX.Element;
 }
 
 // Depending on the preview type, either multiple values or one value of concatenated values is returned
