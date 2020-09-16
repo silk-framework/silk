@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { commonOp, commonSel } from "@ducks/common";
 import {
     ApplicationHeader,
+    ApplicationSidebarToggler,
+    ApplicationSidebarNavigation,
     ApplicationTitle,
     ApplicationToolbar,
     ApplicationToolbarAction,
@@ -23,6 +25,8 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     TitlePage,
+    TitleSubsection,
+    Divider,
     WorkspaceHeader,
 } from "@gui-elements/index";
 import ItemDepiction from "./ItemDepiction";
@@ -31,10 +35,10 @@ import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/Cre
 import withBreadcrumbLabels from "./withBreadcrumbLabels";
 import { Helmet } from "react-helmet";
 import { useLocation } from "react-router";
-import { APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
+import { APPLICATION_NAME, APPLICATION_SUITE_NAME, APPLICATION_CORPORATION_NAME } from "../../../constants/base";
 import { workspaceSel } from "@ducks/workspace";
 import { ItemDeleteModal } from "../../shared/modals/ItemDeleteModal";
-import { CONTEXT_PATH } from "../../../constants/path";
+import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
 import CloneModal from "../../shared/modals/CloneModal";
 import { routerOp } from "@ducks/router";
 import { IItemLink } from "@ducks/shared/typings";
@@ -47,9 +51,8 @@ import { useTranslation } from "react-i18next";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];
-    externalRoutes: any;
     onClickApplicationSidebarExpand: any;
-    isApplicationSidebarExpanded: any;
+    isApplicationSidebarExpanded: boolean;
 }
 
 export interface IBreadcrumb {
@@ -57,7 +60,11 @@ export interface IBreadcrumb {
     text: string;
 }
 
-function HeaderComponent({ breadcrumbs }: IProps) {
+function HeaderComponent({
+    breadcrumbs,
+    onClickApplicationSidebarExpand,
+    isApplicationSidebarExpanded
+}: IProps) {
     const dispatch = useDispatch();
     const location = useLocation<any>();
     const [itemType, setItemType] = useState<string | null>(null);
@@ -72,7 +79,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
     const taskId = useSelector(commonSel.currentTaskIdSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
 
-    const startTitle = `Build — ${APPLICATION_SUITE_NAME}`;
+    const startTitle = `Build — ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`;
 
     const [windowTitle, setWindowTitle] = useState<string>(startTitle);
     const [displayUserMenu, toggleUserMenuDisplay] = useState<boolean>(false);
@@ -176,7 +183,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
             }
             fullTitle = `${
                 lastBreadcrumb.text ? lastBreadcrumb.text : ""
-            } (${datasetType}) at ${breadcrumbWithoutTitle} – ${APPLICATION_SUITE_NAME}`;
+            } (${datasetType}) at ${breadcrumbWithoutTitle} – ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`;
         }
         setWindowTitle(fullTitle);
     };
@@ -210,25 +217,73 @@ function HeaderComponent({ breadcrumbs }: IProps) {
     };
 
     return !isAuth ? null : (
-        <ApplicationHeader aria-label={APPLICATION_SUITE_NAME + ": " + APPLICATION_NAME}>
-            {/*
-            // currently not needed because we currently don't have a menu
-            {iFrameDetection && (
-                <ApplicationSidebarToggler
-                    aria-label="Open menu"
-                    onClick={onClickApplicationSidebarExpand}
-                    isActive={isApplicationSidebarExpanded}
-                />
-            )
-            */}
+        <ApplicationHeader aria-label={`${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}: ${APPLICATION_NAME}`}>
             {
                 /* TODO: only show when application menu is opened */
                 iFrameDetection && (
-                    <ApplicationTitle prefix="eccenca" className="bx--visually-hidden">
+                    <ApplicationTitle
+                        prefix={APPLICATION_CORPORATION_NAME}
+                        isNotDisplayed={!isApplicationSidebarExpanded}
+                        isAlignedWithSidebar={isApplicationSidebarExpanded}
+                    >
                         {APPLICATION_NAME}
                     </ApplicationTitle>
                 )
             }
+            {
+                iFrameDetection && (
+                    <ApplicationSidebarToggler
+                        aria-label={t("navigation.side.open", "Open navigation")}
+                        onClick={onClickApplicationSidebarExpand}
+                        isActive={isApplicationSidebarExpanded}
+                    />
+                )
+            }
+            {
+                iFrameDetection && (
+                    <ApplicationSidebarNavigation
+                        expanded={isApplicationSidebarExpanded}
+                    >
+                        <TitleSubsection>
+                            {t("navigation.side.explore", "Browse in DataManager")}
+                        </TitleSubsection>
+                        <Menu>
+                            <MenuItem
+                                icon="application-explore"
+                                text={t("navigation.side.explore", "Explore")}
+                                href={CONTEXT_PATH + "/../explore"}
+                            />
+                            <MenuItem
+                                icon="application-vocabularies"
+                                text={t("navigation.side.vocabularies", "Vocabularies")}
+                                href={CONTEXT_PATH + "/../vocab"}
+                            />
+                            <MenuItem
+                                icon="application-queries"
+                                text={t("navigation.side.querycatalog", "Query catalog")}
+                                href={CONTEXT_PATH + "/../query"}
+                            />
+                        </Menu>
+                        <Divider addSpacing="xlarge"/>
+                        <TitleSubsection>
+                            {t("navigation.side.explore", "Create in DataIntegration")}
+                        </TitleSubsection>
+                        <Menu>
+                            <MenuItem
+                                icon="artefact-project"
+                                text={t("navigation.side.projects", "Projects")}
+                                href={SERVE_PATH + "?itemType=project"}
+                            />
+                            <MenuItem
+                                icon="artefact-dataset"
+                                text={t("navigation.side.projects", "Datasets")}
+                                href={SERVE_PATH + "?itemType=dataset"}
+                            />
+                        </Menu>
+                    </ApplicationSidebarNavigation>
+                )
+            }
+
             <WorkspaceHeader>
                 <Helmet title={windowTitle} />
                 <OverviewItem>
