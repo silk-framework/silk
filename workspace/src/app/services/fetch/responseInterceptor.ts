@@ -92,7 +92,7 @@ export class HttpError extends FetchError {
         this.errorDetails = errorDetails;
         this.errorType = FetchError.HTTP_ERROR;
 
-        if (errorDetails.response.data.title && errorDetails.response.data.detail) {
+        if (errorDetails.response?.data?.title && errorDetails.response.data.detail) {
             this.errorResponse = this.errorDetails.response.data;
         } else {
             // Got no JSON response, create error response object
