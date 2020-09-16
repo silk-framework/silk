@@ -4,9 +4,6 @@ import com.typesafe.config.ConfigException
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.DefaultConfig
 
-/**
-  * Created on 9/30/16.
-  */
 class ConfigTestTraitTest extends FlatSpec with MustMatchers with ConfigTestTrait {
   behavior of "Config Test Trait"
 
