@@ -44,7 +44,6 @@ object ConfigTestTrait {
   /** Re-configures the system properties for the execution of the given block. */
   def withConfig[T](propertyMap: (String, Option[String])*)(block: => T): T = {
     val backupParameters = updateAndBackupParameters(propertyMap)
-    DefaultConfig.instance.refresh()
     try {
       block
     } finally {
