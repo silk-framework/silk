@@ -16,6 +16,7 @@ import { routerOp } from "@ducks/router";
 import { TaskType } from "@ducks/shared/typings";
 import { HttpError } from "../../../services/fetch/responseInterceptor";
 import i18Instance from "../../../../language";
+import Store from "store";
 
 const {
     setError,
@@ -42,6 +43,11 @@ const fetchCommonSettingsAsync = () => {
         try {
             const data = await requestInitFrontend();
             dispatch(setInitialSettings(data));
+
+            const selectedLng = Store.get("locale");
+            if (!selectedLng) {
+                dispatch(changeLocale(data.initialLanguage));
+            }
         } catch (error) {
             dispatch(setError(error));
         }
@@ -268,7 +274,7 @@ const resetArtefactModal = (shouldClose: boolean = false) => (dispatch) => {
 const changeLocale = (locale: string) => {
     return async (dispatch) => {
         await i18Instance.changeLanguage(locale);
-
+        Store.set("locale", locale);
         dispatch(changeLanguage(locale));
     };
 };

@@ -150,3 +150,19 @@ export interface ICommonState {
     exportTypes: IExportTypes[];
     artefactModal: IArtefactModal;
 }
+
+export interface IInitFrontend {
+    /**
+     * shows the state of workspace
+     */
+    emptyWorkspace: boolean;
+    /**
+     * initial language from backend
+     */
+    initialLanguage: string;
+
+    /**
+     * DM url, in case of missing, hide navigation bar
+     */
+    dmBaseUrl?: string;
+}
