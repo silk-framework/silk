@@ -27,7 +27,6 @@ import { SearchBar } from "../../../shared/SearchBar/SearchBar";
 import { Highlighter } from "../../../shared/Highlighter/Highlighter";
 import { usePagination } from "@gui-elements/src/components/Pagination/Pagination";
 import { commonSel } from "@ducks/common";
-import { projectFileResourceDependents } from "@ducks/workspace/requests";
 import { useTranslation } from "react-i18next";
 import { FileRemoveModal } from "../../../shared/modals/FileRemoveModal";
 

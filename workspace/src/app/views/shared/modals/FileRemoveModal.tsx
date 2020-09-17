@@ -3,6 +3,9 @@ import DeleteModal from "./DeleteModal";
 import { projectFileResourceDependents, requestRemoveProjectResource } from "@ducks/workspace/requests";
 import { useTranslation } from "react-i18next";
 import { UppyFile } from "@uppy/core";
+import { ITaskLink } from "@ducks/workspace/typings";
+import { Link } from "@gui-elements/index";
+import { routerOp } from "@ducks/router";
 
 type UppyFileOrResource = UppyFile | { name: string; id: string };
 
@@ -17,13 +20,13 @@ interface IProps {
 export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
     const [t] = useTranslation();
 
-    const [dependentTasks, setDependentTasks] = useState<any>([]);
+    const [dependentTasks, setDependentTasks] = useState<ITaskLink[]>([]);
 
     // get file dependencies on open
     useEffect(() => {
         const openDeleteModal = async () => {
-            const dependentTasks = await projectFileResourceDependents(projectId, file.name);
-            setDependentTasks(dependentTasks);
+            const dependentTasksResponse = await projectFileResourceDependents(projectId, file.name);
+            setDependentTasks(dependentTasksResponse.data);
         };
 
         if (file) {
@@ -52,7 +55,11 @@ export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
                     <p>{t("widget.FileWidget.removeFromDatasets", { fileName: file.name })}</p>
                     <ul>
                         {dependentTasks.map((task) => (
-                            <li key={task}>{task}</li>
+                            <li key={task.id}>
+                                <Link target={"_blank"} href={routerOp.taskUrl(projectId, task.taskType, task.id)}>
+                                    {task.label}
+                                </Link>
+                            </li>
                         ))}
                     </ul>
                     <p>

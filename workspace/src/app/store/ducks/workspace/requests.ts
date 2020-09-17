@@ -1,4 +1,4 @@
-import { IAppliedFacetState, IFacetState, ISorterListItemState } from "@ducks/workspace/typings";
+import { IAppliedFacetState, IFacetState, ISorterListItemState, ITaskLink } from "@ducks/workspace/typings";
 import fetch from "../../../services/fetch";
 import { legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
 import { VoidOrNever } from "../../../../app";
@@ -191,15 +191,13 @@ export const requestRemoveProjectResource = async (projectId: string, resourceNa
 };
 
 /** Returns all tasks that depend on a specific resource. */
-export const projectFileResourceDependents = async (projectId: string, resourceName: string): Promise<string[]> => {
-    try {
-        const { data } = await fetch({
-            url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/usage`),
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+export const projectFileResourceDependents = async (
+    projectId: string,
+    resourceName: string
+): Promise<FetchResponse<ITaskLink[]>> => {
+    return fetch({
+        url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/usage`),
+    });
 };
 
 //missing-type

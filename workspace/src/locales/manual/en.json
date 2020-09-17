@@ -243,7 +243,7 @@
             "file": "File",
             "files": "Files",
             "loading": "Loading file list.",
-            "removeFromDatasets": "File '{{fileName}}' is in use by following datasets:",
+            "removeFromDatasets": "File '{{fileName}}' is in use by following items:",
             "removeText": "Do you really want to delete file",
             "sort": {
                 "modified": "Last modified",
