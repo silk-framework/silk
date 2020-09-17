@@ -9,15 +9,19 @@ import org.silkframework.entity._
 import org.silkframework.entity.paths._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.RuleSchemata
+import org.silkframework.rule.input.TransformInput
 import org.silkframework.rule.task.DatasetOrTransformTaskAutoCompletionProvider
 import org.silkframework.runtime.plugin.{IdentifierOptionParameter, StringTraversableParameter}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
 
+import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 import scala.xml.{Node, Null}
 import scala.language.implicitConversions
@@ -90,6 +94,28 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
     * This includes input tasks and output tasks.
     */
   override def referencedTasks: Set[Identifier] = inputTasks ++ outputTasks
+
+  override lazy val referencedResources: Seq[Resource] = {
+    val resources = new mutable.HashSet[Resource]()
+    extractResourcesFromRule(mappingRule, resources)
+    resources.toSeq
+  }
+
+  private def extractResourcesFromRule(rule: TransformRule,
+                                       resources: mutable.HashSet[Resource]): Unit = {
+    extractResourcesFromOperator(rule.operator, resources)
+    rule.rules.foreach(rule => extractResourcesFromRule(rule, resources))
+  }
+
+  private def extractResourcesFromOperator(operator: Operator,
+                                           resources: mutable.HashSet[Resource]): Unit = {
+    operator match {
+      case TransformInput(_, transformer, inputs) =>
+        inputs.foreach(input => extractResourcesFromOperator(input, resources))
+        transformer.referencedResources.foreach(resources.add)
+      case _ =>
+    }
+  }
 
   /**
     * Input and output schemata of all object rules in the tree.

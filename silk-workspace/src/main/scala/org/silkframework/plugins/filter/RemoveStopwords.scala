@@ -16,6 +16,8 @@ case class RemoveStopwords(stopwordList: Resource, separator: String = "[\\s-]+"
 
   val regex = separator.r
 
+  override def referencedResources: Seq[Resource] = Seq(stopwordList)
+
   override def evaluate(value: String): String = {
     val result = new StringBuilder
     for(word <- regex.split(value) if !stopwords.contains(word)) {
