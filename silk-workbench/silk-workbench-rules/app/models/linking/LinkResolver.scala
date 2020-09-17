@@ -2,7 +2,7 @@ package models.linking
 
 import java.net.URLEncoder
 
-import org.silkframework.config.{DefaultConfig, TaskSpec}
+import org.silkframework.config.{DefaultConfig, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.rule.LinkSpec
@@ -15,6 +15,11 @@ import play.api.mvc.MultipartFormData.DataPart
   * Given an entity URI, generates a browser link that navigates to the entity.
   */
 trait LinkResolver {
+
+  /**
+    * The label of the source task, where the entities are coming from.
+    */
+  def taskLabel: String
 
   /**
     * Returns a browser URL for a given entity.
@@ -44,22 +49,22 @@ object LinkResolver {
   /**
     * Returns a LinkResolver for a given task.
     */
-  def forTask(sourceTask: TaskSpec): LinkResolver = {
-    sourceTask match {
+  def forTask(sourceTask: Task[TaskSpec]): LinkResolver = {
+    sourceTask.data match {
       case dataset: GenericDatasetSpec =>
         dataset.plugin match {
           case ds: RdfDataset =>
             dataManagerUrl match {
               case Some(url) =>
-                new DataManagerResolver(ds, url)
+                new DataManagerResolver(sourceTask.taskLabel(), ds, url)
               case None =>
-                DereferencingLinkResolver
+                DereferencingLinkResolver(sourceTask.taskLabel())
             }
           case _ =>
-            NoLinkResolver
+            NoLinkResolver(sourceTask.taskLabel())
         }
       case _ =>
-        NoLinkResolver
+        NoLinkResolver(sourceTask.taskLabel())
     }
   }
 
@@ -75,7 +80,7 @@ object LinkResolver {
   * Does not generate any links for entities.
   * Used for entities from sources for which we do not have corresponding entity detail pages (CSV, etc.).
   */
-object NoLinkResolver extends LinkResolver {
+case class NoLinkResolver(taskLabel: String) extends LinkResolver {
 
   def apply(entityUri: String): Option[String] = None
 
@@ -85,7 +90,7 @@ object NoLinkResolver extends LinkResolver {
   * Directly links to the URI of the entity.
   * Can be used for entities that use dereferenceable URIs.
   */
-object DereferencingLinkResolver extends LinkResolver {
+case class DereferencingLinkResolver(taskLabel: String) extends LinkResolver {
 
   def apply(entityUri: String): Option[String] = {
     Some(entityUri)
@@ -96,7 +101,7 @@ object DereferencingLinkResolver extends LinkResolver {
 /**
   * Links to the entity page in the DataManager.
   */
-class DataManagerResolver(dataset: RdfDataset, dataManagerUrl: String) extends LinkResolver {
+class DataManagerResolver(val taskLabel: String, dataset: RdfDataset, dataManagerUrl: String) extends LinkResolver {
 
   private val graphOpt = dataset.graphOpt
 

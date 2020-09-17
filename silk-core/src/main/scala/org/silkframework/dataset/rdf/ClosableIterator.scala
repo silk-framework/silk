@@ -9,3 +9,18 @@ trait ClosableIterator[T] extends Iterator[T] {
     * */
   def close(): Unit
 }
+
+object ClosableIterator {
+  /**
+    * Creates a closable iterator from an existing closable iterator.
+    * All returned values are automatically mapped.
+    */
+  def mappedClosableIterator[T, U](closableIterator: ClosableIterator[T],
+                                   f: T => U): ClosableIterator[U] = new ClosableIterator[U] {
+    override def close(): Unit = closableIterator.close()
+
+    override def hasNext: Boolean = closableIterator.hasNext
+
+    override def next(): U = f(closableIterator.next())
+  }
+}

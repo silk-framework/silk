@@ -34,6 +34,23 @@ object JsonHelpers {
     }
   }
 
+  // Expects either a JSON array or Null.
+  def mustBeOptionalJsArray[T](jsValue: JsValue)(block: Option[JsArray] => T): T = {
+    jsValue match {
+      case null => block(None) //valid array representation
+      case jsArray: JsArray => block(Some(jsArray))
+      case JsNull => block(None)
+      case _ => throw JsonParseException("Error while parsing. JSON value is not a JSON array nor Null!")
+    }
+  }
+
+  def mustBeOptionalJsArray[T](jsLookupResult: JsLookupResult)(block: Option[JsArray] => T): T = {
+    jsLookupResult match {
+      case JsDefined(value) => mustBeOptionalJsArray(value)(block)
+      case _: JsUndefined => block(None)
+    }
+  }
+
   def stringValue(json: JsValue, attributeName: String): String = {
     stringValueOption(json, attributeName) match {
       case Some(value) =>
