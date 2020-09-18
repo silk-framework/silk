@@ -3,8 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { commonOp, commonSel } from "@ducks/common";
 import {
     ApplicationHeader,
-    ApplicationSidebarToggler,
     ApplicationSidebarNavigation,
+    ApplicationSidebarToggler,
     ApplicationTitle,
     ApplicationToolbar,
     ApplicationToolbarAction,
@@ -13,6 +13,7 @@ import {
     BreadcrumbList,
     Button,
     ContextMenu,
+    Divider,
     Icon,
     IconButton,
     Menu,
@@ -26,7 +27,6 @@ import {
     OverviewItemLine,
     TitlePage,
     TitleSubsection,
-    Divider,
     WorkspaceHeader,
 } from "@gui-elements/index";
 import ItemDepiction from "./ItemDepiction";
@@ -35,10 +35,10 @@ import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/Cre
 import withBreadcrumbLabels from "./withBreadcrumbLabels";
 import { Helmet } from "react-helmet";
 import { useLocation } from "react-router";
-import { APPLICATION_NAME, APPLICATION_SUITE_NAME, APPLICATION_CORPORATION_NAME } from "../../../constants/base";
-import { workspaceSel } from "@ducks/workspace";
+import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { ItemDeleteModal } from "../../shared/modals/ItemDeleteModal";
-import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
+import { CONTEXT_PATH } from "../../../constants/path";
 import CloneModal from "../../shared/modals/CloneModal";
 import { routerOp } from "@ducks/router";
 import { IItemLink } from "@ducks/shared/typings";
@@ -60,11 +60,7 @@ export interface IBreadcrumb {
     text: string;
 }
 
-function HeaderComponent({
-    breadcrumbs,
-    onClickApplicationSidebarExpand,
-    isApplicationSidebarExpanded
-}: IProps) {
+function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isApplicationSidebarExpanded }: IProps) {
     const dispatch = useDispatch();
     const location = useLocation<any>();
     const [itemType, setItemType] = useState<string | null>(null);
@@ -77,6 +73,7 @@ function HeaderComponent({
 
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const taskId = useSelector(commonSel.currentTaskIdSelector);
+    const { dmBaseUrl } = useSelector(commonSel.initialSettingsSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
 
     const startTitle = `Build — ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`;
@@ -87,6 +84,11 @@ function HeaderComponent({
 
     const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
     const [t] = useTranslation();
+
+    const itemData = {
+        id: taskId ? taskId : projectId,
+        projectId: taskId ? projectId : undefined,
+    };
 
     // Update task type
     useEffect(() => {
@@ -197,17 +199,6 @@ function HeaderComponent({
         } catch (e) {}
     };
 
-    /*
-        TODO: this is only a simple test to have a workaround for a while, we need
-        to remove the check for iFrameDetection later again.
-    */
-    const iFrameDetection = window === window.parent;
-
-    const itemData = {
-        id: taskId ? taskId : projectId,
-        projectId: taskId ? projectId : undefined,
-    };
-
     const handleExport = (type: IExportTypes) => {
         downloadResource(itemData.id, type.id);
     };
@@ -216,11 +207,21 @@ function HeaderComponent({
         dispatch(commonOp.changeLocale(locale));
     };
 
+    const handleNavigate = (page: string) => {
+        dispatch(routerOp.goToPage(""));
+        dispatch(
+            workspaceOp.applyFiltersOp({
+                itemType: page,
+            })
+        );
+    };
+
     return !isAuth ? null : (
-        <ApplicationHeader aria-label={`${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}: ${APPLICATION_NAME}`}>
-            {
-                /* TODO: only show when application menu is opened */
-                iFrameDetection && (
+        <ApplicationHeader
+            aria-label={`${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}: ${APPLICATION_NAME}`}
+        >
+            {!!dmBaseUrl && (
+                <>
                     <ApplicationTitle
                         prefix={APPLICATION_CORPORATION_NAME}
                         isNotDisplayed={!isApplicationSidebarExpanded}
@@ -228,61 +229,47 @@ function HeaderComponent({
                     >
                         {APPLICATION_NAME}
                     </ApplicationTitle>
-                )
-            }
-            {
-                iFrameDetection && (
                     <ApplicationSidebarToggler
                         aria-label={t("navigation.side.open", "Open navigation")}
                         onClick={onClickApplicationSidebarExpand}
                         isActive={isApplicationSidebarExpanded}
                     />
-                )
-            }
-            {
-                iFrameDetection && (
-                    <ApplicationSidebarNavigation
-                        expanded={isApplicationSidebarExpanded}
-                    >
-                        <TitleSubsection>
-                            {t("navigation.side.explore", "Browse in DataManager")}
-                        </TitleSubsection>
+                    <ApplicationSidebarNavigation expanded={isApplicationSidebarExpanded}>
+                        <TitleSubsection>{t("navigation.side.explore", "Browse in DataManager")}</TitleSubsection>
                         <Menu>
                             <MenuItem
                                 icon="application-explore"
                                 text={t("navigation.side.explore", "Explore")}
-                                href={CONTEXT_PATH + "/../explore"}
+                                href={dmBaseUrl + "/explore"}
                             />
                             <MenuItem
                                 icon="application-vocabularies"
                                 text={t("navigation.side.vocabularies", "Vocabularies")}
-                                href={CONTEXT_PATH + "/../vocab"}
+                                href={dmBaseUrl + "/vocab"}
                             />
                             <MenuItem
                                 icon="application-queries"
                                 text={t("navigation.side.querycatalog", "Query catalog")}
-                                href={CONTEXT_PATH + "/../query"}
+                                href={dmBaseUrl + "/query"}
                             />
                         </Menu>
-                        <Divider addSpacing="xlarge"/>
-                        <TitleSubsection>
-                            {t("navigation.side.explore", "Create in DataIntegration")}
-                        </TitleSubsection>
+                        <Divider addSpacing="xlarge" />
+                        <TitleSubsection>{t("navigation.side.explore", "Create in DataIntegration")}</TitleSubsection>
                         <Menu>
                             <MenuItem
                                 icon="artefact-project"
                                 text={t("navigation.side.projects", "Projects")}
-                                href={SERVE_PATH + "?itemType=project"}
+                                onClick={() => handleNavigate("project")}
                             />
                             <MenuItem
                                 icon="artefact-dataset"
-                                text={t("navigation.side.projects", "Datasets")}
-                                href={SERVE_PATH + "?itemType=dataset"}
+                                text={t("navigation.side.datasets", "Datasets")}
+                                onClick={() => handleNavigate("dataset")}
                             />
                         </Menu>
                     </ApplicationSidebarNavigation>
-                )
-            }
+                </>
+            )}
 
             <WorkspaceHeader>
                 <Helmet title={windowTitle} />
@@ -374,7 +361,7 @@ function HeaderComponent({
                                     text={t("common.action.activity", "Activity overview")}
                                     href={CONTEXT_PATH + "/workspace/allActivities"}
                                 />
-                                {iFrameDetection && (
+                                {!!dmBaseUrl && (
                                     <>
                                         <MenuDivider />
                                         <MenuItem
