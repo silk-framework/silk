@@ -15,8 +15,6 @@ import org.silkframework.workspace.io.WorkspaceIO.copyResources
 import org.silkframework.workspace.resources.ResourceRepository
 
 /**
-  * Created on 6/24/16.
-  *
   * Trait defining methods for marshalling and unmarshalling of Silk projects.
   */
 trait ProjectMarshallingTrait extends AnyPlugin {
