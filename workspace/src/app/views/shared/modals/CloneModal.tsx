@@ -77,7 +77,9 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             title={
                 t("common.action.CloneSmth", {
                     smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
-                }) + ": " + label ||
+                }) +
+                    ": " +
+                    label ||
                 item.label ||
                 item.id
             }
@@ -107,7 +109,10 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                     }),
                 }}
             >
-                <TextField onChange={(e) => setNewLabel(e.target.value)} value={t("common.messages.cloneOf", {item: newLabel})} />
+                <TextField
+                    onChange={(e) => setNewLabel(e.target.value)}
+                    value={t("common.messages.cloneOf", { item: newLabel })}
+                />
             </FieldItem>
             {error && (
                 <>
