@@ -128,7 +128,7 @@ describe("Task page", () => {
             const metaData = findSingleElement(taskPageWrapper, byTestId("metaDataWidget"));
             expect(findAll(metaData, ".eccgui-propertyvalue__value").map((elem) => elem.text())).toStrictEqual([
                 taskLabel,
-                taskDescription,
+                taskDescription + " ",
             ]);
         });
     });
