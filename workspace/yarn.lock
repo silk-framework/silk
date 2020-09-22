@@ -10339,7 +10339,7 @@ prop-types-exact@^1.2.0:
     object.assign "^4.1.0"
     reflect.ownkeys "^0.2.0"
 
-prop-types@^15.6.1, prop-types@^15.6.2, prop-types@^15.7.2:
+prop-types@^15.5.10, prop-types@^15.6.1, prop-types@^15.6.2, prop-types@^15.7.2:
   version "15.7.2"
   resolved "https://artifactory.eccenca.com/api/npm/npm/prop-types/-/prop-types-15.7.2.tgz#52c41e75b8c87e72b9d9360e0206b99dcbffa6c5"
   integrity sha1-UsQedbjIfnK52TYOAga5ncv/psU=
@@ -10687,6 +10687,13 @@ react-side-effect@^2.1.0:
   version "2.1.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/react-side-effect/-/react-side-effect-2.1.0.tgz#1ce4a8b4445168c487ed24dab886421f74d380d3"
   integrity sha1-HOSotERRaMSH7STauIZCH3TTgNM=
+
+react-sparklines@^1.7.0:
+  version "1.7.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/react-sparklines/-/react-sparklines-1.7.0.tgz#9b1d97e8c8610095eeb2ad658d2e1fcf91f91a60"
+  integrity sha1-mx2X6MhhAJXusq1ljS4fz5H5GmA=
+  dependencies:
+    prop-types "^15.5.10"
 
 react-test-renderer@^16.0.0-0, react-test-renderer@^16.8.6:
   version "16.13.1"
