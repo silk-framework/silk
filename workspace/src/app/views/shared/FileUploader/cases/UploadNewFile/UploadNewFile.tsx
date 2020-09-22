@@ -1,9 +1,8 @@
 import { DragDrop } from "@uppy/react";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Uppy, { UppyFile } from "@uppy/core";
 import { Button, Notification, Spacing } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
-import i18next from "../../../../../../language";
 import { NewFileItem } from "./NewFileItem";
 import { ReplacementFileItem } from "./ReplacementFileItem";
 import { useForceUpdate } from "../../../../../hooks/useForceUpdate";
@@ -51,6 +50,7 @@ export function UploadNewFile(props: IProps) {
     const [uploadedFiles, setUploadedFiles] = useState<UppyFile[]>([]);
 
     // contains fatal error messages, if it's exists then show the Retry button
+    // @FIXME: perhaps we don't need it
     const [error, setError] = useState(null);
 
     // contains file for delete dialog
@@ -74,7 +74,7 @@ export function UploadNewFile(props: IProps) {
             uppy.off("upload-error", handleUploadError);
         };
 
-        // reset events, because of "file-added" store old values of onlyReplacements
+        // reset events, because of "file-added" store prev state values
         unregisterEvents();
 
         uppy.on("file-added", handleFileAdded);
@@ -83,7 +83,7 @@ export function UploadNewFile(props: IProps) {
         uppy.on("upload-error", handleUploadError);
 
         return unregisterEvents;
-    }, [onlyReplacements]);
+    }, [onlyReplacements, uploadedFiles, filesForRetry]);
 
     const uploadReplacementFile = async (replacementFile: UppyFile) => {
         try {
@@ -109,7 +109,10 @@ export function UploadNewFile(props: IProps) {
 
             // when network offline
             if (e.isNetworkError) {
-                setError(i18next.t("http.error.networkFileUpload"));
+                setFileError(file.id, t("http.error.networkFileUpload", { fileName: file.name }));
+
+                updateRetryFiles(file);
+
                 return;
             }
         }
@@ -195,20 +198,20 @@ export function UploadNewFile(props: IProps) {
             errorDetails += ` - ${JSON.parse(error.request.response).detail}`;
         } catch {}
 
-        const errorMessage = i18next.t("FileUploader.uploadError", {
+        const errorMessage = t("FileUploader.uploadError", {
             fileName: fileData.name,
             errorDetails: errorDetails,
         });
 
-        uppy.setFileState(fileData.id, {
-            error: errorMessage,
-        });
+        setFileError(fileData.id, errorMessage);
 
-        // setError(errorMessage);
+        updateRetryFiles(fileData);
+    };
 
-        setFilesForRetry([...filesForRetry, uppy.getFile(fileData.id)]);
+    const updateRetryFiles = (file: UppyFile) => {
+        setFilesForRetry((files) => [...files, uppy.getFile(file.id)]);
 
-        removeFromQueue(fileData.id);
+        removeFromQueue(file.id);
     };
 
     const handleAbort = (fileId: string) => {
@@ -228,7 +231,6 @@ export function UploadNewFile(props: IProps) {
         const files = filesForRetry.filter((f) => f.id === fileId);
         deleteFromRetry(fileId);
 
-        // @TODO: for replacement file this checked again
         files.forEach(uppy.addFile);
     };
 
@@ -258,7 +260,7 @@ export function UploadNewFile(props: IProps) {
         forceUpdate();
     };
 
-    const setFileError = (fileId: string, error) => {
+    const setFileError = (fileId: string, error: string) => {
         uppy.setFileState(fileId, {
             error,
         });

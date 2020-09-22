@@ -36,7 +36,7 @@ export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
 
     const closeDeleteModal = () => {
         setDependentTasks([]);
-        onConfirm(file.id);
+        onConfirm();
     };
 
     const deleteFile = async () => {
@@ -68,7 +68,8 @@ export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
                 </div>
             );
         } else {
-            return <p>{t("widget.FileWidget.deleted", { fileName: file?.name })}</p>;
+            const fileName = file?.name;
+            return <p>{t("widget.FileWidget.deleted", { fileName })}</p>;
         }
     };
 
