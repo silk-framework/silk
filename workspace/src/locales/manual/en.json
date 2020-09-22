@@ -63,6 +63,11 @@
     "PrefixDialog": {
         "deletePrefix": "Prefix {{prefixName}} will be deleted."
     },
+    "ProjectImportModal": {
+        "projectFile": "Choose project file to import:",
+        "startImportBtn": "Start project import",
+        "title": "Project import"
+    },
     "RelatedItems": {
         "title": "Related items"
     },
@@ -120,8 +125,8 @@
         },
         "words": {
             "advancedOptions": "Advanced options",
-            "and": "and",
             "all": "All",
+            "and": "and",
             "back": "Back",
             "itemType": "Item type",
             "less": "less",
@@ -138,6 +143,7 @@
             "searchField": "Enter search term"
         },
         "projectForm": {
+            "importProjectButton": "Import existing project",
             "projectDesc": "Project description",
             "projectTitle": "Project title",
             "title": "Title"

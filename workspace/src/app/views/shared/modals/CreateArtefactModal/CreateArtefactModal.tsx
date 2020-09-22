@@ -36,6 +36,7 @@ import { SearchBar } from "../../SearchBar/SearchBar";
 import { routerOp } from "@ducks/router";
 import { useTranslation } from "react-i18next";
 import { TaskType } from "@ducks/shared/typings";
+import { ProjectImportModal } from "../ProjectImportModal";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -63,6 +64,7 @@ export function CreateArtefactModal() {
     // initially take from redux
     const [selected, setSelected] = useState<IArtefactItem>(selectedArtefact);
     const [lastSelectedClick, setLastSelectedClick] = useState<number>(0);
+    const [isProjectImport, setIsProjectImport] = useState<boolean>(false);
     const DOUBLE_CLICK_LIMIT_MS = 500;
 
     // Fetch Artefact list
@@ -173,10 +175,17 @@ export function CreateArtefactModal() {
     };
 
     const resetModal = (closeModal?: boolean) => {
+        setIsProjectImport(false);
         setSelected({} as IArtefactItem);
         form.clearError();
         dispatch(commonOp.resetArtefactModal(closeModal));
     };
+
+    const switchToProjectImport = () => {
+        setIsProjectImport(true);
+    };
+
+    const projectArtefactSelected = selectedArtefact.key === DATA_TYPES.PROJECT;
 
     let artefactForm = null;
     if (updateExistingTask) {
@@ -192,7 +201,7 @@ export function CreateArtefactModal() {
     } else {
         // Project / task creation
         if (selectedArtefact.key) {
-            if (selectedArtefact.key === DATA_TYPES.PROJECT) {
+            if (projectArtefactSelected) {
                 artefactForm = <ProjectForm form={form} projectId={projectId} />;
             } else {
                 const detailedArtefact = cachedArtefactProperties[selectedArtefact.key];
@@ -270,7 +279,7 @@ export function CreateArtefactModal() {
 
     const isCreationUpdateDialog = selectedArtefact.key || updateExistingTask;
 
-    return (
+    const createDialog = (
         <SimpleDialog
             size="large"
             preventSimpleClosing={true}
@@ -304,6 +313,13 @@ export function CreateArtefactModal() {
                             <Button key="cancel" onClick={closeModal}>
                                 {t("common.action.cancel")}
                             </Button>,
+                            <div key="optionalProjectActions">
+                                {projectArtefactSelected && (
+                                    <Button key="importProject" onClick={switchToProjectImport} affirmative={true}>
+                                        {t("form.projectForm.importProjectButton")}
+                                    </Button>
+                                )}
+                            </div>,
                             <CardActionsAux key="aux">
                                 {!updateExistingTask && (
                                     <Button key="back" onClick={handleBack}>
@@ -435,5 +451,10 @@ export function CreateArtefactModal() {
                 </>
             }
         </SimpleDialog>
+    );
+    return isProjectImport ? (
+        <ProjectImportModal close={closeModal} back={() => setIsProjectImport(false)} />
+    ) : (
+        createDialog
     );
 }

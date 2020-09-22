@@ -4,7 +4,7 @@ import { errorMessage } from "./ParameterWidget";
 import { Intent } from "@gui-elements/blueprint/constants";
 import { useTranslation } from "react-i18next";
 
-export interface IProps {
+interface IProps {
     form: any;
     projectId: string;
 }

@@ -1,4 +1,4 @@
-import { IAppliedFacetState, IFacetState, ISorterListItemState } from "@ducks/workspace/typings";
+import { IAppliedFacetState, IFacetState, IProjectImportDetails, ISorterListItemState } from "@ducks/workspace/typings";
 import fetch from "../../../services/fetch";
 import { legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
 import { VoidOrNever } from "../../../../app";
@@ -225,4 +225,12 @@ export const requestWarningMarkdown = async (taskId: string, projectId: string):
     } catch (e) {
         throw handleError(e);
     }
+};
+
+export const requestProjectImportDetails = async (
+    projectImportId: string
+): Promise<FetchResponse<IProjectImportDetails>> => {
+    return fetch({
+        url: workspaceApi(`/projectImport/${projectImportId}`),
+    });
 };
