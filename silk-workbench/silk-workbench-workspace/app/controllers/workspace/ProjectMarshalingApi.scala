@@ -85,7 +85,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with Controll
     }
   }
 
-  def withMarshaller(marshallerId: String)(f: ProjectMarshallingTrait => Result): Result = {
+  def withMarshaller[T](marshallerId: String)(f: ProjectMarshallingTrait => T): T = {
     marshallerById(marshallerId) match {
       case Some(marshaller) =>
         f(marshaller)
