@@ -20,6 +20,17 @@
         "typeSelectionBack": "Back to type selection",
         "typeSelectionTooltip": "The data source consists of multiple types. Select one type from the list for a preview. There are max. 1000 types fetched at any time."
     },
+    "DataProfiling": {
+        "attributes": {
+            "datatype": "Data type",
+            "distribution": "Distribution",
+            "profilingTimestamp": "Profiling timestamp"
+        },
+        "profilingInfoHeader": "Profiling info for {{path}} data",
+        "profilingInfoTooltip": "Show extended profiling info for {{path}}",
+        "profilingNotAvailable": "No profiling data available, yet.",
+        "profilingRunning": "Running profiling on"
+    },
     "DeleteModal": {
         "confirmMsg": "Task {{name}} is used by other tasks! Deleting this task will also delete all depending tasks listed below:",
         "deleteResource": "{{type}} {{name}} will be deleted"
@@ -89,6 +100,8 @@
             "exportTo": "Export to",
             "logout": "Logout",
             "moreOptions": "Show more options",
+            "profilingStart": "Start profiling",
+            "profilingUpdate": "Update profiling",
             "replace": "Replace",
             "resetSelection": "Reset selection",
             "showDetails": "Show details",
