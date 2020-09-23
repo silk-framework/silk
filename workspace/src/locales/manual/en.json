@@ -64,7 +64,9 @@
         "deletePrefix": "Prefix {{prefixName}} will be deleted."
     },
     "ProjectImportModal": {
+        "importUnderFreshIdBtn": "Import as new project",
         "projectFile": "Choose project file to import:",
+        "replaceImportBtn": "Replace existing project",
         "startImportBtn": "Start project import",
         "title": "Project import"
     },

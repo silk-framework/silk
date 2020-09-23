@@ -5,9 +5,16 @@ import { UploadNewFile } from "../FileUploader/cases/UploadNewFile";
 import Uppy from "@uppy/core";
 import { workspaceApi } from "../../../utils/getApiEndpoint";
 import XHR from "@uppy/xhr-upload";
-import { requestProjectImportDetails } from "@ducks/workspace/requests";
-import { IProjectImportDetails } from "@ducks/workspace/typings";
+import {
+    requestDeleteProjectImport,
+    requestProjectImportDetails,
+    requestProjectImportExecutionStatus,
+    requestStartProjectImport,
+} from "@ducks/workspace/requests";
+import { IProjectExecutionStatus, IProjectImportDetails } from "@ducks/workspace/typings";
 import { Loading } from "../Loading/Loading";
+import { useDispatch } from "react-redux";
+import { routerOp } from "@ducks/router";
 
 interface IProps {
     // Called when closing the modal
@@ -19,6 +26,7 @@ interface IProps {
 export function ProjectImportModal({ close, back }: IProps) {
     const [t] = useTranslation();
     const [uppy] = useState(Uppy());
+    const dispatch = useDispatch();
     const [loading, setLoading] = useState(false);
     const [projectImportId, setProjectImportId] = useState<string | null>(null);
     const [projectImportDetails, setProjectImportDetails] = useState<IProjectImportDetails | null>(null);
@@ -54,8 +62,52 @@ export function ProjectImportModal({ close, back }: IProps) {
         }
     };
 
+    const closeDialog = async () => {
+        await cleanUp();
+        close();
+    };
+
+    const goBack = async () => {
+        await cleanUp();
+        back();
+    };
+
+    // Deletes the uploaded file in the backend
+    const cleanUp = async () => {
+        if (projectImportId) {
+            try {
+                setLoading(true);
+                await requestDeleteProjectImport(projectImportId);
+            } catch (ex) {
+                // TODO
+            } finally {
+                setLoading(false);
+            }
+        }
+    };
+
     const handleFileAdded = async () => {
         await uppy.upload();
+    };
+
+    const startProjectImport = async (generateNewProjectId: boolean, overWriteExistingProject: boolean) => {
+        if (projectImportId) {
+            try {
+                setLoading(true);
+                await requestStartProjectImport(projectImportId, generateNewProjectId, overWriteExistingProject);
+                let status: Partial<IProjectExecutionStatus> = {};
+                while (!status.importEnded) {
+                    status = (await requestProjectImportExecutionStatus(projectImportId)).data;
+                }
+                close();
+                dispatch(routerOp.goToPage(`projects/${status.projectId}`));
+            } catch (ex) {
+                // TODO
+                console.log(ex);
+            } finally {
+                setLoading(false);
+            }
+        }
     };
 
     const handleUploadError = (fileData, error) => {
@@ -89,21 +141,46 @@ export function ProjectImportModal({ close, back }: IProps) {
     );
     const actions: JSX.Element[] = [];
     if (projectImportDetails) {
-        actions.push(
-            <Button
-                data-test-id={"importProjectBtn"}
-                key="importProject"
-                affirmative={true}
-                onClick={TODO}
-                disabled={false}
-            >
-                {t("ProjectImportModal.startImportBtn")}
-            </Button>
-        );
+        if (!projectImportDetails.errorMessage && !projectImportDetails.projectAlreadyExists) {
+            actions.push(
+                <Button
+                    data-test-id={"startImportProjectBtn"}
+                    key="importProject"
+                    affirmative={true}
+                    onClick={() => startProjectImport(false, false)}
+                    disabled={false}
+                >
+                    {t("ProjectImportModal.startImportBtn")}
+                </Button>
+            );
+        } else if (projectImportDetails.projectAlreadyExists) {
+            actions.push(
+                <Button
+                    data-test-id={"importUnderFreshIdBtn"}
+                    key="importAsFreshProject"
+                    affirmative={true}
+                    onClick={() => startProjectImport(true, false)}
+                    disabled={false}
+                >
+                    {t("ProjectImportModal.importUnderFreshIdBtn")}
+                </Button>
+            );
+            actions.push(
+                <Button
+                    data-test-id={"replaceImportProjectBtn"}
+                    key="replaceProject"
+                    disruptive={true}
+                    onClick={() => startProjectImport(false, true)}
+                    disabled={false}
+                >
+                    {t("ProjectImportModal.replaceImportBtn")}
+                </Button>
+            );
+        }
     }
     // Add 'Cancel' button
     actions.push(
-        <Button key="cancel" onClick={close}>
+        <Button key="cancel" onClick={closeDialog}>
             {t("common.action.cancel")}
         </Button>
     );
@@ -111,7 +188,7 @@ export function ProjectImportModal({ close, back }: IProps) {
     actions.push(
         <CardActionsAux key="aux">
             {back && (
-                <Button key="back" onClick={back}>
+                <Button key="back" onClick={goBack}>
                     {t("common.words.back", "Back")}
                 </Button>
             )}

@@ -25,3 +25,17 @@ export interface IProjectImportDetails {
     // Error message stating that something went wrong and the project cannot be imported.
     errorMessage?: string;
 }
+
+/** The project execution status of a started project import. */
+export interface IProjectExecutionStatus {
+    // The project ID of the to be imported project.
+    projectId: string;
+    // Timestamp when the import has started
+    importStarted: number;
+    // Timestamp when the import has ended
+    importEnded?: number;
+    // If the import has been successful
+    success?: boolean;
+    // If something went wrong, these are the failure details.
+    failureMessage?: string;
+}
