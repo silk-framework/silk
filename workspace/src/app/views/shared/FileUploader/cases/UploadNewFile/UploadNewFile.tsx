@@ -114,7 +114,12 @@ export function UploadNewFile(props: IProps) {
                 // also remove from completed uploads
                 removeFromUploaded(file.id);
 
-                setOnlyReplacements((prevState) => [...prevState, file]);
+                // @FIXME: ignore this case when retry action not call validateBeforeUploadAsync
+                // in case when retry action fired and canceled before checking, that will duplicate the files
+                const notInRetriesList = filesForRetry.find((f) => f.id !== file.id);
+                if (notInRetriesList) {
+                    setOnlyReplacements((prevState) => [...prevState, file]);
+                }
             }
         } catch (e) {
             // when file is corrupted or something wrong with the file
@@ -223,15 +228,12 @@ export function UploadNewFile(props: IProps) {
     };
 
     const addInRetryQueue = (file: UppyFile) => {
-        setFilesForRetry((prevState) => [...prevState, uppy.getFile(file.id)]);
-
+        setFilesForRetry((prevState) => [...prevState, file]);
         removeFromUppyQueue(file.id);
     };
 
     const handleAbort = (fileId: string) => {
         addInRetryQueue(uppy.getFile(fileId));
-
-        removeFromUppyQueue(fileId);
     };
 
     const handleReplace = (file: UppyFile) => {
