@@ -32,6 +32,9 @@ interface IProps {
     onUploadError?(e, f);
 }
 
+// @NOTE: The counter, which check the all files in Uppy queue checked or not
+// this counter can be removed, when uppy gives the event which will work ONLY when all files Added
+// in current case, we use 'add-file' event, which fire for each added file
 let checkedFilesQueue = 0;
 
 /**
@@ -63,11 +66,9 @@ export function UploadNewFile(props: IProps) {
 
     const forceUpdate = useForceUpdate();
 
-    // register uppy events
+    // register/unregister uppy events
     useEffect(() => {
         const unregisterEvents = () => {
-            checkedFilesQueue = 0;
-
             uppy.off("file-added", handleFileAdded);
             uppy.off("upload-progress", handleProgress);
             uppy.off("upload-success", handleUploadSuccess);
@@ -77,6 +78,9 @@ export function UploadNewFile(props: IProps) {
         // reset events, because of "file-added" store prev state values
         unregisterEvents();
 
+        // should reset to make sure that all file will checked again
+        checkedFilesQueue = 0;
+
         uppy.on("file-added", handleFileAdded);
         uppy.on("upload-progress", handleProgress);
         uppy.on("upload-success", handleUploadSuccess);
@@ -84,55 +88,6 @@ export function UploadNewFile(props: IProps) {
 
         return unregisterEvents;
     }, [onlyReplacements, uploadedFiles, filesForRetry]);
-
-    const uploadReplacementFile = async (replacementFile: UppyFile) => {
-        try {
-            setOnlyReplacements((prevState) => prevState.filter((f) => f.id !== replacementFile.id));
-            await upload([replacementFile]);
-            // catch is implemented in handleUploadError
-        } finally {
-        }
-    };
-
-    const uploadNewFile = async (file: UppyFile, forceUpload: boolean = false) => {
-        try {
-            const replacement = await validateBeforeAdd(file.name);
-            if (replacement) {
-                removeFromQueue(file.id);
-                setOnlyReplacements((prevState) => [...prevState, file]);
-            }
-        } catch (e) {
-            // when file is corrupted or something wrong with the file
-            if (e.isHttpError && e.httpStatus === 400) {
-                setFileError(file.id, e.errorDetails.response?.data);
-            }
-
-            // when network offline
-            if (e.isNetworkError) {
-                setFileError(file.id, t("http.error.networkFileUpload", { fileName: file.name }));
-
-                updateRetryFiles(file);
-
-                return;
-            }
-        }
-
-        // if all files added then run uploader
-        checkedFilesQueue++;
-
-        const notCompletedUploads = uppy.getFiles().filter((f) => !f.progress.uploadComplete);
-        const isCompleteAllChecks = checkedFilesQueue >= notCompletedUploads.length;
-
-        if (isCompleteAllChecks || forceUpload) {
-            try {
-                await upload(notCompletedUploads);
-            } catch (e) {}
-        }
-
-        if (onAdded) {
-            onAdded(file);
-        }
-    };
 
     /**
      * Run for every each file added
@@ -147,6 +102,64 @@ export function UploadNewFile(props: IProps) {
             await uploadReplacementFile(replacementFile);
         } else {
             await uploadNewFile(file);
+        }
+    };
+
+    const validateBeforeUploadAsync = async (file: UppyFile) => {
+        try {
+            const replacement = await validateBeforeAdd(file.name);
+            if (replacement) {
+                removeFromUppyQueue(file.id);
+
+                // also remove from completed uploads
+                removeFromUploaded(file.id);
+
+                setOnlyReplacements((prevState) => [...prevState, file]);
+            }
+        } catch (e) {
+            // when file is corrupted or something wrong with the file
+            if (e.isHttpError && e.httpStatus === 400) {
+                setFileError(file.id, e.errorDetails.response?.data);
+            }
+
+            // when network offline
+            if (e.isNetworkError || e.httpStatus >= 500) {
+                setFileError(file.id, t("http.error.networkFileUpload", { fileName: file.name }));
+
+                addInRetryQueue(file);
+
+                return;
+            }
+        }
+    };
+
+    const uploadReplacementFile = async (replacementFile: UppyFile) => {
+        try {
+            removeFromReplacement(replacementFile.id);
+            await upload([replacementFile]);
+            // catch is implemented in handleUploadError
+        } finally {
+        }
+    };
+
+    const uploadNewFile = async (file: UppyFile, forceUpload: boolean = false) => {
+        await validateBeforeUploadAsync(file);
+
+        // if all files added, then run uploader
+        checkedFilesQueue++;
+
+        const notCompletedUploads = uppy.getFiles().filter((f) => !f.progress.uploadComplete);
+        const isCompleteAllChecks = checkedFilesQueue >= notCompletedUploads.length;
+
+        if (isCompleteAllChecks || forceUpload) {
+            try {
+                if (onAdded) {
+                    onAdded(file);
+                }
+                await upload(notCompletedUploads);
+                // catch is implemented in handleUploadError
+            } finally {
+            }
         }
     };
 
@@ -180,14 +193,15 @@ export function UploadNewFile(props: IProps) {
 
     const handleUploadSuccess = (file: UppyFile) => {
         setError(null);
-        setUploadedFiles([...uploadedFiles, file]);
 
-        removeFromQueue(file.id);
+        setUploadedFiles((prevState) => [...prevState, file]);
+
+        removeFromUppyQueue(file.id);
 
         onUploadSuccess(file);
     };
 
-    const handleUploadError = (fileData, error) => {
+    const handleUploadError = (fileData: UppyFile, error: any) => {
         let errorDetails = error?.message ? error.message : "-";
         const idx = errorDetails.indexOf("Source error");
         if (idx > 0) {
@@ -205,33 +219,36 @@ export function UploadNewFile(props: IProps) {
 
         setFileError(fileData.id, errorMessage);
 
-        updateRetryFiles(fileData);
+        addInRetryQueue(fileData);
     };
 
-    const updateRetryFiles = (file: UppyFile) => {
-        setFilesForRetry((files) => [...files, uppy.getFile(file.id)]);
+    const addInRetryQueue = (file: UppyFile) => {
+        setFilesForRetry((prevState) => [...prevState, uppy.getFile(file.id)]);
 
-        removeFromQueue(file.id);
+        removeFromUppyQueue(file.id);
     };
 
     const handleAbort = (fileId: string) => {
-        setFilesForRetry([...filesForRetry, uppy.getFile(fileId)]);
-        removeFromQueue(fileId);
+        addInRetryQueue(uppy.getFile(fileId));
+
+        removeFromUppyQueue(fileId);
     };
 
     const handleReplace = (file: UppyFile) => {
         uppy.addFile(file);
     };
 
-    const handleCancelReplace = (fileId: string) => {
-        setOnlyReplacements(onlyReplacements.filter((f) => f.id !== fileId));
-    };
-
     const handleRetry = (fileId: string) => {
         const files = filesForRetry.filter((f) => f.id === fileId);
-        deleteFromRetry(fileId);
+
+        removeFromRetry(fileId);
 
         files.forEach(uppy.addFile);
+    };
+
+    const handleConfirmDelete = (fileId: string) => {
+        removeFromUploaded(fileId);
+        setShowDeleteDialog(null);
     };
 
     const handleRetryAll = () => {
@@ -243,21 +260,28 @@ export function UploadNewFile(props: IProps) {
         files.forEach(uppy.addFile);
     };
 
-    const deleteFromRetry = (fileId: string) => {
-        setFilesForRetry(filesForRetry.filter((f) => f.id !== fileId));
-    };
-
-    const handleConfirmDelete = (fileId: string) => {
-        if (fileId) {
-            setUploadedFiles(uploadedFiles.filter((f) => f.id !== fileId));
-        }
-
-        setShowDeleteDialog(null);
-    };
-
-    const removeFromQueue = (fileId: string) => {
+    const removeFromUppyQueue = (fileId: string) => {
         uppy.removeFile(fileId);
+
+        // call force on uppy change
         forceUpdate();
+    };
+
+    const removeFromUploaded = (fileId: string) => {
+        const isUploaded = uploadedFiles.find((f) => f.id === fileId);
+        if (fileId && isUploaded) {
+            setUploadedFiles((prevState) => prevState.filter((f) => f.id !== fileId));
+        }
+    };
+
+    const removeFromRetry = (fileId: string) => {
+        setFilesForRetry((prevState) => prevState.filter((f) => f.id !== fileId));
+    };
+
+    const removeFromReplacement = (fileId: string) => {
+        if (fileId) {
+            setOnlyReplacements((prevState) => prevState.filter((f) => f.id !== fileId));
+        }
     };
 
     const setFileError = (fileId: string, error: string) => {
@@ -283,7 +307,7 @@ export function UploadNewFile(props: IProps) {
                             key={file.id}
                             file={file}
                             onRetry={handleRetry}
-                            onCancelRetry={deleteFromRetry}
+                            onCancelRetry={removeFromRetry}
                         />
                     ))}
                     {uppy.getFiles().map((file) => (
@@ -291,7 +315,7 @@ export function UploadNewFile(props: IProps) {
                             key={file.id}
                             file={file}
                             onAbort={handleAbort}
-                            onRemove={removeFromQueue}
+                            onRemove={removeFromUppyQueue}
                             progress={progresses[file.id] || 0}
                         />
                     ))}
@@ -299,7 +323,7 @@ export function UploadNewFile(props: IProps) {
                         <ReplacementFileItem
                             key={file.id}
                             file={file}
-                            onCancelReplacement={handleCancelReplace}
+                            onCancelReplacement={removeFromReplacement}
                             onReplace={handleReplace}
                         />
                     ))}

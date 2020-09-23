@@ -72,6 +72,7 @@ export interface IUploaderOptions {
     /**
      * @default false
      * if advanced is true, then show file uploader with multiple options
+     * this option used in FileWidget for Task creation
      */
     advanced?: boolean;
 
@@ -124,17 +125,17 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
     /**
      * @see Uppy.upload
      */
-    upload = this.uppy.upload;
+    public upload = this.uppy.upload;
 
     /**
      * @see Uppy.reset
      */
-    reset = this.uppy.reset;
+    public reset = this.uppy.reset;
 
     /**
      * @see Uppy.cancelAll
      */
-    cancelAll = this.uppy.cancelAll;
+    public cancelAll = this.uppy.cancelAll;
 
     constructor(props) {
         super(props);
