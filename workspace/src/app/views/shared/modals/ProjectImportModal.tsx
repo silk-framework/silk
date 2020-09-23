@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Button, CardActionsAux, FieldItem, SimpleDialog } from "@gui-elements/index";
+import {
+    Button,
+    CardActionsAux,
+    FieldItem,
+    Link,
+    Notification,
+    SimpleDialog,
+    Spacing,
+    TextField,
+    WhiteSpaceContainer,
+} from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
 import { UploadNewFile } from "../FileUploader/cases/UploadNewFile";
 import Uppy from "@uppy/core";
@@ -15,6 +25,12 @@ import { IProjectExecutionStatus, IProjectImportDetails } from "@ducks/workspace
 import { Loading } from "../Loading/Loading";
 import { useDispatch } from "react-redux";
 import { routerOp } from "@ducks/router";
+import { ContentBlobToggler } from "../ContentBlobToggler/ContentBlobToggler";
+import { SERVE_PATH } from "../../../constants/path";
+import { workspacePath } from "../../../../../test/integration/TestHelper";
+import { absoluteProjectPath } from "../../../utils/routerUtils";
+import ReactMarkdown from "react-markdown";
+import { firstNonEmptyLine } from "../ContentBlobToggler";
 
 interface IProps {
     // Called when closing the modal
@@ -209,10 +225,83 @@ export function ProjectImportModal({ close, back }: IProps) {
         </FieldItem>
     );
 
+    const projectDetails = (details: IProjectImportDetails) => (
+        <>
+            <h2>Project details</h2>
+            <Spacing />
+            <FieldItem
+                key={"label"}
+                labelAttributes={{
+                    text: t("form.field.label"),
+                }}
+            >
+                <WhiteSpaceContainer marginTop="tiny" marginRight="xlarge" marginBottom="small" marginLeft="regular">
+                    {details.label}
+                </WhiteSpaceContainer>
+            </FieldItem>
+            {details.description && (
+                <FieldItem
+                    key={"description"}
+                    labelAttributes={{
+                        text: t("form.field.description"),
+                    }}
+                >
+                    <WhiteSpaceContainer
+                        marginTop="tiny"
+                        marginRight="xlarge"
+                        marginBottom="small"
+                        marginLeft="regular"
+                    >
+                        <ContentBlobToggler
+                            contentPreview={details.description}
+                            contentFullview={details.description}
+                            previewMaxLength={128}
+                            renderContentFullview={(content) => {
+                                return <ReactMarkdown source={details.description} />;
+                            }}
+                            renderContentPreview={firstNonEmptyLine}
+                        />
+                    </WhiteSpaceContainer>
+                </FieldItem>
+            )}
+        </>
+    );
+
+    const projectDetailElement = (details: IProjectImportDetails) => {
+        if (details.projectAlreadyExists) {
+            return (
+                <>
+                    <Notification
+                        warning={true}
+                        message={
+                            "A project with the same ID already exists! Choose to either overwrite " +
+                            "the existing project or import the project under a freshly generated ID."
+                        }
+                    />
+                    <Spacing />
+                    <Link href={absoluteProjectPath(details.projectId)} target={"_empty"}>
+                        Open existing project page
+                    </Link>
+                    <Spacing />
+                    {projectDetails(details)}
+                </>
+            );
+        } else if (details.errorMessage) {
+            return (
+                <Notification
+                    danger={true}
+                    message={"The project cannot be imported. Details: " + details.errorMessage}
+                />
+            );
+        } else {
+            return;
+        }
+    };
+
     const dialogItem = loading ? (
         <Loading />
     ) : projectImportDetails ? (
-        <div>{projectImportDetails.label}</div>
+        projectDetailElement(projectImportDetails)
     ) : (
         uploaderElement
     );
