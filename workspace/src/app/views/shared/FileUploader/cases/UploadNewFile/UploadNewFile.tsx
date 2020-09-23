@@ -116,8 +116,8 @@ export function UploadNewFile(props: IProps) {
 
                 // @FIXME: ignore this case when retry action not call validateBeforeUploadAsync
                 // in case when retry action fired and canceled before checking, that will duplicate the files
-                const notInRetriesList = filesForRetry.find((f) => f.id !== file.id);
-                if (notInRetriesList) {
+                const inRetryList = filesForRetry.findIndex((f) => f.id !== file.id);
+                if (inRetryList === -1) {
                     setOnlyReplacements((prevState) => [...prevState, file]);
                 }
             }
