@@ -1,4 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
+import { useLocation } from "react-router";
+import { useTranslation } from "react-i18next";
+import ReactMarkdown from "react-markdown";
 import {
     Button,
     Card,
@@ -9,7 +14,6 @@ import {
     CardTitle,
     Divider,
     FieldItem,
-    HtmlContentBlock,
     IconButton,
     Notification,
     PropertyValueList,
@@ -21,17 +25,15 @@ import {
     TextField,
     Spacing,
 } from "@gui-elements/index";
-import { Controller, useForm } from "react-hook-form";
 import { Intent } from "@gui-elements/blueprint/constants";
-import { useDispatch, useSelector } from "react-redux";
 import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
-import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { routerOp } from "@ducks/router";
 import { sharedOp } from "@ducks/shared";
 import { Loading } from "../Loading/Loading";
-import { useLocation } from "react-router";
-import { useTranslation } from "react-i18next";
+import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
+import { ContentBlobToggler } from "../ContentBlobToggler/ContentBlobToggler";
+import { firstNonEmptyLine } from "../ContentBlobToggler";
 
 interface IProps {
     projectId?: string;
@@ -238,9 +240,16 @@ export function Metadata(props: IProps) {
                         <PropertyValuePair hasSpacing hasDivider>
                             <PropertyName>{t("form.field.description", "Description")}</PropertyName>
                             <PropertyValue>
-                                <HtmlContentBlock>
-                                    <p>{description}</p>
-                                </HtmlContentBlock>
+                                <ContentBlobToggler
+                                    className="di__dataset__metadata-description"
+                                    contentPreview={description}
+                                    previewMaxLength={128}
+                                    contentFullview={description}
+                                    renderContentFullview={(content) => {
+                                        return <ReactMarkdown source={description} />;
+                                    }}
+                                    renderContentPreview={firstNonEmptyLine}
+                                />
                             </PropertyValue>
                         </PropertyValuePair>
                     )}

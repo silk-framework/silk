@@ -107,7 +107,8 @@
         "messages": {
             "actionFailed": "{{action}} action failed. Details: {{error}}",
             "allTypes": "All types",
-            "cloneModalTitle": "Label of cloned {{item}}",
+            "cloneModalTitle": "New name of cloned {{item}}",
+            "cloneOf": "Copy of {{item}}",
             "createFirstItems": "Create your first {{items}} now.",
             "errorDataTypes": "Fetch error for dataset types",
             "noItems": "No {{items}} found.",
