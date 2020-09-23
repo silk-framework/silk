@@ -38,7 +38,7 @@ export function NewFileItem({ file, progress, onAbort, onRemove }: IProps) {
                     )
                 }
             >
-                <p>{error ? error : t("FileUploader.waitFor", "Wait for finished upload.")}</p>
+                <p>{error ? error : t("FileUploader.waitFor", { fileName: file.name })}</p>
                 <Spacing />
                 {!error && <ProgressBar value={progress} stripes={true} intent={Intent.PRIMARY} />}
             </Notification>
