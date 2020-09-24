@@ -1,7 +1,8 @@
 package controllers.workspaceApi
 
-import java.io.{File, FileInputStream, FileOutputStream}
+import java.io.{File, FileFilter, FileInputStream, FileOutputStream}
 import java.util.concurrent.TimeoutException
+import java.util.logging.{Level, Logger}
 import java.util.zip.ZipFile
 
 import config.WorkbenchConfig
@@ -10,7 +11,7 @@ import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.workspace.ProjectMarshalingApi
 import controllers.workspaceApi.ProjectImportApi.{ProjectImport, ProjectImportDetails, ProjectImportExecution}
 import javax.inject.Inject
-import org.silkframework.config.MetaData
+import org.silkframework.config.{DefaultConfig, MetaData}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.resource.zip.ZipFileResourceLoader
@@ -26,15 +27,25 @@ import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
 import scala.io.Source
-import scala.util.Try
+import scala.util.control.NonFatal
+import scala.util.{Failure, Success, Try}
 import scala.xml.{XML => ScalaXML}
 
 /**
   * API for advanced project import.
   */
 class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedController with ControllerUtilsTrait {
-  // Map holding project import objects. TODO: Purge old project imports to not fill up the FS
+  private final val PROJECT_FILE_MAX_AGE_KEY = "workspace.projectImport.tempFileMaxAge"
+  private final val DEFAULT_PROJECT_FILE_MAX_AGE = 3600L // 1 hour
+
+  private val log: Logger = Logger.getLogger(getClass.getName)
+  private val tempProjectPrefix = "di-projectImport"
+
+  // Map holding project import objects.
   private val projectsImportQueue = new mutable.HashMap[String, ProjectImport]()
+
+  initialTempCleanUp()
+
   implicit val executionContext: ExecutionContextExecutor = ExecutionContext.fromExecutor(Execution.createFixedThreadPool(
     "project-import-thread",
     2,
@@ -49,10 +60,44 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
     }
   }
 
+  private def temporaryProjectFileMaxAge: Long = {
+    val cfg = DefaultConfig.instance()
+    if(cfg.hasPath(PROJECT_FILE_MAX_AGE_KEY)) {
+      cfg.getLong(PROJECT_FILE_MAX_AGE_KEY)
+    } else {
+      DEFAULT_PROJECT_FILE_MAX_AGE
+    }
+  }
+
+  private def initialTempCleanUp(): Unit = {
+    Try {
+      val tmpDir = System.getProperty("java.io.tmpdir")
+      for(file <- new File(tmpDir).listFiles() if file.getName.startsWith(tempProjectPrefix) && file.isFile && file.exists()) {
+        Try(file.delete())
+      }
+    }
+  }
+
+  private def removeOldTempFiles(): Unit = {
+    val maxAge = temporaryProjectFileMaxAge
+    withProjectImportQueue { queue =>
+      for((projectImportId, projectImport) <- queue) {
+        val now = System.currentTimeMillis()
+        if((now - projectImport.uploadTimeStamp) / 1000 > maxAge && projectImport.projectFileResource.file.exists()) {
+          Try(projectImport.projectFileResource.file.delete()) match {
+            case Success(_) => log.info(s"Removed temporary file of project import $projectImportId.")
+            case Failure(ex) => log.log(Level.WARNING, s"Could not remove temporary file of project import $projectImportId.", ex)
+          }
+        }
+      }
+    }
+  }
+
   /** Uploads a project archive and returns the resource URL under which the project import is further handled. */
   def uploadProjectArchiveFile(): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val inputFile = api.bodyAsFile
-    val tempFile = File.createTempFile("di-projectImport", "")
+    removeOldTempFiles()
+    val tempFile = File.createTempFile(tempProjectPrefix, "")
     val inputStream = new FileInputStream(inputFile)
     val outputStream = new FileOutputStream(tempFile)
     StreamUtils.fastStreamCopy(inputStream, outputStream, close = true)
@@ -129,13 +174,20 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
     } catch {
       case ex: Exception =>
         ex.printStackTrace()
-        val lineIterator = Source.fromInputStream(projectImport.projectFileResource.inputStream).getLines()
-        if(lineIterator.hasNext && lineIterator.next().startsWith("@prefix")) {
-          // FIXME: Support RDF project import
-          ProjectImportApi.errorProjectImportDetails("RDF project import not supported!")
-        } else {
-          ProjectImportApi.errorProjectImportDetails("No valid project export file detected!")
+        val projectImportError = try {
+          val lineIterator = Source.fromInputStream(projectImport.projectFileResource.inputStream).getLines()
+          if (lineIterator.hasNext && lineIterator.next().startsWith("@prefix")) {
+            // FIXME: Support RDF project import
+            ProjectImportApi.errorProjectImportDetails("RDF project import not supported!")
+          } else {
+            ProjectImportApi.errorProjectImportDetails("No valid project export file detected!")
+          }
+        } catch {
+          case NonFatal(_) =>
+            ProjectImportApi.errorProjectImportDetails("No valid project export file detected!")
         }
+        Try(projectImport.projectFileResource.delete()) // Not valid, delete.
+        projectImportError
     }
   }
 
@@ -194,6 +246,10 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
         case Some(projectImport) =>
           projectImport.importExecution match {
             case None =>
+              if(!projectImport.projectFileResource.file.exists()) {
+                throw ConflictRequestException(s"The uploaded project file has been purged by the server, because it's max age of ${temporaryProjectFileMaxAge}" +
+                    s" seconds has been reached. The max age can be configured via parameter '$PROJECT_FILE_MAX_AGE_KEY'.")
+              }
               // Create execution in a future, so this request returns immediately with a 201
               val details = fetchProjectImportDetails(projectImportId)
               var newProjectId = details.projectId
@@ -225,9 +281,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
         // Start async import
         val importProcess: Future[Try[Unit]] = Future {
           val result = Try[Unit] {
-            try {
-              workspace.importProject(newProjectId, projectImport.projectFileResource.file, marshaller, overwrite = overwriteExisting)
-            }
+            workspace.importProject(newProjectId, projectImport.projectFileResource.file, marshaller, overwrite = overwriteExisting)
           }
           // Remove file and update project import object
           withProjectImportQueue { queue =>
