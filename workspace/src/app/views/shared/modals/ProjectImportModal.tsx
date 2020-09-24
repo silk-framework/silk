@@ -43,6 +43,7 @@ export function ProjectImportModal({ close, back }: IProps) {
     const [loading, setLoading] = useState(false);
     const [projectImportId, setProjectImportId] = useState<string | null>(null);
     const [projectImportDetails, setProjectImportDetails] = useState<IProjectImportDetails | null>(null);
+    // Unexpected error for the file upload request
     const [uploadError, setUploadError] = useState<string | null>(null);
     // Unexpected error for the project details request
     const [projectDetailsError, setProjectDetailsError] = useState<string | null>(null);
@@ -106,6 +107,7 @@ export function ProjectImportModal({ close, back }: IProps) {
     };
 
     const handleFileAdded = async () => {
+        setUploadError(null);
         await uppy.upload();
     };
 
