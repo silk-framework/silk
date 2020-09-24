@@ -7,18 +7,19 @@ import java.util.zip.ZipFile
 import config.WorkbenchConfig
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
-import controllers.workspace.{JsonSerializer, ProjectMarshalingApi}
+import controllers.workspace.ProjectMarshalingApi
 import controllers.workspaceApi.ProjectImportApi.{ProjectImport, ProjectImportDetails, ProjectImportExecution}
 import javax.inject.Inject
 import org.silkframework.config.MetaData
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.resource.zip.ZipFileResourceLoader
 import org.silkframework.runtime.resource.{FileResource, ResourceLoader}
 import org.silkframework.runtime.serialization.ReadContext
-import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
+import org.silkframework.runtime.validation.{BadUserInputException, ConflictRequestException, NotFoundException}
 import org.silkframework.util.StreamUtils
 import org.silkframework.workspace.xml.XmlZipWithResourcesProjectMarshaling
-import play.api.libs.json.{Format, JsNull, JsNumber, Json}
+import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, _}
 
 import scala.collection.mutable
@@ -41,27 +42,32 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
     keepAliveInMs = 1000L
   ))
 
+  /** Execute synchronized code on the projects import queue. */
+  private def withProjectImportQueue[T](block: mutable.HashMap[String, ProjectImport] => T): T = {
+    projectsImportQueue.synchronized {
+      block(projectsImportQueue)
+    }
+  }
+
   /** Uploads a project archive and returns the resource URL under which the project import is further handled. */
   def uploadProjectArchiveFile(): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val inputFile = api.bodyAsFile
-    val tempFile = File.createTempFile("di-projectImport", ".zip")
+    val tempFile = File.createTempFile("di-projectImport", "")
     val inputStream = new FileInputStream(inputFile)
     val outputStream = new FileOutputStream(tempFile)
     StreamUtils.fastStreamCopy(inputStream, outputStream, close = true)
     val fileResource = FileResource(tempFile)
     fileResource.setDeleteOnGC(true)
     val id = fileResource.name
-    val projectImport = ProjectImport(fileResource, System.currentTimeMillis(), None, None)
-    projectsImportQueue.synchronized {
-      projectsImportQueue.put(id, projectImport)
-    }
+    val projectImport = ProjectImport(id, fileResource, System.currentTimeMillis(), None, None)
+    withProjectImportQueue(_.put(id, projectImport))
     Created(Json.obj("projectImportId" -> id)).
         withHeaders("Location" -> s"${WorkbenchConfig.applicationContext}/api/workspace/projectImport/$id")
   }
 
-  private def projectImport(projectImportId: String): ProjectImport = {
-    projectsImportQueue.synchronized {
-      projectsImportQueue.getOrElse(projectImportId,
+  private def getProjectImport(projectImportId: String): ProjectImport = {
+    withProjectImportQueue {
+      _.getOrElse(projectImportId,
         throw NotFoundException(s"Invalid project import ID '$projectImportId'."))
     }
   }
@@ -77,18 +83,16 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
 
   // Returns the project import details. Caches the result.
   private def fetchProjectImportDetails(projectImportId: String): ProjectImportDetails = {
-    val pi = projectImport(projectImportId)
+    val pi = getProjectImport(projectImportId)
     pi.synchronized {
       // This might have been updated already
-      val newPi = projectImport(projectImportId)
+      val newPi = getProjectImport(projectImportId)
       newPi.details match {
         case Some(details) =>
           details
         case None =>
           val details = extractProjectImportDetails(newPi)
-          projectsImportQueue.synchronized {
-            projectsImportQueue.put(projectImportId, newPi.copy(details = Some(details)))
-          }
+          withProjectImportQueue(_.put(projectImportId, newPi.copy(details = Some(details))))
           details
       }
     }
@@ -127,7 +131,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
         ex.printStackTrace()
         val lineIterator = Source.fromInputStream(projectImport.projectFileResource.inputStream).getLines()
         if(lineIterator.hasNext && lineIterator.next().startsWith("@prefix")) {
-          // TODO: Support RDF project import
+          // FIXME: Support RDF project import
           ProjectImportApi.errorProjectImportDetails("RDF project import not supported!")
         } else {
           ProjectImportApi.errorProjectImportDetails("No valid project export file detected!")
@@ -137,54 +141,56 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
 
   /** Removed a project import and it's temporary files. */
   def removeProjectImport(projectImportId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    projectsImportQueue.synchronized {
-      projectsImportQueue.get(projectImportId) foreach { pi =>
+    withProjectImportQueue { queue =>
+      queue.get(projectImportId) foreach { pi =>
         pi.projectFileResource.delete()
       }
-      projectsImportQueue.remove(projectImportId)
+      queue.remove(projectImportId)
     }
     NoContent
   }
 
   /** Returns the status of a running project import. The requests will return after a specified timeout. */
   def projectImportExecutionStatus(projectImportId: String, timeout: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val execution = projectsImportQueue.synchronized {
-      projectsImportQueue.get(projectImportId) match {
-        case Some(projectImport) =>
-          projectImport.importExecution
-        case None =>
-          throw new NotFoundException(s"No started project import found with ID $projectImportId!")
-      }
-    }
-    execution match {
-      case Some(importExecution) =>
-        val end = importExecution.importEnded.map(timestamp => JsNumber(timestamp)).getOrElse(JsNull)
-        var responseObj = Json.obj(
-          "projectId" -> importExecution.projectId,
-          "importStarted" -> importExecution.importStarted,
-          "importEnded" -> end
-        )
-        try {
-          val result = Await.result(importExecution.importProcess, timeout.millis) // Long polling for the result.
-          if (result.isFailure) {
-            responseObj = responseObj ++ Json.obj("failureMessage" -> s"Project import has failed. Details: ${result.failed.get.getMessage}", "success" -> false)
-          } else {
-            responseObj = responseObj ++ Json.obj("success" -> true)
-          }
-        } catch {
-          case _: TimeoutException | _: InterruptedException =>
-        }
-        Ok(responseObj)
+    val importExecution = withProjectImportQueue(_.get(projectImportId) match {
+      case Some(projectImport) if projectImport.importExecution.isDefined =>
+        projectImport.importExecution.get
       case None =>
-        Ok(Json.obj())
+        throw new NotFoundException(s"No started project import found with ID $projectImportId!")
+    })
+    var responseObj = Json.obj(
+      "projectId" -> importExecution.projectId,
+      "importStarted" -> importExecution.importStarted
+    )
+    try {
+      val result = Await.result(importExecution.importProcess, timeout.millis) // Long polling for the result.
+      // Fetch end timestamp if avaialble
+      var end: JsValue = JsNull
+      withProjectImportQueue { queue =>
+        for (projectImport <- queue.get(projectImportId);
+             importExecution <- projectImport.importExecution;
+             importEnded <- importExecution.importEnded) {
+          end = JsNumber(importEnded)
+        }
+      }
+      responseObj = responseObj ++ Json.obj("importEnded" -> end)
+      if (result.isFailure) {
+        responseObj = responseObj ++ Json.obj("failureMessage" -> s"Project import has failed. Details: ${result.failed.get.getMessage}", "success" -> false)
+      } else {
+        responseObj = responseObj ++ Json.obj("success" -> true)
+      }
+    } catch {
+      case _: TimeoutException | _: InterruptedException =>
     }
+    Ok(responseObj)
   }
 
   /** Starts a project import based on the import ID. */
-  def startProjectImport(projectImportId: String, generateNewId: Boolean, overwriteExisting: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
-      // TODO: Comply with overwriteExisting
-    projectsImportQueue.synchronized {
-      projectsImportQueue.get(projectImportId) match {
+  def startProjectImport(projectImportId: String,
+                         generateNewId: Boolean,
+                         overwriteExisting: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
+    withProjectImportQueue {
+      _.get(projectImportId) match {
         case Some(projectImport) =>
           projectImport.importExecution match {
             case None =>
@@ -194,33 +200,50 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
               if (generateNewId) {
                 newProjectId = IdentifierUtils.generateProjectId(details.label)
               }
-              api.withMarshaller(details.marshallerId) { marshaller =>
-                val importProcess = Future {
-                  val result = Try[Unit] {
-                    workspace.importProject(newProjectId, projectImport.projectFileResource.file, marshaller)
-                  }
-                  // Remove file and update project import object
-                  projectsImportQueue.synchronized {
-                    if(result.isSuccess) {
-                      Try(projectImport.projectFileResource.file.delete())
-                    }
-                    projectsImportQueue.get(projectImportId) foreach { projectImport =>
-                      projectsImportQueue.put(projectImportId,
-                        projectImport.copy(importExecution =
-                            Some(projectImport.importExecution.get.copy(importEnded = Some(System.currentTimeMillis())))))
-                    }
-                  }
-                  result
-                }
-                projectsImportQueue.put(projectImportId, projectImport.copy(
-                  importExecution = Some(ProjectImportExecution(System.currentTimeMillis(), None, newProjectId, importProcess))))
+              if(projectExists(newProjectId) && !overwriteExisting) {
+                throw ConflictRequestException(s"A project with ID $newProjectId already exists!")
               }
+              executeProjectImportAsync(projectImport, details, newProjectId, overwriteExisting)
             case _ =>
           }
           Created.
               withHeaders(LOCATION -> s"${WorkbenchConfig.applicationContext}/api/workspace/projectImport/$projectImportId/status")
         case None =>
           throw NotFoundException(s"Invalid project import ID '$projectImportId'.")
+      }
+    }
+  }
+
+  /** Executes the project import asynchronously. */
+  private def executeProjectImportAsync(projectImport: ProjectImport,
+                                        details: ProjectImportDetails,
+                                        newProjectId: String,
+                                        overwriteExisting: Boolean)
+                                       (implicit userContext: UserContext): Unit = {
+    api.withMarshaller(details.marshallerId) { marshaller =>
+      withProjectImportQueue { outerQueue =>
+        // Start async import
+        val importProcess: Future[Try[Unit]] = Future {
+          val result = Try[Unit] {
+            try {
+              workspace.importProject(newProjectId, projectImport.projectFileResource.file, marshaller, overwrite = overwriteExisting)
+            }
+          }
+          // Remove file and update project import object
+          withProjectImportQueue { queue =>
+            if (result.isSuccess) {
+              Try(projectImport.projectFileResource.file.delete())
+            }
+            queue.get(projectImport.projectImportId) foreach { projectImport =>
+              queue.put(projectImport.projectImportId,
+                projectImport.copy(importExecution =
+                    Some(projectImport.importExecution.get.copy(importEnded = Some(System.currentTimeMillis())))))
+            }
+          }
+          result
+        }
+        outerQueue.put(projectImport.projectImportId, projectImport.copy(
+          importExecution = Some(ProjectImportExecution(System.currentTimeMillis(), None, newProjectId, importProcess))))
       }
     }
   }
@@ -231,16 +254,18 @@ object ProjectImportApi {
 
   /**
     * Holds all data regarding a project import actions.
+    *
+    * @param projectImportId     The ID of this project import.
     * @param projectFileResource The (temporary) project file uploaded by the user.
     * @param uploadTimeStamp     The upload time.
     * @param details             Extracted project details from the project file.
-    * @param importExecution       When the actual import is started this keeps track of the execution.
+    * @param importExecution     When the actual import is started this keeps track of the execution.
     */
-  case class ProjectImport(projectFileResource: FileResource,
+  case class ProjectImport(projectImportId: String,
+                           projectFileResource: FileResource,
                            uploadTimeStamp: Long,
                            details: Option[ProjectImportDetails],
-                           importExecution: Option[ProjectImportExecution]
-                          )
+                           importExecution: Option[ProjectImportExecution])
 
 
   /**
