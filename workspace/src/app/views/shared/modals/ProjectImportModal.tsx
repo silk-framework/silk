@@ -7,7 +7,6 @@ import {
     Notification,
     SimpleDialog,
     Spacing,
-    TextField,
     WhiteSpaceContainer,
 } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
@@ -26,8 +25,6 @@ import { Loading } from "../Loading/Loading";
 import { useDispatch } from "react-redux";
 import { routerOp } from "@ducks/router";
 import { ContentBlobToggler } from "../ContentBlobToggler/ContentBlobToggler";
-import { SERVE_PATH } from "../../../constants/path";
-import { workspacePath } from "../../../../../test/integration/TestHelper";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
 import ReactMarkdown from "react-markdown";
 import { firstNonEmptyLine } from "../ContentBlobToggler";
@@ -46,8 +43,13 @@ export function ProjectImportModal({ close, back }: IProps) {
     const [loading, setLoading] = useState(false);
     const [projectImportId, setProjectImportId] = useState<string | null>(null);
     const [projectImportDetails, setProjectImportDetails] = useState<IProjectImportDetails | null>(null);
-    const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const TODO = () => console.log("TODO");
+    const [uploadError, setUploadError] = useState<string | null>(null);
+    // Unexpected error for the project details request
+    const [projectDetailsError, setProjectDetailsError] = useState<string | null>(null);
+    // Unexpected error for the project import execution request
+    const [startProjectImportExecutionError, setStartProjectImportExecutionError] = useState<
+        [string, boolean, boolean] | null
+    >(null);
 
     useEffect(() => {
         uppy.use(XHR, {
@@ -67,12 +69,13 @@ export function ProjectImportModal({ close, back }: IProps) {
     }, [projectImportId]);
 
     const loadProjectImportDetails = async (projectImportId: string) => {
+        setProjectDetailsError(null);
         try {
             setLoading(true);
             const response = await requestProjectImportDetails(projectImportId);
             setProjectImportDetails(response.data);
         } catch (ex) {
-            // TODO: Handle errors
+            setProjectDetailsError(" " + errorDetails(ex));
         } finally {
             setLoading(false);
         }
@@ -95,7 +98,7 @@ export function ProjectImportModal({ close, back }: IProps) {
                 setLoading(true);
                 await requestDeleteProjectImport(projectImportId);
             } catch (ex) {
-                // TODO
+                // If this fails for whatever reason the backend will remove the file automatically after a specific period
             } finally {
                 setLoading(false);
             }
@@ -107,6 +110,7 @@ export function ProjectImportModal({ close, back }: IProps) {
     };
 
     const startProjectImport = async (generateNewProjectId: boolean, overWriteExistingProject: boolean) => {
+        setStartProjectImportExecutionError(null);
         if (projectImportId) {
             try {
                 setLoading(true);
@@ -118,21 +122,30 @@ export function ProjectImportModal({ close, back }: IProps) {
                 close();
                 dispatch(routerOp.goToPage(`projects/${status.projectId}`));
             } catch (ex) {
-                // TODO
-                console.log(ex);
+                setStartProjectImportExecutionError([
+                    " " + errorDetails(ex),
+                    generateNewProjectId,
+                    overWriteExistingProject,
+                ]);
             } finally {
                 setLoading(false);
             }
         }
     };
 
-    const handleUploadError = (fileData, error) => {
-        let errorDetails = error?.message ? ` Details: ${error.message}` : "";
-        const idx = errorDetails.indexOf("Source error");
+    // Extracts the error details from an exception
+    const errorDetails = (error): string => {
+        let details = error?.message ? ` Details: ${error.message}` : "";
+        const idx = details.indexOf("Source error");
         if (idx > 0) {
-            errorDetails = errorDetails.substring(0, idx);
+            details = details.substring(0, idx);
         }
-        setErrorMessage(`File '${fileData.name}' could not be uploaded!${errorDetails}`);
+        return details;
+    };
+
+    const handleUploadError = (fileData, error) => {
+        let details = errorDetails(error);
+        setUploadError(`File '${fileData.name}' could not be uploaded!${details}`);
         uppy.reset();
     };
     const onUploadSuccess = (file: File, response) => {
@@ -140,7 +153,7 @@ export function ProjectImportModal({ close, back }: IProps) {
         if (projectImportId) {
             setProjectImportId(projectImportId);
         } else {
-            setErrorMessage("Invalid response received from project upload. Project import cannot proceed.");
+            setUploadError("Invalid response received from project upload. Project import cannot proceed.");
             uppy.reset();
         }
     };
@@ -150,7 +163,6 @@ export function ProjectImportModal({ close, back }: IProps) {
             simpleInput={false}
             allowMultiple={false}
             onAdded={handleFileAdded}
-            onProgress={TODO}
             onUploadSuccess={onUploadSuccess}
             onUploadError={handleUploadError}
         />
@@ -218,8 +230,8 @@ export function ProjectImportModal({ close, back }: IProps) {
                 text: t("ProjectImportModal.projectFile"),
                 htmlFor: "projectFile-input",
             }}
-            hasStateDanger={errorMessage !== null}
-            messageText={errorMessage}
+            hasStateDanger={uploadError !== null}
+            messageText={uploadError}
         >
             {uploader}
         </FieldItem>
@@ -271,6 +283,8 @@ export function ProjectImportModal({ close, back }: IProps) {
         if (details.projectAlreadyExists) {
             return (
                 <>
+                    {projectDetails(details)}
+                    <Spacing />
                     <Notification
                         warning={true}
                         message={
@@ -282,8 +296,6 @@ export function ProjectImportModal({ close, back }: IProps) {
                     <Link href={absoluteProjectPath(details.projectId)} target={"_empty"}>
                         Open existing project page
                     </Link>
-                    <Spacing />
-                    {projectDetails(details)}
                 </>
             );
         } else if (details.errorMessage) {
@@ -294,12 +306,38 @@ export function ProjectImportModal({ close, back }: IProps) {
                 />
             );
         } else {
-            return;
+            return projectDetails(details);
         }
+    };
+
+    const errorRetryElement = (errorMessage: string, retryAction: () => any) => {
+        return (
+            <>
+                <Notification danger={true} message={errorMessage} />
+                <Spacing />
+                <Button
+                    data-test-id={"retryProjectDetailsBtn"}
+                    affirmative={true}
+                    onClick={retryAction}
+                    disabled={false}
+                >
+                    {t("common.action.retry")}
+                </Button>
+            </>
+        );
     };
 
     const dialogItem = loading ? (
         <Loading />
+    ) : projectDetailsError !== null ? (
+        errorRetryElement("Failed to retrieve project import details. " + projectDetailsError, () =>
+            loadProjectImportDetails(projectImportId)
+        )
+    ) : startProjectImportExecutionError ? (
+        errorRetryElement(
+            "Failed to start execution of the project import! " + startProjectImportExecutionError[0],
+            () => startProjectImport(startProjectImportExecutionError[1], startProjectImportExecutionError[2])
+        )
     ) : projectImportDetails ? (
         projectDetailElement(projectImportDetails)
     ) : (
