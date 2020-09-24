@@ -120,7 +120,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     project.loadingErrors.find(_.id == taskId) match {
       case Some(loadingError) =>
         val failedTask = ProjectTaskLoadingErrorResponse.fromTaskLoadingError(loadingError)
-        val taskLabel = failedTask.taskLabel.getOrElse(failedTask.taskId)
+        val taskLabel = failedTask.taskLabel.filter(_.trim != "").getOrElse(failedTask.taskId)
         render {
           case AcceptsMarkdown() =>
             val markdownHeader = s"""# Project task loading error report
