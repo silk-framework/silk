@@ -78,12 +78,20 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
     }
   }
 
+  private def isStaleUploadedFile(projectImport: ProjectImport, maxAgeInSeconds: Long, now: Long): Boolean = {
+    (now - projectImport.uploadTimeStamp) / 1000 > maxAgeInSeconds &&
+        projectImport.projectFileResource.file.exists() &&
+    // Do not delete files of running project import executions
+        (projectImport.importExecution.isEmpty ||
+            projectImport.importExecution.get.importEnded.isDefined)
+  }
+
   private def removeOldTempFiles(): Unit = {
+    val now = System.currentTimeMillis()
     val maxAge = temporaryProjectFileMaxAge
     withProjectImportQueue { queue =>
       for((projectImportId, projectImport) <- queue) {
-        val now = System.currentTimeMillis()
-        if((now - projectImport.uploadTimeStamp) / 1000 > maxAge && projectImport.projectFileResource.file.exists()) {
+        if(isStaleUploadedFile(projectImport, maxAge, now)) {
           Try(projectImport.projectFileResource.file.delete()) match {
             case Success(_) => log.info(s"Removed temporary file of project import $projectImportId.")
             case Failure(ex) => log.log(Level.WARNING, s"Could not remove temporary file of project import $projectImportId.", ex)

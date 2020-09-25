@@ -32,22 +32,27 @@ class ProjectImportApiTest extends FlatSpec with SingleProjectWorkspaceProviderT
   it should "import a project from a XML file with multi step import API" in {
     val expectedProjectLabel = "Config Project"
     val expectedProjectDescription = "Config project description"
+
     // Create project with the same ID to test exist-flag
     retrieveOrCreateProject(expectedProjectId)
     val projectCount = workspaceProvider.readProjects().size
     val projectImportId = uploadProjectFile()
+
     // Fetch project import details
     val detailUrl = controllers.workspaceApi.routes.ProjectImportApi.projectImportDetails(projectImportId)
     val detailResponse = Json.fromJson[ProjectImportDetails](checkResponseExactStatusCode(createRequest(detailUrl).get()).json)
     detailResponse.asOpt mustBe defined
     detailResponse.get mustBe ProjectImportDetails("configProject", expectedProjectLabel, Some(expectedProjectDescription),
       XmlZipWithResourcesProjectMarshaling.marshallerId, projectAlreadyExists = true, None)
+
     // Start project import without conflict resolve strategy -> 409
     val importStartUrl = controllers.workspaceApi.routes.ProjectImportApi.startProjectImport(projectImportId)
     checkResponseExactStatusCode(createRequest(importStartUrl).post(EmptyBody), CONFLICT)
+
     // Start project import with generateNewId strategy
     val importStartUrlWithNewId = controllers.workspaceApi.routes.ProjectImportApi.startProjectImport(projectImportId, generateNewId = true)
     checkResponseExactStatusCode(createRequest(importStartUrlWithNewId).post(EmptyBody), CREATED)
+
     // Check import status with a 0 timeout, i.e. it should return immediately and the import should not be finished, yet.
     val importProjectStatusUrlZeroTimeout = controllers.workspaceApi.routes.ProjectImportApi.projectImportExecutionStatus(projectImportId, 0)
     val statusJsonZeroTimeout = checkResponseExactStatusCode(createRequest(importProjectStatusUrlZeroTimeout).get()).json
@@ -56,6 +61,7 @@ class ProjectImportApiTest extends FlatSpec with SingleProjectWorkspaceProviderT
     generatedProjectId must not be expectedProjectId
     (statusJsonZeroTimeout \ "importStarted").toOption mustBe defined
     (statusJsonZeroTimeout \ "importEnded").toOption must not be defined
+
     // Check import status with the default timeout, i.e. it waits for some amount of time for the project import to finish.
     val importProjectStatusUrl = controllers.workspaceApi.routes.ProjectImportApi.projectImportExecutionStatus(projectImportId)
     val statusJson = checkResponseExactStatusCode(createRequest(importProjectStatusUrl).get()).json
