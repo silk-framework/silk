@@ -13,7 +13,6 @@ import { CreateNewFile } from "./cases/CreateNewFile";
 import i18next from "../../../../language";
 import { requestIfResourceExists } from "@ducks/workspace/requests";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
-import { FileRemoveModal } from "../modals/FileRemoveModal";
 import XHR from "@uppy/xhr-upload";
 
 interface IUploaderInstance {
@@ -152,9 +151,9 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
             method: "PUT",
             fieldName: "file",
             allowMultipleUploads: props.allowMultiple,
-            restrictions: {
-                maxNumberOfFiles: 4,
-            },
+            // restrictions: {
+            // maxNumberOfFiles: 4,
+            // },
         });
     }
 

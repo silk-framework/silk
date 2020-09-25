@@ -32,11 +32,6 @@ interface IProps {
     onUploadError?(e, f);
 }
 
-// @NOTE: The counter, which check the all files in Uppy queue checked or not
-// this counter can be removed, when uppy gives the event which will work ONLY when all files Added
-// in current case, we use 'add-file' event, which fire for each added file
-let checkedFilesQueue = 0;
-
 /**
  * The Widget for "Upload new file" option
  */
@@ -78,9 +73,6 @@ export function UploadNewFile(props: IProps) {
         // reset events, because of "file-added" store prev state values
         unregisterEvents();
 
-        // should reset to make sure that all file will checked again
-        checkedFilesQueue = 0;
-
         uppy.on("file-added", handleFileAdded);
         uppy.on("upload-progress", handleProgress);
         uppy.on("upload-success", handleUploadSuccess);
@@ -95,13 +87,15 @@ export function UploadNewFile(props: IProps) {
      */
     const handleFileAdded = async (file: UppyFile) => {
         setError(null);
-
         // find if file already checked
-        const replacementFile = onlyReplacements.find((f) => f.id === file.id);
-        if (replacementFile) {
-            await uploadReplacementFile(replacementFile);
+        const inReplacements = onlyReplacements.find((f) => f.id === file.id);
+        if (file.source === "REPLACE_ACTION") {
+            await uploadReplacementFile(file);
+        } else if (inReplacements) {
+            // file added in Uppy queue, so we should remove it
+            removeFromUppyQueue(file.id);
         } else {
-            await uploadNewFile(file);
+            await uploadAsNewFile(file);
         }
     };
 
@@ -109,16 +103,13 @@ export function UploadNewFile(props: IProps) {
         try {
             const replacement = await validateBeforeAdd(file.name);
             if (replacement) {
-                removeFromUppyQueue(file.id);
-
                 // also remove from completed uploads
                 removeFromUploaded(file.id);
 
-                // @FIXME: ignore this case when retry action not call validateBeforeUploadAsync
-                // in case when retry action fired and canceled before checking, that will duplicate the files
-                const inRetryList = filesForRetry.findIndex((f) => f.id !== file.id);
+                // in case when retry action fired and aborted before checking response received, that will duplicate the files
+                const inRetryList = filesForRetry.findIndex((f) => f.id === file.id);
                 if (inRetryList === -1) {
-                    setOnlyReplacements((prevState) => [...prevState, file]);
+                    addInReplacementQueue(file);
                 }
             }
         } catch (e) {
@@ -147,24 +138,18 @@ export function UploadNewFile(props: IProps) {
         }
     };
 
-    const uploadNewFile = async (file: UppyFile, forceUpload: boolean = false) => {
+    const uploadAsNewFile = async (file: UppyFile) => {
         await validateBeforeUploadAsync(file);
 
-        // if all files added, then run uploader
-        checkedFilesQueue++;
-
         const notCompletedUploads = uppy.getFiles().filter((f) => !f.progress.uploadComplete);
-        const isCompleteAllChecks = checkedFilesQueue >= notCompletedUploads.length;
 
-        if (isCompleteAllChecks || forceUpload) {
-            try {
-                if (onAdded) {
-                    onAdded(file);
-                }
-                await upload(notCompletedUploads);
-                // catch is implemented in handleUploadError
-            } finally {
+        try {
+            if (onAdded) {
+                onAdded(file);
             }
+            await upload(notCompletedUploads);
+            // catch is implemented in handleUploadError
+        } finally {
         }
     };
 
@@ -232,12 +217,20 @@ export function UploadNewFile(props: IProps) {
         removeFromUppyQueue(file.id);
     };
 
+    const addInReplacementQueue = (file: UppyFile) => {
+        setOnlyReplacements((prevState) => [...prevState, file]);
+        removeFromUppyQueue(file.id);
+    };
+
     const handleAbort = (fileId: string) => {
         addInRetryQueue(uppy.getFile(fileId));
     };
 
     const handleReplace = (file: UppyFile) => {
-        uppy.addFile(file);
+        uppy.addFile({
+            ...file,
+            source: "REPLACE_ACTION",
+        });
     };
 
     const handleRetry = (fileId: string) => {
