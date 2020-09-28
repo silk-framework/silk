@@ -35,7 +35,8 @@ export default function DeleteModal({
         setIsConfirmed(!isConfirmed);
     };
 
-    const otherContent = !!render ? render() : null;
+    // Only render content when modal is open
+    const otherContent = !!render && isOpen ? render() : null;
     const [t] = useTranslation();
 
     return (
