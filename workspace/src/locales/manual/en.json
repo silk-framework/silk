@@ -169,11 +169,18 @@
     },
     "navigation": {
         "side": {
+            "di": {
+                "datasets": "Datasets",
+                "projects": "Projects"
+            },
+            "diBrowse": "Data integration",
             "dm": {
-                "query": "Queries",
                 "explore": "Exploration",
-                "vocab": "Vocabulary Management"
-            }
+                "query": "Queries",
+                "vocab": "Vocabulary management"
+            },
+            "dmBrowser": "Knowledge graph",
+            "open": "Open navigation"
         }
     },
     "pages": {

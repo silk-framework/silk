@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import Store from "store";
 import { commonOp, commonSel } from "@ducks/common";
 import {
     ApplicationHeader,
@@ -64,6 +65,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
     const dispatch = useDispatch();
     const location = useLocation<any>();
     const [itemType, setItemType] = useState<string | null>(null);
+    const [currentLanguage, setCurrentLanguage] = useState(Store.get("locale"));
 
     const isAuth = useSelector(commonSel.isAuthSelector);
     const exportTypes = useSelector(commonSel.exportTypesSelector);
@@ -204,6 +206,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
     };
 
     const handleLanguageChange = (locale: string) => {
+        setCurrentLanguage(locale);
         dispatch(commonOp.changeLocale(locale));
     };
 
@@ -220,21 +223,21 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
         <ApplicationHeader
             aria-label={`${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}: ${APPLICATION_NAME}`}
         >
-            {!!dmBaseUrl && (
-                <>
-                    <ApplicationTitle
-                        prefix={APPLICATION_CORPORATION_NAME}
-                        isNotDisplayed={!isApplicationSidebarExpanded}
-                        isAlignedWithSidebar={isApplicationSidebarExpanded}
-                    >
-                        {APPLICATION_NAME}
-                    </ApplicationTitle>
-                    <ApplicationSidebarToggler
-                        aria-label={t("navigation.side.open", "Open navigation")}
-                        onClick={onClickApplicationSidebarExpand}
-                        isActive={isApplicationSidebarExpanded}
-                    />
-                    <ApplicationSidebarNavigation expanded={isApplicationSidebarExpanded}>
+            <ApplicationTitle
+                prefix={APPLICATION_CORPORATION_NAME}
+                isNotDisplayed={!isApplicationSidebarExpanded}
+                isAlignedWithSidebar={isApplicationSidebarExpanded}
+            >
+                {APPLICATION_NAME}
+            </ApplicationTitle>
+            <ApplicationSidebarToggler
+                aria-label={t("navigation.side.open", "Open navigation")}
+                onClick={onClickApplicationSidebarExpand}
+                isActive={isApplicationSidebarExpanded}
+            />
+            <ApplicationSidebarNavigation expanded={isApplicationSidebarExpanded}>
+                {!!dmBaseUrl && (
+                    <>
                         <TitleSubsection>{t("navigation.side.dmBrowser", "Browse in DataManager")}</TitleSubsection>
                         <Menu>
                             {dmModuleLinks ? (
@@ -250,22 +253,22 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                             )}
                         </Menu>
                         <Divider addSpacing="xlarge" />
-                        <TitleSubsection>{t("navigation.side.diBrowse", "Create in DataIntegration")}</TitleSubsection>
-                        <Menu>
-                            <MenuItem
-                                icon="artefact-project"
-                                text={t("navigation.side.di.projects", "Projects")}
-                                onClick={() => handleNavigate("project")}
-                            />
-                            <MenuItem
-                                icon="artefact-dataset"
-                                text={t("navigation.side.di.datasets", "Datasets")}
-                                onClick={() => handleNavigate("dataset")}
-                            />
-                        </Menu>
-                    </ApplicationSidebarNavigation>
-                </>
-            )}
+                    </>
+                )}
+                <TitleSubsection>{t("navigation.side.diBrowse", "Create in DataIntegration")}</TitleSubsection>
+                <Menu>
+                    <MenuItem
+                        icon="artefact-project"
+                        text={t("navigation.side.di.projects", "Projects")}
+                        onClick={() => handleNavigate("project")}
+                    />
+                    <MenuItem
+                        icon="artefact-dataset"
+                        text={t("navigation.side.di.datasets", "Datasets")}
+                        onClick={() => handleNavigate("dataset")}
+                    />
+                </Menu>
+            </ApplicationSidebarNavigation>
 
             <WorkspaceHeader>
                 <Helmet title={windowTitle} />
@@ -345,8 +348,18 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                         <ApplicationToolbarPanel aria-label="User menu" expanded={true}>
                             <Menu>
                                 <div>
-                                    <Button onClick={() => handleLanguageChange("en")}>En</Button>
-                                    <Button onClick={() => handleLanguageChange("de")}>De</Button>
+                                    <Button
+                                        onClick={() => handleLanguageChange("en")}
+                                        disabled={currentLanguage === "en"}
+                                    >
+                                        En
+                                    </Button>
+                                    <Button
+                                        onClick={() => handleLanguageChange("de")}
+                                        disabled={currentLanguage === "de"}
+                                    >
+                                        De
+                                    </Button>
                                 </div>
                                 <MenuDivider />
                                 <MenuItem
