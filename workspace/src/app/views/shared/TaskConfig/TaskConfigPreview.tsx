@@ -35,7 +35,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                 Object.entries(obj)
                     .filter(([key, v]) => {
                         const pd = paramDescriptions[key];
-                        const passwordParameter = pd.parameterType == INPUT_TYPES.PASSWORD;
+                        const passwordParameter = pd.parameterType === INPUT_TYPES.PASSWORD;
                         return pd && pd.visibleInDialog && !pd.advanced && !passwordParameter;
                     })
                     .forEach(([paramName, paramValue]) => {
