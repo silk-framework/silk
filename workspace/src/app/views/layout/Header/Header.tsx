@@ -73,7 +73,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
 
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const taskId = useSelector(commonSel.currentTaskIdSelector);
-    const { dmBaseUrl } = useSelector(commonSel.initialSettingsSelector);
+    const { dmBaseUrl, dmModuleLinks } = useSelector(commonSel.initialSettingsSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
 
     const startTitle = `Build — ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`;
@@ -235,35 +235,31 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                         isActive={isApplicationSidebarExpanded}
                     />
                     <ApplicationSidebarNavigation expanded={isApplicationSidebarExpanded}>
-                        <TitleSubsection>{t("navigation.side.explore", "Browse in DataManager")}</TitleSubsection>
+                        <TitleSubsection>{t("navigation.side.dmBrowser", "Browse in DataManager")}</TitleSubsection>
                         <Menu>
-                            <MenuItem
-                                icon="application-explore"
-                                text={t("navigation.side.explore", "Explore")}
-                                href={dmBaseUrl + "/explore"}
-                            />
-                            <MenuItem
-                                icon="application-vocabularies"
-                                text={t("navigation.side.vocabularies", "Vocabularies")}
-                                href={dmBaseUrl + "/vocab"}
-                            />
-                            <MenuItem
-                                icon="application-queries"
-                                text={t("navigation.side.querycatalog", "Query catalog")}
-                                href={dmBaseUrl + "/query"}
-                            />
+                            {dmModuleLinks ? (
+                                dmModuleLinks.map((link) => (
+                                    <MenuItem
+                                        icon={link.icon}
+                                        text={t("navigation.side.dm." + link.path, link.defaultLabel)}
+                                        href={dmBaseUrl + "/" + link.path}
+                                    />
+                                ))
+                            ) : (
+                                <MenuItem text="DataManager" href={dmBaseUrl} />
+                            )}
                         </Menu>
                         <Divider addSpacing="xlarge" />
-                        <TitleSubsection>{t("navigation.side.explore", "Create in DataIntegration")}</TitleSubsection>
+                        <TitleSubsection>{t("navigation.side.diBrowse", "Create in DataIntegration")}</TitleSubsection>
                         <Menu>
                             <MenuItem
                                 icon="artefact-project"
-                                text={t("navigation.side.projects", "Projects")}
+                                text={t("navigation.side.di.projects", "Projects")}
                                 onClick={() => handleNavigate("project")}
                             />
                             <MenuItem
                                 icon="artefact-dataset"
-                                text={t("navigation.side.datasets", "Datasets")}
+                                text={t("navigation.side.di.datasets", "Datasets")}
                                 onClick={() => handleNavigate("dataset")}
                             />
                         </Menu>

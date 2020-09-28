@@ -167,6 +167,15 @@
             "timeout": "Timeout"
         }
     },
+    "navigation": {
+        "side": {
+            "dm": {
+                "query": "Queries",
+                "explore": "Exploration",
+                "vocab": "Vocabulary Management"
+            }
+        }
+    },
     "pages": {
         "dataset": {
             "title": "Data preview"
