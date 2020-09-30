@@ -152,14 +152,16 @@ export function ProjectImportModal({ close, back }: IProps) {
 
     const handleApproveReplacement = () => {
         setApproveReplacement(!approveReplacement);
-    }
+    };
 
     const handleUploadError = (fileData, error) => {
         let details = errorDetails(error);
-        setUploadError(t("ProjectImportModal.responseUploadError", "File {{file}} could not be uploaded! {{details}}", {
-            file: <code>fileData.name</code>,
-            details: details,
-        }));
+        setUploadError(
+            t("ProjectImportModal.responseUploadError", "File {{file}} could not be uploaded! {{details}}", {
+                file: <code>fileData.name</code>,
+                details: details,
+            })
+        );
         uppy.reset();
     };
     const onUploadSuccess = (file: File, response) => {
@@ -167,7 +169,12 @@ export function ProjectImportModal({ close, back }: IProps) {
         if (projectImportId) {
             setProjectImportId(projectImportId);
         } else {
-            setUploadError(t("ProjectImportModal.responseInvalid", "Invalid response received from project upload. Project import cannot proceed."));
+            setUploadError(
+                t(
+                    "ProjectImportModal.responseInvalid",
+                    "Invalid response received from project upload. Project import cannot proceed."
+                )
+            );
             uppy.reset();
         }
     };
@@ -196,27 +203,29 @@ export function ProjectImportModal({ close, back }: IProps) {
                 </Button>
             );
         } else if (projectImportDetails.projectAlreadyExists) {
-            approveReplacement ? actions.push(
-                <Button
-                    data-test-id={"replaceImportProjectBtn"}
-                    key="replaceProject"
-                    disruptive={true}
-                    onClick={() => startProjectImport(false, true)}
-                    disabled={false}
-                >
-                    {t("ProjectImportModal.replaceImportBtn")}
-                </Button>
-            ) : actions.push(
-                <Button
-                    data-test-id={"importUnderFreshIdBtn"}
-                    key="importAsFreshProject"
-                    affirmative={true}
-                    onClick={() => startProjectImport(true, false)}
-                    disabled={false}
-                >
-                    {t("ProjectImportModal.importUnderFreshIdBtn")}
-                </Button>
-            );
+            approveReplacement
+                ? actions.push(
+                      <Button
+                          data-test-id={"replaceImportProjectBtn"}
+                          key="replaceProject"
+                          disruptive={true}
+                          onClick={() => startProjectImport(false, true)}
+                          disabled={false}
+                      >
+                          {t("ProjectImportModal.replaceImportBtn")}
+                      </Button>
+                  )
+                : actions.push(
+                      <Button
+                          data-test-id={"importUnderFreshIdBtn"}
+                          key="importAsFreshProject"
+                          affirmative={true}
+                          onClick={() => startProjectImport(true, false)}
+                          disabled={false}
+                      >
+                          {t("ProjectImportModal.importUnderFreshIdBtn")}
+                      </Button>
+                  );
         }
     }
     // Add 'Cancel' button
@@ -289,17 +298,19 @@ export function ProjectImportModal({ close, back }: IProps) {
                         warning={true}
                         actions={[
                             <Button href={absoluteProjectPath(details.projectId)} target={"_empty"}>
-                                Open existing project page
-                            </Button>
+                                {t("ProjectImportModal.openExistingProject", "Open existing project page")}
+                            </Button>,
                         ]}
                     >
                         <p>
-                            A project with the same ID already exists! Choose to either overwrite
-                            the existing project or import the project under a freshly generated ID.
+                            {t(
+                                "ProjectImportModal.warningExistingProject",
+                                "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID."
+                            )}
                         </p>
                         <Spacing />
                         <Checkbox inline={true} checked={approveReplacement} onChange={handleApproveReplacement}>
-                            <strong>Replace existing project</strong>
+                            <strong>{t("ProjectImportModal.replaceImportBtn")}</strong>
                         </Checkbox>
                     </Notification>
                     <Spacing />
