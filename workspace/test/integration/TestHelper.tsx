@@ -102,7 +102,7 @@ export const withRender = (component, rerender?: Function) => (rerender ? rerend
 
 /** Returns a wrapper for the application. */
 export const testWrapper = (
-    component: JSX.Element,
+    component: React.ReactNode,
     history: History<{}>,
     initialState: RecursivePartial<IStore> = {}
 ) => {
