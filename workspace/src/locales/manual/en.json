@@ -67,7 +67,7 @@
         "importUnderFreshIdBtn": "Import as new project",
         "projectFile": "Choose project file to import:",
         "replaceImportBtn": "Replace existing project",
-        "startImportBtn": "Start project import",
+        "importBtn": "Import project",
         "title": "Project import"
     },
     "RelatedItems": {

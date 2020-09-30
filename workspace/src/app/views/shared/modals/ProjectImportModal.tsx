@@ -2,12 +2,16 @@ import React, { useEffect, useState } from "react";
 import {
     Button,
     CardActionsAux,
+    Checkbox,
     FieldItem,
-    Link,
     Notification,
     SimpleDialog,
+    PropertyValueList,
+    PropertyValuePair,
+    PropertyName,
+    PropertyValue,
     Spacing,
-    WhiteSpaceContainer,
+    TitleSubsection,
 } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
 import { UploadNewFile } from "../FileUploader/cases/UploadNewFile";
@@ -43,6 +47,7 @@ export function ProjectImportModal({ close, back }: IProps) {
     const [loading, setLoading] = useState(false);
     const [projectImportId, setProjectImportId] = useState<string | null>(null);
     const [projectImportDetails, setProjectImportDetails] = useState<IProjectImportDetails | null>(null);
+    const [approveReplacement, setApproveReplacement] = useState(false);
     // Unexpected error for the file upload request
     const [uploadError, setUploadError] = useState<string | null>(null);
     // Unexpected error for the project details request
@@ -145,9 +150,16 @@ export function ProjectImportModal({ close, back }: IProps) {
         return details;
     };
 
+    const handleApproveReplacement = () => {
+        setApproveReplacement(!approveReplacement);
+    }
+
     const handleUploadError = (fileData, error) => {
         let details = errorDetails(error);
-        setUploadError(`File '${fileData.name}' could not be uploaded!${details}`);
+        setUploadError(t("ProjectImportModal.responseUploadError", "File {{file}} could not be uploaded! {{details}}", {
+            file: <code>fileData.name</code>,
+            details: details,
+        }));
         uppy.reset();
     };
     const onUploadSuccess = (file: File, response) => {
@@ -155,7 +167,7 @@ export function ProjectImportModal({ close, back }: IProps) {
         if (projectImportId) {
             setProjectImportId(projectImportId);
         } else {
-            setUploadError("Invalid response received from project upload. Project import cannot proceed.");
+            setUploadError(t("ProjectImportModal.responseInvalid", "Invalid response received from project upload. Project import cannot proceed."));
             uppy.reset();
         }
     };
@@ -180,22 +192,11 @@ export function ProjectImportModal({ close, back }: IProps) {
                     onClick={() => startProjectImport(false, false)}
                     disabled={false}
                 >
-                    {t("ProjectImportModal.startImportBtn")}
+                    {t("ProjectImportModal.importBtn")}
                 </Button>
             );
         } else if (projectImportDetails.projectAlreadyExists) {
-            actions.push(
-                <Button
-                    data-test-id={"importUnderFreshIdBtn"}
-                    key="importAsFreshProject"
-                    affirmative={true}
-                    onClick={() => startProjectImport(true, false)}
-                    disabled={false}
-                >
-                    {t("ProjectImportModal.importUnderFreshIdBtn")}
-                </Button>
-            );
-            actions.push(
+            approveReplacement ? actions.push(
                 <Button
                     data-test-id={"replaceImportProjectBtn"}
                     key="replaceProject"
@@ -204,6 +205,16 @@ export function ProjectImportModal({ close, back }: IProps) {
                     disabled={false}
                 >
                     {t("ProjectImportModal.replaceImportBtn")}
+                </Button>
+            ) : actions.push(
+                <Button
+                    data-test-id={"importUnderFreshIdBtn"}
+                    key="importAsFreshProject"
+                    affirmative={true}
+                    onClick={() => startProjectImport(true, false)}
+                    disabled={false}
+                >
+                    {t("ProjectImportModal.importUnderFreshIdBtn")}
                 </Button>
             );
         }
@@ -241,43 +252,32 @@ export function ProjectImportModal({ close, back }: IProps) {
 
     const projectDetails = (details: IProjectImportDetails) => (
         <>
-            <h2>Project details</h2>
-            <Spacing />
-            <FieldItem
-                key={"label"}
-                labelAttributes={{
-                    text: t("form.field.label"),
-                }}
-            >
-                <WhiteSpaceContainer marginTop="tiny" marginRight="xlarge" marginBottom="small" marginLeft="regular">
-                    {details.label}
-                </WhiteSpaceContainer>
-            </FieldItem>
-            {details.description && (
-                <FieldItem
-                    key={"description"}
-                    labelAttributes={{
-                        text: t("form.field.description"),
-                    }}
-                >
-                    <WhiteSpaceContainer
-                        marginTop="tiny"
-                        marginRight="xlarge"
-                        marginBottom="small"
-                        marginLeft="regular"
-                    >
-                        <ContentBlobToggler
-                            contentPreview={details.description}
-                            contentFullview={details.description}
-                            previewMaxLength={128}
-                            renderContentFullview={(content) => {
-                                return <ReactMarkdown source={details.description} />;
-                            }}
-                            renderContentPreview={firstNonEmptyLine}
-                        />
-                    </WhiteSpaceContainer>
-                </FieldItem>
-            )}
+            <TitleSubsection>{t("ProjectImportModal.importSummary", "Imported project summary")}</TitleSubsection>
+            <PropertyValueList>
+                {!!details.label && (
+                    <PropertyValuePair hasDivider key={"label"}>
+                        <PropertyName>{t("form.field.label", "Label")}</PropertyName>
+                        <PropertyValue>{details.label}</PropertyValue>
+                    </PropertyValuePair>
+                )}
+                {!!details.description && (
+                    <PropertyValuePair hasSpacing hasDivider>
+                        <PropertyName>{t("form.field.description", "Description")}</PropertyName>
+                        <PropertyValue>
+                            <ContentBlobToggler
+                                className="di__dataset__metadata-description"
+                                contentPreview={details.description}
+                                previewMaxLength={128}
+                                contentFullview={details.description}
+                                renderContentFullview={(content) => {
+                                    return <ReactMarkdown source={details.description} />;
+                                }}
+                                renderContentPreview={firstNonEmptyLine}
+                            />
+                        </PropertyValue>
+                    </PropertyValuePair>
+                )}
+            </PropertyValueList>
         </>
     );
 
@@ -285,19 +285,25 @@ export function ProjectImportModal({ close, back }: IProps) {
         if (details.projectAlreadyExists) {
             return (
                 <>
-                    {projectDetails(details)}
-                    <Spacing />
                     <Notification
                         warning={true}
-                        message={
-                            "A project with the same ID already exists! Choose to either overwrite " +
-                            "the existing project or import the project under a freshly generated ID."
-                        }
-                    />
+                        actions={[
+                            <Button href={absoluteProjectPath(details.projectId)} target={"_empty"}>
+                                Open existing project page
+                            </Button>
+                        ]}
+                    >
+                        <p>
+                            A project with the same ID already exists! Choose to either overwrite
+                            the existing project or import the project under a freshly generated ID.
+                        </p>
+                        <Spacing />
+                        <Checkbox inline={true} checked={approveReplacement} onChange={handleApproveReplacement}>
+                            <strong>Replace existing project</strong>
+                        </Checkbox>
+                    </Notification>
                     <Spacing />
-                    <Link href={absoluteProjectPath(details.projectId)} target={"_empty"}>
-                        Open existing project page
-                    </Link>
+                    {projectDetails(details)}
                 </>
             );
         } else if (details.errorMessage) {
