@@ -2,7 +2,7 @@ package org.silkframework.rule.evaluation
 
 import java.io.{File, InputStream}
 
-import org.silkframework.entity.Link
+import org.silkframework.entity.{Link, MinimalLink, LinkWithConfidence}
 
 import scala.io.Source
 import scala.xml.{Node, XML}
@@ -34,10 +34,10 @@ object ReferenceLinksReader {
 
   private def readLinks(xml: Node, relation: String): Traversable[Link] = {
     for (cell <- xml \ "Alignment" \ "map" \ "Cell" if (cell \ "relation").text == relation) yield {
-      new Link(
+      new LinkWithConfidence(
         source = (cell \ "entity1" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource").text,
         target = (cell \ "entity2" \ "@{http://www.w3.org/1999/02/22-rdf-syntax-ns#}resource").text,
-        confidence = Some((cell \ "measure").text.toDouble)
+        conf = (cell \ "measure").text.toDouble
       )
     }
   }
@@ -54,7 +54,7 @@ object ReferenceLinksReader {
   def readNTriples(source: Source, positivePredicate: String = "http://www.w3.org/2002/07/owl#sameAs"): ReferenceLinks = {
     val positiveLinks =
       for (NTriplesRegex(sourceUri, predicateUri, targetUri) <- source.getLines() if predicateUri == positivePredicate) yield {
-        new Link(sourceUri, targetUri)
+        new MinimalLink(sourceUri, targetUri)
       }
 
     new ReferenceLinks(positiveLinks.toSet, Set.empty)
@@ -65,7 +65,7 @@ object ReferenceLinksReader {
   def readN3Debug(source: Source): ReferenceLinks = {
     val positiveLinks =
       for (N3DebugRegex(confidence, sourceUri, targetUri) <- source.getLines()) yield {
-        new Link(sourceUri, targetUri, Some(confidence.toDouble))
+        new LinkWithConfidence(sourceUri, targetUri, confidence.toDouble)
       }
 
     new ReferenceLinks(positiveLinks.toSet, Set.empty)

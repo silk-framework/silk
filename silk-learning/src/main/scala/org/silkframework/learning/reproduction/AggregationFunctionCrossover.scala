@@ -17,11 +17,13 @@ package org.silkframework.learning.reproduction
 import org.silkframework.learning.individual.AggregationNode
 import org.silkframework.util.DPair
 
+import scala.util.Random
+
 /**
  * A crossover operator which interchanges the aggregation strategies.
  */
 case class AggregationFunctionCrossover() extends NodePairCrossoverOperator[AggregationNode] {
-  override protected def crossover(nodes: DPair[AggregationNode]) = {
+  override protected def crossover(nodes: DPair[AggregationNode], random: Random) = {
     nodes.source.copy(aggregation = nodes.target.aggregation)
   }
 }

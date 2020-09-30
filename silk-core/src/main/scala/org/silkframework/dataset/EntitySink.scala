@@ -1,5 +1,6 @@
 package org.silkframework.dataset
 
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, ValueType}
 import org.silkframework.runtime.activity.UserContext
@@ -15,9 +16,9 @@ trait EntitySink extends DataSink {
    *
    * @param properties The list of properties of the entities to be written.
    */
-  def openTable(typeUri: Uri, properties: Seq[TypedProperty])(implicit userContext: UserContext): Unit
+  def openTable(typeUri: Uri, properties: Seq[TypedProperty])(implicit userContext: UserContext, prefixes: Prefixes): Unit
 
-  def openTableWithPaths(typeUri: Uri, typedPaths: Seq[TypedPath])(implicit userContext: UserContext): Unit = {
+  def openTableWithPaths(typeUri: Uri, typedPaths: Seq[TypedPath])(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     val properties = typedPaths.map(tp => tp.property.getOrElse(throw new RuntimeException("Typed path is neither a simple forward or backward path: " + tp)))
     openTable(typeUri, properties)
   }

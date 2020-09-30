@@ -29,6 +29,9 @@ object SilkVocab {
   val TripleSchemaType: String = namespace + "/TripleSchemaType"
   val QuadSchemaType: String = namespace + "/QuadSchemaType"
 
+  // Empty table
+  val EmptySchemaType: String = namespace + "/EmptySchemaType"
+
   val SparqlEndpointSchemaType: String = namespace + "/SparqlEndpointSchemaType"
 
   val DatasetResourceSchemaType: String = namespace + "/DatasetResourceSchemaType"

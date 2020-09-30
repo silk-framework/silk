@@ -36,7 +36,7 @@ class GenerateLinks(id: Identifier,
                     label: String,
                     inputs: DPair[DataSource],
                     linkSpec: LinkSpec,
-                    outputs: Seq[LinkSink],
+                    output: Option[LinkSink],
                     runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig()) extends Activity[Linking] {
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
@@ -97,7 +97,8 @@ class GenerateLinks(id: Identifier,
     children ::= matcher
     matcher.startBlocking()
 
-      cleanUpCaches(caches)
+    stopLoading(context, loaders)
+    cleanUpCaches(caches)
 
     if(context.status.isCanceling) return
 
@@ -122,7 +123,7 @@ class GenerateLinks(id: Identifier,
 
     //Output links
     // TODO dont commit links to context if the task is not configured to hold links
-    val outputTask = new OutputWriter(context.value().links, linkSpec.rule.linkType, outputs)
+    val outputTask = new OutputWriter(context.value().links, linkSpec.rule.linkType, output)
     context.child(outputTask, 0.02).startBlocking()
     logStatistics(context)
   }
@@ -136,6 +137,23 @@ class GenerateLinks(id: Identifier,
   override def cancelExecution()(implicit userContext: UserContext): Unit = {
     children foreach { _.cancel()}
     super.cancelExecution()
+  }
+
+  /**
+    * Makes sure that no loading activity is running after completion of this method.
+    * This is relevant in cases when matching has been cancelled, but loading is still active.
+    */
+  private def stopLoading(context: ActivityContext[Linking], loaders: Seq[ActivityControl[_]])
+                         (implicit userContext: UserContext): Unit = {
+    if(loaders.exists(_.status().isRunning)) {
+      context.status.updateMessage("Stopping loaders")
+      for (loader <- loaders if loader.status().isRunning) {
+        loader.cancel()
+      }
+      for (loader <- loaders if loader.status().isRunning) {
+        loader.waitUntilFinished()
+      }
+    }
   }
 
   private def cleanUpCaches(caches: DPair[EntityCache]): Unit = {

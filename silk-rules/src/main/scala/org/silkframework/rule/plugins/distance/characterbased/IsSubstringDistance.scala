@@ -1,13 +1,13 @@
 package org.silkframework.rule.plugins.distance.characterbased
 
 import org.silkframework.rule.similarity.{NonSymmetricDistanceMeasure, SimpleDistanceMeasure}
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 @Plugin(
   id = "isSubstring",
   categories = Array("Characterbased"),
-  label = "Is Substring",
-  description = "Checks if a source value is a substring of a target value")
+  label = "Is substring",
+  description = "Checks if a source value is a substring of a target value.")
 case class IsSubstringDistance(@Param("Reverse source and target inputs")
                                reverse: Boolean = false) extends SimpleDistanceMeasure with NonSymmetricDistanceMeasure {
 

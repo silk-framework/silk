@@ -1,5 +1,7 @@
 package org.silkframework.plugins.dataset.csv
 
+import org.silkframework.plugins.dataset.csv.charset.CharsetUtils
+
 import scala.io.Codec
 
 /**
@@ -46,8 +48,8 @@ trait CsvDatasetTrait {
     if (quoteEscapeCharacter.length == 1) { quoteEscapeCharacter.head }
     else { throw new IllegalArgumentException(s"Invalid quote escape character: '$quoteEscapeCharacter'. Must be a single character.")}
 
-  val codec: Codec = Codec(charset)
+  val codec: Codec = CharsetUtils.forName(charset)
 
   protected val csvSettings: CsvSettings = CsvSettings(separatorChar, arraySeparatorChar, quoteChar,
-    maxCharsPerColumn = Some(maxCharsPerColumn), quoteEscapeChar = quoteEscapeChar)
+    maxCharsPerColumn = Some(maxCharsPerColumn), quoteEscapeChar = quoteEscapeChar, linesToSkip = linesToSkip, codec = codec)
 }

@@ -154,6 +154,10 @@ private class ActivityExecution[T](activity: Activity[T],
             throw ex
           }
       } finally {
+        if(children().nonEmpty) {
+          log.warning(s"Child activities are still being held after completion of parent activity: ${children().map(_.underlying.name).mkString(", " )}")
+          clearChildren()
+        }
         lastResult = activityExecutionResult
         forkJoinRunner = None
         ThreadLock.synchronized {

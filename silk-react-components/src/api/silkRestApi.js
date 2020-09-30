@@ -53,11 +53,13 @@ const silkApi = {
     },
 
     /** Executes an activity. Blocks until the activity finished executing. */
-    executeTaskActivityBlocking: function(baseUrl, projectId, taskId, activityId) {
+    executeTaskActivityBlocking: function(baseUrl, projectId, taskId, activityId, config) {
         const requestUrl = this.taskActivityExecuteBlockingEndpoint(baseUrl, projectId, taskId, activityId);
 
         const promise = superagent
-            .post(requestUrl);
+            .post(requestUrl)
+            .type('form')
+            .send(config);
 
         return this.handleErrorCode(promise);
     },

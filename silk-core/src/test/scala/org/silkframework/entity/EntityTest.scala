@@ -64,4 +64,17 @@ class EntityTest extends FlatSpec with Matchers {
     complexEntity.evaluate(4) shouldBe complexEntity.evaluate(UntypedPath.parse("sub2/path5").asStringTypedPath)
   }
 
+  "Multiple entities" should "serialize/deserialize correctly" in {
+    val outputStream = new ByteArrayOutputStream()
+    val dataOutputStream = new DataOutputStream(outputStream)
+    se1.serialize(dataOutputStream)
+    se2.serialize(dataOutputStream)
+    // Deserialize entity
+    val inputStream = new ByteArrayInputStream(outputStream.toByteArray)
+    val dataInputStream = new DataInputStream(inputStream)
+    val re1 = Entity.deserialize(dataInputStream, subSchema1)
+    val re2 = Entity.deserialize(dataInputStream, subSchema2)
+    re1 shouldBe se1
+    re2 shouldBe se2
+  }
 }

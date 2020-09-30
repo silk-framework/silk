@@ -9,7 +9,6 @@ import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.apache.jena.update.{UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint, SparqlParams}
 import org.silkframework.runtime.activity.UserContext
-import scala.collection.JavaConverters._
 
 /**
   * A SPARQL endpoint which executes all queries on a Jena Dataset.

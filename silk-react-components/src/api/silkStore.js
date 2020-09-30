@@ -65,11 +65,7 @@ const silkStore = {
         // Save script task with modified script, FIXME: Have separate 'Save' step, execute activity without the need of saving the script task
         return silkApi.patchTask(baseUrl, projectId, scriptTaskId, patchJson)
             .then(() => {
-                // Configure the script task's workflow operator ID for the activity execution (the same script task could appear multiple times in a workflow)
-                return silkApi.configureTaskActivity(baseUrl, projectId, workflowId, executeSparkOperatorActivity, {"operator": workflowOperatorId});
-            })
-            .then(() => {
-                return silkApi.executeTaskActivityBlocking(baseUrl, projectId, workflowId, executeSparkOperatorActivity);
+                return silkApi.executeTaskActivityBlocking(baseUrl, projectId, workflowId, executeSparkOperatorActivity, {"operator": workflowOperatorId});
             })
             .then(() => {
                 return silkApi.activityResult(baseUrl, projectId, workflowId, executeSparkOperatorActivity);

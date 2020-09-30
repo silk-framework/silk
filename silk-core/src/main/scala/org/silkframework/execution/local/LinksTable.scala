@@ -21,6 +21,10 @@ case class LinksTable(
   override def entityIterator: Iterator[Entity] = {
     new LinkEntityIterator(links, entitySchema)
   }
+
+  override def updateEntities(newEntities: Traversable[Entity]): GenericEntityTable = {
+    new GenericEntityTable(newEntities, entitySchema, task)
+  }
 }
 
 class LinkEntityIterator(links: Seq[Link], entitySchema: EntitySchema) extends Iterator[Entity] {
@@ -34,8 +38,8 @@ class LinkEntityIterator(links: Seq[Link], entitySchema: EntitySchema) extends I
 object LinksTable {
 
   val linkEntitySchema = EntitySchema("", IndexedSeq(
-    TypedPath(UntypedPath("targetUri"), UriValueType, isAttribute = false),
-    TypedPath(UntypedPath("confidence"), DoubleValueType, isAttribute = false)))
+    TypedPath(UntypedPath("targetUri"), ValueType.URI, isAttribute = false),
+    TypedPath(UntypedPath("confidence"), ValueType.DOUBLE, isAttribute = false)))
 
   def convertLinkToEntity(link: Link, entitySchema: EntitySchema): Entity = {
     Entity(

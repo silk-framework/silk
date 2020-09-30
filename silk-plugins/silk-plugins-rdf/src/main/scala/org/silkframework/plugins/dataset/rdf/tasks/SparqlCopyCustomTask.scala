@@ -5,14 +5,15 @@ import org.silkframework.config.CustomTask
 import org.silkframework.dataset.rdf.SparqlEndpointEntitySchema
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.QuadEntityTable
-import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.MultilineStringParameter
 import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.{Failure, Success, Try}
 
 @Plugin(
   id = "sparqlCopyOperator",
-  label = "SPARQL Copy Task",
+  label = "SPARQL Construct query",
   description = "A task that executes a SPARQL Construct query on a SPARQL enabled data source and outputs the SPARQL result."
 )
 case class SparqlCopyCustomTask(

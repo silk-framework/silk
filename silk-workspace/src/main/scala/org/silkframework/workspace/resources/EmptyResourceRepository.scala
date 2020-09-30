@@ -1,6 +1,6 @@
 package org.silkframework.workspace.resources
 
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.Identifier
 
@@ -11,5 +11,9 @@ import org.silkframework.util.Identifier
 )
 case class EmptyResourceRepository() extends ResourceRepository {
 
+  override def sharedResources: Boolean = false
+
   override def get(project: Identifier): ResourceManager = EmptyResourceManager()
+
+  override def removeProjectResources(project: Identifier): Unit = {}
 }

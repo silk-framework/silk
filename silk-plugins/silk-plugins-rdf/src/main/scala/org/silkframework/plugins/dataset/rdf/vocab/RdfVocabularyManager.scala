@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf.vocab
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.rule.vocab.{Vocabulary, VocabularyManager}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.WorkspaceFactory
 

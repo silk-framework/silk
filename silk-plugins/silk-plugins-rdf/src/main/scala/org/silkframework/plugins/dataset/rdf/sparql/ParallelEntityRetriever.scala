@@ -95,7 +95,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
           canceled = true
         case ex: Exception =>
           logger.log(Level.WARNING, "Failed to execute query for '" + entitySchema.typeUri + "'", ex)
-          canceled = true
+          throw ex
       }
 
       if (inconsistentOrder) {

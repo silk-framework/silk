@@ -14,17 +14,26 @@
 
 package org.silkframework.learning.active
 
-import org.silkframework.learning.active.linkselector.{JensenShannonDivergenceSelector, LinkSelector, LinkSelectorCombinator, MaximumAgreementSelector}
-import org.silkframework.learning.active.poolgenerator.{LinkPoolGenerator, SimpleLinkPoolGenerator}
+import org.silkframework.learning.active.linkselector.{JensenShannonDivergenceSelector, LinkSelector, LinkSelectorCombinator, MaximumAgreementSelector, SamplingLinkSelector}
+import org.silkframework.learning.active.poolgenerator.{CombinedLinkPoolGenerator, IndexLinkPoolGenerator, LinkPoolGenerator, LinkSpecLinkPoolGenerator}
 
 
-case class ActiveLearningConfiguration(linkPoolGenerator: LinkPoolGenerator = SimpleLinkPoolGenerator(),
+case class ActiveLearningConfiguration(linkPoolGenerator: LinkPoolGenerator = ActiveLearningConfigurationDefaults.defaultLinkPoolGenerator,
                                        selector: LinkSelector = ActiveLearningConfigurationDefaults.defaultLinkSelector)
 
 object ActiveLearningConfigurationDefaults {
-  val defaultLinkSelector = {
-    val max = MaximumAgreementSelector()
-    val jensen = JensenShannonDivergenceSelector()
+
+  val defaultLinkPoolGenerator: LinkPoolGenerator = {
+    new CombinedLinkPoolGenerator(
+      new LinkSpecLinkPoolGenerator(),
+      new IndexLinkPoolGenerator()
+    )
+  }
+
+  val defaultLinkSelector: LinkSelector = {
+    // We sample the rules and pool links to limit the runtime of the selectors
+    val max = SamplingLinkSelector(MaximumAgreementSelector(), linkSampleSize = Some(5000), ruleSampleSize = Some(400))
+    val jensen = SamplingLinkSelector(JensenShannonDivergenceSelector(), linkSampleSize = Some(1000), ruleSampleSize = Some(1000))
     LinkSelectorCombinator(
       pickLinkSelector =  (_, _, entities) => {
         if(entities.positiveLinks.size < 2) max else jensen

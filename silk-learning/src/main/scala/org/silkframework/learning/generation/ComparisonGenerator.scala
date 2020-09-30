@@ -31,12 +31,12 @@ case class ComparisonGenerator(inputGenerators: DPair[InputGenerator], measure: 
   /**
    * Generates a new comparison.
    */
-  def apply() = {
+  def apply(random: Random) = {
     ComparisonNode(
-      inputs = inputGenerators.map(_.apply()),
-      threshold =  Random.nextDouble() * maxThreshold,
-      weight = Random.nextInt(maxWeight) + 1,
-      required = Random.nextBoolean(),
+      inputs = inputGenerators.map(_.apply(random)),
+      threshold =  random.nextDouble() * maxThreshold,
+      weight = random.nextInt(maxWeight) + 1,
+      required = random.nextBoolean(),
       metric = measure
     )
   }

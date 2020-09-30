@@ -17,7 +17,7 @@ package org.silkframework.plugins.spatial.relation
 import org.silkframework.entity.Index
 import org.silkframework.plugins.spatial.utils._
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
  * Computes the relation \"contains\" between two geometries (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).
@@ -26,7 +26,7 @@ import org.silkframework.runtime.plugin.Plugin
 @Plugin(
   id = "SContainsMetric",
   categories = Array("Spatial"),
-  label = "Spatial Contains",
+  label = "Spatial contains",
   description = "Computes the relation \"contains\" between two geometries.")
 case class ContainsMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 

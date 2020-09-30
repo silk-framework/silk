@@ -2,6 +2,8 @@ package org.silkframework.dataset
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
@@ -21,13 +23,13 @@ object EmptySource extends DataSource {
   }
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext): Traversable[Entity] = {
-    Traversable.empty
+                       (implicit userContext: UserContext): EntityHolder = {
+    GenericEntityTable(Traversable.empty, entitySchema, underlyingTask)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): Seq[Entity] = {
-    Seq.empty
+                            (implicit userContext: UserContext): EntityHolder= {
+    GenericEntityTable(Seq.empty, entitySchema, underlyingTask)
   }
 
   override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask("empty_dataset", DatasetSpec(EmptyDataset))

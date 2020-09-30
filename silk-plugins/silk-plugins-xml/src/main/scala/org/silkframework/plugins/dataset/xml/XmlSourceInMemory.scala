@@ -6,6 +6,8 @@ import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
@@ -39,7 +41,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
   }
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                       (implicit userContext: UserContext): Traversable[Entity] = {
+                       (implicit userContext: UserContext): EntityHolder = {
     logger.log(Level.FINE, "Retrieving data from XML.")
 
     val nodes = loadXmlNodes(entitySchema.typeUri.uri)
@@ -48,10 +50,13 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     } else { nodes }
     val entities = new Entities(subTypeEntities, entitySchema)
 
-    limit match {
-      case Some(max) => entities.take(max)
-      case None => entities
-    }
+    val limitedEntities =
+      limit match {
+        case Some(max) => entities.take(max)
+        case None => entities
+     }
+
+    GenericEntityTable(limitedEntities, entitySchema, underlyingTask)
   }
 
   /**

@@ -15,4 +15,6 @@ trait ResourceBasedDataset { this: Dataset =>
   }
 
   override def referencedResources: Seq[Resource] = Seq(file)
+
+  override def isFileResourceBased: Boolean = true
 }

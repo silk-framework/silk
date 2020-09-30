@@ -1,10 +1,10 @@
 package org.silkframework.plugins.dataset.json
 
-import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
-import org.silkframework.execution.{ExecutionReport, ExecutorRegistry, TaskException}
+import org.silkframework.execution.{ExecutionReport, ExecutorOutput, ExecutorRegistry, TaskException}
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 /**
@@ -14,15 +14,15 @@ import org.silkframework.runtime.resource.InMemoryResourceManager
 case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
   override def execute(task: Task[JsonParserTask],
                        inputs: Seq[LocalEntities],
-                       outputSchemaOpt: Option[EntitySchema],
+                       output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport] = new ActivityMonitor(getClass.getSimpleName))
-                      (implicit userContext: UserContext): Option[LocalEntities] = {
+                      (implicit userContext: UserContext, prefixes: Prefixes): Option[LocalEntities] = {
     val spec = task.data
     if (inputs.size != 1) {
       throw TaskException("JsonParserTask takes exactly one input!")
     }
-    outputSchemaOpt flatMap { outputSchema =>
+    output.requestedSchema.flatMap { _ =>
       val entityTable = inputs.head
       val entities = entityTable.entities
 
@@ -43,7 +43,7 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
                 resource.writeBytes(jsonInputString.getBytes)
                 val dataset = JsonDataset(resource, spec.basePath, entity.uri.toString + spec.uriSuffixPattern)
                 ExecutorRegistry.execute(PlainTask(task.id, DatasetSpec(dataset)),
-                  Seq.empty, Some(outputSchema), LocalExecution(useLocalInternalDatasets = false))
+                  Seq.empty, output, execution)
               case None =>
                 throw TaskException("No value found for input path!")
             }

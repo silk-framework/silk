@@ -5,12 +5,13 @@ import java.text.DecimalFormat
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.{Param, Plugin, PluginCategories}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.PluginCategories
 
 @Plugin(
   id = "numericEquality",
   categories = Array("Equality", PluginCategories.recommended),
-  label = "Numeric Equality",
+  label = "Numeric equality",
   description = NumericEqualityMetric.description
 )
 case class NumericEqualityMetric(@Param("The range of tolerance in floating point number comparisons. Must be 0 or a non-negative number smaller than 1.")

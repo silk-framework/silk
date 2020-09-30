@@ -14,7 +14,8 @@ import org.silkframework.util.Identifier
 case class TransformReport( label: String,
                             entityCounter: Long = 0L,
                             entityErrorCounter: Long = 0L,
-                            ruleResults: Map[Identifier, RuleResult] = Map.empty
+                            ruleResults: Map[Identifier, RuleResult] = Map.empty,
+                            globalErrors: Seq[String] = Seq.empty
                           ) extends ExecutionReport {
 
   lazy val summary: Seq[(String, String)] = {
@@ -24,12 +25,12 @@ case class TransformReport( label: String,
     )
   }
 
-  def warning: Option[String] = {
-    if(entityErrorCounter == 0) {
-      None
-    } else {
-      Some(s"Validation issues occurred on $entityErrorCounter entities.")
+  def warnings: Seq[String] = {
+    var allErrors = globalErrors
+    if(entityErrorCounter != 0) {
+      allErrors :+= s"Validation issues occurred on $entityErrorCounter entities."
     }
+    allErrors
   }
 
 }

@@ -15,14 +15,14 @@
 package org.silkframework.rule.plugins.transformer.normalize
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 import scala.util.matching.Regex
 
 @Plugin(
   id = "alphaReduce",
   categories = Array("Normalize"),
-  label = "Alpha reduce",
+  label = "Strip non-alphabetic characters",
   description = "Strips all non-alphabetic characters from a string. Spaces are retained."
 )
 case class AlphaReduceTransformer() extends SimpleTransformer {

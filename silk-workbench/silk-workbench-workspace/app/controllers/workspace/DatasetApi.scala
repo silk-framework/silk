@@ -3,9 +3,10 @@ package controllers.workspace
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.SerializationUtils._
+import controllers.util.TextSearchUtils
 import javax.inject.Inject
 import org.silkframework.config.{PlainTask, Prefixes}
-import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.dataset.DatasetSpec.{DataSourceWrapper, GenericDatasetSpec}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
 import org.silkframework.entity.EntitySchema
@@ -105,7 +106,14 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
 
   def dataset(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
-    Ok(views.html.workspace.dataset.dataset(context))
+    context.task.data match {
+      case dataset: GenericDatasetSpec =>
+        if (dataset.plugin.isInstanceOf[RdfDataset]) {
+          Redirect(routes.DatasetApi.sparql(project, task))
+        } else {
+          Redirect(routes.DatasetApi.table(project, task))
+        }
+    }
   }
 
   def table(project: String, task: String, maxEntities: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
@@ -115,7 +123,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
     val firstTypes = source.retrieveTypes().head._1
     val paths = source.retrievePaths(firstTypes).toIndexedSeq
     val entityDesc = EntitySchema(firstTypes, paths)
-    val entities = source.retrieve(entityDesc).take(maxEntities).toList
+    val entities = source.retrieve(entityDesc).entities.take(maxEntities).toList
 
     Ok(views.html.workspace.dataset.table(context, paths.map(_.toUntypedPath), entities))
   }
@@ -137,23 +145,32 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
   }
 
   /** Get types of a dataset including the search string */
-  def types(project: String, task: String, search: String = ""): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+  def types(project: String, task: String, search: String = "", limit: Option[Int] = None): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
     implicit val prefixes: Prefixes = context.project.config.prefixes
 
     val typesFull = context.task.activity[TypesCache].value().types
     val typesResolved = typesFull.map(t => new Uri(t).serialize)
     val filteredTypes = typesResolved.filter(_.contains(search))
+    val limitedTypes = limit.map(l => filteredTypes.take(l)).getOrElse(filteredTypes)
 
-    Ok(JsArray(filteredTypes.map(JsString)))
+    Ok(JsArray(limitedTypes.map(JsString)))
   }
 
   /** Get all types of the dataset */
-  def getDatasetTypes(project: String, task: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+  def getDatasetTypes(project: String,
+                      task: String,
+                      textQuery: String,
+                      limit: Option[Int]): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
-    val types = context.task.activity[TypesCache].value().types
+    implicit val prefixes: Prefixes = context.project.config.prefixes
 
-    Ok(JsArray(types.map(JsString)))
+    val types = context.task.activity[TypesCache].value().types
+    val multiWordQuery = TextSearchUtils.extractSearchTerms(textQuery)
+    val filteredTypes = types.filter(typ => TextSearchUtils.matchesSearchTerm(multiWordQuery, typ))
+    val limitedTypes = limit.map(l => filteredTypes.take(l)).getOrElse(filteredTypes)
+
+    Ok(JsArray(limitedTypes.map(JsString)))
   }
 
   def getMappingValueCoverage(projectName: String,
@@ -163,7 +180,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
       val datasetTask = project.task[GenericDatasetSpec](datasetId)
       val inputPaths = transformationInputPaths(project)
       val dataSourcePath = UntypedPath.parse(mappingCoverageRequest.dataSourcePath)
-      datasetTask.plugin.source match {
+      DataSource.pluginSource(datasetTask) match {
         case vd: PathCoverageDataSource with ValueCoverageDataSource =>
           val matchingInputPaths = for (coveragePathInput <- inputPaths;
                inputPath <- coveragePathInput.paths
@@ -195,7 +212,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
       val project = WorkspaceFactory().workspace.project(projectName)
       implicit val prefixes: Prefixes = project.config.prefixes
       val datasetTask = project.task[GenericDatasetSpec](datasetId)
-      datasetTask.plugin.source match {
+      DataSource.pluginSource(datasetTask) match {
         case cd: PathCoverageDataSource =>
           getCoverageFromCoverageSource(filterPaths, project, cd)
         case _ =>
@@ -215,7 +232,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
                                             project: Project,
                                             cd: PathCoverageDataSource)
                                            (implicit prefixes: Prefixes,
-                                            userContext: UserContext) = {
+                                            userContext: UserContext): Result = {
     val inputPaths = transformationInputPaths(project)
     val result = cd.pathCoverage(inputPaths.toSeq)
     val filteredPaths = filterPaths(result)

@@ -5,7 +5,8 @@ import org.silkframework.config.CustomTask
 import org.silkframework.dataset.rdf.{SparqlEndpointDatasetParameter, SparqlEndpointEntitySchema}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.runtime.plugin.{MultilineStringParameter, Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.MultilineStringParameter
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
@@ -18,7 +19,7 @@ import scala.collection.JavaConverters._
   */
 @Plugin(
   id = "sparqlSelectOperator",
-  label = "SPARQL Select Task",
+  label = "SPARQL Select query",
   description = "A task that executes a SPARQL Select query on a SPARQL enabled data source and outputs the SPARQL result."
 )
 case class SparqlSelectCustomTask(@Param(label = "Select query", value = "A SPARQL 1.1 select query", example = "select * where { ?s ?p ?o }")
@@ -26,8 +27,16 @@ case class SparqlSelectCustomTask(@Param(label = "Select query", value = "A SPAR
                                   @Param(label = "Result limit", value = "If set to a positive integer, the number of results is limited")
                                   limit: String = "",
                                  @Param(label = "Optional SPARQL dataset",
-                                   value = "An optional SPARQL dataset that can be used for example data, so e.g. the transformation editor shows mapping examples.")
-                                  optionalInputDataset: SparqlEndpointDatasetParameter = SparqlEndpointDatasetParameter("")) extends CustomTask {
+                                   value = "An optional SPARQL dataset that can be used for example data, so e.g. the transformation editor shows mapping examples.",
+                                   autoCompletionProvider = classOf[SparqlEndpointDatasetAutoCompletionProvider],
+                                   autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
+                                  optionalInputDataset: SparqlEndpointDatasetParameter = SparqlEndpointDatasetParameter(""),
+                                  @Param(
+                                    label = "SPARQL query timeout (ms)",
+                                    value = "SPARQL query timeout (select/update) in milliseconds. A value of zero means that there is no timeout set explicitly." +
+                                        " If a value greater zero is specified this overwrites possible default timeouts.")
+                                  sparqlTimeout: Int = 0
+                                 ) extends CustomTask {
   val intLimit: Option[Int] = {
     // Only allow positive ints
     Try(limit.toInt).filter(_ > 0).toOption
@@ -43,7 +52,7 @@ case class SparqlSelectCustomTask(@Param(label = "Select query", value = "A SPAR
       throw new ValidationException("Query is not a SELECT query!")
     }
     val typedPaths = query.getResultVars.asScala map { v =>
-      TypedPath(UntypedPath(v), StringValueType, isAttribute = false)
+      TypedPath(UntypedPath(v), ValueType.STRING, isAttribute = false)
     }
     EntitySchema(
       typeUri = Uri(""),

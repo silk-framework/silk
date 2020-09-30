@@ -20,7 +20,7 @@ class ProjectMarshalingApiTest extends PlaySpec with IntegrationTestTrait {
 
   protected override def routes = Some(classOf[workspace.Routes])
 
-  override def workspaceProvider: String = "inMemory"
+  override def workspaceProviderId: String = "inMemory"
 
   "import the entire workspace" in {
     val workspaceBytes = ClasspathResource("controllers/workspace/workspace.zip").loadAsBytes

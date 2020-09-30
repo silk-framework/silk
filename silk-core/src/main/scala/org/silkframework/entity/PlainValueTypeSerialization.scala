@@ -22,7 +22,7 @@ object PlainValueTypeSerialization extends SerializationFormat[ValueType, String
         case "CustomValueType" =>
           assert(instance.trim.nonEmpty)
           CustomValueType(instance.replace("$", "").trim)
-        case _ => StringValueType  // this should only occur if the old AutoDetectValueType is used which translates to string
+        case _ => ValueType.STRING  // this should only occur if the old AutoDetectValueType is used which translates to string
       }
       case Right(vt) => vt
     }} match{

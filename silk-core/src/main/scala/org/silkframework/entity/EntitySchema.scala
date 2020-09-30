@@ -40,6 +40,11 @@ case class EntitySchema(
   }
 
   /**
+    * Retrieves all paths including the paths of sub schemata.
+    */
+  def allPaths: IndexedSeq[TypedPath] = typedPaths
+
+  /**
     * Simplifies the acquisition of path ranges. No indices needed.
     * @param fromPath - range starts with path
     * @param toPath - range ends with path
@@ -162,7 +167,7 @@ case class EntitySchema(
       case es: EntitySchema =>
         EntitySchema(
           es.typeUri,
-          tps.flatMap(tp => if(tp.valueType == UntypedValueType) es.findPath(tp.toUntypedPath) else es.findTypedPath(tp) match{
+          tps.flatMap(tp => if(tp.valueType == ValueType.UNTYPED) es.findPath(tp.toUntypedPath) else es.findTypedPath(tp) match{
             case Some(_) => Some(tp)
             case None =>
               throw new IllegalArgumentException(tp + " was not found in EntitySchema: " + this.typedPaths.mkString(", "))
@@ -262,7 +267,7 @@ object EntitySchema {
     }
     val paths = if(typedPaths.isEmpty) {
       for (pathNode <- (node \ "Paths" \ "Path").toIndexedSeq) yield {
-        TypedPath(UntypedPath.parse(pathNode.text.trim), StringValueType, isAttribute = false)
+        TypedPath(UntypedPath.parse(pathNode.text.trim), ValueType.STRING, isAttribute = false)
       }
     } else {
       typedPaths

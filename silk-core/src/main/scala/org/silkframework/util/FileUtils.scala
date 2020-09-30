@@ -29,6 +29,18 @@ object FileUtils {
  * Defines additional methods on Files, which are missing in the standard library.
  */
 class FileUtils(file: File) {
+
+  /**
+    * Variant of mkdirs() that throws an IOException, if the directory could not be created.
+    *
+    * @throws java.io.IOException if the directory or any of its sub directories could not be created
+    */
+  def safeMkdirs(): Unit = {
+    if (!file.exists && !file.mkdirs()) {
+      throw new IOException("Could not create directory at: " + file.getCanonicalPath)
+    }
+  }
+
   /**
    * Deletes this directory and all sub directories.
    *

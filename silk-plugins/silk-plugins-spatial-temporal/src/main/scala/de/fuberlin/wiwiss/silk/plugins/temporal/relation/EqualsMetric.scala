@@ -17,7 +17,7 @@ package org.silkframework.plugins.temporal.relation
 import org.silkframework.entity.Index
 import org.silkframework.plugins.temporal.utils._
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
  * Computes the relation \"equals\" between two time periods or instants (It assumes that the times are expressed in the "yyyy-MM-DD'T'hh:mm:ss" format).
@@ -26,7 +26,7 @@ import org.silkframework.runtime.plugin.Plugin
 @Plugin(
   id = "TEqualsMetric",
   categories = Array("Temporal"),
-  label = "Temporal Equals",
+  label = "Temporal equals",
   description = "Computes the relation \"equals\" between two time periods or instants.")
 case class EqualsMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 

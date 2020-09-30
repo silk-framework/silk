@@ -15,16 +15,15 @@
 package org.silkframework.rule.plugins.transformer.validation
 
 import javax.xml.datatype.DatatypeFactory
-
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.{Param, Plugin}
 import ValidateDateRange._
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.validation.ValidationException
 
 @Plugin(
   id = "validateDateRange",
   categories = Array("Validation", "Date"),
-  label = "validate date range",
+  label = "Validate date range",
   description = "Validates if dates are within a specified range."
 )
 case class ValidateDateRange(

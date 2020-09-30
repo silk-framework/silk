@@ -8,12 +8,15 @@ import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{BackwardOperator, ForwardOperator, TypedPath, UntypedPath}
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 import scala.xml._
 
@@ -85,10 +88,10 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
       val relativeClass = schemaClass.sourceType.drop(normalizedTypeUri.length).dropWhile(_ == '/')
       val classPath = UntypedPath.parse(relativeClass)
       if(classPath.size > 0 && classPath.size <= depth) {
-        pathBuffer.append(TypedPath(classPath, UriValueType, isAttribute = false))
+        pathBuffer.append(TypedPath(classPath, ValueType.URI, isAttribute = false))
       }
       for(schemaPath <- schemaClass.properties) {
-        val typedPath = TypedPath(UntypedPath.parse(relativeClass + "/" + schemaPath.path.normalizedSerialization), StringValueType,
+        val typedPath = TypedPath(UntypedPath.parse(relativeClass + "/" + schemaPath.path.normalizedSerialization), ValueType.STRING,
           isAttribute = schemaPath.path.normalizedSerialization.startsWith("@"))
         if(typedPath.size <= depth) {
           pathBuffer.append(typedPath)
@@ -123,36 +126,39 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * @return A Traversable over the entities. The evaluation of the Traversable is non-strict.
     */
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext): Traversable[Entity] = {
+                       (implicit userContext: UserContext): EntityHolder = {
     if(entitySchema.typedPaths.exists(_.operators.exists(_.isInstanceOf[BackwardOperator]))) {
       throw new ValidationException("Backward paths are not supported when streaming XML. Disable streaming to use backward paths.")
     }
 
-    new Traversable[Entity] {
-      override def foreach[U](f: Entity => U): Unit = {
-        val inputStream = file.inputStream
-        try {
-          val reader: XMLStreamReader = initStreamReader(inputStream)
-          goToPath(reader, UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath)
-          var count = 0
-          do {
-            val node = buildNode(reader)
-            val traverser = XmlTraverser(node)
+    val entities =
+      new Traversable[Entity] {
+        override def foreach[U](f: Entity => U): Unit = {
+          val inputStream = file.inputStream
+          try {
+            val reader: XMLStreamReader = initStreamReader(inputStream)
+            goToPath(reader, UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath)
+            var count = 0
+            do {
+              val node = buildNode(reader)
+              val traverser = XmlTraverser(node)
 
-            val uri = traverser.generateUri(uriPattern)
-            val values = for (typedPath <- entitySchema.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)
+              val uri = traverser.generateUri(uriPattern)
+              val values = for (typedPath <- entitySchema.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)
 
-            f(Entity(uri, values, entitySchema))
+              f(Entity(uri, values, entitySchema))
 
-            goToNextEntity(reader, node.label)
-            count += 1
+              goToNextEntity(reader, node.label)
+              count += 1
 
-          } while (reader.isStartElement && limit.forall(count < _))
-        } finally {
-          inputStream.close()
+            } while (reader.isStartElement && limit.forall(count < _))
+          } finally {
+            inputStream.close()
+          }
         }
       }
-    }
+
+    GenericEntityTable(entities, entitySchema, underlyingTask)
   }
 
   /**
@@ -249,13 +255,13 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     reader.next()
 
     val depthAdjustedAttributePaths: IndexedSeq[TypedPath] = if(depth == 0) IndexedSeq() else attributePaths
-    val pathValueType = if(attributePaths.nonEmpty || startElements.nonEmpty) UriValueType else StringValueType
+    val pathValueType = if(attributePaths.nonEmpty || startElements.nonEmpty) ValueType.URI else ValueType.STRING
     val typedPath = TypedPath(path, pathValueType, isAttribute = false)
 
     if(onlyInnerNodes && startElements.isEmpty && attributePaths.isEmpty) {
       Seq() // An inner node has at least an attribute or child elements
     } else if(onlyInnerNodes) {
-      TypedPath(path, UriValueType, isAttribute = false) +: paths // The paths are already depth adjusted and only contain inner nodes
+      TypedPath(path, ValueType.URI, isAttribute = false) +: paths // The paths are already depth adjusted and only contain inner nodes
     } else if(onlyLeafNodes && startElements.isEmpty) {
       Seq(typedPath) ++ depthAdjustedAttributePaths // A leaf node is a node without children, but may have attributes
     } else if(onlyLeafNodes) {
@@ -285,7 +291,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
 
   private def fetchAttributePaths(reader: XMLStreamReader, path: UntypedPath) = {
     for (attributeIndex <- 0 until reader.getAttributeCount) yield {
-      TypedPath(path ++ UntypedPath("@" + reader.getAttributeLocalName(attributeIndex)), StringValueType, isAttribute = true)
+      TypedPath(path ++ UntypedPath("@" + reader.getAttributeLocalName(attributeIndex)), ValueType.STRING, isAttribute = true)
     }
   }
 
@@ -294,26 +300,27 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * The parser must be positioned on the start element when calling this method.
     * On return, the parser will be positioned on the element that directly follows the element.
     */
-  private def buildNode(reader: XMLStreamReader): Elem = {
+  private def buildNode(reader: XMLStreamReader): InMemoryXmlElem = {
     assert(reader.isStartElement)
+    val lineNumber = reader.getLocation.getLineNumber
+    val columnNumber = reader.getLocation.getColumnNumber
 
     // Remember label
     val label = reader.getLocalName
 
     // Collect attributes on this element
-    var attributes: MetaData = Null
-    for(i <- 0 until reader.getAttributeCount) {
-      attributes = new UnprefixedAttribute(reader.getAttributeLocalName(i), reader.getAttributeValue(i), attributes)
+    val attributes = for(i <- 0 until reader.getAttributeCount) yield {
+      reader.getAttributeLocalName(i) -> reader.getAttributeValue(i)
     }
 
     // Collect child nodes
-    var children = List[Node]()
+    val children = new ArrayBuffer[InMemoryXmlNode]()
     reader.next()
     while(!reader.isEndElement) {
       if(reader.isStartElement) {
-        children ::= buildNode(reader)
+        children.append(buildNode(reader))
       } else if(reader.isCharacters) {
-        children ::= Text(reader.getText)
+        children.append(InMemoryXmlText(reader.getText))
         reader.next()
       } else {
         reader.next()
@@ -323,7 +330,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     // Move to the element after the end element.
     reader.next()
 
-    Elem(null, label, attributes, NamespaceBinding(null, null, null), minimizeEmpty = false, children.reverse: _*)
+    InMemoryXmlElem(s"$lineNumber-$columnNumber", label, attributes.toMap, children.toArray)
   }
 
   /**

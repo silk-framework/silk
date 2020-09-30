@@ -6,6 +6,7 @@ import org.silkframework.config.CustomTask
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
@@ -18,7 +19,7 @@ import org.silkframework.workspace.resources.ResourceRepository
   *
   * Trait defining methods for marshalling and unmarshalling of Silk projects.
   */
-trait ProjectMarshallingTrait {
+trait ProjectMarshallingTrait extends AnyPlugin {
   /**
     * A unique ID, so this marshaller can be distinguished from other marshallers
     */
@@ -29,6 +30,12 @@ trait ProjectMarshallingTrait {
 
   /** Handler for file suffix */
   def suffix: Option[String]
+
+  /** MIME-Type */
+  def mediaType: Option[String]
+
+  /** If true, this plugin is the preferred marshaller for the given suffix and mediaType */
+  def isPreferred: Boolean = true
 
   /**
     * Marshals the project from the in-memory [[Project]] object and the given resource manager.
@@ -106,7 +113,7 @@ trait ProjectMarshallingTrait {
       // Reset URI
       val projectConfig = project.copy(id = targetProject, projectResourceUriOpt = None)
 
-      WorkspaceIO.copyProject(importFromWorkspace, workspaceProvider, resources, importResources, projectConfig)
+      workspaceProvider.importProject(projectConfig, importFromWorkspace, resources, importResources)
     }
   }
 

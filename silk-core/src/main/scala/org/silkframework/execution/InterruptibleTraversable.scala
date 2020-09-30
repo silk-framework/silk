@@ -13,3 +13,23 @@ class InterruptibleTraversable[T](traversable: Traversable[T]) extends Traversab
     }
   }
 }
+
+/** Wraps a traversable with a traversable that maps the entries of the wrapped traversables to other values. */
+class MappedTraversable[T, U](traversable: Traversable[T], mappingFn: T => U) extends Traversable[U] {
+  override def foreach[V](f: U => V): Unit = {
+    traversable foreach { entry =>
+      f(mappingFn(entry))
+    }
+  }
+}
+
+/** Wraps a traversable with a traversable that filters the entries of the wrapped traversables. */
+class FilteredTraversable[T](traversable: Traversable[T], filterFn: T => Boolean) extends Traversable[T] {
+  override def foreach[U](f: T => U): Unit = {
+    traversable foreach { elem =>
+      if(filterFn(elem)) {
+        f(elem)
+      }
+    }
+  }
+}

@@ -2,6 +2,7 @@ package org.silkframework.dataset
 
 import org.silkframework.config.{SilkVocab, Task, TaskSpec}
 import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.execution.EmptyEntityHolder
 import org.silkframework.execution.local.LocalEntities
 import org.silkframework.runtime.resource.{ReadOnlyResource, Resource}
 import org.silkframework.util.Uri
@@ -25,10 +26,9 @@ object DatasetResourceEntitySchema {
 /**
   * Local implementation of the DatasetResourceEntityTable.
   */
-class LocalDatasetResourceEntityTable(resource: Resource, val task: Task[TaskSpec]) extends LocalEntities with DatasetResourceEntityTable {
-  override def entitySchema: EntitySchema = EntitySchema.empty
+class LocalDatasetResourceEntityTable(resource: Resource, val task: Task[TaskSpec]) extends LocalEntities with DatasetResourceEntityTable with EmptyEntityHolder {
 
-  override def entities: Traversable[Entity] = Traversable.empty
+  override def entitySchema: EntitySchema = EntitySchema.empty
 
   /** The resource of the dataset this was requested from, as read-only resource. */
   def datasetResource: ReadOnlyResource = ReadOnlyResource(resource)

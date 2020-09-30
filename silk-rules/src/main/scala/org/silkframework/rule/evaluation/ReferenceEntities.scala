@@ -150,9 +150,9 @@ object ReferenceEntities {
     ReferenceEntities(
       sourceEntities = sourceEntities.map(e => (e.uri.toString, e)).toMap,
       targetEntities = targetEntities.map(e => (e.uri.toString, e)).toMap,
-      positiveLinks = positiveEntities.map(i => new Link(i.source.uri, i.target.uri)).toSet,
-      negativeLinks = negativeEntities.map(i => new Link(i.source.uri, i.target.uri)).toSet,
-      unlabeledLinks = unlabeledEntities.map(i => new Link(i.source.uri, i.target.uri)).toSet
+      positiveLinks = positiveEntities.map(i => new MinimalLink(i.source.uri, i.target.uri)).toSet,
+      negativeLinks = negativeEntities.map(i => new MinimalLink(i.source.uri, i.target.uri)).toSet,
+      unlabeledLinks = unlabeledEntities.map(i => new MinimalLink(i.source.uri, i.target.uri)).toSet
     )
   }
 
@@ -172,14 +172,14 @@ object ReferenceEntities {
      * Deserialize a value from XML.
      */
     override def read(implicit streamReader: XMLStreamReader, readContext: ReadContext): ReferenceEntities = {
-      val transformerFactory = TransformerFactory.newInstance()
+      val transformerFactory = TransformerFactory.newInstance("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl", getClass.getClassLoader)
       implicit val transformer: Transformer = transformerFactory.newTransformer
       placeOnStartTag("Pair")
       val entityDescs = readNextObject[DPair[EntitySchema]]
       placeOnNextTagAfterStartTag(SOURCE_ENTITIES)
       val sourceEntities = extractEntities(entityDescs.source)
       placeOnNextTagAfterStartTag(TARGET_ENTITIES)
-      val targetEntities = extractEntities(entityDescs.source)
+      val targetEntities = extractEntities(entityDescs.target)
       placeOnNextTagAfterStartTag(POSITIVE_LINKS)
       val positiveLinks = extractLinks
       placeOnNextTagAfterStartTag(NEGATIVE_LINKS)

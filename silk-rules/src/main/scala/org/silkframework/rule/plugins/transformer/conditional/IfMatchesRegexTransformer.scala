@@ -1,14 +1,11 @@
 package org.silkframework.rule.plugins.transformer.conditional
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
-/**
-  * Created on 9/9/16.
-  */
 @Plugin(
   id = "ifMatchesRegex",
-  label = "if matches regex",
+  label = "If matches regex",
   categories = Array("Conditional"),
   description =
     """

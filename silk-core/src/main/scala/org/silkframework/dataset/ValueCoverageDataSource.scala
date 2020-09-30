@@ -40,7 +40,7 @@ trait ValueCoverageDataSource {
     val dataSourceIdPath = convertToIdPath(dataSourcePath).map(_.asStringTypedPath)
     val noneStream = Stream.continually(None)
     val entitySchemaForOverallValues = EntitySchema(Uri(""), typedPaths = IndexedSeq(dataSourceValuePath.asStringTypedPath) ++ dataSourceIdPath.toIndexedSeq)
-    val completeValues = retrieve(entitySchemaForOverallValues).flatMap { e =>
+    val completeValues = retrieve(entitySchemaForOverallValues).entities.flatMap { e =>
       val values = e.values
       val ids = if (values.size > 1) {
         e.values.last.map(Some(_))
@@ -58,7 +58,7 @@ trait ValueCoverageDataSource {
                          (implicit userContext: UserContext): Set[(String, Option[String])] = {
     val idInputPaths = inputPaths flatMap convertToIdPath
     val entitySchemaForInputPaths = EntitySchema(Uri(""), typedPaths = (inputPaths ++ idInputPaths).toIndexedSeq.map(_.asStringTypedPath))
-    val collectedValues = retrieve(entitySchemaForInputPaths).flatMap { e =>
+    val collectedValues = retrieve(entitySchemaForInputPaths).entities.flatMap { e =>
       val entityValues = e.values
       if (entityValues.size == inputPaths.size) {
         entityValues.flatMap(_ zip noneStream)

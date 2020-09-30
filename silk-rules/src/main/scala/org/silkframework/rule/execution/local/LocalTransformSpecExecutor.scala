@@ -1,9 +1,9 @@
 package org.silkframework.rule.execution.local
 
-import org.silkframework.config.Task
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, MultiEntityTable}
-import org.silkframework.execution.{ExecutionReport, Executor, TaskException}
+import org.silkframework.execution.{ExecutionReport, Executor, ExecutorOutput, TaskException}
 import org.silkframework.rule._
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
@@ -17,36 +17,46 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
 
   override def execute(task: Task[TransformSpec],
                        inputs: Seq[LocalEntities],
-                       outputSchema: Option[EntitySchema],
+                       output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport])
-                      (implicit userContext: UserContext): Option[LocalEntities] = {
+                      (implicit userContext: UserContext, prefixes: Prefixes): Option[LocalEntities] = {
     val input = inputs.headOption.getOrElse {
       throw TaskException("No input given to transform specification executor " + task.id + "!")
     }
-
+    val outputSchema = output.requestedSchema.getOrElse(task.outputSchema)
+    val transformContext = context.asInstanceOf[ActivityContext[TransformReport]]
+    transformContext.value() = TransformReport(task.taskLabel())
     input match {
       case mt: MultiEntityTable =>
-        val output = mutable.Buffer[LocalEntities]()
-        val transformer = new EntityTransformer(task, (mt.asInstanceOf[LocalEntities] +: mt.subTables).to[mutable.Buffer], output)
-        transformer.transformEntities(task.rules, task.outputSchema, context)
-        Some(MultiEntityTable(output.head.entities, output.head.entitySchema, task, output.tail))
+        val outputTable = mutable.Buffer[LocalEntities]()
+        val transformer = new EntityTransformer(task, (mt.asInstanceOf[LocalEntities] +: mt.subTables).to[mutable.Buffer], outputTable, output)
+        transformer.transformEntities(task.rules, outputSchema, transformContext)
+        Some(MultiEntityTable(outputTable.head.entities, outputTable.head.entitySchema, task, outputTable.tail, transformContext.value().globalErrors))
       case _ =>
-        val output = mutable.Buffer[LocalEntities]()
-        val transformer = new EntityTransformer(task, mutable.Buffer(input), output)
-        transformer.transformEntities(task.rules, task.outputSchema, context)
-        Some(MultiEntityTable(output.head.entities, output.head.entitySchema, task, output.tail))
+        val outputTable = mutable.Buffer[LocalEntities]()
+        val transformer = new EntityTransformer(task, mutable.Buffer(input), outputTable, output)
+        transformer.transformEntities(task.rules, outputSchema, transformContext)
+        Some(MultiEntityTable(outputTable.head.entities, outputTable.head.entitySchema, task, outputTable.tail, transformContext.value().globalErrors))
     }
   }
 
-  private class EntityTransformer(task: Task[TransformSpec], inputTables: mutable.Buffer[LocalEntities], outputTables: mutable.Buffer[LocalEntities]) {
+  private class EntityTransformer(task: Task[TransformSpec],
+                                  inputTables: mutable.Buffer[LocalEntities],
+                                  outputTables: mutable.Buffer[LocalEntities],
+                                  output: ExecutorOutput) {
 
-    def transformEntities(rules: Seq[TransformRule], outputSchema: EntitySchema,
-                                  context: ActivityContext[ExecutionReport]): Unit = {
+    def transformEntities(rules: Seq[TransformRule],
+                          outputSchema: EntitySchema,
+                          context: ActivityContext[TransformReport]): Unit = {
 
-      val entities = inputTables.remove(0).entities
+      val inputTable = inputTables.remove(0)
 
-      val transformedEntities = new TransformedEntities(task.taskLabel(), entities, rules, outputSchema, context.asInstanceOf[ActivityContext[TransformReport]])
+      // Add input errors to transformation report
+      context.value() = context.value().copy(globalErrors = context.value().globalErrors ++ inputTable.globalErrors)
+
+      val transformedEntities = new TransformedEntities(task.taskLabel(), inputTable.entities, rules, outputSchema,
+        isRequestedSchema = output.requestedSchema.isDefined, context = context)
       outputTables.append(GenericEntityTable(transformedEntities, outputSchema, task))
 
       for(objectMapping @ ObjectMapping(_, relativePath, _, childRules, _, _) <- rules) {

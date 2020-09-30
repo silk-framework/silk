@@ -18,8 +18,11 @@ import org.silkframework.learning.generation.LinkageRuleGenerator
 import org.silkframework.learning.individual._
 import org.silkframework.rule.LinkageRule
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
+import org.silkframework.util.RandomUtils
 
-class CleanPopulationTask(population: Population, fitnessFunction: (LinkageRule => Double), generator: LinkageRuleGenerator) extends Activity[Population] {
+import scala.util.Random
+
+class CleanPopulationTask(population: Population, fitnessFunction: (LinkageRule => Double), generator: LinkageRuleGenerator, randomSeed: Long) extends Activity[Population] {
 
   /** Maximum difference between two fitness values to be considered equal. */
   private val fitnessEpsilon = 0.0001
@@ -30,18 +33,17 @@ class CleanPopulationTask(population: Population, fitnessFunction: (LinkageRule 
 
     val distinctIndividuals = removeDuplicates(individuals)
 
-    //println("Removed: " + (individuals.size - distinctIndividuals.size))
-
-    val randomIndividuals = for(i <- (0 until population.individuals.size - distinctIndividuals.size).par) yield {
-        val linkageRule = generator()
+    // Generate a new random individual for each duplicate that has been removed
+    val randomIndividuals = for(random <- RandomUtils.randomSeq(population.individuals.size - distinctIndividuals.size, randomSeed).par) yield {
+        val linkageRule = generator(random)
         Individual(linkageRule, fitnessFunction(linkageRule.build))
     }
 
     context.value.update(Population(distinctIndividuals ++ randomIndividuals))
   }
 
-  private def removeDuplicates(individuals: Traversable[Individual]) = {
-    val sortedIndividuals = individuals.toSeq.sortBy(-_.fitness)
+  private def removeDuplicates(individuals: Seq[Individual]) = {
+    val sortedIndividuals = individuals.sortBy(-_.fitness)
 
     var currentIndividual = sortedIndividuals.head
     var distinctIndividuals = currentIndividual :: Nil

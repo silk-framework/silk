@@ -65,26 +65,44 @@ sealed trait Status {
    * The complete status message including the progress (if running).
    */
   override def toString: String = message
+
+  /** The concrete status string. In order to distinguish different states of Finished. */
+  def concreteStatus: String = {
+    this match {
+      case st: Status.Finished =>
+        if (st.cancelled) {
+          "Cancelled"
+        } else if (st.failed) {
+          "Failed"
+        } else {
+          "Successful"
+        }
+      case _: Status.Idle =>
+        "Not executed"
+      case status: Status =>
+        status.name
+    }
+  }
 }
 
 object Status {
   /**
-   * Status which indicates that the task has not been started yet.
+   * Status which indicates that the activity has not been started yet.
    */
   case class Idle() extends Status {
     def message: String = "Idle"
   }
-  
+
   /**
-   * Status which indicates that the task has been started and is waiting to be executed..
+   * Status which indicates that the activity has been started and is waiting to be executed.
    */
   case class Waiting() extends Status {
     override def message: String = "Waiting"
     override def isRunning: Boolean = true
   }
-  
+
   /**
-   * Running status
+   * Running status, activity is currently being executed.
    *
    * @param message The status message
    * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
@@ -104,9 +122,9 @@ object Status {
   object Running {
     def apply(message: String, progress: Double): Running = Running(message, Some(progress))
   }
-  
+
   /**
-   * Indicating that the task has been requested to stop but has not stopped yet.
+   * Indicating that the activity has been requested to stop but has not stopped yet.
    *
    * @param progress The progress of the computation (A value between 0.0 and 1.0 inclusive).
    */
@@ -114,19 +132,21 @@ object Status {
     override def message: String = "Stopping..."
     override def isRunning: Boolean = true
   }
-  
+
   /**
-   * Status which indicates that the task has finished execution.
+   * Status which indicates that the activity has finished execution.
    *
    * @param success True, if the computation finished successfully. False, otherwise.
    * @param runtime The time in milliseconds needed to execute the task.
    * @param exception The exception, if the task failed.
    */
   case class Finished(success: Boolean, runtime: Long, cancelled: Boolean, override val exception: Option[Throwable] = None) extends Status {
-    override def message: String = (exception, cancelled) match {
-      case (None, false) => "Finished in " + formattedTime
-      case (_, true) => "Cancelled after " + formattedTime
-      case (Some(ex), _) => "Failed after " + formattedTime + ": " + ex.getMessage
+    override def message: String = (success, exception, cancelled) match {
+      case (true, None, false) => "Finished in " + formattedTime
+      case (_, _, true) => "Cancelled after " + formattedTime
+      case (false, Some(ex), _) => "Failed after " + formattedTime + ": " + ex.getMessage
+      case (true, Some(ex), _) => "Errors occurred after " + formattedTime + ": " + ex.getMessage
+      case _ => "Unknown status"
     }
 
     private def formattedTime = {
@@ -136,9 +156,9 @@ object Status {
         "%.3fs".format(runtime.toDouble / 1000)
       }
     }
-  
+
     override def progress: Option[Double] = Some(1.0)
-  
+
     override def failed: Boolean = !success
   }
 }

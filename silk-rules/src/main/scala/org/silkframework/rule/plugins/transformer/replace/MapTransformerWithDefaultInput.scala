@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.replace
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 /**
   * Transformer that takes two inputs.
@@ -12,7 +12,7 @@ import org.silkframework.runtime.plugin.{Param, Plugin}
 @Plugin(
   id = "mapWithDefaultInput",
   categories = Array("Replace"),
-  label = "MapDefaultInput",
+  label = "Map with default",
   description =
       """
 Takes two inputs.

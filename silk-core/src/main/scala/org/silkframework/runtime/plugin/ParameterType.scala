@@ -2,30 +2,25 @@ package org.silkframework.runtime.plugin
 
 import java.lang.reflect.{ParameterizedType, Type}
 import java.net.{URLDecoder, URLEncoder}
-import java.util.logging.Logger
+import java.security.InvalidKeyException
+import java.security.spec.InvalidKeySpecException
+import java.util.logging.{Level, Logger}
 
+import javax.crypto.SecretKey
 import org.silkframework.config.{DefaultConfig, Prefixes, ProjectReference, TaskReference}
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
+import org.silkframework.entity.Restriction
 import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, ResourceManager, WritableResource}
+import org.silkframework.runtime.serialization.{Serialization, WriteContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{AesCrypto, Identifier, Uri}
 
 import scala.language.existentials
 import scala.reflect.ClassTag
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
-/**
-  * Represents a plugin parameter type and provides serialization.
-  *
-  * @tparam T The underlying type of this datatype, e.g., Int
-  */
+/** Represents a plugin parameter type and provides serialization. */
 sealed abstract class ParameterType[T: ClassTag] {
-
-  /**
-    * The underlying type.
-    */
-  private val dataType = implicitly[ClassTag[T]].runtimeClass
-
   /**
     * User-readable name of this type.
     */
@@ -36,6 +31,11 @@ sealed abstract class ParameterType[T: ClassTag] {
     */
   def description: String = ""
 
+  /**
+    * The underlying type.
+    */
+  val dataType: Class[_] = implicitly[ClassTag[T]].runtimeClass
+
   def hasType(givenType: Type): Boolean = {
     givenType match {
       case pt: ParameterizedType => pt.getRawType.toString == dataType.toString
@@ -43,6 +43,84 @@ sealed abstract class ParameterType[T: ClassTag] {
     }
   }
 
+  /** How values of this parameter type are represented in JSON, e.g. string or object. */
+  def jsonSchemaType: String
+
+  /**
+    * Short name of this type.
+    */
+  override def toString: String = dataType.getSimpleName
+
+  /** The default string representation of the value. */
+  def toString(value: T)(implicit prefixes: Prefixes): String
+}
+
+object ParameterType {
+  /**
+    * Retrieves the parameter type for a specific underlying type.
+    *
+    * @throws InvalidPluginException If no parameter type is available for the given class.
+    */
+  def forType(dataType: Type): ParameterType[_] = {
+    StringParameterType.forTypeOpt(dataType) match {
+      case Some(stringParameterType) => stringParameterType
+      case None =>
+        dataType match {
+          case cl: Class[_] if classOf[PluginObjectParameter].isAssignableFrom(cl) =>
+            PluginObjectParameterType(cl)
+          case cl: Class[_] if classOf[PluginObjectParameterNoSchema].isAssignableFrom(cl) =>
+            PluginObjectParameterNoSchemaType(cl) // Parameters that generate no schema definition and thus cannot be handled generically, e.g. transform rule.
+          case _ =>
+            throw new InvalidPluginException("Unsupported parameter type: " + dataType)
+        }
+    }
+  }
+}
+
+/** Trait that marks a class as a plugin parameter.
+  * There will be done additional tests on start-up for all plugins implementing this trait, e.g. if JSON and XML formats are registered etc. */
+trait PluginObjectParameter {
+  /** defines if the parameter type has a schema definition, i.e. is composed completely from [[ParameterType]] elements. */
+  def hasSchemaDefinition: Boolean = true
+}
+
+/** Plugin parameter type that is of type object and represents nested values. The default string representation is to JSON. */
+trait PluginObjectParameterTypeTrait extends ParameterType[PluginObjectParameter] {
+  def pluginObjectParameterClass: Class[_]
+
+  override def jsonSchemaType: String = "object"
+
+  def pluginDescription: Option[PluginDescription[_]] = PluginRegistry.pluginDescription(pluginObjectParameterClass)
+
+  override def toString(value: PluginObjectParameter)(implicit prefixes: Prefixes): String = {
+    // There is no string representation
+    ???
+  }
+}
+
+/** Parameter type that is represented by a plugin class.
+  * It is expected that this type has proper serialization formats implemented, e.g. for XML and JSON etc. */
+case class PluginObjectParameterType(pluginObjectParameterClass: Class[_]) extends PluginObjectParameterTypeTrait {
+  override def name: String = "objectParameter"
+}
+
+/** Should be used for parameters that either too complex and cannot be edited in a generic plugin dialog or they are not
+  * composed of parameters that themselves have a schema. */
+trait PluginObjectParameterNoSchema extends PluginObjectParameter {
+  override def hasSchemaDefinition: Boolean = false
+}
+
+case class PluginObjectParameterNoSchemaType(pluginObjectParameterClass: Class[_]) extends PluginObjectParameterTypeTrait {
+  override def name: String = "pluginObjectParameterNoSchema"
+}
+
+/**
+  * Represents a plugin parameter type and provides string-based serialization.
+  * This is suitable for plugin parameters that have a simple string based serialization.
+  *
+  * @tparam T The underlying type of this datatype, e.g., Int
+  */
+sealed abstract class StringParameterType[T: ClassTag] extends ParameterType[T] {
   /**
     * Parses a value from its string representation.
     *
@@ -62,26 +140,22 @@ sealed abstract class ParameterType[T: ClassTag] {
     */
   def toString(value: T)(implicit prefixes: Prefixes): String = Option(value) map (_.toString) getOrElse ""
 
-  /**
-    * Short name of this type.
-    */
-  override def toString: String = dataType.getSimpleName
-
+  override def jsonSchemaType: String = "string"
 }
 
 /**
   * Provides all available parameter types.
   */
-object ParameterType {
+object StringParameterType {
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   /**
     * All available static parameter types.
     */
-  private val allStaticTypes: Seq[ParameterType[_]] = {
+  private val allStaticTypes: Seq[StringParameterType[_]] = {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, UriType, ResourceType,
-      WritableResourceType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType, LongType,
-      PasswordParameterType)
+      WritableResourceType, ResourceOptionType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType, LongType,
+      PasswordParameterType, IdentifierType, IdentifierOptionType, StringTraversableParameterType, RestrictionType)
   }
 
   /**
@@ -89,17 +163,21 @@ object ParameterType {
     *
     * @throws InvalidPluginException If no parameter type is available for the given class.
     */
-  def forType(dataType: Type): ParameterType[_] = {
+  def forType(dataType: Type): StringParameterType[_] = {
+    forTypeOpt(dataType).getOrElse(
+      throw new InvalidPluginException("Unsupported parameter type: " + dataType))
+  }
+
+  def forTypeOpt(dataType: Type): Option[StringParameterType[_]] = {
     dataType match {
       case enumClass: Class[_] if enumClass.isEnum =>
-        EnumerationType(enumClass)
+        Some(EnumerationType(enumClass))
       case _ =>
         allStaticTypes.find(_.hasType(dataType))
-            .getOrElse(throw new InvalidPluginException("Unsupported parameter type: " + dataType))
     }
   }
 
-  object StringType extends ParameterType[String] {
+  object StringType extends StringParameterType[String] {
 
     override def name: String = "string"
 
@@ -111,7 +189,7 @@ object ParameterType {
 
   }
 
-  object CharType extends ParameterType[Char] {
+  object CharType extends StringParameterType[Char] {
 
     override def name: String = "char"
 
@@ -125,10 +203,30 @@ object ParameterType {
         throw new ValidationException("Value must be a single character.")
       }
     }
-
   }
 
-  object IntType extends ParameterType[Int] {
+  object StringTraversableParameterType extends StringParameterType[StringTraversableParameter] {
+
+    override def name: String = "traversable[string]"
+
+    override def description: String = "A comma-separated list."
+
+    override def fromString(str: String)
+                           (implicit prefixes: Prefixes, resourceLoader: ResourceManager): StringTraversableParameter = {
+      if(str.isEmpty) {
+        StringTraversableParameter(Traversable.empty)
+      } else {
+        StringTraversableParameter(str.split("\\s*,\\s*"))
+      }
+    }
+
+    override def toString(value: StringTraversableParameter)
+                         (implicit prefixes: Prefixes): String = {
+      value.mkString(", ")
+    }
+  }
+
+  object IntType extends StringParameterType[Int] {
 
     override def name: String = "int"
 
@@ -140,7 +238,7 @@ object ParameterType {
 
   }
 
-  object LongType extends ParameterType[Long] {
+  object LongType extends StringParameterType[Long] {
 
     override def name: String = "Long"
 
@@ -152,7 +250,7 @@ object ParameterType {
 
   }
 
-  object DoubleType extends ParameterType[Double] {
+  object DoubleType extends StringParameterType[Double] {
 
     override def name: String = "double"
 
@@ -164,7 +262,7 @@ object ParameterType {
 
   }
 
-  object BooleanType extends ParameterType[Boolean] {
+  object BooleanType extends StringParameterType[Boolean] {
 
     override def name: String = "boolean"
 
@@ -180,36 +278,58 @@ object ParameterType {
 
   }
 
-  object IntOptionType extends ParameterType[Option[Int]] {
+  object IntOptionType extends StringParameterType[IntOptionParameter] {
 
     override def name: String = "option[int]"
 
     override def description: String = "An optional integer number."
 
-    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Option[Int] = {
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): IntOptionParameter = {
       if(str.trim.isEmpty) {
-        None
+        IntOptionParameter(None)
       } else {
-        Some(str.toInt)
+        IntOptionParameter(Some(str.toInt))
       }
     }
 
-    override def toString(value: Option[Int])(implicit prefixes: Prefixes): String = {
-      value.map(_.toString).getOrElse("")
+    override def toString(value: IntOptionParameter)(implicit prefixes: Prefixes): String = {
+      value.value.map(_.toString).getOrElse("")
     }
-
   }
 
-  object StringMapType extends ParameterType[Map[String, String]] {
+  object IdentifierOptionType extends StringParameterType[IdentifierOptionParameter] {
+
+    override def name: String = "option[identifier]"
+
+    override def description: String = "An optional Identifier."
+
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): IdentifierOptionParameter = {
+      if(str.trim.isEmpty) {
+        None
+      } else {
+        Some(Identifier(str.trim))
+      }
+    }
+
+    override def toString(value: IdentifierOptionParameter)(implicit prefixes: Prefixes): String = {
+      value.value.map(_.toString).getOrElse("")
+    }
+  }
+
+  object StringMapType extends StringParameterType[Map[String, String]] {
 
     override def name: String = "stringmap"
 
     override def description: String = "A map of the form 'Key1:Value1,Key2:Value2'"
 
-    private val utf8: String = "UTF8"
+    private final val utf8: String = "UTF8"
 
     def fromString(str: String)(implicit prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceManager = EmptyResourceManager()): Map[String, String] = {
-      str.split(',').map(_.split(':')).map(v => Tuple2(URLDecoder.decode(v(0), utf8), URLDecoder.decode(v(1), utf8))).toMap
+      if(str.trim.isEmpty) {
+        Map.empty
+      } else {
+        str.split(',').map(_.split(':')).map(v => Tuple2(URLDecoder.decode(v(0), utf8), URLDecoder.decode(v(1), utf8))).toMap
+      }
     }
 
     override def toString(value: Map[String, String])(implicit prefixes: Prefixes): String = {
@@ -219,7 +339,7 @@ object ParameterType {
 
   }
 
-  object UriType extends ParameterType[Uri] {
+  object UriType extends StringParameterType[Uri] {
 
     override def name: String = "uri"
 
@@ -234,7 +354,7 @@ object ParameterType {
     }
   }
 
-  object ResourceType extends ParameterType[Resource] {
+  object ResourceType extends StringParameterType[Resource] {
 
     override def name: String = "resource"
 
@@ -250,7 +370,7 @@ object ParameterType {
 
   }
 
-  object WritableResourceType extends ParameterType[WritableResource] {
+  object WritableResourceType extends StringParameterType[WritableResource] {
 
     override def name: String = "resource"
 
@@ -266,7 +386,27 @@ object ParameterType {
 
   }
 
-  object ProjectReferenceType extends ParameterType[ProjectReference] {
+  object ResourceOptionType extends StringParameterType[ResourceOption] {
+
+    override def name: String = "resource"
+
+    override def description: String = "The name of a project resource or empty."
+
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): ResourceOption = {
+      if (str.trim.isEmpty) {
+        ResourceOption(None)
+      } else {
+        ResourceOption(Some(resourceLoader.get(str)))
+      }
+    }
+
+    override def toString(value: ResourceOption)(implicit prefixes: Prefixes): String = {
+      value.resource.map(_.name).getOrElse("")
+    }
+
+  }
+
+  object ProjectReferenceType extends StringParameterType[ProjectReference] {
 
     override def name: String = "project"
 
@@ -282,7 +422,7 @@ object ParameterType {
 
   }
 
-  object TaskReferenceType extends ParameterType[TaskReference] {
+  object TaskReferenceType extends StringParameterType[TaskReference] {
 
     override def name: String = "task"
 
@@ -295,10 +435,39 @@ object ParameterType {
     override def toString(value: TaskReference)(implicit prefixes: Prefixes): String = {
       value.id
     }
-
   }
 
-  case class EnumerationType(enumType: Class[_]) extends ParameterType[Enum[_]] {
+  object IdentifierType extends StringParameterType[Identifier] {
+
+    override def name: String = "identifier"
+
+    override def description: String = "The identifier of anything."
+
+    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Identifier = {
+      Identifier(str)
+    }
+
+    override def toString(value: Identifier)(implicit prefixes: Prefixes): String = {
+      value.toString
+    }
+  }
+
+  object RestrictionType extends StringParameterType[Restriction] {
+
+    override def name: String = "restriction"
+
+    override def description: String = "The restriction of a set of entities."
+
+    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Restriction = {
+      Restriction.parse(str)
+    }
+
+    override def toString(value: Restriction)(implicit prefixes: Prefixes): String = {
+      value.serialize
+    }
+  }
+
+  case class EnumerationType(enumType: Class[_]) extends StringParameterType[Enum[_]] {
     require(enumType.isEnum)
 
     private val enumConstants = enumType.asInstanceOf[Class[Enum[_]]].getEnumConstants
@@ -340,39 +509,71 @@ object ParameterType {
     override def toString(value: Enum[_])(implicit prefixes: Prefixes): String = enumerationValue(value)
   }
 
-  object MultilineStringParameterType extends ParameterType[MultilineStringParameter] {
+  object MultilineStringParameterType extends StringParameterType[MultilineStringParameter] {
     override def name: String = "multiline string"
 
     override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): MultilineStringParameter = MultilineStringParameter(str)
   }
 
-  object PasswordParameterType extends ParameterType[PasswordParameter] {
+  object PasswordParameterType extends StringParameterType[PasswordParameter] {
     // This preamble should be added to all serializations to mark the string as a encrypted password, else it will be interpreted as plain
     final val PREAMBLE = "PASSWORD_PARAMETER:"
+    final val CONFIG_KEY = "plugin.parameters.password.crypt.key"
+
     override def name: String = "password"
 
     override def description: String = "A password string."
 
-    lazy val key: String = {
-      Try(DefaultConfig.instance().getString("plugin.parameters.password.crypt.key")).getOrElse {
-        log.warning("No valid value set for plugin.parameters.password.crypt.key, using insecure default key!")
-        "1234567890123456"
+    /**
+      * The configured key. Failure, if no key has been configured or the key is invalid.
+      */
+    lazy val configuredKey: Try[SecretKey] = {
+      for {
+        password <- Try(DefaultConfig.instance().getString(CONFIG_KEY))
+        checkedPassword <- checkPassword(password)
+        key <- Try(AesCrypto.generateKey(checkedPassword))
+      } yield key
+    }
+
+    /**
+      * The key used for encryption. A default key will be used, if no key has been configured.
+      */
+    lazy val key: SecretKey = {
+      configuredKey match {
+        case Success(k) => k
+        case Failure(ex) =>
+          log.log(Level.WARNING, s"No valid key set for $CONFIG_KEY, using insecure default key!", ex)
+          AesCrypto.generateKey("1234567890123456")
       }
     }
 
     override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): PasswordParameter = {
-      val encryptedPassword = if(str == null || str == "") {
+      val encryptedPassword = if (str == null || str == "") {
         str // Handle empty string as empty password and vice versa
-      } else if(str.startsWith(PREAMBLE)) {
+      } else if (str.startsWith(PREAMBLE)) {
         str.stripPrefix(PREAMBLE)
       } else {
         AesCrypto.encrypt(key, str)
       }
       PasswordParameter(encryptedPassword)
     }
+
+    /**
+      * Makes sure that the password has been set and is longer than 16 characters.
+      */
+    private def checkPassword(password: String): Try[String] = {
+      if(password ==  "changemechangeme") {
+        Failure(new InvalidKeySpecException("Default key is not overridden"))
+      } else if(password.length < 16) {
+        Failure(new InvalidKeySpecException("Key must be at least 16 characters long"))
+      } else {
+        Success(password)
+      }
+    }
+
   }
 
-  object SparqlEndpointDatasetParameterType extends ParameterType[SparqlEndpointDatasetParameter] {
+  object SparqlEndpointDatasetParameterType extends StringParameterType[SparqlEndpointDatasetParameter] {
     override def name: String = "SPARQL endpoint"
 
     override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): SparqlEndpointDatasetParameter = {

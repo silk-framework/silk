@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.filter
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
  * Removes all strings that do NOT match a regex.
@@ -9,7 +9,7 @@ import org.silkframework.runtime.plugin.Plugin
 @Plugin(
   id = "filterByRegex",
   categories = Array("Filter"),
-  label = "filter by regex",
+  label = "Filter by regex",
   description = "Removes all strings that do NOT match a regex. If 'negate' is true, only strings will be removed that match the regex."
 )
 case class FilterByRegex(regex: String, negate: Boolean = false) extends Transformer {

@@ -23,7 +23,8 @@ import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.activity.{TaskActivity, TaskActivityFactory}
+import org.silkframework.workspace.activity.workflow.Workflow
+import org.silkframework.workspace.activity.{CachedActivity, TaskActivity, TaskActivityFactory}
 
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
@@ -51,7 +52,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     initialMetaData.copy(modified = Some(initialMetaData.modified.getOrElse(Instant.now)))
   ))
 
-  private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
+  lazy private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
     implicit val prefixes: Prefixes = module.project.config.prefixes
     implicit val resources: ResourceManager = module.project.resources
@@ -71,7 +72,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     activities.reverse
   }
 
-  private val taskActivityMap: Map[Class[_], TaskActivity[TaskType, _ <: HasValue]] = taskActivities.map(a => (a.activityType, a)).toMap
+  lazy private val taskActivityMap: Map[Class[_], TaskActivity[TaskType, _ <: HasValue]] = taskActivities.map(a => (a.activityType, a)).toMap
 
   /**
     * The project this task belongs to.
@@ -88,10 +89,22 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     */
   override def metaData: MetaData = metaDataValueHolder()
 
-  def init()(implicit userContext: UserContext): Unit = {
-    // Start auto-run activities
-    for (activity <- taskActivities if activity.autoRun && activity.status() == Status.Idle())
+  override def taskType: Class[_] = implicitly[ClassTag[TaskType]].runtimeClass
+
+  /**
+    * Starts all autorun activities.
+    */
+  def startActivities()(implicit userContext: UserContext): Unit = {
+    for (activity <- taskActivities if shouldAutoRun(activity) && activity.status() == Status.Idle())
       activity.control.start()
+  }
+
+  private def shouldAutoRun(activity: TaskActivity[_, _]): Boolean = {
+    // is auto-run activity
+    activity.autoRun &&
+    // do not run cached activities if auto-run is disabled for cached activities
+        (Workspace.autoRunCachedActivities ||
+            !classOf[CachedActivity[_]].isAssignableFrom(activity.factory.activityType))
   }
 
   /**
@@ -171,11 +184,19 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     allDependentTaskIds.distinct.toSet
   }
 
+  override def findRelatedTasksInsideWorkflows()(implicit userContext: UserContext): Set[Identifier] = {
+    val relatedWorkflowItems = for(workflow <- project.tasks[Workflow];
+        workflowNode <- workflow.data.nodes if workflowNode.inputs.contains(id.toString) || workflowNode.outputs.contains(id.toString)) yield {
+      workflowNode.task
+    }
+    relatedWorkflowItems.toSet
+  }
+
   private def persistTask(implicit userContext: UserContext): Unit = {
     // Write task
     module.provider.putTask(project.name, ProjectTask.this)
     // Restart each activity, don't wait for completion.
-    for (activity <- taskActivities if activity.autoRun) {
+    for (activity <- taskActivities if shouldAutoRun(activity)) {
       activity.control.restart()
     }
   }

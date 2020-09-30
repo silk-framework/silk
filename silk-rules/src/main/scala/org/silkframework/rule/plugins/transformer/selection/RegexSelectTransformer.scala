@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.transformer.selection
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
   * This transformer takes 3 inputs.
@@ -32,7 +32,7 @@ import org.silkframework.runtime.plugin.Plugin
 @Plugin(
   id = "regexSelect",
   categories = Array("Selection"),
-  label = "Regex Selection",
+  label = "Regex selection",
   description =
     """
       This transformer takes 3 inputs.

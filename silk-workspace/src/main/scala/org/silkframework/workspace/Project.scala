@@ -34,7 +34,7 @@ import scala.util.control.NonFatal
 /**
  * A project.
  */
-class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: WorkspaceProvider, val resources: ResourceManager) {
+class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val resources: ResourceManager) extends ProjectTrait {
 
   private implicit val logger = Logger.getLogger(classOf[Project].getName)
 
@@ -46,12 +46,6 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   @volatile
   private var modules = Seq[Module[_ <: TaskSpec]]()
 
-  /**
-    * Holds all issues that occurred during loading project activities.
-    */
-  @volatile
-  private var activityLoadingErrors: Seq[ValidationException] = Seq.empty
-
   // Register all default modules
   registerModule[DatasetSpec[Dataset]]()
   registerModule[TransformSpec]()
@@ -59,21 +53,31 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   registerModule[Workflow]()
   registerModule[CustomTask]()
 
+  /** Can be called optionally to trigger early loading of tasks. */
+  def loadTasks()(implicit userContext: UserContext): Unit = {
+    modules.foreach(_.load())
+  }
+
   /** This must be executed once when the project was loaded into the workspace */
-  def initTasks()(implicit userContext: UserContext) {
-    // Initialize Tasks
-    allTasks.foreach(_.init())
+  def startActivities()(implicit userContext: UserContext) {
+    allTasks.foreach(_.startActivities())
   }
 
   /**
     * The name of this project.
     */
-  def name: Identifier = cachedConfig.id
+  override def name: Identifier = cachedConfig.id
 
   /**
-    * Retrieves all errors that occured during loading this project.
+    * Retrieves all errors that occurred during loading this project.
     */
-  def loadingErrors: Seq[ValidationException] = modules.flatMap(_.loadingError) ++ activityLoadingErrors
+  def loadingErrors: Seq[TaskLoadingError] = {
+    val errors = modules.flatMap(_.loadingError)
+    val errorIds = errors.map(_.id).toSet
+    val externalLoadingErrors = provider.externalTaskLoadingErrors(config.id).filterNot(extError => errorIds.contains(extError.id))
+    // Some workspaces have duplicate loading errors, make them distinct.
+    (errors ++ externalLoadingErrors).groupBy(_.id).values.map(_.head).toSeq
+  }
 
   private val projectActivities = {
     val factories = PluginRegistry.availablePlugins[ProjectActivityFactory[_ <: HasValue]].toList
@@ -84,7 +88,6 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
       } catch {
         case NonFatal(ex) =>
           val errorMsg = s"Could not load project activity '$factory' in project '${initialConfig.id}'."
-          activityLoadingErrors :+= new ValidationException(errorMsg + "Details: " + ex.getMessage, ex)
           logger.log(Level.WARNING, errorMsg, ex)
       }
     }
@@ -103,7 +106,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     *
     * @param activityName The name of the requested activity
     * @return The activity control for the requested activity
-    * @throws org.silkframework.runtime.validation.NotFoundException
+    * @throws NotFoundException
     */
   def activity(activityName: String): ProjectActivity[_ <: HasValue] = {
     projectActivities.find(_.name == activityName)
@@ -143,7 +146,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
   /**
    * Retrieves all tasks of a specific type.
    */
-  def tasks[T <: TaskSpec : ClassTag](implicit userContext: UserContext): Seq[ProjectTask[T]] = {
+  override def tasks[T <: TaskSpec : ClassTag](implicit userContext: UserContext): Seq[ProjectTask[T]] = {
     val targetType = implicitly[ClassTag[T]].runtimeClass
     module[T].tasks.filter(task => targetType.isAssignableFrom(task.data.getClass))
   }
@@ -160,7 +163,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     module[T].task(taskName)
   }
 
-  def taskOption[T <: TaskSpec : ClassTag](taskName: Identifier)
+  override def taskOption[T <: TaskSpec : ClassTag](taskName: Identifier)
                                           (implicit userContext: UserContext): Option[ProjectTask[T]] = {
     module[T].taskOption(taskName)
   }
@@ -169,7 +172,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
    * Retrieves a task of any type by name.
    *
    * @param taskName The name of the task
-   * @throws org.silkframework.workspace.TaskNotFoundException If no task with the given name has been found
+   * @throws TaskNotFoundException If no task with the given name has been found
    */
   def anyTask(taskName: Identifier)
              (implicit userContext: UserContext): ProjectTask[_ <: TaskSpec] = {
@@ -199,7 +202,8 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
     if(allTasks.exists(_.id == name)) {
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
     }
-    module[T].add(name, taskData, metaData)
+    module[T].add(name, taskData, metaData.asNewMetaData)
+    provider.removeExternalTaskLoadingError(config.id, name)
   }
 
   /**
@@ -214,7 +218,7 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
     }
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
-      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData)
+      case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData.asNewMetaData)
       case None => throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
     }
   }
@@ -232,9 +236,17 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
                                           (implicit userContext: UserContext): Unit = synchronized {
     module[T].taskOption(name) match {
       case Some(task) =>
-        task.update(taskData, metaData)
+        val mergedMetaData = mergeMetaData(task.metaData, metaData)
+        task.update(taskData, Some(mergedMetaData.asUpdatedMetaData))
       case None =>
-        addTask[T](name, taskData, metaData.getOrElse(MetaData(MetaData.labelFromId(name))))
+        addTask[T](name, taskData, metaData.getOrElse(MetaData(MetaData.labelFromId(name))).asNewMetaData)
+    }
+  }
+
+  private def mergeMetaData(metaData: MetaData, fromMetaData: Option[MetaData]): MetaData = {
+    fromMetaData match {
+      case Some(newMetaData) => metaData.copy(label = newMetaData.label, description = newMetaData.description)
+      case None => metaData
     }
   }
 
@@ -251,9 +263,10 @@ class Project(initialConfig: ProjectConfig = ProjectConfig(), provider: Workspac
       case Some(module) =>
         module.taskOption(name) match {
           case Some(task) =>
-            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, metaData)
+            val mergedMetaData = mergeMetaData(task.metaData, metaData)
+            task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(mergedMetaData.asUpdatedMetaData))
           case None =>
-            addAnyTask(name, taskData, metaData.getOrElse(MetaData.empty))
+            addAnyTask(name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData)
         }
       case None =>
         throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")

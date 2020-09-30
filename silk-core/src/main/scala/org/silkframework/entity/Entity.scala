@@ -34,7 +34,7 @@ import scala.xml.Node
   * @param metadata    - metadata object containing all available metadata information about this object
   *                    an Entity is marked as 'failed' if [[org.silkframework.entity.metadata.EntityMetadata.failure]] is set. It becomes sealed.
   */
-case class Entity private(
+case class Entity(
     uri: Uri,
     private val vals: IndexedSeq[Seq[String]],
     schema: EntitySchema,
@@ -139,7 +139,7 @@ case class Entity private(
         val rangeMap = (schemata.zip(Seq(0) ++ mes.subSchemata.zipWithIndex.map(x => mes.subSchemata.
             splitAt(x._2)._1
             .foldLeft(pivotSize)((i, s) => s.typedPaths.size + i))
-        ) ++ Seq((EntitySchema.empty, mes.typedPaths.size))).sliding(2)
+        ) ++ Seq((EntitySchema.empty, mes.allPaths.size))).sliding(2)
         // now find the correct range and EntitySchema
         val zw = rangeMap.find(x => x.head._2 <= pathIndex && (x.tail.headOption match {
           case Some(o) => o._2 > pathIndex
@@ -274,7 +274,6 @@ case class Entity private(
         stream.writeUTF(value)
       }
     }
-    stream.writeInt(subEntities.size)
     for (sub <- subEntities) {
       sub match{
         case Some(e) =>

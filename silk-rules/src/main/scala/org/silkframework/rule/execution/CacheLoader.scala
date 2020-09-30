@@ -18,6 +18,7 @@ import org.silkframework.cache.EntityCache
 import org.silkframework.dataset.DataSource
 import org.silkframework.runtime.activity.{Activity, ActivityContext, Status, UserContext}
 
+import scala.util.Random
 import util.control.Breaks._
 
 /**
@@ -60,9 +61,10 @@ class CacheLoader(source: DataSource,
   private def retrieveEntities(implicit userContext: UserContext) = {
     sampleSizeOpt match {
       case Some(sampleSize) =>
+        implicit val random: Random = Random
         source.sampleEntities(entityCache.entitySchema, sampleSize, None) // TODO: Add filter
       case None =>
-        source.retrieve(entityCache.entitySchema)
+        source.retrieve(entityCache.entitySchema).entities
     }
   }
 }

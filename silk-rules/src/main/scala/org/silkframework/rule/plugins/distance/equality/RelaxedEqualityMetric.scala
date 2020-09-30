@@ -5,7 +5,7 @@ import java.util.Locale
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
  * Equality Metric with some fuzziness regarding case, accents, diereses, etc.
@@ -19,7 +19,7 @@ import org.silkframework.runtime.plugin.Plugin
 @Plugin(
   id = "relaxedEquality",
   categories = Array("Equality"),
-  label = "RelaxedEquality",
+  label = "Relaxed equality",
   description = "Return success if strings are equal, failure otherwise. Lower/upper case and differences like ö/o, n/ñ, c/ç etc. are treated as equal.")
 class RelaxedEqualityMetric extends SimpleDistanceMeasure {
 

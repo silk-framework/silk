@@ -2,13 +2,13 @@ package org.silkframework.rule.plugins.transformer.linguistic
 
 import com.rockymadden.stringmetric.phonetic.{NysiisAlgorithm, RefinedNysiisAlgorithm}
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "NYSIIS",
   categories = Array("Linguistic"),
   label = "NYSIIS",
-  description = "NYSIIS phonetic encoding. Provided by the StringMetric library: http://rockymadden.com/stringmetric/"
+  description = "NYSIIS phonetic encoding. Provided by the StringMetric library: http://rockymadden.com/stringmetric/."
 )
 case class NysiisTransformer(refined: Boolean = true) extends SimpleTransformer {
 

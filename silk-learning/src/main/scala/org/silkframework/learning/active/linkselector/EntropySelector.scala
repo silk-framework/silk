@@ -18,13 +18,14 @@ import org.silkframework.entity.Link
 import org.silkframework.rule.evaluation.ReferenceEntities
 
 import scala.math.log
+import scala.util.Random
 
 /**
  * Link Selector which selects the links with the highest vote entropy.
  */
 case class EntropySelector() extends LinkSelector {
 
-  override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities): Seq[Link] = {
+  override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[Link] = {
     val maxLink = unlabeledLinks.par.maxBy(link => entropy(rules, link))
     Seq(maxLink)
   }

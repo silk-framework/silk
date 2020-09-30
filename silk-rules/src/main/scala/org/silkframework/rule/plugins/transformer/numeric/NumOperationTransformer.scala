@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.numeric
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Param, Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExample, TransformExamples}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.StringUtils.DoubleLiteral
 
@@ -28,7 +28,7 @@ import org.silkframework.util.StringUtils.DoubleLiteral
 @Plugin(
   id = "numOperation",
   categories = Array("Numeric"),
-  label = "Numeric Operation",
+  label = "Numeric operation",
   description =
     """ | Applies a numeric operation to the values of multiple input operators.
         | Uses double-precision floating-point numbers for computation."""

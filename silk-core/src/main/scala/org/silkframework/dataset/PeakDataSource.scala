@@ -23,7 +23,7 @@ trait PeakDataSource {
   def peak(entitySchema: EntitySchema, limit: Int)
           (implicit userContext: UserContext): Traversable[Entity] = {
     try {
-      retrieve(entitySchema, Some(limit))
+      retrieve(entitySchema, Some(limit)).entities
     } catch {
       case NonFatal(ex) =>
         throw PeakException("Cannot retrieve values. Reason: " + ex.getMessage, Some(ex))
@@ -37,7 +37,7 @@ trait PeakDataSource {
     inputResource.size match {
       case Some(size) =>
         if (size < maxFileSizeForPeak * 1000) {
-          retrieve(entitySchema, Some(limit))
+          retrieve(entitySchema, Some(limit)).entities
         } else {
           throw PeakException(s"The input file size of ${NumberFormat.getNumberInstance(Locale.US).format(size)} bytes was larger than the maximal allowed value of $maxFileSizeForPeak kB! " +
               s"Increase the config parameter $MAX_SIZE_CONFIG_KEY appropriately.")

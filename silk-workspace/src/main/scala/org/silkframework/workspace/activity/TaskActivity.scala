@@ -34,14 +34,9 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val resources: ResourceManager = project.resources
     Activity(
-      PluginDescription(defaultFactory.getClass)(config).apply(task),
+      PluginDescription(defaultFactory.getClass)(config, ignoreNonExistingParameters = false).apply(task),
       projectAndTaskId = Some(ProjectAndTaskIds(project.name, taskOption.map(_.id)))
     )
-  }
-
-  def reset()(implicit userContext: UserContext): Unit = {
-    control.cancel()
-    addInstance(defaultConfig)
   }
 
   def activityType: Class[_] = defaultFactory.activityType

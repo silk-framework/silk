@@ -9,7 +9,7 @@ import controllers.workspace.ProjectMarshalingApi._
 import javax.inject.Inject
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.workspace.xml.XmlZipProjectMarshaling
+import org.silkframework.workspace.xml.{XmlZipProjectMarshaling, XmlZipWithResourcesProjectMarshaling}
 import org.silkframework.workspace.{ProjectMarshallerRegistry, ProjectMarshallingTrait, WorkspaceFactory}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.streams.IterateeStreams
@@ -29,7 +29,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController{
     Ok(JsArray(marshaller.map(JsonSerializer.marshaller)))
   }
 
-  def importProject(project: String): Action[AnyContent] = importProjectViaPlugin(project, XmlZipProjectMarshaling.marshallerId)
+  def importProject(project: String): Action[AnyContent] = importProjectViaPlugin(project, XmlZipWithResourcesProjectMarshaling.marshallerId)
 
   /**
     * importProject variant with explicit marshaller parameter
@@ -46,7 +46,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController{
     }
   }
 
-  def exportProject(projectName: String): Action[AnyContent] = exportProjectViaPlugin(projectName, XmlZipProjectMarshaling.marshallerId)
+  def exportProject(projectName: String): Action[AnyContent] = exportProjectViaPlugin(projectName, XmlZipWithResourcesProjectMarshaling.marshallerId)
 
   def exportProjectViaPlugin(projectName: String, marshallerPluginId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     withMarshaller(marshallerPluginId) { marshaller =>
@@ -97,6 +97,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController{
 
   private def enumerateOutputStream(serializeFunc: java.io.OutputStream => Unit): Enumerator[Array[Byte]] = {
     val outputStream = new PipedOutputStream
+    val pipedInputStream = new PipedInputStream(outputStream)
 
     exportExecutionContext.execute(new Runnable {
       override def run(): Unit = {
@@ -109,7 +110,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController{
       }
     })
 
-    Enumerator.fromStream(new PipedInputStream(outputStream))(exportExecutionContext)
+    Enumerator.fromStream(pipedInputStream)(exportExecutionContext)
   }
 
   private def bodyAsFile(implicit request: Request[AnyContent]): File = {

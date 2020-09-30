@@ -5,7 +5,7 @@ import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
 import javax.inject.Inject
 import org.silkframework.config.{PlainTask, Prefixes, TaskSpec}
-import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.dataset.DatasetSpec.{DataSourceWrapper, GenericDatasetSpec}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpointEntityTable}
 import org.silkframework.entity._
@@ -83,7 +83,7 @@ class PeakTransformApi @Inject() () extends InjectedController {
 
     project.anyTask(inputTaskId).data match {
       case dataset: GenericDatasetSpec =>
-        dataset.plugin.source match {
+        DataSource.pluginSource(dataset) match {
           case peakDataSource: PeakDataSource =>
             try {
               val exampleEntities = peakDataSource.peak(ruleSchemata.inputSchema, maxTryEntities)
@@ -128,7 +128,7 @@ class PeakTransformApi @Inject() () extends InjectedController {
         case rdfDataset: RdfDataset with Dataset =>
           val entityTable = new SparqlEndpointEntityTable(rdfDataset.sparqlEndpoint, PlainTask(sparqlDataset, DatasetSpec(rdfDataset)))
           val executor = LocalSparqlSelectExecutor()
-          val entities = executor.executeOnSparqlEndpointEntityTable(sparqlSelectTask, entityTable, maxTryEntities)
+          val entities = executor.executeOnSparqlEndpointEntityTable(sparqlSelectTask, entityTable, maxTryEntities, executionReportUpdater = None)
           val entityDatasource = EntityDatasource(datasetTask, entities, sparqlSelectTask.outputSchema)
           try {
             val exampleEntities = entityDatasource.peak(ruleSchemata.inputSchema, maxTryEntities)

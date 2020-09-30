@@ -4,6 +4,7 @@ import java.io.{BufferedOutputStream, File, FileOutputStream, OutputStream}
 import java.nio.file.Files
 import java.util.logging.Logger
 
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.rdf.{GraphStoreFileUploadTrait, GraphStoreTrait, Quad}
 import org.silkframework.dataset._
 import org.silkframework.entity.{Link, ValueType}
@@ -37,7 +38,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   private var tempFile: Option[File] = None
   private val maxBytesPerRequest = graphStore.defaultTimeouts.maxRequestSize // in bytes
 
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])(implicit userContext: UserContext): Unit = {
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     internalInit()
     this.properties = properties
   }

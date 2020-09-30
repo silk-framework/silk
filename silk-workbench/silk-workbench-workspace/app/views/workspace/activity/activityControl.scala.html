@@ -115,6 +115,14 @@
       });
       progressbarText.text(status.message);
       progressbarHelp.show();
+    } else if(status.statusName === "WithErrors") {
+      progressbar.progressbar("option", {value: parseFloat(status.progress)});
+      progressbarValue.css({
+        "background": '#fffb00'
+      });
+      progressbarValue.addClass('status_waiting');
+      progressbarText.text(status.message);
+      progressbarHelp.hide();
     } else {
       progressbar.progressbar("option", {value: parseFloat(status.progress)});
       progressbarValue.css({

@@ -27,7 +27,7 @@ class EntityDatasourceTest extends FlatSpec with MustMatchers {
 
   it should "turn its entities into the request schema" in {
     val requestSchema = EntitySchema(typeUri, nrToPaths(IndexedSeq(4, 2)))
-    val requestEntities = entityDatasource.retrieve(requestSchema)
+    val requestEntities = entityDatasource.retrieve(requestSchema).entities
     requestEntities.size mustBe 1
     val entity = requestEntities.head
     entity.uri.toString mustBe entityUri

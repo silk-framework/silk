@@ -4,7 +4,7 @@ import java.text.Normalizer
 import java.util.regex.Pattern
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
  * Normalizes strings by removing diacritics, converting ß to ss, etc.
@@ -15,7 +15,7 @@ import org.silkframework.runtime.plugin.Plugin
 @Plugin(
   id = "normalizeChars",
   categories = Array("Linguistic"),
-  label = "normalizeChars",
+  label = "Normalize chars",
   description = "Replaces diacritical characters with non-diacritical ones (eg, ö -> o), plus some specialities like transforming æ -> ae, ß -> ss."
 )
 case class NormalizeCharsTransformer() extends SimpleTransformer {

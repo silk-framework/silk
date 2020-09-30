@@ -1,6 +1,6 @@
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset._
-import org.silkframework.entity.UriValueType
+import org.silkframework.entity.{UriValueType, ValueType}
 import org.silkframework.rule.MappingTarget
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
@@ -26,7 +26,7 @@ class JsonSerializersTest  extends FlatSpec with Matchers {
   }
 
   "MappingTargetJsonFormat" should "serialize MappingTarget" in {
-    val mappingTarget = MappingTarget("http://dot.com/prop", UriValueType, isBackwardProperty = true)
+    val mappingTarget = MappingTarget("http://dot.com/prop", ValueType.URI, isBackwardProperty = true)
     verify(mappingTarget)
   }
 }

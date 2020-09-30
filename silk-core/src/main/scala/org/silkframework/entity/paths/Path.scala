@@ -11,12 +11,12 @@ trait Path extends Serializable {
   /**
     * The sequence of [[PathOperator]] defining the path.
     */
-  val operators: List[PathOperator]
+  def operators: List[PathOperator]
 
 
   /**
     * The normalized serialization using the Silk RDF path language.
-    * Guaranties that the following equivalence holds true: path1 == path2 <=> path1.normalizedSerialization == normalizedSerialization
+    * Guarantees that the following equivalence holds true: path1 == path2 <=> path1.normalizedSerialization == normalizedSerialization
     */
   lazy val normalizedSerialization: String = serializePath(Prefixes.empty, stripForwardSlash = true)
 

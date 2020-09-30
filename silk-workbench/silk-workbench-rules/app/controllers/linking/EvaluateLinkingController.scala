@@ -6,20 +6,22 @@ import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.AkkaUtils
 import javax.inject.Inject
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
-import models.linking.{EvalLink, LinkSorter}
+import models.linking.{EvalLink, LinkResolver, LinkSorter}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.DetailedEvaluator
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workbench.Context
+import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, InjectedController, WebSocket}
 
-class EvaluateLinkingController @Inject() (implicit system: ActorSystem, mat: Materializer) extends InjectedController {
+class EvaluateLinkingController @Inject() (implicit system: ActorSystem, mat: Materializer, accessMonitor: WorkbenchAccessMonitor) extends InjectedController {
 
   def generateLinks(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
+    accessMonitor.saveProjectTaskAccess(project, task)
     Ok(views.html.evaluateLinking.evaluateLinking(context))
   }
 
@@ -29,6 +31,7 @@ class EvaluateLinkingController @Inject() (implicit system: ActorSystem, mat: Ma
     val linkSorter = LinkSorter.fromId(sorting)
     val linking = task.activity[EvaluateLinkingActivity].value()
     val schemata = task.data.entityDescriptions
+    val linkResolvers = LinkResolver.forLinkingTask(task)
 
     // We only show links if entities have been attached to them. We check this by looking at the first link.
     val showLinks = {
@@ -53,11 +56,11 @@ class EvaluateLinkingController @Inject() (implicit system: ActorSystem, mat: Ma
           else
             new EvalLink(detailedLink, Unknown, Generated)
         }
-      Ok(views.html.widgets.linksTable(project, task, links, Some(linking.statistics), linkSorter, filter, page,
+      Ok(views.html.widgets.linksTable(project, task, links, Some(linking.statistics), linkResolvers, linkSorter, filter, page,
         showStatus = false, showDetails = true, showEntities = false, rateButtons = true))
     } else {
       // Show an empty links table
-      Ok(views.html.widgets.linksTable(project, task, Seq[EvalLink](), Some(linking.statistics), linkSorter, filter,
+      Ok(views.html.widgets.linksTable(project, task, Seq[EvalLink](), Some(linking.statistics), linkResolvers, linkSorter, filter,
         page, showStatus = false, showDetails = true, showEntities = false, rateButtons = true))
     }
   }

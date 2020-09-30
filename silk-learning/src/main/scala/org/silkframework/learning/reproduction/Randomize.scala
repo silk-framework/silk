@@ -20,18 +20,27 @@ import org.silkframework.learning.individual.Population
 import org.silkframework.rule.LinkageRule
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 
+import scala.util.Random
+
 /**
  * Randomizes the population by mutating its individuals.
  */
 class Randomize(population: Population,
                 fitnessFunction: (LinkageRule => Double),
                 generator: LinkageRuleGenerator,
-                config: LearningConfiguration) extends Activity[Population] {
+                config: LearningConfiguration,
+                randomSeed: Long) extends Activity[Population] {
 
   private val mutation = new MutationFunction(new CrossoverFunction(fitnessFunction, config.components), generator)
 
   override def run(context: ActivityContext[Population])
                   (implicit userContext: UserContext): Unit = {
-    context.value.update(Population(population.individuals.par.map(mutation).seq))
+    // Generate a separate random seed for each individual
+    val random = new Random(randomSeed)
+    val randomSeeds = Seq.fill(population.individuals.size)(random.nextLong())
+
+    // Generate new individuals
+    val updatedIndividuals = for((individual, randomSeed) <- (population.individuals zip randomSeeds).par) yield mutation(individual, new Random(randomSeed))
+    context.value.update(Population(updatedIndividuals.seq))
   }
 }

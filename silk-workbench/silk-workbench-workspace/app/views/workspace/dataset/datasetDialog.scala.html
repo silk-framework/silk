@@ -17,7 +17,7 @@
   createDialog = createDialog) {
 
     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-      <input class="mdl-textfield__input" type="text" id="dataset_uriProperty" name="dataset_uriProperty" value="@dataset.flatMap(_.uriProperty.map(_.uri)).getOrElse("")"/>
+      <input class="mdl-textfield__input" type="text" id="dataset_uriProperty" name="dataset_uriProperty" value="@dataset.flatMap(_.uriAttribute.map(_.uri)).getOrElse("")"/>
       <label class="mdl-textfield__label" for="dataset_uriProperty">URI attribute</label>
       <div class="mdl-tooltip mdl-tooltip--right" for="dataset_uriProperty">
         When reading data from the dataset, the specified attribute will be used to get the URIs of the entities. When writing to a dataset, the specified attribute will be automatically added to the schema as well as the generated entity URIs will be added as values for each entity."

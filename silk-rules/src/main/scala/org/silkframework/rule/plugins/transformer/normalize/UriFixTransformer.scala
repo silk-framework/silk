@@ -3,7 +3,7 @@ package org.silkframework.rule.plugins.transformer.normalize
 import java.net.{URI, URLEncoder}
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
 
 /**
   * Fixes URIs if necessary
@@ -11,7 +11,7 @@ import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExam
 @Plugin(
   id = "uriFix",
   categories = Array("Normalize"),
-  label = "URI Fixer",
+  label = "Fix URI",
   description = "Generates valid absolute URIs from the given values. Already valid absolute URIs are left untouched."
 )
 @TransformExamples(Array(

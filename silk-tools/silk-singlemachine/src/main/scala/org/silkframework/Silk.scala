@@ -18,6 +18,7 @@ import java.io.File
 import java.util.logging.{Level, Logger}
 
 import javax.inject.Inject
+import org.silkframework
 import org.silkframework.config._
 import org.silkframework.dataset.CombinedEntitySink
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
@@ -28,7 +29,7 @@ import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.StringUtils._
 import org.silkframework.util.{CollectLogs, Identifier}
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, Workflow}
-import org.silkframework.workspace.resources.FileRepository
+import org.silkframework.workspace.resources.SharedFileRepository
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, Project, ProjectMarshallerRegistry, Workspace}
 
 import scala.math.max
@@ -170,7 +171,7 @@ object Silk {
         label = linkSpec.id,
         inputs = linkSpec.findSources(config.sources),
         linkSpec = linkSpec,
-        outputs = config.outputs.map(_.linkSink),
+        output = config.output.map(_.linkSink),
         runtimeConfig = config.runtime.copy(numThreads = numThreads, reloadCache = reload)
       )
     Activity(generateLinks).startBlocking()
@@ -184,7 +185,9 @@ object Silk {
    */
   private def executeTransform(config: LinkingConfig, transform: Task[TransformSpec]): Unit = {
     val input = config.source(transform.selection.inputId).source
-    Activity(new ExecuteTransform(transform.taskLabel(), (_) => input, transform.data, (_) => new CombinedEntitySink(config.outputs.map(_.entitySink)))).startBlocking() // TODO: Allow to set error output
+    implicit val prefixes: Prefixes = config.prefixes
+    Activity(new ExecuteTransform(transform.taskLabel(), (_) => input, transform.data, (_) =>
+      new CombinedEntitySink(config.output.map(_.entitySink).toSeq))).startBlocking() // TODO: Allow to set error output
   }
 
   /**
@@ -197,7 +200,7 @@ object Silk {
     // Create workspace provider
     val projectId = Identifier("project")
     val workspaceProvider = new InMemoryWorkspaceProvider()
-    val resourceRepository = FileRepository(".")
+    val resourceRepository = SharedFileRepository(".")
 
     // Import project
     val marshaller = ProjectMarshallerRegistry.marshallerForFile(projectFile.getName)

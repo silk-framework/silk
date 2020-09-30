@@ -15,14 +15,14 @@
 package org.silkframework.rule.plugins.transformer.tokenization
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
 
 import scala.collection.mutable.ArrayBuffer
 
 @Plugin(
   id = "camelcasetokenizer",
   categories = Array("Tokenization"),
-  label = "Camel Case Tokenizer",
+  label = "Camel case tokenizer",
   description = "Tokenizes a camel case string. That is it splits strings between a lower case characted and an upper case character."
 )
 @TransformExamples(Array(

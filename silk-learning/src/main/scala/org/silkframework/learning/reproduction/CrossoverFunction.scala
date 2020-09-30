@@ -24,7 +24,7 @@ import scala.util.Random
 /**
  * Combines two linkage rules into a new one.
  */
-class CrossoverFunction(fitnessFunction: (LinkageRule => Double), components: Components) extends ((Individual, Individual) => Individual) {
+class CrossoverFunction(fitnessFunction: (LinkageRule => Double), components: Components) extends ((Individual, Individual, Random) => Individual) {
   /**
    * The operators which will be employed for crossover.
    */
@@ -58,13 +58,13 @@ class CrossoverFunction(fitnessFunction: (LinkageRule => Double), components: Co
   /**
    * Combines two linkage rules into a new one.
    */
-  def apply(ind1: Individual, ind2: Individual): Individual = {
+  def apply(ind1: Individual, ind2: Individual, random: Random): Individual = {
     //Choose a random crossover operator
-    val operator = operators(Random.nextInt(operators.size))
+    val operator = operators(random.nextInt(operators.size))
 
     //Apply operator
     val combined =
-      operator(DPair(ind1.node, ind2.node)) match {
+      operator(DPair(ind1.node, ind2.node), random) match {
       case Some(resultNode) => {
         resultNode
       }

@@ -1,4 +1,5 @@
 package org.silkframework.dataset
+import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
@@ -8,7 +9,7 @@ import org.silkframework.util.Uri
 class CombinedEntitySink(sinks: Seq[EntitySink]) extends EntitySink {
 
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
-                        (implicit userContext: UserContext): Unit = {
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     for(sink <- sinks) {
       sink.openTable(typeUri, properties)
     }

@@ -1,11 +1,12 @@
 package org.silkframework.plugins.dataset.rdf.executors
 
-import org.silkframework.config.Task
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.execution.ExecutionReport
 import org.silkframework.execution.local._
+import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
+import org.silkframework.plugins.dataset.rdf.tasks.templating.TaskProperties
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
 
@@ -15,24 +16,26 @@ import org.silkframework.runtime.validation.ValidationException
 case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomTask] {
   override def execute(task: Task[SparqlUpdateCustomTask],
                        inputs: Seq[LocalEntities],
-                       outputSchema: Option[EntitySchema],
+                       output: ExecutorOutput,
                        execution: LocalExecution,
                        context: ActivityContext[ExecutionReport])
-                      (implicit userContext: UserContext): Option[LocalEntities] = {
+                      (implicit userContext: UserContext, prefixes: Prefixes): Option[LocalEntities] = {
     val updateTask = task.data
     val expectedSchema = updateTask.expectedInputSchema
+    val reportUpdater = SparqlUpdateExecutionReportUpdater(task.taskLabel(), context)
 
     // Generate SPARQL Update queries for input entities
-    def executeOnInput[U](batchEmitter: BatchSparqlUpdateEmitter[U],
-                          expectedProperties: IndexedSeq[String],
-                          input: LocalEntities): Unit = {
+    def executeOnInput[U](batchEmitter: BatchSparqlUpdateEmitter[U], expectedProperties: IndexedSeq[String], input: LocalEntities): Unit = {
       val inputProperties = getInputProperties(input.entitySchema).distinct
+      val taskProperties = createTaskProperties(Some(input.task), output.task)
       checkInputSchema(expectedProperties, inputProperties.toSet)
       for (entity <- input.entities;
            values = expectedSchema.typedPaths.map(tp => entity.valueOfPath(tp.toUntypedPath)) if values.forall(_.nonEmpty)) {
         val it = CrossProductIterator(values, expectedProperties)
         while (it.hasNext) {
-          batchEmitter.update(updateTask.generate(it.next()))
+          batchEmitter.update(updateTask.generate(it.next(), taskProperties))
+          reportUpdater.increaseEntityCounter()
+          reportUpdater.update()
         }
       }
     }
@@ -41,19 +44,42 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
       override def foreach[U](f: Entity => U): Unit = {
         val batchEmitter = BatchSparqlUpdateEmitter(f, updateTask.batchSize)
         val expectedProperties = getInputProperties(expectedSchema)
-        if (expectedProperties.isEmpty) {
-          // Static template needs only to be executed once
-          batchEmitter.update(updateTask.generate(Map.empty))
+        if (updateTask.isStaticTemplate) {
+          // Static template needs to be executed exactly once
+          executeTemplate(batchEmitter, reportUpdater, updateTask, outputTask = output.task)
         } else {
           for (input <- inputs) {
-            executeOnInput(batchEmitter, expectedProperties, input)
+            if(expectedProperties.isEmpty) {
+              // Template without input path placeholders should be executed once per input, e.g. it uses input task properties
+              executeTemplate(batchEmitter, reportUpdater, updateTask, inputTask = Some(input.task), outputTask = output.task)
+            } else {
+              executeOnInput(batchEmitter, expectedProperties, input)
+            }
           }
         }
+        reportUpdater.update(force = true, addEndTime = true)
         batchEmitter.close()
       }
     }
-
     Some(new SparqlUpdateEntityTable(traversable, task))
+  }
+
+  private def executeTemplate[U](batchEmitter: BatchSparqlUpdateEmitter[U],
+                                 reportUpdater: SparqlUpdateExecutionReportUpdater,
+                                 updateTask: SparqlUpdateCustomTask,
+                                 inputTask: Option[Task[_ <: TaskSpec]] = None,
+                                 outputTask: Option[Task[_ <: TaskSpec]] = None): Unit = {
+    val taskProperties = createTaskProperties(inputTask = inputTask, outputTask = outputTask)
+    batchEmitter.update(updateTask.generate(Map.empty, taskProperties))
+    reportUpdater.increaseEntityCounter()
+  }
+
+  private def createTaskProperties(inputTask: Option[Task[_ <: TaskSpec]],
+                                   outputTask: Option[Task[_ <: TaskSpec]]): TaskProperties = {
+    implicit val prefixes: Prefixes = Prefixes.empty // It's obligatory to have empty prefixes here, since we do not want to have prefixed URIs for URI parameters
+    val inputProperties = inputTask.toSeq.flatMap(_.properties).toMap
+    val outputProperties = outputTask.toSeq.flatMap(_.properties).toMap
+    TaskProperties(inputProperties, outputProperties)
   }
 
   // Check that expected schema is subset of input schema
@@ -70,31 +96,44 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
   }
 }
 
+case class SparqlUpdateExecutionReportUpdater(taskLabel: String,
+                                              context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  override def entityLabelSingle: String = "Query"
+
+  override def entityLabelPlural: String = "Queries"
+
+  override def entityProcessVerb: String = "generated"
+}
+
 case class CrossProductIterator(values: IndexedSeq[Seq[String]],
                                 properties: IndexedSeq[String]) extends Iterator[Map[String, String]] {
   assert(values.nonEmpty)
   private val sizes = values.map(_.size).toArray
   // Holds the current index combination
   private val indexes = new Array[Int](values.size)
+  private val firstNonEmptyIdx = sizes.zipWithIndex.filter(_._1 > 0).map(_._2).headOption.getOrElse(-1) // -1 if all are empty
   private val lastIndex = values.size - 1
-  private val emptyIndexExists = sizes.contains(0)
+  private var first: Boolean = true // This makes sure that at least one assignment is always generated
 
-  override def hasNext: Boolean = indexes(0) < sizes(0) && !emptyIndexExists
+  override def hasNext: Boolean = first || firstNonEmptyIdx > -1 && (indexes(firstNonEmptyIdx) < sizes(firstNonEmptyIdx))
 
   override def next(): Map[String, String] = {
     if(!hasNext) {
       throw new IllegalStateException("Iterator is fully consumed and has no more values!")
     }
-    val nextValue = properties.zip(indexes.zipWithIndex.map { case (valueIdx, valuesIdx) => values(valuesIdx)(valueIdx) }).toMap
+    val nextAssignment = indexes.zipWithIndex.collect {
+      case (valueIdx, propertyIndex) if sizes(propertyIndex) > 0 => properties(propertyIndex) -> values(propertyIndex)(valueIdx)
+    }.toMap
     setNextIndexCombinations()
-    nextValue
+    first = false
+    nextAssignment
   }
 
   private def setNextIndexCombinations(): Unit = {
     var idx = lastIndex
     while(idx > -1) {
       indexes(idx) += 1
-      if(indexes(idx) >= sizes(idx) && idx != 0) { // Do not reset the first index, because of hasNext check
+      if(indexes(idx) >= sizes(idx) && idx != firstNonEmptyIdx) { // Do not reset the first index, because of hasNext check
         indexes(idx) = 0
         idx -= 1
       } else if(idx > 0) {

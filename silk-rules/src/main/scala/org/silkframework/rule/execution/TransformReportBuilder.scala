@@ -46,6 +46,6 @@ private class TransformReportBuilder(label: String, rules: Seq[TransformRule], p
   }
 
   def build(): TransformReport = {
-    TransformReport(label, entityCounter, entityErrorCounter, ruleResults)
+    TransformReport(label, entityCounter, entityErrorCounter, ruleResults, previousReport.globalErrors)
   }
 }

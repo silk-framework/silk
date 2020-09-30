@@ -1,14 +1,18 @@
 package org.silkframework.dataset
-import org.silkframework.config.Task
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.annotations.Param
 import org.silkframework.util.Uri
 
 /**
   * Mock dataset for tests. The main methods for retrieving and writing can be defined as parameter.
   */
-case class MockDataset(name: String = "dummy") extends Dataset {
+case class MockDataset(@Param(label = "person name", value = "The full name of a person")
+                       name: String = "dummy") extends Dataset {
   var retrieveFn: (EntitySchema, Option[Int]) => Traversable[Entity] = (_, _) => Seq.empty
   var retrieveByUriFn: (EntitySchema, Seq[Uri]) => Seq[Entity] = (_, _) => Seq.empty
   var writeLinkFn: (Link, String) => Unit = (_, _) => {}
@@ -27,13 +31,13 @@ case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => Traversabl
                            retrieveByUriFn: (EntitySchema, Seq[Uri]) => Seq[Entity],
                            retrievePathsFn: (Uri, Int, Option[Int]) => IndexedSeq[TypedPath]) extends DataSource {
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext): Traversable[Entity] = {
-    retrieveFn(entitySchema, limit)
+                       (implicit userContext: UserContext): EntityHolder = {
+    GenericEntityTable(retrieveFn(entitySchema, limit), entitySchema, underlyingTask)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): Seq[Entity] = {
-    retrieveByUriFn(entitySchema, entities)
+                            (implicit userContext: UserContext): EntityHolder = {
+    GenericEntityTable(retrieveByUriFn(entitySchema, entities), entitySchema, underlyingTask)
   }
 
   override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
@@ -64,7 +68,7 @@ case class DummyLinkSink(writeLinkFn: (Link, String) => Unit,
 case class DummyEntitySink(writeEntityFn: (String, Seq[Seq[String]]) => Unit,
                            clearFn: () => Unit) extends EntitySink {
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
-                        (implicit userContext: UserContext): Unit = {}
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {}
 
   override def writeEntity(subject: String, values: Seq[Seq[String]])
                           (implicit userContext: UserContext): Unit = {

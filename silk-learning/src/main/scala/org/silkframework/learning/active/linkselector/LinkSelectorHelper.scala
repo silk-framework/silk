@@ -1,11 +1,8 @@
 package org.silkframework.learning.active.linkselector
 
-import org.silkframework.entity.{Entity, Link}
+import org.silkframework.entity.{Entity, Link, LinkWithEntities}
 import org.silkframework.util.DPair
 
-/**
- * Created by andreas on 2/3/16.
- */
 object LinkSelectorHelper {
-  def pairToLink(pair: DPair[Entity]) = new Link(pair.source.uri, pair.target.uri, None, entities = Some(pair))
+  def pairToLink(pair: DPair[Entity]): LinkWithEntities = new LinkWithEntities(pair.source.uri, pair.target.uri, ents = pair)
 }

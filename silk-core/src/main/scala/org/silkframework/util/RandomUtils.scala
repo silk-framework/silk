@@ -17,8 +17,14 @@ package org.silkframework.util
 import scala.util.Random
 
 object RandomUtils {
+
   def randomElement[T](traversable: Traversable[T]) = {
     val seq = traversable.toIndexedSeq
     seq(Random.nextInt(seq.size))
+  }
+
+  def randomSeq(size: Int, randomSeed: Long): Seq[Random] = {
+    val random = new Random(randomSeed)
+    Seq.fill(size)(new Random(random.nextLong()))
   }
 }

@@ -3,26 +3,44 @@ package org.silkframework.runtime.resource
 import java.io._
 import java.nio.file.{Files, StandardCopyOption}
 import java.time.Instant
+import org.silkframework.util.FileUtils._
 
 /**
   * A resource on the file system.
   *
   * @param file The file
   */
-case class FileResource(file: File) extends WritableResource {
+case class FileResource(file: File)
+    extends WritableResource
+        with DeleteUnderlyingResourceOnGC {
 
-  val name = file.getName
+  @volatile
+  private var _deleteOnGC = false
 
-  val path = file.getAbsolutePath
+  val name: String = file.getName
 
-  def exists = file.exists()
+  val path: String = file.getAbsolutePath
 
-  def size = Some(file.length)
+  def exists: Boolean = file.exists()
+
+  def size: Option[Long] = Some(file.length)
 
   def modificationTime = Some(Instant.ofEpochMilli(file.lastModified()))
 
-  override def inputStream = {
+  override def inputStream: BufferedInputStream = {
     new BufferedInputStream(new FileInputStream(file))
+  }
+
+  override def deleteOnGC: Boolean = _deleteOnGC
+
+  def setDeleteOnGC(value: Boolean): Unit = { _deleteOnGC = value }
+
+  /**
+    * Creates an empty file, overriding any existing and creating the required directories
+    */
+  def createEmpty(): Unit ={
+    createDirectory()
+    file.createNewFile()
   }
 
   /**
@@ -30,7 +48,7 @@ case class FileResource(file: File) extends WritableResource {
    * after it returns.
    * @param write A function that accepts an output stream and writes to it.
    */
-  override def write(append: Boolean = false)(write: (OutputStream) => Unit): Unit = {
+  override def write(append: Boolean = false)(write: OutputStream => Unit): Unit = {
     createDirectory()
     val outputStream = new BufferedOutputStream(new FileOutputStream(file, append))
     try {
@@ -54,9 +72,6 @@ case class FileResource(file: File) extends WritableResource {
   override def delete(): Unit = file.delete()
 
   private def createDirectory(): Unit = {
-    val baseDir = file.getParentFile
-    if(!baseDir.exists && !baseDir.mkdirs()) {
-      throw new IOException("Could not create directory at: " + baseDir.getCanonicalPath)
-    }
+    file.getParentFile.safeMkdirs()
   }
 }

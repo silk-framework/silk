@@ -22,7 +22,7 @@ import scala.util.Random
 
 abstract class NodePairCrossoverOperator[NodeType <: Node : ClassTag] extends CrossoverOperator {
 
-  override def apply(nodePair: DPair[LinkageRuleNode]): Option[LinkageRuleNode] = {
+  override def apply(nodePair: DPair[LinkageRuleNode], random: Random): Option[LinkageRuleNode] = {
     //Generate all pairs of compatible nodes
     val sourceNodes = NodeTraverser(nodePair.source).iterateAll.toIndexedSeq
     val targetNodes = NodeTraverser(nodePair.target).iterateAll.toIndexedSeq
@@ -36,15 +36,15 @@ abstract class NodePairCrossoverOperator[NodeType <: Node : ClassTag] extends Cr
     //Filter pairs which are compatible with the crossover operator
     val compatiblePairs = nodePairs.filter(pair => compatible(pair.map(_.node.asInstanceOf[NodeType])))
 
-    if (compatiblePairs.size == 0) {
+    if (compatiblePairs.isEmpty) {
       None
     }
     else {
       //Choose a random pair
-      val crossoverPair = compatiblePairs(Random.nextInt(compatiblePairs.size))
+      val crossoverPair = compatiblePairs(random.nextInt(compatiblePairs.size))
 
       //Apply the crossover operator
-      val updatedNode = crossover(crossoverPair.map(_.node.asInstanceOf[NodeType]))
+      val updatedNode = crossover(crossoverPair.map(_.node.asInstanceOf[NodeType]), random)
 
       //Update linkage rule node
       val linkageRule = crossoverPair.source.update(updatedNode).root.node.asInstanceOf[LinkageRuleNode]
@@ -61,5 +61,5 @@ abstract class NodePairCrossoverOperator[NodeType <: Node : ClassTag] extends Cr
   /**
    * Must be overridden in sub classes to execute the crossover operation.
    */
-  protected def crossover(nodes: DPair[NodeType]): NodeType
+  protected def crossover(nodes: DPair[NodeType], random: Random): NodeType
 }

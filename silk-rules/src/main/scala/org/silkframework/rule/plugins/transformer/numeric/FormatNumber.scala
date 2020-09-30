@@ -4,7 +4,7 @@ import java.text.{DecimalFormat, NumberFormat}
 import java.util.Locale
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.StringUtils.DoubleLiteral
 
@@ -49,6 +49,11 @@ import org.silkframework.util.StringUtils.DoubleLiteral
     parameters = Array("pattern", "000'0'"),
     input1 = Array("1"),
     output = Array("0010")
+  ),
+  new TransformExample(
+    parameters = Array("pattern", "0"),
+    input1 = Array("1.0"),
+    output = Array("1")
   )
 ))
 case class FormatNumber(pattern: String, locale: String = "en") extends SimpleTransformer {

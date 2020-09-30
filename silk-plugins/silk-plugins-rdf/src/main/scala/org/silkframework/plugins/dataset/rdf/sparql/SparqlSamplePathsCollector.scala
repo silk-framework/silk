@@ -43,7 +43,7 @@ object SparqlSamplePathsCollector extends SparqlPathsCollector {
            (implicit userContext: UserContext): Seq[TypedPath] = {
     val sampleEntities = {
       if (restrictions.isEmpty)
-        getEntities(endpoint, graph, SparqlRestriction.fromSparql(SparqlEntitySchema.variable, s"${SparqlEntitySchema.variable} ?p ?o"))
+        getEntities(endpoint, graph, SparqlRestriction.fromSparql(SparqlEntitySchema.variable, s"?${SparqlEntitySchema.variable} ?p ?o"))
       else
         getEntities(endpoint, graph, restrictions)
     }

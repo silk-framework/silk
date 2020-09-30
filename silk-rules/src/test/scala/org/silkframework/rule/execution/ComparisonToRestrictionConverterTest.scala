@@ -9,12 +9,12 @@ import org.silkframework.rule.plugins.distance.equality.{EqualityMetric, Inequal
 import org.silkframework.rule.plugins.transformer.value.ConstantTransformer
 import org.silkframework.rule.similarity.{Aggregation, Comparison, DistanceMeasure, SimilarityOperator}
 import org.silkframework.rule.{BooleanLinkageRule, LinkageRule}
-import org.silkframework.util.DPair
+import org.silkframework.util.{ConfigTestTrait, DPair}
 
-class ComparisonToRestrictionConverterTest extends FlatSpec with MustMatchers {
+class ComparisonToRestrictionConverterTest extends FlatSpec with MustMatchers with ConfigTestTrait {
   behavior of "Comparison to Restriction Converter"
 
-  private val comparisonToRestrictionConverter = new ComparisonToRestrictionConverter()
+  private lazy val comparisonToRestrictionConverter = new ComparisonToRestrictionConverter()
 
   it should "convert a linkage rule of a simple and" in {
     val notSatisfiable = and(
@@ -140,4 +140,8 @@ class ComparisonToRestrictionConverterTest extends FlatSpec with MustMatchers {
     val comparison = sourceComparison(targetPath, constant, metric)
     comparison.copy(inputs = comparison.inputs.swap)
   }
+
+  override def propertyMap: Map[String, Option[String]] = Map(
+    "optimizations.linking.execution.pushFilters.enabled" -> Some("true")
+  )
 }

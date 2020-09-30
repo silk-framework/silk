@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.transform
 
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.entity.{StringValueType, UriValueType}
+import org.silkframework.entity.{StringValueType, UriValueType, ValueType}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 
@@ -10,7 +10,7 @@ class TransformPathsCacheTest extends FlatSpec with SingleProjectWorkspaceProvid
 
   override def projectPathInClasspath: String = "diProjects/hierarchicalPersonJson.zip"
 
-  override def workspaceProvider: String = "inMemory"
+  override def workspaceProviderId: String = "inMemory"
 
   it should "cache typed paths for JSON data source" in {
     val task = project.task[TransformSpec]("personJsonTransform")
@@ -18,11 +18,11 @@ class TransformPathsCacheTest extends FlatSpec with SingleProjectWorkspaceProvid
     cache.control.waitUntilFinished()
     val entitySchema = cache.value().configuredSchema
     for((path, expectedValueType) <- Seq(
-      "id" -> StringValueType,
-      "name" -> StringValueType,
-      "phoneNumbers" -> UriValueType,
-      "phoneNumbers/type" -> StringValueType,
-      "phoneNumbers/number" -> StringValueType
+      "id" -> ValueType.STRING,
+      "name" -> ValueType.STRING,
+      "phoneNumbers" -> ValueType.URI,
+      "phoneNumbers/type" -> ValueType.STRING,
+      "phoneNumbers/number" -> ValueType.STRING
     )) {
       val valueType = entitySchema.typedPaths.find(_.toUntypedPath.normalizedSerialization == path).map(_.valueType).getOrElse(
         throw new RuntimeException(s"Path $path was not found in cached entity schema!")

@@ -17,7 +17,7 @@ package org.silkframework.plugins.temporal.relation
 import org.silkframework.entity.Index
 import org.silkframework.plugins.temporal.utils._
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
  * Computes the relation \"isMetBy\" between two time periods or instants (It assumes that the times are expressed in the "yyyy-MM-DD'T'hh:mm:ss" format).
@@ -26,7 +26,7 @@ import org.silkframework.runtime.plugin.Plugin
 @Plugin(
   id = "IsMetByMetric",
   categories = Array("Temporal"),
-  label = "IsMetBy",
+  label = "Is met by",
   description = "Computes the relation \"isMetBy\" between two time periods or instants.")
 case class IsMetByMetric(blockingParameter: Double = 1.0) extends SimpleDistanceMeasure {
 

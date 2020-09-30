@@ -16,7 +16,7 @@ package org.silkframework.plugins.spatial.transformer
 
 import org.silkframework.plugins.spatial.utils._
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.Plugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 
 /**
  * This plugin returns the Area of the input geometry (It assumes that geometries are expressed in WKT and WGS 84 (latitude-longitude)).
@@ -28,7 +28,7 @@ import org.silkframework.runtime.plugin.Plugin
 @Plugin(
   id = "AreaTransformer",
   categories = Array("Spatial"),
-  label = "Area Transformer",
+  label = "Compute area",
   description = "Returns the Area of the input geometry.")
 case class AreaTransformer() extends SimpleTransformer {
 

@@ -18,8 +18,8 @@ trait ExecutionReport {
   def summary: Seq[(String, String)]
 
   /**
-    * If issues occurred during execution, this contains a user-friendly message.
+    * If issues occurred during execution, this contains a list of user-friendly messages.
     */
-  def warning: Option[String]
+  def warnings: Seq[String]
 
 }

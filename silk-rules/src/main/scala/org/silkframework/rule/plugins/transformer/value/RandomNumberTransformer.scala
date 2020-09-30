@@ -1,13 +1,13 @@
 package org.silkframework.rule.plugins.transformer.value
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{Param, Plugin}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 import scala.util.Random
 
 @Plugin(
    id = "randomNumber",
-   label = "Random Number",
+   label = "Random number",
    categories = Array("Value"),
    description = "Generates a set of random numbers."
  )

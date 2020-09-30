@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Card, CardContent, CardTitle, Icon} from '@eccenca/gui-elements';
 import silkStore from "../api/silkStore";
-import hierarchicalMappingChannel from "../HierarchicalMapping/store";
 import ExecutionReport from "./ExecutionReport";
 
 /**
@@ -69,15 +68,15 @@ export default class WorkflowExecutionReport extends React.Component {
   }
 
   renderTaskDescription(task, report) {
-    if(report.hasOwnProperty("warning") && report.warning !== null) {
-      return <span className="mdl-list__item-sub-title">{report.warning}</span>
+    if(report.hasOwnProperty("warnings") && report.warnings.length > 0) {
+      return <span className="mdl-list__item-sub-title">{report.warnings.length} warnings</span>
     } else {
       return <span className="mdl-list__item-sub-title">no issues</span>
     }
   }
 
   renderTaskIcon(task, report) {
-    if(report.hasOwnProperty("warning") && report.warning !== null) {
+    if(report.hasOwnProperty("warnings") && report.warnings.length > 0) {
       return <Icon name="warning" className="silk-report-list-item-icon-red" />
     } else {
       return <Icon name="done" className="silk-report-list-item-icon-green" />

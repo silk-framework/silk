@@ -4,6 +4,8 @@ import org.silkframework.entity.Link
 import org.silkframework.learning.generation.LinkageRuleGenerator
 import org.silkframework.learning.individual.Population
 
+import scala.util.Random
+
 /**
   * Holds the current state of the active learning workflow.
   *
@@ -12,8 +14,8 @@ import org.silkframework.learning.individual.Population
   * @param population The current population of learned linkage rules.
   * @param links Link candidates from the unlabeled pool that have been selected for manual confirmation by the user.
   */
-case class ActiveLearningState(pool: UnlabeledLinkPool, generator: LinkageRuleGenerator, population: Population, links: Seq[Link])
+case class ActiveLearningState(pool: UnlabeledLinkPool, generator: LinkageRuleGenerator, population: Population, links: Seq[Link], randomSeed: Long)
 
 object ActiveLearningState {
-  def initial = ActiveLearningState(UnlabeledLinkPool.empty, LinkageRuleGenerator.empty, Population.empty, Seq.empty)
+  def initial(randomSeed: Long) = ActiveLearningState(UnlabeledLinkPool.empty, LinkageRuleGenerator.empty, Population.empty, Seq.empty, randomSeed = randomSeed)
 }

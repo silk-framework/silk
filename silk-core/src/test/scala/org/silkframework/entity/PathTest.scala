@@ -90,7 +90,9 @@ class PathTest extends FlatSpec with Matchers {
   }
 
   it should "parse language filters" in {
-    p.parse( """?a/ex:prop[@lang = 'en']""") should equal(UntypedPath(ForwardOperator("http://www.example.org/prop") :: LanguageFilter("=", "en") :: Nil))
+    val path = p.parse( """/ex:prop[@lang = 'en']""")
+    path should equal(UntypedPath(ForwardOperator("http://www.example.org/prop") :: LanguageFilter("=", "en") :: Nil))
+    path.serialize() shouldBe "ex:prop[@lang = 'en']"
   }
 
   it should "parse a simplified relative URI forward path" in {
@@ -152,7 +154,7 @@ class PathTest extends FlatSpec with Matchers {
 
   it should "be convertable to a string typed path" in {
     val ops = ForwardOperator("http://www.example.org/p") :: Nil
-    UntypedPath(ops).asStringTypedPath shouldBe TypedPath(ops, StringValueType, xmlAttribute = false)
+    UntypedPath(ops).asStringTypedPath shouldBe TypedPath(ops, ValueType.STRING, xmlAttribute = false)
   }
 
   it should "be usable in a pattern matching case" in {

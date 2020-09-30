@@ -39,7 +39,7 @@ class BooleanFilterLinkSpecIntegrationTest extends FlatSpec
     comparisonToRestrictionConverter.removeInequalityClauses mustBe false
   }
 
-  override def workspaceProvider: String = "inMemory"
+  override def workspaceProviderId: String = "inMemory"
 
   for((testCase, ExpectedStats(expectedSourceEntities, expectedTargetEntities, expectedNrLinks)) <- testCases) {
     it should s"filter the correct number of entities for test case $testCase" in {
@@ -56,6 +56,7 @@ class BooleanFilterLinkSpecIntegrationTest extends FlatSpec
   }
 
   override def propertyMap: Map[String, Option[String]] = Map(
-    "optimizations.linking.execution.pushFilters.removeDisjunctionsWithInEqualities" -> Some("false")
+    "optimizations.linking.execution.pushFilters.removeDisjunctionsWithInEqualities" -> Some("false"),
+    "optimizations.linking.execution.pushFilters.enabled" -> Some("true")
   )
 }

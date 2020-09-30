@@ -17,7 +17,7 @@ package org.silkframework.entity.paths
 import java.net.URLEncoder
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.{StringValueType, UntypedValueType, UriValueType, paths}
+import org.silkframework.entity.{ValueType, paths}
 import org.silkframework.util.Uri
 
 import scala.util.{Failure, Success, Try}
@@ -46,17 +46,18 @@ class UntypedPath private[entity](val operators: List[PathOperator]) extends Pat
   override def hashCode: Int = normalizedSerialization.hashCode
 
   /** Returns a [[paths.TypedPath]] from this path with string type values. */
-  def asStringTypedPath: TypedPath = TypedPath(this.operators, StringValueType, xmlAttribute = false)
+  def asStringTypedPath: TypedPath = TypedPath(this.operators, ValueType.STRING, xmlAttribute = false)
 
-  def asUriTypedPath: TypedPath = TypedPath(this.operators, UriValueType, xmlAttribute = false)
+  def asUriTypedPath: TypedPath = TypedPath(this.operators, ValueType.URI, xmlAttribute = false)
 
   /** Returns an untyped ([[org.silkframework.entity.UntypedValueType]]) [[TypedPath]].  */
-  def asUntypedValueType: TypedPath = TypedPath(this.operators, UntypedValueType, xmlAttribute = false)
+  def asUntypedValueType: TypedPath = TypedPath(this.operators, ValueType.UNTYPED, xmlAttribute = false)
 }
 
 object UntypedPath {
 
   /** Special path indexes that have a specific meaning for all datasets, where they are used */
+  final val IDX_PATH_MISSING = -1 // Missing paths
   final val IDX_PATH_IDX = -2 // #idx (returns the index of the entity, e.g. in a CSV file the line number)
   final val IDX_PATH_OPERATORS = Seq(ForwardOperator("#idx"))
 

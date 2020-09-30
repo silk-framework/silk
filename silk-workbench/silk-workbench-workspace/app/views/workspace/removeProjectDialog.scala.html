@@ -1,10 +1,14 @@
-@(project: String)
+@(project: String, sharedResources: Boolean)
 
 @widgets.dialog(title = "Delete Project", submitLabel = "Yes, delete it") {
 
-<p>
-  Delete project: <span class="delete-dialog-resource">@project</span>
-</p>
+  <p>
+    @if(sharedResources) {
+      Delete project <span class="delete-dialog-resource">@project</span>? Note that resources will not be deleted because they are shared across projects.
+    } else {
+      Delete project <span class="delete-dialog-resource">@project</span> including all resources?
+    }
+  </p>
 
   <script type="text/javascript">//<![CDATA[
 

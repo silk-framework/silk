@@ -21,9 +21,9 @@ import org.silkframework.entity.{Entity, EntitySchema}
 class Partition(val entities: Array[Entity], val indices: Array[BitsetIndex]) {
   require(entities.length == indices.length, "entities.size == indices.size")
 
-  def size = entities.length
+  def size: Int = entities.length
 
-  def serialize(stream: DataOutput) {
+  def serialize(stream: DataOutput): Unit = {
     stream.writeInt(entities.length)
     for (i <- entities.indices) {
       entities(i).serialize(stream)
@@ -31,7 +31,7 @@ class Partition(val entities: Array[Entity], val indices: Array[BitsetIndex]) {
     }
   }
 
-  override def equals(obj: scala.Any): Boolean = obj match {
+  override def equals(obj: Any): Boolean = obj match {
     case p: Partition =>
       entities.sameElements(p.entities) && indices.sameElements(p.indices)
     case _ =>
@@ -40,9 +40,9 @@ class Partition(val entities: Array[Entity], val indices: Array[BitsetIndex]) {
 }
 
 object Partition {
-  def apply(entities: Array[Entity], indices: Array[BitsetIndex]) = new Partition(entities, indices)
+  def apply(entities: Array[Entity], indices: Array[BitsetIndex]): Partition = new Partition(entities, indices)
 
-  def apply(entities: Array[Entity], indices: Array[BitsetIndex], count: Int) = {
+  def apply(entities: Array[Entity], indices: Array[BitsetIndex], count: Int): Partition = {
     if (count < entities.length) {
       val entityArray = new Array[Entity](count)
       Array.copy(entities, 0, entityArray, 0, count)
@@ -56,7 +56,7 @@ object Partition {
     }
   }
 
-  def deserialize(stream: DataInput, desc: EntitySchema) = {
+  def deserialize(stream: DataInput, desc: EntitySchema): Partition = {
     val partitionSize = stream.readInt()
     val entities = new Array[Entity](partitionSize)
     val indices = new Array[BitsetIndex](partitionSize)

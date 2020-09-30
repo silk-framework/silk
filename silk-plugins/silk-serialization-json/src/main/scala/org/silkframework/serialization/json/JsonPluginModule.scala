@@ -1,13 +1,13 @@
 package org.silkframework.serialization.json
 
 import org.silkframework.runtime.plugin.PluginModule
-import org.silkframework.serialization.json.EntitySerializers.{CachedEntitySchemataJsonFormat, EntityHolderJsonFormat, EntitySchemaJsonFormat, PairEntitySchemaJsonFormat}
-import org.silkframework.serialization.json.InputJsonSerializer.InputJsonFormat
-import org.silkframework.serialization.json.JsonSerializers.{GenericInfoJsonFormat, JsonDatasetSpecFormat, MappingRulesJsonFormat, RootMappingRuleJsonFormat, TransformRuleJsonFormat, TransformSpecJsonFormat, TransformTaskJsonFormat, VocabularyPropertyJsonFormat, _}
-import org.silkframework.serialization.json.LinkingSerializers.LinkingJsonFormat
+import org.silkframework.serialization.json.EntitySerializers.{EntityHolderJsonFormat, EntitySchemaJsonFormat, PairEntitySchemaJsonFormat}
+import org.silkframework.serialization.json.ExecutionReportSerializers._
+import org.silkframework.serialization.json.InputJsonSerializer.{CachedEntitySchemataJsonFormat, DatasetSelectionJsonFormat, InputJsonFormat}
+import org.silkframework.serialization.json.JsonSerializers._
+import org.silkframework.serialization.json.LinkingSerializers.{LinkingJsonFormat, ReferenceLinksJsonFormat}
 import org.silkframework.serialization.json.PluginSerializers.PluginListJsonFormat
-import org.silkframework.serialization.json.ExecutionReportSerializers.{ExecutionReportJsonFormat, TransformReportJsonFormat, WorkflowExecutionReportJsonFormat, WorkflowExecutionReportWithProvenanceJsonFormat}
-import org.silkframework.serialization.json.WorkflowSerializers.WorkflowJsonFormat
+import org.silkframework.serialization.json.WorkflowSerializers.{WorkflowDatasetsParameterFormat, WorkflowJsonFormat, WorkflowOperatorsParameterFormat}
 
 class JsonPluginModule extends PluginModule {
 
@@ -36,6 +36,8 @@ class JsonPluginModule extends PluginModule {
       VocabularyClassJsonFormat.getClass ::
       InputJsonFormat.getClass ::
       WorkflowJsonFormat.getClass ::
+      WorkflowOperatorsParameterFormat.getClass ::
+      WorkflowDatasetsParameterFormat.getClass ::
       ExecutionReportJsonFormat.getClass ::
       TransformReportJsonFormat.getClass ::
       WorkflowExecutionReportJsonFormat.getClass ::
@@ -46,5 +48,8 @@ class JsonPluginModule extends PluginModule {
       EntityHolderJsonFormat.getClass ::
       LinkingJsonFormat.getClass ::
       TransformReportJsonFormat.getClass ::
+      LinkageRuleJsonFormat.getClass ::
+      DatasetSelectionJsonFormat.getClass ::
+      ReferenceLinksJsonFormat.getClass ::
       Nil
 }
