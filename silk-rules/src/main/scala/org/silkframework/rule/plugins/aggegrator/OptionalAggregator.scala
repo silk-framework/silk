@@ -2,7 +2,8 @@ package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.Aggregator
-import org.silkframework.runtime.plugin.{Param, Plugin, PluginCategories}
+import org.silkframework.runtime.plugin.PluginCategories
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 @Plugin(
   id = "optional",
