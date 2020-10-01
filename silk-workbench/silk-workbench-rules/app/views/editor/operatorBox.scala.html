@@ -2,7 +2,7 @@
 @import views.editor.GenerateId
 @import org.silkframework.workspace.Project
 @import org.silkframework.runtime.plugin.Parameter
-@import org.silkframework.runtime.plugin.ParameterType._
+@import org.silkframework.runtime.plugin.StringParameterType._
 @import org.silkframework.workspace.WorkspaceFactory
 @import org.silkframework.runtime.activity.UserContext
 
@@ -47,7 +47,7 @@
 * Creates a new field for a plugin parameter
 *@
 @parameter(param: Parameter, value: String) = @{
-  param.dataType match {
+  param.parameterType match {
     case UriType =>
       stringParameter(param, project.config.prefixes.shorten(value))
     case enum: EnumerationType =>
@@ -81,7 +81,7 @@
     <div class="mdl-defer mdl-tooltip--right" for="@{GenerateId(id, display)}_param_input_@{param.name}" data-mdl-defer="tooltip">
       @param.description
       <br/>
-      Expected type: @param.dataType.description
+      Expected type: @param.parameterType.description
     </div>
   </div>
 }
@@ -97,7 +97,7 @@
     <div class="mdl-defer mdl-tooltip--right" for="@{GenerateId(id, display)}_param_input_@{param.name}" data-mdl-defer="tooltip">
       @param.description
       <br/>
-      Expected type: @param.dataType.description
+      Expected type: @param.parameterType.description
     </div>
   </div>
 }

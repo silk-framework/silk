@@ -16,6 +16,7 @@ package org.silkframework.rule
 
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.similarity.SimilarityOperator
+import org.silkframework.runtime.plugin.PluginObjectParameterNoSchema
 import org.silkframework.runtime.serialization._
 import org.silkframework.util.{DPair, Uri}
 
@@ -26,7 +27,7 @@ import scala.xml.Node
  */
 case class LinkageRule(operator: Option[SimilarityOperator] = None,
                        filter: LinkFilter = LinkFilter(),
-                       linkType: Uri = Uri.fromString("http://www.w3.org/2002/07/owl#sameAs")) {
+                       linkType: Uri = Uri.fromString("http://www.w3.org/2002/07/owl#sameAs")) extends PluginObjectParameterNoSchema {
 
   // Make sure that all operators use unique identifiers
   operator.foreach(_.validateIds())

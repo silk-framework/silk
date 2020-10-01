@@ -74,6 +74,16 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
   }
 
   /**
+    * Imports a complete project.
+    */
+  def importProject(project: ProjectConfig,
+                    provider: WorkspaceProvider,
+                    inputResources: Option[ResourceManager],
+                    outputResources: Option[ResourceManager])(implicit user: UserContext): Unit = {
+    WorkspaceIO.copyProject(provider, this, inputResources, outputResources, project)
+  }
+
+  /**
     * Retrieves the project cache folder.
     */
   override def projectCache(name: Identifier): ResourceManager = {
@@ -83,7 +93,9 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
   /**
     * Version of readTasks that returns a Seq[Try[Task[T]]]
     **/
-  override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)(implicit user: UserContext): Seq[Try[Task[T]]] = {
+  override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier,
+                                                       projectResources: ResourceManager)
+                                                      (implicit user: UserContext): Seq[Either[Task[T], TaskLoadingError]] = {
     primaryWorkspace.readTasksSafe[T](project, projectResources)
   }
 

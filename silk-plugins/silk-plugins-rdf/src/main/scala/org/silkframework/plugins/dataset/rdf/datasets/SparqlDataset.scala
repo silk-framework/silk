@@ -14,7 +14,7 @@ import org.silkframework.runtime.plugin.{MultilineStringParameter, PasswordParam
   categories = Array(DatasetCategories.remote),
   description = "Connect to an existing SPARQL endpoint.")
 case class SparqlDataset(
-  @Param(label = "endpoint URI", value = "The URI of the SPARQL endpoint e.g. http://dbpedia.org/sparql")
+  @Param(label = "Endpoint URI", value = "The URI of the SPARQL endpoint, e.g., http://dbpedia.org/sparql")
   endpointURI: String,
   @Param("Login required for authentication")
   login: String = null,
@@ -22,17 +22,17 @@ case class SparqlDataset(
   password: PasswordParameter = PasswordParameter.empty,
   @Param("Only retrieve entities from a specific graph")
   graph: String = null,
-  @Param("The number of solutions to be retrieved per SPARQL query.")
+  @Param(value = "The number of solutions to be retrieved per SPARQL query.", advanced = true)
   pageSize: Int = 1000,
-  @Param("A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.")
+  @Param(value = "A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.", advanced = true)
   entityList: MultilineStringParameter = MultilineStringParameter(""),
-  @Param("The number of milliseconds to wait between subsequent query")
+  @Param(value = "The number of milliseconds to wait between subsequent query", advanced = true)
   pauseTime: Int = 0,
-  @Param("The number of retries if a query fails")
+  @Param(value = "The number of retries if a query fails", advanced = true)
   retryCount: Int = 3,
-  @Param("The number of milliseconds to wait until a failed query is retried.")
+  @Param(value = "The number of milliseconds to wait until a failed query is retried.", advanced = true)
   retryPause: Int = 1000,
-  @Param("Additional parameters to be appended to every request e.g. &soft-limit=1")
+  @Param(value = "Additional parameters to be appended to every request e.g. &soft-limit=1", advanced = true)
   queryParameters: String = "",
   @Param("The strategy use for retrieving entities: simple: Retrieve all entities using a single query; subQuery: Use a single query, but wrap it for improving the performance on Virtuoso; parallel: Use a separate Query for each entity property.")
   strategy: EntityRetrieverStrategy = EntityRetrieverStrategy.parallel,
@@ -63,6 +63,8 @@ case class SparqlDataset(
       useOrderBy = useOrderBy,
       timeout = Some(sparqlTimeout).filter(_ > 0)
     )
+
+  override def graphOpt: Option[String] = Option(graph).filterNot(_.isEmpty)
 
   override val sparqlEndpoint: RemoteSparqlEndpoint = {
     RemoteSparqlEndpoint(params)

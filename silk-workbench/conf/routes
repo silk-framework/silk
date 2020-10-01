@@ -1,4 +1,7 @@
 GET        /               controllers.Workbench.index
+# TODO: remove this route later
+GET        /workspace-beta     controllers.Workbench.reactUIRoot()
+GET        /workspace-beta/*x  controllers.Workbench.reactUI(x: String)
 
 # Redirect call to individual modules
 ->         /core           core.Routes
@@ -7,3 +10,4 @@ GET        /               controllers.Workbench.index
 ->         /linking        linking.Routes
 ->         /transform      transform.Routes
 ->         /workflow       workflow.Routes
+->         /api            api.Routes

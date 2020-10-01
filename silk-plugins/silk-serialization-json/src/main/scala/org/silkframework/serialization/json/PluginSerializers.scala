@@ -1,8 +1,8 @@
 package org.silkframework.serialization.json
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.plugin.{Parameter, PluginDescription, PluginList}
-import org.silkframework.runtime.serialization.WriteContext
+import org.silkframework.runtime.plugin.{Parameter, PluginDescription, PluginList, PluginObjectParameterTypeTrait}
+import org.silkframework.runtime.serialization.{Serialization, WriteContext}
 import play.api.libs.json._
 
 object PluginSerializers {
@@ -17,47 +17,118 @@ object PluginSerializers {
     override def write(pluginList: PluginList)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsObject(
         for((_, plugins) <- pluginList.pluginsByType; plugin <- plugins) yield {
-          plugin.id.toString -> serializePlugin(plugin, pluginList.serializeMarkdownDocumentation)
+          plugin.id.toString -> serializePlugin(plugin, pluginList.serializeMarkdownDocumentation, pluginList.overviewOnly, taskType = None)
         }
       )
     }
 
-    private def serializePlugin(plugin: PluginDescription[_], withMarkdownDocumentation: Boolean): JsObject = {
+    def serializePlugin(plugin: PluginDescription[_], withMarkdownDocumentation: Boolean, overviewOnly: Boolean, taskType: Option[String])
+                       (implicit writeContext: WriteContext[JsValue]): JsObject = {
       val markdownDocumentation = if(withMarkdownDocumentation && plugin.documentation.nonEmpty){
         Some((MARKDOWN_DOCUMENTATION_PARAMETER -> JsString(plugin.documentation)))
       } else { None }
-      JsObject(
-        Seq(
-          "title" -> JsString(plugin.label),
-          "categories" -> JsArray(plugin.categories.map(JsString)),
-          "description" -> JsString(plugin.description),
-          "type" -> JsString("object"),
-          "properties" -> JsObject(serializeParams(plugin.parameters)),
-          "required" -> JsArray(plugin.parameters.filterNot(_.defaultValue.isDefined).map(_.name).map(JsString))
-        ) ++ markdownDocumentation
+      val metaData = Seq(
+        "title" -> JsString(plugin.label),
+        "categories" -> JsArray(plugin.categories.map(JsString)),
+        "description" -> JsString(plugin.description)
       )
+      val tt = taskType.map(t => JsonSerializers.TASKTYPE -> JsString(t)).toSeq
+      val details = Seq (
+        "type" -> JsString("object"),
+        "properties" -> JsObject(serializeParams(plugin.parameters)),
+        "required" -> JsArray(plugin.parameters.filterNot(_.defaultValue.isDefined).map(_.name).map(JsString)),
+        "pluginId" -> JsString(plugin.id)
+      ).filter(_ => !overviewOnly)
+      JsObject(metaData ++ tt ++ details ++ markdownDocumentation)
     }
 
-    private def serializeParams(params: Seq[Parameter]) = {
+    private def serializeParams(params: Seq[Parameter])
+                               (implicit writeContext: WriteContext[JsValue]): Seq[(String, JsValue)] = {
       for(param <- params) yield {
         param.name -> serializeParam(param)
       }
     }
 
-    private def serializeParam(param: Parameter) = {
-      val defaultValue = param.stringDefaultValue(Prefixes.empty) match {
-        case Some(value) => JsString(value)
-        case None => JsNull
+    private def serializeParam(param: Parameter)
+                              (implicit writeContext: WriteContext[JsValue]): JsValue = {
+      val defaultValue: JsValue = (param.parameterType, param.defaultValue) match {
+        case (objectType: PluginObjectParameterTypeTrait, Some(v)) =>
+          serializeParameterValue(objectType.pluginObjectParameterClass, v)
+        case (_, Some(_)) =>
+          JsString(param.stringDefaultValue(Prefixes.empty).get)
+        case (_, None) => JsNull
+      }
+      val pluginId: Option[String] = param.parameterType match {
+        case objectType: PluginObjectParameterTypeTrait => objectType.pluginDescription.map(_.id.toString)
+        case _ => None
       }
 
-      Json.obj(
-        "title" -> JsString(param.label),
-        "description" -> JsString(param.description),
-        "type" -> JsString(param.dataType.name),
-        "value" -> defaultValue,
-        "advanced" -> JsBoolean(param.advanced)
-      )
+      val (parameters, requiredList): (Option[JsObject], Option[Seq[String]]) = param.parameterType match {
+        case objectType: PluginObjectParameterTypeTrait if param.visibleInDialog =>
+          val pluginDescription = PluginDescription(objectType.pluginObjectParameterClass)
+          val parameters = JsObject(pluginDescription.parameters.map(p => p.name -> serializeParam(p)))
+          val requiredParameters = pluginDescription.parameters.filterNot(_.defaultValue.isDefined).map(_.name)
+          (Some(parameters), Some(requiredParameters))
+        case _ => (None, None)
+      }
+      Json.toJson(PluginParameterJsonPayload(
+        title = param.label,
+        description = param.description,
+        `type` = param.parameterType.jsonSchemaType,
+        parameterType = param.parameterType.name,
+        value = defaultValue,
+        advanced = param.advanced,
+        visibleInDialog = param.visibleInDialog,
+        autoCompletion = param.autoCompletion.map(autoComplete => ParameterAutoCompletionJsonPayload(
+          allowOnlyAutoCompletedValues = autoComplete.allowOnlyAutoCompletedValues,
+          autoCompleteValueWithLabels = autoComplete.autoCompleteValueWithLabels,
+          autoCompletionDependsOnParameters = autoComplete.autoCompletionDependsOnParameters
+        )),
+        properties = parameters,
+        pluginId = pluginId,
+        required = requiredList
+      ))
+    }
+
+    def serializeParameterValue(pluginObjectParameterClass: Class[_],
+                                value: AnyRef)
+                               (implicit writeContext: WriteContext[JsValue]): JsValue = {
+      val jsonFormat = Serialization.formatForDynamicType[JsValue](pluginObjectParameterClass)
+      jsonFormat.write(value)
     }
   }
+}
 
+/**
+  * @param title           Human-readable title of the parameter.
+  * @param description     Description of the parameter.
+  * @param `type`          The JSON type of the parameter, at the moment either "string" or "object".
+  * @param parameterType   The internal parameter type, coming from [[org.silkframework.runtime.plugin.ParameterType]]
+  * @param value           The value of the parameter.
+  * @param advanced        If this parameter is marked as advanced and should be hidden behind an 'advanced' menu in the UI.
+  * @param visibleInDialog If this parameter should be represented in a UI dialog. If set to false the parameter must not be shown in the dialog and no value must be set in any backend request.
+  * @param autoCompletion  Optional auto-completion information.
+  * @param properties      Optional properties if this is a nested object parameter that can be shown in the UI.
+  * @param pluginId        Optional plugin ID, if this parameter is itself a plugin.
+  * @param required For object parameter types it will list the required parameters.
+  */
+case class PluginParameterJsonPayload(title: String,
+                                      description: String,
+                                     `type`: String,
+                                      parameterType: String,
+                                      value: JsValue,
+                                      advanced: Boolean,
+                                      visibleInDialog: Boolean,
+                                      autoCompletion: Option[ParameterAutoCompletionJsonPayload],
+                                      properties: Option[JsObject],
+                                      pluginId: Option[String],
+                                      required: Option[Seq[String]])
+
+case class ParameterAutoCompletionJsonPayload(allowOnlyAutoCompletedValues: Boolean,
+                                              autoCompleteValueWithLabels: Boolean,
+                                              autoCompletionDependsOnParameters: Seq[String])
+
+object PluginParameterJsonPayload {
+  implicit val parameterAutoCompletionJsonPayloadFormat: Format[ParameterAutoCompletionJsonPayload] = Json.format[ParameterAutoCompletionJsonPayload]
+  implicit val pluginParameterJsonPayloadFormat: Format[PluginParameterJsonPayload] = Json.format[PluginParameterJsonPayload]
 }

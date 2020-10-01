@@ -1,22 +1,53 @@
 import sbt._
+import java.io._
 
 //////////////////////////////////////////////////////////////////////////////
 // Common Settings
 //////////////////////////////////////////////////////////////////////////////
 
 val NEXT_VERSION = "3.1.0"
-val silkVersion = sys.env.getOrElse("GIT_DESCRIBE", NEXT_VERSION + "-SNAPSHOT")
+val silkVersion = {
+  val version = sys.env.getOrElse("GIT_DESCRIBE", NEXT_VERSION + "-SNAPSHOT")
+  val configPath = "silk-workbench/silk-workbench-core/conf/reference.conf"
+  // Check if silk is located inside a sub-folder
+  val outFile = if(new File("silk").exists()) {
+    new File("silk", configPath)
+  } else {
+    new File(configPath)
+  }
+  val os = new FileWriter(outFile)
+  os.append(s"workbench.version = $version")
+  os.flush()
+  os.close()
+  version
+}
 
 concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
 
+val scalaTestOptions = {
+  if(sys.env.getOrElse("BUILD_ENV", "develop").toLowerCase == "production") {
+    "-oDW"
+  } else {
+    "-oD"
+  }
+}
+
 lazy val commonSettings = Seq(
   organization := "org.silkframework",
-  version := silkVersion,
+  version := {
+    if(SilkBuildHelpers.isSnapshotVersion(silkVersion)) {
+      NEXT_VERSION + "-SNAPSHOT"
+    } else {
+      silkVersion
+    }
+  },
   // Building
   scalaVersion := "2.11.12",
   publishTo := {
     val artifactory = "https://artifactory.eccenca.com/"
-    if (isSnapshot.value) {
+    // Assumes that version strings for releases, e.g. v3.0.0 or v3.0.0-rc3, do not have a postfix of length 5 or longer.
+    // Length 5 was chosen as lower limit because of the "dirty" postfix. Note that isSnapshot does not do the right thing here.
+    if (SilkBuildHelpers.isSnapshotVersion(silkVersion)) {
       Some("snapshots" at artifactory + "maven-ecc-snapshot")
     } else {
       Some("releases" at artifactory + "maven-ecc-release")
@@ -32,7 +63,7 @@ lazy val commonSettings = Seq(
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
   libraryDependencies += "com.google.inject" % "guice" % "4.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
-  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", "-oD"),
+  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
   dependencyOverrides ++= Set(
     "com.google.guava" % "guava" % "18.0",
@@ -125,7 +156,7 @@ lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
   )
 
 lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
-  .dependsOn(core, workspace % "test -> compile;test -> test", pluginsRdf % "test->compile")
+  .dependsOn(core, workspace % "compile -> compile;test -> test", pluginsRdf % "test->compile")
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins XML",
@@ -137,23 +168,24 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins JSON",
-    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.6.12",
-    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.8.6"
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.8.6",
+    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.6.12"
   )
 
-lazy val pluginsSpatialTemporal = (project in file("silk-plugins/silk-plugins-spatial-temporal"))
-  .dependsOn(rules)
-  .settings(commonSettings: _*)
-  .settings(
-    name := "Silk Plugins SpatialTemporal",
-    libraryDependencies += "com.vividsolutions" % "jts" % "1.13",
-    libraryDependencies += "org.jvnet.ogc" % "ogc-tools-gml-jts" % "1.0.3",
-    libraryDependencies += "org.geotools" % "gt-opengis" % "13.1",
-    libraryDependencies += "org.geotools" % "gt-referencing" % "13.1",
-    libraryDependencies += "org.geotools" % "gt-jts-wrapper" % "13.1",
-    libraryDependencies += "org.geotools" % "gt-epsg-wkt" % "13.1",
-    resolvers += "OpenGeo Maven Repository" at "http://download.osgeo.org/webdav/geotools/"
-  )
+// pluginsSpatialTemporal has been removed as it uses dependencies from external unreliable repositories
+//lazy val pluginsSpatialTemporal = (project in file("silk-plugins/silk-plugins-spatial-temporal"))
+//  .dependsOn(rules)
+//  .settings(commonSettings: _*)
+//  .settings(
+//    name := "Silk Plugins SpatialTemporal",
+//    libraryDependencies += "com.vividsolutions" % "jts" % "1.13",
+//    libraryDependencies += "org.jvnet.ogc" % "ogc-tools-gml-jts" % "1.0.3",
+//    libraryDependencies += "org.geotools" % "gt-opengis" % "13.1",
+//    libraryDependencies += "org.geotools" % "gt-referencing" % "13.1",
+//    libraryDependencies += "org.geotools" % "gt-jts-wrapper" % "13.1",
+//    libraryDependencies += "org.geotools" % "gt-epsg-wkt" % "13.1",
+//    resolvers += "OpenGeo Maven Repository" at "http://download.osgeo.org/webdav/geotools/"
+//  )
 
 lazy val pluginsAsian = (project in file("silk-plugins/silk-plugins-asian"))
   .dependsOn(rules)
@@ -171,7 +203,6 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   )
 
 // Aggregate all plugins
-// pluginsSpatialTemporal has been removed as it uses dependencies from external unreliable repositories
 lazy val plugins = (project in file("silk-plugins"))
   .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson)
   .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson)
@@ -250,14 +281,11 @@ lazy val reactComponents = (project in file("silk-react-components"))
 
 lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
   .enablePlugins(PlayScala)
-  .enablePlugins(BuildInfoPlugin)
-  .dependsOn(workspace, workspace % "test -> test", core % "test->test", serializationJson, reactComponents, pluginsXml % "test->compile")
+  .dependsOn(workspace, workspace % "test -> test", core % "test->test", serializationJson, reactComponents, pluginsXml % "test->compile", pluginsRdf % "test->compile")
   .aggregate(workspace, reactComponents)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench Core",
-    buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion),
-    buildInfoPackage := "org.silkframework.buildInfo",
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
     libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % "test",

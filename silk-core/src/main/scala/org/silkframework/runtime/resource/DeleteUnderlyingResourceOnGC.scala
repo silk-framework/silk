@@ -8,15 +8,23 @@ import scala.util.Try
   * The use case is that there is no other way to know when a resource is not needed anymore, but can be definitely considered
   * as waste when it gets garbage collected.
   */
-trait DeleteUnderlyingResourceOnGC { self: WritableResource =>
+trait DeleteUnderlyingResourceOnGC extends DoSomethingOnGC { self: WritableResource =>
   /** Decide if the deletion on GC should be triggered or not. */
   def deleteOnGC: Boolean
+
+  override def finalAction(): Unit = {
+    if(deleteOnGC) {
+      Try(delete())
+    }
+  }
+}
+
+trait DoSomethingOnGC {
+  def finalAction(): Unit
 
   /** Is triggered on GC. */
   override def finalize(): Unit = {
     super.finalize()
-    if(deleteOnGC) {
-      Try(delete())
-    }
+    finalAction()
   }
 }

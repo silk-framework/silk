@@ -27,6 +27,9 @@ object SampleUtil {
                 size: Int,
                 filterOpt: Option[T => Boolean])
                (implicit m: ClassTag[T], random: Random): Seq[T] = {
+    if(size <= 0) {
+      return Seq.empty
+    }
     val sample = new Array[T](size)
 
     var valueCount = 0l

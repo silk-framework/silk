@@ -2,7 +2,7 @@ package controllers.workspace
 
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
-import org.silkframework.config.CustomTask
+import org.silkframework.config.{CustomTask, MetaData}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
@@ -25,7 +25,7 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait {
     PluginRegistry.registerPlugin(classOf[SimpleActivityFactory])
     PluginRegistry.registerPlugin(classOf[MultiActivityFactory])
 
-    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectId))
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectId, metaData = MetaData(projectId)))
     project.addTask[MessageTask](taskId, MessageTask(message))
   }
 

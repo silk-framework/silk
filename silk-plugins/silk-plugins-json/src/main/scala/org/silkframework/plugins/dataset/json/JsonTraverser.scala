@@ -1,5 +1,8 @@
 package org.silkframework.plugins.dataset.json
 
+import java.net.{URLDecoder, URLEncoder}
+import java.nio.charset.StandardCharsets
+
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
@@ -18,7 +21,8 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
   def children(prop: Uri): Seq[JsonTraverser] = {
     value match {
       case obj: JsObject =>
-        obj.value.get(prop.uri).toSeq.map(value => asNewParent(prop, value))
+        val decodedProp = URLDecoder.decode(prop.uri, StandardCharsets.UTF_8.name)
+        obj.value.get(decodedProp).toSeq.map(value => asNewParent(prop, value))
       case array: JsArray if array.value.nonEmpty =>
         array.value.flatMap(v => keepParent(v).children(prop))
       case _ =>
@@ -37,7 +41,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
 
     def fetchChildPaths(obj: JsObject) = {
       obj.keys.toSeq.flatMap(key =>
-        asNewParent(key, obj.value(key)).collectPaths(path :+ ForwardOperator(key), leafPathsOnly, innerPathsOnly, depth - 1))
+        asNewParent(key, obj.value(key)).collectPaths(path :+ ForwardOperator(URLEncoder.encode(key, StandardCharsets.UTF_8.name)), leafPathsOnly, innerPathsOnly, depth - 1))
     }
 
     value match {
@@ -112,51 +116,60 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
     * @param path The path starting from the given json node.
     * @return All found values
     */
-  def evaluate(path: Seq[PathOperator]): Seq[String] = {
+  def evaluate(path: Seq[PathOperator], generateUris: Boolean): Seq[String] = {
     path match {
       case ForwardOperator(prop) :: tail =>
-        children(prop).flatMap(child => child.evaluate(tail))
+        prop.uri match {
+          case "#id" =>
+            Seq(nodeId(value))
+          case "#text" =>
+            nodeToValue(value, generateUris)
+          case _ =>
+            children(prop).flatMap(child => child.evaluate(tail, generateUris))
+        }
       case BackwardOperator(prop) :: tail =>
         parentOpt match {
           case Some(parent) =>
-            parent.traverser.evaluate(tail)
+            parent.traverser.evaluate(tail, generateUris)
           case None =>
             Nil
         }
       case (p : PropertyFilter) :: tail =>
-        evaluatePropertyFilter(path, p, tail)
+        evaluatePropertyFilter(path, p, tail, generateUris)
       case Nil =>
-        nodeToValue(value)
+        nodeToValue(value, generateUris)
       case l: LanguageFilter =>
         throw new IllegalArgumentException("For JSON, language filters are not applicable.")
     }
   }
 
-  private def evaluatePropertyFilter(path: Seq[PathOperator], filter: PropertyFilter, tail: List[PathOperator]) = {
+  private def evaluatePropertyFilter(path: Seq[PathOperator], filter: PropertyFilter, tail: List[PathOperator], generateUris: Boolean) = {
     this.value match {
       case obj: JsObject if filter.evaluate("\"" + nodeToString(obj.value(filter.property.uri)) + "\"") =>
-        evaluate(tail)
+        evaluate(tail, generateUris)
       case array: JsArray if array.value.nonEmpty =>
-        array.value.flatMap(v => keepParent(v).evaluate(path))
+        array.value.flatMap(v => keepParent(v).evaluate(path, generateUris))
       case _ =>
         Nil
     }
   }
 
-  def nodeToValue(jsValue: JsValue): Seq[String] = {
+  def nodeToValue(jsValue: JsValue, generateUris: Boolean): Seq[String] = {
     jsValue match {
       case array: JsArray =>
-        array.value.flatMap(nodeToValue)
+        array.value.flatMap(nodeToValue(_, generateUris))
       case jsObject: JsObject =>
-        Seq(generateUri(parentOpt.map(_.property.uri).getOrElse(""), jsObject))
+        Seq(generateUri(jsObject))
       case JsNull =>
         Seq()
-      case other: JsValue =>
-        Seq(nodeToString(other))
+      case v: JsValue if !generateUris =>
+        Seq(nodeToString(v))
+      case v: JsValue =>
+        Seq(generateUri(v))
     }
   }
 
-  def generateUri(path: String, value: JsObject): String = {
+  def generateUri(value: JsValue): String = {
     DataSource.generateEntityUri(taskId, nodeId(value))
   }
 
@@ -164,7 +177,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
     nodeToString(value).hashCode.toString
   }
 
-  def evaluate(path: UntypedPath): Seq[String] = evaluate(path.operators)
+  def evaluate(path: TypedPath): Seq[String] = evaluate(path.operators, path.valueType == ValueType.URI)
 
   /**
     * Converts a simple json node, such as a number, to a string.

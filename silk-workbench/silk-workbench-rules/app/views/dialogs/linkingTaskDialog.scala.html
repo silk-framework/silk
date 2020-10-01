@@ -13,7 +13,7 @@
 
 @currentInputs = @{ linkingTask.map(_.data.dataSelections) }
 
-@currentOutput = @{ linkingTask.flatMap(_.data.outputs.headOption) }
+@currentOutput = @{ linkingTask.flatMap(_.data.output) }
 
 @prefixes = @{ WorkspaceFactory().workspace.project(project).config.prefixes }
 
@@ -131,19 +131,21 @@
       id: @if(!task.isEmpty) {'@task'} else {$("#linking_task_name").val()},
       data: {
         taskType: "Linking",
-        source: {
-          inputId: $("#source_dataset").val(),
-          typeUri: $("#source_type").val(),
-          restriction: $("#source").val()
-        },
-        target: {
-          inputId: $("#target_dataset").val(),
-          typeUri: $("#target_type").val(),
-          restriction: $("#target").val()
-        },
-        outputs: $("#output_dataset").val().split(" ").filter(String),
-        linkLimit: parseInt($("#link_limit").val()),
-        matchingExecutionTimeout: parseInt($("#matching_execution_timeout").val())
+        parameters: {
+          source: {
+            inputId: $("#source_dataset").val(),
+            typeUri: $("#source_type").val(),
+            restriction: $("#source").val()
+          },
+          target: {
+            inputId: $("#target_dataset").val(),
+            typeUri: $("#target_type").val(),
+            restriction: $("#target").val()
+          },
+          output: $("#output_dataset").val(),
+          linkLimit: parseInt($("#link_limit").val()),
+          matchingExecutionTimeout: parseInt($("#matching_execution_timeout").val())
+        }
       }
     };
 

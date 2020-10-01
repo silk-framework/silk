@@ -5,7 +5,7 @@ import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr}
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, MustMatchers}
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.dataset.rdf.{SparqlEndpoint, SparqlParams, SparqlResults}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{EntitySchema, Restriction}
 import org.silkframework.plugins.dataset.rdf.datasets.SparqlDataset
@@ -169,6 +169,19 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers with B
     val entitySchema = schema(Person, Seq(path(name)))
     val entities = retriever.retrieve(entitySchema, entities = Seq(), limit = Some(1)).toArray.toSeq
     entities.size mustBe 1
+  }
+
+  it should "fail if the endpoint returns an error" in {
+    val entitySchema = schema(Person, Seq(path(city), path(country)))
+    val failingEndpoint = new SparqlEndpoint {
+      override def select(query: String, limit: Int)(implicit userContext: UserContext): SparqlResults = {
+        throw new Exception("Query failed")
+      }
+      override def sparqlParams: SparqlParams = SparqlParams()
+      override def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint = this
+    }
+    val failingRetriever = entityRetriever(failingEndpoint, graphUri = Some(GRAPH))
+    an [Exception] should be thrownBy failingRetriever.retrieve(entitySchema, entities = Seq(), limit = None).toArray.toSeq
   }
 
   private def schema(typeUri: String,

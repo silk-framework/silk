@@ -3,7 +3,7 @@ package controllers.linking
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import javax.inject.Inject
 import models.linking.EvalLink._
-import models.linking.{EvalLink, LinkSorter}
+import models.linking.{EvalLink, LinkResolver, LinkSorter}
 import org.silkframework.entity.{Entity, Link, MinimalLink}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.DetailedEvaluator
@@ -33,6 +33,7 @@ class ReferenceLinksManager @Inject() () extends InjectedController {
     def linkageRule = linkSpec.rule
     def entities = task.activity[ReferenceEntitiesCache].value()
     val linkSorter = LinkSorter.fromId(sorting)
+    val linkResolvers = LinkResolver.forLinkingTask(task)
 
     // Checks if a pair of entities provides values for all paths in the current linkage rule
     def hasPaths(entities: DPair[Entity]): Boolean = {
@@ -109,7 +110,7 @@ class ReferenceLinksManager @Inject() () extends InjectedController {
       }
     }
 
-    Ok(views.html.widgets.linksTable(project, task, links, None, linkSorter, filter, page, showStatus = true, showDetails = true, showEntities = false, rateButtons = false))
+    Ok(views.html.widgets.linksTable(project, task, links, None, linkResolvers, linkSorter, filter, page, showStatus = true, showDetails = true, showEntities = false, rateButtons = false))
   }
 
   def addLinkDialog(project: String, task: String) = Action {

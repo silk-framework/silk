@@ -14,35 +14,24 @@
 
 package org.silkframework.workspace
 
-import java.io.File
 import java.util.logging.{Level, Logger}
-import javax.inject.Inject
 
+import javax.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.workspace.resources.{PerProjectFileRepository, ResourceRepository}
-import org.silkframework.workspace.xml._
+import org.silkframework.workspace.resources.ResourceRepository
 
-class FileWorkspaceFactory extends WorkspaceFactory {
+class PluginBasedWorkspaceFactory extends WorkspaceFactory {
 
-  override def workspace(implicit userContext: UserContext): Workspace = FileWorkspaceFactory.workspace
+  override def workspace(implicit userContext: UserContext): Workspace = PluginBasedWorkspaceFactory.workspace
 
 }
 
-object FileWorkspaceFactory {
+object PluginBasedWorkspaceFactory {
   private val log: Logger = Logger.getLogger(this.getClass.getName.stripSuffix("$"))
   @Inject
   private var configMgr: Config = DefaultConfig.instance
-
-  lazy val workspaceDir: File = {
-    val eldsHome = System.getenv("ELDS_HOME")
-    if(eldsHome != null) {
-      new File(eldsHome + "/var/dataintegration/workspace/")
-    } else {
-      new File(System.getProperty("user.home") + "/.silk/workspace/")
-    }
-  }
 
   private var _workspace: Option[Workspace] = None
 
@@ -56,7 +45,7 @@ object FileWorkspaceFactory {
           w
         } catch {
           case ex: Exception => {
-            Logger.getLogger(FileWorkspaceFactory.getClass.getName).log(Level.SEVERE, "Error loading workspace", ex)
+            Logger.getLogger(PluginBasedWorkspaceFactory.getClass.getName).log(Level.SEVERE, "Error loading workspace", ex)
             throw ex
           }
         }
@@ -71,7 +60,7 @@ object FileWorkspaceFactory {
         log.info("Using configured workspace provider " + configMgr().getString("workspace.provider.plugin"))
         provider
       } else {
-        FileWorkspaceProvider(workspaceDir.getAbsolutePath)
+        throw new RuntimeException("Workspace not configured, cannot initialize! Please configure 'workspace.provider.*'.")
       }
 
     val repository: ResourceRepository =
@@ -80,7 +69,7 @@ object FileWorkspaceFactory {
         log.info("Using configured workspace repository type " + configMgr().getString("workspace.repository.plugin"))
         repository
       } else {
-        PerProjectFileRepository(workspaceDir.getAbsolutePath)
+        throw new RuntimeException("Workspace repository not configured, cannot initialize! Please configure 'workspace.repository.*'.")
       }
 
     // Create workspace

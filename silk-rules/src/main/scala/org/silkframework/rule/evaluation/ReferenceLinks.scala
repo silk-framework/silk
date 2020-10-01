@@ -17,13 +17,14 @@
 package org.silkframework.rule.evaluation
 
 import org.silkframework.entity.{Link, MinimalLink}
+import org.silkframework.runtime.plugin.PluginObjectParameterNoSchema
 
 import scala.xml.Node
 
 /**
  * A set of positive and negative reference links.
  */
-case class ReferenceLinks(positive: Set[Link] = Set.empty, negative: Set[Link] = Set.empty, unlabeled: Set[Link] = Set.empty) {
+case class ReferenceLinks(positive: Set[Link] = Set.empty, negative: Set[Link] = Set.empty, unlabeled: Set[Link] = Set.empty) extends PluginObjectParameterNoSchema {
   /**
    * Adds a new positive reference link and returns the updated reference links.
    * Removes the given link from the negative reference links if it is contained in it.
