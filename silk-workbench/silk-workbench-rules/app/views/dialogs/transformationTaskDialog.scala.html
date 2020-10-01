@@ -3,6 +3,8 @@
 @import org.silkframework.workspace.WorkspaceFactory
 
 @import org.silkframework.runtime.activity.UserContext
+@import org.silkframework.rule.TransformSpec.TargetVocabularyParameterType
+@import org.silkframework.config.Prefixes
 @(project: String, task: String, createDialog: Boolean)(implicit userContext: UserContext)
 
 @datasets = @{ WorkspaceFactory().workspace.project(project).tasks[GenericDatasetSpec].toSeq }
@@ -47,7 +49,7 @@
   } else {
     @widgets.datasetSelect(project, "output", None)
   }
-  @widgets.multilineParameter("target_vocabularies", transformationTask.map(_.targetVocabularies.mkString(", ")).getOrElse(""), label = "Target Vocabularies", tooltip = "Comma-separated list of target vocabularies.")
+  @widgets.multilineParameter("target_vocabularies", transformationTask.map(t => TargetVocabularyParameterType().toString(t.targetVocabularies)(Prefixes.empty)).getOrElse(""), label = "Target Vocabularies", tooltip = "Comma-separated list of target vocabularies.")
 </div>
 }
 

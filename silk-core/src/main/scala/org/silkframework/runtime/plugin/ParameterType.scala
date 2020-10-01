@@ -114,6 +114,13 @@ case class PluginObjectParameterNoSchemaType(pluginObjectParameterClass: Class[_
   override def name: String = "pluginObjectParameterNoSchema"
 }
 
+/** Trait for plugin parameters that can be serialized to string, but that are not defined in the core package.
+  * They must have a PluginStringParameterType implementation that handles it. */
+trait PluginStringParameter
+
+/** Parameter type that implements a PluginStringParameter parameter. */
+abstract class PluginStringParameterType[T <: PluginStringParameter : ClassTag] extends StringParameterType[T]
+
 /**
   * Represents a plugin parameter type and provides string-based serialization.
   * This is suitable for plugin parameters that have a simple string based serialization.

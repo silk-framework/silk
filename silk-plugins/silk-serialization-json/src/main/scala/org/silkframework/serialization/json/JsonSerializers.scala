@@ -7,6 +7,7 @@ import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, DatasetTask}
 import org.silkframework.entity._
+import org.silkframework.rule.TransformSpec.{TargetVocabularyListParameter, TargetVocabularyParameterType}
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
 import org.silkframework.rule.similarity._
@@ -700,8 +701,8 @@ object JsonSerializers {
             output = stringValueOption(parametersObj, OUTPUT).filter(_.trim.nonEmpty).map(v => Identifier(v.trim)),
             targetVocabularies = {
               val vocabs = stringValueOption(parametersObj, TARGET_VOCABULARIES).
-                  map(str => str.split("\\s*,\\s*").toSeq).
-                  getOrElse(Seq.empty)
+                  map(TargetVocabularyParameterType().fromString).
+                  getOrElse(TargetVocabularyListParameter(Seq.empty))
               vocabs
             }
           )
@@ -714,7 +715,7 @@ object JsonSerializers {
         selection = fromJson[DatasetSelection](mustBeDefined(value, SELECTION)),
         mappingRule = optionalValue(value, DEPRECATED_RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty),
         output = mustBeJsArray(mustBeDefined(value, DEPRECATED_OUTPUTS))(_.value.map(v => Identifier(v.as[JsString].value))).headOption,
-        targetVocabularies = mustBeJsArray(mustBeDefined(value, TARGET_VOCABULARIES))(_.value.map(_.as[JsString].value))
+        targetVocabularies = TargetVocabularyListParameter(mustBeJsArray(mustBeDefined(value, TARGET_VOCABULARIES))(_.value.map(_.as[JsString].value)))
       )
     }
 
@@ -722,6 +723,7 @@ object JsonSerializers {
       * Serializes a value.
       */
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      implicit val prefixes: Prefixes = writeContext.prefixes
       Json.obj(
         TASKTYPE -> TASK_TYPE_TRANSFORM,
         TYPE -> "transform",
@@ -729,7 +731,7 @@ object JsonSerializers {
           SELECTION -> toJson(value.selection),
           RULES_PROPERTY -> toJson(value.mappingRule),
           OUTPUT -> JsString(value.output.map(_.toString).getOrElse("")),
-          TARGET_VOCABULARIES -> JsString(value.targetVocabularies.toSeq.mkString(", "))
+          TARGET_VOCABULARIES -> JsString(TargetVocabularyParameterType().toString(value.targetVocabularies))
         ))
       )
     }

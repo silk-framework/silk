@@ -1,6 +1,7 @@
 package controllers.transform
 
 import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.rule.TransformSpec.TargetVocabularyListParameter
 import org.silkframework.rule._
 import org.silkframework.serialization.json.JsonSerializers._
 
@@ -102,7 +103,7 @@ class TargetVocabularyApiTest extends TransformTaskApiTestBase {
       TransformSpec(
         selection = DatasetSelection("source", "https://ns.eccenca.com/source/Person"),
         mappingRule = RootMappingRule.empty,
-        targetVocabularies = Seq("foaf.rdf")
+        targetVocabularies = TargetVocabularyListParameter(Seq("foaf.rdf"))
       )
     val transformTask = PlainTask(task, transformSpec)
     val request = client.url(s"$baseUrl/transform/tasks/$project/$task")

@@ -25,6 +25,7 @@ import play.api.libs.json._
 import play.api.mvc._
 import TransformTaskApi._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.rule.TransformSpec.{TargetVocabularyListParameter, TargetVocabularyParameterType}
 import org.silkframework.runtime.plugin.IdentifierOptionParameter
 
 class TransformTaskApi @Inject() () extends InjectedController {
@@ -49,7 +50,10 @@ class TransformTaskApi @Inject() () extends InjectedController {
         val input = DatasetSelection(values("source"), Uri.parse(values.getOrElse("sourceType", ""), prefixes),
           Restriction.custom(values.getOrElse("restriction", "")))
         val output = values.get("output").filter(_.nonEmpty).map(Identifier(_))
-        val targetVocabularies = values.get("targetVocabularies").toSeq.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
+        val targetVocabularies = values.get("targetVocabularies") match {
+          case Some(v) => TargetVocabularyParameterType().fromString(v)
+          case None => TargetVocabularyListParameter(Seq.empty)
+        }
 
         project.tasks[TransformSpec].find(_.id.toString == taskName) match {
           //Update existing task

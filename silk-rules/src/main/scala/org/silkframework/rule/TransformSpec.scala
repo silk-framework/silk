@@ -8,10 +8,14 @@ import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
-import org.silkframework.rule.TransformSpec.RuleSchemata
+import org.silkframework.rule.TransformSpec.{RuleSchemata, TargetVocabularyListParameter, TargetVocabularyParameter}
 import org.silkframework.rule.task.DatasetOrTransformTaskAutoCompletionProvider
-import org.silkframework.runtime.plugin.{IdentifierOptionParameter, StringTraversableParameter}
+import org.silkframework.rule.vocab.TargetVocabularyParameterEnum
+import org.silkframework.runtime.plugin.StringParameterType.{EnumerationType, StringTraversableParameterType}
+import org.silkframework.runtime.plugin.StringTraversableParameter.toStringTraversable
+import org.silkframework.runtime.plugin.{IdentifierOptionParameter, PluginStringParameter, PluginStringParameterType, StringTraversableParameter}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.NotFoundException
@@ -53,7 +57,7 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
                            autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
                          errorOutput: IdentifierOptionParameter = IdentifierOptionParameter(None),
                          @Param(label = "Target vocabularies", value = "Target vocabularies this transformation maps to.")
-                         targetVocabularies: StringTraversableParameter = Seq.empty
+                         targetVocabularies: TargetVocabularyParameter = TargetVocabularyListParameter(Seq.empty)
                         ) extends TaskSpec {
 
   /** Retrieves the root rules of this transform spec. */
@@ -315,7 +319,13 @@ object TransformSpec {
       val datasetSelection = DatasetSelection.fromXML((node \ "SourceDataset").head)
       val sink = (node \ "Outputs" \ "Output" \ "@id").headOption.map(_.text).map(Identifier(_))
       val errorSink = (node \ "ErrorOutputs" \ "ErrorOutput" \ "@id").headOption.map(_.text).map(Identifier(_))
-      val targetVocabularies = (node \ "TargetVocabularies" \ "Vocabulary").map(n => (n \ "@uri").text).filter(_.nonEmpty)
+      val targetVocabularyParameter = (node \ "TargetVocabularyCategory").headOption match {
+        case Some(targetVocabularyCategoryNode) =>
+          TargetVocabularyParameterType().fromString(targetVocabularyCategoryNode.text.trim)
+        case None =>
+          // Backwards compatibility
+          TargetVocabularyListParameter((node \ "TargetVocabularies" \ "Vocabulary").map(n => (n \ "@uri").text).filter(_.nonEmpty))
+      }
 
       val rootMappingRule = {
         // Stay compatible with the old format.
@@ -333,7 +343,7 @@ object TransformSpec {
       }
 
       // Create and return a TransformSpecification instance.
-      TransformSpec(datasetSelection, rootMappingRule, sink, errorSink, targetVocabularies)
+      TransformSpec(datasetSelection, rootMappingRule, sink, errorSink, targetVocabularyParameter)
     }
 
     /**
@@ -349,11 +359,19 @@ object TransformSpec {
         <ErrorOutputs>
           {value.errorOutput.map(o => <ErrorOutput id={o}></ErrorOutput>)}
         </ErrorOutputs>
-      }}<TargetVocabularies>
-        {for (targetVocabulary <- value.targetVocabularies) yield {
-            <Vocabulary uri={targetVocabulary}/>
-        }}
-      </TargetVocabularies>
+      }}
+        {
+          value.targetVocabularies match {
+            case TargetVocabularyCategory(category) =>
+              <TargetVocabularyCategory>{category}</TargetVocabularyCategory>
+            case TargetVocabularyListParameter(vocabularyUris) =>
+              <TargetVocabularies>
+                { for (targetVocabulary <- vocabularyUris) yield {
+                    <Vocabulary uri={targetVocabulary}/>
+                }}
+              </TargetVocabularies>
+          }
+        }
       </TransformSpec>
     }
   }
@@ -375,5 +393,45 @@ object TransformSpec {
       identifierGenerator.add(id)
     }
     identifierGenerator
+  }
+
+  /** Target vocabulary parameter that is backwards compatible and allows configuration by enum ID and the old configuration by listing target vocabulary URIs. */
+  sealed trait TargetVocabularyParameter extends PluginStringParameter {
+    def explicitVocabularies: Seq[String]
+  }
+
+  private val enumParameterType = EnumerationType(classOf[TargetVocabularyParameterEnum])
+
+  /** The old version of a list of vocabularies for backwards compatibility. */
+  case class TargetVocabularyListParameter(value: Traversable[String]) extends TargetVocabularyParameter {
+    override def explicitVocabularies: Seq[String] = value.toSeq
+  }
+  /** The new approach of specifying a category of vocabularies. */
+  case class TargetVocabularyCategory(value: TargetVocabularyParameterEnum) extends TargetVocabularyParameter {
+    override def explicitVocabularies: Seq[String] = Seq.empty
+  }
+
+  /** Converts the target vocabulary parameter. */
+  case class TargetVocabularyParameterType() extends PluginStringParameterType[TargetVocabularyParameter] {
+    override def name: String = "targetVocabularies"
+
+    override def jsonSchemaType: String = "string"
+
+    override def toString(value: TargetVocabularyParameter)(implicit prefixes: Prefixes): String = {
+      value match {
+        case TargetVocabularyListParameter(value) =>
+          value.mkString(", ")
+        case TargetVocabularyCategory(value) =>
+          enumParameterType.toString(value)
+      }
+    }
+
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): TargetVocabularyParameter = {
+      if(enumParameterType.enumerationValues.contains(str)) {
+        TargetVocabularyCategory(enumParameterType.fromString(str).asInstanceOf[TargetVocabularyParameterEnum])
+      } else {
+        TargetVocabularyListParameter(StringTraversableParameterType.fromString(str).value)
+      }
+    }
   }
 }
