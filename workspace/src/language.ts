@@ -15,6 +15,7 @@ i18n.use(initReactI18next)
             en: { translation: en },
             de: { translation: de },
         },
+        fallbackLng: "en",
         debug: isDevelopment,
         interpolation: {},
     });
