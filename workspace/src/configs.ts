@@ -39,8 +39,8 @@ const configs: ISettings = {
         monitorPerformance: false,
         enableStoreDevUtils: false,
         logReduxActions: false,
-        logUselessRenders: true
-    }
+        logUselessRenders: true,
+    },
 };
 
 export default configs;

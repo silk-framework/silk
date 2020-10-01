@@ -5,6 +5,6 @@ export function initialPreviewState(props: Partial<IPreviewState> = {}): IPrevie
         searchResults: [],
         isLoading: false,
         error: {},
-        ...props
-    }
+        ...props,
+    };
 }

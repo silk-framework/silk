@@ -3,7 +3,7 @@ import {
     IAppliedFiltersState,
     IAppliedSorterState,
     IFiltersState,
-    ISortersState
+    ISortersState,
 } from "@ducks/workspace/typings";
 import { IPaginationState } from "../../../typings";
 
@@ -13,8 +13,8 @@ export function initialPaginationState(props: Partial<IPaginationState> = {}): I
         offset: 0,
         current: 1,
         total: 0,
-        ...props
-    }
+        ...props,
+    };
 }
 
 export function initialFiltersState(props: Partial<IFiltersState> = {}): IFiltersState {
@@ -24,37 +24,37 @@ export function initialFiltersState(props: Partial<IFiltersState> = {}): IFilter
         appliedFacets: [],
         pagination: initialPaginationState(),
         sorters: initialSortersState(),
-        ...props
-    }
+        ...props,
+    };
 }
 
 export function initialAppliedSortersState(): IAppliedSorterState {
     return {
-        sortBy: '',
-        sortOrder: ''
-    }
+        sortBy: "",
+        sortOrder: "",
+    };
 }
 
 export function initialSortersState(props: Partial<ISortersState> = {}): ISortersState {
     return {
         list: [],
         applied: initialAppliedSortersState(),
-        ...props
-    }
+        ...props,
+    };
 }
 
 export function initialAppliedFiltersState(props: Partial<IAppliedFiltersState> = {}): IAppliedFiltersState {
     return {
-        textQuery: '',
-        ...props
-    }
+        textQuery: "",
+        ...props,
+    };
 }
 
 export function initialAppliedFacetState(props: Partial<IAppliedFacetState> = {}): IAppliedFacetState {
     return {
-        facetId: '',
-        type: '',
+        facetId: "",
+        type: "",
         keywordIds: [],
-        ...props
-    }
+        ...props,
+    };
 }
