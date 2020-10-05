@@ -11,7 +11,7 @@ interface IProps {
     onRemoveFile(file: UppyFile);
 }
 
-export function CompletedFileItem({ file, onRemoveFile }: IProps) {
+export function UploadedFileItem({ file, onRemoveFile }: IProps) {
     const [t] = useTranslation();
 
     return (

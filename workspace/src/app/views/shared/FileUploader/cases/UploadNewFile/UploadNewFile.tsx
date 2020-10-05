@@ -7,7 +7,7 @@ import { NewFileItem } from "./NewFileItem";
 import { ReplacementFileItem } from "./ReplacementFileItem";
 import { useForceUpdate } from "../../../../../hooks/useForceUpdate";
 import { RetryFileItem } from "./RetryFileItem";
-import { CompletedFileItem } from "./CompletedFileItem";
+import { UploadedFileItem } from "./UploadedFileItem";
 import { FileRemoveModal } from "../../../modals/FileRemoveModal";
 
 interface IProps {
@@ -175,10 +175,10 @@ export function UploadNewFile(props: IProps) {
         if (props.onProgress) {
             props.onProgress(progressAmount);
         }
-        setProgresses({
-            ...progresses,
+        setProgresses((prevState) => ({
+            ...prevState,
             [file.id]: progressAmount,
-        });
+        }));
     };
 
     const handleUploadSuccess = (file: UppyFile) => {
@@ -323,7 +323,7 @@ export function UploadNewFile(props: IProps) {
                         />
                     ))}
                     {uploadedFiles.map((file) => (
-                        <CompletedFileItem key={file.id} file={file} onRemoveFile={setShowDeleteDialog} />
+                        <UploadedFileItem key={file.id} file={file} onRemoveFile={setShowDeleteDialog} />
                     ))}
                 </>
             ) : (
