@@ -66,6 +66,7 @@ DELETE        /projects/:project/customTasks/:name                              
 # Reload Workspace
 POST          /reload                                                           controllers.workspace.WorkspaceApi.reload
 POST          /reloadPrefixes                                                   controllers.workspace.WorkspaceApi.reloadPrefixes
+POST          /updateGlobalVocabularyCache                                      controllers.workspace.WorkspaceApi.updateGlobalVocabularyCache
 POST          /import/:importPlugin                                             controllers.workspace.ProjectMarshalingApi.importWorkspaceViaPlugin(importPlugin: String)
 GET           /export/:exportPlugin                                             controllers.workspace.ProjectMarshalingApi.exportWorkspaceViaPlugin(exportPlugin: String)
 GET           /marshallingPlugins                                               controllers.workspace.ProjectMarshalingApi.availableMarshallingPlugins()
@@ -105,6 +106,9 @@ POST          /projects/:project/tasks/:task/clone                              
 POST          /projects/:project/tasks/:task/copy                               controllers.workspace.TaskApi.copyTask(project: String, task: String)
 GET           /projects/:project/tasks/:task/cachesLoaded                       controllers.workspace.TaskApi.cachesLoaded(project: String, task: String)
 GET           /projects/:project/tasks/:task/downloadOutput                     controllers.workspace.TaskApi.downloadOutput(project: String, task: String)
+
+# Global workspace activities
+GET           /globalWorkspaceActivities                                        controllers.workspace.ActivityApi.globalWorkspaceActivities()
 
 # Project Activities
 GET           /projects/:project/activities                                     controllers.workspace.ActivityApi.getProjectActivities(project: String)

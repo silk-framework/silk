@@ -24,6 +24,10 @@ import scala.language.existentials
 
 class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) extends InjectedController {
 
+  def globalWorkspaceActivities(): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+    Ok(JsonSerializer.globalWorkspaceActivities(WorkspaceFactory().workspace))
+  }
+
   def getProjectActivities(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     Ok(JsonSerializer.projectActivities(project))

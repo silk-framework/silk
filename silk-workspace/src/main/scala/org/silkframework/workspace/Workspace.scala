@@ -17,15 +17,19 @@ package org.silkframework.workspace
 import java.io._
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
-import java.util.logging.Logger
+import java.util.logging.{Level, Logger}
 
 import org.silkframework.config.{DefaultConfig, MetaData, Prefixes}
-import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.validation.ServiceUnavailableException
+import org.silkframework.runtime.activity.{HasValue, UserContext}
+import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.validation.{NotFoundException, ServiceUnavailableException}
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.activity.{GlobalWorkspaceActivity, GlobalWorkspaceActivityFactory}
 import org.silkframework.workspace.resources.ResourceRepository
 
+import scala.reflect.ClassTag
 import scala.util.Try
+import scala.util.control.NonFatal
 
 /**
   * The workspace that manages loading of and access to workspace projects.
@@ -52,6 +56,47 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   // Additional prefixes loaded from the workspace provider that will be added to every project
   private var additionalPrefixes: Prefixes = Prefixes.empty
 
+  // All global workspace activities
+  lazy val activities: Seq[GlobalWorkspaceActivity[_ <: HasValue]] = {
+    val factories = PluginRegistry.availablePlugins[GlobalWorkspaceActivityFactory[_ <: HasValue]].toList
+    var activities = List[GlobalWorkspaceActivity[_ <: HasValue]]()
+    for(factory <- factories) {
+      try {
+        activities ::= new GlobalWorkspaceActivity(factory()(Prefixes.empty))
+      } catch {
+        case NonFatal(ex) =>
+          val errorMsg = s"Could not load workspace activity '$factory'."
+          log.log(Level.WARNING, errorMsg, ex)
+      }
+    }
+    activities.reverse
+  }
+
+  /** Get global workspace activity by name. */
+  def activity(activityName: String): GlobalWorkspaceActivity[_ <: HasValue] = {
+    activities.find(_.name.toString == activityName)
+        .getOrElse(throw NotFoundException(s"The workspace does not contain an activity named '$activityName'. " +
+            s"Available activities: ${activities.map(_.name).mkString(", ")}"))
+  }
+
+  private val activityMap: Map[Class[_], GlobalWorkspaceActivity[_ <: HasValue]] = activities.map(a => (a.factory.activityType, a)).toMap
+
+  /** Get global workspace activity by type. */
+  def activity[T <: HasValue : ClassTag]: GlobalWorkspaceActivity[T] = {
+    val requestedClass = implicitly[ClassTag[T]].runtimeClass
+    val activity = activityMap.getOrElse(requestedClass,
+      throw new NoSuchElementException(s"The workspace does not contain an activity of type '${requestedClass.getName}'. " +
+          s"Available activities:\n${activityMap.keys.map(_.getName).mkString("\n ")}"))
+    activity.asInstanceOf[GlobalWorkspaceActivity[T]]
+  }
+
+  /** Starts all auto-run workspace activities. */
+  private def startWorkspaceActivities()(implicit userContext: UserContext): Unit = {
+    for(activity <- activities if activity.autoRun) {
+      activity.control.start()
+    }
+  }
+
   /** Load the projects of a user into the workspace. At the moment all users have access to all projects, so this is only,
     * executed once. */
   private def loadUserProjects()(implicit userContext: UserContext): Unit = {
@@ -59,6 +104,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     if (!initialized) { // Avoid lock
       if(loadProjectsLock.tryLock(waitForWorkspaceInitialization, TimeUnit.MILLISECONDS)) {
         if(!initialized) { // Should have changed by now, but loadProjects() could also have failed, so double-check
+          startWorkspaceActivities()
           loadProjects()
           initialized = true
         }
@@ -185,6 +231,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   def reload()(implicit userContext: UserContext): Unit = {
     loadUserProjects()
 
+    // TODO: Should global workspace activities also be reloaded?
     // Stop all activities
     for{ project <- projects // Should not work directly on the cached projects
          activity <- project.activities } {
