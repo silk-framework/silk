@@ -7,6 +7,7 @@ import org.silkframework.execution.ExecutionException
 import org.silkframework.rule.TransformRule
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
 import org.silkframework.runtime.activity.ActivityContext
+import org.silkframework.runtime.validation.ValidationException
 
 import scala.util.control.NonFatal
 
@@ -34,7 +35,18 @@ class TransformedEntities(taskLabel: String,
 
   private val propertyRules = rules.filter(_.target.nonEmpty).toIndexedSeq
 
+  // For each schema path, collect all rules that map to it
+  private val rulesPerPath = {
+    if(isRequestedSchema) {
+      for(path <- outputSchema.typedPaths) yield propertyRules.filter(_.target.get.asPath() == path.asUntypedPath)
+    } else {
+      for(path <- outputSchema.typedPaths) yield propertyRules.filter(_.target.get.asTypedPath() == path)
+    }
+  }
+
   private val updateIntervalInMS = 1000
+
+  private var count = 0
 
   private var errorFlag = false
 
@@ -44,50 +56,59 @@ class TransformedEntities(taskLabel: String,
       new TransformReportBuilder(prevReport.label, rules, prevReport)
     }
 
-    // For each schema path, collect all rules that map to it
-    val rulesPerPath = if(isRequestedSchema) { for(path <- outputSchema.typedPaths) yield
-        propertyRules.filter(_.target.get.asPath() == path.asUntypedPath)
-      } else { for(path <- outputSchema.typedPaths) yield
-        propertyRules.filter(_.target.get.asTypedPath() == path)
-      }
-
-    var count = 0
+    count = 0
     var lastUpdateTime = System.currentTimeMillis()
     for(entity <- entities) {
-      errorFlag = false
-      val uris = subjectRule match {
-        case Some(rule) => evaluateRule(entity, rule, report)
-        case None => Seq(entity.uri.toString)
+      mapEntity(entity, f, report)
+      if (count % 1000 == 0 && (System.currentTimeMillis() - lastUpdateTime) > updateIntervalInMS) {
+        context.value.update(report.build())
+        context.status.updateMessage(s"Executing ($count Entities)")
+        lastUpdateTime = System.currentTimeMillis()
       }
 
-      for(uri <- uris) {
+      updateReport(report)
+    }
+    context.value() = report.build()
+    context.status.updateMessage(s"Finished Executing ($count Entities)")
+  }
+
+  private def mapEntity[U](entity: Entity, f: Entity => U, report: TransformReportBuilder): Unit = {
+    errorFlag = false
+    val uris = subjectRule match {
+      case Some(rule) => evaluateRule(entity, rule, report)
+      case None => Seq(entity.uri.toString)
+    }
+
+    if(uris.nonEmpty) {
+      for (uri <- uris) {
         lazy val objectEntity = { // Constructs an entity that only contains object source paths for object mappings
           val uriTypePaths = entity.schema.typedPaths.zip(entity.values).filter(_._1.valueType == ValueType.URI)
           val typedPaths = uriTypePaths.map(_._1)
           val values = uriTypePaths.map(_._2)
           Entity(entity.uri, values, entity.schema.copy(typedPaths = typedPaths))
         }
+
         def evalRule(rule: TransformRule): Seq[String] = { // evaluate rule on the correct entity representation
-          if(rule.representsDefaultUriRule) {
+          if (rule.representsDefaultUriRule) {
             evaluateRule(objectEntity, rule, report)
           } else {
             evaluateRule(entity, rule, report) // This works even though there are still object paths mixed in, because they all are at the end
           }
         }
-        val values = for (rules <- rulesPerPath) yield { rules.flatMap(evalRule) }
+
+        val values = for (rules <- rulesPerPath) yield {
+          rules.flatMap(evalRule)
+        }
         f(Entity(uri, values, outputSchema))
 
         count += 1
-        if (count % 1000 == 0 && (System.currentTimeMillis() - lastUpdateTime) > updateIntervalInMS) {
-          context.value.update(report.build())
-          context.status.updateMessage(s"Executing ($count Entities)")
-          lastUpdateTime = System.currentTimeMillis()
-        }
       }
-      updateReport(report)
+    } else {
+      for(uriRule <- subjectRule) {
+        report.addError(uriRule, entity, new ValidationException("The URI pattern did not generate any URI for this entity."))
+      }
+      errorFlag = true
     }
-    context.value() = report.build()
-    context.status.updateMessage(s"Finished Executing ($count Entities)")
   }
 
   private def updateReport(report: TransformReportBuilder): Unit = {

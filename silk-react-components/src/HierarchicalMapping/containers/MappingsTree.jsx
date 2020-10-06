@@ -184,8 +184,16 @@ class MappingsTree extends React.Component {
 
         const { showValueMappings, handleRuleNavigation } = this.props;
 
+        var allRules = [];
+        if(rules.uriRule !== undefined) {
+            allRules = allRules.concat([rules.uriRule])
+        }
+        if(rules.propertyRules !== undefined) {
+            allRules = allRules.concat(rules.propertyRules)
+        }
+
         // get expanded state
-        const childs = _.chain(rules.propertyRules)
+        const childs = _.chain(allRules)
             .filter(({ type }) => showValueMappings || type === MAPPING_RULE_TYPE_OBJECT)
             .value();
 
