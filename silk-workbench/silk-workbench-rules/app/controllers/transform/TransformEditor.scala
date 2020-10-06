@@ -10,14 +10,14 @@ import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workbench.Context
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.WorkspaceFactory
-import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
+import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache, VocabularyCacheValue}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 class TransformEditor @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with ControllerUtilsTrait {
 
   def start(project: String, task: String, rule: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[TransformSpec](project, task, request.path)
-    val vocabularies = context.task.activity[VocabularyCache].value()
+    val vocabularies = VocabularyCacheValue.targetVocabularies(context.task)
     accessMonitor.saveProjectTaskAccess(project, task)
 
     // TODO: We should check whether the rule exists
@@ -37,7 +37,7 @@ class TransformEditor @Inject() (accessMonitor: WorkbenchAccessMonitor) extends 
 
   def propertyDetails(project: String, task: String, property: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[TransformSpec](project, task, request.path)
-    val vocabularies = context.task.activity[VocabularyCache].value()
+    val vocabularies = VocabularyCacheValue.targetVocabularies(context.task)
     val uri = Uri.parse(property, context.project.config.prefixes)
 
     Ok(views.html.editor.propertyDetails(property, vocabularies.findProperty(uri.uri), context.project.config.prefixes))

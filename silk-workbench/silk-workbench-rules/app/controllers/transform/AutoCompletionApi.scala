@@ -13,7 +13,7 @@ import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.runtime.validation.NotFoundException
-import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
+import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache, VocabularyCacheValue}
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc._
@@ -213,9 +213,10 @@ class AutoCompletionApi @Inject() () extends InjectedController {
     cachedSchemata.fetchCachedPaths(task, sourcePath)
   }
 
-  private def vocabularyTypeCompletions(task: ProjectTask[TransformSpec]): Completions = {
+  private def vocabularyTypeCompletions(task: ProjectTask[TransformSpec])
+                                       (implicit userContext: UserContext): Completions = {
     val prefixes = task.project.config.prefixes
-    val vocabularyCache = task.activity[VocabularyCache].value()
+    val vocabularyCache = VocabularyCacheValue.targetVocabularies(task)
 
     val typeCompletions =
       for(vocab <- vocabularyCache.vocabularies; vocabClass <- vocab.classes) yield {
@@ -231,9 +232,10 @@ class AutoCompletionApi @Inject() () extends InjectedController {
     typeCompletions.distinct
   }
 
-  private def vocabularyPropertyCompletions(task: ProjectTask[TransformSpec]): Completions = {
+  private def vocabularyPropertyCompletions(task: ProjectTask[TransformSpec])
+                                           (implicit userContext: UserContext): Completions = {
     val prefixes = task.project.config.prefixes
-    val vocabularyCache = task.activity[VocabularyCache].value()
+    val vocabularyCache = VocabularyCacheValue.targetVocabularies(task)
 
     val propertyCompletions =
       for(vocab <- vocabularyCache.vocabularies; prop <- vocab.properties) yield {

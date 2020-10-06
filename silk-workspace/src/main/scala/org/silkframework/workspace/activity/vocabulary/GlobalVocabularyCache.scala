@@ -42,12 +42,12 @@ case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
         installVocabulary(vocabManager, vocabURI)
         vocabsToUpdate -= vocabURI
       }
-      // Also update all vocabularies in case a former request failed
-      loadAllInstalledVocabularies(vocabManager)
       context.value.update(new VocabularyCacheValue(cache.values.toSeq))
       // Check if something has changed
       vocabsToUpdate ++= GlobalVocabularyCache.clearAndGetVocabularies
     }
+    // Also update all vocabularies in case a former request has failed
+    loadAllInstalledVocabularies(vocabManager)
     context.value.update(new VocabularyCacheValue(cache.values.toSeq))
   }
 
