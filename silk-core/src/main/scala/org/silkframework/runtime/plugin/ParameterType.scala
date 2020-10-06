@@ -115,7 +115,7 @@ case class PluginObjectParameterNoSchemaType(pluginObjectParameterClass: Class[_
 }
 
 /** Trait for plugin parameters that can be serialized to string, but that are not defined in the core package.
-  * They must have a PluginStringParameterType implementation that handles it. */
+  * They must have a PluginStringParameterType implementation (available in the plugin registry) that handles it. */
 trait PluginStringParameter
 
 /** Parameter type wrapper for PluginStringParameter types. This is necessary since the PluginStringParameterType plugin
