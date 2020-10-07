@@ -140,74 +140,86 @@ export const FileWidget = () => {
                 <CardContent>
                     {isLoading ? (
                         <Loading description={t("widget.FileWidget.loading", "Loading file list.")} />
-                    ) : filesList.length ? (
-                        <>
-                            <Toolbar>
-                                <ToolbarSection canGrow>
-                                    <SearchBar textQuery={textQuery} onSearch={onSearch} data-test-id={"file-search-bar"} />
-                                </ToolbarSection>
-                                <ToolbarSection>
-                                    <Spacing size="tiny" vertical />
-                                    <Button
-                                        elevated
-                                        text={t("common.action.AddSmth", { smth: t("widget.FileWidget.file") })}
-                                        onClick={toggleFileUploader}
-                                    />
-                                </ToolbarSection>
-                            </Toolbar>
-                            <Spacing size="tiny" />
-                            <TableContainer>
-                                <Table>
-                                    <TableHead>
-                                        <TableRow>
-                                            {headers.map((property) => (
-                                                <TableHeader key={property.key}>{property.header}</TableHeader>
-                                            ))}
-                                            <TableHeader key={"fileActions"}>{""}</TableHeader>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {filesList
-                                            .slice(
-                                                (pagination.current - 1) * pagination.limit,
-                                                pagination.current * pagination.limit
-                                            )
-                                            .map((file) => (
-                                                <TableRow key={file.id}>
-                                                    {headers.map((property) => (
-                                                        <TableCell key={property.key}>
-                                                            {property.highlighted ? (
-                                                                <Highlighter
-                                                                    label={file[property.key]}
-                                                                    searchValue={textQuery}
-                                                                />
-                                                            ) : (
-                                                                file[property.key]
-                                                            )}
-                                                        </TableCell>
-                                                    ))}
-                                                    <TableCell key={"fileActions"} className="bx--table-column-menu">
-                                                        <IconButton
-                                                            name="item-remove"
-                                                            text={t("common.action.DeleteSmth", {
-                                                                smth: t("widget.FileWidget.file"),
-                                                            })}
-                                                            small
-                                                            disruptive
-                                                            onClick={() => openDeleteModal(file.id)}
-                                                        />
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                            {filesList.length > Math.min(pagination.total, pagination.minPageSize) ? ( // Don't show if no pagination is needed
-                                <>{paginationElement}</>
-                            ) : null}
-                        </>
                     ) : (
-                        <EmptyFileWidget onFileAdd={toggleFileUploader} />
+                        <>
+                            {(!!textQuery || !!filesList.length) && (
+                                <Toolbar>
+                                    <ToolbarSection canGrow>
+                                        <SearchBar
+                                            textQuery={textQuery}
+                                            onSearch={onSearch}
+                                            data-test-id={"file-search-bar"}
+                                        />
+                                    </ToolbarSection>
+                                    <ToolbarSection>
+                                        <Spacing size="tiny" vertical />
+                                        <Button
+                                            elevated
+                                            text={t("common.action.AddSmth", { smth: t("widget.FileWidget.file") })}
+                                            onClick={toggleFileUploader}
+                                        />
+                                    </ToolbarSection>
+                                </Toolbar>
+                            )}
+                            {!!filesList.length && <Spacing size="tiny" />}
+                            {!!filesList.length && (
+                                <TableContainer>
+                                    <Table>
+                                        <TableHead>
+                                            <TableRow>
+                                                {headers.map((property) => (
+                                                    <TableHeader key={property.key}>{property.header}</TableHeader>
+                                                ))}
+                                                <TableHeader key={"fileActions"}>{""}</TableHeader>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {filesList
+                                                .slice(
+                                                    (pagination.current - 1) * pagination.limit,
+                                                    pagination.current * pagination.limit
+                                                )
+                                                .map((file) => (
+                                                    <TableRow key={file.id}>
+                                                        {headers.map((property) => (
+                                                            <TableCell key={property.key}>
+                                                                {property.highlighted ? (
+                                                                    <Highlighter
+                                                                        label={file[property.key]}
+                                                                        searchValue={textQuery}
+                                                                    />
+                                                                ) : (
+                                                                    file[property.key]
+                                                                )}
+                                                            </TableCell>
+                                                        ))}
+                                                        <TableCell
+                                                            key={"fileActions"}
+                                                            className="bx--table-column-menu"
+                                                        >
+                                                            <IconButton
+                                                                name="item-remove"
+                                                                text={t("common.action.DeleteSmth", {
+                                                                    smth: t("widget.FileWidget.file"),
+                                                                })}
+                                                                small
+                                                                disruptive
+                                                                onClick={() => openDeleteModal(file.id)}
+                                                            />
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            )}
+                            {
+                                // Don't show if no pagination is needed
+                                filesList.length > Math.min(pagination.total, pagination.minPageSize) &&
+                                    paginationElement
+                            }
+                            {!textQuery && !filesList.length && <EmptyFileWidget onFileAdd={toggleFileUploader} />}
+                        </>
                     )}
                 </CardContent>
             </Card>
