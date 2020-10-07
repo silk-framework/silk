@@ -506,12 +506,16 @@ object StringParameterType {
     override def description: String = "One of the following values: " + valueList
 
     override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Enum[_] = {
+      fromStringOpt(str) getOrElse (throw new ValidationException(s"Invalid enumeration value '$str'. Allowed values are: $valueList"))
+    }
+
+    def fromStringOpt(str: String): Option[Enum[_]] = {
       enumConstants.find {
         case e: EnumerationParameterType =>
           e.id == str.trim || e.name == str.trim
         case c: Enum[_] =>
           c.name == str.trim
-      } getOrElse (throw new ValidationException(s"Invalid enumeration value '$str'. Allowed values are: $valueList"))
+      }
     }
 
     def enumerationValues: Seq[String] = enumConstants map enumerationValue

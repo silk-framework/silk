@@ -411,6 +411,8 @@ object TransformSpec {
   /** The new approach of specifying a category of vocabularies. */
   case class TargetVocabularyCategory(value: TargetVocabularyParameterEnum) extends TargetVocabularyParameter {
     override def explicitVocabularies: Seq[String] = Seq.empty
+
+    override def toString: String = TargetVocabularyParameterType.stringValue(this)
   }
 
   /** Converts the target vocabulary parameter. */
@@ -427,10 +429,11 @@ object TransformSpec {
     }
 
     override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): TargetVocabularyParameter = {
-      if(enumParameterType.enumerationValues.contains(str)) {
-        TargetVocabularyCategory(enumParameterType.fromString(str).asInstanceOf[TargetVocabularyParameterEnum])
-      } else {
-        TargetVocabularyListParameter(StringTraversableParameterType.fromString(str).value)
+      enumParameterType.fromStringOpt(str) match {
+        case Some(enumValue) =>
+          TargetVocabularyCategory(enumValue.asInstanceOf[TargetVocabularyParameterEnum])
+        case None =>
+          TargetVocabularyListParameter(StringTraversableParameterType.fromString(str).value)
       }
     }
   }
