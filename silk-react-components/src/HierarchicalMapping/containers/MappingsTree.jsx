@@ -185,10 +185,10 @@ class MappingsTree extends React.Component {
         const { showValueMappings, handleRuleNavigation } = this.props;
 
         var allRules = [];
-        if(rules.uriRule !== undefined) {
+        if(rules.uriRule != null) {
             allRules = allRules.concat([rules.uriRule])
         }
-        if(rules.propertyRules !== undefined) {
+        if(rules.propertyRules != null) {
             allRules = allRules.concat(rules.propertyRules)
         }
 

@@ -422,7 +422,7 @@ class TransformTaskApi @Inject() () extends InjectedController {
                                errorEntitySinkOpt: Option[EntitySink])
                               (implicit userContext: UserContext): Unit = {
     implicit val prefixes: Prefixes = task.project.config.prefixes
-    val transform = new ExecuteTransform(task.taskLabel(), (_) => dataSource, task.data, (_) => entitySink)
+    val transform = new ExecuteTransform(task.id, task.taskLabel(), (_) => dataSource, task.data, (_) => entitySink, (_) => errorEntitySinkOpt)
     Activity(transform).startBlocking()
   }
 

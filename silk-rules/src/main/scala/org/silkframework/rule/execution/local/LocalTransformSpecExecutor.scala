@@ -55,7 +55,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
       // Add input errors to transformation report
       context.value() = context.value().copy(globalErrors = context.value().globalErrors ++ inputTable.globalErrors)
 
-      val transformedEntities = new TransformedEntities(task.taskLabel(), inputTable.entities, rules, outputSchema,
+      val transformedEntities = new TransformedEntities(task.id, task.taskLabel(), inputTable.entities, rules, outputSchema,
         isRequestedSchema = output.requestedSchema.isDefined, context = context)
       outputTables.append(GenericEntityTable(transformedEntities, outputSchema, task))
 
