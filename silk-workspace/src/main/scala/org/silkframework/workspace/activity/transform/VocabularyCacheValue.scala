@@ -55,11 +55,11 @@ object VocabularyCacheValue {
     transformTask.targetVocabularies match {
       case TargetVocabularyCategory(category) =>
         val vocabularies: Seq[Vocabulary] = category match {
-          case TargetVocabularyParameterEnum.allActive =>
+          case TargetVocabularyParameterEnum.`allInstalled` =>
             WorkspaceFactory().workspace.activity[GlobalVocabularyCache].value.get.
                 map(_.vocabularies).
                 getOrElse(Seq.empty)
-          case TargetVocabularyParameterEnum.disabled => Seq.empty
+          case TargetVocabularyParameterEnum.`noVocabularies` => Seq.empty
         }
         new VocabularyCacheValue(vocabularies)
       case TargetVocabularyListParameter(_) =>

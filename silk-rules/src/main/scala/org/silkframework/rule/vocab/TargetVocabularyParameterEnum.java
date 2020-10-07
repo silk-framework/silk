@@ -6,8 +6,8 @@ import org.silkframework.runtime.plugin.EnumerationParameterType;
  * Enum that specifies the vocabulary category a transformation has enabled.
  */
 public enum TargetVocabularyParameterEnum implements EnumerationParameterType {
-  disabled("*disabled*", "disabled"),
-  allActive("*all active*", "All active vocabularies");
+  noVocabularies("no vocabularies", "No vocabularies"),
+  allInstalled("all installed vocabularies", "All installed vocabularies");
 
   private final String id;
   private final String displayName;
