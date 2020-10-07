@@ -144,7 +144,7 @@ export const FileWidget = () => {
                         <>
                             <Toolbar>
                                 <ToolbarSection canGrow>
-                                    <SearchBar textQuery={textQuery} onSearch={onSearch} />
+                                    <SearchBar textQuery={textQuery} onSearch={onSearch} data-test-id={"file-search-bar"} />
                                 </ToolbarSection>
                                 <ToolbarSection>
                                     <Spacing size="tiny" vertical />
