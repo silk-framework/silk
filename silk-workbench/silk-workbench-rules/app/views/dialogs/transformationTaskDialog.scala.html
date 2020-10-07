@@ -49,7 +49,7 @@
   } else {
     @widgets.datasetSelect(project, "output", None)
   }
-  @widgets.multilineParameter("target_vocabularies", transformationTask.map(t => TargetVocabularyParameterType().toString(t.targetVocabularies)(Prefixes.empty)).getOrElse(""), label = "Target Vocabularies", tooltip = "Comma-separated list of target vocabularies.")
+  @widgets.multilineParameter("target_vocabularies", transformationTask.map(t => TargetVocabularyParameterType.toString(t.targetVocabularies)).getOrElse(""), label = "Target Vocabularies", tooltip = "Comma-separated list of target vocabularies.")
 </div>
 }
 

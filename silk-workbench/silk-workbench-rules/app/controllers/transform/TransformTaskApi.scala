@@ -51,7 +51,7 @@ class TransformTaskApi @Inject() () extends InjectedController {
           Restriction.custom(values.getOrElse("restriction", "")))
         val output = values.get("output").filter(_.nonEmpty).map(Identifier(_))
         val targetVocabularies = values.get("targetVocabularies") match {
-          case Some(v) => TargetVocabularyParameterType().fromString(v)
+          case Some(v) => TargetVocabularyParameterType.fromString(v)
           case None => TargetVocabularyListParameter(Seq.empty)
         }
 

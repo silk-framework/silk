@@ -321,7 +321,7 @@ object TransformSpec {
       val errorSink = (node \ "ErrorOutputs" \ "ErrorOutput" \ "@id").headOption.map(_.text).map(Identifier(_))
       val targetVocabularyParameter = (node \ "TargetVocabularyCategory").headOption match {
         case Some(targetVocabularyCategoryNode) =>
-          TargetVocabularyParameterType().fromString(targetVocabularyCategoryNode.text.trim)
+          TargetVocabularyParameterType.fromString(targetVocabularyCategoryNode.text.trim)
         case None =>
           // Backwards compatibility
           TargetVocabularyListParameter((node \ "TargetVocabularies" \ "Vocabulary").map(n => (n \ "@uri").text).filter(_.nonEmpty))
@@ -405,6 +405,8 @@ object TransformSpec {
   /** The old version of a list of vocabularies for backwards compatibility. */
   case class TargetVocabularyListParameter(value: Traversable[String]) extends TargetVocabularyParameter {
     override def explicitVocabularies: Seq[String] = value.toSeq
+
+    override def toString: String = TargetVocabularyParameterType.stringValue(this)
   }
   /** The new approach of specifying a category of vocabularies. */
   case class TargetVocabularyCategory(value: TargetVocabularyParameterEnum) extends TargetVocabularyParameter {
@@ -419,10 +421,8 @@ object TransformSpec {
 
     override def toString(value: TargetVocabularyParameter)(implicit prefixes: Prefixes): String = {
       value match {
-        case TargetVocabularyListParameter(value) =>
-          value.mkString(", ")
-        case TargetVocabularyCategory(value) =>
-          enumParameterType.toString(value)
+        case v: TargetVocabularyListParameter => TargetVocabularyParameterType.stringValue(v)
+        case v: TargetVocabularyCategory => TargetVocabularyParameterType.stringValue(v)
       }
     }
 
@@ -433,5 +433,17 @@ object TransformSpec {
         TargetVocabularyListParameter(StringTraversableParameterType.fromString(str).value)
       }
     }
+  }
+
+  object TargetVocabularyParameterType {
+    private implicit val prefixes: Prefixes = Prefixes.empty
+    private val instance = TargetVocabularyParameterType()
+    def stringValue(v: TargetVocabularyListParameter): String = v.value.mkString(", ")
+
+    def stringValue(v: TargetVocabularyCategory): String = enumParameterType.toString(v.value)
+
+    def fromString(str: String): TargetVocabularyParameter = instance.fromString(str)
+
+    def toString(targetVocabularyParameter: TargetVocabularyParameter): String = instance.toString(targetVocabularyParameter)
   }
 }

@@ -701,7 +701,7 @@ object JsonSerializers {
             output = stringValueOption(parametersObj, OUTPUT).filter(_.trim.nonEmpty).map(v => Identifier(v.trim)),
             targetVocabularies = {
               val vocabs = stringValueOption(parametersObj, TARGET_VOCABULARIES).
-                  map(TargetVocabularyParameterType().fromString).
+                  map(TargetVocabularyParameterType.fromString).
                   getOrElse(TargetVocabularyListParameter(Seq.empty))
               vocabs
             }
@@ -731,7 +731,7 @@ object JsonSerializers {
           SELECTION -> toJson(value.selection),
           RULES_PROPERTY -> toJson(value.mappingRule),
           OUTPUT -> JsString(value.output.map(_.toString).getOrElse("")),
-          TARGET_VOCABULARIES -> JsString(TargetVocabularyParameterType().toString(value.targetVocabularies))
+          TARGET_VOCABULARIES -> JsString(TargetVocabularyParameterType.toString(value.targetVocabularies))
         ))
       )
     }

@@ -22,7 +22,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
                                                                                          defaultFactory: TaskActivityFactory[DataType, ActivityType])
     extends WorkspaceActivity[ActivityType] {
 
-  val project: Project = task.project
+  def project: Project = task.project
 
   override def projectOpt: Option[Project] = Some(project)
 
