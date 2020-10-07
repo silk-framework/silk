@@ -12,7 +12,7 @@ import RootMappingRule from './RootMappingRule';
 import ObjectMappingRuleForm from './MappingRule/ObjectRule/ObjectRuleForm';
 import ValueMappingRuleForm from './MappingRule/ValueRule/ValueRuleForm';
 import MappingsList from './MappingsList/MappingsList';
-import SuggestionsList from './Suggestion/SuggestionsList';
+import SuggestionsListContainer from './SuggestionNew/SuggestionContainer';
 import {
     isRootOrObjectRule,
     MAPPING_RULE_TYPE_COMPLEX,
@@ -341,8 +341,7 @@ class MappingsWorkview extends React.Component {
         
         const listSuggestions = !createRuleForm && this.state.showSuggestions &&
             _.has(this.state, 'ruleData.rules.typeRules') ? (
-                <SuggestionsList
-                    key={_.join(types, ',')}
+                <SuggestionsListContainer
                     ruleId={_.get(this.state.ruleData, 'id', 'root')}
                     onClose={this.handleCloseSuggestions}
                     parent={{

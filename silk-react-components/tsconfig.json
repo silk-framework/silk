@@ -1,18 +1,31 @@
 {
-    "compilerOptions": {
-        "outDir": "./dist/",
-        "sourceMap": true,
-        "noImplicitAny": false,
-        "baseUrl": ".",
-        "paths": {
-            "@gui-elements/*": ["./src/libs/gui-elements/*"]
-        },
-        "module": "commonjs",
-        "target": "es6",
-        "jsx": "react",
-        "allowSyntheticDefaultImports": true,
-        "esModuleInterop": true,
-        "strictNullChecks": true,
-        "resolveJsonModule": true,
-    }
+  "compilerOptions": {
+    "baseUrl": ".",
+    "outDir": "dist/",
+    "paths": {
+      "@gui-elements/*": ["src/libs/gui-elements/*"]
+    },
+    "target": "es5",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "noImplicitAny": false
+  },
+  "include": [
+    "./src"
+  ]
 }
+
