@@ -13,6 +13,7 @@
       } ],
       "warnings" : [ "Validation issues occurred on 251 entities." ],
       "entityErrorCounter" : 251,
+      "globalErrors": [],
       "label" : "simpleTransform",
       "ruleResults" : {
         "releaseDate" : {

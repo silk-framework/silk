@@ -72,8 +72,12 @@ object TransformReport {
     *
     * @param entity The URI of the entity for which the error occurred.
     * @param value The erroneous value
-    * @param exception The cause
+    * @param message The error description
     */
-  case class RuleError(entity: String, value: Seq[Seq[String]], exception: Throwable)
+  case class RuleError(entity: String, value: Seq[Seq[String]], message: String)
+
+  object RuleError {
+    def apply(entity: String, value: Seq[Seq[String]], exception: Throwable): RuleError = new RuleError(entity, value, exception.getMessage)
+  }
 
 }
