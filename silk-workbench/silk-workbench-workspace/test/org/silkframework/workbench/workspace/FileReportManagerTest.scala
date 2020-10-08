@@ -19,10 +19,11 @@ class FileReportManagerTest extends FlatSpec with Matchers {
     withReportManager { reportManager =>
       val report = loadReport("workflowReport.json")
       reportManager.addReport("project", "task", report)
-      val reports = reportManager.retrieveReports("project", "task")
-
+      val reports = reportManager.listReports("project", "task")
       reports should have size 1
-      reports.head shouldEqual report
+
+      val retrievedReport = reportManager.retrieveReport("project", "task", reports.head)
+      retrievedReport shouldEqual report
     }
   }
 
