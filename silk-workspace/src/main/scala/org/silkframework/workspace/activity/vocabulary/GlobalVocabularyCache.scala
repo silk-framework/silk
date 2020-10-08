@@ -25,18 +25,12 @@ case class GlobalVocabularyCacheFactory() extends GlobalWorkspaceActivityFactory
 /** A cache for global vocabularies that can be used in any project. */
 case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
   private val cache: mutable.HashMap[String, Vocabulary] = new mutable.HashMap[String, Vocabulary]()
-  @volatile
-  private var initialized = false
   private var vocabsToUpdate: Set[String] = Set.empty
 
   override def run(context: ActivityContext[VocabularyCacheValue])(implicit userContext: UserContext): Unit = {
     val vocabManager = VocabularyManager()
-    if(!initialized) {
-      loadAllInstalledVocabularies(vocabManager)
-      initialized = true
-    }
     vocabsToUpdate = GlobalVocabularyCache.clearAndGetVocabularies
-    while(vocabsToUpdate.nonEmpty) {
+    while(vocabsToUpdate.nonEmpty && !cancelled) {
       // Update vocabs that were changed by a user
       for(vocabURI <- vocabsToUpdate) {
         installVocabulary(vocabManager, vocabURI)
@@ -51,11 +45,14 @@ case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
     context.value.update(new VocabularyCacheValue(cache.values.toSeq))
   }
 
+  /* Loads all installed vocabularies and removes uninstalled ones.
+     Vocabularies existing in the cache are never reloaded, i.e. new modifications to vocabularies are not detected.
+   */
   private def loadAllInstalledVocabularies(vocabManager: VocabularyManager)
                                           (implicit userContext: UserContext): Unit = {
     val installedVocabularies = vocabManager.retrieveGlobalVocabularies().toSet
     // Install all vocabularies that are not loaded in the cache, yet
-    for (vocabURI <- installedVocabularies if !cache.contains(vocabURI)) {
+    for (vocabURI <- installedVocabularies if !cache.contains(vocabURI) && !cancelled) {
       installVocabulary(vocabManager, vocabURI)
     }
     // Remove uninstalled vocabs

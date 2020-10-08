@@ -104,7 +104,6 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     if (!initialized) { // Avoid lock
       if(loadProjectsLock.tryLock(waitForWorkspaceInitialization, TimeUnit.MILLISECONDS)) {
         if(!initialized) { // Should have changed by now, but loadProjects() could also have failed, so double-check
-          startWorkspaceActivities()
           loadProjects()
           initialized = true
         }
@@ -237,6 +236,9 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
          activity <- project.activities } {
       activity.control.cancel()
     }
+    for(workspaceActivity <- activities) {
+      workspaceActivity.control.cancel()
+    }
     // Refresh workspace provider
     provider.refresh()
 
@@ -291,6 +293,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       log.info("Finished loading project '" + projectConfig.id + "'.")
       project
     }
+    log.info("Starting workspace activities...")
+    startWorkspaceActivities()
     log.info("Starting project activities...")
     for(project <- cachedProjects) {
       project.startActivities()
