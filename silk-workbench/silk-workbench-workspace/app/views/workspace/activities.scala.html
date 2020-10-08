@@ -163,7 +163,7 @@
 }
 
 @globalWorkspaceActivityStatus(activity: GlobalWorkspaceActivity[_ <: HasValue]) = {
-  <li id="@{activity.name}" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}' title="@activity.description">
+  <li id="@id("", "", activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}' title="@activity.description">
     @activity.label
     <div class="activity-progress-small">
       <div class="activity-progress-small-text"></div>

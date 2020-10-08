@@ -109,6 +109,15 @@ GET           /projects/:project/tasks/:task/downloadOutput                     
 
 # Global workspace activities
 GET           /globalWorkspaceActivities                                        controllers.workspace.ActivityApi.globalWorkspaceActivities()
+POST          /globalWorkspaceActivities/:activity/start                        controllers.workspace.ActivityApi.startActivity(project = "", task = "", activity: String, blocking: Boolean = false)
+POST          /globalWorkspaceActivities/:activity/startBlocking                controllers.workspace.ActivityApi.startActivity(project = "", task = "", activity: String, blocking: Boolean = true)
+POST          /globalWorkspaceActivities/:activity/cancel                       controllers.workspace.ActivityApi.cancelActivity(project = "", task = "", activity: String)
+POST          /globalWorkspaceActivities/:activity/restart                      controllers.workspace.ActivityApi.restartActivity(project = "", task= "", activity: String, blocking: Boolean ?= false)
+GET           /globalWorkspaceActivities/:activity/config                       controllers.workspace.ActivityApi.getActivityConfig(project = "", task = "", activity: String)
+POST          /globalWorkspaceActivities/:activity/config                       controllers.workspace.ActivityApi.postActivityConfig(project = "", task = "", activity: String)
+GET           /globalWorkspaceActivities/:activity/status                       controllers.workspace.ActivityApi.getActivityStatus(project = "", task = "", activity: String)
+GET           /globalWorkspaceActivities/:activity/value                        controllers.workspace.ActivityApi.getActivityValue(project = "", task = "", activity: String)
+
 
 # Project Activities
 GET           /projects/:project/activities                                     controllers.workspace.ActivityApi.getProjectActivities(project: String)

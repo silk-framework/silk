@@ -44,13 +44,17 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                     activityName: String,
                     blocking: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext: UserContext =>
     val w = WorkspaceFactory.factory.workspace
-    val project = w.project(projectName)
     val config = activityConfig(request)
     val activity: WorkspaceActivity[_ <: HasValue] =
-      if (taskName.nonEmpty) {
-        project.anyTask(taskName).activity(activityName)
+      if(projectName.trim.isEmpty) {
+        w.activity(activityName)
       } else {
-        project.activity(activityName)
+        val project = w.project(projectName)
+        if (taskName.nonEmpty) {
+          project.anyTask(taskName).activity(activityName)
+        } else {
+          project.activity(activityName)
+        }
       }
 
     if (activity.isSingleton && activity.status().isRunning) {
@@ -87,14 +91,20 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
   }
 
   def getActivityConfig(projectName: String, taskName: String, activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val activityConfig =
-      if (taskName.nonEmpty) {
-        val task = project.anyTask(taskName)
-        task.activity(activityName).defaultConfig
+    val workspace = WorkspaceFactory().workspace
+    val activityConfig = {
+      if(projectName.trim.isEmpty) {
+         workspace.activity(activityName).defaultConfig
       } else {
-        project.activity(activityName).defaultConfig
+        val project = workspace.project(projectName)
+        if (taskName.nonEmpty) {
+          val task = project.anyTask(taskName)
+          task.activity(activityName).defaultConfig
+        } else {
+          project.activity(activityName).defaultConfig
+        }
       }
+    }
 
     Ok(JsonSerializer.activityConfig(activityConfig))
   }
@@ -104,12 +114,17 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                          activityName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext: UserContext =>
     val config = activityConfig(request)
     if (config.nonEmpty) {
-      val project = WorkspaceFactory().workspace.project(projectName)
-      if (taskName.nonEmpty) {
-        val task = project.anyTask(taskName)
-        task.activity(activityName).update(config)
+      val workspace = WorkspaceFactory().workspace
+      if(projectName.trim.isEmpty) {
+        workspace.activity(activityName).update(config)
       } else {
-        project.activity(activityName).update(config)
+        val project = workspace.project(projectName)
+        if (taskName.nonEmpty) {
+          val task = project.anyTask(taskName)
+          task.activity(activityName).update(config)
+        } else {
+          project.activity(activityName).update(config)
+        }
       }
       Ok
     } else {
@@ -127,7 +142,11 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
   def getActivityValue(projectName: String,
                        taskName: String,
                        activityName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext: UserContext =>
-    implicit val project: Project = WorkspaceFactory().workspace.project(projectName)
+    implicit val project: Option[Project] = if(projectName.trim.isEmpty) {
+      None
+    } else {
+      Some(WorkspaceFactory().workspace.project(projectName))
+    }
     val activity = activityControl(projectName, taskName, activityName)
     val value = activity.value()
     SerializationUtils.serializeRuntime(value)
@@ -200,18 +219,23 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     * Retrieves a single workspace activity.
     */
   private def activityControl(projectName: String, taskName: String, activityName: String)
-                            (implicit userContext: UserContext): ActivityControl[_] = {
-    val project = WorkspaceFactory().workspace.project(projectName)
-    if (taskName.nonEmpty) {
-      val task = project.anyTask(taskName)
-      val activities = task.activities.flatMap(_.allInstances.get(activityName).asInstanceOf[Option[ActivityControl[_]]].toSeq)
-      activities match {
-        case Seq(activity) => activity
-        case Seq() => throw new NotFoundException(s"Activity with id $activityName not found")
-        case _ => throw new ValidationException(s"Multiple activities with id $activityName found")
-      }
+                             (implicit userContext: UserContext): ActivityControl[_] = {
+    val workspace = WorkspaceFactory().workspace
+    if(projectName.trim.isEmpty) {
+      workspace.activity(activityName).control
     } else {
-      project.activity(activityName).control
+      val project = workspace.project(projectName)
+      if (taskName.nonEmpty) {
+        val task = project.anyTask(taskName)
+        val activities = task.activities.flatMap(_.allInstances.get(activityName).asInstanceOf[Option[ActivityControl[_]]].toSeq)
+        activities match {
+          case Seq(activity) => activity
+          case Seq() => throw new NotFoundException(s"Activity with id $activityName not found")
+          case _ => throw new ValidationException(s"Multiple activities with id $activityName found")
+        }
+      } else {
+        project.activity(activityName).control
+      }
     }
   }
 
@@ -242,6 +266,18 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
       }
     }
 
+    val workspaceActivities: Seq[WorkspaceActivity[_]] = {
+      if(taskName.nonEmpty || projectName.nonEmpty) {
+        Seq.empty
+      } else {
+        if(activityName.nonEmpty) {
+          Seq(WorkspaceFactory().workspace.activity(activityName))
+        } else {
+          WorkspaceFactory().workspace.activities
+        }
+      }
+    }
+
     val projectActivities: Seq[WorkspaceActivity[_]] = {
       if (taskName.nonEmpty) {
         Seq.empty
@@ -257,7 +293,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
           activity <- activities(task)) yield activity
     }
 
-    projectActivities ++ taskActivities
+    workspaceActivities ++ projectActivities ++ taskActivities
   }
 
   /** Only affects activities with singleton==false setting, removes activity control instance */
