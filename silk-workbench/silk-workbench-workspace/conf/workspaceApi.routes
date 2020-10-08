@@ -7,4 +7,7 @@ GET           /recentlyViewedItems                                              
 GET           /initFrontend                                                     controllers.workspaceApi.InitApi.init()
 GET           /taskActivitiesStatus                                             controllers.workspaceApi.ActivitiesApi.taskActivitiesStatus(projectId: Option[String] ?= None, statusFilter: Option[String] ?= None)
 
+GET           /reports/list                                                     controllers.workspaceApi.ReportsApi.listReports(projectId: Option[String] ?= None, taskId: Option[String] ?= None)
+GET           /reports/report                                                   controllers.workspaceApi.ReportsApi.retrieveReport(projectId, taskId, time)
+
 ->            /projects                   projectsApi.Routes

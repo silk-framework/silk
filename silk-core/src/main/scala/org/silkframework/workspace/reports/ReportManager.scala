@@ -10,7 +10,7 @@ import org.silkframework.util.Identifier
 
 trait ReportManager extends AnyPlugin {
 
-  def listReports(projectId: Identifier, taskId: Identifier): Seq[Instant]
+  def listReports(projectId: Option[Identifier], taskId: Option[Identifier]): Seq[ReportMetaData]
 
   /**
     * Retrieves a report.
@@ -29,7 +29,7 @@ trait ReportManager extends AnyPlugin {
 
 case class EmptyReportManager() extends ReportManager {
 
-  override def listReports(projectId: Identifier, taskId: Identifier): Seq[Instant] = Seq.empty
+  override def listReports(projectId: Option[Identifier], taskId: Option[Identifier]): Seq[ReportMetaData] = Seq.empty
 
   override def retrieveReport(projectId: Identifier, taskId: Identifier, time: Instant): ExecutionReport = throw new NoSuchElementException
 

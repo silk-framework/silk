@@ -20,12 +20,6 @@ class WorkflowEditorController @Inject() (accessMonitor: WorkbenchAccessMonitor)
 
   def report(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[Workflow](project, task, request.path)
-    try {
-      val report = context.task.activity[LocalWorkflowExecutorGeneratingProvenance].value()
-      Ok(views.html.workflow.executionReport(report.report, context.project.config.prefixes, context))
-    } catch {
-      case _: NoSuchElementException =>
-        Ok(views.html.clientError("No workflow execution report available. The workflow has probably not been executed, yet."))
-    }
+    Ok(views.html.workflow.executionReport(context))
   }
 }

@@ -66,9 +66,8 @@ class ExecuteTransform(taskId: Identifier,
     var count = 0
     breakable {
       for (entity <- transformedEntities) {
-        if(!entity.hasFailed) {
-          entitySink.writeEntity(entity.uri, entity.values)
-        } else {
+        entitySink.writeEntity(entity.uri, entity.values)
+        if(entity.hasFailed) {
           errorEntitySink.foreach(_.writeEntity(entity.uri, entity.values :+ Seq(entity.failure.get.message.getOrElse("Unknown error"))))
         }
         count += 1

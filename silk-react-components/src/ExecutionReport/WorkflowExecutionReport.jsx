@@ -20,11 +20,28 @@ export default class WorkflowExecutionReport extends React.Component {
     };
   }
 
-  componentDidMount() {
-    this.props.diStore.getWorkflowExecutionReport(
+  componentWillReceiveProps() {
+    this.props.diStore.retrieveExecutionReport(
       this.props.baseUrl,
       this.props.project,
-      this.props.task)
+      this.props.task,
+      this.props.time)
+      .then((report) => {
+        this.setState({
+          executionReport: report
+        });
+      })
+      .catch((error) => {
+        console.log("Loading execution report failed! " + error); // FIXME: Handle error and give user feedback. Currently this is done via the activity status widget
+      });
+  }
+
+  componentDidMount() {
+    this.props.diStore.retrieveExecutionReport(
+      this.props.baseUrl,
+      this.props.project,
+      this.props.task,
+      this.props.time)
       .then((report) => {
         this.setState({
           executionReport: report
@@ -103,8 +120,9 @@ WorkflowExecutionReport.propTypes = {
   baseUrl: PropTypes.string.isRequired, // Base URL of the DI service
   project: PropTypes.string.isRequired, // project ID
   task: PropTypes.string.isRequired, // task ID
+  time: PropTypes.string.isRequired, // timestamp of the current report
   diStore: PropTypes.shape({
-    getExecutionReport: PropTypes.func,
+    retrieveExecutionReport: PropTypes.func,
   }) // DI store object that provides the business layer API to DI related services
 };
 

@@ -11,7 +11,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.ExecutionReportSerializers
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.reports.ReportManager
+import org.silkframework.workspace.reports.{ReportManager, ReportMetaData}
 import play.api.libs.json.{JsValue, Json}
 
 import scala.util.Try
@@ -28,14 +28,14 @@ case class FileReportManager(dir: String) extends ReportManager {
 
   private val timeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss-SSS").withZone(ZoneOffset.UTC)
 
-  override def listReports(projectId: Identifier, taskId: Identifier): Seq[Instant] = {
+  override def listReports(projectId: Option[Identifier], taskId: Option[Identifier]): Seq[ReportMetaData] = {
     for {
       reportFile <- reportDirectory.listFiles()
       report <- fromReportFile(reportFile)
-      if report.projectId == projectId
-      if report.taskId == taskId
+      if projectId.forall(_ == report.projectId)
+      if taskId.forall(_ == report.taskId)
     } yield {
-     report.time
+     report
     }
   }
 
@@ -88,5 +88,3 @@ case class FileReportManager(dir: String) extends ReportManager {
   }
 
 }
-
-case class ReportMetaData(projectId: Identifier, taskId: Identifier, time: Instant)

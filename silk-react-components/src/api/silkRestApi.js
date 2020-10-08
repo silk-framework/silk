@@ -78,6 +78,32 @@ const silkApi = {
     },
 
     /**
+     * Lists reports.
+     */
+    listReports: function(baseUrl, projectId, taskId) {
+        const requestUrl = this.reportListEndpoint(baseUrl, projectId, taskId);
+
+        const promise = superagent
+            .get(requestUrl)
+            .accept(CONTENT_TYPE_JSON);
+
+        return this.handleErrorCode(promise);
+    },
+
+    /**
+     * Retrieves a report.
+     */
+    retrieveReport: function(baseUrl, projectId, taskId, time) {
+        const requestUrl = this.reportEndpoint(baseUrl, projectId, taskId, time);
+
+        const promise = superagent
+            .get(requestUrl)
+            .accept(CONTENT_TYPE_JSON);
+
+        return this.handleErrorCode(promise);
+    },
+
+    /**
      * Requests auto-completion suggestions for the script task code.
      */
     completions: function(baseUrl, projectId, taskId, requestJson) {
@@ -131,7 +157,15 @@ const silkApi = {
 
     completionEndpoint: function(baseUrl, projectId, taskId) {
         return `${baseUrl}/scripts/projects/${projectId}/tasks/${taskId}/completions`;
-    }
+    },
+
+    reportListEndpoint: function(baseUrl, projectId, taskId) {
+        return `${baseUrl}/api/workspace/reports/list?projectId=${projectId}&taskId=${taskId}`;
+    },
+
+    reportEndpoint: function(baseUrl, projectId, taskId, time) {
+        return `${baseUrl}/api/workspace/reports/report?projectId=${projectId}&taskId=${taskId}&time=${time}`;
+    },
 };
 
 export default silkApi
