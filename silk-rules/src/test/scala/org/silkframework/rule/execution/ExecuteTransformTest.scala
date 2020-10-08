@@ -1,5 +1,7 @@
 package org.silkframework.rule.execution.methods
 
+import java.util.UUID
+
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 import org.scalatest.mock.MockitoSugar
@@ -44,7 +46,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
     when(contextMock.status).thenReturn(mock[StatusHolder])
     implicit val userContext: UserContext = UserContext.Empty
     execute.run(contextMock)
-    verify(outputMock).writeEntity("", IndexedSeq(Seq("valid"), Seq("valid")))
+    verify(outputMock).writeEntity("uri", IndexedSeq(Seq("valid"), Seq("valid")))
     // This functionality has been removed in the LocalExecutor and needs to be reimplemented: verify(errorOutputMock).writeEntity("", IndexedSeq(Seq("invalid"), Seq("valid")))
     val resultStats = executeTransformResultHolder()
     resultStats.entityCounter shouldBe 2
@@ -81,7 +83,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
   }
 
   private def entity(values: IndexedSeq[String], properties: IndexedSeq[String]): Entity = {
-    Entity("", values map (v => Seq(v)), EntitySchema(Uri("entity"), typedPaths = properties.map(UntypedPath.saveApply).map(_.asStringTypedPath)))
+    Entity("uri", values map (v => Seq(v)), EntitySchema(Uri("entity"), typedPaths = properties.map(UntypedPath.saveApply).map(_.asStringTypedPath)))
   }
 
   private def entity(value: String, propertyUri: String): Entity = {

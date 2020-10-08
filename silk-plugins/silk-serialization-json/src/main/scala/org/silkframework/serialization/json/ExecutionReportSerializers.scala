@@ -1,22 +1,40 @@
 package org.silkframework.serialization.json
 
-import org.silkframework.execution.ExecutionReport
+import org.silkframework.execution.{ExecutionReport, SimpleExecutionReport}
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
-import org.silkframework.runtime.serialization.{Serialization, WriteContext}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.{WorkflowExecutionReport, WorkflowExecutionReportWithProvenance}
 import play.api.libs.json._
 
 object ExecutionReportSerializers {
 
-  implicit object ExecutionReportJsonFormat extends WriteOnlyJsonFormat[ExecutionReport] {
+  implicit object ExecutionReportJsonFormat extends JsonFormat[ExecutionReport] {
 
     override def write(value: ExecutionReport)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      serialize(value)
+      value match {
+        case transformReport: TransformReport =>
+          TransformReportJsonFormat.write(transformReport)
+        case workflowReport: WorkflowExecutionReport =>
+          WorkflowExecutionReportJsonFormat.write(workflowReport)
+        case workflowReportWithProvenance: WorkflowExecutionReportWithProvenance =>
+          WorkflowExecutionReportJsonFormat.write(workflowReportWithProvenance.report)
+        case _ =>
+          serializeBasicValues(value)
+      }
     }
 
-    def serialize(value: ExecutionReport): JsObject = {
+    override def read(value: JsValue)(implicit readContext: ReadContext): ExecutionReport = {
+      SimpleExecutionReport(
+        label =  stringValue(value, "label"),
+        summary = arrayValue(value, "summary").value.map(deserializeValue),
+        warnings = arrayValue(value, "warnings").value.map(_.as[String])
+      )
+    }
+
+    def serializeBasicValues(value: ExecutionReport): JsObject = {
       Json.obj(
         "label" -> value.label,
         "summary" -> value.summary.map(serializeValue),
@@ -29,6 +47,10 @@ object ExecutionReportSerializers {
         "key" -> value._1,
         "value" -> value._2
       )
+    }
+
+    private def deserializeValue(value: JsValue): (String, String) = {
+      (stringValue(value, "key"), stringValue(value, "value"))
     }
   }
 
@@ -46,7 +68,7 @@ object ExecutionReportSerializers {
     final val ERROR = "error"
 
     override def write(value: TransformReport)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      ExecutionReportJsonFormat.serialize(value) ++
+      ExecutionReportJsonFormat.serializeBasicValues(value) ++
         Json.obj(
           ENTITY_COUNTER -> value.entityCounter,
           ENTITY_ERROR_COUNTER -> value.entityErrorCounter,
@@ -85,7 +107,7 @@ object ExecutionReportSerializers {
       * Serializes a value.
       */
     override def write(value: WorkflowExecutionReport)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      ExecutionReportJsonFormat.serialize(value) ++
+      ExecutionReportJsonFormat.serializeBasicValues(value) ++
         Json.obj(
           "taskReports" -> JsObject(value.taskReports.map(serializeTaskReport))
         )

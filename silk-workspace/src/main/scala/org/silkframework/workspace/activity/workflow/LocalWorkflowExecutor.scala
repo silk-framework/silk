@@ -11,6 +11,7 @@ import org.silkframework.execution.local.{LocalEntities, LocalExecution}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.reports.ReportManager
 
 import scala.util.control.NonFatal
 
@@ -63,6 +64,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       for (endNode <- DAG.endNodes) {
         executeWorkflowNode(endNode, ExecutorOutput.empty)
       }
+      ReportManager().addReport(project.name, workflowTask.id, context.value())
       if (workflowRunContext.alreadyExecuted.size != workflow.nodes.size) {
         throw WorkflowException("Not all workflow nodes were executed! Executed " +
             workflowRunContext.alreadyExecuted.size + " of " + workflow.nodes.size + " nodes.")

@@ -1,0 +1,122 @@
+{
+  "summary" : [ ],
+  "warnings" : [ "Some tasks generated warnings." ],
+  "label" : "workflow",
+  "taskReports" : {
+    "simpleTransform" : {
+      "summary" : [ {
+        "key" : "number of entities",
+        "value" : "398"
+      }, {
+        "key" : "number of errors",
+        "value" : "251"
+      } ],
+      "warnings" : [ "Validation issues occurred on 251 entities." ],
+      "entityErrorCounter" : 251,
+      "label" : "simpleTransform",
+      "ruleResults" : {
+        "releaseDate" : {
+          "errorCount" : 58,
+          "sampleErrors" : [ {
+            "entity" : "http://dbpedia.org/resource/All_Things_Fair",
+            "values" : [ [ "29", "3", "8", "Australia:", "March 1997", "Sweden:", "United Kingdom:", "United States:" ] ],
+            "error" : "Value '29' is not a valid Date"
+          }, {
+            "entity" : "http://dbpedia.org/resource/Au_Hasard_Balthazar",
+            "values" : [ [ "25" ] ],
+            "error" : "Value '25' is not a valid Date"
+          }, {
+            "entity" : "http://dbpedia.org/resource/Baadal_%281985_film%29",
+            "values" : [ [ "--12-13" ] ],
+            "error" : "Value '--12-13' is not a valid Date"
+          }, {
+            "entity" : "http://dbpedia.org/resource/Ballistic:_Ecks_vs._Sever",
+            "values" : [ [ "--09-20" ] ],
+            "error" : "Value '--09-20' is not a valid Date"
+          }, {
+            "entity" : "http://dbpedia.org/resource/Berlin:_Symphony_of_a_Metropolis",
+            "values" : [ [ "13", "23" ] ],
+            "error" : "Value '13' is not a valid Date"
+          }, {
+            "entity" : "http://dbpedia.org/resource/Big_Business_%281988_film%29",
+            "values" : [ [ "1988", "1988-06-10" ] ],
+            "error" : "Value '1988' is not a valid Date"
+          }, {
+            "entity" : "http://dbpedia.org/resource/Braindead_%28film%29",
+            "values" : [ [ "--01-16", "--02-12", "--08-13", "--09-17" ] ],
+            "error" : "Value '--01-16' is not a valid Date"
+          }, {
+            "entity" : "http://dbpedia.org/resource/Cal_%28film%29",
+            "values" : [ [ "1984-08-24", "31", "7" ] ],
+            "error" : "Value '31' is not a valid Date"
+          }, {
+            "entity" : "http://dbpedia.org/resource/Castaway_%28film%29",
+            "values" : [ [ "20" ] ],
+            "error" : "Value '20' is not a valid Date"
+          }, {
+            "entity" : "http://dbpedia.org/resource/Chopper_%28film%29",
+            "values" : [ [ "3" ] ],
+            "error" : "Value '3' is not a valid Date"
+          } ]
+        },
+        "uri1" : {
+          "errorCount" : 193,
+          "sampleErrors" : [ {
+            "entity" : "http://dbpedia.org/resource/Alice_%281990_film%29",
+            "values" : [ [ ] ],
+            "error" : "The URI pattern did not generate any URI for this entity."
+          }, {
+            "entity" : "http://dbpedia.org/resource/All_Things_Fair",
+            "values" : [ [ ] ],
+            "error" : "The URI pattern did not generate any URI for this entity."
+          }, {
+            "entity" : "http://dbpedia.org/resource/Almost_an_Angel",
+            "values" : [ [ ] ],
+            "error" : "The URI pattern did not generate any URI for this entity."
+          }, {
+            "entity" : "http://dbpedia.org/resource/Altars_of_Desire",
+            "values" : [ [ ] ],
+            "error" : "The URI pattern did not generate any URI for this entity."
+          }, {
+            "entity" : "http://dbpedia.org/resource/Anna_Karenina_%281935_film%29",
+            "values" : [ [ ] ],
+            "error" : "The URI pattern did not generate any URI for this entity."
+          }, {
+            "entity" : "http://dbpedia.org/resource/Au_Hasard_Balthazar",
+            "values" : [ [ ] ],
+            "error" : "The URI pattern did not generate any URI for this entity."
+          }, {
+            "entity" : "http://dbpedia.org/resource/Baadal_%281985_film%29",
+            "values" : [ [ ] ],
+            "error" : "The URI pattern did not generate any URI for this entity."
+          }, {
+            "entity" : "http://dbpedia.org/resource/Ballistic:_Ecks_vs._Sever",
+            "values" : [ [ ] ],
+            "error" : "The URI pattern did not generate any URI for this entity."
+          }, {
+            "entity" : "http://dbpedia.org/resource/Berlin:_Symphony_of_a_Metropolis",
+            "values" : [ [ ] ],
+            "error" : "The URI pattern did not generate any URI for this entity."
+          }, {
+            "entity" : "http://dbpedia.org/resource/Big_Business_%281988_film%29",
+            "values" : [ [ ] ],
+            "error" : "The URI pattern did not generate any URI for this entity."
+          } ]
+        },
+        "child" : {
+          "errorCount" : 0,
+          "sampleErrors" : [ ]
+        },
+        "budget" : {
+          "errorCount" : 0,
+          "sampleErrors" : [ ]
+        },
+        "basedOn" : {
+          "errorCount" : 0,
+          "sampleErrors" : [ ]
+        }
+      },
+      "entityCounter" : 398
+    }
+  }
+}
