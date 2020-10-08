@@ -43,7 +43,6 @@ export function ProjectForm({ form }: IProps) {
                     id={LABEL}
                     placeholder={t("form.projectForm.projectTitle", "Project title")}
                     name={LABEL}
-                    inputRef={form.register({ required: true })}
                     intent={errors.label ? Intent.DANGER : Intent.NONE}
                     onChange={onValueChange(LABEL)}
                 />
@@ -59,7 +58,7 @@ export function ProjectForm({ form }: IProps) {
                     name={DESCRIPTION}
                     growVertically={true}
                     placeholder={t("form.projectForm.projectDesc", "Project description")}
-                    inputRef={form.register()}
+                    onChange={onValueChange(DESCRIPTION)}
                 />
             </FieldItem>
         </>
