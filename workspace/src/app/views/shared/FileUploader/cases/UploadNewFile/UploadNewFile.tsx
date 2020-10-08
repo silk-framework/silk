@@ -209,7 +209,10 @@ export function UploadNewFile(props: IProps) {
 
         setFileError(fileData.id, errorMessage);
 
-        addInRetryQueue(fileData);
+        // when project not found
+        if (error.request.status !== 404) {
+            addInRetryQueue(fileData);
+        }
     };
 
     const addInRetryQueue = (file: UppyFile) => {

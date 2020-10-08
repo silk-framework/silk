@@ -15,7 +15,7 @@ i18n.use(initReactI18next)
             de: { translation: de },
         },
         debug: isDevelopment && !isTestEnv,
-        interpolation: {},
+        interpolation: { escapeValue: false },
         lng: Store.get("locale") || DEFAULT_LANG,
     });
 
