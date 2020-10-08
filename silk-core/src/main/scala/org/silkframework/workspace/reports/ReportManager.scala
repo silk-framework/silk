@@ -15,6 +15,13 @@ trait ReportManager extends AnyPlugin {
 
 }
 
+case class EmptyReportManager() extends ReportManager {
+
+  override def retrieveReports(projectId: Identifier, taskId: Identifier): Seq[ExecutionReport] = Seq.empty
+
+  override def addReport(projectId: Identifier, taskId: Identifier, report: ExecutionReport): Unit = { }
+}
+
 object ReportManager {
 
   private val log = Logger.getLogger(getClass.getName)
@@ -26,7 +33,8 @@ object ReportManager {
       log.info("Using configured report manager " + config.getString("workspace.reportManager.plugin"))
       repository
     } else {
-      throw new RuntimeException("Report manager not configured, cannot initialize! Please configure 'workspace.reportManager.*'.")
+      log.info("No report manager configured at configuration path 'workspace.reportManager.*'. No reports will be persistet.")
+      EmptyReportManager()
     }
   }
 
