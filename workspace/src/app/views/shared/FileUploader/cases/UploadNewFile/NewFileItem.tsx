@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 interface IProps {
     file: UppyFile & { error?: string };
 
+    // The progress of the upload >= 0, <= 1.0
     progress: number;
 
     onAbort(fileId: string);
@@ -31,7 +32,8 @@ export function NewFileItem({ file, progress, onAbort, onRemove }: IProps) {
             <Notification
                 {...props}
                 actions={
-                    !error && (
+                    !error &&
+                    progress < 1 && (
                         <Button outlined onClick={() => onAbort(file.id)}>
                             {t("FileUploader.abortOnly", "Abort Upload")}
                         </Button>
