@@ -8,7 +8,7 @@ import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
-import org.silkframework.rule.TransformSpec.{RuleSchemata, TargetVocabularyAutoCompletionProvider, TargetVocabularyListParameter, TargetVocabularyParameter}
+import org.silkframework.rule.TransformSpec.{RuleSchemata, TargetVocabularyAutoCompletionProvider, TargetVocabularyCategory, TargetVocabularyListParameter, TargetVocabularyParameter}
 import org.silkframework.rule.task.DatasetOrTransformTaskAutoCompletionProvider
 import org.silkframework.rule.vocab.TargetVocabularyParameterEnum
 import org.silkframework.runtime.activity.UserContext
@@ -58,10 +58,11 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
                            autoCompletionProvider = classOf[DatasetTaskReferenceAutoCompletionProvider],
                            autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
                          errorOutput: IdentifierOptionParameter = IdentifierOptionParameter(None),
-                         @Param(label = "Target vocabularies", value = "Target vocabularies this transformation maps to.",
+                         @Param(label = "Target vocabularies", value = "Use installed vocabularies for auto-suggestion and selection of target classes and target properties " +
+                             "of this transformation.",
                              autoCompletionProvider = classOf[TargetVocabularyAutoCompletionProvider],
                            autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = false)
-                         targetVocabularies: TargetVocabularyParameter = TargetVocabularyListParameter(Seq.empty)
+                         targetVocabularies: TargetVocabularyParameter = TargetVocabularyCategory(TargetVocabularyParameterEnum.allInstalled)
                         ) extends TaskSpec {
 
   /** Retrieves the root rules of this transform spec. */
