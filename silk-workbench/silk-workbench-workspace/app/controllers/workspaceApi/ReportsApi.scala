@@ -4,6 +4,7 @@ import java.time.Instant
 
 import javax.inject.Inject
 import org.silkframework.runtime.serialization.WriteContext
+import org.silkframework.serialization.json.ActivitySerializers.ActivityExecutionResultJsonFormat
 import org.silkframework.serialization.json.ExecutionReportSerializers.ExecutionReportJsonFormat
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.reports.ReportManager
@@ -27,7 +28,8 @@ class ReportsApi @Inject() () extends InjectedController {
   def retrieveReport(projectId: String, taskId: String, time: String): Action[AnyContent] = Action(parse.json) {
     implicit val wc: WriteContext[JsValue] = new WriteContext[JsValue]()
     val report = ReportManager().retrieveReport(projectId, taskId, Instant.parse(time))
-    Ok(ExecutionReportJsonFormat.write(report))
+    val jsonFormat = new ActivityExecutionResultJsonFormat()(ExecutionReportJsonFormat)
+    Ok(jsonFormat.write(report))
   }
 
 }
