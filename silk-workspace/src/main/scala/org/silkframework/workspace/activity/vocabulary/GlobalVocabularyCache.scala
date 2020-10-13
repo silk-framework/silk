@@ -27,6 +27,8 @@ case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
   private val cache: mutable.HashMap[String, Vocabulary] = new mutable.HashMap[String, Vocabulary]()
   private var vocabsToUpdate: Set[String] = Set.empty
 
+  override def initialValue: Option[VocabularyCacheValue] = Some(new VocabularyCacheValue(Seq.empty))
+
   override def run(context: ActivityContext[VocabularyCacheValue])(implicit userContext: UserContext): Unit = {
     val vocabManager = VocabularyManager()
     vocabsToUpdate = GlobalVocabularyCache.clearAndGetVocabularies

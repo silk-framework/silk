@@ -53,6 +53,7 @@ class TargetVocabularyApiTest extends TransformTaskApiTestBase {
             "label" : "name",
             "description" : "A name for some thing."
           },
+          "propertyType":"DatatypeProperty",
           "domain" : "owl:Thing",
           "range" : "rdfs:Literal"
         }
@@ -84,6 +85,7 @@ class TargetVocabularyApiTest extends TransformTaskApiTestBase {
             "label" : "name",
             "description" : "A name for some thing."
           },
+          "propertyType":"DatatypeProperty",
           "domain" : "owl:Thing",
           "range" : "rdfs:Literal"
         }
