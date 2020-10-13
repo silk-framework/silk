@@ -339,8 +339,8 @@ class MappingsWorkview extends React.Component {
                     v.typeUri.replace('<', '').replace('>', ''))
                 : [];
         
-        const listSuggestions = !createRuleForm && this.state.showSuggestions &&
-            _.has(this.state, 'ruleData.rules.typeRules') ? (
+        // !createRuleForm && this.state.showSuggestions &&_.has(this.state, 'ruleData.rules.typeRules') &&
+        const listSuggestions = (
                 <SuggestionsListContainer
                     ruleId={_.get(this.state.ruleData, 'id', 'root')}
                     onClose={this.handleCloseSuggestions}
@@ -352,9 +352,7 @@ class MappingsWorkview extends React.Component {
                     targetClassUris={types}
                     onAskDiscardChanges={this.props.onAskDiscardChanges}
                 />
-            ) : (
-                false
-            );
+            )
         const listMappings =
             !createRuleForm && !listSuggestions ? (
                 <MappingsList

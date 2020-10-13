@@ -311,8 +311,10 @@ export const getSuggestionsAsync = data => {
                     };
                 }
                 const suggestions = [];
+                console.log(body);
 
                 _.forEach(body, (sources, sourcePathOrUri) => {
+                    console.log(sources, sourcePathOrUri);
                     _.forEach(sources, ({ uri: candidateUri, type, confidence }) => {
                         let mapFrom = sourcePathOrUri; // By default we map from the dataset to the vocabulary, which fits
                         let mapTo = candidateUri;

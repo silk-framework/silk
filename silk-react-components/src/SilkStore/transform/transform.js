@@ -57,14 +57,14 @@ silkStore
 silkStore
     .subject('transform.task.rule.suggestions')
     .subscribe(({data, replySubject}) => {
-        const {ruleId, targetClassUris, baseUrl, project, transformTask, matchFromDataset } = data;
+        const {ruleId, targetClassUris, baseUrl, project, transformTask, matchFromDataset, nrCandidates } = data;
 
         const json = {
             projectName: project,
             transformTaskName: transformTask,
             datasetUriPrefix: '',
             targetClassUris,
-            nrCandidates: 1,
+            nrCandidates: nrCandidates || 1,
             dataTypePropertiesOnly: false,
             ruleId,
             matchFromDataset
