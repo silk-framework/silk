@@ -63,6 +63,20 @@
     "PrefixDialog": {
         "deletePrefix": "Prefix {{prefixName}} will be deleted."
     },
+    "ProjectImportModal": {
+        "importBtn": "Import project",
+        "importSummary": "Imported project summary",
+        "importUnderFreshIdBtn": "Import as new project",
+        "projectFile": "Choose project file to import:",
+        "replaceImportBtn": "Replace existing project",
+        "responseInvalid": "Invalid response received from project upload. Project import cannot proceed.",
+        "responseUploadError": "File {{file}} could not be uploaded! {{details}}",
+        "restoreNotice": "Want to restore an existing project?",
+        "restoreStarter": "Import project file",
+        "title": "Project import",
+        "openExistingProject": "Open existing project page",
+        "warningExistingProject": "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID."
+    },
     "RelatedItems": {
         "title": "Related items"
     },
@@ -91,6 +105,7 @@
             "moreOptions": "Show more options",
             "replace": "Replace",
             "resetSelection": "Reset selection",
+            "retry": "Retry",
             "showDetails": "Show details",
             "submit": "Submit",
             "update": "Update"
@@ -120,8 +135,8 @@
         },
         "words": {
             "advancedOptions": "Advanced options",
-            "and": "and",
             "all": "All",
+            "and": "and",
             "back": "Back",
             "itemType": "Item type",
             "less": "less",
@@ -138,6 +153,7 @@
             "searchField": "Enter search term"
         },
         "projectForm": {
+            "importProjectButton": "Import existing project",
             "projectDesc": "Project description",
             "projectTitle": "Project title",
             "title": "Title"
