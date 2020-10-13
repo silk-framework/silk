@@ -5,11 +5,12 @@ import java.nio.file.Files
 
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.execution.ExecutionReport
+import org.silkframework.runtime.activity.{ActivityExecution, ActivityExecutionMetaData, ActivityExecutionResult}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.serialization.json.ExecutionReportSerializers
 import org.silkframework.util.FileUtils._
 import org.silkframework.workspace.reports.ReportManager
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json}
 
 class FileReportManagerTest extends FlatSpec with Matchers {
 
@@ -18,11 +19,12 @@ class FileReportManagerTest extends FlatSpec with Matchers {
   it should "store and retrieve reports" in {
     withReportManager { reportManager =>
       val report = loadReport("workflowReport.json")
-      reportManager.addReport("project", "task", report)
+      val executionResult = ActivityExecutionResult(metaData = ActivityExecutionMetaData(), resultValue = Some(loadReport("workflowReport.json")))
+      reportManager.addReport("project", "task", executionResult)
       val reports = reportManager.listReports(Some("project"), Some("task"))
       reports should have size 1
 
-      val retrievedReport = reportManager.retrieveReport("project", "task", reports.head.time)
+      val retrievedReport = reportManager.retrieveReport("project", "task", reports.head.time).resultValue.get
       retrievedReport shouldEqual report
     }
   }

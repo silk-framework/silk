@@ -1,12 +1,14 @@
 package org.silkframework.serialization.json
 
+ import java.time.Instant
+
  import org.silkframework.runtime.activity.{ActivityExecutionMetaData, ActivityExecutionResult, Status}
-import org.silkframework.runtime.activity.Status.{Canceling, Finished, Idle, Running, Waiting}
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.runtime.users.SimpleUser
-import org.silkframework.workspace.activity.WorkspaceActivity
-import org.silkframework.serialization.json.JsonHelpers._
-import play.api.libs.json._
+ import org.silkframework.runtime.activity.Status.{Canceling, Finished, Idle, Running, Waiting}
+ import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+ import org.silkframework.runtime.users.SimpleUser
+ import org.silkframework.workspace.activity.WorkspaceActivity
+ import org.silkframework.serialization.json.JsonHelpers._
+ import play.api.libs.json._
 
 object ActivitySerializers {
 
@@ -80,7 +82,7 @@ object ActivitySerializers {
     }
   }
 
-  class ExtendedStatusJsonFormat(project: String, task: String, activity: String, startTime: Option[Long]) extends WriteOnlyJsonFormat[Status] {
+  class ExtendedStatusJsonFormat(project: String, task: String, activity: String, startTime: Option[Instant]) extends WriteOnlyJsonFormat[Status] {
 
     def this(activity: WorkspaceActivity[_]) = {
       this(activity.project.name, activity.taskOption.map(_.id.toString).getOrElse(""), activity.name, activity.startTime)
@@ -91,7 +93,7 @@ object ActivitySerializers {
       ("project" -> JsString(project)) +
       ("task" -> JsString(task)) +
       ("activity" -> JsString(activity)) +
-      ("startTime" -> startTime.map(JsNumber(_)).getOrElse(JsNull))
+      ("startTime" -> startTime.map(t => JsString(t.toString)).getOrElse(JsNull))
     }
   }
 
@@ -107,9 +109,9 @@ object ActivitySerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): ActivityExecutionMetaData = {
       ActivityExecutionMetaData(
         startedByUser = stringValueOption(value, STARTED_BY_USER).map(SimpleUser),
-        startedAt = numberValueOption(value, STARTED_AT).map(_.longValue),
-        finishedAt = numberValueOption(value, FINISHED_AT).map(_.longValue),
-        cancelledAt = numberValueOption(value, CANCELLED_AT).map(_.longValue),
+        startedAt = instantValueOption(value, STARTED_AT),
+        finishedAt = instantValueOption(value, FINISHED_AT),
+        cancelledAt = instantValueOption(value, CANCELLED_AT),
         cancelledBy = stringValueOption(value, CANCELLED_BY).map(SimpleUser),
         finishStatus = optionalValue(value, FINISH_STATUS).map(StatusJsonFormat.read)
       )

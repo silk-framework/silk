@@ -1,5 +1,6 @@
 package org.silkframework.workspace.activity
 
+import java.time.Instant
 import java.util.logging.Logger
 
 import org.silkframework.config.Prefixes
@@ -115,7 +116,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     * Holds the timestamp when the activity has been started.
     * Is None if the activity is not running at the moment.
     */
-  final def startTime: Option[Long] = control.startTime
+  final def startTime: Option[Instant] = control.startTime
 
   /**
     * True, if there is always exactly one instance of this activity.
