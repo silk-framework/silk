@@ -13,6 +13,7 @@ import {
     HtmlContentBlock,
     Icon,
     IconButton,
+    Link,
     Notification,
     OverflowText,
     OverviewItem,
@@ -313,13 +314,6 @@ export function CreateArtefactModal() {
                             <Button key="cancel" onClick={closeModal}>
                                 {t("common.action.cancel")}
                             </Button>,
-                            <div key="optionalProjectActions">
-                                {projectArtefactSelected && (
-                                    <Button key="importProject" onClick={switchToProjectImport} affirmative={true}>
-                                        {t("form.projectForm.importProjectButton")}
-                                    </Button>
-                                )}
-                            </div>,
                             <CardActionsAux key="aux">
                                 {!updateExistingTask && (
                                     <Button key="back" onClick={handleBack}>
@@ -346,7 +340,7 @@ export function CreateArtefactModal() {
                 )
             }
             notifications={
-                !!error.detail && (
+                (!!error.detail && (
                     <Notification
                         message={t("common.messages.actionFailed", {
                             action: updateExistingTask ? t("common.action.update") : t("common.action.create"),
@@ -354,7 +348,17 @@ export function CreateArtefactModal() {
                         })}
                         danger
                     />
-                )
+                )) || (projectArtefactSelected && (
+                    <p>
+                        <Icon name="state-info" style={{"vertical-align": "middle"}} />
+                        {" "}
+                        {t("ProjectImportModal.restoreNotice", "Want to restore an existing project?")}
+                        {" "}
+                        <Link key="importProject" onClick={switchToProjectImport} href="#import-project">
+                            {t("ProjectImportModal.restoreStarter", "Import project file")}
+                        </Link>
+                    </p>
+                ))
             }
         >
             {
