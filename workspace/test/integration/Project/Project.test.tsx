@@ -15,14 +15,45 @@ import Project from "../../../src/app/views/pages/Project";
 import qs from "qs";
 
 describe("Project page", () => {
-    const testProjectId = "Hierarchical_Person_Example";
+    const testProjectId = "testproject";
+    const reducerState = {
+        common: {
+            currentProjectId: testProjectId,
+        },
+        workspace: {
+            widgets: {
+                isEmptyPage: false,
+                filesList: [
+                    {
+                        id: "file.csv",
+                        formattedSize: "666",
+                        formattedDate: "2020-10-08",
+                        name: "file.csv",
+                        size: 666,
+                        modified: "2020-10-08",
+                    },
+                ],
+                files: {
+                    isLoading: false,
+                    results: [
+                        {
+                            name: "file.csv",
+                            size: 666,
+                            modified: "2020-10-08",
+                        },
+                    ],
+                    error: [],
+                },
+            },
+        },
+    };
     let hostPath = process.env.HOST;
     let projectPageWrapper: ReactWrapper<any, any> = null;
     beforeEach(() => {
         const history = createBrowserHistory();
         history.location.pathname = workspacePath("/projects/" + testProjectId);
 
-        projectPageWrapper = withMount(testWrapper(<Project />, history));
+        projectPageWrapper = withMount(testWrapper(<Project />, history, reducerState));
 
         return projectPageWrapper;
     });
@@ -39,7 +70,7 @@ describe("Project page", () => {
         checkRequestMade(apiUrl("/workspace/projects/" + testProjectId + "/metaData"));
     });
 
-    it("should get available resources for file widget", () => {
+    xit("should get available resources for file widget", () => {
         checkRequestMade(legacyApiUrl("/workspace/projects/" + testProjectId + "/resources"));
     });
 
@@ -82,8 +113,18 @@ describe("Project page", () => {
         checkRequestMade(apiUrl("/workspace/searchItems"), "POST", expectedSearchResponse);
     });
 
+    it("file widget is displayed", () => {
+        const filewidget = findAll(projectPageWrapper, byTestId(`project-files-widget`));
+        expect(filewidget).toHaveLength(1);
+    });
+
+    it("file search bar is shown when there are files", () => {
+        const filesearchinput = findAll(projectPageWrapper, byTestId(`file-search-bar`));
+        expect(filesearchinput).toHaveLength(1);
+    });
+
     // TODO
-    xit("file search bar is not shown when there are no files", () => {
+    xit("file search bar is not shown but upload widget when there are no files", () => {
         const filesearchinput = findAll(projectPageWrapper, byTestId(`file-search-bar`));
         expect(filesearchinput).toHaveLength(0);
     });

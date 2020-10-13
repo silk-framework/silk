@@ -130,7 +130,7 @@ export const FileWidget = () => {
 
     return (
         <>
-            <Card>
+            <Card data-test-id="project-files-widget">
                 <CardHeader>
                     <CardTitle>
                         <h2>{t("widget.FileWidget.files", "Files")}</h2>
@@ -144,7 +144,11 @@ export const FileWidget = () => {
                         <>
                             <Toolbar>
                                 <ToolbarSection canGrow>
-                                    <SearchBar textQuery={textQuery} onSearch={onSearch} data-test-id={"file-search-bar"} />
+                                    <SearchBar
+                                        textQuery={textQuery}
+                                        onSearch={onSearch}
+                                        data-test-id={"file-search-bar"}
+                                    />
                                 </ToolbarSection>
                                 <ToolbarSection>
                                     <Spacing size="tiny" vertical />
