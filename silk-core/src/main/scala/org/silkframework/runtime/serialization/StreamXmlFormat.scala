@@ -1,13 +1,13 @@
 package org.silkframework.runtime.serialization
 
 import java.io.{InputStream, OutputStream}
+
 import javax.xml.stream.util.StreamReaderDelegate
 import javax.xml.stream.{XMLInputFactory, XMLStreamConstants, XMLStreamReader}
-import javax.xml.transform.{Transformer, TransformerFactory}
-import javax.xml.transform.dom.DOMResult
-import javax.xml.transform.stax.StAXSource
-
+import javax.xml.transform.{Transformer}
 import com.sun.org.apache.xalan.internal.xsltc.trax.DOM2SAX
+import javax.xml.parsers.DocumentBuilderFactory
+import org.w3c.dom.{Document, Element}
 
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
@@ -18,6 +18,7 @@ import scala.xml.parsing.NoBindingFactoryAdapter
   * Serialization format that serializes Scala objects to XML and back using streaming.
   */
 abstract class StreamXmlFormat[T: ClassTag] {
+  val documentBuilderFactory: DocumentBuilderFactory = DocumentBuilderFactory.newInstance()
 
   /** Read a value from the input stream */
   def read(implicit streamReader: XMLStreamReader, readContext: ReadContext): T
@@ -85,7 +86,7 @@ abstract class StreamXmlFormat[T: ClassTag] {
   /** Reads multiple objects from the XML stream that follow each other and have the same tag if defined.
     * If no tag is defined it will try to read all elements that directly follow each other. */
   def readObjects[U](expectedTag: Option[String] = None)
-                    (implicit streamReader: XMLStreamReader, transformer: Transformer, readContext: ReadContext, xmlFormat: XmlFormat[U]): Seq[U] = {
+                    (implicit streamReader: XMLStreamReader, readContext: ReadContext, xmlFormat: XmlFormat[U]): Seq[U] = {
     val entityBuffer = ArrayBuffer[U]()
     while(streamReader.getEventType == XMLStreamConstants.START_ELEMENT && expectedTag.forall(_ == streamReader.getLocalName)) {
       val entity = readNextObject[U]
@@ -109,15 +110,50 @@ abstract class StreamXmlFormat[T: ClassTag] {
   }
 
   /** Read a single object from the XML stream, i.e. it turns the current XML element into a DOM node and then converts this DOM node into a Scala object. */
-  def readNextObject[U](implicit streamReader: XMLStreamReader, transformer: Transformer, readContext: ReadContext, xmlFormat: XmlFormat[U]): U = {
+  def readNextObject[U](implicit streamReader: XMLStreamReader, readContext: ReadContext, xmlFormat: XmlFormat[U]): U = {
     val node = readCurrentElementAsNode
     XmlSerialization.fromXml[U](node)
   }
 
-  def readCurrentElementAsNode(implicit streamReader: XMLStreamReader, transformer: Transformer): Node = {
-    val result = new DOMResult()
-    transformer.transform(new StAXSource(streamReader), result)
-    asXml(result.getNode)
+  /** Reads the current element of the stream as an XML Node.
+    * The stream will be positioned on the END element of that element afterwards. */
+  def readCurrentElementAsNode(implicit streamReader: XMLStreamReader): Node = {
+    assert(streamReader.isStartElement, "Trying to read an element from XML, but XML stream is positioned at event type: " + streamReader.getEventType)
+    val loader = documentBuilderFactory.newDocumentBuilder()
+    implicit val document: Document = loader.newDocument()
+    val root = createElementFromStream()
+    var currentElement: org.w3c.dom.Node = root
+    while(currentElement != null) {
+      streamReader.next() match {
+        case XMLStreamConstants.START_ELEMENT =>
+          val newElement = createElementFromStream()
+          currentElement.appendChild(newElement)
+          currentElement = newElement
+        case XMLStreamConstants.END_ELEMENT =>
+          currentElement = currentElement.getParentNode
+        case XMLStreamConstants.CHARACTERS =>
+          currentElement.appendChild(document.createTextNode(streamReader.getText))
+        case XMLStreamConstants.CDATA =>
+          currentElement.appendChild(document.createCDATASection(streamReader.getText))
+        case _ =>
+          // Other events are not supported
+      }
+    }
+    asXml(root)
+  }
+
+  // Creates an element from the current stream. Stream needs to be set to START_ELEMENT
+  private def createElementFromStream()(implicit streamReader: XMLStreamReader, document: Document): Element = {
+    val element = document.createElement(streamReader.getLocalName)
+    copyAttributes(streamReader, element)
+    element
+  }
+
+  // Copies attributes from the stream into the element
+  private def copyAttributes(streamReader: XMLStreamReader, element: Element): Unit = {
+    for (i <- 0 until streamReader.getAttributeCount) {
+      element.setAttribute(streamReader.getAttributeLocalName(i), streamReader.getAttributeValue(i))
+    }
   }
 }
 

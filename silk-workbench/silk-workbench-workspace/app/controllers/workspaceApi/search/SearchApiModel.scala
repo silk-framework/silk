@@ -5,6 +5,7 @@ import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers.{TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat}
@@ -28,6 +29,7 @@ object SearchApiModel {
   final val DESCRIPTION = "description"
   final val PROJECT_ID = "projectId"
   final val PROJECT_LABEL = "projectLabel"
+  final val PLUGIN_ID = "pluginId"
   // type values
   final val PROJECT_TYPE = "project"
   /* JSON serialization */
@@ -376,7 +378,8 @@ object SearchApiModel {
           TYPE -> JsString(typedTask.itemType.id),
           ID -> JsString(task.id),
           LABEL -> JsString(task.metaData.label),
-          DESCRIPTION -> JsString("")
+          DESCRIPTION -> JsString(""),
+          PLUGIN_ID -> JsString(PluginDescription(task).id)
         ) ++ task.metaData.description.map(d => DESCRIPTION -> JsString(d)))
       }
     }
