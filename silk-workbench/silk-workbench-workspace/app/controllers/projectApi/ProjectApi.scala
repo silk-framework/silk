@@ -1,5 +1,6 @@
 package controllers.projectApi
 
+import config.WorkbenchConfig
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.workspace.JsonSerializer
@@ -40,7 +41,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
         val generatedId = IdentifierUtils.generateProjectId(label)
         val project = workspace.createProject(ProjectConfig(generatedId, metaData = cleanUpMetaData(metaData).asNewMetaData))
         Created(JsonSerializer.projectJson(project)).
-            withHeaders(LOCATION -> s"/api/workspace/projects/$generatedId")
+            withHeaders(LOCATION -> s"${WorkbenchConfig.applicationContext}/api/workspace/projects/$generatedId")
       }
   }
 
@@ -119,7 +120,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     project.loadingErrors.find(_.id == taskId) match {
       case Some(loadingError) =>
         val failedTask = ProjectTaskLoadingErrorResponse.fromTaskLoadingError(loadingError)
-        val taskLabel = failedTask.taskLabel.getOrElse(failedTask.taskId)
+        val taskLabel = failedTask.taskLabel.filter(_.trim != "").getOrElse(failedTask.taskId)
         render {
           case AcceptsMarkdown() =>
             val markdownHeader = s"""# Project task loading error report

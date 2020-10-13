@@ -39,8 +39,10 @@ trait IntegrationTestTrait extends TaskApiClient with ActivityApiClient with Gui
   final val APPLICATION_XML: String = "application/xml"
   final val CONTENT_TYPE: String = "content-type"
   final val ACCEPT: String = "accept"
+  final val CREATED: Int = 201
   final val NOT_FOUND: Int = 404
   final val BAD_REQUEST: Int = 400
+  final val CONFLICT: Int = 409
 
   val baseUrl = s"http://localhost:$port"
 

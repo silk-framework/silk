@@ -203,25 +203,31 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   /**
     * Generic project import method that unmarshals the project as implemented in the given [[ProjectMarshallingTrait]] object.
     *
-    * @param name project name
-    * @param file the file to read the project to import from
+    * @param name       project name
+    * @param file       the file to read the project to import from
     * @param marshaller object that defines how the project should be unmarshaled.
+    * @param overwrite  If true, then it will overwrite an existing project, else an exception is thrown.
     */
   def importProject(name: Identifier,
                     file: File,
-                    marshaller: ProjectMarshallingTrait)
+                    marshaller: ProjectMarshallingTrait,
+                    overwrite: Boolean = false)
                    (implicit userContext: UserContext) {
     loadUserProjects()
-    findProject(name) match {
-      case Some(_) =>
-        throw IdentifierAlreadyExistsException("Project " + name.toString + " does already exist!")
-      case None =>
-        log.info(s"Starting import of project '$name'...")
-        val start = System.currentTimeMillis()
-        marshaller.unmarshalProject(name, provider, repository.get(name), file)
-        reloadProject(name)
-        log.info(s"Imported project '$name' in ${(System.currentTimeMillis() - start).toDouble / 1000}s. " + userContext.logInfo)
+    synchronized {
+      findProject(name) match {
+        case Some(_) if !overwrite =>
+          throw IdentifierAlreadyExistsException("Project " + name.toString + " does already exist!")
+        case Some(_) =>
+          removeProject(name)
+        case None =>
+      }
     }
+    log.info(s"Starting import of project '$name'...")
+    val start = System.currentTimeMillis()
+    marshaller.unmarshalProject(name, provider, repository.get(name), file)
+    reloadProject(name)
+    log.info(s"Imported project '$name' in ${(System.currentTimeMillis() - start).toDouble / 1000}s. " + userContext.logInfo)
   }
 
   /**
