@@ -1,9 +1,11 @@
 package controllers.workspaceApi
 
 import java.io.{File, FileFilter, FileInputStream, FileOutputStream}
-import java.util.concurrent.TimeoutException
+import java.time.Instant
+import java.util.concurrent.{TimeUnit, TimeoutException}
 import java.util.logging.{Level, Logger}
 import java.util.zip.ZipFile
+import java.time.{Duration => JDuration}
 
 import config.WorkbenchConfig
 import controllers.core.util.ControllerUtilsTrait
@@ -22,9 +24,10 @@ import org.silkframework.util.StreamUtils
 import org.silkframework.workspace.xml.XmlZipWithResourcesProjectMarshaling
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, _}
+import org.silkframework.util.DurationConverters._
 
 import scala.collection.mutable
-import scala.concurrent.duration._
+import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
 import scala.io.Source
 import scala.util.control.NonFatal
@@ -36,7 +39,7 @@ import scala.xml.{XML => ScalaXML}
   */
 class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedController with ControllerUtilsTrait {
   private final val PROJECT_FILE_MAX_AGE_KEY = "workspace.projectImport.tempFileMaxAge"
-  private final val DEFAULT_PROJECT_FILE_MAX_AGE = 3600L // 1 hour
+  private final val DEFAULT_PROJECT_FILE_MAX_AGE = Duration(1, TimeUnit.HOURS)
 
   private val log: Logger = Logger.getLogger(getClass.getName)
   private val tempProjectPrefix = "di-projectImport"
@@ -60,10 +63,10 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
     }
   }
 
-  private def temporaryProjectFileMaxAge: Long = {
+  private def temporaryProjectFileMaxAge: Duration = {
     val cfg = DefaultConfig.instance()
     if(cfg.hasPath(PROJECT_FILE_MAX_AGE_KEY)) {
-      cfg.getLong(PROJECT_FILE_MAX_AGE_KEY)
+      cfg.getDuration(PROJECT_FILE_MAX_AGE_KEY).toScala
     } else {
       DEFAULT_PROJECT_FILE_MAX_AGE
     }
@@ -78,8 +81,8 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
     }
   }
 
-  private def isStaleUploadedFile(projectImport: ProjectImport, maxAgeInSeconds: Long, now: Long): Boolean = {
-    (now - projectImport.uploadTimeStamp) / 1000 > maxAgeInSeconds &&
+  private def isStaleUploadedFile(projectImport: ProjectImport, maxAge: Duration, now: Instant): Boolean = {
+    JDuration.between(projectImport.uploadTimeStamp, now).toScala > maxAge &&
         projectImport.projectFileResource.file.exists() &&
     // Do not delete files of running project import executions
         (projectImport.importExecution.isEmpty ||
@@ -87,7 +90,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
   }
 
   private def removeOldTempFiles(): Unit = {
-    val now = System.currentTimeMillis()
+    val now = Instant.now
     val maxAge = temporaryProjectFileMaxAge
     withProjectImportQueue { queue =>
       for((projectImportId, projectImport) <- queue) {
@@ -112,7 +115,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
     val fileResource = FileResource(tempFile)
     fileResource.setDeleteOnGC(true)
     val id = fileResource.name
-    val projectImport = ProjectImport(id, fileResource, System.currentTimeMillis(), None, None)
+    val projectImport = ProjectImport(id, fileResource, Instant.now, None, None)
     withProjectImportQueue(_.put(id, projectImport))
     Created(Json.obj("projectImportId" -> id)).
         withHeaders("Location" -> s"${WorkbenchConfig.applicationContext}/api/workspace/projectImport/$id")
@@ -220,7 +223,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
     })
     var responseObj = Json.obj(
       "projectId" -> importExecution.projectId,
-      "importStarted" -> importExecution.importStarted
+      "importStarted" -> importExecution.importStarted.toEpochMilli
     )
     try {
       val result = Await.result(importExecution.importProcess, timeout.millis) // Long polling for the result.
@@ -230,7 +233,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
         for (projectImport <- queue.get(projectImportId);
              importExecution <- projectImport.importExecution;
              importEnded <- importExecution.importEnded) {
-          end = JsNumber(importEnded)
+          end = JsNumber(importEnded.toEpochMilli)
         }
       }
       responseObj = responseObj ++ Json.obj("importEnded" -> end)
@@ -299,13 +302,13 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
             queue.get(projectImport.projectImportId) foreach { projectImport =>
               queue.put(projectImport.projectImportId,
                 projectImport.copy(importExecution =
-                    Some(projectImport.importExecution.get.copy(importEnded = Some(System.currentTimeMillis())))))
+                    Some(projectImport.importExecution.get.copy(importEnded = Some(Instant.now)))))
             }
           }
           result
         }
         outerQueue.put(projectImport.projectImportId, projectImport.copy(
-          importExecution = Some(ProjectImportExecution(System.currentTimeMillis(), None, newProjectId, importProcess))))
+          importExecution = Some(ProjectImportExecution(Instant.now, None, newProjectId, importProcess))))
       }
     }
   }
@@ -325,7 +328,7 @@ object ProjectImportApi {
     */
   case class ProjectImport(projectImportId: String,
                            projectFileResource: FileResource,
-                           uploadTimeStamp: Long,
+                           uploadTimeStamp: Instant,
                            details: Option[ProjectImportDetails],
                            importExecution: Option[ProjectImportExecution])
 
@@ -336,8 +339,8 @@ object ProjectImportApi {
     * @param importEnded   Timestamp when the import has finished.
     * @param importProcess The import process.
     */
-  case class ProjectImportExecution(importStarted: Long,
-                                    importEnded: Option[Long],
+  case class ProjectImportExecution(importStarted: Instant,
+                                    importEnded: Option[Instant],
                                     projectId: String,
                                     importProcess: Future[Try[Unit]])
 
