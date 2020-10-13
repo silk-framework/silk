@@ -93,4 +93,4 @@ trait ActivityControl[T] {
   }
 }
 
-case class ActivityExecutionResult[T](metaData: ActivityExecutionMetaData, resultValue: Option[T])
+case class ActivityExecutionResult[+T](metaData: ActivityExecutionMetaData, resultValue: Option[T])

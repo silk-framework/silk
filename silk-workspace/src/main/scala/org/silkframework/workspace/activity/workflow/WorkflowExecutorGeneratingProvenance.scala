@@ -6,6 +6,7 @@ import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.reports.ReportManager
 
 /**
   * Executes a workflow child activity and generates provenance data (PROV-O) and writes it into the backend.
@@ -35,6 +36,7 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
         case Some(lastResult) =>
           val report = WorkflowExecutionReportWithProvenance.fromActivityExecutionReport(lastResult)
           context.value.update(report)
+          ReportManager().addReport(workflowTask.project.name, workflowTask.id, lastResult)
           val persistProvenanceService = PluginRegistry.createFromConfig[PersistWorkflowProvenance]("provenance.persistWorkflowProvenancePlugin")
           persistProvenanceService.persistWorkflowProvenance(workflowTask, lastResult)
         case None =>

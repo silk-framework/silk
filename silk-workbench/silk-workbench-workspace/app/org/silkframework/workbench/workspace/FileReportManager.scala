@@ -7,9 +7,12 @@ import java.time.format.DateTimeFormatter
 import java.time.{Instant, ZoneOffset}
 
 import org.silkframework.execution.ExecutionReport
+import org.silkframework.runtime.activity.ActivityExecutionResult
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.serialization.json.ActivitySerializers.ActivityExecutionResultJsonFormat
 import org.silkframework.serialization.json.ExecutionReportSerializers
+import org.silkframework.serialization.json.ExecutionReportSerializers.ExecutionReportJsonFormat
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.reports.{ReportManager, ReportMetaData}
 import play.api.libs.json.{JsValue, Json}
@@ -26,7 +29,11 @@ case class FileReportManager(dir: String) extends ReportManager {
   private val reportDirectory = new File(dir)
   reportDirectory.mkdirs()
 
+  // Time format to encode times in file names
   private val timeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss-SSS").withZone(ZoneOffset.UTC)
+
+  // JSON format to read and write execution reports.
+  private val reportJsonFormat = new ActivityExecutionResultJsonFormat()(ExecutionReportJsonFormat)
 
   override def listReports(projectId: Option[Identifier], taskId: Option[Identifier]): Seq[ReportMetaData] = {
     for {
@@ -39,7 +46,7 @@ case class FileReportManager(dir: String) extends ReportManager {
     }
   }
 
-  override def retrieveReport(projectId: Identifier, taskId: Identifier, time: Instant): ExecutionReport = {
+  override def retrieveReport(projectId: Identifier, taskId: Identifier, time: Instant): ActivityExecutionResult[ExecutionReport] = {
     val file = reportFile(projectId, taskId, time)
     if(!file.exists) {
       throw new NoSuchElementException(s"No report found for project $projectId and task $taskId at $time.")
@@ -48,16 +55,16 @@ case class FileReportManager(dir: String) extends ReportManager {
     val inputStream = new FileInputStream(file)
     try {
       implicit val rc: ReadContext = ReadContext()
-      ExecutionReportSerializers.ExecutionReportJsonFormat.read(Json.parse(inputStream))
+      reportJsonFormat.read(Json.parse(inputStream))
     } finally {
       inputStream.close()
     }
 
   }
 
-  override def addReport(projectId: Identifier, taskId: Identifier, report: ExecutionReport): Unit = {
+  override def addReport(projectId: Identifier, taskId: Identifier, report: ActivityExecutionResult[ExecutionReport]): Unit = {
     implicit val wc = WriteContext[JsValue]()
-    val reportJson = ExecutionReportSerializers.ExecutionReportJsonFormat.write(report)
+    val reportJson = reportJsonFormat.write(report)
 
     Files.write(reportFile(projectId, taskId, Instant.now).toPath, Json.prettyPrint(reportJson).getBytes(StandardCharsets.UTF_8))
   }

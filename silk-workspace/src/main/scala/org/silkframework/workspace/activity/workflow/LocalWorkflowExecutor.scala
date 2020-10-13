@@ -64,7 +64,6 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       for (endNode <- DAG.endNodes) {
         executeWorkflowNode(endNode, ExecutorOutput.empty)
       }
-      ReportManager().addReport(project.name, workflowTask.id, context.value())
       if (workflowRunContext.alreadyExecuted.size != workflow.nodes.size) {
         throw WorkflowException("Not all workflow nodes were executed! Executed " +
             workflowRunContext.alreadyExecuted.size + " of " + workflow.nodes.size + " nodes.")

@@ -5,6 +5,7 @@ import java.util.logging.Logger
 
 import org.silkframework.config.DefaultConfig
 import org.silkframework.execution.ExecutionReport
+import org.silkframework.runtime.activity.ActivityExecutionResult
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginRegistry}
 import org.silkframework.util.Identifier
 
@@ -21,9 +22,9 @@ trait ReportManager extends AnyPlugin {
     *
     * @throws NoSuchElementException If no report for the given project, task and time does exist.
     */
-  def retrieveReport(projectId: Identifier, taskId: Identifier, time: Instant): ExecutionReport
+  def retrieveReport(projectId: Identifier, taskId: Identifier, time: Instant): ActivityExecutionResult[ExecutionReport]
 
-  def addReport(projectId: Identifier, taskId: Identifier, report: ExecutionReport): Unit
+  def addReport(projectId: Identifier, taskId: Identifier, report: ActivityExecutionResult[ExecutionReport]): Unit
 
 }
 
@@ -31,9 +32,9 @@ case class EmptyReportManager() extends ReportManager {
 
   override def listReports(projectId: Option[Identifier], taskId: Option[Identifier]): Seq[ReportMetaData] = Seq.empty
 
-  override def retrieveReport(projectId: Identifier, taskId: Identifier, time: Instant): ExecutionReport = throw new NoSuchElementException
+  override def retrieveReport(projectId: Identifier, taskId: Identifier, time: Instant): ActivityExecutionResult[ExecutionReport] = throw new NoSuchElementException
 
-  override def addReport(projectId: Identifier, taskId: Identifier, report: ExecutionReport): Unit = { }
+  override def addReport(projectId: Identifier, taskId: Identifier, report: ActivityExecutionResult[ExecutionReport]): Unit = { }
 }
 
 object ReportManager {

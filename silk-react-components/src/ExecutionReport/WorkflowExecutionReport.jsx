@@ -28,7 +28,7 @@ export default class WorkflowExecutionReport extends React.Component {
       this.props.time)
       .then((report) => {
         this.setState({
-          executionReport: report
+          executionReport: report.value
         });
       })
       .catch((error) => {
@@ -44,7 +44,7 @@ export default class WorkflowExecutionReport extends React.Component {
       this.props.time)
       .then((report) => {
         this.setState({
-          executionReport: report
+          executionReport: report.value
         });
       })
       .catch((error) => {
