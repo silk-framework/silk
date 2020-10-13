@@ -123,7 +123,12 @@ export const ParameterWidget = (props: IProps) => {
                 contentFullview={description}
                 renderContentFullview={(content) => {
                     return (
-                        <WhiteSpaceContainer marginTop="tiny" marginRight="xlarge" marginBottom="small" marginLeft="regular">
+                        <WhiteSpaceContainer
+                            marginTop="tiny"
+                            marginRight="xlarge"
+                            marginBottom="small"
+                            marginLeft="regular"
+                        >
                             <ReactMarkdown source={description} />
                         </WhiteSpaceContainer>
                     );
