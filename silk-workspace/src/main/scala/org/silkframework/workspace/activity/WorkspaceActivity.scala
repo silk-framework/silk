@@ -12,7 +12,7 @@ import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 
 /**
-  * An activity that is either attached to a project (ProjectActivity) or a task (TaskActivity).
+  * An activity that is either attached to a project (ProjectActivity) or a task (TaskActivity) or is a GlobalWorkspaceActivity.
   */
 abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
 
