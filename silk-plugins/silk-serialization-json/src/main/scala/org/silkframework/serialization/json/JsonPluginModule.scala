@@ -33,6 +33,7 @@ class JsonPluginModule extends PluginModule {
       TransformInputJsonFormat.getClass ::
       ValueTypeJsonFormat.getClass ::
       GenericInfoJsonFormat.getClass ::
+      VocabularyCacheValueJsonFormat.getClass ::
       VocabularyClassJsonFormat.getClass ::
       InputJsonFormat.getClass ::
       WorkflowJsonFormat.getClass ::
