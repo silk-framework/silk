@@ -7,7 +7,7 @@ import org.silkframework.runtime.activity.UserContext
 
 import scala.collection.immutable.SortedMap
 
-private class VocabularyLoader(endpoint: SparqlEndpoint) {
+class VocabularyLoader(endpoint: SparqlEndpoint) {
   final val languageRanking: IndexedSeq[String] = IndexedSeq("en", "de", "es", "fr", "it", "pt")
 
   def retrieveVocabulary(uri: String)(implicit userContext: UserContext): Option[Vocabulary] = {

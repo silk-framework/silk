@@ -5,10 +5,12 @@ import org.silkframework.workspace.{Project, ProjectTask}
 
 import scala.reflect.ClassTag
 
-class ProjectActivity[ActivityType <: HasValue : ClassTag](override val project: Project, defaultFactory: ProjectActivityFactory[ActivityType])
+class ProjectActivity[ActivityType <: HasValue : ClassTag](val project: Project, defaultFactory: ProjectActivityFactory[ActivityType])
   extends WorkspaceActivity[ActivityType] {
 
   override def taskOption: Option[ProjectTask[_]] = None
+
+  override def projectOpt: Option[Project] = Some(project)
 
   override def factory: ProjectActivityFactory[ActivityType] = defaultFactory
 

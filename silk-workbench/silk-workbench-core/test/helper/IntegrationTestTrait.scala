@@ -61,6 +61,9 @@ trait IntegrationTestTrait extends TaskApiClient with ActivityApiClient with Gui
     builder.build()
   }
 
+  /** Fetch the workspace */
+  def userWorkspace(implicit userContext: UserContext): Workspace = WorkspaceFactory.factory.workspace
+
   /**
     * Constructs a REST request for a given Call.
     */
