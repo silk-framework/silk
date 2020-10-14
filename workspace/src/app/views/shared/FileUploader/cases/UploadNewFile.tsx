@@ -20,7 +20,7 @@ interface IProps {
 
     onProgress?(progress: number);
 
-    onUploadSuccess?(file: File);
+    onUploadSuccess?(file: File, response: { status: number; body: any });
 
     onUploadError?(e, f);
 }
@@ -63,9 +63,9 @@ export function UploadNewFile(props: IProps) {
         }
     };
 
-    const handleUploadSuccess = (file: File) => {
+    const handleUploadSuccess = (file: File, response: { status: number; body: any }) => {
         setUploaded(file);
-        onUploadSuccess(file);
+        onUploadSuccess(file, response);
     };
 
     const handleAbort = () => {
