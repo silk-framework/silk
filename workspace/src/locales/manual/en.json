@@ -35,11 +35,11 @@
                 "comment": "The time the profiling information was extracted from the data source."
             },
             "min": {
-                "comment": "The smallest value of all profiled values.",
+                "comment": "The smallest value of all profiled values. The representation of the value can be normalized, depending on the detected data type.",
                 "label": "Min. value"
             },
             "max": {
-                "comment": "The largest value of all profiled values.",
+                "comment": "The largest value of all profiled values. The representation of the value can be normalized, depending on the detected data type.",
                 "label": "Max. value"
             },
             "count": {
@@ -51,11 +51,11 @@
                 "label": "Count (unique)"
             },
             "samples": {
-                "comment": "Values sampled from all profiled values. Usually this sample is uniformly selected from the set of unique values.",
+                "comment": "Values sampled from all profiled values. Usually this sample is uniformly selected from the set of unique values. The representation of the values can be normalized, depending on the detected data type.",
                 "label": "Samples"
             },
             "mean": {
-                "comment": "The arithmetic mean of all profiled values.",
+                "comment": "The arithmetic mean of all profiled values. The representation of the value can be normalized, depending on the detected data type.",
                 "label": "Mean value"
             },
             "minStringLength": {
