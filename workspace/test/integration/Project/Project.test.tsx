@@ -1,4 +1,5 @@
 import React from "react";
+import { waitFor } from "@testing-library/react";
 import mockAxios from "../../__mocks__/axios";
 import {
     apiUrl,
@@ -8,11 +9,18 @@ import {
     withMount,
     workspacePath,
     findAll,
+    findSingleElement,
     byTestId,
+    mockAxiosResponse,
+    changeValue,
+    pressKey,
+    logRequests,
 } from "../TestHelper";
 import { createBrowserHistory } from "history";
 import Project from "../../../src/app/views/pages/Project";
 import qs from "qs";
+
+//jest.setTimeout(50000);
 
 describe("Project page", () => {
     const testProjectId = "testproject";
@@ -42,7 +50,7 @@ describe("Project page", () => {
                             modified: "2020-10-08",
                         },
                     ],
-                    error: [],
+                    error: {},
                 },
             },
         },
@@ -118,26 +126,41 @@ describe("Project page", () => {
         expect(filewidget).toHaveLength(1);
     });
 
-    it("file search bar is shown when there are files", () => {
-        const filesearchinput = findAll(projectPageWrapper, byTestId(`file-search-bar`));
-        expect(filesearchinput).toHaveLength(1);
-    });
+    const setFilesForWidget = (files) => {
+        mockAxiosResponse(legacyApiUrl("/workspace/projects/" + testProjectId + "/resources"), { data: files });
+    };
 
-    // TODO
-    xit("file search bar is not shown but upload widget when there are no files", () => {
-        const filesearchinput = findAll(projectPageWrapper, byTestId(`file-search-bar`));
-        expect(filesearchinput).toHaveLength(0);
-    });
-
-    // TODO
-    xit("file search bar never disappears when no results are shown", async (done) => {
-        const filesearchinput = screen.queryByTestId(`file-search-bar`);
-        fireEvent.change(filesearchinput, { target: { value: "this-is-not-a-known-file-teststring" } });
-        fireEvent.keyDown(filesearchinput, { key: "Enter", code: "Enter" });
+    it("file search bar is shown when there are files", async () => {
+        setFilesForWidget(reducerState.workspace.widgets.files.results);
         await waitFor(() => {
-            const filesearchinputTest = screen.findAllByTestId(`file-search-bar`);
-            expect(filesearchinputTest).toHaveLength(1);
-            done();
+            const filesearchinput = findAll(projectPageWrapper, byTestId(`file-search-bar`));
+            expect(filesearchinput).toHaveLength(1);
+        });
+    });
+
+    it("file search bar is not shown but upload widget when there are no files", async () => {
+        setFilesForWidget([]);
+        await waitFor(() => {
+            const filesearchinput = findAll(projectPageWrapper, byTestId(`file-search-bar`));
+            const emptyfilesnotifcation = findAll(projectPageWrapper, byTestId(`project-files-widget-empty`));
+            expect(filesearchinput).toHaveLength(0);
+            expect(emptyfilesnotifcation).toHaveLength(1);
+        });
+    });
+
+    // TODO
+    it("file search bar never disappears when no results are shown", async (done) => {
+        setFilesForWidget(reducerState.workspace.widgets.files.results);
+        await waitFor(() => {
+            const filesearchinputchange = findSingleElement(projectPageWrapper, byTestId(`file-search-bar`));
+            changeValue(filesearchinputchange, "unknown-string");
+            pressKey(filesearchinputchange, "Enter");
+            setFilesForWidget([]);
+        });
+        // setFilesForWidget([]);
+        await waitFor(() => {
+            const filesearchinputtest = findAll(projectPageWrapper, byTestId(`file-search-bar`));
+            expect(filesearchinputtest).toHaveLength(1);
         });
     });
 });
