@@ -3,6 +3,7 @@ package controllers.transform
 import controllers.transform.AutoCompletionApi.Categories
 import org.silkframework.config.PlainTask
 import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.rule.TransformSpec.TargetVocabularyListParameter
 import org.silkframework.rule._
 import org.silkframework.serialization.json.JsonSerializers._
 import play.api.libs.json._
@@ -108,7 +109,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
             )
           )
         ),
-        targetVocabularies = Seq("foaf.rdf")
+        targetVocabularies = TargetVocabularyListParameter(Seq("foaf.rdf"))
       )
     val transformTask = PlainTask(task, transformSpec)
     val request = client.url(s"$baseUrl/transform/tasks/$project/$task")

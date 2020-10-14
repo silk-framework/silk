@@ -2,6 +2,8 @@ package org.silkframework.util
 
 import java.io.File
 
+import scala.util.Try
+
 /**
   * File based utils for tests
   */
@@ -29,6 +31,19 @@ object TestFileUtils {
       block(tempDir)
     } finally {
       org.apache.commons.io.FileUtils.forceDelete(tempDir)
+    }
+  }
+
+  /** Executens a block of code with a temporary file that will be deleted after the block has finished executing or failed. */
+  def withTempFile[T](block: File => T,
+                      baseName: String = "tempFile",
+                      suffix: String = ""): T = {
+    val tempFile = File.createTempFile(baseName, suffix)
+    tempFile.deleteOnExit()
+    try {
+      block(tempFile)
+    } finally {
+      Try(tempFile.delete())
     }
   }
 }
