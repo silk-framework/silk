@@ -130,7 +130,7 @@ export const FileWidget = () => {
 
     return (
         <>
-            <Card>
+            <Card data-test-id="project-files-widget">
                 <CardHeader>
                     <CardTitle>
                         <h2>{t("widget.FileWidget.files", "Files")}</h2>
