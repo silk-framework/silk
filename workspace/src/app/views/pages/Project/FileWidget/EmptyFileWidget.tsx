@@ -1,5 +1,5 @@
 import React from "react";
-import { Button } from "@gui-elements/index";
+import { Button, Spacing } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
 
 export function EmptyFileWidget({ onFileAdd }) {
@@ -8,6 +8,7 @@ export function EmptyFileWidget({ onFileAdd }) {
     return (
         <div>
             <p>{t("widget.FileWidget.empty", "No files are found, add them here to use it later")}</p>
+            <Spacing size="tiny" />
             <Button kind={"primary"} onClick={onFileAdd}>
                 + {t("common.action.AddSmth", { smth: t("widget.FileWidget.file", "File") })}
             </Button>
