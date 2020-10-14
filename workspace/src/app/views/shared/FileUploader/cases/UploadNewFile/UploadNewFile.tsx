@@ -19,15 +19,15 @@ interface IProps {
 
     uploadEndpoint: string;
 
-    projectId: string;
+    projectId?: string;
 
-    validateBeforeAdd(fileName: string);
+    validateBeforeAdd?(fileName: string);
 
     onAdded?(file: UppyFile);
 
     onProgress?(progress: number);
 
-    onUploadSuccess?(file: UppyFile);
+    onUploadSuccess?(file: UppyFile, response: { status: number; body: any });
 
     onUploadError?(e, f);
 }
@@ -101,7 +101,7 @@ export function UploadNewFile(props: IProps) {
 
     const validateBeforeUploadAsync = async (file: UppyFile) => {
         try {
-            const replacement = await validateBeforeAdd(file.name);
+            const replacement = validateBeforeAdd ? await validateBeforeAdd(file.name) : false;
             if (replacement) {
                 // also remove from completed uploads
                 removeFromUploaded(file.id);
@@ -181,14 +181,14 @@ export function UploadNewFile(props: IProps) {
         }));
     };
 
-    const handleUploadSuccess = (file: UppyFile) => {
+    const handleUploadSuccess = (file: UppyFile, response: { status: number; body: any }) => {
         setError(null);
 
         setUploadedFiles((prevState) => [...prevState, file]);
 
         removeFromUppyQueue(file.id);
 
-        onUploadSuccess(file);
+        onUploadSuccess(file, response);
     };
 
     const handleUploadError = (fileData: UppyFile, error: any) => {
@@ -292,7 +292,9 @@ export function UploadNewFile(props: IProps) {
 
     return (
         <>
-            <FileRemoveModal projectId={projectId} onConfirm={handleConfirmDelete} file={showDeleteDialog} />
+            {projectId && (
+                <FileRemoveModal projectId={projectId} onConfirm={handleConfirmDelete} file={showDeleteDialog} />
+            )}
             <DragDrop
                 uppy={uppy}
                 locale={{ strings: { dropHereOr: t("FileUploader.dropzone", "Drop files here or browse") } }}
