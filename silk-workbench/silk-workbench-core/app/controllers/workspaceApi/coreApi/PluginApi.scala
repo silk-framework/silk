@@ -3,7 +3,7 @@ package controllers.workspaceApi.coreApi
 import controllers.util.{SerializationUtils, TextSearchUtils}
 import javax.inject.Inject
 import org.silkframework.config.{CustomTask, TaskSpec}
-import org.silkframework.dataset.Dataset
+import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.plugin.{PluginDescription, PluginList, PluginRegistry}
 import org.silkframework.runtime.serialization.WriteContext
@@ -109,6 +109,7 @@ class PluginApiCache @Inject()() {
   def taskTypeByClass(pluginClass: Class[_]): Option[String] = {
     val taskTypes = Seq(
       JsonSerializers.TASK_TYPE_DATASET -> classOf[Dataset],
+      JsonSerializers.TASK_TYPE_DATASET -> classOf[DatasetSpec[_ <: Dataset]],
       JsonSerializers.TASK_TYPE_CUSTOM_TASK -> classOf[CustomTask],
       JsonSerializers.TASK_TYPE_WORKFLOW -> classOf[Workflow],
       JsonSerializers.TASK_TYPE_TRANSFORM -> classOf[TransformSpec],

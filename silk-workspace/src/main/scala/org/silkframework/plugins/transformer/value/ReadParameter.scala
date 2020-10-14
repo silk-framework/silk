@@ -24,6 +24,8 @@ case class ReadParameter(
 
   private val logger = Logger.getLogger(classOf[ReadParameter].getName)
 
+  override def referencedResources: Seq[Resource] = Seq(resource)
+
   /**
     * The timestamp when the current properties have been loaded.
     */
