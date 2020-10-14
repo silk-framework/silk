@@ -13,7 +13,7 @@ import {
     byTestId,
     mockAxiosResponse,
     changeValue,
-    pressKey,
+    keyDown,
     logRequests,
 } from "../TestHelper";
 import { createBrowserHistory } from "history";
@@ -148,16 +148,16 @@ describe("Project page", () => {
         });
     });
 
-    // TODO
-    it("file search bar never disappears when no results are shown", async (done) => {
+    it("file search bar never disappears when no results are shown", async () => {
         setFilesForWidget(reducerState.workspace.widgets.files.results);
         await waitFor(() => {
             const filesearchinputchange = findSingleElement(projectPageWrapper, byTestId(`file-search-bar`));
             changeValue(filesearchinputchange, "unknown-string");
-            pressKey(filesearchinputchange, "Enter");
-            setFilesForWidget([]);
+            keyDown(filesearchinputchange, "Enter");
+            //setFilesForWidget([]);
         });
-        // setFilesForWidget([]);
+        //logRequests();
+        setFilesForWidget([]);
         await waitFor(() => {
             const filesearchinputtest = findAll(projectPageWrapper, byTestId(`file-search-bar`));
             expect(filesearchinputtest).toHaveLength(1);
