@@ -4,21 +4,17 @@ import java.util.NoSuchElementException
 
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
-import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
-import org.silkframework.rule.TransformSpec.RuleSchemata
+import org.silkframework.rule.TransformSpec.{RuleSchemata, TargetVocabularyAutoCompletionProvider, TargetVocabularyCategory, TargetVocabularyParameter}
 import org.silkframework.rule.input.TransformInput
-import org.silkframework.rule.TransformSpec.{RuleSchemata, TargetVocabularyAutoCompletionProvider, TargetVocabularyCategory, TargetVocabularyListParameter, TargetVocabularyParameter}
-import org.silkframework.rule.task.DatasetOrTransformTaskAutoCompletionProvider
+import org.silkframework.rule.vocab.TargetVocabularyParameterEnum
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.StringParameterType.{EnumerationType, StringTraversableParameterType}
-import org.silkframework.runtime.plugin.StringTraversableParameter.toStringTraversable
-import org.silkframework.runtime.plugin.{AutoCompletionResult, IdentifierOptionParameter, PluginParameterAutoCompletionProvider, PluginStringParameter, PluginStringParameterType, StringTraversableParameter}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.resource.Resource
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.plugin._
+import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.NotFoundException
@@ -27,10 +23,9 @@ import org.silkframework.workspace.WorkspaceReadTrait
 import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
 
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
+import scala.language.implicitConversions
 import scala.util.Try
 import scala.xml.{Node, Null}
-import scala.language.implicitConversions
 
 /**
   * This class contains all the required parameters to execute a transform task.
