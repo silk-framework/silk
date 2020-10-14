@@ -2,7 +2,6 @@ package org.silkframework.runtime.plugin
 
 import java.lang.reflect.{ParameterizedType, Type}
 import java.net.{URLDecoder, URLEncoder}
-import java.security.InvalidKeyException
 import java.security.spec.InvalidKeySpecException
 import java.util.logging.{Level, Logger}
 
@@ -11,7 +10,6 @@ import org.silkframework.config.{DefaultConfig, Prefixes, ProjectReference, Task
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.entity.Restriction
 import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, ResourceManager, WritableResource}
-import org.silkframework.runtime.serialization.{Serialization, WriteContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{AesCrypto, Identifier, Uri}
 
@@ -70,6 +68,8 @@ object ParameterType {
             PluginObjectParameterType(cl)
           case cl: Class[_] if classOf[PluginObjectParameterNoSchema].isAssignableFrom(cl) =>
             PluginObjectParameterNoSchemaType(cl) // Parameters that generate no schema definition and thus cannot be handled generically, e.g. transform rule.
+          case cl: Class[_] if classOf[PluginStringParameter].isAssignableFrom(cl) =>
+            GenericPluginStringParameterType(cl)
           case _ =>
             throw new InvalidPluginException("Unsupported parameter type: " + dataType)
         }
@@ -113,6 +113,33 @@ trait PluginObjectParameterNoSchema extends PluginObjectParameter {
 case class PluginObjectParameterNoSchemaType(pluginObjectParameterClass: Class[_]) extends PluginObjectParameterTypeTrait {
   override def name: String = "pluginObjectParameterNoSchema"
 }
+
+/** Trait for plugin parameters that can be serialized to string, but that are not defined in the core package.
+  * They must have a PluginStringParameterType implementation (available in the plugin registry) that handles it. */
+trait PluginStringParameter
+
+/** Parameter type wrapper for PluginStringParameter types. This is necessary since the PluginStringParameterType plugin
+  * might not be registered yet in the plugin registry at creation time. */
+case class GenericPluginStringParameterType(pluginStringParameterClass: Class[_]) extends StringParameterType[Any] {
+  private lazy val stringPlugin = {
+    val pluginDescriptions = PluginRegistry.availablePluginsForClass(classOf[PluginStringParameterType[_]])
+    implicit val prefixes: Prefixes = Prefixes.empty
+    val plugins = pluginDescriptions.map(_.apply())
+    plugins.map(_.asInstanceOf[PluginStringParameterType[_]]).find(_.dataType == pluginStringParameterClass).getOrElse(
+      throw new ValidationException("No parameter type available to handle string parameter type class " + pluginStringParameterClass.getName)
+    )
+  }
+
+  override def fromString(str: String)
+                         (implicit prefixes: Prefixes, resourceLoader: ResourceManager): Any = {
+    stringPlugin.fromString(str)
+  }
+
+  override def name: String = stringPlugin.name
+}
+
+/** Parameter type that implements a PluginStringParameter parameter. */
+abstract class PluginStringParameterType[T <: PluginStringParameter : ClassTag] extends StringParameterType[T]
 
 /**
   * Represents a plugin parameter type and provides string-based serialization.
@@ -479,12 +506,16 @@ object StringParameterType {
     override def description: String = "One of the following values: " + valueList
 
     override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Enum[_] = {
+      fromStringOpt(str) getOrElse (throw new ValidationException(s"Invalid enumeration value '$str'. Allowed values are: $valueList"))
+    }
+
+    def fromStringOpt(str: String): Option[Enum[_]] = {
       enumConstants.find {
         case e: EnumerationParameterType =>
           e.id == str.trim || e.name == str.trim
         case c: Enum[_] =>
           c.name == str.trim
-      } getOrElse (throw new ValidationException(s"Invalid enumeration value '$str'. Allowed values are: $valueList"))
+      }
     }
 
     def enumerationValues: Seq[String] = enumConstants map enumerationValue

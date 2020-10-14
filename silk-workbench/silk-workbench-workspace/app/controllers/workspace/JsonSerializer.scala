@@ -14,7 +14,7 @@ import org.silkframework.serialization.json.ActivitySerializers.ExtendedStatusJs
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, WorkspaceFactory}
+import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, Workspace, WorkspaceFactory}
 import play.api.libs.json._
 import JsonSerializers._
 
@@ -88,6 +88,14 @@ object JsonSerializer {
       "absolutePath" -> resource.path,
       "size" -> sizeValue,
       "modified" -> modificationValue
+    )
+  }
+
+  def globalWorkspaceActivities(workspace: Workspace): JsValue = {
+    JsArray(
+      for(activity <- workspace.activities) yield {
+        workspaceActivity(activity)
+      }
     )
   }
 

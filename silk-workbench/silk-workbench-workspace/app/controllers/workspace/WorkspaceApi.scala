@@ -8,6 +8,7 @@ import akka.stream.scaladsl.Source
 import akka.util.ByteString
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.workspace.workspaceRequests.UpdateGlobalVocabularyRequest
 import controllers.workspace.workspaceApi.TaskLinkInfo
 import controllers.workspaceApi.coreApi.PluginApiCache
 import controllers.workspaceApi.search.ResourceSearchRequest
@@ -25,11 +26,13 @@ import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeExcep
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace._
 import org.silkframework.workspace.activity.ProjectExecutor
+import org.silkframework.workspace.activity.vocabulary.GlobalVocabularyCache
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import play.api.libs.Files
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.streams.IterateeStreams
 import play.api.libs.json.{JsArray, JsString, Json}
+import play.api.libs.json.{JsArray, JsString, JsValue}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -261,5 +264,18 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor, pluginApiC
     project.resources.delete(resourceName)
     log.info(s"Deleted resource '$resourceName' in project '$projectName'. " + userContext.logInfo)
     NoContent
+  }
+
+  /** Updates the global vocabulary cache for a specific vocabulary */
+  def updateGlobalVocabularyCache(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>
+    implicit userContext =>
+      validateJson[UpdateGlobalVocabularyRequest] { updateRequest =>
+        GlobalVocabularyCache.putVocabularyInQueue(updateRequest.iri)
+        val activityControl = workspace.activity[GlobalVocabularyCache].control
+        if(!activityControl.status.get.exists(_.isRunning)) {
+          Try(activityControl.start())
+        }
+        NoContent
+      }
   }
 }

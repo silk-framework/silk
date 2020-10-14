@@ -10,14 +10,20 @@ import org.silkframework.entity.paths._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule.input.TransformInput
+import org.silkframework.rule.TransformSpec.{RuleSchemata, TargetVocabularyAutoCompletionProvider, TargetVocabularyCategory, TargetVocabularyListParameter, TargetVocabularyParameter}
 import org.silkframework.rule.task.DatasetOrTransformTaskAutoCompletionProvider
-import org.silkframework.runtime.plugin.{IdentifierOptionParameter, StringTraversableParameter}
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.StringParameterType.{EnumerationType, StringTraversableParameterType}
+import org.silkframework.runtime.plugin.StringTraversableParameter.toStringTraversable
+import org.silkframework.runtime.plugin.{AutoCompletionResult, IdentifierOptionParameter, PluginParameterAutoCompletionProvider, PluginStringParameter, PluginStringParameterType, StringTraversableParameter}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.Resource
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.util.{Identifier, IdentifierGenerator}
+import org.silkframework.workspace.WorkspaceReadTrait
 import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
 
 import scala.collection.mutable
@@ -56,8 +62,11 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
                            autoCompletionProvider = classOf[DatasetTaskReferenceAutoCompletionProvider],
                            autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
                          errorOutput: IdentifierOptionParameter = IdentifierOptionParameter(None),
-                         @Param(label = "Target vocabularies", value = "Target vocabularies this transformation maps to.")
-                         targetVocabularies: StringTraversableParameter = Seq.empty
+                         @Param(label = "Target vocabularies", value = "Use installed vocabularies for auto-suggestion and selection of target classes and target properties " +
+                             "of this transformation.",
+                             autoCompletionProvider = classOf[TargetVocabularyAutoCompletionProvider],
+                           autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = false)
+                         targetVocabularies: TargetVocabularyParameter = TargetVocabularyCategory(TargetVocabularyParameterEnum.allInstalled)
                         ) extends TaskSpec {
 
   /** Retrieves the root rules of this transform spec. */
@@ -341,7 +350,13 @@ object TransformSpec {
       val datasetSelection = DatasetSelection.fromXML((node \ "SourceDataset").head)
       val sink = (node \ "Outputs" \ "Output" \ "@id").headOption.map(_.text).map(Identifier(_))
       val errorSink = (node \ "ErrorOutputs" \ "ErrorOutput" \ "@id").headOption.map(_.text).map(Identifier(_))
-      val targetVocabularies = (node \ "TargetVocabularies" \ "Vocabulary").map(n => (n \ "@uri").text).filter(_.nonEmpty)
+      val targetVocabularyParameter = (node \ "TargetVocabularyCategory").headOption match {
+        case Some(targetVocabularyCategoryNode) =>
+          TargetVocabularyParameterType.fromString(targetVocabularyCategoryNode.text.trim)
+        case None =>
+          // Backwards compatibility
+          TargetVocabularyListParameter((node \ "TargetVocabularies" \ "Vocabulary").map(n => (n \ "@uri").text).filter(_.nonEmpty))
+      }
 
       val rootMappingRule = {
         // Stay compatible with the old format.
@@ -359,7 +374,7 @@ object TransformSpec {
       }
 
       // Create and return a TransformSpecification instance.
-      TransformSpec(datasetSelection, rootMappingRule, sink, errorSink, targetVocabularies)
+      TransformSpec(datasetSelection, rootMappingRule, sink, errorSink, targetVocabularyParameter)
     }
 
     /**
@@ -375,11 +390,19 @@ object TransformSpec {
         <ErrorOutputs>
           {value.errorOutput.map(o => <ErrorOutput id={o}></ErrorOutput>)}
         </ErrorOutputs>
-      }}<TargetVocabularies>
-        {for (targetVocabulary <- value.targetVocabularies) yield {
-            <Vocabulary uri={targetVocabulary}/>
-        }}
-      </TargetVocabularies>
+      }}
+        {
+          value.targetVocabularies match {
+            case v: TargetVocabularyCategory =>
+              <TargetVocabularyCategory>{TargetVocabularyParameterType.stringValue(v)}</TargetVocabularyCategory>
+            case TargetVocabularyListParameter(vocabularyUris) =>
+              <TargetVocabularies>
+                { for (targetVocabulary <- vocabularyUris) yield {
+                    <Vocabulary uri={targetVocabulary}/>
+                }}
+              </TargetVocabularies>
+          }
+        }
       </TransformSpec>
     }
   }
@@ -401,5 +424,81 @@ object TransformSpec {
       identifierGenerator.add(id)
     }
     identifierGenerator
+  }
+
+  /** Target vocabulary parameter that is backwards compatible and allows configuration by enum ID and the old configuration by listing target vocabulary URIs. */
+  sealed trait TargetVocabularyParameter extends PluginStringParameter {
+    def explicitVocabularies: Seq[String]
+  }
+
+  private val enumParameterType = EnumerationType(classOf[TargetVocabularyParameterEnum])
+
+  /** The old version of a list of vocabularies for backwards compatibility. */
+  case class TargetVocabularyListParameter(value: Traversable[String]) extends TargetVocabularyParameter {
+    override def explicitVocabularies: Seq[String] = value.toSeq
+
+    override def toString: String = TargetVocabularyParameterType.stringValue(this)
+  }
+  /** The new approach of specifying a category of vocabularies. */
+  case class TargetVocabularyCategory(value: TargetVocabularyParameterEnum) extends TargetVocabularyParameter {
+    override def explicitVocabularies: Seq[String] = Seq.empty
+
+    override def toString: String = TargetVocabularyParameterType.stringValue(this)
+  }
+
+  /** Converts the target vocabulary parameter. */
+  case class TargetVocabularyParameterType() extends PluginStringParameterType[TargetVocabularyParameter] {
+    override def name: String = "targetVocabularies"
+
+    override def jsonSchemaType: String = "string"
+
+    override def toString(value: TargetVocabularyParameter)(implicit prefixes: Prefixes): String = {
+      value match {
+        case v: TargetVocabularyListParameter => TargetVocabularyParameterType.stringValue(v)
+        case v: TargetVocabularyCategory => TargetVocabularyParameterType.stringValue(v)
+      }
+    }
+
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): TargetVocabularyParameter = {
+      enumParameterType.fromStringOpt(str) match {
+        case Some(enumValue) =>
+          TargetVocabularyCategory(enumValue.asInstanceOf[TargetVocabularyParameterEnum])
+        case None =>
+          TargetVocabularyListParameter(StringTraversableParameterType.fromString(str).value)
+      }
+    }
+  }
+
+  object TargetVocabularyParameterType {
+    private implicit val prefixes: Prefixes = Prefixes.empty
+    private val instance = TargetVocabularyParameterType()
+    def stringValue(v: TargetVocabularyListParameter): String = v.value.mkString(", ")
+
+    def stringValue(v: TargetVocabularyCategory): String = enumParameterType.toString(v.value)
+
+    def fromString(str: String): TargetVocabularyParameter = instance.fromString(str)
+
+    def toString(targetVocabularyParameter: TargetVocabularyParameter): String = instance.toString(targetVocabularyParameter)
+  }
+
+  case class TargetVocabularyAutoCompletionProvider() extends PluginParameterAutoCompletionProvider {
+    private val potentialResults: Seq[AutoCompletionResult] = TargetVocabularyParameterEnum.values().map { value =>
+      AutoCompletionResult(value.id(), Some(value.displayName()))
+    }
+    override def autoComplete(searchQuery: String,
+                              projectId: String,
+                              dependOnParameterValues: Seq[String],
+                              workspace: WorkspaceReadTrait)
+                             (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
+      filterResults(searchQuery, potentialResults)
+    }
+
+    override def valueToLabel(projectId: String,
+                              value: String,
+                              dependOnParameterValues: Seq[String],
+                              workspace: WorkspaceReadTrait)
+                             (implicit userContext: UserContext): Option[String] = {
+      potentialResults.find(_.value == value).flatMap(_.label)
+    }
   }
 }
