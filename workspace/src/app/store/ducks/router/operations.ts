@@ -23,7 +23,7 @@ const itemTypeToPathMap = {
     Dataset: "dataset",
 };
 
-const itemTypeToPath = (itemType: string) => {
+export const itemTypeToPath = (itemType: string): string => {
     const str = itemType[0].toUpperCase() + itemType.slice(1);
     if (itemTypeToPathMap[str]) {
         return itemTypeToPathMap[str];
@@ -62,14 +62,18 @@ const setQueryString = (queryParams: IQueryParams) => {
  * @param pageLabels The labels of the target page, e.g. page title and labels for parts of the breadcrumb.
  */
 const goToPage = (path: string, pageLabels: IPageLabels = {} as IPageLabels) => {
-    const isAbsolute = path.startsWith("/");
     return (dispatch) => {
         dispatch(
-            push(isAbsolute ? path : path ? SERVE_PATH + "/" + path : SERVE_PATH, {
+            push(absolutePageUrl(path), {
                 pageLabels: pageLabels,
             })
         );
     };
+};
+
+const absolutePageUrl = (path: string): string => {
+    const isAbsolute = path.startsWith("/");
+    return isAbsolute ? path : path ? SERVE_PATH + "/" + path : SERVE_PATH;
 };
 
 const goToTaskPage = (task: ISearchResultsServer) => {
@@ -82,6 +86,10 @@ const goToTaskPage = (task: ISearchResultsServer) => {
             })
         );
     };
+};
+
+const taskUrl = (projectId: string, taskType: string, taskId: string): string => {
+    return absolutePageUrl(`projects/${projectId}/${itemTypeToPath(taskType)}/${taskId}`);
 };
 
 const replacePage = (path: string, pageLabels: IPageLabels) => {
@@ -116,4 +124,5 @@ export default {
     updateLocationState,
     goToTaskPage,
     itemTypeToPath,
+    taskUrl,
 };

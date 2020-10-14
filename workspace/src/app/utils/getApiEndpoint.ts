@@ -14,10 +14,10 @@ const apiPath = (path: string) => {
 
 /**
  * /api/workspace
- * @param query
+ * @param path
  */
-export const workspaceApi = (query: string) => {
-    return apiPath("/workspace") + prependSlash(query);
+export const workspaceApi = (path: string) => {
+    return apiPath("/workspace") + prependSlash(path);
 };
 
 export const projectApi = (relativePath: string) => {

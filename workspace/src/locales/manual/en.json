@@ -98,20 +98,22 @@
         "abortProcess": "Abort upload process?",
         "changeFile": "Change file",
         "createNewFile": "New file name",
-        "dropzone": "Drop file here or browse",
+        "dropzone": "Drop files here or browse",
         "fileNotSpecified": "File name not specified",
         "modalTitle": "Upload file",
+        "retryAbortMessage": "The {{fileName}} upload process aborted",
+        "retryMessage": "Something going wrong during upload process for {{fileName}}",
         "selectFromProject": "Select file from projects",
         "successfullyUploaded": "{{uploadedName}} was successfully uploaded",
         "uploadError": "An upload error has occurred for file {{fileName}}. Details: {{errorDetails}}",
-        "waitFor": "Wait for finished upload."
+        "waitFor": "File '{{fileName}}' is being uploaded."
     },
     "Metadata": {
         "loading": "Loading summary data.",
         "updateFailed": "Updating meta data has failed"
     },
     "OverwriteModal": {
-        "overwriteFile": "File {{fileName}} already exists. Do you want to overwrite it?"
+        "overwriteFile": "File '{{fileName}}' already exists. Do you want to overwrite it?"
     },
     "Pagination": {
         "backwardText": "Previous page",
@@ -122,6 +124,20 @@
     },
     "PrefixDialog": {
         "deletePrefix": "Prefix {{prefixName}} will be deleted."
+    },
+    "ProjectImportModal": {
+        "importBtn": "Import project",
+        "importSummary": "Imported project summary",
+        "importUnderFreshIdBtn": "Import as new project",
+        "projectFile": "Choose project file to import:",
+        "replaceImportBtn": "Replace existing project",
+        "responseInvalid": "Invalid response received from project upload. Project import cannot proceed.",
+        "responseUploadError": "File {{file}} could not be uploaded! {{details}}",
+        "restoreNotice": "Want to restore an existing project?",
+        "restoreStarter": "Import project file",
+        "title": "Project import",
+        "openExistingProject": "Open existing project page",
+        "warningExistingProject": "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID."
     },
     "RelatedItems": {
         "title": "Related items"
@@ -153,6 +169,7 @@
             "profilingUpdate": "Update profiling",
             "replace": "Replace",
             "resetSelection": "Reset selection",
+            "retry": "Retry",
             "showDetails": "Show details",
             "submit": "Submit",
             "update": "Update"
@@ -182,8 +199,8 @@
         },
         "words": {
             "advancedOptions": "Advanced options",
-            "and": "and",
             "all": "All",
+            "and": "and",
             "back": "Back",
             "itemType": "Item type",
             "less": "less",
@@ -200,6 +217,7 @@
             "searchField": "Enter search term"
         },
         "projectForm": {
+            "importProjectButton": "Import existing project",
             "projectDesc": "Project description",
             "projectTitle": "Project title",
             "title": "Title"
@@ -226,7 +244,8 @@
             },
             "requestFailed": "Preview request failed",
             "server": "Server error",
-            "timeout": "Timeout"
+            "timeout": "Timeout",
+            "networkFileUpload": "Can't upload the file, please check your connection and try again"
         }
     },
     "pages": {
@@ -260,30 +279,37 @@
         "FacetsList": {
             "facet": {
                 "createdBy": {
+                    "description": "The user who created the item.",
                     "label": "Created by",
                     "valueLabel": {
                         "": "Unknown user"
                     }
                 },
                 "datasetFileResource": {
+                    "description": "The file resource of a file based dataset.",
                     "label": "Dataset file"
                 },
                 "datasetType": {
+                    "description": "The concrete type of a dataset, e.g. its data model and format etc.",
                     "label": "Dataset type"
                 },
                 "lastModifiedBy": {
+                    "description": "The user who last modified the item.",
                     "label": "Last modified by",
                     "valueLabels": {
                         "": "Unknown user"
                     }
                 },
                 "taskType": {
+                    "description": "The concrete type of a task.",
                     "label": "Task type"
                 },
                 "transformInputResource": {
+                    "description": "In case the input is a file resource based dataset, these are the file names of these resources.",
                     "label": "Transformed file resource"
                 },
                 "workflowExecutionStatus": {
+                    "description": "Allows to filter by the status of the last execution of the workflow.",
                     "label": "Last execution status"
                 }
             }
@@ -296,7 +322,7 @@
             "file": "File",
             "files": "Files",
             "loading": "Loading file list.",
-            "removeFromDatasets": "File '{{fileName}}' is in use by following datasets:",
+            "removeFromDatasets": "File '{{fileName}}' is in use by following items:",
             "removeText": "Do you really want to delete file",
             "sort": {
                 "modified": "Last modified",

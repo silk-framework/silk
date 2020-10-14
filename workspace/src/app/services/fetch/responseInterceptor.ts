@@ -46,6 +46,10 @@ export class FetchError {
 
     errorResponse: ErrorResponse;
 
+    get message(): string {
+        return this.errorDetails.message;
+    }
+
     get isHttpError(): boolean {
         return this.errorType === FetchError.HTTP_ERROR;
     }

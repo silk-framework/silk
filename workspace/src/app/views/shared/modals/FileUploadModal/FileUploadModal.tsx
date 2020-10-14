@@ -50,6 +50,7 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
                 size="small"
                 isOpen={isOpen}
                 onClose={handleDiscard}
+                preventSimpleClosing={true}
                 actions={
                     <Button key="close" onClick={onDiscard}>
                         Close
