@@ -205,8 +205,7 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor, pluginApiC
         resource.writeBytes(Array[Byte]())
         NoContent
       case AnyContentAsRaw(buffer) =>
-        val bytes = buffer.asBytes().getOrElse(ByteString.empty)
-        resource.writeBytes(bytes.toArray)
+        resource.writeFile(buffer.asFile)
         NoContent
       case AnyContentAsText(txt) =>
         resource.writeString(txt)
