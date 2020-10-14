@@ -240,6 +240,7 @@ describe("Task creation widget", () => {
         const { wrapper, history } = await pluginCreationDialogWrapper();
         changeValue(findSingleElement(wrapper, "#intParam"), "100");
         changeValue(findSingleElement(wrapper, "#label"), "Some label");
+        changeValue(findSingleElement(wrapper, "#description"), "Some description");
         changeValue(findSingleElement(wrapper, byName("objectParameter.subStringParam")), "Something");
         clickCreate(wrapper);
         await expectValidationErrors(wrapper, 0);
@@ -249,6 +250,7 @@ describe("Task creation widget", () => {
         const metaData = request.data.metadata;
         const data = request.data.data;
         expect(metaData.label).toBe("Some label");
+        expect(metaData.description).toBe("Some description");
         expect(data.taskType).toBe(TaskTypes.CUSTOM_TASK);
         expect(data.type).toBe("pluginA");
         expect(data.parameters.intParam).toEqual("100");
@@ -282,6 +284,29 @@ describe("Task creation widget", () => {
         await waitFor(() => {
             const error = findSingleElement(wrapper, ".eccgui-intent--danger");
             expect(error.text().toLowerCase()).toContain(expectedErrorMsg);
+        });
+    });
+
+    it("should allow to create a new project", async () => {
+        const { wrapper } = await createMockedListWrapper();
+        const PROJECT_LABEL = "Project label";
+        const PROJECT_DESCRIPTION = "Project description";
+        const project = selectionItems(wrapper)[0];
+        clickWrapperElement(project);
+        clickWrapperElement(project);
+        expect(findAll(wrapper, "#label")).toHaveLength(1);
+        changeValue(findSingleElement(wrapper, "#label"), PROJECT_LABEL);
+        changeValue(findSingleElement(wrapper, "#description"), PROJECT_DESCRIPTION);
+        clickCreate(wrapper);
+        await expectValidationErrors(wrapper, 0);
+        await waitFor(() => {
+            const expectedPayload = {
+                metaData: {
+                    label: PROJECT_LABEL,
+                    description: PROJECT_DESCRIPTION,
+                },
+            };
+            checkRequestMade(apiUrl("/workspace/projects"), "POST", expectedPayload);
         });
     });
 
