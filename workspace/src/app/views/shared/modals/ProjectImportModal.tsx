@@ -186,6 +186,7 @@ export function ProjectImportModal({ close, back }: IProps) {
             onUploadSuccess={onUploadSuccess}
             onUploadError={handleUploadError}
             uploadEndpoint={workspaceApi(`/projectImport`)}
+            attachFileNameToEndpoint={false}
         />
     );
     const actions: JSX.Element[] = [];

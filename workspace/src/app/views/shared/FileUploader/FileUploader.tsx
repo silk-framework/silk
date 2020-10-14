@@ -281,6 +281,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                                         onUploadSuccess={this.handleUploadSuccess}
                                         validateBeforeAdd={this.validateBeforeFileAdded}
                                         uploadEndpoint={`${legacyApiEndpoint(`/projects/${projectId}/resources`)}`}
+                                        attachFileNameToEndpoint={true}
                                     />
                                 </>
                             )}
