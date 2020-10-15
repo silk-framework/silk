@@ -159,7 +159,7 @@ export const FileWidget = () => {
                                                                 })}
                                                                 small
                                                                 disruptive
-                                                                onClick={() => openDeleteModal(file.id)}
+                                                                onClick={() => setFileDeleteDialog(file)}
                                                             />
                                                         </TableCell>
                                                     </TableRow>
