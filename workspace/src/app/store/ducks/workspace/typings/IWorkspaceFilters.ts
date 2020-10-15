@@ -1,6 +1,6 @@
 import { IPaginationState } from "../../../typings";
 
-export type SortModifierType = 'ASC' | 'DESC' | '';
+export type SortModifierType = "ASC" | "DESC" | "";
 
 export interface IAppliedSorterState {
     /**
@@ -70,7 +70,7 @@ export interface IFacetState {
     /**
      * Array of Facet keywords
      */
-    values: IFacetKeywordsState[]
+    values: IFacetKeywordsState[];
 }
 
 export interface IAppliedFacetState {

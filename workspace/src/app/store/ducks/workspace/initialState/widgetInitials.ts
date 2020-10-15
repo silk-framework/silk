@@ -2,9 +2,9 @@ import { IPrefixState, IWidgetsState } from "@ducks/workspace/typings";
 
 export function initialNewPrefixState(): IPrefixState {
     return {
-        prefixName: '',
-        prefixUri: ''
-    }
+        prefixName: "",
+        prefixUri: "",
+    };
 }
 
 export function initialConfigurationState() {
@@ -12,8 +12,8 @@ export function initialConfigurationState() {
         prefixes: [],
         newPrefix: initialNewPrefixState(),
         isLoading: false,
-        error: {}
-    }
+        error: {},
+    };
 }
 
 export function initialWarningItemState() {
@@ -24,32 +24,31 @@ export function initialWarningItemState() {
         errorMessage: "",
         stackTrace: {
             errorMessage: "",
-            lines: []
-        }
-    }
-
+            lines: [],
+        },
+    };
 }
 
 export function initialWarningState() {
     return {
         results: [],
         isLoading: false,
-        error: {}
-    }
+        error: {},
+    };
 }
 
 export function initialFilesState() {
     return {
         results: [],
         isLoading: false,
-        error: {}
-    }
+        error: {},
+    };
 }
 
 export function initialWidgetsState(): IWidgetsState {
     return {
         configuration: initialConfigurationState(),
         warnings: initialWarningState(),
-        files: initialFilesState()
-    }
+        files: initialFilesState(),
+    };
 }

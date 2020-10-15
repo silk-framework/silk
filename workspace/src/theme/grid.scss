@@ -1,34 +1,33 @@
 // utility
 
 .left {
-  text-align: left;
+    text-align: left;
 }
 
 .right {
-  text-align: right;
+    text-align: right;
 }
 
 .center {
-  text-align: center;
-  margin-left: auto;
-  margin-right: auto;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .justify {
-  text-align: justify;
+    text-align: justify;
 }
 
 .hidden-sm {
-  display: none;
+    display: none;
 }
 
 .clearfix:after {
-  content: '';
-  display: block;
-  clear: both;
-  height:0;
+    content: "";
+    display: block;
+    clear: both;
+    height: 0;
 }
-
 
 // grid
 
@@ -39,35 +38,35 @@ $breakpoint-med: 45em; // 720px
 $breakpoint-large: 60em; // 960px
 
 .container {
-  width: 90%;
-  margin-left: auto;
-  margin-right: auto;
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
 
-  @media only screen and (min-width: $breakpoint-small) {
-    width: 80%;
-  }
+    @media only screen and (min-width: $breakpoint-small) {
+        width: 80%;
+    }
 
-  @media only screen and (min-width: $breakpoint-large) {
-    width: 75%;
-    max-width: 60rem;
-  }
+    @media only screen and (min-width: $breakpoint-large) {
+        width: 75%;
+        max-width: 60rem;
+    }
 }
 
 .row {
-  position: relative;
-  width: 100%;
+    position: relative;
+    width: 100%;
 }
 
 .row [class^="col"] {
-  float: left;
-  margin: 0.3rem 2%;
-  min-height: 0.125rem;
+    float: left;
+    margin: 0.3rem 2%;
+    min-height: 0.125rem;
 }
 
 .row::after {
-  content: "";
-  display: table;
-  clear: both;
+    content: "";
+    display: table;
+    clear: both;
 }
 
 .col-1,
@@ -82,37 +81,85 @@ $breakpoint-large: 60em; // 960px
 .col-10,
 .col-11,
 .col-12 {
-  width: $width;
+    width: $width;
 }
 
-.col-1-sm { width:($width / 12) - ($gutter * 11 / 12); }
-.col-2-sm { width: ($width / 6) - ($gutter * 10 / 12); }
-.col-3-sm { width: ($width / 4) - ($gutter * 9 / 12); }
-.col-4-sm { width: ($width / 3) - ($gutter * 8 / 12); }
-.col-5-sm { width: ($width / (12 / 5)) - ($gutter * 7 / 12); }
-.col-6-sm { width: ($width / 2) - ($gutter * 6 / 12); }
-.col-7-sm { width: ($width / (12 / 7)) - ($gutter * 5 / 12); }
-.col-8-sm { width: ($width / (12 / 8)) - ($gutter * 4 / 12); }
-.col-9-sm { width: ($width / (12 / 9)) - ($gutter * 3 / 12); }
-.col-10-sm { width: ($width / (12 / 10)) - ($gutter * 2 / 12); }
-.col-11-sm { width: ($width / (12 / 11)) - ($gutter * 1 / 12); }
-.col-12-sm { width: $width; }
+.col-1-sm {
+    width: ($width / 12) - ($gutter * 11 / 12);
+}
+.col-2-sm {
+    width: ($width / 6) - ($gutter * 10 / 12);
+}
+.col-3-sm {
+    width: ($width / 4) - ($gutter * 9 / 12);
+}
+.col-4-sm {
+    width: ($width / 3) - ($gutter * 8 / 12);
+}
+.col-5-sm {
+    width: ($width / (12 / 5)) - ($gutter * 7 / 12);
+}
+.col-6-sm {
+    width: ($width / 2) - ($gutter * 6 / 12);
+}
+.col-7-sm {
+    width: ($width / (12 / 7)) - ($gutter * 5 / 12);
+}
+.col-8-sm {
+    width: ($width / (12 / 8)) - ($gutter * 4 / 12);
+}
+.col-9-sm {
+    width: ($width / (12 / 9)) - ($gutter * 3 / 12);
+}
+.col-10-sm {
+    width: ($width / (12 / 10)) - ($gutter * 2 / 12);
+}
+.col-11-sm {
+    width: ($width / (12 / 11)) - ($gutter * 1 / 12);
+}
+.col-12-sm {
+    width: $width;
+}
 
 @media only screen and (min-width: $breakpoint-med) {
-  .col-1 { width:($width / 12) - ($gutter * 11 / 12); }
-  .col-2 { width: ($width / 6) - ($gutter * 10 / 12); }
-  .col-3 { width: ($width / 4) - ($gutter * 9 / 12); }
-  .col-4 { width: ($width / 3) - ($gutter * 8 / 12); }
-  .col-5 { width: ($width / (12 / 5)) - ($gutter * 7 / 12); }
-  .col-6 { width: ($width / 2) - ($gutter * 6 / 12); }
-  .col-7 { width: ($width / (12 / 7)) - ($gutter * 5 / 12); }
-  .col-8 { width: ($width / (12 / 8)) - ($gutter * 4 / 12); }
-  .col-9 { width: ($width / (12 / 9)) - ($gutter * 3 / 12); }
-  .col-10 { width: ($width / (12 / 10)) - ($gutter * 2 / 12); }
-  .col-11 { width: ($width / (12 / 11)) - ($gutter * 1 / 12); }
-  .col-12 { width: $width; }
+    .col-1 {
+        width: ($width / 12) - ($gutter * 11 / 12);
+    }
+    .col-2 {
+        width: ($width / 6) - ($gutter * 10 / 12);
+    }
+    .col-3 {
+        width: ($width / 4) - ($gutter * 9 / 12);
+    }
+    .col-4 {
+        width: ($width / 3) - ($gutter * 8 / 12);
+    }
+    .col-5 {
+        width: ($width / (12 / 5)) - ($gutter * 7 / 12);
+    }
+    .col-6 {
+        width: ($width / 2) - ($gutter * 6 / 12);
+    }
+    .col-7 {
+        width: ($width / (12 / 7)) - ($gutter * 5 / 12);
+    }
+    .col-8 {
+        width: ($width / (12 / 8)) - ($gutter * 4 / 12);
+    }
+    .col-9 {
+        width: ($width / (12 / 9)) - ($gutter * 3 / 12);
+    }
+    .col-10 {
+        width: ($width / (12 / 10)) - ($gutter * 2 / 12);
+    }
+    .col-11 {
+        width: ($width / (12 / 11)) - ($gutter * 1 / 12);
+    }
+    .col-12 {
+        width: $width;
+    }
 
-  .hidden-sm {
-    display: block;
-  }
+    .hidden-sm {
+        display: block;
+    }
 }
