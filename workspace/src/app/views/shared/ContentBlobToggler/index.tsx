@@ -2,7 +2,7 @@ import { ContentBlobToggler } from "./ContentBlobToggler";
 
 export default ContentBlobToggler;
 
-const newLineRegex = new RegExp("\r|\n");
+const newLineRegex = new RegExp("\r|\n"); // eslint-disable-line
 
 /** Takes the first non-empty line from a preview string. */
 export function firstNonEmptyLine(preview: JSX.Element | string) {
