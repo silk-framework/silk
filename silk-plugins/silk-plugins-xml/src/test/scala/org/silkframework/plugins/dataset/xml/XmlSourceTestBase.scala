@@ -145,6 +145,11 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     }
   }
 
+  it should "read and convert HTML entities" in {
+    val xmlEntities = XmlDoc("xmlEntities.xml")
+    xmlEntities atPath "" valuesAt "value" shouldBe Seq(Seq("\"quotedValue\""))
+  }
+
   it should "retrieve typed paths" in {
     xmlSource("persons.xml", "").retrievePaths("Person").map(tp => tp.toUntypedPath.normalizedSerialization -> tp.valueType -> tp.isAttribute) shouldBe IndexedSeq(
       "ID" -> ValueType.STRING -> false,
