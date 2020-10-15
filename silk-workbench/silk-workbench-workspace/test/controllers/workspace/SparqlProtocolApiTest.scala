@@ -18,7 +18,7 @@ class SparqlProtocolApiTest extends PlaySpec with IntegrationTestTrait with Sing
 
   override def workspaceProviderId: String = "mockableInMemoryWorkspace"
 
-  protected override def routes = Some(classOf[test.Routes])
+  protected override def routes = Some(classOf[testWorkspace.Routes])
 
   override val projectId = "sparql_select_test"
   private val filmDescriptions = "linkedmdb"

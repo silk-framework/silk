@@ -6,7 +6,7 @@ import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import play.api.libs.json.Json
-import test.Routes
+import testWorkspace.Routes
 
 class ProjectTaskApiTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait
     with IntegrationTestTrait
@@ -17,7 +17,7 @@ class ProjectTaskApiTest extends FlatSpec with SingleProjectWorkspaceProviderTes
 
   override def projectPathInClasspath: String = "diProjects/relatedItemsProject.zip"
 
-  override def routes: Option[Class[Routes]] = Some(classOf[test.Routes])
+  override def routes: Option[Class[Routes]] = Some(classOf[testWorkspace.Routes])
 
   private def relatedItems(taskId: String, textQuery: Option[String] = None): RelatedItems = {
     val path = controllers.projectApi.routes.ProjectTaskApi.relatedItems(projectId, taskId, textQuery).url
