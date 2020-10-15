@@ -40,6 +40,8 @@ trait EntityHolder {
 
   def mapEntities(f: Entity => Entity): EntityHolder
 
+  def flatMapEntities(outputSchema: EntitySchema, updateTask: Task[TaskSpec] = task)(f: Entity => TraversableOnce[Entity]): EntityHolder
+
   def filter(f: Entity => Boolean): EntityHolder
 }
 
@@ -47,11 +49,11 @@ trait EmptyEntityHolder extends LocalEntities {
 
   final def entities: Traversable[Entity] = Seq.empty
 
-  override def updateEntities(entities: Traversable[Entity]): LocalEntities = {
+  override def updateEntities(entities: Traversable[Entity], newSchema: EntitySchema): LocalEntities = {
     if(entities.isEmpty) {
       this
     } else {
-      new GenericEntityTable(entities, entitySchema, task)
+      new GenericEntityTable(entities, newSchema, task)
     }
   }
 
