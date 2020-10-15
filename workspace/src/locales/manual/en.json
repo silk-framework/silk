@@ -38,20 +38,22 @@
         "abortProcess": "Abort upload process?",
         "changeFile": "Change file",
         "createNewFile": "New file name",
-        "dropzone": "Drop file here or browse",
+        "dropzone": "Drop files here or browse",
         "fileNotSpecified": "File name not specified",
         "modalTitle": "Upload file",
+        "retryAbortMessage": "The {{fileName}} upload process aborted",
+        "retryMessage": "Something going wrong during upload process for {{fileName}}",
         "selectFromProject": "Select file from projects",
         "successfullyUploaded": "{{uploadedName}} was successfully uploaded",
         "uploadError": "An upload error has occurred for file {{fileName}}. Details: {{errorDetails}}",
-        "waitFor": "Wait for finished upload."
+        "waitFor": "File '{{fileName}}' is being uploaded."
     },
     "Metadata": {
         "loading": "Loading summary data.",
         "updateFailed": "Updating meta data has failed"
     },
     "OverwriteModal": {
-        "overwriteFile": "File {{fileName}} already exists. Do you want to overwrite it?"
+        "overwriteFile": "File '{{fileName}}' already exists. Do you want to overwrite it?"
     },
     "Pagination": {
         "backwardText": "Previous page",
@@ -180,7 +182,8 @@
             },
             "requestFailed": "Preview request failed",
             "server": "Server error",
-            "timeout": "Timeout"
+            "timeout": "Timeout",
+            "networkFileUpload": "Can't upload the file, please check your connection and try again"
         }
     },
     "pages": {
@@ -214,30 +217,37 @@
         "FacetsList": {
             "facet": {
                 "createdBy": {
+                    "description": "The user who created the item.",
                     "label": "Created by",
                     "valueLabel": {
                         "": "Unknown user"
                     }
                 },
                 "datasetFileResource": {
+                    "description": "The file resource of a file based dataset.",
                     "label": "Dataset file"
                 },
                 "datasetType": {
+                    "description": "The concrete type of a dataset, e.g. its data model and format etc.",
                     "label": "Dataset type"
                 },
                 "lastModifiedBy": {
+                    "description": "The user who last modified the item.",
                     "label": "Last modified by",
                     "valueLabels": {
                         "": "Unknown user"
                     }
                 },
                 "taskType": {
+                    "description": "The concrete type of a task.",
                     "label": "Task type"
                 },
                 "transformInputResource": {
+                    "description": "In case the input is a file resource based dataset, these are the file names of these resources.",
                     "label": "Transformed file resource"
                 },
                 "workflowExecutionStatus": {
+                    "description": "Allows to filter by the status of the last execution of the workflow.",
                     "label": "Last execution status"
                 }
             }
@@ -250,7 +260,7 @@
             "file": "File",
             "files": "Files",
             "loading": "Loading file list.",
-            "removeFromDatasets": "File '{{fileName}}' is in use by following datasets:",
+            "removeFromDatasets": "File '{{fileName}}' is in use by following items:",
             "removeText": "Do you really want to delete file",
             "sort": {
                 "modified": "Last modified",

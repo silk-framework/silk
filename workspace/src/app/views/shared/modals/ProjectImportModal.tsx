@@ -14,8 +14,7 @@ import {
     TitleSubsection,
 } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
-import { UploadNewFile } from "../FileUploader/cases/UploadNewFile";
-import Uppy from "@uppy/core";
+import Uppy, { UppyFile } from "@uppy/core";
 import { workspaceApi } from "../../../utils/getApiEndpoint";
 import XHR from "@uppy/xhr-upload";
 import {
@@ -32,6 +31,7 @@ import { ContentBlobToggler } from "../ContentBlobToggler/ContentBlobToggler";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
 import ReactMarkdown from "react-markdown";
 import { firstNonEmptyLine } from "../ContentBlobToggler";
+import { UploadNewFile } from "../FileUploader/cases/UploadNewFile/UploadNewFile";
 
 interface IProps {
     // Called when closing the modal
@@ -164,7 +164,7 @@ export function ProjectImportModal({ close, back }: IProps) {
         );
         uppy.reset();
     };
-    const onUploadSuccess = (file: File, response) => {
+    const onUploadSuccess = (file: UppyFile, response) => {
         const projectImportId = response?.body?.projectImportId;
         if (projectImportId) {
             setProjectImportId(projectImportId);
@@ -181,11 +181,12 @@ export function ProjectImportModal({ close, back }: IProps) {
     const uploader = (
         <UploadNewFile
             uppy={uppy}
-            simpleInput={false}
             allowMultiple={false}
             onAdded={handleFileAdded}
             onUploadSuccess={onUploadSuccess}
             onUploadError={handleUploadError}
+            uploadEndpoint={workspaceApi(`/projectImport`)}
+            attachFileNameToEndpoint={false}
         />
     );
     const actions: JSX.Element[] = [];

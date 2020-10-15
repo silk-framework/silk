@@ -4,7 +4,6 @@ import mockAxios from "../../../../__mocks__/axios";
 import {
     byTestId,
     clickElement,
-    clickWrapperElement,
     mockedAxiosResponse,
     testWrapper,
     withMount,

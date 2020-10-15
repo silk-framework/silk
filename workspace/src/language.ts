@@ -3,7 +3,7 @@ import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import en from "./locales/en.json";
 import de from "./locales/de.json";
-import { isDevelopment } from "./app/constants/path";
+import { isDevelopment, isTestEnv } from "./app/constants/path";
 import Store from "store";
 import { DEFAULT_LANG } from "./app/constants/base";
 
@@ -14,8 +14,8 @@ i18n.use(initReactI18next)
             en: { translation: en },
             de: { translation: de },
         },
-        debug: isDevelopment,
-        interpolation: {},
+        debug: isDevelopment && !isTestEnv,
+        interpolation: { escapeValue: false },
         lng: Store.get("locale") || DEFAULT_LANG,
     });
 

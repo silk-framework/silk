@@ -4,6 +4,7 @@ import {
     IProjectExecutionStatus,
     IProjectImportDetails,
     ISorterListItemState,
+    ITaskLink,
 } from "@ducks/workspace/typings";
 import fetch from "../../../services/fetch";
 import { legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
@@ -170,19 +171,22 @@ export const requestRemoveProjectPrefix = async (prefixName: string, projectId: 
 };
 
 //missing-type
-export const requestIfResourceExists = async (projectId: string, resourceName: string): Promise<any | never> => {
+export const requestIfResourceExists = async (projectId: string, resourceName: string): Promise<boolean> => {
     try {
         const { data } = await fetch({
             url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/metadata`),
         });
-        return data;
+        return "size" in data;
     } catch (e) {
-        throw handleError(e);
+        if (e.isHttpError && e.httpStatus === 404) {
+            return false;
+        }
+        throw e;
     }
 };
 
 /** Remove a project file resource. */
-export const removeProjectFileResource = async (projectId: string, resourceName: string): Promise<void> => {
+export const requestRemoveProjectResource = async (projectId: string, resourceName: string): Promise<void> => {
     try {
         await fetch({
             url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}`),
@@ -194,15 +198,13 @@ export const removeProjectFileResource = async (projectId: string, resourceName:
 };
 
 /** Returns all tasks that depend on a specific resource. */
-export const projectFileResourceDependents = async (projectId: string, resourceName: string): Promise<string[]> => {
-    try {
-        const { data } = await fetch({
-            url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/usage`),
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+export const projectFileResourceDependents = async (
+    projectId: string,
+    resourceName: string
+): Promise<FetchResponse<ITaskLink[]>> => {
+    return fetch({
+        url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/usage`),
+    });
 };
 
 //missing-type

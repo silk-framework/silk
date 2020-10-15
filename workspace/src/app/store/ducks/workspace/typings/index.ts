@@ -12,6 +12,12 @@ export interface IWorkspaceState {
     widgets: IWidgetsState;
 }
 
+export interface ITaskLink {
+    id: string;
+    label: string;
+    taskType: string;
+}
+
 /** Interface of a project import details request response. */
 export interface IProjectImportDetails {
     // Project ID extracted from the uploaded project archive.
