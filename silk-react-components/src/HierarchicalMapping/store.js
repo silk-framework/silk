@@ -302,37 +302,17 @@ export const getSuggestionsAsync = data => {
                 return Rx.Observable.return({ error: errorBody });
             })
             .map(returned => {
-                const body = _.get(returned, 'body', []);
+                const data = _.get(returned, 'body', {});
                 const error = _.get(returned, 'error', []);
-
+                
                 if (error) {
                     return {
                         error,
                     };
                 }
-                const suggestions = [];
-                console.log(body);
-
-                _.forEach(body, (sources, sourcePathOrUri) => {
-                    console.log(sources, sourcePathOrUri);
-                    _.forEach(sources, ({ uri: candidateUri, type, confidence }) => {
-                        let mapFrom = sourcePathOrUri; // By default we map from the dataset to the vocabulary, which fits
-                        let mapTo = candidateUri;
-                        if (!data.matchFromDataset) {
-                            mapFrom = candidateUri; // In this case the vocabulary is the source, so we have to switch direction
-                            mapTo = sourcePathOrUri;
-                        }
-                        suggestions.push(new Suggestion(
-                            mapFrom,
-                            type,
-                            mapTo,
-                            confidence
-                        ));
-                    });
-                });
                 return {
-                    data: suggestions,
-                };
+                    data
+                }
             }),
         silkStore
             .request({
@@ -346,7 +326,7 @@ export const getSuggestionsAsync = data => {
                 return Rx.Observable.return({ error: errorBody });
             })
             .map(returned => {
-                const body = _.get(returned, 'body', []);
+                const data = _.get(returned, 'body', []);
                 const error = _.get(returned, 'error', []);
                 if (error) {
                     return {
@@ -354,13 +334,26 @@ export const getSuggestionsAsync = data => {
                     };
                 }
                 return {
-                    data: _.map(body, path => new Suggestion(path)),
+                    data
                 };
             }),
-        (arg1, arg2) => {
+        (vocabDatasetsResponse, sourcePathsResponse) => {
+            const suggestions = vocabDatasetsResponse.data;
+            
+            if (data.matchFromDataset) {
+                sourcePathsResponse.data.forEach(sourcePath => {
+                    if (!suggestions[sourcePath]) {
+                        suggestions[sourcePath] = [{
+                            uri: '',
+                            type: 'value',
+                        }];
+                    }
+                });
+            }
+            
             return {
-                suggestions: _.filter(_.concat([], arg1.data, arg2.data), d => !_.isUndefined(d)),
-                warnings: _.filter([arg1.error, arg2.error], e => !_.isUndefined(e)),
+                suggestions,
+                warnings: _.filter([vocabDatasetsResponse.error, sourcePathsResponse.error], e => !_.isUndefined(e)),
             };
         }
     );

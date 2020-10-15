@@ -5,7 +5,6 @@ import SuggestionList from "./SuggestionList";
 import SuggestionHeader from "./SuggestionHeader";
 import { getSuggestionsAsync } from "../../store";
 import _ from "lodash";
-import { SUGGESTION_TYPES } from "../../utils/constants";
 
 export default function SuggestionContainer({ruleId, targetClassUris}) {
     // Loading indicator
@@ -15,33 +14,35 @@ export default function SuggestionContainer({ruleId, targetClassUris}) {
 
     const [error, setError] = useState<any>({});
 
-    const [data, setData] = useState([]);
+    const [data, setData] = useState({});
 
     const [headers, setHeaders] = useState(
         [
-            {header: 'Source data', key: 'sourcePath'},
+            {header: 'Source data', key: 'mapFrom'},
             {header: null, key: 'swapAction'},
-            {header: 'Target data', key: 'targetProperty'},
+            {header: 'Target data', key: 'mapTo'},
             {header: 'Mapping type', key: 'type'}
         ]
     );
 
+    const [isFromDataset, setIsFromDataset] = useState(true);
+
     useEffect(() => {
         setLoading(true);
-        loadData();
+        loadData(isFromDataset);
     }, []);
 
     const handleSwapAction = () => {
-        const temp = headers[0];
-
-        headers[0] = headers[2];
-        headers[2] = temp;
-        setHeaders(headers);
-
-        loadData(temp.key === 'targetProperty');
+        // const temp = headers[0];
+        //
+        // headers[0] = headers[2];
+        // headers[2] = temp;
+        // setHeaders(headers);
+        setIsFromDataset(!isFromDataset);
+        loadData(!isFromDataset);
     };
 
-    const loadData = (matchFromDataset: boolean = true) => {
+    const loadData = (matchFromDataset: boolean) => {
         getSuggestionsAsync({
             targetClassUris,
             ruleId,
@@ -49,16 +50,11 @@ export default function SuggestionContainer({ruleId, targetClassUris}) {
             nrCandidates: 20,
         }).subscribe(
             ({suggestions, warnings}) => {
-                const rawData = suggestions.map(value => ({
-                    ...value,
-                    checked: false,
-                    type: value.type || SUGGESTION_TYPES[0],
-                }));
                 setWarnings(
                     warnings.filter(value => !_.isEmpty(value))
                 );
                 setLoading(false);
-                setData(rawData);
+                setData(suggestions);
             },
             err => {
                 setLoading(false);
@@ -79,33 +75,17 @@ export default function SuggestionContainer({ruleId, targetClassUris}) {
                 </Grid>
             </SectionHeader>
             <Divider addSpacing="medium"/>
-            <DataTable
-                isSortable={true}
-                rows={data}
-                headers={headers}
-                render={({
-                             rows, headers, getHeaderProps, getTableProps, getRowProps,
-                             getSelectionProps, getBatchActionProps, onInputChange, selectedRows
-                         }) => (
-                    <TableContainer>
-                        <Table {...getTableProps()}>
 
-                            <SuggestionHeader
-                                getBatchActionProps={getBatchActionProps}
-                                onInputChange={onInputChange}
-                            />
+                    <TableContainer>
+                        <Table>
+                            <SuggestionHeader />
                             <SuggestionList
-                                rows={rows}
+                                rows={data}
                                 headers={headers}
                                 onSwapAction={handleSwapAction}
-                                getSelectionProps={getSelectionProps}
-                                getRowProps={getRowProps}
-                                getHeaderProps={getHeaderProps}
                             />
                         </Table>
                     </TableContainer>
-                )}
-            />
         </Section>
     )
 }

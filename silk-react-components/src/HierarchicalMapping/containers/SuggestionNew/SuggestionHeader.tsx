@@ -7,16 +7,15 @@ import {
     TableToolbarSearch
 } from 'carbon-components-react';
 
-export default function SuggestionHeader({getBatchActionProps, onInputChange}) {
+export default function SuggestionHeader() {
     return (
         <TableToolbar>
             <TableToolbarContent>
                 <TableToolbarSearch
-                    tabIndex={getBatchActionProps().shouldShowBatchActions ? -1 : 0}
-                    onChange={onInputChange}
+                    tabIndex={0}
+                    onChange={() => {}}
                 />
-                <TableToolbarMenu
-                    tabIndex={getBatchActionProps().shouldShowBatchActions ? -1 : 0}>
+                <TableToolbarMenu tabIndex={0}>
                     <TableToolbarAction primaryFocus onClick={() => {}}>
                         Set prefix for autosuggestion
                     </TableToolbarAction>

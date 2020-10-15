@@ -34,6 +34,8 @@
     "@eccenca/gui-elements": "^5.1.1",
     "@eccenca/superagent": "^1.4.1",
     "@svgr/webpack": "4.3.3",
+    "@types/carbon-components": "^10.15.0",
+    "@types/carbon-components-react": "^7.10.10",
     "babel-loader": "8.1.0",
     "babel-plugin-named-asset-import": "^0.3.6",
     "babel-preset-react-app": "^9.1.2",
