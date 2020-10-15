@@ -162,33 +162,23 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor, pluginApiC
 
   def getResourceMetadata(projectName: String, resourcePath: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    try {
-      val resource = project.resources.getInPath(resourcePath, File.separatorChar, mustExist = true)
+    val resource = project.resources.getInPath(resourcePath, File.separatorChar, mustExist = true)
 
-      val pathPrefix = resourcePath.lastIndexOf(File.separatorChar) match {
-        case -1 => ""
-        case index => resourcePath.substring(0, index + 1)
-      }
-
-      Ok(JsonSerializer.resourceProperties(resource, pathPrefix))
-    } catch {
-      case _: ResourceNotFoundException =>
-        NotFound
+    val pathPrefix = resourcePath.lastIndexOf(File.separatorChar) match {
+      case -1 => ""
+      case index => resourcePath.substring(0, index + 1)
     }
+
+    Ok(JsonSerializer.resourceProperties(resource, pathPrefix))
   }
 
   def getResource(projectName: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    try {
-      val resource = project.resources.get(resourceName, mustExist = true)
-      val enumerator = Enumerator.fromStream(resource.inputStream)
-      val source = Source.fromPublisher(IterateeStreams.enumeratorToPublisher(enumerator))
+    val resource = project.resources.get(resourceName, mustExist = true)
+    val enumerator = Enumerator.fromStream(resource.inputStream)
+    val source = Source.fromPublisher(IterateeStreams.enumeratorToPublisher(enumerator))
 
-      Ok.chunked(source).withHeaders("Content-Disposition" -> "attachment")
-    } catch {
-      case _: ResourceNotFoundException =>
-        NotFound
-    }
+    Ok.chunked(source).withHeaders("Content-Disposition" -> "attachment")
   }
 
   def putResource(projectName: String, resourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request =>implicit userContext =>
