@@ -25,7 +25,7 @@ class ProjectImportApiTest extends FlatSpec with SingleProjectWorkspaceProviderT
 
   override def workspaceProviderId: String = "inMemory"
 
-  override def routes: Option[Class[_ <: Router]] = Some(classOf[test.Routes])
+  override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 
   val expectedProjectId = "configProject"
 

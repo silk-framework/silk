@@ -19,7 +19,7 @@ import org.silkframework.runtime.resource.Resource
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{DPair, Uri}
 import play.api.libs.json.Json
-import _root_.test.Routes
+import testWorkspace.Routes
 import org.silkframework.rule.similarity.Comparison
 
 /**
@@ -31,7 +31,7 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with MustMatch
 
   override def workspaceProviderId: String = "inMemory"
 
-  protected override def routes: Option[Class[Routes]] = Some(classOf[test.Routes])
+  protected override def routes: Option[Class[Routes]] = Some(classOf[testWorkspace.Routes])
 
   override def beforeAll(): Unit = {
     super.beforeAll()
