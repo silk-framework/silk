@@ -40,6 +40,7 @@ export default function SuggestionList({headers, rows, onSwapAction}: IProps) {
 
     const updateCurrentRows = (pagination) => {
         const { page, pageSize } = pagination;
+        setPageRows({});
         const rowSourceKeys = Object.keys(rows);
 
         const startIndex = (page - 1) * pageSize;
