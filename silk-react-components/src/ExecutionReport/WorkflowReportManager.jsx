@@ -45,6 +45,7 @@ export default class WorkflowReportManager extends React.Component {
         return <div className="silk-report-card mdl-card mdl-shadow--2dp mdl-card--stretch">
             <div className="mdl-card__actions">
                 <select name="reports" id="reports" onChange={e => this.setState({selectedReportTime: e.target.value})}>
+                    <option value="">Select report</option>
                     { this.state.availableReports.map(e => this.renderReportItem(e)) }
                 </select>
             </div>
@@ -56,7 +57,7 @@ export default class WorkflowReportManager extends React.Component {
     }
 
     renderSelectedReport() {
-        if(this.state.selectedReportTime == null) {
+        if(this.state.selectedReportTime == null || this.state.selectedReportTime === "") {
             return <div>No report selected</div>
         } else {
             return <WorkflowExecutionReport baseUrl={this.props.baseUrl}

@@ -7,5 +7,5 @@ class WorkspacePlugins extends PluginModule {
     Seq(
       classOf[WorkbenchPluginDataset],
       classOf[WorkbenchPluginCustomTask],
-      classOf[FileReportManager])
+      classOf[FileExecutionReportManager])
 }

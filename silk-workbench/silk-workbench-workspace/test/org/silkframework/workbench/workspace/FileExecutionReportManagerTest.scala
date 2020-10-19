@@ -9,10 +9,10 @@ import org.silkframework.runtime.activity.{ActivityExecution, ActivityExecutionM
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.serialization.json.ExecutionReportSerializers
 import org.silkframework.util.FileUtils._
-import org.silkframework.workspace.reports.ReportManager
+import org.silkframework.workspace.reports.ExecutionReportManager
 import play.api.libs.json.{JsObject, Json}
 
-class FileReportManagerTest extends FlatSpec with Matchers {
+class FileExecutionReportManagerTest extends FlatSpec with Matchers {
 
   behavior of "FileReportManager"
 
@@ -29,10 +29,10 @@ class FileReportManagerTest extends FlatSpec with Matchers {
     }
   }
 
-  private def withReportManager(f: ReportManager => Unit): Unit = {
+  private def withReportManager(f: ExecutionReportManager => Unit): Unit = {
     val tempDir = Files.createTempDirectory("Silk_FileReportManagerTest").toFile
     try {
-      val reportManager = FileReportManager(tempDir.getPath)
+      val reportManager = FileExecutionReportManager(tempDir.getPath)
       f(reportManager)
     } finally {
       tempDir.deleteRecursive()

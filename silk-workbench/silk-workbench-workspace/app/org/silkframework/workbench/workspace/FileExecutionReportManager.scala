@@ -14,7 +14,7 @@ import org.silkframework.serialization.json.ActivitySerializers.ActivityExecutio
 import org.silkframework.serialization.json.ExecutionReportSerializers
 import org.silkframework.serialization.json.ExecutionReportSerializers.ExecutionReportJsonFormat
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.reports.{ReportManager, ReportMetaData}
+import org.silkframework.workspace.reports.{ExecutionReportManager, ReportMetaData}
 import play.api.libs.json.{JsValue, Json}
 
 import scala.util.Try
@@ -24,7 +24,7 @@ import scala.util.Try
   label = "Reports on filesystem",
   description = "Holds the reports in a specified directory on the filesystem."
 )
-case class FileReportManager(dir: String) extends ReportManager {
+case class FileExecutionReportManager(dir: String) extends ExecutionReportManager {
 
   private val reportDirectory = new File(dir)
   reportDirectory.mkdirs()

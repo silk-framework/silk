@@ -11,7 +11,7 @@ import org.silkframework.execution.local.{LocalEntities, LocalExecution}
 import org.silkframework.plugins.dataset.InternalDataset
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.workspace.ProjectTask
-import org.silkframework.workspace.reports.ReportManager
+import org.silkframework.workspace.reports.ExecutionReportManager
 
 import scala.util.control.NonFatal
 

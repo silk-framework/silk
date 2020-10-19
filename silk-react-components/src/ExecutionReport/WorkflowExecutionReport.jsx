@@ -20,36 +20,32 @@ export default class WorkflowExecutionReport extends React.Component {
     };
   }
 
-  componentWillReceiveProps() {
-    this.props.diStore.retrieveExecutionReport(
-      this.props.baseUrl,
-      this.props.project,
-      this.props.task,
-      this.props.time)
-      .then((report) => {
-        this.setState({
-          executionReport: report.value
-        });
-      })
-      .catch((error) => {
-        console.log("Loading execution report failed! " + error); // FIXME: Handle error and give user feedback. Currently this is done via the activity status widget
-      });
+  componentDidMount() {
+    this.loadExecutionReport();
   }
 
-  componentDidMount() {
+  componentDidUpdate(prevProps) {
+    if (this.props.project !== prevProps.project ||
+        this.props.task !== prevProps.task ||
+        this.props.time !== prevProps.time) {
+      this.loadExecutionReport();
+    }
+  }
+
+  loadExecutionReport() {
     this.props.diStore.retrieveExecutionReport(
-      this.props.baseUrl,
-      this.props.project,
-      this.props.task,
-      this.props.time)
-      .then((report) => {
-        this.setState({
-          executionReport: report.value
+        this.props.baseUrl,
+        this.props.project,
+        this.props.task,
+        this.props.time)
+        .then((report) => {
+          this.setState({
+            executionReport: report.value
+          });
+        })
+        .catch((error) => {
+          console.log("Loading execution report failed! " + error); // FIXME: Handle error and give user feedback. Currently this is done via the activity status widget
         });
-      })
-      .catch((error) => {
-        console.log("Loading execution report failed! " + error); // FIXME: Handle error and give user feedback. Currently this is done via the activity status widget
-      });
   }
 
   render() {
