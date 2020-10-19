@@ -21,6 +21,8 @@ case class XSLTOperator(@Param(value = "The XSLT file to be used for transformin
     Some(Seq(DatasetResourceEntitySchema.schema))
   }
 
+  override def referencedResources: Seq[Resource] = Seq(file)
+
   /** Outputs the resulting XML file as a [[org.silkframework.runtime.resource.Resource]] which overwrites the
     * target dataset's resource. */
   override lazy val outputSchemaOpt: Option[EntitySchema] = {

@@ -17,6 +17,7 @@ import scala.reflect.ClassTag
 trait ControllerUtilsTrait {
   this: BaseController =>
 
+  /** Validates the JSON of the request body. Returns a 400 with the error details, if the validation failed. */
   def validateJson[T](body: T => Result)
                      (implicit request: Request[JsValue],
                       rds: Reads[T]): Result = {
@@ -31,10 +32,12 @@ trait ControllerUtilsTrait {
     )
   }
 
+  /** Returns the workspace object. */
   def workspace(implicit userContext: UserContext): Workspace = {
     WorkspaceFactory().workspace
   }
 
+  /** Returns the typed task and the corresponding project of the task. */
   def projectAndTask[T <: TaskSpec : ClassTag](projectName: String, taskName: String)
                                               (implicit userContext: UserContext): (Project, ProjectTask[T]) = {
     val project = WorkspaceFactory().workspace.project(projectName)
@@ -42,13 +45,20 @@ trait ControllerUtilsTrait {
     (project, task)
   }
 
+  /** Returns the untyped task and the corresponding project of the task. */
   def projectAndAnyTask(projectId: String, taskId: String)
                        (implicit userContext: UserContext): (Project, ProjectTask[_ <: TaskSpec]) = {
     val project = getProject(projectId)
     (project, project.anyTask(taskId))
   }
 
-  def getProject(projectName: String)(implicit userContext: UserContext): Project = WorkspaceFactory().workspace.project(projectName)
+  /** Returns the project with that name of the workspace. */
+  def getProject(projectName: String)(implicit userContext: UserContext): Project = workspace.project(projectName)
+
+  /** Returns true if the project exists, false otherwise. */
+  def projectExists(projectId: String)(implicit userContext: UserContext): Boolean = {
+    workspace.findProject(projectId).isDefined
+  }
 
   def task[T <: TaskSpec : ClassTag](projectName: String, taskName: String)
                                     (implicit userContext: UserContext): ProjectTask[T] = {

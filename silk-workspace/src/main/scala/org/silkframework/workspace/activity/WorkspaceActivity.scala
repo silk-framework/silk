@@ -13,7 +13,7 @@ import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 
 /**
-  * An activity that is either attached to a project (ProjectActivity) or a task (TaskActivity).
+  * An activity that is either attached to a project (ProjectActivity) or a task (TaskActivity) or is a GlobalWorkspaceActivity.
   */
 abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
 
@@ -43,9 +43,9 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   private var instances: ListMap[Identifier, ActivityControl[ActivityType#ValueType]] = ListMap()
 
   /**
-    * The project this activity belongs to.
+    * The project this activity belongs to, if any.
     */
-  def project: Project
+  def projectOpt: Option[Project]
 
   /**
     * The task this activity belongs to, if any.
@@ -179,7 +179,8 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     } else {
       val newControl = createInstance(config)
       if(instances.size >= WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY) {
-        log.warning(s"In project ${project.name} activity $name: Dropping an activity control instance because the control " +
+        val activityDescription = projectOpt.map(p => s"In project ${p.name} activity '$name'").getOrElse(s"In workspace activity '$name'")
+        log.warning(s"$activityDescription: Dropping an activity control instance because the control " +
             s"instance queue is full (max. ${WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY}. Dropped instance ID: ${instances.head._1}")
         instances = instances.drop(1)
       }

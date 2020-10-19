@@ -227,7 +227,12 @@ object SearchApiModel {
       selectedProjects = selectedProjects.filter(p => overallFacetCollector.filterAndCollectProjects(p, facetSettings))
       val jsonResult = selectedProjects.map(toJson) ++ tasks.flatMap(toJson)
       val sorted = sort(jsonResult)
-      val resultWindow = sorted.slice(workingOffset, workingOffset + workingLimit)
+      val resultWindow =
+        if(workingLimit != 0) {
+          sorted.slice(workingOffset, workingOffset + workingLimit)
+        } else {
+          sorted.drop(workingOffset)
+        }
       val withItemLinks = addItemLinks(resultWindow)
       val facetResults = overallFacetCollector.results
 

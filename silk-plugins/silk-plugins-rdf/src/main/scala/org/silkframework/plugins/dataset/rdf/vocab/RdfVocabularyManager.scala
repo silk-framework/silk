@@ -16,7 +16,7 @@ case class RdfVocabularyManager() extends VocabularyManager {
 
   private def loader(implicit userContext: UserContext) = new VocabularyLoader(workspaceSparqlEndpoint)
 
-  override def get(uri: String, project: Identifier)(implicit userContext: UserContext): Option[Vocabulary] = {
+  override def get(uri: String, project: Option[Identifier])(implicit userContext: UserContext): Option[Vocabulary] = {
     loader.retrieveVocabulary(uri)
   }
 
@@ -27,5 +27,10 @@ case class RdfVocabularyManager() extends VocabularyManager {
       case _ =>
         throw new RuntimeException("Workspace has no SPARQL enabled storage backend.")
     }
+  }
+
+  override def retrieveGlobalVocabularies()(implicit userContext: UserContext): Iterable[String] = {
+    // FIXME: No standard way of retrieving globally configured vocabularies.
+    Seq.empty
   }
 }

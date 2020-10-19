@@ -33,7 +33,7 @@ class SafeModeIntegrationTest extends FlatSpec
   private val sparqlDatasetEndpointParameter = "endpointURI"
 
   override def workspaceProviderId: String = "inMemory"
-  protected override def routes = Some(classOf[test.Routes])
+  protected override def routes = Some(classOf[testWorkspace.Routes])
 
   override def propertyMap: Map[String, Option[String]] = Map(
     "config.production.safeMode" -> Some("true"),

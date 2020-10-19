@@ -19,7 +19,7 @@ import java.util.logging.Logger
 import org.silkframework.config.{DefaultConfig, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.entity.{EntitySchema, Restriction, StringValueType, ValueType}
+import org.silkframework.entity.{EntitySchema, Restriction, ValueType}
 import org.silkframework.execution.local.LinksTable
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
@@ -27,12 +27,14 @@ import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOpe
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.IdentifierOptionParameter
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, ValidatingXMLReader, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
 import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
 
+import scala.collection.mutable
 import scala.xml.Node
 
 /**
@@ -140,6 +142,33 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
       ("Source restriction", dataSelections.source.restriction.toString),
       ("Target restriction", dataSelections.target.restriction.toString)
     )
+  }
+
+  override lazy val referencedResources: Seq[Resource] = {
+    val resources = new mutable.HashSet[Resource]()
+    rule.operator foreach (operator => extractResourcesFromSimilarityOperator(operator, resources))
+    resources.toSeq
+  }
+
+  private def extractResourcesFromSimilarityOperator(rule: SimilarityOperator,
+                                                     resources: mutable.HashSet[Resource]): Unit = {
+    rule match {
+      case agg: Aggregation =>
+        agg.operators.foreach(op => extractResourcesFromSimilarityOperator(op, resources))
+      case comp: Comparison =>
+        comp.inputs.foreach(input => extractResourcesFromOperator(input, resources))
+      case _ =>
+    }
+  }
+
+  private def extractResourcesFromOperator(operator: Operator,
+                                           resources: mutable.HashSet[Resource]): Unit = {
+    operator match {
+      case TransformInput(_, transformer, inputs) =>
+        inputs.foreach(input => extractResourcesFromOperator(input, resources))
+        transformer.referencedResources.foreach(resources.add)
+      case _ =>
+    }
   }
 }
 

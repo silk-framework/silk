@@ -7,10 +7,11 @@ import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, DatasetTask}
 import org.silkframework.entity._
+import org.silkframework.rule.TransformSpec.{TargetVocabularyListParameter, TargetVocabularyParameterType}
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
 import org.silkframework.rule.similarity._
-import org.silkframework.rule.vocab.{GenericInfo, VocabularyClass, VocabularyProperty}
+import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
 import org.silkframework.rule.{MappingTarget, TransformRule, _}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
@@ -21,7 +22,7 @@ import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.LinkingSerializers._
 import org.silkframework.util.{DPair, Identifier, Uri}
-import org.silkframework.workspace.activity.transform.CachedEntitySchemata
+import org.silkframework.workspace.activity.transform.{CachedEntitySchemata, VocabularyCacheValue}
 import play.api.libs.json._
 
 import scala.reflect.ClassTag
@@ -34,6 +35,7 @@ object JsonSerializers {
   final val ID = "id"
   final val TYPE = "type"
   final val DATA = "data"
+  final val GENERIC_INFO = "genericInfo"
   final val TASKTYPE = "taskType"
   final val TASK_TYPE_DATASET = "Dataset"
   final val TASK_TYPE_CUSTOM_TASK = "CustomTask"
@@ -733,8 +735,8 @@ object JsonSerializers {
             errorOutput = stringValueOption(parametersObj, ERROR_OUTPUT).filter(_.trim.nonEmpty).map(v => Identifier(v.trim)),
             targetVocabularies = {
               val vocabs = stringValueOption(parametersObj, TARGET_VOCABULARIES).
-                  map(str => str.split("\\s*,\\s*").toSeq).
-                  getOrElse(Seq.empty)
+                  map(TargetVocabularyParameterType.fromString).
+                  getOrElse(TargetVocabularyListParameter(Seq.empty))
               vocabs
             }
           )
@@ -747,7 +749,7 @@ object JsonSerializers {
         selection = fromJson[DatasetSelection](mustBeDefined(value, SELECTION)),
         mappingRule = optionalValue(value, DEPRECATED_RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty),
         output = mustBeJsArray(mustBeDefined(value, DEPRECATED_OUTPUTS))(_.value.map(v => Identifier(v.as[JsString].value))).headOption,
-        targetVocabularies = mustBeJsArray(mustBeDefined(value, TARGET_VOCABULARIES))(_.value.map(_.as[JsString].value))
+        targetVocabularies = TargetVocabularyListParameter(mustBeJsArray(mustBeDefined(value, TARGET_VOCABULARIES))(_.value.map(_.as[JsString].value)))
       )
     }
 
@@ -755,6 +757,7 @@ object JsonSerializers {
       * Serializes a value.
       */
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      implicit val prefixes: Prefixes = writeContext.prefixes
       Json.obj(
         TASKTYPE -> TASK_TYPE_TRANSFORM,
         TYPE -> "transform",
@@ -763,7 +766,7 @@ object JsonSerializers {
           RULES_PROPERTY -> toJson(value.mappingRule),
           OUTPUT -> JsString(value.output.map(_.toString).getOrElse("")),
           ERROR_OUTPUT -> JsString(value.errorOutput.map(_.toString).getOrElse("")),
-          TARGET_VOCABULARIES -> JsString(value.targetVocabularies.toSeq.mkString(", "))
+          TARGET_VOCABULARIES -> JsString(TargetVocabularyParameterType.toString(value.targetVocabularies))
         ))
       )
     }
@@ -1227,8 +1230,42 @@ object JsonSerializers {
     }
   }
 
+  implicit object VocabularyCacheValueJsonFormat extends JsonFormat[VocabularyCacheValue] {
+    final val VOCABULARIES = "vocabularies"
+    override def read(value: JsValue)(implicit readContext: ReadContext): VocabularyCacheValue = {
+      throw new RuntimeException("De-serializing VocabularyCacheValue JSON strings is not supported!")
+    }
+
+    override def write(value: VocabularyCacheValue)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        VOCABULARIES -> value.vocabularies.map(VocabularyJsonFormat.write)
+      )
+    }
+  }
+
+  implicit object VocabularyJsonFormat extends JsonFormat[Vocabulary] {
+    final val CLASSES = "classes"
+    final val PROPERTIES = "properties"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): Vocabulary = {
+      throw new RuntimeException("De-serializing Vocabulary JSON strings is not supported!")
+    }
+
+    override def write(value: Vocabulary)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        GENERIC_INFO -> GenericInfoJsonFormat.write(value.info),
+        CLASSES -> value.classes.map(VocabularyClassJsonFormat.write),
+        PROPERTIES -> value.properties.map(VocabularyPropertyJsonFormat.write)
+      )
+    }
+  }
+
   /** VocabularyProperty */
   implicit object VocabularyPropertyJsonFormat extends JsonFormat[VocabularyProperty] {
+    final val DOMAIN = "domain"
+    final val RANGE = "range"
+    final val PROPERTY_TYPE = "propertyType"
+
     override def read(value: JsValue)(implicit readContext: ReadContext): VocabularyProperty = {
       throw new RuntimeException("De-serializing VocabularyProperty JSON strings is not supported!")
     }
@@ -1236,11 +1273,12 @@ object JsonSerializers {
     override def write(value: VocabularyProperty)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsObject(
         Seq(
-          "genericInfo" -> GenericInfoJsonFormat.write(value.info)
+          GENERIC_INFO -> GenericInfoJsonFormat.write(value.info),
+          PROPERTY_TYPE -> JsString(value.propertyType.id)
         ) ++ value.domain.map { d =>
-          "domain" -> UriJsonFormat.write(d.info.uri)
+          DOMAIN -> UriJsonFormat.write(d.info.uri)
         } ++ value.range.map { r =>
-          "range" -> UriJsonFormat.write(r.info.uri)
+          RANGE -> UriJsonFormat.write(r.info.uri)
         }
       )
     }
