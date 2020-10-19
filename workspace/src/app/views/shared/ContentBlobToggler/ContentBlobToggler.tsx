@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { HtmlContentBlock } from "@gui-elements/index";
+import { useTranslation } from "react-i18next";
+import { HtmlContentBlock, Link } from "@gui-elements/index";
 
 type ContentTransformFunction = (contentPreview: JSX.Element | string) => JSX.Element | string;
 interface IContentBlobTogglerProps {
@@ -51,8 +52,8 @@ export function ContentBlobToggler({
     className = "",
     previewMaxLength = -1,
     previewForceSingleLine = false,
-    textToggleExtend = "show more",
-    textToggleReduce = "show less",
+    textToggleExtend,
+    textToggleReduce,
     contentPreview,
     contentFullview,
     renderContentFullview = (content) => {
@@ -69,6 +70,8 @@ export function ContentBlobToggler({
         event.stopPropagation();
         setViewState(!isExtended);
     };
+
+    const [t] = useTranslation();
 
     const trimmedFullContent = () => (typeof contentFullview === "string" ? contentFullview.trim() : contentFullview);
 
@@ -89,28 +92,28 @@ export function ContentBlobToggler({
                         {showToggler ? <>&hellip;</> : null}
                         &nbsp;
                         {showToggler ? (
-                            <a
+                            <Link
                                 href="#more"
                                 onClick={(e) => {
                                     handlerToggleView(e);
                                 }}
                             >
-                                {textToggleExtend}
-                            </a>
+                                {!!textToggleExtend ? textToggleExtend : t("common.words.more", "more")}
+                            </Link>
                         ) : null}
                     </p>
                 ) : (
                     <>
                         {renderContentFullview ? renderContentFullview(contentFullview) : contentFullview}
                         <p>
-                            <a
+                            <Link
                                 href="#less"
                                 onClick={(e) => {
                                     handlerToggleView(e);
                                 }}
                             >
-                                {textToggleReduce}
-                            </a>
+                                {!!textToggleReduce ? textToggleReduce : t("common.words.less", "less")}
+                            </Link>
                         </p>
                     </>
                 )}

@@ -20,6 +20,66 @@
         "typeSelectionBack": "Back to type selection",
         "typeSelectionTooltip": "The data source consists of multiple types. Select one type from the list for a preview. There are max. 1000 types fetched at any time."
     },
+    "DataProfiling": {
+        "attributes": {
+            "datatype": {
+                "label": "Data type",
+                "comment": "The detected data type."
+            },
+            "distribution": {
+                "label": "Distribution",
+                "comment": "The distribution of values. Depending on the data type the histogram can be interpreted differently. For interval scaled types this is usually the histogram from the min to the max value."
+            },
+            "profilingTimestamp": {
+                "label": "Profiling timestamp",
+                "comment": "The time the profiling information was extracted from the data source."
+            },
+            "min": {
+                "comment": "The smallest value of all profiled values. The representation of the value can be normalized, depending on the detected data type.",
+                "label": "Min. value"
+            },
+            "max": {
+                "comment": "The largest value of all profiled values. The representation of the value can be normalized, depending on the detected data type.",
+                "label": "Max. value"
+            },
+            "count": {
+                "comment": "The overall count of profiled values.",
+                "label": "Count"
+            },
+            "uniqueCount": {
+                "comment": "The count of unique values.",
+                "label": "Count (unique)"
+            },
+            "samples": {
+                "comment": "Values sampled from all profiled values. Usually this sample is uniformly selected from the set of unique values. The representation of the values can be normalized, depending on the detected data type.",
+                "label": "Samples"
+            },
+            "mean": {
+                "comment": "The arithmetic mean of all profiled values. The representation of the value can be normalized, depending on the detected data type.",
+                "label": "Mean value"
+            },
+            "minStringLength": {
+                "comment": "The shortest string length in number of characters.",
+                "label": "Length (min)"
+            },
+            "maxStrLength": {
+                "comment": "The longest string length in number of characters.",
+                "label": "Length (max)"
+            },
+            "meanStrLength": {
+                "comment": "The average string length in number of characters of all profiled values.",
+                "label": "Length (avg)"
+            },
+            "regexPatterns": {
+                "comment": "A set of extracted regular expression patterns that cover all of the profiled values.",
+                "label": "Regex patterns"
+            }
+        },
+        "profilingInfoHeader": "Profiling info for {{path}} data",
+        "profilingInfoTooltip": "Show extended profiling info for {{path}}",
+        "profilingNotAvailable": "No profiling data available, yet.",
+        "profilingRunning": "Running profiling on"
+    },
     "DeleteModal": {
         "confirmMsg": "Task {{name}} is used by other tasks! Deleting this task will also delete all depending tasks listed below:",
         "deleteResource": "{{type}} {{name}} will be deleted"
@@ -38,20 +98,22 @@
         "abortProcess": "Abort upload process?",
         "changeFile": "Change file",
         "createNewFile": "New file name",
-        "dropzone": "Drop file here or browse",
+        "dropzone": "Drop files here or browse",
         "fileNotSpecified": "File name not specified",
         "modalTitle": "Upload file",
+        "retryAbortMessage": "The {{fileName}} upload process aborted",
+        "retryMessage": "Something going wrong during upload process for {{fileName}}",
         "selectFromProject": "Select file from projects",
         "successfullyUploaded": "{{uploadedName}} was successfully uploaded",
         "uploadError": "An upload error has occurred for file {{fileName}}. Details: {{errorDetails}}",
-        "waitFor": "Wait for finished upload."
+        "waitFor": "File '{{fileName}}' is being uploaded."
     },
     "Metadata": {
         "loading": "Loading summary data.",
         "updateFailed": "Updating meta data has failed"
     },
     "OverwriteModal": {
-        "overwriteFile": "File {{fileName}} already exists. Do you want to overwrite it?"
+        "overwriteFile": "File '{{fileName}}' already exists. Do you want to overwrite it?"
     },
     "Pagination": {
         "backwardText": "Previous page",
@@ -62,6 +124,20 @@
     },
     "PrefixDialog": {
         "deletePrefix": "Prefix {{prefixName}} will be deleted."
+    },
+    "ProjectImportModal": {
+        "importBtn": "Import project",
+        "importSummary": "Imported project summary",
+        "importUnderFreshIdBtn": "Import as new project",
+        "projectFile": "Choose project file to import:",
+        "replaceImportBtn": "Replace existing project",
+        "responseInvalid": "Invalid response received from project upload. Project import cannot proceed.",
+        "responseUploadError": "File {{file}} could not be uploaded! {{details}}",
+        "restoreNotice": "Want to restore an existing project?",
+        "restoreStarter": "Import project file",
+        "title": "Project import",
+        "openExistingProject": "Open existing project page",
+        "warningExistingProject": "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID."
     },
     "RelatedItems": {
         "title": "Related items"
@@ -89,8 +165,11 @@
             "exportTo": "Export to",
             "logout": "Logout",
             "moreOptions": "Show more options",
+            "profilingStart": "Start profiling",
+            "profilingUpdate": "Update profiling",
             "replace": "Replace",
             "resetSelection": "Reset selection",
+            "retry": "Retry",
             "showDetails": "Show details",
             "submit": "Submit",
             "update": "Update"
@@ -120,8 +199,8 @@
         },
         "words": {
             "advancedOptions": "Advanced options",
-            "and": "and",
             "all": "All",
+            "and": "and",
             "back": "Back",
             "itemType": "Item type",
             "less": "less",
@@ -138,6 +217,7 @@
             "searchField": "Enter search term"
         },
         "projectForm": {
+            "importProjectButton": "Import existing project",
             "projectDesc": "Project description",
             "projectTitle": "Project title",
             "title": "Title"
@@ -164,7 +244,8 @@
             },
             "requestFailed": "Preview request failed",
             "server": "Server error",
-            "timeout": "Timeout"
+            "timeout": "Timeout",
+            "networkFileUpload": "Can't upload the file, please check your connection and try again"
         }
     },
     "pages": {
@@ -198,30 +279,37 @@
         "FacetsList": {
             "facet": {
                 "createdBy": {
+                    "description": "The user who created the item.",
                     "label": "Created by",
                     "valueLabel": {
                         "": "Unknown user"
                     }
                 },
                 "datasetFileResource": {
+                    "description": "The file resource of a file based dataset.",
                     "label": "Dataset file"
                 },
                 "datasetType": {
+                    "description": "The concrete type of a dataset, e.g. its data model and format etc.",
                     "label": "Dataset type"
                 },
                 "lastModifiedBy": {
+                    "description": "The user who last modified the item.",
                     "label": "Last modified by",
                     "valueLabels": {
                         "": "Unknown user"
                     }
                 },
                 "taskType": {
+                    "description": "The concrete type of a task.",
                     "label": "Task type"
                 },
                 "transformInputResource": {
+                    "description": "In case the input is a file resource based dataset, these are the file names of these resources.",
                     "label": "Transformed file resource"
                 },
                 "workflowExecutionStatus": {
+                    "description": "Allows to filter by the status of the last execution of the workflow.",
                     "label": "Last execution status"
                 }
             }
@@ -234,7 +322,7 @@
             "file": "File",
             "files": "Files",
             "loading": "Loading file list.",
-            "removeFromDatasets": "File '{{fileName}}' is in use by following datasets:",
+            "removeFromDatasets": "File '{{fileName}}' is in use by following items:",
             "removeText": "Do you really want to delete file",
             "sort": {
                 "modified": "Last modified",

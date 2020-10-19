@@ -14,10 +14,10 @@ const apiPath = (path: string) => {
 
 /**
  * /api/workspace
- * @param query
+ * @param path
  */
-export const workspaceApi = (query: string) => {
-    return apiPath("/workspace") + prependSlash(query);
+export const workspaceApi = (path: string) => {
+    return apiPath("/workspace") + prependSlash(path);
 };
 
 export const projectApi = (relativePath: string) => {
@@ -38,6 +38,10 @@ export const resourcesLegacyApi = (relativePath: string) => {
 
 export const datasetsLegacyApi = (relativePath: string) => {
     return rootPath("/datasets") + prependSlash(relativePath);
+};
+
+export const profilingApi = (relativePath: string) => {
+    return apiPath("/profiling") + prependSlash(relativePath);
 };
 
 /** In order to build correct paths this function will prepend a slash before the relative path if it's missing. */
