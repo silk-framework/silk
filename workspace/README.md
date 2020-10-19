@@ -39,3 +39,8 @@ See the section about [running tests](https://facebook.github.io/create-react-ap
 * React based errors handled by [componentDidCatch](https://reactjs.org/blog/2017/07/26/error-handling-in-react-16.html) lifecycle hook.
 * All Network errors handled by `Axios` Response Interceptor.
 * The rest of JS errors(`ReferenceError`, `Uncaught Error`) handled by custom event handler assigned to `window.onerror` listener in `src/global.ts`
+
+## Running tests in the IDE
+
+When running the UI tests in an IDE like Intellij IDEA, environment variables need to be configured for the jest template, e.g. `HOST=http://localhost:9000;API_ENDPOINT=/api`.
+Check the `.env.test` file for current ENV config.

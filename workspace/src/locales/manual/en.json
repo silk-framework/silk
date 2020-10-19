@@ -20,6 +20,66 @@
         "typeSelectionBack": "Back to type selection",
         "typeSelectionTooltip": "The data source consists of multiple types. Select one type from the list for a preview. There are max. 1000 types fetched at any time."
     },
+    "DataProfiling": {
+        "attributes": {
+            "datatype": {
+                "label": "Data type",
+                "comment": "The detected data type."
+            },
+            "distribution": {
+                "label": "Distribution",
+                "comment": "The distribution of values. Depending on the data type the histogram can be interpreted differently. For interval scaled types this is usually the histogram from the min to the max value."
+            },
+            "profilingTimestamp": {
+                "label": "Profiling timestamp",
+                "comment": "The time the profiling information was extracted from the data source."
+            },
+            "min": {
+                "comment": "The smallest value of all profiled values. The representation of the value can be normalized, depending on the detected data type.",
+                "label": "Min. value"
+            },
+            "max": {
+                "comment": "The largest value of all profiled values. The representation of the value can be normalized, depending on the detected data type.",
+                "label": "Max. value"
+            },
+            "count": {
+                "comment": "The overall count of profiled values.",
+                "label": "Count"
+            },
+            "uniqueCount": {
+                "comment": "The count of unique values.",
+                "label": "Count (unique)"
+            },
+            "samples": {
+                "comment": "Values sampled from all profiled values. Usually this sample is uniformly selected from the set of unique values. The representation of the values can be normalized, depending on the detected data type.",
+                "label": "Samples"
+            },
+            "mean": {
+                "comment": "The arithmetic mean of all profiled values. The representation of the value can be normalized, depending on the detected data type.",
+                "label": "Mean value"
+            },
+            "minStringLength": {
+                "comment": "The shortest string length in number of characters.",
+                "label": "Length (min)"
+            },
+            "maxStrLength": {
+                "comment": "The longest string length in number of characters.",
+                "label": "Length (max)"
+            },
+            "meanStrLength": {
+                "comment": "The average string length in number of characters of all profiled values.",
+                "label": "Length (avg)"
+            },
+            "regexPatterns": {
+                "comment": "A set of extracted regular expression patterns that cover all of the profiled values.",
+                "label": "Regex patterns"
+            }
+        },
+        "profilingInfoHeader": "Profiling info for {{path}} data",
+        "profilingInfoTooltip": "Show extended profiling info for {{path}}",
+        "profilingNotAvailable": "No profiling data available, yet.",
+        "profilingRunning": "Running profiling on"
+    },
     "DeleteModal": {
         "confirmMsg": "Task {{name}} is used by other tasks! Deleting this task will also delete all depending tasks listed below:",
         "deleteResource": "{{type}} {{name}} will be deleted"
@@ -105,6 +165,8 @@
             "exportTo": "Export to",
             "logout": "Logout",
             "moreOptions": "Show more options",
+            "profilingStart": "Start profiling",
+            "profilingUpdate": "Update profiling",
             "replace": "Replace",
             "resetSelection": "Reset selection",
             "retry": "Retry",

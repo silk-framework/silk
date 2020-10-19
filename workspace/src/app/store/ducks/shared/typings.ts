@@ -1,3 +1,5 @@
+import PropertyProfilingOverview from "views/shared/profiling/PropertyProfilingOverview";
+
 export interface IRequestAutocompletePayload {
     pluginId: string;
     parameterId: string;
@@ -161,7 +163,9 @@ export interface IPreviewResponse {
 
 /** The actual values of the preview */
 export interface IPreviewContent {
+    // The attribute names.
     attributes: string[];
+    // The values for each attribute. This must have the same length as the attributes array.
     values: CellType[][];
 }
 
