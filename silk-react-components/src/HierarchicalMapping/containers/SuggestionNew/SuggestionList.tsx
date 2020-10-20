@@ -9,66 +9,119 @@ import {
     TableSelectAll,
     TableSelectRow,
 } from 'carbon-components-react';
-import { Button, Pagination } from '@gui-elements/index';
+import { Button, Icon, Pagination } from '@gui-elements/index';
+import { ISuggestionTarget, ITransformedSuggestion } from "./suggestion.typings";
+import TargetList from "./TargetList";
+import _ from 'lodash';
 
 interface IProps {
-    headers: any;
-    rows: any;
-    onSwapAction: any
-}
-export default function SuggestionList({headers, rows, onSwapAction}: IProps) {
-    const [selectedTypes, setSelectedTypes] = useState({});
+    headers: any[];
 
-    const [pageRows, setPageRows] = useState({});
+    rows: ITransformedSuggestion[];
+
+    onSwapAction();
+
+    onAskDiscardChanges();
+
+    onAdd(selected: ITransformedSuggestion[]);
+}
+
+export default function SuggestionList({headers, rows, onSwapAction, onAskDiscardChanges, onAdd}: IProps) {
+    const [pageRows, setPageRows] = useState<ITransformedSuggestion[]>([]);
 
     const [pagination, setPagination] = useState({
         page: 1,
         pageSize: 5
     });
 
-    const [selectedRows, setSelectedRows] = useState({});
+    const [selectedRows, setSelectedRows] = useState<ITransformedSuggestion[]>([]);
+
+    const [sortDirections, setSortDirections] = useState<{ [key: string]: 'asc' | 'desc' }>({});
 
     useEffect(() => {
-        Object.keys(pageRows).forEach(sourceKey => {
-            handleSelectTarget(sourceKey, pageRows[sourceKey].type);
-        });
+        console.log('Suggestions', rows);
         updateCurrentRows(pagination);
+    }, [rows]);
 
-    }, [rows, pagination]);
+    const isAllSelected = () => pageRows.length === selectedRows.length;
 
-    const isAllSelected = () => Object.keys(pageRows).length === Object.keys(selectedRows).length;
-
-    const updateCurrentRows = (pagination) => {
-        const { page, pageSize } = pagination;
-        setPageRows({});
-        const rowSourceKeys = Object.keys(rows);
-
+    const updateCurrentRows = (pagination, updatedRows?: ITransformedSuggestion[]) => {
+        const {page, pageSize} = pagination;
         const startIndex = (page - 1) * pageSize;
 
-        const showRows = rowSourceKeys.slice(startIndex, startIndex + pageSize);
-        console.log('showRows', showRows, rowSourceKeys);
-        showRows.forEach(rowKey => {
-            setPageRows(prevState => ({
-                ...prevState,
-                [rowKey]: rows[rowKey]
-            }))
-        });
+        const slicedRows = (updatedRows || rows).slice(startIndex, startIndex + pageSize);
+
+        setPageRows(slicedRows);
+
+        console.log('sliced rows', slicedRows);
     };
 
-    const handleSelectRow = (sourceKey: string) => {
-        setSelectedRows(prevState => ({
-            ...prevState,
-            [sourceKey]: !selectedRows[sourceKey]
-        }))
+    const selectRow = ({source, target}: ITransformedSuggestion) => {
+        const selectedRow = selectedRows.find(row => row.source === source);
+        if (selectedRow) {
+            setSelectedRows(selectedRows.filter(row => row.source !== source));
+        } else {
+            const defaultTarget = target[0];
+            setSelectedRows([
+                ...selectedRows,
+                {
+                    source,
+                    target: [defaultTarget]
+                }
+            ]);
+        }
+    };
+
+    const updateSelectedRows = (source: string, updateData: Partial<ISuggestionTarget>) => {
+        const ind = selectedRows.findIndex(r => r.source === source);
+        if (ind > -1) {
+            const arr = [...selectedRows];
+            arr[ind] = {
+                ...selectedRows[ind],
+                ...updateData
+            };
+            setSelectedRows(arr);
+        }
     };
 
     const toggleSelectAll = () => {
-        if (isAllSelected()) {
-            setSelectedRows({});
-        } else {
-            // @NOTE: current page rows
-            Object.keys(rows).forEach(handleSelectRow)
+        setSelectedRows([]);
+        if (!isAllSelected()) {
+            pageRows.forEach(selectRow);
         }
+    };
+
+    const handleSelectTarget = (sugIndex: number, selectedTarget: ISuggestionTarget) => {
+        const {source} = pageRows[sugIndex];
+        const isExists = selectedRows.find(r => r.source === source);
+
+        const updateData = {
+            uri: selectedTarget.uri,
+        };
+
+        if (isExists) {
+            updateSelectedRows(source, updateData)
+        } else {
+            selectRow({
+                source,
+                target: [selectedTarget]
+            })
+        }
+    };
+
+    const handleSelectType = (sugIndex: number, selectedType: 'object' | 'value') => {
+        // const {source, target} = pageRows[sugIndex];
+        //
+        // if (!selectedRows[source]) {
+        //     const data = target.find(p => p.type === selectedType);
+        //     selectRow({
+        //         source,
+        //         target: [{
+        //             ...data,
+        //             type: selectedType,
+        //         }]
+        //     })
+        // }
     };
 
     const handlePageChange = (pagination) => {
@@ -76,17 +129,30 @@ export default function SuggestionList({headers, rows, onSwapAction}: IProps) {
         updateCurrentRows(pagination)
     };
 
-    const handleSelectTarget = (sourceKey: string, selectType?: string) => {
-        if (!selectType) {
-            selectType = rows[sourceKey].type;
-        }
-        const {uri} = rows[sourceKey];
-        setSelectedTypes(prevState => ({
-            ...prevState,
-            [uri]: selectType
-        }))
+    const handleSwap = () => {
+        setPageRows([]);
+        onSwapAction();
     };
 
+    const handleCancel = () => onAskDiscardChanges();
+
+    const handleAdd = () => onAdd(selectedRows);
+
+    const handleSort = (headerKey: string) => {
+        const isAsc = sortDirections[headerKey] === 'asc';
+
+        const direction = isAsc ? 'desc' : 'asc'
+        setSortDirections({
+            [headerKey]: direction
+        });
+
+        const sortedArray = _.orderBy(rows, headerKey, direction);
+
+        updateCurrentRows(pagination, sortedArray);
+    };
+
+    const handleFilterDialog = () => {
+    };
     return <>
         <Table>
             <TableHead>
@@ -99,42 +165,64 @@ export default function SuggestionList({headers, rows, onSwapAction}: IProps) {
                     />
                     {headers.map(header => (
                         <TableHeader>
-                            {header.key === 'swapAction' ? <Button onClick={onSwapAction}>Swap</Button> : header.header}
+                            {
+                                header.key === 'swapAction'
+                                    ? <Button onClick={handleSwap}>Swap</Button>
+                                    : <>
+                                        {header.header}
+                                        <Icon
+                                            small
+                                            name={
+                                                !sortDirections[header.key]
+                                                    ? 'list-sort'
+                                                    : sortDirections[header.key] === 'asc' ? 'list-sortasc' : 'list-sortdesc'
+                                            }
+                                            onClick={() => handleSort(header.key)}
+                                        />
+                                        <Icon small name={'item-moremenu'} onClick={handleFilterDialog}/>
+                                    </>
+                            }
                         </TableHeader>
                     ))}
                 </TableRow>
             </TableHead>
             <TableBody>
                 {
-                    Object.keys(pageRows).map(sourceKey =>
-                        <TableRow key={sourceKey}>
+                    pageRows.map((row: ITransformedSuggestion, index: number) => {
+                        const {source, target} = row;
+                        const selected = selectedRows.find(r => r.source === source);
+                        return <TableRow key={source}>
                             <TableSelectRow
-                                name={sourceKey}
-                                id={sourceKey}
-                                onSelect={() => handleSelectRow(sourceKey)}
-                                checked={selectedRows[sourceKey]}
+                                name={source}
+                                id={source}
+                                onSelect={() => selectRow(row)}
+                                checked={!!selected}
+                                ariaLabel={'select row'}
                             />
                             <TableCell>
                                 <select>
-                                    <option value={sourceKey}>{sourceKey}</option>
+                                    <option value={source}>{source}</option>
                                 </select>
                             </TableCell>
                             <TableCell>
                                 <div/>
                             </TableCell>
                             <TableCell>
-                                <select>
-                                    {rows[sourceKey].map(target => <option value={target.uri} onClick={() => handleSelectTarget(sourceKey)}>{target.uri}</option>)}
-                                </select>
+                                <TargetList
+                                    targets={target}
+                                    onChange={(selected) => handleSelectTarget(index, selected)}
+                                />
                             </TableCell>
                             <TableCell>
-                                <select value={selectedTypes[rows[sourceKey].uri]}>
-                                    <option value="object" onClick={() => handleSelectTarget(sourceKey, 'object')}>object</option>
-                                    <option value="value" onClick={() => handleSelectTarget(sourceKey, 'value')}>value</option>
+                                <select>
+                                    <option value="object" onClick={() => handleSelectType(index, 'object')}>object
+                                    </option>
+                                    <option value="value" onClick={() => handleSelectType(index, 'value')}>value
+                                    </option>
                                 </select>
                             </TableCell>
                         </TableRow>
-                    )
+                    })
                 }
             </TableBody>
         </Table>
@@ -150,5 +238,7 @@ export default function SuggestionList({headers, rows, onSwapAction}: IProps) {
             itemRangeText={(min, max, total) => `${min}–${max} of ${total} items`}
             pageRangeText={(current, total) => `of ${total} pages`}
         />
+        <Button affirmative={true} onClick={handleAdd}>Add ({selectedRows.length})</Button>
+        <Button disruptive={true} onClick={handleCancel}>Cancel</Button>
     </>
 }

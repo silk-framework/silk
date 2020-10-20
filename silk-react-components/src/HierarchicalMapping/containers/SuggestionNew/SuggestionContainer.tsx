@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Divider, Grid, GridColumn, GridRow, Section, SectionHeader, TitleMainsection } from "@gui-elements/index";
-import { DataTable, Table, TableContainer } from 'carbon-components-react';
-import SuggestionList from "./SuggestionList";
+import { Table, TableContainer } from 'carbon-components-react';
+import SuggestionList  from "./SuggestionList";
 import SuggestionHeader from "./SuggestionHeader";
-import { getSuggestionsAsync } from "../../store";
+import { generateRuleAsync, getSuggestionsAsync } from "../../store";
 import _ from "lodash";
+import { ITransformedSuggestion } from "./suggestion.typings";
 
-export default function SuggestionContainer({ruleId, targetClassUris}) {
+export default function SuggestionContainer({ruleId, targetClassUris, onAskDiscardChanges, onClose}) {
     // Loading indicator
     const [loading, setLoading] = useState(false);
 
@@ -14,13 +15,13 @@ export default function SuggestionContainer({ruleId, targetClassUris}) {
 
     const [error, setError] = useState<any>({});
 
-    const [data, setData] = useState({});
+    const [data, setData] = useState<ITransformedSuggestion[]>([]);
 
     const [headers, setHeaders] = useState(
         [
-            {header: 'Source data', key: 'mapFrom'},
+            {header: 'Source data', key: 'source'},
             {header: null, key: 'swapAction'},
-            {header: 'Target data', key: 'mapTo'},
+            {header: 'Target data', key: 'target'},
             {header: 'Mapping type', key: 'type'}
         ]
     );
@@ -33,11 +34,6 @@ export default function SuggestionContainer({ruleId, targetClassUris}) {
     }, []);
 
     const handleSwapAction = () => {
-        // const temp = headers[0];
-        //
-        // headers[0] = headers[2];
-        // headers[2] = temp;
-        // setHeaders(headers);
         setIsFromDataset(!isFromDataset);
         loadData(!isFromDataset);
     };
@@ -63,6 +59,28 @@ export default function SuggestionContainer({ruleId, targetClassUris}) {
         );
     };
 
+    const handleAdd = (selectedRows) => {
+        setLoading(true);
+        const correspondences = selectedRows
+            .map(suggestion => ({
+                sourcePath: suggestion.source,
+                targetProperty: suggestion.target[0].uri,
+                type: suggestion.target[0].type,
+            }));
+
+        generateRuleAsync(correspondences, ruleId).subscribe(
+            () => onClose(),
+            err => {
+                // If we have a list of failedRules, we want to show them, otherwise something
+                // else failed
+                const error = err.failedRules
+                    ? err.failedRules
+                    : [{error: err}];
+                setError(error);
+            },
+            () => setLoading(false)
+        );
+    }
     return (
         <Section>
             <SectionHeader>
@@ -76,16 +94,18 @@ export default function SuggestionContainer({ruleId, targetClassUris}) {
             </SectionHeader>
             <Divider addSpacing="medium"/>
 
-                    <TableContainer>
-                        <Table>
-                            <SuggestionHeader />
-                            <SuggestionList
-                                rows={data}
-                                headers={headers}
-                                onSwapAction={handleSwapAction}
-                            />
-                        </Table>
-                    </TableContainer>
+            <TableContainer>
+                <Table>
+                    <SuggestionHeader/>
+                    <SuggestionList
+                        rows={data}
+                        headers={headers}
+                        onSwapAction={handleSwapAction}
+                        onAdd={handleAdd}
+                        onAskDiscardChanges={onAskDiscardChanges}
+                    />
+                </Table>
+            </TableContainer>
         </Section>
     )
 }

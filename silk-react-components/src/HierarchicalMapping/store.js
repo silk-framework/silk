@@ -338,15 +338,29 @@ export const getSuggestionsAsync = data => {
                 };
             }),
         (vocabDatasetsResponse, sourcePathsResponse) => {
-            const suggestions = vocabDatasetsResponse.data;
+            const suggestions = [];
+    
+            Object.keys(vocabDatasetsResponse.data).map(sourceKey => {
+                const target = vocabDatasetsResponse.data[sourceKey];
+                
+                suggestions.push({
+                   source: sourceKey,
+                   target
+                });
+            });
             
             if (data.matchFromDataset) {
                 sourcePathsResponse.data.forEach(sourcePath => {
-                    if (!suggestions[sourcePath]) {
-                        suggestions[sourcePath] = [{
-                            uri: '',
-                            type: 'value',
-                        }];
+                    const isExists = suggestions.some(suggestion => suggestion.source === sourcePath);
+                    if (!isExists) {
+                        suggestions.push({
+                            source: sourcePath,
+                            target: [{
+                                uri: '',
+                                type: 'value',
+                                confidence: 0
+                            }]
+                        });
                     }
                 });
             }
