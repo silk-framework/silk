@@ -16,7 +16,14 @@ interface IProps {
 }
 
 /** A simple search bar. */
-export function SearchBar({ textQuery = "", sorters, onSort, onSearch, focusOnCreation = false, ...otherProps }: IProps) {
+export function SearchBar({
+    textQuery = "",
+    sorters,
+    onSort,
+    onSearch,
+    focusOnCreation = false,
+    ...otherProps
+}: IProps) {
     const [searchInput, setSearchInput] = useState(textQuery);
     const [t] = useTranslation();
 

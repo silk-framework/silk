@@ -1,6 +1,5 @@
 import { IArtefactItem, IArtefactModal, ICommonState } from "./typings";
 import Store from "store";
-import { DEFAULT_LANG } from "../../../constants/base";
 
 export function initialArtefactModalState(): IArtefactModal {
     return {
@@ -17,7 +16,7 @@ export function initialArtefactModalState(): IArtefactModal {
 
 export function initialCommonState(): ICommonState {
     return {
-        locale: Store.get("locale") || DEFAULT_LANG,
+        locale: Store.get("locale"),
         currentProjectId: null,
         currentTaskId: null,
         authenticated: true,

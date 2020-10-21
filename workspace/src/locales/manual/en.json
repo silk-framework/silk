@@ -248,6 +248,22 @@
             "networkFileUpload": "Can't upload the file, please check your connection and try again"
         }
     },
+    "navigation": {
+        "side": {
+            "di": {
+                "datasets": "Datasets",
+                "projects": "Projects"
+            },
+            "diBrowse": "Data integration",
+            "dm": {
+                "explore": "Exploration",
+                "query": "Queries",
+                "vocab": "Vocabulary management"
+            },
+            "dmBrowser": "Knowledge graph",
+            "open": "Open navigation"
+        }
+    },
     "pages": {
         "dataset": {
             "title": "Data preview"
