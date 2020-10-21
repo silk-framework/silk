@@ -6,7 +6,7 @@ const createPlugin = (options: IPlugins): any => {
     const { component, route } = entryPoint;
 
     if (!isReactComponent(component)) {
-        console.error('Component property not contain React component');
+        console.error("Component property not contain React component");
     }
 
     if (!component.displayName) {
@@ -17,10 +17,8 @@ const createPlugin = (options: IPlugins): any => {
         component,
         path: route,
         menuName,
-        isExternal: true
+        isExternal: true,
     };
 };
 
-export {
-    createPlugin
-}
+export { createPlugin };

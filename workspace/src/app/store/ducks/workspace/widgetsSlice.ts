@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import { initialNewPrefixState, initialWidgetsState } from "./initialState";
 
 export const widgetsSlice = createSlice({
-    name: 'widgets',
+    name: "widgets",
     initialState: initialWidgetsState(),
     reducers: {
         toggleWidgetLoading(state, action) {
@@ -11,17 +11,17 @@ export const widgetsSlice = createSlice({
             state[widgetName].isLoading = !state[action.payload].isLoading;
         },
         setWidgetError(state, action) {
-            const {widgetName, error} = action.payload;
+            const { widgetName, error } = action.payload;
             state[widgetName].error = error;
         },
         setPrefixes(state, action) {
             state.configuration.prefixes = action.payload;
         },
         updateNewPrefix(state, action) {
-            const {field, value} = action.payload;
+            const { field, value } = action.payload;
             state.configuration.newPrefix = {
                 ...state.configuration.newPrefix,
-                [field]: value
+                [field]: value,
             };
         },
         resetNewPrefix(state) {
@@ -32,6 +32,6 @@ export const widgetsSlice = createSlice({
         },
         setFiles(state, action) {
             state.files.results = action.payload;
-        }
-    }
+        },
+    },
 });

@@ -197,11 +197,16 @@ export const logPageOnError = (err: Error) => {
     return err;
 };
 
+export const logWrapperHtml = (wrapper: ReactWrapper<any, any>) => {
+    wrapper.update();
+    console.log(wrapper.html());
+};
+
 /** Logs the wrapper HTML on error. */
 export const logWrapperHtmlOnError = (wrapper: ReactWrapper<any, any>) => {
     wrapper.update();
     return (err: Error) => {
-        console.log(wrapper.html());
+        logWrapperHtml(wrapper);
         return err;
     };
 };
@@ -291,6 +296,8 @@ export const mockAxiosResponse = (
         } else {
             mockAxios.mockResponseFor(criteria, response as HttpResponse, silentMode);
         }
+    } else {
+        throw new Error("No request to mock for " + criteria);
     }
 };
 
