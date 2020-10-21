@@ -11,7 +11,7 @@ class InitApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers w
 
   override def workspaceProviderId: String = "inMemory"
 
-  override def routes: Option[Class[_ <: Router]] = Some(classOf[test.Routes])
+  override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 
   it should "show if the workspace is (not) empty" in {
     initFrontendResult().get("emptyWorkspace") mustBe Some(JsBoolean(true))

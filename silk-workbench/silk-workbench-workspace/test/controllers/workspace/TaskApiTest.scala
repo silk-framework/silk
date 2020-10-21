@@ -23,7 +23,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
 
   override def workspaceProviderId: String = "inMemory"
 
-  protected override def routes = Some(classOf[test.Routes])
+  protected override def routes = Some(classOf[testWorkspace.Routes])
 
   private val datasetId = "testDataset"
 

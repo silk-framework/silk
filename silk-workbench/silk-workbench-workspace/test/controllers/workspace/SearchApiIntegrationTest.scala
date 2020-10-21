@@ -10,7 +10,7 @@ import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginRegistry}
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{SingleProjectWorkspaceProviderTestTrait, WorkspaceFactory}
 import play.api.libs.json._
-import test.Routes
+import testWorkspace.Routes
 
 class SearchApiIntegrationTest extends FlatSpec
     with SingleProjectWorkspaceProviderTestTrait
@@ -22,7 +22,7 @@ class SearchApiIntegrationTest extends FlatSpec
 
   override def projectPathInClasspath: String = "diProjects/facetSearchWorkspaceProject.zip"
 
-  override def routes: Option[Class[Routes]] = Some(classOf[test.Routes])
+  override def routes: Option[Class[Routes]] = Some(classOf[testWorkspace.Routes])
 
   lazy implicit val facetSettingWrites: Writes[FacetSetting] = Json.writes[FacetSetting]
   lazy implicit val keywordFacetSettingWrites: Writes[KeywordFacetSetting] = Json.writes[KeywordFacetSetting]
@@ -102,6 +102,11 @@ class SearchApiIntegrationTest extends FlatSpec
       resultItemIds(response) mustBe expectedResults
       offset += pageSize
     }
+  }
+
+  it should "return all results if the limit is set to 0" in {
+    val (response, _) = facetedSearchRequest(FacetedSearchRequest(offset = Some(0), limit = Some(0)))
+    resultItemIds(response) mustBe allResults
   }
 
   it should "return only generic facets for an unrestricted search" in {

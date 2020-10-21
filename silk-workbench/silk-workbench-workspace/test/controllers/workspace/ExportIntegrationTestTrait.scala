@@ -28,7 +28,7 @@ trait ExportIntegrationTestTrait
 
   override def projectPathInClasspath: String = "controllers/workspace/miniProject.zip"
 
-  protected override def routes = Some(classOf[test.Routes])
+  protected override def routes = Some(classOf[testWorkspace.Routes])
 
   override def workspaceProviderId: String = "mockableInMemoryWorkspace"
 

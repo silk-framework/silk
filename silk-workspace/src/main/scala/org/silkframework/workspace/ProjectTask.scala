@@ -66,7 +66,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
         activities ::= new TaskActivity(this, factory)
       } catch {
         case NonFatal(ex) =>
-          log.log(Level.WARNING, s"Could not load task activity '$factory' in task '$id' in project '${module.project.name}'.", ex)
+          log.log(Level.WARNING, s"Could not load task activity '${factory.pluginSpec.id}' in task '$id' in project '${module.project.name}'.", ex)
       }
     }
     activities.reverse

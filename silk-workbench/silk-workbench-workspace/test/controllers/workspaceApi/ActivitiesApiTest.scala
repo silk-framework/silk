@@ -14,7 +14,7 @@ class ActivitiesApiTest extends FlatSpec with SingleProjectWorkspaceProviderTest
 
   override def projectPathInClasspath: String = "diProjects/activityapiproject.zip"
 
-  override def routes: Option[Class[_ <: Router]] = Some(classOf[test.Routes])
+  override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 
   override def workspaceProviderId: String = "inMemory"
 
