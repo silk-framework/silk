@@ -340,7 +340,7 @@ class MappingsWorkview extends React.Component {
                 : [];
         
         // !createRuleForm && this.state.showSuggestions &&_.has(this.state, 'ruleData.rules.typeRules') &&
-        const listSuggestions = (
+        const listSuggestions = !createRuleForm && this.state.showSuggestions &&_.has(this.state, 'ruleData.rules.typeRules') && (
                 <SuggestionsListContainer
                     ruleId={_.get(this.state.ruleData, 'id', 'root')}
                     onClose={this.handleCloseSuggestions}

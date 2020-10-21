@@ -14,6 +14,22 @@ import { ISuggestionTarget, ITransformedSuggestion } from "./suggestion.typings"
 import TargetList from "./TargetList";
 import _ from 'lodash';
 
+export interface ISelectedSuggestion {
+    source: string;
+
+    targetUri: string;
+
+    type: string;
+}
+
+interface ITargetWithSelected extends ISuggestionTarget {
+    _selected: boolean;
+}
+
+interface IPageSuggestion extends ITransformedSuggestion {
+    target: ITargetWithSelected[]
+}
+
 interface IProps {
     headers: any[];
 
@@ -23,110 +39,94 @@ interface IProps {
 
     onAskDiscardChanges();
 
-    onAdd(selected: ITransformedSuggestion[]);
+    onAdd(selected: ISelectedSuggestion[]);
 }
 
 export default function SuggestionList({headers, rows, onSwapAction, onAskDiscardChanges, onAdd}: IProps) {
-    const [pageRows, setPageRows] = useState<ITransformedSuggestion[]>([]);
+    const [pageRows, setPageRows] = useState<IPageSuggestion[]>([]);
 
     const [pagination, setPagination] = useState({
         page: 1,
         pageSize: 5
     });
 
-    const [selectedRows, setSelectedRows] = useState<ITransformedSuggestion[]>([]);
+    const [selectedRows, setSelectedRows] = useState<ISelectedSuggestion[]>([]);
 
     const [sortDirections, setSortDirections] = useState<{ [key: string]: 'asc' | 'desc' }>({});
 
     useEffect(() => {
-        console.log('Suggestions', rows);
-        updateCurrentRows(pagination);
-    }, [rows]);
+        const arr = [];
 
-    const isAllSelected = () => pageRows.length === selectedRows.length;
+        rows.forEach(({source, target}) => {
+            arr.push({
+                source,
+                target: target.map((t, index) => ({
+                    ...t,
+                    _selected: index === 0
+                }))
+            });
+        });
 
-    const updateCurrentRows = (pagination, updatedRows?: ITransformedSuggestion[]) => {
-        const {page, pageSize} = pagination;
-        const startIndex = (page - 1) * pageSize;
-
-        const slicedRows = (updatedRows || rows).slice(startIndex, startIndex + pageSize);
+        const slicedRows = paginate(arr, pagination);
 
         setPageRows(slicedRows);
 
-        console.log('sliced rows', slicedRows);
-    };
+        console.log('Suggestions', rows);
+        console.log('sliced rows', arr);
+    }, [rows]);
 
-    const selectRow = ({source, target}: ITransformedSuggestion) => {
+    const isAllSelected = () => pageRows.length && pageRows.length === selectedRows.length;
+
+    const paginate = (arr, pagination) => {
+        const {page, pageSize} = pagination;
+        const startIndex = (page - 1) * pageSize;
+
+        return arr.slice(startIndex, startIndex + pageSize);
+    }
+
+    const toggleRowSelect = ({source, target}: IPageSuggestion) => {
         const selectedRow = selectedRows.find(row => row.source === source);
         if (selectedRow) {
-            setSelectedRows(selectedRows.filter(row => row.source !== source));
+            setSelectedRows(
+                selectedRows.filter(row => row.source !== source)
+            );
         } else {
-            const defaultTarget = target[0];
+            const selectedTarget = target.find(t => t._selected);
             setSelectedRows([
                 ...selectedRows,
                 {
                     source,
-                    target: [defaultTarget]
+                    targetUri: selectedTarget.uri,
+                    type: selectedTarget.type
                 }
             ]);
         }
     };
 
-    const updateSelectedRows = (source: string, updateData: Partial<ISuggestionTarget>) => {
-        const ind = selectedRows.findIndex(r => r.source === source);
-        if (ind > -1) {
-            const arr = [...selectedRows];
-            arr[ind] = {
-                ...selectedRows[ind],
-                ...updateData
-            };
-            setSelectedRows(arr);
-        }
-    };
-
     const toggleSelectAll = () => {
-        setSelectedRows([]);
-        if (!isAllSelected()) {
-            pageRows.forEach(selectRow);
-        }
-    };
-
-    const handleSelectTarget = (sugIndex: number, selectedTarget: ISuggestionTarget) => {
-        const {source} = pageRows[sugIndex];
-        const isExists = selectedRows.find(r => r.source === source);
-
-        const updateData = {
-            uri: selectedTarget.uri,
-        };
-
-        if (isExists) {
-            updateSelectedRows(source, updateData)
+        if (isAllSelected()) {
+            setSelectedRows([]);
+        } else if (!selectedRows.length) {
+            pageRows.forEach(toggleRowSelect);
         } else {
-            selectRow({
-                source,
-                target: [selectedTarget]
-            })
+            setSelectedRows([]);
+            pageRows.forEach(toggleRowSelect);
         }
     };
 
-    const handleSelectType = (sugIndex: number, selectedType: 'object' | 'value') => {
-        // const {source, target} = pageRows[sugIndex];
-        //
-        // if (!selectedRows[source]) {
-        //     const data = target.find(p => p.type === selectedType);
-        //     selectRow({
-        //         source,
-        //         target: [{
-        //             ...data,
-        //             type: selectedType,
-        //         }]
-        //     })
-        // }
+    const handleSelectTarget = (i: number, updatedTargets: ITargetWithSelected[]) => {
+        const _pageRows = [...pageRows]
+
+        _pageRows[i].target = updatedTargets;
+
+        setPageRows(_pageRows);
     };
 
     const handlePageChange = (pagination) => {
         setPagination(pagination);
-        updateCurrentRows(pagination)
+        setPageRows(
+            paginate(rows, pagination)
+        );
     };
 
     const handleSwap = () => {
@@ -147,12 +147,14 @@ export default function SuggestionList({headers, rows, onSwapAction, onAskDiscar
         });
 
         const sortedArray = _.orderBy(rows, headerKey, direction);
-
-        updateCurrentRows(pagination, sortedArray);
+        setPageRows(
+            paginate(sortedArray, pagination)
+        );
     };
 
     const handleFilterDialog = () => {
     };
+
     return <>
         <Table>
             <TableHead>
@@ -188,14 +190,14 @@ export default function SuggestionList({headers, rows, onSwapAction, onAskDiscar
             </TableHead>
             <TableBody>
                 {
-                    pageRows.map((row: ITransformedSuggestion, index: number) => {
+                    pageRows.map((row: IPageSuggestion, index: number) => {
                         const {source, target} = row;
                         const selected = selectedRows.find(r => r.source === source);
                         return <TableRow key={source}>
                             <TableSelectRow
                                 name={source}
                                 id={source}
-                                onSelect={() => selectRow(row)}
+                                onSelect={() => toggleRowSelect(row)}
                                 checked={!!selected}
                                 ariaLabel={'select row'}
                             />
@@ -210,14 +212,14 @@ export default function SuggestionList({headers, rows, onSwapAction, onAskDiscar
                             <TableCell>
                                 <TargetList
                                     targets={target}
-                                    onChange={(selected) => handleSelectTarget(index, selected)}
+                                    onChange={(updatedTargets) => handleSelectTarget(index, updatedTargets)}
                                 />
                             </TableCell>
                             <TableCell>
                                 <select>
-                                    <option value="object" onClick={() => handleSelectType(index, 'object')}>object
+                                    <option value="object" onClick={() => {}}>object
                                     </option>
-                                    <option value="value" onClick={() => handleSelectType(index, 'value')}>value
+                                    <option value="value" onClick={() => {}}>value
                                     </option>
                                 </select>
                             </TableCell>

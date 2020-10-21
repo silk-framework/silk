@@ -1,7 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Divider, Grid, GridColumn, GridRow, Section, SectionHeader, TitleMainsection } from "@gui-elements/index";
+import {
+    Button,
+    Divider,
+    Grid,
+    GridColumn,
+    GridRow,
+    Section,
+    SectionHeader,
+    TitleMainsection
+} from "@gui-elements/index";
 import { Table, TableContainer } from 'carbon-components-react';
-import SuggestionList  from "./SuggestionList";
+import SuggestionList, { ISelectedSuggestion } from "./SuggestionList";
 import SuggestionHeader from "./SuggestionHeader";
 import { generateRuleAsync, getSuggestionsAsync } from "../../store";
 import _ from "lodash";
@@ -16,6 +25,10 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     const [error, setError] = useState<any>({});
 
     const [data, setData] = useState<ITransformedSuggestion[]>([]);
+
+    const [filteredData, setFilteredData] = useState<ITransformedSuggestion[]>([]);
+
+    const [search, setSearch] = useState('');
 
     const [headers, setHeaders] = useState(
         [
@@ -51,6 +64,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                 );
                 setLoading(false);
                 setData(suggestions);
+                setFilteredData(suggestions);
             },
             err => {
                 setLoading(false);
@@ -59,13 +73,13 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         );
     };
 
-    const handleAdd = (selectedRows) => {
+    const handleAdd = (selectedRows: ISelectedSuggestion[]) => {
         setLoading(true);
         const correspondences = selectedRows
             .map(suggestion => ({
                 sourcePath: suggestion.source,
-                targetProperty: suggestion.target[0].uri,
-                type: suggestion.target[0].type,
+                targetProperty: suggestion.targetUri,
+                type: suggestion.type,
             }));
 
         generateRuleAsync(correspondences, ruleId).subscribe(
@@ -81,6 +95,16 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
             () => setLoading(false)
         );
     }
+
+    const handleSearch = (value: string) => {
+        setSearch(value);
+    };
+
+    const handleFilter = () => {
+        const filtered = data.filter(o => o.source.includes(search) || o.target.some(t => t.uri.includes(search) || t.type.includes(search)));
+        setFilteredData(filtered);
+    };
+
     return (
         <Section>
             <SectionHeader>
@@ -90,15 +114,20 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                             <TitleMainsection>Mapping Suggestion for {ruleId}</TitleMainsection>
                         </GridColumn>
                     </GridRow>
+                    <GridRow>
+                        <GridColumn>
+                            <Button affirmative onClick={handleFilter}>Find Matches</Button>
+                        </GridColumn>
+                    </GridRow>
                 </Grid>
             </SectionHeader>
             <Divider addSpacing="medium"/>
 
             <TableContainer>
                 <Table>
-                    <SuggestionHeader/>
+                    <SuggestionHeader onSearch={handleSearch}/>
                     <SuggestionList
-                        rows={data}
+                        rows={filteredData}
                         headers={headers}
                         onSwapAction={handleSwapAction}
                         onAdd={handleAdd}

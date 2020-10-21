@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 
 export  default function TargetList({ targets, onChange }) {
-    const [selected, setSelected] = useState(targets[0]);
-
     const handleSelectTarget = (target) => {
-        setSelected(target);
-        onChange(target);
+        const arr = targets.map(item => ({
+            ...item,
+            _selected: target.uri === item.uri
+        }));
+        onChange(arr);
     };
 
     return (
@@ -15,7 +16,7 @@ export  default function TargetList({ targets, onChange }) {
                     <option
                         key={target.uri}
                         value={target.uri}
-                        selected={selected.uri === target.uri}
+                        selected={target._selected}
                         onClick={() => handleSelectTarget(target)}
                     >
                         {target.uri}
