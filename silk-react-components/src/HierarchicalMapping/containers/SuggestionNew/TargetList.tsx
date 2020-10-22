@@ -1,23 +1,22 @@
-import React, { useState } from "react";
+import React from "react";
 
-export  default function TargetList({ targets, onChange }) {
+export default function TargetList({ targets, onChange }) {
     const handleSelectTarget = (target) => {
         const arr = targets.map(item => ({
             ...item,
-            _selected: target.uri === item.uri
+            _selected: target === item.uri
         }));
         onChange(arr);
     };
 
     return (
-        <select>
+        <select onChange={e => handleSelectTarget(e.target.value)}>
             {
                 targets.map((target) =>
                     <option
                         key={target.uri}
                         value={target.uri}
                         selected={target._selected}
-                        onClick={() => handleSelectTarget(target)}
                     >
                         {target.uri}
                     </option>)

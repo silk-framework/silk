@@ -10,7 +10,7 @@ import {
     TableSelectRow,
 } from 'carbon-components-react';
 import { Button, Icon, Pagination } from '@gui-elements/index';
-import { ISuggestionTarget, ITransformedSuggestion } from "./suggestion.typings";
+import { ISuggestionTarget, ITransformedSuggestion, SuggestionTypeValues } from "./suggestion.typings";
 import TargetList from "./TargetList";
 import _ from 'lodash';
 
@@ -43,6 +43,8 @@ interface IProps {
 }
 
 export default function SuggestionList({headers, rows, onSwapAction, onAskDiscardChanges, onAdd}: IProps) {
+    const [allRows, setAllRows] = useState<IPageSuggestion[]>([]);
+
     const [pageRows, setPageRows] = useState<IPageSuggestion[]>([]);
 
     const [pagination, setPagination] = useState({
@@ -67,9 +69,11 @@ export default function SuggestionList({headers, rows, onSwapAction, onAskDiscar
             });
         });
 
-        const slicedRows = paginate(arr, pagination);
+        setAllRows(arr);
 
-        setPageRows(slicedRows);
+        setPageRows(
+            paginate(arr, pagination)
+        );
 
         console.log('Suggestions', rows);
         console.log('sliced rows', arr);
@@ -92,14 +96,14 @@ export default function SuggestionList({headers, rows, onSwapAction, onAskDiscar
             );
         } else {
             const selectedTarget = target.find(t => t._selected);
-            setSelectedRows([
-                ...selectedRows,
+            setSelectedRows(prevState => ([
+                ...prevState,
                 {
                     source,
                     targetUri: selectedTarget.uri,
                     type: selectedTarget.type
                 }
-            ]);
+            ]));
         }
     };
 
@@ -115,9 +119,9 @@ export default function SuggestionList({headers, rows, onSwapAction, onAskDiscar
     };
 
     const handleSelectTarget = (i: number, updatedTargets: ITargetWithSelected[]) => {
-        const _pageRows = [...pageRows]
+        const _pageRows = [...pageRows];
 
-        _pageRows[i].target = updatedTargets;
+        _pageRows[i].target = [...updatedTargets];
 
         setPageRows(_pageRows);
     };
@@ -125,12 +129,15 @@ export default function SuggestionList({headers, rows, onSwapAction, onAskDiscar
     const handlePageChange = (pagination) => {
         setPagination(pagination);
         setPageRows(
-            paginate(rows, pagination)
+            paginate(allRows, pagination)
         );
     };
 
     const handleSwap = () => {
         setPageRows([]);
+
+        setSelectedRows([]);
+
         onSwapAction();
     };
 
@@ -146,13 +153,25 @@ export default function SuggestionList({headers, rows, onSwapAction, onAskDiscar
             [headerKey]: direction
         });
 
-        const sortedArray = _.orderBy(rows, headerKey, direction);
+        const sortedArray = _.orderBy(allRows, headerKey, direction);
         setPageRows(
             paginate(sortedArray, pagination)
         );
     };
 
     const handleFilterDialog = () => {
+    };
+
+    const getType = (sourceIndex): SuggestionTypeValues => {
+        const row = pageRows[sourceIndex];
+        if (row) {
+            const selectedTarget = row.target.find(t => t._selected);
+            return selectedTarget.type;
+        }
+    };
+
+    const handleTypeChange = (value: SuggestionTypeValues) => {
+
     };
 
     return <>
@@ -216,10 +235,10 @@ export default function SuggestionList({headers, rows, onSwapAction, onAskDiscar
                                 />
                             </TableCell>
                             <TableCell>
-                                <select>
-                                    <option value="object" onClick={() => {}}>object
+                                <select onChange={e => handleTypeChange(e.target.value as SuggestionTypeValues)}>
+                                    <option selected={getType(index) === 'object'} value="object">object
                                     </option>
-                                    <option value="value" onClick={() => {}}>value
+                                    <option selected={getType(index) === 'value'} value="value">value
                                     </option>
                                 </select>
                             </TableCell>
@@ -230,7 +249,7 @@ export default function SuggestionList({headers, rows, onSwapAction, onAskDiscar
         </Table>
         <Pagination
             onChange={handlePageChange}
-            totalItems={Object.keys(rows).length}
+            totalItems={allRows.length}
             pageSizes={[5, 10, 25, 50, 100]}
             page={pagination.page}
             pageSize={pagination.pageSize}

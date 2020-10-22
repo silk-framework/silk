@@ -47,6 +47,12 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     }, []);
 
     const handleSwapAction = () => {
+        const temp = headers[0];
+        headers[0] = headers[2];
+        headers[2] = temp;
+
+        setHeaders(headers);
+
         setIsFromDataset(!isFromDataset);
         loadData(!isFromDataset);
     };
@@ -75,12 +81,24 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     const handleAdd = (selectedRows: ISelectedSuggestion[]) => {
         setLoading(true);
+
         const correspondences = selectedRows
-            .map(suggestion => ({
-                sourcePath: suggestion.source,
-                targetProperty: suggestion.targetUri,
-                type: suggestion.type,
-            }));
+            .map(suggestion => {
+                const { source, targetUri, type} = suggestion;
+
+                const correspondence = {
+                    sourcePath: source,
+                    targetProperty: targetUri,
+                    type: type,
+                };
+
+                if (!isFromDataset) {
+                    correspondence.sourcePath = targetUri;
+                    correspondence.targetProperty = source;
+                }
+
+                return correspondence
+            });
 
         generateRuleAsync(correspondences, ruleId).subscribe(
             () => onClose(),
