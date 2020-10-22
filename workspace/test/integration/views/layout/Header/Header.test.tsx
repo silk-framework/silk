@@ -79,9 +79,9 @@ describe("Header", () => {
         await withWindowLocation(async () => {
             clickElement(wrapper, "#headerUserMenu");
             clickElement(wrapper, "#logoutAction");
-            mockAxios.mockResponseFor({ url: hostPath + "/logout", method: "POST" }, mockedAxiosResponse());
+            mockAxios.mockResponseFor({ url: hostPath + "/logout", method: "GET" }, mockedAxiosResponse());
             await waitFor(() => {
-                expect(window.location.pathname).toBe("/loggedOut");
+                expect(window.location.pathname).not.toBe("/logout");
             });
         });
     });
