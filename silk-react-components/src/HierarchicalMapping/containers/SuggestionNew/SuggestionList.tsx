@@ -13,20 +13,14 @@ import { Button, Icon, Pagination } from '@gui-elements/index';
 import { ISuggestionTarget, ITransformedSuggestion, SuggestionTypeValues } from "./suggestion.typings";
 import TargetList from "./TargetList";
 import _ from 'lodash';
-
-export interface ISelectedSuggestion {
-    source: string;
-
-    targetUri: string;
-
-    type: string;
-}
+import TypesList from "./TypesList";
+import SuggestionRow from "./SuggestionRow";
 
 interface ITargetWithSelected extends ISuggestionTarget {
     _selected: boolean;
 }
 
-interface IPageSuggestion extends ITransformedSuggestion {
+export interface IPageSuggestion extends ITransformedSuggestion {
     target: ITargetWithSelected[]
 }
 
@@ -39,7 +33,7 @@ interface IProps {
 
     onAskDiscardChanges();
 
-    onAdd(selected: ISelectedSuggestion[]);
+    onAdd(selected: IPageSuggestion[]);
 }
 
 export default function SuggestionList({headers, rows, onSwapAction, onAskDiscardChanges, onAdd}: IProps) {
@@ -52,7 +46,7 @@ export default function SuggestionList({headers, rows, onSwapAction, onAskDiscar
         pageSize: 5
     });
 
-    const [selectedRows, setSelectedRows] = useState<ISelectedSuggestion[]>([]);
+    const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
     const [sortDirections, setSortDirections] = useState<{ [key: string]: 'asc' | 'desc' }>({});
 
@@ -88,21 +82,16 @@ export default function SuggestionList({headers, rows, onSwapAction, onAskDiscar
         return arr.slice(startIndex, startIndex + pageSize);
     }
 
-    const toggleRowSelect = ({source, target}: IPageSuggestion) => {
-        const selectedRow = selectedRows.find(row => row.source === source);
+    const toggleRowSelect = ({source}: IPageSuggestion) => {
+        const selectedRow = selectedRows.find(s => s === source);
         if (selectedRow) {
             setSelectedRows(
-                selectedRows.filter(row => row.source !== source)
+                selectedRows.filter(s => s !== source)
             );
         } else {
-            const selectedTarget = target.find(t => t._selected);
             setSelectedRows(prevState => ([
                 ...prevState,
-                {
-                    source,
-                    targetUri: selectedTarget.uri,
-                    type: selectedTarget.type
-                }
+                source,
             ]));
         }
     };
@@ -116,14 +105,6 @@ export default function SuggestionList({headers, rows, onSwapAction, onAskDiscar
             setSelectedRows([]);
             pageRows.forEach(toggleRowSelect);
         }
-    };
-
-    const handleSelectTarget = (i: number, updatedTargets: ITargetWithSelected[]) => {
-        const _pageRows = [...pageRows];
-
-        _pageRows[i].target = [...updatedTargets];
-
-        setPageRows(_pageRows);
     };
 
     const handlePageChange = (pagination) => {
@@ -143,7 +124,10 @@ export default function SuggestionList({headers, rows, onSwapAction, onAskDiscar
 
     const handleCancel = () => onAskDiscardChanges();
 
-    const handleAdd = () => onAdd(selectedRows);
+    const handleAdd = () => {
+        const arr = selectedRows.map(s => pageRows.find(row => row.source === s)).filter(Boolean);
+        onAdd(arr);
+    }
 
     const handleSort = (headerKey: string) => {
         const isAsc = sortDirections[headerKey] === 'asc';
@@ -162,17 +146,11 @@ export default function SuggestionList({headers, rows, onSwapAction, onAskDiscar
     const handleFilterDialog = () => {
     };
 
-    const getType = (sourceIndex): SuggestionTypeValues => {
-        const row = pageRows[sourceIndex];
-        if (row) {
-            const selectedTarget = row.target.find(t => t._selected);
-            return selectedTarget.type;
-        }
-    };
-
-    const handleTypeChange = (value: SuggestionTypeValues) => {
-
-    };
+    const handleModifyTarget = (i, target) => {
+        const _pageRows = [...pageRows];
+        _pageRows[i].target = target;
+        setPageRows(_pageRows);
+    }
 
     return <>
         <Table>
@@ -210,39 +188,16 @@ export default function SuggestionList({headers, rows, onSwapAction, onAskDiscar
             <TableBody>
                 {
                     pageRows.map((row: IPageSuggestion, index: number) => {
-                        const {source, target} = row;
-                        const selected = selectedRows.find(r => r.source === source);
-                        return <TableRow key={source}>
-                            <TableSelectRow
-                                name={source}
-                                id={source}
-                                onSelect={() => toggleRowSelect(row)}
-                                checked={!!selected}
-                                ariaLabel={'select row'}
-                            />
-                            <TableCell>
-                                <select>
-                                    <option value={source}>{source}</option>
-                                </select>
-                            </TableCell>
-                            <TableCell>
-                                <div/>
-                            </TableCell>
-                            <TableCell>
-                                <TargetList
-                                    targets={target}
-                                    onChange={(updatedTargets) => handleSelectTarget(index, updatedTargets)}
-                                />
-                            </TableCell>
-                            <TableCell>
-                                <select onChange={e => handleTypeChange(e.target.value as SuggestionTypeValues)}>
-                                    <option selected={getType(index) === 'object'} value="object">object
-                                    </option>
-                                    <option selected={getType(index) === 'value'} value="value">value
-                                    </option>
-                                </select>
-                            </TableCell>
-                        </TableRow>
+                        const {source} = row;
+                        const selected = selectedRows.find(s => s === source);
+
+                        return <SuggestionRow
+                            key={source}
+                            row={row}
+                            onRowSelect={toggleRowSelect}
+                            selected={selected}
+                            onModifyTarget={(target) => handleModifyTarget(index, target)}
+                        />
                     })
                 }
             </TableBody>

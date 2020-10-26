@@ -10,7 +10,7 @@ import {
     TitleMainsection
 } from "@gui-elements/index";
 import { Table, TableContainer } from 'carbon-components-react';
-import SuggestionList, { ISelectedSuggestion } from "./SuggestionList";
+import SuggestionList, { IPageSuggestion } from "./SuggestionList";
 import SuggestionHeader from "./SuggestionHeader";
 import { generateRuleAsync, getSuggestionsAsync } from "../../store";
 import _ from "lodash";
@@ -79,21 +79,21 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         );
     };
 
-    const handleAdd = (selectedRows: ISelectedSuggestion[]) => {
+    const handleAdd = (selectedRows: IPageSuggestion[]) => {
         setLoading(true);
 
         const correspondences = selectedRows
             .map(suggestion => {
-                const { source, targetUri, type} = suggestion;
+                const { source, target} = suggestion;
 
                 const correspondence = {
                     sourcePath: source,
-                    targetProperty: targetUri,
-                    type: type,
+                    targetProperty: target[0].uri,
+                    type: target[0].type,
                 };
 
                 if (!isFromDataset) {
-                    correspondence.sourcePath = targetUri;
+                    correspondence.sourcePath = target[0].uri;
                     correspondence.targetProperty = source;
                 }
 

@@ -1,12 +1,8 @@
 import React from "react";
 
 export default function TargetList({ targets, onChange }) {
-    const handleSelectTarget = (target) => {
-        const arr = targets.map(item => ({
-            ...item,
-            _selected: target === item.uri
-        }));
-        onChange(arr);
+    const handleSelectTarget = (uri) => {
+        onChange(uri);
     };
 
     return (
