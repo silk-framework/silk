@@ -101,7 +101,7 @@ export function Autocomplete(props: IAutocompleteProps) {
     useEffect(() => {
         // Don't fetch auto-completion values when
         if (dependentValues.length === props.autoCompletion.autoCompletionDependsOnParameters.length) {
-            handleQueryChange(query);
+            handleQueryChange(query, {});
         }
     }, [dependentValues.join("|")]);
 

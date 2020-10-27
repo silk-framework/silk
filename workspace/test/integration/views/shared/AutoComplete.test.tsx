@@ -12,6 +12,7 @@ describe("AutoComplete", () => {
         let counter = 0;
         const onSearch = () => {
             counter += 1;
+            return [];
         };
         const autoCompletion = {
             allowOnlyAutoCompletedValues: true,

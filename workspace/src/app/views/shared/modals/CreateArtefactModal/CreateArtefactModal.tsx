@@ -351,7 +351,7 @@ export function CreateArtefactModal() {
                 )) ||
                 (projectArtefactSelected && (
                     <p>
-                        <Icon name="state-info" style={{ "vertical-align": "middle" }} />{" "}
+                        <Icon name="state-info" style={{ verticalAlign: "middle" }} />{" "}
                         {t("ProjectImportModal.restoreNotice", "Want to restore an existing project?")}{" "}
                         <Link key="importProject" onClick={switchToProjectImport} href="#import-project">
                             {t("ProjectImportModal.restoreStarter", "Import project file")}
