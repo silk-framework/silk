@@ -9,3 +9,8 @@ export interface ITransformedSuggestion {
     source: string;
     target: ISuggestionTarget[];
 }
+
+export interface IPlainObject {
+    [key: string]: string | number
+}
+

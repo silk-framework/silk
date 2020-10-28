@@ -1,5 +1,5 @@
 import React from "react";
-import { SuggestionTypeValues } from "./suggestion.typings";
+import { SuggestionTypeValues } from "../suggestion.typings";
 
 export default function TypesList({ onChange, selected }) {
     const handleSelectTarget = (value: SuggestionTypeValues) => {

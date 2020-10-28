@@ -9,8 +9,8 @@ import {
     SectionHeader,
     TitleMainsection
 } from "@gui-elements/index";
-import { Table, TableContainer } from 'carbon-components-react';
-import SuggestionList, { IPageSuggestion } from "./SuggestionList";
+import { TableContainer } from 'carbon-components-react';
+import SuggestionList, { IAddedSuggestion } from "./SuggestionList";
 import SuggestionHeader from "./SuggestionHeader";
 import { generateRuleAsync, getSuggestionsAsync } from "../../store";
 import _ from "lodash";
@@ -30,15 +30,6 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     const [search, setSearch] = useState('');
 
-    const [headers, setHeaders] = useState(
-        [
-            {header: 'Source data', key: 'source'},
-            {header: null, key: 'swapAction'},
-            {header: 'Target data', key: 'target'},
-            {header: 'Mapping type', key: 'type'}
-        ]
-    );
-
     const [isFromDataset, setIsFromDataset] = useState(true);
 
     useEffect(() => {
@@ -47,12 +38,6 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     }, []);
 
     const handleSwapAction = () => {
-        const temp = headers[0];
-        headers[0] = headers[2];
-        headers[2] = temp;
-
-        setHeaders(headers);
-
         setIsFromDataset(!isFromDataset);
         loadData(!isFromDataset);
     };
@@ -79,21 +64,21 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         );
     };
 
-    const handleAdd = (selectedRows: IPageSuggestion[]) => {
+    const handleAdd = (selectedRows: IAddedSuggestion[]) => {
         setLoading(true);
 
         const correspondences = selectedRows
             .map(suggestion => {
-                const { source, target} = suggestion;
+                const {source, targetUri, type} = suggestion;
 
                 const correspondence = {
                     sourcePath: source,
-                    targetProperty: target[0].uri,
-                    type: target[0].type,
+                    targetProperty: targetUri,
+                    type,
                 };
 
                 if (!isFromDataset) {
-                    correspondence.sourcePath = target[0].uri;
+                    correspondence.sourcePath = targetUri;
                     correspondence.targetProperty = source;
                 }
 
@@ -142,16 +127,13 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
             <Divider addSpacing="medium"/>
 
             <TableContainer>
-                <Table>
-                    <SuggestionHeader onSearch={handleSearch}/>
-                    <SuggestionList
-                        rows={filteredData}
-                        headers={headers}
-                        onSwapAction={handleSwapAction}
-                        onAdd={handleAdd}
-                        onAskDiscardChanges={onAskDiscardChanges}
-                    />
-                </Table>
+                <SuggestionHeader onSearch={handleSearch}/>
+                <SuggestionList
+                    rows={filteredData}
+                    onSwapAction={handleSwapAction}
+                    onAdd={handleAdd}
+                    onAskDiscardChanges={onAskDiscardChanges}
+                />
             </TableContainer>
         </Section>
     )
