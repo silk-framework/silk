@@ -273,7 +273,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                 <Helmet title={windowTitle} />
                 <OverviewItem>
                     <OverviewItemDepiction>
-                        <Icon name={itemType ? "artefect-" + itemType : "application-homepage"} large />
+                        <Icon name={itemType ? "artefact-" + itemType : "application-homepage"} large />
                     </OverviewItemDepiction>
                     <OverviewItemDescription>
                         <OverviewItemLine small>
