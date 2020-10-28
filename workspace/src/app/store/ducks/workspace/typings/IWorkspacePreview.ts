@@ -35,8 +35,6 @@ export interface ISearchResultsServer {
      * Contains plugin name
      */
     pluginId?: string;
-
-    categories?: string[];
 }
 
 export interface IPreviewState {

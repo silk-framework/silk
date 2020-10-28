@@ -101,7 +101,7 @@ export default function SearchItem({
         <Card isOnlyLayout>
             <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined}>
                 <OverviewItemDepiction>
-                    <ItemDepiction itemType={item.type} pluginId={item.pluginId} categories={item.categories} />
+                    <ItemDepiction itemType={item.type} pluginId={item.pluginId} />
                 </OverviewItemDepiction>
                 <OverviewItemDescription>
                     <OverviewItemLine>

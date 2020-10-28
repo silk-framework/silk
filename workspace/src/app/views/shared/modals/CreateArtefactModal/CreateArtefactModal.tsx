@@ -382,7 +382,6 @@ export function CreateArtefactModal() {
                                                             <ItemDepiction
                                                                 itemType={artefact.taskType}
                                                                 pluginId={artefact.key}
-                                                                categories={artefact.categories}
                                                             />
                                                         </OverviewItemDepiction>
                                                         <OverviewItemDescription>
