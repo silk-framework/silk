@@ -39,7 +39,7 @@ import { useLocation } from "react-router";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { ItemDeleteModal } from "../../shared/modals/ItemDeleteModal";
-import { CONTEXT_PATH } from "../../../constants/path";
+import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
 import CloneModal from "../../shared/modals/CloneModal";
 import { routerOp } from "@ducks/router";
 import { IItemLink } from "@ducks/shared/typings";
@@ -322,7 +322,12 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                                         </MenuItem>
                                     )}
                                     {itemLinks.map((itemLink) => (
-                                        <MenuItem key={itemLink.path} text={itemLink.label} href={itemLink.path} />
+                                        <MenuItem
+                                            key={itemLink.path}
+                                            text={itemLink.label}
+                                            href={itemLink.path}
+                                            target={itemLink.path.startsWith(SERVE_PATH) ? undefined : "_blank"}
+                                        />
                                     ))}
                                 </ContextMenu>
                             </>
