@@ -30,7 +30,6 @@ import {
     TitleSubsection,
     WorkspaceHeader,
 } from "@gui-elements/index";
-import ItemDepiction from "./ItemDepiction";
 import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
 import withBreadcrumbLabels from "./withBreadcrumbLabels";
@@ -274,7 +273,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                 <Helmet title={windowTitle} />
                 <OverviewItem>
                     <OverviewItemDepiction>
-                        <ItemDepiction itemType={itemType} />
+                        <Icon name={itemType ? "artefact-" + itemType : "application-homepage"} large />
                     </OverviewItemDepiction>
                     <OverviewItemDescription>
                         <OverviewItemLine small>
