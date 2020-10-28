@@ -16,7 +16,7 @@ export const CONTEXT_PATH = DI.basePath || "";
 /**
  * The path of new workspace
  */
-export const SERVE_PATH = CONTEXT_PATH + "/workspace-beta";
+export const SERVE_PATH = CONTEXT_PATH + "/workbench";
 
 /**
  * Full hostname
