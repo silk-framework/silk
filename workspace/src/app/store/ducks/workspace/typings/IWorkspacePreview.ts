@@ -31,6 +31,12 @@ export interface ISearchResultsServer {
      * Contains of useful links for items
      */
     itemLinks?: ITaskItemLinks[];
+    /**
+     * Contains plugin name
+     */
+    pluginId?: string;
+
+    categories?: string[];
 }
 
 export interface IPreviewState {

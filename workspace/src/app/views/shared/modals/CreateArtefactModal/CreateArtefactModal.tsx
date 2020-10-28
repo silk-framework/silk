@@ -38,6 +38,7 @@ import { routerOp } from "@ducks/router";
 import { useTranslation } from "react-i18next";
 import { TaskType } from "@ducks/shared/typings";
 import { ProjectImportModal } from "../ProjectImportModal";
+import ItemDepiction from "../../../shared/ItemDepiction";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -261,23 +262,6 @@ export function CreateArtefactModal() {
         }
     }, [artefactListWithProject.map((item) => item.key).join("|"), selectedDType]);
 
-    const renderDepiction = (artefact, large = true) => {
-        const iconNameStack = []
-            .concat([(artefact.taskType ? artefact.taskType + "-" : "") + artefact.key])
-            .concat(artefact.taskType ? [artefact.taskType] : [])
-            .concat(artefact.categories ? artefact.categories : []);
-        return (
-            <Icon
-                name={iconNameStack
-                    .map((type) => {
-                        return "artefact-" + type.toLowerCase();
-                    })
-                    .filter((x, i, a) => a.indexOf(x) === i)}
-                large={large}
-            />
-        );
-    };
-
     const isCreationUpdateDialog = selectedArtefact.key || updateExistingTask;
 
     const createDialog = (
@@ -395,7 +379,11 @@ export function CreateArtefactModal() {
                                                         onKeyDown={handleEnter}
                                                     >
                                                         <OverviewItemDepiction>
-                                                            {renderDepiction(artefact)}
+                                                            <ItemDepiction
+                                                                itemType={artefact.taskType}
+                                                                pluginId={artefact.key}
+                                                                categories={artefact.categories}
+                                                            />
                                                         </OverviewItemDepiction>
                                                         <OverviewItemDescription>
                                                             <OverviewItemLine>
