@@ -10,7 +10,7 @@ package org.silkframework.plugins.dataset.rdf
   import org.silkframework.dataset.rdf.SparqlEndpointEntityTable
   import org.silkframework.execution.{ExecutionReport, ExecutorOutput}
   import org.silkframework.execution.local.LocalExecution
-  import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
+  import org.silkframework.plugins.dataset.rdf.datasets.{RdfFileDataset, RdfFileFormats}
   import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlCopyExecutor
   import org.silkframework.plugins.dataset.rdf.tasks.SparqlCopyCustomTask
   import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
@@ -40,7 +40,7 @@ package org.silkframework.plugins.dataset.rdf
     private val executor = new LocalSparqlCopyExecutor()
     private val constructQuery = "CONSTRUCT { ?s ?p ?o. } WHERE { ?s ?p ?o. FILTER(?s = <http://dbpedia.org/resource/Albert_Einstein>) }"
     private val context = TestMocks.activityContextMock()
-    private val source = RdfFileDataset(resources.get("test.nt"), "N-Triples")    // FIXME CMEM-1759 use quad file when QuadSink is available
+    private val source = RdfFileDataset(resources.get("test.nt"), RdfFileFormats.nTriples)    // FIXME CMEM-1759 use quad file when QuadSink is available
     private val input = Seq(new SparqlEndpointEntityTable(source.sparqlEndpoint, PlainTask("endpointTask", DatasetSpec.empty)))
 
     private val WORKFLOW_ID = "copy_sparql"

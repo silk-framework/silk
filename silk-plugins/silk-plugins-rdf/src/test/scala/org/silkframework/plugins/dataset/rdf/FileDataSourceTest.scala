@@ -21,7 +21,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{EntitySchema, StringValueType, UriValueType, ValueType}
-import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
+import org.silkframework.plugins.dataset.rdf.datasets.{RdfFileDataset, RdfFileFormats}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.FileResourceManager
 import org.silkframework.util.Uri
@@ -41,7 +41,7 @@ class FileDataSourceTest extends FlatSpec with Matchers {
 
   val resourceLoader = FileResourceManager(new File(URLDecoder.decode(getClass.getClassLoader.getResource("org/silkframework/plugins/dataset/rdf").getFile, "UTF-8")))
 
-  val dataset = RdfFileDataset(resourceLoader.get(fileName), "N-TRIPLE")
+  val dataset = RdfFileDataset(resourceLoader.get(fileName), RdfFileFormats.nTriples)
 
   val entityDescCity =
     EntitySchema(

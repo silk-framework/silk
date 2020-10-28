@@ -3,6 +3,7 @@ package org.silkframework.runtime.plugin
 import java.lang.reflect.{ParameterizedType, Type}
 import java.net.{URLDecoder, URLEncoder}
 import java.security.spec.InvalidKeySpecException
+import java.util.Locale
 import java.util.logging.{Level, Logger}
 
 import javax.crypto.SecretKey
@@ -512,7 +513,7 @@ object StringParameterType {
     def fromStringOpt(str: String): Option[Enum[_]] = {
       enumConstants.find {
         case e: EnumerationParameterType =>
-          e.id == str.trim || e.name == str.trim
+          e.matchesId(str)
         case c: Enum[_] =>
           c.name == str.trim
       }

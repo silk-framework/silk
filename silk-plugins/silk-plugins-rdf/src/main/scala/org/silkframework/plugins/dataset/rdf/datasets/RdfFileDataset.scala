@@ -33,7 +33,7 @@ case class RdfFileDataset(
   @Param("The RDF file. This may also be a zip archive of multiple RDF files.")
   file: WritableResource,
   @Param("""RDF format. Can be left empty, in which case it will be auto-detetected based on the file extension. Supported input formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle". Supported output formats are: "N-Triples".""")
-  format: String = "",
+  format: RdfFileFormats = RdfFileFormats.autodetect,
   @Param("The graph name to be read. If not provided, the default graph will be used. Must be provided if the format is N-Quads.")
   graph: String = "",
   @Param(label = "Max. read size (MB)",
@@ -50,13 +50,13 @@ case class RdfFileDataset(
   /** The RDF format of the given resource. */
   private def lang = {
     // If the format is not specified explicitly, we try to guess it
-    if (format.isEmpty) {
+    if (format == RdfFileFormats.autodetect) {
       val guessedLang = RDFLanguages.filenameToLang(file.name)
       require(guessedLang != null, "Cannot guess RDF format from resource name. Please specify it explicitly using the 'format' parameter.")
       guessedLang
     } else {
-      val explicitLang = RDFLanguages.nameToLang(format)
-      require(explicitLang != null, s"Invalid format '$format'. Supported formats are: 'RDF/XML', 'N-Triples', 'N-Quads', 'Turtle'")
+      val explicitLang = RDFLanguages.nameToLang(format.displayName)
+      require(explicitLang != null, s"Invalid format '$format'.")
       explicitLang
     }
   }

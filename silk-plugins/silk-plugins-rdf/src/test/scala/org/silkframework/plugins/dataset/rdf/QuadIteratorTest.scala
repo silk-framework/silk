@@ -7,7 +7,7 @@ import org.apache.jena.rdf.model.impl.StatementImpl
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset.rdf.{IteratorFormatter, QuadIterator}
-import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
+import org.silkframework.plugins.dataset.rdf.datasets.{RdfFileDataset, RdfFileFormats}
 import org.silkframework.plugins.dataset.rdf.formatters.NTriplesQuadFormatter
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, ReadOnlyResourceManager}
@@ -16,7 +16,7 @@ class QuadIteratorTest extends FlatSpec with Matchers with MockitoSugar {
 
   implicit val uc: UserContext = UserContext.Empty
   private lazy val resources = ReadOnlyResourceManager(ClasspathResourceLoader(getClass.getPackage.getName.replace('.', '/')))
-  private val source = RdfFileDataset(resources.get("target.nt"), "N-Triples")
+  private val source = RdfFileDataset(resources.get("target.nt"), RdfFileFormats.nTriples)
 
   it should "should produce isomorphic graphs when serializing the origin graph with QuadIterator" in {
     val quadIterator = source.sparqlEndpoint.construct("CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }")
