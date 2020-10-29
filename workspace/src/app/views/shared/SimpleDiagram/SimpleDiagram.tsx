@@ -2,7 +2,7 @@ import React from "react";
 import { Sparklines, SparklinesBars } from "react-sparklines";
 
 export function SimpleDiagram({ data, titlePrefix = "Data", ...restProps }: any) {
-    if (data.length < 1) {
+    if (data == null || data.length < 1) {
         return <></>;
     }
 

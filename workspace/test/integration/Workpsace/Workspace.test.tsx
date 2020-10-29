@@ -23,7 +23,7 @@ describe("Search Items", () => {
         itemLinks: [
             {
                 label: "Project details page",
-                path: "/dataintegration/workspace-beta/projects/eb233297-9d72-4b82-b77c-b2d1ee193c29_NewProject",
+                path: "/dataintegration/workbench/projects/eb233297-9d72-4b82-b77c-b2d1ee193c29_NewProject",
             },
         ],
         label: "New Project",
