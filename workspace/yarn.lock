@@ -8553,6 +8553,11 @@ moo@^0.5.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/moo/-/moo-0.5.1.tgz#7aae7f384b9b09f620b6abf6f74ebbcd1b65dbc4"
   integrity sha1-eq5/OEubCfYgtqv29067zRtl28Q=
 
+mousetrap@^1.6.5:
+  version "1.6.5"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/mousetrap/-/mousetrap-1.6.5.tgz#8a766d8c272b08393d5f56074e0b5ec183485bf9"
+  integrity sha1-inZtjCcrCDk9X1YHTgtewYNIW/k=
+
 move-concurrently@^1.0.1:
   version "1.0.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/move-concurrently/-/move-concurrently-1.0.1.tgz#be2c005fda32e0b29af1f05d7c4b33214c701f92"

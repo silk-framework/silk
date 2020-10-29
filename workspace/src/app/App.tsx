@@ -9,6 +9,7 @@ import { ApplicationContainer, ApplicationContent } from "@gui-elements/index";
 import Header from "./views/layout/Header";
 import RouterOutlet from "./RouterOutlet";
 import { getHistory } from "./store/configureStore";
+import { RecentlyViewedModal } from "./views/shared/modals/RecentlyViewedModal";
 
 interface IProps {
     routes: RouteProps[];
@@ -26,10 +27,7 @@ export default function App({ externalRoutes, routes }: IProps) {
         <ConnectedRouter history={getHistory()}>
             <ApplicationContainer
                 isSideNavExpanded={false}
-                render={({
-                    isSideNavExpanded,
-                    onClickSideNavExpand
-                }:any) => (
+                render={({ isSideNavExpanded, onClickSideNavExpand }: any) => (
                     <>
                         <Header
                             isApplicationSidebarExpanded={isSideNavExpanded}
@@ -38,6 +36,7 @@ export default function App({ externalRoutes, routes }: IProps) {
                         <ApplicationContent isApplicationSidebarExpanded={isSideNavExpanded}>
                             <RouterOutlet routes={routes} />
                         </ApplicationContent>
+                        <RecentlyViewedModal />
                     </>
                 )}
             />

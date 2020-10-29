@@ -139,6 +139,9 @@
         "openExistingProject": "Open existing project page",
         "warningExistingProject": "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID."
     },
+    "RecentlyViewedModal": {
+        "title": "Recently viewed items"
+    },
     "RelatedItems": {
         "title": "Related items"
     },

@@ -4,26 +4,26 @@
   "private": true,
   "license": "Eccenca GmbH",
   "//": "start: TODO",
-    "//": "watch-di-dev: Watches source file changes and builds the development artefacts of the workspace UI incrementally.",
-    "//": "build-di-dev: Development build of the workspace UI.",
-    "//": "build-di-prod: Production build of the workspace UI.",
-    "//": "build: TODO",
-    "//": "test: Interactive test execution with watch mode.",
-    "//": "test-ci: Test execution for the CI system that produces the result XML files.",
-    "//": "sync-trans: Synchronizes entries from the English (manual) language file to the German (manual) language file, i.e. add or delete entries to/from the German language file. This will modify the manually curated de.json file.",
-    "//": "i18n-parser: Parse code files for usages of keys not existing in the current (manual) languages files. This will add a placeholder entry to the language files.",
-    "scripts": {
-        "start": "node scripts/start.js",
-        "watch-di-dev": "node scripts/build-di.dev.js --watch",
-        "build-di-dev": "node scripts/build-di.dev.js",
-        "build-di-prod": "node scripts/build-di.prod.js",
-        "build": "node scripts/build.js",
-        "test": "node scripts/test.js",
-        "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"jest-junit\"",
-        "sync-trans": "sync-i18n --files 'src/locales/manual/*.json' --primary en --languages de --space 4 -- --check",
-        "i18n-parser": "node scripts/i18next-scanner.js"
-    },
-    "dependencies": {
+  "//": "watch-di-dev: Watches source file changes and builds the development artefacts of the workspace UI incrementally.",
+  "//": "build-di-dev: Development build of the workspace UI.",
+  "//": "build-di-prod: Production build of the workspace UI.",
+  "//": "build: TODO",
+  "//": "test: Interactive test execution with watch mode.",
+  "//": "test-ci: Test execution for the CI system that produces the result XML files.",
+  "//": "sync-trans: Synchronizes entries from the English (manual) language file to the German (manual) language file, i.e. add or delete entries to/from the German language file. This will modify the manually curated de.json file.",
+  "//": "i18n-parser: Parse code files for usages of keys not existing in the current (manual) languages files. This will add a placeholder entry to the language files.",
+  "scripts": {
+    "start": "node scripts/start.js",
+    "watch-di-dev": "node scripts/build-di.dev.js --watch",
+    "build-di-dev": "node scripts/build-di.dev.js",
+    "build-di-prod": "node scripts/build-di.prod.js",
+    "build": "node scripts/build.js",
+    "test": "node scripts/test.js",
+    "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"jest-junit\"",
+    "sync-trans": "sync-i18n --files 'src/locales/manual/*.json' --primary en --languages de --space 4 -- --check",
+    "i18n-parser": "node scripts/i18next-scanner.js"
+  },
+  "dependencies": {
     "@babel/core": "7.9.0",
     "@blueprintjs/core": "^3.24.0",
     "@blueprintjs/select": "^3.12.3",
@@ -81,6 +81,7 @@
     "jest-resolve": "24.9.0",
     "jest-watch-typeahead": "0.4.2",
     "mini-css-extract-plugin": "0.9.0",
+    "mousetrap": "^1.6.5",
     "node-sass": "4.12.0",
     "optimize-css-assets-webpack-plugin": "5.0.3",
     "pnp-webpack-plugin": "1.6.4",
@@ -104,7 +105,7 @@
     "react-router": "^5.1.2",
     "react-router-dom": "^5.1.2",
     "react-sparklines": "^1.7.0",
-        "redux-logger": "^3.0.6",
+    "redux-logger": "^3.0.6",
     "reset-css": "^5.0.1",
     "resolve": "1.15.0",
     "resolve-url-loader": "3.1.1",
@@ -122,7 +123,6 @@
     "webpack-manifest-plugin": "2.2.0",
     "whatwg-fetch": "^3.0.0",
     "workbox-webpack-plugin": "4.3.1"
-
   },
   "husky": {
     "hooks": {
@@ -182,8 +182,8 @@
       "<rootDir>/src/**/?(*.)(spec|test).{js,jsx,ts,tsx}",
       "<rootDir>/test/**/?(*.)(spec|test).{js,jsx,ts,tsx}"
     ],
-    "engines" : {
-        "node" : " 12.16.1"
+    "engines": {
+      "node": " 12.16.1"
     },
     "testEnvironment": "jest-environment-jsdom-fourteen",
     "transform": {
@@ -244,10 +244,10 @@
     "axios-mock-adapter": "^1.18.1",
     "babel-core": "7.0.0-bridge.0",
     "enzyme": "^3.9.0",
-    "i18next-json-sync": "^2.3.1",
-    "i18next-scanner": "^2.11.0",
     "enzyme-adapter-react-16": "^1.12.1",
     "husky": "^4.2.5",
+    "i18next-json-sync": "^2.3.1",
+    "i18next-scanner": "^2.11.0",
     "jest-junit": "^10.0.0",
     "lint-staged": "^10.1.7",
     "prettier": "^2.0.5",
