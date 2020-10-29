@@ -78,14 +78,14 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
     const { dmBaseUrl, dmModuleLinks } = useSelector(commonSel.initialSettingsSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
 
-    const startTitle = `Build — ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`;
+    const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
+    const [t] = useTranslation();
+
+    const startTitle = `${t("common.app.build")} — ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`;
 
     const [windowTitle, setWindowTitle] = useState<string>(startTitle);
     const [displayUserMenu, toggleUserMenuDisplay] = useState<boolean>(false);
     const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
-
-    const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
-    const [t] = useTranslation();
 
     const itemData = {
         id: taskId ? taskId : projectId,
