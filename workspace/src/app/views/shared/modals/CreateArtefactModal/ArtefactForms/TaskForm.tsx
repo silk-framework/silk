@@ -1,13 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IArtefactItemProperty, IDetailedArtefactItem } from "@ducks/common/typings";
-import { Intent } from "@wrappers/blueprint/constants";
-import { INPUT_TYPES } from "../../../../../constants";
-import { FieldItem, Spacing, TextArea, TextField } from "@wrappers/index";
+import { Intent } from "@gui-elements/blueprint/constants";
+import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
+import { FieldItem, Spacing, TextArea, TextField } from "@gui-elements/index";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import { errorMessage, ParameterWidget } from "./ParameterWidget";
 import { DataPreview } from "../../../DataPreview/DataPreview";
 import { IDatasetConfigPreview } from "@ducks/shared/typings";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
+import { useTranslation } from "react-i18next";
 
 export interface IProps {
     form: any;
@@ -51,6 +52,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
 
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     const initialValues = existingTaskValuesToFlatParameters(updateTask);
+    const [t] = useTranslation();
 
     // addition restriction for the hook form parameter values
     const valueRestrictions = (param: IArtefactItemProperty) => {
@@ -58,7 +60,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
             return {
                 pattern: {
                     value: /^[0-9]*$/,
-                    message: "must be an integer number",
+                    message: t("form.validations.integer", "must be an integer number"),
                 },
             };
         } else {
@@ -77,9 +79,10 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
             requiredParameters: string[]
         ) => {
             // Construct array of parameter keys that other parameters depend on
-            const dependsOnParameters = params
-                .filter(([key, propertyDetails]) => !!propertyDetails.autoCompletion)
-                .flatMap(([key, propertyDetails]) => propertyDetails.autoCompletion.autoCompletionDependsOnParameters);
+            const autoCompletionParams = params.filter(([key, propertyDetails]) => !!propertyDetails.autoCompletion);
+            const dependsOnParameters = autoCompletionParams.flatMap(
+                ([key, propertyDetails]) => propertyDetails.autoCompletion.autoCompletionDependsOnParameters
+            );
             params.forEach(([paramId, param]) => {
                 const key = prefix + paramId;
                 if (param.type === "object") {
@@ -178,8 +181,8 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                         <FieldItem
                             key={LABEL}
                             labelAttributes={{
-                                text: "Label",
-                                info: "required",
+                                text: t("form.field.label"),
+                                info: t("common.words.required"),
                                 htmlFor: LABEL,
                             }}
                             hasStateDanger={errorMessage("Label", errors.label) ? true : false}
@@ -195,7 +198,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                         <FieldItem
                             key={DESCRIPTION}
                             labelAttributes={{
-                                text: "Description",
+                                text: t("form.field.description"),
                                 htmlFor: DESCRIPTION,
                             }}
                         >
@@ -235,15 +238,18 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                         ))}
                     </AdvancedOptionsArea>
                 )}
-                {artefact.taskType === "Dataset" && (
+                {artefact.taskType?.toLowerCase() === DATA_TYPES.DATASET && (
                     <>
                         <Spacing />
                         <DataPreview
-                            title={"Preview"}
+                            title={t("pages.dataset.title")}
                             preview={datasetConfigPreview(projectId, artefact.pluginId, getValues())}
                             externalValidation={{
                                 validate: triggerValidation,
-                                errorMessage: "Parameter validation failed. Please fix the issues first.",
+                                errorMessage: t(
+                                    "form.validations.parameter",
+                                    "Parameter validation failed. Please fix the issues first."
+                                ),
                             }}
                             datasetConfigValues={getValues}
                         />

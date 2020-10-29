@@ -3,28 +3,34 @@ import { ISearchResultsServer } from "@ducks/workspace/typings";
 import {
     Card,
     ContextMenu,
-    Icon,
     IconButton,
     MenuDivider,
     MenuItem,
+    OverflowText,
     OverviewItem,
     OverviewItemActions,
     OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
-    OverflowText,
     Spacing,
     Tag,
-} from "@wrappers/index";
+} from "@gui-elements/index";
 import { routerOp } from "@ducks/router";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Highlighter } from "../Highlighter/Highlighter";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import { IPageLabels } from "@ducks/router/operations";
+import { DATA_TYPES } from "../../../constants";
+import { commonSel } from "@ducks/common";
+import { IExportTypes } from "@ducks/common/typings";
+import { downloadResource } from "../../../utils/downloadResource";
+import { useTranslation } from "react-i18next";
+import ItemDepiction from "../../shared/ItemDepiction";
 
 interface IProps {
     item: ISearchResultsServer;
+
     searchValue?: string;
 
     onOpenDeleteModal(item: ISearchResultsServer);
@@ -45,7 +51,8 @@ export default function SearchItem({
     parentProjectId,
 }: IProps) {
     const dispatch = useDispatch();
-
+    const exportTypes = useSelector(commonSel.exportTypesSelector);
+    const [t] = useTranslation();
     // Remove detailsPath
     const contextMenuItems = item.itemLinks
         .slice(1)
@@ -59,11 +66,25 @@ export default function SearchItem({
             />
         ));
 
+    if (item.type === DATA_TYPES.PROJECT && !!exportTypes.length) {
+        contextMenuItems.push(
+            <MenuItem key="export" text={t("common.action.export", "Export to")}>
+                {exportTypes.map((type) => (
+                    <MenuItem
+                        key={type.id}
+                        onClick={() => handleExport(type)}
+                        text={<OverflowText inline>{type.label}</OverflowText>}
+                    />
+                ))}
+            </MenuItem>
+        );
+    }
+
     const goToDetailsPage = (e) => {
         e.preventDefault();
         const detailsPath = item.itemLinks[0].path;
         const labels: IPageLabels = {};
-        if (item.type === "project") {
+        if (item.type === DATA_TYPES.PROJECT) {
             labels.projectLabel = item.label;
         } else {
             labels.taskLabel = item.label;
@@ -72,11 +93,15 @@ export default function SearchItem({
         dispatch(routerOp.goToPage(detailsPath, labels));
     };
 
+    const handleExport = async (type: IExportTypes) => {
+        downloadResource(item.id, type.id);
+    };
+
     return (
         <Card isOnlyLayout>
             <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined}>
                 <OverviewItemDepiction>
-                    <Icon name={"artefact-" + item.type} large />
+                    <ItemDepiction itemType={item.type} pluginId={item.pluginId} />
                 </OverviewItemDepiction>
                 <OverviewItemDescription>
                     <OverviewItemLine>
@@ -92,10 +117,10 @@ export default function SearchItem({
                     {(item.description || item.projectId) && (
                         <OverviewItemLine small>
                             <OverflowText>
-                                {!parentProjectId && item.type !== "project" && (
+                                {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
                                     <Tag>{item.projectLabel ? item.projectLabel : item.projectId}</Tag>
                                 )}
-                                {item.description && !parentProjectId && item.type !== "project" && (
+                                {item.description && !parentProjectId && item.type !== DATA_TYPES.PROJECT && (
                                     <Spacing vertical size="small" />
                                 )}
                                 {item.description && <Highlighter label={item.description} searchValue={searchValue} />}
@@ -107,25 +132,30 @@ export default function SearchItem({
                     <IconButton
                         data-test-id={"open-duplicate-modal"}
                         name="item-clone"
-                        text="Clone"
+                        text={t("common.action.clone", "Clone")}
                         onClick={onOpenDuplicateModal}
                     />
                     {!!item.itemLinks.length && (
                         <IconButton
                             name="item-viewdetails"
-                            text="Show details"
+                            text={t("common.action.showDetails", "Show details")}
                             onClick={goToDetailsPage}
                             href={item.itemLinks[0].path}
                         />
                     )}
-                    <ContextMenu togglerText="Show more options">
+                    <ContextMenu togglerText={t("common.action.moreOptions", "Show more options")}>
                         {contextMenuItems.length ? (
                             <>
                                 {contextMenuItems}
                                 <MenuDivider />
                             </>
                         ) : null}
-                        <MenuItem key="delete" icon={"item-remove"} onClick={onOpenDeleteModal} text={"Delete"} />
+                        <MenuItem
+                            key="delete"
+                            icon={"item-remove"}
+                            onClick={onOpenDeleteModal}
+                            text={t("common.action.delete", "Delete")}
+                        />
                     </ContextMenu>
                 </OverviewItemActions>
             </OverviewItem>

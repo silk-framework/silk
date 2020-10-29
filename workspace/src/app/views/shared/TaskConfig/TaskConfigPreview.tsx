@@ -1,7 +1,9 @@
 import { IProjectTask } from "@ducks/shared/typings";
-import { OverflowText, PropertyValueList, PropertyValuePair, PropertyName, PropertyValue } from "@wrappers/index";
+import { OverflowText, PropertyValueList, PropertyValuePair, PropertyName, PropertyValue } from "@gui-elements/index";
 import React from "react";
 import { IArtefactItemProperty, IDetailedArtefactItem } from "@ducks/common/typings";
+import { useTranslation } from "react-i18next";
+import { INPUT_TYPES } from "../../../constants";
 
 interface IProps {
     taskData: IProjectTask;
@@ -15,8 +17,9 @@ interface IProps {
  * @param taskDescription The schema and description of the task type.
  */
 export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
+    const [t] = useTranslation();
     if (!taskData) {
-        return <p>No preview available</p>;
+        return <p>{t("widget.TaskConfigWidget.noPreview", "No preview available")}</p>;
     }
 
     // Generates a flat object of (nested) parameter labels and their display values, i.e. their label if it exists
@@ -32,7 +35,8 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                 Object.entries(obj)
                     .filter(([key, v]) => {
                         const pd = paramDescriptions[key];
-                        return pd && pd.visibleInDialog && !pd.advanced;
+                        const passwordParameter = pd.parameterType === INPUT_TYPES.PASSWORD;
+                        return pd && pd.visibleInDialog && !pd.advanced && !passwordParameter;
                     })
                     .forEach(([paramName, paramValue]) => {
                         const value = paramDisplayValue(paramValue);

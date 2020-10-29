@@ -5,6 +5,7 @@ import { ErrorResponse, FetchError } from "../../../services/fetch/responseInter
 import { requestRemoveProject, requestRemoveTask } from "@ducks/workspace/requests";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     item: Partial<ISearchResultsServer>;
@@ -20,6 +21,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
     const [error, setError] = useState<ErrorResponse | null>(null);
 
     const [deleteModalOptions, setDeleteModalOptions] = useState({});
+    const [t] = useTranslation();
 
     useEffect(() => {
         prepareDelete();
@@ -49,7 +51,10 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
 
     const prepareDelete = async () => {
         setDeleteModalOptions({
-            render: () => <Loading description="Loading delete dialog." />,
+            render: () => <Loading description={t("Deletedialog.loading", "Loading delete dialog.")} />,
+        });
+        const deleteTitle = t("common.action.DeleteSmth", {
+            smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
         });
 
         try {
@@ -64,8 +69,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                     confirmationRequired: true,
                     render: () => (
                         <div>
-                            <p>Task '{data.label || item.id}' is used by other tasks! </p>
-                            <p>Deleting this task will also delete all depending tasks listed below:</p>
+                            {t("DeleteModal.confirmMsg", { name: data.label || item.id })}
                             <ul>
                                 {data.relations.dependentTasksDirect.map((rel) => (
                                     <li key={rel}>{rel}</li>
@@ -73,17 +77,22 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                             </ul>
                         </div>
                     ),
-                    title: `Delete ${item.projectId ? "task" : "project"}`,
+                    title: t("common.action.DeleteSmth", {
+                        smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
+                    }),
                 });
             } else {
                 setDeleteModalOptions({
                     confirmationRequired: false,
                     render: () => (
                         <p>
-                            {item.projectId ? "Task" : "Project"} '{data.label || item.id}' will be deleted.
+                            {t("DeleteModal.deleteResource", {
+                                type: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
+                                name: data.label || item.id,
+                            })}
                         </p>
                     ),
-                    title: `Delete ${item.projectId ? "task" : "project"}`,
+                    title: deleteTitle,
                 });
             }
         } catch (e) {
@@ -91,17 +100,20 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                 confirmationRequired: false,
                 render: () => (
                     <p>
-                        {item.projectId ? "Task" : "Project"} '{item.label || item.id || item.projectId}' will be
-                        deleted.
+                        {t("DeleteModal.deleteResource", {
+                            type: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
+                            name: item.label || item.id || item.projectId,
+                        })}
                     </p>
                 ),
-                title: `Delete ${item.projectId ? "task" : "project"}`,
+                title: deleteTitle,
             });
         }
     };
 
     return (
         <DeleteModal
+            data-test-id={"deleteItemModal"}
             isOpen={true}
             onDiscard={onClose}
             onConfirm={handleConfirmRemove}

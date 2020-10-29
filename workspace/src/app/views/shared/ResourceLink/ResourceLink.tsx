@@ -1,13 +1,7 @@
 import React from "react";
-import { Link } from "@wrappers/index";
+import { Link } from "@gui-elements/index";
 
-export function ResourceLink({
-    children,
-    handlerResourcePageLoader,
-    handlerResourceQuickInformationLoader,
-    url,
-    ...otherProps
-}: any) {
+export function ResourceLink({ children, handlerResourcePageLoader, handlerResourceQuickInformationLoader, url }: any) {
     const stopEvent = (event) => {
         event.preventDefault();
         event.nativeEvent.stopImmediatePropagation();

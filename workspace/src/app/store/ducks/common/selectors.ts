@@ -18,6 +18,8 @@ const currentTaskIdSelector = createSelector([commonSelector], (common) => commo
 
 const initialSettingsSelector = createSelector([commonSelector], (common) => common.initialSettings);
 
+const exportTypesSelector = createSelector([commonSelector], (common) => common.exportTypes);
+
 export default {
     commonSelector,
     searchStringSelector,
@@ -27,4 +29,5 @@ export default {
     initialSettingsSelector,
     currentTaskIdSelector,
     currentProjectIdSelector,
+    exportTypesSelector,
 };

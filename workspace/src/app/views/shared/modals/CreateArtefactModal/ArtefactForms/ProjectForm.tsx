@@ -1,9 +1,10 @@
 import React, { useEffect } from "react";
-import { FieldItem, TextField, TextArea } from "@wrappers/index";
+import { FieldItem, TextField, TextArea } from "@gui-elements/index";
 import { errorMessage } from "./ParameterWidget";
-import { Intent } from "@wrappers/blueprint/constants";
+import { Intent } from "@gui-elements/blueprint/constants";
+import { useTranslation } from "react-i18next";
 
-export interface IProps {
+interface IProps {
     form: any;
     projectId: string;
 }
@@ -11,8 +12,10 @@ export interface IProps {
 const LABEL = "label";
 const DESCRIPTION = "description";
 /** The project create form */
-export function ProjectForm({ form, projectId }: IProps) {
+export function ProjectForm({ form }: IProps) {
     const { register, errors, triggerValidation, setValue } = form;
+    const [t] = useTranslation();
+
     useEffect(() => {
         register({ name: LABEL }, { required: true });
         register({ name: DESCRIPTION });
@@ -29,8 +32,8 @@ export function ProjectForm({ form, projectId }: IProps) {
             <FieldItem
                 key={LABEL}
                 labelAttributes={{
-                    text: "Title",
-                    info: "required",
+                    text: t("form.projectForm.title", "Title"),
+                    info: t("common.words.required"),
                     htmlFor: "title-input",
                 }}
                 hasStateDanger={errorMessage("Title", errors.label) ? true : false}
@@ -38,16 +41,15 @@ export function ProjectForm({ form, projectId }: IProps) {
             >
                 <TextField
                     id={LABEL}
-                    placeholder="Project title"
+                    placeholder={t("form.projectForm.projectTitle", "Project title")}
                     name={LABEL}
-                    inputRef={form.register({ required: true })}
                     intent={errors.label ? Intent.DANGER : Intent.NONE}
                     onChange={onValueChange(LABEL)}
                 />
             </FieldItem>
             <FieldItem
                 labelAttributes={{
-                    text: "Description",
+                    text: t("form.field.description"),
                     htmlFor: "desc-input",
                 }}
             >
@@ -55,8 +57,8 @@ export function ProjectForm({ form, projectId }: IProps) {
                     id={DESCRIPTION}
                     name={DESCRIPTION}
                     growVertically={true}
-                    placeholder="Project description"
-                    inputRef={form.register()}
+                    placeholder={t("form.projectForm.projectDesc", "Project description")}
+                    onChange={onValueChange(DESCRIPTION)}
                 />
             </FieldItem>
         </>

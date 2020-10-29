@@ -1,1 +1,1 @@
-export { default as sharedOp } from './operations';
+export { default as sharedOp } from "./operations";

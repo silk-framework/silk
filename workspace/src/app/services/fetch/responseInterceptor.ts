@@ -3,11 +3,12 @@ import { logError } from "../errorLogger";
 import { getStore } from "../../store/configureStore";
 import { commonOp } from "@ducks/common";
 import { isDevelopment } from "../../constants/path";
+import i18n from "../../../language";
 
 /** Successful response. */
 export class FetchResponse<T = any> {
     public data: T;
-    axiosResponse: AxiosResponse;
+    public axiosResponse: AxiosResponse;
 
     constructor(axiosResponse: AxiosResponse) {
         this.axiosResponse = axiosResponse;
@@ -45,6 +46,10 @@ export class FetchError {
 
     errorResponse: ErrorResponse;
 
+    get message(): string {
+        return this.errorDetails.message;
+    }
+
     get isHttpError(): boolean {
         return this.errorType === FetchError.HTTP_ERROR;
     }
@@ -60,26 +65,26 @@ export class FetchError {
 const httpStatusToTitle = (status: number) => {
     switch (status) {
         case 401:
-            return "Not authenticated";
+            return i18n.t("http.error.not.authenticated", "Not authenticated");
         case 403:
-            return "Not authorized";
+            return i18n.t("http.error.not.authorized", "Not authorized");
         case 404:
-            return "Not found";
+            return i18n.t("http.error.not.found", "Not found");
         case 407:
-            return "Not authorized (proxy)";
+            return i18n.t("http.error.not.proxy", "Not authorized (proxy)");
         case 413:
-            return "Request too large";
+            return i18n.t("http.error.largeRequest", "Request too large");
         case 503:
-            return "Temporarily unavailable";
+            return i18n.t("http.error.not.available", "Temporarily unavailable");
         case 504:
-            return "Timeout";
+            return i18n.t("http.error.timeout", "Timeout");
         default:
             break;
     }
     if (Math.floor(status / 100) === 5) {
-        return "Server error";
+        return i18n.t("http.error.server", "Server error");
     } else if (Math.floor(status / 100) === 4) {
-        return "Invalid request";
+        return i18n.t("http.error.not.valid", "Invalid request");
     }
 };
 
@@ -91,7 +96,7 @@ export class HttpError extends FetchError {
         this.errorDetails = errorDetails;
         this.errorType = FetchError.HTTP_ERROR;
 
-        if (errorDetails.response.data.title && errorDetails.response.data.detail) {
+        if (errorDetails.response?.data?.title && errorDetails.response.data.detail) {
             this.errorResponse = this.errorDetails.response.data;
         } else {
             // Got no JSON response, create error response object

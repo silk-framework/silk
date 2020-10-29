@@ -16,7 +16,7 @@ export const CONTEXT_PATH = DI.basePath || "";
 /**
  * The path of new workspace
  */
-export const SERVE_PATH = CONTEXT_PATH + "/workspace-beta";
+export const SERVE_PATH = CONTEXT_PATH + "/workbench";
 
 /**
  * Full hostname
@@ -27,6 +27,8 @@ export const HOST = PUBLIC_URL + CONTEXT_PATH;
  * check current environment
  */
 export const isDevelopment = process.env.NODE_ENV !== "production";
+
+export const isTestEnv = process.env.NODE_ENV === "test";
 
 export const API_ENDPOINT = process.env.API_ENDPOINT;
 

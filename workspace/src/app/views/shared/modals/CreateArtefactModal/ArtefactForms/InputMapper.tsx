@@ -1,6 +1,6 @@
 import React from "react";
 import { INPUT_TYPES } from "../../../../../constants";
-import { Switch, TextArea, TextField } from "@wrappers/index";
+import { Switch, TextArea, TextField } from "@gui-elements/index";
 import { CodeEditor } from "../../../QueryEditor/CodeEditor";
 import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";
@@ -91,6 +91,7 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
                 <FileUploader
                     projectId={projectId}
                     advanced={true}
+                    allowMultiple={true}
                     autocomplete={{
                         autoCompletion: {
                             allowOnlyAutoCompletedValues: true,

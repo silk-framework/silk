@@ -6,7 +6,8 @@ import {
     OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
-} from "@wrappers/index";
+} from "@gui-elements/index";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     prefix: IPrefixState;
@@ -15,6 +16,8 @@ interface IProps {
 }
 
 const PrefixRow = ({ prefix, onRemove }: IProps) => {
+    const [t] = useTranslation();
+
     return (
         <OverviewItem>
             <OverviewItemDescription>
@@ -26,7 +29,11 @@ const PrefixRow = ({ prefix, onRemove }: IProps) => {
                 </OverviewItemLine>
             </OverviewItemDescription>
             <OverviewItemActions>
-                <IconButton name="item-remove" text="Delete prefix" onClick={onRemove} />
+                <IconButton
+                    name="item-remove"
+                    text={t("common.action.DeleteSmth", { smth: t("widget.ConfigWidget.prefix") })}
+                    onClick={onRemove}
+                />
             </OverviewItemActions>
         </OverviewItem>
     );

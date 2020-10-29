@@ -1,15 +1,18 @@
 import React from "react";
-import { Button, FieldItem, FieldItemRow, FieldSet, TextField } from "@wrappers/index";
+import { Button, FieldItem, FieldItemRow, FieldSet, TextField } from "@gui-elements/index";
+import { useTranslation } from "react-i18next";
 
 const PrefixNew = ({ onAdd, onChangePrefix, prefix }) => {
+    const [t] = useTranslation();
+
     return (
-        <FieldSet title="Add prefix" boxed>
+        <FieldSet title={t("common.action.AddSmth", { smth: t("widget.ConfigWidget.prefix") })} boxed>
             <FieldItemRow>
                 <FieldItem
                     key={"prefix-name"}
                     labelAttributes={{
                         htmlFor: "prefix-name",
-                        text: "Prefix",
+                        text: t("widget.ConfigWidget.prefix", "Prefix"),
                     }}
                 >
                     <TextField
@@ -33,7 +36,7 @@ const PrefixNew = ({ onAdd, onChangePrefix, prefix }) => {
                 </FieldItem>
                 <FieldItem key={"prefix-submit"}>
                     <Button onClick={onAdd} elevated disabled={!prefix.prefixName || !prefix.prefixUri}>
-                        Add
+                        {t("common.action.add", "Add")}
                     </Button>
                 </FieldItem>
             </FieldItemRow>

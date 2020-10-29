@@ -1,4 +1,4 @@
-import { IMetadata } from "@ducks/shared/typings";
+import { IMetadata, TaskType } from "@ducks/shared/typings";
 
 export interface IAvailableDataTypes {
     [key: string]: IAvailableDataType;
@@ -22,12 +22,14 @@ export interface IPropertyAutocomplete {
     autoCompletionDependsOnParameters: string[];
 }
 
+type ValidPropertyJsonSchemaType = "string" | "object";
+
 /** Description of a parameter of an item. */
 export interface IArtefactItemProperty {
     title: string;
     description: string;
     // Either "string" or "object"
-    type: string;
+    type: ValidPropertyJsonSchemaType;
     value: string;
     advanced: boolean;
     parameterType: string;
@@ -47,12 +49,22 @@ export interface ITaskParameter {
     param: IArtefactItemProperty;
 }
 
+export type IOverviewArtefactItemList = Record<string, IOverviewArtefactItem>;
+
+export interface IOverviewArtefactItem {
+    title: string;
+    description: string;
+    taskType: TaskType;
+    categories: string[];
+    markdownDocumentation?: string;
+}
+
 /** The full task plugin description, including detailed schema. */
 export interface IDetailedArtefactItem {
     title: string;
     description: string;
-    taskType: string;
-    type: string;
+    taskType: TaskType;
+    type: "object";
     categories: string[];
     properties: {
         [key: string]: IArtefactItemProperty;
@@ -81,6 +93,14 @@ export interface IProjectTaskUpdatePayload {
     currentParameterValues: {
         [key: string]: string | object;
     };
+}
+
+export interface IExportTypes {
+    description: string;
+    fileExtension: string;
+    id: string;
+    label: string;
+    mediaType: string;
 }
 
 export interface IArtefactModal {
@@ -127,5 +147,22 @@ export interface ICommonState {
     searchQuery: string;
     error?: any;
     availableDataTypes: IAvailableDataTypes;
+    exportTypes: IExportTypes[];
     artefactModal: IArtefactModal;
+}
+
+export interface IInitFrontend {
+    /**
+     * shows the state of workspace
+     */
+    emptyWorkspace: boolean;
+    /**
+     * initial language from backend
+     */
+    initialLanguage: string;
+
+    /**
+     * DM url, in case of missing, hide navigation bar
+     */
+    dmBaseUrl?: string;
 }

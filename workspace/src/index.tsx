@@ -1,3 +1,6 @@
+import "react-app-polyfill/ie11";
+import "react-app-polyfill/stable";
+
 import React from "react";
 import ReactDOM from "react-dom";
 import { Provider } from "react-redux";
@@ -9,7 +12,7 @@ import appRoutes from "./app/appRoutes";
 import { createPlugin } from "./app/services/pluginApi";
 import configureStore from "./app/store/configureStore";
 
-import "@wrappers/index.scss";
+import "./theme/index.scss";
 import "./language";
 
 const bootstrapPlugins = (plugins) => plugins.map((plugin) => createPlugin(plugin));

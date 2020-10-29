@@ -5,16 +5,17 @@ import {
     initialAppliedFiltersState,
     initialAppliedSortersState,
     initialFiltersState,
-    initialSortersState
+    initialSortersState,
 } from "./initialState";
+import i18n from "../../../../language";
 
 const DEFAULT_SORTER = {
-    id: '',
-    label: 'Recently viewed'
+    id: "",
+    label: i18n.t("common.sorter.recentlyViewed", "Recently viewed"),
 };
 
 export const filtersSlice = createSlice({
-    name: 'filters',
+    name: "filters",
     initialState: initialFiltersState(),
     reducers: {
         applyFilters(state, action) {
@@ -34,18 +35,15 @@ export const filtersSlice = createSlice({
         },
 
         updateSorters(state, action) {
-            state.sorters.list = [
-                DEFAULT_SORTER,
-                ...action.payload
-            ]
+            state.sorters.list = [DEFAULT_SORTER, ...action.payload];
         },
 
         applySorter(state, action) {
             const currentSort = state.sorters.applied;
-            const {sortBy, sortOrder} = action.payload;
+            const { sortBy, sortOrder } = action.payload;
             let appliedSorter: IAppliedSorterState = {
-                sortBy: '',
-                sortOrder: ''
+                sortBy: "",
+                sortOrder: "",
             };
 
             if (sortBy) {
@@ -65,7 +63,7 @@ export const filtersSlice = createSlice({
             const offset = (page - 1) * state.pagination.limit;
             state.pagination = initialPaginationState({
                 offset,
-                current: page
+                current: page,
             });
         },
 
@@ -82,15 +80,15 @@ export const filtersSlice = createSlice({
         },
 
         applyFacet(state, action) {
-            const {facet, keywordIds} = action.payload;
+            const { facet, keywordIds } = action.payload;
 
-            const currentFacet = state.appliedFacets.find(o => o.facetId === facet.id);
+            const currentFacet = state.appliedFacets.find((o) => o.facetId === facet.id);
             // add facet, if doesn't exists
             if (!currentFacet) {
                 state.appliedFacets.push({
                     facetId: facet.id,
                     type: facet.type,
-                    keywordIds
+                    keywordIds,
                 });
             } else {
                 // push keywordId if keywordId not found in applied facet
@@ -100,11 +98,11 @@ export const filtersSlice = createSlice({
         },
 
         removeFacet(state, action) {
-            const {facet, keywordId} = action.payload;
+            const { facet, keywordId } = action.payload;
 
-            const ind = state.appliedFacets.findIndex(fa => fa.facetId === facet.facetId);
+            const ind = state.appliedFacets.findIndex((fa) => fa.facetId === facet.facetId);
             if (ind > -1) {
-                const keywords = state.appliedFacets[ind].keywordIds.filter(kw => kw !== keywordId);
+                const keywords = state.appliedFacets[ind].keywordIds.filter((kw) => kw !== keywordId);
                 // Remove if applied facets is empty
                 if (!keywords.length) {
                     state.appliedFacets.splice(ind, 1);
@@ -120,6 +118,6 @@ export const filtersSlice = createSlice({
             state.sorters = initialSortersState();
             state.pagination = initialPaginationState();
             state.appliedFacets = [];
-        }
-    }
+        },
+    },
 });

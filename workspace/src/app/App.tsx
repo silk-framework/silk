@@ -1,15 +1,14 @@
 import React, { useEffect } from "react";
+import { RouteProps } from "react-router";
+import { ConnectedRouter } from "connected-react-router";
+import { useDispatch } from "react-redux";
+
+import { commonOp } from "@ducks/common";
+import { ApplicationContainer, ApplicationContent } from "@gui-elements/index";
 
 import Header from "./views/layout/Header";
 import RouterOutlet from "./RouterOutlet";
-import { RouteProps } from "react-router";
 import { getHistory } from "./store/configureStore";
-import { ConnectedRouter } from "connected-react-router";
-
-import { commonOp } from "@ducks/common";
-import { useDispatch } from "react-redux";
-
-import { ApplicationContainer, ApplicationContent } from "@wrappers/index";
 
 interface IProps {
     routes: RouteProps[];
@@ -20,19 +19,23 @@ export default function App({ externalRoutes, routes }: IProps) {
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(commonOp.fetchCommonSettingsAsync());
+        dispatch(commonOp.fetchExportTypesAsync());
     }, [commonOp]);
 
     return (
         <ConnectedRouter history={getHistory()}>
             <ApplicationContainer
-                render={({ isApplicationSidebarExpanded, onClickApplicationSidebarExpand }: any) => (
+                isSideNavExpanded={false}
+                render={({
+                    isSideNavExpanded,
+                    onClickSideNavExpand
+                }:any) => (
                     <>
                         <Header
-                            externalRoutes={externalRoutes}
-                            isApplicationSidebarExpanded={isApplicationSidebarExpanded}
-                            onClickApplicationSidebarExpand={onClickApplicationSidebarExpand}
+                            isApplicationSidebarExpanded={isSideNavExpanded}
+                            onClickApplicationSidebarExpand={onClickSideNavExpand}
                         />
-                        <ApplicationContent>
+                        <ApplicationContent isApplicationSidebarExpanded={isSideNavExpanded}>
                             <RouterOutlet routes={routes} />
                         </ApplicationContent>
                     </>
