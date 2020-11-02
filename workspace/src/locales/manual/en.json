@@ -178,7 +178,7 @@
             "update": "Update"
         },
         "app": {
-            "build": "Build",
+            "build": "Data integration",
             "loading": "Loading page."
         },
         "dataTypes": {

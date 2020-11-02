@@ -179,8 +179,8 @@
       "<rootDir>/src/setupTests.ts"
     ],
     "testMatch": [
-      "<rootDir>/src/**/?(*.)(spec|test).{js,jsx,ts,tsx}",
-      "<rootDir>/test/**/?(*.)(spec|test).{js,jsx,ts,tsx}"
+      "<rootDir>/src/**/*(*.)@(spec|test).{js,jsx,ts,tsx}",
+      "<rootDir>/test/**/*(*.)@(spec|test).{js,jsx,ts,tsx}"
     ],
     "engines": {
       "node": " 12.16.1"

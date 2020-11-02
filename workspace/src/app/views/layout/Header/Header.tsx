@@ -30,7 +30,6 @@ import {
     TitleSubsection,
     WorkspaceHeader,
 } from "@gui-elements/index";
-import ItemDepiction from "./ItemDepiction";
 import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
 import withBreadcrumbLabels from "./withBreadcrumbLabels";
@@ -39,7 +38,7 @@ import { useLocation } from "react-router";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { ItemDeleteModal } from "../../shared/modals/ItemDeleteModal";
-import { CONTEXT_PATH } from "../../../constants/path";
+import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
 import CloneModal from "../../shared/modals/CloneModal";
 import { routerOp } from "@ducks/router";
 import { IItemLink } from "@ducks/shared/typings";
@@ -78,14 +77,14 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
     const { dmBaseUrl, dmModuleLinks } = useSelector(commonSel.initialSettingsSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
 
-    const startTitle = `Build — ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`;
+    const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
+    const [t] = useTranslation();
+
+    const startTitle = `${t("common.app.build")} — ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`;
 
     const [windowTitle, setWindowTitle] = useState<string>(startTitle);
     const [displayUserMenu, toggleUserMenuDisplay] = useState<boolean>(false);
     const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
-
-    const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
-    const [t] = useTranslation();
 
     const itemData = {
         id: taskId ? taskId : projectId,
@@ -274,7 +273,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                 <Helmet title={windowTitle} />
                 <OverviewItem>
                     <OverviewItemDepiction>
-                        <ItemDepiction itemType={itemType} />
+                        <Icon name={itemType ? "artefact-" + itemType : "application-homepage"} large />
                     </OverviewItemDepiction>
                     <OverviewItemDescription>
                         <OverviewItemLine small>
@@ -322,7 +321,12 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                                         </MenuItem>
                                     )}
                                     {itemLinks.map((itemLink) => (
-                                        <MenuItem key={itemLink.path} text={itemLink.label} href={itemLink.path} />
+                                        <MenuItem
+                                            key={itemLink.path}
+                                            text={itemLink.label}
+                                            href={itemLink.path}
+                                            target={itemLink.path.startsWith(SERVE_PATH) ? undefined : "_blank"}
+                                        />
                                     ))}
                                 </ContextMenu>
                             </>
