@@ -79,6 +79,13 @@ export function RecentlyViewedModal() {
             </Notification>
         );
     };
+    const emptyView = () => {
+        return (
+            <div data-test-id={"recently-viewed-modal-empty"}>
+                <Notification>{t("RecentlyViewedModal.emptyList")}</Notification>
+            </div>
+        );
+    };
     // The auto-completion of the recently viewed items
     const recentlyViewedAutoCompletion = () => {
         return (
@@ -100,7 +107,15 @@ export function RecentlyViewedModal() {
             title={t("RecentlyViewedModal.title")}
             actions={<Button onClick={close}>{t("common.action.close")}</Button>}
         >
-            {loading ? <Loading /> : error ? errorView() : recentlyViewedAutoCompletion()}
+            {loading ? (
+                <Loading />
+            ) : error ? (
+                errorView()
+            ) : recentItems.length === 0 ? (
+                emptyView()
+            ) : (
+                recentlyViewedAutoCompletion()
+            )}
         </SimpleDialog>
     );
 }
