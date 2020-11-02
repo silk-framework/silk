@@ -54,8 +54,12 @@ export function RecentlyViewedModal() {
             dispatch(routerOp.goToPage(itemLink.path));
         }
     };
-    const itemLabel = (item: IRecentlyViewedItem) =>
-        item.taskLabel ? `${item.taskLabel} (${item.projectLabel})` : item.projectLabel;
+    const itemLabel = (item: IRecentlyViewedItem) => {
+        const projectLabel = item.projectLabel ? item.projectLabel : item.projectId;
+        const taskLabel = item.taskLabel ? item.taskLabel : item.taskId;
+        return taskLabel ? `${taskLabel} (${projectLabel})` : projectLabel;
+    };
+    // Searches on the results from the initial requests
     const onSearch = (textQuery: string) => {
         const searchWords = extractSearchWords(textQuery);
         return recentItems.filter((item) => {
@@ -79,6 +83,7 @@ export function RecentlyViewedModal() {
             </Notification>
         );
     };
+    // If there are no recent items to display
     const emptyView = () => {
         return (
             <div data-test-id={"recently-viewed-modal-empty"}>
