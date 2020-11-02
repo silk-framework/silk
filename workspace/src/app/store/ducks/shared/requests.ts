@@ -183,7 +183,7 @@ export const requestTaskItemInfo = async (projectId: string, taskId: string): Pr
 export const requestResourcesList = async (
     projectId: string,
     filters: IResourceListPayload = {}
-): Promise<FetchResponse<IResourceListResponse> | never> => {
+): Promise<FetchResponse<IResourceListResponse[]> | never> => {
     return fetch({
         url: legacyApiEndpoint(`/projects/${projectId}/resources`),
         body: filters,

@@ -3,11 +3,13 @@ import { HTMLInputProps, IInputGroupProps } from "@blueprintjs/core";
 import { MenuItem, Suggest } from "@gui-elements/index";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { Highlighter } from "../Highlighter/Highlighter";
-import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import IconButton from "@gui-elements/src/components/Icon/IconButton";
 import { useTranslation } from "react-i18next";
 
-export interface IAutocompleteProps {
+type SearchFunction<T extends any> = (value: string) => T[];
+type AsyncSearchFunction<T extends any> = (value: string) => Promise<T[]>;
+
+export interface IAutocompleteProps<T extends any, U extends any> {
     /**
      * Autocomplete options, usually received from backend
      * @see IPropertyAutocomplete
@@ -18,33 +20,33 @@ export interface IAutocompleteProps {
      * Fired when type in input
      * @param value
      */
-    onSearch(value: string): any;
+    onSearch: SearchFunction<T> | AsyncSearchFunction<T>;
 
     /**
      * Fired when value selected from input
      * @param value
      */
-    onChange?(value: any);
+    onChange?(value: U);
 
     /**
      * The initial value for autocomplete input
      * @default ''
      */
-    initialValue?: IAutocompleteDefaultResponse;
+    initialValue?: T;
 
     /**
      * item label renderer
      * @param item
      * @default (item) => item.label || item.id
      */
-    itemLabelRenderer?(item: any): string;
+    itemLabelRenderer?(item: T): string;
 
     /**
      * The part from the auto-completion item that is called with the onChange callback.
      * @param item
      * @default (item) => item.value
      */
-    itemValueSelector?(item: any): string;
+    itemValueSelector?(item: T): U;
 
     /**
      * The values of the parameters this auto-completion depends on.
@@ -58,11 +60,19 @@ export interface IAutocompleteProps {
      */
     inputProps?: IInputGroupProps & HTMLInputProps;
 
-    /** If true, then a selection can be reset. */
+    /** If true, then a selection can be reset.
+     * Both emptySelectedValue and emptyValue must also be defined in order to reset to function correctly. */
     resetPossible?: boolean;
-}
 
-const SuggestAutocomplete = Suggest.ofType<IAutocompleteDefaultResponse>();
+    /** Returns if the selected value is "empty". This must be defined if resetPossible is true. */
+    emptySelectedValue?: (T) => boolean;
+
+    /** The value onChange is called with when a reset is triggered. */
+    resetValue?: U;
+
+    // If enabled the auto completion component will auto focus
+    autoFocus?: boolean;
+}
 
 Autocomplete.defaultProps = {
     itemLabelRenderer: (item) => {
@@ -78,7 +88,7 @@ Autocomplete.defaultProps = {
     resetPossible: false,
 };
 
-export function Autocomplete(props: IAutocompleteProps) {
+export function Autocomplete<T extends any, U extends any>(props: IAutocompleteProps<T, U>) {
     const {
         resetPossible,
         itemValueSelector,
@@ -87,16 +97,21 @@ export function Autocomplete(props: IAutocompleteProps) {
         onChange,
         initialValue,
         dependentValues,
+        emptySelectedValue,
+        resetValue = null,
+        autoFocus = false,
         ...otherProps
     } = props;
-    const [selectedItem, setSelectedItem] = useState<IAutocompleteDefaultResponse>(initialValue);
+    const [selectedItem, setSelectedItem] = useState<T | undefined>(initialValue);
 
     const [query, setQuery] = useState<string>("");
 
     // The suggestions that match the user's input
-    const [filtered, setFiltered] = useState<any[]>([]);
+    const [filtered, setFiltered] = useState<T[]>([]);
 
     const [t] = useTranslation();
+
+    const SuggestAutocomplete = Suggest.ofType<T>();
 
     useEffect(() => {
         // Don't fetch auto-completion values when
@@ -144,20 +159,21 @@ export function Autocomplete(props: IAutocompleteProps) {
     // Resets the selection
     const clearSelection = () => {
         setSelectedItem(undefined);
-        onChange("");
+        onChange(resetValue);
         setQuery("");
     };
     const clearButton = resetPossible &&
         selectedItem !== undefined &&
         selectedItem !== null &&
-        selectedItem.value !== "" && (
+        emptySelectedValue &&
+        !emptySelectedValue(selectedItem) && (
             <IconButton
                 name="operation-clear"
                 text={t("common.action.resetSelection", "Reset selection")}
                 onClick={clearSelection}
             />
         );
-    const updatedInputProps = { rightElement: clearButton, ...otherProps.inputProps };
+    const updatedInputProps = { rightElement: clearButton, autoFocus: autoFocus, ...otherProps.inputProps };
     return (
         <SuggestAutocomplete
             className="app_di-autocomplete__input"

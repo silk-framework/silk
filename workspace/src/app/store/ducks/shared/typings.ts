@@ -1,5 +1,3 @@
-import PropertyProfilingOverview from "views/shared/profiling/PropertyProfilingOverview";
-
 export interface IRequestAutocompletePayload {
     pluginId: string;
     parameterId: string;
@@ -90,7 +88,7 @@ export interface IRelatedItem {
 export interface IItemLink {
     label: string;
     path: string;
-    itemType: string;
+    itemType?: string;
 }
 
 export interface IItemInfo {

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 interface IProps {
-    autocomplete: IAutocompleteProps;
+    autocomplete: IAutocompleteProps<string, string>;
 
     /**
      * Fire when autocomplete value selected
@@ -46,7 +46,7 @@ export function SelectFileFromExisting(props: IProps) {
             }}
             messageText={error ? t("FileUploader.fileNotSpecified") : ""}
         >
-            <Autocomplete {...autocomplete} onChange={handleChange} />
+            <Autocomplete<string, string> {...autocomplete} onChange={handleChange} />
         </FieldItem>
     );
 }
