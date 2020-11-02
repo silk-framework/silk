@@ -26,7 +26,7 @@ object ItemType {
   private def context: String = WorkbenchConfig.applicationContext
 
   // TODO: Update URL after deciding on path for new workspace
-  private def workspaceProjectPath(projectId: String) = s"workspace-beta/projects/$projectId"
+  private def workspaceProjectPath(projectId: String) = s"workbench/projects/$projectId"
 
   /** Link to the item details page. */
   def itemDetailsPage(itemType: ItemType, projectId: String, itemId: String): ItemLink = {
