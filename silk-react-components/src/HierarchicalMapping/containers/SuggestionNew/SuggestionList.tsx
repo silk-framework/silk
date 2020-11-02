@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Table } from 'carbon-components-react';
 import { Button, Pagination } from '@gui-elements/index';
 import { IPlainObject, ISuggestionTarget, ITransformedSuggestion, SuggestionTypeValues } from "./suggestion.typings";
@@ -6,7 +6,7 @@ import _ from 'lodash';
 import paginate from "../../utils/paginate";
 import STableBody from "./SuggestionTable/STableBody";
 import STableHeader from "./SuggestionTable/STableHeader";
-import { FILTER_ACTIONS } from "./constants";
+import { FILTER_ACTIONS, FILTER_ACTIONS_TYPES } from "./constants";
 
 interface IPagination {
     // store current page number
@@ -52,6 +52,8 @@ interface IProps {
 }
 
 export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges, onAdd}: IProps) {
+    const portalContainerRef = useRef();
+
     const [headers, setHeaders] = useState(
         [
             {header: 'Source data', key: 'source'},
@@ -61,10 +63,14 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
         ]
     );
 
-    // store all result, because  of pagination  implemented in client side
+    // store all result, because without pagination
     const [allRows, setAllRows] = useState<IPageSuggestion[]>([]);
 
+    // store rows for current page
     const [pageRows, setPageRows] = useState<IPageSuggestion[]>([]);
+
+    // store all filtered rows by column
+    const [filteredRows, setFilteredRows] = useState<IPageSuggestion[]>([]);
 
     // pagination info
     const [pagination, setPagination] = useState<IPagination>({
@@ -89,6 +95,9 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
         column: '',
         modifier: ''
     });
+
+    // contain filtered columns filters
+    const [columnFilters, setColumnFilters] = useState<FILTER_ACTIONS_TYPES[]>([]);
 
     useEffect(() => {
         const arr = [];
@@ -130,6 +139,7 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
         });
 
         setAllRows(arr);
+        setFilteredRows(arr);
 
         setPageRows(
             paginate(arr, pagination)
@@ -158,13 +168,17 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
         } else if (!selectedSources.length) {
             pageRows.forEach(toggleRowSelect);
         } else {
-            setSelectedSources([]);
-            pageRows.forEach(toggleRowSelect);
+            setSelectedSources(
+                pageRows.map(row => row.source)
+            );
         }
     };
 
     const handlePageChange = (pagination: IPagination) => {
         setPagination(pagination);
+        setPageRows(
+            paginate(filteredRows, pagination)
+        );
     };
 
     const handleCancel = () => onAskDiscardChanges();
@@ -194,36 +208,51 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
             modifier: direction
         });
 
-        const sortedArray = _.orderBy(allRows, headerKey, direction);
+        const sortedArray = _.orderBy(filteredRows, headerKey, direction);
 
         setPageRows(
             paginate(sortedArray, pagination)
         );
     };
 
-    const handleFilterColumn = (action: keyof typeof FILTER_ACTIONS) => {
-        switch (action) {
-            case FILTER_ACTIONS.SHOW_SELECTED:
-            case FILTER_ACTIONS.SHOW_UNSELECTED: {
-                const arr = allRows.filter(
-                    row => action === FILTER_ACTIONS.SHOW_SELECTED
-                        ? selectedSources.includes(row.source)
-                        : !selectedSources.includes(row.source)
-                );
-                setPageRows(
-                    paginate(arr, pagination)
-                );
-                break;
-            }
+    const handleFilterColumn = (action: FILTER_ACTIONS_TYPES) => {
+        let colFilters = [...columnFilters];
 
-            case FILTER_ACTIONS.SHOW_VALUE_MAPPINGS:
-            case FILTER_ACTIONS.SHOW_OBJECT_MAPPINGS: {
-                const type = action === FILTER_ACTIONS.SHOW_VALUE_MAPPINGS ? 'value' : 'object';
-                const arr = allRows.filter(row => row.target.every(t => t.type === type));
-                setPageRows(paginate(arr, pagination));
-                break;
-            }
+        if (colFilters.includes(action)) {
+            colFilters = colFilters.filter(filter => filter !== action);
+        } else {
+            colFilters.push(action);
         }
+        setColumnFilters(colFilters);
+
+        let pageItems = [...allRows];
+
+        colFilters.forEach(filter => {
+            switch (filter) {
+                case FILTER_ACTIONS.SHOW_SELECTED:
+                case FILTER_ACTIONS.SHOW_UNSELECTED: {
+                    pageItems = pageItems.filter(
+                        row => filter === FILTER_ACTIONS.SHOW_SELECTED
+                            ? selectedSources.includes(row.source)
+                            : !selectedSources.includes(row.source)
+                    );
+                    break;
+                }
+
+                case FILTER_ACTIONS.SHOW_VALUE_MAPPINGS:
+                case FILTER_ACTIONS.SHOW_OBJECT_MAPPINGS: {
+                    const type = filter === FILTER_ACTIONS.SHOW_VALUE_MAPPINGS ? 'value' : 'object';
+                    pageItems = pageItems.filter(
+                        row => row.target.every(t => t.type === type)
+                    );
+                    break;
+                }
+            }
+        });
+
+        setPageRows(
+            paginate(pageItems, pagination)
+        );
     };
 
     const handleSwap = () => {
@@ -283,9 +312,9 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
         }
     }
 
-    const isAllSelected = () => allRows.length && pageRows.length === selectedSources.length;
+    const isAllSelected = () => filteredRows.length && pageRows.length === selectedSources.length;
 
-    return <>
+    return <div ref={portalContainerRef}>
         <Table>
             <STableHeader
                 headers={headers}
@@ -295,6 +324,7 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
                 onSort={handleSort}
                 onApplyFilter={handleFilterColumn}
                 sortDirections={sortDirections}
+                portalContainerRef={portalContainerRef}
             />
             <STableBody
                 pageRows={pageRows}
@@ -317,5 +347,5 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
         />
         <Button affirmative={true} onClick={handleAdd}>Add ({selectedSources.length})</Button>
         <Button disruptive={true} onClick={handleCancel}>Cancel</Button>
-    </>
+    </div>
 }
