@@ -48,6 +48,9 @@ export interface IAutocompleteProps<T extends any, U extends any> {
      */
     itemValueSelector?(item: T): U;
 
+    /** Generates the key of the item. This needs to be a unique string. */
+    itemKey?(item: T): string;
+
     /**
      * The values of the parameters this auto-completion depends on.
      */
@@ -88,6 +91,18 @@ Autocomplete.defaultProps = {
     },
     dependentValues: [],
     resetPossible: false,
+    itemKey: (item) => {
+        if (typeof item === "string") {
+            return item;
+        } else {
+            console.warn(
+                `Application error: Auto-completion item is not of type string, but of type ${typeof item}, and no custom 'itemKey' method defined.`
+            );
+            return "" + Math.random();
+        }
+    },
+    autoFocus: false,
+    resetValue: null,
 };
 
 export function Autocomplete<T extends any, U extends any>(props: IAutocompleteProps<T, U>) {
@@ -100,8 +115,9 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
         initialValue,
         dependentValues,
         emptySelectedValue,
-        resetValue = null,
-        autoFocus = false,
+        resetValue,
+        autoFocus,
+        itemKey,
         ...otherProps
     } = props;
     const [selectedItem, setSelectedItem] = useState<T | undefined>(initialValue);
@@ -155,7 +171,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
             <MenuItem
                 active={modifiers.active}
                 disabled={modifiers.disabled}
-                key={itemValueSelector(item)}
+                key={itemKey(item)}
                 onClick={handleClick}
                 text={<Highlighter label={itemLabelRenderer(item)} searchValue={query} />}
             />

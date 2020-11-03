@@ -72,10 +72,11 @@ export function RecentlyViewedModal() {
     // Searches on the results from the initial requests
     const onSearch = (textQuery: string) => {
         const searchWords = extractSearchWords(textQuery);
-        return recentItems.filter((item) => {
+        const filteredItems = recentItems.filter((item) => {
             const label = itemLabel(item).toLowerCase();
             return searchWords.every((word) => label.includes(word));
         });
+        return filteredItems;
     };
     // Auto-completion parameters necessary for auto-completion widget. FIXME: This shouldn't be needed.
     const autoCompletion = {
@@ -111,6 +112,7 @@ export function RecentlyViewedModal() {
                 itemLabelRenderer={itemLabel}
                 onChange={onChange}
                 autoFocus={true}
+                itemKey={(item) => (item.taskId ? item.taskId : item.projectId)}
             />
         );
     };

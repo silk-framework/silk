@@ -22,7 +22,7 @@ import {
     IRelatedItemsResponse,
     IRequestAutocompletePayload,
     IResourceListPayload,
-    IResourceListResponse,
+    IProjectResource,
     IResourcePreview,
     ITaskMetadataResponse,
 } from "@ducks/shared/typings";
@@ -178,7 +178,7 @@ export const requestTaskItemInfo = async (projectId: string, taskId: string): Pr
 export const requestResourcesList = async (
     projectId: string,
     filters: IResourceListPayload = {}
-): Promise<FetchResponse<IResourceListResponse[]> | never> => {
+): Promise<FetchResponse<IProjectResource[]>> => {
     return fetch({
         url: legacyApiEndpoint(`/projects/${projectId}/resources`),
         body: filters,

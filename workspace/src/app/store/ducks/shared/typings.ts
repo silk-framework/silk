@@ -193,7 +193,8 @@ export interface IResourceListPayload {
     offset?: number;
 }
 
-export interface IResourceListResponse {
+/** Project file resource. */
+export interface IProjectResource {
     /**
      * Last modification Datetime
      */

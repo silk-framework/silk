@@ -229,6 +229,7 @@ export const ParameterWidget = (props: IProps) => {
                             intent: errors ? Intent.DANGER : Intent.NONE,
                         }}
                         resetPossible={!required}
+                        itemKey={(item) => item.value}
                     />
                 ) : (
                     <InputMapper
