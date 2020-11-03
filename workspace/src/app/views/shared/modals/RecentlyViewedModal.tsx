@@ -11,20 +11,30 @@ import { IItemLink } from "@ducks/shared/typings";
 import { useDispatch } from "react-redux";
 import { routerOp } from "@ducks/router";
 import { Autocomplete } from "../Autocomplete/Autocomplete";
+import { useLocation } from "react-router";
 
 export function RecentlyViewedModal() {
     const [isOpen, setIsOpen] = useState(false);
     const [recentItems, setRecentItems] = useState<IRecentlyViewedItem[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<ErrorResponse | null>(null);
+    const { pathname } = useLocation();
     const { t } = useTranslation();
     const dispatch = useDispatch();
     const loadRecentItems = async () => {
         setError(null);
         try {
             setLoading(true);
-            const recentItems = await recentlyViewedItems();
-            setRecentItems(recentItems.data);
+            const recentItems = (await recentlyViewedItems()).data;
+            if (
+                recentItems.length > 1 &&
+                recentItems[0].itemLinks.length > 0 &&
+                recentItems[0].itemLinks[0].path.endsWith(pathname)
+            ) {
+                // swap 1. and 2. result if 1. result is the same page we are already on
+                [recentItems[0], recentItems[1]] = [recentItems[1], recentItems[0]];
+            }
+            setRecentItems(recentItems);
         } catch (ex) {
             if (ex.isFetchError && ex.errorResponse) {
                 setError(ex.errorResponse);
