@@ -83,7 +83,9 @@ Autocomplete.defaultProps = {
             return label;
         }
     },
-    itemValueSelector: (item) => item.value,
+    itemValueSelector: (item) => {
+        return item.value;
+    },
     dependentValues: [],
     resetPossible: false,
 };

@@ -196,7 +196,8 @@
             "errorDataTypes": "Fetch error for dataset types",
             "noItems": "No {{items}} found.",
             "noResults": "No results.",
-            "noTypes": "No types found"
+            "noTypes": "No types found",
+            "serverError": "Server error"
         },
         "sorter": {
             "recentlyViewed": "Recently viewed"

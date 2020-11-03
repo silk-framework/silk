@@ -43,17 +43,12 @@ const handleError = (error) => {
  */
 export const requestAutocompleteResults = async (
     payload: IRequestAutocompletePayload
-): Promise<FetchResponse<IAutocompleteDefaultResponse> | never> => {
-    try {
-        const { data } = await fetch({
-            url: workspaceApi(`/pluginParameterAutoCompletion`),
-            method: "POST",
-            body: payload,
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+): Promise<FetchResponse<IAutocompleteDefaultResponse[]>> => {
+    return fetch({
+        url: workspaceApi(`/pluginParameterAutoCompletion`),
+        method: "POST",
+        body: payload,
+    });
 };
 
 /**

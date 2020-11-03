@@ -99,7 +99,7 @@ export const ParameterWidget = (props: IProps) => {
                 textQuery: input,
                 limit: 100, // The auto-completion is only showing the first n values TODO: Make auto-completion list scrollable?
             });
-            return [autoCompleteResponse.data];
+            return autoCompleteResponse.data;
         } catch (e) {
             if (e.isHttpError && e.httpStatus !== 400) {
                 // For now hide 400 errors from user, since they are not helpful.
