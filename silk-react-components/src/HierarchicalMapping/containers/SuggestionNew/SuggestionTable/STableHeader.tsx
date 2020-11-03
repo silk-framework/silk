@@ -1,26 +1,62 @@
 import { TableHead, TableHeader, TableRow, TableSelectAll } from "carbon-components-react";
-import { Button, ContextMenu, Icon, MenuItem } from "@gui-elements/index";
-import React, { useState } from "react";
+import { Button, Icon } from "@gui-elements/index";
+import React from "react";
 import { FILTER_ACTIONS } from "../constants";
-import { IPlainObject } from "../suggestion.typings";
+import { IColumnFilters, ISortDirection, ITableHeader } from "../suggestion.typings";
+import ColumnFilter from "./ColumnFilter";
 
-export default function STableHeader({headers, isAllSelected, toggleSelectAll, onSwap, sortDirections, onSort, onApplyFilter, portalContainerRef}) {
-    const [selectedFilters, setSelectedFilters] = useState<IPlainObject>({});
+const columnFilters: { [key: string]: IColumnFilters[] } = {
+    checkbox: [{
+        label: 'Show only selected items',
+        action: FILTER_ACTIONS.SHOW_SELECTED
+    }, {
+        label: 'Show only unselected items',
+        action: FILTER_ACTIONS.SHOW_UNSELECTED
+    }],
+    target: [{
+        label: 'Show only matches',
+        action: FILTER_ACTIONS.SHOW_MATCHES
+    }, {
+        label: 'Show only auto-generated properties',
+        action: FILTER_ACTIONS.SHOW_GENERATED
+    }],
+    type: [{
+        label: 'Show only value mappings',
+        action: FILTER_ACTIONS.SHOW_VALUE_MAPPINGS
+    }, {
+        label: 'Show only object mappings',
+        action: FILTER_ACTIONS.SHOW_OBJECT_MAPPINGS
+    }]
+};
 
-    const handleApplyFilter = (column: string, filter: string) => {
-        const filters = {...selectedFilters};
+interface IProps {
+    // table headers
+    headers: ITableHeader[];
 
-        if (filters[column] === filter) {
-            // unselect
-            delete filters[column];
-        } else {
-            filters[column] = filter;
-        }
-        setSelectedFilters(filters);
+    // flag for select-all checkbox
+    isAllSelected: boolean;
 
-        onApplyFilter(filter);
-    };
+    // callback for select-all checkbox
+    toggleSelectAll();
 
+    // callback for swap button
+    onSwap();
+
+    // column sorting information
+    sortDirections: ISortDirection;
+
+    // callback for column sorting
+    onSort(headerKey: string);
+
+    // callback for column filtering
+    onApplyFilter(filter: string);
+
+    // React.ref for filter dialog
+    portalContainerRef: any;
+
+}
+
+export default function STableHeader({headers, isAllSelected, toggleSelectAll, onSwap, sortDirections, onSort, onApplyFilter, portalContainerRef}: IProps) {
     return <TableHead>
         <TableRow>
             <TableHeader>
@@ -30,18 +66,12 @@ export default function STableHeader({headers, isAllSelected, toggleSelectAll, o
                     onSelect={toggleSelectAll}
                     checked={isAllSelected}
                 />
-                <ContextMenu portalContainer={portalContainerRef?.current}>
-                    <MenuItem
-                        text={'Show only selected items'}
-                        onClick={() => handleApplyFilter('checkbox', FILTER_ACTIONS.SHOW_SELECTED)}
-                        active={selectedFilters['checkbox'] === FILTER_ACTIONS.SHOW_SELECTED}
-                    />
-                    <MenuItem
-                        text={'Show only unselected items'}
-                        onClick={() => handleApplyFilter('checkbox', FILTER_ACTIONS.SHOW_UNSELECTED)}
-                        active={selectedFilters['checkbox'] === FILTER_ACTIONS.SHOW_UNSELECTED}
-                    />
-                </ContextMenu>
+                <ColumnFilter
+                    filters={columnFilters.checkbox}
+                    portalContainerRef={portalContainerRef}
+                    onApplyFilter={onApplyFilter}
+                />
+
             </TableHeader>
 
             {headers.map(header => (
@@ -61,32 +91,11 @@ export default function STableHeader({headers, isAllSelected, toggleSelectAll, o
                                     onClick={() => onSort(header.key)}
                                 />
                                 {
-                                    header.key === 'target' && <ContextMenu portalContainer={portalContainerRef?.current}>
-                                        <MenuItem
-                                            text={'Show only matches'}
-                                            onClick={() => handleApplyFilter('target', FILTER_ACTIONS.SHOW_MATCHES)}
-                                            active={selectedFilters['target'] === FILTER_ACTIONS.SHOW_MATCHES}
-                                        />
-                                        <MenuItem
-                                            text={'Show only auto-generated properties'}
-                                            onClick={() => handleApplyFilter('target', FILTER_ACTIONS.SHOW_GENERATED)}
-                                            active={selectedFilters['target'] === FILTER_ACTIONS.SHOW_GENERATED}
-                                        />
-                                    </ContextMenu>
-                                }
-                                {
-                                    header.key === 'type' && <ContextMenu portalContainer={portalContainerRef?.current}>
-                                        <MenuItem
-                                            text={'Show only value mappings'}
-                                            onClick={() => handleApplyFilter('type', FILTER_ACTIONS.SHOW_VALUE_MAPPINGS)}
-                                            active={selectedFilters['type'] === FILTER_ACTIONS.SHOW_VALUE_MAPPINGS}
-                                        />
-                                        <MenuItem
-                                            text={'Show only object mappings'}
-                                            onClick={() => handleApplyFilter('type', FILTER_ACTIONS.SHOW_OBJECT_MAPPINGS)}
-                                            active={selectedFilters['type'] === FILTER_ACTIONS.SHOW_OBJECT_MAPPINGS}
-                                        />
-                                    </ContextMenu>
+                                    columnFilters[header.key] && <ColumnFilter
+                                        filters={columnFilters[header.key]}
+                                        portalContainerRef={portalContainerRef}
+                                        onApplyFilter={onApplyFilter}
+                                    />
                                 }
                             </>
                     }

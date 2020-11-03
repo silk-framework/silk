@@ -1,12 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Table } from 'carbon-components-react';
 import { Button, Pagination } from '@gui-elements/index';
-import { IPlainObject, ISuggestionTarget, ITransformedSuggestion, SuggestionTypeValues } from "./suggestion.typings";
+import {
+    IPlainObject,
+    ISortDirection,
+    ISuggestionTarget,
+    ITableHeader,
+    ITransformedSuggestion,
+    SuggestionTypeValues
+} from "./suggestion.typings";
 import _ from 'lodash';
 import paginate from "../../utils/paginate";
 import STableBody from "./SuggestionTable/STableBody";
 import STableHeader from "./SuggestionTable/STableHeader";
-import { FILTER_ACTIONS, FILTER_ACTIONS_TYPES } from "./constants";
+import { FILTER_ACTIONS } from "./constants";
 
 interface IPagination {
     // store current page number
@@ -54,7 +61,7 @@ interface IProps {
 export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges, onAdd}: IProps) {
     const portalContainerRef = useRef();
 
-    const [headers, setHeaders] = useState(
+    const [headers, setHeaders] = useState<ITableHeader[]>(
         [
             {header: 'Source data', key: 'source'},
             {header: null, key: 'SWAP_BUTTON'},
@@ -88,16 +95,13 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
     const [targetToTypeMap, setTargetToTypeMap] = useState<any>({});
 
     // keep sort directions for columns
-    const [sortDirections, setSortDirections] = useState<{
-        column: string;
-        modifier: 'asc' | 'desc' | ''
-    }>({
+    const [sortDirections, setSortDirections] = useState<ISortDirection>({
         column: '',
         modifier: ''
     });
 
     // contain filtered columns filters
-    const [columnFilters, setColumnFilters] = useState<FILTER_ACTIONS_TYPES[]>([]);
+    const [columnFilters, setColumnFilters] = useState<string[]>([]);
 
     useEffect(() => {
         const arr = [];
@@ -121,6 +125,7 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
             if (selectedSources.includes(source)) {
                 modifiedRow.target = modifiedRow.target.map(targetItem => {
                     const {uri, type, confidence} = targetItem;
+                    console.log(sourceToTargetMap[source], uri);
                     return {
                         uri,
                         confidence,
@@ -139,95 +144,36 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
         });
 
         setAllRows(arr);
-        setFilteredRows(arr);
+        const filteredRows = filterRows(columnFilters, arr);
+        setFilteredRows(filteredRows);
 
+        const ordered = sortRows(filteredRows, sortDirections);
         setPageRows(
-            paginate(arr, pagination)
+            paginate(ordered, pagination)
         );
 
-        console.log('Suggestions', rows);
+        console.log('Suggestions', arr);
     }, [rows]);
 
-    const toggleRowSelect = ({source}: IPageSuggestion) => {
-        const selectedRow = selectedSources.find(selected => selected === source);
-        if (selectedRow) {
-            setSelectedSources(
-                selectedSources.filter(selected => selected !== source)
-            );
-        } else {
-            setSelectedSources(prevState => ([
-                ...prevState,
-                source,
-            ]));
-        }
+    const updateRelations = (source, targets: ITargetWithSelected[]) => {
+        const {uri, type} = targets.find(t => t._selected);
+
+        setSourceToTargetMap(prevState => ({
+            ...prevState,
+            [source]: uri
+        }));
+
+        setTargetToTypeMap(prevState => ({
+            ...prevState,
+            [uri]: type
+        }));
     };
 
-    const toggleSelectAll = () => {
-        if (isAllSelected()) {
-            setSelectedSources([]);
-        } else if (!selectedSources.length) {
-            pageRows.forEach(toggleRowSelect);
-        } else {
-            setSelectedSources(
-                pageRows.map(row => row.source)
-            );
-        }
-    };
+    // @TODO: can be moved to another place as a utils
+    const filterRows = (filters: string[], rows: IPageSuggestion[]): IPageSuggestion[] => {
+        let pageItems = [...rows];
 
-    const handlePageChange = (pagination: IPagination) => {
-        setPagination(pagination);
-        setPageRows(
-            paginate(filteredRows, pagination)
-        );
-    };
-
-    const handleCancel = () => onAskDiscardChanges();
-
-    const handleAdd = () => {
-        const addedRows = selectedSources.map(source => {
-            const found = allRows.find(row => row.source === source);
-            if (found) {
-                const target = found.target.find(t => t._selected);
-                return {
-                    source,
-                    targetUri: target.uri,
-                    type: target.type
-                }
-            }
-        });
-
-        onAdd(addedRows);
-    }
-
-    const handleSort = (headerKey: string) => {
-        const isAsc = sortDirections.modifier === 'asc';
-
-        const direction = isAsc ? 'desc' : 'asc'
-        setSortDirections({
-            column: headerKey,
-            modifier: direction
-        });
-
-        const sortedArray = _.orderBy(filteredRows, headerKey, direction);
-
-        setPageRows(
-            paginate(sortedArray, pagination)
-        );
-    };
-
-    const handleFilterColumn = (action: FILTER_ACTIONS_TYPES) => {
-        let colFilters = [...columnFilters];
-
-        if (colFilters.includes(action)) {
-            colFilters = colFilters.filter(filter => filter !== action);
-        } else {
-            colFilters.push(action);
-        }
-        setColumnFilters(colFilters);
-
-        let pageItems = [...allRows];
-
-        colFilters.forEach(filter => {
+        filters.forEach(filter => {
             switch (filter) {
                 case FILTER_ACTIONS.SHOW_SELECTED:
                 case FILTER_ACTIONS.SHOW_UNSELECTED: {
@@ -250,12 +196,107 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
             }
         });
 
+        return pageItems;
+    };
+
+    // @TODO: can be moved to another place as a utils
+    const sortRows = (rows: IPageSuggestion[], sortDirections: ISortDirection) => {
+        const isAsc = sortDirections.modifier === 'asc';
+        const direction = isAsc ? 'desc' : 'asc'
+
+        return _.orderBy(rows, sortDirections.column, direction);
+    };
+
+    const toggleRowSelect = ({source, target}: IPageSuggestion) => {
+        const selectedRow = selectedSources.find(selected => selected === source);
+        if (selectedRow) {
+            setSelectedSources(
+                selectedSources.filter(selected => selected !== source)
+            );
+        } else {
+            setSelectedSources(prevState => ([
+                ...prevState,
+                source,
+            ]));
+            updateRelations(source, target);
+        }
+    };
+
+    const toggleSelectAll = () => {
+        if (isAllSelected()) {
+            setSelectedSources([]);
+        } else if (!selectedSources.length) {
+            pageRows.forEach(toggleRowSelect);
+        } else {
+            setSelectedSources(
+                pageRows.map(row => {
+                    updateRelations(row.source, row.target);
+                    return row.source;
+                })
+            );
+        }
+    };
+
+    const handlePageChange = (pagination: IPagination) => {
+        setPagination(pagination);
         setPageRows(
-            paginate(pageItems, pagination)
+            paginate(filteredRows, pagination)
         );
     };
 
+    const handleAdd = () => {
+        const addedRows = selectedSources.map(source => {
+            const found = allRows.find(row => row.source === source);
+            if (found) {
+                const target = found.target.find(t => t._selected);
+                return {
+                    source,
+                    targetUri: target.uri,
+                    type: target.type
+                }
+            }
+        });
+
+        onAdd(addedRows);
+    }
+
+    const handleSort = (headerKey: string) => {
+        const isAsc = sortDirections.modifier === 'asc';
+        const direction = isAsc ? 'desc' : 'asc';
+
+        const sortDirection: ISortDirection = {
+            column: headerKey,
+            modifier: direction
+        };
+
+        setSortDirections(sortDirection);
+
+        const sortedArray = sortRows(filteredRows, sortDirection);
+
+        setPageRows(
+            paginate(sortedArray, pagination)
+        );
+    };
+
+    const handleFilterColumn = (action: string) => {
+        let colFilters = [...columnFilters];
+
+        if (colFilters.includes(action)) {
+            colFilters = colFilters.filter(filter => filter !== action);
+        } else {
+            colFilters.push(action);
+        }
+        setColumnFilters(colFilters);
+
+        const filteredRows = filterRows(colFilters, allRows);
+        setPageRows(
+            paginate(filteredRows, pagination)
+        );
+        setFilteredRows(filteredRows);
+    };
+
     const handleSwap = () => {
+        // reset preview rows
         setPageRows([]);
 
         const targetsAsSelected = selectedSources.map(source => {
@@ -289,22 +330,12 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
         onSwapAction();
     };
 
-    const handleModifyTarget = (row: IPageSuggestion, targets) => {
+    const handleModifyTarget = (row: IPageSuggestion, targets: ITargetWithSelected[]) => {
         const _allRows = [...allRows];
         const ind = _allRows.findIndex(r => r.source === row.source);
 
         if (ind > -1) {
-            const {uri, type} = targets.find(t => t._selected);
-
-            setSourceToTargetMap(prevState => ({
-                ...prevState,
-                [row.source]: uri
-            }));
-
-            setTargetToTypeMap(prevState => ({
-                ...prevState,
-                [uri]: type
-            }));
+            updateRelations(row.source, targets);
 
             _allRows[ind].target = targets;
 
@@ -346,6 +377,6 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
             pageRangeText={(current, total) => `of ${total} pages`}
         />
         <Button affirmative={true} onClick={handleAdd}>Add ({selectedSources.length})</Button>
-        <Button disruptive={true} onClick={handleCancel}>Cancel</Button>
+        <Button disruptive={true} onClick={onAskDiscardChanges}>Cancel</Button>
     </div>
 }
