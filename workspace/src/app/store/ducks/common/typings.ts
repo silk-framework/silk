@@ -118,7 +118,7 @@ export interface IArtefactModal {
     }[];
 
     // The selected item type
-    selectedArtefact: IArtefactItem;
+    selectedArtefact?: IArtefactItem;
 
     // cached plugin descriptions
     cachedArtefactProperties: {
