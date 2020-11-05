@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Button, Notification, SimpleDialog } from "@gui-elements/index";
+import {
+    Button,
+    Icon,
+    Notification,
+    OverviewItem,
+    OverviewItemDescription,
+    OverviewItemLine,
+    SimpleDialog,
+} from "@gui-elements/index";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
 import { useTranslation } from "react-i18next";
 import { recentlyViewedItems } from "@ducks/workspace/requests";
@@ -13,6 +21,7 @@ import { routerOp } from "@ducks/router";
 import { Autocomplete } from "../Autocomplete/Autocomplete";
 import { useLocation } from "react-router";
 import { commonSel } from "@ducks/common";
+import { absolutePageUrl } from "@ducks/router/operations";
 
 export function RecentlyViewedModal() {
     const [isOpen, setIsOpen] = useState(false);
@@ -96,6 +105,32 @@ export function RecentlyViewedModal() {
             </Notification>
         );
     };
+    // Global search action
+    const globalSearch: (string) => IRecentlyViewedItem = (query: string) => {
+        return {
+            projectId: "",
+            projectLabel: "",
+            itemLinks: [
+                { label: "Search workspace", path: absolutePageUrl("?textQuery=" + encodeURIComponent(query)) },
+            ],
+        };
+    };
+    const createNewItemRenderer = (query: string, active: boolean) => {
+        return (
+            <OverviewItem
+                key={query}
+                densityHigh
+                style={active ? { backgroundColor: "#0a67a3", color: "#fff" } : undefined}
+            >
+                <OverviewItemDescription>
+                    <OverviewItemLine>
+                        <Icon name={"operation-search"} />
+                        <span>{t("RecentlyViewedModal.globalSearch", { query })}</span>
+                    </OverviewItemLine>
+                </OverviewItemDescription>
+            </OverviewItem>
+        );
+    };
     // The auto-completion of the recently viewed items
     const recentlyViewedAutoCompletion = () => {
         return (
@@ -108,6 +143,8 @@ export function RecentlyViewedModal() {
                 autoFocus={true}
                 itemKey={(item) => (item.taskId ? item.taskId : item.projectId)}
                 inputProps={{ placeholder: t("RecentlyViewedModal.placeholder") }}
+                createNewItemFromQuery={globalSearch}
+                createNewItemRenderer={createNewItemRenderer}
             />
         );
     };

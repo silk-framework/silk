@@ -380,7 +380,12 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                                     <MenuItem
                                         text={t("RecentlyViewedModal.title") + ` ('${hotKeys.quickSearch}')`}
                                         href={"#"}
-                                        onClick={() => triggerHotkeyHandler(hotKeys.quickSearch)}
+                                        onClick={(e) => {
+                                            if (e) {
+                                                e.preventDefault();
+                                            }
+                                            triggerHotkeyHandler(hotKeys.quickSearch);
+                                        }}
                                         icon={"operation-search"}
                                     />
                                 )}

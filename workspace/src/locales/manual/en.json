@@ -141,7 +141,8 @@
     },
     "RecentlyViewedModal": {
         "title": "Quick search",
-        "placeholder": "Pick a recently viewed item or search the whole workspace"
+        "placeholder": "Search recently viewed items or in workspace",
+        "globalSearch": "Search in workspace for '{{query}}'"
     },
     "RelatedItems": {
         "title": "Related items"
@@ -358,7 +359,12 @@
                 },
                 "valueLabels": {
                     "itemType": {
-                        "project": "Project"
+                        "project": "Project",
+                        "workflow": "Workflow",
+                        "dataset": "Dataset",
+                        "linking": "Linking",
+                        "task": "Task",
+                        "transform": "Transform"
                     }
                 }
             }

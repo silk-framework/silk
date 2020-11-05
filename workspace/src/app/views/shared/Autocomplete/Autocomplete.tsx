@@ -75,6 +75,16 @@ export interface IAutocompleteProps<T extends any, U extends any> {
 
     // If enabled the auto completion component will auto focus
     autoFocus?: boolean;
+
+    /** Creates a new item from the query. If this is defined, creation of new items will be allowed. */
+    createNewItemFromQuery?: (query: string) => T;
+
+    /** Renders how newly created items should look like. */
+    createNewItemRenderer?: (
+        query: string,
+        active: boolean,
+        handleClick: React.MouseEventHandler<HTMLElement>
+    ) => JSX.Element | undefined;
 }
 
 Autocomplete.defaultProps = {
@@ -118,6 +128,8 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
         resetValue,
         autoFocus,
         itemKey,
+        createNewItemFromQuery,
+        createNewItemRenderer,
         ...otherProps
     } = props;
     const [selectedItem, setSelectedItem] = useState<T | undefined>(initialValue);
@@ -217,6 +229,8 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
             }}
             selectedItem={selectedItem}
             fill
+            createNewItemFromQuery={createNewItemFromQuery}
+            createNewItemRenderer={createNewItemRenderer}
             {...otherProps}
             inputProps={updatedInputProps}
         />
