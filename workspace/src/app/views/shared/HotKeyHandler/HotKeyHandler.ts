@@ -21,3 +21,10 @@ export default function useHotKey({ hotkey, handler }: IProps) {
         }
     }, [hotkey]);
 }
+
+/** Triggers the function that is registered for this hotkey. */
+export function triggerHotkeyHandler(hotkey: string): void {
+    if (hotkey) {
+        Mousetrap.trigger(hotkey);
+    }
+}

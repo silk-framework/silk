@@ -140,7 +140,8 @@
         "warningExistingProject": "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID."
     },
     "RecentlyViewedModal": {
-        "title": "Quick search"
+        "title": "Quick search",
+        "placeholder": "Pick a recently viewed item or search the whole workspace"
     },
     "RelatedItems": {
         "title": "Related items"

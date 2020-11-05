@@ -194,7 +194,11 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
                 onClick={clearSelection}
             />
         );
-    const updatedInputProps = { rightElement: clearButton, autoFocus: autoFocus, ...otherProps.inputProps };
+    const updatedInputProps = {
+        rightElement: clearButton,
+        autoFocus: autoFocus,
+        ...otherProps.inputProps,
+    };
     return (
         <SuggestAutocomplete
             className="app_di-autocomplete__input"

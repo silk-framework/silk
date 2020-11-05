@@ -48,6 +48,7 @@ import { DATA_TYPES } from "../../../constants";
 import { IExportTypes } from "@ducks/common/typings";
 import { downloadResource } from "../../../utils/downloadResource";
 import { useTranslation } from "react-i18next";
+import { triggerHotkeyHandler } from "../../shared/HotKeyHandler/HotKeyHandler";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];
@@ -65,6 +66,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
     const location = useLocation<any>();
     const [itemType, setItemType] = useState<string | null>(null);
     const [currentLanguage, setCurrentLanguage] = useState(Store.get("locale"));
+    const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
 
     const isAuth = useSelector(commonSel.isAuthSelector);
     const exportTypes = useSelector(commonSel.exportTypesSelector);
@@ -374,6 +376,14 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                                     text={t("common.action.activity", "Activity overview")}
                                     href={CONTEXT_PATH + "/workspace/allActivities"}
                                 />
+                                {hotKeys.quickSearch && (
+                                    <MenuItem
+                                        text={t("RecentlyViewedModal.title") + ` ('${hotKeys.quickSearch}')`}
+                                        href={"#"}
+                                        onClick={() => triggerHotkeyHandler(hotKeys.quickSearch)}
+                                        icon={"operation-search"}
+                                    />
+                                )}
                                 {!!dmBaseUrl && (
                                     <>
                                         <MenuDivider />

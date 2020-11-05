@@ -107,6 +107,7 @@ export function RecentlyViewedModal() {
                 onChange={onChange}
                 autoFocus={true}
                 itemKey={(item) => (item.taskId ? item.taskId : item.projectId)}
+                inputProps={{ placeholder: t("RecentlyViewedModal.placeholder") }}
             />
         );
     };
