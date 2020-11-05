@@ -35,11 +35,18 @@ export interface IAutocompleteProps<T extends any, U extends any> {
     initialValue?: T;
 
     /**
-     * item label renderer
-     * @param item
+     * Either the label of the select option or an option element that should be displayed as option in the selection.
+     * If the return value is a string, a default render component will be displayed with search highlighting.
+     * @param item  The item that should be displayed as an option in the selectiong.
+     * @param query The current search query
+     * @param active If the item is currently active
      * @default (item) => item.label || item.id
      */
-    itemLabelRenderer?(item: T): string;
+    itemRenderer?(item: T, query: string, active: boolean): string | JSX.Element;
+
+    /** Renders the string that should be displayed in the input field after the item has been selected.
+     * If not defined and itemRenderer returns a string, the value from itemRenderer is used. */
+    itemValueRenderer?(item: T): string;
 
     /**
      * The part from the auto-completion item that is called with the onChange callback.
@@ -87,14 +94,21 @@ export interface IAutocompleteProps<T extends any, U extends any> {
     ) => JSX.Element | undefined;
 }
 
+const defaultItemLabelFunction = (item) => {
+    const label = item.label || item.value;
+    if (label === "") {
+        return "\u00A0";
+    } else {
+        return label;
+    }
+};
+
 Autocomplete.defaultProps = {
-    itemLabelRenderer: (item) => {
-        const label = item.label || item.value;
-        if (label === "") {
-            return "\u00A0";
-        } else {
-            return label;
-        }
+    itemRenderer: (item) => {
+        return defaultItemLabelFunction(item);
+    },
+    itemValueRenderer: (item) => {
+        return defaultItemLabelFunction(item);
     },
     itemValueSelector: (item) => {
         return item.value;
@@ -119,7 +133,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
     const {
         resetPossible,
         itemValueSelector,
-        itemLabelRenderer,
+        itemRenderer,
         onSearch,
         onChange,
         initialValue,
@@ -130,6 +144,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
         itemKey,
         createNewItemFromQuery,
         createNewItemRenderer,
+        itemValueRenderer,
         ...otherProps
     } = props;
     const [selectedItem, setSelectedItem] = useState<T | undefined>(initialValue);
@@ -179,15 +194,20 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
         if (!modifiers.matchesPredicate) {
             return null;
         }
-        return (
-            <MenuItem
-                active={modifiers.active}
-                disabled={modifiers.disabled}
-                key={itemKey(item)}
-                onClick={handleClick}
-                text={<Highlighter label={itemLabelRenderer(item)} searchValue={query} />}
-            />
-        );
+        const renderedItem = itemRenderer(item, query, modifiers.active);
+        if (typeof renderedItem === "string") {
+            return (
+                <MenuItem
+                    active={modifiers.active}
+                    disabled={modifiers.disabled}
+                    key={itemKey(item)}
+                    onClick={handleClick}
+                    text={<Highlighter label={renderedItem} searchValue={query} />}
+                />
+            );
+        } else {
+            return renderedItem;
+        }
     };
     // Resets the selection
     const clearSelection = () => {
@@ -215,7 +235,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
         <SuggestAutocomplete
             className="app_di-autocomplete__input"
             items={filtered}
-            inputValueRenderer={selectedItem !== undefined ? itemLabelRenderer : () => ""}
+            inputValueRenderer={selectedItem !== undefined ? itemValueRenderer : () => ""}
             itemRenderer={optionRenderer}
             itemsEqual={areEqualItems}
             noResults={<MenuItem disabled={true} text={t("common.messages.noResults", "No results.")} />}

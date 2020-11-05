@@ -3,7 +3,9 @@ import {
     Button,
     Icon,
     Notification,
+    OverflowText,
     OverviewItem,
+    OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
     SimpleDialog,
@@ -14,7 +16,7 @@ import { recentlyViewedItems } from "@ducks/workspace/requests";
 import { IRecentlyViewedItem } from "@ducks/workspace/typings";
 import { ErrorResponse } from "../../../services/fetch/responseInterceptor";
 import { Loading } from "../Loading/Loading";
-import { extractSearchWords } from "../Highlighter/Highlighter";
+import { extractSearchWords, Highlighter } from "../Highlighter/Highlighter";
 import { IItemLink } from "@ducks/shared/typings";
 import { useDispatch, useSelector } from "react-redux";
 import { routerOp } from "@ducks/router";
@@ -22,6 +24,8 @@ import { Autocomplete } from "../Autocomplete/Autocomplete";
 import { useLocation } from "react-router";
 import { commonSel } from "@ducks/common";
 import { absolutePageUrl } from "@ducks/router/operations";
+import Tag from "@gui-elements/src/components/Tag/Tag";
+import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
 
 export function RecentlyViewedModal() {
     const [isOpen, setIsOpen] = useState(false);
@@ -75,19 +79,57 @@ export function RecentlyViewedModal() {
             dispatch(routerOp.goToPage(itemLink.path));
         }
     };
+    // The string representation of a recently viewed item
     const itemLabel = (item: IRecentlyViewedItem) => {
         const projectLabel = item.projectLabel ? item.projectLabel : item.projectId;
         const taskLabel = item.taskLabel ? item.taskLabel : item.taskId;
         return taskLabel ? `${taskLabel} (${projectLabel})` : projectLabel;
     };
+    // The representation of an item as an option in the selection list
+    const itemOption = (item: IRecentlyViewedItem, query: string, active: boolean) => {
+        const label = item.taskLabel
+            ? item.taskLabel
+            : item.taskId
+            ? item.taskId
+            : item.projectLabel
+            ? item.projectLabel
+            : item.projectId;
+        return (
+            <OverviewItem hasSpacing style={active ? { backgroundColor: "#0a67a3", color: "#fff" } : undefined}>
+                <OverviewItemDepiction>
+                    <ItemDepiction itemType={item.itemType} pluginId={item.pluginId} />
+                </OverviewItemDepiction>
+                <OverviewItemDescription>
+                    <OverviewItemLine>
+                        <h4>
+                            <Highlighter label={label} searchValue={query} />
+                        </h4>
+                    </OverviewItemLine>
+                    {item.taskId && (
+                        <OverviewItemLine small>
+                            <OverflowText>
+                                {item.taskId && (
+                                    <Tag>
+                                        <Highlighter
+                                            label={item.projectLabel ? item.projectLabel : item.projectId}
+                                            searchValue={query}
+                                        />
+                                    </Tag>
+                                )}
+                            </OverflowText>
+                        </OverviewItemLine>
+                    )}
+                </OverviewItemDescription>
+            </OverviewItem>
+        );
+    };
     // Searches on the results from the initial requests
     const onSearch = (textQuery: string) => {
         const searchWords = extractSearchWords(textQuery);
-        const filteredItems = recentItems.filter((item) => {
+        return recentItems.filter((item) => {
             const label = itemLabel(item).toLowerCase();
             return searchWords.every((word) => label.includes(word));
         });
-        return filteredItems;
     };
     // Auto-completion parameters necessary for auto-completion widget. FIXME: This shouldn't be needed.
     const autoCompletion = {
@@ -110,11 +152,13 @@ export function RecentlyViewedModal() {
         return {
             projectId: "",
             projectLabel: "",
+            itemType: "",
             itemLinks: [
                 { label: "Search workspace", path: absolutePageUrl("?textQuery=" + encodeURIComponent(query)) },
             ],
         };
     };
+    // Displays the 'search in workspace' option in the list.
     const createNewItemRenderer = (query: string, active: boolean) => {
         return (
             <OverviewItem
@@ -124,7 +168,7 @@ export function RecentlyViewedModal() {
             >
                 <OverviewItemDescription>
                     <OverviewItemLine>
-                        <Icon name={"operation-search"} />
+                        <Icon name={"operation-search"} small={true} />
                         <span>{t("RecentlyViewedModal.globalSearch", { query })}</span>
                     </OverviewItemLine>
                 </OverviewItemDescription>
@@ -138,7 +182,7 @@ export function RecentlyViewedModal() {
                 onSearch={onSearch}
                 autoCompletion={autoCompletion}
                 itemValueSelector={(value) => value.itemLinks}
-                itemLabelRenderer={itemLabel}
+                itemRenderer={itemOption}
                 onChange={onChange}
                 autoFocus={true}
                 itemKey={(item) => (item.taskId ? item.taskId : item.projectId)}

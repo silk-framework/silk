@@ -51,7 +51,9 @@ export interface IProjectExecutionStatus {
 export interface IRecentlyViewedItem {
     projectId: string;
     projectLabel: string;
+    itemType: string;
     taskId?: string;
     taskLabel?: string;
+    pluginId?: string;
     itemLinks: IItemLink[];
 }
