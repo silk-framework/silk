@@ -13,9 +13,11 @@ const Mousetrap = require("mousetrap");
  */
 export default function useHotKey({ hotkey, handler }: IProps) {
     useEffect(() => {
-        Mousetrap.bind(hotkey, handler);
-        return () => {
-            Mousetrap.unbind(hotkey);
-        };
-    }, []);
+        if (hotkey && typeof hotkey === "string") {
+            Mousetrap.bind(hotkey, handler);
+            return () => {
+                Mousetrap.unbind(hotkey);
+            };
+        }
+    }, [hotkey]);
 }

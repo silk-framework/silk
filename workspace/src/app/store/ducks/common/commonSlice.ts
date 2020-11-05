@@ -5,7 +5,7 @@ import appRoutes from "../../../appRoutes";
 import { matchPath } from "react-router";
 import { getFullRoutePath } from "../../../utils/routerUtils";
 import { getHistory } from "../../configureStore";
-import { ICommonState } from "@ducks/common/typings";
+import { ICommonState, IInitFrontend } from "@ducks/common/typings";
 
 const commonReducers: { [key: string]: (state: ICommonState, action: PayloadAction<any>) => void } = {
     setInitialSettings(state, action) {

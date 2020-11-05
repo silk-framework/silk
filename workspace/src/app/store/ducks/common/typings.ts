@@ -142,7 +142,7 @@ export interface ICommonState {
     currentProjectId: string;
     currentTaskId: string;
     locale: string;
-    initialSettings: any;
+    initialSettings: IInitFrontend;
     authenticated: boolean;
     searchQuery: string;
     error?: any;
@@ -151,13 +151,14 @@ export interface ICommonState {
     artefactModal: IArtefactModal;
 }
 
+/** Config information from the backend to initialize the frontend. */
 export interface IInitFrontend {
     /**
-     * shows the state of workspace
+     * If the workspace if currently empty, i.e. has no projects in it.
      */
     emptyWorkspace: boolean;
     /**
-     * initial language from backend
+     * Initial language from backend. This can be "overwritten" by the user via the UI.
      */
     initialLanguage: string;
 
@@ -165,4 +166,18 @@ export interface IInitFrontend {
      * DM url, in case of missing, hide navigation bar
      */
     dmBaseUrl?: string;
+
+    /** Configured links to the DM that should be displayed in the global navigation menu. */
+    dmModuleLinks?: IDmLink[];
+
+    /** Hotkey configuration for the frontend. */
+    hotKeys: Partial<Record<HotKeyIds, string>>;
+}
+
+type HotKeyIds = "quickSearch";
+
+export interface IDmLink {
+    path: string;
+    defaultLabel: string;
+    icon?: string;
 }

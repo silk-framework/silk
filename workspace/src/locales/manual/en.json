@@ -140,8 +140,7 @@
         "warningExistingProject": "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID."
     },
     "RecentlyViewedModal": {
-        "emptyList": "No recently viewed items found.",
-        "title": "Recently viewed"
+        "title": "Quick search"
     },
     "RelatedItems": {
         "title": "Related items"

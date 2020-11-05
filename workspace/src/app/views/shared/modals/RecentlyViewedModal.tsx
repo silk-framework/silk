@@ -8,10 +8,11 @@ import { ErrorResponse } from "../../../services/fetch/responseInterceptor";
 import { Loading } from "../Loading/Loading";
 import { extractSearchWords } from "../Highlighter/Highlighter";
 import { IItemLink } from "@ducks/shared/typings";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { routerOp } from "@ducks/router";
 import { Autocomplete } from "../Autocomplete/Autocomplete";
 import { useLocation } from "react-router";
+import { commonSel } from "@ducks/common";
 
 export function RecentlyViewedModal() {
     const [isOpen, setIsOpen] = useState(false);
@@ -21,6 +22,7 @@ export function RecentlyViewedModal() {
     const { pathname } = useLocation();
     const { t } = useTranslation();
     const dispatch = useDispatch();
+    const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
     const loadRecentItems = async () => {
         setError(null);
         try {
@@ -47,13 +49,13 @@ export function RecentlyViewedModal() {
     };
 
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen && hotKeys.quickSearch) {
             loadRecentItems();
         }
-    }, [isOpen]);
+    }, [isOpen, hotKeys.quickSearch]);
 
     useHotKey({
-        hotkey: "ctrl+shift+f",
+        hotkey: hotKeys.quickSearch,
         handler: () => setIsOpen(true),
     });
     const close = () => setIsOpen(false);
@@ -94,14 +96,6 @@ export function RecentlyViewedModal() {
             </Notification>
         );
     };
-    // If there are no recent items to display
-    const emptyView = () => {
-        return (
-            <div data-test-id={"recently-viewed-modal-empty"}>
-                <Notification>{t("RecentlyViewedModal.emptyList")}</Notification>
-            </div>
-        );
-    };
     // The auto-completion of the recently viewed items
     const recentlyViewedAutoCompletion = () => {
         return (
@@ -124,15 +118,7 @@ export function RecentlyViewedModal() {
             title={t("RecentlyViewedModal.title")}
             actions={<Button onClick={close}>{t("common.action.close")}</Button>}
         >
-            {loading ? (
-                <Loading />
-            ) : error ? (
-                errorView()
-            ) : recentItems.length === 0 ? (
-                emptyView()
-            ) : (
-                recentlyViewedAutoCompletion()
-            )}
+            {loading ? <Loading /> : error ? errorView() : recentlyViewedAutoCompletion()}
         </SimpleDialog>
     );
 }
