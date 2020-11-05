@@ -56,12 +56,14 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         val taskData = for (task <- taskOpt) yield {
           Seq(
             "taskId" -> JsString(task.id),
-            "taskLabel" -> JsString(taskOpt.get.metaData.label)
+            "taskLabel" -> JsString(taskOpt.get.metaData.label),
+            PLUGIN_ID -> JsString(PluginDescription(task).id)
           )
         }
         Some(JsObject(Seq(
           "projectId" -> JsString(item.projectId),
           "projectLabel" -> JsString(project.config.metaData.label),
+          "itemType" -> JsString(itemType.id),
           "itemLinks" -> Json.toJson(ItemType.itemTypeLinks(itemType, project.name, taskOpt.map(_.id.toString).getOrElse(project.name.toString)))
         ) ++ taskData.toSeq.flatten))
       }
