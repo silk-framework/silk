@@ -1,5 +1,4 @@
-import { TableHead, TableHeader, TableRow, TableSelectAll } from "carbon-components-react";
-import { Button, Icon } from "@gui-elements/index";
+import { Button, Checkbox, Icon, TableHead, TableHeader, TableRow } from "@gui-elements/index";
 import React from "react";
 import { FILTER_ACTIONS } from "../constants";
 import { IColumnFilters, ISortDirection, ITableHeader } from "../suggestion.typings";
@@ -50,28 +49,20 @@ interface IProps {
 
     // callback for column filtering
     onApplyFilter(filter: string);
-
-    // React.ref for filter dialog
-    portalContainerRef: any;
-
 }
 
-export default function STableHeader({headers, isAllSelected, toggleSelectAll, onSwap, sortDirections, onSort, onApplyFilter, portalContainerRef}: IProps) {
+export default function STableHeader({headers, isAllSelected, toggleSelectAll, onSwap, sortDirections, onSort, onApplyFilter}: IProps) {
     return <TableHead>
         <TableRow>
             <TableHeader>
-                <TableSelectAll
-                    id={'select-all'}
-                    name={'select-all'}
-                    onSelect={toggleSelectAll}
+                <Checkbox
+                    onChange={toggleSelectAll}
                     checked={isAllSelected}
                 />
                 <ColumnFilter
                     filters={columnFilters.checkbox}
-                    portalContainerRef={portalContainerRef}
                     onApplyFilter={onApplyFilter}
                 />
-
             </TableHeader>
 
             {headers.map(header => (
@@ -93,7 +84,6 @@ export default function STableHeader({headers, isAllSelected, toggleSelectAll, o
                                 {
                                     columnFilters[header.key] && <ColumnFilter
                                         filters={columnFilters[header.key]}
-                                        portalContainerRef={portalContainerRef}
                                         onApplyFilter={onApplyFilter}
                                     />
                                 }

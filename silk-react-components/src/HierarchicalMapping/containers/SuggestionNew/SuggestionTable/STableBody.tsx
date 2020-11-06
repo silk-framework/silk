@@ -1,7 +1,7 @@
 import React from "react";
-import { IPageSuggestion } from "../SuggestionList";
 import STableRow from "./STableRow";
-import { TableBody } from "carbon-components-react";
+import { TableBody } from "@gui-elements/index";
+import { IPageSuggestion } from "../suggestion.typings";
 
 export default function STableBody({pageRows, selectedSources, toggleRowSelect, onModifyTarget}) {
     return <TableBody>

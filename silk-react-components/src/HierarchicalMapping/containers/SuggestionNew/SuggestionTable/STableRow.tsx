@@ -1,8 +1,8 @@
 import React from "react";
-import { TableCell, TableRow, TableSelectRow } from "carbon-components-react";
 import TargetList from "./TargetList";
 import TypesList from "./TypesList";
 import { SuggestionTypeValues } from "../suggestion.typings";
+import { Checkbox, TableCell, TableRow, } from "@gui-elements/index";
 
 export default function STableRow({row, onRowSelect, selected, onModifyTarget}) {
     const {source, target} = row;
@@ -25,17 +25,14 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
     const selectedType = selectedTarget ? selectedTarget.type : 'value';
 
     return <TableRow>
-        <TableSelectRow
-            name={source}
-            id={source}
-            onSelect={() => onRowSelect(row)}
-            checked={!!selected}
-            ariaLabel={'select row'}
-        />
         <TableCell>
-            <select>
-                <option value={source}>{source}</option>
-            </select>
+            <Checkbox
+                onChange={() => onRowSelect(row)}
+                checked={!!selected}
+            />
+        </TableCell>
+        <TableCell>
+            {source}
         </TableCell>
         <TableCell>
             <div/>

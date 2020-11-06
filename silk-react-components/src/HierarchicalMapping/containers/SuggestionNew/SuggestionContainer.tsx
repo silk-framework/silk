@@ -10,11 +10,11 @@ import {
     TitleMainsection
 } from "@gui-elements/index";
 import { TableContainer } from 'carbon-components-react';
-import SuggestionList, { IAddedSuggestion } from "./SuggestionList";
+import SuggestionList from "./SuggestionList";
 import SuggestionHeader from "./SuggestionHeader";
 import { generateRuleAsync, getSuggestionsAsync } from "../../store";
 import _ from "lodash";
-import { ITransformedSuggestion } from "./suggestion.typings";
+import { IAddedSuggestion, ITransformedSuggestion } from "./suggestion.typings";
 
 export default function SuggestionContainer({ruleId, targetClassUris, onAskDiscardChanges, onClose}) {
     // Loading indicator

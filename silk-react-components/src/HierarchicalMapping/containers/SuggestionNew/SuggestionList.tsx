@@ -1,13 +1,13 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Table } from 'carbon-components-react';
-import { Button, Pagination } from '@gui-elements/index';
+import React, { createContext, useEffect, useRef, useState } from 'react';
+import { Button, Pagination, Table } from '@gui-elements/index';
 import {
+    IAddedSuggestion,
+    IPageSuggestion,
     IPlainObject,
     ISortDirection,
-    ISuggestionTarget,
     ITableHeader,
-    ITransformedSuggestion,
-    SuggestionTypeValues
+    ITargetWithSelected,
+    ITransformedSuggestion
 } from "./suggestion.typings";
 import _ from 'lodash';
 import paginate from "../../utils/paginate";
@@ -20,28 +20,6 @@ interface IPagination {
     page: number;
     // store page size
     pageSize: number;
-}
-
-// the object which pass parent for adding new suggestion
-export interface IAddedSuggestion {
-    // selected source
-    source: string;
-
-    // selected target uri
-    targetUri: string;
-
-    // target type
-    type: SuggestionTypeValues;
-}
-
-interface ITargetWithSelected extends ISuggestionTarget {
-    // indicate selected target
-    _selected: boolean;
-}
-
-export interface IPageSuggestion extends ITransformedSuggestion {
-    // modified target element
-    target: ITargetWithSelected[]
 }
 
 interface IProps {
@@ -57,6 +35,14 @@ interface IProps {
     // call parent add action
     onAdd(selected: IAddedSuggestion[]);
 }
+
+interface ISuggestionListContext {
+    portalContainer: HTMLDivElement;
+}
+
+export const SuggestionListContext = React.createContext<ISuggestionListContext>({
+    portalContainer: null
+});
 
 export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges, onAdd}: IProps) {
     const portalContainerRef = useRef();
@@ -346,37 +332,40 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
     const isAllSelected = () => filteredRows.length && pageRows.length === selectedSources.length;
 
     return <div ref={portalContainerRef}>
-        <Table>
-            <STableHeader
-                headers={headers}
-                isAllSelected={isAllSelected()}
-                toggleSelectAll={toggleSelectAll}
-                onSwap={handleSwap}
-                onSort={handleSort}
-                onApplyFilter={handleFilterColumn}
-                sortDirections={sortDirections}
-                portalContainerRef={portalContainerRef}
+        <SuggestionListContext.Provider value={{
+            portalContainer: portalContainerRef.current
+        }}>
+            <Table>
+                <STableHeader
+                    headers={headers}
+                    isAllSelected={isAllSelected()}
+                    toggleSelectAll={toggleSelectAll}
+                    onSwap={handleSwap}
+                    onSort={handleSort}
+                    onApplyFilter={handleFilterColumn}
+                    sortDirections={sortDirections}
+                />
+                <STableBody
+                    pageRows={pageRows}
+                    selectedSources={selectedSources}
+                    toggleRowSelect={toggleRowSelect}
+                    onModifyTarget={handleModifyTarget}
+                />
+            </Table>
+            <Pagination
+                onChange={handlePageChange}
+                totalItems={allRows.length}
+                pageSizes={[5, 10, 25, 50, 100]}
+                page={pagination.page}
+                pageSize={pagination.pageSize}
+                backwardText={"Previous page"}
+                forwardText={"Next page"}
+                itemsPerPageText={"Items per page:"}
+                itemRangeText={(min, max, total) => `${min}–${max} of ${total} items`}
+                pageRangeText={(current, total) => `of ${total} pages`}
             />
-            <STableBody
-                pageRows={pageRows}
-                selectedSources={selectedSources}
-                toggleRowSelect={toggleRowSelect}
-                onModifyTarget={handleModifyTarget}
-            />
-        </Table>
-        <Pagination
-            onChange={handlePageChange}
-            totalItems={allRows.length}
-            pageSizes={[5, 10, 25, 50, 100]}
-            page={pagination.page}
-            pageSize={pagination.pageSize}
-            backwardText={"Previous page"}
-            forwardText={"Next page"}
-            itemsPerPageText={"Items per page:"}
-            itemRangeText={(min, max, total) => `${min}–${max} of ${total} items`}
-            pageRangeText={(current, total) => `of ${total} pages`}
-        />
-        <Button affirmative={true} onClick={handleAdd}>Add ({selectedSources.length})</Button>
-        <Button disruptive={true} onClick={onAskDiscardChanges}>Cancel</Button>
+            <Button affirmative={true} onClick={handleAdd}>Add ({selectedSources.length})</Button>
+            <Button disruptive={true} onClick={onAskDiscardChanges}>Cancel</Button>
+        </SuggestionListContext.Provider>
     </div>
 }
