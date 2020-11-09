@@ -30,7 +30,7 @@ import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
 export function RecentlyViewedModal() {
     const [isOpen, setIsOpen] = useState(false);
     const [recentItems, setRecentItems] = useState<IRecentlyViewedItem[]>([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<ErrorResponse | null>(null);
     const { pathname } = useLocation();
     const { t } = useTranslation();
@@ -71,8 +71,14 @@ export function RecentlyViewedModal() {
         hotkey: hotKeys.quickSearch,
         handler: () => setIsOpen(true),
     });
-    const close = () => setIsOpen(false);
-    const onChange = (itemLinks: IItemLink[]) => {
+    const close = () => {
+        setRecentItems([]);
+        setIsOpen(false);
+    };
+    const onChange = (itemLinks: IItemLink[], e) => {
+        if (e) {
+            e.preventDefault();
+        }
         setIsOpen(false);
         if (itemLinks.length > 0) {
             const itemLink = itemLinks[0];
@@ -125,7 +131,7 @@ export function RecentlyViewedModal() {
     };
     // Searches on the results from the initial requests
     const onSearch = (textQuery: string) => {
-        const searchWords = extractSearchWords(textQuery);
+        const searchWords = extractSearchWords(textQuery.toLowerCase());
         return recentItems.filter((item) => {
             const label = itemLabel(item).toLowerCase();
             return searchWords.every((word) => label.includes(word));

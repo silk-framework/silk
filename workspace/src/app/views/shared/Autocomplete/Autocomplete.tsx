@@ -25,8 +25,9 @@ export interface IAutocompleteProps<T extends any, U extends any> {
     /**
      * Fired when value selected from input
      * @param value
+     * @param e the event
      */
-    onChange?(value: U);
+    onChange?(value: U, e?: React.SyntheticEvent<HTMLElement>);
 
     /**
      * The initial value for autocomplete input
@@ -165,15 +166,15 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
         }
     }, [dependentValues.join("|")]);
 
-    const onSelectionChange = (value) => {
+    const onSelectionChange = (value, e) => {
         setSelectedItem(value);
-        onItemSelect(value);
+        onItemSelect(value, e);
     };
 
     const areEqualItems = (itemA, itemB) => itemValueSelector(itemA) === itemValueSelector(itemB);
 
-    const onItemSelect = (item) => {
-        onChange(itemValueSelector(item));
+    const onItemSelect = (item, e) => {
+        onChange(itemValueSelector(item), e);
     };
 
     //@Note: issue https://github.com/palantir/blueprint/issues/2983
