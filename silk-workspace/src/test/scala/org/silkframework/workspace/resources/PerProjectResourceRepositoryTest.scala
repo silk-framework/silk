@@ -5,8 +5,11 @@ abstract class PerProjectResourceRepositoryTest extends ResourceRepositoryTest {
   it should "separate files from different projects" in {
     repository.sharedResources mustBe false
 
-    val resourceA = repository.get("projectA").get("resource")
-    val resourceB = repository.get("projectB").get("resource")
+    val resourceName = "resource"
+    val AManager = repository.get("projectA")
+    val BManager = repository.get("projectB")
+    val resourceA = AManager.get(resourceName)
+    val resourceB = BManager.get(resourceName)
 
     resourceA.exists mustBe false
     resourceB.exists mustBe false
@@ -24,8 +27,11 @@ abstract class PerProjectResourceRepositoryTest extends ResourceRepositoryTest {
     resourceA.loadAsString mustBe "A"
     resourceB.loadAsString mustBe "B"
 
-    resourceA.delete()
+    AManager.delete(resourceName)
+    resourceA.exists mustBe false
+    resourceB.exists mustBe true
     resourceB.delete()
+    resourceB.exists mustBe false
   }
 
   it should "delete all project resources if requested" in {

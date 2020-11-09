@@ -49,9 +49,9 @@ object ProjectMarshallerRegistry {
   }
 
   private def marshallingPluginsByFileHandler(): Map[String, ProjectMarshallingTrait] = {
-    marshallingPlugins.map { mp =>
+    marshallingPlugins.sortBy(_.isPreferred).flatMap { mp =>
       mp.suffix.map(s => (s, mp))
-    }.flatten.toMap
+    }.toMap
   }
 
 }

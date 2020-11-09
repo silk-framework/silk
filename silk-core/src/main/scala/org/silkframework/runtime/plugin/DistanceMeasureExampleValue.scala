@@ -3,7 +3,11 @@ package org.silkframework.runtime.plugin
 import org.silkframework.runtime.plugin.annotations.DistanceMeasureExample
 import org.silkframework.util.DPair
 
-case class DistanceMeasureExampleValue(description: String, parameters: Map[String, String], inputs: DPair[Seq[String]], output: Double) {
+case class DistanceMeasureExampleValue(description: String,
+                                       parameters: Map[String, String],
+                                       inputs: DPair[Seq[String]],
+                                       output: Double,
+                                       throwsException: Option[Class[_]]) {
 
   def formatted: String = {
     s"Returns $output for parameters ${format(parameters)} and input values ${format(inputs.map(format))}."
@@ -24,7 +28,8 @@ object DistanceMeasureExampleValue {
         description = example.description(),
         parameters = retrieveParameters(example),
         inputs = DPair(example.input1(), example.input2()),
-        output = example.output()
+        output = example.output(),
+        throwsException = Option(example.throwsException()).filterNot(_ == classOf[Object])
       )
     }
   }

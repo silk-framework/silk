@@ -11,7 +11,7 @@ import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 
 @Plugin(
   id = EvaluateLinkingFactory.ActivityId,
-  label = "Evaluate Linking",
+  label = "Evaluate linking",
   categories = Array("LinkSpecification"),
   description = "Evaluates the linking task by generating links."
 )
@@ -71,14 +71,14 @@ class EvaluateLinkingActivity(task: ProjectTask[LinkSpec], runtimeConfig: Runtim
   private def createGenerateLinksActivity(linkSpec: LinkSpec)
                                          (implicit userContext: UserContext): GenerateLinks = {
     val inputs = task.dataSources
-    val outputs = if (writeOutputs) task.linkSinks else Nil
+    val output = task.linkSink.filter(_ => writeOutputs)
 
     new GenerateLinks(
       task.id,
       task.taskLabel(),
       inputs = inputs,
       linkSpec = linkSpec,
-      outputs = outputs,
+      output = output,
       runtimeConfig = runtimeConfig
     )
   }

@@ -14,7 +14,7 @@ import org.silkframework.workspace.activity.TaskActivityFactory
 
 @Plugin(
   id = "ExecuteLinking",
-  label = "Execute Linking",
+  label = "Execute linking",
   categories = Array("LinkSpecification"),
   description = "Executes the linking task using the configured execution."
 )
@@ -56,7 +56,7 @@ class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
 
     // Write links to outputs
     context.status.update("Writing links to output", 0.8)
-    for(output <- task.data.outputs) {
+    for(output <- task.data.output) {
       val outputTask = task.project.task[GenericDatasetSpec](output)
       outputTask.data.linkSink.clear() // Clear link sink before writing in single execution mode
       ExecutorRegistry.execute(outputTask, Seq(links), ExecutorOutput.empty, execution)

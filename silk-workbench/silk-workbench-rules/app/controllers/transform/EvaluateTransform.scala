@@ -6,15 +6,17 @@ import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.{EvaluateTransform => EvaluateTransformTask}
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.workbench.Context
+import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.transform.TransformTaskUtils._
-import play.api.mvc.{Action, AnyContent, ControllerComponents, InjectedController}
+import play.api.mvc.{Action, AnyContent, InjectedController}
 
 /** Endpoints for evaluating transform tasks */
-class EvaluateTransform @Inject() () extends InjectedController {
+class EvaluateTransform @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController {
 
   def evaluate(project: String, task: String, ruleName: Option[String], offset: Int, limit: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[TransformSpec](project, task, request.path)
+    accessMonitor.saveProjectTaskAccess(project, task)
     Ok(views.html.evaluateTransform.evaluateTransform(context, ruleName.getOrElse("root"), offset, limit))
   }
 

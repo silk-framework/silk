@@ -23,6 +23,7 @@ import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivity, TaskActivityFactory}
 
 import scala.reflect.ClassTag
@@ -51,7 +52,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     initialMetaData.copy(modified = Some(initialMetaData.modified.getOrElse(Instant.now)))
   ))
 
-  private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
+  lazy private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
     implicit val prefixes: Prefixes = module.project.config.prefixes
     implicit val resources: ResourceManager = module.project.resources
@@ -65,13 +66,13 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
         activities ::= new TaskActivity(this, factory)
       } catch {
         case NonFatal(ex) =>
-          log.log(Level.WARNING, s"Could not load task activity '$factory' in task '$id' in project '${module.project.name}'.", ex)
+          log.log(Level.WARNING, s"Could not load task activity '${factory.pluginSpec.id}' in task '$id' in project '${module.project.name}'.", ex)
       }
     }
     activities.reverse
   }
 
-  private val taskActivityMap: Map[Class[_], TaskActivity[TaskType, _ <: HasValue]] = taskActivities.map(a => (a.activityType, a)).toMap
+  lazy private val taskActivityMap: Map[Class[_], TaskActivity[TaskType, _ <: HasValue]] = taskActivities.map(a => (a.activityType, a)).toMap
 
   /**
     * The project this task belongs to.
@@ -87,6 +88,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     * Retrieves the current meta data of this task.
     */
   override def metaData: MetaData = metaDataValueHolder()
+
+  override def taskType: Class[_] = implicitly[ClassTag[TaskType]].runtimeClass
 
   /**
     * Starts all autorun activities.
@@ -179,6 +182,14 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       allDependentTaskIds ++= dependentTasks.flatMap(_.findDependentTasks(true))
     }
     allDependentTaskIds.distinct.toSet
+  }
+
+  override def findRelatedTasksInsideWorkflows()(implicit userContext: UserContext): Set[Identifier] = {
+    val relatedWorkflowItems = for(workflow <- project.tasks[Workflow];
+        workflowNode <- workflow.data.nodes if workflowNode.inputs.contains(id.toString) || workflowNode.outputs.contains(id.toString)) yield {
+      workflowNode.task
+    }
+    relatedWorkflowItems.toSet
   }
 
   private def persistTask(implicit userContext: UserContext): Unit = {

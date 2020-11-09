@@ -35,11 +35,14 @@ trait IntegrationTestTrait extends TaskApiClient with ActivityApiClient with Gui
   this: TestSuite =>
 
   final val APPLICATION_JSON: String = "application/json"
+  final val TEXT_MARKDOWN: String = "text/markdown"
   final val APPLICATION_XML: String = "application/xml"
   final val CONTENT_TYPE: String = "content-type"
   final val ACCEPT: String = "accept"
+  final val CREATED: Int = 201
   final val NOT_FOUND: Int = 404
   final val BAD_REQUEST: Int = 400
+  final val CONFLICT: Int = 409
 
   val baseUrl = s"http://localhost:$port"
 
@@ -60,6 +63,9 @@ trait IntegrationTestTrait extends TaskApiClient with ActivityApiClient with Gui
     builder.build()
   }
 
+  /** Fetch the workspace */
+  def userWorkspace(implicit userContext: UserContext): Workspace = WorkspaceFactory.factory.workspace
+
   /**
     * Constructs a REST request for a given Call.
     */
@@ -74,6 +80,12 @@ trait IntegrationTestTrait extends TaskApiClient with ActivityApiClient with Gui
     */
   def createProject(projectId: String): WSResponse = {
     val response = client.url(s"$baseUrl/workspace/projects/$projectId").put("")
+    checkResponse(response)
+  }
+
+  /** Remove the project from the workspace. */
+  def removeProject(projectId: String): WSResponse = {
+    val response = client.url(s"$baseUrl/workspace/projects/$projectId").delete()
     checkResponse(response)
   }
 

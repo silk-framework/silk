@@ -28,7 +28,7 @@ trait ExportIntegrationTestTrait
 
   override def projectPathInClasspath: String = "controllers/workspace/miniProject.zip"
 
-  protected override def routes = Some(classOf[test.Routes])
+  protected override def routes = Some(classOf[testWorkspace.Routes])
 
   override def workspaceProviderId: String = "mockableInMemoryWorkspace"
 
@@ -98,7 +98,8 @@ trait ExportIntegrationTestTrait
         throw new RuntimeException("Cannot read tasks. Workspace provider is broken!")
       }
 
-      override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)(implicit user: UserContext): Option[Seq[Try[Task[T]]]] = {
+      override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
+                                                          (implicit user: UserContext): Option[Seq[Either[Task[T], TaskLoadingError]]] = {
         throw new RuntimeException("Cannot read tasks safely. Workspace provider is broken!")
       }
     }

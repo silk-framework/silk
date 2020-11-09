@@ -2,6 +2,8 @@
 @import org.silkframework.workspace.Project
 
 @import org.silkframework.runtime.activity.UserContext
+@import org.silkframework.util.Identifier
+
 @(sources: DPair[String], paths: DPair[Seq[String]], onlySource: Boolean, loadingMsg: String = "", warning: String = "",
     project: Project)(implicit userContext: UserContext)
 
@@ -14,9 +16,12 @@
     <div class="operator-index">
       @path
     </div>
-    <div id="path_@{pathType.toLowerCase}_@{java.net.URLEncoder.encode(path, "utf-8")}" class="draggable @{pathType.toLowerCase}Paths">
+    <div id="@pathId(pathType, path)" class="draggable @{pathType.toLowerCase}Paths">
       <p class="non-breaking-label">@path</p>
       @pathExpanded(path, pathType)
+    </div>
+    <div class="mdl-defer mdl-tooltip--right" data-mdl-defer="tooltip" for="@pathId(pathType, path)">
+      @path
     </div>
   </div>
   }
@@ -25,3 +30,5 @@
 @pathExpanded(path: String, pathType: String) = {
   @pathBox(pathType.toLowerCase + "Path", pathType == "Source", path, 0, 0, false, project)
 }
+
+@pathId(pathType: String, path: String) = {path_@{pathType.toLowerCase}_@{Identifier.fromAllowed(path).toString}}

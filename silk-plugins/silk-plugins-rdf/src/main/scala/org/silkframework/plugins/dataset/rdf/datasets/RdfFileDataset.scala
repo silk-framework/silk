@@ -1,7 +1,5 @@
 package org.silkframework.plugins.dataset.rdf.datasets
 
-import java.io.FileNotFoundException
-
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
 import org.silkframework.config.{PlainTask, Task}
@@ -34,14 +32,15 @@ Large datasets should be loaded into an external RDF store and retrieved using t
 case class RdfFileDataset(
   @Param("The RDF file. This may also be a zip archive of multiple RDF files.")
   file: WritableResource,
-  @Param("""Supported input formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle". Supported output formats are: "N-Triples".""")
-  format: String,
+  @Param("""RDF format. Can be left empty, in which case it will be auto-detetected based on the file extension. Supported input formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle". Supported output formats are: "N-Triples".""")
+  format: String = "",
   @Param("The graph name to be read. If not provided, the default graph will be used. Must be provided if the format is N-Quads.")
   graph: String = "",
   @Param(label = "Max. read size (MB)",
-    value = "The maximum size of the RDF file resource for read operations. Since the whole dataset will be kept in-memory, this value should be kept low to guarantee stability.")
+    value = "The maximum size of the RDF file resource for read operations. Since the whole dataset will be kept in-memory, this value should be kept low to guarantee stability.",
+    advanced = true)
   maxReadSize: Long = 10,
-  @Param("A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.")
+  @Param(value = "A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.", advanced = true)
   entityList: MultilineStringParameter = MultilineStringParameter(""),
   @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
   override val zipFileRegex: String = ".*") extends RdfDataset with TripleSinkDataset with BulkResourceBasedDataset {
@@ -71,7 +70,7 @@ case class RdfFileDataset(
     }
   }
 
-  private def graphOpt = if (graph.trim.isEmpty) None else Some(graph)
+  override def graphOpt: Option[String] = if (graph.trim.isEmpty) None else Some(graph)
 
   override def sparqlEndpoint: JenaEndpoint = {
     createSparqlEndpoint(allResources)

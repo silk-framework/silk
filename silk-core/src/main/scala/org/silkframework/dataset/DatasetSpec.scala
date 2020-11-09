@@ -24,11 +24,13 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginObjectParameter
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.language.implicitConversions
+import scala.reflect.ClassTag
 import scala.xml.Node
 
 /**
@@ -37,7 +39,8 @@ import scala.xml.Node
   * @param uriAttribute Setting this URI will generate an additional attribute for each entity.
                         The additional attribute contains the URI of each entity.
   */
-case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribute: Option[Uri] = None) extends TaskSpec with DatasetAccess {
+case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribute: Option[Uri] = None)
+    extends TaskSpec with DatasetAccess {
 
   def source(implicit userContext: UserContext): DataSource = {
     safeAccess(DatasetSpec.DataSourceWrapper(plugin.source, this), SafeModeDataSource)
@@ -99,10 +102,12 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribut
       throw UriAttributeNotUniqueException(uriColumn)
     }
   }
-
 }
 
-case class DatasetTask(id: Identifier, data: DatasetSpec[Dataset], metaData: MetaData = MetaData.empty) extends Task[DatasetSpec[Dataset]]
+case class DatasetTask(id: Identifier, data: DatasetSpec[Dataset], metaData: MetaData = MetaData.empty) extends Task[DatasetSpec[Dataset]] {
+
+  override def taskType: Class[_] = classOf[DatasetSpec[Dataset]]
+}
 
 object DatasetSpec {
 

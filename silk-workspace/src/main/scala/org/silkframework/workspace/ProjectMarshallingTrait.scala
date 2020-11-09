@@ -15,8 +15,6 @@ import org.silkframework.workspace.io.WorkspaceIO.copyResources
 import org.silkframework.workspace.resources.ResourceRepository
 
 /**
-  * Created on 6/24/16.
-  *
   * Trait defining methods for marshalling and unmarshalling of Silk projects.
   */
 trait ProjectMarshallingTrait extends AnyPlugin {
@@ -33,6 +31,9 @@ trait ProjectMarshallingTrait extends AnyPlugin {
 
   /** MIME-Type */
   def mediaType: Option[String]
+
+  /** If true, this plugin is the preferred marshaller for the given suffix and mediaType */
+  def isPreferred: Boolean = true
 
   /**
     * Marshals the project from the in-memory [[Project]] object and the given resource manager.
@@ -110,7 +111,7 @@ trait ProjectMarshallingTrait extends AnyPlugin {
       // Reset URI
       val projectConfig = project.copy(id = targetProject, projectResourceUriOpt = None)
 
-      WorkspaceIO.copyProject(importFromWorkspace, workspaceProvider, resources, importResources, projectConfig)
+      workspaceProvider.importProject(projectConfig, importFromWorkspace, resources, importResources)
     }
   }
 

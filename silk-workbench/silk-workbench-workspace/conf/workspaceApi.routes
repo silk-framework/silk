@@ -1,0 +1,15 @@
+# Generic item search/retrieval, i.e. projects, tasks etc.
+GET           /searchConfig/types                                               controllers.workspaceApi.SearchApi.itemTypes(projectId: Option[String] ?= None)
+POST          /searchTasks                                                      controllers.workspaceApi.SearchApi.search()
+POST          /searchItems                                                      controllers.workspaceApi.SearchApi.facetedSearch()
+POST          /pluginParameterAutoCompletion                                    controllers.workspaceApi.SearchApi.parameterAutoCompletion()
+GET           /recentlyViewedItems                                              controllers.workspaceApi.SearchApi.recentlyViewedItems()
+GET           /initFrontend                                                     controllers.workspaceApi.InitApi.init()
+GET           /taskActivitiesStatus                                             controllers.workspaceApi.ActivitiesApi.taskActivitiesStatus(projectId: Option[String] ?= None, statusFilter: Option[String] ?= None)
+POST          /projectImport                                                    controllers.workspaceApi.ProjectImportApi.uploadProjectArchiveFile()
+GET           /projectImport/:projectImportId                                   controllers.workspaceApi.ProjectImportApi.projectImportDetails(projectImportId: String)
+DELETE        /projectImport/:projectImportId                                   controllers.workspaceApi.ProjectImportApi.removeProjectImport(projectImportId: String)
+POST          /projectImport/:projectImportId                                   controllers.workspaceApi.ProjectImportApi.startProjectImport(projectImportId: String, generateNewId: Boolean ?= false, overwriteExisting: Boolean ?= false)
+GET           /projectImport/:projectImportId/status                            controllers.workspaceApi.ProjectImportApi.projectImportExecutionStatus(projectImportId: String, timeout: Int ?= 20000)
+
+->            /projects                   projectsApi.Routes

@@ -57,14 +57,14 @@ object SerializationUtils {
     * @param value            The value to be serialized
     * @param defaultMimeTypes The MIME types to be used if the accept header specifies none or accepts any
     * @param request          The HTTP request to be used for content negotiation
-    * @param project          The project
+    * @param projectOpt       Optional project as context
     * @return A HTTP result
     */
   def serializeRuntime(value: Any,
                        defaultMimeTypes: Seq[String] = defaultMimeTypes)
                       (implicit request: Request[AnyContent],
-                       project: Project): Result = {
-    implicit val writeContext = createWriteContext(Some(project))
+                       projectOpt: Option[Project]): Result = {
+    implicit val writeContext: WriteContext[Any] = createWriteContext(projectOpt)
     val valueType = value.getClass
 
     val noneType = notAcceptable(request, valueType)

@@ -350,8 +350,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
             sink.writeTriple(s, p, o, valueType)  //FIXME CMEM-1759 quad context is ignored for now, change when quad sink is available
         }
       } catch {
-        case e: Exception =>
-          throw new scala.RuntimeException("Triple entity with empty values")
+        case ex: Exception =>
+          throw new scala.RuntimeException("Triple entity with empty values", ex)
       }
     }
   }

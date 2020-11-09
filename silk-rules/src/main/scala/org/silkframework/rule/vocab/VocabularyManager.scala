@@ -7,7 +7,10 @@ import org.silkframework.util.Identifier
 
 trait VocabularyManager {
 
-  def get(uri: String, project: Identifier)(implicit userContext: UserContext): Option[Vocabulary]
+  def get(uri: String, project: Option[Identifier])(implicit userContext: UserContext): Option[Vocabulary]
+
+  /** Retrieves a list of globally accessible vocabularies. */
+  def retrieveGlobalVocabularies()(implicit userContext: UserContext): Iterable[String]
 
 }
 
@@ -15,7 +18,7 @@ object VocabularyManager {
   private var lastPlugin: String = ""
   private var vocabularyManager: Option[VocabularyManager] = None
 
-  private def instance = this.synchronized {
+  private def instance: VocabularyManager = this.synchronized {
     val plugin = DefaultConfig.instance().getString("vocabulary.manager.plugin")
     if(plugin != lastPlugin || vocabularyManager.isEmpty) {
       vocabularyManager = Some(PluginRegistry.createFromConfig[VocabularyManager]("vocabulary.manager"))

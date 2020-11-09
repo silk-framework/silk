@@ -13,8 +13,8 @@ class GenericEntityTable(genericEntities: Traversable[Entity],
     new InterruptibleTraversable(genericEntities)
   }
 
-  override def updateEntities(newEntities: Traversable[Entity]): GenericEntityTable = {
-    new GenericEntityTable(newEntities, entitySchema, task)
+  override def updateEntities(newEntities: Traversable[Entity], newSchema: EntitySchema): GenericEntityTable = {
+    new GenericEntityTable(newEntities, newSchema, task)
   }
 }
 

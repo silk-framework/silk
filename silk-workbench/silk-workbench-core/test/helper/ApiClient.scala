@@ -24,8 +24,14 @@ trait ApiClient {
   protected def checkResponse(futureResponse: Future[WSResponse],
                     responseCodePrefix: Char = '2'): WSResponse = {
     val response = Await.result(futureResponse, 200.seconds)
-    assert(response.status.toString.head + "xx" == responseCodePrefix + "xx", s"Status text: ${response.statusText}. Response Body: ${response.body}")
+    assert(response.status.toString.head == responseCodePrefix, s"Expected status: ${responseCodePrefix + "XX"}, received status: ${response.status}. Response Body: ${response.body}")
     response
   }
-  
+
+  protected def checkResponseExactStatusCode(futureResponse: Future[WSResponse],
+                                             responseCode: Int = 200): WSResponse = {
+    val response = Await.result(futureResponse, 200.seconds)
+    assert(response.status == responseCode, s"Expected status: $responseCode, received status: ${response.status}. Response Body: ${response.body}")
+    response
+  }
 }

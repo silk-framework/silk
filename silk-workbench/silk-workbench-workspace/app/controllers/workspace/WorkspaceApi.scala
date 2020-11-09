@@ -6,28 +6,40 @@ import java.util.logging.Logger
 
 import akka.stream.scaladsl.Source
 import akka.util.ByteString
+import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.workspace.workspaceRequests.UpdateGlobalVocabularyRequest
+import controllers.workspace.workspaceApi.TaskLinkInfo
+import controllers.workspaceApi.coreApi.PluginApiCache
+import controllers.workspaceApi.search.ResourceSearchRequest
 import javax.inject.Inject
 import org.silkframework.config._
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.dataset.ResourceBasedDataset
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.{ResourceManager, UrlResource, WritableResource}
+import org.silkframework.runtime.resource.{ResourceManager, ResourceNotFoundException, UrlResource, WritableResource}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
+import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace._
 import org.silkframework.workspace.activity.ProjectExecutor
+import org.silkframework.workspace.activity.vocabulary.GlobalVocabularyCache
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import play.api.libs.Files
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.streams.IterateeStreams
+import play.api.libs.json.{JsArray, JsString, Json}
+import play.api.libs.json.{JsArray, JsString, JsValue}
 import play.api.mvc._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.existentials
+import scala.util.Try
 
-class WorkspaceApi  @Inject() () extends InjectedController {
+class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor, pluginApiCache: PluginApiCache) extends InjectedController with ControllerUtilsTrait {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
@@ -47,6 +59,7 @@ class WorkspaceApi  @Inject() () extends InjectedController {
 
   def getProject(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
+    accessMonitor.saveProjectAccess(project.config.id)
     Ok(JsonSerializer.projectJson(project))
   }
 
@@ -54,7 +67,7 @@ class WorkspaceApi  @Inject() () extends InjectedController {
     if (WorkspaceFactory().workspace.projects.exists(_.name.toString == project)) {
       ErrorResult(CONFLICT, "Conflict", s"Project with name '$project' already exists. Creation failed.")
     } else {
-      val projectConfig = ProjectConfig(project)
+      val projectConfig = ProjectConfig(project, metaData = MetaData(project).asNewMetaData)
       projectConfig.copy(projectResourceUriOpt = Some(projectConfig.generateDefaultUri))
       val newProject = WorkspaceFactory().workspace.createProject(projectConfig)
       Created(JsonSerializer.projectJson(newProject))
@@ -74,8 +87,12 @@ class WorkspaceApi  @Inject() () extends InjectedController {
     val clonedProjectUri = clonedProjectConfig.generateDefaultUri
     val clonedProject = workspace.createProject(clonedProjectConfig.copy(projectResourceUriOpt = Some(clonedProjectUri)))
     WorkspaceIO.copyResources(project.resources, clonedProject.resources)
+    // Clone task spec, since task specs may contain state, e.g. RDF file dataset
+    implicit val resourceManager: ResourceManager = project.resources
+    implicit val prefixes: Prefixes = project.config.prefixes
     for(task <- project.allTasks) {
-      clonedProject.addAnyTask(task.id, task.data)
+      val clonedTaskSpec = Try(task.data.withProperties(Map.empty)).getOrElse(task.data)
+      clonedProject.addAnyTask(task.id, clonedTaskSpec, task.metaData.asNewMetaData)
     }
 
     Ok
@@ -134,15 +151,18 @@ class WorkspaceApi  @Inject() () extends InjectedController {
     Ok
   }
 
-  def getResources(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  def getResources(projectName: String,
+                   searchText: Option[String],
+                   limit: Option[Int],
+                   offset: Option[Int]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val resourceRequest = ResourceSearchRequest(searchText, limit, offset)
     val project = WorkspaceFactory().workspace.project(projectName)
-
-    Ok(JsonSerializer.projectResources(project))
+    Ok(resourceRequest(project))
   }
 
   def getResourceMetadata(projectName: String, resourcePath: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    val resource = project.resources.getInPath(resourcePath, File.separatorChar)
+    val resource = project.resources.getInPath(resourcePath, File.separatorChar, mustExist = true)
 
     val pathPrefix = resourcePath.lastIndexOf(File.separatorChar) match {
       case -1 => ""
@@ -175,8 +195,7 @@ class WorkspaceApi  @Inject() () extends InjectedController {
         resource.writeBytes(Array[Byte]())
         NoContent
       case AnyContentAsRaw(buffer) =>
-        val bytes = buffer.asBytes().getOrElse(ByteString.empty)
-        resource.writeBytes(bytes.toArray)
+        resource.writeFile(buffer.asFile)
         NoContent
       case AnyContentAsText(txt) =>
         resource.writeString(txt)
@@ -218,10 +237,34 @@ class WorkspaceApi  @Inject() () extends InjectedController {
     }
   }
 
+  /** The list of tasks that use this resource. */
+  def resourceUsage(projectId: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = super[ControllerUtilsTrait].getProject(projectId)
+    val dependentTasks: Seq[TaskLinkInfo] = project.allTasks
+        .filter(_.referencedResources.map(_.name).contains(resourceName))
+        .map { task =>
+          TaskLinkInfo(task.id, task.taskLabel(Int.MaxValue), pluginApiCache.taskTypeByClass(task.taskType))
+        }
+    Ok(Json.toJson(dependentTasks))
+  }
+
   def deleteResource(projectName: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     project.resources.delete(resourceName)
     log.info(s"Deleted resource '$resourceName' in project '$projectName'. " + userContext.logInfo)
     NoContent
+  }
+
+  /** Updates the global vocabulary cache for a specific vocabulary */
+  def updateGlobalVocabularyCache(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>
+    implicit userContext =>
+      validateJson[UpdateGlobalVocabularyRequest] { updateRequest =>
+        GlobalVocabularyCache.putVocabularyInQueue(updateRequest.iri)
+        val activityControl = workspace.activity[GlobalVocabularyCache].control
+        if(!activityControl.status.get.exists(_.isRunning)) {
+          Try(activityControl.start())
+        }
+        NoContent
+      }
   }
 }

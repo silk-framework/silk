@@ -15,7 +15,7 @@ class SparqlUpdateEntityTable(entityTraversable: Traversable[Entity], val task: 
     new InterruptibleTraversable[Entity](entityTraversable)
   }
 
-  override def updateEntities(newEntities: Traversable[Entity]): LocalEntities = {
+  override def updateEntities(newEntities: Traversable[Entity], newSchema: EntitySchema): LocalEntities = {
     new SparqlUpdateEntityTable(newEntities, task)
   }
 }

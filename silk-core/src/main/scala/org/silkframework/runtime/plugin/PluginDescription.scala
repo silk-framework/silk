@@ -14,14 +14,17 @@
 
 package org.silkframework.runtime.plugin
 
-import java.lang.reflect.{Constructor, InvocationTargetException}
+import java.lang.reflect.{Constructor, InvocationTargetException, Type}
 
 import com.thoughtworks.paranamer.BytecodeReadingParanamer
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.dataset.DatasetSpec
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager, ResourceNotFoundException}
-import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.util.StringUtils._
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.WorkspaceReadTrait
 
 import scala.io.Source
 import scala.language.existentials
@@ -83,10 +86,15 @@ class PluginDescription[+T](val id: Identifier, val categories: Seq[String], val
       parameterValues.get(parameter.name) match {
         case Some(v) =>
           try {
-            parameter.dataType.fromString(v).asInstanceOf[AnyRef]
+            parameter.parameterType match {
+              case stringParam: StringParameterType[_] =>
+                stringParam.fromString(v).asInstanceOf[AnyRef]
+              case _: PluginObjectParameterTypeTrait =>
+                throw new RuntimeException(s"Plugin parameter '${parameter.name}' of plugin '$id' has no simple string representation, but is a complex object.") // TODO: What to do with that?
+            }
           } catch {
             case NonFatal(ex) =>
-              throw new InvalidPluginParameterValueException(label + " has an invalid value for parameter " + parameter.name + ". Value must be a valid " + parameter.dataType + ". Issue: " + ex.getMessage, ex)
+              throw new InvalidPluginParameterValueException(label + " has an invalid value for parameter " + parameter.name + ". Value must be a valid " + parameter.parameterType + ". Issue: " + ex.getMessage, ex)
           }
         case None if parameter.defaultValue.isDefined =>
           parameter.defaultValue.get
@@ -114,6 +122,14 @@ class PluginDescription[+T](val id: Identifier, val categories: Seq[String], val
  */
 object PluginDescription {
 
+  /** Returns a plugin description for a given task. */
+  def apply(task: Task[_ <: TaskSpec]): PluginDescription[_] = {
+    val pluginClass = task.data match {
+      case DatasetSpec(plugin, _) => plugin.getClass
+      case plugin: TaskSpec => plugin.getClass
+    }
+    apply(pluginClass)
+  }
   /**
     * Returns a plugin description for a given class.
     * If available, returns an already registered plugin description.
@@ -213,7 +229,7 @@ object PluginDescription {
 
       val label = pluginParam match {
         case Some(p) if p.label().nonEmpty => p.label()
-        case _ => parName.flatMap(c => if(c.isUpper) " " + c.toLower else c.toString)
+        case _ => parName.toSentenceCase
       }
 
       val (description, exampleValue) = pluginParam map { pluginParam =>
@@ -223,9 +239,72 @@ object PluginDescription {
 
       val advanced = pluginParam exists (_.advanced())
       val visible = pluginParam forall (_.visibleInDialog())
-
       val dataType = ParameterType.forType(parType)
-      Parameter(parName, dataType, label, description, defaultValue, exampleValue, advanced, visible)
+      val autoCompletion: Option[ParameterAutoCompletion] = pluginParam.flatMap(param => parameterAutoCompletion(parType, param))
+
+      Parameter(parName, dataType, label, description, defaultValue, exampleValue, advanced, visible, autoCompletion)
+    }
+  }
+
+  private def parameterAutoCompletion[T](dataType: Type,
+                                         pluginParam: Param): Option[ParameterAutoCompletion] = {
+    dataType match {
+      case _ if pluginParam.autoCompletionProvider() != classOf[NopPluginParameterAutoCompletionProvider] =>
+        Some(explicitParameterAutoCompletionProvider(pluginParam))
+      case enumClass: Class[_] if enumClass.isEnum =>
+        Some(enumParameterAutoCompletion(enumClass))
+      case _ =>
+          None
+    }
+  }
+
+  private def enumParameterAutoCompletion[T](enumClass: Class[_]): ParameterAutoCompletion = {
+    val withLabel = classOf[EnumerationParameterType].isAssignableFrom(enumClass)
+    ParameterAutoCompletion(
+      autoCompletionProvider = EnumPluginParameterAutoCompletionProvider(enumClass),
+      allowOnlyAutoCompletedValues = true,
+      autoCompleteValueWithLabels = withLabel
+    )
+  }
+
+  private def explicitParameterAutoCompletionProvider(pluginParam: Param): ParameterAutoCompletion = {
+    assert(pluginParam.autoCompletionProvider() != classOf[NopPluginParameterAutoCompletionProvider])
+    val autoCompletionProvider = PluginParameterAutoCompletionProvider.get(pluginParam.autoCompletionProvider())
+    val allowOnlyAutoCompletedValues = pluginParam.allowOnlyAutoCompletedValues()
+    val autoCompleteValueWithLabels = pluginParam.autoCompleteValueWithLabels()
+    val autoCompletionDependsOnParameters = pluginParam.autoCompletionDependsOnParameters()
+    ParameterAutoCompletion(
+      autoCompletionProvider = autoCompletionProvider,
+      allowOnlyAutoCompletedValues = allowOnlyAutoCompletedValues,
+      autoCompleteValueWithLabels = autoCompleteValueWithLabels,
+      autoCompletionDependsOnParameters = autoCompletionDependsOnParameters
+    )
+  }
+
+  case class EnumPluginParameterAutoCompletionProvider(enumClass: Class[_]) extends PluginParameterAutoCompletionProvider {
+    assert(enumClass.isEnum, "Trying to create enum plugin parameter auto completion provider with non-enum class: " + enumClass.getCanonicalName)
+    lazy val enumValues: Seq[AutoCompletionResult] = {
+      val method = enumClass.getDeclaredMethod("values")
+      val enumArray = method.invoke(null).asInstanceOf[Array[Enum[_]]]
+      enumArray.map {
+        case enumerationParameter: EnumerationParameterType => AutoCompletionResult(enumerationParameter.id, Some(enumerationParameter.displayName))
+        case enumValue: Enum[_] => AutoCompletionResult(enumValue.name(), None)
+      }
+    }
+    override def autoComplete(searchQuery: String,
+                                        projectId: String,
+                                        dependOnParameterValues: Seq[String],
+                                        workspace: WorkspaceReadTrait)
+                                       (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
+      filterResults(searchQuery, enumValues)
+    }
+
+    override def valueToLabel(projectId: String,
+                              value: String,
+                              dependOnParameterValues: Seq[String],
+                              workspace: WorkspaceReadTrait)
+                             (implicit userContext: UserContext): Option[String] = {
+      enumValues.find(_.value == value).flatMap(_.label)
     }
   }
 

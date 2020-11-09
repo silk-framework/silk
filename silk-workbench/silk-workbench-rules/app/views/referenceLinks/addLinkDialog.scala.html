@@ -29,8 +29,8 @@
   <script type="text/javascript">
   function submit() {
     var values = {
-      source: $("input[name='source']").val(),
-      target: $("input[name='target']").val(),
+      source: $("input[name='source']").val().trim(),
+      target: $("input[name='target']").val().trim(),
       type: $("select[name='linktype']").val()
     };
 

@@ -22,8 +22,8 @@ case class LinksTable(
     new LinkEntityIterator(links, entitySchema)
   }
 
-  override def updateEntities(newEntities: Traversable[Entity]): GenericEntityTable = {
-    new GenericEntityTable(newEntities, entitySchema, task)
+  override def updateEntities(newEntities: Traversable[Entity], newSchema: EntitySchema): GenericEntityTable = {
+    new GenericEntityTable(newEntities, newSchema, task)
   }
 }
 

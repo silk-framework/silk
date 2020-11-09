@@ -2,14 +2,16 @@ package org.silkframework.serialization.json
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.entity.{Entity, EntitySchema, Restriction, StringValueType, ValueType}
+import org.silkframework.entity.{Entity, EntitySchema, Restriction, ValueType}
 import org.silkframework.execution.EntityHolder
-import org.silkframework.serialization.json.JsonHelpers.{mustBeDefined, mustBeJsArray, numberValueOption, optionalValue, requiredValue, stringValue}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.serialization.json.JsonHelpers.{mustBeDefined, mustBeJsArray, requiredValue, stringValue}
 import org.silkframework.util.{DPair, Uri}
-import org.silkframework.workspace.activity.transform.CachedEntitySchemata
 import play.api.libs.json.{JsArray, JsString, JsValue, Json}
 
+/**
+  *
+  */
 object EntitySerializers {
 
   // TODO: Typed paths are not correctly serialized here, check where this serialization is consumed
@@ -47,12 +49,22 @@ object EntitySerializers {
     }
   }
 
-  implicit object CachedEntitySchemataJsonFormat extends WriteOnlyJsonFormat[CachedEntitySchemata] {
+  class PairJsonFormat[T](implicit dataFormat: JsonFormat[T]) extends JsonFormat[DPair[T]] {
 
-    override def write(value: CachedEntitySchemata)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+    private val SOURCE = "source"
+    private val TARGET = "target"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): DPair[T] = {
+      DPair[T](
+        source = dataFormat.read(mustBeDefined(value, SOURCE)),
+        target = dataFormat.read(mustBeDefined(value, TARGET))
+      )
+    }
+
+    override def write(value: DPair[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
-        "configured" -> EntitySchemaJsonFormat.write(value.configuredSchema),
-        "untyped" -> value.untypedSchema.map(EntitySchemaJsonFormat.write)
+        SOURCE -> dataFormat.write(value.source),
+        TARGET -> dataFormat.write(value.target)
       )
     }
   }

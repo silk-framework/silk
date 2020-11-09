@@ -5,6 +5,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFo
 import org.silkframework.util.Identifier
 
 import scala.language.implicitConversions
+import scala.reflect.ClassTag
 import scala.xml._
 
 /**
@@ -23,6 +24,11 @@ trait Task[+TaskType <: TaskSpec] {
   def metaData: MetaData
 
   /**
+    * Type of task data.
+    */
+  def taskType: Class[_]
+
+  /**
     * Returns this task as a [[Task]]. For some reason the type inference mechanism of Scala is not able
     * to infer that this is a Task[TaskType] for implicits if this is a subclass of [[Task]] So this conversion must be done there.
     */
@@ -36,6 +42,9 @@ trait Task[+TaskType <: TaskSpec] {
   def findDependentTasks(recursive: Boolean)
                         (implicit userContext: UserContext): Set[Identifier] = Set.empty
 
+  /** Find tasks that are either input or output to this task. */
+  def findRelatedTasksInsideWorkflows()(implicit userContext: UserContext): Set[Identifier] = Set.empty
+
   /**
     * Returns the label if defined or the task ID. Truncates the label to maxLength characters.
     * @param maxLength the max length in characters
@@ -44,7 +53,7 @@ trait Task[+TaskType <: TaskSpec] {
     metaData.formattedLabel(id, maxLength)
   }
 
-  override def equals(obj: scala.Any) = obj match {
+  override def equals(obj: scala.Any): Boolean = obj match {
     case task: Task[_] =>
       id == task.id &&
       data == task.data &&
@@ -54,10 +63,14 @@ trait Task[+TaskType <: TaskSpec] {
   }
 }
 
-case class PlainTask[+TaskType <: TaskSpec](id: Identifier, data: TaskType, metaData: MetaData = MetaData.empty) extends Task[TaskType]
+case class PlainTask[+TaskType <: TaskSpec : ClassTag](id: Identifier, data: TaskType, metaData: MetaData = MetaData.empty) extends Task[TaskType] {
+
+  override def taskType: Class[_] = implicitly[ClassTag[TaskType]].runtimeClass
+
+}
 
 object PlainTask {
-  def fromTask[T <: TaskSpec](task: Task[T]): PlainTask[T] = {
+  def fromTask[T <: TaskSpec : ClassTag](task: Task[T]): PlainTask[T] = {
     PlainTask(task.id, task.data, task.metaData)
   }
 }
@@ -74,7 +87,7 @@ object Task {
     *
     * @param xmlFormat The xml serialization format for type T.
     */
-  implicit def taskFormat[T <: TaskSpec](implicit xmlFormat: XmlFormat[T]): XmlFormat[Task[T]] = new TaskFormat[T]
+  implicit def taskFormat[T <: TaskSpec : ClassTag](implicit xmlFormat: XmlFormat[T]): XmlFormat[Task[T]] = new TaskFormat[T]
 
   /**
     * Enables pattern matching over tasks.
@@ -86,7 +99,7 @@ object Task {
   /**
     * XML serialization format.
     */
-  class TaskFormat[T <: TaskSpec](implicit xmlFormat: XmlFormat[T]) extends XmlFormat[Task[T]] {
+  class TaskFormat[T <: TaskSpec : ClassTag](implicit xmlFormat: XmlFormat[T]) extends XmlFormat[Task[T]] {
 
     import XmlSerialization._
 

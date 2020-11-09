@@ -28,7 +28,7 @@ class JsonMetadataTest extends FlatSpec with Matchers {
 
   val TestSerializerCategoryName = "pair_test_metadata"
 
-  val entity1 = Entity("http://silk-framework.com/example", IndexedSeq(Seq("value1", "value2"), Seq("value3")), schema, IndexedSeq.empty, metadata)
+  val entity1 = Entity("http://silk-framework.com/example", IndexedSeq(Seq("value1", "value2"), Seq("value3")), schema, metadata)
   val entity2 = Entity("http://silk-framework.com/example", IndexedSeq(Seq("dÃ©clarÃ©s", "v2"), Seq("v3")), schema)
 
   val serializer = new JsonMetadataSerializer[DPair[String]] {

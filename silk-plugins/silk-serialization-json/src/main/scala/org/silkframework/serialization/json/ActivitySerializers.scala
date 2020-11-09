@@ -11,6 +11,7 @@ object ActivitySerializers {
   implicit object StatusJsonFormat extends JsonFormat[Status] {
 
     private final val STATUS_NAME = "statusName"
+    final val CONCRETE_STATUS = "concreteStatus"
     private final val IS_RUNNING = "isRunning"
     private final val PROGRESS = "progress"
     private final val MESSAGE = "message"
@@ -30,6 +31,7 @@ object ActivitySerializers {
       val basicParameters =
         JsObject(
           (STATUS_NAME -> JsString(status.name)) ::
+          (CONCRETE_STATUS -> JsString(status.concreteStatus)) ::
           (IS_RUNNING -> JsBoolean(status.isRunning)) ::
           (PROGRESS -> status.progress.map(p => JsNumber(p * 100.0)).getOrElse(JsNull)) ::
           (MESSAGE -> JsString(status.toString)) ::
@@ -79,7 +81,7 @@ object ActivitySerializers {
   class ExtendedStatusJsonFormat(project: String, task: String, activity: String, startTime: Option[Long]) extends WriteOnlyJsonFormat[Status] {
 
     def this(activity: WorkspaceActivity[_]) = {
-      this(activity.project.name, activity.taskOption.map(_.id.toString).getOrElse(""), activity.name, activity.startTime)
+      this(activity.projectOpt.map(_.name.toString).getOrElse(""), activity.taskOption.map(_.id.toString).getOrElse(""), activity.name, activity.startTime)
     }
 
     override def write(status: Status)(implicit writeContext: WriteContext[JsValue]): JsValue = {

@@ -2,6 +2,7 @@
 @import controllers.core.routes.Branding
 
 @import org.silkframework.runtime.activity.UserContext
+@import org.silkframework.config.ProductionConfig
 @(welcome: Html)(implicit session: play.api.mvc.Session, userContext: UserContext)
 
 @exampleName = @{ "movies" }
@@ -30,6 +31,14 @@
       <button id="open-workspace-btn" class="mdl-button mdl-js-button mdl-button--raised" onclick="window.location = '@config.baseUrl/workspace'">Open Workspace</button>
       @if(!projects.exists(_.name == exampleName)) {
         <button id="start-load-example" class="mdl-button mdl-js-button mdl-button--raised" onclick="loadExample()" style="margin-left: 5px;">Load Example</button>
+      }
+      @if(ProductionConfig.betaWorkspaceSwitchEnabled) {
+        <span>
+          <a id="beta-workspace-switch" href="@config.baseUrl/workbench" class="mdl-button mdl-js-button mdl-button--raised">New workspace UI</a>
+          <div class="mdl-tooltip" data-mdl-for="beta-workspace-switch">
+            Switch to the beta version of the new workspace user interface.
+          </div>
+        </span>
       }
 
       <script type="text/javascript">

@@ -1,5 +1,8 @@
 GET        /               controllers.Workbench.index
 
+GET        /workbench     controllers.Workbench.reactUIRoot()
+GET        /workbench/*x  controllers.Workbench.reactUI(x: String)
+
 # Redirect call to individual modules
 ->         /core           core.Routes
 ->         /workspace      workspace.Routes
@@ -7,3 +10,4 @@ GET        /               controllers.Workbench.index
 ->         /linking        linking.Routes
 ->         /transform      transform.Routes
 ->         /workflow       workflow.Routes
+->         /api            api.Routes

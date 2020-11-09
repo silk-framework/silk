@@ -18,7 +18,7 @@ import org.silkframework.rule.LinkSpec.LinkSpecificationFormat
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformRule.TransformRuleFormat
-import org.silkframework.rule.TransformSpec.{TransformSpecFormat, TransformTaskXmlFormat}
+import org.silkframework.rule.TransformSpec.{TargetVocabularyParameterType, TransformSpecFormat, TransformTaskXmlFormat}
 import org.silkframework.rule.plugins.aggegrator._
 import org.silkframework.rule.plugins.distance.characterbased._
 import org.silkframework.rule.plugins.distance.equality._
@@ -40,6 +40,7 @@ import org.silkframework.rule.plugins.transformer.substring._
 import org.silkframework.rule.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
 import org.silkframework.rule.plugins.transformer.validation._
 import org.silkframework.rule.plugins.transformer.value._
+import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.plugin.PluginModule
 
 import scala.language.existentials
@@ -49,9 +50,10 @@ import scala.language.existentials
   */
 class RulePlugins extends PluginModule {
 
-  override def pluginClasses = transformers ++ measures ++ aggregators ++ serializers
+  override def pluginClasses: List[Class[_]] = classOf[LinkSpec] :: classOf[TransformSpec] ::
+      transformers ++ measures ++ aggregators ++ serializers ++ pluginParameterTypes
 
-  private def transformers =
+  private def transformers: List[Class[_]] =
         classOf[RemoveDuplicates] ::
         classOf[ReplaceTransformer] ::
         classOf[RegexReplaceTransformer] ::
@@ -73,7 +75,6 @@ class RulePlugins extends PluginModule {
         classOf[RemoveSpecialCharsTransformer] ::
         classOf[ConvertCharsetTransformer] ::
         classOf[RemoveValues] ::
-        classOf[RemoveStopwords] ::
         classOf[RemoveRemoteStopwords] ::
         classOf[RemoveEmptyValues] ::
         classOf[RemoveParentheses] ::
@@ -95,7 +96,6 @@ class RulePlugins extends PluginModule {
         classOf[ConstantUriTransformer] ::
         classOf[RandomNumberTransformer] ::
         classOf[EmptyValueTransformer] ::
-        classOf[ReadParameter] ::
         classOf[GenerateUUID] ::
         // Conditional
         classOf[IfContains] ::
@@ -137,7 +137,7 @@ class RulePlugins extends PluginModule {
         classOf[RegexSelectTransformer] ::
         Nil
 
-  private def measures =
+  private def measures: List[Class[_]] =
     classOf[LevenshteinMetric] ::
         classOf[LevenshteinDistance] ::
         classOf[JaroDistanceMetric] ::
@@ -165,15 +165,16 @@ class RulePlugins extends PluginModule {
         classOf[NumericEqualityMetric] ::
         Nil
 
-  private def aggregators =
+  private def aggregators: List[Class[_]] =
     classOf[AverageAggregator] ::
-        classOf[MaximumAggregator] ::
-        classOf[MinimumAggregator] ::
-        classOf[QuadraticMeanAggregator] ::
-        classOf[GeometricMeanAggregator] ::
-      classOf[NegationAggregator] :: Nil
+    classOf[MaximumAggregator] ::
+    classOf[MinimumAggregator] ::
+    classOf[QuadraticMeanAggregator] ::
+    classOf[GeometricMeanAggregator] ::
+    classOf[NegationAggregator] ::
+    classOf[ScalingAggregator] :: Nil
 
-  private def serializers =
+  private def serializers: List[Class[_]] =
     TransformSpecFormat.getClass ::
     TransformTaskXmlFormat.getClass ::
     TransformRuleFormat.getClass ::
@@ -181,4 +182,9 @@ class RulePlugins extends PluginModule {
     RootMappingRuleFormat.getClass ::
     LinkSpecificationFormat.getClass ::
     Nil
+
+  private def pluginParameterTypes: List[Class[_]] =
+    classOf[DatasetSelection] ::
+        classOf[TargetVocabularyParameterType] ::
+        Nil
 }

@@ -10,7 +10,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "getValueByIndex",
   categories = Array("Sequence"),
-  label = "get value by index",
+  label = "Get value by index",
   description =
     """Returns the value found at the specified index. Fails or returns an empty result depending on failIfNoFound is set or not.
        Please be aware that this will work only if the data source supports some kind of ordering like XML or JSON. This

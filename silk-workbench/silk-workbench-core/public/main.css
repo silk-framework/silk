@@ -315,3 +315,7 @@ div#newproject {
 .mdl-tabs__tab-bar.safe-mode-disabled {
     border-top: 4px solid red;
 }
+
+#beta-workspace-switch {
+    margin-left: 5px;
+}

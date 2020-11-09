@@ -4,12 +4,13 @@ import java.io._
 import java.util.logging.Logger
 
 import akka.stream.scaladsl.Source
+import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.workspace.ProjectMarshalingApi._
 import javax.inject.Inject
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.workspace.xml.XmlZipProjectMarshaling
+import org.silkframework.workspace.xml.XmlZipWithResourcesProjectMarshaling
 import org.silkframework.workspace.{ProjectMarshallerRegistry, ProjectMarshallingTrait, WorkspaceFactory}
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.streams.IterateeStreams
@@ -18,7 +19,7 @@ import play.api.mvc._
 
 import scala.concurrent.ExecutionContext
 
-class ProjectMarshalingApi @Inject() () extends InjectedController{
+class ProjectMarshalingApi @Inject() () extends InjectedController with ControllerUtilsTrait {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
@@ -29,7 +30,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController{
     Ok(JsArray(marshaller.map(JsonSerializer.marshaller)))
   }
 
-  def importProject(project: String): Action[AnyContent] = importProjectViaPlugin(project, XmlZipProjectMarshaling.marshallerId)
+  def importProject(project: String): Action[AnyContent] = importProjectViaPlugin(project, XmlZipWithResourcesProjectMarshaling.marshallerId)
 
   /**
     * importProject variant with explicit marshaller parameter
@@ -46,7 +47,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController{
     }
   }
 
-  def exportProject(projectName: String): Action[AnyContent] = exportProjectViaPlugin(projectName, XmlZipProjectMarshaling.marshallerId)
+  def exportProject(projectName: String): Action[AnyContent] = exportProjectViaPlugin(projectName, XmlZipWithResourcesProjectMarshaling.marshallerId)
 
   def exportProjectViaPlugin(projectName: String, marshallerPluginId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     withMarshaller(marshallerPluginId) { marshaller =>
@@ -59,8 +60,6 @@ class ProjectMarshalingApi @Inject() () extends InjectedController{
       Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(enumerator))).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
     }
   }
-
-
 
   def importWorkspaceViaPlugin(marshallerId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     WorkspaceFactory().workspace.clear()
@@ -86,7 +85,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController{
     }
   }
 
-  private def withMarshaller(marshallerId: String)(f: ProjectMarshallingTrait => Result): Result = {
+  def withMarshaller[T](marshallerId: String)(f: ProjectMarshallingTrait => T): T = {
     marshallerById(marshallerId) match {
       case Some(marshaller) =>
         f(marshaller)
@@ -113,7 +112,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController{
     Enumerator.fromStream(pipedInputStream)(exportExecutionContext)
   }
 
-  private def bodyAsFile(implicit request: Request[AnyContent]): File = {
+  def bodyAsFile(implicit request: Request[AnyContent]): File = {
     request.body match {
       case AnyContentAsMultipartFormData(formData) if formData.files.size == 1 =>
         formData.files.head.ref.path.toFile

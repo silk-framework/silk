@@ -25,23 +25,12 @@
                     class="mdl-button mdl-js-button mdl-button--icon">
               <i class="material-icons">more_vert</i>
             </button>
-            <script type="text/javascript">
-               function app_logout() {
-                  f=document.getElementById('logout_form');
-                  if(f) {
-                    f.submit();
-                  }
-               }
-            </script>
-            <form id="logout_form" action="@{Start.deployPath + "logout"}" method="post">
-              <input type="hidden" value="Logout" />
-            </form>
             <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
                 for="app-actions">
               <li class="mdl-menu__item" onclick="showDialog('@config.baseUrl/core/aboutDialog');">About</li>
               <li class="mdl-menu__item" onclick="window.location='@config.baseUrl/core/config'">Configuration</li>
               @if(WorkbenchConfig.get.showLogoutButton && session.get("loggedIn")==Some("true")) {
-                <li class="mdl-menu__item" onclick="app_logout();">Logout</li>
+                <li class="mdl-menu__item" onclick="window.location.pathname = '@config.baseUrl/logout'">Logout</li>
               }
             </ul>
         </div>

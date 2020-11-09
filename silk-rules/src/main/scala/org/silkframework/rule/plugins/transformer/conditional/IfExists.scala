@@ -5,7 +5,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, T
 
 @Plugin(
   id = "ifExists",
-  label = "if exists",
+  label = "If exists",
   categories = Array("Conditional"),
   description = "Accepts two or three inputs. If the first input provides a value, the second input is forwarded. Otherwise, the third input is forwarded (if present)."
 )

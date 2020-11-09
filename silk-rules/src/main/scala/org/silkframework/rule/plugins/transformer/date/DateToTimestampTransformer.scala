@@ -29,7 +29,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   id = "datetoTimestamp",
   categories = Array("Date"),
   label = "Date to timestamp",
-  description = "Convert an xsd:date to a Unix timestamp"
+  description = "Convert an xsd:date to a Unix timestamp."
 )
 case class DateToTimestampTransformer() extends SimpleTransformer {
 

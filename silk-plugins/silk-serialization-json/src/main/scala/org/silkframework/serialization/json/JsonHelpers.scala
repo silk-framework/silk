@@ -1,14 +1,17 @@
 package org.silkframework.serialization.json
 
-import org.silkframework.config.MetaData
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.serialization.json.JsonSerializers.{ID, METADATA, MetaDataJsonFormat}
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.Identifier
 import play.api.libs.json._
 
+/**
+  * Helper methods for handling (Play) JSON.
+  */
 object JsonHelpers {
+
+  final val ID = "id"
 
   def mustBeDefined(value: JsValue, attributeName: String): JsValue = {
     (value \ attributeName).toOption.
@@ -28,6 +31,23 @@ object JsonHelpers {
       case null => null.asInstanceOf[T]             //valid array representation
       case jsArray: JsArray => block(jsArray)
       case _ => throw JsonParseException("Error while parsing. JSON value is not a JSON array!")
+    }
+  }
+
+  // Expects either a JSON array or Null.
+  def mustBeOptionalJsArray[T](jsValue: JsValue)(block: Option[JsArray] => T): T = {
+    jsValue match {
+      case null => block(None) //valid array representation
+      case jsArray: JsArray => block(Some(jsArray))
+      case JsNull => block(None)
+      case _ => throw JsonParseException("Error while parsing. JSON value is not a JSON array nor Null!")
+    }
+  }
+
+  def mustBeOptionalJsArray[T](jsLookupResult: JsLookupResult)(block: Option[JsArray] => T): T = {
+    jsLookupResult match {
+      case JsDefined(value) => mustBeOptionalJsArray(value)(block)
+      case _: JsUndefined => block(None)
     }
   }
 
@@ -53,6 +73,8 @@ object JsonHelpers {
     requiredValue(json, attributeName) match {
       case JsNumber(value) =>
         value
+      case JsString(value) =>
+        BigDecimal(value)
       case _ =>
         throw JsonParseException("Attribute '" + attributeName + "' must be a number!")
     }
@@ -84,6 +106,8 @@ object JsonHelpers {
     optionalValue(json, attributeName) match {
       case Some(JsNumber(value)) =>
         Some(value)
+      case Some(JsString(value)) =>
+        Some(BigDecimal(value))
       case Some(_) =>
         throw JsonParseException("Value for attribute '" + attributeName + "' is not a number!")
       case None =>
@@ -99,6 +123,22 @@ object JsonHelpers {
         throw JsonParseException("Value for attribute '" + attributeName + "' is not a JSON array!")
       case None =>
         None
+    }
+  }
+
+  def arrayValue(json: JsValue, attributeName: String): JsArray = {
+    requiredValue(json, attributeName) match {
+      case array: JsArray => array
+      case _ =>
+        throw JsonParseException("Value for attribute '" + attributeName + "' is not a JSON array!")
+    }
+  }
+
+  def objectValue(json: JsValue, attributeName: String): JsObject = {
+    requiredValue(json, attributeName) match {
+      case jsObject: JsObject => jsObject
+      case _ =>
+        throw JsonParseException("Value for attribute '" + attributeName + "' is not a JSON object!")
     }
   }
 
@@ -134,19 +174,14 @@ object JsonHelpers {
     }
   }
 
-  /**
-    * Reads meta data.
-    *
-    * @param json The json to read the meta data from.
-    * @param identifier If no label is provided in the json, use this identifier to generate a label.
-    */
-  def metaData(json: JsValue, identifier: String)(implicit readContext: ReadContext): MetaData = {
-    optionalValue(json, METADATA) match {
-      case Some(metaDataJson) =>
-        MetaDataJsonFormat.read(metaDataJson, identifier)
-      case None =>
-        MetaData(MetaData.labelFromId(identifier))
+  /** Returns the parsed object or throws a JsonParseException. */
+  def fromJsonValidated[T](json: JsValue)
+                          (implicit reads: Reads[T]): T = {
+    Json.fromJson[T](json) match {
+      case JsSuccess(obj, _) =>
+        obj
+      case JsError(errors) =>
+        throw JsonParseException("JSON parse error. Details: " + JsError.toJson(errors).toString())
     }
   }
-
 }
