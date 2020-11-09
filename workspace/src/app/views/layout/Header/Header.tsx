@@ -114,7 +114,6 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
 
     // Update item links for more menu
     useEffect(() => {
-        getWindowTitle(projectId);
         if (projectId && taskId) {
             getItemLinks();
         } else {
@@ -122,12 +121,16 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
         }
     }, [projectId, taskId]);
 
+    // Set window title
+    useEffect(() => {
+        getWindowTitle(projectId);
+    }, [projectId, taskId, lastBreadcrumb ? lastBreadcrumb.href : ""]);
+
     const updateItemType = async (pageLabels: IPageLabels, locationPathName: string) => {
         if (projectId && taskId) {
             try {
                 const response = await requestTaskItemInfo(projectId, taskId);
                 const itemType = response.data.itemType.id;
-                pageLabels.itemType = itemType;
                 if (window.location.pathname === locationPathName) {
                     setItemType(itemType);
                 }

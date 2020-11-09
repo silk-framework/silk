@@ -101,7 +101,11 @@ export function RecentlyViewedModal() {
             ? item.projectLabel
             : item.projectId;
         return (
-            <OverviewItem hasSpacing style={active ? { backgroundColor: "#0a67a3", color: "#fff" } : undefined}>
+            <OverviewItem
+                key={item.projectId + item.taskId}
+                hasSpacing
+                style={active ? { backgroundColor: "#0a67a3", color: "#fff" } : undefined}
+            >
                 <OverviewItemDepiction>
                     <ItemDepiction itemType={item.itemType} pluginId={item.pluginId} />
                 </OverviewItemDepiction>
