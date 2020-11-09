@@ -247,6 +247,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                                         icon={link.icon}
                                         text={t("navigation.side.dm." + link.path, link.defaultLabel)}
                                         href={dmBaseUrl + "/" + link.path}
+                                        key={link.path}
                                     />
                                 ))
                             ) : (

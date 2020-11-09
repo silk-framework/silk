@@ -36,10 +36,10 @@ export default function App({ externalRoutes, routes }: IProps) {
                         <ApplicationContent isApplicationSidebarExpanded={isSideNavExpanded}>
                             <RouterOutlet routes={routes} />
                         </ApplicationContent>
-                        <RecentlyViewedModal />
                     </>
                 )}
             />
+            <RecentlyViewedModal />
         </ConnectedRouter>
     );
 }
