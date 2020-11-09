@@ -939,25 +939,25 @@ object JsonSerializers {
     }
 
     override def write(value: LinkSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      var jsObject = Json.obj(
-        TASKTYPE -> TASK_TYPE_LINKING,
-        TYPE -> "linking",
-        PARAMETERS -> Json.obj(
-          SOURCE -> toJson(value.dataSelections.source),
-          TARGET -> toJson(value.dataSelections.target),
-          RULE -> toJson(value.rule),
-          OUTPUT -> JsString(value.output.map(_.toString).getOrElse("")),
-          REFERENCE_LINKS -> toJson(value.referenceLinks),
-          LINK_LIMIT -> JsString(value.linkLimit.toString),
-          MATCHING_EXECUTION_TIMEOUT -> JsString(value.matchingExecutionTimeout.toString)
-        )
+      var parameters = Json.obj(
+        SOURCE -> toJson(value.dataSelections.source),
+        TARGET -> toJson(value.dataSelections.target),
+        RULE -> toJson(value.rule),
+        OUTPUT -> JsString(value.output.map(_.toString).getOrElse("")),
+        REFERENCE_LINKS -> toJson(value.referenceLinks),
+        LINK_LIMIT -> JsString(value.linkLimit.toString),
+        MATCHING_EXECUTION_TIMEOUT -> JsString(value.matchingExecutionTimeout.toString)
       )
 
       for(data <- value.applicationData) {
-        jsObject += (APPLICATION_DATA -> JsString(data))
+        parameters += (APPLICATION_DATA -> JsString(data))
       }
 
-      jsObject
+      Json.obj(
+        TASKTYPE -> TASK_TYPE_LINKING,
+        TYPE -> "linking",
+        PARAMETERS -> parameters
+      )
     }
   }
 
