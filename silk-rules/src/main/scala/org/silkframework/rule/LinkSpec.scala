@@ -35,7 +35,7 @@ import org.silkframework.util._
 import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
 
 import scala.collection.mutable
-import scala.xml.Node
+import scala.xml.{Node, NodeSeq}
 
 /**
  * Represents a Silk Link Specification.
