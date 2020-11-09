@@ -182,7 +182,7 @@ object StringParameterType {
   private val allStaticTypes: Seq[StringParameterType[_]] = {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, UriType, ResourceType,
       WritableResourceType, ResourceOptionType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType, LongType,
-      PasswordParameterType, IdentifierType, IdentifierOptionType, StringTraversableParameterType, RestrictionType)
+      PasswordParameterType, IdentifierType, IdentifierOptionType, StringTraversableParameterType, RestrictionType, StringOptionType)
   }
 
   /**
@@ -321,6 +321,25 @@ object StringParameterType {
 
     override def toString(value: IntOptionParameter)(implicit prefixes: Prefixes): String = {
       value.value.map(_.toString).getOrElse("")
+    }
+  }
+
+  object StringOptionType extends StringParameterType[StringOptionParameter] {
+
+    override def name: String = "option[string]"
+
+    override def description: String = "An optional non-empty string"
+
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): StringOptionParameter = {
+      if(str.isEmpty) {
+        StringOptionParameter(None)
+      } else {
+        StringOptionParameter(Some(str))
+      }
+    }
+
+    override def toString(value: StringOptionParameter)(implicit prefixes: Prefixes): String = {
+      value.getOrElse("")
     }
   }
 

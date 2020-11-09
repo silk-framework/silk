@@ -25,7 +25,7 @@ import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.IdentifierOptionParameter
+import org.silkframework.runtime.plugin.{IdentifierOptionParameter, StringOptionParameter}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
@@ -64,7 +64,9 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
                     @Param(label = "Matching timeout", value = "The timeout for the matching phase. If the matching takes longer the execution will be stopped.",
                       advanced = true)
                     matchingExecutionTimeout: Int = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS,
-                    applicationData: Option[String] = None) extends TaskSpec {
+                    @Param(value = "Additional data that is set by the application managing the linking task.",
+                      visibleInDialog = false)
+                    applicationData: StringOptionParameter = None) extends TaskSpec {
 
   assert(linkLimit >= 0, "The link limit must be greater equal 0!")
   assert(matchingExecutionTimeout >= 0, "The matching execution timeout must be greater equal 0!")
