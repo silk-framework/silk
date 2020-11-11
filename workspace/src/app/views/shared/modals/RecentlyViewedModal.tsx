@@ -109,10 +109,12 @@ export function RecentlyViewedModal() {
                 <OverviewItemDepiction>
                     <ItemDepiction itemType={item.itemType} pluginId={item.pluginId} />
                 </OverviewItemDepiction>
-                <OverviewItemDescription>
+                <OverviewItemDescription style={{ width: "50vw" }}>
                     <OverviewItemLine>
                         <h4>
-                            <Highlighter label={label} searchValue={query} />
+                            <OverflowText inline={true} ellipsis={"reverse"}>
+                                <Highlighter label={label} searchValue={query} />
+                            </OverflowText>
                         </h4>
                     </OverviewItemLine>
                     {item.taskId && (
