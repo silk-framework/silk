@@ -112,7 +112,7 @@ export function RecentlyViewedModal() {
                 <OverviewItemDescription style={{ width: "50vw" }}>
                     <OverviewItemLine>
                         <h4>
-                            <OverflowText inline={true} ellipsis={"reverse"}>
+                            <OverflowText inline={true} style={{ width: "100vw" }}>
                                 <Highlighter label={label} searchValue={query} />
                             </OverflowText>
                         </h4>
