@@ -109,7 +109,7 @@ export function RecentlyViewedModal() {
                 <OverviewItemDepiction>
                     <ItemDepiction itemType={item.itemType} pluginId={item.pluginId} />
                 </OverviewItemDepiction>
-                <OverviewItemDescription style={{ width: "50vw" }}>
+                <OverviewItemDescription style={{ maxWidth: "50vw" }}>
                     <OverviewItemLine>
                         <h4>
                             <OverflowText inline={true} style={{ width: "100vw" }}>
