@@ -93,10 +93,10 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
         const arr = [];
 
         rows.forEach((row) => {
-            const {source, target} = row;
+            const {source, candidates} = row;
 
             // add _selected field for each target
-            const modifiedTarget = target.map(targetItem => ({
+            const modifiedTarget = candidates.map(targetItem => ({
                 ...targetItem,
                 _selected: false
             }));
@@ -104,14 +104,13 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
             // store modified source,target
             const modifiedRow: IPageSuggestion = {
                 source,
-                target: modifiedTarget
+                candidates: modifiedTarget
             };
 
             // keep changes for selected items only after swap action
             if (selectedSources.includes(source)) {
-                modifiedRow.target = modifiedRow.target.map(targetItem => {
+                modifiedRow.candidates = modifiedRow.candidates.map(targetItem => {
                     const {uri, type, confidence} = targetItem;
-                    console.log(sourceToTargetMap[source], uri);
                     return {
                         uri,
                         confidence,
@@ -121,9 +120,9 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
                 })
             }
             // in case nothing selected, then select first item
-            const someSelected = modifiedRow.target.some(t => t._selected);
+            const someSelected = modifiedRow.candidates.some(t => t._selected);
             if (!someSelected) {
-                modifiedRow.target[0]._selected = true;
+                modifiedRow.candidates[0]._selected = true;
             }
 
             arr.push(modifiedRow);
@@ -175,7 +174,7 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
                 case FILTER_ACTIONS.SHOW_OBJECT_MAPPINGS: {
                     const type = filter === FILTER_ACTIONS.SHOW_VALUE_MAPPINGS ? 'value' : 'object';
                     pageItems = pageItems.filter(
-                        row => row.target.every(t => t.type === type)
+                        row => row.candidates.every(t => t.type === type)
                     );
                     break;
                 }
@@ -193,7 +192,7 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
         return _.orderBy(rows, sortDirections.column, direction);
     };
 
-    const toggleRowSelect = ({source, target}: IPageSuggestion) => {
+    const toggleRowSelect = ({source, candidates}: IPageSuggestion) => {
         const selectedRow = selectedSources.find(selected => selected === source);
         if (selectedRow) {
             setSelectedSources(
@@ -204,7 +203,7 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
                 ...prevState,
                 source,
             ]));
-            updateRelations(source, target);
+            updateRelations(source, candidates);
         }
     };
 
@@ -216,7 +215,7 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
         } else {
             setSelectedSources(
                 pageRows.map(row => {
-                    updateRelations(row.source, row.target);
+                    updateRelations(row.source, row.candidates);
                     return row.source;
                 })
             );
@@ -234,7 +233,7 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
         const addedRows = selectedSources.map(source => {
             const found = allRows.find(row => row.source === source);
             if (found) {
-                const target = found.target.find(t => t._selected);
+                const target = found.candidates.find(t => t._selected);
                 return {
                     source,
                     targetUri: target.uri,
@@ -288,7 +287,7 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
         const targetsAsSelected = selectedSources.map(source => {
             const found = allRows.find(row => row.source === source);
             if (found) {
-                const {uri} = found.target.find(t => t._selected);
+                const {uri} = found.candidates.find(t => t._selected);
                 return uri;
             }
         });
@@ -323,7 +322,7 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
         if (ind > -1) {
             updateRelations(row.source, targets);
 
-            _allRows[ind].target = targets;
+            _allRows[ind].candidates = targets;
 
             setAllRows(_allRows);
         }

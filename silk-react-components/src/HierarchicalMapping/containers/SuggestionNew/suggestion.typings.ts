@@ -12,22 +12,24 @@ export interface IAddedSuggestion {
     type: SuggestionTypeValues;
 }
 
-export interface ITargetWithSelected extends ISuggestionTarget {
+export interface ITargetWithSelected extends ISuggestionCandidate {
     // indicate selected target
     _selected: boolean;
 }
 
 export interface IPageSuggestion extends ITransformedSuggestion {
     // modified target element
-    target: ITargetWithSelected[]
+    candidates: ITargetWithSelected[]
 }
 
-export interface ISuggestionTarget {
+export interface ISuggestionCandidate {
     // the suggestion type, can be 'object' or 'value'
     type: SuggestionTypeValues;
 
     // the target uri
     uri: string;
+
+    description?: string;
 
     // the confidence number, this also shows ordering
     confidence: number;
@@ -38,7 +40,7 @@ export interface ITransformedSuggestion {
     source: string;
 
     // targets array
-    target: ISuggestionTarget[];
+    candidates: ISuggestionCandidate[];
 }
 
 export interface IPlainObject {

@@ -19,9 +19,6 @@ export default function SuggestionHeader({ onSearch }) {
                     <TableToolbarAction primaryFocus onClick={() => {}}>
                         Set prefix for autosuggestion
                     </TableToolbarAction>
-                    <TableToolbarAction onClick={() => {}}>
-                        Recalculate matches
-                    </TableToolbarAction>
                 </TableToolbarMenu>
             </TableToolbarContent>
         </TableToolbar>

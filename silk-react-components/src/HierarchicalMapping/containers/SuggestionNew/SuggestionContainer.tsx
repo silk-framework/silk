@@ -104,7 +104,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     };
 
     const handleFilter = () => {
-        const filtered = data.filter(o => o.source.includes(search) || o.target.some(t => t.uri.includes(search) || t.type.includes(search)));
+        const filtered = data.filter(o => o.source.includes(search) || o.candidates.some(t => t.uri.includes(search) || t.type.includes(search)));
         setFilteredData(filtered);
     };
 

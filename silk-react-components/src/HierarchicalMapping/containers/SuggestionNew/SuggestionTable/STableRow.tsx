@@ -5,10 +5,10 @@ import { SuggestionTypeValues } from "../suggestion.typings";
 import { Checkbox, TableCell, TableRow, } from "@gui-elements/index";
 
 export default function STableRow({row, onRowSelect, selected, onModifyTarget}) {
-    const {source, target} = row;
+    const {source, candidates} = row;
 
     const handleModifyTarget = (uri: string, type?: SuggestionTypeValues) => {
-        const modified = target.map(target => {
+        const modified = candidates.map(target => {
             const isSelected = uri === target.uri;
 
             return {
@@ -21,7 +21,7 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
         onModifyTarget(modified);
     };
 
-    const selectedTarget = target.find(t => t._selected);
+    const selectedTarget = candidates.find(t => t._selected);
     const selectedType = selectedTarget ? selectedTarget.type : 'value';
 
     return <TableRow>
@@ -39,7 +39,7 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
         </TableCell>
         <TableCell>
             <TargetList
-                targets={target}
+                targets={candidates}
                 onChange={handleModifyTarget}
             />
         </TableCell>
