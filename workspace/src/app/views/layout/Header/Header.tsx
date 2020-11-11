@@ -287,7 +287,9 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                         </OverviewItemLine>
                         {lastBreadcrumb && (
                             <OverviewItemLine large>
-                                <TitlePage>{lastBreadcrumb.text}</TitlePage>
+                                <TitlePage>
+                                    <h1><OverflowText>{lastBreadcrumb.text}</OverflowText></h1>
+                                </TitlePage>
                             </OverviewItemLine>
                         )}
                     </OverviewItemDescription>
