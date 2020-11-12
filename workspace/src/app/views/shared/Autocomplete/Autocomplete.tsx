@@ -245,6 +245,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
             query={query}
             popoverProps={{
                 minimal: true,
+                position: "bottom-right",
                 popoverClassName: "app_di-autocomplete__options",
                 wrapperTagName: "div",
             }}
