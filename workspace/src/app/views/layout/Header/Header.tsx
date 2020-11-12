@@ -29,6 +29,7 @@ import {
     TitlePage,
     TitleSubsection,
     WorkspaceHeader,
+    Spacing,
 } from "@gui-elements/index";
 import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
@@ -288,7 +289,9 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                         {lastBreadcrumb && (
                             <OverviewItemLine large>
                                 <TitlePage>
-                                    <h1><OverflowText>{lastBreadcrumb.text}</OverflowText></h1>
+                                    <h1>
+                                        <OverflowText>{lastBreadcrumb.text}</OverflowText>
+                                    </h1>
                                 </TitlePage>
                             </OverviewItemLine>
                         )}
@@ -377,14 +380,28 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                                 <MenuItem
                                     text={t("common.action.backOld", "Back to old workspace")}
                                     href={CONTEXT_PATH + "/workspace"}
+                                    icon={"application-legacygui"}
                                 />
                                 <MenuItem
                                     text={t("common.action.activity", "Activity overview")}
                                     href={CONTEXT_PATH + "/workspace/allActivities"}
+                                    icon={"application-activities"}
                                 />
                                 {hotKeys.quickSearch && (
                                     <MenuItem
-                                        text={t("RecentlyViewedModal.title") + ` ('${hotKeys.quickSearch}')`}
+                                        text={
+                                            <>
+                                                {t("RecentlyViewedModal.title")}
+                                                <Spacing vertical={true} size="small" />
+                                                <Button
+                                                    outlined={true}
+                                                    small={true}
+                                                    tooltip={`Hotkey: ${hotKeys.quickSearch}`}
+                                                >
+                                                    {hotKeys.quickSearch}
+                                                </Button>
+                                            </>
+                                        }
                                         href={"#"}
                                         onClick={(e) => {
                                             if (e) {
@@ -404,6 +421,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                                             onClick={() => {
                                                 dispatch(commonOp.logoutFromDi());
                                             }}
+                                            icon={"operation-logout"}
                                         />
                                     </>
                                 )}
