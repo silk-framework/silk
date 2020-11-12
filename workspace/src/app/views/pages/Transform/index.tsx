@@ -32,7 +32,7 @@ export default function () {
                 <Section>
                     <Metadata />
                     <Spacing />
-                    <LegacyWindow title="Edit" />
+                    <LegacyWindow />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>

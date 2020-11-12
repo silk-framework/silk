@@ -6,8 +6,9 @@ import { Intent } from "@gui-elements/blueprint/constants";
 import Metadata from "../../shared/Metadata";
 import { datasetSel } from "@ducks/dataset";
 
-import { Section, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@gui-elements/index";
+import { Section, WorkspaceContent, WorkspaceMain, WorkspaceSide, Spacing } from "@gui-elements/index";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
+import { LegacyWindow } from "../../shared/LegacyWindow/LegacyWindow";
 
 export default function () {
     const error = useSelector(datasetSel.errorSelector);
@@ -27,6 +28,8 @@ export default function () {
             <WorkspaceMain>
                 <Section>
                     <Metadata />
+                    <Spacing />
+                    <LegacyWindow />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>
