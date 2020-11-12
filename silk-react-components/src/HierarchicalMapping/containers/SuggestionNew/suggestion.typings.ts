@@ -29,10 +29,12 @@ export interface ISuggestionCandidate {
     // the target uri
     uri: string;
 
-    description?: string;
-
     // the confidence number, this also shows ordering
     confidence: number;
+
+    description?: string;
+
+    label?: string;
 }
 
 export interface ITransformedSuggestion {
@@ -41,6 +43,10 @@ export interface ITransformedSuggestion {
 
     // targets array
     candidates: ISuggestionCandidate[];
+
+    description?: string;
+
+    label?: string;
 }
 
 export interface IPlainObject {

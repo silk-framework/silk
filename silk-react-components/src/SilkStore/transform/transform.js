@@ -65,6 +65,7 @@ silkStore
             datasetUriPrefix: '',
             targetClassUris,
             nrCandidates: nrCandidates || 1,
+            addMetaData: true,
             dataTypePropertiesOnly: false,
             ruleId,
             matchFromDataset

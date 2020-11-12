@@ -93,7 +93,7 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
         const arr = [];
 
         rows.forEach((row) => {
-            const {source, candidates} = row;
+            const {candidates} = row;
 
             // add _selected field for each target
             const modifiedTarget = candidates.map(targetItem => ({
@@ -103,19 +103,19 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
 
             // store modified source,target
             const modifiedRow: IPageSuggestion = {
-                source,
-                candidates: modifiedTarget
+                ...row,
+                candidates: modifiedTarget,
             };
 
             // keep changes for selected items only after swap action
-            if (selectedSources.includes(source)) {
+            if (selectedSources.includes(row.source)) {
                 modifiedRow.candidates = modifiedRow.candidates.map(targetItem => {
                     const {uri, type, confidence} = targetItem;
                     return {
                         uri,
                         confidence,
                         type: targetToTypeMap[uri] || type,
-                        _selected: sourceToTargetMap[source] === uri
+                        _selected: sourceToTargetMap[row.source] === uri
                     }
                 })
             }

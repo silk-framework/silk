@@ -26,7 +26,13 @@ export default function TargetList({targets, onChange}) {
             return null;
         }
         return <MenuItem
-            label={target.uri}
+            text={
+                <>
+                    {target.label && <p><b>{target.label}</b></p>}
+                    {target.uri && <p>{target.uri}</p>}
+                    {target.description && <p>{target.description}</p>}
+                </>
+            }
             key={target.uri}
             onClick={handleClick}
         />
@@ -45,7 +51,7 @@ export default function TargetList({targets, onChange}) {
     >
         <Button
             rightIcon="select-caret"
-            text={selected.uri}
+            text={selected.label || selected.uri}
         />
     </TargetSelect>
 

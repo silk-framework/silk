@@ -338,14 +338,12 @@ export const getSuggestionsAsync = data => {
         (vocabDatasetsResponse, sourcePathsResponse) => {
             const suggestions = [];
             vocabDatasetsResponse.data.map(match => {
-                const { uri: sourceUri, candidates } = match;
+                const { uri: sourceUri, description, label, candidates } = match;
                 suggestions.push({
                     source: sourceUri,
-                    candidates: candidates.map(candidate => ({
-                        ...candidate,
-                        uri: candidate.uri.uri,
-                        description: candidate.uri.description
-                    }))
+                    candidates,
+                    description,
+                    label
                 });
             });
             
@@ -359,6 +357,7 @@ export const getSuggestionsAsync = data => {
                                 uri: '',
                                 type: 'value',
                                 description: '',
+                                label: '',
                                 confidence: 0
                             }]
                         });
