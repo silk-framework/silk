@@ -27,11 +27,17 @@ import { absolutePageUrl } from "@ducks/router/operations";
 import Tag from "@gui-elements/src/components/Tag/Tag";
 import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
 
+/** Shows the recently viewed items a user has visited. Also allows to trigger a workspace search. */
 export function RecentlyViewedModal() {
+    // Flag if this modal is shown
     const [isOpen, setIsOpen] = useState(false);
+    // The recent item list as fetched from the backend. The search is done over this list.
     const [recentItems, setRecentItems] = useState<IRecentlyViewedItem[]>([]);
+    // Loading spinner when a request is pending
     const [loading, setLoading] = useState(true);
+    // Error response from the REST backend
     const [error, setError] = useState<ErrorResponse | null>(null);
+    // Current path name
     const { pathname } = useLocation();
     const { t } = useTranslation();
     const dispatch = useDispatch();
