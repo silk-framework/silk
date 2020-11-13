@@ -99,13 +99,7 @@ export function RecentlyViewedModal() {
     };
     // The representation of an item as an option in the selection list
     const itemOption = (item: IRecentlyViewedItem, query: string, active: boolean) => {
-        const label = item.taskLabel
-            ? item.taskLabel
-            : item.taskId
-            ? item.taskId
-            : item.projectLabel
-            ? item.projectLabel
-            : item.projectId;
+        const label = item.taskLabel || item.taskId || item.projectLabel || item.projectId;
         return (
             <OverviewItem
                 key={item.projectId + item.taskId}
@@ -142,7 +136,7 @@ export function RecentlyViewedModal() {
         );
     };
     // Searches on the results from the initial requests
-    const onSearch = (textQuery: string) => {
+    const handleSearch = (textQuery: string) => {
         const searchWords = extractSearchWords(textQuery.toLowerCase());
         return recentItems.filter((item) => {
             const label = itemLabel(item).toLowerCase();
@@ -197,7 +191,7 @@ export function RecentlyViewedModal() {
     const recentlyViewedAutoCompletion = () => {
         return (
             <Autocomplete<IRecentlyViewedItem, IItemLink[]>
-                onSearch={onSearch}
+                onSearch={handleSearch}
                 autoCompletion={autoCompletion}
                 itemValueSelector={(value) => value.itemLinks}
                 itemRenderer={itemOption}
