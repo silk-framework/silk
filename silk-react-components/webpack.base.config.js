@@ -11,6 +11,7 @@ const ForkTsCheckerWebpackPlugin = require("react-dev-utils/ForkTsCheckerWebpack
 const typescriptFormatter = require("react-dev-utils/typescriptFormatter");
 const getCSSModuleLocalIdent = require("react-dev-utils/getCSSModuleLocalIdent");
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const ModuleScopePlugin = require("react-dev-utils/ModuleScopePlugin");
 
 const isEnvDevelopment = process.env.NODE_ENV === "development";
 const isEnvProduction = process.env.NODE_ENV === "production";
@@ -126,6 +127,12 @@ module.exports = {
             // Adds support for installing with Plug'n'Play, leading to faster installs and adding
             // guards against forgotten dependencies and such.
             PnpWebpackPlugin,
+            // Prevents users from importing files from outside of src/ (or node_modules/).
+            // This often causes confusion because we only process files within src/ with babel.
+            // To fix this, we prevent you from importing files out of src/ -- if you'd like to,
+            // please link the files into your node_modules/ and let module-resolution kick in.
+            // Make sure your source files are compiled, as they will not be processed in any way.
+            new ModuleScopePlugin(paths.appSrc, [paths.appPackageJson]),
         ],
     },
     resolveLoader: {
@@ -159,9 +166,10 @@ module.exports = {
                 exclude: /(node_modules|bower_components)/,
                 loader: require.resolve("babel-loader"),
                 options: {
-                    presets: [["react-app", {"flow": false, "typescript": true}]],
+                    presets: [
+                        ["react-app", {"flow": false, "typescript": true}],
+                    ],
                     customize: require.resolve("babel-preset-react-app/webpack-overrides"),
-            
                     plugins: [
                         [
                             require.resolve("babel-plugin-named-asset-import"),
@@ -193,7 +201,7 @@ module.exports = {
                     presets: [[require.resolve("babel-preset-react-app/dependencies"), {helpers: true}]],
                     cacheDirectory: true,
                     cacheCompression: false,
-            
+                    
                     // If an error happens in a package, it's possible to be
                     // because it was compiled. Thus, we don't want the browser
                     // debugger to show the original code. Instead, the code
