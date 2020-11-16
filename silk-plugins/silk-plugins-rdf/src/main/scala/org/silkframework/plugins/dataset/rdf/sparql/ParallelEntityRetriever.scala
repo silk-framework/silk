@@ -14,7 +14,7 @@
 
 package org.silkframework.plugins.dataset.rdf.sparql
 
-import java.util.concurrent.{ConcurrentLinkedQueue, LinkedBlockingQueue, TimeUnit}
+import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 import java.util.logging.{Level, Logger}
 
 import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint, SparqlResults}
@@ -262,6 +262,44 @@ object ParallelEntityRetriever {
       sparql append restriction.toSparql + "\n"
     }
     sparql append SparqlPathBuilder(path :: Nil, "?" + subjectVar, "?" + varPrefix, useOptional = useOptional)
+
+    sparql append "}" // END WHERE
+
+    if (useOrderBy) {
+      sparql append " ORDER BY " + "?" + subjectVar
+    }
+    sparql.toString
+  }
+
+  /** Returns the entity URIs for a specific SPARQL restriction.
+    *
+    * @param subjectVar  The variable name of the subject
+    * @param restriction A SPARQL restriction defined on the subject. Must have the same variable name as the subjectVar
+    * @param graphUri    An optional graph URI
+    * @param useOrderBy  Should the results be ordered by the subjectVar
+    */
+  def entityUrisQuery(subjectVar: String,
+                      restriction: SparqlRestriction,
+                      graphUri: Option[String],
+                      useOrderBy: Boolean): String = {
+    val varPrefix = "internal__vars"
+    //Select
+    val sparql = new StringBuilder
+    sparql append "SELECT DISTINCT "
+
+    sparql append "?" + subjectVar + " "
+
+    //Graph
+    for (graph <- graphUri if !graph.isEmpty) sparql append "FROM <" + graph + ">\n"
+
+    //Body
+    sparql append "WHERE {\n"
+
+    if (restriction.toSparql.isEmpty) {
+      sparql append "?" + subjectVar + " ?" + varPrefix + "_p ?" + varPrefix + "_o .\n"
+    } else {
+      sparql append restriction.toSparql + "\n"
+    }
 
     sparql append "}" // END WHERE
 
