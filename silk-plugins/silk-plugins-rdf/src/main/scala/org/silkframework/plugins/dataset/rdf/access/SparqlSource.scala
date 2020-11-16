@@ -100,7 +100,8 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
         useDistinct = false,
         graphUri = params.graph,
         useOrderBy = false,
-        varPrefix = "v"
+        varPrefix = "v",
+        useOptional = false
       )
       val results = sparqlEndpoint.select(pathQuery, limit = limit.getOrElse(Int.MaxValue))
       for(result <- results.bindings;

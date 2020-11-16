@@ -17,7 +17,7 @@ package org.silkframework.plugins.dataset.rdf.sparql
 import java.util.concurrent.{ConcurrentLinkedQueue, LinkedBlockingQueue, TimeUnit}
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
+import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint, SparqlResults}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder, SparqlRestriction}
 import org.silkframework.entity.{Entity, EntitySchema}
@@ -67,7 +67,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       val startTime = System.currentTimeMillis()
 
       val pathRetrievers = for (typedPath <- entitySchema.typedPaths) yield {
-        new PathRetriever(entityUris, SparqlEntitySchema.fromSchema(entitySchema, entityUris), typedPath.toUntypedPath, limit)
+        new PathRetriever(SparqlEntitySchema.fromSchema(entitySchema, entityUris), typedPath.toUntypedPath, limit)
       }
 
       pathRetrievers.foreach(_.start())
@@ -120,7 +120,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
     }
   }
 
-  private class PathRetriever(entityUris: Seq[Uri], entityDesc: SparqlEntitySchema, path: UntypedPath, limit: Option[Int])
+  private class PathRetriever(entityDesc: SparqlEntitySchema, path: UntypedPath, limit: Option[Int])
                              (implicit userContext: UserContext) extends Thread {
     private val queue = new LinkedBlockingQueue[PathValues](maxQueueSize)
 
@@ -166,9 +166,9 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       }
     }
 
-    private def queryPath()(implicit userContext: UserContext) = {
+    private def queryPath()(implicit userContext: UserContext): SparqlResults = {
       val sparqlQuery = ParallelEntityRetriever.pathQuery(entityDesc.variable, entityDesc.restrictions, path,
-        useDistinct = true, graphUri = graphUri, useOrderBy = useOrderBy, varPrefix = varPrefix)
+        useDistinct = true, graphUri = graphUri, useOrderBy = useOrderBy, varPrefix = varPrefix, useOptional = true)
 
       endpoint.select(sparqlQuery, limit.getOrElse(Int.MaxValue))
     }
@@ -176,8 +176,8 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
     private val QUEUE_OFFER_TIMEOUT = 3600 // 1 hour, just a high number
     private def queueElement(pathValues: PathValues): Boolean = queue.offer(pathValues, QUEUE_OFFER_TIMEOUT, TimeUnit.SECONDS)
 
-    private def parseResults(sparqlResults: Traversable[Map[String, RdfNode]], fixedSubject: Option[Uri] = None): Unit = {
-      var currentSubject: Option[String] = fixedSubject.map(_.uri)
+    private def parseResults(sparqlResults: Traversable[Map[String, RdfNode]]): Unit = {
+      var currentSubject: Option[String] = None
       var currentValues: Seq[String] = Seq.empty
 
       for (result <- sparqlResults) {
@@ -185,21 +185,19 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
           return
         }
 
-        if (fixedSubject.isEmpty) {
-          //Check if we are still reading values for the current subject
-          val subject = result.get(entityDesc.variable) match {
-            case Some(Resource(value)) => Some(value)
-            case _ => None
-          }
+        //Check if we are still reading values for the current subject
+        val subject = result.get(entityDesc.variable) match {
+          case Some(Resource(value)) => Some(value)
+          case _ => None
+        }
 
-          if (currentSubject.isEmpty) {
-            currentSubject = subject
-          } else if (subject.isDefined && subject != currentSubject) {
-            queueElement(PathValues(currentSubject.get, currentValues))
+        if (currentSubject.isEmpty) {
+          currentSubject = subject
+        } else if (subject.isDefined && subject != currentSubject) {
+          queueElement(PathValues(currentSubject.get, currentValues))
 
-            currentSubject = subject
-            currentValues = Seq.empty
-          }
+          currentSubject = subject
+          currentValues = Seq.empty
         }
 
         if (currentSubject.isDefined) {
@@ -239,7 +237,8 @@ object ParallelEntityRetriever {
                 useDistinct: Boolean,
                 graphUri: Option[String],
                 useOrderBy: Boolean,
-                varPrefix: String): String = {
+                varPrefix: String,
+                useOptional: Boolean): String = {
     //Select
     val sparql = new StringBuilder
     sparql append "SELECT "
@@ -262,7 +261,7 @@ object ParallelEntityRetriever {
     } else {
       sparql append restriction.toSparql + "\n"
     }
-    sparql append SparqlPathBuilder(path :: Nil, "?" + subjectVar, "?" + varPrefix)
+    sparql append SparqlPathBuilder(path :: Nil, "?" + subjectVar, "?" + varPrefix, useOptional = useOptional)
 
     sparql append "}" // END WHERE
 
