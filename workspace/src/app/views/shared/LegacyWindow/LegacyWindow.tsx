@@ -99,7 +99,7 @@ export function LegacyWindow({ title, ...otherProps }: ILegacyWindowProps) {
             <CardContent style={{ padding: 0, position: "relative" }}>
                 {!!activeLegacyLink ? (
                     <iframe
-                        src={activeLegacyLink.path}
+                        src={activeLegacyLink.path + "?inlineView=true"}
                         title={activeLegacyLink.label}
                         style={{
                             position: "absolute",
