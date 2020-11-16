@@ -72,7 +72,7 @@ const fetchAvailableDTypesAsync = (id?: string) => {
     return async (dispatch) => {
         batch(() => {
             dispatch(setError({}));
-            dispatch(fetchAvailableDTypes({}));
+            dispatch(fetchAvailableDTypes());
         });
 
         try {
@@ -96,7 +96,7 @@ const fetchAvailableDTypesAsync = (id?: string) => {
 const fetchArtefactsListAsync = (filters: any = {}) => {
     return async (dispatch) => {
         batch(() => {
-            dispatch(fetchArtefactsList({}));
+            dispatch(fetchArtefactsList());
             dispatch(setArtefactLoading(true));
         });
 
@@ -205,7 +205,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: TaskT
         try {
             const data = await requestCreateTask(payload, currentProjectId);
             batch(() => {
-                dispatch(closeArtefactModal({}));
+                dispatch(closeArtefactModal());
                 dispatch(
                     routerOp.goToTaskPage({
                         id: data.data.id,
@@ -237,7 +237,7 @@ const fetchUpdateTaskAsync = (projectId: string, itemId: string, formData: any) 
         dispatch(setModalError({}));
         try {
             await requestUpdateProjectTask(projectId, itemId, payload);
-            dispatch(closeArtefactModal({}));
+            dispatch(closeArtefactModal());
         } catch (e) {
             dispatch(setModalError(e));
         }
@@ -255,7 +255,7 @@ const fetchCreateProjectAsync = (formData: { label: string; description?: string
                     description,
                 },
             });
-            dispatch(closeArtefactModal({}));
+            dispatch(closeArtefactModal());
             dispatch(routerOp.goToPage(`projects/${data.name}`, { projectLabel: label, itemType: "project" }));
         } catch (e) {
             dispatch(setModalError(e.response.data));
@@ -267,7 +267,7 @@ const resetArtefactModal = (shouldClose: boolean = false) => (dispatch) => {
     dispatch(selectArtefact(null));
     dispatch(setModalError({}));
     if (shouldClose) {
-        dispatch(closeArtefactModal({}));
+        dispatch(closeArtefactModal());
     }
 };
 
