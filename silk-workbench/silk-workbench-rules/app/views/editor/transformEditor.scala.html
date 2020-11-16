@@ -7,7 +7,7 @@
 @import org.silkframework.runtime.activity.UserContext
 @import org.silkframework.rule.input.Transformer
 
-@(context: Context[TransformSpec], rule: TransformRule)(implicit session: play.api.mvc.Session, userContext: UserContext)
+@(context: Context[TransformSpec], rule: TransformRule)(implicit request: RequestHeader, userContext: UserContext)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/editor/editor-reset.css")" rel="stylesheet" />

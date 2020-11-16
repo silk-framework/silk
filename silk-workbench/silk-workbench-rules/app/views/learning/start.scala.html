@@ -1,7 +1,7 @@
 @import org.silkframework.rule.LinkSpec
 @import org.silkframework.workbench.Context
 
-@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session)
+@(context: Context[LinkSpec])(implicit request: RequestHeader)
 
 @header = {
   <script type="text/javascript">

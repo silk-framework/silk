@@ -3,7 +3,7 @@
 
 @import scala.collection.JavaConversions._
 
-@(config: Config)(implicit session: play.api.mvc.Session)
+@(config: Config)(implicit request: RequestHeader)
 
 @header = {
   <link rel="stylesheet" href="@Assets.at("libs/jstree/dist/themes/default/style.css")" type="text/css" />
