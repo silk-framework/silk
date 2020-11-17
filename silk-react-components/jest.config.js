@@ -48,6 +48,7 @@ module.exports = {
     "moduleFileExtensions": [
         "js",
         "ts",
+        "tsx",
         "json",
         "jsx",
         "node"
