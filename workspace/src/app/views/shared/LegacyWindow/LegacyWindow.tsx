@@ -69,11 +69,6 @@ export function LegacyWindow({ title, ...otherProps }: ILegacyWindowProps) {
             <CardHeader>
                 <CardTitle>
                     <h2>{!!title ? title : !!activeLegacyLink ? activeLegacyLink.label : ""}</h2>
-                    {!!activeLegacyLink ? (
-                        <IconButton name="item-launch" href={activeLegacyLink.path} target="_blank" />
-                    ) : (
-                        <></>
-                    )}
                 </CardTitle>
                 <CardOptions>
                     {itemLinks.length > 1 &&
