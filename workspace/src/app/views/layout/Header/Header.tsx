@@ -38,7 +38,7 @@ import { useLocation } from "react-router";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { ItemDeleteModal } from "../../shared/modals/ItemDeleteModal";
-import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
+import { CONTEXT_PATH } from "../../../constants/path";
 import CloneModal from "../../shared/modals/CloneModal";
 import { LegacyWindow } from "../../shared/LegacyWindow/LegacyWindow";
 import { routerOp } from "@ducks/router";
