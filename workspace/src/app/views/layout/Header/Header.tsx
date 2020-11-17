@@ -40,6 +40,7 @@ import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { ItemDeleteModal } from "../../shared/modals/ItemDeleteModal";
 import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
 import CloneModal from "../../shared/modals/CloneModal";
+import { LegacyWindow } from "../../shared/LegacyWindow/LegacyWindow";
 import { routerOp } from "@ducks/router";
 import { IItemLink } from "@ducks/shared/typings";
 import { requestItemLinks, requestTaskItemInfo } from "@ducks/shared/requests";
@@ -89,6 +90,13 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
     const itemData = {
         id: taskId ? taskId : projectId,
         projectId: taskId ? projectId : undefined,
+    };
+
+    // active legacy link
+    const [displayItemLink, setDisplayItemLink] = useState<IItemLink | null>(null);
+    // handler for link change
+    const toggleItemLink = (linkItem: IItemLink | null = null) => {
+        setDisplayItemLink(linkItem);
     };
 
     // Update task type
@@ -324,8 +332,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                                         <MenuItem
                                             key={itemLink.path}
                                             text={itemLink.label}
-                                            href={itemLink.path}
-                                            target={itemLink.path.startsWith(SERVE_PATH) ? undefined : "_blank"}
+                                            onClick={() => toggleItemLink(itemLink)}
                                         />
                                     ))}
                                 </ContextMenu>
@@ -409,6 +416,14 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
 
             {cloneModalOpen && (
                 <CloneModal item={itemData} onDiscard={toggleCloneModal} onConfirmed={handleCloneConfirmed} />
+            )}
+            {displayItemLink && (
+                <LegacyWindow
+                    legacyLinks={itemLinks}
+                    startWithLink={displayItemLink}
+                    startFullscreen={true}
+                    handlerRemoveModal={() => toggleItemLink(null)}
+                />
             )}
         </ApplicationHeader>
     );
