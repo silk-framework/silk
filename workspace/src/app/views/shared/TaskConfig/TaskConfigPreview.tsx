@@ -3,6 +3,7 @@ import { OverflowText, PropertyValueList, PropertyValuePair, PropertyName, Prope
 import React from "react";
 import { IArtefactItemProperty, IDetailedArtefactItem } from "@ducks/common/typings";
 import { useTranslation } from "react-i18next";
+import { INPUT_TYPES } from "../../../constants";
 
 interface IProps {
     taskData: IProjectTask;
@@ -34,7 +35,8 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                 Object.entries(obj)
                     .filter(([key, v]) => {
                         const pd = paramDescriptions[key];
-                        return pd && pd.visibleInDialog && !pd.advanced;
+                        const passwordParameter = pd.parameterType === INPUT_TYPES.PASSWORD;
+                        return pd && pd.visibleInDialog && !pd.advanced && !passwordParameter;
                     })
                     .forEach(([paramName, paramValue]) => {
                         const value = paramDisplayValue(paramValue);

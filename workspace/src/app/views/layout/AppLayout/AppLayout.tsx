@@ -1,7 +1,7 @@
 import React from "react";
 
 interface IProps {
-    children: JSX.Element[] | JSX.Element;
+    children: React.ReactNode;
 }
 /**
  * AppLayout includes all pages-components and provide

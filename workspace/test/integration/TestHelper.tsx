@@ -1,5 +1,5 @@
 import React from "react";
-import { createMemoryHistory, History } from "history";
+import { createBrowserHistory, createMemoryHistory, History } from "history";
 import { EnzymePropSelector, mount, ReactWrapper } from "enzyme";
 import { Provider } from "react-redux";
 import { AppLayout } from "../../src/app/views/layout/AppLayout/AppLayout";
@@ -102,8 +102,8 @@ export const withRender = (component, rerender?: Function) => (rerender ? rerend
 
 /** Returns a wrapper for the application. */
 export const testWrapper = (
-    component: JSX.Element,
-    history: History<{}>,
+    component: React.ReactNode,
+    history: History<{}> = createBrowserHistory(),
     initialState: RecursivePartial<IStore> = {}
 ) => {
     const store = createStore(history, initialState);
@@ -197,11 +197,16 @@ export const logPageOnError = (err: Error) => {
     return err;
 };
 
+export const logWrapperHtml = (wrapper: ReactWrapper<any, any>) => {
+    wrapper.update();
+    console.log(wrapper.html());
+};
+
 /** Logs the wrapper HTML on error. */
 export const logWrapperHtmlOnError = (wrapper: ReactWrapper<any, any>) => {
     wrapper.update();
     return (err: Error) => {
-        console.log(wrapper.html());
+        logWrapperHtml(wrapper);
         return err;
     };
 };
@@ -291,6 +296,8 @@ export const mockAxiosResponse = (
         } else {
             mockAxios.mockResponseFor(criteria, response as HttpResponse, silentMode);
         }
+    } else {
+        throw new Error("No request to mock for " + criteria);
     }
 };
 

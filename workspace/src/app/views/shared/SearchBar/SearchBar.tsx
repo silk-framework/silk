@@ -16,7 +16,14 @@ interface IProps {
 }
 
 /** A simple search bar. */
-export function SearchBar({ textQuery = "", sorters, onSort, onSearch, focusOnCreation = false }: IProps) {
+export function SearchBar({
+    textQuery = "",
+    sorters,
+    onSort,
+    onSearch,
+    focusOnCreation = false,
+    ...otherProps
+}: IProps) {
     const [searchInput, setSearchInput] = useState(textQuery);
     const [t] = useTranslation();
 
@@ -54,6 +61,7 @@ export function SearchBar({ textQuery = "", sorters, onSort, onSearch, focusOnCr
                     filterValue={searchInput}
                     onClearanceHandler={onClearanceHandler}
                     emptySearchInputMessage={t("form.field.searchField", "Enter search term")}
+                    {...otherProps}
                 />
             </ToolbarSection>
             <ToolbarSection>

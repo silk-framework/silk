@@ -16,9 +16,11 @@ export interface ICloneOptions {
 }
 
 export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptions) {
+    // Value of the new label for the cloned project or task
     const [newLabel, setNewLabel] = useState(item.label || item.id);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<ErrorResponse | null>(null);
+    // Label of the project or task that should be cloned
     const [label, setLabel] = useState<string | null>(item.label);
     const [t] = useTranslation();
 
@@ -34,7 +36,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                     ? await requestTaskMetadata(item.id, item.projectId)
                     : await requestProjectMetadata(item.id ? item.id : item.projectId);
             setLabel(response.data.label);
-            setNewLabel(response.data.label);
+            setNewLabel(t("common.messages.cloneOf", { item: response.data.label }));
         } catch (ex) {
             // swallow exception, fallback to ID
         } finally {
@@ -77,7 +79,9 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             title={
                 t("common.action.CloneSmth", {
                     smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
-                }) + label ||
+                }) +
+                    ": " +
+                    label ||
                 item.label ||
                 item.id
             }

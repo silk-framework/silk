@@ -4,7 +4,6 @@ import mockAxios from "../../../../__mocks__/axios";
 import {
     byTestId,
     clickElement,
-    clickWrapperElement,
     mockedAxiosResponse,
     testWrapper,
     withMount,
@@ -25,7 +24,9 @@ describe("Header", () => {
         history.location.pathname = workspacePath("/projects/SomeProjectId/dataset/SomeTaskId");
 
         wrapper = withMount(
-            testWrapper(<Header breadcrumbs={[{ href: "/someHref", text: "dummy bread" }]} />, history)
+            testWrapper(<Header breadcrumbs={[{ href: "/someHref", text: "dummy bread" }]} />, history, {
+                common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
+            })
         );
     });
 
@@ -78,9 +79,8 @@ describe("Header", () => {
         await withWindowLocation(async () => {
             clickElement(wrapper, "#headerUserMenu");
             clickElement(wrapper, "#logoutAction");
-            mockAxios.mockResponseFor({ url: hostPath + "/logout", method: "POST" }, mockedAxiosResponse());
             await waitFor(() => {
-                expect(window.location.pathname).toBe("/loggedOut");
+                expect(window.location.pathname).toBe("/logout");
             });
         });
     });

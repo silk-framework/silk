@@ -60,7 +60,6 @@ export const fetch = async <T = any>({
         if (isTestEnv) {
             config = requestInterceptor(config);
             const response = await axios(config);
-
             return responseInterceptorOnSuccess(response);
         }
         //@ts-ignore

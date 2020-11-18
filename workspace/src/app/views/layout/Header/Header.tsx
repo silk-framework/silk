@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import Store from "store";
 import { commonOp, commonSel } from "@ducks/common";
 import {
     ApplicationHeader,
+    ApplicationSidebarNavigation,
+    ApplicationSidebarToggler,
     ApplicationTitle,
     ApplicationToolbar,
     ApplicationToolbarAction,
@@ -11,6 +14,7 @@ import {
     BreadcrumbList,
     Button,
     ContextMenu,
+    Divider,
     Icon,
     IconButton,
     Menu,
@@ -23,18 +27,18 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     TitlePage,
+    TitleSubsection,
     WorkspaceHeader,
 } from "@gui-elements/index";
-import ItemDepiction from "./ItemDepiction";
 import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
 import withBreadcrumbLabels from "./withBreadcrumbLabels";
 import { Helmet } from "react-helmet";
 import { useLocation } from "react-router";
-import { APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
-import { workspaceSel } from "@ducks/workspace";
+import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { ItemDeleteModal } from "../../shared/modals/ItemDeleteModal";
-import { CONTEXT_PATH } from "../../../constants/path";
+import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
 import CloneModal from "../../shared/modals/CloneModal";
 import { routerOp } from "@ducks/router";
 import { IItemLink } from "@ducks/shared/typings";
@@ -47,9 +51,8 @@ import { useTranslation } from "react-i18next";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];
-    externalRoutes: any;
     onClickApplicationSidebarExpand: any;
-    isApplicationSidebarExpanded: any;
+    isApplicationSidebarExpanded: boolean;
 }
 
 export interface IBreadcrumb {
@@ -57,10 +60,11 @@ export interface IBreadcrumb {
     text: string;
 }
 
-function HeaderComponent({ breadcrumbs }: IProps) {
+function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isApplicationSidebarExpanded }: IProps) {
     const dispatch = useDispatch();
     const location = useLocation<any>();
     const [itemType, setItemType] = useState<string | null>(null);
+    const [currentLanguage, setCurrentLanguage] = useState(Store.get("locale"));
 
     const isAuth = useSelector(commonSel.isAuthSelector);
     const exportTypes = useSelector(commonSel.exportTypesSelector);
@@ -70,16 +74,22 @@ function HeaderComponent({ breadcrumbs }: IProps) {
 
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const taskId = useSelector(commonSel.currentTaskIdSelector);
+    const { dmBaseUrl, dmModuleLinks } = useSelector(commonSel.initialSettingsSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
 
-    const startTitle = `Build — ${APPLICATION_SUITE_NAME}`;
+    const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
+    const [t] = useTranslation();
+
+    const startTitle = `${t("common.app.build")} — ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`;
 
     const [windowTitle, setWindowTitle] = useState<string>(startTitle);
     const [displayUserMenu, toggleUserMenuDisplay] = useState<boolean>(false);
     const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
 
-    const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
-    const [t] = useTranslation();
+    const itemData = {
+        id: taskId ? taskId : projectId,
+        projectId: taskId ? projectId : undefined,
+    };
 
     // Update task type
     useEffect(() => {
@@ -176,7 +186,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
             }
             fullTitle = `${
                 lastBreadcrumb.text ? lastBreadcrumb.text : ""
-            } (${datasetType}) at ${breadcrumbWithoutTitle} – ${APPLICATION_SUITE_NAME}`;
+            } (${datasetType}) at ${breadcrumbWithoutTitle} – ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`;
         }
         setWindowTitle(fullTitle);
     };
@@ -190,50 +200,80 @@ function HeaderComponent({ breadcrumbs }: IProps) {
         } catch (e) {}
     };
 
-    /*
-        TODO: this is only a simple test to have a workaround for a while, we need
-        to remove the check for iFrameDetection later again.
-    */
-    const iFrameDetection = window === window.parent;
-
-    const itemData = {
-        id: taskId ? taskId : projectId,
-        projectId: taskId ? projectId : undefined,
-    };
-
     const handleExport = (type: IExportTypes) => {
         downloadResource(itemData.id, type.id);
     };
 
     const handleLanguageChange = (locale: string) => {
+        setCurrentLanguage(locale);
         dispatch(commonOp.changeLocale(locale));
     };
 
+    const handleNavigate = (page: string) => {
+        dispatch(routerOp.goToPage(""));
+        dispatch(
+            workspaceOp.applyFiltersOp({
+                itemType: page,
+            })
+        );
+    };
+
     return !isAuth ? null : (
-        <ApplicationHeader aria-label={APPLICATION_SUITE_NAME + ": " + APPLICATION_NAME}>
-            {/*
-            // currently not needed because we currently don't have a menu
-            {iFrameDetection && (
-                <ApplicationSidebarToggler
-                    aria-label="Open menu"
-                    onClick={onClickApplicationSidebarExpand}
-                    isActive={isApplicationSidebarExpanded}
-                />
-            )
-            */}
-            {
-                /* TODO: only show when application menu is opened */
-                iFrameDetection && (
-                    <ApplicationTitle prefix="eccenca" className="bx--visually-hidden">
-                        {APPLICATION_NAME}
-                    </ApplicationTitle>
-                )
-            }
+        <ApplicationHeader
+            aria-label={`${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}: ${APPLICATION_NAME}`}
+        >
+            <ApplicationTitle
+                prefix={APPLICATION_CORPORATION_NAME}
+                isNotDisplayed={!isApplicationSidebarExpanded}
+                isAlignedWithSidebar={isApplicationSidebarExpanded}
+            >
+                {APPLICATION_NAME}
+            </ApplicationTitle>
+            <ApplicationSidebarToggler
+                aria-label={t("navigation.side.open", "Open navigation")}
+                onClick={onClickApplicationSidebarExpand}
+                isActive={isApplicationSidebarExpanded}
+            />
+            <ApplicationSidebarNavigation expanded={isApplicationSidebarExpanded}>
+                {!!dmBaseUrl && (
+                    <>
+                        <TitleSubsection>{t("navigation.side.dmBrowser", "Browse in DataManager")}</TitleSubsection>
+                        <Menu>
+                            {dmModuleLinks ? (
+                                dmModuleLinks.map((link) => (
+                                    <MenuItem
+                                        icon={link.icon}
+                                        text={t("navigation.side.dm." + link.path, link.defaultLabel)}
+                                        href={dmBaseUrl + "/" + link.path}
+                                    />
+                                ))
+                            ) : (
+                                <MenuItem text="DataManager" href={dmBaseUrl} />
+                            )}
+                        </Menu>
+                        <Divider addSpacing="xlarge" />
+                    </>
+                )}
+                <TitleSubsection>{t("navigation.side.diBrowse", "Create in DataIntegration")}</TitleSubsection>
+                <Menu>
+                    <MenuItem
+                        icon="artefact-project"
+                        text={t("navigation.side.di.projects", "Projects")}
+                        onClick={() => handleNavigate("project")}
+                    />
+                    <MenuItem
+                        icon="artefact-dataset"
+                        text={t("navigation.side.di.datasets", "Datasets")}
+                        onClick={() => handleNavigate("dataset")}
+                    />
+                </Menu>
+            </ApplicationSidebarNavigation>
+
             <WorkspaceHeader>
                 <Helmet title={windowTitle} />
                 <OverviewItem>
                     <OverviewItemDepiction>
-                        <ItemDepiction itemType={itemType} />
+                        <Icon name={itemType ? "artefact-" + itemType : "application-homepage"} large />
                     </OverviewItemDepiction>
                     <OverviewItemDescription>
                         <OverviewItemLine small>
@@ -281,7 +321,12 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                                         </MenuItem>
                                     )}
                                     {itemLinks.map((itemLink) => (
-                                        <MenuItem key={itemLink.path} text={itemLink.label} href={itemLink.path} />
+                                        <MenuItem
+                                            key={itemLink.path}
+                                            text={itemLink.label}
+                                            href={itemLink.path}
+                                            target={itemLink.path.startsWith(SERVE_PATH) ? undefined : "_blank"}
+                                        />
                                     ))}
                                 </ContextMenu>
                             </>
@@ -307,8 +352,18 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                         <ApplicationToolbarPanel aria-label="User menu" expanded={true}>
                             <Menu>
                                 <div>
-                                    <Button onClick={() => handleLanguageChange("en")}>En</Button>
-                                    <Button onClick={() => handleLanguageChange("de")}>De</Button>
+                                    <Button
+                                        onClick={() => handleLanguageChange("en")}
+                                        disabled={currentLanguage === "en"}
+                                    >
+                                        En
+                                    </Button>
+                                    <Button
+                                        onClick={() => handleLanguageChange("de")}
+                                        disabled={currentLanguage === "de"}
+                                    >
+                                        De
+                                    </Button>
                                 </div>
                                 <MenuDivider />
                                 <MenuItem
@@ -319,7 +374,7 @@ function HeaderComponent({ breadcrumbs }: IProps) {
                                     text={t("common.action.activity", "Activity overview")}
                                     href={CONTEXT_PATH + "/workspace/allActivities"}
                                 />
-                                {iFrameDetection && (
+                                {!!dmBaseUrl && (
                                     <>
                                         <MenuDivider />
                                         <MenuItem

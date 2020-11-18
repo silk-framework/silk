@@ -13,6 +13,7 @@ import {
     HtmlContentBlock,
     Icon,
     IconButton,
+    Link,
     Notification,
     OverflowText,
     OverviewItem,
@@ -36,6 +37,8 @@ import { SearchBar } from "../../SearchBar/SearchBar";
 import { routerOp } from "@ducks/router";
 import { useTranslation } from "react-i18next";
 import { TaskType } from "@ducks/shared/typings";
+import { ProjectImportModal } from "../ProjectImportModal";
+import ItemDepiction from "../../../shared/ItemDepiction";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -63,6 +66,7 @@ export function CreateArtefactModal() {
     // initially take from redux
     const [selected, setSelected] = useState<IArtefactItem>(selectedArtefact);
     const [lastSelectedClick, setLastSelectedClick] = useState<number>(0);
+    const [isProjectImport, setIsProjectImport] = useState<boolean>(false);
     const DOUBLE_CLICK_LIMIT_MS = 500;
 
     // Fetch Artefact list
@@ -173,10 +177,17 @@ export function CreateArtefactModal() {
     };
 
     const resetModal = (closeModal?: boolean) => {
+        setIsProjectImport(false);
         setSelected({} as IArtefactItem);
         form.clearError();
         dispatch(commonOp.resetArtefactModal(closeModal));
     };
+
+    const switchToProjectImport = () => {
+        setIsProjectImport(true);
+    };
+
+    const projectArtefactSelected = selectedArtefact.key === DATA_TYPES.PROJECT;
 
     let artefactForm = null;
     if (updateExistingTask) {
@@ -192,7 +203,7 @@ export function CreateArtefactModal() {
     } else {
         // Project / task creation
         if (selectedArtefact.key) {
-            if (selectedArtefact.key === DATA_TYPES.PROJECT) {
+            if (projectArtefactSelected) {
                 artefactForm = <ProjectForm form={form} projectId={projectId} />;
             } else {
                 const detailedArtefact = cachedArtefactProperties[selectedArtefact.key];
@@ -251,26 +262,9 @@ export function CreateArtefactModal() {
         }
     }, [artefactListWithProject.map((item) => item.key).join("|"), selectedDType]);
 
-    const renderDepiction = (artefact, large = true) => {
-        const iconNameStack = []
-            .concat([(artefact.taskType ? artefact.taskType + "-" : "") + artefact.key])
-            .concat(artefact.taskType ? [artefact.taskType] : [])
-            .concat(artefact.categories ? artefact.categories : []);
-        return (
-            <Icon
-                name={iconNameStack
-                    .map((type) => {
-                        return "artefact-" + type.toLowerCase();
-                    })
-                    .filter((x, i, a) => a.indexOf(x) === i)}
-                large={large}
-            />
-        );
-    };
-
     const isCreationUpdateDialog = selectedArtefact.key || updateExistingTask;
 
-    return (
+    const createDialog = (
         <SimpleDialog
             size="large"
             preventSimpleClosing={true}
@@ -330,7 +324,7 @@ export function CreateArtefactModal() {
                 )
             }
             notifications={
-                !!error.detail && (
+                (!!error.detail && (
                     <Notification
                         message={t("common.messages.actionFailed", {
                             action: updateExistingTask ? t("common.action.update") : t("common.action.create"),
@@ -338,7 +332,16 @@ export function CreateArtefactModal() {
                         })}
                         danger
                     />
-                )
+                )) ||
+                (projectArtefactSelected && (
+                    <p>
+                        <Icon name="state-info" style={{ verticalAlign: "middle" }} />{" "}
+                        {t("ProjectImportModal.restoreNotice", "Want to restore an existing project?")}{" "}
+                        <Link key="importProject" onClick={switchToProjectImport} href="#import-project">
+                            {t("ProjectImportModal.restoreStarter", "Import project file")}
+                        </Link>
+                    </p>
+                ))
             }
         >
             {
@@ -376,7 +379,10 @@ export function CreateArtefactModal() {
                                                         onKeyDown={handleEnter}
                                                     >
                                                         <OverviewItemDepiction>
-                                                            {renderDepiction(artefact)}
+                                                            <ItemDepiction
+                                                                itemType={artefact.taskType}
+                                                                pluginId={artefact.key}
+                                                            />
                                                         </OverviewItemDepiction>
                                                         <OverviewItemDescription>
                                                             <OverviewItemLine>
@@ -435,5 +441,10 @@ export function CreateArtefactModal() {
                 </>
             }
         </SimpleDialog>
+    );
+    return isProjectImport ? (
+        <ProjectImportModal close={closeModal} back={() => setIsProjectImport(false)} />
+    ) : (
+        createDialog
     );
 }
