@@ -38,9 +38,8 @@ object LinkResolver {
     */
   private val dataManagerUrl: Option[String] = {
     val config = DefaultConfig.instance()
-    if(config.hasPath("eccencaDataPlatform.url")) {
-      val dataPlatformUrl = config.getString("eccencaDataPlatform.url").stripSuffix("/")
-      Some(dataPlatformUrl.stripSuffix("/dataplatform"))
+    if(config.hasPath("eccencaDataManager.baseUrl")) {
+      Some(config.getString("eccencaDataManager.baseUrl").stripSuffix("/"))
     } else {
       None
     }

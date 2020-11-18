@@ -18,7 +18,7 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
 
   override def workspaceProviderId: String = "inMemory"
 
-  override def routes: Option[Class[_ <: Router]] = Some(classOf[test.Routes])
+  override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 
   lazy val projectsUrl: String = controllers.projectApi.routes.ProjectApi.createNewProject().url
   def projectPrefixesUrl(projectId: String): String = controllers.projectApi.routes.ProjectApi.fetchProjectPrefixes(projectId).url

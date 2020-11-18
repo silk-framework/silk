@@ -22,6 +22,14 @@ val silkVersion = {
   version
 }
 
+val buildReactExternally = {
+  val result = sys.env.getOrElse("BUILD_REACT_EXTERNALLY", "FALSE").toLowerCase == "true"
+  if(result) {
+    println("React artifacts will not be built from sbt and must be build externally, e.g. via yarn. BUILD_REACT_EXTERNALLY is set to true. Unset or set to != true in order to build it from sbt again.")
+  }
+  result
+}
+
 concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
 
 val scalaTestOptions = {
@@ -243,12 +251,18 @@ lazy val reactComponents = (project in file("silk-react-components"))
     // Run when building silk react
     /** Build Silk React */
     buildSilkReact := {
-      checkJsBuildTools.value // depend on check
-      val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src"), fileRegex = """\.(jsx|js|tsx|ts|scss|json)$""")
-      def distFile(name: String): File = new File(baseDirectory.value, "dist/" + name)
-      if (Watcher.staleTargetFiles(reactWatchConfig, Seq(distFile("main.js"), distFile("style.css")))) {
-        ReactBuildHelper.buildReactComponents(baseDirectory.value, silkDistRoot.value, "Silk")
+      if(!buildReactExternally) {
+        // Build React components
+        checkJsBuildTools.value // depend on check
+        val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src"), fileRegex = """\.(jsx|js|tsx|ts|scss|json)$""")
+
+        def distFile(name: String): File = new File(baseDirectory.value, "dist/" + name)
+
+        if (Watcher.staleTargetFiles(reactWatchConfig, Seq(distFile("main.js"), distFile("style.css")))) {
+          ReactBuildHelper.buildReactComponents(baseDirectory.value, silkDistRoot.value, "Silk")
+        }
       }
+      // Transpile pure JavaScript files
       val silkReactWorkbenchRoot = new File(baseDirectory.value, "silk-workbench")
       val changedJsFiles = Watcher.filesChanged(WatchConfig(silkReactWorkbenchRoot, fileRegex = """\.js$"""))
       if(changedJsFiles.nonEmpty) {
@@ -262,10 +276,14 @@ lazy val reactComponents = (project in file("silk-react-components"))
     },
     (compile in Compile) := ((compile in Compile) dependsOn buildSilkReact).value,
     watchSources ++= { // Watch all files under the silk-react-components/src directory for changes
-      val paths = for(path <- Path.allSubpaths(baseDirectory.value / "src")) yield {
-        path._1
+      if(buildReactExternally) {
+        Seq.empty
+      } else {
+        val paths = for(path <- Path.allSubpaths(baseDirectory.value / "src")) yield {
+          path._1
+        }
+        paths.toSeq
       }
-      paths.toSeq
     },
     watchSources ++= { // Watch all JavaScript files under the silk-react-components/silk-workbench directory for changes
       val paths = for(path <- Path.allSubpaths(baseDirectory.value / "silk-workbench")) yield {

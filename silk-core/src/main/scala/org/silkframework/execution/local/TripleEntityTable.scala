@@ -18,7 +18,7 @@ class TripleEntityTable(tripleEntities: Traversable[Entity], val task: Task[Task
 
   override def entitySchema: EntitySchema = TripleEntityTable.schema
 
-  override def updateEntities(newEntities: Traversable[Entity]): LocalEntities = {
+  override def updateEntities(newEntities: Traversable[Entity], newSchema: EntitySchema): LocalEntities = {
     new TripleEntityTable(newEntities, task)
   }
 }
