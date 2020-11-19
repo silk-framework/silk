@@ -19,12 +19,36 @@ trait ConfigTestTrait extends BeforeAndAfterAll { this: Suite =>
 
   override protected def beforeAll(): Unit = {
     super.beforeAll()
-    backupParameters = for((key, newValue) <- propertyMap) yield {
+    backupParameters = ConfigTestTrait.updateAndBackupParameters(propertyMap)
+  }
+
+  override protected def afterAll(): Unit = {
+    ConfigTestTrait.updateAndBackupParameters(backupParameters)
+    super.afterAll()
+  }
+
+}
+
+object ConfigTestTrait {
+  /** Updates the provided parameters and returns an backup of the old parameter values. */
+  def updateAndBackupParameters(propertyMap: Iterable[(String, Option[String])]): Iterable[(String, Option[String])] = {
+    val backup = for((key, newValue) <- propertyMap) yield {
       val oldValue = Option(System.getProperty(key))
       updateProperty(key, newValue)
       (key, oldValue)
     }
     DefaultConfig.instance.refresh()
+    backup
+  }
+
+  /** Re-configures the system properties for the execution of the given block. */
+  def withConfig[T](propertyMap: (String, Option[String])*)(block: => T): T = {
+    val backupParameters = updateAndBackupParameters(propertyMap)
+    try {
+      block
+    } finally {
+      updateAndBackupParameters(backupParameters)
+    }
   }
 
   // Removes the property value if newValue is None, else sets it to the new value
@@ -36,14 +60,4 @@ trait ConfigTestTrait extends BeforeAndAfterAll { this: Suite =>
         System.clearProperty(key)
     }
   }
-
-  override protected def afterAll(): Unit = {
-    // Restore old System properties
-    for((key, oldValue) <- backupParameters) {
-      updateProperty(key, oldValue)
-    }
-    DefaultConfig.instance.refresh()
-    super.afterAll()
-  }
-
 }
