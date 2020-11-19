@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { Button, MenuItem, Select } from '@gui-elements/index';
 import { ITargetWithSelected } from "../suggestion.typings";
-import { SuggestionListContext } from "../SuggestionList";
+import { SuggestionListContext } from "../SuggestionContainer";
 
 // Select<T> is a generic component to work with your data types.
 // In TypeScript, you must first obtain a non-generic reference:
@@ -21,18 +21,18 @@ export default function TargetList({targets, onChange}) {
         onChange(uri);
     };
 
+    const itemLabel = (target: ITargetWithSelected) => <>
+        {target.label && <p><b>{target.label}</b></p>}
+        {target.uri && <p>{target.uri}</p>}
+        {target.description && <p>{target.description}</p>}
+    </>;
+
     const itemRenderer = (target: ITargetWithSelected, {handleClick}) => {
         if (target._selected) {
             return null;
         }
         return <MenuItem
-            text={
-                <>
-                    {target.label && <p><b>{target.label}</b></p>}
-                    {target.uri && <p>{target.uri}</p>}
-                    {target.description && <p>{target.description}</p>}
-                </>
-            }
+            text={itemLabel(target)}
             key={target.uri}
             onClick={handleClick}
         />
@@ -51,7 +51,7 @@ export default function TargetList({targets, onChange}) {
     >
         <Button
             rightIcon="select-caret"
-            text={selected.label || selected.uri}
+            text={itemLabel(selected)}
         />
     </TargetSelect>
 

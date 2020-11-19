@@ -1,7 +1,7 @@
 import { ContextMenu, MenuItem } from "@gui-elements/index";
 import React, { useContext, useState } from "react";
 import { IColumnFilters } from "../suggestion.typings";
-import { SuggestionListContext } from "../SuggestionList";
+import { SuggestionListContext } from "../SuggestionContainer";
 
 interface IProps {
     // column filters array

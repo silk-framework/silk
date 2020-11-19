@@ -386,3 +386,18 @@ silkStore
             .multicast(replySubject)
             .connect();
     });
+
+silkStore
+    .subject('transform.task.rule.example')
+    .subscribe(({data, replySubject}) => {
+        const {baseUrl, project, transformTask} = data;
+        
+        superagent
+            .get(
+                `${baseUrl}/profiling/schemaClass/${project}/${transformTask}/ruleExampleValues`
+            )
+            .accept('application/json')
+            .observe()
+            .multicast(replySubject)
+            .connect();
+    });

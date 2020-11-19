@@ -542,3 +542,17 @@ export const copyRuleAsync = data => {
         })
         .map(returned => returned.body.id);
 };
+
+export const schemaExampleValuesAsync = () => {
+    const {baseUrl, project, transformTask} = getApiDetails();
+    return silkStore
+        .request({
+            topic: 'transform.task.rule.example',
+            data: {
+                baseUrl,
+                project,
+                transformTask,
+            },
+        })
+        .map(returned => returned.body);
+};

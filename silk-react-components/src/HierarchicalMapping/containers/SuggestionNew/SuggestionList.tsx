@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button, Pagination, Table } from '@gui-elements/index';
 import {
     IAddedSuggestion,
@@ -14,6 +14,7 @@ import paginate from "../../utils/paginate";
 import STableBody from "./SuggestionTable/STableBody";
 import STableHeader from "./SuggestionTable/STableHeader";
 import { FILTER_ACTIONS } from "./constants";
+import { SuggestionListContext as SuggestionListContext1 } from "./SuggestionContainer";
 
 interface IPagination {
     // store current page number
@@ -36,17 +37,7 @@ interface IProps {
     onAdd(selected: IAddedSuggestion[]);
 }
 
-interface ISuggestionListContext {
-    portalContainer: HTMLDivElement;
-}
-
-export const SuggestionListContext = React.createContext<ISuggestionListContext>({
-    portalContainer: null
-});
-
 export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges, onAdd}: IProps) {
-    const portalContainerRef = useRef();
-
     const [headers, setHeaders] = useState<ITableHeader[]>(
         [
             {header: 'Source data', key: 'source'},
@@ -330,10 +321,7 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
 
     const isAllSelected = () => filteredRows.length && pageRows.length === selectedSources.length;
 
-    return <div ref={portalContainerRef}>
-        <SuggestionListContext.Provider value={{
-            portalContainer: portalContainerRef.current
-        }}>
+    return <>
             <Table>
                 <STableHeader
                     headers={headers}
@@ -365,6 +353,5 @@ export default function SuggestionList({rows, onSwapAction, onAskDiscardChanges,
             />
             <Button affirmative={true} onClick={handleAdd}>Add ({selectedSources.length})</Button>
             <Button disruptive={true} onClick={onAskDiscardChanges}>Cancel</Button>
-        </SuggestionListContext.Provider>
-    </div>
+    </>
 }

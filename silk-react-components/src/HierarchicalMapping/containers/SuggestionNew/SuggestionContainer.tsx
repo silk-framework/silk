@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     Button,
     Divider,
@@ -12,9 +12,21 @@ import {
 import { TableContainer } from 'carbon-components-react';
 import SuggestionList from "./SuggestionList";
 import SuggestionHeader from "./SuggestionHeader";
-import { generateRuleAsync, getSuggestionsAsync } from "../../store";
+import { generateRuleAsync, getSuggestionsAsync, schemaExampleValuesAsync } from "../../store";
 import _ from "lodash";
 import { IAddedSuggestion, ITransformedSuggestion } from "./suggestion.typings";
+
+interface ISuggestionListContext {
+    portalContainer: HTMLDivElement;
+    exampleValues: {
+        [key: string]: string[]
+    };
+}
+
+export const SuggestionListContext = React.createContext<ISuggestionListContext>({
+    portalContainer: null,
+    exampleValues: {}
+});
 
 export default function SuggestionContainer({ruleId, targetClassUris, onAskDiscardChanges, onClose}) {
     // Loading indicator
@@ -32,18 +44,24 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     const [isFromDataset, setIsFromDataset] = useState(true);
 
+    const [exampleValues, setExampleValues] = useState({});
+
+    const portalContainerRef = useRef();
+
     useEffect(() => {
-        setLoading(true);
         loadData(isFromDataset);
+        loadExampleValues();
     }, []);
 
     const handleSwapAction = () => {
         setIsFromDataset(!isFromDataset);
+
         loadData(!isFromDataset);
     };
 
     const loadData = (matchFromDataset: boolean) => {
-        getSuggestionsAsync({
+        setLoading(true);
+        return getSuggestionsAsync({
             targetClassUris,
             ruleId,
             matchFromDataset,
@@ -53,12 +71,23 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                 setWarnings(
                     warnings.filter(value => !_.isEmpty(value))
                 );
-                setLoading(false);
                 setData(suggestions);
                 setFilteredData(suggestions);
+                setLoading(false);
             },
             err => {
+                setError(err);
                 setLoading(false);
+            }
+        );
+    };
+
+    const loadExampleValues = () => {
+        return schemaExampleValuesAsync().subscribe(
+            (data) => {
+                setExampleValues(data);
+            },
+            err => {
                 setError(err)
             }
         );
@@ -104,7 +133,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     };
 
     const handleFilter = () => {
-        const filtered = data.filter(o => o.source.includes(search) || o.candidates.some(t => t.uri.includes(search) || t.type.includes(search)));
+        const filtered = data.filter(o => o.source.includes(search) || o.candidates.some(t => t.uri.includes(search)));
         setFilteredData(filtered);
     };
 
@@ -125,16 +154,22 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                 </Grid>
             </SectionHeader>
             <Divider addSpacing="medium"/>
-
-            <TableContainer>
-                <SuggestionHeader onSearch={handleSearch}/>
-                <SuggestionList
-                    rows={filteredData}
-                    onSwapAction={handleSwapAction}
-                    onAdd={handleAdd}
-                    onAskDiscardChanges={onAskDiscardChanges}
-                />
-            </TableContainer>
+            <div ref={portalContainerRef}>
+                <SuggestionListContext.Provider value={{
+                    portalContainer: portalContainerRef.current,
+                    exampleValues
+                }}>
+                    <TableContainer>
+                        <SuggestionHeader onSearch={handleSearch}/>
+                        <SuggestionList
+                            rows={filteredData}
+                            onSwapAction={handleSwapAction}
+                            onAdd={handleAdd}
+                            onAskDiscardChanges={onAskDiscardChanges}
+                        />
+                    </TableContainer>
+                </SuggestionListContext.Provider>
+            </div>
         </Section>
     )
 }

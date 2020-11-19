@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useContext } from "react";
 import TargetList from "./TargetList";
 import TypesList from "./TypesList";
 import { SuggestionTypeValues } from "../suggestion.typings";
-import { Checkbox, TableCell, TableRow, } from "@gui-elements/index";
+import { Checkbox, ContextMenu, TableCell, TableRow, } from "@gui-elements/index";
+import { SuggestionListContext } from "../SuggestionContainer";
 
 export default function STableRow({row, onRowSelect, selected, onModifyTarget}) {
+    const context = useContext(SuggestionListContext);
     const {source, candidates, label, description} = row;
 
     const handleModifyTarget = (uri: string, type?: SuggestionTypeValues) => {
@@ -23,6 +25,9 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
 
     const selectedTarget = candidates.find(t => t._selected);
     const selectedType = selectedTarget ? selectedTarget.type : 'value';
+    const {exampleValues, portalContainer} = context;
+
+    const examples = exampleValues[source];
 
     return <TableRow>
         <TableCell>
@@ -34,6 +39,20 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
         <TableCell>
             <p>{label || source}</p>
             <p><em>{description}</em></p>
+            {
+                examples && <ContextMenu
+                    portalContainer={portalContainer}
+                    togglerElement={'item-info'}
+                >
+                    <ul>
+                        {
+                            examples.map(example =>
+                                <li key={example}><p>{example}</p></li>
+                            )
+                        }
+                    </ul>
+                </ContextMenu>
+            }
         </TableCell>
         <TableCell>
             <div/>

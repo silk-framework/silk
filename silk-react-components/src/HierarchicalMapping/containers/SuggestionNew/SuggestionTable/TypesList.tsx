@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { Button, MenuItem, Select } from "@gui-elements/index";
-import { SuggestionListContext } from "../SuggestionList";
+import { SuggestionListContext } from "../SuggestionContainer";
 
 // Select<T> is a generic component to work with your data types.
 // In TypeScript, you must first obtain a non-generic reference:
