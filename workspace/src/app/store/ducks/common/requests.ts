@@ -1,6 +1,6 @@
 import fetch from "../../../services/fetch";
 import { coreApi, legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
-import { IDetailedArtefactItem, IOverviewArtefactItemList, IExportTypes } from "@ducks/common/typings";
+import { IDetailedArtefactItem, IOverviewArtefactItemList, IExportTypes, IInitFrontend } from "@ducks/common/typings";
 
 const handleError = (error) => {
     return error.errorResponse;
@@ -9,7 +9,7 @@ const handleError = (error) => {
 /**
  * Get initial configs for whole application
  */
-export const requestInitFrontend = async (): Promise<any | never> => {
+export const requestInitFrontend = async (): Promise<IInitFrontend | never> => {
     try {
         const { data } = await fetch({
             url: workspaceApi("/initFrontend"),

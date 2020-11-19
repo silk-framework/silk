@@ -27,6 +27,7 @@ import { commonSel } from "@ducks/common";
 import { SearchBar } from "../SearchBar/SearchBar";
 import { usePagination } from "@gui-elements/src/components/Pagination/Pagination";
 import { useTranslation } from "react-i18next";
+import { SERVE_PATH } from "../../../constants/path";
 
 interface IProps {
     projectId?: string;
@@ -135,6 +136,7 @@ export function RelatedItems(props: IProps) {
                                                   )
                                             : null
                                     }
+                                    target={link.path.startsWith(SERVE_PATH) ? undefined : "_blank"}
                                 />
                             ));
                             return (

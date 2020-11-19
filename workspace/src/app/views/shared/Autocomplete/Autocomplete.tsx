@@ -101,7 +101,7 @@ export function Autocomplete(props: IAutocompleteProps) {
     useEffect(() => {
         // Don't fetch auto-completion values when
         if (dependentValues.length === props.autoCompletion.autoCompletionDependsOnParameters.length) {
-            handleQueryChange(query);
+            handleQueryChange(query, {});
         }
     }, [dependentValues.join("|")]);
 
@@ -117,13 +117,16 @@ export function Autocomplete(props: IAutocompleteProps) {
     };
 
     //@Note: issue https://github.com/palantir/blueprint/issues/2983
-    const handleQueryChange = async (input = "") => {
-        setQuery(input);
-        try {
-            const result = await onSearch(input);
-            setFiltered(result);
-        } catch (e) {
-            console.log(e);
+    const handleQueryChange = async (input = "", event) => {
+        // This function is fired twice because of above-mentioned issue, only allow the call with defined event.
+        if (event) {
+            setQuery(input);
+            try {
+                const result = await onSearch(input);
+                setFiltered(result);
+            } catch (e) {
+                console.log(e);
+            }
         }
     };
 

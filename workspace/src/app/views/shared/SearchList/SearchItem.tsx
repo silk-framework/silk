@@ -3,16 +3,15 @@ import { ISearchResultsServer } from "@ducks/workspace/typings";
 import {
     Card,
     ContextMenu,
-    Icon,
     IconButton,
     MenuDivider,
     MenuItem,
+    OverflowText,
     OverviewItem,
     OverviewItemActions,
     OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
-    OverflowText,
     Spacing,
     Tag,
 } from "@gui-elements/index";
@@ -27,9 +26,11 @@ import { commonSel } from "@ducks/common";
 import { IExportTypes } from "@ducks/common/typings";
 import { downloadResource } from "../../../utils/downloadResource";
 import { useTranslation } from "react-i18next";
+import ItemDepiction from "../../shared/ItemDepiction";
 
 interface IProps {
     item: ISearchResultsServer;
+
     searchValue?: string;
 
     onOpenDeleteModal(item: ISearchResultsServer);
@@ -100,7 +101,7 @@ export default function SearchItem({
         <Card isOnlyLayout>
             <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined}>
                 <OverviewItemDepiction>
-                    <Icon name={"artefact-" + item.type} large />
+                    <ItemDepiction itemType={item.type} pluginId={item.pluginId} />
                 </OverviewItemDepiction>
                 <OverviewItemDescription>
                     <OverviewItemLine>

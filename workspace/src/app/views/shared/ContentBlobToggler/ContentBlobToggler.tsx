@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { HtmlContentBlock, Link } from "@gui-elements/index";
 
-type ContentTransformFunction = (contentPreview: JSX.Element | string) => JSX.Element | string;
+type ContentTransformFunction = (contentPreview: React.ReactNode) => React.ReactNode;
 interface IContentBlobTogglerProps {
     /**
         space-delimited list of class names
@@ -25,11 +25,11 @@ interface IContentBlobTogglerProps {
     /**
         content that is displayed as preview
     */
-    contentPreview: JSX.Element | string;
+    contentPreview: React.ReactNode;
     /**
         content that is displayed as extended full view
     */
-    contentFullview: JSX.Element | string;
+    contentFullview: React.ReactNode;
     /**
         render function that could alter full view content, e.g. processing markdown content
     */
