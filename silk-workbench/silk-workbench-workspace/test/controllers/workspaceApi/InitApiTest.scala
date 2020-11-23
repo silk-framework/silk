@@ -2,8 +2,9 @@ package controllers.workspaceApi
 
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.util.ConfigTestTrait
-import play.api.libs.json.{JsBoolean, JsObject, JsString, JsValue}
+import play.api.libs.json.{JsBoolean, JsObject, JsString, JsValue, Json}
 import play.api.routing.Router
 
 class InitApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers with ConfigTestTrait {
@@ -29,12 +30,17 @@ class InitApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers w
     initFrontendResult().get("dmBaseUrl") mustBe Some(JsString(exampleUrl))
   }
 
+  it should "return configured hotkey values" in {
+    initFrontendResult().get("hotKeys").map(jsValue => JsonHelpers.fromJsonValidated[Map[String, String]](jsValue)) mustBe Some(Map("quickSearch" -> "/"))
+  }
+
   private def initFrontendResult(httpHeaders: (String, String)*): collection.Map[String, JsValue] = {
     val request = client.url(s"$baseUrl/api/workspace/initFrontend").withHttpHeaders(httpHeaders :_*)
     checkResponse(request.get()).json.as[JsObject].value
   }
 
   override def propertyMap: Map[String, Option[String]] = Map(
-    "eccencaDataManager.baseUrl" -> Some(exampleUrl)
+    "eccencaDataManager.baseUrl" -> Some(exampleUrl),
+    "frontend.hotkeys.quickSearch" -> Some("/")
   )
 }
