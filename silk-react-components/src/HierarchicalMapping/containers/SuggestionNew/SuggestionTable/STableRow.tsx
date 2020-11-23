@@ -4,6 +4,7 @@ import TypesList from "./TypesList";
 import { SuggestionTypeValues } from "../suggestion.typings";
 import { Checkbox, ContextMenu, TableCell, TableRow, } from "@gui-elements/index";
 import { SuggestionListContext } from "../SuggestionContainer";
+import Highlighter from "../../../elements/Highlighter";
 
 export default function STableRow({row, onRowSelect, selected, onModifyTarget}) {
     const context = useContext(SuggestionListContext);
@@ -37,8 +38,8 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
             />
         </TableCell>
         <TableCell>
-            <p>{label || source}</p>
-            <p><em>{description}</em></p>
+            <Highlighter label={label || source} searchValue={context.search} />
+            {description && <p><Highlighter label={description} searchValue={context.search} /></p>}
             {
                 examples && <ContextMenu
                     portalContainer={portalContainer}

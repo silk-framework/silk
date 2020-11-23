@@ -21,11 +21,13 @@ interface ISuggestionListContext {
     exampleValues: {
         [key: string]: string[]
     };
+    search: string;
 }
 
 export const SuggestionListContext = React.createContext<ISuggestionListContext>({
     portalContainer: null,
-    exampleValues: {}
+    exampleValues: {},
+    search: ''
 });
 
 export default function SuggestionContainer({ruleId, targetClassUris, onAskDiscardChanges, onClose}) {
@@ -41,6 +43,8 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     const [filteredData, setFilteredData] = useState<ITransformedSuggestion[]>([]);
 
     const [search, setSearch] = useState('');
+
+    const [submittedSearch, setSubmittedSearch] = useState('');
 
     const [isFromDataset, setIsFromDataset] = useState(true);
 
@@ -61,7 +65,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     const loadData = (matchFromDataset: boolean) => {
         setLoading(true);
-        return getSuggestionsAsync({
+        getSuggestionsAsync({
             targetClassUris,
             ruleId,
             matchFromDataset,
@@ -72,7 +76,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                     warnings.filter(value => !_.isEmpty(value))
                 );
                 setData(suggestions);
-                setFilteredData(suggestions);
+                handleFilter(suggestions);
                 setLoading(false);
             },
             err => {
@@ -83,7 +87,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     };
 
     const loadExampleValues = () => {
-        return schemaExampleValuesAsync().subscribe(
+        schemaExampleValuesAsync().subscribe(
             (data) => {
                 setExampleValues(data);
             },
@@ -132,9 +136,20 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         setSearch(value);
     };
 
-    const handleFilter = () => {
-        const filtered = data.filter(o => o.source.includes(search) || o.candidates.some(t => t.uri.includes(search)));
+    const handleFilter = (arrayData: ITransformedSuggestion[]) => {
+        const filteredFields = ['uri', 'label', 'description'];
+        const filtered = arrayData.filter(o =>
+            o.source.includes(search) ||
+            o.label?.includes(search) ||
+            o.description?.includes(search) ||
+            o.candidates.some(
+                t => filteredFields.some(
+                    field => t[field] ? t[field].includes(search) : false
+                )
+            )
+        );
         setFilteredData(filtered);
+        setSubmittedSearch(search);
     };
 
     return (
@@ -148,18 +163,19 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                     </GridRow>
                     <GridRow>
                         <GridColumn>
-                            <Button affirmative onClick={handleFilter}>Find Matches</Button>
+                            <Button affirmative onClick={() => handleFilter(data)}>Find Matches</Button>
                         </GridColumn>
                     </GridRow>
                 </Grid>
             </SectionHeader>
             <Divider addSpacing="medium"/>
-            <div ref={portalContainerRef}>
-                <SuggestionListContext.Provider value={{
-                    portalContainer: portalContainerRef.current,
-                    exampleValues
-                }}>
-                    <TableContainer>
+            <TableContainer>
+                <div ref={portalContainerRef}>
+                    <SuggestionListContext.Provider value={{
+                        portalContainer: portalContainerRef.current,
+                        exampleValues,
+                        search: submittedSearch
+                    }}>
                         <SuggestionHeader onSearch={handleSearch}/>
                         <SuggestionList
                             rows={filteredData}
@@ -167,9 +183,9 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                             onAdd={handleAdd}
                             onAskDiscardChanges={onAskDiscardChanges}
                         />
-                    </TableContainer>
-                </SuggestionListContext.Provider>
-            </div>
+                    </SuggestionListContext.Provider>
+                </div>
+            </TableContainer>
         </Section>
     )
 }

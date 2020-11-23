@@ -1,7 +1,8 @@
 import React, { useContext } from "react";
-import { Button, MenuItem, Select } from '@gui-elements/index';
+import { MenuItem, Select, Button } from '@gui-elements/index';
 import { ITargetWithSelected } from "../suggestion.typings";
 import { SuggestionListContext } from "../SuggestionContainer";
+import Highlighter from "../../../elements/Highlighter";
 
 // Select<T> is a generic component to work with your data types.
 // In TypeScript, you must first obtain a non-generic reference:
@@ -22,9 +23,9 @@ export default function TargetList({targets, onChange}) {
     };
 
     const itemLabel = (target: ITargetWithSelected) => <>
-        {target.label && <p><b>{target.label}</b></p>}
-        {target.uri && <p>{target.uri}</p>}
-        {target.description && <p>{target.description}</p>}
+        {target.label && <p><Highlighter label={target.label} searchValue={context.search} /></p>}
+        {target.uri && <p><Highlighter label={target.uri} searchValue={context.search} /></p>}
+        {target.description && <p><Highlighter label={target.description} searchValue={context.search} /></p>}
     </>;
 
     const itemRenderer = (target: ITargetWithSelected, {handleClick}) => {
