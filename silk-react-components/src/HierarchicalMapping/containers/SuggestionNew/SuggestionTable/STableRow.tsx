@@ -39,6 +39,7 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
         </TableCell>
         <TableCell>
             <Highlighter label={label || source} searchValue={context.search} />
+            {!label && source && <p><Highlighter label={source} searchValue={context.search} /></p>}
             {description && <p><Highlighter label={description} searchValue={context.search} /></p>}
             {
                 examples && <ContextMenu
