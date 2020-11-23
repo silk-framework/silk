@@ -53,7 +53,7 @@ export default class WorkflowReportManager extends React.Component {
     }
 
     renderReportItem(report) {
-        return <option value={report.time}>{report.time}</option>
+        return <option value={report.time}>{new Date(report.time).toString()}</option>
     }
 
     renderSelectedReport() {

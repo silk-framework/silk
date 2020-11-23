@@ -11,14 +11,14 @@ import org.silkframework.util.Identifier
   * A builder for generating transform reports.
   * Not thread safe!
   */
-private class TransformReportBuilder(task: Task[TransformSpec], previousReport: TransformReport) {
+private class TransformReportBuilder(task: Task[TransformSpec], rules: Seq[TransformRule],  previousReport: TransformReport) {
 
   private var entityCounter = previousReport.entityCounter
 
   private var entityErrorCounter = previousReport.entityErrorCounter
 
   private var ruleResults: Map[Identifier, RuleResult] = {
-    previousReport.ruleResults ++ task.data.rules.map(rule => (rule.id, RuleResult())).toMap
+    previousReport.ruleResults ++ rules.map(rule => (rule.id, RuleResult())).toMap
   }
 
   // The maximum number of erroneous values to be held for each rule.

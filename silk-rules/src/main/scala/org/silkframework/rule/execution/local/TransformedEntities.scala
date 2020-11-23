@@ -61,7 +61,7 @@ class TransformedEntities(task: Task[TransformSpec],
   override def foreach[U](f: Entity => U): Unit = {
     val report = {
       val prevReport = context.value.get.getOrElse(TransformReport(task))
-      new TransformReportBuilder(task, prevReport)
+      new TransformReportBuilder(task, rules, prevReport)
     }
 
     count = 0
