@@ -6,9 +6,12 @@ import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.activity.workflow.{WorkflowExecutionReport, WorkflowExecutionReportWithProvenance}
+import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutionReport, WorkflowExecutionReportWithProvenance}
 import play.api.libs.json._
 import ExecutionReportSerializers.Keys._
+import org.silkframework.rule.TransformSpec
+import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, TaskJsonFormat, TaskSpecJsonFormat, TransformSpecJsonFormat}
+import WorkflowSerializers.WorkflowJsonFormat
 
 object ExecutionReportSerializers {
 
@@ -34,16 +37,17 @@ object ExecutionReportSerializers {
         WorkflowExecutionReportJsonFormat.read(value)
       } else {
         SimpleExecutionReport(
-          label =  stringValue(value, LABEL),
+          task = GenericTaskJsonFormat.read(requiredValue(value, TASK)),
           summary = arrayValue(value, SUMMARY).value.map(deserializeValue),
           warnings = arrayValue(value, WARNINGS).value.map(_.as[String])
         )
       }
     }
 
-    def serializeBasicValues(value: ExecutionReport): JsObject = {
+    def serializeBasicValues(value: ExecutionReport)(implicit writeContext: WriteContext[JsValue]): JsObject = {
       Json.obj(
-        LABEL -> value.label,
+        LABEL -> value.task.taskLabel(),
+        TASK -> GenericTaskJsonFormat.write(value.task),
         SUMMARY -> value.summary.map(serializeValue),
         WARNINGS -> value.warnings
       )
@@ -74,8 +78,9 @@ object ExecutionReportSerializers {
     }
 
     override def read(value: JsValue)(implicit readContext: ReadContext): TransformReport = {
+      implicit val taskFormat = new TaskJsonFormat[TransformSpec]()
       TransformReport(
-        label = stringValue(value, LABEL),
+        task = taskFormat.read(requiredValue(value, TASK)),
         entityCounter = numberValue(value, ENTITY_COUNTER).longValue,
         entityErrorCounter = numberValue(value, ENTITY_ERROR_COUNTER).longValue,
         ruleResults = readRuleResults(objectValue(value, RULE_RESULTS)),
@@ -139,12 +144,13 @@ object ExecutionReportSerializers {
     }
 
     override def read(value: JsValue)(implicit readContext: ReadContext): WorkflowExecutionReport = {
+      implicit val taskFormat = new TaskJsonFormat[Workflow]()
       val taskReports =
         for((key, value) <- objectValue(value, TASK_REPORTS).value) yield {
           (Identifier(key) -> ExecutionReportJsonFormat.read(value))
         }
       WorkflowExecutionReport(
-        label = stringValue(value, LABEL),
+        task = taskFormat.read(requiredValue(value, TASK)),
         taskReports = taskReports.toMap
       )
     }
@@ -171,6 +177,7 @@ object ExecutionReportSerializers {
 
   object Keys {
 
+    final val TASK = "task"
     final val LABEL = "label"
     final val SUMMARY = "summary"
     final val WARNINGS = "warnings"

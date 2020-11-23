@@ -33,11 +33,10 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
     val entities = Seq(entity(IndexedSeq("valid", "valid"), IndexedSeq(prop, prop2)), entity(IndexedSeq("invalid", "valid"), IndexedSeq(prop, prop2)))
     val dataSourceMock = mock[DataSource]
     when(dataSourceMock.retrieve(any(), any())(any())).thenReturn(GenericEntityTable(entities, entities.head.schema, null))
+    val transform = TransformSpec(datasetSelection(), RootMappingRule(rules = MappingRules(mapping("propTransform", prop), mapping("prop2Transform", prop2))))
     val execute = new ExecuteTransform(
-      taskId = "transformTask",
-      taskLabel = "transform task",
+      PlainTask("transformTask", transform),
       input = _ => dataSourceMock,
-      transform = TransformSpec(datasetSelection(), RootMappingRule(rules = MappingRules(mapping("propTransform", prop), mapping("prop2Transform", prop2)))),
       output = _ => outputMock
     )
     val contextMock = mock[ActivityContext[TransformReport]]

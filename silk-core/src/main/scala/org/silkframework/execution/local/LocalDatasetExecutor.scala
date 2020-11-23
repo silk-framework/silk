@@ -3,7 +3,7 @@ package org.silkframework.execution.local
 import java.util
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{Prefixes, Task}
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetSpec}
 import org.silkframework.dataset.rdf._
 import org.silkframework.dataset._
@@ -13,6 +13,7 @@ import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 import CloseableDataset.using
+
 import scala.util.control.NonFatal
 
 /**
@@ -145,7 +146,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
 
   final val remainingSparqlUpdateQueryBufferSize = 1000
 
-  case class SparqlUpdateExecutionReportUpdater(taskLabel: String, context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  case class SparqlUpdateExecutionReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     var remainingQueries = 0
 
     override def entityProcessVerb: String = "executed"
@@ -193,7 +194,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     dataset.plugin match {
       case rdfDataset: RdfDataset =>
         val endpoint = rdfDataset.sparqlEndpoint
-        val executionReport = SparqlUpdateExecutionReportUpdater(dataset.taskLabel(), context)
+        val executionReport = SparqlUpdateExecutionReportUpdater(dataset, context)
         val queryBuffer = SparqlQueryBuffer(remainingSparqlUpdateQueryBufferSize, sparqlUpdateTable.entities)
         for (updateQuery <- queryBuffer) {
           endpoint.update(updateQuery)

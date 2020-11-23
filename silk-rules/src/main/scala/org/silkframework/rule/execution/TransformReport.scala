@@ -1,6 +1,8 @@
 package org.silkframework.rule.execution
 
+import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.execution.ExecutionReport
+import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.TransformReport._
 import org.silkframework.util.Identifier
 
@@ -11,11 +13,11 @@ import org.silkframework.util.Identifier
   * @param entityErrorCounter The number of entities that have been erroneous.
   * @param ruleResults The transformation statistics for each mapping rule by name.
   */
-case class TransformReport( label: String,
-                            entityCounter: Long = 0L,
-                            entityErrorCounter: Long = 0L,
-                            ruleResults: Map[Identifier, RuleResult] = Map.empty,
-                            globalErrors: Seq[String] = Seq.empty
+case class TransformReport(task: Task[TransformSpec],
+                           entityCounter: Long = 0L,
+                           entityErrorCounter: Long = 0L,
+                           ruleResults: Map[Identifier, RuleResult] = Map.empty,
+                           globalErrors: Seq[String] = Seq.empty
                           ) extends ExecutionReport {
 
   lazy val summary: Seq[(String, String)] = {

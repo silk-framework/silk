@@ -2,11 +2,12 @@ package org.silkframework.rule.execution.local
 
 import java.util.logging.Logger
 
+import org.silkframework.config.Task
 import org.silkframework.entity.metadata.{EntityMetadata, EntityMetadataXml}
 import org.silkframework.entity.{Entity, EntitySchema, UriValueType, ValueType}
 import org.silkframework.execution.ExecutionException
 import org.silkframework.failures.EntityException
-import org.silkframework.rule.TransformRule
+import org.silkframework.rule.{TransformRule, TransformSpec}
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.validation.ValidationException
@@ -19,7 +20,7 @@ import scala.xml.Node
 /**
   * Entities that come from a transform task.
   *
-  * @param taskLabel         The label of the transform task these entities originate from.
+  * @param task              The transform task these entities originate from.
   * @param entities          The source entities the transformation is applied to.
   * @param rules             The transformation rules that are applied against the source entities.
   * @param outputSchema      The output schema of the transformation.
@@ -27,8 +28,7 @@ import scala.xml.Node
   *                          schema defined by the mapping itself. A requested schema is type agnostic.
   * @param context           The activity context.
   */
-class TransformedEntities(taskId: Identifier,
-                          taskLabel: String,
+class TransformedEntities(task: Task[TransformSpec],
                           entities: Traversable[Entity],
                           rules: Seq[TransformRule],
                           outputSchema: EntitySchema,
@@ -60,8 +60,8 @@ class TransformedEntities(taskId: Identifier,
 
   override def foreach[U](f: Entity => U): Unit = {
     val report = {
-      val prevReport = context.value.get.getOrElse(TransformReport(taskLabel))
-      new TransformReportBuilder(prevReport.label, rules, prevReport)
+      val prevReport = context.value.get.getOrElse(TransformReport(task))
+      new TransformReportBuilder(task, prevReport)
     }
 
     count = 0
@@ -126,9 +126,9 @@ class TransformedEntities(taskId: Identifier,
     if(!errorFlag) {
       EntityMetadataXml()
     } else if(errors.size == 1) {
-      EntityMetadataXml(new EntityException("", errors.head, taskId))
+      EntityMetadataXml(new EntityException("", errors.head, task.id))
     } else {
-      EntityMetadataXml(new EntityException("Multiple errors: " + errors.map(_.getMessage).mkString(", "), errors.head, taskId))
+      EntityMetadataXml(new EntityException("Multiple errors: " + errors.map(_.getMessage).mkString(", "), errors.head, task.id))
     }
   }
 

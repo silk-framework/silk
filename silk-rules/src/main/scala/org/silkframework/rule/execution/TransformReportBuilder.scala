@@ -1,8 +1,9 @@
 package org.silkframework.rule.execution
 
+import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.entity.Entity
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.rule.TransformRule
+import org.silkframework.rule.{TransformRule, TransformSpec}
 import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
 import org.silkframework.util.Identifier
 
@@ -10,14 +11,14 @@ import org.silkframework.util.Identifier
   * A builder for generating transform reports.
   * Not thread safe!
   */
-private class TransformReportBuilder(label: String, rules: Seq[TransformRule], previousReport: TransformReport) {
+private class TransformReportBuilder(task: Task[TransformSpec], previousReport: TransformReport) {
 
   private var entityCounter = previousReport.entityCounter
 
   private var entityErrorCounter = previousReport.entityErrorCounter
 
   private var ruleResults: Map[Identifier, RuleResult] = {
-    previousReport.ruleResults ++ rules.map(rule => (rule.id, RuleResult())).toMap
+    previousReport.ruleResults ++ task.data.rules.map(rule => (rule.id, RuleResult())).toMap
   }
 
   // The maximum number of erroneous values to be held for each rule.
@@ -46,6 +47,6 @@ private class TransformReportBuilder(label: String, rules: Seq[TransformRule], p
   }
 
   def build(): TransformReport = {
-    TransformReport(label, entityCounter, entityErrorCounter, ruleResults, previousReport.globalErrors)
+    TransformReport(task, entityCounter, entityErrorCounter, ruleResults, previousReport.globalErrors)
   }
 }

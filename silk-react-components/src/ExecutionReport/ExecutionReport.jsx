@@ -14,12 +14,11 @@ export default class ExecutionReport extends React.Component {
         this.state = {
             currentRuleId: null,
         };
-        
-        const {baseUrl, project, task} = this.props;
+
         setApiDetails({
-            baseUrl,
-            project,
-            transformTask: task,
+            baseUrl: this.props.baseUrl,
+            project: this.props.project,
+            transformTask: this.props.executionReport.task.id,
         });
         this.onRuleNavigation = this.onRuleNavigation.bind(this);
     }
@@ -55,15 +54,25 @@ export default class ExecutionReport extends React.Component {
     }
 
     renderWarning() {
-        const warnings = this.props.executionReport.warnings.map(warning =>
-            <div className="mdl-alert mdl-alert--info mdl-alert--border mdl-alert--spacing">
-                <div className="mdl-alert__content">
-                    <p>{warning}</p>
+        if(this.props.executionReport.warnings.length > 0) {
+            const warnings = this.props.executionReport.warnings.map(warning =>
+                <div className="mdl-alert mdl-alert--info mdl-alert--border mdl-alert--spacing">
+                    <div className="mdl-alert__content">
+                        <p>{warning}</p>
+                    </div>
                 </div>
-            </div>
-        );
+            );
 
-        return <div className="silk-report-warning">{warnings}</div>
+            return <div className="silk-report-warning">{warnings}</div>
+        } else {
+            return <div className="silk-report-warning">
+                        <div className="mdl-alert mdl-alert--info mdl-alert--border mdl-alert--spacing">
+                            <div className="mdl-alert__content">
+                                <p>Task '{this.props.executionReport.label}' has been executed without any issues.</p>
+                            </div>
+                        </div>
+                   </div>
+        }
     }
     
     renderTransformReport() {
@@ -148,6 +157,6 @@ export default class ExecutionReport extends React.Component {
 ExecutionReport.propTypes = {
     baseUrl: PropTypes.string.isRequired, // Base URL of the DI service
     project: PropTypes.string.isRequired, // project ID
-    task: PropTypes.string.isRequired, // task ID
+    nodeId: PropTypes.string.isRequired, // workflow node ID
     executionReport: PropTypes.object // The transform execution report to render
 };

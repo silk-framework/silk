@@ -998,6 +998,15 @@ object JsonSerializers {
         .map(_.asInstanceOf[JsonFormat[TaskSpec]])
     }
 
+    /**
+      * Retrieves the task format for a given task spec.
+      *
+      * @return The task format, if available. None, otherwise.
+      */
+    def taskSpecFormat(value: TaskSpec): Option[JsonFormat[TaskSpec]] = {
+      taskSpecFormats.find(_.valueType.isAssignableFrom(value.getClass))
+    }
+
     override def read(value: JsValue)(implicit readContext: ReadContext): TaskSpec = {
       val taskType = stringValue(value, TASKTYPE)
       taskSpecFormats.find(_.typeNames.contains(taskType)) match {
@@ -1009,7 +1018,7 @@ object JsonSerializers {
     }
 
     override def write(value: TaskSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      taskSpecFormats.find(_.valueType.isAssignableFrom(value.getClass)) match {
+      taskSpecFormat(value) match {
         case Some(format) =>
           format.write(value)
         case None =>

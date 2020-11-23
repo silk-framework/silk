@@ -1,32 +1,29 @@
 package org.silkframework.rule.execution
 
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.{DataSource, EntitySink, TypedProperty}
 import org.silkframework.entity.ValueType
-import org.silkframework.entity.paths.TypedPath
-import org.silkframework.execution.{AbortExecutionException, ExecutionReport}
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
 import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
-import org.silkframework.util.Identifier
 
 import scala.util.control.Breaks._
 
 /**
   * Executes a set of transformation rules.
   */
-class ExecuteTransform(taskId: Identifier,
-                       taskLabel: String,
+class ExecuteTransform(task: Task[TransformSpec],
                        input: UserContext => DataSource,
-                       transform: TransformSpec,
                        output: UserContext => EntitySink,
                        errorOutput: UserContext => Option[EntitySink] = _ => None,
                        limit: Option[Int] = None)(implicit prefixes: Prefixes) extends Activity[TransformReport] {
 
+  private def transform = task.data
+
   require(transform.rules.count(_.target.isEmpty) <= 1, "Only one rule with empty target property (subject rule) allowed.")
 
-  override val initialValue = Some(TransformReport(taskLabel))
+  override val initialValue = Some(TransformReport(task))
 
   def run(context: ActivityContext[TransformReport])
          (implicit userContext: UserContext): Unit = {
@@ -61,7 +58,7 @@ class ExecuteTransform(taskId: Identifier,
     errorEntitySink.foreach(_.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get) :+ TypedProperty("error", ValueType.STRING, false)))
 
     val entityTable = dataSource.retrieve(rule.inputSchema)
-    val transformedEntities = new TransformedEntities(taskId, taskLabel, entityTable.entities, rule.transformRule.rules, rule.outputSchema,
+    val transformedEntities = new TransformedEntities(task, entityTable.entities, rule.transformRule.rules, rule.outputSchema,
       isRequestedSchema = false, context = context)
     var count = 0
     breakable {

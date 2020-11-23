@@ -23,11 +23,9 @@ case class ExecuteTransformFactory(
   override def apply(task: ProjectTask[TransformSpec]): Activity[TransformReport] = {
     Activity.regenerating {
       new ExecuteTransform(
-        task.id,
-        task.taskLabel(),
+        task,
         // No user context here, defer fetching data sources
         (userContext: UserContext) => task.dataSource(userContext),
-        task.data,
         (userContext: UserContext) => new CombinedEntitySink(task.entitySink(userContext).toSeq),
         (userContext: UserContext) => task.errorEntitySink(userContext),
         limit

@@ -3,6 +3,7 @@ package org.silkframework.execution
 import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
 import java.time.{Instant, OffsetDateTime, ZoneOffset}
 
+import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.ActivityContext
 
 /**
@@ -11,8 +12,8 @@ import org.silkframework.runtime.activity.ActivityContext
 trait ExecutionReportUpdater {
 
   final val DEFAULT_DELAY_BETWEEN_UPDATES = 1000
-  /** The label of the task as it will be displayed in the execution report. */
-  def taskLabel: String
+  /** The task that has been executed. */
+  def task: Task[TaskSpec]
   /** The activity context of the task that is executed */
   def context: ActivityContext[ExecutionReport]
   /** What does the task emit, e.g. "entity", "query" etc. */
@@ -73,7 +74,7 @@ trait ExecutionReportUpdater {
           startFirstEntity.toSeq.map(firstEntityStart =>
             s"Runtime since first ${entityLabelSingle.toLowerCase} $entityProcessVerb" -> s"${(firstEntityStart - start).toDouble / 1000} seconds") ++
           additionalFields()
-      context.value.update(SimpleExecutionReport(taskLabel, stats, Seq.empty))
+      context.value.update(SimpleExecutionReport(task, stats, Seq.empty))
       lastUpdate = System.currentTimeMillis()
     }
   }

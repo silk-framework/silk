@@ -2,6 +2,7 @@ package org.silkframework.workspace.activity.workflow
 
 import java.util.logging.Logger
 
+import org.silkframework.config.PlainTask
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.PluginRegistry
@@ -55,7 +56,7 @@ object WorkflowExecutionReportWithProvenance {
   }
 
   val empty = WorkflowExecutionReportWithProvenance(
-    report = WorkflowExecutionReport("empty report"),
+    report = WorkflowExecutionReport(PlainTask("emptyReport", Workflow())),
     workflowExecutionProvenance = WorkflowExecutionProvenanceData(ActivityExecutionMetaData())
   )
 }
