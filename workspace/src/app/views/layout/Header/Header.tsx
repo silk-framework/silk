@@ -29,6 +29,7 @@ import {
     TitlePage,
     TitleSubsection,
     WorkspaceHeader,
+    Spacing,
 } from "@gui-elements/index";
 import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
@@ -48,6 +49,7 @@ import { DATA_TYPES } from "../../../constants";
 import { IExportTypes } from "@ducks/common/typings";
 import { downloadResource } from "../../../utils/downloadResource";
 import { useTranslation } from "react-i18next";
+import { triggerHotkeyHandler } from "../../shared/HotKeyHandler/HotKeyHandler";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];
@@ -65,6 +67,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
     const location = useLocation<any>();
     const [itemType, setItemType] = useState<string | null>(null);
     const [currentLanguage, setCurrentLanguage] = useState(Store.get("locale"));
+    const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
 
     const isAuth = useSelector(commonSel.isAuthSelector);
     const exportTypes = useSelector(commonSel.exportTypesSelector);
@@ -112,7 +115,6 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
 
     // Update item links for more menu
     useEffect(() => {
-        getWindowTitle(projectId);
         if (projectId && taskId) {
             getItemLinks();
         } else {
@@ -120,12 +122,16 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
         }
     }, [projectId, taskId]);
 
+    // Set window title
+    useEffect(() => {
+        getWindowTitle(projectId);
+    }, [projectId, taskId, lastBreadcrumb ? lastBreadcrumb.href : ""]);
+
     const updateItemType = async (pageLabels: IPageLabels, locationPathName: string) => {
         if (projectId && taskId) {
             try {
                 const response = await requestTaskItemInfo(projectId, taskId);
                 const itemType = response.data.itemType.id;
-                pageLabels.itemType = itemType;
                 if (window.location.pathname === locationPathName) {
                     setItemType(itemType);
                 }
@@ -245,6 +251,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                                         icon={link.icon}
                                         text={t("navigation.side.dm." + link.path, link.defaultLabel)}
                                         href={dmBaseUrl + "/" + link.path}
+                                        key={link.path}
                                     />
                                 ))
                             ) : (
@@ -281,7 +288,11 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                         </OverviewItemLine>
                         {lastBreadcrumb && (
                             <OverviewItemLine large>
-                                <TitlePage>{lastBreadcrumb.text}</TitlePage>
+                                <TitlePage>
+                                    <h1>
+                                        <OverflowText>{lastBreadcrumb.text}</OverflowText>
+                                    </h1>
+                                </TitlePage>
                             </OverviewItemLine>
                         )}
                     </OverviewItemDescription>
@@ -369,11 +380,38 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                                 <MenuItem
                                     text={t("common.action.backOld", "Back to old workspace")}
                                     href={CONTEXT_PATH + "/workspace"}
+                                    icon={"application-legacygui"}
                                 />
                                 <MenuItem
                                     text={t("common.action.activity", "Activity overview")}
                                     href={CONTEXT_PATH + "/workspace/allActivities"}
+                                    icon={"application-activities"}
                                 />
+                                {hotKeys.quickSearch && (
+                                    <MenuItem
+                                        text={
+                                            <>
+                                                {t("RecentlyViewedModal.title")}
+                                                <Spacing vertical={true} size="small" />
+                                                <Button
+                                                    outlined={true}
+                                                    small={true}
+                                                    tooltip={`Hotkey: ${hotKeys.quickSearch}`}
+                                                >
+                                                    {hotKeys.quickSearch}
+                                                </Button>
+                                            </>
+                                        }
+                                        href={"#"}
+                                        onClick={(e) => {
+                                            if (e) {
+                                                e.preventDefault();
+                                            }
+                                            triggerHotkeyHandler(hotKeys.quickSearch);
+                                        }}
+                                        icon={"operation-search"}
+                                    />
+                                )}
                                 {!!dmBaseUrl && (
                                     <>
                                         <MenuDivider />
@@ -383,6 +421,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                                             onClick={() => {
                                                 dispatch(commonOp.logoutFromDi());
                                             }}
+                                            icon={"operation-logout"}
                                         />
                                     </>
                                 )}

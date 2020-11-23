@@ -3,6 +3,7 @@ import {
     IFacetState,
     IProjectExecutionStatus,
     IProjectImportDetails,
+    IRecentlyViewedItem,
     ISorterListItemState,
     ITaskLink,
 } from "@ducks/workspace/typings";
@@ -278,5 +279,12 @@ export const requestProjectImportExecutionStatus = async (
 ): Promise<FetchResponse<IProjectExecutionStatus>> => {
     return fetch({
         url: projectImportEndpoint(projectImportId) + "/status",
+    });
+};
+
+/** Fetch the recently viewed items of the current user. */
+export const recentlyViewedItems = async (): Promise<FetchResponse<IRecentlyViewedItem[]>> => {
+    return fetch({
+        url: workspaceApi("/recentlyViewedItems"),
     });
 };

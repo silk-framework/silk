@@ -1,12 +1,13 @@
-import { createAction, createSlice } from "@reduxjs/toolkit";
+import { createAction, createSlice, Slice, SliceCaseReducers, ValidateSliceCaseReducers } from "@reduxjs/toolkit";
 import { initialCommonState } from "./initialState";
 import { LOCATION_CHANGE } from "connected-react-router";
 import appRoutes from "../../../appRoutes";
 import { matchPath } from "react-router";
 import { getFullRoutePath } from "../../../utils/routerUtils";
 import { getHistory } from "../../configureStore";
+import { ICommonState } from "@ducks/common/typings";
 
-const commonReducers = {
+const commonReducers: ValidateSliceCaseReducers<ICommonState, SliceCaseReducers<ICommonState>> = {
     setInitialSettings(state, action) {
         state.initialSettings = action.payload;
     },
@@ -40,10 +41,10 @@ const commonReducers = {
     },
 };
 
-const artefactModalReducers = {
+const artefactModalReducers: ValidateSliceCaseReducers<ICommonState, SliceCaseReducers<ICommonState>> = {
     closeArtefactModal(state) {
         state.artefactModal.isOpen = false;
-        state.artefactModal.selectedArtefact = {};
+        state.artefactModal.selectedArtefact = undefined;
         state.artefactModal.updateExistingTask = null;
     },
     selectArtefact(state, action) {
@@ -127,7 +128,7 @@ const getExtraReducers = () => {
     };
 };
 
-export const commonSlice = createSlice({
+export const commonSlice: Slice<ICommonState> = createSlice({
     name: "common",
     initialState: initialCommonState(),
     reducers: {
