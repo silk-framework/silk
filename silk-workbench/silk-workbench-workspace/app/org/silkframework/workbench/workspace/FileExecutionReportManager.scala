@@ -4,27 +4,29 @@ import java.io.{File, FileInputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.time.format.DateTimeFormatter
-import java.time.{Instant, ZoneOffset}
+import java.time.{Duration, Instant, ZoneOffset}
+import java.util.logging.{Level, Logger}
 
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity.ActivityExecutionResult
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.ActivitySerializers.ActivityExecutionResultJsonFormat
-import org.silkframework.serialization.json.ExecutionReportSerializers
 import org.silkframework.serialization.json.ExecutionReportSerializers.ExecutionReportJsonFormat
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.reports.{ExecutionReportManager, ReportMetaData}
+import org.silkframework.workbench.workspace.FileExecutionReportManager.DEFAULT_RETENTION_TIME
+import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 import play.api.libs.json.{JsValue, Json}
 
 import scala.util.Try
+import scala.util.control.NonFatal
 
 @Plugin(
   id = "file",
   label = "Reports on filesystem",
   description = "Holds the reports in a specified directory on the filesystem."
 )
-case class FileExecutionReportManager(dir: String) extends ExecutionReportManager {
+case class FileExecutionReportManager(dir: String, retentionTime: Duration = DEFAULT_RETENTION_TIME) extends ExecutionReportManager {
 
   private val reportDirectory = new File(dir)
   reportDirectory.mkdirs()
@@ -35,7 +37,9 @@ case class FileExecutionReportManager(dir: String) extends ExecutionReportManage
   // JSON format to read and write execution reports.
   private val reportJsonFormat = new ActivityExecutionResultJsonFormat()(ExecutionReportJsonFormat)
 
-  override def listReports(projectId: Option[Identifier], taskId: Option[Identifier]): Seq[ReportMetaData] = {
+  private val log = Logger.getLogger(getClass.getName)
+
+  override def listReports(projectId: Option[Identifier], taskId: Option[Identifier]): Seq[ReportIdentifier] = {
     for {
       reportFile <- reportDirectory.listFiles()
       report <- fromReportFile(reportFile)
@@ -46,10 +50,10 @@ case class FileExecutionReportManager(dir: String) extends ExecutionReportManage
     }
   }
 
-  override def retrieveReport(projectId: Identifier, taskId: Identifier, time: Instant): ActivityExecutionResult[ExecutionReport] = {
-    val file = reportFile(projectId, taskId, time)
+  override def retrieveReport(reportId: ReportIdentifier): ActivityExecutionResult[ExecutionReport] = {
+    val file = reportFile(reportId)
     if(!file.exists) {
-      throw new NoSuchElementException(s"No report found for project $projectId and task $taskId at $time.")
+      throw new NoSuchElementException(s"No report found for project ${reportId.projectId} and task ${reportId.taskId} at ${reportId.time}.")
     }
 
     val inputStream = new FileInputStream(file)
@@ -62,25 +66,54 @@ case class FileExecutionReportManager(dir: String) extends ExecutionReportManage
 
   }
 
-  override def addReport(projectId: Identifier, taskId: Identifier, report: ActivityExecutionResult[ExecutionReport]): Unit = {
+  override def addReport(reportId: ReportIdentifier, report: ActivityExecutionResult[ExecutionReport]): Unit = {
     implicit val wc = WriteContext[JsValue]()
     val reportJson = reportJsonFormat.write(report)
 
-    Files.write(reportFile(projectId, taskId, Instant.now).toPath, Json.prettyPrint(reportJson).getBytes(StandardCharsets.UTF_8))
+    removeOldReports()
+    Files.write(reportFile(reportId).toPath, Json.prettyPrint(reportJson).getBytes(StandardCharsets.UTF_8))
   }
 
-  def reportFile(projectId: Identifier, taskId: Identifier, time: Instant): File = {
-    val fileName = s"${projectId}_${taskId}_${timeFormat.format(time)}.json"
+  override def removeReport(reportId: ReportIdentifier): Unit = {
+    val file = reportFile(reportId)
+    Files.delete(file.toPath)
+  }
+
+  /**
+    * Removes reports older than the retention time.
+    * If removal of a report fails, a warning will be logged and the method will return normally.
+    */
+  private def removeOldReports(): Unit = {
+    val oldestDateTime = Instant.now.minus(retentionTime)
+      for (reportId <- listReports(None, None) if reportId.time.isBefore(oldestDateTime)) {
+        try {
+          removeReport(reportId)
+        } catch {
+          case NonFatal(ex) =>
+            log.log(Level.WARNING, s"Could not delete old report file at " + reportFile(reportId).getAbsolutePath, ex)
+        }
+      }
+
+  }
+
+  /**
+    * Returns the file that corresponds to a given report identifier.
+    */
+  private def reportFile(reportId: ReportIdentifier): File = {
+    val fileName = s"${reportId.projectId}_${reportId.taskId}_${timeFormat.format(reportId.time)}.json"
     new File(reportDirectory, fileName)
   }
 
-  def fromReportFile(file: File): Option[ReportMetaData] = {
+  /**
+    * Parses report identifier from a file name.
+    */
+  private def fromReportFile(file: File): Option[ReportIdentifier] = {
     val name = file.getName
     if(name.endsWith(".json")) {
       val parts = name.stripSuffix(".json").split('_')
       if(parts.length == 3) {
         for(time <- Try(Instant.from(timeFormat.parse(parts(2)))).toOption) yield {
-          ReportMetaData(
+          ReportIdentifier(
             projectId = parts(0),
             taskId = parts(1),
             time = time
@@ -93,5 +126,11 @@ case class FileExecutionReportManager(dir: String) extends ExecutionReportManage
       None
     }
   }
+
+}
+
+object FileExecutionReportManager {
+
+  val DEFAULT_RETENTION_TIME: Duration = Duration.ofDays(30)
 
 }

@@ -12,20 +12,30 @@ import org.silkframework.util.Identifier
 
 trait ExecutionReportManager extends AnyPlugin {
 
-  def listReports(projectId: Option[Identifier], taskId: Option[Identifier]): Seq[ReportMetaData]
+  /**
+    * Lists all available reports.
+    *
+    * @param projectId If provided, only reports for the given project are returned.
+    * @param taskId If provided, only reports for the given task are returned.
+    */
+  def listReports(projectId: Option[Identifier], taskId: Option[Identifier]): Seq[ReportIdentifier]
 
   /**
     * Retrieves a report.
     *
-    * @param projectId
-    * @param taskId
-    * @param time
-    *
     * @throws NoSuchElementException If no report for the given project, task and time does exist.
     */
-  def retrieveReport(projectId: Identifier, taskId: Identifier, time: Instant): ActivityExecutionResult[ExecutionReport]
+  def retrieveReport(reportId: ReportIdentifier): ActivityExecutionResult[ExecutionReport]
 
-  def addReport(projectId: Identifier, taskId: Identifier, report: ActivityExecutionResult[ExecutionReport]): Unit
+  /**
+    * Adds a new report.
+    */
+  def addReport(reportId: ReportIdentifier, report: ActivityExecutionResult[ExecutionReport]): Unit
+
+  /**
+    * Removes a report.
+    */
+  def removeReport(reportId: ReportIdentifier): Unit
 
 }
 
@@ -45,6 +55,9 @@ object ExecutionReportManager {
     }
   }
 
+  /**
+    * Retrieves the configured execution report manager.
+    */
   def apply(): ExecutionReportManager = instance
 
 }

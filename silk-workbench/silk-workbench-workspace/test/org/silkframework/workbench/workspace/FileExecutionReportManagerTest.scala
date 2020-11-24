@@ -8,7 +8,7 @@ import org.silkframework.runtime.activity.{ActivityExecutionMetaData, ActivityEx
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.serialization.json.ExecutionReportSerializers
 import org.silkframework.util.FileUtils._
-import org.silkframework.workspace.reports.ExecutionReportManager
+import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 import play.api.libs.json.Json
 
 class FileExecutionReportManagerTest extends FlatSpec with Matchers {
@@ -19,11 +19,11 @@ class FileExecutionReportManagerTest extends FlatSpec with Matchers {
     withReportManager { reportManager =>
       val report = loadReport("workflowReport.json")
       val executionResult = ActivityExecutionResult(metaData = ActivityExecutionMetaData(), resultValue = Some(loadReport("workflowReport.json")))
-      reportManager.addReport("project", "task", executionResult)
+      reportManager.addReport(ReportIdentifier.create("project", "task"), executionResult)
       val reports = reportManager.listReports(Some("project"), Some("task"))
       reports should have size 1
 
-      val retrievedReport = reportManager.retrieveReport("project", "task", reports.head.time).resultValue.get
+      val retrievedReport = reportManager.retrieveReport(reports.head).resultValue.get
       retrievedReport.toString shouldEqual report.toString
     }
   }
