@@ -77,7 +77,7 @@ export interface IDetailedArtefactItem {
 /** Overview version of an item description. */
 export interface IArtefactItem {
     key: string;
-    taskType: string;
+    taskType?: string;
     title?: string;
     description?: string;
     categories?: string[];
