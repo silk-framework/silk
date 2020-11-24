@@ -108,15 +108,14 @@ class JsonSink(resource: WritableResource, outputTemplate: String = "<Result><?e
     val sr = f.createXMLStreamReader(src)
     val sw: StringWriter = new StringWriter()
     transformer.transform(src, new StreamResult(sw))
-    val xmlMapper = new XmlMapper()
-    xmlMapper.registerModule(
-      new SimpleModule().addDeserializer(
-        classOf[JsonNode], new DuplicateNodeDeserializer
-      )
-    )
+//    val xmlMapper = new XmlMapper()
+//    xmlMapper.registerModule(
+//      new SimpleModule().addDeserializer(
+//        classOf[JsonNode], new DuplicateNodeDeserializer
+//      )
+//    )
 
     val json = XML.toJSONObject(sw.toString()).getJSONObject("Result").optJSONArray("entity")
-    println(json.toString(2))
     resource.writeString(json.toString(2))
 //    val node = xmlMapper.readValue(sr, classOf[JsonNode])
 //
