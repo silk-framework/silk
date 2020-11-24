@@ -1,8 +1,8 @@
 package org.silkframework.plugins.dataset.json
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, StringReader, StringWriter}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileOutputStream, InputStream, OutputStream, StringReader, StringWriter}
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.{DeserializationContext, JsonNode, ObjectMapper}
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.OutputKeys
@@ -17,18 +17,23 @@ import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 import org.w3c.dom.{Document, Element, Node, ProcessingInstruction}
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.module.SimpleModule
-import org.silkframework.plugins.dataset.json.DuplicateToArrayJsonNodeDeserializer
-import java.nio.charset.Charset
+import com.sun.xml.internal.ws.streaming.{DOMStreamReader, SourceReaderFactory}
+import javax.xml.stream.XMLStreamReader
+import org.apache.commons.io.IOUtils
+import javax.xml.stream.XMLInputFactory
+import java.io.FileInputStream
+import java.util
 
-import com.fasterxml.jackson.core.{JsonEncoding, JsonFactory}
+import com.fasterxml.jackson.databind.deser.DefaultDeserializationContext
+import com.fasterxml.jackson.databind.node.{ArrayNode, BigIntegerNode, BooleanNode, LongNode, ObjectNode, TextNode}
+import org.json.XML
 
 import scala.collection.mutable
 import scala.xml.InputSource
 
 
-class JsonSink(resource: WritableResource, outputTemplate: String = "<Root><?Entity?></Root>") extends EntitySink {
+class JsonSink(resource: WritableResource, outputTemplate: String = "<Result><?entity?></Result>") extends EntitySink {
 
   private var doc: Document = null
 
@@ -66,6 +71,7 @@ class JsonSink(resource: WritableResource, outputTemplate: String = "<Root><?Ent
       }
     }
 
+
     this.properties = properties
   }
 
@@ -96,23 +102,60 @@ class JsonSink(resource: WritableResource, outputTemplate: String = "<Root><?Ent
     val transformerFactory = new TransformerFactoryImpl() // We have to specify this here explicitly, else it will take the Saxon implementation
     val transformer = transformerFactory.newTransformer
 
-    val src = new DOMSource(doc)
-    val writer = new StringWriter()
-    val result = new StreamResult(writer)
-    transformer.transform(src, result)
+    val f = XMLInputFactory.newFactory
 
+    val src = new DOMSource(doc)
+    val sr = f.createXMLStreamReader(src)
+    val sw: StringWriter = new StringWriter()
+    transformer.transform(src, new StreamResult(sw))
     val xmlMapper = new XmlMapper()
     xmlMapper.registerModule(
       new SimpleModule().addDeserializer(
-        classOf[JsonNode], new DuplicateToArrayJsonNodeDeserializer
+        classOf[JsonNode], new DuplicateNodeDeserializer
       )
     )
 
-    val node = xmlMapper.readTree(writer.toString)
-    val objectMapper = new ObjectMapper()
-    val json = objectMapper.writeValueAsString(node)
+    val json = XML.toJSONObject(sw.toString()).getJSONObject("Result").optJSONArray("entity")
+    println(json.toString(2))
+    resource.writeString(json.toString(2))
+//    val node = xmlMapper.readValue(sr, classOf[JsonNode])
+//
+//    val jsonMapper = new ObjectMapper()
+//    jsonMapper.readValue(json.toString(), classOf[Object])
+//    resource.writeString(jsonMapper.writeValueAsString(json))
 
-    resource.writeString(json)
+  }
+
+  def resolveType(jsonNode: JsonNode): JsonNode = {
+    jsonNode.isValueNode
+    jsonNode match {
+      case jsonNode: ObjectNode =>
+        val fields = jsonNode.fields
+        while (fields.hasNext) {
+          val next = fields.next
+          next.setValue(resolveType(next.getValue))
+        }
+        jsonNode
+      case jsonNode: TextNode =>
+        if (jsonNode.isBoolean) {
+            BooleanNode.valueOf(jsonNode.asBoolean())
+        }
+        else if (jsonNode.isInt) {
+            LongNode.valueOf(jsonNode.asInt())
+        }
+        else {
+          jsonNode
+        }
+      case jsonNode: ArrayNode =>
+        val elements = jsonNode.elements()
+        val modifiedArray = new util.ArrayList[JsonNode]
+        while (elements.hasNext){
+          modifiedArray.add(resolveType(elements.next))
+        }
+        jsonNode.removeAll()
+        jsonNode.addAll(modifiedArray)
+        jsonNode
+    }
   }
 
   /**
