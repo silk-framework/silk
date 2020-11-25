@@ -330,7 +330,7 @@ export const legacyApiUrl = (path: string): string => {
 
 // Prepend a "/" in front of the path if it is missing.
 const prependSlash = function (path: string) {
-    if (!path.startsWith("/")) {
+    if (!path.startsWith("/") && !path.startsWith("?")) {
         return "/" + path;
     } else {
         return path;

@@ -78,16 +78,17 @@ export default function DeleteModal({
                     <Spacing />
                 </>
             )}
-            {errorMessage && (
-                <>
-                    <Spacing />
-                    <Notification message={errorMessage} danger />
-                </>
-            )}
             {confirmationRequired && (
                 <FieldItem>
                     <Checkbox onChange={toggleConfirmChange} label={t("common.action.confirm", "Confirm")} />
                 </FieldItem>
+            )}
+            {errorMessage && (
+                <>
+                    <Spacing />
+                    <Notification message={errorMessage} danger />
+                    <Spacing />
+                </>
             )}
         </AlertDialog>
     );
