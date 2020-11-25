@@ -29,7 +29,6 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
     const {exampleValues, portalContainer} = context;
 
     const examples = exampleValues[source];
-
     return <TableRow>
         <TableCell>
             <Checkbox
@@ -39,7 +38,7 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
         </TableCell>
         <TableCell>
             <Highlighter label={label || source} searchValue={context.search} />
-            {!label && source && <p><Highlighter label={source} searchValue={context.search} /></p>}
+            {label ? <p><Highlighter label={source} searchValue={context.search} /></p> : null }
             {description && <p><Highlighter label={description} searchValue={context.search} /></p>}
             {
                 examples && <ContextMenu

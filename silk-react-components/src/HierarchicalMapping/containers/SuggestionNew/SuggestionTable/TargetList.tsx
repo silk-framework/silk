@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { MenuItem, Select, Button } from '@gui-elements/index';
 import { ITargetWithSelected } from "../suggestion.typings";
 import { SuggestionListContext } from "../SuggestionContainer";
@@ -11,7 +11,13 @@ const TargetSelect = Select.ofType<ITargetWithSelected>();
 export default function TargetList({targets, onChange}) {
     const context = useContext(SuggestionListContext);
 
-    const selected = targets.find(t => t._selected);
+    const [items, setItems] = useState<ITargetWithSelected[]>(targets);
+
+    const [inputQuery, setInputQuery] = useState<string>('');
+
+    useEffect(() => {
+        setItems(items);
+    }, [targets]);
 
     const areTargetsEqual = (targetA: ITargetWithSelected, targetB: ITargetWithSelected) => {
         // Compare only the titles (ignoring case) just for simplicity.
@@ -22,10 +28,10 @@ export default function TargetList({targets, onChange}) {
         onChange(uri);
     };
 
-    const itemLabel = (target: ITargetWithSelected) => <>
-        {target.label && <p><Highlighter label={target.label} searchValue={context.search} /></p>}
-        {target.uri && <p><Highlighter label={target.uri} searchValue={context.search} /></p>}
-        {target.description && <p><Highlighter label={target.description} searchValue={context.search} /></p>}
+    const itemLabel = (target: ITargetWithSelected, search: string) => <>
+        {target.label && <p><Highlighter label={target.label} searchValue={search} /></p>}
+        {target.uri && <p><Highlighter label={target.uri} searchValue={search} /></p>}
+        {target.description && <p><Highlighter label={target.description} searchValue={search} /></p>}
     </>;
 
     const itemRenderer = (target: ITargetWithSelected, {handleClick}) => {
@@ -33,26 +39,43 @@ export default function TargetList({targets, onChange}) {
             return null;
         }
         return <MenuItem
-            text={itemLabel(target)}
+            text={itemLabel(target, inputQuery)}
             key={target.uri}
             onClick={handleClick}
         />
     }
 
+    const handleQueryChange = (value) => {
+        if (!value) {
+            setItems(targets);
+        } else {
+            const filtered = targets.filter(o =>
+                o.uri?.includes(value) ||
+                o.label?.includes(value) ||
+                o.description?.includes(value)
+            );
+            setItems(filtered);
+        }
+        setInputQuery(value);
+    }
+
+    const selected = targets.find(t => t._selected);
     return <TargetSelect
-        filterable={false}
+        filterable={true}
         onItemSelect={t => handleSelectTarget(t.uri)}
-        items={targets}
+        items={items}
         itemRenderer={itemRenderer}
         itemsEqual={areTargetsEqual}
         popoverProps={{
             minimal: true,
             portalContainer: context.portalContainer
         }}
+        onQueryChange={handleQueryChange}
+        query={inputQuery}
     >
         <Button
             rightIcon="select-caret"
-            text={itemLabel(selected)}
+            text={itemLabel(selected, context.search)}
         />
     </TargetSelect>
 
