@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import locationParser from "query-string";
+import { replace } from "connected-react-router";
 import {
     Button,
     Card,
@@ -14,9 +16,48 @@ import {
 import { IItemLink } from "@ducks/shared/typings";
 import { requestItemLinks } from "@ducks/shared/requests";
 import { commonSel } from "@ducks/common";
+import { routerSel } from "@ducks/router";
 import Loading from "../Loading";
 import { SERVE_PATH } from "../../../constants/path";
 import "./legacywindow.scss";
+
+/*
+
+TODO: we need to add some general functionality to some shared api later
+
+interface IBrowserLocationParameters {
+    [key: string]: string;
+}
+
+interface IBrowserHistoryUpdateOptions {
+    add?: IBrowserLocationParameters,
+    remove: string[],
+}
+
+interface IBrowserHistoryUpdates {
+    searchParameters?: IBrowserHistoryUpdateOptions,
+    clearSearch?: boolean,
+    hashParameters?: IBrowserHistoryUpdateOptions,
+    clearHash?: boolean,
+}
+
+// TODO: we ignore all location parts except search and hash parameters currently here, could be extended when it is demanded
+const createBrowserLocationString = (updateData: IBrowserHistoryUpdates) => {
+
+}
+*/
+
+const getBookmark = (locationHashPart: string) => {
+    const hashParsed = locationParser.parse(locationHashPart, { parseNumbers: true });
+    return !!hashParsed.legacywindow ? hashParsed.legacywindow.toString() : false;
+};
+
+const calculateBookmarkLocation = (currentLocation, indexBookmark) => {
+    const hashParsed = locationParser.parse(currentLocation.hash, { parseNumbers: true });
+    hashParsed["legacywindow"] = indexBookmark;
+    const updatedHash = locationParser.stringify(hashParsed);
+    return `${currentLocation.pathname}${currentLocation.search}#${updatedHash}`;
+};
 
 interface ILegacyWindowProps {
     // The title of the widget
@@ -32,7 +73,7 @@ interface ILegacyWindowProps {
 }
 
 /**
- * TODO
+ * Legacy window component includes some views (mainly editors) from the legacy GUI
  */
 export function LegacyWindow({
     title,
@@ -42,8 +83,12 @@ export function LegacyWindow({
     handlerRemoveModal,
     ...otherProps
 }: ILegacyWindowProps) {
+    const dispatch = useDispatch();
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const taskId = useSelector(commonSel.currentTaskIdSelector);
+    const locationPathname = useSelector(routerSel.pathnameSelector);
+    const locationSearch = useSelector(routerSel.routerSearchSelector);
+    const locationHash = useSelector(routerSel.hashSelector);
 
     // flag if the widget is shown as fullscreen modal
     const [displayFullscreen, setDisplayFullscreen] = useState(!!handlerRemoveModal || startFullscreen);
@@ -57,6 +102,26 @@ export function LegacyWindow({
     // handler for link change
     const toggleLegacyLink = (linkItem) => {
         setActiveLegacyLink(linkItem);
+        if (!startWithLink) {
+            dispatch(
+                replace(
+                    calculateBookmarkLocation(
+                        {
+                            pathname: locationPathname,
+                            search: locationSearch,
+                            hash: locationHash,
+                        },
+                        itemLinks.indexOf(linkItem)
+                    )
+                )
+            );
+        }
+    };
+
+    const getInitialActiveLink = (itemLinks) => {
+        if (activeLegacyLink) return activeLegacyLink;
+        const locationHashBookmark = getBookmark(locationHash);
+        return locationHashBookmark ? itemLinks[locationHashBookmark] : itemLinks[0];
     };
 
     // list of aggregated links
@@ -68,13 +133,13 @@ export function LegacyWindow({
             // remove current page link
             const legacyLinks = data.filter((item) => !item.path.startsWith(SERVE_PATH));
             setItemLinks(legacyLinks);
-            if (!activeLegacyLink) setActiveLegacyLink(legacyLinks[0]);
+            setActiveLegacyLink(getInitialActiveLink(legacyLinks));
         } catch (e) {}
     };
     useEffect(() => {
         if (!!legacyLinks && legacyLinks.length > 0) {
             setItemLinks(legacyLinks);
-            if (!activeLegacyLink) setActiveLegacyLink(legacyLinks[0]);
+            setActiveLegacyLink(getInitialActiveLink(legacyLinks));
         } else if (projectId && taskId) {
             getItemLinks();
         } else {
