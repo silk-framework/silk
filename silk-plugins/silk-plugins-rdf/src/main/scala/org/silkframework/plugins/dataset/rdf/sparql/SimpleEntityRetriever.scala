@@ -81,7 +81,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
 
     addRestrictions(sparqlEntitySchema, sparql)
 
-    sparql append SparqlPathBuilder(sparqlEntitySchema.paths, "?" + sparqlEntitySchema.variable, "?" + varPrefix)
+    sparql append SparqlPathBuilder(sparqlEntitySchema.paths, "?" + sparqlEntitySchema.variable, "?" + varPrefix, useOptional = true)
     // End GRAPH in subselect case
     for (graph <- graphUri if !graph.isEmpty && useSubSelect) sparql append s"}"
     sparql append "}" // END WHERE

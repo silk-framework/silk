@@ -2,6 +2,7 @@ package controllers.workspaceApi
 
 import java.util.logging.Logger
 
+import com.typesafe.config.ConfigValueType
 import controllers.core.RequestUserContextAction
 import controllers.core.util.ControllerUtilsTrait
 import javax.inject.Inject
@@ -17,6 +18,7 @@ import scala.collection.JavaConverters._
 case class InitApi @Inject()() extends InjectedController with ControllerUtilsTrait {
   private val dmConfigKey = "eccencaDataManager.baseUrl"
   private val dmLinksKey = "eccencaDataManager.moduleLinks"
+  private val hotkeyConfigPath = "frontend.hotkeys"
   private val dmLinkPath = "path"
   private val dmLinkIcon = "icon"
   private val dmLinkDefaultLabel = "defaultLabel"
@@ -27,7 +29,8 @@ case class InitApi @Inject()() extends InjectedController with ControllerUtilsTr
     val emptyWorkspace = workspace.projects.isEmpty
     val resultJson = Json.obj(
       "emptyWorkspace" -> emptyWorkspace,
-      "initialLanguage" -> initialLanguage(request)
+      "initialLanguage" -> initialLanguage(request),
+      "hotKeys" -> Json.toJson(hotkeys())
     )
     val withDmUrl = dmBaseUrl.map { url =>
       resultJson + ("dmBaseUrl" -> url) + ("dmModuleLinks" -> JsArray(dmLinks.map(Json.toJson(_))))
@@ -46,6 +49,17 @@ case class InitApi @Inject()() extends InjectedController with ControllerUtilsTr
       }
     })
     "en" // default
+  }
+
+  private def hotkeys(): Map[String, String] = {
+    if(cfg.hasPath(hotkeyConfigPath)) {
+      val hotkeyConfig = cfg.getConfig(hotkeyConfigPath)
+      (for(entry <- hotkeyConfig.entrySet().asScala if entry.getValue.valueType() == ConfigValueType.STRING) yield {
+        (entry.getKey, entry.getValue.unwrapped().toString)
+      }).toMap
+    } else {
+      Map.empty
+    }
   }
 
   /** Manually configured links into DM modules. */
