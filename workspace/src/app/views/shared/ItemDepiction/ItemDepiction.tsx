@@ -6,6 +6,7 @@ interface IProps {
     pluginId?: string;
 }
 
+/** Item icon derived from the item type and optionally the plugin ID. */
 export const ItemDepiction = ({ itemType, pluginId }: IProps) => {
     const iconNameStack = [].concat([(itemType ? itemType + "-" : "") + pluginId]).concat(itemType ? [itemType] : []);
 

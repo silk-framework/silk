@@ -70,7 +70,7 @@ export const requestArtefactProperties = async (artefactKey: string): Promise<ID
 /**
  * Get all available import/export types
  */
-export const requestExportTypes = async (): Promise<IExportTypes> => {
+export const requestExportTypes = async (): Promise<IExportTypes[]> => {
     try {
         const { data } = await fetch({
             url: legacyApiEndpoint(`/marshallingPlugins`),

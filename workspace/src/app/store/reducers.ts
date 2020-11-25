@@ -4,8 +4,7 @@ import workspace from "@ducks/workspace";
 import common from "@ducks/common";
 import dataset from "@ducks/dataset";
 import routerReducers from "@ducks/router";
-import { Reducer } from "react";
-import { Action, CombinedState } from "redux";
+import { Reducer, Action, CombinedState } from "redux";
 import { IStore } from "./typings/IStore";
 
 export default (history): Reducer<CombinedState<IStore>, Action> => {

@@ -1,18 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { ISortersState } from "@ducks/workspace/typings";
 import { Spacing, Toolbar, ToolbarSection } from "@gui-elements/index";
-import SearchInput from "./SearchInput";
+import SearchInput, { ISearchInputProps } from "./SearchInput";
 import SortButton from "../buttons/SortButton";
 import { useTranslation } from "react-i18next";
 
-interface IProps {
+/** The omitted properties are only set by this component and not propagated to SearchInput. */
+type ISearchBarSearchInputProps = Omit<
+    ISearchInputProps,
+    "onFilterChange" | "onEnter" | "filterValue" | "onClearanceHandler"
+>;
+
+interface IProps extends ISearchBarSearchInputProps {
     textQuery?: string;
     sorters?: ISortersState;
 
     onSort?(sortBy: string): void;
 
     onSearch(textQuery: string): void;
-    focusOnCreation?: boolean;
 }
 
 /** A simple search bar. */
@@ -27,6 +32,9 @@ export function SearchBar({
     const [searchInput, setSearchInput] = useState(textQuery);
     const [t] = useTranslation();
 
+    const emptySearchMessage = otherProps.emptySearchInputMessage
+        ? otherProps.emptySearchInputMessage
+        : t("form.field.searchField", "Enter search term");
     useEffect(() => {
         setSearchInput(textQuery);
     }, [textQuery]);
@@ -60,7 +68,7 @@ export function SearchBar({
                     onEnter={handleSearchEnter}
                     filterValue={searchInput}
                     onClearanceHandler={onClearanceHandler}
-                    emptySearchInputMessage={t("form.field.searchField", "Enter search term")}
+                    emptySearchInputMessage={emptySearchMessage}
                     {...otherProps}
                 />
             </ToolbarSection>

@@ -22,7 +22,7 @@ export class ErrorResponse {
     cause?: ErrorResponse;
 
     asString(): string {
-        return `${this.title}.${this.detail ? ` Details: ${this.detail}` : ""}`;
+        return this.detail ? ` Details: ${this.detail}` : this.title;
     }
 
     constructor(title: string, detail: string, cause: ErrorResponse = null) {
@@ -59,6 +59,10 @@ export class FetchError {
 
     get httpStatus(): number {
         return this.errorDetails.response?.status ? this.errorDetails.response.status : null;
+    }
+
+    asString(): string {
+        return this.errorResponse.asString();
     }
 }
 
@@ -97,7 +101,8 @@ export class HttpError extends FetchError {
         this.errorType = FetchError.HTTP_ERROR;
 
         if (errorDetails.response?.data?.title && errorDetails.response.data.detail) {
-            this.errorResponse = this.errorDetails.response.data;
+            const errorReponse = errorDetails.response.data;
+            this.errorResponse = new ErrorResponse(errorReponse.title, errorReponse.detail, errorReponse.cause);
         } else {
             // Got no JSON response, create error response object
             this.errorResponse = new ErrorResponse(httpStatusToTitle(errorDetails.response.status), "");

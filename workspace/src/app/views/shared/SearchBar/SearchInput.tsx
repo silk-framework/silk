@@ -1,7 +1,7 @@
 import React, { memo } from "react";
 import { SearchField } from "@gui-elements/index";
 
-interface IProps {
+export interface ISearchInputProps {
     onFilterChange(e);
     onBlur?();
     onEnter();
@@ -22,7 +22,7 @@ const SearchInput = ({
     emptySearchInputMessage = "Enter search term",
     focusOnCreation = false,
     ...restProps
-}: IProps) => {
+}: ISearchInputProps) => {
     const handleKeyDown = (e) => {
         if (e.key === "Enter") {
             onEnter();
@@ -43,5 +43,5 @@ const SearchInput = ({
     );
 };
 
-const areEqual = (p: IProps, n: IProps) => p.filterValue === n.filterValue;
-export default memo<IProps>(SearchInput, areEqual);
+const areEqual = (p: ISearchInputProps, n: ISearchInputProps) => p.filterValue === n.filterValue;
+export default memo<ISearchInputProps>(SearchInput, areEqual);
