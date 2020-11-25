@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useHistory } from "react-router";
 import locationParser from "query-string";
-import { replace } from "connected-react-router";
 import {
     Button,
     Card,
@@ -16,40 +16,13 @@ import {
 import { IItemLink } from "@ducks/shared/typings";
 import { requestItemLinks } from "@ducks/shared/requests";
 import { commonSel } from "@ducks/common";
-import { routerSel } from "@ducks/router";
 import Loading from "../Loading";
 import { SERVE_PATH } from "../../../constants/path";
 import "./legacywindow.scss";
 
-/*
-
-TODO: we need to add some general functionality to some shared api later
-
-interface IBrowserLocationParameters {
-    [key: string]: string;
-}
-
-interface IBrowserHistoryUpdateOptions {
-    add?: IBrowserLocationParameters,
-    remove: string[],
-}
-
-interface IBrowserHistoryUpdates {
-    searchParameters?: IBrowserHistoryUpdateOptions,
-    clearSearch?: boolean,
-    hashParameters?: IBrowserHistoryUpdateOptions,
-    clearHash?: boolean,
-}
-
-// TODO: we ignore all location parts except search and hash parameters currently here, could be extended when it is demanded
-const createBrowserLocationString = (updateData: IBrowserHistoryUpdates) => {
-
-}
-*/
-
 const getBookmark = (locationHashPart: string) => {
     const hashParsed = locationParser.parse(locationHashPart, { parseNumbers: true });
-    return !!hashParsed.legacywindow ? hashParsed.legacywindow.toString() : false;
+    return !!hashParsed.legacywindow && hashParsed.legacywindow > -1 ? hashParsed.legacywindow.toString() : false;
 };
 
 const calculateBookmarkLocation = (currentLocation, indexBookmark) => {
@@ -83,12 +56,11 @@ export function LegacyWindow({
     handlerRemoveModal,
     ...otherProps
 }: ILegacyWindowProps) {
-    const dispatch = useDispatch();
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const taskId = useSelector(commonSel.currentTaskIdSelector);
-    const locationPathname = useSelector(routerSel.pathnameSelector);
-    const locationSearch = useSelector(routerSel.routerSearchSelector);
-    const locationHash = useSelector(routerSel.hashSelector);
+    const dispatch = useDispatch();
+    const history = useHistory();
+    const location = useLocation();
 
     // flag if the widget is shown as fullscreen modal
     const [displayFullscreen, setDisplayFullscreen] = useState(!!handlerRemoveModal || startFullscreen);
@@ -103,24 +75,13 @@ export function LegacyWindow({
     const toggleLegacyLink = (linkItem) => {
         setActiveLegacyLink(linkItem);
         if (!startWithLink) {
-            dispatch(
-                replace(
-                    calculateBookmarkLocation(
-                        {
-                            pathname: locationPathname,
-                            search: locationSearch,
-                            hash: locationHash,
-                        },
-                        itemLinks.indexOf(linkItem)
-                    )
-                )
-            );
+            dispatch(history.push(calculateBookmarkLocation(location, itemLinks.indexOf(linkItem))));
         }
     };
 
     const getInitialActiveLink = (itemLinks) => {
         if (activeLegacyLink) return activeLegacyLink;
-        const locationHashBookmark = getBookmark(locationHash);
+        const locationHashBookmark = getBookmark(location.hash);
         return locationHashBookmark ? itemLinks[locationHashBookmark] : itemLinks[0];
     };
 
