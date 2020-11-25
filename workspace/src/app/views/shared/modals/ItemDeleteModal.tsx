@@ -1,4 +1,4 @@
-import DeleteModal from "./DeleteModal";
+import DeleteModal, { IDeleteModalOptions } from "./DeleteModal";
 import React, { useEffect, useState } from "react";
 import { Loading } from "../Loading/Loading";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
@@ -6,6 +6,8 @@ import { requestRemoveProject, requestRemoveTask } from "@ducks/workspace/reques
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { useTranslation } from "react-i18next";
+import { ITaskMetadataResponse } from "@ducks/shared/typings";
+import { Spacing } from "@gui-elements/index";
 
 interface IProps {
     item: Partial<ISearchResultsServer>;
@@ -20,20 +22,22 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<ErrorResponse | null>(null);
 
-    const [deleteModalOptions, setDeleteModalOptions] = useState({});
+    const [deleteModalOptions, setDeleteModalOptions] = useState<
+        (Partial<IDeleteModalOptions> & { onConfirm(): void }) | undefined
+    >(undefined);
     const [t] = useTranslation();
 
     useEffect(() => {
         prepareDelete();
     }, [item]);
 
-    const handleConfirmRemove = async () => {
+    const handleConfirmRemove = (withDependentTaskDeletion: boolean) => async () => {
         const { id, projectId } = item;
         setError(null);
         try {
             setLoading(true);
             if (projectId) {
-                await requestRemoveTask(id, projectId);
+                await requestRemoveTask(id, projectId, withDependentTaskDeletion);
             } else {
                 await requestRemoveProject(id);
             }
@@ -52,26 +56,31 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
     const prepareDelete = async () => {
         setDeleteModalOptions({
             render: () => <Loading description={t("Deletedialog.loading", "Loading delete dialog.")} />,
+            onConfirm: handleConfirmRemove(false),
         });
         const deleteTitle = t("common.action.DeleteSmth", {
             smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
         });
 
         try {
-            const data: any =
+            const data =
                 item.projectId && item.id
-                    ? await requestTaskMetadata(item.id, item.projectId)
-                    : await requestProjectMetadata(item.id ? item.id : item.projectId);
+                    ? (await requestTaskMetadata(item.id, item.projectId)).data
+                    : (await requestProjectMetadata(item.id ? item.id : item.projectId)).data;
 
             // Skip check the relations for projects
-            if (data.relations && data.relations.dependentTasksDirect.length) {
+            if (
+                (data as ITaskMetadataResponse).relations &&
+                (data as ITaskMetadataResponse).relations.dependentTasksDirect.length
+            ) {
                 setDeleteModalOptions({
                     confirmationRequired: true,
                     render: () => (
                         <div>
                             {t("DeleteModal.confirmMsg", { name: data.label || item.id })}
+                            <Spacing />
                             <ul>
-                                {data.relations.dependentTasksDirect.map((rel) => (
+                                {(data as ITaskMetadataResponse).relations.dependentTasksDirect.map((rel) => (
                                     <li key={rel}>{rel}</li>
                                 ))}
                             </ul>
@@ -80,6 +89,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                     title: t("common.action.DeleteSmth", {
                         smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
                     }),
+                    onConfirm: handleConfirmRemove(true),
                 });
             } else {
                 setDeleteModalOptions({
@@ -93,6 +103,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                         </p>
                     ),
                     title: deleteTitle,
+                    onConfirm: handleConfirmRemove(false),
                 });
             }
         } catch (e) {
@@ -107,6 +118,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                     </p>
                 ),
                 title: deleteTitle,
+                onConfirm: handleConfirmRemove(false),
             });
         }
     };
@@ -116,10 +128,9 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
             data-test-id={"deleteItemModal"}
             isOpen={true}
             onDiscard={onClose}
-            onConfirm={handleConfirmRemove}
             {...deleteModalOptions}
             removeLoading={loading}
-            errorMessage={error && error.asString()}
+            errorMessage={error && `Deletion failed: ${error.asString()}`}
         />
     );
 }

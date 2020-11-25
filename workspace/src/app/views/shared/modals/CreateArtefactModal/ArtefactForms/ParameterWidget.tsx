@@ -12,6 +12,7 @@ import { INPUT_TYPES } from "../../../../../constants";
 import { useTranslation } from "react-i18next";
 import { firstNonEmptyLine } from "../../../ContentBlobToggler";
 import { ContentBlobToggler } from "../../../ContentBlobToggler/ContentBlobToggler";
+import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 
 const MAXLENGTH_TOOLTIP = 40;
 const MAXLENGTH_SIMPLEHELP = 288;
@@ -88,9 +89,9 @@ export const ParameterWidget = (props: IProps) => {
         });
     };
 
-    const handleAutoCompleteInput = async (input: string = "") => {
+    const handleAutoCompleteInput = async (input: string) => {
         try {
-            return await sharedOp.getAutocompleteResultsAsync({
+            const autoCompleteResponse = await sharedOp.getAutocompleteResultsAsync({
                 pluginId: pluginId,
                 parameterId: taskParameter.paramId,
                 projectId,
@@ -98,6 +99,7 @@ export const ParameterWidget = (props: IProps) => {
                 textQuery: input,
                 limit: 100, // The auto-completion is only showing the first n values TODO: Make auto-completion list scrollable?
             });
+            return autoCompleteResponse.data;
         } catch (e) {
             if (e.isHttpError && e.httpStatus !== 400) {
                 // For now hide 400 errors from user, since they are not helpful.
@@ -211,7 +213,7 @@ export const ParameterWidget = (props: IProps) => {
                 messageText={errorMessage(title, errors)}
             >
                 {!!autoCompletion ? (
-                    <Autocomplete
+                    <Autocomplete<IAutocompleteDefaultResponse, string>
                         autoCompletion={autoCompletion}
                         onSearch={handleAutoCompleteInput}
                         onChange={changeHandlers[formParamId]}
@@ -227,6 +229,7 @@ export const ParameterWidget = (props: IProps) => {
                             intent: errors ? Intent.DANGER : Intent.NONE,
                         }}
                         resetPossible={!required}
+                        itemKey={(item) => item.value}
                     />
                 ) : (
                     <InputMapper
