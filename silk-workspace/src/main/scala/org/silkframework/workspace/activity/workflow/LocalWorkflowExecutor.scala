@@ -5,13 +5,14 @@ import java.util.logging.{Level, Logger}
 import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
-import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.entity.EntitySchema
+import org.silkframework.execution.local.{ErrorOutputWriter, LocalEntities, LocalExecution}
 import org.silkframework.execution.{EntityHolder, ExecutorOutput}
-import org.silkframework.execution.local.{LocalEntities, LocalExecution}
 import org.silkframework.plugins.dataset.InternalDataset
+import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.workspace.ProjectTask
-import org.silkframework.workspace.reports.ExecutionReportManager
+import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 
 import scala.util.control.NonFatal
 
@@ -139,6 +140,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       log.info("Finished execution of " + operator.nodeId)
       workflowRunContext.alreadyExecuted.add(operatorNode.workflowNode)
       updateProgress(operatorNode.nodeId)
+      writeErrorOutput(operatorNode, result)
+
       result
     } catch {
       case ex: WorkflowException =>
@@ -234,6 +237,23 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       case NonFatal(ex) =>
         throw WorkflowException("Exception occurred while writing to workflow dataset operator " + workflowDataset.nodeId +
             ". Cause: " + ex.getMessage, Some(ex))
+    }
+  }
+
+  /**
+    * Writes the output of a workflow node to a separate error output if configured.
+    * Currently only writes error outputs for transformations.
+    */
+  def writeErrorOutput(workflowNode: WorkflowDependencyNode,
+                       output: Option[LocalEntities])
+                      (implicit workflowRunContext: WorkflowRunContext): Unit = {
+    implicit val userContext: UserContext = workflowRunContext.userContext
+    for {
+      outputTable <- output
+      transformTask <- project.taskOption[TransformSpec](workflowNode.workflowNode.task)
+      errorSink <- transformTask.errorEntitySink
+    } {
+      ErrorOutputWriter.write(outputTable, errorSink)
     }
   }
 
