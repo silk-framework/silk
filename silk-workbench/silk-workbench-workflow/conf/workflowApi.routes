@@ -1,0 +1,2 @@
+GET   /result/:projectId/:workflowId     controllers.workflowApi.ApiWorkflowApi.variableWorkflowResult(projectId: String, workflowId: String)
+POST  /result/:projectId/:workflowId     controllers.workflowApi.ApiWorkflowApi.variableWorkflowResult(projectId: String, workflowId: String)
