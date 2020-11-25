@@ -2,10 +2,7 @@ package org.silkframework.plugins.dataset.json
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileOutputStream, InputStream, OutputStream, StringReader, StringWriter}
 
-import com.fasterxml.jackson.databind.{DeserializationContext, JsonNode, ObjectMapper}
-import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.transform.OutputKeys
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
 import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl
@@ -17,16 +14,10 @@ import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 import org.w3c.dom.{Document, Element, Node, ProcessingInstruction}
-import com.fasterxml.jackson.databind.module.SimpleModule
-import com.sun.xml.internal.ws.streaming.{DOMStreamReader, SourceReaderFactory}
-import javax.xml.stream.XMLStreamReader
-import org.apache.commons.io.IOUtils
+
 import javax.xml.stream.XMLInputFactory
-import java.io.FileInputStream
 import java.util
 
-import com.fasterxml.jackson.databind.deser.DefaultDeserializationContext
-import com.fasterxml.jackson.databind.node.{ArrayNode, BigIntegerNode, BooleanNode, LongNode, ObjectNode, TextNode}
 import org.json.XML
 
 import scala.collection.mutable
@@ -97,65 +88,63 @@ class JsonSink(resource: WritableResource, outputTemplate: String = "<Result><?e
   override def closeTable()(implicit userContext: UserContext): Unit = {
     atRoot = false
   }
-
   override def close()(implicit userContext: UserContext): Unit = {
     val transformerFactory = new TransformerFactoryImpl() // We have to specify this here explicitly, else it will take the Saxon implementation
     val transformer = transformerFactory.newTransformer
-
+    val stream = new StreamResult()
+    val out = new ByteArrayOutputStream()
+    stream.setOutputStream(out)
     val f = XMLInputFactory.newFactory
 
-    val src = new DOMSource(doc)
-    val sr = f.createXMLStreamReader(src)
+    val xmlSource = new DOMSource(doc)
+    val sr = f.createXMLStreamReader(xmlSource)
     val sw: StringWriter = new StringWriter()
-    transformer.transform(src, new StreamResult(sw))
-//    val xmlMapper = new XmlMapper()
-//    xmlMapper.registerModule(
-//      new SimpleModule().addDeserializer(
-//        classOf[JsonNode], new DuplicateNodeDeserializer
-//      )
-//    )
+    transformer.transform(xmlSource, stream)
 
-    val json = XML.toJSONObject(sw.toString()).getJSONObject("Result").optJSONArray("entity")
-    resource.writeString(json.toString(2))
-//    val node = xmlMapper.readValue(sr, classOf[JsonNode])
-//
-//    val jsonMapper = new ObjectMapper()
-//    jsonMapper.readValue(json.toString(), classOf[Object])
-//    resource.writeString(jsonMapper.writeValueAsString(json))
-
-  }
-
-  def resolveType(jsonNode: JsonNode): JsonNode = {
-    jsonNode.isValueNode
-    jsonNode match {
-      case jsonNode: ObjectNode =>
-        val fields = jsonNode.fields
-        while (fields.hasNext) {
-          val next = fields.next
-          next.setValue(resolveType(next.getValue))
-        }
-        jsonNode
-      case jsonNode: TextNode =>
-        if (jsonNode.isBoolean) {
-            BooleanNode.valueOf(jsonNode.asBoolean())
-        }
-        else if (jsonNode.isInt) {
-            LongNode.valueOf(jsonNode.asInt())
-        }
-        else {
-          jsonNode
-        }
-      case jsonNode: ArrayNode =>
-        val elements = jsonNode.elements()
-        val modifiedArray = new util.ArrayList[JsonNode]
-        while (elements.hasNext){
-          modifiedArray.add(resolveType(elements.next))
-        }
-        jsonNode.removeAll()
-        jsonNode.addAll(modifiedArray)
-        jsonNode
+    resource.writeString("[", append = false)
+    var node = xmlSource.getNode.getFirstChild.getFirstChild
+    while (node!=null) {
+      val xmlOutput = new StringWriter
+      transformer.transform(new DOMSource(node), new StreamResult(xmlOutput))
+      val json = XML.toJSONObject(xmlOutput.toString)
+      resource.writeString(json.toString(2), append = true)
+      node = node.getNextSibling
     }
+    resource.writeString("]", append = true)
+
   }
+
+//  def resolveType(jsonNode: JsonNode): JsonNode = {
+//    jsonNode.isValueNode
+//    jsonNode match {
+//      case jsonNode: ObjectNode =>
+//        val fields = jsonNode.fields
+//        while (fields.hasNext) {
+//          val next = fields.next
+//          next.setValue(resolveType(next.getValue))
+//        }
+//        jsonNode
+//      case jsonNode: TextNode =>
+//        if (jsonNode.isBoolean) {
+//            BooleanNode.valueOf(jsonNode.asBoolean())
+//        }
+//        else if (jsonNode.isInt) {
+//            LongNode.valueOf(jsonNode.asInt())
+//        }
+//        else {
+//          jsonNode
+//        }
+//      case jsonNode: ArrayNode =>
+//        val elements = jsonNode.elements()
+//        val modifiedArray = new util.ArrayList[JsonNode]
+//        while (elements.hasNext){
+//          modifiedArray.add(resolveType(elements.next))
+//        }
+//        jsonNode.removeAll()
+//        jsonNode.addAll(modifiedArray)
+//        jsonNode
+//    }
+//  }
 
   /**
    * Makes sure that the next write will start from an empty dataset.

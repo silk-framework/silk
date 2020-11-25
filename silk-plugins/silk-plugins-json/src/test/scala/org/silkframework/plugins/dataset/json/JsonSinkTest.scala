@@ -21,8 +21,38 @@ class JsonSinkTest extends FlatSpec with Matchers {
   implicit val prefixes: Prefixes = Prefixes.empty
 
 
-  it should "read and write from json datasources" in {
+  it should "write entities to json" in {
     val inputEntites = getEntities()
+    val sink = new JsonSink(FileResource(tempFile))
+
+    val typedProps: Seq[TypedProperty] = inputEntites.head.schema.typedPaths.map(_.property.get)
+    sink.openTable("typeUri", typedProps)
+    var uri: Int = 0
+    for (entity <- inputEntites) {
+      sink.writeEntity(Uri(uri.toString), entity.values)
+      uri += 1
+    }
+    sink.closeTable()
+    sink.close()
+
+    val source = scala.io.Source.fromFile(tempFile)
+    val lines = try source.mkString finally source.close()
+    inputEntites.size shouldBe 3
+    tempFile.exists() shouldBe(true)
+    lines.shouldBe(
+      """[{"entity": {"value": "val"}}{"entity": {
+        |  "boolean": true,
+        |  "value": "val2"
+        |}}{"entity": {
+        |  "boolean": true,
+        |  "value": "val3"
+        |}}]""".stripMargin
+    )
+//    lines shouldBe("{\"Entity\":[{\"value\":\"val\"},{\"value\":\"val2\",\"boolean\":\"true\"},{\"value\":\"val3\",\"boolean\":\"true\"}]}")
+  }
+
+  it should "write entities with arrays to json" in {
+    val inputEntites = getArrayEntities()
     val sink = new JsonSink(FileResource(tempFile))
 
     val typedProps: Seq[TypedProperty] = inputEntites.head.schema.typedPaths.map(_.property.get)
@@ -41,9 +71,16 @@ class JsonSinkTest extends FlatSpec with Matchers {
     inputEntites.size shouldBe 3
     tempFile.exists() shouldBe(true)
     lines.shouldBe(
-      "[\n  {\"value\": \"val\"},\n  {\n    \"boolean\": true,\n    \"value\": \"val2\"\n  },\n  {\n    \"boolean\": true,\n    \"value\": \"val3\"\n  }\n]"
+     """[{"entity": ""}{"entity": {"array": [
+       |  1,
+       |  2,
+       |  3
+       |]}}{"entity": {"array": [
+       |  1,
+       |  2,
+       |  3
+       |]}}]""".stripMargin
     )
-//    lines shouldBe("{\"Entity\":[{\"value\":\"val\"},{\"value\":\"val2\",\"boolean\":\"true\"},{\"value\":\"val3\",\"boolean\":\"true\"}]}")
   }
 
   private val jsonComplex =
@@ -64,6 +101,18 @@ class JsonSinkTest extends FlatSpec with Matchers {
       UntypedPath.parse("value").asStringTypedPath,
       TypedPath("boolean", BooleanValueType())
     ))).entities
+  }
+
+  def getArrayEntities(): Traversable[Entity] = {
+    val source: DataSource = jsonSource(jsonComplex)
+    source.retrieve(EntitySchema("objects", typedPaths = IndexedSeq(
+      UntypedPath.parse("array").asStringTypedPath
+    ))).entities
+
+//    source.retrieve(EntitySchema("objects", typedPaths = IndexedSeq(
+//      UntypedPath.parse("value").asStringTypedPath,
+//      TypedPath("boolean", BooleanValueType())
+//    ))).entities
   }
 
   private def jsonSource(json: String): JsonSource = {
