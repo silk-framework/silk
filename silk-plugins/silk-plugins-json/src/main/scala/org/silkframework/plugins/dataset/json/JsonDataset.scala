@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.json
 import org.silkframework.dataset._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.resource.Resource
+import org.silkframework.runtime.resource.{Resource, WritableResource}
 
 import scala.io.Codec
 
@@ -16,7 +16,7 @@ import scala.io.Codec
 )
 case class JsonDataset(
   @Param("Json file.")
-  file: Resource,
+  file: WritableResource,
   @Param(value = "The path to the elements to be read, starting from the root element, e.g., '/Persons/Person'. If left empty, all direct children of the root element will be read.", advanced = true)
   basePath: String = "",
   @deprecated("This will be removed in the next release.", "")
@@ -27,5 +27,5 @@ case class JsonDataset(
 
   override def linkSink(implicit userContext: UserContext): LinkSink = throw new NotImplementedError("JSON files cannot be written at the moment")
 
-  override def entitySink(implicit userContext: UserContext): EntitySink = throw new NotImplementedError("JSON files cannot be written at the moment")
+  override def entitySink(implicit userContext: UserContext): EntitySink = new JsonSink(file)
 }
