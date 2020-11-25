@@ -35,26 +35,35 @@ object SparqlPathBuilder {
   }
 
   /**
-   * Builds a SPARQL pattern from a sequence of paths.
-   *
-   * @param paths The paths
-   * @param subject The subject e.g. ?s or <uri>
-   * @param valuesPrefix The value of every path will be bound to a variable of the form: valuesPrefix{path.id}
-   */
-  def apply(paths: Seq[UntypedPath], subject: String = "?s", valuesPrefix: String = "?v", tempVarPrefix: String = "?t", filterVarPrefix: String = "?f"): String = {
+    * Builds a SPARQL pattern from a sequence of paths.
+    *
+    * @param paths        The paths
+    * @param subject      The subject e.g. ?s or <uri>
+    * @param valuesPrefix The value of every path will be bound to a variable of the form: valuesPrefix{path.id}
+    * @param useOptional  If the path query should use optionals around the path pattern.
+    */
+  def apply(paths: Seq[UntypedPath],
+            subject: String = "?s",
+            valuesPrefix: String = "?v",
+            tempVarPrefix: String = "?t",
+            filterVarPrefix: String = "?f",
+            useOptional: Boolean): String = {
     val vars = new Vars(subject, valuesPrefix, tempVarPrefix, filterVarPrefix)
     paths.zipWithIndex.map {
-      case (path, index) => buildPath(path, index, vars)
+      case (path, index) => buildPath(path, index, vars, useOptional)
     }.mkString
   }
 
   /**
    * Builds a SPARQL pattern from a single Path.
    */
-  private def buildPath(path: UntypedPath, index: Int, vars: Vars): String = {
-    "OPTIONAL {\n" +
-        buildOperators(vars.subject, path.operators, vars).replace(vars.curTempVar, vars.newValueVar(path, index)) +
-    "}\n"
+  private def buildPath(path: UntypedPath, index: Int, vars: Vars, useOptional: Boolean): String = {
+    val pathPattern = buildOperators(vars.subject, path.operators, vars).replace(vars.curTempVar, vars.newValueVar(path, index))
+    if(useOptional) {
+      s"OPTIONAL {\n$pathPattern}\n"
+    } else {
+      pathPattern
+    }
   }
 
   /**
