@@ -78,7 +78,7 @@ export interface IUploaderOptions {
     /**
      * autocomplete option useful when advanced is true
      */
-    autocomplete?: IAutocompleteProps;
+    autocomplete?: IAutocompleteProps<any, any>;
 
     /**
      * Called when:
