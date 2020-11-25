@@ -18,8 +18,12 @@ class WorkflowEditorController @Inject() (accessMonitor: WorkbenchAccessMonitor)
     Ok(views.html.workflow.editor.editor(context))
   }
 
-  def report(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  def reports(project: String, task: String): Action[AnyContent] = reportImpl(project, task, None)
+
+  def report(project: String, task: String, report: String): Action[AnyContent] = reportImpl(project, task, Some(report))
+
+  private def reportImpl(project: String, task: String, report: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[Workflow](project, task, request.path)
-    Ok(views.html.workflow.executionReport(context))
+    Ok(views.html.workflow.executionReport(context, report))
   }
 }

@@ -4,7 +4,7 @@
 @import org.silkframework.runtime.activity.UserContext
 @import controllers.core.routes.{Assets => CoreAssets}
 
-@(context: Context[Workflow])(implicit session: play.api.mvc.Session, userContext: UserContext)
+@(context: Context[Workflow], report: Option[String])(implicit session: play.api.mvc.Session, userContext: UserContext)
 
 @header = {
   <script src="@CoreAssets.at("libs/silk-react-components/main.js")" type="text/javascript"></script>
@@ -20,6 +20,7 @@
           baseUrl: '@config.baseUrl',
           project: '@context.project.name',
           task: '@context.task.id',
+          report: '@report.getOrElse("")'
       }
     );
   </script>
