@@ -16,10 +16,15 @@ class SparqlPathBuilderTest extends FlatSpec with Matchers {
     build(s"?a\\$p1") should be(equalIgnoringWhitespace(s"OPTIONAL { ?v0 $p1 ?s . }"))
   }
 
-  "SparqlPathBuilder" should "include Filter statements" in {
+  it should "build SPARQL patterns without OPTIONALs" in {
+    build(s"?a/$p1", useOptional = false) should be(equalIgnoringWhitespace(s"?s $p1 ?v0 ."))
+    build(s"?a\\$p1", useOptional = false) should be(equalIgnoringWhitespace(s"?v0 $p1 ?s ."))
+  }
+
+  it should "include Filter statements" in {
     build(s"?a/<1>[<2> = <3>]") should be(equalIgnoringWhitespace("OPTIONAL { ?s <1> ?v0 . ?v0 <2> ?f1 . FILTER(?f1 = <3>). }"))
   }
 
-  def build(path: String) = SparqlPathBuilder(Seq(UntypedPath.parse(path)))
+  def build(path: String, useOptional: Boolean = true): String = SparqlPathBuilder(Seq(UntypedPath.parse(path)), useOptional = useOptional)
 
 }
