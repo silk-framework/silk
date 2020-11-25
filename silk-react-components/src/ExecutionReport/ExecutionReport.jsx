@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Card, CardContent, CardTitle, Table, TableBody, TableCell, TableHead, TableRow } from '@eccenca/gui-elements';
 import MappingsTree from '../HierarchicalMapping/containers/MappingsTree';
-import { setApiDetails } from "../HierarchicalMapping/store";
 
 /**
  * Displays a task execution report.
@@ -14,12 +13,6 @@ export default class ExecutionReport extends React.Component {
         this.state = {
             currentRuleId: null,
         };
-
-        setApiDetails({
-            baseUrl: this.props.baseUrl,
-            project: this.props.project,
-            transformTask: this.props.executionReport.task.id,
-        });
         this.onRuleNavigation = this.onRuleNavigation.bind(this);
     }
     
@@ -80,6 +73,7 @@ export default class ExecutionReport extends React.Component {
             <div className="mdl-cell mdl-cell--3-col">
                 <MappingsTree
                     currentRuleId="root"
+                    ruleTree={this.props.executionReport.task.data.parameters.mappingRule}
                     showValueMappings={true}
                     handleRuleNavigation={this.onRuleNavigation}
                     ruleValidation={this.generateIcons()}
