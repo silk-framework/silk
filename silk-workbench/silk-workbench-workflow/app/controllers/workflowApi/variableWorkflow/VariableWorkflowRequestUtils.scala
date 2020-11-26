@@ -18,8 +18,8 @@ object VariableWorkflowRequestUtils {
 
   /** The mime types that the variable workflow supports as response. */
   val acceptedMimeType: Seq[String] = Seq(
+    "application/xml", // XML dataset, this is the default for now FIXME: switch to JSON with CMEM-3051
     "application/json", // JSON dataset
-    "application/xml", // XML dataset
     "application/n-triples", // RDF file dataset with N-Triples output
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // Excel dataset
     "text/comma-separated-values" // CSV dataset
@@ -81,7 +81,7 @@ object VariableWorkflowRequestUtils {
     val variableDatasets = workflowTask.data.variableDatasets(project)
     if(variableDatasets.sinks.size != 1 || variableDatasets.dataSources.size != 1) {
       throw BadUserInputException(s"Workflow task '${workflowTask.taskLabel()}' must have exactly one variable data source " +
-          s"and one variable output dataset. Instead it has ${variableDatasets.dataSources.size} sources and ${variableDatasets.sinks.size} sinks.")
+          s"and one variable output dataset. Instead it has ${variableDatasets.dataSources.size} variable sources and ${variableDatasets.sinks.size} variable sinks.")
     }
     val resourceJson = queryStringToInputResource
     val dataSourceConfig = variableDataSourceConfig(variableDatasets.dataSources.head)

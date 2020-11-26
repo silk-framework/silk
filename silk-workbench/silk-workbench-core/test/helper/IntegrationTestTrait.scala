@@ -44,6 +44,7 @@ trait IntegrationTestTrait extends TaskApiClient with ActivityApiClient with Gui
   final val BAD_REQUEST: Int = 400
   final val NOT_ACCEPTABLE: Int = 406
   final val CONFLICT: Int = 409
+  final val INTERNAL_ERROR: Int = 500
 
   val baseUrl = s"http://localhost:$port"
 

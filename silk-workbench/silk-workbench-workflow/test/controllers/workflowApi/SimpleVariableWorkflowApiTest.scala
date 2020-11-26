@@ -11,7 +11,7 @@ import scala.concurrent.Future
 
 class SimpleVariableWorkflowApiTest extends FlatSpec
     with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait with MustMatchers {
-  behavior of "Simple variable workflow API"
+  behavior of "Simple variable workflow execution API"
 
   private val validVariableWorkflows = Seq(
     "f5bbbdc1-3c80-425d-a2ce-3bb08aefde1c_Workflow",
@@ -21,6 +21,7 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
     "283e0d90-514f-4f32-9a6f-81340d592b8f_Workflowtoomanysources",
     "293470bf-a1ff-42a3-a16a-3b0c5d8e3468_Workflowtoomanysinks"
   )
+  private val brokenWorkflow = "da370f28-629a-4d01-a54b-5f0b8a15906f_BrokenWorkflow"
 
   private val sourceProperty1 = "inputProp1"
   private val sourceProperty2 = "inputProp2"
@@ -51,43 +52,63 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
     }
   }
 
+  it should "return a 500 when the workflow execution fails" in {
+    val response = checkResponseExactStatusCode(executeVariableWorkflow(brokenWorkflow, Map.empty, mimeType = "application/xml"), INTERNAL_ERROR)
+    (response.json \ "title").asOpt[String] must not be empty
+  }
+
   it should "return the correct response bodies given valid ACCEPT values" in {
     // FIXME CMEM-3051: Enable JSON in test as soon as writing to it is supported
     for(mimeType <- VariableWorkflowRequestUtils.acceptedMimeType.filter(mimeType => mimeType != "application/json"
         && mimeType != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
       for(IndexedSeq(param1Values, param2Values) <- Seq(
         IndexedSeq(Seq(), Seq()),
-        IndexedSeq(Seq("val 1"), Seq("val 2")))) {
-        val parameterMap = Map(
-          sourceProperty1 -> param1Values,
-          sourceProperty2 -> param2Values
-        ).filter(_._2.nonEmpty)
-        val response = checkResponseExactStatusCode(executeVariableWorkflow(validVariableWorkflows.head, parameterMap, mimeType = mimeType))
-        mimeType match {
-          case "application/xml" =>
-            response.body must startWith("<?xml")
-            response.body must include("<Entity")
-          case "application/n-triples" =>
-            if(param1Values.isEmpty && param2Values.isEmpty) {
-              response.body mustBe ""
-            } else {
-              response.body must include("<urn:instance:variable_workflow_json_input")
-            }
-          case "text/comma-separated-values" =>
-            response.body must include(s"${targetProp(1)},${targetProp(2)}")
-        }
-        for(value <- param1Values) {
-          response.body must include(targetProp(1))
-          response.body must include(value)
-        }
-        for(value <- param2Values) {
-          response.body must include(targetProp(2))
-          response.body must include(value)
+        IndexedSeq(Seq("val 1"), Seq("val 2")),
+        IndexedSeq(Seq(), Seq("val A", "val B"))
+      )) {
+        for(usePost <- Seq(false, true)) {
+          val parameterMap = Map(
+            sourceProperty1 -> param1Values,
+            sourceProperty2 -> param2Values
+          ).filter(_._2.nonEmpty)
+          val response = checkResponseExactStatusCode(
+            executeVariableWorkflow(validVariableWorkflows.head, parameterMap, usePost, mimeType))
+          checkForCorrectReturnType(mimeType, response.body, param1Values.isEmpty && param2Values.isEmpty)
+          checkForValues(1, param1Values, response.body)
+          checkForValues(2, param2Values, response.body)
         }
       }
     }
   }
 
+  // Checks if all input values exist in the workflow output
+  private def checkForValues(targetPropNr: Int, values: Seq[String], body: String): Unit = {
+    for (value <- values) {
+      body must include(targetProp(targetPropNr))
+      body must include(value)
+    }
+  }
+
+  // Checks if the returned result is indeed in the format of the MIME type.
+  private def checkForCorrectReturnType(mimeType: String,
+                                        body: String,
+                                        noValues: Boolean): Unit = {
+    mimeType match {
+      case "application/xml" =>
+        body must startWith("<?xml")
+        body must include("<Entity")
+      case "application/n-triples" =>
+        if (noValues) {
+          body mustBe ""
+        } else {
+          body must include("<urn:instance:variable_workflow_json_input")
+        }
+      case "text/comma-separated-values" =>
+        body must include(s"${targetProp(1)},${targetProp(2)}")
+    }
+  }
+
+  // Executes a simple variable workflow
   private def executeVariableWorkflow(workflowId: String,
                                       parameters: Map[String, Seq[String]],
                                       usePost: Boolean = false,
