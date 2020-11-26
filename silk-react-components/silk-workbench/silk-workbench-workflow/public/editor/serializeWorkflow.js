@@ -18,14 +18,12 @@ function commitWorkflow() {
     });
 }
 
+// Send a message event that the workflow has been saved
 function notifyParentWindow() {
-    window.top.postMessage(
-        JSON.stringify({
-            error: false,
-            message: "Workflow updated"
-        }),
-        '*'
-    );
+    window.top.postMessage(JSON.stringify({
+        id: "workflowSaved",
+        message: "Workflow updated"
+    }), '*');
 }
 
 function serializeWorkflow() {
