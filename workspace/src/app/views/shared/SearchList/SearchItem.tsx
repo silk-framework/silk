@@ -60,7 +60,7 @@ export default function SearchItem({
     const contextMenuItems = itemLinks.map((link) => (
         <MenuItem
             key={link.path}
-            text={link.label}
+            text={t("common.legacyGui." + link.label, link.label)}
             icon={getItemLinkIcons(link.label)}
             onClick={() =>
                 toggleLegacyLink({
