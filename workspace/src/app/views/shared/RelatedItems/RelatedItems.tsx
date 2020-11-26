@@ -32,6 +32,8 @@ import { SERVE_PATH } from "../../../constants/path";
 interface IProps {
     projectId?: string;
     taskId?: string;
+    // If defined, receives the message ID of the message event. Returns true if the related items should be reloaded.
+    messageEventReloadTrigger?: (messageId: string, message: string) => boolean;
 }
 
 /** Widget that shows related items of project tasks*/
@@ -50,6 +52,27 @@ export function RelatedItems(props: IProps) {
         pageSizes: [5, 10, 20],
         presentation: { hideInfoText: true },
     });
+    // If an I-Frame sends an event to update the page, decide based on provided function if to reload.
+    useEffect(() => {
+        if (props.messageEventReloadTrigger) {
+            const handler = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (typeof data?.id === "string") {
+                        if (props.messageEventReloadTrigger(data.id, data.message)) {
+                            getRelatedItemsData(projectId, taskId, textQuery);
+                        }
+                    }
+                } catch (ex) {}
+            };
+            // Add message event listener
+            window.addEventListener("message", handler);
+
+            // clean up
+            return () => window.removeEventListener("message", handler);
+        }
+    }, []);
+
     const [t] = useTranslation();
 
     const dispatch = useDispatch();

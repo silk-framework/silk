@@ -34,7 +34,7 @@ export default function () {
             </WorkspaceMain>
             <WorkspaceSide>
                 <Section>
-                    <RelatedItems />
+                    <RelatedItems messageEventReloadTrigger={(messageId) => messageId === "workflowSaved"} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>
