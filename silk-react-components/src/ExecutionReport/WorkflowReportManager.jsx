@@ -22,49 +22,61 @@ export default class WorkflowReportManager extends React.Component {
     }
 
     componentDidMount() {
-        this.setState({
-            selectedReport: this.props.report
-        });
-
         this.props.diStore.listExecutionReports(
             this.props.baseUrl,
             this.props.project,
             this.props.task)
             .then((reports) => {
+                // Determine which report should be selected initially
+                let selectedReport;
+                if(reports.length === 0) {
+                    // No reports are available
+                    selectedReport = "";
+                } else if(this.props.report != null && this.props.report !== "") {
+                    // Select the report provided in the props
+                    selectedReport = this.props.report;
+                } else {
+                    // Select last (i.e., most recent) report
+                    selectedReport = reports[reports.length-1].time;
+                }
+                // Set initial state
                 this.setState({
-                    availableReports: reports
+                    availableReports: reports,
+                    selectedReport: selectedReport
                 });
             })
             .catch((error) => {
-                console.log("Loading execution reports failed! " + error); // FIXME: Handle error and give user feedback. Currently this is done via the activity status widget
+                console.log("Loading execution reports failed! " + error);
             });
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        if (prevState.selectedReport !== this.state.selectedReport) {
-            const href = window.location.href;
-            try {
-                const uriTemplate = new URI(href);
-                const updatedUrl = WorkflowReportManager.updateMappingEditorUrl(uriTemplate, this.state.selectedReport);
-                history.pushState(null, '', updatedUrl);
-            } catch (e) {
-                console.debug(`ReportManager: ${href} is not an URI, cannot update the window state`);
-            }
+    render() {
+        if(this.state.availableReports.length > 0) {
+            return <div>
+                { this.renderReportChooser() }
+                { this.renderSelectedReport() }
+            </div>
+        } else {
+            return this.renderNoReport();
         }
     }
 
-    render() {
-        return <div>
-            { this.renderReportChooser() }
-            { this.renderSelectedReport() }
+    renderNoReport() {
+        return <div className="silk-report-card mdl-card mdl-shadow--2dp mdl-card--stretch">
+            <div className="mdl-card__actions">
+                <div className="mdl-alert mdl-alert--info mdl-alert--border mdl-alert--spacing">
+                    <div className="mdl-alert__content">
+                        <p>There are no execution reports available for this workflow. Please execute the workflow in order to create an execution report.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     }
 
     renderReportChooser() {
         return <div className="silk-report-card mdl-card mdl-shadow--2dp mdl-card--stretch">
             <div className="mdl-card__actions">
-                <select name="reports" id="reports" value={this.state.selectedReport} onChange={e => this.setState({selectedReport: e.target.value})}>
-                    <option key="" value="">Select report</option>
+                <select name="reports" id="reports" value={this.state.selectedReport} onChange={e => this.updateSelectedReport(e.target.value)}>
                     { this.state.availableReports.map(e => this.renderReportItem(e)) }
                 </select>
             </div>
@@ -76,21 +88,29 @@ export default class WorkflowReportManager extends React.Component {
     }
 
     renderSelectedReport() {
-        if(this.state.selectedReport == null || this.state.selectedReport === "") {
-            return <div>No report selected</div>
-        } else {
-            return <WorkflowExecutionReport baseUrl={this.props.baseUrl}
-                                            project={this.props.project}
-                                            task={this.props.task}
-                                            time={this.state.selectedReport} />
-        }
+        return <WorkflowExecutionReport baseUrl={this.props.baseUrl}
+                                        project={this.props.project}
+                                        task={this.props.task}
+                                        time={this.state.selectedReport} />
     }
 
-    static updateMappingEditorUrl = (currentUrl, newReport) => {
-        const segments = currentUrl.segment();
-        const reportIdx = segments.findIndex((segment) => segment === "report");
-        currentUrl.segment(reportIdx + 3, newReport);
-        return currentUrl.toString();
+    updateSelectedReport(newReport) {
+        this.setState({selectedReport: newReport});
+        this.updateUrl();
+    }
+
+    // Updates the window URL based on the selected report
+    updateUrl() {
+        const href = window.location.href;
+        try {
+            const uriTemplate = new URI(href);
+            const segments = uriTemplate.segment();
+            const reportIdx = segments.findIndex((segment) => segment === "report");
+            uriTemplate.segment(reportIdx + 3, this.state.selectedReport);
+            history.pushState(null, '', uriTemplate.toString());
+        } catch (e) {
+            console.debug(`ReportManager: ${href} is not an URI, cannot update the window state`);
+        }
     }
 }
 
