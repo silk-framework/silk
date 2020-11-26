@@ -22,8 +22,8 @@ case class TransformReport(task: Task[TransformSpec],
 
   lazy val summary: Seq[(String, String)] = {
     Seq(
-      "number of entities" -> entityCounter.toString,
-      "number of errors" -> entityErrorCounter.toString
+      "Number of entities" -> entityCounter.toString,
+      "Number of errors" -> entityErrorCounter.toString
     )
   }
 

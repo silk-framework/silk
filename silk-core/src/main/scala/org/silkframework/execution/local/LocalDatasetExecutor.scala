@@ -128,9 +128,11 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
           writeTriples(entitySink, entitiesFunc())
         }
       case tables: MultiEntityTable =>
+        implicit val report: ExecutionReportUpdater = WriteEntitiesReportUpdater(dataset, context)
         withEntitySink(dataset, execution) { entitySink =>
           writeMultiTables(entitySink, tables)
         }
+        report.update(addEndTime = true)
       case datasetResource: DatasetResourceEntityTable =>
         writeDatasetResource(dataset, datasetResource)
       case graphStoreFiles: LocalGraphStoreFileUploadTable =>
@@ -138,9 +140,11 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case sparqlUpdateTable: SparqlUpdateEntityTable =>
         executeSparqlUpdateQueries(dataset, sparqlUpdateTable)
       case et: LocalEntities =>
+        implicit val report: ExecutionReportUpdater = WriteEntitiesReportUpdater(dataset, context)
         withEntitySink(dataset, execution) { entitySink =>
           writeEntities(entitySink, et)
         }
+        report.update(addEndTime = true)
     }
   }
 
@@ -290,15 +294,17 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def writeEntities(sink: EntitySink, entityTable: LocalEntities)
-                           (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+                           (implicit userContext: UserContext, prefixes: Prefixes, executionReport: ExecutionReportUpdater): Unit = {
     var entityCount = 0
     val startTime = System.currentTimeMillis()
     var lastLog = startTime
     sink.openTableWithPaths(entityTable.entitySchema.typeUri, entityTable.entitySchema.typedPaths)
     for (entity <- entityTable.entities) {
+      executionReport.increaseEntityCounter()
       sink.writeEntity(entity.uri, entity.values)
       entityCount += 1
       if(entityCount % 10000 == 0) {
+        executionReport.update()
         val currentTime = System.currentTimeMillis()
         if(currentTime - 2000 > lastLog) {
           logger.info("Writing entities: " + entityCount)
@@ -358,11 +364,15 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def writeMultiTables(sink: EntitySink, tables: MultiEntityTable)
-                              (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+                              (implicit userContext: UserContext, prefixes: Prefixes, executionReport: ExecutionReportUpdater): Unit = {
     writeEntities(sink, tables)
     for(table <- tables.subTables) {
       writeEntities(sink, table)
     }
+  }
+
+  case class WriteEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityProcessVerb: String = "written"
   }
 }
 

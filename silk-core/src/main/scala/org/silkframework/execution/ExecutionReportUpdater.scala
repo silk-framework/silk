@@ -40,11 +40,9 @@ trait ExecutionReportUpdater {
     entitiesEmitted += 1
   }
 
-  private val dateTimeFormatter: DateTimeFormatter = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd'T'HH:mm:ssZ").toFormatter
-
   protected def formatDateTime(timestamp: Long): String = {
     val instant = Instant.ofEpochMilli(timestamp)
-    dateTimeFormatter.format(OffsetDateTime.ofInstant(instant, ZoneOffset.UTC))
+    DateTimeFormatter.ISO_INSTANT.format(instant)
   }
 
   // Runtime in ms
@@ -66,7 +64,7 @@ trait ExecutionReportUpdater {
         "Started" -> formatDateTime(start),
         "Runtime" -> s"${runtime.toDouble / 1000} seconds",
         s"$entityLabelPlural / second" -> (if (runtime <= 0) "-" else throughput.formatted("%.3f")),
-        s"Nr. of ${entityLabelPlural.toLowerCase} $entityProcessVerb" -> entitiesEmitted.toString
+        s"No. of ${entityLabelPlural.toLowerCase} $entityProcessVerb" -> entitiesEmitted.toString
       ) ++
           Seq("Finished" -> formatDateTime(System.currentTimeMillis())).filter(_ => addEndTime) ++
           startFirstEntity.toSeq.map(firstEntityStart =>

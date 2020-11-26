@@ -73,8 +73,6 @@ class TransformedEntities(task: Task[TransformSpec],
         context.status.updateMessage(s"Executing ($count Entities)")
         lastUpdateTime = System.currentTimeMillis()
       }
-
-      updateReport(report)
     }
     context.value() = report.build()
     context.status.updateMessage(s"Finished Executing ($count Entities)")
@@ -112,6 +110,7 @@ class TransformedEntities(task: Task[TransformSpec],
 
         f(Entity(uri, values, outputSchema, metadata = buildErrorMetadata()))
 
+        updateReport(report)
         count += 1
       }
     } else {
