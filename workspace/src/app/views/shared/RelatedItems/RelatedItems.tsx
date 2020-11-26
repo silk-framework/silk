@@ -47,6 +47,7 @@ export function RelatedItems(props: IProps) {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState({ total: 0, items: [] } as IRelatedItemsResponse);
     const [textQuery, setTextQuery] = useState("");
+    const [updated, setUpdated] = useState(0);
     const [pagination, paginationElement, onTotalChange] = usePagination({
         initialPageSize: 5,
         pageSizes: [5, 10, 20],
@@ -55,12 +56,14 @@ export function RelatedItems(props: IProps) {
     // If an I-Frame sends an event to update the page, decide based on provided function if to reload.
     useEffect(() => {
         if (props.messageEventReloadTrigger) {
+            let updateSwitchValue = updated;
             const handler = (event) => {
                 try {
                     const data = JSON.parse(event.data);
                     if (typeof data?.id === "string") {
                         if (props.messageEventReloadTrigger(data.id, data.message)) {
-                            getRelatedItemsData(projectId, taskId, textQuery);
+                            updateSwitchValue = 1 - updateSwitchValue;
+                            setUpdated(updateSwitchValue);
                         }
                     }
                 } catch (ex) {}
@@ -79,7 +82,7 @@ export function RelatedItems(props: IProps) {
 
     useEffect(() => {
         getRelatedItemsData(projectId, taskId, textQuery);
-    }, [textQuery]);
+    }, [textQuery, updated]);
 
     // Fetches and updates the related items of the project task
     const getRelatedItemsData = async (projectId: string, taskId: string, textQuery: string) => {
