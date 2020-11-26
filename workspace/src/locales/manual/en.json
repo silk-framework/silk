@@ -194,6 +194,16 @@
             "noResults": "No results.",
             "noTypes": "No types found"
         },
+        "legacyGui": {
+            "Workflow editor": "Workflow editor",
+            "Workflow report": "Workflow report",
+            "Mapping editor": "Mapping editor",
+            "Transform evaluation": "Transform evaluation",
+            "Transform execution": "Transform execution",
+            "Linking editor": "Linking editor",
+            "Linking evaluation": "Linking evaluation",
+            "Linking execution": "Linking execution"
+        },
         "sorter": {
             "recentlyViewed": "Recently viewed"
         },

@@ -331,7 +331,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                                     {itemLinks.map((itemLink) => (
                                         <MenuItem
                                             key={itemLink.path}
-                                            text={itemLink.label}
+                                            text={t("common.legacyGui." + itemLink.label, itemLink.label)}
                                             onClick={() => toggleItemLink(itemLink)}
                                         />
                                     ))}

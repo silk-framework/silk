@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useHistory } from "react-router";
+import { useTranslation } from "react-i18next";
 import locationParser from "query-string";
 import {
     Button,
@@ -61,6 +62,7 @@ export function LegacyWindow({
     const dispatch = useDispatch();
     const history = useHistory();
     const location = useLocation();
+    const [t] = useTranslation();
 
     // flag if the widget is shown as fullscreen modal
     const [displayFullscreen, setDisplayFullscreen] = useState(!!handlerRemoveModal || startFullscreen);
@@ -108,11 +110,15 @@ export function LegacyWindow({
         }
     }, [projectId, taskId]);
 
+    const tLabel = (label) => {
+        return t("common.legacyGui." + label, label);
+    };
+
     const iframeWidget = (
         <Card isOnlyLayout={true} elevation={displayFullscreen ? 4 : 1}>
             <CardHeader>
                 <CardTitle>
-                    <h2>{!!title ? title : !!activeLegacyLink ? activeLegacyLink.label : ""}</h2>
+                    <h2>{!!title ? title : !!activeLegacyLink ? tLabel(activeLegacyLink.label) : ""}</h2>
                 </CardTitle>
                 <CardOptions>
                     {itemLinks.length > 1 &&
@@ -125,7 +131,7 @@ export function LegacyWindow({
                                 minimal={true}
                                 disabled={!!activeLegacyLink && activeLegacyLink.path === itemLink.path}
                             >
-                                {itemLink.label}
+                                {tLabel(itemLink.label)}
                             </Button>
                         ))}
                     {!!handlerRemoveModal ? (
@@ -143,7 +149,7 @@ export function LegacyWindow({
                 {!!activeLegacyLink ? (
                     <iframe
                         src={activeLegacyLink.path + "?inlineView=true"}
-                        title={activeLegacyLink.label}
+                        title={tLabel(activeLegacyLink.label)}
                         style={{
                             position: "absolute",
                             width: "100%",
