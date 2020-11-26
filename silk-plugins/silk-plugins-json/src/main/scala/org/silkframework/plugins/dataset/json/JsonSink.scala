@@ -24,7 +24,7 @@ import scala.collection.mutable
 import scala.xml.InputSource
 
 
-class JsonSink(resource: WritableResource, outputTemplate: String = "<Result><?entity?></Result>") extends EntitySink {
+class JsonSink(resource: WritableResource, outputTemplate: String = "<Result><?entity?></Result>", topLevelObject: Boolean) extends EntitySink {
 
   private var doc: Document = null
 
@@ -101,16 +101,16 @@ class JsonSink(resource: WritableResource, outputTemplate: String = "<Result><?e
     val sw: StringWriter = new StringWriter()
     transformer.transform(xmlSource, stream)
 
-    resource.writeString("[", append = false)
+    if (!topLevelObject) resource.writeString("[", append = false)
     var node = xmlSource.getNode.getFirstChild.getFirstChild
     while (node!=null) {
       val xmlOutput = new StringWriter
       transformer.transform(new DOMSource(node), new StreamResult(xmlOutput))
       val json = XML.toJSONObject(xmlOutput.toString)
       resource.writeString(json.toString(2), append = true)
-      node = node.getNextSibling
+      if (topLevelObject) node = null else node = node.getNextSibling
     }
-    resource.writeString("]", append = true)
+    if (!topLevelObject) resource.writeString("]", append = true)
 
   }
 

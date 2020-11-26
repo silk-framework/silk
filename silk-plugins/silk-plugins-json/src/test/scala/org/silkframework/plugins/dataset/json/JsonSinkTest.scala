@@ -23,7 +23,7 @@ class JsonSinkTest extends FlatSpec with Matchers {
 
   it should "write entities to json" in {
     val inputEntites = getEntities()
-    val sink = new JsonSink(FileResource(tempFile))
+    val sink = new JsonSink(FileResource(tempFile), topLevelObject = false)
 
     val typedProps: Seq[TypedProperty] = inputEntites.head.schema.typedPaths.map(_.property.get)
     sink.openTable("typeUri", typedProps)
@@ -51,9 +51,39 @@ class JsonSinkTest extends FlatSpec with Matchers {
 //    lines shouldBe("{\"Entity\":[{\"value\":\"val\"},{\"value\":\"val2\",\"boolean\":\"true\"},{\"value\":\"val3\",\"boolean\":\"true\"}]}")
   }
 
+  it should "write entities to json using the first object as the root" in {
+    val inputEntites = getEntities()
+    val sink = new JsonSink(FileResource(tempFile), topLevelObject = true)
+
+    val typedProps: Seq[TypedProperty] = inputEntites.head.schema.typedPaths.map(_.property.get)
+    sink.openTable("typeUri", typedProps)
+    var uri: Int = 0
+    for (entity <- inputEntites) {
+      sink.writeEntity(Uri(uri.toString), entity.values)
+      uri += 1
+    }
+    sink.closeTable()
+    sink.close()
+
+    val source = scala.io.Source.fromFile(tempFile)
+    val lines = try source.mkString finally source.close()
+    inputEntites.size shouldBe 3
+    tempFile.exists() shouldBe(true)
+    lines.shouldBe(
+      """[{"entity": {"value": "val"}}{"entity": {
+        |  "boolean": true,
+        |  "value": "val2"
+        |}}{"entity": {
+        |  "boolean": true,
+        |  "value": "val3"
+        |}}]""".stripMargin
+    )
+    //    lines shouldBe("{\"Entity\":[{\"value\":\"val\"},{\"value\":\"val2\",\"boolean\":\"true\"},{\"value\":\"val3\",\"boolean\":\"true\"}]}")
+  }
+
   it should "write entities with arrays to json" in {
     val inputEntites = getArrayEntities()
-    val sink = new JsonSink(FileResource(tempFile))
+    val sink = new JsonSink(FileResource(tempFile), topLevelObject = false)
 
     val typedProps: Seq[TypedProperty] = inputEntites.head.schema.typedPaths.map(_.property.get)
     sink.openTable("typeUri", typedProps)

@@ -21,11 +21,13 @@ case class JsonDataset(
   basePath: String = "",
   @deprecated("This will be removed in the next release.", "")
   @Param(label = "URI pattern (deprecated)", value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
-  uriPattern: String = "") extends Dataset with ResourceBasedDataset {
+  uriPattern: String = "",
+  @Param(label = "Output first entity as topLevelObject", value = "Specifies whether an Array oj Json objects is returned or a single object is returned for the first entity when writing to Json files.")
+  makeFirstEntityJsonObject: Boolean = false) extends Dataset with ResourceBasedDataset {
 
   override def source(implicit userContext: UserContext): DataSource = JsonSource(file, basePath, uriPattern)
 
   override def linkSink(implicit userContext: UserContext): LinkSink = throw new NotImplementedError("JSON files cannot be written at the moment")
 
-  override def entitySink(implicit userContext: UserContext): EntitySink = new JsonSink(file)
+  override def entitySink(implicit userContext: UserContext): EntitySink = new JsonSink(file, topLevelObject = makeFirstEntityJsonObject)
 }
