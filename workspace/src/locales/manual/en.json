@@ -43,7 +43,7 @@
                 "label": "Max. value"
             },
             "count": {
-                "comment": "The overall count of profiled values.",
+                "comment": "The count of profiled values. Note that usually only a sample of the dataset is profiled, i.e., the total number of values in the dataset may be higher",
                 "label": "Count"
             },
             "uniqueCount": {
