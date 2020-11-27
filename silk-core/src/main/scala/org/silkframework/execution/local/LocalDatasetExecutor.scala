@@ -43,8 +43,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case DatasetResourceEntitySchema.schema =>
         handleDatasetResourceEntitySchema(dataset)
       case _ =>
+        implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context)
         val table = source.retrieve(entitySchema = schema)
-        GenericEntityTable(table.entities, entitySchema = schema, dataset, table.globalErrors)
+        GenericEntityTable(ReportingTraversable(table.entities), entitySchema = schema, dataset, table.globalErrors)
     }
   }
 
@@ -64,14 +65,15 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def handleMultiEntitySchema(dataset: Task[DatasetSpec[Dataset]], source: DataSource, schema: EntitySchema, multi: MultiEntitySchema)
-                                     (implicit userContext: UserContext)= {
+                                     (implicit userContext: UserContext, context: ActivityContext[ExecutionReport])= {
+    implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context)
     val table = source.retrieve(entitySchema = schema)
     MultiEntityTable(
-      entities = table.entities,
+      entities = ReportingTraversable(table.entities),
       entitySchema = schema,
       subTables =
           for (subSchema <- multi.subSchemata) yield
-            GenericEntityTable(source.retrieve(entitySchema = subSchema).entities, subSchema, dataset),
+            GenericEntityTable(ReportingTraversable(source.retrieve(entitySchema = subSchema).entities), subSchema, dataset),
       task = dataset,
       globalErrors = table.globalErrors
     )
@@ -132,7 +134,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         withEntitySink(dataset, execution) { entitySink =>
           writeMultiTables(entitySink, tables)
         }
-        report.update(addEndTime = true)
+        report.executionDone()
       case datasetResource: DatasetResourceEntityTable =>
         writeDatasetResource(dataset, datasetResource)
       case graphStoreFiles: LocalGraphStoreFileUploadTable =>
@@ -144,7 +146,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         withEntitySink(dataset, execution) { entitySink =>
           writeEntities(entitySink, et)
         }
-        report.update(addEndTime = true)
+        report.executionDone()
     }
   }
 
@@ -373,6 +375,23 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
 
   case class WriteEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def entityProcessVerb: String = "written"
+  }
+
+  case class ReadEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityProcessVerb: String = "read"
+  }
+
+  /**
+    * An entity traversable that forwards all entity traversals to an execution report.
+    */
+  case class ReportingTraversable(entities: Traversable[Entity])(implicit executionReport: ExecutionReportUpdater) extends Traversable[Entity] {
+    override def foreach[U](f: Entity => U): Unit = {
+      for(entity <- entities) {
+        f(entity)
+        executionReport.increaseEntityCounter()
+      }
+      executionReport.executionDone()
+    }
   }
 }
 

@@ -29,6 +29,7 @@ trait ExecutionReportUpdater {
   private var startFirstEntity: Option[Long] = None
   private var lastUpdate = 0L
   private var entitiesEmitted = 0
+  private var numberOfExecutions = 0
 
   def additionalFields(): Seq[(String, String)] = Seq.empty
 
@@ -38,6 +39,15 @@ trait ExecutionReportUpdater {
       startFirstEntity = Some(System.currentTimeMillis())
     }
     entitiesEmitted += 1
+  }
+
+  /**
+    * Finishes execution of the operator and updates the report.
+    * A operator may be run multiple times within one workflow execution.
+    */
+  def executionDone(): Unit = {
+    numberOfExecutions += 1
+    update(force = true, addEndTime = true)
   }
 
   protected def formatDateTime(timestamp: Long): String = {
@@ -71,6 +81,7 @@ trait ExecutionReportUpdater {
             s"First ${entityLabelSingle.toLowerCase} $entityProcessVerb at" -> formatDateTime(firstEntityStart)) ++
           startFirstEntity.toSeq.map(firstEntityStart =>
             s"Runtime since first ${entityLabelSingle.toLowerCase} $entityProcessVerb" -> s"${(firstEntityStart - start).toDouble / 1000} seconds") ++
+          Seq("Number of executions" -> numberOfExecutions.toString).filter(_ => numberOfExecutions > 0) ++
           additionalFields()
       context.value.update(SimpleExecutionReport(task, stats, Seq.empty))
       lastUpdate = System.currentTimeMillis()
