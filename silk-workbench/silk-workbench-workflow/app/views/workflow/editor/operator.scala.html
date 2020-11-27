@@ -2,6 +2,8 @@
 @import org.silkframework.workbench.WorkbenchPlugin.TaskActions
 @import org.silkframework.workspace.ProjectTask
 @import org.silkframework.workspace.activity.workflow.Workflow
+@import org.silkframework.config.ProductionConfig
+@import models.workflow.WorkflowConfig
 
 @(taskActions: TaskActions, workflow: ProjectTask[Workflow], pos: Option[(Int, Int)] = None)
 
@@ -16,8 +18,8 @@
   <div class="operatorContent">
     @* Could show icon: <img src="@controllers.workspace.routes.Assets.at(taskActions.icon)" />*@
     @taskActions.task.taskLabel()
-    @for(path <- taskActions.openPath(Some(workflow.id), Some(taskActions.task.id.toString))) {
-      <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="cursor:pointer;" onclick="window.open('@config.baseUrl/@path', '_blank')" />
+    @for(link <- WorkflowConfig.editorLink(taskActions, workflow.id)) {
+      <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="cursor:pointer;" onclick="window.open('@link', '_blank')" />
     }
   </div>
 </div>
