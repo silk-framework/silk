@@ -7,7 +7,10 @@ const pathnameSelector = createSelector([locationSelector], (location) => locati
 
 const routerSearchSelector = createSelector([locationSelector], (location) => location.search);
 
+const hashSelector = createSelector([locationSelector], (location) => location.hash);
+
 export default {
     routerSearchSelector,
     pathnameSelector,
+    hashSelector,
 };
