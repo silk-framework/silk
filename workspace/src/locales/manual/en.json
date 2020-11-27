@@ -139,6 +139,11 @@
         "openExistingProject": "Open existing project page",
         "warningExistingProject": "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID."
     },
+    "RecentlyViewedModal": {
+        "title": "Quick search",
+        "placeholder": "Search recently viewed items or in workspace",
+        "globalSearch": "Search in workspace for '{{query}}'"
+    },
     "RelatedItems": {
         "title": "Related items"
     },
@@ -192,7 +197,8 @@
             "errorDataTypes": "Fetch error for dataset types",
             "noItems": "No {{items}} found.",
             "noResults": "No results.",
-            "noTypes": "No types found"
+            "noTypes": "No types found",
+            "serverError": "Server error"
         },
         "legacyGui": {
             "Workflow editor": "Workflow editor",
@@ -363,7 +369,12 @@
                 },
                 "valueLabels": {
                     "itemType": {
-                        "project": "Project"
+                        "project": "Project",
+                        "workflow": "Workflow",
+                        "dataset": "Dataset",
+                        "linking": "Linking",
+                        "task": "Task",
+                        "transform": "Transform"
                     }
                 }
             }

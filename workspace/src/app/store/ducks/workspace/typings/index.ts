@@ -1,6 +1,7 @@
 import { IFiltersState } from "./IWorkspaceFilters";
 import { IPreviewState } from "./IWorkspacePreview";
 import { IWidgetsState } from "@ducks/workspace/typings/IWorkspaceWidgets";
+import { IItemLink } from "@ducks/shared/typings";
 
 export * from "./IWorkspacePreview";
 export * from "./IWorkspaceFilters";
@@ -44,4 +45,15 @@ export interface IProjectExecutionStatus {
     success?: boolean;
     // If something went wrong, these are the failure details.
     failureMessage?: string;
+}
+
+/** Recently viewed item. Either a project or task. */
+export interface IRecentlyViewedItem {
+    projectId: string;
+    projectLabel: string;
+    itemType: string;
+    taskId?: string;
+    taskLabel?: string;
+    pluginId?: string;
+    itemLinks: IItemLink[];
 }

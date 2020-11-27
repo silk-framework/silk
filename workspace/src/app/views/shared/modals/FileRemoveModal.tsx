@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { UppyFile } from "@uppy/core";
 import { ITaskLink } from "@ducks/workspace/typings";
 import { Link } from "@gui-elements/index";
-import { routerOp } from "@ducks/router";
+import { taskUrl } from "@ducks/router/operations";
 
 type UppyFileOrResource = UppyFile | { name: string; id: string };
 
@@ -56,7 +56,7 @@ export function FileRemoveModal({ projectId, onConfirm, file }: IProps) {
                     <ul>
                         {dependentTasks.map((task) => (
                             <li key={task.id}>
-                                <Link target={"_blank"} href={routerOp.taskUrl(projectId, task.taskType, task.id)}>
+                                <Link target={"_blank"} href={taskUrl(projectId, task.taskType, task.id)}>
                                     {task.label}
                                 </Link>
                             </li>

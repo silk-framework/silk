@@ -99,7 +99,7 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
                             autoCompletionDependsOnParameters: [],
                         },
                         onSearch: handleFileSearch,
-                        itemLabelRenderer: (item) => item.name,
+                        itemRenderer: (item) => item.name,
                         itemValueSelector: (item) => item.name,
                     }}
                     onUploadSuccess={(file) => {

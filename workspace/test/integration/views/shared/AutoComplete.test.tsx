@@ -4,7 +4,7 @@ import { changeValue, findSingleElement, logRequests, logWrapperHtml, testWrappe
 import { waitFor } from "@testing-library/react";
 
 describe("AutoComplete", () => {
-    const wrapper = (props: IAutocompleteProps) => {
+    const wrapper = (props: IAutocompleteProps<any, any>) => {
         return withMount(testWrapper(<Autocomplete {...props} />));
     };
 

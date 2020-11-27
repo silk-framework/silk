@@ -39,6 +39,7 @@ import { useTranslation } from "react-i18next";
 import { TaskType } from "@ducks/shared/typings";
 import { ProjectImportModal } from "../ProjectImportModal";
 import ItemDepiction from "../../../shared/ItemDepiction";
+import { ErrorBoundary } from "carbon-components-react";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -64,10 +65,13 @@ export function CreateArtefactModal() {
     }: IArtefactModal = modalStore;
 
     // initially take from redux
-    const [selected, setSelected] = useState<IArtefactItem>(selectedArtefact);
+    const [selected, setSelected] = useState<IArtefactItem | undefined>(selectedArtefact);
     const [lastSelectedClick, setLastSelectedClick] = useState<number>(0);
     const [isProjectImport, setIsProjectImport] = useState<boolean>(false);
     const DOUBLE_CLICK_LIMIT_MS = 500;
+
+    const selectedArtefactKey: string | undefined = selected?.key;
+    const selectedArtefactTitle: string | undefined = selected?.title;
 
     // Fetch Artefact list
     useEffect(() => {
@@ -79,7 +83,7 @@ export function CreateArtefactModal() {
     }, [projectId]);
 
     const handleAdd = () => {
-        if (selected.key === DATA_TYPES.PROJECT) {
+        if (selectedArtefactKey === DATA_TYPES.PROJECT) {
             return dispatch(commonOp.selectArtefact(selected));
         }
         dispatch(commonOp.getArtefactPropertiesAsync(selected));
@@ -99,7 +103,7 @@ export function CreateArtefactModal() {
 
     const handleArtefactSelect = (artefact: IArtefactItem) => {
         if (
-            selected.key === artefact.key &&
+            selectedArtefactKey === artefact.key &&
             lastSelectedClick &&
             Date.now() - lastSelectedClick < DOUBLE_CLICK_LIMIT_MS
         ) {
@@ -149,7 +153,7 @@ export function CreateArtefactModal() {
                         )
                     );
                 } else {
-                    await dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefact.key)));
+                    await dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefactKey)));
                 }
             } else {
                 const errKey = Object.keys(form.errors)[0];
@@ -187,7 +191,7 @@ export function CreateArtefactModal() {
         setIsProjectImport(true);
     };
 
-    const projectArtefactSelected = selectedArtefact.key === DATA_TYPES.PROJECT;
+    const projectArtefactSelected = selectedArtefactKey === DATA_TYPES.PROJECT;
 
     let artefactForm = null;
     if (updateExistingTask) {
@@ -202,11 +206,11 @@ export function CreateArtefactModal() {
         );
     } else {
         // Project / task creation
-        if (selectedArtefact.key) {
+        if (selectedArtefactKey) {
             if (projectArtefactSelected) {
                 artefactForm = <ProjectForm form={form} projectId={projectId} />;
             } else {
-                const detailedArtefact = cachedArtefactProperties[selectedArtefact.key];
+                const detailedArtefact = cachedArtefactProperties[selectedArtefactKey];
                 if (detailedArtefact && projectId) {
                     artefactForm = <TaskForm form={form} artefact={detailedArtefact} projectId={projectId} />;
                 }
@@ -262,7 +266,7 @@ export function CreateArtefactModal() {
         }
     }, [artefactListWithProject.map((item) => item.key).join("|"), selectedDType]);
 
-    const isCreationUpdateDialog = selectedArtefact.key || updateExistingTask;
+    const isCreationUpdateDialog = selectedArtefactKey || updateExistingTask;
 
     const createDialog = (
         <SimpleDialog
@@ -274,8 +278,8 @@ export function CreateArtefactModal() {
                     ? t("CreateModal.updateTitle", {
                           type: `'${updateExistingTask.metaData.label}' (${updateExistingTask.taskPluginDetails.title})`,
                       })
-                    : selectedArtefact.title
-                    ? t("CreateModal.createTitle", { type: selectedArtefact.title })
+                    : selectedArtefactTitle
+                    ? t("CreateModal.createTitle", { type: selectedArtefactTitle })
                     : t("CreateModal.createTitleGeneric")
             }
             onClose={closeModal}
@@ -370,7 +374,9 @@ export function CreateArtefactModal() {
                                                     isOnlyLayout
                                                     key={artefact.key}
                                                     className={
-                                                        selected.key === artefact.key ? HelperClasses.Intent.ACCENT : ""
+                                                        selectedArtefactKey === artefact.key
+                                                            ? HelperClasses.Intent.ACCENT
+                                                            : ""
                                                     }
                                                 >
                                                     <OverviewItem
@@ -442,9 +448,13 @@ export function CreateArtefactModal() {
             }
         </SimpleDialog>
     );
-    return isProjectImport ? (
-        <ProjectImportModal close={closeModal} back={() => setIsProjectImport(false)} />
-    ) : (
-        createDialog
+    return (
+        <ErrorBoundary>
+            {isProjectImport ? (
+                <ProjectImportModal close={closeModal} back={() => setIsProjectImport(false)} />
+            ) : (
+                createDialog
+            )}
+        </ErrorBoundary>
     );
 }
