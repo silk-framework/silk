@@ -2,6 +2,7 @@ package controllers.linking
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import javax.inject.Inject
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.LinkageRuleEvaluator
@@ -27,7 +28,7 @@ class LinkingEditor @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     val task = project.task[LinkSpec](taskName)
     val pathsCache = task.activity[LinkingPathsCache].control
     val prefixes = project.config.prefixes
-    val sourceNames = task.data.dataSelections.map(_.inputId.toString)
+    val sourceNames = task.data.dataSelections.map(s => project.task[GenericDatasetSpec](s.inputId.toString).taskLabel())
 
     if(pathsCache.status().isRunning) {
       val loadingMsg = f"Cache loading (${pathsCache.status().progress.getOrElse(0.0) * 100}%.1f%%)"

@@ -3,6 +3,7 @@ package controllers.transform
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import javax.inject.Inject
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.validation.NotFoundException
@@ -46,7 +47,7 @@ class TransformEditor @Inject() (accessMonitor: WorkbenchAccessMonitor) extends 
   /** Fetch relative source paths for a specific rule and render widget. */
   def rulePaths(projectName: String, taskName: String, ruleName: String, groupPaths: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
     val (project, transformTask) = projectAndTask[TransformSpec](projectName, taskName)
-    val sourceName = transformTask.data.selection.inputId.toString
+    val sourceName = project.task[GenericDatasetSpec](transformTask.data.selection.inputId).taskLabel()
     val prefixes = project.config.prefixes
     transformTask.data.nestedRuleAndSourcePath(ruleName) match {
       case Some((_, sourcePath)) =>
