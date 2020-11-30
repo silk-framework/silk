@@ -5,23 +5,26 @@ import java.io.File
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{DataSource, TypedProperty}
-import org.silkframework.entity.{BooleanValueType, Entity, EntitySchema, StringValueType}
+import org.silkframework.entity.{BooleanValueType, Entity, EntitySchema, StringValueType, ValueType}
 import org.silkframework.entity.paths.{DirectionalPathOperator, ForwardOperator, PathOperator, TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, FileResource, InMemoryResourceManager, WritableResource}
 import org.silkframework.util.Uri
 
+import scala.xml.Node
+
 class JsonSinkTest extends FlatSpec with Matchers {
 
   implicit val userContext: UserContext = UserContext.Empty
   private val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/json/")
-  private val tempFile = File.createTempFile("json-write-test-1", ".json")
-  tempFile.deleteOnExit()
+
   implicit val prefixes: Prefixes = Prefixes.empty
 
 
   it should "write entities to json" in {
+    val tempFile = File.createTempFile("json-write-test-1", ".json")
+    tempFile.deleteOnExit()
     val inputEntites = getEntities()
     val sink = new JsonSink(FileResource(tempFile), topLevelObject = false)
 
@@ -52,9 +55,11 @@ class JsonSinkTest extends FlatSpec with Matchers {
   }
 
   it should "write entities to json using the first object as the root" in {
+    val tempFile = File.createTempFile("json-write-test-2", ".json")
+    tempFile.deleteOnExit()
     val inputEntites = getEntities()
     val sink = new JsonSink(FileResource(tempFile), topLevelObject = true)
-
+    sink.clear()
     val typedProps: Seq[TypedProperty] = inputEntites.head.schema.typedPaths.map(_.property.get)
     sink.openTable("typeUri", typedProps)
     var uri: Int = 0
@@ -67,21 +72,17 @@ class JsonSinkTest extends FlatSpec with Matchers {
 
     val source = scala.io.Source.fromFile(tempFile)
     val lines = try source.mkString finally source.close()
+    println(lines)
     inputEntites.size shouldBe 3
     tempFile.exists() shouldBe(true)
     lines.shouldBe(
-      """[{"entity": {"value": "val"}}{"entity": {
-        |  "boolean": true,
-        |  "value": "val2"
-        |}}{"entity": {
-        |  "boolean": true,
-        |  "value": "val3"
-        |}}]""".stripMargin
+      """{"entity": {"value": "val"}}""".stripMargin
     )
-    //    lines shouldBe("{\"Entity\":[{\"value\":\"val\"},{\"value\":\"val2\",\"boolean\":\"true\"},{\"value\":\"val3\",\"boolean\":\"true\"}]}")
   }
 
   it should "write entities with arrays to json" in {
+    val tempFile = File.createTempFile("json-write-test-3", ".json")
+    tempFile.deleteOnExit()
     val inputEntites = getArrayEntities()
     val sink = new JsonSink(FileResource(tempFile), topLevelObject = false)
 
@@ -111,6 +112,95 @@ class JsonSinkTest extends FlatSpec with Matchers {
        |  3
        |]}}]""".stripMargin
     )
+  }
+
+  it should "write flat structures nested under root element" in {
+    val tempFile = File.createTempFile("json-write-test-4", ".json")
+    tempFile.deleteOnExit()
+    val schema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(UntypedPath("FirstTag"), ValueType.STRING, isAttribute = false),
+            TypedPath(UntypedPath("SecondTag"), ValueType.STRING, isAttribute = false)
+          )
+      )
+
+    val entities = Seq(Entity("someUri", IndexedSeq(Seq("1"), Seq("2")), schema))
+
+    test(
+      entityTables = Seq(entities),
+      expected = """[{"entity": {
+                   |  "SecondTag": 2,
+                   |  "FirstTag": 1
+                   |}}]""".stripMargin,
+      tempFile
+    )
+  }
+
+  it should "write nested structures" in {
+    val tempFile = File.createTempFile("json-write-test-5", ".json")
+    tempFile.deleteOnExit()
+    val personSchema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(UntypedPath("id"), ValueType.STRING, isAttribute = true),
+            TypedPath(UntypedPath("Name"), ValueType.URI, isAttribute = false),
+            TypedPath(UntypedPath("Year"), ValueType.STRING, isAttribute = false)
+          )
+      )
+
+    val persons = Seq(
+      Entity("urn:instance:Person1", IndexedSeq(Seq("001"), Seq("urn:instance:PersonName1a", "urn:instance:PersonName1b"), Seq("1980")), personSchema),
+      Entity("urn:instance:Person2", IndexedSeq(Seq("002"), Seq("urn:instance:PersonName2"), Seq("1990")), personSchema)
+    )
+
+    val nameSchema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(UntypedPath("FirstName"), ValueType.STRING, isAttribute = false),
+            TypedPath(UntypedPath("LastName"), ValueType.STRING, isAttribute = false)
+          )
+      )
+
+    val names = Seq(
+      Entity("urn:instance:PersonName1a", IndexedSeq(Seq("John"), Seq("Doe")), nameSchema),
+      Entity("urn:instance:PersonName1b", IndexedSeq(Seq("Peter"), Seq("Stein")), nameSchema),
+      Entity("urn:instance:PersonName2", IndexedSeq(Seq("Max"), Seq("Mustermann")), nameSchema)
+    )
+
+    test(
+      entityTables = Seq(persons, names),
+      expected = "", tempFile
+    )
+  }
+
+  private def test(entityTables: Seq[Seq[Entity]], expected: String, tempFile: File): Unit = {
+    implicit val userContext: UserContext = UserContext.Empty
+    implicit val prefixes: Prefixes = Prefixes.empty
+
+    val resource = new FileResource(tempFile)
+    val sink = new JsonSink(resource, topLevelObject = false)
+
+    // Write entity tables
+    for (entityTable <- entityTables) {
+      val schema = entityTable.head.schema
+      sink.openTable(schema.typeUri, schema.typedPaths.flatMap(_.property))
+      for (entity <- entityTable) {
+        sink.writeEntity(entity.uri, entity.values)
+      }
+      sink.closeTable()
+    }
+    sink.close()
+    val source = scala.io.Source.fromFile(tempFile)
+    val lines = try source.mkString finally source.close()
+    println (lines)
+
   }
 
   private val jsonComplex =

@@ -24,7 +24,7 @@ import scala.collection.mutable
 import scala.xml.InputSource
 
 
-class JsonSink(resource: WritableResource, outputTemplate: String = "<Result><?entity?></Result>", topLevelObject: Boolean) extends EntitySink {
+class JsonSink (resource: WritableResource, outputTemplate: String = "<Result><?entity?></Result>", topLevelObject: Boolean) extends EntitySink {
 
   private var doc: Document = null
 
@@ -97,54 +97,32 @@ class JsonSink(resource: WritableResource, outputTemplate: String = "<Result><?e
     val f = XMLInputFactory.newFactory
 
     val xmlSource = new DOMSource(doc)
-    val sr = f.createXMLStreamReader(xmlSource)
     val sw: StringWriter = new StringWriter()
     transformer.transform(xmlSource, stream)
 
-    if (!topLevelObject) resource.writeString("[", append = false)
-    var node = xmlSource.getNode.getFirstChild.getFirstChild
-    while (node!=null) {
-      val xmlOutput = new StringWriter
-      transformer.transform(new DOMSource(node), new StreamResult(xmlOutput))
-      val json = XML.toJSONObject(xmlOutput.toString)
-      resource.writeString(json.toString(2), append = true)
-      if (topLevelObject) node = null else node = node.getNextSibling
+    if (!topLevelObject) {
+      resource.writeString("[", append = false)
+      var node = xmlSource.getNode.getFirstChild.getFirstChild
+      while (node != null) {
+        val xmlOutput = new StringWriter
+        transformer.transform(new DOMSource(node), new StreamResult(xmlOutput))
+        val json = XML.toJSONObject(xmlOutput.toString)
+        resource.writeString(json.toString(2), append = true)
+        if (topLevelObject) node = null else node = node.getNextSibling
+      }
+      resource.writeString("]", append = true)
     }
-    if (!topLevelObject) resource.writeString("]", append = true)
+    else {
+      val node = xmlSource.getNode.getFirstChild.getFirstChild
+      if (node != null) {
+        val xmlOutput = new StringWriter
+        transformer.transform(new DOMSource(node), new StreamResult(xmlOutput))
+        val json = XML.toJSONObject(xmlOutput.toString)
+        resource.writeString(json.toString(2), append = true)
+      }
+    }
 
   }
-
-//  def resolveType(jsonNode: JsonNode): JsonNode = {
-//    jsonNode.isValueNode
-//    jsonNode match {
-//      case jsonNode: ObjectNode =>
-//        val fields = jsonNode.fields
-//        while (fields.hasNext) {
-//          val next = fields.next
-//          next.setValue(resolveType(next.getValue))
-//        }
-//        jsonNode
-//      case jsonNode: TextNode =>
-//        if (jsonNode.isBoolean) {
-//            BooleanNode.valueOf(jsonNode.asBoolean())
-//        }
-//        else if (jsonNode.isInt) {
-//            LongNode.valueOf(jsonNode.asInt())
-//        }
-//        else {
-//          jsonNode
-//        }
-//      case jsonNode: ArrayNode =>
-//        val elements = jsonNode.elements()
-//        val modifiedArray = new util.ArrayList[JsonNode]
-//        while (elements.hasNext){
-//          modifiedArray.add(resolveType(elements.next))
-//        }
-//        jsonNode.removeAll()
-//        jsonNode.addAll(modifiedArray)
-//        jsonNode
-//    }
-//  }
 
   /**
    * Makes sure that the next write will start from an empty dataset.
