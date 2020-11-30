@@ -52,6 +52,7 @@
   color: to_color($palette-red-800);
 }
 
-table.di-execution-report-table td {
-  overflow: scroll;
+.silk-report-errors-value {
+  overflow: auto;
+  scrollbar-width: thin;
 }

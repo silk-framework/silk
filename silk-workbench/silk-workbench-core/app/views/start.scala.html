@@ -3,7 +3,8 @@
 
 @import org.silkframework.runtime.activity.UserContext
 @import org.silkframework.config.ProductionConfig
-@(welcome: Html)(implicit session: play.api.mvc.Session, userContext: UserContext)
+
+@(welcome: Html)(implicit request: RequestHeader, userContext: UserContext)
 
 @exampleName = @{ "movies" }
 
