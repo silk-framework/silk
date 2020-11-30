@@ -18,7 +18,7 @@
     "webpack-build": "cross-env NODE_ENV=production webpack --config webpack.prod.config.js",
     "webpack-dev-build": "cross-env NODE_ENV=development webpack --config webpack.dev.config.js",
     "webpack-analyzer": "webpack --config webpack.dev.config.js --profile --json > ./analyzer-stats.json && webpack-bundle-analyzer ./analyzer-stats.json",
-    "babel": "babel"
+    "babel": "cross-env NODE_ENV=production babel"
   },
   "repository": {
     "type": "git",
@@ -148,11 +148,6 @@
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version"
-    ]
-  },
-  "babel": {
-    "presets": [
-      "react-app"
     ]
   }
 }
