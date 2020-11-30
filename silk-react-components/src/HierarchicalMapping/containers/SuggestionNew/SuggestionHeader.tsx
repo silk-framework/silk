@@ -15,11 +15,6 @@ export default function SuggestionHeader({ onSearch }) {
                     tabIndex={0}
                     onChange={e => onSearch(e.target.value)}
                 />
-                <TableToolbarMenu tabIndex={1}>
-                    <TableToolbarAction primaryFocus onClick={() => {}}>
-                        Set prefix for autosuggestion
-                    </TableToolbarAction>
-                </TableToolbarMenu>
             </TableToolbarContent>
         </TableToolbar>
 

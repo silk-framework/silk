@@ -26,9 +26,28 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
 
     const selectedTarget = candidates.find(t => t._selected);
     const selectedType = selectedTarget ? selectedTarget.type : 'value';
-    const {exampleValues, portalContainer} = context;
 
-    const examples = exampleValues[source];
+    const renderExampleIcon = (source, context) => {
+        const {exampleValues, portalContainer} = context;
+        const examples = exampleValues[source];
+
+        return (
+            examples && <ContextMenu
+                portalContainer={portalContainer}
+                togglerElement={'item-info'}
+            >
+                <ul>
+                    {
+                        examples.map(example =>
+                            <li key={example}><p>{example}</p></li>
+                        )
+                    }
+                </ul>
+            </ContextMenu>
+        )
+    };
+
+
     return <TableRow>
         <TableCell>
             <Checkbox
@@ -40,20 +59,7 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
             <Highlighter label={label || source} searchValue={context.search} />
             {label ? <p><Highlighter label={source} searchValue={context.search} /></p> : null }
             {description && <p><Highlighter label={description} searchValue={context.search} /></p>}
-            {
-                examples && <ContextMenu
-                    portalContainer={portalContainer}
-                    togglerElement={'item-info'}
-                >
-                    <ul>
-                        {
-                            examples.map(example =>
-                                <li key={example}><p>{example}</p></li>
-                            )
-                        }
-                    </ul>
-                </ContextMenu>
-            }
+            {context.isFromDataset && renderExampleIcon(source, context)}
         </TableCell>
         <TableCell>
             <div/>
@@ -63,6 +69,7 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
                 targets={candidates}
                 onChange={handleModifyTarget}
             />
+            {!context.isFromDataset && renderExampleIcon(source, context)}
         </TableCell>
         <TableCell>
             <TypesList

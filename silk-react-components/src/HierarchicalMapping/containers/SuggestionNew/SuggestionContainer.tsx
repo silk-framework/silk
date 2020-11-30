@@ -22,12 +22,14 @@ interface ISuggestionListContext {
         [key: string]: string[]
     };
     search: string;
+    isFromDataset: boolean;
 }
 
 export const SuggestionListContext = React.createContext<ISuggestionListContext>({
     portalContainer: null,
     exampleValues: {},
-    search: ''
+    search: '',
+    isFromDataset: true,
 });
 
 export default function SuggestionContainer({ruleId, targetClassUris, onAskDiscardChanges, onClose}) {
@@ -174,7 +176,8 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                     <SuggestionListContext.Provider value={{
                         portalContainer: portalContainerRef.current,
                         exampleValues,
-                        search: submittedSearch
+                        search: submittedSearch,
+                        isFromDataset
                     }}>
                         <SuggestionHeader onSearch={handleSearch}/>
                         <SuggestionList
