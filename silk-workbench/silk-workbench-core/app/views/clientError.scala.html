@@ -1,4 +1,4 @@
-@(errorMessage: String)(implicit session: play.api.mvc.Session)
+@(errorMessage: String)(implicit request: RequestHeader)
 
 @header = { }
 
@@ -25,4 +25,4 @@
   </div>
 }
 
-@main(None, "")(header)(toolbar)(content)(session)
+@main(None, "")(header)(toolbar)(content)(request)

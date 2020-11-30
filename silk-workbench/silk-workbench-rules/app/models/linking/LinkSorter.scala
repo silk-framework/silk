@@ -50,13 +50,13 @@ object TargetUriSorterDescending extends LinkSorter("target", false) {
 
 object ConfidenceSorterAscending extends LinkSorter("confidence", true){
   override def apply(links: Seq[EvalLink]): Seq[EvalLink] = {
-    links.sortBy(_.confidence.getOrElse(-1.0))
+    links.sortBy(_.confidence.getOrElse(Double.NegativeInfinity))
   }
 }
 
 object ConfidenceSorterDescending extends LinkSorter("confidence", false) {
   override def apply(links: Seq[EvalLink]): Seq[EvalLink] = {
-    links.sortBy(-_.confidence.getOrElse(-1.0))
+    links.sortBy(-_.confidence.getOrElse(Double.NegativeInfinity))
   }
 }
 

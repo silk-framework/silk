@@ -131,9 +131,9 @@ export default class ExecutionReport extends React.Component {
     
     renderRuleError(ruleError) {
         return <TableRow key={ruleError.entity}>
-            <TableCell>{ruleError.entity}</TableCell>
-            <TableCell>{ruleError.values.flat().join(', ')}</TableCell>
-            <TableCell>{ruleError.error}</TableCell>
+            <TableCell><div className="silk-report-errors-value">{ruleError.entity}</div></TableCell>
+            <TableCell><div className="silk-report-errors-value">{ruleError.values.flat().join(', ')}</div></TableCell>
+            <TableCell><div className="silk-report-errors-value">{ruleError.error}</div></TableCell>
         </TableRow>
     }
     
