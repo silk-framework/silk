@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.time.format.DateTimeFormatter
 import java.time.{Duration, Instant, ZoneOffset}
-import java.util.logging.{Level, Logger}
 
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity.ActivityExecutionResult
@@ -14,12 +13,11 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.ActivitySerializers.ActivityExecutionResultJsonFormat
 import org.silkframework.serialization.json.ExecutionReportSerializers.ExecutionReportJsonFormat
 import org.silkframework.util.Identifier
-import org.silkframework.workbench.workspace.FileExecutionReportManager.DEFAULT_RETENTION_TIME
+import org.silkframework.workspace.reports.ExecutionReportManager.DEFAULT_RETENTION_TIME
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 import play.api.libs.json.{JsValue, Json}
 
 import scala.util.Try
-import scala.util.control.NonFatal
 
 @Plugin(
   id = "file",
@@ -37,9 +35,7 @@ case class FileExecutionReportManager(dir: String, retentionTime: Duration = DEF
   // JSON format to read and write execution reports.
   private val reportJsonFormat = new ActivityExecutionResultJsonFormat()(ExecutionReportJsonFormat)
 
-  private val log = Logger.getLogger(getClass.getName)
-
-  override def listReports(projectId: Option[Identifier], taskId: Option[Identifier]): Seq[ReportIdentifier] = {
+  override def listReports(projectId: Option[Identifier], taskId: Option[Identifier]): Seq[ReportIdentifier] = synchronized {
     for {
       reportFile <- reportDirectory.listFiles()
       report <- fromReportFile(reportFile)
@@ -50,7 +46,7 @@ case class FileExecutionReportManager(dir: String, retentionTime: Duration = DEF
     }
   }
 
-  override def retrieveReport(reportId: ReportIdentifier): ActivityExecutionResult[ExecutionReport] = {
+  override def retrieveReport(reportId: ReportIdentifier): ActivityExecutionResult[ExecutionReport] = synchronized {
     val file = reportFile(reportId)
     if(!file.exists) {
       throw new NoSuchElementException(s"No report found for project ${reportId.projectId} and task ${reportId.taskId} at ${reportId.time}.")
@@ -66,34 +62,17 @@ case class FileExecutionReportManager(dir: String, retentionTime: Duration = DEF
 
   }
 
-  override def addReport(reportId: ReportIdentifier, report: ActivityExecutionResult[ExecutionReport]): Unit = {
+  override def addReport(reportId: ReportIdentifier, report: ActivityExecutionResult[ExecutionReport]): Unit = synchronized {
     implicit val wc = WriteContext[JsValue]()
     val reportJson = reportJsonFormat.write(report)
 
-    removeOldReports()
+    removeOldReports(retentionTime)
     Files.write(reportFile(reportId).toPath, Json.prettyPrint(reportJson).getBytes(StandardCharsets.UTF_8))
   }
 
-  override def removeReport(reportId: ReportIdentifier): Unit = {
+  override def removeReport(reportId: ReportIdentifier): Unit = synchronized {
     val file = reportFile(reportId)
     Files.delete(file.toPath)
-  }
-
-  /**
-    * Removes reports older than the retention time.
-    * If removal of a report fails, a warning will be logged and the method will return normally.
-    */
-  private def removeOldReports(): Unit = {
-    val oldestDateTime = Instant.now.minus(retentionTime)
-      for (reportId <- listReports(None, None) if reportId.time.isBefore(oldestDateTime)) {
-        try {
-          removeReport(reportId)
-        } catch {
-          case NonFatal(ex) =>
-            log.log(Level.WARNING, s"Could not delete old report file at " + reportFile(reportId).getAbsolutePath, ex)
-        }
-      }
-
   }
 
   /**
@@ -129,8 +108,3 @@ case class FileExecutionReportManager(dir: String, retentionTime: Duration = DEF
 
 }
 
-object FileExecutionReportManager {
-
-  val DEFAULT_RETENTION_TIME: Duration = Duration.ofDays(30)
-
-}
