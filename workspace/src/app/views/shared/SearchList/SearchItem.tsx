@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
+import { IItemLink } from "@ducks/shared/typings";
 import {
     Card,
     ContextMenu,
@@ -19,6 +20,7 @@ import { routerOp } from "@ducks/router";
 import { useDispatch, useSelector } from "react-redux";
 import { Highlighter } from "../Highlighter/Highlighter";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
+import { LegacyWindow } from "../LegacyWindow/LegacyWindow";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import { IPageLabels } from "@ducks/router/operations";
 import { DATA_TYPES } from "../../../constants";
@@ -54,17 +56,28 @@ export default function SearchItem({
     const exportTypes = useSelector(commonSel.exportTypesSelector);
     const [t] = useTranslation();
     // Remove detailsPath
-    const contextMenuItems = item.itemLinks
-        .slice(1)
-        .map((link) => (
-            <MenuItem
-                key={link.path}
-                text={link.label}
-                href={link.path}
-                icon={getItemLinkIcons(link.label)}
-                target={"_blank"}
-            />
-        ));
+    const itemLinks = item.itemLinks.slice(1);
+    const contextMenuItems = itemLinks.map((link) => (
+        <MenuItem
+            key={link.path}
+            text={t("common.legacyGui." + link.label, link.label)}
+            icon={getItemLinkIcons(link.label)}
+            onClick={() =>
+                toggleLegacyLink({
+                    path: link.path,
+                    label: link.label,
+                    itemType: null,
+                })
+            }
+        />
+    ));
+
+    // active legacy link
+    const [displayLegacyLink, setDisplayLegacyLink] = useState<IItemLink | null>(null);
+    // handler for link change
+    const toggleLegacyLink = (linkItem: IItemLink | null = null) => {
+        setDisplayLegacyLink(linkItem);
+    };
 
     if (item.type === DATA_TYPES.PROJECT && !!exportTypes.length) {
         contextMenuItems.push(
@@ -159,6 +172,20 @@ export default function SearchItem({
                     </ContextMenu>
                 </OverviewItemActions>
             </OverviewItem>
+            {displayLegacyLink && (
+                <LegacyWindow
+                    legacyLinks={itemLinks.map((link) => {
+                        return {
+                            path: link.path,
+                            label: link.label,
+                            itemType: null,
+                        };
+                    })}
+                    startWithLink={displayLegacyLink}
+                    startFullscreen={true}
+                    handlerRemoveModal={() => toggleLegacyLink(null)}
+                />
+            )}
         </Card>
     );
 }
