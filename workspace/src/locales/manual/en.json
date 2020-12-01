@@ -43,7 +43,7 @@
                 "label": "Max. value"
             },
             "count": {
-                "comment": "The overall count of profiled values.",
+                "comment": "The count of profiled values. Note that usually only a sample of the dataset is profiled, i.e., the total number of values in the dataset may be higher",
                 "label": "Count"
             },
             "uniqueCount": {
@@ -199,6 +199,16 @@
             "noResults": "No results.",
             "noTypes": "No types found",
             "serverError": "Server error"
+        },
+        "legacyGui": {
+            "Workflow editor": "Workflow editor",
+            "Workflow report": "Workflow report",
+            "Mapping editor": "Mapping editor",
+            "Transform evaluation": "Transform evaluation",
+            "Transform execution": "Transform execution",
+            "Linking editor": "Linking editor",
+            "Linking evaluation": "Linking evaluation",
+            "Linking execution": "Linking execution"
         },
         "sorter": {
             "recentlyViewed": "Recently viewed"
