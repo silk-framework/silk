@@ -22,14 +22,17 @@ class ApiWorkflowApi @Inject()() extends InjectedController {
                              workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
 
-    val (workflowConfig, mimeType) = VariableWorkflowRequestUtils.queryStringToWorkflowConfig(project, workflowTask)
+    val (workflowConfig, mimeTypeOpt) = VariableWorkflowRequestUtils.queryStringToWorkflowConfig(project, workflowTask)
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
     val id = activity.startBlocking(workflowConfig)
-    val outputResource = activity.instance(id).value().resourceManager.get(VariableWorkflowRequestUtils.OUTPUT_FILE_RESOURCE_NAME, mustExist = true)
-
-    Result(
-      header = ResponseHeader(OK, Map.empty),
-      body = HttpEntity.Strict(ByteString(outputResource.loadAsBytes), Some(mimeType))
-    )
+    if(mimeTypeOpt.isDefined) {
+      val outputResource = activity.instance(id).value().resourceManager.get(VariableWorkflowRequestUtils.OUTPUT_FILE_RESOURCE_NAME, mustExist = true)
+      Result(
+        header = ResponseHeader(OK, Map.empty),
+        body = HttpEntity.Strict(ByteString(outputResource.loadAsBytes), mimeTypeOpt)
+      )
+    } else {
+      Ok
+    }
   }
 }

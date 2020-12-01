@@ -13,15 +13,21 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
     with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait with MustMatchers {
   behavior of "Simple variable workflow execution API"
 
+  private val inputOnlyWorkflow = "7e4b3499-4743-40c7-81e6-72b33f34a496_Workflowinputonly"
+  private val outputOnlyWorkflow = "67fe02eb-43a7-4b74-a6a2-c65a5c097636_Workflowoutputonly"
   private val validVariableWorkflows = Seq(
     "f5bbbdc1-3c80-425d-a2ce-3bb08aefde1c_Workflow",
-    "0c338c22-c43e-4a1c-960d-da44b8176c56_Workflowmultipleofthesameinputandoutput"
+    "0c338c22-c43e-4a1c-960d-da44b8176c56_Workflowmultipleofthesameinputandoutput",
+    inputOnlyWorkflow,
+    outputOnlyWorkflow
   )
   private val invalidVariableWorkflows = Seq(
     "283e0d90-514f-4f32-9a6f-81340d592b8f_Workflowtoomanysources",
     "293470bf-a1ff-42a3-a16a-3b0c5d8e3468_Workflowtoomanysinks"
   )
   private val brokenWorkflow = "da370f28-629a-4d01-a54b-5f0b8a15906f_BrokenWorkflow"
+  // File the input only workflow writes to
+  private val outputCsv = "output.csv"
 
   private val sourceProperty1 = "inputProp1"
   private val sourceProperty2 = "inputProp2"
@@ -78,6 +84,30 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
           checkForValues(2, param2Values, response.body)
         }
       }
+    }
+  }
+
+  it should "return the correct response for an output only variable workflow" in {
+    for(usePost <- Seq(true, false)) {
+      val response = checkResponseExactStatusCode(
+        executeVariableWorkflow(outputOnlyWorkflow, Map.empty, usePost, APPLICATION_XML))
+      checkForCorrectReturnType(APPLICATION_XML, response.body, noValues = false)
+      checkForValues(1, Seq("csv value 1"), response.body)
+      checkForValues(2, Seq("csv value 2"), response.body)
+    }
+  }
+
+  it should "write the correct output dataset for an input only variable workflow" in {
+    val inputParams = Map(
+      sourceProperty1 -> Seq("input value A"),
+      sourceProperty2 -> Seq("XYZ")
+    )
+    for(usePost <- Seq(true, false)) {
+      checkResponseExactStatusCode(
+        executeVariableWorkflow(inputOnlyWorkflow, inputParams, usePost, APPLICATION_XML))
+      val outputCsvResource = project.resources.get(outputCsv)
+      outputCsvResource.loadAsString.split("[\\r\\n]+") mustBe Seq("targetProp1,targetProp2", "input value A,XYZ")
+      outputCsvResource.delete()
     }
   }
 

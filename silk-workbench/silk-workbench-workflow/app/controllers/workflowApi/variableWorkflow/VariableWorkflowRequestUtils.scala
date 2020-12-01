@@ -31,7 +31,7 @@ object VariableWorkflowRequestUtils {
     * @param datasetId The ID of the variable dataset in the workflow.
     **/
   private def variableDataSinkConfig(datasetId: String)
-                                    (implicit request: Request[_]): (JsValue, String) = {
+                                    (implicit request: Request[_]): VariableDataSinkConfig = {
     acceptedMimeType.find(mimeType => request.accepts(mimeType)) match {
       case Some(mimeType) =>
         val (datasetType: String, datasetParameters: Map[String, String]) = mimeType match {
@@ -42,12 +42,14 @@ object VariableWorkflowRequestUtils {
           case "text/comma-separated-values" => ("csv", Map.empty)
         }
         val sinkConfig = datasetConfigJson(datasetId, datasetType, datasetParameters, OUTPUT_FILE_RESOURCE_NAME)
-        (sinkConfig, mimeType)
+        VariableDataSinkConfig(sinkConfig, mimeType)
       case None =>
         throw NotAcceptableException("Could not product response in the accepted mime types. Supported mime types are: "
             + acceptedMimeType.mkString(", "))
     }
   }
+
+  case class VariableDataSinkConfig(configJson: JsValue, mimeType: String)
 
   /** Creates the JSON representation of a dataset config. */
   private def datasetConfigJson(datasetId: String,
@@ -77,26 +79,29 @@ object VariableWorkflowRequestUtils {
     **/
   def queryStringToWorkflowConfig(project: Project,
                                   workflowTask: Task[Workflow])
-                                 (implicit request: Request[_], userContext: UserContext): (Map[String, String], String) = {
+                                 (implicit request: Request[_], userContext: UserContext): (Map[String, String], Option[String]) = {
     val variableDatasets = workflowTask.data.variableDatasets(project)
-    if(variableDatasets.sinks.size != 1 || variableDatasets.dataSources.size != 1) {
-      throw BadUserInputException(s"Workflow task '${workflowTask.taskLabel()}' must have exactly one variable data source " +
+    if(variableDatasets.sinks.size > 1 || variableDatasets.dataSources.size > 1) {
+      throw BadUserInputException(s"Workflow task '${workflowTask.taskLabel()}' must contain at most one variable data source " +
           s"and one variable output dataset. Instead it has ${variableDatasets.dataSources.size} variable sources and ${variableDatasets.sinks.size} variable sinks.")
     }
-    val resourceJson = queryStringToInputResource
-    val dataSourceConfig = variableDataSourceConfig(variableDatasets.dataSources.head)
-    val (dataSinkConfig, mimeType) = variableDataSinkConfig(variableDatasets.sinks.head)
+    // Optional data source config depending on whether there is a variable input dataset or not.
+    val dataSourceConfig: Option[JsValue] = variableDatasets.dataSources.headOption.map(variableDataSourceConfig)
+    // Only parse resource if a variable input dataset is defined in the workflow
+    val resourceJson: Seq[JsValue] = dataSourceConfig.map(_ => queryStringToInputResource).toSeq
+    // Optional data sink config and corresponding mime type depending on whether a variable output dataset is part of the workflow.
+    val variableDataSinkConfigOpt: Option[VariableDataSinkConfig] = variableDatasets.sinks.headOption.map(variableDataSinkConfig)
     val workflowConfig = Json.obj(
-      "DataSources" -> Seq(dataSourceConfig),
-      "Sinks" -> Seq(dataSinkConfig),
+      "DataSources" -> dataSourceConfig.toSeq,
+      "Sinks" -> variableDataSinkConfigOpt.map(_.configJson).toSeq,
       "Resources" -> Json.obj(
-        INPUT_FILE_RESOURCE_NAME -> JsArray(Seq(resourceJson))
+        INPUT_FILE_RESOURCE_NAME -> JsArray(resourceJson)
       )
     )
     (Map(
       "configuration" -> workflowConfig.toString(),
       "configurationType" -> "application/json"
-    ), mimeType)
+    ), variableDataSinkConfigOpt.map(_.mimeType))
   }
 
   // Builds the (JSON) input entity from the request parameters (form URL encoded or query string).
