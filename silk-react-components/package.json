@@ -27,7 +27,8 @@
   "license": "Apache-2.0",
   "private": true,
   "dependencies": {
-    "@babel/core": "7.9.0",
+    "babel-loader": "^7.1.4",
+    "babel-preset-stage-2": "^6.24.1",
     "@blueprintjs/core": "^3.29.0",
     "@blueprintjs/select": "^3.13.4",
     "@carbon/icons": "^10.9.3",
@@ -39,7 +40,6 @@
     "@testing-library/user-event": "^12.2.2",
     "@types/carbon-components": "^10.15.0",
     "@types/carbon-components-react": "^7.10.10",
-    "babel-loader": "8.1.0",
     "babel-plugin-named-asset-import": "^0.3.6",
     "babel-preset-react-app": "^9.1.2",
     "carbon-components": "^10.9.3",
@@ -148,6 +148,11 @@
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version"
+    ]
+  },
+  "babel": {
+    "presets": [
+      "react-app"
     ]
   }
 }
