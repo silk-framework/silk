@@ -3,11 +3,13 @@ package controllers.workflowApi.variableWorkflow
 import org.silkframework.config.Task
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.workbench.utils.NotAcceptableException
+import org.silkframework.workbench.utils.{NotAcceptableException, UnsupportedMediaTypeException}
 import org.silkframework.workspace.Project
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.libs.json._
-import play.api.mvc.{AnyContentAsFormUrlEncoded, Request}
+import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded, AnyContentAsJson, AnyContentAsRaw, AnyContentAsXml, Request}
+
+import scala.io.Source
 
 /**
   * Helps to handle variable workflow requests.
@@ -16,13 +18,19 @@ object VariableWorkflowRequestUtils {
   final val INPUT_FILE_RESOURCE_NAME = "variable_workflow_json_input"
   final val OUTPUT_FILE_RESOURCE_NAME = "variable_workflow_output_file"
 
+  final val xmlMimeType = "application/xml"
+  final val jsonMimeType = "application/json"
+  final val ntriplesMimeType = "application/n-triples"
+  final val csvMimeType = "text/comma-separated-values"
+  final val xlsxMimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
   /** The mime types that the variable workflow supports as response. */
   val acceptedMimeType: Seq[String] = Seq(
-    "application/xml", // XML dataset, this is the default for now FIXME: switch to JSON with CMEM-3051
-    "application/json", // JSON dataset
-    "application/n-triples", // RDF file dataset with N-Triples output
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // Excel dataset
-    "text/comma-separated-values" // CSV dataset
+    xmlMimeType, // XML dataset, this is the default for now FIXME: switch to JSON with CMEM-3051
+    jsonMimeType, // JSON dataset
+    ntriplesMimeType, // RDF file dataset with N-Triples output
+    xlsxMimeType, // Excel dataset
+    csvMimeType // CSV dataset
   )
 
   /** Returns the output dataset config for the variable workflow based on the ACCEPT header.
@@ -68,10 +76,28 @@ object VariableWorkflowRequestUtils {
     )
   }
 
-  private def variableDataSourceConfig(datasetId: String)
+  private def variableDataSourceConfig(datasetId: String,
+                                       mediaType: Option[String])
                                       (implicit request: Request[_]): JsValue = {
-    datasetConfigJson(datasetId, "json", Map.empty, INPUT_FILE_RESOURCE_NAME)
+    val datasetType = mediaType match {
+      case Some("application/json") | Some("application/x-www-form-urlencoded") | None =>
+        "json"
+      case Some("application/xml") =>
+        "xml"
+      case Some("text/comma-separated-values") =>
+        "csv"
+      case Some(unsupportedMediaType) =>
+        throwUnsupportedMediaType(unsupportedMediaType)
+    }
+    datasetConfigJson(datasetId, datasetType, Map.empty, INPUT_FILE_RESOURCE_NAME)
   }
+
+  val validMediaTypes = Set(
+    jsonMimeType,
+    xmlMimeType,
+    csvMimeType,
+    "application/x-www-form-urlencoded"
+  )
 
   /** Returns the variable workflow config with the query parameter values as input entity.
     * The data source is always a JSON data source.
@@ -85,35 +111,62 @@ object VariableWorkflowRequestUtils {
       throw BadUserInputException(s"Workflow task '${workflowTask.taskLabel()}' must contain at most one variable data source " +
           s"and one variable output dataset. Instead it has ${variableDatasets.dataSources.size} variable sources and ${variableDatasets.sinks.size} variable sinks.")
     }
+    val mediaType = request.mediaType map { mt =>
+      val mediaType = mt.mediaType + "/" + mt.mediaSubType
+      if(!validMediaTypes.contains(mediaType)) {
+        throwUnsupportedMediaType(mediaType)
+      }
+      mediaType
+    }
     // Optional data source config depending on whether there is a variable input dataset or not.
-    val dataSourceConfig: Option[JsValue] = variableDatasets.dataSources.headOption.map(variableDataSourceConfig)
+    val dataSourceConfig: Option[JsValue] = variableDatasets.dataSources.headOption.map(dataSourceId => variableDataSourceConfig(dataSourceId, mediaType))
     // Only parse resource if a variable input dataset is defined in the workflow
-    val resourceJson: Seq[JsValue] = dataSourceConfig.map(_ => queryStringToInputResource).toSeq
+    val resourceJson: Option[JsValue] = dataSourceConfig.map(_ => requestToInputResource(mediaType))
     // Optional data sink config and corresponding mime type depending on whether a variable output dataset is part of the workflow.
     val variableDataSinkConfigOpt: Option[VariableDataSinkConfig] = variableDatasets.sinks.headOption.map(variableDataSinkConfig)
+    val resourceContentJson = resourceJson match {
+      case Some(jsValue) => jsValue
+      case None => JsArray(Seq.empty)
+    }
     val workflowConfig = Json.obj(
       "DataSources" -> dataSourceConfig.toSeq,
       "Sinks" -> variableDataSinkConfigOpt.map(_.configJson).toSeq,
       "Resources" -> Json.obj(
-        INPUT_FILE_RESOURCE_NAME -> JsArray(resourceJson)
+        INPUT_FILE_RESOURCE_NAME -> resourceContentJson
       )
     )
     (Map(
       "configuration" -> workflowConfig.toString(),
-      "configurationType" -> "application/json"
+      "configurationType" -> jsonMimeType
     ), variableDataSinkConfigOpt.map(_.mimeType))
   }
 
   // Builds the (JSON) input entity from the request parameters (form URL encoded or query string).
-  private def queryStringToInputResource(implicit request: Request[_]): JsValue = {
-    val requestParameterValues = request.body match {
+  private def requestToInputResource(mediaType: Option[String])(implicit request: Request[_]): JsValue = {
+    request.body match {
       case AnyContentAsFormUrlEncoded(v) =>
-        v
+        parametersToJsonResource(v)
+      case AnyContentAsJson(jsValue) =>
+        jsValue
+      case AnyContentAsXml(xml) =>
+        JsString(xml.toString())
+      case AnyContentAsEmpty =>
+        parametersToJsonResource(request.queryString)
+      case AnyContentAsRaw(rawBuffer) if mediaType.exists(mt => validMediaTypes.contains(mt)) =>
+        JsString(Source.fromFile(rawBuffer.asFile).mkString)
       case _ =>
-        request.queryString
+        throwUnsupportedMediaType(request.contentType.getOrElse("-none-"))
     }
+  }
 
-    val jsonProperties = requestParameterValues.toSeq map { case (paramName, paramValues) =>
+  private def throwUnsupportedMediaType(givenMediaType: String): Nothing = {
+    throw UnsupportedMediaTypeException(s"Unsupported pay load content type ($givenMediaType). Supported types are: " +
+        s"application/json, application/xml and text/comma-separated-values")
+  }
+
+  // Transform a parameter map to a JSON object
+  private def parametersToJsonResource(params: Map[String, Seq[String]]): JsValue = {
+    val jsonProperties = params.toSeq map { case (paramName, paramValues) =>
       val jsValues = JsArray(paramValues.map(JsString.apply))
       (paramName, jsValues)
     }

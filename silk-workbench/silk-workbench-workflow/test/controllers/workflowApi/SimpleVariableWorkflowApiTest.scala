@@ -48,18 +48,18 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
 
   it should "not accept invalid ACCEPT header value" in {
     for(mimeType <- Seq("application/msword", "text/plain")) {
-      checkResponseExactStatusCode(executeVariableWorkflow(validVariableWorkflows.head, Map.empty, mimeType = mimeType), NOT_ACCEPTABLE)
+      checkResponseExactStatusCode(executeVariableWorkflow(validVariableWorkflows.head, Map.empty, acceptMimeType = mimeType), NOT_ACCEPTABLE)
     }
   }
 
   it should "execute valid workflows" in {
     for(validWorkflow <- validVariableWorkflows) {
-      checkResponseExactStatusCode(executeVariableWorkflow(validWorkflow, Map.empty, mimeType = "application/xml"))
+      checkResponse(executeVariableWorkflow(validWorkflow, Map.empty, acceptMimeType = "application/xml"))
     }
   }
 
   it should "return a 500 when the workflow execution fails" in {
-    val response = checkResponseExactStatusCode(executeVariableWorkflow(brokenWorkflow, Map.empty, mimeType = "application/xml"), INTERNAL_ERROR)
+    val response = checkResponseExactStatusCode(executeVariableWorkflow(brokenWorkflow, Map.empty, acceptMimeType = "application/xml"), INTERNAL_ERROR)
     (response.json \ "title").asOpt[String] must not be empty
   }
 
@@ -104,10 +104,26 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
     )
     for(usePost <- Seq(true, false)) {
       checkResponseExactStatusCode(
-        executeVariableWorkflow(inputOnlyWorkflow, inputParams, usePost, APPLICATION_XML))
+        executeVariableWorkflow(inputOnlyWorkflow, inputParams, usePost, APPLICATION_XML), NO_CONTENT)
       val outputCsvResource = project.resources.get(outputCsv)
       outputCsvResource.loadAsString.split("[\\r\\n]+") mustBe Seq("targetProp1,targetProp2", "input value A,XYZ")
       outputCsvResource.delete()
+    }
+  }
+
+  it should "take the dataset content directly as POST payload" in {
+    val inputValue = "some test value"
+    for(payload <- Seq(
+      (s"""{"$sourceProperty1":"$inputValue"}""", APPLICATION_JSON),
+      (s"""[{"$sourceProperty1":"$inputValue"}]""", APPLICATION_JSON),
+      (
+          s"""<?xml version='1.0' encoding='utf-8'?>
+             |<Root><$sourceProperty1>$inputValue</$sourceProperty1></Root>""".stripMargin, APPLICATION_XML),
+      (s"""$sourceProperty1\n$inputValue""", "text/comma-separated-values")
+    )) {
+      val response = checkResponseExactStatusCode(
+        executeVariableWorkflow(validVariableWorkflows.head, contentOpt = Some(payload)))
+      checkForValues(1, Seq(inputValue), response.body)
     }
   }
 
@@ -140,14 +156,20 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
 
   // Executes a simple variable workflow
   private def executeVariableWorkflow(workflowId: String,
-                                      parameters: Map[String, Seq[String]],
+                                      parameters: Map[String, Seq[String]] = Map.empty,
                                       usePost: Boolean = false,
-                                      mimeType: String = "application/json"): Future[WSResponse] = {
+                                      acceptMimeType: String = "application/json",
+                                      contentOpt: Option[(String, String)] = None): Future[WSResponse] = {
     val path = controllers.workflowApi.routes.ApiWorkflowApi.variableWorkflowResult(projectId, workflowId).url
     var request = client.url(s"$baseUrl$path")
-        .withHttpHeaders(ACCEPT -> mimeType)
-    if(usePost) {
-      request.post(parameters)
+        .withHttpHeaders(ACCEPT -> acceptMimeType)
+    if(usePost || contentOpt.isDefined) {
+      contentOpt match {
+        case Some(content) =>
+          request.withHttpHeaders(CONTENT_TYPE -> content._2).post(content._1)
+        case None =>
+          request.post(parameters)
+      }
     } else {
       for((param, paramValues) <- parameters;
           paramValue <- paramValues) {

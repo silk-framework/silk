@@ -32,7 +32,7 @@ class ApiWorkflowApi @Inject()() extends InjectedController {
         body = HttpEntity.Strict(ByteString(outputResource.loadAsBytes), mimeTypeOpt)
       )
     } else {
-      Ok
+      NoContent
     }
   }
 }
