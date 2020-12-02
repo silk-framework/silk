@@ -52,7 +52,7 @@ object VariableWorkflowRequestUtils {
         val sinkConfig = datasetConfigJson(datasetId, datasetType, datasetParameters, OUTPUT_FILE_RESOURCE_NAME)
         VariableDataSinkConfig(sinkConfig, mimeType)
       case None =>
-        throw NotAcceptableException("Could not product response in the accepted mime types. Supported mime types are: "
+        throw NotAcceptableException("Cannot produce response in any of the requested mime types. Supported mime types are: "
             + acceptedMimeType.mkString(", "))
     }
   }
