@@ -21,6 +21,7 @@ object VariableWorkflowRequestUtils {
   final val xmlMimeType = "application/xml"
   final val jsonMimeType = "application/json"
   final val ntriplesMimeType = "application/n-triples"
+  final val csvMimeTypeShort = "text/csv"
   final val csvMimeType = "text/comma-separated-values"
   final val xlsxMimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
@@ -30,6 +31,7 @@ object VariableWorkflowRequestUtils {
     jsonMimeType, // JSON dataset
     ntriplesMimeType, // RDF file dataset with N-Triples output
     xlsxMimeType, // Excel dataset
+    csvMimeTypeShort, // CSV dataset
     csvMimeType // CSV dataset
   )
 
@@ -47,7 +49,7 @@ object VariableWorkflowRequestUtils {
           case "application/xml" => ("xml", Map.empty)
           case "application/n-triples" => ("file", Map("format" -> "N-Triples"))
           case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" => ("excel", Map.empty)
-          case "text/comma-separated-values" => ("csv", Map.empty)
+          case "text/comma-separated-values" | "text/csv" => ("csv", Map.empty)
         }
         val sinkConfig = datasetConfigJson(datasetId, datasetType, datasetParameters, OUTPUT_FILE_RESOURCE_NAME)
         VariableDataSinkConfig(sinkConfig, mimeType)
@@ -84,7 +86,7 @@ object VariableWorkflowRequestUtils {
         "json"
       case Some("application/xml") =>
         "xml"
-      case Some("text/comma-separated-values") =>
+      case Some("text/comma-separated-values") | Some("text/csv") =>
         "csv"
       case Some(unsupportedMediaType) =>
         throwUnsupportedMediaType(unsupportedMediaType)
@@ -96,6 +98,7 @@ object VariableWorkflowRequestUtils {
     jsonMimeType,
     xmlMimeType,
     csvMimeType,
+    csvMimeTypeShort,
     "application/x-www-form-urlencoded"
   )
 
@@ -153,14 +156,17 @@ object VariableWorkflowRequestUtils {
       case AnyContentAsEmpty =>
         parametersToJsonResource(request.queryString)
       case AnyContentAsRaw(rawBuffer) if mediaType.exists(mt => validMediaTypes.contains(mt)) =>
-        JsString(Source.fromFile(rawBuffer.asFile).mkString)
+        val source = Source.fromFile(rawBuffer.asFile)
+        val content = source.mkString
+        source.close()
+        JsString(content)
       case _ =>
         throwUnsupportedMediaType(request.contentType.getOrElse("-none-"))
     }
   }
 
   private def throwUnsupportedMediaType(givenMediaType: String): Nothing = {
-    throw UnsupportedMediaTypeException(s"Unsupported pay load content type ($givenMediaType). Supported types are: " +
+    throw UnsupportedMediaTypeException(s"Unsupported payload content type ($givenMediaType). Supported types are: " +
         s"application/json, application/xml and text/comma-separated-values")
   }
 

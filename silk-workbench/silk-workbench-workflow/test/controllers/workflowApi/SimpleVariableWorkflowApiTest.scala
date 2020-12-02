@@ -119,7 +119,8 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
       (
           s"""<?xml version='1.0' encoding='utf-8'?>
              |<Root><$sourceProperty1>$inputValue</$sourceProperty1></Root>""".stripMargin, APPLICATION_XML),
-      (s"""$sourceProperty1\n$inputValue""", "text/comma-separated-values")
+      (s"""$sourceProperty1\n$inputValue""", "text/comma-separated-values"),
+      (s"""$sourceProperty1\n$inputValue""", "text/csv")
     )) {
       val response = checkResponseExactStatusCode(
         executeVariableWorkflow(validVariableWorkflows.head, contentOpt = Some(payload)))
@@ -149,7 +150,7 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
         } else {
           body must include("<urn:instance:variable_workflow_json_input")
         }
-      case "text/comma-separated-values" =>
+      case "text/comma-separated-values" | "text/csv" =>
         body must include(s"${targetProp(1)},${targetProp(2)}")
     }
   }
