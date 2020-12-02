@@ -172,7 +172,7 @@ object VariableWorkflowRequestUtils {
 
   private def throwUnsupportedMediaType(givenMediaType: String): Nothing = {
     throw UnsupportedMediaTypeException(s"Unsupported payload content type ($givenMediaType). Supported types are: " +
-        s"application/json, application/xml and text/comma-separated-values")
+        s"application/json, application/xml, text/csv and text/comma-separated-values")
   }
 
   // Transform a parameter map to a JSON object
