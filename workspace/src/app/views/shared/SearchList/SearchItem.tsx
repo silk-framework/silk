@@ -4,6 +4,7 @@ import { IItemLink } from "@ducks/shared/typings";
 import {
     Card,
     ContextMenu,
+    Highlighter,
     IconButton,
     MenuDivider,
     MenuItem,
@@ -18,7 +19,6 @@ import {
 } from "@gui-elements/index";
 import { routerOp } from "@ducks/router";
 import { useDispatch, useSelector } from "react-redux";
-import { Highlighter } from "../Highlighter/Highlighter";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
 import { LegacyWindow } from "../LegacyWindow/LegacyWindow";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";

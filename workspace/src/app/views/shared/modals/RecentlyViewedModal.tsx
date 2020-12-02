@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
     Button,
+    Highlighter,
     Icon,
     Notification,
     OverflowText,
@@ -10,13 +11,13 @@ import {
     OverviewItemLine,
     SimpleDialog,
 } from "@gui-elements/index";
+import { extractSearchWords } from "@gui-elements/src/components/Typography/Highlighter";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
 import { useTranslation } from "react-i18next";
 import { recentlyViewedItems } from "@ducks/workspace/requests";
 import { IRecentlyViewedItem } from "@ducks/workspace/typings";
 import { ErrorResponse } from "../../../services/fetch/responseInterceptor";
 import { Loading } from "../Loading/Loading";
-import { extractSearchWords, Highlighter } from "../Highlighter/Highlighter";
 import { IItemLink } from "@ducks/shared/typings";
 import { useDispatch, useSelector } from "react-redux";
 import { routerOp } from "@ducks/router";
