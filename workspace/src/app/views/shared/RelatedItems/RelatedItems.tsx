@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
+    Highlighter,
     IconButton,
     Card,
     CardContent,
@@ -20,7 +21,6 @@ import DataList from "../Datalist";
 import Tag from "@gui-elements/src/components/Tag/Tag";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import Spacing from "@gui-elements/src/components/Separation/Spacing";
-import { Highlighter } from "../Highlighter/Highlighter";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
 import { IItemLink, IRelatedItem, IRelatedItemsResponse } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";

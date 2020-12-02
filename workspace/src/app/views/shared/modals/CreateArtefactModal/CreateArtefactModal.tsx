@@ -11,6 +11,7 @@ import {
     GridRow,
     HelperClasses,
     HtmlContentBlock,
+    Highlighter,
     Icon,
     IconButton,
     Link,
@@ -25,13 +26,13 @@ import {
     SimpleDialog,
     Spacing,
 } from "@gui-elements/index";
+import { extractSearchWords, createMultiWordRegex } from "@gui-elements/src/components/Typography/Highlighter";
 import { commonOp, commonSel } from "@ducks/common";
 import { IArtefactItem, IArtefactModal, IDetailedArtefactItem } from "@ducks/common/typings";
 import Loading from "../../Loading";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
 import { TaskForm } from "./ArtefactForms/TaskForm";
 import { DATA_TYPES } from "../../../../constants";
-import { extractSearchWords, Highlighter, multiWordRegex } from "../../Highlighter/Highlighter";
 import ArtefactTypesList from "./ArtefactTypesList";
 import { SearchBar } from "../../SearchBar/SearchBar";
 import { routerOp } from "@ducks/router";
@@ -245,7 +246,7 @@ export function CreateArtefactModal() {
 
     // Rank title matches higher
     if (searchValue.trim() !== "") {
-        const regex = multiWordRegex(extractSearchWords(searchValue));
+        const regex = createMultiWordRegex(extractSearchWords(searchValue));
         const titleMatches = [];
         const nonTitleMatches = [];
         artefactListWithProject.forEach((artefactItem) => {
