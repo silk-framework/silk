@@ -299,7 +299,7 @@ object SearchApiModel {
         val itemId = jsonPropertyStringValue(result, ID)
         val links: Seq[ItemLink] = ItemType.itemTypeFormat.reads(result.value(TYPE)).asOpt match {
           case Some(itemType) =>
-            ItemType.itemTypeLinks(itemType, project, itemId)
+            ItemType.itemTypeLinks(itemType, project, itemId, None) // TODO: Add task data
           case None =>
             Seq.empty
         }

@@ -66,7 +66,17 @@ trait TaskSpec {
   def withProperties(updatedProperties: Map[String, String])(implicit prefixes: Prefixes, resourceManager: ResourceManager): TaskSpec = {
     throw new ValidationException("Tasks of type " + getClass.getSimpleName + " cannot be reconfigured.")
   }
+
+  /** Related links for this task that can be presented to the user. */
+  def taskLinks: Seq[TaskLink] = Seq.empty
 }
+
+/** A task link.
+  *
+  * @param id  The ID of the link.
+  * @param url The absolute URL of the link.
+  */
+case class TaskLink(id: String, url: String)
 
 object TaskSpec {
 

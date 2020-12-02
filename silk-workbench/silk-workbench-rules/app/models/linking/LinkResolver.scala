@@ -36,7 +36,7 @@ object LinkResolver {
   /**
     * The URL of the configured eccenca DataManager, if any.
     */
-  private val dataManagerUrl: Option[String] = {
+  val dataManagerUrl: Option[String] = {
     val config = DefaultConfig.instance()
     if(config.hasPath("eccencaDataManager.baseUrl")) {
       Some(config.getString("eccencaDataManager.baseUrl").stripSuffix("/"))
