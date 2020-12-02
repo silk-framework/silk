@@ -75,6 +75,7 @@ export function IframeWindow({
     const [activeSource, setActiveSource] = useState<IItemLink | null>(startWithLink);
     // handler for link change
     const toggleIframeSource = (linkItem) => {
+
         setActiveSource(linkItem);
         if (!startWithLink) {
             dispatch(history.push(calculateBookmarkLocation(location, itemLinks.indexOf(linkItem))));
@@ -110,8 +111,14 @@ export function IframeWindow({
         }
     }, [projectId, taskId]);
 
-    const tLabel = (label) => {
+    const tLabel = (label: string) => {
         return t("common.iframeWindow." + label, label);
+    };
+
+    const createIframeUrl = (url: string) => {
+        const iframeUrl = locationParser.parseUrl(url, {parseFragmentIdentifier: true});
+        iframeUrl.query.inlineView = "true";
+        return locationParser.stringifyUrl(iframeUrl);
     };
 
     const iframeWidget = (
@@ -148,7 +155,7 @@ export function IframeWindow({
             <CardContent style={{ padding: 0, position: "relative" }}>
                 {!!activeSource ? (
                     <iframe
-                        src={activeSource.path + "?inlineView=true"}
+                        src={createIframeUrl(activeSource.path)}
                         title={tLabel(activeSource.label)}
                         style={{
                             position: "absolute",
