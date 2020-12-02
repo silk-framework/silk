@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation, useHistory } from "react-router";
+import { useHistory, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 import locationParser from "query-string";
 import {
@@ -13,6 +13,7 @@ import {
     Divider,
     IconButton,
     Modal,
+    Spacing,
 } from "@gui-elements/index";
 import { IItemLink } from "@ducks/shared/typings";
 import { requestItemLinks } from "@ducks/shared/requests";
@@ -63,6 +64,7 @@ export function LegacyWindow({
     const history = useHistory();
     const location = useLocation();
     const [t] = useTranslation();
+    const [isFetchingLinks, setIsFetchingLinks] = useState(true);
 
     // flag if the widget is shown as fullscreen modal
     const [displayFullscreen, setDisplayFullscreen] = useState(!!handlerRemoveModal || startFullscreen);
@@ -91,13 +93,17 @@ export function LegacyWindow({
     const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
     // update item links by rest api request
     const getItemLinks = async () => {
+        setIsFetchingLinks(true);
         try {
             const { data } = await requestItemLinks(projectId, taskId);
             // remove current page link
             const legacyLinks = data.filter((item) => !item.path.startsWith(SERVE_PATH));
             setItemLinks(legacyLinks);
             setActiveLegacyLink(getInitialActiveLink(legacyLinks));
-        } catch (e) {}
+        } catch (e) {
+        } finally {
+            setIsFetchingLinks(false);
+        }
     };
     useEffect(() => {
         if (!!legacyLinks && legacyLinks.length > 0) {
@@ -108,10 +114,16 @@ export function LegacyWindow({
         } else {
             setItemLinks([]);
         }
+        setIsFetchingLinks(false);
     }, [projectId, taskId]);
 
     const tLabel = (label) => {
         return t("common.legacyGui." + label, label);
+    };
+
+    const appendInlineViewParameter = (url: string) => {
+        const separator = url.includes("?") ? "&" : "?";
+        return url + separator + "inlineView=true";
     };
 
     const iframeWidget = (
@@ -148,7 +160,7 @@ export function LegacyWindow({
             <CardContent style={{ padding: 0, position: "relative" }}>
                 {!!activeLegacyLink ? (
                     <iframe
-                        src={activeLegacyLink.path + "?inlineView=true"}
+                        src={appendInlineViewParameter(activeLegacyLink.path)}
                         title={tLabel(activeLegacyLink.label)}
                         style={{
                             position: "absolute",
@@ -156,8 +168,13 @@ export function LegacyWindow({
                             height: "100%",
                         }}
                     />
-                ) : (
+                ) : isFetchingLinks ? (
                     <Loading />
+                ) : (
+                    <>
+                        <Spacing />
+                        <div style={{ textAlign: "center" }}>No tab available/selected.</div>
+                    </>
                 )}
             </CardContent>
         </Card>
