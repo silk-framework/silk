@@ -24,6 +24,7 @@ object VariableWorkflowRequestUtils {
   final val csvMimeTypeShort = "text/csv"
   final val csvMimeType = "text/comma-separated-values"
   final val xlsxMimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+  final val formUrlEncodedType = "application/x-www-form-urlencoded"
 
   /** The mime types that the variable workflow supports as response. */
   val acceptedMimeType: Seq[String] = Seq(
@@ -153,6 +154,10 @@ object VariableWorkflowRequestUtils {
         jsValue
       case AnyContentAsXml(xml) =>
         JsString(xml.toString())
+      case AnyContentAsEmpty if mediaType.isDefined && !mediaType.contains(formUrlEncodedType) =>
+        // form-url-encoded is a special case, empty body will lead to empty entity
+        throw BadUserInputException(s"Content-type (${mediaType.get}) is specified, but request body is empty! " +
+            s"Use GET/POST request without content-type if no input parameters should be specified.")
       case AnyContentAsEmpty =>
         parametersToJsonResource(request.queryString)
       case AnyContentAsRaw(rawBuffer) if mediaType.exists(mt => validMediaTypes.contains(mt)) =>

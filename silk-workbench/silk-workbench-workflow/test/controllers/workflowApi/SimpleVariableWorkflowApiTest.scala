@@ -128,6 +128,15 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
     }
   }
 
+  it should "return an error if a content-type is specified without valid content" in {
+    for(mimeType <- Seq(APPLICATION_JSON, APPLICATION_XML, "text/csv")) {
+      checkResponseExactStatusCode(
+        executeVariableWorkflow(validVariableWorkflows.head, contentOpt = Some(("", mimeType))),
+        responseCode = BAD_REQUEST
+      )
+    }
+  }
+
   // Checks if all input values exist in the workflow output
   private def checkForValues(targetPropNr: Int, values: Seq[String], body: String): Unit = {
     for (value <- values) {
