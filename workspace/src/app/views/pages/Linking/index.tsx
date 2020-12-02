@@ -9,7 +9,7 @@ import { datasetSel } from "@ducks/dataset";
 import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@gui-elements/index";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
-import { LegacyWindow } from "../../shared/LegacyWindow/LegacyWindow";
+import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
 import { useParams } from "react-router";
 
 export default function () {
@@ -32,7 +32,7 @@ export default function () {
                 <Section>
                     <Metadata />
                     <Spacing />
-                    <LegacyWindow />
+                    <IframeWindow />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>

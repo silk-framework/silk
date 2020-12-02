@@ -41,7 +41,7 @@ import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { ItemDeleteModal } from "../../shared/modals/ItemDeleteModal";
 import { CONTEXT_PATH } from "../../../constants/path";
 import CloneModal from "../../shared/modals/CloneModal";
-import { LegacyWindow } from "../../shared/LegacyWindow/LegacyWindow";
+import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
 import { routerOp } from "@ducks/router";
 import { IItemLink } from "@ducks/shared/typings";
 import { requestItemLinks, requestTaskItemInfo } from "@ducks/shared/requests";
@@ -457,8 +457,8 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                 <CloneModal item={itemData} onDiscard={toggleCloneModal} onConfirmed={handleCloneConfirmed} />
             )}
             {displayItemLink && (
-                <LegacyWindow
-                    legacyLinks={itemLinks}
+                <IframeWindow
+                    srcLinks={itemLinks}
                     startWithLink={displayItemLink}
                     startFullscreen={true}
                     handlerRemoveModal={() => toggleItemLink(null)}

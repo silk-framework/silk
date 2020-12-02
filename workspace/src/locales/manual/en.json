@@ -200,7 +200,7 @@
             "noTypes": "No types found",
             "serverError": "Server error"
         },
-        "legacyGui": {
+        "iframeWindow": {
             "Workflow editor": "Workflow editor",
             "Workflow report": "Workflow report",
             "Mapping editor": "Mapping editor",
