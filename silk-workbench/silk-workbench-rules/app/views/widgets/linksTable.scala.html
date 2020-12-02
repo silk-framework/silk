@@ -73,14 +73,14 @@
 
         @if(showStatus) {
           <div class="link-status">
-            <span>Status</span>
+            @sortableHeader(CorrectnessSorterAscending, CorrectnessSorterDescending) {
+              <span>Status</span>
+            }
           </div>
         }
 
         <div class="link-buttons">
-          @sortableHeader(CorrectnessSorterAscending, CorrectnessSorterDescending) {
           <span>Correct</span>
-          }
         </div>
 
       </div>

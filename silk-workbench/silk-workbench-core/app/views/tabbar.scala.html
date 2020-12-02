@@ -1,7 +1,8 @@
 @import org.silkframework.workbench.WorkbenchPlugins
 @import org.silkframework.config.{ProductionConfig, TaskSpec}
 @import org.silkframework.workbench.Context
-@(context: Option[Context[_ <: TaskSpec]], selectedTab: String, titleLabel: String)
+
+@(context: Option[Context[_ <: TaskSpec]], selectedTab: String, titleLabel: String)(implicit request: RequestHeader)
 
 @pluginTabs = {
   @for(cont <- context.toSeq;
