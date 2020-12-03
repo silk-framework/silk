@@ -40,6 +40,7 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
 
   override def workspaceProviderId: String = "inMemory"
 
+  private val nonEmptyRequestParameters = Map(sourceProperty1 -> Seq("val"))
   it should "not execute invalid workflows" in {
     for(invalidWorkflowId <- invalidVariableWorkflows) {
       checkResponseExactStatusCode(executeVariableWorkflow(invalidWorkflowId, Map.empty), BAD_REQUEST)
@@ -48,18 +49,18 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
 
   it should "not accept invalid ACCEPT header value" in {
     for(mimeType <- Seq("application/msword", "text/plain")) {
-      checkResponseExactStatusCode(executeVariableWorkflow(validVariableWorkflows.head, Map.empty, acceptMimeType = mimeType), NOT_ACCEPTABLE)
+      checkResponseExactStatusCode(executeVariableWorkflow(validVariableWorkflows.head, nonEmptyRequestParameters, acceptMimeType = mimeType), NOT_ACCEPTABLE)
     }
   }
 
   it should "execute valid workflows" in {
     for(validWorkflow <- validVariableWorkflows) {
-      checkResponse(executeVariableWorkflow(validWorkflow, Map.empty, acceptMimeType = "application/xml"))
+      checkResponse(executeVariableWorkflow(validWorkflow, nonEmptyRequestParameters, acceptMimeType = "application/xml"))
     }
   }
 
   it should "return a 500 when the workflow execution fails" in {
-    val response = checkResponseExactStatusCode(executeVariableWorkflow(brokenWorkflow, Map.empty, acceptMimeType = "application/xml"), INTERNAL_ERROR)
+    val response = checkResponseExactStatusCode(executeVariableWorkflow(brokenWorkflow, nonEmptyRequestParameters, acceptMimeType = "application/xml"), INTERNAL_ERROR)
     (response.json \ "title").asOpt[String] must not be empty
   }
 
@@ -68,7 +69,6 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
     for(mimeType <- VariableWorkflowRequestUtils.acceptedMimeType.filter(mimeType => mimeType != "application/json"
         && mimeType != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
       for(IndexedSeq(param1Values, param2Values) <- Seq(
-        IndexedSeq(Seq(), Seq()),
         IndexedSeq(Seq("val 1"), Seq("val 2")),
         IndexedSeq(Seq(), Seq("val A", "val B"))
       )) {
@@ -84,6 +84,13 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
           checkForValues(2, param2Values, response.body)
         }
       }
+    }
+  }
+
+  it should "return an error if no (query or form) parameters are specified for the input source" in {
+    for(usePost <- Seq(false, true)) {
+      checkResponseExactStatusCode(
+        executeVariableWorkflow(validVariableWorkflows.head, Map.empty, usePost), BAD_REQUEST)
     }
   }
 
@@ -168,7 +175,7 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
   private def executeVariableWorkflow(workflowId: String,
                                       parameters: Map[String, Seq[String]] = Map.empty,
                                       usePost: Boolean = false,
-                                      acceptMimeType: String = "application/json",
+                                      acceptMimeType: String = "application/xml",
                                       contentOpt: Option[(String, String)] = None): Future[WSResponse] = {
     val path = controllers.workflowApi.routes.ApiWorkflowApi.variableWorkflowResult(projectId, workflowId).url
     var request = client.url(s"$baseUrl$path")

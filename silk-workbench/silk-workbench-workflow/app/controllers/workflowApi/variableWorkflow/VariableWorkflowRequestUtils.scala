@@ -154,12 +154,16 @@ object VariableWorkflowRequestUtils {
         jsValue
       case AnyContentAsXml(xml) =>
         JsString(xml.toString())
-      case AnyContentAsEmpty if mediaType.isDefined && !mediaType.contains(formUrlEncodedType) =>
-        // form-url-encoded is a special case, empty body will lead to empty entity
+      case AnyContentAsEmpty if mediaType.isDefined =>
         throw BadUserInputException(s"Content-type (${mediaType.get}) is specified, but request body is empty! " +
-            s"Use GET/POST request without content-type if no input parameters should be specified.")
+            s"If you need to input an 'empty entity', use an empty JSON object or XML element instead as request payload.")
       case AnyContentAsEmpty =>
-        parametersToJsonResource(request.queryString)
+        if(request.queryString.nonEmpty) {
+          parametersToJsonResource(request.queryString)
+        } else {
+          throw BadUserInputException(s"No parameters specified in query string! " +
+              s"If you need to input an 'empty entity', use an empty JSON object or XML element instead as request payload.")
+        }
       case AnyContentAsRaw(rawBuffer) if mediaType.exists(mt => validMediaTypes.contains(mt)) =>
         val source = Source.fromFile(rawBuffer.asFile)
         val content = source.mkString
