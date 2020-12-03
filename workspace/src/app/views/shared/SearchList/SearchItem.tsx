@@ -4,6 +4,7 @@ import { IItemLink } from "@ducks/shared/typings";
 import {
     Card,
     ContextMenu,
+    Highlighter,
     IconButton,
     MenuDivider,
     MenuItem,
@@ -18,9 +19,8 @@ import {
 } from "@gui-elements/index";
 import { routerOp } from "@ducks/router";
 import { useDispatch, useSelector } from "react-redux";
-import { Highlighter } from "../Highlighter/Highlighter";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
-import { LegacyWindow } from "../LegacyWindow/LegacyWindow";
+import { IframeWindow } from "../IframeWindow/IframeWindow";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import { IPageLabels } from "@ducks/router/operations";
 import { DATA_TYPES } from "../../../constants";
@@ -173,8 +173,8 @@ export default function SearchItem({
                 </OverviewItemActions>
             </OverviewItem>
             {displayLegacyLink && (
-                <LegacyWindow
-                    legacyLinks={itemLinks.map((link) => {
+                <IframeWindow
+                    srcLinks={itemLinks.map((link) => {
                         return {
                             path: link.path,
                             label: link.label,

@@ -8,6 +8,7 @@ import {
     CardHeader,
     CardTitle,
     Divider,
+    Highlighter,
     IconButton,
     Spacing,
     Table,
@@ -24,7 +25,6 @@ import Loading from "../../../shared/Loading";
 import FileUploadModal from "../../../shared/modals/FileUploadModal";
 import { EmptyFileWidget } from "./EmptyFileWidget";
 import { SearchBar } from "../../../shared/SearchBar/SearchBar";
-import { Highlighter } from "../../../shared/Highlighter/Highlighter";
 import { usePagination } from "@gui-elements/src/components/Pagination/Pagination";
 import { commonSel } from "@ducks/common";
 import { useTranslation } from "react-i18next";

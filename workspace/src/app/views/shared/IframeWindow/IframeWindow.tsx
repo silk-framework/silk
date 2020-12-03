@@ -20,26 +20,26 @@ import { requestItemLinks } from "@ducks/shared/requests";
 import { commonSel } from "@ducks/common";
 import Loading from "../Loading";
 import { SERVE_PATH } from "../../../constants/path";
-import "./legacywindow.scss";
+import "./iframewindow.scss";
 
 const getBookmark = (locationHashPart: string) => {
     const hashParsed = locationParser.parse(locationHashPart, { parseNumbers: true });
-    return !!hashParsed.legacywindow && hashParsed.legacywindow > -1 ? hashParsed.legacywindow.toString() : false;
+    return !!hashParsed.iframewindow && hashParsed.iframewindow > -1 ? hashParsed.iframewindow.toString() : false;
 };
 
 const calculateBookmarkLocation = (currentLocation, indexBookmark) => {
     const hashParsed = locationParser.parse(currentLocation.hash, { parseNumbers: true });
-    hashParsed["legacywindow"] = indexBookmark;
+    hashParsed["iframewindow"] = indexBookmark;
     const updatedHash = locationParser.stringify(hashParsed);
     return `${currentLocation.pathname}${currentLocation.search}#${updatedHash}`;
 };
 
-interface ILegacyWindowProps {
+interface IIframeWindowProps {
     // The title of the widget
     title?: string;
-    // array of links to legacy gui
-    legacyLinks?: IItemLink[];
-    // legacy link that should initially be used when loaded, must be part of the legacy links list
+    // array of URLs, each one will be extended by parameter inlineView=true
+    srcLinks?: IItemLink[];
+    // URL that should initially be used when loaded, must be part of srcLinks
     startWithLink?: IItemLink | null;
     // show initially as fullscreen
     startFullscreen?: boolean;
@@ -48,16 +48,16 @@ interface ILegacyWindowProps {
 }
 
 /**
- * Legacy window component includes some views (mainly editors) from the legacy GUI
+ * Component can display views from other application, integrated by iframe
  */
-export function LegacyWindow({
+export function IframeWindow({
     title,
-    legacyLinks,
+    srcLinks,
     startWithLink = null,
     startFullscreen = false,
     handlerRemoveModal,
     ...otherProps
-}: ILegacyWindowProps) {
+}: IIframeWindowProps) {
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const taskId = useSelector(commonSel.currentTaskIdSelector);
     const dispatch = useDispatch();
@@ -73,18 +73,18 @@ export function LegacyWindow({
         setDisplayFullscreen(!displayFullscreen);
     };
 
-    // active legacy link
-    const [activeLegacyLink, setActiveLegacyLink] = useState<IItemLink | null>(startWithLink);
+    // active link
+    const [activeSource, setActiveSource] = useState<IItemLink | null>(startWithLink);
     // handler for link change
-    const toggleLegacyLink = (linkItem) => {
-        setActiveLegacyLink(linkItem);
+    const toggleIframeSource = (linkItem) => {
+        setActiveSource(linkItem);
         if (!startWithLink) {
             dispatch(history.push(calculateBookmarkLocation(location, itemLinks.indexOf(linkItem))));
         }
     };
 
     const getInitialActiveLink = (itemLinks) => {
-        if (activeLegacyLink) return activeLegacyLink;
+        if (activeSource) return activeSource;
         const locationHashBookmark = getBookmark(location.hash);
         return locationHashBookmark ? itemLinks[locationHashBookmark] : itemLinks[0];
     };
@@ -97,18 +97,18 @@ export function LegacyWindow({
         try {
             const { data } = await requestItemLinks(projectId, taskId);
             // remove current page link
-            const legacyLinks = data.filter((item) => !item.path.startsWith(SERVE_PATH));
-            setItemLinks(legacyLinks);
-            setActiveLegacyLink(getInitialActiveLink(legacyLinks));
+            const srcLinks = data.filter((item) => !item.path.startsWith(SERVE_PATH));
+            setItemLinks(srcLinks);
+            setActiveSource(getInitialActiveLink(srcLinks));
         } catch (e) {
         } finally {
             setIsFetchingLinks(false);
         }
     };
     useEffect(() => {
-        if (!!legacyLinks && legacyLinks.length > 0) {
-            setItemLinks(legacyLinks);
-            setActiveLegacyLink(getInitialActiveLink(legacyLinks));
+        if (!!srcLinks && srcLinks.length > 0) {
+            setItemLinks(srcLinks);
+            setActiveSource(getInitialActiveLink(srcLinks));
         } else if (projectId && taskId) {
             getItemLinks();
         } else {
@@ -117,8 +117,14 @@ export function LegacyWindow({
         setIsFetchingLinks(false);
     }, [projectId, taskId]);
 
-    const tLabel = (label) => {
-        return t("common.legacyGui." + label, label);
+    const tLabel = (label: string) => {
+        return t("common.iframeWindow." + label, label);
+    };
+
+    const createIframeUrl = (url: string) => {
+        const iframeUrl = locationParser.parseUrl(url, { parseFragmentIdentifier: true });
+        iframeUrl.query.inlineView = "true";
+        return locationParser.stringifyUrl(iframeUrl);
     };
 
     const appendInlineViewParameter = (url: string) => {
@@ -130,7 +136,7 @@ export function LegacyWindow({
         <Card isOnlyLayout={true} elevation={displayFullscreen ? 4 : 1}>
             <CardHeader>
                 <CardTitle>
-                    <h2>{!!title ? title : !!activeLegacyLink ? tLabel(activeLegacyLink.label) : ""}</h2>
+                    <h2>{!!title ? title : !!activeSource ? tLabel(activeSource.label) : ""}</h2>
                 </CardTitle>
                 <CardOptions>
                     {itemLinks.length > 1 &&
@@ -138,10 +144,10 @@ export function LegacyWindow({
                             <Button
                                 key={itemLink.path}
                                 onClick={() => {
-                                    toggleLegacyLink(itemLink);
+                                    toggleIframeSource(itemLink);
                                 }}
                                 minimal={true}
-                                disabled={!!activeLegacyLink && activeLegacyLink.path === itemLink.path}
+                                disabled={!!activeSource && activeSource.path === itemLink.path}
                             >
                                 {tLabel(itemLink.label)}
                             </Button>
@@ -158,10 +164,10 @@ export function LegacyWindow({
             </CardHeader>
             <Divider />
             <CardContent style={{ padding: 0, position: "relative" }}>
-                {!!activeLegacyLink ? (
+                {!!activeSource ? (
                     <iframe
-                        src={appendInlineViewParameter(activeLegacyLink.path)}
-                        title={tLabel(activeLegacyLink.label)}
+                        src={createIframeUrl(activeSource.path)}
+                        title={tLabel(activeSource.label)}
                         style={{
                             position: "absolute",
                             width: "100%",
@@ -185,9 +191,9 @@ export function LegacyWindow({
             {iframeWidget}
         </Modal>
     ) : (
-        <section className={"diapp-legacywindow"} {...otherProps}>
-            <div className="diapp-legacywindow__placeholder" />
-            <div className={displayFullscreen ? "diapp-legacywindow--fullscreen" : ""}>{iframeWidget}</div>
+        <section className={"diapp-iframewindow"} {...otherProps}>
+            <div className="diapp-iframewindow__placeholder" />
+            <div className={displayFullscreen ? "diapp-iframewindow--fullscreen" : ""}>{iframeWidget}</div>
         </section>
     );
 }
