@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import TargetList from "./TargetList";
 import TypesList from "./TypesList";
-import { SuggestionTypeValues } from "../suggestion.typings";
+import { ITargetWithSelected, SuggestionTypeValues } from "../suggestion.typings";
 import { Checkbox, ContextMenu, TableCell, TableRow, } from "@gui-elements/index";
 import { SuggestionListContext } from "../SuggestionContainer";
 import Highlighter from "../../../elements/Highlighter";
@@ -27,12 +27,21 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
     const selectedTarget = candidates.find(t => t._selected);
     const selectedType = selectedTarget ? selectedTarget.type : 'value';
 
-    const renderExampleIcon = (source, context) => {
-        const {exampleValues, portalContainer} = context;
-        const examples = exampleValues[source];
+    const renderExampleIcon = (source: string | ITargetWithSelected[], context) => {
+        const {exampleValues, portalContainer, isFromDataset} = context;
+        let examples = [];
+        if (isFromDataset) {
+            examples = exampleValues[source as string];
+        } else if (Array.isArray(source)) {
+            const selected = source.find(t => t._selected);
+            if (selected && exampleValues[selected.uri])  {
+                examples.push(exampleValues[selected.uri]);
+            }
+
+        }
 
         return (
-            examples && <ContextMenu
+            examples.length && <ContextMenu
                 portalContainer={portalContainer}
                 togglerElement={'item-info'}
             >
@@ -69,7 +78,7 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
                 targets={candidates}
                 onChange={handleModifyTarget}
             />
-            {!context.isFromDataset && renderExampleIcon(source, context)}
+            {!context.isFromDataset && renderExampleIcon(candidates, context)}
         </TableCell>
         <TableCell>
             <TypesList

@@ -338,7 +338,7 @@ export const getSuggestionsAsync = data => {
         (vocabDatasetsResponse, sourcePathsResponse) => {
             const suggestions = [];
             vocabDatasetsResponse.data.map(match => {
-                const { uri: sourceUri, description, label, candidates } = match;
+                const {uri: sourceUri, description, label, candidates} = match;
                 suggestions.push({
                     source: sourceUri,
                     candidates,
@@ -353,13 +353,7 @@ export const getSuggestionsAsync = data => {
                     if (!isExists) {
                         suggestions.push({
                             source: sourcePath,
-                            candidates: [{
-                                uri: '',
-                                type: 'value',
-                                description: '',
-                                label: '',
-                                confidence: 0
-                            }]
+                            candidates: []
                         });
                     }
                 });

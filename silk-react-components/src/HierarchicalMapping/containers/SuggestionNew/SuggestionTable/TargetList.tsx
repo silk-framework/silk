@@ -61,7 +61,7 @@ export default function TargetList({targets, onChange}) {
 
     const selected = targets.find(t => t._selected);
     return <TargetSelect
-        filterable={true}
+        filterable={targets.length > 1}
         onItemSelect={t => handleSelectTarget(t.uri)}
         items={items}
         itemRenderer={itemRenderer}

@@ -27,7 +27,7 @@
   "license": "Apache-2.0",
   "private": true,
   "dependencies": {
-    "babel-loader": "^7.1.4",
+    "babel-loader": "8.1.0",
     "babel-preset-stage-2": "^6.24.1",
     "@blueprintjs/core": "^3.29.0",
     "@blueprintjs/select": "^3.13.4",
@@ -148,11 +148,6 @@
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version"
-    ]
-  },
-  "babel": {
-    "presets": [
-      "react-app"
     ]
   }
 }
