@@ -113,8 +113,10 @@ export function RelatedItems(props: IProps) {
     };
 
     const goToDetailsPage = (resourceItem: IItemLink, taskLabel: string, itemType: string, event) => {
-        event.preventDefault();
-        dispatch(routerOp.goToPage(resourceItem.path, { taskLabel, itemType: itemType.toLowerCase() }));
+        if (!event?.ctrlKey) {
+            event.preventDefault();
+            dispatch(routerOp.goToPage(resourceItem.path, { taskLabel, itemType: itemType.toLowerCase() }));
+        }
     };
 
     return (

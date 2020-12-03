@@ -94,16 +94,19 @@ export default function SearchItem({
     }
 
     const goToDetailsPage = (e) => {
-        e.preventDefault();
-        const detailsPath = item.itemLinks[0].path;
-        const labels: IPageLabels = {};
-        if (item.type === DATA_TYPES.PROJECT) {
-            labels.projectLabel = item.label;
-        } else {
-            labels.taskLabel = item.label;
+        // Only open page in same tab if user did not try to open in new tab
+        if (!e?.ctrlKey) {
+            e.preventDefault();
+            const detailsPath = item.itemLinks[0].path;
+            const labels: IPageLabels = {};
+            if (item.type === DATA_TYPES.PROJECT) {
+                labels.projectLabel = item.label;
+            } else {
+                labels.taskLabel = item.label;
+            }
+            labels.itemType = item.type;
+            dispatch(routerOp.goToPage(detailsPath, labels));
         }
-        labels.itemType = item.type;
-        dispatch(routerOp.goToPage(detailsPath, labels));
     };
 
     const handleExport = async (type: IExportTypes) => {
