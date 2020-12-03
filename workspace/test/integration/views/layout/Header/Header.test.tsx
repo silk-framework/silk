@@ -43,7 +43,7 @@ describe("Header", () => {
         clickElement(wrapper, byTestId("remove-item-button"));
         mockAxios.mockResponseFor(
             {
-                url: hostPath + "/workspace/projects/SomeProjectId/tasks/SomeTaskId?removeDependentTasks=true",
+                url: hostPath + "/workspace/projects/SomeProjectId/tasks/SomeTaskId",
                 method: "DELETE",
             },
             mockedAxiosResponse()
