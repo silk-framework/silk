@@ -65,7 +65,7 @@ class SilkErrorHandler (env: Environment,
     * @param message The error message.
     */
   override protected def onBadRequest(request: RequestHeader, message: String): Future[Result] =
-    Future.successful(BadRequest(views.html.clientError(message)(request.session)))
+    Future.successful(BadRequest(views.html.clientError(message)(request)))
 
   /**
     * Invoked when a client makes a request that was forbidden.
@@ -74,7 +74,7 @@ class SilkErrorHandler (env: Environment,
     * @param message The error message.
     */
   override protected def onForbidden(request: RequestHeader, message: String): Future[Result] = {
-    Future.successful(Forbidden(views.html.clientError(message)(request.session)))
+    Future.successful(Forbidden(views.html.clientError(message)(request)))
   }
 
   /**
@@ -96,7 +96,7 @@ class SilkErrorHandler (env: Environment,
     * @param message The error message.
     */
   override protected def onOtherClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
-    Future.successful(Results.Status(statusCode)(views.html.clientError(message)(request.session)))
+    Future.successful(Results.Status(statusCode)(views.html.clientError(message)(request)))
   }
 
   /**

@@ -65,8 +65,12 @@ object PagingSparqlTraversable {
           if(Thread.currentThread().isInterrupted) {
             return
           }
-          parsedQuery.setLimit(math.min(params.pageSize, limit - offset))
-          parsedQuery.setOffset(offset)
+          if(params.pageSize != Int.MaxValue && limit > params.pageSize) {
+            parsedQuery.setOffset(offset)
+          }
+          if(limit != Int.MaxValue || params.pageSize != Int.MaxValue) {
+            parsedQuery.setLimit(math.min(params.pageSize, limit - offset))
+          }
           val inputStream = executeQuery(parsedQuery.serialize(Syntax.syntaxSPARQL_11))
           try {
             val resultCount = outputResults(inputStream, f)

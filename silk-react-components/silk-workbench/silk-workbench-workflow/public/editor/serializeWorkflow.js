@@ -9,11 +9,21 @@ function commitWorkflow() {
         contentType: 'text/xml;charset=UTF-8',
         processData: false,
         data: serializeWorkflow(),
-        success() {},
+        success() {
+            notifyParentWindow();
+        },
         error(req) {
             alert(`Error committing workflow to backend: ${req.responseText}`);
         },
     });
+}
+
+// Send a message event that the workflow has been saved
+function notifyParentWindow() {
+    window.top.postMessage(JSON.stringify({
+        id: "workflowSaved",
+        message: "Workflow updated"
+    }), '*');
 }
 
 function serializeWorkflow() {
@@ -57,7 +67,6 @@ function minPositionAllOperators() {
     yValues.push(0);
     const minX = Math.min.apply(null, xValues);
     const minY = Math.min.apply(null, yValues);
-    console.log(`${minX}, ${minY}`);
     return [minX, minY];
 }
 
