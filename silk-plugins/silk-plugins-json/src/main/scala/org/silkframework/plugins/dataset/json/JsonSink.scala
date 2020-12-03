@@ -47,6 +47,7 @@ class JsonSink (resource: WritableResource, outputTemplate: String = "<Result><?
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     if(atRoot) {
+      resource.delete()
       val builder = DocumentBuilderFactory.newInstance.newDocumentBuilder
       // Check if the output template is a single processing instruction
       if(outputTemplate.matches("<\\?[^\\?]+\\?>")) {
