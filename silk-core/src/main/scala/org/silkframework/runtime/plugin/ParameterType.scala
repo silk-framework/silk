@@ -389,7 +389,12 @@ object StringParameterType {
     }
 
     override def toString(value: Uri)(implicit prefixes: Prefixes): String = {
-      value.serialize(prefixes)
+      val uriStr = value.uri.trim.toLowerCase
+      if (uriStr.startsWith("http") || uriStr.startsWith("urn:")) {
+        uriStr // Uri.parse does special case this and does not require a leading <
+      } else {
+        value.serialize(prefixes)
+      }
     }
   }
 
