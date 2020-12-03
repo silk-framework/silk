@@ -58,7 +58,9 @@ object ItemType {
       case ItemType.linking => Seq(
         ItemLink("Linking editor", s"$context/linking/$projectId/$itemId/editor"),
         ItemLink("Linking evaluation", s"$context/linking/$projectId/$itemId/evaluate"),
-        ItemLink("Linking execution", s"$context/linking/$projectId/$itemId/execute")
+        ItemLink("Linking execution", s"$context/linking/$projectId/$itemId/execute"),
+        ItemLink("Reference links", s"$context/linking/$projectId/$itemId/referenceLinks"),
+        ItemLink("Learning", s"$context/linking/$projectId/$itemId/learnStart")
       )
       case ItemType.workflow => Seq(
         ItemLink("Workflow editor", s"$context/workflow/editor/$projectId/$itemId"),
