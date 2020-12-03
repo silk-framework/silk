@@ -79,7 +79,7 @@ case class FileExecutionReportManager(dir: String, retentionTime: Duration = DEF
     * Returns the file that corresponds to a given report identifier.
     */
   private def reportFile(reportId: ReportIdentifier): File = {
-    val fileName = s"${reportId.projectId}_${reportId.taskId}_${timeFormat.format(reportId.time)}.json"
+    val fileName = s"${reportId.projectId}+${reportId.taskId}+${timeFormat.format(reportId.time)}.json"
     new File(reportDirectory, fileName)
   }
 
@@ -89,7 +89,7 @@ case class FileExecutionReportManager(dir: String, retentionTime: Duration = DEF
   private def fromReportFile(file: File): Option[ReportIdentifier] = {
     val name = file.getName
     if(name.endsWith(".json")) {
-      val parts = name.stripSuffix(".json").split('_')
+      val parts = name.stripSuffix(".json").split('+')
       if(parts.length == 3) {
         for(time <- Try(Instant.from(timeFormat.parse(parts(2)))).toOption) yield {
           ReportIdentifier(
