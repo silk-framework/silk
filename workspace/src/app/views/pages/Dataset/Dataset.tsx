@@ -12,10 +12,10 @@ import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 import { DataPreview } from "../../shared/DataPreview/DataPreview";
 import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
 import { useTranslation } from "react-i18next";
-import { LegacyWindow } from "../../shared/LegacyWindow/LegacyWindow";
 import { Loading } from "../../shared/Loading/Loading";
 import { requestTaskData } from "@ducks/shared/requests";
 import { IProjectTask } from "@ducks/shared/typings";
+import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
 
 // The dataset plugins that should show the data preview automatically without user interaction.
 const automaticallyPreviewedDatasets = ["json", "xml", "csv"];
@@ -75,7 +75,7 @@ export function Dataset() {
                             autoLoad={showPreviewAutomatically}
                         />
                     ) : (
-                        <LegacyWindow />
+                        <IframeWindow />
                     )}
                 </Section>
             </WorkspaceMain>

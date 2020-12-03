@@ -127,11 +127,6 @@ export function IframeWindow({
         return locationParser.stringifyUrl(iframeUrl);
     };
 
-    const appendInlineViewParameter = (url: string) => {
-        const separator = url.includes("?") ? "&" : "?";
-        return url + separator + "inlineView=true";
-    };
-
     const iframeWidget = (
         <Card isOnlyLayout={true} elevation={displayFullscreen ? 4 : 1}>
             <CardHeader>
