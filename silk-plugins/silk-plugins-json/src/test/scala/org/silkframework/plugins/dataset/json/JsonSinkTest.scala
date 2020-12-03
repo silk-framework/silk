@@ -40,18 +40,18 @@ class JsonSinkTest extends FlatSpec with Matchers {
 
     val source = scala.io.Source.fromFile(tempFile)
     val lines = try source.mkString finally source.close()
+    println(lines)
     inputEntites.size shouldBe 3
     tempFile.exists() shouldBe(true)
     lines.shouldBe(
-      """[{"entity": {"value": "val"}}{"entity": {
+      """[{"value": "val"}{
         |  "boolean": true,
         |  "value": "val2"
-        |}}{"entity": {
+        |}{
         |  "boolean": true,
         |  "value": "val3"
-        |}}]""".stripMargin
+        |}]""".stripMargin
     )
-//    lines shouldBe("{\"Entity\":[{\"value\":\"val\"},{\"value\":\"val2\",\"boolean\":\"true\"},{\"value\":\"val3\",\"boolean\":\"true\"}]}")
   }
 
   it should "write entities to json using the first object as the root" in {
@@ -72,11 +72,11 @@ class JsonSinkTest extends FlatSpec with Matchers {
 
     val source = scala.io.Source.fromFile(tempFile)
     val lines = try source.mkString finally source.close()
-    println(lines)
+
     inputEntites.size shouldBe 3
     tempFile.exists() shouldBe(true)
     lines.shouldBe(
-      """{"entity": {"value": "val"}}""".stripMargin
+      """{"value": "val"}""".stripMargin
     )
   }
 
@@ -98,19 +98,20 @@ class JsonSinkTest extends FlatSpec with Matchers {
 
     val source = scala.io.Source.fromFile(tempFile)
     val lines = try source.mkString finally source.close()
+    println(lines)
 
     inputEntites.size shouldBe 3
     tempFile.exists() shouldBe(true)
     lines.shouldBe(
-     """[{"entity": ""}{"entity": {"array": [
+     """[{"entity": ""}{"array": [
        |  1,
        |  2,
        |  3
-       |]}}{"entity": {"array": [
+       |]}{"array": [
        |  1,
        |  2,
        |  3
-       |]}}]""".stripMargin
+       |]}]""".stripMargin
     )
   }
 
@@ -229,10 +230,6 @@ class JsonSinkTest extends FlatSpec with Matchers {
       UntypedPath.parse("array").asStringTypedPath
     ))).entities
 
-//    source.retrieve(EntitySchema("objects", typedPaths = IndexedSeq(
-//      UntypedPath.parse("value").asStringTypedPath,
-//      TypedPath("boolean", BooleanValueType())
-//    ))).entities
   }
 
   private def jsonSource(json: String): JsonSource = {

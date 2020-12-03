@@ -8,15 +8,12 @@ import javax.xml.transform.stream.StreamResult
 import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{EntitySink, TypedProperty}
-import org.silkframework.entity.{UriValueType, ValueType}
+import org.silkframework.entity.ValueType
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 import org.w3c.dom.{Document, Element, Node, ProcessingInstruction}
-
-import javax.xml.stream.XMLInputFactory
-import java.util
 
 import org.json.XML
 
@@ -89,16 +86,15 @@ class JsonSink (resource: WritableResource, outputTemplate: String = "<Result><?
   override def closeTable()(implicit userContext: UserContext): Unit = {
     atRoot = false
   }
+
   override def close()(implicit userContext: UserContext): Unit = {
     val transformerFactory = new TransformerFactoryImpl() // We have to specify this here explicitly, else it will take the Saxon implementation
     val transformer = transformerFactory.newTransformer
     val stream = new StreamResult()
     val out = new ByteArrayOutputStream()
     stream.setOutputStream(out)
-    val f = XMLInputFactory.newFactory
 
     val xmlSource = new DOMSource(doc)
-    val sw: StringWriter = new StringWriter()
     transformer.transform(xmlSource, stream)
 
     if (!topLevelObject) {
@@ -107,9 +103,10 @@ class JsonSink (resource: WritableResource, outputTemplate: String = "<Result><?
       while (node != null) {
         val xmlOutput = new StringWriter
         transformer.transform(new DOMSource(node), new StreamResult(xmlOutput))
-        val json = XML.toJSONObject(xmlOutput.toString)
+        val cleaned = removeEntityWrapper(xmlOutput.toString)
+        val json = XML.toJSONObject(cleaned)
         resource.writeString(json.toString(2), append = true)
-        if (topLevelObject) node = null else node = node.getNextSibling
+        node = node.getNextSibling
       }
       resource.writeString("]", append = true)
     }
@@ -118,7 +115,8 @@ class JsonSink (resource: WritableResource, outputTemplate: String = "<Result><?
       if (node != null) {
         val xmlOutput = new StringWriter
         transformer.transform(new DOMSource(node), new StreamResult(xmlOutput))
-        val json = XML.toJSONObject(xmlOutput.toString)
+        val cleaned = removeEntityWrapper(xmlOutput.toString)
+        val json = XML.toJSONObject(cleaned)
         resource.writeString(json.toString(2), append = true)
       }
     }
@@ -135,6 +133,10 @@ class JsonSink (resource: WritableResource, outputTemplate: String = "<Result><?
     atRoot = true
     properties = Seq.empty
     uriMap = mutable.HashMap()
+  }
+
+  private def removeEntityWrapper(value: String): String = {
+   value.replaceFirst("<entity>","").replaceFirst("</entity>","")
   }
 
   private def findEntityTemplate(node: Node): ProcessingInstruction = {
