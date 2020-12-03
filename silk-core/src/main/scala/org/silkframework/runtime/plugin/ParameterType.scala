@@ -15,6 +15,7 @@ import org.silkframework.util.{AesCrypto, Identifier, Uri}
 
 import scala.language.existentials
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 /** Represents a plugin parameter type and provides serialization. */
@@ -373,7 +374,18 @@ object StringParameterType {
     override def description: String = "Either a full URI or a prefixed name."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Uri = {
-      Uri.parse(str, prefixes)
+      if(str.trim.nonEmpty) {
+        try {
+          Uri.parse(str, prefixes)
+        } catch {
+          case NonFatal(ex) =>
+            // Old serializations may use invalid URIs so we don't fail here
+            log.log(Level.WARNING, s"Invalid value serialization value found: '$str'. Expected a valid URI or a prefixed name with a defined prefix.", ex)
+            new Uri(str)
+        }
+      } else {
+        Uri("")
+      }
     }
 
     override def toString(value: Uri)(implicit prefixes: Prefixes): String = {
