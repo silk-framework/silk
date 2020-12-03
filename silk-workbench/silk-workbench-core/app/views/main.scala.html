@@ -16,7 +16,7 @@
     <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
       <div class="mdl-layout__inner-container">
 
-      @if(config.workbench.showHeader && !request.queryString.get("inlineView").exists(_.exists(_.toLowerCase == "true"))) {
+      @if(config.workbench.showHeader(request)) {
         <header class="mdl-layout__header">
           <div class="mdl-layout__header-row">
             <span class="mdl-layout-title">@config.workbench.title</span>
