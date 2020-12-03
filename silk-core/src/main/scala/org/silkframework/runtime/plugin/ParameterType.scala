@@ -374,27 +374,11 @@ object StringParameterType {
     override def description: String = "Either a full URI or a prefixed name."
 
     def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Uri = {
-      if(str.trim.nonEmpty) {
-        try {
-          Uri.parse(str, prefixes)
-        } catch {
-          case NonFatal(ex) =>
-            // Old serializations may use invalid URIs so we don't fail here
-            log.log(Level.WARNING, s"Invalid value serialization value found: '$str'. Expected a valid URI or a prefixed name with a defined prefix.", ex)
-            new Uri(str)
-        }
-      } else {
-        Uri("")
-      }
+      Uri.parse(str, prefixes)
     }
 
     override def toString(value: Uri)(implicit prefixes: Prefixes): String = {
-      val uriStr = value.uri.trim.toLowerCase
-      if (uriStr.startsWith("http") || uriStr.startsWith("urn:")) {
-        uriStr // Uri.parse does special case this and does not require a leading <
-      } else {
-        value.serialize(prefixes)
-      }
+      value.serialize(prefixes)
     }
   }
 
