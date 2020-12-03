@@ -208,7 +208,9 @@
             "Transform execution": "Transform execution",
             "Linking editor": "Linking editor",
             "Linking evaluation": "Linking evaluation",
-            "Linking execution": "Linking execution"
+            "Linking execution": "Linking execution",
+            "Reference links" : "Reference links",
+            "Learning": "Learning"
         },
         "sorter": {
             "recentlyViewed": "Recently viewed"
