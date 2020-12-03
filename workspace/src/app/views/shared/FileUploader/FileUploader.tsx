@@ -151,9 +151,8 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
             method: "PUT",
             fieldName: "file",
             allowMultipleUploads: props.allowMultiple,
-            // restrictions: {
-            // maxNumberOfFiles: 4,
-            // },
+            // Only upload one file at the same time
+            limit: 1,
         });
     }
 
