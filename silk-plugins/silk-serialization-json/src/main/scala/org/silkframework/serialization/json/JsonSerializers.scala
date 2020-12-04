@@ -672,6 +672,37 @@ object JsonSerializers {
   }
 
   /**
+    * Dataset selection.
+    */
+  implicit object DatasetSelectionJsonFormat extends JsonFormat[DatasetSelection] {
+    final val INPUT_ID: String = "inputId"
+    final val TYPE_URI: String = "typeUri"
+    final val RESTRICTION: String = "restriction"
+
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: JsValue)(implicit readContext: ReadContext): DatasetSelection = {
+      DatasetSelection(
+        inputId = stringValue(value, INPUT_ID),
+        typeUri = Uri.parse(stringValue(value, TYPE_URI), readContext.prefixes),
+        restriction = Restriction.parse(stringValue(value, RESTRICTION))(readContext.prefixes)
+      )
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(value: DatasetSelection)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        INPUT_ID -> value.inputId.toString,
+        TYPE_URI -> value.typeUri.serialize(writeContext.prefixes),
+        RESTRICTION -> value.restriction.serialize
+      )
+    }
+  }
+
+  /**
     * Transform Specification
     */
   implicit object TransformSpecJsonFormat extends JsonFormat[TransformSpec] {
@@ -1326,37 +1357,6 @@ object InputJsonSerializer {
       Json.obj(
         "configured" -> EntitySchemaJsonFormat.write(value.configuredSchema),
         "untyped" -> value.untypedSchema.map(EntitySchemaJsonFormat.write)
-      )
-    }
-  }
-
-  /**
-    * Dataset selection.
-    */
-  implicit object DatasetSelectionJsonFormat extends JsonFormat[DatasetSelection] {
-    final val INPUT_ID: String = "inputId"
-    final val TYPE_URI: String = "typeUri"
-    final val RESTRICTION: String = "restriction"
-
-    /**
-      * Deserializes a value.
-      */
-    override def read(value: JsValue)(implicit readContext: ReadContext): DatasetSelection = {
-      DatasetSelection(
-        inputId = stringValue(value, INPUT_ID),
-        typeUri = Uri.parse(stringValue(value, TYPE_URI), readContext.prefixes),
-        restriction = Restriction.parse(stringValue(value, RESTRICTION))(readContext.prefixes)
-      )
-    }
-
-    /**
-      * Serializes a value.
-      */
-    override def write(value: DatasetSelection)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        INPUT_ID -> value.inputId.toString,
-        TYPE_URI -> value.typeUri.serialize(writeContext.prefixes),
-        RESTRICTION -> value.restriction.serialize
       )
     }
   }
