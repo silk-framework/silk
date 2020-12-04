@@ -39,16 +39,20 @@ silkStore
             baseUrl,
             project,
             transformTask,
+            uriPrefix
         } = data;
-
+        const send = {
+            correspondences
+        };
+        if (uriPrefix) {
+            send.uriPrefix = uriPrefix;
+        }
         superagent
             .post(
                 `${baseUrl}/ontologyMatching/rulesGenerator/${project}/${transformTask}/rule/${parentId}`
             )
             .accept('application/json')
-            .send({
-                correspondences,
-            })
+            .send(send)
             .observe()
             .multicast(replySubject)
             .connect();
@@ -395,6 +399,21 @@ silkStore
         superagent
             .get(
                 `${baseUrl}/profiling/schemaClass/${project}/${transformTask}/ruleExampleValues`
+            )
+            .accept('application/json')
+            .observe()
+            .multicast(replySubject)
+            .connect();
+    });
+
+silkStore
+    .subject('transform.task.prefixes')
+    .subscribe(({data, replySubject}) => {
+        const {baseUrl, project} = data;
+        
+        superagent
+            .get(
+                `${baseUrl}/api/workspace/projects/${project}/prefixes`
             )
             .accept('application/json')
             .observe()

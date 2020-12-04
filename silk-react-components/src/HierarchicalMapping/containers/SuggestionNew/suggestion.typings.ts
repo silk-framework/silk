@@ -77,3 +77,9 @@ export interface ISortDirection {
     // store ordering direction, '' - is default value
     modifier: 'asc' | 'desc' | ''
 }
+
+export interface IPrefix {
+    uri: string;
+
+    key: string;
+}

@@ -232,11 +232,11 @@ export const orderRulesAsync = ({id, childrenRules}) => {
         });
 };
 
-export const generateRuleAsync = (correspondences, parentId) => {
+export const generateRuleAsync = (correspondences, parentId, uriPrefix) => {
     return silkStore
         .request({
             topic: 'transform.task.rule.generate',
-            data: {...getApiDetails(), correspondences, parentId},
+            data: {...getApiDetails(), correspondences, parentId, uriPrefix},
         })
         .map(returned => {
             return {
@@ -546,6 +546,19 @@ export const schemaExampleValuesAsync = () => {
                 baseUrl,
                 project,
                 transformTask,
+            },
+        })
+        .map(returned => returned.body);
+};
+
+export const prefixesAsync = () => {
+    const {baseUrl, project} = getApiDetails();
+    return silkStore
+        .request({
+            topic: 'transform.task.prefixes',
+            data: {
+                baseUrl,
+                project,
             },
         })
         .map(returned => returned.body);

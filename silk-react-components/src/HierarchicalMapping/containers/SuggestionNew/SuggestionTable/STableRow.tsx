@@ -2,9 +2,8 @@ import React, { useContext } from "react";
 import TargetList from "./TargetList";
 import TypesList from "./TypesList";
 import { ITargetWithSelected, SuggestionTypeValues } from "../suggestion.typings";
-import { Checkbox, ContextMenu, TableCell, TableRow, } from "@gui-elements/index";
+import { Checkbox, ContextMenu, TableCell, TableRow, Highlighter } from "@gui-elements/index";
 import { SuggestionListContext } from "../SuggestionContainer";
-import Highlighter from "../../../elements/Highlighter";
 
 export default function STableRow({row, onRowSelect, selected, onModifyTarget}) {
     const context = useContext(SuggestionListContext);
