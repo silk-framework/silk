@@ -103,8 +103,8 @@ class JsonSink (resource: WritableResource, outputTemplate: String = "<Result><?
       while (node != null) {
         val xmlOutput = new StringWriter
         transformer.transform(new DOMSource(node), new StreamResult(xmlOutput))
-        val cleaned = removeEntityWrapper(xmlOutput.toString)
-        val json = XML.toJSONObject(cleaned)
+        val unwrapped = removeEntityWrapper(xmlOutput.toString)
+        val json = XML.toJSONObject(unwrapped)
         resource.writeString(json.toString(2), append = true)
         node = node.getNextSibling
       }
@@ -136,7 +136,7 @@ class JsonSink (resource: WritableResource, outputTemplate: String = "<Result><?
   }
 
   private def removeEntityWrapper(value: String): String = {
-   value.replaceFirst("<entity>","").replaceFirst("</entity>","")
+   value.replaceFirst("<entity>","").replaceFirst("</entity>","").replaceAll("<entity/>","")
   }
 
   private def findEntityTemplate(node: Node): ProcessingInstruction = {
@@ -203,7 +203,7 @@ class JsonSink (resource: WritableResource, outputTemplate: String = "<Result><?
           entityNode.appendChild(valueNode)
         }
       case _ if property.isAttribute =>
-        setAttribute(entityNode, property.propertyUri, value)
+//        setAttribute(entityNode, property.propertyUri, value)
       case _ if property.propertyUri == "#text" =>
         entityNode.setTextContent(value)
       case _ =>

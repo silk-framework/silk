@@ -5,27 +5,22 @@ import java.io.File
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{DataSource, TypedProperty}
-import org.silkframework.entity.{BooleanValueType, Entity, EntitySchema, StringValueType, ValueType}
-import org.silkframework.entity.paths.{DirectionalPathOperator, ForwardOperator, PathOperator, TypedPath, UntypedPath}
-import org.silkframework.execution.EntityHolder
+import org.silkframework.entity.{BooleanValueType, Entity, EntitySchema, ValueType}
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.{ClasspathResourceLoader, FileResource, InMemoryResourceManager, WritableResource}
+import org.silkframework.runtime.resource.{FileResource, InMemoryResourceManager}
 import org.silkframework.util.Uri
 
-import scala.xml.Node
 
 class JsonSinkTest extends FlatSpec with Matchers {
 
   implicit val userContext: UserContext = UserContext.Empty
-  private val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/json/")
-
   implicit val prefixes: Prefixes = Prefixes.empty
-
 
   it should "write entities to json" in {
     val tempFile = File.createTempFile("json-write-test-1", ".json")
     tempFile.deleteOnExit()
-    val inputEntites = getEntities()
+    val inputEntites = getEntities
     val sink = new JsonSink(FileResource(tempFile), topLevelObject = false)
 
     val typedProps: Seq[TypedProperty] = inputEntites.head.schema.typedPaths.map(_.property.get)
@@ -40,7 +35,6 @@ class JsonSinkTest extends FlatSpec with Matchers {
 
     val source = scala.io.Source.fromFile(tempFile)
     val lines = try source.mkString finally source.close()
-    println(lines)
     inputEntites.size shouldBe 3
     tempFile.exists() shouldBe(true)
     lines.shouldBe(
@@ -57,7 +51,7 @@ class JsonSinkTest extends FlatSpec with Matchers {
   it should "write entities to json using the first object as the root" in {
     val tempFile = File.createTempFile("json-write-test-2", ".json")
     tempFile.deleteOnExit()
-    val inputEntites = getEntities()
+    val inputEntites = getEntities
     val sink = new JsonSink(FileResource(tempFile), topLevelObject = true)
     sink.clear()
     val typedProps: Seq[TypedProperty] = inputEntites.head.schema.typedPaths.map(_.property.get)
@@ -83,7 +77,7 @@ class JsonSinkTest extends FlatSpec with Matchers {
   it should "write entities with arrays to json" in {
     val tempFile = File.createTempFile("json-write-test-3", ".json")
     tempFile.deleteOnExit()
-    val inputEntites = getArrayEntities()
+    val inputEntites = getArrayEntities
     val sink = new JsonSink(FileResource(tempFile), topLevelObject = false)
 
     val typedProps: Seq[TypedProperty] = inputEntites.head.schema.typedPaths.map(_.property.get)
@@ -98,12 +92,11 @@ class JsonSinkTest extends FlatSpec with Matchers {
 
     val source = scala.io.Source.fromFile(tempFile)
     val lines = try source.mkString finally source.close()
-    println(lines)
 
     inputEntites.size shouldBe 3
     tempFile.exists() shouldBe(true)
     lines.shouldBe(
-     """[{"entity": ""}{"array": [
+     """[{}{"array": [
        |  1,
        |  2,
        |  3
@@ -132,10 +125,10 @@ class JsonSinkTest extends FlatSpec with Matchers {
 
     test(
       entityTables = Seq(entities),
-      expected = """[{"entity": {
+      expected = """[{
                    |  "SecondTag": 2,
                    |  "FirstTag": 1
-                   |}}]""".stripMargin,
+                   |}]""".stripMargin,
       tempFile
     )
   }
@@ -177,7 +170,25 @@ class JsonSinkTest extends FlatSpec with Matchers {
 
     test(
       entityTables = Seq(persons, names),
-      expected = "", tempFile
+      expected = """[{
+                   |  "Year": 1980,
+                   |  "Name": [
+                   |    {
+                   |      "FirstName": "John",
+                   |      "LastName": "Doe"
+                   |    },
+                   |    {
+                   |      "FirstName": "Peter",
+                   |      "LastName": "Stein"
+                   |    }
+                   |  ]
+                   |}{
+                   |  "Year": 1990,
+                   |  "Name": {
+                   |    "FirstName": "Max",
+                   |    "LastName": "Mustermann"
+                   |  }
+                   |}]""".stripMargin, tempFile
     )
   }
 
@@ -188,7 +199,6 @@ class JsonSinkTest extends FlatSpec with Matchers {
     val resource = new FileResource(tempFile)
     val sink = new JsonSink(resource, topLevelObject = false)
 
-    // Write entity tables
     for (entityTable <- entityTables) {
       val schema = entityTable.head.schema
       sink.openTable(schema.typeUri, schema.typedPaths.flatMap(_.property))
@@ -200,8 +210,7 @@ class JsonSinkTest extends FlatSpec with Matchers {
     sink.close()
     val source = scala.io.Source.fromFile(tempFile)
     val lines = try source.mkString finally source.close()
-    println (lines)
-
+    lines shouldEqual expected
   }
 
   private val jsonComplex =
@@ -216,7 +225,7 @@ class JsonSinkTest extends FlatSpec with Matchers {
       |}""".stripMargin
 
 
-  def getEntities(): Traversable[Entity] = {
+  def getEntities: Traversable[Entity] = {
     val source: DataSource = jsonSource(jsonComplex)
     source.retrieve(EntitySchema("objects", typedPaths = IndexedSeq(
       UntypedPath.parse("value").asStringTypedPath,
@@ -224,7 +233,7 @@ class JsonSinkTest extends FlatSpec with Matchers {
     ))).entities
   }
 
-  def getArrayEntities(): Traversable[Entity] = {
+  def getArrayEntities: Traversable[Entity] = {
     val source: DataSource = jsonSource(jsonComplex)
     source.retrieve(EntitySchema("objects", typedPaths = IndexedSeq(
       UntypedPath.parse("array").asStringTypedPath
