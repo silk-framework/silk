@@ -8,7 +8,7 @@ import { datasetSel } from "@ducks/dataset";
 
 import { Section, WorkspaceContent, WorkspaceMain, WorkspaceSide, Spacing } from "@gui-elements/index";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
-import { LegacyWindow } from "../../shared/LegacyWindow/LegacyWindow";
+import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
 
 export default function () {
     const error = useSelector(datasetSel.errorSelector);
@@ -29,7 +29,7 @@ export default function () {
                 <Section>
                     <Metadata />
                     <Spacing />
-                    <LegacyWindow />
+                    <IframeWindow />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>

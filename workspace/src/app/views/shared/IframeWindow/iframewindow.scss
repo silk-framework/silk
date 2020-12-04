@@ -1,6 +1,6 @@
 @import "@gui-elements/src/configuration/_variables.scss";
 
-.diapp-legacywindow {
+.diapp-iframewindow {
     position: relative;
 
     & .#{$eccgui}-card {
@@ -13,7 +13,7 @@
     }
 }
 
-.diapp-legacywindow--fullscreen {
+.diapp-iframewindow--fullscreen {
     position: fixed;
     width: auto;
     height: auto;
@@ -35,7 +35,7 @@
     }
 }
 
-.diapp-legacywindow__placeholder {
+.diapp-iframewindow__placeholder {
     position: relative;
     width: 100%;
     height: 1px;

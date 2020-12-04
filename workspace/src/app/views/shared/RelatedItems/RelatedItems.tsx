@@ -1,33 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import {
-    Highlighter,
-    IconButton,
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-    ContextMenu,
-    Divider,
-    MenuItem,
-    OverviewItem,
-    OverviewItemActions,
-    OverviewItemDescription,
-    OverviewItemLine,
-} from "@gui-elements/index";
+import { useSelector } from "react-redux";
+import { Card, CardContent, CardHeader, CardTitle, Divider } from "@gui-elements/index";
 import { sharedOp } from "@ducks/shared";
-import { routerOp } from "@ducks/router";
 import DataList from "../Datalist";
-import Tag from "@gui-elements/src/components/Tag/Tag";
-import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import Spacing from "@gui-elements/src/components/Separation/Spacing";
-import { ResourceLink } from "../ResourceLink/ResourceLink";
-import { IItemLink, IRelatedItem, IRelatedItemsResponse } from "@ducks/shared/typings";
+import { IRelatedItem, IRelatedItemsResponse } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
 import { SearchBar } from "../SearchBar/SearchBar";
 import { usePagination } from "@gui-elements/src/components/Pagination/Pagination";
 import { useTranslation } from "react-i18next";
-import { SERVE_PATH } from "../../../constants/path";
+import { RelatedItem } from "./RelatedItem";
 
 interface IProps {
     projectId?: string;
@@ -78,8 +60,6 @@ export function RelatedItems(props: IProps) {
 
     const [t] = useTranslation();
 
-    const dispatch = useDispatch();
-
     useEffect(() => {
         getRelatedItemsData(projectId, taskId, textQuery);
     }, [textQuery, updated]);
@@ -112,11 +92,6 @@ export function RelatedItems(props: IProps) {
         setTextQuery(searchInput);
     };
 
-    const goToDetailsPage = (resourceItem: IItemLink, taskLabel: string, itemType: string, event) => {
-        event.preventDefault();
-        dispatch(routerOp.goToPage(resourceItem.path, { taskLabel, itemType: itemType.toLowerCase() }));
-    };
-
     return (
         <Card>
             <CardHeader>
@@ -129,11 +104,7 @@ export function RelatedItems(props: IProps) {
             </CardHeader>
             <Divider />
             <CardContent>
-                {data.total > 0 || textQuery !== "" ? (
-                    <SearchBar textQuery={textQuery} onSearch={searchFired} />
-                ) : (
-                    false
-                )}
+                {(data.total > 0 || textQuery !== "") && <SearchBar textQuery={textQuery} onSearch={searchFired} />}
                 <Spacing size="small" />
                 <DataList
                     isEmpty={data.items.length === 0}
@@ -144,85 +115,9 @@ export function RelatedItems(props: IProps) {
                 >
                     {data.items
                         .slice((pagination.current - 1) * pagination.limit, pagination.current * pagination.limit)
-                        .map((relatedItem: IRelatedItem) => {
-                            const contextMenuItems = relatedItem.itemLinks.map((link, idx) => (
-                                <MenuItem
-                                    key={link.path}
-                                    text={link.label}
-                                    href={link.path}
-                                    icon={getItemLinkIcons(link.label)}
-                                    onClick={
-                                        idx === 0
-                                            ? (e) =>
-                                                  goToDetailsPage(
-                                                      relatedItem.itemLinks[0],
-                                                      relatedItem.label,
-                                                      relatedItem.type,
-                                                      e
-                                                  )
-                                            : null
-                                    }
-                                    target={link.path.startsWith(SERVE_PATH) ? undefined : "_blank"}
-                                />
-                            ));
-                            return (
-                                <OverviewItem key={relatedItem.id} densityHigh>
-                                    <OverviewItemDescription>
-                                        <OverviewItemLine>
-                                            <span>
-                                                <Tag>
-                                                    <Highlighter label={relatedItem.type} searchValue={textQuery} />
-                                                </Tag>{" "}
-                                                <ResourceLink
-                                                    url={
-                                                        !!relatedItem.itemLinks.length
-                                                            ? relatedItem.itemLinks[0].path
-                                                            : false
-                                                    }
-                                                    handlerResourcePageLoader={
-                                                        !!relatedItem.itemLinks.length
-                                                            ? (e) =>
-                                                                  goToDetailsPage(
-                                                                      relatedItem.itemLinks[0],
-                                                                      relatedItem.label,
-                                                                      relatedItem.type,
-                                                                      e
-                                                                  )
-                                                            : false
-                                                    }
-                                                >
-                                                    <Highlighter label={relatedItem.label} searchValue={textQuery} />
-                                                </ResourceLink>
-                                            </span>
-                                        </OverviewItemLine>
-                                    </OverviewItemDescription>
-                                    <OverviewItemActions>
-                                        {!!relatedItem.itemLinks.length && (
-                                            <IconButton
-                                                name="item-viewdetails"
-                                                text={t("common.action.showDetails", "Show details")}
-                                                onClick={(e) =>
-                                                    goToDetailsPage(
-                                                        relatedItem.itemLinks[0],
-                                                        relatedItem.label,
-                                                        relatedItem.type,
-                                                        e
-                                                    )
-                                                }
-                                                href={relatedItem.itemLinks[0].path}
-                                            />
-                                        )}
-                                        {contextMenuItems.length && (
-                                            <ContextMenu
-                                                togglerText={t("common.action.moreOptions", "Show more options")}
-                                            >
-                                                {contextMenuItems}
-                                            </ContextMenu>
-                                        )}
-                                    </OverviewItemActions>
-                                </OverviewItem>
-                            );
-                        })}
+                        .map((relatedItem: IRelatedItem) => (
+                            <RelatedItem key={relatedItem.id} relatedItem={relatedItem} textQuery={textQuery} />
+                        ))}
                 </DataList>
                 {data.items.length > Math.min(pagination.total, 5) ? ( // Don't show if no pagination is needed
                     <>

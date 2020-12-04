@@ -1,6 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
-import { IItemLink } from "@ducks/shared/typings";
 import {
     Card,
     ContextMenu,
@@ -20,7 +19,6 @@ import {
 import { routerOp } from "@ducks/router";
 import { useDispatch, useSelector } from "react-redux";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
-import { LegacyWindow } from "../LegacyWindow/LegacyWindow";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import { IPageLabels } from "@ducks/router/operations";
 import { DATA_TYPES } from "../../../constants";
@@ -29,6 +27,7 @@ import { IExportTypes } from "@ducks/common/typings";
 import { downloadResource } from "../../../utils/downloadResource";
 import { useTranslation } from "react-i18next";
 import ItemDepiction from "../../shared/ItemDepiction";
+import { useIFrameWindowLinks } from "../IframeWindow/iframewindowHooks";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -57,13 +56,14 @@ export default function SearchItem({
     const [t] = useTranslation();
     // Remove detailsPath
     const itemLinks = item.itemLinks.slice(1);
+    const { iframeWindow, toggleIFrameLink } = useIFrameWindowLinks(itemLinks);
     const contextMenuItems = itemLinks.map((link) => (
         <MenuItem
             key={link.path}
             text={t("common.legacyGui." + link.label, link.label)}
             icon={getItemLinkIcons(link.label)}
             onClick={() =>
-                toggleLegacyLink({
+                toggleIFrameLink({
                     path: link.path,
                     label: link.label,
                     itemType: null,
@@ -71,13 +71,6 @@ export default function SearchItem({
             }
         />
     ));
-
-    // active legacy link
-    const [displayLegacyLink, setDisplayLegacyLink] = useState<IItemLink | null>(null);
-    // handler for link change
-    const toggleLegacyLink = (linkItem: IItemLink | null = null) => {
-        setDisplayLegacyLink(linkItem);
-    };
 
     if (item.type === DATA_TYPES.PROJECT && !!exportTypes.length) {
         contextMenuItems.push(
@@ -94,16 +87,19 @@ export default function SearchItem({
     }
 
     const goToDetailsPage = (e) => {
-        e.preventDefault();
-        const detailsPath = item.itemLinks[0].path;
-        const labels: IPageLabels = {};
-        if (item.type === DATA_TYPES.PROJECT) {
-            labels.projectLabel = item.label;
-        } else {
-            labels.taskLabel = item.label;
+        // Only open page in same tab if user did not try to open in new tab
+        if (!e?.ctrlKey) {
+            e.preventDefault();
+            const detailsPath = item.itemLinks[0].path;
+            const labels: IPageLabels = {};
+            if (item.type === DATA_TYPES.PROJECT) {
+                labels.projectLabel = item.label;
+            } else {
+                labels.taskLabel = item.label;
+            }
+            labels.itemType = item.type;
+            dispatch(routerOp.goToPage(detailsPath, labels));
         }
-        labels.itemType = item.type;
-        dispatch(routerOp.goToPage(detailsPath, labels));
     };
 
     const handleExport = async (type: IExportTypes) => {
@@ -172,20 +168,7 @@ export default function SearchItem({
                     </ContextMenu>
                 </OverviewItemActions>
             </OverviewItem>
-            {displayLegacyLink && (
-                <LegacyWindow
-                    legacyLinks={itemLinks.map((link) => {
-                        return {
-                            path: link.path,
-                            label: link.label,
-                            itemType: null,
-                        };
-                    })}
-                    startWithLink={displayLegacyLink}
-                    startFullscreen={true}
-                    handlerRemoveModal={() => toggleLegacyLink(null)}
-                />
-            )}
+            {iframeWindow}
         </Card>
     );
 }
