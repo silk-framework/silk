@@ -161,7 +161,7 @@ object VariableWorkflowRequestUtils {
         if(request.queryString.nonEmpty) {
           parametersToJsonResource(request.queryString)
         } else {
-          throw BadUserInputException(s"No parameters specified in query string! " +
+          throw BadUserInputException(s"No input data posted or parameters specified in query string! " +
               s"If you need to input an 'empty entity', use an empty JSON object or XML element instead as request payload.")
         }
       case AnyContentAsRaw(rawBuffer) if mediaType.exists(mt => validMediaTypes.contains(mt)) =>
