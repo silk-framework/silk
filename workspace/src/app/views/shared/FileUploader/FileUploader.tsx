@@ -154,6 +154,8 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
             this.uppy.setOptions({
                 restrictions: {
                     maxFileSize: props.maxFileUploadSizeBytes,
+                    // Restrict to 1 file if allowMultiple == false
+                    maxNumberOfFiles: props.allowMultiple ? undefined : 1,
                 },
             });
         }

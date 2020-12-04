@@ -98,7 +98,7 @@ export function UploadNewFile(props: IProps) {
     }, [onlyReplacements, uploadedFiles, filesForRetry]);
 
     /** If a restriction failed, e.g. file size too large, this is fired. */
-    const onLocalRestrictionFailed = (file: UppyFile & { error: string }, error: any) => {
+    const onLocalRestrictionFailed = (file: UppyFile & { error?: string }, error: any) => {
         if (error.isRestriction && error.message) {
             file.error = t("FileUploader.uploadError", { fileName: file.name, errorDetails: error.message });
             addToValidationErrorQueue(file);
@@ -123,7 +123,7 @@ export function UploadNewFile(props: IProps) {
         }
     };
 
-    const validateBeforeUploadAsync = async (file: UppyFile) => {
+    const validateBeforeUploadAsync = async (file: UppyFile & { error?: string }) => {
         try {
             const replacement = validateBeforeAdd ? await validateBeforeAdd(file.name) : false;
             if (replacement) {
@@ -144,7 +144,7 @@ export function UploadNewFile(props: IProps) {
 
             // when network offline
             if (e.isNetworkError || e.httpStatus >= 500) {
-                setFileError(file.id, t("http.error.networkFileUpload", { fileName: file.name }));
+                file.error = t("http.error.networkFileUpload", { fileName: file.name });
 
                 addInRetryQueue(file);
 

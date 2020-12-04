@@ -94,7 +94,7 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
                 <FileUploader
                     projectId={projectId}
                     advanced={true}
-                    allowMultiple={true}
+                    allowMultiple={false}
                     maxFileUploadSizeBytes={maxFileUploadSize}
                     autocomplete={{
                         autoCompletion: {

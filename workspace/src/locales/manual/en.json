@@ -263,7 +263,7 @@
             "requestFailed": "Preview request failed",
             "server": "Server error",
             "timeout": "Timeout",
-            "networkFileUpload": "Can't upload the file, please check your connection and try again"
+            "networkFileUpload": "Can't upload file '{{fileName}}', please check your connection and try again"
         }
     },
     "navigation": {
