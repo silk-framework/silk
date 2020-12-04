@@ -26,6 +26,14 @@ case class InitApi @Inject()() extends InjectedController with ControllerUtilsTr
   private lazy val cfg = DefaultConfig.instance()
   private val log: Logger = Logger.getLogger(getClass.getName)
 
+  lazy val dmBaseUrl: Option[JsString] = {
+    if(cfg.hasPath(dmConfigKey)) {
+      Some(JsString(cfg.getString(dmConfigKey)))
+    } else {
+      None
+    }
+  }
+
   def init(): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val emptyWorkspace = workspace.projects.isEmpty
     val resultJson = Json.obj(
@@ -92,14 +100,6 @@ case class InitApi @Inject()() extends InjectedController with ControllerUtilsTr
       result
     } else {
       Seq.empty
-    }
-  }
-
-  private def dmBaseUrl: Option[JsString] = {
-    if(cfg.hasPath(dmConfigKey)) {
-      Some(JsString(cfg.getString(dmConfigKey)))
-    } else {
-      None
     }
   }
 

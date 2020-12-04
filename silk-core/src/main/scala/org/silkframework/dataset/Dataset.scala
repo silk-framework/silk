@@ -1,5 +1,6 @@
 package org.silkframework.dataset
 
+import org.silkframework.config.TaskLink
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 import org.silkframework.runtime.resource.Resource
@@ -14,6 +15,9 @@ trait Dataset extends AnyPlugin with DatasetAccess {
 
   /** A dataset that is based on a file repository based resource, e.g. CSV, XML files. */
   def isFileResourceBased: Boolean = false
+
+  /** Related links for this dataset. */
+  def datasetLinks: Seq[TaskLink] = Seq.empty
 }
 
 trait DatasetPluginAutoConfigurable[T <: Dataset] {
