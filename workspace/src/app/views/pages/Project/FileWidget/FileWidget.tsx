@@ -154,6 +154,7 @@ export const FileWidget = () => {
                                                             className="bx--table-column-menu"
                                                         >
                                                             <IconButton
+                                                                data-test-id={"resource-download-btn"}
                                                                 name="item-download"
                                                                 text={t("common.action.download")}
                                                                 small

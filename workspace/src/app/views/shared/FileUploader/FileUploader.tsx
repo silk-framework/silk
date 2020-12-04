@@ -87,6 +87,9 @@ export interface IUploaderOptions {
      * - Write new file name
      */
     onChange?(value: File | string);
+
+    /** The max. file upload size in bytes. */
+    maxFileUploadSizeBytes?: number;
 }
 
 interface IState {
@@ -147,6 +150,13 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
             visibleFileDelete: "",
         };
 
+        if (props.maxFileUploadSizeBytes) {
+            this.uppy.setOptions({
+                restrictions: {
+                    maxFileSize: props.maxFileUploadSizeBytes,
+                }, // TODO: Show warning when uploading too large files.
+            });
+        }
         this.uppy.use(XHR, {
             method: "PUT",
             fieldName: "file",

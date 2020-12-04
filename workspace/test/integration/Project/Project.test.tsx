@@ -3,18 +3,18 @@ import { waitFor } from "@testing-library/react";
 import mockAxios from "../../__mocks__/axios";
 import {
     apiUrl,
+    byTestId,
+    changeValue,
     checkRequestMade,
+    findAll,
+    findSingleElement,
+    keyDown,
     legacyApiUrl,
+    mockAxiosResponse,
     testWrapper,
     withMount,
     workspacePath,
-    findAll,
-    findSingleElement,
-    byTestId,
-    mockAxiosResponse,
-    changeValue,
-    keyDown,
-    logRequests,
+    wrapperHtml,
 } from "../TestHelper";
 import { createBrowserHistory } from "history";
 import Project from "../../../src/app/views/pages/Project";
@@ -24,6 +24,7 @@ import qs from "qs";
 
 describe("Project page", () => {
     const testProjectId = "testproject";
+    const expectedFile = "file.csv";
     const reducerState = {
         common: {
             currentProjectId: testProjectId,
@@ -33,10 +34,10 @@ describe("Project page", () => {
                 isEmptyPage: false,
                 filesList: [
                     {
-                        id: "file.csv",
+                        id: expectedFile,
                         formattedSize: "666",
                         formattedDate: "2020-10-08",
-                        name: "file.csv",
+                        name: expectedFile,
                         size: 666,
                         modified: "2020-10-08",
                     },
@@ -45,7 +46,7 @@ describe("Project page", () => {
                     isLoading: false,
                     results: [
                         {
-                            name: "file.csv",
+                            name: expectedFile,
                             size: 666,
                             modified: "2020-10-08",
                         },
@@ -156,11 +157,20 @@ describe("Project page", () => {
             keyDown(filesearchinputchange, "Enter");
             //setFilesForWidget([]);
         });
-        //logRequests();
         setFilesForWidget([]);
         await waitFor(() => {
             const filesearchinputtest = findAll(projectPageWrapper, byTestId(`file-search-bar`));
             expect(filesearchinputtest).toHaveLength(1);
         });
+    });
+
+    it("should have a download link for a file resource", async () => {
+        setFilesForWidget(reducerState.workspace.widgets.files.results);
+        await waitFor(() => {
+            expect(wrapperHtml(projectPageWrapper)).toContain(expectedFile);
+        });
+        const downloadIcon = findSingleElement(projectPageWrapper, byTestId("resource-download-btn"));
+        expect(downloadIcon.getDOMNode().tagName).toBe("A");
+        expect(downloadIcon.getDOMNode().getAttribute("href")).toContain(expectedFile);
     });
 });
