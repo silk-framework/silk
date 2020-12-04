@@ -22,6 +22,7 @@ case class InitApi @Inject()() extends InjectedController with ControllerUtilsTr
   private val dmLinkPath = "path"
   private val dmLinkIcon = "icon"
   private val dmLinkDefaultLabel = "defaultLabel"
+  private val playMaxFileUploadSizeKey = "play.http.parser.maxDiskBuffer"
   private lazy val cfg = DefaultConfig.instance()
   private val log: Logger = Logger.getLogger(getClass.getName)
 
@@ -30,7 +31,8 @@ case class InitApi @Inject()() extends InjectedController with ControllerUtilsTr
     val resultJson = Json.obj(
       "emptyWorkspace" -> emptyWorkspace,
       "initialLanguage" -> initialLanguage(request),
-      "hotKeys" -> Json.toJson(hotkeys())
+      "hotKeys" -> Json.toJson(hotkeys()),
+      "maxFileUploadSize" -> maxUploadSize
     )
     val withDmUrl = dmBaseUrl.map { url =>
       resultJson + ("dmBaseUrl" -> url) + ("dmModuleLinks" -> JsArray(dmLinks.map(Json.toJson(_))))
@@ -49,6 +51,14 @@ case class InitApi @Inject()() extends InjectedController with ControllerUtilsTr
       }
     })
     "en" // default
+  }
+
+  private def maxUploadSize = {
+    if (cfg.hasPath(playMaxFileUploadSizeKey)) {
+      Some(cfg.getMemorySize(playMaxFileUploadSizeKey).toBytes)
+    } else {
+      None
+    }
   }
 
   private def hotkeys(): Map[String, String] = {
