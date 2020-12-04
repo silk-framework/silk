@@ -154,7 +154,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
             this.uppy.setOptions({
                 restrictions: {
                     maxFileSize: props.maxFileUploadSizeBytes,
-                }, // TODO: Show warning when uploading too large files.
+                },
             });
         }
         this.uppy.use(XHR, {
