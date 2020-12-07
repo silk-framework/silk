@@ -162,6 +162,9 @@ export interface IInitFrontend {
      */
     initialLanguage: string;
 
+    /** The max. file upload size in bytes supported by the backend. */
+    maxFileUploadSize?: number;
+
     /**
      * DM url, in case of missing, hide navigation bar
      */

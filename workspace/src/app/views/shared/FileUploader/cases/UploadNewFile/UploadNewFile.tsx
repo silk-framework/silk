@@ -55,6 +55,9 @@ export function UploadNewFile(props: IProps) {
     // contains files, which need in retry action
     const [filesForRetry, setFilesForRetry] = useState<UppyFile[]>([]);
 
+    // contains files, which violate a restriction
+    const [filesViolatingRestriction, setFilesViolatingRestriction] = useState<UppyFile[]>([]);
+
     // contains already uploaded files
     const [uploadedFiles, setUploadedFiles] = useState<UppyFile[]>([]);
 
@@ -79,6 +82,7 @@ export function UploadNewFile(props: IProps) {
             uppy.off("upload-progress", handleProgress);
             uppy.off("upload-success", handleUploadSuccess);
             uppy.off("upload-error", handleUploadError);
+            uppy.off("restriction-failed", onLocalRestrictionFailed);
         };
 
         // reset events, because of "file-added" store prev state values
@@ -88,9 +92,18 @@ export function UploadNewFile(props: IProps) {
         uppy.on("upload-progress", handleProgress);
         uppy.on("upload-success", handleUploadSuccess);
         uppy.on("upload-error", handleUploadError);
+        uppy.on("restriction-failed", onLocalRestrictionFailed);
 
         return unregisterEvents;
     }, [onlyReplacements, uploadedFiles, filesForRetry]);
+
+    /** If a restriction failed, e.g. file size too large, this is fired. */
+    const onLocalRestrictionFailed = (file: UppyFile & { error?: string }, error: any) => {
+        if (error.isRestriction && error.message) {
+            file.error = t("FileUploader.uploadError", { fileName: file.name, errorDetails: error.message });
+            addToValidationErrorQueue(file);
+        }
+    };
 
     /**
      * Run for every each file added
@@ -110,7 +123,7 @@ export function UploadNewFile(props: IProps) {
         }
     };
 
-    const validateBeforeUploadAsync = async (file: UppyFile) => {
+    const validateBeforeUploadAsync = async (file: UppyFile & { error?: string }) => {
         try {
             const replacement = validateBeforeAdd ? await validateBeforeAdd(file.name) : false;
             if (replacement) {
@@ -131,7 +144,7 @@ export function UploadNewFile(props: IProps) {
 
             // when network offline
             if (e.isNetworkError || e.httpStatus >= 500) {
-                setFileError(file.id, t("http.error.networkFileUpload", { fileName: file.name }));
+                file.error = t("http.error.networkFileUpload", { fileName: file.name });
 
                 addInRetryQueue(file);
 
@@ -223,7 +236,7 @@ export function UploadNewFile(props: IProps) {
         setFileError(fileData.id, errorMessage);
 
         // when project not found
-        if (error.request.status !== 404) {
+        if (error?.request?.status !== 404) {
             addInRetryQueue(fileData);
         }
     };
@@ -231,6 +244,15 @@ export function UploadNewFile(props: IProps) {
     const addInRetryQueue = (file: UppyFile) => {
         setFilesForRetry((prevState) => [...prevState, file]);
         removeFromUppyQueue(file.id);
+    };
+
+    const addToValidationErrorQueue = (file: UppyFile) => {
+        setFilesViolatingRestriction((prevState) => [...prevState, file]);
+        removeFromUppyQueue(file.id);
+    };
+
+    const removeFromValidationErrorQueue = (fileId: string) => {
+        setFilesViolatingRestriction((prevState) => prevState.filter((f) => f.id !== fileId));
     };
 
     const addInReplacementQueue = (file: UppyFile) => {
@@ -315,6 +337,9 @@ export function UploadNewFile(props: IProps) {
             <Spacing />
             {!error ? (
                 <>
+                    {filesViolatingRestriction.map((file) => (
+                        <RetryFileItem key={file.id} file={file} onCancelRetry={removeFromValidationErrorQueue} />
+                    ))}
                     {filesForRetry.map((file) => (
                         <RetryFileItem
                             key={file.id}

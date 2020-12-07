@@ -105,7 +105,7 @@
         "retryMessage": "Something going wrong during upload process for {{fileName}}",
         "selectFromProject": "Select file from projects",
         "successfullyUploaded": "{{uploadedName}} was successfully uploaded",
-        "uploadError": "An upload error has occurred for file {{fileName}}. Details: {{errorDetails}}",
+        "uploadError": "An upload error has occurred for file '{{fileName}}'. Details: {{errorDetails}}",
         "waitFor": "File '{{fileName}}' is being uploaded."
     },
     "Metadata": {
@@ -200,7 +200,7 @@
             "noTypes": "No types found",
             "serverError": "Server error"
         },
-        "legacyGui": {
+        "iframeWindow": {
             "Workflow editor": "Workflow editor",
             "Workflow report": "Workflow report",
             "Mapping editor": "Mapping editor",
@@ -208,7 +208,9 @@
             "Transform execution": "Transform execution",
             "Linking editor": "Linking editor",
             "Linking evaluation": "Linking evaluation",
-            "Linking execution": "Linking execution"
+            "Linking execution": "Linking execution",
+            "Reference links" : "Reference links",
+            "Learning": "Learning"
         },
         "sorter": {
             "recentlyViewed": "Recently viewed"
@@ -261,7 +263,7 @@
             "requestFailed": "Preview request failed",
             "server": "Server error",
             "timeout": "Timeout",
-            "networkFileUpload": "Can't upload the file, please check your connection and try again"
+            "networkFileUpload": "Can't upload file '{{fileName}}', please check your connection and try again"
         }
     },
     "navigation": {

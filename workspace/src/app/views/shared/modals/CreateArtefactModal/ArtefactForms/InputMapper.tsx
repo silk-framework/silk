@@ -8,6 +8,8 @@ import { FileUploader } from "../../../FileUploader/FileUploader";
 import { AppToaster } from "../../../../../services/toaster";
 import { requestResourcesList } from "@ducks/shared/requests";
 import { defaultValueAsJs, stringValueAsJs } from "../../../../../utils/transformers";
+import { useSelector } from "react-redux";
+import { commonSel } from "@ducks/common";
 
 interface IProps {
     projectId: string;
@@ -39,6 +41,7 @@ interface IInputAttributes {
 
 /** Maps an atomic value to the corresponding value type widget. */
 export function InputMapper({ projectId, parameter, intent, onChange, initialValues }: IProps) {
+    const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const { paramId, param } = parameter;
     const initialValue =
         initialValues[paramId] !== undefined
@@ -91,7 +94,8 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
                 <FileUploader
                     projectId={projectId}
                     advanced={true}
-                    allowMultiple={true}
+                    allowMultiple={false}
+                    maxFileUploadSizeBytes={maxFileUploadSize}
                     autocomplete={{
                         autoCompletion: {
                             allowOnlyAutoCompletedValues: true,
