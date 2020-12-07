@@ -105,7 +105,7 @@
         "retryMessage": "Something going wrong during upload process for {{fileName}}",
         "selectFromProject": "Select file from projects",
         "successfullyUploaded": "{{uploadedName}} was successfully uploaded",
-        "uploadError": "An upload error has occurred for file {{fileName}}. Details: {{errorDetails}}",
+        "uploadError": "An upload error has occurred for file '{{fileName}}'. Details: {{errorDetails}}",
         "waitFor": "File '{{fileName}}' is being uploaded."
     },
     "Metadata": {
@@ -263,7 +263,7 @@
             "requestFailed": "Preview request failed",
             "server": "Server error",
             "timeout": "Timeout",
-            "networkFileUpload": "Can't upload the file, please check your connection and try again"
+            "networkFileUpload": "Can't upload file '{{fileName}}', please check your connection and try again"
         }
     },
     "navigation": {
