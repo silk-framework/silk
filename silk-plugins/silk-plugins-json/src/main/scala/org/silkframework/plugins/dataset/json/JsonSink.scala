@@ -20,7 +20,10 @@ import org.json.XML
 import scala.collection.mutable
 import scala.xml.InputSource
 
-
+/**
+  * This is basically a copy of the XmlSink with some additional lines to convert the generated XML to JSON.
+  * In order to have more control over the generated JSON, this needs to be rewritten.
+  */
 class JsonSink (resource: WritableResource, outputTemplate: String = "<Result><?entity?></Result>", topLevelObject: Boolean) extends EntitySink {
 
   private var doc: Document = null
@@ -107,6 +110,7 @@ class JsonSink (resource: WritableResource, outputTemplate: String = "<Result><?
         val json = XML.toJSONObject(unwrapped)
         resource.writeString(json.toString(2), append = true)
         node = node.getNextSibling
+        resource.writeString(", ", append = true)
       }
       resource.writeString("]", append = true)
     }
@@ -203,7 +207,6 @@ class JsonSink (resource: WritableResource, outputTemplate: String = "<Result><?
           entityNode.appendChild(valueNode)
         }
       case _ if property.isAttribute =>
-//        setAttribute(entityNode, property.propertyUri, value)
       case _ if property.propertyUri == "#text" =>
         entityNode.setTextContent(value)
       case _ =>
@@ -222,18 +225,6 @@ class JsonSink (resource: WritableResource, outputTemplate: String = "<Result><?
       doc.createElement(uri)
     } else {
       doc.createElementNS(uri.substring(0, separatorIndex + 1), uri.substring(separatorIndex + 1))
-    }
-  }
-
-  /**
-   * Sets an attribute on a node using a URI.
-   */
-  private def setAttribute(node: Element, uri: String, value: String): Unit = {
-    val separatorIndex = uri.lastIndexWhere(c => c == '/' || c == '#')
-    if(separatorIndex == -1) {
-      node.setAttribute(uri, value)
-    } else {
-      node.setAttributeNS(uri.substring(0, separatorIndex + 1), uri.substring(separatorIndex + 1), value)
     }
   }
 }
