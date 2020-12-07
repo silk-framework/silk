@@ -22,7 +22,7 @@ case class JsonDataset(
   @deprecated("This will be removed in the next release.", "")
   @Param(label = "URI pattern (deprecated)", value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
   uriPattern: String = "",
-  @Param(label = "Output first entity as JSON object", value = "Specifies whether an Array or JSON objects is returned or a single object is returned for the first entity when writing to JSON files.")
+  @Param(label = "Output first entity as JSON object", value = "Specifies whether an Array or JSON objects is returned or a single object is returned for the first entity when writing to JSON files.", advanced = true)
   makeFirstEntityJsonObject: Boolean = false) extends Dataset with ResourceBasedDataset {
 
   override def source(implicit userContext: UserContext): DataSource = JsonSource(file, basePath, uriPattern)
