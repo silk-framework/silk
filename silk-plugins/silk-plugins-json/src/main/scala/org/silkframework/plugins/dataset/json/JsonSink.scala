@@ -110,7 +110,7 @@ class JsonSink (resource: WritableResource, outputTemplate: String = "<Result><?
         val json = XML.toJSONObject(unwrapped)
         resource.writeString(json.toString(2), append = true)
         node = node.getNextSibling
-        resource.writeString(", ", append = true)
+        //FIXME should separate array elements correctly: resource.writeString(", ", append = true)
       }
       resource.writeString("]", append = true)
     }
