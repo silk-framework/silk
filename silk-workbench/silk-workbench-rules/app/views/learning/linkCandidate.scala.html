@@ -6,6 +6,7 @@
 @import models.learning.PathValues
 @import org.silkframework.rule.LinkSpec
 @import org.silkframework.workbench.Context
+@import config.WorkbenchConfig
 
 @(link: Link, sourceValues: Seq[PathValues], targetValues: Seq[PathValues],context: Context[LinkSpec])
 
@@ -61,7 +62,8 @@
   }
 
   function done() {
-    window.location = "@routes.Learning.population(context.project.name, context.task.id).url"
+    const inlineView = (window.location !== window.parent.location) ? "true" : "false"
+    window.location = "@routes.Learning.population(context.project.name, context.task.id).url?inlineView=" + inlineView
   }
 
   function nextLinkCandidate(url, decision) {

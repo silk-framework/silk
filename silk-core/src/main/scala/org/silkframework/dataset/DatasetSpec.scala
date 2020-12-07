@@ -91,6 +91,8 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribut
     properties
   }
 
+  override def taskLinks: Seq[TaskLink] = plugin.datasetLinks
+
   override def withProperties(updatedProperties: Map[String, String])(implicit prefixes: Prefixes, resourceManager: ResourceManager): DatasetSpec[DatasetType] = {
     copy(plugin = plugin.withParameters(updatedProperties))
   }

@@ -90,7 +90,8 @@
           contentType: 'text/xml;charset=UTF-8',
           processData: false,
           success: function(response) {
-            window.location = '../editor';
+            const inlineView = (window.location !== window.parent.location) ? "true" : "false"
+            window.location = '../editor?inlineView=' + inlineView;
           },
           error: function(request) {
             alert(request.responseText);
