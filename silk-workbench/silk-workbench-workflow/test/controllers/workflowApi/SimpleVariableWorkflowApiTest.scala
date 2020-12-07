@@ -1,8 +1,10 @@
 package controllers.workflowApi
 
 import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils
+import controllers.workflowApi.workflow.WorkflowInfo
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import play.api.libs.ws.WSResponse
 import play.api.routing.Router
@@ -12,6 +14,10 @@ import scala.concurrent.Future
 class SimpleVariableWorkflowApiTest extends FlatSpec
     with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait with MustMatchers {
   behavior of "Simple variable workflow execution API"
+
+  private val variableInputDataset = "1e80c0ed-9ca9-4d67-8868-65f7655aa416_Variableinputdataset"
+  private val variableOutputDataset = "3a41ee9d-1ee7-4abe-9a62-603015abdb20_VariableOutput"
+  private val additionalVarDataset = "6bc6f320-7683-42f8-a6f5-dd580d6de160_Varibledatasetadditional"
 
   private val inputOnlyWorkflow = "7e4b3499-4743-40c7-81e6-72b33f34a496_Workflowinputonly"
   private val outputOnlyWorkflow = "67fe02eb-43a7-4b74-a6a2-c65a5c097636_Workflowoutputonly"
@@ -144,6 +150,31 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
     }
   }
 
+  it should "return the variable dataset info in the workflow info list" in {
+    workflowList() map { wi =>
+      (wi.label, wi.variableInputs, wi.variableOutputs)
+    } sortBy (_._1) mustBe Seq(
+      ("Broken Workflow", Seq(variableInputDataset), List(variableOutputDataset)),
+      ("Workflow", List(variableInputDataset), List(variableOutputDataset)),
+      ("Workflow input only", List(variableInputDataset), List()),
+      ("Workflow multiple of the same input and output", List(variableInputDataset), List(variableOutputDataset)),
+      ("Workflow output only", List(), List(variableOutputDataset)),
+      ("Workflow too many sinks", List(variableInputDataset), List(variableOutputDataset, additionalVarDataset)),
+      ("Workflow too many sources", List(variableInputDataset, additionalVarDataset), List(variableOutputDataset))
+    )
+  }
+
+  it should "return the variable dataset info in the workflow info" in {
+    workflowInfo(validVariableWorkflows.head) mustBe WorkflowInfo(
+      validVariableWorkflows.head,
+      "Workflow",
+      projectId,
+      "Simple variable workflow project",
+      List(variableInputDataset),
+      List(variableOutputDataset)
+    )
+  }
+
   // Checks if all input values exist in the workflow output
   private def checkForValues(targetPropNr: Int, values: Seq[String], body: String): Unit = {
     for (value <- values) {
@@ -169,6 +200,16 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
       case "text/comma-separated-values" | "text/csv" =>
         body must include(s"${targetProp(1)},${targetProp(2)}")
     }
+  }
+
+  private def workflowList(): Seq[WorkflowInfo] = {
+    val workflowInfoListRequest = request(controllers.workflowApi.routes.ApiWorkflowApi.workflowInfoList())
+    JsonHelpers.fromJsonValidated[Seq[WorkflowInfo]](checkResponse(workflowInfoListRequest.get()).json)
+  }
+
+  private def workflowInfo(workflowId: String): WorkflowInfo = {
+    val workflowInfoRequest = request(controllers.workflowApi.routes.ApiWorkflowApi.workflowInfo(projectId, workflowId))
+    JsonHelpers.fromJsonValidated[WorkflowInfo](checkResponse(workflowInfoRequest.get()).json)
   }
 
   // Executes a simple variable workflow
