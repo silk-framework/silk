@@ -151,7 +151,6 @@ export default function SuggestionList({rows, prefixList, onSwapAction, onAskDis
             paginate(ordered, pagination)
         );
 
-        console.log('Suggestions', arr);
     }, [rows]);
 
     const updateRelations = (source, targets: ITargetWithSelected[]) => {

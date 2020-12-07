@@ -7,7 +7,8 @@ import {
     GridRow,
     Section,
     SectionHeader,
-    TitleMainsection
+    TitleMainsection,
+    Notification
 } from "@gui-elements/index";
 import { TableContainer } from 'carbon-components-react';
 import SuggestionList from "./SuggestionList";
@@ -38,7 +39,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     const [warnings, setWarnings] = useState<string[]>([]);
 
-    const [error, setError] = useState<any>({});
+    const [error, setError] = useState<any[]>([]);
 
     const [data, setData] = useState<ITransformedSuggestion[]>([]);
 
@@ -65,6 +66,8 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     const handleSwapAction = () => {
         setIsFromDataset(!isFromDataset);
 
+        setError([]);
+
         loadData(!isFromDataset);
     };
 
@@ -77,15 +80,17 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
             nrCandidates: 20,
         }).subscribe(
             ({suggestions, warnings}) => {
-                setWarnings(
-                    warnings.filter(value => !_.isEmpty(value))
-                );
+                if (warnings.length) {
+                    setError([
+                        ...error,
+                        ...warnings
+                    ]);
+                }
                 setData(suggestions);
                 handleFilter(suggestions);
                 setLoading(false);
             },
-            err => {
-                setError(err);
+            () => {
                 setLoading(false);
             }
         );
@@ -97,7 +102,10 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                 setExampleValues(data);
             },
             err => {
-                setError(err)
+                setError([
+                    ...error,
+                    err,
+                ]);
             }
         );
     };
@@ -112,13 +120,18 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                 setPrefixList(arr);
             },
             err => {
-                setError(err);
+                setError([
+                    ...error,
+                    err,
+                ]);
             }
         )
     };
 
     const handleAdd = (selectedRows: IAddedSuggestion[], selectedPrefix?: string) => {
         setLoading(true);
+
+        setError([]);
 
         const correspondences = selectedRows
             .map(suggestion => {
@@ -189,6 +202,20 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                 </Grid>
             </SectionHeader>
             <Divider addSpacing="medium"/>
+            {
+                !!error.length && <Notification danger>
+                    <ul>
+                    {
+                        error.map(err => <>
+                            <li key={err.detail}>
+                                <h3>{err.title}</h3>
+                                <p>{err.detail}</p>
+                            </li>
+                        </>)
+                    }
+                    </ul>
+                </Notification>
+            }
             <TableContainer>
                 <div ref={portalContainerRef}>
                     <SuggestionListContext.Provider value={{

@@ -337,28 +337,29 @@ export const getSuggestionsAsync = data => {
             }),
         (vocabDatasetsResponse, sourcePathsResponse) => {
             const suggestions = [];
-            vocabDatasetsResponse.data.map(match => {
-                const {uri: sourceUri, description, label, candidates} = match;
-                suggestions.push({
-                    source: sourceUri,
-                    candidates,
-                    description,
-                    label
+            if (vocabDatasetsResponse.data) {
+                vocabDatasetsResponse.data.map(match => {
+                    const {uri: sourceUri, description, label, candidates} = match;
+                    suggestions.push({
+                        source: sourceUri,
+                        candidates,
+                        description,
+                        label
+                    });
                 });
-            });
-            
-            if (data.matchFromDataset) {
-                sourcePathsResponse.data.forEach(sourcePath => {
-                    const isExists = suggestions.some(suggestion => suggestion.source === sourcePath);
-                    if (!isExists) {
-                        suggestions.push({
-                            source: sourcePath,
-                            candidates: []
-                        });
-                    }
-                });
+    
+                if (data.matchFromDataset) {
+                    sourcePathsResponse.data.forEach(sourcePath => {
+                        const isExists = suggestions.some(suggestion => suggestion.source === sourcePath);
+                        if (!isExists) {
+                            suggestions.push({
+                                source: sourcePath,
+                                candidates: []
+                            });
+                        }
+                    });
+                }
             }
-            
             return {
                 suggestions,
                 warnings: _.filter([vocabDatasetsResponse.error, sourcePathsResponse.error], e => !_.isUndefined(e)),
