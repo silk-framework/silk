@@ -38,10 +38,10 @@ class JsonSinkTest extends FlatSpec with Matchers {
     inputEntites.size shouldBe 3
     tempFile.exists() shouldBe(true)
     lines.shouldBe(
-      """[{"value": "val"}{
+      """[{"value": "val"}, {
         |  "boolean": true,
         |  "value": "val2"
-        |}{
+        |}, {
         |  "boolean": true,
         |  "value": "val3"
         |}]""".stripMargin
@@ -96,11 +96,11 @@ class JsonSinkTest extends FlatSpec with Matchers {
     inputEntites.size shouldBe 3
     tempFile.exists() shouldBe(true)
     lines.shouldBe(
-     """[{}{"array": [
+     """[{}, {"array": [
        |  1,
        |  2,
        |  3
-       |]}{"array": [
+       |]}, {"array": [
        |  1,
        |  2,
        |  3
@@ -182,7 +182,7 @@ class JsonSinkTest extends FlatSpec with Matchers {
                    |      "LastName": "Stein"
                    |    }
                    |  ]
-                   |}{
+                   |}, {
                    |  "Year": 1990,
                    |  "Name": {
                    |    "FirstName": "Max",
