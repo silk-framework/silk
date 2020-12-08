@@ -76,7 +76,10 @@ export function RecentlyViewedModal() {
 
     useHotKey({
         hotkey: hotKeys.quickSearch,
-        handler: () => setIsOpen(true),
+        handler: () => {
+            setIsOpen(true);
+            return false; // prevent default
+        },
     });
     const close = () => {
         setRecentItems([]);

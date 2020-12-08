@@ -65,14 +65,17 @@ export function CreateArtefactModal() {
         error,
     }: IArtefactModal = modalStore;
 
-    // initially take from redux
-    const [selected, setSelected] = useState<IArtefactItem | undefined>(selectedArtefact);
+    // The artefact that is selected from the artefact selection list. This can be pre-selected via the Redux state.
+    // A successive 'Add' action will open die creation dialog for this artefact.
+    const [toBeAdded, setToBeAdded] = useState<IArtefactItem | undefined>(selectedArtefact);
     const [lastSelectedClick, setLastSelectedClick] = useState<number>(0);
     const [isProjectImport, setIsProjectImport] = useState<boolean>(false);
     const DOUBLE_CLICK_LIMIT_MS = 500;
 
-    const selectedArtefactKey: string | undefined = selected?.key;
-    const selectedArtefactTitle: string | undefined = selected?.title;
+    const selectedArtefactKey: string | undefined = selectedArtefact?.key;
+    const selectedArtefactTitle: string | undefined = selectedArtefact?.title;
+
+    const toBeAddedKey: string | undefined = toBeAdded?.key;
 
     // Fetch Artefact list
     useEffect(() => {
@@ -84,10 +87,10 @@ export function CreateArtefactModal() {
     }, [projectId]);
 
     const handleAdd = () => {
-        if (selectedArtefactKey === DATA_TYPES.PROJECT) {
-            return dispatch(commonOp.selectArtefact(selected));
+        if (toBeAddedKey === DATA_TYPES.PROJECT) {
+            return dispatch(commonOp.selectArtefact(toBeAdded));
         }
-        dispatch(commonOp.getArtefactPropertiesAsync(selected));
+        dispatch(commonOp.getArtefactPropertiesAsync(toBeAdded));
     };
 
     const handleSearch = (textQuery: string) => {
@@ -102,15 +105,16 @@ export function CreateArtefactModal() {
         );
     };
 
+    // Handles that an artefact is selected (highlighted) in the artefact selection list (not added, yet    )
     const handleArtefactSelect = (artefact: IArtefactItem) => {
         if (
-            selectedArtefactKey === artefact.key &&
+            toBeAddedKey === artefact.key &&
             lastSelectedClick &&
             Date.now() - lastSelectedClick < DOUBLE_CLICK_LIMIT_MS
         ) {
             handleAdd();
         } else {
-            setSelected(artefact);
+            setToBeAdded(artefact);
         }
         setLastSelectedClick(Date.now);
     };
@@ -122,7 +126,7 @@ export function CreateArtefactModal() {
     };
 
     const handleEnter = (e) => {
-        if (e.key === "Enter" && selected) {
+        if (e.key === "Enter" && toBeAdded) {
             handleAdd();
         }
     };
@@ -183,7 +187,7 @@ export function CreateArtefactModal() {
 
     const resetModal = (closeModal?: boolean) => {
         setIsProjectImport(false);
-        setSelected({} as IArtefactItem);
+        setToBeAdded(undefined);
         form.clearError();
         dispatch(commonOp.resetArtefactModal(closeModal));
     };
@@ -261,9 +265,9 @@ export function CreateArtefactModal() {
 
     // If search is active pre-select first item in (final) list
     useEffect(() => {
-        setSelected({} as IArtefactItem);
+        setToBeAdded(undefined);
         if (artefactListWithProject.length > 0 && searchValue) {
-            setSelected(artefactListWithProject[0]);
+            setToBeAdded(artefactListWithProject[0]);
         }
     }, [artefactListWithProject.map((item) => item.key).join("|"), selectedDType]);
 
@@ -314,12 +318,7 @@ export function CreateArtefactModal() {
                     )
                 ) : (
                     [
-                        <Button
-                            key="add"
-                            affirmative={true}
-                            onClick={handleAdd}
-                            disabled={!Object.keys(selected).length}
-                        >
+                        <Button key="add" affirmative={true} onClick={handleAdd} disabled={!selectedArtefactKey}>
                             {t("common.action.add")}
                         </Button>,
                         <Button key="cancel" onClick={closeModal}>
@@ -375,9 +374,7 @@ export function CreateArtefactModal() {
                                                     isOnlyLayout
                                                     key={artefact.key}
                                                     className={
-                                                        selectedArtefactKey === artefact.key
-                                                            ? HelperClasses.Intent.ACCENT
-                                                            : ""
+                                                        toBeAddedKey === artefact.key ? HelperClasses.Intent.ACCENT : ""
                                                     }
                                                 >
                                                     <OverviewItem
