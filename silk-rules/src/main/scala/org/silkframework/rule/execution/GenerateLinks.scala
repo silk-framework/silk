@@ -19,6 +19,7 @@ import java.util.UUID
 import java.util.logging.{LogRecord, Logger}
 
 import org.silkframework.cache.{EntityCache, FileEntityCache, MemoryEntityCache}
+import org.silkframework.config.Task
 import org.silkframework.dataset.{DataSource, LinkSink}
 import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.rule.execution.rdb.RDBEntityIndex
@@ -32,13 +33,14 @@ import scala.util.Try
 /**
  * Main task to generate links.
  */
-class GenerateLinks(id: Identifier,
-                    label: String,
+class GenerateLinks(task: Task[LinkSpec],
                     inputs: DPair[DataSource],
-                    linkSpec: LinkSpec,
                     output: Option[LinkSink],
                     runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig()) extends Activity[Linking] {
+
   private val log: Logger = Logger.getLogger(this.getClass.getName)
+
+  private def linkSpec = task.data
 
   /** The warnings which occurred during execution */
   @volatile private var warningLog: Seq[LogRecord] = Seq.empty
@@ -55,12 +57,12 @@ class GenerateLinks(id: Identifier,
    */
   def warnings: Seq[LogRecord] = warningLog
 
-  override def initialValue = Some(Linking(label, rule = linkSpec.rule))
+  override def initialValue = Some(Linking(task))
 
   //noinspection ScalaStyle
   override def run(context: ActivityContext[Linking])
                   (implicit userContext: UserContext): Unit = {
-    context.value.update(Linking(label, rule = linkSpec.rule))
+    context.value.update(Linking(task))
 
     warningLog = CollectLogs() {
       if(RDBEntityIndex.configured() && runtimeConfig.executionBackend == LinkingExecutionBackend.rdb && false) { //FIXME CMEM-1408: Remove false to enable RDB feature
@@ -92,7 +94,7 @@ class GenerateLinks(id: Identifier,
     // Execute matching
     val sourceEqualsTarget = false // FIXME: CMEM-1975: Fix heuristic for this particular matching optimization
     val matcher = context.child(new Matcher(loaders, linkSpec.rule, caches, runtimeConfig, sourceEqualsTarget), 0.95)
-    val updateLinks = (links: Seq[Link]) => context.value.update(Linking(label, linkSpec.rule, links, LinkingStatistics(entityCount = caches.map(_.size))))
+    val updateLinks = (links: Seq[Link]) => context.value.update(Linking(task, links, LinkingStatistics(entityCount = caches.map(_.size))))
     matcher.value.subscribe(updateLinks)
     children ::= matcher
     matcher.startBlocking()
@@ -119,7 +121,7 @@ class GenerateLinks(id: Identifier,
       }
       filteredLinks = filteredLinks.take(linkLimit)
     }
-    context.value.update(Linking(label, linkSpec.rule, filteredLinks, context.value().statistics))
+    context.value.update(Linking(task, filteredLinks, context.value().statistics))
 
     //Output links
     // TODO dont commit links to context if the task is not configured to hold links
@@ -130,7 +132,7 @@ class GenerateLinks(id: Identifier,
 
   private def logStatistics(context: ActivityContext[Linking]): Unit = {
     val result = context.value()
-    log.info(s"Linking task '$id' finished generating ${result.links.size} link/s having loaded " +
+    log.info(s"Linking task '${task.id}' finished generating ${result.links.size} link/s having loaded " +
         s"${result.statistics.entityCount.source} source entities and ${result.statistics.entityCount.target} target entities.")
   }
 
@@ -177,7 +179,7 @@ class GenerateLinks(id: Identifier,
     val sourceSchema = comparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entityDescs.source, linkSpec.rule, sourceOrTarget = true)
     val targetSchema = comparisonToRestrictionConverter.extendEntitySchemaWithLinkageRuleRestriction(entityDescs.target, linkSpec.rule, sourceOrTarget = false)
     if (runtimeConfig.useFileCache) {
-      val cacheDir = new File(runtimeConfig.homeDir + "/entityCache/" + id + UUID.randomUUID().toString)
+      val cacheDir = new File(runtimeConfig.homeDir + "/entityCache/" + task.id + UUID.randomUUID().toString)
 
       DPair(
         source = new FileEntityCache(sourceSchema, sourceIndexFunction, cacheDir + "_source/", runtimeConfig),

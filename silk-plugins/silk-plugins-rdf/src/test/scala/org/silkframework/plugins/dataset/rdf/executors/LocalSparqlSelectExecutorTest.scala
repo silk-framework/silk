@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf.executors
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.scalatestplus.mockito.MockitoSugar
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.{PlainTask, Task, TaskSpec}
 import org.silkframework.dataset.rdf._
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
@@ -22,8 +22,8 @@ class LocalSparqlSelectExecutorTest extends FlatSpec
   it should "not run out of memory and fetch first entity immediately on large result sets" in {
     val quickReactionTime = 500 // quick in the sense that it won't take too long even on a heavy-loaded CI system
     val activityContextMock = TestMocks.activityContextMock()
-    val reportUpdater = SparqlSelectExecutionReportUpdater("task", activityContextMock)
     val task = SparqlSelectCustomTask(MultilineStringParameter("SELECT * WHERE {?s ?p ?o}"))
+    val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), activityContextMock)
     val sparqlEndpoint = new SparqlEndpoint {
       override def sparqlParams: SparqlParams = ???
       override def withSparqlParams(sparqlParams: SparqlParams): SparqlEndpoint = ???
@@ -53,7 +53,7 @@ class LocalSparqlSelectExecutorTest extends FlatSpec
     val task = SparqlSelectCustomTask(MultilineStringParameter("SELECT * WHERE {?s ?p ?o}"), sparqlTimeout = timeout)
     var correctTimeout = false
     val activityContextMock = TestMocks.activityContextMock()
-    val reportUpdater = SparqlSelectExecutionReportUpdater("task", activityContextMock)
+    val reportUpdater = SparqlSelectExecutionReportUpdater(PlainTask("task", task), activityContextMock)
     val sparqlEndpoint = sparqlEndpointStub(selectCallback = endpoint => {
       correctTimeout = endpoint.sparqlParams.timeout.contains(timeout)
     })

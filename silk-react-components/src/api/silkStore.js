@@ -16,7 +16,7 @@ const silkStore = {
     /**
      * Retrieves a workflow task execution report.
      */
-    getWorkflowExecutionReport: (baseUrl, projectId, taskId) => {
+    getCurrentWorkflowExecutionReport: (baseUrl, projectId, taskId) => {
         return silkApi.activityResult(baseUrl, projectId, taskId, "ExecuteLocalWorkflow")
             .then(({data}) => {
                 return data;
@@ -43,6 +43,26 @@ const silkStore = {
         };
 
         return silkApi.completions(baseUrl, projectId, scriptTaskId, requestJson)
+    },
+
+    /**
+     * Retrieves a list of all available reports.
+     */
+    listExecutionReports: (baseUrl, projectId, taskId) => {
+        return silkApi.listReports(baseUrl, projectId, taskId)
+            .then(({data}) => {
+                return data;
+            });
+    },
+
+    /**
+     * Retrieves a single report.
+     */
+    retrieveExecutionReport: (baseUrl, projectId, taskId, time) => {
+        return silkApi.retrieveReport(baseUrl, projectId, taskId, time)
+            .then(({data}) => {
+                return data;
+            });
     },
 
     /**

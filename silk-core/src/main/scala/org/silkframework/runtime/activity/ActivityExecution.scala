@@ -1,11 +1,11 @@
 package org.silkframework.runtime.activity
 
+import java.time.Instant
 import java.util.concurrent.ForkJoinPool.ManagedBlocker
 import java.util.concurrent._
 
 import org.silkframework.runtime.activity.Status.{Canceling, Finished}
 import org.silkframework.runtime.execution.Execution
-import org.silkframework.runtime.execution.Execution.PrefixedThreadFactory
 
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 import scala.util.Try
@@ -33,10 +33,10 @@ private class ActivityExecution[T](activity: Activity[T],
   private var forkJoinRunner: Option[ForkJoinRunner] = None
 
   @volatile
-  private var startTimestamp: Option[Long] = None
+  private var startTimestamp: Option[Instant] = None
 
   @volatile
-  private var cancelTimestamp: Option[Long] = None
+  private var cancelTimestamp: Option[Instant] = None
 
   // Locks the access to the runningThread variable
   private object ThreadLock
@@ -44,7 +44,7 @@ private class ActivityExecution[T](activity: Activity[T],
   @volatile
   private var runningThread: Option[Thread] = None
 
-  override def startTime: Option[Long] = startTimestamp
+  override def startTime: Option[Instant] = startTimestamp
 
   override def start()(implicit user: UserContext): Unit = {
     // Check if the current activity is still running
@@ -85,7 +85,7 @@ private class ActivityExecution[T](activity: Activity[T],
   override def cancel()(implicit user: UserContext): Unit = {
     if (status().isRunning && !status().isInstanceOf[Status.Canceling]) {
       this.cancelledByUser = user
-      this.cancelTimestamp = Some(System.currentTimeMillis())
+      this.cancelTimestamp = Some(Instant.now)
       status.update(Status.Canceling(status().progress))
       children().foreach(_.cancel())
       activity.cancelExecution()
@@ -143,7 +143,7 @@ private class ActivityExecution[T](activity: Activity[T],
     activity.resetCancelFlag()
     if (!parent.exists(_.status().isInstanceOf[Canceling])) {
       val startTime = System.currentTimeMillis()
-      startTimestamp = Some(startTime)
+      startTimestamp = Some(Instant.ofEpochMilli(startTime))
       try {
         activity.run(this)
         status.update(Status.Finished(success = true, System.currentTimeMillis - startTime, cancelled = activity.wasCancelled()))
@@ -173,7 +173,7 @@ private class ActivityExecution[T](activity: Activity[T],
       metaData = ActivityExecutionMetaData(
         startedByUser = startedByUser.user,
         startedAt = startTimestamp,
-        finishedAt = Some(System.currentTimeMillis()),
+        finishedAt = Some(Instant.now),
         cancelledAt = cancelTimestamp,
         cancelledBy = cancelledByUser.user,
         finishStatus = status.get

@@ -1,5 +1,8 @@
 package org.silkframework.serialization.json
 
+import java.time.Instant
+import java.time.format.DateTimeParseException
+
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.ValidationException
@@ -110,6 +113,22 @@ object JsonHelpers {
         Some(BigDecimal(value))
       case Some(_) =>
         throw JsonParseException("Value for attribute '" + attributeName + "' is not a number!")
+      case None =>
+        None
+    }
+  }
+
+  def instantValueOption(json: JsValue, attributeName: String): Option[Instant] = {
+    optionalValue(json, attributeName) match {
+      case Some(JsString(value)) =>
+        try {
+          Some(Instant.parse(value))
+        } catch {
+          case ex: DateTimeParseException =>
+            throw JsonParseException(s"Value for attribute '$attributeName' is no valid ISO-8601 instant (e.g., 2020-12-03T10:15:30.00Z)", Some(ex))
+        }
+      case Some(_) =>
+        throw JsonParseException("Value for attribute '" + attributeName + "' must a string.")
       case None =>
         None
     }

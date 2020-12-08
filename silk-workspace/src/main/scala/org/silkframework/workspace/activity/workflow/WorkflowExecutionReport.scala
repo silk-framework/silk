@@ -1,12 +1,19 @@
 package org.silkframework.workspace.activity.workflow
 
+import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.util.Identifier
 
-case class WorkflowExecutionReport(label: String, taskReports: Map[Identifier, ExecutionReport] = Map.empty) extends ExecutionReport {
+/**
+  * A workflow execution report.
+  *
+  * @param task The workflow that was executed
+  * @param taskReports A map from each workflow operator id to its corresponding report
+  */
+case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: Map[Identifier, ExecutionReport] = Map.empty) extends ExecutionReport {
 
-  def withReport(taskId: String, executionReport: ExecutionReport): WorkflowExecutionReport = {
-    copy(taskReports = taskReports + ((taskId, executionReport)))
+  def withReport(nodeId: String, executionReport: ExecutionReport): WorkflowExecutionReport = {
+    copy(taskReports = taskReports + ((nodeId, executionReport)))
   }
 
   override def summary: Seq[(String, String)] = Seq.empty

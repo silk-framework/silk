@@ -3,6 +3,7 @@ package org.silkframework.execution
 import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
 import java.time.{Instant, OffsetDateTime, ZoneOffset}
 
+import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.ActivityContext
 
 /**
@@ -11,8 +12,8 @@ import org.silkframework.runtime.activity.ActivityContext
 trait ExecutionReportUpdater {
 
   final val DEFAULT_DELAY_BETWEEN_UPDATES = 1000
-  /** The label of the task as it will be displayed in the execution report. */
-  def taskLabel: String
+  /** The task that has been executed. */
+  def task: Task[TaskSpec]
   /** The activity context of the task that is executed */
   def context: ActivityContext[ExecutionReport]
   /** What does the task emit, e.g. "entity", "query" etc. */
@@ -28,6 +29,7 @@ trait ExecutionReportUpdater {
   private var startFirstEntity: Option[Long] = None
   private var lastUpdate = 0L
   private var entitiesEmitted = 0
+  private var numberOfExecutions = 0
 
   def additionalFields(): Seq[(String, String)] = Seq.empty
 
@@ -39,11 +41,18 @@ trait ExecutionReportUpdater {
     entitiesEmitted += 1
   }
 
-  private val dateTimeFormatter: DateTimeFormatter = new DateTimeFormatterBuilder().appendPattern("yyyy-MM-dd'T'HH:mm:ssZ").toFormatter
+  /**
+    * Finishes execution of the operator and updates the report.
+    * A operator may be run multiple times within one workflow execution.
+    */
+  def executionDone(): Unit = {
+    numberOfExecutions += 1
+    update(force = true, addEndTime = true)
+  }
 
   protected def formatDateTime(timestamp: Long): String = {
     val instant = Instant.ofEpochMilli(timestamp)
-    dateTimeFormatter.format(OffsetDateTime.ofInstant(instant, ZoneOffset.UTC))
+    DateTimeFormatter.ISO_INSTANT.format(instant)
   }
 
   // Runtime in ms
@@ -65,15 +74,16 @@ trait ExecutionReportUpdater {
         "Started" -> formatDateTime(start),
         "Runtime" -> s"${runtime.toDouble / 1000} seconds",
         s"$entityLabelPlural / second" -> (if (runtime <= 0) "-" else throughput.formatted("%.3f")),
-        s"Nr. of ${entityLabelPlural.toLowerCase} $entityProcessVerb" -> entitiesEmitted.toString
+        s"No. of ${entityLabelPlural.toLowerCase} $entityProcessVerb" -> entitiesEmitted.toString
       ) ++
           Seq("Finished" -> formatDateTime(System.currentTimeMillis())).filter(_ => addEndTime) ++
           startFirstEntity.toSeq.map(firstEntityStart =>
             s"First ${entityLabelSingle.toLowerCase} $entityProcessVerb at" -> formatDateTime(firstEntityStart)) ++
           startFirstEntity.toSeq.map(firstEntityStart =>
             s"Runtime since first ${entityLabelSingle.toLowerCase} $entityProcessVerb" -> s"${(firstEntityStart - start).toDouble / 1000} seconds") ++
+          Seq("Number of executions" -> numberOfExecutions.toString).filter(_ => numberOfExecutions > 0) ++
           additionalFields()
-      context.value.update(SimpleExecutionReport(taskLabel, stats, Seq.empty))
+      context.value.update(SimpleExecutionReport(task, stats, Seq.empty))
       lastUpdate = System.currentTimeMillis()
     }
   }

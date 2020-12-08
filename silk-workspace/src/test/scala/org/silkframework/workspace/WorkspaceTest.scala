@@ -1,5 +1,6 @@
 package org.silkframework.workspace
 
+import java.time.Instant
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.scalatest.{FlatSpec, MustMatchers}
@@ -106,13 +107,13 @@ object WorkspaceTest {
   class TestWorkspaceProvider(loadTimePause: Int) extends InMemoryWorkspaceProvider {
 
     // The timestamp when projects have been loaded the last time
-    var projectTime: Long = 0
+    var projectTime: Instant = Instant.EPOCH
 
     // The timestamps when the tasks for each project have been loaded
-    var taskReadTimes: ListMap[String, Long] = ListMap.empty
+    var taskReadTimes: ListMap[String, Instant] = ListMap.empty
 
     override def readProjects()(implicit user: UserContext): Seq[ProjectConfig] = {
-      projectTime = System.currentTimeMillis()
+      projectTime = Instant.now
       super.readProjects()
     }
 
@@ -120,14 +121,14 @@ object WorkspaceTest {
                                                     (implicit user: UserContext): Seq[Task[T]] = {
       val tasks = super.readTasks(project, projectResources)
       Thread.sleep(loadTimePause)
-      taskReadTimes += ((project, System.currentTimeMillis()))
+      taskReadTimes += ((project, Instant.now))
       tasks
     }
     override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
                                                         (implicit user: UserContext): Seq[Either[Task[T], TaskLoadingError]] = {
       val tasks = super.readTasksSafe(project, projectResources)
       Thread.sleep(loadTimePause)
-      taskReadTimes += ((project, System.currentTimeMillis()))
+      taskReadTimes += ((project, Instant.now))
       tasks
     }
   }

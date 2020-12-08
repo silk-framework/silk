@@ -1,5 +1,6 @@
 package org.silkframework.learning.active.poolgenerator
 
+import org.silkframework.config.PlainTask
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.learning.active.UnlabeledLinkPool
@@ -27,7 +28,7 @@ class LinkSpecLinkPoolGenerator(maxLinks: Int = LinkSpecLinkPoolGenerator.defaul
 
     override def run(context: ActivityContext[UnlabeledLinkPool])(implicit userContext: UserContext): Unit = {
       val entitySchemata = entitySchema(linkSpec, paths)
-      val generateLinks = new GenerateLinks("PoolGenerator", "Pool Generator", inputs, linkSpec, None, runtimeConfig) {
+      val generateLinks = new GenerateLinks(PlainTask("PoolGenerator", linkSpec), inputs, None, runtimeConfig) {
         override def entityDescs = entitySchemata
       }
 
