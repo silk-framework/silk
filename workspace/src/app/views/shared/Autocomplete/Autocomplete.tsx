@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { HTMLInputProps, IInputGroupProps } from "@blueprintjs/core";
-import { MenuItem, Suggest } from "@gui-elements/index";
+import { MenuItem, Suggest, Highlighter, IconButton } from "@gui-elements/index";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
-import { Highlighter } from "../Highlighter/Highlighter";
-import IconButton from "@gui-elements/src/components/Icon/IconButton";
 import { useTranslation } from "react-i18next";
 
 type SearchFunction<T extends any> = (value: string) => T[];
