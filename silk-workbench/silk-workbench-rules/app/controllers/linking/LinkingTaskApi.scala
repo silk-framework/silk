@@ -299,11 +299,6 @@ class LinkingTaskApi @Inject() () extends InjectedController {
     val task = project.task[LinkSpec](taskName)
     val learningActivity = task.activity[ActiveLearning]
 
-    if(task.data.referenceLinks.unlabeled.isEmpty) {
-      val updatedReferenceLinks = task.data.referenceLinks.copy(unlabeled = learningActivity.value().pool.links.toSet)
-      task.update(task.data.copy(referenceLinks = updatedReferenceLinks))
-    }
-
     learningActivity.control.start()
     Ok
   }
