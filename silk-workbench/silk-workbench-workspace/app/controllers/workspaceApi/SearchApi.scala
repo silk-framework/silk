@@ -64,7 +64,12 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
           "projectId" -> JsString(item.projectId),
           "projectLabel" -> JsString(project.config.metaData.label),
           "itemType" -> JsString(itemType.id),
-          "itemLinks" -> Json.toJson(ItemType.itemTypeLinks(itemType, project.name, taskOpt.map(_.id.toString).getOrElse(project.name.toString)))
+          "itemLinks" -> Json.toJson(ItemType.itemTypeLinks(
+            itemType,
+            project.name,
+            taskOpt.map(_.id.toString).getOrElse(project.name.toString),
+            taskOpt.map(_.data)
+          ))
         ) ++ taskData.toSeq.flatten))
       }
     }

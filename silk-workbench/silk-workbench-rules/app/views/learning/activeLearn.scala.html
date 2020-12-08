@@ -29,10 +29,6 @@
     var apiUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.id/referenceLink';
     var taskUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.id';
 
-    function back() {
-      window.location = "@config.baseUrl/linking/@context.project.name/@context.task.id/learnStart"
-    }
-
     function showLinkCandidate() {
       // Show pending icon
       $('#link-candidate-wrapper').html('<img src="@Assets.at("img/pending.gif")" ></img>');
@@ -66,9 +62,6 @@
   <ul>
     <li>
       @taskActivityControl(context.task.activity[ActiveLearning])
-    </li>
-    <li>
-      <button class="mdl-button mdl-js-button mdl-button--raised" onclick="back()">Back</button>
     </li>
     <li>
       <button class="mdl-button mdl-js-button mdl-button--raised" onclick="showDialog('@routes.Learning.resetActiveLearningDialog(context.project.name, context.task.id)')">Reset</button>
