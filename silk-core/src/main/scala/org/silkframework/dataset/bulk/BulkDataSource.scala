@@ -84,9 +84,13 @@ class BulkDataSource(bulkContainerName: String,
     val entities =
       new Traversable[Entity] {
         override def foreach[U](emitEntity: Entity => U): Unit = {
-          sources foreach { dataSource =>
+          var count = 0
+          for(dataSource <- sources) {
             handleSourceError(dataSource) { source =>
-              source.retrieve(entitySchema, limit).entities foreach emitEntity
+              for(entity <- source.retrieve(entitySchema, limit.map(_ - count)).entities) {
+                emitEntity(entity)
+                count += 1
+              }
             }
           }
         }
