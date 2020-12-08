@@ -4,8 +4,13 @@ jdk:
   - openjdk8
 scala:
   - 2.11.12
-node_js:
-  - 12
+
+jobs:
+  include:
+    - language: node_js
+      node_js: 12
+      script:
+        - node -e "console.log('Hi from NodeJS!')"
 
 notifications:
   email:
