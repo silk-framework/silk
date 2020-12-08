@@ -110,7 +110,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                     );
                     // Set default value
                     let currentValue = value;
-                    if (updateTask) {
+                    if (updateTask && parameterValues[paramId] !== undefined) {
                         // Set existing value
                         currentValue = parameterValues[paramId].value;
                     }
