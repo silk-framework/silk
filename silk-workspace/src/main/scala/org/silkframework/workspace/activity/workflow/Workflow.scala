@@ -148,7 +148,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     if (bothInAndOut.nonEmpty) {
       throw new scala.Exception("Cannot use variable dataset as input AND output! Affected datasets: " + bothInAndOut.mkString(", "))
     }
-    AllVariableDatasets(variableDatasetsUsedInInput, variableDatasetsUsedInOutput)
+    AllVariableDatasets(variableDatasetsUsedInInput.distinct, variableDatasetsUsedInOutput.distinct)
   }
 
   /** Returns all Dataset tasks that are used as input in the workflow */

@@ -30,3 +30,5 @@ es5/
 
 dist/
 !Makefile
+
+yarn.lock

@@ -26,7 +26,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
     }
     val outputSchema = output.requestedSchema.getOrElse(task.outputSchema)
     val transformContext = context.asInstanceOf[ActivityContext[TransformReport]]
-    transformContext.value() = TransformReport(task.taskLabel())
+    transformContext.value() = TransformReport(task)
     input match {
       case mt: MultiEntityTable =>
         val outputTable = mutable.Buffer[LocalEntities]()
@@ -55,7 +55,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
       // Add input errors to transformation report
       context.value() = context.value().copy(globalErrors = context.value().globalErrors ++ inputTable.globalErrors)
 
-      val transformedEntities = new TransformedEntities(task.taskLabel(), inputTable.entities, rules, outputSchema,
+      val transformedEntities = new TransformedEntities(task, inputTable.entities, rules, outputSchema,
         isRequestedSchema = output.requestedSchema.isDefined, context = context)
       outputTables.append(GenericEntityTable(transformedEntities, outputSchema, task))
 

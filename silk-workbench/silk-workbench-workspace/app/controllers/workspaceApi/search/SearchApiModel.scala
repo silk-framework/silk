@@ -404,7 +404,7 @@ object SearchApiModel {
   }
 
   private def label(project: Project): String = {
-    if(project.config.metaData.label.trim.isEmpty) {
+    if(project.config.metaData.label.trim.nonEmpty) {
       project.config.metaData.label.trim
     } else {
       project.name
