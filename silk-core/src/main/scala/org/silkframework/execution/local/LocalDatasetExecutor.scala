@@ -3,7 +3,7 @@ package org.silkframework.execution.local
 import java.util
 import java.util.logging.{Level, Logger}
 
-import org.silkframework.config.{Prefixes, Task}
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetSpec}
 import org.silkframework.dataset.rdf._
 import org.silkframework.dataset._
@@ -13,6 +13,7 @@ import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 import CloseableDataset.using
+
 import scala.util.control.NonFatal
 
 /**
@@ -42,8 +43,9 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case DatasetResourceEntitySchema.schema =>
         handleDatasetResourceEntitySchema(dataset)
       case _ =>
+        implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context)
         val table = source.retrieve(entitySchema = schema)
-        GenericEntityTable(table.entities, entitySchema = schema, dataset, table.globalErrors)
+        GenericEntityTable(ReportingTraversable(table.entities), entitySchema = schema, dataset, table.globalErrors)
     }
   }
 
@@ -63,14 +65,15 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def handleMultiEntitySchema(dataset: Task[DatasetSpec[Dataset]], source: DataSource, schema: EntitySchema, multi: MultiEntitySchema)
-                                     (implicit userContext: UserContext)= {
+                                     (implicit userContext: UserContext, context: ActivityContext[ExecutionReport])= {
+    implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context)
     val table = source.retrieve(entitySchema = schema)
     MultiEntityTable(
-      entities = table.entities,
+      entities = ReportingTraversable(table.entities),
       entitySchema = schema,
       subTables =
           for (subSchema <- multi.subSchemata) yield
-            GenericEntityTable(source.retrieve(entitySchema = subSchema).entities, subSchema, dataset),
+            GenericEntityTable(ReportingTraversable(source.retrieve(entitySchema = subSchema).entities), subSchema, dataset),
       task = dataset,
       globalErrors = table.globalErrors
     )
@@ -127,9 +130,11 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
           writeTriples(entitySink, entitiesFunc())
         }
       case tables: MultiEntityTable =>
+        implicit val report: ExecutionReportUpdater = WriteEntitiesReportUpdater(dataset, context)
         withEntitySink(dataset, execution) { entitySink =>
           writeMultiTables(entitySink, tables)
         }
+        report.executionDone()
       case datasetResource: DatasetResourceEntityTable =>
         writeDatasetResource(dataset, datasetResource)
       case graphStoreFiles: LocalGraphStoreFileUploadTable =>
@@ -137,15 +142,17 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case sparqlUpdateTable: SparqlUpdateEntityTable =>
         executeSparqlUpdateQueries(dataset, sparqlUpdateTable)
       case et: LocalEntities =>
+        implicit val report: ExecutionReportUpdater = WriteEntitiesReportUpdater(dataset, context)
         withEntitySink(dataset, execution) { entitySink =>
           writeEntities(entitySink, et)
         }
+        report.executionDone()
     }
   }
 
   final val remainingSparqlUpdateQueryBufferSize = 1000
 
-  case class SparqlUpdateExecutionReportUpdater(taskLabel: String, context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+  case class SparqlUpdateExecutionReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     var remainingQueries = 0
 
     override def entityProcessVerb: String = "executed"
@@ -193,7 +200,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     dataset.plugin match {
       case rdfDataset: RdfDataset =>
         val endpoint = rdfDataset.sparqlEndpoint
-        val executionReport = SparqlUpdateExecutionReportUpdater(dataset.taskLabel(), context)
+        val executionReport = SparqlUpdateExecutionReportUpdater(dataset, context)
         val queryBuffer = SparqlQueryBuffer(remainingSparqlUpdateQueryBufferSize, sparqlUpdateTable.entities)
         for (updateQuery <- queryBuffer) {
           endpoint.update(updateQuery)
@@ -289,15 +296,17 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def writeEntities(sink: EntitySink, entityTable: LocalEntities)
-                           (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+                           (implicit userContext: UserContext, prefixes: Prefixes, executionReport: ExecutionReportUpdater): Unit = {
     var entityCount = 0
     val startTime = System.currentTimeMillis()
     var lastLog = startTime
     sink.openTableWithPaths(entityTable.entitySchema.typeUri, entityTable.entitySchema.typedPaths)
     for (entity <- entityTable.entities) {
+      executionReport.increaseEntityCounter()
       sink.writeEntity(entity.uri, entity.values)
       entityCount += 1
       if(entityCount % 10000 == 0) {
+        executionReport.update()
         val currentTime = System.currentTimeMillis()
         if(currentTime - 2000 > lastLog) {
           logger.info("Writing entities: " + entityCount)
@@ -357,10 +366,31 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def writeMultiTables(sink: EntitySink, tables: MultiEntityTable)
-                              (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+                              (implicit userContext: UserContext, prefixes: Prefixes, executionReport: ExecutionReportUpdater): Unit = {
     writeEntities(sink, tables)
     for(table <- tables.subTables) {
       writeEntities(sink, table)
+    }
+  }
+
+  case class WriteEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityProcessVerb: String = "written"
+  }
+
+  case class ReadEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityProcessVerb: String = "read"
+  }
+
+  /**
+    * An entity traversable that forwards all entity traversals to an execution report.
+    */
+  case class ReportingTraversable(entities: Traversable[Entity])(implicit executionReport: ExecutionReportUpdater) extends Traversable[Entity] {
+    override def foreach[U](f: Entity => U): Unit = {
+      for(entity <- entities) {
+        f(entity)
+        executionReport.increaseEntityCounter()
+      }
+      executionReport.executionDone()
     }
   }
 }

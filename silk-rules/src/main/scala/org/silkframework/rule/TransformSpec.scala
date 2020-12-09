@@ -53,7 +53,7 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
                              " as single task outside of a workflow.", autoCompletionProvider = classOf[DatasetTaskReferenceAutoCompletionProvider],
                            autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
                          output: IdentifierOptionParameter = IdentifierOptionParameter(None),
-                         @Param(label = "Error output", value = "An optional dataset to write invalid input entities to.", visibleInDialog = false,
+                         @Param(label = "Error output", value = "An optional dataset to write invalid input entities to.",
                            autoCompletionProvider = classOf[DatasetTaskReferenceAutoCompletionProvider],
                            autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
                          errorOutput: IdentifierOptionParameter = IdentifierOptionParameter(None),
@@ -383,7 +383,7 @@ object TransformSpec {
         Null
       } else {
         <ErrorOutputs>
-          {value.errorOutput.map(o => <ErrorOutput id={o}></ErrorOutput>)}
+          {value.errorOutput.map(o => <ErrorOutput id={o}></ErrorOutput>).toSeq}
         </ErrorOutputs>
       }}
         {

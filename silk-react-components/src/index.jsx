@@ -6,6 +6,7 @@ import ExecutionReport from "./ExecutionReport/ExecutionReport";
 import TransformExecutionReport from "./ExecutionReport/TransformExecutionReport";
 import WorkflowExecutionReport from "./ExecutionReport/WorkflowExecutionReport";
 import EvaluateMapping from "./HierarchicalMapping/EvaluateMapping";
+import WorkflowReportManager from "./ExecutionReport/WorkflowReportManager";
 
 // eslint-disable-next-line
 import SilkStore from './SilkStore/silkStore';
@@ -40,6 +41,12 @@ window.silkReactComponents = {
     workflowExecutionReport: (containerId, apiSettings) => {
         ReactDom.render(
             <WorkflowExecutionReport {...apiSettings} />,
+            document.getElementById(containerId)
+        );
+    },
+    workflowReportManager: (containerId, apiSettings) => {
+        ReactDom.render(
+            <WorkflowReportManager {...apiSettings} />,
             document.getElementById(containerId)
         );
     }

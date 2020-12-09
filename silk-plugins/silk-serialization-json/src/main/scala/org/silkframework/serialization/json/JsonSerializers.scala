@@ -709,6 +709,7 @@ object JsonSerializers {
     final val SELECTION = "selection"
     final val RULES_PROPERTY: String = "mappingRule"
     final val OUTPUT: String = "output"
+    final val ERROR_OUTPUT: String = "errorOutput"
     final val TARGET_VOCABULARIES: String = "targetVocabularies"
 
     /** Deprecated property names */
@@ -731,6 +732,7 @@ object JsonSerializers {
             selection = fromJson[DatasetSelection](mustBeDefined(parametersObj, SELECTION)),
             mappingRule = optionalValue(parametersObj, RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty),
             output = stringValueOption(parametersObj, OUTPUT).filter(_.trim.nonEmpty).map(v => Identifier(v.trim)),
+            errorOutput = stringValueOption(parametersObj, ERROR_OUTPUT).filter(_.trim.nonEmpty).map(v => Identifier(v.trim)),
             targetVocabularies = {
               val vocabs = stringValueOption(parametersObj, TARGET_VOCABULARIES).
                   map(TargetVocabularyParameterType.fromString).
@@ -763,6 +765,7 @@ object JsonSerializers {
           SELECTION -> toJson(value.selection),
           RULES_PROPERTY -> toJson(value.mappingRule),
           OUTPUT -> JsString(value.output.map(_.toString).getOrElse("")),
+          ERROR_OUTPUT -> JsString(value.errorOutput.map(_.toString).getOrElse("")),
           TARGET_VOCABULARIES -> JsString(TargetVocabularyParameterType.toString(value.targetVocabularies))
         ))
       )
@@ -995,6 +998,15 @@ object JsonSerializers {
         .map(_.asInstanceOf[JsonFormat[TaskSpec]])
     }
 
+    /**
+      * Retrieves the task format for a given task spec.
+      *
+      * @return The task format, if available. None, otherwise.
+      */
+    def taskSpecFormat(value: TaskSpec): Option[JsonFormat[TaskSpec]] = {
+      taskSpecFormats.find(_.valueType.isAssignableFrom(value.getClass))
+    }
+
     override def read(value: JsValue)(implicit readContext: ReadContext): TaskSpec = {
       val taskType = stringValue(value, TASKTYPE)
       taskSpecFormats.find(_.typeNames.contains(taskType)) match {
@@ -1006,7 +1018,7 @@ object JsonSerializers {
     }
 
     override def write(value: TaskSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      taskSpecFormats.find(_.valueType.isAssignableFrom(value.getClass)) match {
+      taskSpecFormat(value) match {
         case Some(format) =>
           format.write(value)
         case None =>
