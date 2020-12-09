@@ -8,7 +8,7 @@ interface IProps {
 
     onCancelRetry(fileId: string);
 
-    onRetry(fileId: string);
+    onRetry?(fileId: string);
 }
 
 export function RetryFileItem({ file, onCancelRetry, onRetry }: IProps) {
@@ -20,9 +20,11 @@ export function RetryFileItem({ file, onCancelRetry, onRetry }: IProps) {
                 onDismiss={() => onCancelRetry(file.id)}
                 danger={true}
                 actions={
-                    <Button outlined onClick={() => onRetry(file.id)}>
-                        {t("FileUploader.retry", "Retry")}
-                    </Button>
+                    onRetry && (
+                        <Button outlined onClick={() => onRetry(file.id)}>
+                            {t("FileUploader.retry", "Retry")}
+                        </Button>
+                    )
                 }
             >
                 <p>{file.error || t("FileUploader.retryAbortMessage", { fileName: file.name })}</p>

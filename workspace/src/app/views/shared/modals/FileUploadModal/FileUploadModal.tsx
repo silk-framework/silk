@@ -15,6 +15,7 @@ export interface IFileUploadModalProps {
 }
 
 export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFileUploadModalProps) {
+    const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const [fileUploaderInstance, setFileUploaderInstance] = useState<any>(null);
 
     const projectId = useSelector(commonSel.currentProjectIdSelector);
@@ -57,7 +58,12 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
                     </Button>
                 }
             >
-                <FileUploader getInstance={getUploaderInstance} projectId={projectId} {...overriddenUploaderOptions} />
+                <FileUploader
+                    getInstance={getUploaderInstance}
+                    projectId={projectId}
+                    {...overriddenUploaderOptions}
+                    maxFileUploadSizeBytes={maxFileUploadSize}
+                />
             </SimpleDialog>
         </>
     );

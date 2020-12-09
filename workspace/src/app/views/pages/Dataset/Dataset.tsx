@@ -19,6 +19,8 @@ import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
 
 // The dataset plugins that should show the data preview automatically without user interaction.
 const automaticallyPreviewedDatasets = ["json", "xml", "csv"];
+// Datasets that should have no preview at all (e.g. because they are always empty)
+const noDataPreviewDatasets = ["variableDataset"];
 
 export function Dataset() {
     const error = useSelector(datasetSel.errorSelector);
@@ -52,6 +54,7 @@ export function Dataset() {
     const pluginId = taskData?.data?.type;
 
     const showPreviewAutomatically = automaticallyPreviewedDatasets.includes(taskData?.data?.type);
+    const showPreview = !noDataPreviewDatasets.includes(taskData?.data?.type);
 
     useEffect(() => {
         if (taskId && projectId) {
@@ -68,14 +71,16 @@ export function Dataset() {
                     {mainViewLoading ? (
                         <Loading />
                     ) : // Show explore and query tab for knowledge graph dataset
-                    pluginId !== "eccencaDataPlatform" ? (
-                        <DataPreview
-                            title={t("pages.dataset.title", "Data preview")}
-                            preview={{ project: projectId, dataset: taskId }}
-                            autoLoad={showPreviewAutomatically}
-                        />
-                    ) : (
+                    pluginId === "eccencaDataPlatform" ? (
                         <IframeWindow />
+                    ) : (
+                        showPreview && (
+                            <DataPreview
+                                title={t("pages.dataset.title", "Data preview")}
+                                preview={{ project: projectId, dataset: taskId }}
+                                autoLoad={showPreviewAutomatically}
+                            />
+                        )
                     )}
                 </Section>
             </WorkspaceMain>

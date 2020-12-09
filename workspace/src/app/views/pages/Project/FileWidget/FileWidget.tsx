@@ -29,6 +29,7 @@ import { usePagination } from "@gui-elements/src/components/Pagination/Paginatio
 import { commonSel } from "@ducks/common";
 import { useTranslation } from "react-i18next";
 import { FileRemoveModal } from "../../../shared/modals/FileRemoveModal";
+import { CONTEXT_PATH } from "../../../../constants/path";
 
 /** Project file management widget. */
 export const FileWidget = () => {
@@ -152,15 +153,24 @@ export const FileWidget = () => {
                                                             key={"fileActions"}
                                                             className="bx--table-column-menu"
                                                         >
-                                                            <IconButton
-                                                                name="item-remove"
-                                                                text={t("common.action.DeleteSmth", {
-                                                                    smth: t("widget.FileWidget.file"),
-                                                                })}
-                                                                small
-                                                                disruptive
-                                                                onClick={() => setFileDeleteDialog(file)}
-                                                            />
+                                                            <div style={{ display: "flex" }}>
+                                                                <IconButton
+                                                                    data-test-id={"resource-download-btn"}
+                                                                    name="item-download"
+                                                                    text={t("common.action.download")}
+                                                                    small
+                                                                    href={`${CONTEXT_PATH}/workspace/projects/${projectId}/resources/${file.name}`}
+                                                                />
+                                                                <IconButton
+                                                                    name="item-remove"
+                                                                    text={t("common.action.DeleteSmth", {
+                                                                        smth: t("widget.FileWidget.file"),
+                                                                    })}
+                                                                    small
+                                                                    disruptive
+                                                                    onClick={() => setFileDeleteDialog(file)}
+                                                                />
+                                                            </div>
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}
