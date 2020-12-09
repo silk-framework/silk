@@ -15,7 +15,6 @@ import STableBody from "./SuggestionTable/STableBody";
 import STableHeader from "./SuggestionTable/STableHeader";
 import { FILTER_ACTIONS } from "./constants";
 import { SuggestionListContext } from "./SuggestionContainer";
-import PrefixList from "./PrefixList";
 import { PrefixDialog } from "./PrefixDialog";
 
 interface IPagination {
@@ -416,7 +415,7 @@ export default function SuggestionList({rows, prefixList, onSwapAction, onAskDis
             itemRangeText={(min, max, total) => `${min}–${max} of ${total} items`}
             pageRangeText={(current, total) => `of ${total} pages`}
         />
-        <Button affirmative={true} onClick={handleAdd}>Add ({selectedSources.length})</Button>
+        <Button affirmative={true} onClick={handleAdd} data-test-id='add_button'>Add ({selectedSources.length})</Button>
         <Button disruptive={true} onClick={onAskDiscardChanges}>Cancel</Button>
         <AlertDialog
             warning={true}

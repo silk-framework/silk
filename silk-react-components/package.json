@@ -15,7 +15,7 @@
     "build": "gulp build",
     "deploy": "gulp deploy",
     "watch": "webpack --watch",
-    "jest": "jest --no-cache --detectOpenHandles",
+    "jest": "node ./test/script.js  --no-cache --detectOpenHandles",
     "webpack-build": "cross-env NODE_ENV=production webpack --config webpack.prod.config.js",
     "webpack-dev-build": "cross-env NODE_ENV=development webpack --config webpack.dev.config.js",
     "webpack-analyzer": "webpack --config webpack.dev.config.js --profile --json > ./analyzer-stats.json && webpack-bundle-analyzer ./analyzer-stats.json",

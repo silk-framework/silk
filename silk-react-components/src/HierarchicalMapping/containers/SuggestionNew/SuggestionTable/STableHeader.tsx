@@ -69,7 +69,7 @@ export default function STableHeader({headers, isAllSelected, toggleSelectAll, o
                 <TableHeader key={header.key}>
                     {
                         header.key === 'SWAP_BUTTON'
-                            ? <Button onClick={onSwap}>Swap</Button>
+                            ? <Button onClick={onSwap} data-test-id={header.key}>Swap</Button>
                             : <>
                                 {header.header}
                                 <Icon

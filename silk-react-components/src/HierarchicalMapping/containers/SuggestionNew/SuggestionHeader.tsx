@@ -12,6 +12,7 @@ export default function SuggestionHeader({ onSearch }) {
         <TableToolbar>
             <TableToolbarContent>
                 <TableToolbarSearch
+                    data-test-id={'search_input'}
                     tabIndex={0}
                     onChange={e => onSearch(e.target.value)}
                 />

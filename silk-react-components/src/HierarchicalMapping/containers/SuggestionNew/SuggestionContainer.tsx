@@ -5,16 +5,15 @@ import {
     Grid,
     GridColumn,
     GridRow,
+    Notification,
     Section,
     SectionHeader,
-    TitleMainsection,
-    Notification
+    TitleMainsection
 } from "@gui-elements/index";
 import { TableContainer } from 'carbon-components-react';
 import SuggestionList from "./SuggestionList";
 import SuggestionHeader from "./SuggestionHeader";
 import { generateRuleAsync, getSuggestionsAsync, prefixesAsync, schemaExampleValuesAsync } from "../../store";
-import _ from "lodash";
 import { IAddedSuggestion, ITransformedSuggestion } from "./suggestion.typings";
 
 interface ISuggestionListContext {
@@ -80,6 +79,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
             nrCandidates: 20,
         }).subscribe(
             ({suggestions, warnings}) => {
+                console.log('NIGGA',suggestions);
                 if (warnings.length) {
                     setError([
                         ...error,
@@ -196,7 +196,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                     </GridRow>
                     <GridRow>
                         <GridColumn>
-                            <Button affirmative onClick={() => handleFilter(data)}>Find Matches</Button>
+                            <Button affirmative onClick={() => handleFilter(data)} data-test-id={'find_matches'}>Find Matches</Button>
                         </GridColumn>
                     </GridRow>
                 </Grid>
@@ -205,14 +205,14 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
             {
                 !!error.length && <Notification danger>
                     <ul>
-                    {
-                        error.map(err => <>
-                            <li key={err.detail}>
-                                <h3>{err.title}</h3>
-                                <p>{err.detail}</p>
-                            </li>
-                        </>)
-                    }
+                        {
+                            error.map(err => <>
+                                <li key={err.detail}>
+                                    <h3>{err.title}</h3>
+                                    <p>{err.detail}</p>
+                                </li>
+                            </>)
+                        }
                     </ul>
                 </Notification>
             }
