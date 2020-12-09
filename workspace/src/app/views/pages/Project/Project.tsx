@@ -55,7 +55,7 @@ const Project = () => {
 
         // Fetch the list of projects
         dispatch(workspaceOp.fetchListAsync());
-    }, [qs]);
+    }, [qs, projectId]);
 
     const handleSort = (sortBy: string) => {
         dispatch(workspaceOp.applySorterOp(sortBy));
