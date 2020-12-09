@@ -1,7 +1,7 @@
 package controllers.workspace
 
 import controllers.core.{AutoCompletableTestPlugin, TestAutoCompletionProvider}
-import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, Facets, KeywordFacetSetting, SortBy, SortOrder, SortableProperty}
+import controllers.workspaceApi.search.SearchApiModel.{DESCRIPTION, FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, Facets, ID, KeywordFacetSetting, LABEL, PLUGIN_ID, PROJECT_ID, PROJECT_LABEL, SortBy, SortOrder, SortableProperty}
 import controllers.workspaceApi.search._
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
@@ -58,6 +58,11 @@ class SearchApiIntegrationTest extends FlatSpec
     }
   }
 
+  private val projectLabel = "Facet Search Workspace Project"
+  private val projectDescription = "Facet Search Workspace Project Description"
+  private val allDatasets = Seq("csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2")
+  private val allResults = Seq("singleProject", "csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2", "transformA")
+
   it should "return item types" in {
     val response = client.url(s"$baseUrl/api/workspace/searchConfig/types").get()
     val json = checkResponse(response).json
@@ -73,12 +78,26 @@ class SearchApiIntegrationTest extends FlatSpec
     typeIds mustBe Seq("workflow", "dataset", "transform", "linking", "task")
   }
 
-  private val allDatasets = Seq("csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2")
-  private val allResults = Seq("singleProject", "csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2", "transformA")
-
   it should "return all tasks (pages) for a unrestricted search" in {
     val (response, _) = facetedSearchRequest(FacetedSearchRequest())
     resultItemIds(response) mustBe allResults
+    // Check project response
+    response.results.head.as[JsObject].value.filter(_._1 != "itemLinks").mapValues(_.as[String]) mustBe Map(
+      DESCRIPTION -> projectDescription,
+      LABEL -> projectLabel,
+      ID -> projectId,
+      "type" -> "project"
+    )
+    val csvDatasetProperties = response.results(1).as[JsObject].value
+    csvDatasetProperties.filter(_._1 != "itemLinks").mapValues(_.as[String]) mustBe Map(
+      DESCRIPTION -> "",
+      PROJECT_LABEL -> projectLabel,
+      LABEL -> "csv A",
+      PLUGIN_ID -> "csv",
+      PROJECT_ID -> "singleProject",
+      ID -> "csvA",
+      "type" -> "dataset"
+    )
   }
 
   it should "only return task results for project restricted searches" in {
