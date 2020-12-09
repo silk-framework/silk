@@ -318,7 +318,13 @@ export function CreateArtefactModal() {
                     )
                 ) : (
                     [
-                        <Button key="add" affirmative={true} onClick={handleAdd} disabled={!selectedArtefactKey}>
+                        <Button
+                            key="add"
+                            affirmative={true}
+                            onClick={handleAdd}
+                            disabled={!toBeAddedKey}
+                            data-test-id={"item-add-btn"}
+                        >
                             {t("common.action.add")}
                         </Button>,
                         <Button key="cancel" onClick={closeModal}>
