@@ -186,7 +186,12 @@
         "dataTypes": {
             "project": "Project",
             "projectDesc": "Projects let you group related items. All items that depend on each other need to be in the same project.",
-            "task": "Task"
+            "genericArtefactLabel": "item",
+            "workflow": "workflow",
+            "dataset": "dataset",
+            "transform": "transform",
+            "linking": "linking",
+            "task": "task"
         },
         "messages": {
             "actionFailed": "{{action}} action failed. Details: {{error}}",
@@ -210,7 +215,9 @@
             "Linking evaluation": "Linking evaluation",
             "Linking execution": "Linking execution",
             "Reference links" : "Reference links",
-            "Learning": "Learning"
+            "Learning": "Learning",
+            "Explore": "Data exploration",
+            "Query": "Query editor"
         },
         "sorter": {
             "recentlyViewed": "Recently viewed"
@@ -298,7 +305,7 @@
         "workspace": {
             "contents": "Contents",
             "createProject": "Create Project",
-            "empty": "Workspace is empty, so start please create your first project"
+            "empty": "No data available, please create your first project."
         }
     },
     "widget": {
