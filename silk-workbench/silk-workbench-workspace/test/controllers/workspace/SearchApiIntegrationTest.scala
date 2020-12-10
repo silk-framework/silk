@@ -77,19 +77,22 @@ class SearchApiIntegrationTest extends FlatSpec
     val typeIds = (json \ "values").as[JsArray].value.map(v => (v \ "id").as[String])
     typeIds mustBe Seq("workflow", "dataset", "transform", "linking", "task")
   }
+  private def resultAsMap(searchResultObject: JsObject): Map[String, String] = searchResultObject.value
+      .filter(_._1 != "itemLinks") // Filter out item links, since they are no string
+      .mapValues(_.as[String]).toMap
 
   it should "return all tasks (pages) for a unrestricted search" in {
     val (response, _) = facetedSearchRequest(FacetedSearchRequest())
     resultItemIds(response) mustBe allResults
     // Check project response
-    response.results.head.as[JsObject].value.filter(_._1 != "itemLinks").mapValues(_.as[String]) mustBe Map(
+    resultAsMap(response.results.head) mustBe Map(
       DESCRIPTION -> projectDescription,
       LABEL -> projectLabel,
       ID -> projectId,
       "type" -> "project"
     )
-    val csvDatasetProperties = response.results(1).as[JsObject].value
-    csvDatasetProperties.filter(_._1 != "itemLinks").mapValues(_.as[String]) mustBe Map(
+    val csvDatasetProperties = resultAsMap(response.results(1))
+    csvDatasetProperties mustBe Map(
       DESCRIPTION -> "",
       PROJECT_LABEL -> projectLabel,
       LABEL -> "csv A",
@@ -134,6 +137,7 @@ class SearchApiIntegrationTest extends FlatSpec
   }
 
   private val CSV = "csv"
+  private val csvATask = "csvA"
 
   it should "return the right facet counts and result for a dataset type restricted search" in {
     val (facetedSearchResult, json) = facetedSearchRequest(FacetedSearchRequest(itemType = Some(ItemType.dataset)))
@@ -185,7 +189,7 @@ class SearchApiIntegrationTest extends FlatSpec
   it should "sort the results by label/ID" in {
     resultItemIds(facetedSearchRequest(
       FacetedSearchRequest(itemType = Some(ItemType.dataset), sortBy = Some(SortBy.label), sortOrder = Some(SortOrder.DESC))
-    )._1) mustBe Seq("xmlA2", "xmlA1", "output", "jsonXYZ", "csvC", "csvB", "csvA")
+    )._1) mustBe Seq("xmlA2", "xmlA1", "output", "jsonXYZ", "csvC", "csvB", csvATask)
     resultItemIds(facetedSearchRequest(
       FacetedSearchRequest(itemType = Some(ItemType.dataset), sortBy = Some(SortBy.label), sortOrder = Some(SortOrder.ASC))
     )._1) mustBe Seq("csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2")
@@ -243,6 +247,25 @@ class SearchApiIntegrationTest extends FlatSpec
       resultItemIds(facetedSearchRequest(
         FacetedSearchRequest(itemType = Some(ItemType.project), textQuery = Some(uniqueId))
       )._1) mustBe Seq(newProject)
+    } finally {
+      WorkspaceFactory().workspace.removeProject(newProject)
+    }
+  }
+
+  it should "consider both project and task label in the search" in {
+    val newProject = "newProject2"
+    val project = retrieveOrCreateProject(newProject)
+    try {
+      val workflow = Workflow(Seq.empty, Seq.empty)
+      project.addAnyTask(csvATask, workflow)
+      val result = facetedSearchRequest(
+        FacetedSearchRequest(itemType = Some(ItemType.workflow), textQuery = Some(s"$csvATask $newProject"))
+      )._1
+      result.results must have size 1
+      resultAsMap(result.results.head).filter{ case (key, _) => Set(PROJECT_LABEL, LABEL).contains(key)} mustBe Map(
+        PROJECT_LABEL -> newProject,
+        LABEL -> "csvA"
+      )
     } finally {
       WorkspaceFactory().workspace.removeProject(newProject)
     }

@@ -304,7 +304,9 @@ object SearchApiModel {
     override protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], task: ProjectTask[_ <: TaskSpec]): Boolean = {
       val taskLabel = task.metaData.label
       val name = if(taskLabel.trim != "") taskLabel else task.id.toString
-      matchesSearchTerm(lowerCaseSearchTerms, name, task.metaData.description.getOrElse(""))
+      // also search in project if search is not restricted to a specific project
+      val searchInProject = if(project.isEmpty) label(task.project) else ""
+      matchesSearchTerm(lowerCaseSearchTerms, name, task.metaData.description.getOrElse(""), searchInProject)
     }
 
     // Adds links to related pages to the result item
