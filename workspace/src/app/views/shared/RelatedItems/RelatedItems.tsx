@@ -62,7 +62,7 @@ export function RelatedItems(props: IProps) {
 
     useEffect(() => {
         getRelatedItemsData(projectId, taskId, textQuery);
-    }, [textQuery, updated]);
+    }, [projectId, taskId, textQuery, updated]);
 
     // Fetches and updates the related items of the project task
     const getRelatedItemsData = async (projectId: string, taskId: string, textQuery: string) => {

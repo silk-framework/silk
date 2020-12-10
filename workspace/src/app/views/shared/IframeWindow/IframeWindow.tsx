@@ -84,7 +84,6 @@ export function IframeWindow({
     };
 
     const getInitialActiveLink = (itemLinks) => {
-        if (activeSource) return activeSource;
         const locationHashBookmark = getBookmark(location.hash);
         return locationHashBookmark ? itemLinks[locationHashBookmark] : itemLinks[0];
     };
@@ -108,7 +107,7 @@ export function IframeWindow({
     useEffect(() => {
         if (!!srcLinks && srcLinks.length > 0) {
             setItemLinks(srcLinks);
-            setActiveSource(getInitialActiveLink(srcLinks));
+            setActiveSource(startWithLink || srcLinks[0]);
         } else if (projectId && taskId) {
             getItemLinks();
         } else {
