@@ -36,8 +36,6 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     // Loading indicator
     const [loading, setLoading] = useState(false);
 
-    const [warnings, setWarnings] = useState<string[]>([]);
-
     const [error, setError] = useState<any[]>([]);
 
     const [data, setData] = useState<ITransformedSuggestion[]>([]);
@@ -57,75 +55,88 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     const portalContainerRef = useRef();
 
     useEffect(() => {
-        loadData(isFromDataset);
-        loadExampleValues();
-        loadPrefixes();
+        (async function () {
+            setLoading(true);
+            await loadData(isFromDataset);
+            await loadExampleValues();
+            await loadPrefixes();
+            setLoading(false);
+        })()
     }, []);
 
-    const handleSwapAction = () => {
+    const handleSwapAction = async () => {
         setIsFromDataset(!isFromDataset);
-
         setError([]);
-
-        loadData(!isFromDataset);
+        setLoading(true);
+        await loadData(!isFromDataset);
+        setLoading(false);
     };
 
     const loadData = (matchFromDataset: boolean) => {
-        setLoading(true);
-        getSuggestionsAsync({
-            targetClassUris,
-            ruleId,
-            matchFromDataset,
-            nrCandidates: 20,
-        }).subscribe(
-            ({suggestions, warnings}) => {
-                console.log('NIGGA',suggestions);
-                if (warnings.length) {
-                    setError([
-                        ...error,
-                        ...warnings
-                    ]);
+        return new Promise((resolve, reject) => {
+            getSuggestionsAsync({
+                targetClassUris,
+                ruleId,
+                matchFromDataset,
+                nrCandidates: 20,
+            }).subscribe(
+                ({suggestions, warnings}) => {
+                    if (warnings.length) {
+                        setError([
+                            ...error,
+                            ...warnings
+                        ]);
+                        reject(warnings);
+                    }
+                    setData(suggestions);
+                    handleFilter(suggestions);
+                    resolve(suggestions);
+                },
+                () => {
                 }
-                setData(suggestions);
-                handleFilter(suggestions);
-                setLoading(false);
-            },
-            () => {
-                setLoading(false);
-            }
-        );
+            );
+        });
     };
 
     const loadExampleValues = () => {
-        schemaExampleValuesAsync().subscribe(
-            (data) => {
-                setExampleValues(data);
-            },
-            err => {
-                setError([
-                    ...error,
-                    err,
-                ]);
-            }
-        );
+        return new Promise((resolve, reject) => {
+            schemaExampleValuesAsync().subscribe(
+                (data) => {
+                    setExampleValues(data);
+                    resolve(data);
+                },
+                err => {
+                    setError([
+                        ...error,
+                        err,
+                    ]);
+                    reject(err);
+                }
+            );
+        })
+
     };
 
     const loadPrefixes = () => {
-        prefixesAsync().subscribe(
-            data => {
-                const arr = Object.keys(data).map(key => ({
-                    key,
-                    uri: data[key]
-                }));
-                setPrefixList(arr);
-            },
-            err => {
-                setError([
-                    ...error,
-                    err,
-                ]);
-            }
-        )
+        return new Promise((resolve, reject) => {
+            prefixesAsync().subscribe(
+                data => {
+                    const arr = Object.keys(data).map(key => ({
+                        key,
+                        uri: data[key]
+                    }));
+                    setPrefixList(arr);
+                    resolve(arr);
+                },
+                err => {
+                    setError([
+                        ...error,
+                        err,
+                    ]);
+                    reject(err);
+                }
+            )
+        });
     };
 
     const handleAdd = (selectedRows: IAddedSuggestion[], selectedPrefix?: string) => {
@@ -196,14 +207,15 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                     </GridRow>
                     <GridRow>
                         <GridColumn>
-                            <Button affirmative onClick={() => handleFilter(data)} data-test-id={'find_matches'}>Find Matches</Button>
+                            <Button affirmative onClick={() => handleFilter(data)} data-test-id={'find_matches'}>Find
+                                Matches</Button>
                         </GridColumn>
                     </GridRow>
                 </Grid>
             </SectionHeader>
             <Divider addSpacing="medium"/>
             {
-                !!error.length && <Notification danger>
+                (!loading && !!error.length) && <Notification danger>
                     <ul>
                         {
                             error.map(err => <>
@@ -231,10 +243,12 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                             onSwapAction={handleSwapAction}
                             onAdd={handleAdd}
                             onAskDiscardChanges={onAskDiscardChanges}
+                            loading={loading}
                         />
                     </SuggestionListContext.Provider>
                 </div>
             </TableContainer>
+
         </Section>
     )
 }

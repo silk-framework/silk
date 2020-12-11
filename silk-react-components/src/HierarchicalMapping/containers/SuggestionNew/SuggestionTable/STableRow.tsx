@@ -40,7 +40,7 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
         }
 
         return (
-            examples.length && <ContextMenu
+            examples?.length && <ContextMenu
                 portalContainer={portalContainer}
                 togglerElement={'item-info'}
             >

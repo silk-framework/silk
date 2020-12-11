@@ -6,6 +6,8 @@ import { SuggestionListContext } from "../SuggestionContainer";
 // In TypeScript, you must first obtain a non-generic reference:
 const TypesSelect = Select.ofType<string>();
 
+const TYPES = ['value', 'object'];
+
 export default function TypesList({onChange, selected}) {
     const context = useContext(SuggestionListContext);
 
@@ -15,15 +17,17 @@ export default function TypesList({onChange, selected}) {
 
     const itemRenderer = (type: string, {handleClick}) => {
         return <MenuItem
-            label={type}
+            text={type}
             key={type}
             onClick={handleClick}
+            active={selected === type}
         />
     }
+
     return <TypesSelect
         filterable={false}
         onItemSelect={onChange}
-        items={['value', 'object']}
+        items={TYPES}
         itemRenderer={itemRenderer}
         itemsEqual={areTypesEqual}
         popoverProps={{

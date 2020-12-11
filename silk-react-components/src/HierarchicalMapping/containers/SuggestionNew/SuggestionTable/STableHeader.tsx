@@ -1,32 +1,8 @@
 import { Button, Checkbox, Icon, TableHead, TableHeader, TableRow } from "@gui-elements/index";
 import React from "react";
-import { FILTER_ACTIONS } from "../constants";
-import { IColumnFilters, ISortDirection, ITableHeader } from "../suggestion.typings";
+import { COLUMN_FILTERS } from "../constants";
+import { ISortDirection, ITableHeader } from "../suggestion.typings";
 import ColumnFilter from "./ColumnFilter";
-
-const columnFilters: { [key: string]: IColumnFilters[] } = {
-    checkbox: [{
-        label: 'Show only selected items',
-        action: FILTER_ACTIONS.SHOW_SELECTED
-    }, {
-        label: 'Show only unselected items',
-        action: FILTER_ACTIONS.SHOW_UNSELECTED
-    }],
-    target: [{
-        label: 'Show only matches',
-        action: FILTER_ACTIONS.SHOW_MATCHES
-    }, {
-        label: 'Show only auto-generated properties',
-        action: FILTER_ACTIONS.SHOW_GENERATED
-    }],
-    type: [{
-        label: 'Show only value mappings',
-        action: FILTER_ACTIONS.SHOW_VALUE_MAPPINGS
-    }, {
-        label: 'Show only object mappings',
-        action: FILTER_ACTIONS.SHOW_OBJECT_MAPPINGS
-    }]
-};
 
 interface IProps {
     // table headers
@@ -48,10 +24,18 @@ interface IProps {
     onSort(headerKey: string);
 
     // callback for column filtering
-    onApplyFilter(filter: string);
+    onApplyFilter(columnName: string, filter: string);
 }
 
-export default function STableHeader({headers, isAllSelected, toggleSelectAll, onSwap, sortDirections, onSort, onApplyFilter}: IProps) {
+export default function STableHeader({
+     headers,
+     isAllSelected,
+     toggleSelectAll,
+     onSwap,
+     sortDirections,
+     onSort,
+     onApplyFilter
+}: IProps) {
     return <TableHead>
         <TableRow>
             <TableHeader>
@@ -60,8 +44,8 @@ export default function STableHeader({headers, isAllSelected, toggleSelectAll, o
                     checked={isAllSelected}
                 />
                 <ColumnFilter
-                    filters={columnFilters.checkbox}
-                    onApplyFilter={onApplyFilter}
+                    filters={COLUMN_FILTERS.checkbox}
+                    onApplyFilter={(filter) => onApplyFilter('checkbox', filter)}
                 />
             </TableHeader>
 
@@ -82,9 +66,9 @@ export default function STableHeader({headers, isAllSelected, toggleSelectAll, o
                                     onClick={() => onSort(header.key)}
                                 />
                                 {
-                                    columnFilters[header.key] && <ColumnFilter
-                                        filters={columnFilters[header.key]}
-                                        onApplyFilter={onApplyFilter}
+                                    COLUMN_FILTERS[header.key] && <ColumnFilter
+                                        filters={COLUMN_FILTERS[header.key]}
+                                        onApplyFilter={(filter) => onApplyFilter(header.key, filter)}
                                     />
                                 }
                             </>

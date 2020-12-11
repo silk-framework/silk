@@ -13,6 +13,7 @@ export default function TargetList({targets, onChange}) {
     const [items, setItems] = useState<ITargetWithSelected[]>(targets);
 
     const [inputQuery, setInputQuery] = useState<string>('');
+    const selected = targets.find(t => t._selected);
 
     useEffect(() => {
         setItems(items);
@@ -34,13 +35,11 @@ export default function TargetList({targets, onChange}) {
     </>;
 
     const itemRenderer = (target: ITargetWithSelected, {handleClick}) => {
-        if (target._selected) {
-            return null;
-        }
         return <MenuItem
             text={itemLabel(target, inputQuery)}
             key={target.uri}
             onClick={handleClick}
+            active={target.uri === selected.uri}
         />
     }
 
@@ -58,7 +57,6 @@ export default function TargetList({targets, onChange}) {
         setInputQuery(value);
     }
 
-    const selected = targets.find(t => t._selected);
     return <TargetSelect
         filterable={targets.length > 1}
         onItemSelect={t => handleSelectTarget(t.uri)}
