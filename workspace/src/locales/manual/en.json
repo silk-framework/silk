@@ -305,7 +305,7 @@
         "workspace": {
             "contents": "Contents",
             "createProject": "Create Project",
-            "empty": "No data available, please create your first project."
+            "empty": "Your workspace is empty. In order to start, create a new project or import an existing project from an exported project file."
         }
     },
     "widget": {
