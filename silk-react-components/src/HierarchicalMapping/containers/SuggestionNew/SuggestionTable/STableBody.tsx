@@ -1,5 +1,5 @@
 import React from "react";
-import STableRow from "./STableRow";
+import STableRow from "./StableRow/STableRow";
 import { TableBody } from "@gui-elements/index";
 import { IPageSuggestion } from "../suggestion.typings";
 

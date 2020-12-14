@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { MenuItem, Select, Button, Highlighter } from '@gui-elements/index';
+import { MenuItem, Select, Button, Highlighter, OverflowText } from '@gui-elements/index';
 import { ITargetWithSelected } from "../suggestion.typings";
 import { SuggestionListContext } from "../SuggestionContainer";
 
@@ -29,9 +29,9 @@ export default function TargetList({targets, onChange}) {
     };
 
     const itemLabel = (target: ITargetWithSelected, search: string) => <>
-        {target.label && <p><Highlighter label={target.label} searchValue={search} /></p>}
-        {target.uri && <p><Highlighter label={target.uri} searchValue={search} /></p>}
-        {target.description && <p><Highlighter label={target.description} searchValue={search} /></p>}
+        {target.label && <p><OverflowText><Highlighter label={target.label} searchValue={search} /></OverflowText></p>}
+        {target.uri && <p><OverflowText><Highlighter label={target.uri} searchValue={search} /></OverflowText></p>}
+        {target.description && <p><OverflowText><Highlighter label={target.description} searchValue={search} /></OverflowText></p>}
     </>;
 
     const itemRenderer = (target: ITargetWithSelected, {handleClick}) => {
