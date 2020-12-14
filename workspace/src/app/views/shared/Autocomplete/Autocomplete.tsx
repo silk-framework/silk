@@ -41,11 +41,11 @@ export interface IAutocompleteProps<T extends any, U extends any> {
      * @param active If the item is currently active
      * @default (item) => item.label || item.id
      */
-    itemRenderer?(item: T, query: string, active: boolean): string | JSX.Element;
+    itemRenderer(item: T, query: string, active: boolean): string | JSX.Element;
 
     /** Renders the string that should be displayed in the input field after the item has been selected.
      * If not defined and itemRenderer returns a string, the value from itemRenderer is used. */
-    itemValueRenderer?(item: T): string;
+    itemValueRenderer(item: T): string;
 
     /**
      * The part from the auto-completion item that is called with the onChange callback.
@@ -93,22 +93,7 @@ export interface IAutocompleteProps<T extends any, U extends any> {
     ) => JSX.Element | undefined;
 }
 
-const defaultItemLabelFunction = (item) => {
-    const label = item.label || item.value;
-    if (label === "") {
-        return "\u00A0";
-    } else {
-        return label;
-    }
-};
-
 Autocomplete.defaultProps = {
-    itemRenderer: (item) => {
-        return defaultItemLabelFunction(item);
-    },
-    itemValueRenderer: (item) => {
-        return defaultItemLabelFunction(item);
-    },
     itemValueSelector: (item) => {
         return item.value;
     },
@@ -243,7 +228,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
             query={query}
             popoverProps={{
                 minimal: true,
-                position: "bottom-right",
+                position: "bottom-left",
                 popoverClassName: "app_di-autocomplete__options",
                 wrapperTagName: "div",
             }}

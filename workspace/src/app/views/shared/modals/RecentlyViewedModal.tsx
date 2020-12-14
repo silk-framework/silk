@@ -205,6 +205,8 @@ export function RecentlyViewedModal() {
                 inputProps={{ placeholder: t("RecentlyViewedModal.placeholder") }}
                 createNewItemFromQuery={globalSearch}
                 createNewItemRenderer={createNewItemRenderer}
+                // Since nothing ever gets displayed in the input field (we immediately navigate away), return empty string
+                itemValueRenderer={() => ""}
             />
         );
     };
