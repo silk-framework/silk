@@ -37,6 +37,7 @@ export function SelectFileFromExisting(props: IProps) {
 
         onChange(value);
     };
+    const itemStringValue = (item: IProjectResource) => item.name;
 
     return (
         <FieldItem
@@ -50,8 +51,9 @@ export function SelectFileFromExisting(props: IProps) {
             <Autocomplete<IProjectResource, string>
                 {...autocomplete}
                 onChange={handleChange}
-                itemValueSelector={(item) => item.name}
-                itemKey={(item) => item.name}
+                itemValueSelector={itemStringValue}
+                itemKey={itemStringValue}
+                itemValueRenderer={itemStringValue}
             />
         </FieldItem>
     );
