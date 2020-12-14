@@ -28,8 +28,8 @@ object VariableWorkflowRequestUtils {
 
   /** The mime types that the variable workflow supports as response. */
   val acceptedMimeType: Seq[String] = Seq(
-    xmlMimeType, // XML dataset, this is the default for now FIXME: switch to JSON with CMEM-3051
     jsonMimeType, // JSON dataset
+    xmlMimeType, // XML dataset, this is the default for now
     ntriplesMimeType, // RDF file dataset with N-Triples output
     xlsxMimeType, // Excel dataset
     csvMimeTypeShort, // CSV dataset
