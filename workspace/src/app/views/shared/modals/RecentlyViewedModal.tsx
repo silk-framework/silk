@@ -102,13 +102,14 @@ export function RecentlyViewedModal() {
         return taskLabel ? `${taskLabel} (${projectLabel})` : projectLabel;
     };
     // The representation of an item as an option in the selection list
-    const itemOption = (item: IRecentlyViewedItem, query: string, active: boolean) => {
+    const itemOption = (item: IRecentlyViewedItem, query: string, active: boolean, handleSelectClick: () => any) => {
         const label = item.taskLabel || item.taskId || item.projectLabel || item.projectId;
         return (
             <OverviewItem
                 key={item.projectId + item.taskId}
                 hasSpacing
                 style={active ? { backgroundColor: "#0a67a3", color: "#fff" } : undefined}
+                onClick={handleSelectClick}
             >
                 <OverviewItemDepiction>
                     <ItemDepiction itemType={item.itemType} pluginId={item.pluginId} />

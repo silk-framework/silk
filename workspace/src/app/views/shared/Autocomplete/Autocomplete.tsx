@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { HTMLInputProps, IInputGroupProps } from "@blueprintjs/core";
-import { MenuItem, Suggest, Highlighter, IconButton } from "@gui-elements/index";
+import { Highlighter, IconButton, MenuItem, Suggest } from "@gui-elements/index";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { useTranslation } from "react-i18next";
 
@@ -39,9 +39,11 @@ export interface IAutocompleteProps<T extends any, U extends any> {
      * @param item  The item that should be displayed as an option in the selectiong.
      * @param query The current search query
      * @param active If the item is currently active
+     * @param handleClick The function that needs to be called when the rendered item gets clicked. Else a selection
+     *                    via mouse is not possible. This only needs to be used when returning a JSX.Element.
      * @default (item) => item.label || item.id
      */
-    itemRenderer(item: T, query: string, active: boolean): string | JSX.Element;
+    itemRenderer(item: T, query: string, active: boolean, handleClick: () => any): string | JSX.Element;
 
     /** Renders the string that should be displayed in the input field after the item has been selected.
      * If not defined and itemRenderer returns a string, the value from itemRenderer is used. */
@@ -178,7 +180,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
         if (!modifiers.matchesPredicate) {
             return null;
         }
-        const renderedItem = itemRenderer(item, query, modifiers.active);
+        const renderedItem = itemRenderer(item, query, modifiers.active, handleClick);
         if (typeof renderedItem === "string") {
             return (
                 <MenuItem
