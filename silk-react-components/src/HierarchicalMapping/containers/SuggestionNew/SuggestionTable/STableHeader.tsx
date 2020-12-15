@@ -1,8 +1,9 @@
-import { Button, Checkbox, Icon, TableHead, TableHeader, TableRow } from "@gui-elements/index";
-import React from "react";
+import { Button, Checkbox, ContextMenu, Icon, MenuItem, TableHead, TableHeader, TableRow } from "@gui-elements/index";
+import React, { useContext, useState } from "react";
 import { COLUMN_FILTERS } from "../constants";
 import { ISortDirection, ITableHeader } from "../suggestion.typings";
 import ColumnFilter from "./ColumnFilter";
+import { SuggestionListContext } from "../SuggestionContainer";
 
 interface IProps {
     // table headers
@@ -12,7 +13,7 @@ interface IProps {
     isAllSelected: boolean;
 
     // callback for select-all checkbox
-    toggleSelectAll();
+    toggleSelectAll(scope: 'all' | 'page', action: 'select' | 'unselect');
 
     // callback for swap button
     onSwap();
@@ -27,22 +28,56 @@ interface IProps {
     onApplyFilter(columnName: string, filter: string);
 }
 
+const sortItems = [{
+    text: 'Select all page items',
+    value: 'page_select',
+},{
+    text: 'Select all items',
+    value: 'all_select',
+},{
+    text: 'Unselect all page items',
+    value: 'page_unselect',
+},{
+    text: 'Unselect all items',
+    value: 'all_unselect',
+}];
 export default function STableHeader({
      headers,
-     isAllSelected,
      toggleSelectAll,
      onSwap,
      sortDirections,
      onSort,
      onApplyFilter
-}: IProps) {
+ }: IProps) {
+    const [selectSorting, setSelectedSorting] = useState('');
+
+    const context = useContext(SuggestionListContext);
+    const {portalContainer} = context;
+
+    const handleSort = (value: string) => {
+        setSelectedSorting(value);
+        const [scope, action] = value.split('_');
+        toggleSelectAll(scope as 'all' | 'page', action as 'select' | 'unselect');
+    }
+
     return <TableHead>
         <TableRow>
             <TableHeader>
-                <Checkbox
-                    onChange={toggleSelectAll}
-                    checked={isAllSelected}
-                />
+                <ContextMenu
+                    portalContainer={portalContainer}
+                    togglerElement={'item-info'}
+                >
+                    {
+                        sortItems.map(o => (
+                            <MenuItem
+                                key={o.value}
+                                active={o.value === selectSorting}
+                                text={o.text}
+                                onClick={() => handleSort(o.value)}
+                            />
+                        ))
+                    }
+                </ContextMenu>
                 <ColumnFilter
                     filters={COLUMN_FILTERS.checkbox}
                     onApplyFilter={(filter) => onApplyFilter('checkbox', filter)}

@@ -47,8 +47,5 @@ export const filterRowsByColumnModifier = (filters: {[key: string]: string}, sel
 
 
 export const sortRows = (rows: IPageSuggestion[], sortDirections: ISortDirection) => {
-    const isAsc = sortDirections.modifier === 'asc';
-    const direction = isAsc ? 'desc' : 'asc'
-
-    return _.orderBy(rows, sortDirections.column, direction);
+    return _.orderBy(rows, sortDirections.column, sortDirections.modifier as 'asc' | 'desc');
 };

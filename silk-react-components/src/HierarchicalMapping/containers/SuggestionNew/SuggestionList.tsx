@@ -3,7 +3,7 @@ import { AlertDialog, Button, Pagination, Spinner, Table } from '@gui-elements/i
 import {
     IAddedSuggestion,
     IPageSuggestion,
-    IPlainObject,
+    IPlainObject, IPrefix,
     ISortDirection,
     ITableHeader,
     ITargetWithSelected,
@@ -28,7 +28,7 @@ interface IProps {
     // received native data from backend
     rows: ITransformedSuggestion[];
 
-    prefixList: ITransformedSuggestion[];
+    prefixList: IPrefix[];
 
     loading: boolean;
 
@@ -189,18 +189,24 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
         }
     };
 
-    const toggleSelectAll = () => {
-        if (isAllSelected()) {
-            setSelectedSources([]);
-        } else if (!selectedSources.length) {
-            pageRows.forEach(toggleRowSelect);
-        } else {
+    const toggleSelectAll = (scope: 'all' | 'page', action: 'select' | 'unselect') => {
+        const scopeRows = scope === 'all' ? allRows : pageRows;
+        if (action === 'select') {
             setSelectedSources(
-                pageRows.map(row => {
+                scopeRows.map(row => {
                     updateRelations(row.source, row.candidates);
                     return row.source;
                 })
             );
+        } else {
+            if (scope === 'all')  {
+                setSelectedSources([]);
+            } else {
+                const pageRowSources = pageRows.map(r => r.source);
+                setSelectedSources(
+                    selectedSources.filter(row => !pageRowSources.includes(row))
+                );
+            }
         }
     };
 
@@ -242,17 +248,25 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
     }
 
     const handleSort = (headerKey: string) => {
-        const isAsc = sortDirections.modifier === 'asc';
-        const direction = isAsc ? 'desc' : 'asc';
+        const isAsc = sortDirections.modifier === '';
 
-        const sortDirection: ISortDirection = {
-            column: headerKey,
-            modifier: direction
+        const newDirection: ISortDirection = {
+            column: '',
+            modifier: ''
         };
 
-        setSortDirections(sortDirection);
+        let sortedArray = [...filteredRows];
 
-        const sortedArray = sortRows(filteredRows, sortDirection);
+        if (sortDirections.modifier !== 'desc') {
+            const direction = isAsc ? 'asc' : 'desc';
+
+            newDirection.column = headerKey;
+            newDirection.modifier = direction;
+
+            sortedArray = sortRows(filteredRows, newDirection);
+        }
+
+        setSortDirections(newDirection);
 
         setPageRows(
             paginate(sortedArray, pagination)
