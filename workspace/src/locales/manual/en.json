@@ -81,7 +81,7 @@
         "profilingRunning": "Running profiling on"
     },
     "DeleteModal": {
-        "confirmMsg": "Task {{name}} is used by other tasks! Deleting this task will also delete all depending tasks listed below:",
+        "confirmMsg": "The {{itemType}} '{{name}}' is used by other items! Deleting this item will also delete all depending items listed below:",
         "deleteResource": "{{type}} '{{name}}' will be deleted"
     },
     "Deletedialog": {
