@@ -79,7 +79,7 @@ export function CreateArtefactModal() {
 
     // Fetch Artefact list
     useEffect(() => {
-        if (projectId) {
+        if (projectId && isOpen) {
             dispatch(
                 commonOp.fetchArtefactsListAsync({
                     textQuery: searchValue,
@@ -88,7 +88,7 @@ export function CreateArtefactModal() {
         } else {
             dispatch(commonOp.resetArtefactsList());
         }
-    }, [!!projectId]);
+    }, [!!projectId, isOpen]);
 
     const handleAdd = () => {
         if (toBeAddedKey === DATA_TYPES.PROJECT) {
@@ -179,6 +179,7 @@ export function CreateArtefactModal() {
     };
 
     const closeModal = () => {
+        setSearchValue("");
         resetModal(true);
     };
 
