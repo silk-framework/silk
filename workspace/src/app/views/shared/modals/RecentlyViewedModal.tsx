@@ -12,6 +12,7 @@ import {
     SimpleDialog,
 } from "@gui-elements/index";
 import { extractSearchWords } from "@gui-elements/src/components/Typography/Highlighter";
+import { CLASSPREFIX as eccguiprefix } from "@gui-elements/src/configuration/constants";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
 import { useTranslation } from "react-i18next";
 import { recentlyViewedItems } from "@ducks/workspace/requests";
@@ -106,9 +107,9 @@ export function RecentlyViewedModal() {
         const label = item.taskLabel || item.taskId || item.projectLabel || item.projectId;
         return (
             <OverviewItem
+                className={active ? `${eccguiprefix}-overviewitem__item--active` : ""}
                 key={item.projectId + item.taskId}
                 hasSpacing
-                style={active ? { backgroundColor: "#0a67a3", color: "#fff" } : undefined}
                 onClick={handleSelectClick}
             >
                 <OverviewItemDepiction>
@@ -179,9 +180,9 @@ export function RecentlyViewedModal() {
     const createNewItemRenderer = (query: string, active: boolean) => {
         return (
             <OverviewItem
+                className={active ? `${eccguiprefix}-overviewitem__item--active` : ""}
                 key={query}
                 densityHigh
-                style={active ? { backgroundColor: "#0a67a3", color: "#fff" } : undefined}
             >
                 <OverviewItemDescription>
                     <OverviewItemLine>
