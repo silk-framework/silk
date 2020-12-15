@@ -82,7 +82,7 @@
     },
     "DeleteModal": {
         "confirmMsg": "Task {{name}} is used by other tasks! Deleting this task will also delete all depending tasks listed below:",
-        "deleteResource": "{{type}} {{name}} will be deleted"
+        "deleteResource": "{{type}} '{{name}}' will be deleted"
     },
     "Deletedialog": {
         "loading": "Loading delete dialog."
@@ -123,7 +123,7 @@
         "pageRangeText": "of {{total}} pages"
     },
     "PrefixDialog": {
-        "deletePrefix": "Prefix {{prefixName}} will be deleted."
+        "deletePrefix": "Prefix '{{prefixName}}' will be deleted."
     },
     "ProjectImportModal": {
         "importBtn": "Import project",

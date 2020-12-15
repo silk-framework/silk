@@ -163,7 +163,11 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
 
     const handleDeleteConfirm = () => {
         toggleDeleteModal();
-        dispatch(routerOp.goToPage(""));
+        let afterPage = "";
+        if (taskId) {
+            afterPage = `projects/${projectId}`;
+        }
+        dispatch(routerOp.goToPage(afterPage));
     };
 
     const handleCloneConfirmed = (id, detailsPage) => {
