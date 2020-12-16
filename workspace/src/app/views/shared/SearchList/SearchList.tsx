@@ -89,7 +89,12 @@ export function SearchList() {
                 }
                 textCallout={<strong>{t("common.messages.createFirstItems", { items: itemTypeLabel() })}</strong>}
                 actionButtons={[
-                    <Button key={"create"} onClick={handleCreateArtefact} elevated>
+                    <Button
+                        data-test-id={"create-first-item-btn"}
+                        key={"create"}
+                        onClick={handleCreateArtefact}
+                        elevated
+                    >
                         {t("common.action.CreateSmth", { smth: itemTypeLabel() })}
                     </Button>,
                 ]}
