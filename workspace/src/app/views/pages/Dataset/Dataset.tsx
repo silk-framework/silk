@@ -16,6 +16,7 @@ import { Loading } from "../../shared/Loading/Loading";
 import { requestTaskData } from "@ducks/shared/requests";
 import { IProjectTask } from "@ducks/shared/typings";
 import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
+import { commonSel } from "@ducks/common";
 
 // The dataset plugins that should show the data preview automatically without user interaction.
 const automaticallyPreviewedDatasets = ["json", "xml", "csv"];
@@ -28,6 +29,7 @@ export function Dataset() {
     const [t] = useTranslation();
     const [mainViewLoading, setMainViewLoading] = useState(true);
     const [taskData, setTaskData] = useState<IProjectTask | null>(null);
+    const { dmBaseUrl } = useSelector(commonSel.initialSettingsSelector);
 
     useEffect(() => {
         if (error?.detail) {
@@ -62,6 +64,22 @@ export function Dataset() {
         }
     }, [taskId, projectId]);
 
+    const additionalContent = () => {
+        if (pluginId === "eccencaDataPlatform") {
+            return dmBaseUrl && <IframeWindow />;
+        } else {
+            return (
+                showPreview && (
+                    <DataPreview
+                        title={t("pages.dataset.title", "Data preview")}
+                        preview={{ project: projectId, dataset: taskId }}
+                        autoLoad={showPreviewAutomatically}
+                    />
+                )
+            );
+        }
+    };
+
     return (
         <WorkspaceContent className="eccapp-di__dataset">
             <WorkspaceMain>
@@ -70,17 +88,9 @@ export function Dataset() {
                     <Spacing />
                     {mainViewLoading ? (
                         <Loading />
-                    ) : // Show explore and query tab for knowledge graph dataset
-                    pluginId === "eccencaDataPlatform" ? (
-                        <IframeWindow />
                     ) : (
-                        showPreview && (
-                            <DataPreview
-                                title={t("pages.dataset.title", "Data preview")}
-                                preview={{ project: projectId, dataset: taskId }}
-                                autoLoad={showPreviewAutomatically}
-                            />
-                        )
+                        // Show explore and query tab for knowledge graph dataset
+                        additionalContent()
                     )}
                 </Section>
             </WorkspaceMain>
