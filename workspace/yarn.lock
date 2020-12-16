@@ -1050,64 +1050,39 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
-"@blueprintjs/core@^3.24.0":
-  version "3.26.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/core/-/core-3.26.0.tgz#b56470517fa57734434e1fcb552676c1b2aab4f4"
-  integrity sha1-tWRwUX+ldzRDTh/LVSZ2wbKqtPQ=
+"@blueprintjs/core@^3.36.0":
+  version "3.36.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/core/-/core-3.36.0.tgz#0a271092050c17b84f29426594708180a1b5401a"
+  integrity sha1-CicQkgUMF7hPKUJllHCBgKG1QBo=
   dependencies:
-    "@blueprintjs/icons" "^3.15.1"
+    "@blueprintjs/icons" "^3.23.0"
     "@types/dom4" "^2.0.1"
     classnames "^2.2"
     dom4 "^2.1.5"
     normalize.css "^8.0.1"
-    popper.js "^1.15.0"
+    popper.js "^1.16.1"
     react-lifecycles-compat "^3.0.4"
     react-popper "^1.3.7"
     react-transition-group "^2.9.0"
     resize-observer-polyfill "^1.5.1"
-    tslib "~1.10.0"
+    tslib "~1.13.0"
 
-"@blueprintjs/core@^3.26.1":
-  version "3.26.1"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/core/-/core-3.26.1.tgz#371b6c83a937efb6d9a6947c3c5b55dba09bb838"
-  integrity sha1-Nxtsg6k377bZppR8PFtV26CbuDg=
-  dependencies:
-    "@blueprintjs/icons" "^3.16.0"
-    "@types/dom4" "^2.0.1"
-    classnames "^2.2"
-    dom4 "^2.1.5"
-    normalize.css "^8.0.1"
-    popper.js "^1.15.0"
-    react-lifecycles-compat "^3.0.4"
-    react-popper "^1.3.7"
-    react-transition-group "^2.9.0"
-    resize-observer-polyfill "^1.5.1"
-    tslib "~1.10.0"
-
-"@blueprintjs/icons@^3.15.1":
-  version "3.15.1"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/icons/-/icons-3.15.1.tgz#81b278d237169afaba0fb7ac0547d95b53b4255d"
-  integrity sha1-gbJ40jcWmvq6D7esBUfZW1O0JV0=
+"@blueprintjs/icons@^3.23.0":
+  version "3.23.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/icons/-/icons-3.23.0.tgz#4cfe0db4363971ac5d8a0a59590a6efc16115dc6"
+  integrity sha1-TP4NtDY5caxdigpZWQpu/BYRXcY=
   dependencies:
     classnames "^2.2"
-    tslib "~1.10.0"
+    tslib "~1.13.0"
 
-"@blueprintjs/icons@^3.16.0":
-  version "3.16.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/icons/-/icons-3.16.0.tgz#902c74a36ff24ad76fa309cca25b6877c2a9c027"
-  integrity sha1-kCx0o2/yStdvownMoltod8KpwCc=
+"@blueprintjs/select@^3.15.0":
+  version "3.15.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/select/-/select-3.15.0.tgz#6307017df896fbd7b523fc08e41097b475be0831"
+  integrity sha1-YwcBffiW+9e1I/wI5BCXtHW+CDE=
   dependencies:
+    "@blueprintjs/core" "^3.36.0"
     classnames "^2.2"
-    tslib "~1.10.0"
-
-"@blueprintjs/select@^3.12.3":
-  version "3.12.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/select/-/select-3.12.3.tgz#27a660d794b2464da2453991dedd115186766a92"
-  integrity sha1-J6Zg15SyRk2iRTmR3t0RUYZ2apI=
-  dependencies:
-    "@blueprintjs/core" "^3.26.1"
-    classnames "^2.2"
-    tslib "~1.10.0"
+    tslib "~1.13.0"
 
 "@carbon/icon-helpers@^10.7.0":
   version "10.7.0"
@@ -9561,7 +9536,7 @@ pnp-webpack-plugin@1.6.4:
   dependencies:
     ts-pnp "^1.1.6"
 
-popper.js@^1.14.4, popper.js@^1.15.0:
+popper.js@^1.14.4, popper.js@^1.16.1:
   version "1.16.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/popper.js/-/popper.js-1.16.1.tgz#2a223cb3dc7b6213d740e40372be40de43e65b1b"
   integrity sha1-KiI8s9x7YhPXQOQDcr5A3kPmWxs=
@@ -12562,10 +12537,10 @@ tslib@^1.10.0, tslib@^1.8.1, tslib@^1.9.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/tslib/-/tslib-1.11.1.tgz#eb15d128827fbee2841549e171f45ed338ac7e35"
   integrity sha1-6xXRKIJ/vuKEFUnhcfRe0zisfjU=
 
-tslib@~1.10.0:
-  version "1.10.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/tslib/-/tslib-1.10.0.tgz#c3c19f95973fb0a62973fb09d90d961ee43e5c8a"
-  integrity sha1-w8GflZc/sKYpc/sJ2Q2WHuQ+XIo=
+tslib@~1.13.0:
+  version "1.13.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/tslib/-/tslib-1.13.0.tgz#c881e13cc7015894ed914862d276436fa9a47043"
+  integrity sha1-yIHhPMcBWJTtkUhi0nZDb6mkcEM=
 
 tsutils@^3.17.1:
   version "3.17.1"
