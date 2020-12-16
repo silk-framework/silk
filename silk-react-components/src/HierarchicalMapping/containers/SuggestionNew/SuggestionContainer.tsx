@@ -92,7 +92,9 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                     handleFilter(suggestions);
                     resolve(suggestions);
                 },
-                () => {
+                (error) => {
+                    setError(error)
+                    reject(error);
                 }
             );
         });

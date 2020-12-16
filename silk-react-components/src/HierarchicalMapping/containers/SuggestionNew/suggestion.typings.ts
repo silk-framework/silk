@@ -79,7 +79,7 @@ export interface ISortDirection {
     // column keycode
     column: string;
     // store ordering direction, '' - is default value
-    modifier: 'asc' | 'desc' | ''
+    modifier: 'asc' | 'desc' | false
 }
 
 export interface IPrefix {

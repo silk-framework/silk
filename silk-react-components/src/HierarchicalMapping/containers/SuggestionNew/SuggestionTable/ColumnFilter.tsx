@@ -9,19 +9,17 @@ interface IProps {
 
     // callback
     onApplyFilter(filter: string);
+
+    selectedFilter: string;
 }
 
 
-export default function ColumnFilter({ filters, onApplyFilter }: IProps) {
+export default function ColumnFilter({ filters, onApplyFilter, selectedFilter }: IProps) {
     const context = useContext(SuggestionListContext);
 
-    const [selectedFilter, setSelectedFilter] = useState<string>('');
-
     const handleApplyFilter = (filter: string) => {
-        setSelectedFilter(filter === selectedFilter ? '' : filter);
         onApplyFilter(filter);
     }
-
     return <ContextMenu portalContainer={context.portalContainer}>
         {
             filters.map(filter => <MenuItem

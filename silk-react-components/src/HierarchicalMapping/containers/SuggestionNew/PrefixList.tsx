@@ -7,12 +7,14 @@ import { IPrefix } from "./suggestion.typings";
 // In TypeScript, you must first obtain a non-generic reference:
 const PrefixSelect = Select.ofType<IPrefix>();
 
-export default function PrefixList({prefixes, selectedPrefix, onChange}) {
+export default function PrefixList({prefixes, selectedPrefix, onChange, disabled}) {
     const context = useContext(SuggestionListContext);
 
     const [items, setItems] = useState<IPrefix[]>([]);
 
     const [inputQuery, setInputQuery] = useState<string>('');
+
+    const [selectedItem, setSelectedItem] = useState(selectedPrefix);
 
     useEffect(() => {
         setItems(prefixes);
@@ -24,6 +26,7 @@ export default function PrefixList({prefixes, selectedPrefix, onChange}) {
     }
 
     const handleSelectTarget = (uri: string) => {
+        setSelectedItem(uri);
         onChange(uri);
     };
 
@@ -32,7 +35,7 @@ export default function PrefixList({prefixes, selectedPrefix, onChange}) {
     </>;
 
     const itemRenderer = (prefix: IPrefix, {handleClick}) => {
-        if (prefix === selectedPrefix) {
+        if (prefix === selectedItem) {
             return null;
         }
         return <MenuItem
@@ -83,6 +86,7 @@ export default function PrefixList({prefixes, selectedPrefix, onChange}) {
         itemRenderer={itemRenderer}
         itemsEqual={areTargetsEqual}
         onQueryChange={handleQueryChange}
+        disabled={disabled}
         query={inputQuery}
         createNewItemFromQuery={createPrefix}
         createNewItemRenderer={renderCreatePrefixOptionRenderer}
@@ -94,7 +98,7 @@ export default function PrefixList({prefixes, selectedPrefix, onChange}) {
     >
         <Button
             rightIcon="select-caret"
-            text={selectedPrefix || 'Select the Auto generation prefix'}
+            text={selectedItem || 'Select the Auto generation prefix'}
         />
     </PrefixSelect>
 

@@ -26,9 +26,11 @@ interface IProps {
 
     // callback for column filtering
     onApplyFilter(columnName: string, filter: string);
+
+    appliedFilters: any;
 }
 
-const sortItems = [{
+const checkAllFilterOptions = [{
     text: 'Select all page items',
     value: 'page_select',
 },{
@@ -47,15 +49,16 @@ export default function STableHeader({
      onSwap,
      sortDirections,
      onSort,
-     onApplyFilter
+     onApplyFilter,
+     appliedFilters
  }: IProps) {
-    const [selectSorting, setSelectedSorting] = useState('');
+    // const [selectSorting, setSelectedSorting] = useState('');
 
     const context = useContext(SuggestionListContext);
     const {portalContainer} = context;
 
     const handleSort = (value: string) => {
-        setSelectedSorting(value);
+        // setSelectedSorting(value);
         const [scope, action] = value.split('_');
         toggleSelectAll(scope as 'all' | 'page', action as 'select' | 'unselect');
     }
@@ -68,10 +71,9 @@ export default function STableHeader({
                     togglerElement={'item-info'}
                 >
                     {
-                        sortItems.map(o => (
+                        checkAllFilterOptions.map(o => (
                             <MenuItem
                                 key={o.value}
-                                active={o.value === selectSorting}
                                 text={o.text}
                                 onClick={() => handleSort(o.value)}
                             />
@@ -79,6 +81,7 @@ export default function STableHeader({
                     }
                 </ContextMenu>
                 <ColumnFilter
+                    selectedFilter={appliedFilters.checkbox}
                     filters={COLUMN_FILTERS.checkbox}
                     onApplyFilter={(filter) => onApplyFilter('checkbox', filter)}
                 />
@@ -102,6 +105,7 @@ export default function STableHeader({
                                 />
                                 {
                                     COLUMN_FILTERS[header.key] && <ColumnFilter
+                                        selectedFilter={appliedFilters[header.key]}
                                         filters={COLUMN_FILTERS[header.key]}
                                         onApplyFilter={(filter) => onApplyFilter(header.key, filter)}
                                     />
