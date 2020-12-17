@@ -22,7 +22,7 @@ export function ExampleInfoBox({source}: IProps) {
     }
 
     return (
-        examples?.length && <ContextMenu
+        examples.length ? <ContextMenu
             portalContainer={portalContainer}
             togglerElement={'item-info'}
         >
@@ -33,6 +33,6 @@ export function ExampleInfoBox({source}: IProps) {
                     )
                 }
             </ul>
-        </ContextMenu>
+        </ContextMenu> : null
     )
 }

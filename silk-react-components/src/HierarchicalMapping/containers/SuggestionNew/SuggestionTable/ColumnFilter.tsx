@@ -10,6 +10,7 @@ interface IProps {
     // callback
     onApplyFilter(filter: string);
 
+    // selected filter name
     selectedFilter: string;
 }
 

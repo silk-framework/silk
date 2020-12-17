@@ -7,7 +7,17 @@ import { IPrefix } from "./suggestion.typings";
 // In TypeScript, you must first obtain a non-generic reference:
 const PrefixSelect = Select.ofType<IPrefix>();
 
-export default function PrefixList({prefixes, selectedPrefix, onChange, disabled}) {
+interface IProps {
+    disabled?: boolean
+
+    onChange(uri: string);
+
+    prefixes: IPrefix[];
+
+    selectedPrefix: string;
+}
+
+export default function PrefixList({prefixes, selectedPrefix, onChange, disabled}: IProps) {
     const context = useContext(SuggestionListContext);
 
     const [items, setItems] = useState<IPrefix[]>([]);
@@ -35,9 +45,6 @@ export default function PrefixList({prefixes, selectedPrefix, onChange, disabled
     </>;
 
     const itemRenderer = (prefix: IPrefix, {handleClick}) => {
-        if (prefix === selectedItem) {
-            return null;
-        }
         return <MenuItem
             text={itemLabel(prefix, inputQuery)}
             key={prefix.uri}

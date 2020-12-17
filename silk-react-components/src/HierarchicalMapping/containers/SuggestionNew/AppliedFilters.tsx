@@ -5,7 +5,14 @@ import _ from 'lodash';
 
 const AVAILABLE_FILTERS = _.keyBy(_.flatMap(COLUMN_FILTERS), 'action')
 
-export default function AppliedFilters({ filters, onRemove }) {
+interface IProps {
+    // column filters
+    filters: { [key: string]: string };
+
+    onRemove(key: string);
+}
+
+export default function AppliedFilters({ filters, onRemove }: IProps) {
     return <TagList label={'Applied Filters'}>
         {
             Object

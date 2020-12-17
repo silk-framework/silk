@@ -17,11 +17,15 @@ import { generateRuleAsync, getSuggestionsAsync, prefixesAsync, schemaExampleVal
 import { IAddedSuggestion, ITransformedSuggestion } from "./suggestion.typings";
 
 interface ISuggestionListContext {
+    // Can be deleted when popup issue gone
     portalContainer: HTMLDivElement;
+    // sharing example values for source data
     exampleValues: {
         [key: string]: string[]
     };
+    // Table global search
     search: string;
+    // indicator shows the swap state, by default it's true source->target
     isFromDataset: boolean;
 }
 
@@ -57,10 +61,18 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     useEffect(() => {
         (async function () {
             setLoading(true);
-            await loadData(isFromDataset);
-            await loadExampleValues();
-            await loadPrefixes();
-            setLoading(false);
+            try {
+                await loadData(isFromDataset);
+                await loadExampleValues();
+                await loadPrefixes();
+            } catch (e)  {
+                setError([
+                    ...error,
+                    ...e
+                ])
+            } finally {
+                setLoading(false);
+            }
         })()
     }, []);
 
@@ -68,8 +80,13 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         setIsFromDataset(!isFromDataset);
         setError([]);
         setLoading(true);
-        await loadData(!isFromDataset);
-        setLoading(false);
+        try {
+            await loadData(!isFromDataset);
+        } catch (e) {
+            setError(e);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const loadData = (matchFromDataset: boolean) => {
@@ -93,10 +110,9 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                     resolve(suggestions);
                 },
                 (error) => {
-                    setError(error)
                     reject(error);
                 }
-            );
+            )
         });
     };
 
@@ -108,10 +124,6 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                     resolve(data);
                 },
                 err => {
-                    setError([
-                        ...error,
-                        err,
-                    ]);
                     reject(err);
                 }
             );
@@ -131,10 +143,6 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                     resolve(arr);
                 },
                 err => {
-                    setError([
-                        ...error,
-                        err,
-                    ]);
                     reject(err);
                 }
             )
@@ -152,13 +160,13 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
                 const correspondence = {
                     sourcePath: source,
-                    targetProperty: targetUri,
+                    targetProperty: targetUri || undefined,
                     type,
                 };
 
                 if (!isFromDataset) {
                     correspondence.sourcePath = targetUri;
-                    correspondence.targetProperty = source;
+                    correspondence.targetProperty = source || undefined;
                 }
 
                 return correspondence

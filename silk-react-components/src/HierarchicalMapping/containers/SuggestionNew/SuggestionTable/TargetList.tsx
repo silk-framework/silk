@@ -7,7 +7,12 @@ import { SuggestionListContext } from "../SuggestionContainer";
 // In TypeScript, you must first obtain a non-generic reference:
 const TargetSelect = Select.ofType<ITargetWithSelected>();
 
-export default function TargetList({targets, onChange}) {
+interface IProps {
+    targets: ITargetWithSelected[];
+
+    onChange(uri: string);
+}
+export default function TargetList({targets, onChange}: IProps) {
     const context = useContext(SuggestionListContext);
 
     const [items, setItems] = useState<ITargetWithSelected[]>(targets);

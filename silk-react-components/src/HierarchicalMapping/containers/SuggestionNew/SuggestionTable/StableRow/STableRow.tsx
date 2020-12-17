@@ -1,12 +1,12 @@
 import React, { useContext } from "react";
 import TypesList from "../TypesList";
-import { SuggestionTypeValues } from "../../suggestion.typings";
-import { Checkbox, TableCell, TableRow } from "@gui-elements/index";
+import { IPageSuggestion, ITargetWithSelected, SuggestionTypeValues } from "../../suggestion.typings";
+import { Checkbox, Highlighter, OverflowText, TableCell, TableRow } from "@gui-elements/index";
 import { SuggestionListContext } from "../../SuggestionContainer";
 import { SourceCellData } from "./SourceCellData";
-import { TargetCellData } from "./TargetCellData";
 import TargetList from "../TargetList";
 import TargetInfoBox from "./TargetInfoBox";
+import { ExampleInfoBox } from "./ExampleInfoBox";
 
 export default function STableRow({row, onRowSelect, selected, onModifyTarget}) {
     const context = useContext(SuggestionListContext);
@@ -29,6 +29,7 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
     const selectedTarget = candidates.find(t => t._selected);
     const selectedType = selectedTarget ? selectedTarget.type : 'value';
 
+    const {search} = context;
     return <TableRow>
         <TableCell>
             <Checkbox onChange={() => onRowSelect(row)} checked={!!selected}/>
@@ -36,21 +37,28 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
         <TableCell>
             {
                 context.isFromDataset
-                    ? <SourceCellData label={source} search={context.search}/>
-                    : <TargetCellData search={context.search} target={row} />
+                    ? <SourceCellData label={source} search={search}/>
+                    : <>
+                        <p><OverflowText><Highlighter label={row.label} searchValue={search}/></OverflowText></p>
+                        <p><OverflowText><Highlighter label={row.uri} searchValue={search}/></OverflowText></p>
+                        {
+                            row.description &&
+                            <p><OverflowText><Highlighter label={row.description} searchValue={search}/></OverflowText></p>
+                        }
+                        <TargetInfoBox selectedTarget={row} />
+                    </>
             }
         </TableCell>
         <TableCell>
             <div/>
         </TableCell>
         <TableCell>
+            <TargetList targets={candidates} onChange={handleModifyTarget}/>
             {
                 context.isFromDataset
-                    ? <>
-                        <TargetList targets={candidates} onChange={handleModifyTarget}/>
-                        <TargetInfoBox selectedTarget={selectedTarget} />
-                    </>
-                    : <SourceCellData label={selectedTarget.label || selectedTarget.uri} search={context.search}/>
+                    ? <TargetInfoBox selectedTarget={selectedTarget}/>
+                    : <ExampleInfoBox source={selectedTarget.uri}/>
+
             }
         </TableCell>
         <TableCell>

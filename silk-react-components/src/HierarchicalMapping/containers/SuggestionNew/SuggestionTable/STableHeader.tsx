@@ -27,7 +27,10 @@ interface IProps {
     // callback for column filtering
     onApplyFilter(columnName: string, filter: string);
 
-    appliedFilters: any;
+    // applied column filters
+    appliedFilters: {
+        [key: string]: string
+    };
 }
 
 const checkAllFilterOptions = [{
@@ -43,6 +46,7 @@ const checkAllFilterOptions = [{
     text: 'Unselect all items',
     value: 'all_unselect',
 }];
+
 export default function STableHeader({
      headers,
      toggleSelectAll,
@@ -52,13 +56,10 @@ export default function STableHeader({
      onApplyFilter,
      appliedFilters
  }: IProps) {
-    // const [selectSorting, setSelectedSorting] = useState('');
-
     const context = useContext(SuggestionListContext);
     const {portalContainer} = context;
 
     const handleSort = (value: string) => {
-        // setSelectedSorting(value);
         const [scope, action] = value.split('_');
         toggleSelectAll(scope as 'all' | 'page', action as 'select' | 'unselect');
     }
