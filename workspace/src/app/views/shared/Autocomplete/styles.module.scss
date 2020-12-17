@@ -27,6 +27,7 @@
     cursor: pointer;
     font-weight: 700;
 }
+$dark-minimal-button-background-color-hover: rgba($gray3, 0.15) !default;
 
 .suggestionsLi:not(:last-of-type) {
     border-bottom: 1px solid #999;

@@ -59,6 +59,16 @@ export const errorMessage = (title: string, errors: any) => {
     }
 };
 
+// Label of auto-completion results
+const autoCompleteLabel = (item: IAutocompleteDefaultResponse) => {
+    const label = item.label || item.value;
+    if (label === "") {
+        return "\u00A0";
+    } else {
+        return label;
+    }
+};
+
 /** Widget for a single parameter of a task. */
 export const ParameterWidget = (props: IProps) => {
     const {
@@ -230,6 +240,8 @@ export const ParameterWidget = (props: IProps) => {
                         }}
                         resetPossible={!required}
                         itemKey={(item) => item.value}
+                        itemRenderer={autoCompleteLabel}
+                        itemValueRenderer={autoCompleteLabel}
                     />
                 ) : (
                     <InputMapper

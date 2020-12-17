@@ -90,6 +90,7 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
         case INPUT_TYPES.PASSWORD:
             return <TextField {...inputAttributes} type={"password"} />;
         case INPUT_TYPES.RESOURCE:
+            const resourceNameFn = (item) => item.name;
             return (
                 <FileUploader
                     projectId={projectId}
@@ -103,8 +104,9 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
                             autoCompletionDependsOnParameters: [],
                         },
                         onSearch: handleFileSearch,
-                        itemRenderer: (item) => item.name,
-                        itemValueSelector: (item) => item.name,
+                        itemRenderer: resourceNameFn,
+                        itemValueRenderer: resourceNameFn,
+                        itemValueSelector: resourceNameFn,
                     }}
                     onUploadSuccess={(file) => {
                         // FIXME: the onChange function is not called on upload success, so this is a workaround

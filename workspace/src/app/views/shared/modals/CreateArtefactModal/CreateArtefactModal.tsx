@@ -10,8 +10,8 @@ import {
     GridColumn,
     GridRow,
     HelperClasses,
-    HtmlContentBlock,
     Highlighter,
+    HtmlContentBlock,
     Icon,
     IconButton,
     Link,
@@ -26,7 +26,7 @@ import {
     SimpleDialog,
     Spacing,
 } from "@gui-elements/index";
-import { extractSearchWords, createMultiWordRegex } from "@gui-elements/src/components/Typography/Highlighter";
+import { createMultiWordRegex, extractSearchWords } from "@gui-elements/src/components/Typography/Highlighter";
 import { commonOp, commonSel } from "@ducks/common";
 import { IArtefactItem, IArtefactModal, IDetailedArtefactItem } from "@ducks/common/typings";
 import Loading from "../../Loading";
@@ -79,12 +79,16 @@ export function CreateArtefactModal() {
 
     // Fetch Artefact list
     useEffect(() => {
-        if (projectId) {
-            dispatch(commonOp.fetchArtefactsListAsync());
+        if (projectId && isOpen) {
+            dispatch(
+                commonOp.fetchArtefactsListAsync({
+                    textQuery: searchValue,
+                })
+            );
         } else {
             dispatch(commonOp.resetArtefactsList());
         }
-    }, [projectId]);
+    }, [!!projectId, isOpen]);
 
     const handleAdd = () => {
         if (toBeAddedKey === DATA_TYPES.PROJECT) {
@@ -94,15 +98,14 @@ export function CreateArtefactModal() {
     };
 
     const handleSearch = (textQuery: string) => {
-        if (!projectId) {
-            return;
-        }
         setSearchValue(textQuery);
-        dispatch(
-            commonOp.fetchArtefactsListAsync({
-                textQuery,
-            })
-        );
+        if (projectId) {
+            dispatch(
+                commonOp.fetchArtefactsListAsync({
+                    textQuery,
+                })
+            );
+        }
     };
 
     // Handles that an artefact is selected (highlighted) in the artefact selection list (not added, yet    )
@@ -176,6 +179,7 @@ export function CreateArtefactModal() {
     };
 
     const closeModal = () => {
+        setSearchValue("");
         resetModal(true);
     };
 

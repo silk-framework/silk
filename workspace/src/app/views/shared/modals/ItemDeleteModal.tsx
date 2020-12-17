@@ -54,12 +54,17 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
     };
 
     const prepareDelete = async () => {
+        const itemType = t(
+            item.projectId
+                ? `common.dataTypes.${item.type ? item.type : "genericArtefactLabel"}`
+                : "common.dataTypes.project"
+        );
         setDeleteModalOptions({
             render: () => <Loading description={t("Deletedialog.loading", "Loading delete dialog.")} />,
             onConfirm: handleConfirmRemove(false),
         });
         const deleteTitle = t("common.action.DeleteSmth", {
-            smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
+            smth: itemType,
         });
 
         try {
@@ -77,7 +82,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                     confirmationRequired: true,
                     render: () => (
                         <div>
-                            {t("DeleteModal.confirmMsg", { name: data.label || item.id })}
+                            {t("DeleteModal.confirmMsg", { name: data.label || item.id, itemType: itemType })}
                             <Spacing />
                             <ul>
                                 {(data as ITaskMetadataResponse).relations.dependentTasksDirect.map((rel) => (
@@ -87,7 +92,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                         </div>
                     ),
                     title: t("common.action.DeleteSmth", {
-                        smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
+                        smth: itemType,
                     }),
                     onConfirm: handleConfirmRemove(true),
                 });
@@ -97,7 +102,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                     render: () => (
                         <p>
                             {t("DeleteModal.deleteResource", {
-                                type: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
+                                type: itemType,
                                 name: data.label || item.id,
                             })}
                         </p>
@@ -112,7 +117,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                 render: () => (
                     <p>
                         {t("DeleteModal.deleteResource", {
-                            type: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
+                            type: itemType,
                             name: item.label || item.id || item.projectId,
                         })}
                     </p>
