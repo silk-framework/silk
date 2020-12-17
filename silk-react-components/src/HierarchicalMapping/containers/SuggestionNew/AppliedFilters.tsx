@@ -6,7 +6,6 @@ import _ from 'lodash';
 const AVAILABLE_FILTERS = _.keyBy(_.flatMap(COLUMN_FILTERS), 'action')
 
 export default function AppliedFilters({ filters, onRemove }) {
-
     return <TagList label={'Applied Filters'}>
         {
             Object

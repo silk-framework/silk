@@ -14,7 +14,7 @@
     "start": "gulp",
     "build": "gulp build",
     "deploy": "gulp deploy",
-    "watch": "webpack --watch",
+    "watch": "cross-env NODE_ENV=development webpack --config webpack.dev.config.js --watch",
     "jest": "node ./test/script.js  --no-cache --detectOpenHandles",
     "webpack-build": "cross-env NODE_ENV=production webpack --config webpack.prod.config.js",
     "webpack-dev-build": "cross-env NODE_ENV=development webpack --config webpack.dev.config.js",
