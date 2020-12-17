@@ -313,7 +313,7 @@ export function CreateArtefactModal() {
                             </Button>,
                             <CardActionsAux key="aux">
                                 {!updateExistingTask && (
-                                    <Button key="back" onClick={handleBack}>
+                                    <Button data-test-id={"create-dialog-back-btn"} key="back" onClick={handleBack}>
                                         {t("common.words.back", "Back")}
                                     </Button>
                                 )}
@@ -331,7 +331,7 @@ export function CreateArtefactModal() {
                         >
                             {t("common.action.add")}
                         </Button>,
-                        <Button key="cancel" onClick={closeModal}>
+                        <Button data-test-id="create-dialog-cancel-btn" key="cancel" onClick={closeModal}>
                             {t("common.action.cancel")}
                         </Button>,
                     ]
@@ -351,7 +351,12 @@ export function CreateArtefactModal() {
                     <p>
                         <Icon name="state-info" style={{ verticalAlign: "middle" }} />{" "}
                         {t("ProjectImportModal.restoreNotice", "Want to restore an existing project?")}{" "}
-                        <Link key="importProject" onClick={switchToProjectImport} href="#import-project">
+                        <Link
+                            data-test-id={"project-import-link"}
+                            key="importProject"
+                            onClick={switchToProjectImport}
+                            href="#import-project"
+                        >
                             {t("ProjectImportModal.restoreStarter", "Import project file")}
                         </Link>
                     </p>

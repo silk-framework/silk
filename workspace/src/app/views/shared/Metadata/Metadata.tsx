@@ -282,7 +282,7 @@ export function Metadata(props: IProps) {
         ) : null;
 
     const widgetFull = (
-        <Card>
+        <Card data-test-id={"meta-data-card"}>
             {widgetHeader}
             {widgetContent}
             {widgetFooter}
