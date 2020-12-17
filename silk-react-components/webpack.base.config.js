@@ -12,6 +12,7 @@ const typescriptFormatter = require("react-dev-utils/typescriptFormatter");
 const getCSSModuleLocalIdent = require("react-dev-utils/getCSSModuleLocalIdent");
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const ModuleScopePlugin = require("react-dev-utils/ModuleScopePlugin");
+const safePostCssParser = require("postcss-safe-parser");
 
 const isEnvDevelopment = process.env.NODE_ENV === "development";
 const isEnvProduction = process.env.NODE_ENV === "production";
@@ -38,6 +39,10 @@ module.exports = {
         // this defaults to 'window', but by setting it to 'this' then
         // module chunks which are built will work in web workers as well.
         globalObject: "this",
+        // Point sourcemap entries to original disk location (format as URL on Windows)
+        devtoolModuleFilenameTemplate: isEnvProduction
+            ? (info) => path.relative(resolveApp('src'), info.absoluteResourcePath).replace(/\\/g, "/")
+            : isEnvDevelopment && ((info) => path.resolve(info.absoluteResourcePath).replace(/\\/g, "/")),
     },
     optimization: {
         minimize: isEnvProduction,
@@ -80,7 +85,15 @@ module.exports = {
                 },
                 sourceMap: true,
             }),
-            new OptimizeCSSAssetsPlugin({})
+            new OptimizeCSSAssetsPlugin({
+                cssProcessorOptions: {
+                    parser: safePostCssParser,
+                    map: true,
+                },
+                cssProcessorPluginOptions: {
+                    preset: ["default", { minifyFontValues: { removeQuotes: false } }],
+                },
+            })
         ],
         // splitChunks: {
         //     cacheGroups: {
