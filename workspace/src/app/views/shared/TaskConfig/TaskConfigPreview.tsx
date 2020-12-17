@@ -74,6 +74,8 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
             return parameterValue;
         }
     };
+    // Because of line_height: 1, underscores are not rendered
+    const fixStyle = { lineHeight: "normal" };
     // TODO: only return list when it has items, so we need calculate content before rendering
     return (
         <OverflowText passDown>
@@ -86,7 +88,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                             <PropertyValuePair hasDivider key={paramId}>
                                 <PropertyName>{paramId}</PropertyName>
                                 <PropertyValue>
-                                    <code>{value}</code>
+                                    <code style={fixStyle}>{value}</code>
                                 </PropertyValue>
                             </PropertyValuePair>
                         );

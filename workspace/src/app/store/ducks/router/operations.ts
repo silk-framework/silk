@@ -71,9 +71,18 @@ const goToPage = (path: string, pageLabels: IPageLabels = {} as IPageLabels) => 
     };
 };
 
-const absolutePageUrl = (path: string): string => {
+export const absolutePageUrl = (path: string): string => {
     const isAbsolute = path.startsWith("/");
-    return isAbsolute ? path : path ? SERVE_PATH + "/" + path : SERVE_PATH;
+    return isAbsolute ? path : path ? SERVE_PATH + prependSlash(path) : SERVE_PATH;
+};
+
+// Prepend a "/" in front of the path if it is missing.
+const prependSlash = function (path: string) {
+    if (!path.startsWith("/") && !path.startsWith("?")) {
+        return "/" + path;
+    } else {
+        return path;
+    }
 };
 
 const goToTaskPage = (task: ISearchResultsServer) => {
@@ -88,7 +97,7 @@ const goToTaskPage = (task: ISearchResultsServer) => {
     };
 };
 
-const taskUrl = (projectId: string, taskType: string, taskId: string): string => {
+export const taskUrl = (projectId: string, taskType: string, taskId: string): string => {
     return absolutePageUrl(`projects/${projectId}/${itemTypeToPath(taskType)}/${taskId}`);
 };
 
@@ -124,5 +133,4 @@ export default {
     updateLocationState,
     goToTaskPage,
     itemTypeToPath,
-    taskUrl,
 };

@@ -29,6 +29,7 @@ import {
     TitlePage,
     TitleSubsection,
     WorkspaceHeader,
+    Spacing,
 } from "@gui-elements/index";
 import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
@@ -38,8 +39,9 @@ import { useLocation } from "react-router";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { ItemDeleteModal } from "../../shared/modals/ItemDeleteModal";
-import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
+import { CONTEXT_PATH } from "../../../constants/path";
 import CloneModal from "../../shared/modals/CloneModal";
+import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
 import { routerOp } from "@ducks/router";
 import { IItemLink } from "@ducks/shared/typings";
 import { requestItemLinks, requestTaskItemInfo } from "@ducks/shared/requests";
@@ -48,6 +50,7 @@ import { DATA_TYPES } from "../../../constants";
 import { IExportTypes } from "@ducks/common/typings";
 import { downloadResource } from "../../../utils/downloadResource";
 import { useTranslation } from "react-i18next";
+import { triggerHotkeyHandler } from "../../shared/HotKeyHandler/HotKeyHandler";
 
 interface IProps {
     breadcrumbs?: IBreadcrumb[];
@@ -65,6 +68,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
     const location = useLocation<any>();
     const [itemType, setItemType] = useState<string | null>(null);
     const [currentLanguage, setCurrentLanguage] = useState(Store.get("locale"));
+    const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
 
     const isAuth = useSelector(commonSel.isAuthSelector);
     const exportTypes = useSelector(commonSel.exportTypesSelector);
@@ -89,6 +93,14 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
     const itemData = {
         id: taskId ? taskId : projectId,
         projectId: taskId ? projectId : undefined,
+        type: itemType ? itemType : undefined,
+    };
+
+    // active legacy link
+    const [displayItemLink, setDisplayItemLink] = useState<IItemLink | null>(null);
+    // handler for link change
+    const toggleItemLink = (linkItem: IItemLink | null = null) => {
+        setDisplayItemLink(linkItem);
     };
 
     // Update task type
@@ -112,7 +124,6 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
 
     // Update item links for more menu
     useEffect(() => {
-        getWindowTitle(projectId);
         if (projectId && taskId) {
             getItemLinks();
         } else {
@@ -120,12 +131,16 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
         }
     }, [projectId, taskId]);
 
+    // Set window title
+    useEffect(() => {
+        getWindowTitle(projectId);
+    }, [projectId, taskId, lastBreadcrumb ? lastBreadcrumb.href : ""]);
+
     const updateItemType = async (pageLabels: IPageLabels, locationPathName: string) => {
         if (projectId && taskId) {
             try {
                 const response = await requestTaskItemInfo(projectId, taskId);
                 const itemType = response.data.itemType.id;
-                pageLabels.itemType = itemType;
                 if (window.location.pathname === locationPathName) {
                     setItemType(itemType);
                 }
@@ -149,7 +164,11 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
 
     const handleDeleteConfirm = () => {
         toggleDeleteModal();
-        dispatch(routerOp.goToPage(""));
+        let afterPage = "";
+        if (taskId) {
+            afterPage = `projects/${projectId}`;
+        }
+        dispatch(routerOp.goToPage(afterPage));
     };
 
     const handleCloneConfirmed = (id, detailsPage) => {
@@ -245,6 +264,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                                         icon={link.icon}
                                         text={t("navigation.side.dm." + link.path, link.defaultLabel)}
                                         href={dmBaseUrl + "/" + link.path}
+                                        key={link.path}
                                     />
                                 ))
                             ) : (
@@ -281,7 +301,11 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                         </OverviewItemLine>
                         {lastBreadcrumb && (
                             <OverviewItemLine large>
-                                <TitlePage>{lastBreadcrumb.text}</TitlePage>
+                                <TitlePage>
+                                    <h1>
+                                        <OverflowText>{lastBreadcrumb.text}</OverflowText>
+                                    </h1>
+                                </TitlePage>
                             </OverviewItemLine>
                         )}
                     </OverviewItemDescription>
@@ -323,9 +347,8 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                                     {itemLinks.map((itemLink) => (
                                         <MenuItem
                                             key={itemLink.path}
-                                            text={itemLink.label}
-                                            href={itemLink.path}
-                                            target={itemLink.path.startsWith(SERVE_PATH) ? undefined : "_blank"}
+                                            text={t("common.legacyGui." + itemLink.label, itemLink.label)}
+                                            onClick={() => toggleItemLink(itemLink)}
                                         />
                                     ))}
                                 </ContextMenu>
@@ -369,11 +392,38 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                                 <MenuItem
                                     text={t("common.action.backOld", "Back to old workspace")}
                                     href={CONTEXT_PATH + "/workspace"}
+                                    icon={"application-legacygui"}
                                 />
                                 <MenuItem
                                     text={t("common.action.activity", "Activity overview")}
                                     href={CONTEXT_PATH + "/workspace/allActivities"}
+                                    icon={"application-activities"}
                                 />
+                                {hotKeys.quickSearch && (
+                                    <MenuItem
+                                        text={
+                                            <>
+                                                {t("RecentlyViewedModal.title")}
+                                                <Spacing vertical={true} size="small" />
+                                                <Button
+                                                    outlined={true}
+                                                    small={true}
+                                                    tooltip={`Hotkey: ${hotKeys.quickSearch}`}
+                                                >
+                                                    {hotKeys.quickSearch}
+                                                </Button>
+                                            </>
+                                        }
+                                        href={"#"}
+                                        onClick={(e) => {
+                                            if (e) {
+                                                e.preventDefault();
+                                            }
+                                            triggerHotkeyHandler(hotKeys.quickSearch);
+                                        }}
+                                        icon={"operation-search"}
+                                    />
+                                )}
                                 {!!dmBaseUrl && (
                                     <>
                                         <MenuDivider />
@@ -383,6 +433,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
                                             onClick={() => {
                                                 dispatch(commonOp.logoutFromDi());
                                             }}
+                                            icon={"operation-logout"}
                                         />
                                     </>
                                 )}
@@ -409,6 +460,14 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
 
             {cloneModalOpen && (
                 <CloneModal item={itemData} onDiscard={toggleCloneModal} onConfirmed={handleCloneConfirmed} />
+            )}
+            {displayItemLink && (
+                <IframeWindow
+                    srcLinks={itemLinks}
+                    startWithLink={displayItemLink}
+                    startFullscreen={true}
+                    handlerRemoveModal={() => toggleItemLink(null)}
+                />
             )}
         </ApplicationHeader>
     );

@@ -197,9 +197,16 @@ export const logPageOnError = (err: Error) => {
     return err;
 };
 
+/** Log the wrapper HTML to the console */
 export const logWrapperHtml = (wrapper: ReactWrapper<any, any>) => {
     wrapper.update();
     console.log(wrapper.html());
+};
+
+/** Returns the HTML of th given React wrapper */
+export const wrapperHtml = (wrapper: ReactWrapper<any, any>): string => {
+    wrapper.update();
+    return wrapper.html();
 };
 
 /** Logs the wrapper HTML on error. */
@@ -330,7 +337,7 @@ export const legacyApiUrl = (path: string): string => {
 
 // Prepend a "/" in front of the path if it is missing.
 const prependSlash = function (path: string) {
-    if (!path.startsWith("/")) {
+    if (!path.startsWith("/") && !path.startsWith("?")) {
         return "/" + path;
     } else {
         return path;

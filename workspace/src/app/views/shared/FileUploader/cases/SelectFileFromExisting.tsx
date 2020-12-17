@@ -2,9 +2,10 @@ import { Autocomplete, IAutocompleteProps } from "../../Autocomplete/Autocomplet
 import { FieldItem } from "@gui-elements/index";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { IProjectResource } from "@ducks/shared/typings";
 
 interface IProps {
-    autocomplete: IAutocompleteProps;
+    autocomplete: IAutocompleteProps<IProjectResource, string>;
 
     /**
      * Fire when autocomplete value selected
@@ -36,6 +37,7 @@ export function SelectFileFromExisting(props: IProps) {
 
         onChange(value);
     };
+    const itemStringValue = (item: IProjectResource) => item.name;
 
     return (
         <FieldItem
@@ -46,7 +48,13 @@ export function SelectFileFromExisting(props: IProps) {
             }}
             messageText={error ? t("FileUploader.fileNotSpecified") : ""}
         >
-            <Autocomplete {...autocomplete} onChange={handleChange} />
+            <Autocomplete<IProjectResource, string>
+                {...autocomplete}
+                onChange={handleChange}
+                itemValueSelector={itemStringValue}
+                itemKey={itemStringValue}
+                itemValueRenderer={itemStringValue}
+            />
         </FieldItem>
     );
 }

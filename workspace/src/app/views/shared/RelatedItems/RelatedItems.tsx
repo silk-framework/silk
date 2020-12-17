@@ -1,37 +1,21 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import {
-    IconButton,
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-    ContextMenu,
-    Divider,
-    MenuItem,
-    OverviewItem,
-    OverviewItemActions,
-    OverviewItemDescription,
-    OverviewItemLine,
-} from "@gui-elements/index";
+import { useSelector } from "react-redux";
+import { Card, CardContent, CardHeader, CardTitle, Divider } from "@gui-elements/index";
 import { sharedOp } from "@ducks/shared";
-import { routerOp } from "@ducks/router";
 import DataList from "../Datalist";
-import Tag from "@gui-elements/src/components/Tag/Tag";
-import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import Spacing from "@gui-elements/src/components/Separation/Spacing";
-import { Highlighter } from "../Highlighter/Highlighter";
-import { ResourceLink } from "../ResourceLink/ResourceLink";
-import { IItemLink, IRelatedItem, IRelatedItemsResponse } from "@ducks/shared/typings";
+import { IRelatedItem, IRelatedItemsResponse } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
 import { SearchBar } from "../SearchBar/SearchBar";
 import { usePagination } from "@gui-elements/src/components/Pagination/Pagination";
 import { useTranslation } from "react-i18next";
-import { SERVE_PATH } from "../../../constants/path";
+import { RelatedItem } from "./RelatedItem";
 
 interface IProps {
     projectId?: string;
     taskId?: string;
+    // If defined, receives the message ID of the message event. Returns true if the related items should be reloaded.
+    messageEventReloadTrigger?: (messageId: string, message: string) => boolean;
 }
 
 /** Widget that shows related items of project tasks*/
@@ -45,18 +29,40 @@ export function RelatedItems(props: IProps) {
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState({ total: 0, items: [] } as IRelatedItemsResponse);
     const [textQuery, setTextQuery] = useState("");
+    const [updated, setUpdated] = useState(0);
     const [pagination, paginationElement, onTotalChange] = usePagination({
         initialPageSize: 5,
         pageSizes: [5, 10, 20],
         presentation: { hideInfoText: true },
     });
-    const [t] = useTranslation();
+    // If an I-Frame sends an event to update the page, decide based on provided function if to reload.
+    useEffect(() => {
+        if (props.messageEventReloadTrigger) {
+            let updateSwitchValue = updated;
+            const handler = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (typeof data?.id === "string") {
+                        if (props.messageEventReloadTrigger(data.id, data.message)) {
+                            updateSwitchValue = 1 - updateSwitchValue;
+                            setUpdated(updateSwitchValue);
+                        }
+                    }
+                } catch (ex) {}
+            };
+            // Add message event listener
+            window.addEventListener("message", handler);
 
-    const dispatch = useDispatch();
+            // clean up
+            return () => window.removeEventListener("message", handler);
+        }
+    }, []);
+
+    const [t] = useTranslation();
 
     useEffect(() => {
         getRelatedItemsData(projectId, taskId, textQuery);
-    }, [textQuery]);
+    }, [projectId, taskId, textQuery, updated]);
 
     // Fetches and updates the related items of the project task
     const getRelatedItemsData = async (projectId: string, taskId: string, textQuery: string) => {
@@ -86,11 +92,6 @@ export function RelatedItems(props: IProps) {
         setTextQuery(searchInput);
     };
 
-    const goToDetailsPage = (resourceItem: IItemLink, taskLabel: string, itemType: string, event) => {
-        event.preventDefault();
-        dispatch(routerOp.goToPage(resourceItem.path, { taskLabel, itemType: itemType.toLowerCase() }));
-    };
-
     return (
         <Card>
             <CardHeader>
@@ -103,11 +104,7 @@ export function RelatedItems(props: IProps) {
             </CardHeader>
             <Divider />
             <CardContent>
-                {data.total > 0 || textQuery !== "" ? (
-                    <SearchBar textQuery={textQuery} onSearch={searchFired} />
-                ) : (
-                    false
-                )}
+                {(data.total > 0 || textQuery !== "") && <SearchBar textQuery={textQuery} onSearch={searchFired} />}
                 <Spacing size="small" />
                 <DataList
                     isEmpty={data.items.length === 0}
@@ -118,85 +115,9 @@ export function RelatedItems(props: IProps) {
                 >
                     {data.items
                         .slice((pagination.current - 1) * pagination.limit, pagination.current * pagination.limit)
-                        .map((relatedItem: IRelatedItem) => {
-                            const contextMenuItems = relatedItem.itemLinks.map((link, idx) => (
-                                <MenuItem
-                                    key={link.path}
-                                    text={link.label}
-                                    href={link.path}
-                                    icon={getItemLinkIcons(link.label)}
-                                    onClick={
-                                        idx === 0
-                                            ? (e) =>
-                                                  goToDetailsPage(
-                                                      relatedItem.itemLinks[0],
-                                                      relatedItem.label,
-                                                      relatedItem.type,
-                                                      e
-                                                  )
-                                            : null
-                                    }
-                                    target={link.path.startsWith(SERVE_PATH) ? undefined : "_blank"}
-                                />
-                            ));
-                            return (
-                                <OverviewItem key={relatedItem.id} densityHigh>
-                                    <OverviewItemDescription>
-                                        <OverviewItemLine>
-                                            <span>
-                                                <Tag>
-                                                    <Highlighter label={relatedItem.type} searchValue={textQuery} />
-                                                </Tag>{" "}
-                                                <ResourceLink
-                                                    url={
-                                                        !!relatedItem.itemLinks.length
-                                                            ? relatedItem.itemLinks[0].path
-                                                            : false
-                                                    }
-                                                    handlerResourcePageLoader={
-                                                        !!relatedItem.itemLinks.length
-                                                            ? (e) =>
-                                                                  goToDetailsPage(
-                                                                      relatedItem.itemLinks[0],
-                                                                      relatedItem.label,
-                                                                      relatedItem.type,
-                                                                      e
-                                                                  )
-                                                            : false
-                                                    }
-                                                >
-                                                    <Highlighter label={relatedItem.label} searchValue={textQuery} />
-                                                </ResourceLink>
-                                            </span>
-                                        </OverviewItemLine>
-                                    </OverviewItemDescription>
-                                    <OverviewItemActions>
-                                        {!!relatedItem.itemLinks.length && (
-                                            <IconButton
-                                                name="item-viewdetails"
-                                                text={t("common.action.showDetails", "Show details")}
-                                                onClick={(e) =>
-                                                    goToDetailsPage(
-                                                        relatedItem.itemLinks[0],
-                                                        relatedItem.label,
-                                                        relatedItem.type,
-                                                        e
-                                                    )
-                                                }
-                                                href={relatedItem.itemLinks[0].path}
-                                            />
-                                        )}
-                                        {contextMenuItems.length && (
-                                            <ContextMenu
-                                                togglerText={t("common.action.moreOptions", "Show more options")}
-                                            >
-                                                {contextMenuItems}
-                                            </ContextMenu>
-                                        )}
-                                    </OverviewItemActions>
-                                </OverviewItem>
-                            );
-                        })}
+                        .map((relatedItem: IRelatedItem) => (
+                            <RelatedItem key={relatedItem.id} relatedItem={relatedItem} textQuery={textQuery} />
+                        ))}
                 </DataList>
                 {data.items.length > Math.min(pagination.total, 5) ? ( // Don't show if no pagination is needed
                     <>

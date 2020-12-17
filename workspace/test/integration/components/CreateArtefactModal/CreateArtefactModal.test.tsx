@@ -33,6 +33,7 @@ import { atomicParamDescription, objectParamDescription } from "./CreateArtefact
 import { INPUT_TYPES } from "../../../../src/app/constants";
 import { TaskTypes } from "../../../../src/app/store/ducks/shared/typings";
 import { MemoryHistory } from "history/createMemoryHistory";
+import { Simulate } from "react-dom/test-utils";
 
 describe("Task creation widget", () => {
     beforeAll(() => {
@@ -94,13 +95,22 @@ describe("Task creation widget", () => {
         return findAll(dialogWrapper, ".eccgui-overviewitem__list .eccgui-overviewitem__item");
     };
 
-    const pluginCreationDialogWrapper = async (existingTask?: RecursivePartial<IProjectTaskUpdatePayload>) => {
+    const pluginCreationDialogWrapper = async (
+        doubleClickToAdd: boolean = true,
+        existingTask?: RecursivePartial<IProjectTaskUpdatePayload>
+    ) => {
         const wrapper = await createMockedListWrapper(existingTask);
         const pluginA = selectionItems(wrapper.wrapper)[1];
         if (!existingTask) {
-            // Double-click "Plugin A"
-            clickWrapperElement(pluginA);
-            clickWrapperElement(pluginA);
+            if (doubleClickToAdd) {
+                // Double-click "Plugin A"
+                clickWrapperElement(pluginA);
+                clickWrapperElement(pluginA);
+            } else {
+                // Use Add button
+                clickWrapperElement(pluginA);
+                clickWrapperElement(findSingleElement(wrapper.wrapper, byTestId("item-add-btn")));
+            }
             mockAxios.mockResponseFor(
                 { url: apiUrl("core/plugins/pluginA") },
                 mockedAxiosResponse({ data: mockPluginDescription })
@@ -199,6 +209,10 @@ describe("Task creation widget", () => {
 
     it("should open the plugin configuration dialog when double-clicking an item from the list", async () => {
         await pluginCreationDialogWrapper();
+    });
+
+    it("should open the plugin configuration dialog when clicking an item from the list and then 'Add'", async () => {
+        await pluginCreationDialogWrapper(false);
     });
 
     it("should show a form with parameters of different types", async () => {
@@ -335,7 +349,7 @@ describe("Task creation widget", () => {
     };
 
     it("should use existing values to set the initial parameter values on update", async () => {
-        const { wrapper } = await pluginCreationDialogWrapper({
+        const { wrapper } = await pluginCreationDialogWrapper(true, {
             projectId: PROJECT_ID,
             taskId: TASK_ID,
             taskPluginDetails: mockPluginDescription,

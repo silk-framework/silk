@@ -10,6 +10,7 @@ import {
     GridColumn,
     GridRow,
     HelperClasses,
+    Highlighter,
     HtmlContentBlock,
     Icon,
     IconButton,
@@ -25,13 +26,13 @@ import {
     SimpleDialog,
     Spacing,
 } from "@gui-elements/index";
+import { createMultiWordRegex, extractSearchWords } from "@gui-elements/src/components/Typography/Highlighter";
 import { commonOp, commonSel } from "@ducks/common";
 import { IArtefactItem, IArtefactModal, IDetailedArtefactItem } from "@ducks/common/typings";
 import Loading from "../../Loading";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
 import { TaskForm } from "./ArtefactForms/TaskForm";
 import { DATA_TYPES } from "../../../../constants";
-import { extractSearchWords, Highlighter, multiWordRegex } from "../../Highlighter/Highlighter";
 import ArtefactTypesList from "./ArtefactTypesList";
 import { SearchBar } from "../../SearchBar/SearchBar";
 import { routerOp } from "@ducks/router";
@@ -39,6 +40,7 @@ import { useTranslation } from "react-i18next";
 import { TaskType } from "@ducks/shared/typings";
 import { ProjectImportModal } from "../ProjectImportModal";
 import ItemDepiction from "../../../shared/ItemDepiction";
+import { ErrorBoundary } from "carbon-components-react";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -63,49 +65,59 @@ export function CreateArtefactModal() {
         error,
     }: IArtefactModal = modalStore;
 
-    // initially take from redux
-    const [selected, setSelected] = useState<IArtefactItem>(selectedArtefact);
+    // The artefact that is selected from the artefact selection list. This can be pre-selected via the Redux state.
+    // A successive 'Add' action will open die creation dialog for this artefact.
+    const [toBeAdded, setToBeAdded] = useState<IArtefactItem | undefined>(selectedArtefact);
     const [lastSelectedClick, setLastSelectedClick] = useState<number>(0);
     const [isProjectImport, setIsProjectImport] = useState<boolean>(false);
     const DOUBLE_CLICK_LIMIT_MS = 500;
 
+    const selectedArtefactKey: string | undefined = selectedArtefact?.key;
+    const selectedArtefactTitle: string | undefined = selectedArtefact?.title;
+
+    const toBeAddedKey: string | undefined = toBeAdded?.key;
+
     // Fetch Artefact list
     useEffect(() => {
-        if (projectId) {
-            dispatch(commonOp.fetchArtefactsListAsync());
+        if (projectId && isOpen) {
+            dispatch(
+                commonOp.fetchArtefactsListAsync({
+                    textQuery: searchValue,
+                })
+            );
         } else {
             dispatch(commonOp.resetArtefactsList());
         }
-    }, [projectId]);
+    }, [!!projectId, isOpen]);
 
     const handleAdd = () => {
-        if (selected.key === DATA_TYPES.PROJECT) {
-            return dispatch(commonOp.selectArtefact(selected));
+        if (toBeAddedKey === DATA_TYPES.PROJECT) {
+            return dispatch(commonOp.selectArtefact(toBeAdded));
         }
-        dispatch(commonOp.getArtefactPropertiesAsync(selected));
+        dispatch(commonOp.getArtefactPropertiesAsync(toBeAdded));
     };
 
     const handleSearch = (textQuery: string) => {
-        if (!projectId) {
-            return;
-        }
         setSearchValue(textQuery);
-        dispatch(
-            commonOp.fetchArtefactsListAsync({
-                textQuery,
-            })
-        );
+        if (projectId) {
+            dispatch(
+                commonOp.fetchArtefactsListAsync({
+                    textQuery,
+                })
+            );
+        }
     };
 
+    // Handles that an artefact is selected (highlighted) in the artefact selection list (not added, yet    )
     const handleArtefactSelect = (artefact: IArtefactItem) => {
         if (
-            selected.key === artefact.key &&
+            toBeAddedKey === artefact.key &&
             lastSelectedClick &&
             Date.now() - lastSelectedClick < DOUBLE_CLICK_LIMIT_MS
         ) {
             handleAdd();
         } else {
-            setSelected(artefact);
+            setToBeAdded(artefact);
         }
         setLastSelectedClick(Date.now);
     };
@@ -117,7 +129,7 @@ export function CreateArtefactModal() {
     };
 
     const handleEnter = (e) => {
-        if (e.key === "Enter" && selected) {
+        if (e.key === "Enter" && toBeAdded) {
             handleAdd();
         }
     };
@@ -149,7 +161,7 @@ export function CreateArtefactModal() {
                         )
                     );
                 } else {
-                    await dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefact.key)));
+                    await dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefactKey)));
                 }
             } else {
                 const errKey = Object.keys(form.errors)[0];
@@ -167,6 +179,7 @@ export function CreateArtefactModal() {
     };
 
     const closeModal = () => {
+        setSearchValue("");
         resetModal(true);
     };
 
@@ -178,7 +191,7 @@ export function CreateArtefactModal() {
 
     const resetModal = (closeModal?: boolean) => {
         setIsProjectImport(false);
-        setSelected({} as IArtefactItem);
+        setToBeAdded(undefined);
         form.clearError();
         dispatch(commonOp.resetArtefactModal(closeModal));
     };
@@ -187,7 +200,7 @@ export function CreateArtefactModal() {
         setIsProjectImport(true);
     };
 
-    const projectArtefactSelected = selectedArtefact.key === DATA_TYPES.PROJECT;
+    const projectArtefactSelected = selectedArtefactKey === DATA_TYPES.PROJECT;
 
     let artefactForm = null;
     if (updateExistingTask) {
@@ -202,11 +215,11 @@ export function CreateArtefactModal() {
         );
     } else {
         // Project / task creation
-        if (selectedArtefact.key) {
+        if (selectedArtefactKey) {
             if (projectArtefactSelected) {
                 artefactForm = <ProjectForm form={form} projectId={projectId} />;
             } else {
-                const detailedArtefact = cachedArtefactProperties[selectedArtefact.key];
+                const detailedArtefact = cachedArtefactProperties[selectedArtefactKey];
                 if (detailedArtefact && projectId) {
                     artefactForm = <TaskForm form={form} artefact={detailedArtefact} projectId={projectId} />;
                 }
@@ -241,7 +254,7 @@ export function CreateArtefactModal() {
 
     // Rank title matches higher
     if (searchValue.trim() !== "") {
-        const regex = multiWordRegex(extractSearchWords(searchValue));
+        const regex = createMultiWordRegex(extractSearchWords(searchValue));
         const titleMatches = [];
         const nonTitleMatches = [];
         artefactListWithProject.forEach((artefactItem) => {
@@ -256,13 +269,13 @@ export function CreateArtefactModal() {
 
     // If search is active pre-select first item in (final) list
     useEffect(() => {
-        setSelected({} as IArtefactItem);
+        setToBeAdded(undefined);
         if (artefactListWithProject.length > 0 && searchValue) {
-            setSelected(artefactListWithProject[0]);
+            setToBeAdded(artefactListWithProject[0]);
         }
     }, [artefactListWithProject.map((item) => item.key).join("|"), selectedDType]);
 
-    const isCreationUpdateDialog = selectedArtefact.key || updateExistingTask;
+    const isCreationUpdateDialog = selectedArtefactKey || updateExistingTask;
 
     const createDialog = (
         <SimpleDialog
@@ -274,8 +287,8 @@ export function CreateArtefactModal() {
                     ? t("CreateModal.updateTitle", {
                           type: `'${updateExistingTask.metaData.label}' (${updateExistingTask.taskPluginDetails.title})`,
                       })
-                    : selectedArtefact.title
-                    ? t("CreateModal.createTitle", { type: selectedArtefact.title })
+                    : selectedArtefactTitle
+                    ? t("CreateModal.createTitle", { type: selectedArtefactTitle })
                     : t("CreateModal.createTitleGeneric")
             }
             onClose={closeModal}
@@ -313,7 +326,8 @@ export function CreateArtefactModal() {
                             key="add"
                             affirmative={true}
                             onClick={handleAdd}
-                            disabled={!Object.keys(selected).length}
+                            disabled={!toBeAddedKey}
+                            data-test-id={"item-add-btn"}
                         >
                             {t("common.action.add")}
                         </Button>,
@@ -370,7 +384,7 @@ export function CreateArtefactModal() {
                                                     isOnlyLayout
                                                     key={artefact.key}
                                                     className={
-                                                        selected.key === artefact.key ? HelperClasses.Intent.ACCENT : ""
+                                                        toBeAddedKey === artefact.key ? HelperClasses.Intent.ACCENT : ""
                                                     }
                                                 >
                                                     <OverviewItem
@@ -442,9 +456,13 @@ export function CreateArtefactModal() {
             }
         </SimpleDialog>
     );
-    return isProjectImport ? (
-        <ProjectImportModal close={closeModal} back={() => setIsProjectImport(false)} />
-    ) : (
-        createDialog
+    return (
+        <ErrorBoundary>
+            {isProjectImport ? (
+                <ProjectImportModal close={closeModal} back={() => setIsProjectImport(false)} />
+            ) : (
+                createDialog
+            )}
+        </ErrorBoundary>
     );
 }
