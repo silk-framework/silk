@@ -40,7 +40,7 @@ import { useTranslation } from "react-i18next";
 import { TaskType } from "@ducks/shared/typings";
 import { ProjectImportModal } from "../ProjectImportModal";
 import ItemDepiction from "../../../shared/ItemDepiction";
-import { ErrorBoundary } from "carbon-components-react/es/components/ErrorBoundary";
+import { ErrorBoundary } from "carbon-components-react/lib/components/ErrorBoundary";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
