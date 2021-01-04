@@ -170,7 +170,12 @@ export function Metadata(props: IProps) {
                 </CardTitle>
                 {!loading && !isEditing && (
                     <CardOptions>
-                        <IconButton name="item-edit" text="Edit" onClick={toggleEdit} />
+                        <IconButton
+                            data-test-id="meta-data-edit-btn"
+                            name="item-edit"
+                            text="Edit"
+                            onClick={toggleEdit}
+                        />
                     </CardOptions>
                 )}
             </CardHeader>
@@ -275,7 +280,12 @@ export function Metadata(props: IProps) {
             <>
                 <Divider />
                 <CardActions>
-                    <Button affirmative text={t("common.action.submit", "Submit")} type={"submit"} />
+                    <Button
+                        data-test-id={"submitBtn"}
+                        affirmative
+                        text={t("common.action.submit", "Submit")}
+                        type={"submit"}
+                    />
                     <Button text={t("common.action.cancel")} onClick={toggleEdit} />
                 </CardActions>
             </>
