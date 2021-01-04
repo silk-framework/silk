@@ -383,7 +383,11 @@ export function CreateArtefactModal() {
                                     ) : artefactListWithProject.length === 0 ? (
                                         <p>{t("CreateModal.noMatch", "No match found.")}</p>
                                     ) : (
-                                        <OverviewItemList hasSpacing columns={2}>
+                                        <OverviewItemList
+                                            data-test-id="item-to-create-selection-list"
+                                            hasSpacing
+                                            columns={2}
+                                        >
                                             {artefactListWithProject.map((artefact) => (
                                                 <Card
                                                     isOnlyLayout
@@ -394,6 +398,7 @@ export function CreateArtefactModal() {
                                                 >
                                                     <OverviewItem
                                                         hasSpacing
+                                                        data-test-id={`artefact-plugin-${artefact.key}`}
                                                         onClick={() => handleArtefactSelect(artefact)}
                                                         onKeyDown={handleEnter}
                                                     >

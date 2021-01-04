@@ -7,7 +7,7 @@ import "@uppy/progress-bar/dist/style.css";
 import { Button, Divider, FieldItem, Icon, TextField } from "@gui-elements/index";
 import { IAutocompleteProps } from "../Autocomplete/Autocomplete";
 import { UploadNewFile } from "./cases/UploadNewFile/UploadNewFile";
-import { FileMenu, FileMenuItems } from "./FileMenu";
+import { FileSelectionOptions, FileMenuItems } from "./FileSelectionOptions";
 import { SelectFileFromExisting } from "./cases/SelectFileFromExisting";
 import { CreateNewFile } from "./cases/CreateNewFile";
 import i18next from "../../../../language";
@@ -107,6 +107,9 @@ interface IState {
 
     //Toggle File delete dialog, contains filename or empty string
     visibleFileDelete: string;
+
+    // The ID of the file selection menu
+    id: string;
 }
 
 const noop = () => {
@@ -118,7 +121,7 @@ const noop = () => {
  * with advanced = true, provides full FileUploader with 2 extra options
  * otherwise provides simple drag and drop uploader
  */
-export class FileUploader extends React.Component<IUploaderOptions, IState> {
+export class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
     private uppy = Uppy({
         // @ts-ignore
         logger: Uppy.debugLogger,
@@ -148,6 +151,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
             showActionsMenu: false,
             inputFilename: props.defaultValue || "",
             visibleFileDelete: "",
+            id: props.id,
         };
 
         if (props.maxFileUploadSizeBytes) {
@@ -239,7 +243,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
         const { allowMultiple, advanced, autocomplete, defaultValue, onProgress, projectId } = this.props;
 
         return (
-            <>
+            <div id={this.state.id}>
                 {defaultValue && !showActionsMenu && (
                     <FieldItem>
                         <TextField
@@ -272,7 +276,10 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                 {(!defaultValue || showActionsMenu) && (
                     <>
                         {advanced && (
-                            <FileMenu onChange={this.handleFileMenuChange} selectedFileMenu={selectedFileMenu} />
+                            <FileSelectionOptions
+                                onChange={this.handleFileMenuChange}
+                                selectedFileMenu={selectedFileMenu}
+                            />
                         )}
 
                         <div>
@@ -302,7 +309,7 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
                         </div>
                     </>
                 )}
-            </>
+            </div>
         );
     }
 }

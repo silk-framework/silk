@@ -3,7 +3,7 @@ import { Button, SimpleDialog } from "@gui-elements/index";
 import FileUploader from "../../FileUploader";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import { IUploaderOptions } from "../../FileUploader/FileUploader";
+import { IUploaderOptions } from "../../FileUploader/FileSelectionMenu";
 import { useTranslation } from "react-i18next";
 
 export interface IFileUploadModalProps {
