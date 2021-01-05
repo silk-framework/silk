@@ -14,7 +14,7 @@
 
 package org.silkframework.rule.execution
 
-import java.util.concurrent._
+import java.util.concurrent.{ExecutorCompletionService, _}
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 import java.util.logging.{Level, Logger}
 
@@ -71,9 +71,8 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     val finishedTasks = new AtomicInteger()
     val logProgress = progressLogger(context, finishedTasks, scheduler)
     while (!cancelled && (scheduler.isAlive || finishedTasks.get() < scheduler.taskCount) && errors.get().isEmpty) {
-      val result = executor.poll(POLL_TIMEOUT_MS, TimeUnit.MILLISECONDS)
-      if (result != null) {
-        context.value.update(context.value() ++ result.get)
+      for(result <- poll(executor)) {
+        context.value.update(context.value() ++ result)
         finishedTasks.incrementAndGet()
         if(runtimeConfig.linkLimit.getOrElse(Int.MaxValue) <= context.value().size
             || Thread.currentThread().isInterrupted
@@ -89,12 +88,22 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       handleErrors(errors.get())
     }
 
-    for (result <- Option(executor.poll(POLL_TIMEOUT_MS, TimeUnit.MILLISECONDS))) {
-      context.value.update(context.value() ++ result.get)
+    for (result <- poll(executor)) {
+      context.value.update(context.value() ++ result)
       updateStatus(context, finishedTasks.get(), scheduler.taskCount)
     }
 
     shutdown(executorService, scheduler)
+  }
+
+  private def poll[T](executor: ExecutorCompletionService[T]): Option[T] = {
+    try {
+      Option(executor.poll(POLL_TIMEOUT_MS, TimeUnit.MILLISECONDS)).map(_.get())
+    } catch {
+      case _: InterruptedException =>
+        cancelled = true
+        None
+    }
   }
 
   private def shutdown(executorService: ExecutorService, scheduler: SchedulerThread): Unit = {

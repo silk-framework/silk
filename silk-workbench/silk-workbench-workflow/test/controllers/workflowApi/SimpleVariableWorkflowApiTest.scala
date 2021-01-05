@@ -71,9 +71,7 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
   }
 
   it should "return the correct response bodies given valid ACCEPT values" in {
-    // FIXME CMEM-3051: Enable JSON in test as soon as writing to it is supported
-    for(mimeType <- VariableWorkflowRequestUtils.acceptedMimeType.filter(mimeType => mimeType != "application/json"
-        && mimeType != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
+    for(mimeType <- VariableWorkflowRequestUtils.acceptedMimeType.filter(mimeType => mimeType != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
       for(IndexedSeq(param1Values, param2Values) <- Seq(
         IndexedSeq(Seq("val 1"), Seq("val 2")),
         IndexedSeq(Seq(), Seq("val A", "val B"))
@@ -199,6 +197,11 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
         }
       case "text/comma-separated-values" | "text/csv" =>
         body must include(s"${targetProp(1)},${targetProp(2)}")
+      case "application/json" =>
+        body must (
+            startWith("[") or
+                startWith("{")
+            )
     }
   }
 

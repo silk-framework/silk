@@ -5,11 +5,12 @@ import org.silkframework.dataset._
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.GenericEntityTable
-import org.silkframework.execution.{EntityHolder, ExecutionException, MappedTraversable}
+import org.silkframework.execution.{EntityHolder, ExecutionException}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.collection.mutable
+import scala.util.control.Breaks.{break, breakable}
 import scala.util.control.NonFatal
 
 /**
@@ -84,9 +85,19 @@ class BulkDataSource(bulkContainerName: String,
     val entities =
       new Traversable[Entity] {
         override def foreach[U](emitEntity: Entity => U): Unit = {
-          sources foreach { dataSource =>
-            handleSourceError(dataSource) { source =>
-              source.retrieve(entitySchema, limit).entities foreach emitEntity
+          var count = 0
+          breakable {
+            for (dataSource <- sources) {
+              handleSourceError(dataSource) { source =>
+                for (entity <- source.retrieve(entitySchema, limit.map(_ - count)).entities) {
+                  emitEntity(entity)
+                  count += 1
+                }
+                // break if limit has been reached
+                for (l <- limit if count >= l) {
+                  break
+                }
+              }
             }
           }
         }
