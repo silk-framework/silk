@@ -16,22 +16,57 @@
 
 package org.silkframework.rule.plugins.transformer.date
 
-import javax.xml.datatype.DatatypeFactory
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.validation.ValidationException
+
+import java.time.{Instant, LocalDate, ZoneOffset, ZonedDateTime}
+import java.time.format.DateTimeParseException
 
 @Plugin(
   id = "datetoTimestamp",
   categories = Array("Date"),
   label = "Date to timestamp",
-  description = "Convert an xsd:date to a timestamp in milliseconds."
+  description = "Convert an xsd:dateTime to a timestamp. Returns the passed time since the Unix Epoch (1970-01-01)."
 )
-case class DateToTimestampTransformer() extends SimpleTransformer {
+@TransformExamples(Array(
+  new TransformExample(
+    input1 = Array("2017-07-03T21:32:52Z"),
+    output = Array("1499117572000")
+  ),
+  new TransformExample(
+    input1 = Array("2017-07-03T21:32:52+01:00"),
+    output = Array("1499113972000")
+  ),
+  new TransformExample(
+    parameters = Array("unit", "seconds"),
+    input1 = Array("2017-07-03T21:32:52+01:00"),
+    output = Array("1499113972")
+  ),
+  new TransformExample(
+    input1 = Array("2017-07-03"),
+    output = Array("1499040000000")
+  )
+))
+case class DateToTimestampTransformer(unit: DateUnit = DateUnit.milliseconds) extends SimpleTransformer {
 
-  private val datatypeFactory = DatatypeFactory.newInstance()
+  override def evaluate(value: String): String = {
+    val dateTime = {
+      try {
+        ZonedDateTime.parse(value)
+      } catch {
+        case ex: DateTimeParseException =>
+          try {
+            // For backward compatibility, we also support pure dates without timezones and assume UTC in that case.
+            LocalDate.parse(value).atStartOfDay(ZoneOffset.UTC)
+          } catch {
+            case _: DateTimeParseException =>
+              throw new ValidationException("Invalid format! Expects an xsd:dateTime that includes a timezone (e.g., 2017-07-03T21:32:52+01:00)." +
+                "For backward compatibility, xsd:date without a timezone is supported as well.", ex)
+          }
+      }
+    }
 
-  override def evaluate(value: String) = {
-    val millis = datatypeFactory.newXMLGregorianCalendar(value).toGregorianCalendar.getTimeInMillis
-    millis.toString
+    Instant.EPOCH.until(dateTime, unit.toChronoUnit).toString
   }
 }
