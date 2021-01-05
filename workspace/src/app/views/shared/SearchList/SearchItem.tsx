@@ -127,7 +127,12 @@ export default function SearchItem({
                         <OverviewItemLine small>
                             <OverflowText>
                                 {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
-                                    <Tag>{item.projectLabel ? item.projectLabel : item.projectId}</Tag>
+                                    <Tag>
+                                        <Highlighter
+                                            label={item.projectLabel ? item.projectLabel : item.projectId}
+                                            searchValue={searchValue}
+                                        />
+                                    </Tag>
                                 )}
                                 {item.description && !parentProjectId && item.type !== DATA_TYPES.PROJECT && (
                                     <Spacing vertical size="small" />

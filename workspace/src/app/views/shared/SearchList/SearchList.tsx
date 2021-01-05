@@ -69,9 +69,9 @@ export function SearchList() {
 
     const itemTypeLabel = () => {
         if (appliedFilters.itemType) {
-            return appliedFilters.itemType;
+            return t("common.dataTypes." + appliedFilters.itemType);
         } else {
-            return "item";
+            return t("common.dataTypes.genericArtefactLabel");
         }
     };
 
@@ -90,7 +90,7 @@ export function SearchList() {
                 textCallout={<strong>{t("common.messages.createFirstItems", { items: itemTypeLabel() })}</strong>}
                 actionButtons={[
                     <Button key={"create"} onClick={handleCreateArtefact} elevated>
-                        {t("common.action.CreateSmth", { smth: appliedFilters.itemType || "" })}
+                        {t("common.action.CreateSmth", { smth: itemTypeLabel() })}
                     </Button>,
                 ]}
             />

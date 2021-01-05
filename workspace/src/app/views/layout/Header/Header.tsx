@@ -93,6 +93,7 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
     const itemData = {
         id: taskId ? taskId : projectId,
         projectId: taskId ? projectId : undefined,
+        type: itemType ? itemType : undefined,
     };
 
     // active legacy link
@@ -163,7 +164,11 @@ function HeaderComponent({ breadcrumbs, onClickApplicationSidebarExpand, isAppli
 
     const handleDeleteConfirm = () => {
         toggleDeleteModal();
-        dispatch(routerOp.goToPage(""));
+        let afterPage = "";
+        if (taskId) {
+            afterPage = `projects/${projectId}`;
+        }
+        dispatch(routerOp.goToPage(afterPage));
     };
 
     const handleCloneConfirmed = (id, detailsPage) => {
