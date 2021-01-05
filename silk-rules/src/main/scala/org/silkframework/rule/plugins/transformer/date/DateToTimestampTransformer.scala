@@ -61,7 +61,7 @@ case class DateToTimestampTransformer(unit: DateUnit = DateUnit.milliseconds) ex
             LocalDate.parse(value).atStartOfDay(ZoneOffset.UTC)
           } catch {
             case _: DateTimeParseException =>
-              throw new ValidationException("Invalid format! Expects an xsd:dateTime that includes a timezone (e.g., 2017-07-03T21:32:52+01:00)." +
+              throw new ValidationException("Invalid date format! Expects an xsd:dateTime that includes a timezone (e.g., 2017-07-03T21:32:52+01:00)." +
                 "For backward compatibility, xsd:date without a timezone is supported as well.", ex)
           }
       }
