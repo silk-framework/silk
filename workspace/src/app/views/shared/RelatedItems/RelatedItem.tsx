@@ -89,7 +89,10 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                     />
                 )}
                 {contextMenuItems.length > 1 && ( // Only show context menu when more than the detail page is included
-                    <ContextMenu togglerText={t("common.action.moreOptions", "Show more options")}>
+                    <ContextMenu
+                        data-test-id={"related-item-context-menu"}
+                        togglerText={t("common.action.moreOptions", "Show more options")}
+                    >
                         {contextMenuItems}
                     </ContextMenu>
                 )}

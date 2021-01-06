@@ -106,7 +106,13 @@ export function SearchList() {
     return (
         <>
             <AppliedFacets />
-            <DataList isEmpty={isEmpty} isLoading={isLoading} hasSpacing emptyContainer={EmptyContainer}>
+            <DataList
+                data-test-id="search-result-list"
+                isEmpty={isEmpty}
+                isLoading={isLoading}
+                hasSpacing
+                emptyContainer={EmptyContainer}
+            >
                 {data.map((item) => (
                     <SearchItem
                         key={`${item.id}_${item.projectId}`}
