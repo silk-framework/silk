@@ -28,7 +28,7 @@ import scala.xml.Node
  */
 trait SimilarityOperator extends Operator {
 
-  def required: Boolean
+  def missingValueStrategy: MissingValueStrategy
 
   def weight: Int
 

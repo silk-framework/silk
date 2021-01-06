@@ -22,7 +22,7 @@ import org.silkframework.rule.execution.{GenerateLinks, Linking}
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
 import org.silkframework.rule.plugins.transformer.normalize.TrimTransformer
-import org.silkframework.rule.similarity.SimilarityOperator
+import org.silkframework.rule.similarity.{MissingValueStrategy, SimilarityOperator}
 import org.silkframework.rule.{LinkSpec, LinkageRule, Operator, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
@@ -124,7 +124,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
 
       val id = Identifier.random
 
-      val required = false
+      val missingValueStrategy = MissingValueStrategy.required
 
       val weight = 1
 

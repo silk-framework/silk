@@ -15,7 +15,7 @@
 package org.silkframework.learning.individual
 
 import org.silkframework.config.Prefixes
-import org.silkframework.rule.similarity.{Comparison, DistanceMeasure}
+import org.silkframework.rule.similarity.{Comparison, DistanceMeasure, MissingValueStrategy}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.{DPair, IdentifierGenerator}
 
@@ -35,11 +35,11 @@ case class ComparisonNode(inputs: DPair[InputNode], threshold: Double, weight: I
   override def build(implicit identifiers: IdentifierGenerator) = {
     Comparison(
       identifiers.generate(metric.id),
-      required = required,
       threshold = threshold,
       weight = weight,
       inputs = inputs.map(_.build),
-      metric = metric.build
+      metric = metric.build,
+      missingValueStrategy = MissingValueStrategy.fromDeprecatedBoolean(required)
     )
   }
 }
@@ -51,6 +51,6 @@ object ComparisonNode {
 
     val metricNode = FunctionNode.load(comparison.metric, DistanceMeasure)
 
-    ComparisonNode(DPair(sourceInputNode, targetInputNode), comparison.threshold, comparison.weight, comparison.required, metricNode)
+    ComparisonNode(DPair(sourceInputNode, targetInputNode), comparison.threshold, comparison.weight, comparison.missingValueStrategy.toDeprecatedBoolean.forall(_.booleanValue()), metricNode)
   }
 }

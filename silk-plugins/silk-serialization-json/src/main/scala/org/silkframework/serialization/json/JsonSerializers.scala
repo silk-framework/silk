@@ -2,7 +2,6 @@ package org.silkframework.serialization.json
 
 import java.time.Instant
 import java.util.UUID
-
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, DatasetTask}
@@ -19,6 +18,7 @@ import org.silkframework.runtime.validation.{BadUserInputException, ValidationEx
 import org.silkframework.serialization.json.EntitySerializers.EntitySchemaJsonFormat
 import org.silkframework.serialization.json.InputJsonSerializer._
 import org.silkframework.serialization.json.JsonHelpers._
+import org.silkframework.serialization.json.JsonSerializers.ComparisonJsonFormat.REQUIRED
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.LinkingSerializers._
 import org.silkframework.util.{DPair, Identifier, Uri}
@@ -791,7 +791,6 @@ object JsonSerializers {
 
       Comparison(
         id = identifier(value, "comparison"),
-        required = booleanValue(value, REQUIRED),
         weight = numberValue(value, WEIGHT).intValue,
         threshold = numberValue(value, THRESHOLD).doubleValue,
         indexing = booleanValue(value, INDEXING),
@@ -800,7 +799,8 @@ object JsonSerializers {
           DPair(
             fromJson[Input](mustBeDefined(value, SOURCEINPUT)),
             fromJson[Input](mustBeDefined(value, TARGETINPUT))
-          )
+          ),
+        missingValueStrategy = MissingValueStrategy.fromDeprecatedBoolean(booleanValueOption(value, REQUIRED))
       )
     }
 
@@ -808,7 +808,7 @@ object JsonSerializers {
       Json.obj(
         ID -> value.id.toString,
         TYPE -> COMPARISON_TYPE,
-        REQUIRED -> value.required,
+        REQUIRED -> value.missingValueStrategy.toDeprecatedBoolean.map(_.booleanValue()),
         WEIGHT -> value.weight,
         THRESHOLD -> value.threshold,
         INDEXING -> value.indexing,
@@ -839,10 +839,10 @@ object JsonSerializers {
 
       Aggregation(
         id = identifier(value, "aggregation"),
-        required = booleanValue(value, REQUIRED),
         weight = numberValue(value, WEIGHT).intValue,
         aggregator = aggregator,
-        operators = inputs
+        operators = inputs,
+        missingValueStrategy = MissingValueStrategy.fromDeprecatedBoolean(booleanValueOption(value, REQUIRED))
       )
     }
 
@@ -850,7 +850,7 @@ object JsonSerializers {
       Json.obj(
         ID -> value.id.toString,
         TYPE -> AGGREGATION_TYPE,
-        REQUIRED -> value.required,
+        REQUIRED -> value.missingValueStrategy.toDeprecatedBoolean.map(_.booleanValue()),
         WEIGHT -> value.weight,
         AGGREGATOR -> value.aggregator.pluginSpec.id.toString,
         PARAMETERS -> Json.toJson(value.aggregator.parameters),

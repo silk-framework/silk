@@ -147,10 +147,10 @@ function parseOperator(xmlDoc, elementId, connections) {
     var xml_param;
 
     for (var l = 0; l < params.length; l++) {
-        if ($(params[l]).attr('name') === 'required') {
-            if ($(params[l]).is(':checked')) {
+        if ($(params[l]).attr('name') === 'missingValueStrategy') {
+            if ($(params[l]).val() === "failFast") {
                 xml.setAttribute('required', 'true');
-            } else {
+            } else if($(params[l]).val() === "optional") {
                 xml.setAttribute('required', 'false');
             }
         } else if ($(params[l]).attr('name') === 'threshold') {

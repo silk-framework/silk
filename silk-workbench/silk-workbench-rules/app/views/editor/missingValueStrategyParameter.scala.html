@@ -1,0 +1,16 @@
+
+@import org.silkframework.rule.similarity.MissingValueStrategy
+
+@(id: String, missingValueStrategy: MissingValueStrategy)
+
+<div class="param_element">
+    <label id="@id-label" class="param_label" tabindex="-1" for="@id-select">Strategy</label>
+    <div class="mdl-defer mdl-tooltip--right" for="@id-label" data-mdl-defer="tooltip">
+        Strategy to deal with missing values.
+    </div>
+    <select id="@id-select" name="missingValueStrategy" class="param_value" style="appearance: none;" >
+        <option value="required" @if(missingValueStrategy == MissingValueStrategy.required) { selected="selected" }>default</option>
+        <option value="failFast" @if(missingValueStrategy == MissingValueStrategy.failFast) { selected="selected" }>fail fast</option>
+        <option value="optional" @if(missingValueStrategy == MissingValueStrategy.optional) { selected="selected" }>optional</option>
+    </select>
+</div>

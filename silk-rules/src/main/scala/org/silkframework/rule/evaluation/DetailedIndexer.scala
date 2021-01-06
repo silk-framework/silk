@@ -3,7 +3,7 @@ package org.silkframework.rule.evaluation
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation.DetailedIndex._
-import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
+import org.silkframework.rule.similarity.{Aggregation, Comparison, MissingValueStrategy, SimilarityOperator}
 
 /**
  * In addition to the overall index built from an linkage rule, this indexer also retains
@@ -32,7 +32,7 @@ object DetailedIndexer {
         val opLimit = agg.aggregator.computeThreshold(limit, op.weight.toDouble / totalWeights)
         val index = indexOperator(op, entity, sourceOrTarget, opLimit)
 
-        if (op.required && index.index.isEmpty) {
+        if (op.missingValueStrategy == MissingValueStrategy.failFast && index.index.isEmpty) {
           foundRequiredEmptyIndex = true
         }
 

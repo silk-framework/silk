@@ -17,7 +17,7 @@ package org.silkframework.rule.evaluation
 import org.silkframework.entity.Entity
 import org.silkframework.rule.evaluation.DetailedEvaluator.evaluateOperator
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
-import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
+import org.silkframework.rule.similarity.{Aggregation, Comparison, MissingValueStrategy, SimilarityOperator}
 import org.silkframework.rule.{LinkageRule, TransformRule}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.DPair
@@ -100,26 +100,30 @@ object DetailedEvaluator {
   private def evaluateAggregation(agg: Aggregation, entities: DPair[Entity], threshold: Double): AggregatorConfidence = {
     val totalWeights = agg.operators.map(_.weight).sum
 
-    var isNone = false
-
     val operatorValues = {
       for (operator <- agg.operators) yield {
         val updatedThreshold = agg.aggregator.computeThreshold(threshold, operator.weight.toDouble / totalWeights)
-        val value = evaluateOperator(operator, entities, updatedThreshold)
-        if (operator.required && value.score.isEmpty) isNone = true
-
-        value
+        evaluateOperator(operator, entities, updatedThreshold)
       }
     }
 
-    val weightedValues = for((weight, Some(value)) <- agg.operators.map(_.weight) zip operatorValues.map(_.score)) yield (weight, value)
+    var weightedValues: Seq[(Int, Double)] = Nil
+
+    for((op, value) <- agg.operators zip operatorValues.map(_.score)) yield {
+      value match {
+        case Some(v) =>
+          weightedValues :+= (op.weight, v)
+        case None if op.missingValueStrategy == MissingValueStrategy.required =>
+          weightedValues :+= (op.weight, -1.0)
+        case None if op.missingValueStrategy == MissingValueStrategy.failFast =>
+          return AggregatorConfidence(None, agg, operatorValues)
+        case None =>
+          // don't add to weighted values
+      }
+    }
 
     val aggregatedValue = agg.aggregator.evaluate(weightedValues)
-
-    if (isNone)
-      AggregatorConfidence(None, agg, operatorValues)
-    else
-      AggregatorConfidence(aggregatedValue, agg, operatorValues)
+    AggregatorConfidence(aggregatedValue, agg, operatorValues)
   }
 
   private def evaluateComparison(comparison: Comparison, entities: DPair[Entity], threshold: Double): ComparisonConfidence = {

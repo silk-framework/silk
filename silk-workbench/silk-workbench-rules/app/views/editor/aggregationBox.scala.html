@@ -1,30 +1,25 @@
 @import views.editor.GenerateId
 @import org.silkframework.workspace.Project
-
 @import org.silkframework.runtime.activity.UserContext
+@import org.silkframework.rule.similarity.MissingValueStrategy
+
 @(id: String,
-  required: Boolean, weight: Int,
+  missingValueStrategy: MissingValueStrategy,
+  weight: Int,
   plugin: org.silkframework.runtime.plugin.PluginDescription[_],
   parameterValues: Seq[String],
   x: Int, y: Int, display: Boolean,
   project: Project)(implicit userContext: UserContext)
 
 @operatorBox("Aggregate", id, plugin, parameterValues, x, y, display, project) {
-<div class="param_element">
-  <label id="@{GenerateId(id, display)}_param_required" class="param_label" tabindex="-1">Required</label>
-  <div class="mdl-defer" data-mdl-defer="tooltip" for="@{GenerateId(id, display)}_param_required">
-    If required is set, the parent aggregation should only generate a result if this
-    operator yields a value.
+  <div class="param_element">
+    <label id="@{GenerateId(id, display)}_param_weight" class="param_label" tabindex="-1">Weight</label>
+    <div class="mdl-defer" data-mdl-defer="tooltip" for="@{GenerateId(id, display)}_param_weight">
+      The weight parameter can be used by the parent aggregation when combining
+      its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average
+      aggregation, quadraticMean and geometricMean.
+    </div>
+    <input class="param_value" type="text" name="weight" value="@weight"/>
   </div>
-  <input type="checkbox" class="param_value" name="required" @if(required) {checked="checked"}/>
-</div>
-<div class="param_element">
-  <label id="@{GenerateId(id, display)}_param_weight" class="param_label" tabindex="-1">Weight</label>
-  <div class="mdl-defer" data-mdl-defer="tooltip" for="@{GenerateId(id, display)}_param_weight">
-    The weight parameter can be used by the parent aggregation when combining
-    its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average
-    aggregation, quadraticMean and geometricMean.
-  </div>
-  <input class="param_value" type="text" name="weight" value="@weight"/>
-</div>
+  @missingValueStrategyParameter(GenerateId(id, display) + "_missingValueStrategy", missingValueStrategy)
 }

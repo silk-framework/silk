@@ -19,16 +19,16 @@ import org.silkframework.rule.Operator
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{DPair, Identifier}
 
-import scala.xml.Node
+import scala.xml.{Node, Text}
 
 /**
  * An aggregation combines multiple similarity values into a single value.
  */
 case class Aggregation(id: Identifier = Operator.generateId,
-                       required: Boolean = false,
                        weight: Int = 1,
                        aggregator: Aggregator,
-                       operators: Seq[SimilarityOperator]) extends SimilarityOperator {
+                       operators: Seq[SimilarityOperator],
+                       missingValueStrategy: MissingValueStrategy = MissingValueStrategy.required) extends SimilarityOperator {
 
   require(weight > 0, "weight > 0")
   //TODO learning currently may produce empty aggreagations when cleaning
@@ -51,9 +51,17 @@ case class Aggregation(id: Identifier = Operator.generateId,
     for(op <- operators) {
       val opThreshold = aggregator.computeThreshold(limit, op.weight.toDouble / totalWeights)
       op(entities, opThreshold) match {
-        case Some(v) => weightedValues ::= (op.weight, v)
-        case None if op.required => return None
+        case Some(v) =>
+          weightedValues ::= (op.weight, v)
         case None =>
+          op.missingValueStrategy match {
+            case MissingValueStrategy.required =>
+              weightedValues ::= (op.weight, -1.0)
+            case MissingValueStrategy.failFast =>
+              return None
+            case MissingValueStrategy.optional =>
+              // don't add to weighted values
+          }
       }
     }
 
@@ -75,7 +83,7 @@ case class Aggregation(id: Identifier = Operator.generateId,
         val opThreshold = aggregator.computeThreshold(threshold, op.weight.toDouble / totalWeights)
         val index = op.index(entity, sourceOrTarget, opThreshold)
 
-        if (op.required && index.isEmpty) return Index.empty
+        if (op.missingValueStrategy == MissingValueStrategy.failFast && index.isEmpty) return Index.empty
 
         index
       }
@@ -110,17 +118,17 @@ object Aggregation {
 
       Aggregation(
         id = Operator.readId(node),
-        required = if (requiredStr.isEmpty) false else requiredStr.toBoolean,
         weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
         operators = node.child.filter(n => n.label == "Aggregate" || n.label == "Compare").map(fromXml[SimilarityOperator]),
-        aggregator = aggregator
+        aggregator = aggregator,
+        missingValueStrategy = MissingValueStrategy.fromDeprecatedBoolean(requiredStr)
       )
     }
 
     def write(value: Aggregation)(implicit writeContext: WriteContext[Node]): Node = {
       value.aggregator match {
         case Aggregator(plugin, params) =>
-          <Aggregate id={value.id} required={value.required.toString} weight={value.weight.toString} type={plugin.id}>
+          <Aggregate id={value.id} required={value.missingValueStrategy.toDeprecatedBoolean.map(b => new Text(b.toString))} weight={value.weight.toString} type={plugin.id}>
             {value.operators.map(toXml[SimilarityOperator])}
           </Aggregate>
       }

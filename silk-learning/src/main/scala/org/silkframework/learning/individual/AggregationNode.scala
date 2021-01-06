@@ -15,7 +15,7 @@
 package org.silkframework.learning.individual
 
 import org.silkframework.config.Prefixes
-import org.silkframework.rule.similarity.{Aggregation, Aggregator}
+import org.silkframework.rule.similarity.{Aggregation, Aggregator, MissingValueStrategy}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.IdentifierGenerator
 
@@ -29,10 +29,10 @@ case class AggregationNode(aggregation: String, weight: Int, required: Boolean, 
   def build(implicit identifiers: IdentifierGenerator): Aggregation = {
     Aggregation(
       identifiers.generate(aggregation),
-      required = required,
       weight = weight,
       operators = operators.map(_.build),
-      aggregator = Aggregator(aggregation, Map.empty)(Prefixes.empty, EmptyResourceManager())
+      aggregator = Aggregator(aggregation, Map.empty)(Prefixes.empty, EmptyResourceManager()),
+      missingValueStrategy = MissingValueStrategy.fromDeprecatedBoolean(required)
     )
   }
 }
@@ -46,6 +46,6 @@ object AggregationNode {
 
     val operatorNodes = aggregation.operators.map(OperatorNode.load).toList
 
-    AggregationNode(aggregatorId, aggregation.weight, aggregation.required, operatorNodes)
+    AggregationNode(aggregatorId, aggregation.weight, aggregation.missingValueStrategy.toDeprecatedBoolean.forall(_.booleanValue()), operatorNodes)
   }
 }

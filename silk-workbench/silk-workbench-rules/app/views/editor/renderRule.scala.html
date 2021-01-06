@@ -58,11 +58,11 @@
 
 @drawOperator(op: Operator, x: Int, y: Int) = {
   @op match {
-    case Aggregation(id, required, weight, aggregator, operators) => {
-      @aggregationBox(id, required, weight, aggregator.pluginSpec, parameterValues(aggregator, aggregator.pluginSpec), x, y, true, project)
+    case Aggregation(id, weight, aggregator, operators, missingValueStrategy) => {
+      @aggregationBox(id, missingValueStrategy, weight, aggregator.pluginSpec, parameterValues(aggregator, aggregator.pluginSpec), x, y, true, project)
     }
-    case Comparison(id, required, weight, threshold, indexing, metric, inputs) => {
-      @comparisonBox(id, required, weight, threshold, metric.pluginSpec, parameterValues(metric, metric.pluginSpec), x, y, true, project)
+    case Comparison(id, weight, threshold, indexing, metric, inputs, missingValueStrategy) => {
+      @comparisonBox(id, missingValueStrategy, weight, threshold, metric.pluginSpec, parameterValues(metric, metric.pluginSpec), x, y, true, project)
     }
     case TransformInput(id, transformer, inputs) => {
       @transformationBox(id, transformer.pluginSpec, parameterValues(transformer, transformer.pluginSpec), x, y, true, project)
@@ -133,7 +133,7 @@
 
 @connectOperator(op: Operator) = {
   @op match {
-    case Aggregation(id, required, weight, aggregator, operators) => {
+    case Aggregation(id, weight, aggregator, operators, missingValueStrategy) => {
       @* Handle children *@
       @for(op <- operators) {
         @connectOperator(op)
@@ -151,7 +151,7 @@
         });
       }
     }
-    case Comparison(id, required, weight, threshold, indexing, metric, inputs) => {
+    case Comparison(id, weight, threshold, indexing, metric, inputs, missingValueStrategy) => {
       @* Handle children *@
       @connectOperator(inputs.source)
       @connectOperator(inputs.target)

@@ -58,8 +58,8 @@ object LinkageRuleComplexity {
    * Collects all sub operators.
    */
   private def collectOperators(root: Operator): Traversable[Operator] = root match {
-    case Aggregation(_, _, _, _, ops) => root +: ops.flatMap(collectOperators)
-    case Comparison(_, _, _, _, _, _, inputs) => root +: inputs.flatMap(collectOperators)
+    case Aggregation(_, _, _, ops, _) => root +: ops.flatMap(collectOperators)
+    case Comparison(_, _, _, _, _, inputs, _) => root +: inputs.flatMap(collectOperators)
     case TransformInput(_, _, inputs) => root +: inputs.flatMap(collectOperators)
     case PathInput(_, _) => Traversable(root)
   }
