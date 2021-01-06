@@ -252,6 +252,7 @@ export class FileSelectionMenu extends React.Component<IUploaderOptions, IState>
                             onChange={noop}
                             rightElement={
                                 <Button
+                                    data-test-id="file-selection-change-file-btn"
                                     minimal
                                     text={i18next.t("FileUploader.changeFile", "Change file")}
                                     icon={<Icon name="item-edit" />}
