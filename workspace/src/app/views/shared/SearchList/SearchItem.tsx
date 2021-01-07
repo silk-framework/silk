@@ -165,6 +165,7 @@ export default function SearchItem({
                             </>
                         ) : null}
                         <MenuItem
+                            data-test-id="search-item-delete-btn"
                             key="delete"
                             icon={"item-remove"}
                             onClick={onOpenDeleteModal}
