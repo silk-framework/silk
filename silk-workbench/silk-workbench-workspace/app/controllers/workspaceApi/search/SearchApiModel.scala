@@ -146,10 +146,10 @@ object SearchApiModel {
 
     /** Match search terms against project. */
     protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], project: Project): Boolean = {
-      val idMatch = matchesSearchTerm(lowerCaseSearchTerms, project.config.id)
-      val labelMatch = matchesSearchTerm(lowerCaseSearchTerms, project.config.metaData.label)
-      val descriptionMatch = project.config.metaData.description.exists(d => matchesSearchTerm(lowerCaseSearchTerms, d))
-      idMatch || labelMatch || descriptionMatch
+      val id = project.config.id
+      val label = project.config.metaData.label
+      val description = project.config.metaData.description.getOrElse("")
+      matchesSearchTerm(lowerCaseSearchTerms, id, label, description)
     }
 
     protected def extractSearchTerms(term: String): Array[String] = {
@@ -467,7 +467,7 @@ object SearchApiModel {
 
       for(term <- searchTerm) {
         val lowerCaseTerm = extractSearchTerms(term)
-        tasks = tasks.filter(task => matchesSearchTerm(lowerCaseTerm, task, matchProject = false, matchTaskProperties = true))
+        tasks = tasks.filter(task => matchesSearchTerm(lowerCaseTerm, task, matchTaskProperties = true, matchProject = false))
       }
 
       JsArray(tasks.map(writeTask))
