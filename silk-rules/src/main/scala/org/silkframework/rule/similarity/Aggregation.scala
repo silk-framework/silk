@@ -56,7 +56,7 @@ case class Aggregation(id: Identifier = Operator.generateId,
         case None =>
           op.missingValueStrategy match {
             case MissingValueStrategy.required =>
-              weightedValues ::= (op.weight, -1.0)
+              weightedValues ::= (op.weight, Double.NegativeInfinity)
             case MissingValueStrategy.failFast =>
               return None
             case MissingValueStrategy.optional =>

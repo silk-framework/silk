@@ -114,7 +114,7 @@ object DetailedEvaluator {
         case Some(v) =>
           weightedValues :+= (op.weight, v)
         case None if op.missingValueStrategy == MissingValueStrategy.required =>
-          weightedValues :+= (op.weight, -1.0)
+          weightedValues :+= (op.weight, Double.NegativeInfinity)
         case None if op.missingValueStrategy == MissingValueStrategy.failFast =>
           return AggregatorConfidence(None, agg, operatorValues)
         case None =>

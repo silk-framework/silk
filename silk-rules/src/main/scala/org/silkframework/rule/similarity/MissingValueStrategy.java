@@ -1,6 +1,5 @@
 package org.silkframework.rule.similarity;
 
-import scala.Boolean$;
 import scala.Option;
 import scala.Some;
 
@@ -27,7 +26,7 @@ public enum MissingValueStrategy {
         }
     }
 
-    public static MissingValueStrategy fromDeprecatedBoolean(Option<scala.Boolean> value) {
+    public static MissingValueStrategy fromDeprecatedBoolean(Option<?> value) {
         if(value.isDefined()) {
             return MissingValueStrategy.fromDeprecatedBoolean(value.get().toString());
         } else {
