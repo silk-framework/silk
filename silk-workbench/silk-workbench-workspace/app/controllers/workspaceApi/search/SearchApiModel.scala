@@ -1,6 +1,7 @@
 package controllers.workspaceApi.search
 
 import controllers.util.TextSearchUtils
+import controllers.workspaceApi.search.SearchApiModel.label
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
@@ -123,15 +124,24 @@ object SearchApiModel {
       }
     }
 
-    /**
-      * Checks if a task matches the search term.
-      */
-    protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], task: ProjectTask[_ <: TaskSpec]): Boolean = {
-      val idMatch = matchesSearchTerm(lowerCaseSearchTerms, task.id)
-      val labelMatch = matchesSearchTerm(lowerCaseSearchTerms, task.metaData.label)
-      val descriptionMatch = matchesSearchTerm(lowerCaseSearchTerms, task.metaData.description.getOrElse(""))
-      val propertiesMatch = task.data.properties(task.project.config.prefixes).exists(p => matchesSearchTerm(lowerCaseSearchTerms, p._2))
-      idMatch || labelMatch || descriptionMatch || propertiesMatch
+    /** Checks if a task matches the search term.
+      *
+      * @param lowerCaseSearchTerms The search terms.
+      * @param task                 The project task that we search in.
+      * @param matchTaskProperties  If the property values of the task should also be searched, e.g. when the properties
+      *                             are displayed in the search results.
+      * @param matchProject         If the project should also be searched in, e.g. the project is displayed in the
+      *                             search results.
+      **/
+    protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String],
+                                    task: ProjectTask[_ <: TaskSpec],
+                                    matchTaskProperties: Boolean,
+                                    matchProject: Boolean): Boolean = {
+      val taskLabel = task.taskLabel(Int.MaxValue)
+      val description = task.metaData.description.getOrElse("")
+      val searchInProperties = if(matchTaskProperties) task.data.properties(task.project.config.prefixes).map(p => p._2).mkString(" ") else ""
+      val searchInProject = if(matchProject) label(task.project) else ""
+      matchesSearchTerm(lowerCaseSearchTerms, taskLabel, description, searchInProperties, searchInProject)
     }
 
     /** Match search terms against project. */
@@ -301,17 +311,8 @@ object SearchApiModel {
       }
     }
 
-    override protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], task: ProjectTask[_ <: TaskSpec]): Boolean = {
-      val taskLabel = task.metaData.label
-      val name = if(taskLabel.trim != "") taskLabel else task.id.toString
-      // also search in project if search is not restricted to a specific project
-      val searchInProject = if(project.isEmpty) label(task.project) else ""
-      matchesSearchTerm(lowerCaseSearchTerms, name, task.metaData.description.getOrElse(""), searchInProject)
-    }
-
     // Adds links to related pages to the result item
     private def addItemLinks(results: Seq[(JsObject, ProjectOrTask)]): Seq[JsObject] = {
-
       results map { case (resultJson, projectOrTask) =>
         val project = jsonPropertyStringValue(resultJson, PROJECT_ID)
         val itemId = jsonPropertyStringValue(resultJson, ID)
@@ -331,7 +332,9 @@ object SearchApiModel {
 
     private def filterTasksByTextQuery(typedTasks: TypedTasks,
                                        lowerCaseTerms: Seq[String]): TypedTasks = {
-      typedTasks.copy(tasks = typedTasks.tasks.filter { task => matchesSearchTerm(lowerCaseTerms, task) })
+      typedTasks.copy(tasks = typedTasks.tasks.filter { task =>
+          // Project is shown in search results when not restricting by project. Task properties are not shown.
+        matchesSearchTerm(lowerCaseTerms, task, matchTaskProperties = false, matchProject = project.isEmpty) })
     }
 
     private def filterTasksByFacetSettings(typedTasks: TypedTasks,
@@ -464,7 +467,7 @@ object SearchApiModel {
 
       for(term <- searchTerm) {
         val lowerCaseTerm = extractSearchTerms(term)
-        tasks = tasks.filter(task => matchesSearchTerm(lowerCaseTerm, task))
+        tasks = tasks.filter(task => matchesSearchTerm(lowerCaseTerm, task, matchProject = false, matchTaskProperties = true))
       }
 
       JsArray(tasks.map(writeTask))
