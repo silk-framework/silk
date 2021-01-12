@@ -566,12 +566,15 @@ var lastWindowStatus = null;
 
 // FIXME: Remove this and do it solely with css?
 function updateWindowSize(forceResize = false) {
-    var header_height;
+    var header_height = 0;
     if($('header').length > 0) {
-      header_height = $('header').height() + $('#toolbar').height() + $('#tab-bar').height();
-    } else {
-      // Header is hidden
-      header_height = $('#toolbar').height() + $('#tab-bar').height();
+        header_height += $('header').height();
+    }
+    if($('#toolbar').length > 0) {
+        header_height += $('#toolbar').height();
+    }
+    if($('#tab-bar').length > 0) {
+        header_height += $('#tab-bar').height();
     }
 
     var window_width = $(window).width();

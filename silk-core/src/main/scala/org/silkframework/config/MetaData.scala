@@ -148,9 +148,10 @@ object MetaData {
       * Serialize a value to XML.
       */
     def write(data: MetaData)(implicit writeContext: WriteContext[Node]): Node = {
+      val descriptionPCData = PCData(data.description.getOrElse(""))
       <MetaData>
         <Label>{data.label}</Label>
-        <Description>{data.description.getOrElse("")}</Description>
+        <Description xml:space="preserve">{descriptionPCData}</Description>
         { data.modified.map(instant => <Modified>{instant.toString}</Modified>).toSeq }
         { data.created.map(instant => <Created>{instant.toString}</Created>).toSeq }
         { data.createdByUser.map(userUri => <CreatedByUser>{userUri.uri}</CreatedByUser>).toSeq }

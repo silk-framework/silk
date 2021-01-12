@@ -47,12 +47,6 @@ object ActiveLearningIterator {
     // Pick the next link candidate
     val links = activeLearn.value().links
 
-    // Update unlabeled reference links
-    if(task.data.referenceLinks.unlabeled.isEmpty) {
-      val updatedReferenceLinks = task.data.referenceLinks.copy(unlabeled = activeLearn.value().pool.links.toSet)
-      task.update(task.data.copy(referenceLinks = updatedReferenceLinks))
-    }
-
     if(links.isEmpty) {
       log.info("Selecting link candidate: No previous candidates available, waiting until learning task is finished.")
       activeLearn.waitUntilFinished()

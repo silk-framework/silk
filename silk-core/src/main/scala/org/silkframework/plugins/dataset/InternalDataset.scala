@@ -24,7 +24,9 @@ case class InternalDataset(
   @Param(label = "graph URI", value = "The RDF graph that is used for storing internal data")
   graphUri: String = null) extends InternalDatasetTrait {
 
-  protected lazy val internalDatasetPluginImpl = InternalDataset.byGraph(Option(graphUri))
+  override def graphOpt: Option[String] = Option(graphUri).filterNot(_.isEmpty)
+
+  protected lazy val internalDatasetPluginImpl = InternalDataset.byGraph(graphOpt)
 }
 
 trait InternalDatasetTrait extends Dataset with TripleSinkDataset with RdfDataset {

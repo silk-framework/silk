@@ -23,7 +23,7 @@ class EntityMetadataTestXml extends FlatSpec with Matchers {
     Map(EntityMetadata.FAILURE_KEY -> LazyMetadataXml(testException.failureClass, FailureClassSerializer()))
   )
 
-  val entity1 = Entity("http://silk-framework.com/example", IndexedSeq(Seq("value1", "value2"), Seq("value3")), schema, IndexedSeq.empty, metadata)
+  val entity1 = Entity("http://silk-framework.com/example", IndexedSeq(Seq("value1", "value2"), Seq("value3")), schema, metadata)
 
   val entity2 = Entity("http://silk-framework.com/example", IndexedSeq(Seq("dÃ©clarÃ©s", "v2"), Seq("v3")), schema)
 

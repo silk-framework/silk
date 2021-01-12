@@ -29,19 +29,35 @@ class MappingsTree extends React.Component {
     };
 
     componentDidMount() {
-        EventEmitter.on(MESSAGES.RELOAD, this.loadNavigationTree);
-
-        this.loadNavigationTree();
+        this.updateNavigationTree();
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
-        if (prevProps.currentRuleId !== this.props.currentRuleId) {
+        if (prevProps.ruleTree !== this.props.ruleTree) {
+            this.updateNavigationTree();
+        }
+        else if (prevProps.currentRuleId !== this.props.currentRuleId) {
             this.expandNavigationTreeElement();
         }
     }
 
     componentWillUnmount() {
-        EventEmitter.off(MESSAGES.RELOAD, this.loadNavigationTree);
+        if(this.props.ruleTree == null) {
+            EventEmitter.off(MESSAGES.RELOAD, this.updateNavigationTree);
+        }
+    }
+
+    updateNavigationTree = (args = {}) => {
+        if(this.props.ruleTree == null) {
+            // The mapping rule has not been provided in the props, so it has to be loaded
+            this.loadNavigationTree();
+        } else {
+            this.setState({
+                navigationLoading: false,
+                data: this.props.ruleTree,
+                navigationExpanded: this.updateExpandedRules(this.props.ruleTree, this.state.navigationExpanded),
+            });
+        }
     }
 
     loadNavigationTree = (args = {}) => {
@@ -49,6 +65,8 @@ class MappingsTree extends React.Component {
         this.setState({
             navigationLoading: true,
         });
+
+        EventEmitter.on(MESSAGES.RELOAD, this.updateNavigationTree);
 
         getHierarchyAsync()
             .subscribe(
@@ -184,8 +202,16 @@ class MappingsTree extends React.Component {
 
         const { showValueMappings, handleRuleNavigation } = this.props;
 
+        var allRules = [];
+        if(rules.uriRule != null) {
+            allRules = allRules.concat([rules.uriRule])
+        }
+        if(rules.propertyRules != null) {
+            allRules = allRules.concat(rules.propertyRules)
+        }
+
         // get expanded state
-        const childs = _.chain(rules.propertyRules)
+        const childs = _.chain(allRules)
             .filter(({ type }) => showValueMappings || type === MAPPING_RULE_TYPE_OBJECT)
             .value();
 
@@ -292,14 +318,16 @@ class MappingsTree extends React.Component {
 
 MappingsTree.propTypes = {
     currentRuleId: PropTypes.string,
+    ruleTree: PropTypes.object,
     handleRuleNavigation: PropTypes.func,
     showValueMappings: PropTypes.bool,
     // For each rule id, contains one of the following: "ok", "warning"
-    ruleValidation: PropTypes.objectOf(React.PropTypes.oneOf(['ok', 'warning']))
+    ruleValidation: PropTypes.objectOf(PropTypes.oneOf(['ok', 'warning']))
 };
 
 MappingsTree.defaultProps = {
     currentRuleId: undefined,
+    ruleTree: undefined, // The mapping rule tree. Optional, because old components don't set this and rely on the message bus instead...
     handleRuleNavigation: () => {},
 };
 

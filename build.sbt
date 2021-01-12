@@ -22,6 +22,14 @@ val silkVersion = {
   version
 }
 
+val buildReactExternally = {
+  val result = sys.env.getOrElse("BUILD_REACT_EXTERNALLY", "FALSE").toLowerCase == "true"
+  if(result) {
+    println("React artifacts will not be built from sbt and must be build externally, e.g. via yarn. BUILD_REACT_EXTERNALLY is set to true. Unset or set to != true in order to build it from sbt again.")
+  }
+  result
+}
+
 concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
 
 val scalaTestOptions = {
@@ -169,9 +177,13 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(
     name := "Silk Plugins JSON",
     libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.8.6",
-    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.6.12"
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.6",
+    libraryDependencies += "com.fasterxml.jackson.dataformat" % "jackson-dataformat-xml" % "2.8.6",
+    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.6.12",
+    libraryDependencies += "org.json" % "json" % "20201115"
   )
 
+// pluginsSpatialTemporal has been removed as it uses dependencies from external unreliable repositories
 //lazy val pluginsSpatialTemporal = (project in file("silk-plugins/silk-plugins-spatial-temporal"))
 //  .dependsOn(rules)
 //  .settings(commonSettings: _*)
@@ -183,7 +195,7 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
 //    libraryDependencies += "org.geotools" % "gt-referencing" % "13.1",
 //    libraryDependencies += "org.geotools" % "gt-jts-wrapper" % "13.1",
 //    libraryDependencies += "org.geotools" % "gt-epsg-wkt" % "13.1",
-//    resolvers += "OpenGeo Maven Repository" at "https://download.osgeo.org/webdav/geotools/"
+//    resolvers += "OpenGeo Maven Repository" at "http://download.osgeo.org/webdav/geotools/"
 //  )
 
 lazy val pluginsAsian = (project in file("silk-plugins/silk-plugins-asian"))
@@ -202,7 +214,6 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   )
 
 // Aggregate all plugins
-// pluginsSpatialTemporal has been removed as it uses dependencies from external unreliable repositories
 lazy val plugins = (project in file("silk-plugins"))
   .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson)
   .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson)
@@ -243,13 +254,18 @@ lazy val reactComponents = (project in file("silk-react-components"))
     // Run when building silk react
     /** Build Silk React */
     buildSilkReact := {
-      checkJsBuildTools.value // depend on check
-      val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src"), fileRegex = """\.(jsx|js|scss|json)$""")
-      def distFile(name: String): File = new File(baseDirectory.value, "dist/" + name)
-      val distRoot = silkDistRoot.value
-      if (Watcher.staleTargetFiles(reactWatchConfig, Seq(distFile("main.js"), distFile("style.css")))) {
-        ReactBuildHelper.buildReactComponents(baseDirectory.value, distRoot, "Silk")
+      if(!buildReactExternally) {
+        // Build React components
+        checkJsBuildTools.value // depend on check
+        val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src"), fileRegex = """\.(jsx|js|scss|json)$""")
+
+        def distFile(name: String): File = new File(baseDirectory.value, "dist/" + name)
+        val distRoot = silkDistRoot.value
+        if (Watcher.staleTargetFiles(reactWatchConfig, Seq(distFile("main.js"), distFile("style.css")))) {
+          ReactBuildHelper.buildReactComponents(baseDirectory.value, distRoot, "Silk")
+        }
       }
+      // Transpile pure JavaScript files
       val silkReactWorkbenchRoot = new File(baseDirectory.value, "silk-workbench")
       val changedJsFiles = Watcher.filesChanged(WatchConfig(silkReactWorkbenchRoot, fileRegex = """\.js$"""))
       val workbenchRoot = silkWorkbenchRoot.value
@@ -264,10 +280,14 @@ lazy val reactComponents = (project in file("silk-react-components"))
     },
     (compile in Compile) := ((compile in Compile) dependsOn buildSilkReact).value,
     watchSources ++= { // Watch all files under the silk-react-components/src directory for changes
-      val paths = for(path <- Path.allSubpaths(baseDirectory.value / "src")) yield {
-        path._1
+      if(buildReactExternally) {
+        Seq.empty
+      } else {
+        val paths = for(path <- Path.allSubpaths(baseDirectory.value / "src")) yield {
+          path._1
+        }
+        paths.toSeq
       }
-      paths.toSeq
     },
     watchSources ++= { // Watch all JavaScript files under the silk-react-components/silk-workbench directory for changes
       val paths = for(path <- Path.allSubpaths(baseDirectory.value / "silk-workbench")) yield {

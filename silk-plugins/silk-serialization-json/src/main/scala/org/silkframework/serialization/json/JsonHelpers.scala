@@ -1,5 +1,8 @@
 package org.silkframework.serialization.json
 
+import java.time.Instant
+import java.time.format.DateTimeParseException
+
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.ValidationException
@@ -31,6 +34,23 @@ object JsonHelpers {
       case null => null.asInstanceOf[T]             //valid array representation
       case jsArray: JsArray => block(jsArray)
       case _ => throw JsonParseException("Error while parsing. JSON value is not a JSON array!")
+    }
+  }
+
+  // Expects either a JSON array or Null.
+  def mustBeOptionalJsArray[T](jsValue: JsValue)(block: Option[JsArray] => T): T = {
+    jsValue match {
+      case null => block(None) //valid array representation
+      case jsArray: JsArray => block(Some(jsArray))
+      case JsNull => block(None)
+      case _ => throw JsonParseException("Error while parsing. JSON value is not a JSON array nor Null!")
+    }
+  }
+
+  def mustBeOptionalJsArray[T](jsLookupResult: JsLookupResult)(block: Option[JsArray] => T): T = {
+    jsLookupResult match {
+      case JsDefined(value) => mustBeOptionalJsArray(value)(block)
+      case _: JsUndefined => block(None)
     }
   }
 
@@ -98,6 +118,22 @@ object JsonHelpers {
     }
   }
 
+  def instantValueOption(json: JsValue, attributeName: String): Option[Instant] = {
+    optionalValue(json, attributeName) match {
+      case Some(JsString(value)) =>
+        try {
+          Some(Instant.parse(value))
+        } catch {
+          case ex: DateTimeParseException =>
+            throw JsonParseException(s"Value for attribute '$attributeName' is no valid ISO-8601 instant (e.g., 2020-12-03T10:15:30.00Z)", Some(ex))
+        }
+      case Some(_) =>
+        throw JsonParseException("Value for attribute '" + attributeName + "' must a string.")
+      case None =>
+        None
+    }
+  }
+
   def arrayValueOption(json: JsValue, attributeName: String): Option[JsArray] = {
     optionalValue(json, attributeName) match {
       case Some(jsArray @ JsArray(_)) =>
@@ -154,6 +190,17 @@ object JsonHelpers {
         throw JsonParseException("Value for attribute '" + ID + "' is not a String!")
       case None =>
         readContext.identifierGenerator.generate(defaultId)
+    }
+  }
+
+  /** Returns the parsed object or throws a JsonParseException. */
+  def fromJsonValidated[T](json: JsValue)
+                          (implicit reads: Reads[T]): T = {
+    Json.fromJson[T](json) match {
+      case JsSuccess(obj, _) =>
+        obj
+      case JsError(errors) =>
+        throw JsonParseException("JSON parse error. Details: " + JsError.toJson(errors).toString())
     }
   }
 }

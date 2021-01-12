@@ -4,15 +4,14 @@ import java.util.logging.Logger
 
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
-import controllers.workspaceApi.search.{ItemType, ParameterAutoCompletionRequest}
 import controllers.workspaceApi.search.SearchApiModel._
+import controllers.workspaceApi.search.{ItemLink, ItemType, ParameterAutoCompletionRequest}
 import javax.inject.Inject
-import org.silkframework.config.{Prefixes, TaskSpec}
+import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.Dataset
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{AutoCompletionResult, ParameterAutoCompletion, PluginDescription, PluginObjectParameter, PluginParameterAutoCompletionProvider, PluginRegistry}
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import play.api.libs.json._
@@ -42,10 +41,37 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
 
   /** Recently viewed items of user. */
   def recentlyViewedItems(): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val items = accessMonitor.getAccessItems.map { item =>
-      JsObject(Seq( // TODO: Add item type, label and main link (e.g. workflow editor, project details page etc.)
-        "projectId" -> JsString(item.projectId)
-      ) ++ item.taskIdOpt.map(taskId => ("taskId", JsString(taskId))).toSeq)
+    val w = workspace
+    val accessedItems = accessMonitor.getAccessItems.reverse
+    val projects = accessedItems.map(_.projectId).distinct.flatMap(projectId => w.findProject(projectId))
+    val availableProjects = projects.map(p => (p.name.toString, p)).toMap
+    val availableItems = accessedItems.filter(item => availableProjects.contains(item.projectId))
+    val items = availableItems flatMap { item =>
+      val project = availableProjects(item.projectId)
+      val taskOpt = item.taskIdOpt.flatMap(taskId => project.anyTaskOption(taskId))
+      if(item.taskIdOpt.isDefined && taskOpt.isEmpty) {
+        None
+      } else {
+        val itemType = if(taskOpt.isEmpty) ItemType.project else ItemType.itemType(taskOpt.get.data)
+        val taskData = for (task <- taskOpt) yield {
+          Seq(
+            "taskId" -> JsString(task.id),
+            "taskLabel" -> JsString(taskOpt.get.metaData.label),
+            PLUGIN_ID -> JsString(PluginDescription(task).id)
+          )
+        }
+        Some(JsObject(Seq(
+          "projectId" -> JsString(item.projectId),
+          "projectLabel" -> JsString(project.config.metaData.label),
+          "itemType" -> JsString(itemType.id),
+          "itemLinks" -> Json.toJson(ItemType.itemTypeLinks(
+            itemType,
+            project.name,
+            taskOpt.map(_.id.toString).getOrElse(project.name.toString),
+            taskOpt.map(_.data)
+          ))
+        ) ++ taskData.toSeq.flatten))
+      }
     }
     Ok(JsArray(items))
   }

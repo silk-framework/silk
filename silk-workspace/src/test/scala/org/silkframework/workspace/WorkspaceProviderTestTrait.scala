@@ -5,7 +5,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DatasetSpec, MockDataset}
-import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.{EntitySchema, Restriction}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule._
 import org.silkframework.rule.input.PathInput
@@ -84,7 +84,10 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
   val datasetUpdated = PlainTask(DATASET_ID, DatasetSpec(MockDataset("updated"), uriAttribute = Some("uri")), metaData = MetaData(DATASET_ID))
 
-  val linkSpec = LinkSpec(rule = rule, source = DatasetSelection(DUMMY_DATASET, ""), target = DatasetSelection(DUMMY_DATASET, ""),
+  private val dummyType = "urn:test:dummyType"
+  private val dummyRestriction = Restriction.custom("  ?a <urn:test:prop1> 1 .\n\n  ?a <urn:test:prop2> true .\n")(Prefixes.default)
+
+  val linkSpec = LinkSpec(rule = rule, source = DatasetSelection(DUMMY_DATASET, dummyType, dummyRestriction), target = DatasetSelection(DUMMY_DATASET, dummyType, dummyRestriction),
     linkLimit = LinkSpec.DEFAULT_LINK_LIMIT + 1, matchingExecutionTimeout = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS + 1)
 
   val linkTask = PlainTask(LINKING_TASK_ID, linkSpec, metaData)
@@ -96,7 +99,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
       id = TRANSFORM_ID,
       data =
         TransformSpec(
-          selection = DatasetSelection(DATASET_ID, "http://type1"),
+          selection = DatasetSelection(DATASET_ID, "http://type1", dummyRestriction),
           mappingRule =
             RootMappingRule(
               id = "root",

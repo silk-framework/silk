@@ -1,5 +1,7 @@
 package org.silkframework.runtime.activity
 
+import java.time.Instant
+
 import scala.concurrent.Future
 
 /**
@@ -26,7 +28,7 @@ trait ActivityControl[T] {
     * Holds the timestamp when the activity has been started.
     * Is None if the activity is not running at the moment.
     */
-  def startTime: Option[Long] = None
+  def startTime: Option[Instant] = None
 
   /**
    * The running child activities.
@@ -93,4 +95,4 @@ trait ActivityControl[T] {
   }
 }
 
-case class ActivityExecutionResult[T](metaData: ActivityExecutionMetaData, resultValue: Option[T])
+case class ActivityExecutionResult[+T](metaData: ActivityExecutionMetaData, resultValue: Option[T])

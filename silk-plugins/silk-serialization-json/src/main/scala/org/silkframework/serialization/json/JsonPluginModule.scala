@@ -3,7 +3,7 @@ package org.silkframework.serialization.json
 import org.silkframework.runtime.plugin.PluginModule
 import org.silkframework.serialization.json.EntitySerializers.{EntityHolderJsonFormat, EntitySchemaJsonFormat, PairEntitySchemaJsonFormat}
 import org.silkframework.serialization.json.ExecutionReportSerializers._
-import org.silkframework.serialization.json.InputJsonSerializer.{CachedEntitySchemataJsonFormat, DatasetSelectionJsonFormat, InputJsonFormat}
+import org.silkframework.serialization.json.InputJsonSerializer.{CachedEntitySchemataJsonFormat, InputJsonFormat}
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.LinkingSerializers.{LinkingJsonFormat, ReferenceLinksJsonFormat}
 import org.silkframework.serialization.json.PluginSerializers.PluginListJsonFormat
@@ -33,6 +33,7 @@ class JsonPluginModule extends PluginModule {
       TransformInputJsonFormat.getClass ::
       ValueTypeJsonFormat.getClass ::
       GenericInfoJsonFormat.getClass ::
+      VocabularyCacheValueJsonFormat.getClass ::
       VocabularyClassJsonFormat.getClass ::
       InputJsonFormat.getClass ::
       WorkflowJsonFormat.getClass ::

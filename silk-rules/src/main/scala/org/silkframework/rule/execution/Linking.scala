@@ -1,8 +1,9 @@
 package org.silkframework.rule.execution
 
+import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.entity.Link
 import org.silkframework.execution.ExecutionReport
-import org.silkframework.rule.LinkageRule
+import org.silkframework.rule.{LinkSpec, LinkageRule}
 import org.silkframework.util.DPair
 
 import scala.collection.mutable
@@ -10,7 +11,9 @@ import scala.collection.mutable
 /**
   * Set of links.
   */
-case class Linking(label: String, rule: LinkageRule, links : Seq[Link] = Seq.empty, statistics: LinkingStatistics = LinkingStatistics()) extends ExecutionReport {
+case class Linking(task: Task[LinkSpec], links : Seq[Link] = Seq.empty, statistics: LinkingStatistics = LinkingStatistics()) extends ExecutionReport {
+
+  def rule: LinkageRule = task.data.rule
 
   lazy val summary: Seq[(String, String)] = {
     Seq(

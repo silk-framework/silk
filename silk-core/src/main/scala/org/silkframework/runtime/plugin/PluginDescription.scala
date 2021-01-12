@@ -17,7 +17,8 @@ package org.silkframework.runtime.plugin
 import java.lang.reflect.{Constructor, InvocationTargetException, Type}
 
 import com.thoughtworks.paranamer.BytecodeReadingParanamer
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.dataset.DatasetSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager, ResourceNotFoundException}
@@ -121,6 +122,14 @@ class PluginDescription[+T](val id: Identifier, val categories: Seq[String], val
  */
 object PluginDescription {
 
+  /** Returns a plugin description for a given task. */
+  def apply(task: Task[_ <: TaskSpec]): PluginDescription[_] = {
+    val pluginClass = task.data match {
+      case DatasetSpec(plugin, _) => plugin.getClass
+      case plugin: TaskSpec => plugin.getClass
+    }
+    apply(pluginClass)
+  }
   /**
     * Returns a plugin description for a given class.
     * If available, returns an already registered plugin description.

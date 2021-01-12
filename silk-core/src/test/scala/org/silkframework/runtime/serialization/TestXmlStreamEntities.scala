@@ -1,9 +1,9 @@
 package org.silkframework.runtime.serialization
 
 import java.io.OutputStream
+
 import javax.xml.stream.XMLStreamReader
 import javax.xml.transform.{Transformer, TransformerFactory}
-
 import org.silkframework.util.XMLUtils.toXMLUtils
 
 /** Test classes for XML streaming format */

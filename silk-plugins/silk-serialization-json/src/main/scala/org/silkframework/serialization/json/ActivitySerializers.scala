@@ -1,10 +1,14 @@
 package org.silkframework.serialization.json
 
-import org.silkframework.runtime.activity.Status
-import org.silkframework.runtime.activity.Status.{Canceling, Finished, Idle, Running, Waiting}
-import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.workspace.activity.WorkspaceActivity
-import play.api.libs.json._
+ import java.time.Instant
+
+ import org.silkframework.runtime.activity.{ActivityExecutionMetaData, ActivityExecutionResult, Status}
+ import org.silkframework.runtime.activity.Status.{Canceling, Finished, Idle, Running, Waiting}
+ import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+ import org.silkframework.runtime.users.SimpleUser
+ import org.silkframework.workspace.activity.WorkspaceActivity
+ import org.silkframework.serialization.json.JsonHelpers._
+ import play.api.libs.json._
 
 object ActivitySerializers {
 
@@ -78,10 +82,10 @@ object ActivitySerializers {
     }
   }
 
-  class ExtendedStatusJsonFormat(project: String, task: String, activity: String, startTime: Option[Long]) extends WriteOnlyJsonFormat[Status] {
+  class ExtendedStatusJsonFormat(project: String, task: String, activity: String, startTime: Option[Instant]) extends WriteOnlyJsonFormat[Status] {
 
     def this(activity: WorkspaceActivity[_]) = {
-      this(activity.project.name, activity.taskOption.map(_.id.toString).getOrElse(""), activity.name, activity.startTime)
+      this(activity.projectOpt.map(_.name.toString).getOrElse(""), activity.taskOption.map(_.id.toString).getOrElse(""), activity.name, activity.startTime)
     }
 
     override def write(status: Status)(implicit writeContext: WriteContext[JsValue]): JsValue = {
@@ -89,7 +93,59 @@ object ActivitySerializers {
       ("project" -> JsString(project)) +
       ("task" -> JsString(task)) +
       ("activity" -> JsString(activity)) +
-      ("startTime" -> startTime.map(JsNumber(_)).getOrElse(JsNull))
+      ("startTime" -> startTime.map(t => JsString(t.toString)).getOrElse(JsNull))
+    }
+  }
+
+  implicit object ActivityExecutionMetaDataJsonFormat extends JsonFormat[ActivityExecutionMetaData] {
+
+    private val STARTED_BY_USER = "startedByUser"
+    private val STARTED_AT = "startedAt"
+    private val FINISHED_AT = "finishedAt"
+    private val CANCELLED_AT = "cancelledAt"
+    private val CANCELLED_BY =  "cancelledBy"
+    private val FINISH_STATUS = "finishStatus"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): ActivityExecutionMetaData = {
+      ActivityExecutionMetaData(
+        startedByUser = stringValueOption(value, STARTED_BY_USER).map(SimpleUser),
+        startedAt = instantValueOption(value, STARTED_AT),
+        finishedAt = instantValueOption(value, FINISHED_AT),
+        cancelledAt = instantValueOption(value, CANCELLED_AT),
+        cancelledBy = stringValueOption(value, CANCELLED_BY).map(SimpleUser),
+        finishStatus = optionalValue(value, FINISH_STATUS).map(StatusJsonFormat.read)
+      )
+    }
+
+    override def write(value: ActivityExecutionMetaData)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        STARTED_BY_USER -> value.startedByUser.map(_.uri),
+        STARTED_AT -> value.startedAt,
+        FINISHED_AT -> value.finishedAt,
+        CANCELLED_AT -> value.cancelledAt,
+        CANCELLED_BY -> value.cancelledBy.map(_.uri),
+        FINISH_STATUS -> value.finishStatus.map(StatusJsonFormat.write)
+      )
+    }
+  }
+
+  class ActivityExecutionResultJsonFormat[T](implicit valueFormat: JsonFormat[T]) extends JsonFormat[ActivityExecutionResult[T]] {
+
+    private val META_DATA = "metaData"
+    private val VALUE = "value"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): ActivityExecutionResult[T] = {
+      ActivityExecutionResult(
+        metaData = ActivityExecutionMetaDataJsonFormat.read(requiredValue(value, META_DATA)),
+        resultValue = optionalValue(value, VALUE).map(valueFormat.read)
+      )
+    }
+
+    override def write(value: ActivityExecutionResult[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        META_DATA -> ActivityExecutionMetaDataJsonFormat.write(value.metaData),
+        VALUE -> value.resultValue.map(valueFormat.write)
+      )
     }
   }
 

@@ -72,7 +72,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
     */
   override def underlyingTask: Task[DatasetSpec[Dataset]] = {
     val taskId = params.graph match{
-      case Some(g) => Identifier.fromAllowed("graph-" + g.substring(g.lastIndexOf("/")))
+      case Some(g) => Identifier.fromAllowed("graph-" + g.reverse.takeWhile(_ != '/').reverse)
       case None => Identifier("default_graph")
     }
 
@@ -100,7 +100,8 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
         useDistinct = false,
         graphUri = params.graph,
         useOrderBy = false,
-        varPrefix = "v"
+        varPrefix = "v",
+        useOptional = false
       )
       val results = sparqlEndpoint.select(pathQuery, limit = limit.getOrElse(Int.MaxValue))
       for(result <- results.bindings;

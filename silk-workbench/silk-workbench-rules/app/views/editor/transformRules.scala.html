@@ -3,7 +3,7 @@
 @import org.silkframework.rule.vocab.Vocabularies
 @import org.silkframework.workbench.Context
 
-@(context: Context[TransformSpec], vocabularies: Vocabularies, rule: String)(implicit session: play.api.mvc.Session)
+@(context: Context[TransformSpec], vocabularies: Vocabularies, rule: String)(implicit request: RequestHeader)
 
 @header = {
   <script src="@CoreAssets.at("libs/silk-react-components/main.js")" type="text/javascript"></script>

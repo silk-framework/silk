@@ -2,8 +2,8 @@ package org.silkframework.runtime.plugin
 
 import java.lang.reflect.{ParameterizedType, Type}
 import java.net.{URLDecoder, URLEncoder}
-import java.security.InvalidKeyException
 import java.security.spec.InvalidKeySpecException
+import java.time.Duration
 import java.util.logging.{Level, Logger}
 
 import javax.crypto.SecretKey
@@ -11,7 +11,6 @@ import org.silkframework.config.{DefaultConfig, Prefixes, ProjectReference, Task
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.entity.Restriction
 import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, ResourceManager, WritableResource}
-import org.silkframework.runtime.serialization.{Serialization, WriteContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{AesCrypto, Identifier, Uri}
 
@@ -70,6 +69,8 @@ object ParameterType {
             PluginObjectParameterType(cl)
           case cl: Class[_] if classOf[PluginObjectParameterNoSchema].isAssignableFrom(cl) =>
             PluginObjectParameterNoSchemaType(cl) // Parameters that generate no schema definition and thus cannot be handled generically, e.g. transform rule.
+          case cl: Class[_] if classOf[PluginStringParameter].isAssignableFrom(cl) =>
+            GenericPluginStringParameterType(cl)
           case _ =>
             throw new InvalidPluginException("Unsupported parameter type: " + dataType)
         }
@@ -114,6 +115,33 @@ case class PluginObjectParameterNoSchemaType(pluginObjectParameterClass: Class[_
   override def name: String = "pluginObjectParameterNoSchema"
 }
 
+/** Trait for plugin parameters that can be serialized to string, but that are not defined in the core package.
+  * They must have a PluginStringParameterType implementation (available in the plugin registry) that handles it. */
+trait PluginStringParameter
+
+/** Parameter type wrapper for PluginStringParameter types. This is necessary since the PluginStringParameterType plugin
+  * might not be registered yet in the plugin registry at creation time. */
+case class GenericPluginStringParameterType(pluginStringParameterClass: Class[_]) extends StringParameterType[Any] {
+  private lazy val stringPlugin = {
+    val pluginDescriptions = PluginRegistry.availablePluginsForClass(classOf[PluginStringParameterType[_]])
+    implicit val prefixes: Prefixes = Prefixes.empty
+    val plugins = pluginDescriptions.map(_.apply())
+    plugins.map(_.asInstanceOf[PluginStringParameterType[_]]).find(_.dataType == pluginStringParameterClass).getOrElse(
+      throw new ValidationException("No parameter type available to handle string parameter type class " + pluginStringParameterClass.getName)
+    )
+  }
+
+  override def fromString(str: String)
+                         (implicit prefixes: Prefixes, resourceLoader: ResourceManager): Any = {
+    stringPlugin.fromString(str)
+  }
+
+  override def name: String = stringPlugin.name
+}
+
+/** Parameter type that implements a PluginStringParameter parameter. */
+abstract class PluginStringParameterType[T <: PluginStringParameter : ClassTag] extends StringParameterType[T]
+
 /**
   * Represents a plugin parameter type and provides string-based serialization.
   * This is suitable for plugin parameters that have a simple string based serialization.
@@ -154,7 +182,7 @@ object StringParameterType {
     */
   private val allStaticTypes: Seq[StringParameterType[_]] = {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, UriType, ResourceType,
-      WritableResourceType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType, LongType,
+      WritableResourceType, ResourceOptionType, DurationType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType, LongType,
       PasswordParameterType, IdentifierType, IdentifierOptionType, StringTraversableParameterType, RestrictionType)
   }
 
@@ -206,17 +234,24 @@ object StringParameterType {
   }
 
   object StringTraversableParameterType extends StringParameterType[StringTraversableParameter] {
+
+    override def name: String = "traversable[string]"
+
+    override def description: String = "A comma-separated list."
+
     override def fromString(str: String)
                            (implicit prefixes: Prefixes, resourceLoader: ResourceManager): StringTraversableParameter = {
-      StringTraversableParameter(str.split("\\s*,\\s*"))
+      if(str.isEmpty) {
+        StringTraversableParameter(Traversable.empty)
+      } else {
+        StringTraversableParameter(str.split("\\s*,\\s*"))
+      }
     }
 
     override def toString(value: StringTraversableParameter)
                          (implicit prefixes: Prefixes): String = {
       value.mkString(", ")
     }
-
-    override def name: String = "traversable[string]"
   }
 
   object IntType extends StringParameterType[Int] {
@@ -379,6 +414,42 @@ object StringParameterType {
 
   }
 
+  object ResourceOptionType extends StringParameterType[ResourceOption] {
+
+    override def name: String = "resource"
+
+    override def description: String = "The name of a project resource or empty."
+
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): ResourceOption = {
+      if (str.trim.isEmpty) {
+        ResourceOption(None)
+      } else {
+        ResourceOption(Some(resourceLoader.get(str)))
+      }
+    }
+
+    override def toString(value: ResourceOption)(implicit prefixes: Prefixes): String = {
+      value.resource.map(_.name).getOrElse("")
+    }
+
+  }
+
+  object DurationType extends StringParameterType[Duration] {
+
+    override def name: String = "duration"
+
+    override def description: String = " An amount of time in ISO-8601 duration format PnDTnHnMn.nS"
+
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Duration = {
+      Duration.parse(str)
+    }
+
+    override def toString(value: Duration)(implicit prefixes: Prefixes): String = {
+      value.toString
+    }
+
+  }
+
   object ProjectReferenceType extends StringParameterType[ProjectReference] {
 
     override def name: String = "project"
@@ -452,12 +523,16 @@ object StringParameterType {
     override def description: String = "One of the following values: " + valueList
 
     override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Enum[_] = {
+      fromStringOpt(str) getOrElse (throw new ValidationException(s"Invalid enumeration value '$str'. Allowed values are: $valueList"))
+    }
+
+    def fromStringOpt(str: String): Option[Enum[_]] = {
       enumConstants.find {
         case e: EnumerationParameterType =>
           e.id == str.trim || e.name == str.trim
         case c: Enum[_] =>
           c.name == str.trim
-      } getOrElse (throw new ValidationException(s"Invalid enumeration value '$str'. Allowed values are: $valueList"))
+      }
     }
 
     def enumerationValues: Seq[String] = enumConstants map enumerationValue

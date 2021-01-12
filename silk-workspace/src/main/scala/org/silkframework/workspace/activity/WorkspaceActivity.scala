@@ -1,5 +1,6 @@
 package org.silkframework.workspace.activity
 
+import java.time.Instant
 import java.util.logging.Logger
 
 import org.silkframework.config.Prefixes
@@ -12,7 +13,7 @@ import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 
 /**
-  * An activity that is either attached to a project (ProjectActivity) or a task (TaskActivity).
+  * An activity that is either attached to a project (ProjectActivity) or a task (TaskActivity) or is a GlobalWorkspaceActivity.
   */
 abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
 
@@ -29,6 +30,12 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   private var currentInstance: ActivityControl[ActivityType#ValueType] = createInstance(Map.empty)
 
   /**
+    * The plugin parameters of current instance.
+    */
+  @volatile
+  private var currentParameters: Map[String, String] = Map.empty
+
+  /**
     * For non-singleton activities, this holds all instances.
     * If there are more instances than [[WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY]], the oldest ones are removed.
     */
@@ -36,9 +43,9 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   private var instances: ListMap[Identifier, ActivityControl[ActivityType#ValueType]] = ListMap()
 
   /**
-    * The project this activity belongs to.
+    * The project this activity belongs to, if any.
     */
-  def project: Project
+  def projectOpt: Option[Project]
 
   /**
     * The task this activity belongs to, if any.
@@ -109,7 +116,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     * Holds the timestamp when the activity has been started.
     * Is None if the activity is not running at the moment.
     */
-  final def startTime: Option[Long] = control.startTime
+  final def startTime: Option[Instant] = control.startTime
 
   /**
     * True, if there is always exactly one instance of this activity.
@@ -156,27 +163,33 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
 
   /**
     * Adds a new instance of this activity type.
-    * If this is a singleton activity, this will replace the previous instance.
+    * If this is a singleton activity, it will only be updated if the configuration changed.
     */
   protected final def addInstance(config: Map[String, String]): (Identifier, ActivityControl[ActivityType#ValueType]) = synchronized {
-    val newControl = createInstance(config)
     val identifier = if(isSingleton) name else identifierGenerator.generate("")
 
     if(isSingleton) {
-      // Update the status and value mirrors to point to the new instance
-      status.asInstanceOf[ObservableMirror[Status]].updateObservable(newControl.status)
-      value.asInstanceOf[ObservableMirror[ActivityType#ValueType]].updateObservable(newControl.value)
+      if(config != currentParameters) {
+        val newControl = createInstance(config)
+        // Update the status and value mirrors to point to the new instance
+        status.asInstanceOf[ObservableMirror[Status]].updateObservable(newControl.status)
+        value.asInstanceOf[ObservableMirror[ActivityType#ValueType]].updateObservable(newControl.value)
+        currentInstance = newControl
+      }
     } else {
+      val newControl = createInstance(config)
       if(instances.size >= WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY) {
-        log.warning(s"In project ${project.name} activity $name: Dropping an activity control instance because the control " +
+        val activityDescription = projectOpt.map(p => s"In project ${p.name} activity '$name'").getOrElse(s"In workspace activity '$name'")
+        log.warning(s"$activityDescription: Dropping an activity control instance because the control " +
             s"instance queue is full (max. ${WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY}. Dropped instance ID: ${instances.head._1}")
         instances = instances.drop(1)
       }
       instances += ((identifier, newControl))
+      currentInstance = newControl
     }
 
-    currentInstance = newControl
-    (identifier, newControl)
+    currentParameters = config
+    (identifier, currentInstance)
   }
 
   final def removeActivityInstance(instanceId: Identifier): Unit = synchronized {

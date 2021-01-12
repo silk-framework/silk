@@ -3,7 +3,8 @@
 
 @import org.silkframework.runtime.activity.UserContext
 @import org.silkframework.config.ProductionConfig
-@(welcome: Html)(implicit session: play.api.mvc.Session, userContext: UserContext)
+
+@(welcome: Html)(implicit request: RequestHeader, userContext: UserContext)
 
 @exampleName = @{ "movies" }
 
@@ -34,7 +35,7 @@
       }
       @if(ProductionConfig.betaWorkspaceSwitchEnabled) {
         <span>
-          <a id="beta-workspace-switch" href="@config.baseUrl/workspace-beta" class="mdl-button mdl-js-button mdl-button--raised">New workspace UI (beta)</a>
+          <a id="beta-workspace-switch" href="@config.baseUrl/workbench" class="mdl-button mdl-js-button mdl-button--raised">New workspace UI</a>
           <div class="mdl-tooltip" data-mdl-for="beta-workspace-switch">
             Switch to the beta version of the new workspace user interface.
           </div>

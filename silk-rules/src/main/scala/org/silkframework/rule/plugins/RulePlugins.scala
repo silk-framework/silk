@@ -18,7 +18,7 @@ import org.silkframework.rule.LinkSpec.LinkSpecificationFormat
 import org.silkframework.rule.MappingRules.MappingRulesFormat
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
 import org.silkframework.rule.TransformRule.TransformRuleFormat
-import org.silkframework.rule.TransformSpec.{TransformSpecFormat, TransformTaskXmlFormat}
+import org.silkframework.rule.TransformSpec.{TargetVocabularyParameterType, TransformSpecFormat, TransformTaskXmlFormat}
 import org.silkframework.rule.plugins.aggegrator._
 import org.silkframework.rule.plugins.distance.characterbased._
 import org.silkframework.rule.plugins.distance.equality._
@@ -167,11 +167,12 @@ class RulePlugins extends PluginModule {
 
   private def aggregators: List[Class[_]] =
     classOf[AverageAggregator] ::
-        classOf[MaximumAggregator] ::
-        classOf[MinimumAggregator] ::
-        classOf[QuadraticMeanAggregator] ::
-        classOf[GeometricMeanAggregator] ::
-      classOf[NegationAggregator] :: Nil
+    classOf[MaximumAggregator] ::
+    classOf[MinimumAggregator] ::
+    classOf[QuadraticMeanAggregator] ::
+    classOf[GeometricMeanAggregator] ::
+    classOf[NegationAggregator] ::
+    classOf[ScalingAggregator] :: Nil
 
   private def serializers: List[Class[_]] =
     TransformSpecFormat.getClass ::
@@ -183,5 +184,7 @@ class RulePlugins extends PluginModule {
     Nil
 
   private def pluginParameterTypes: List[Class[_]] =
-    classOf[DatasetSelection] :: Nil
+    classOf[DatasetSelection] ::
+        classOf[TargetVocabularyParameterType] ::
+        Nil
 }

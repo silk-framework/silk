@@ -10,7 +10,7 @@ import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
 import org.silkframework.rule.{MappingRules, TransformSpec}
 import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
 import org.silkframework.runtime.serialization.XmlSerialization
-import org.silkframework.util.StreamUtils
+import org.silkframework.util.{StatusCodeTestTrait, StreamUtils}
 import org.silkframework.workspace._
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.activity.workflow.Workflow
@@ -31,7 +31,12 @@ import scala.xml.{Elem, XML}
 /**
   * Basis for integration tests.
   */
-trait IntegrationTestTrait extends TaskApiClient with ActivityApiClient with GuiceOneServerPerSuite with TestWorkspaceProviderTestTrait with TestUserContextTrait {
+trait IntegrationTestTrait extends TaskApiClient
+    with ActivityApiClient
+    with GuiceOneServerPerSuite
+    with TestWorkspaceProviderTestTrait
+    with TestUserContextTrait
+    with StatusCodeTestTrait {
   this: TestSuite =>
 
   final val APPLICATION_JSON: String = "application/json"
@@ -39,8 +44,6 @@ trait IntegrationTestTrait extends TaskApiClient with ActivityApiClient with Gui
   final val APPLICATION_XML: String = "application/xml"
   final val CONTENT_TYPE: String = "content-type"
   final val ACCEPT: String = "accept"
-  final val NOT_FOUND: Int = 404
-  final val BAD_REQUEST: Int = 400
 
   val baseUrl = s"http://localhost:$port"
 
@@ -60,6 +63,9 @@ trait IntegrationTestTrait extends TaskApiClient with ActivityApiClient with Gui
     }
     builder.build()
   }
+
+  /** Fetch the workspace */
+  def userWorkspace(implicit userContext: UserContext): Workspace = WorkspaceFactory.factory.workspace
 
   /**
     * Constructs a REST request for a given Call.

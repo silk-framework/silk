@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Card, CardContent, CardTitle, Table, TableBody, TableCell, TableHead, TableRow } from '@eccenca/gui-elements';
 import MappingsTree from '../HierarchicalMapping/containers/MappingsTree';
-import { setApiDetails } from "../HierarchicalMapping/store";
 
 /**
  * Displays a task execution report.
@@ -14,13 +13,6 @@ export default class ExecutionReport extends React.Component {
         this.state = {
             currentRuleId: null,
         };
-        
-        const {baseUrl, project, task} = this.props;
-        setApiDetails({
-            baseUrl,
-            project,
-            transformTask: task,
-        });
         this.onRuleNavigation = this.onRuleNavigation.bind(this);
     }
     
@@ -55,15 +47,25 @@ export default class ExecutionReport extends React.Component {
     }
 
     renderWarning() {
-        const warnings = this.props.executionReport.warnings.map(warning =>
-            <div className="mdl-alert mdl-alert--info mdl-alert--border mdl-alert--spacing">
-                <div className="mdl-alert__content">
-                    <p>{warning}</p>
+        if(this.props.executionReport.warnings.length > 0) {
+            const warnings = this.props.executionReport.warnings.map(warning =>
+                <div className="mdl-alert mdl-alert--info mdl-alert--border mdl-alert--spacing">
+                    <div className="mdl-alert__content">
+                        <p>{warning}</p>
+                    </div>
                 </div>
-            </div>
-        );
+            );
 
-        return <div className="silk-report-warning">{warnings}</div>
+            return <div className="silk-report-warning">{warnings}</div>
+        } else {
+            return <div className="silk-report-warning">
+                        <div className="mdl-alert mdl-alert--info mdl-alert--border mdl-alert--spacing">
+                            <div className="mdl-alert__content">
+                                <p>Task '{this.props.executionReport.label}' has been executed without any issues.</p>
+                            </div>
+                        </div>
+                   </div>
+        }
     }
     
     renderTransformReport() {
@@ -71,6 +73,7 @@ export default class ExecutionReport extends React.Component {
             <div className="mdl-cell mdl-cell--3-col">
                 <MappingsTree
                     currentRuleId="root"
+                    ruleTree={this.props.executionReport.task.data.parameters.mappingRule}
                     showValueMappings={true}
                     handleRuleNavigation={this.onRuleNavigation}
                     ruleValidation={this.generateIcons()}
@@ -131,9 +134,9 @@ export default class ExecutionReport extends React.Component {
     
     renderRuleError(ruleError) {
         return <TableRow key={ruleError.entity}>
-            <TableCell>{ruleError.entity}</TableCell>
-            <TableCell>{ruleError.values.flat().join(', ')}</TableCell>
-            <TableCell>{ruleError.error}</TableCell>
+            <TableCell><div className="silk-report-errors-value">{ruleError.entity}</div></TableCell>
+            <TableCell><div className="silk-report-errors-value">{ruleError.values.flat().join(', ')}</div></TableCell>
+            <TableCell><div className="silk-report-errors-value">{ruleError.error}</div></TableCell>
         </TableRow>
     }
     
@@ -148,6 +151,6 @@ export default class ExecutionReport extends React.Component {
 ExecutionReport.propTypes = {
     baseUrl: PropTypes.string.isRequired, // Base URL of the DI service
     project: PropTypes.string.isRequired, // project ID
-    task: PropTypes.string.isRequired, // task ID
+    nodeId: PropTypes.string.isRequired, // workflow node ID
     executionReport: PropTypes.object // The transform execution report to render
 };

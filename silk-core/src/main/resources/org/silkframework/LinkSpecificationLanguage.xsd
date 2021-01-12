@@ -5,7 +5,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="Label" minOccurs="0" maxOccurs="1" type="xs:string"/>
-                <xs:element name="Description" minOccurs="0" maxOccurs="1" type="xs:string"/>
+                <xs:element ref="Description" minOccurs="0" maxOccurs="1" />
                 <xs:element name="Modified" minOccurs="0" maxOccurs="1" type="xs:string"/>
                 <xs:element name="Created" minOccurs="0" maxOccurs="1" type="xs:string"/>
                 <xs:element name="CreatedByUser" minOccurs="0" maxOccurs="1" type="xs:string"/>
@@ -49,6 +49,16 @@
                 <xs:extension base="xs:string">
                     <xs:attribute name="name" type="xs:string" use="required"/>
                     <xs:attribute name="value" type="xs:string"/>
+                    <xs:anyAttribute namespace="http://www.w3.org/XML/1998/namespace" processContents="skip" /> <!-- Allow xml:space -->
+                </xs:extension>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="Description">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
                     <xs:anyAttribute namespace="http://www.w3.org/XML/1998/namespace" processContents="skip" /> <!-- Allow xml:space -->
                 </xs:extension>
             </xs:simpleContent>
@@ -221,11 +231,21 @@
     <xs:element name="SourceDataset">
         <xs:complexType>
             <xs:choice>
-                <xs:element name="RestrictTo" minOccurs="0" type="xs:string"/>
+                <xs:element ref="RestrictTo" minOccurs="0" />
             </xs:choice>
             <xs:attribute name="dataSource" type="xs:string" use="required"/>
             <xs:attribute name="var" type="xs:string" use="required"/>
             <xs:attribute name="typeUri" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="RestrictTo">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:extension base="xs:string">
+                    <xs:anyAttribute namespace="http://www.w3.org/XML/1998/namespace" processContents="skip" /> <!-- Allow xml:space -->
+                </xs:extension>
+            </xs:simpleContent>
         </xs:complexType>
     </xs:element>
 
@@ -263,7 +283,7 @@
                 <xs:element name="TargetDataset">
                     <xs:complexType>
                         <xs:choice>
-                            <xs:element name="RestrictTo" minOccurs="0" type="xs:string"/>
+                            <xs:element ref="RestrictTo" minOccurs="0" />
                         </xs:choice>
                         <xs:attribute name="dataSource" type="xs:string" use="required"/>
                         <xs:attribute name="var" type="xs:string" use="required"/>

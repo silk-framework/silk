@@ -15,6 +15,7 @@
 package org.silkframework.rule.input
 
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
+import org.silkframework.runtime.resource.Resource
 
 /**
  * Transforms values.
@@ -30,6 +31,11 @@ trait Transformer extends AnyPlugin {
     * @return The transformed sequence of values.
     */
   def apply(values: Seq[Seq[String]]): Seq[String]
+
+  /**
+    * The resources that are directly referenced by this transformer.
+    */
+  def referencedResources: Seq[Resource] = Seq.empty
 }
 
 object Transformer extends PluginFactory[Transformer]
