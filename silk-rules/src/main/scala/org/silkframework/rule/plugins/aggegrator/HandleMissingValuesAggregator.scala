@@ -7,19 +7,21 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 @Plugin(
   id = "handleMissingValues",
   categories = Array("All"),
-  label = "handle missing values",
+  label = "Handle missing values",
   description = "TODO."
 )
-case class HandleMissingValuesAggregator(defaultValue: Double) extends Aggregator {
+case class HandleMissingValuesAggregator(defaultValue: Boolean) extends Aggregator {
+
+  private val defaultSimilarity = if(defaultValue) 1.0 else -1.0
 
   override def evaluate(values: Traversable[(Int, Double)]): Option[Double] = {
     if (values.isEmpty) {
-      Some(defaultValue)
+      Some(defaultSimilarity)
     } else {
       require(values.size == 1, "Accepts exactly one input")
       val value = values.head._2
       if(value == Double.NegativeInfinity) {
-        Some(defaultValue)
+        Some(defaultSimilarity)
       } else {
         Some(values.head._2)
       }
