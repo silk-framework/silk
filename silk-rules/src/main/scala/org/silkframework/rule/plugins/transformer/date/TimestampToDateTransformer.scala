@@ -20,7 +20,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExample, TransformExamples}
-import org.silkframework.util.StringUtils.DoubleLiteral
 
 import java.time.Instant
 
@@ -37,24 +36,25 @@ import java.time.Instant
 )
 @TransformExamples(Array(
   new TransformExample(
-    input1 = Array("1499040000"),
-    output = Array("2017-07-03")
+    parameters = Array(),
+    input1 = Array("1499117572000"),
+    output = Array("2017-07-03T21:32:52Z")
   ),
   new TransformExample(
-    parameters = Array("unit", "milliseconds"),
+    parameters = Array("format", "yyyy-MM-dd"),
     input1 = Array("1499040000000"),
     output = Array("2017-07-03")
   ),
   new TransformExample(
-    parameters = Array("format", "", "unit", "milliseconds"),
-    input1 = Array("1499117572000"),
-    output = Array("2017-07-03T21:32:52Z")
+    parameters = Array("format", "yyyy-MM-dd", "unit", "seconds"),
+    input1 = Array("1499040000"),
+    output = Array("2017-07-03")
   )
 ))
 case class TimestampToDateTransformer(
-  @Param("The output format. If left empty, a full xsd:dateTime (UTC) is returned.")
-  format: String = "yyyy-MM-dd",
-  unit: DateUnit = DateUnit.seconds
+  @Param("Custom output format (e.g., 'yyyy-MM-dd'). If left empty, a full xsd:dateTime (UTC) is returned.")
+  format: String = "",
+  unit: DateUnit = DateUnit.milliseconds
 ) extends SimpleTransformer {
 
   private val dateFormat = {
