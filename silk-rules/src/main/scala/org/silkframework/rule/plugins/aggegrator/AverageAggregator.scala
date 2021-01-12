@@ -26,8 +26,8 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   description = "Computes the weighted average."
 )
 case class AverageAggregator() extends Aggregator {
-  private val positiveWeight: Int = 9
-  private val negativeWeight: Int = 10
+  private val positiveWeight: Int = 1
+  private val negativeWeight: Int = 1
 
   override def evaluate(values: Traversable[(Int, Double)]): Option[Double] = {
     if (values.nonEmpty) {
