@@ -1,4 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
+import { useLocation } from "react-router";
+import { useTranslation } from "react-i18next";
+import ReactMarkdown from "react-markdown";
 import {
     Button,
     Card,
@@ -9,7 +14,6 @@ import {
     CardTitle,
     Divider,
     FieldItem,
-    HtmlContentBlock,
     IconButton,
     Notification,
     PropertyValueList,
@@ -21,16 +25,15 @@ import {
     TextField,
     Spacing,
 } from "@gui-elements/index";
-import { Controller, useForm } from "react-hook-form";
 import { Intent } from "@gui-elements/blueprint/constants";
-import { useDispatch, useSelector } from "react-redux";
 import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
-import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { routerOp } from "@ducks/router";
 import { sharedOp } from "@ducks/shared";
 import { Loading } from "../Loading/Loading";
-import { useLocation } from "react-router";
+import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
+import { ContentBlobToggler } from "../ContentBlobToggler/ContentBlobToggler";
+import { firstNonEmptyLine } from "../ContentBlobToggler";
 
 interface IProps {
     projectId?: string;
@@ -54,6 +57,7 @@ export function Metadata(props: IProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [getRequestError, setGetRequestError] = useState<ErrorResponse | null>(null);
     const [updateRequestError, setUpdateRequestError] = useState<ErrorResponse | null>(null);
+    const [t] = useTranslation();
 
     const [errors, setErrors] = useState({
         form: {
@@ -143,7 +147,12 @@ export function Metadata(props: IProps) {
         } catch (ex) {
             if (ex.isFetchError) {
                 if (ex.isHttpError) {
-                    setUpdateRequestError(new ErrorResponse("Updating meta data has failed", ex.errorResponse.detail));
+                    setUpdateRequestError(
+                        new ErrorResponse(
+                            t("Metadata.updateFailed", "Updating meta data has failed"),
+                            ex.errorResponse.detail
+                        )
+                    );
                 } else {
                     setUpdateRequestError(ex.errorResponse);
                 }
@@ -157,7 +166,7 @@ export function Metadata(props: IProps) {
         <>
             <CardHeader>
                 <CardTitle>
-                    <h2>Summary</h2>
+                    <h2>{t("common.words.summary", "Summary")}</h2>
                 </CardTitle>
                 {!loading && !isEditing && (
                     <CardOptions>
@@ -171,16 +180,22 @@ export function Metadata(props: IProps) {
 
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
-            {loading && <Loading description="Loading summary data." />}
+            {loading && <Loading description={t("Metadata.loading", "Loading summary data.")} />}
             {!loading && isEditing && (
                 <PropertyValueList>
                     <PropertyValuePair key="label">
                         <PropertyName>
-                            <Label text="Label" info="required" htmlFor="label" />
+                            <Label
+                                text={t("form.field.label", "Label")}
+                                info={t("common.words.required")}
+                                htmlFor="label"
+                            />
                         </PropertyName>
                         <PropertyValue>
                             <FieldItem
-                                messageText={errors.form.label ? "Label is required" : ""}
+                                messageText={
+                                    errors.form.label ? t("form.validations.isRequired", { field: `Label` }) : ""
+                                }
                                 hasStateDanger={errors.form.label}
                             >
                                 <Controller
@@ -196,7 +211,7 @@ export function Metadata(props: IProps) {
                     </PropertyValuePair>
                     <PropertyValuePair hasSpacing key="description">
                         <PropertyName>
-                            <Label text="Description" htmlFor="description" />
+                            <Label text={t("form.field.description", "Description")} htmlFor="description" />
                         </PropertyName>
                         <PropertyValue>
                             <FieldItem>
@@ -217,17 +232,24 @@ export function Metadata(props: IProps) {
                 <PropertyValueList>
                     {!!label && (
                         <PropertyValuePair hasDivider>
-                            <PropertyName>Label</PropertyName>
+                            <PropertyName>{t("form.field.label", "Label")}</PropertyName>
                             <PropertyValue>{label}</PropertyValue>
                         </PropertyValuePair>
                     )}
                     {!!description && (
                         <PropertyValuePair hasSpacing hasDivider>
-                            <PropertyName>Description</PropertyName>
+                            <PropertyName>{t("form.field.description", "Description")}</PropertyName>
                             <PropertyValue>
-                                <HtmlContentBlock>
-                                    <p>{description}</p>
-                                </HtmlContentBlock>
+                                <ContentBlobToggler
+                                    className="di__dataset__metadata-description"
+                                    contentPreview={description}
+                                    previewMaxLength={128}
+                                    contentFullview={description}
+                                    renderContentFullview={(content) => {
+                                        return <ReactMarkdown source={description} />;
+                                    }}
+                                    renderContentPreview={firstNonEmptyLine}
+                                />
                             </PropertyValue>
                         </PropertyValuePair>
                     )}
@@ -253,8 +275,8 @@ export function Metadata(props: IProps) {
             <>
                 <Divider />
                 <CardActions>
-                    <Button affirmative text="Save" type={"submit"} />
-                    <Button text="Cancel" onClick={toggleEdit} />
+                    <Button affirmative text={t("common.action.submit", "Submit")} type={"submit"} />
+                    <Button text={t("common.action.cancel")} onClick={toggleEdit} />
                 </CardActions>
             </>
         ) : null;

@@ -5,6 +5,7 @@ import { requestCloneProject, requestCloneTask } from "@ducks/workspace/requests
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { Loading } from "../Loading/Loading";
+import { useTranslation } from "react-i18next";
 
 export interface ICloneOptions {
     item: Partial<ISearchResultsServer>;
@@ -15,10 +16,13 @@ export interface ICloneOptions {
 }
 
 export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptions) {
+    // Value of the new label for the cloned project or task
     const [newLabel, setNewLabel] = useState(item.label || item.id);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<ErrorResponse | null>(null);
+    // Label of the project or task that should be cloned
     const [label, setLabel] = useState<string | null>(item.label);
+    const [t] = useTranslation();
 
     useEffect(() => {
         prepareCloning();
@@ -32,7 +36,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                     ? await requestTaskMetadata(item.id, item.projectId)
                     : await requestProjectMetadata(item.id ? item.id : item.projectId);
             setLabel(response.data.label);
-            setNewLabel(response.data.label);
+            setNewLabel(t("common.messages.cloneOf", { item: response.data.label }));
         } catch (ex) {
             // swallow exception, fallback to ID
         } finally {
@@ -72,7 +76,15 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     ) : (
         <SimpleDialog
             size="small"
-            title={`Clone ${item.projectId ? "task" : "project"} '${label || item.label || item.id}'`}
+            title={
+                t("common.action.CloneSmth", {
+                    smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
+                }) +
+                    ": " +
+                    label ||
+                item.label ||
+                item.id
+            }
             isOpen={true}
             onClose={onDiscard}
             actions={[
@@ -83,10 +95,10 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                     disabled={!newLabel}
                     data-test-id={"clone-modal-button"}
                 >
-                    Clone
+                    {t("common.action.clone")}
                 </Button>,
                 <Button key="cancel" onClick={onDiscard}>
-                    Cancel
+                    {t("common.action.cancel")}
                 </Button>,
             ]}
         >
@@ -94,7 +106,9 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 key={"label"}
                 labelAttributes={{
                     htmlFor: "label",
-                    text: `Label of cloned ${item.projectId ? "task" : "project"}:`,
+                    text: t("common.messages.cloneModalTitle", {
+                        item: item.projectId ? t("common.dataTypes.task") : t("common.dataTypes.project"),
+                    }),
                 }}
             >
                 <TextField onChange={(e) => setNewLabel(e.target.value)} value={newLabel} />

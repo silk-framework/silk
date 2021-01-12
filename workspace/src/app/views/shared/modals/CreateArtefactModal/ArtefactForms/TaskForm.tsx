@@ -1,13 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IArtefactItemProperty, IDetailedArtefactItem } from "@ducks/common/typings";
 import { Intent } from "@gui-elements/blueprint/constants";
-import { INPUT_TYPES } from "../../../../../constants";
+import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
 import { FieldItem, Spacing, TextArea, TextField } from "@gui-elements/index";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import { errorMessage, ParameterWidget } from "./ParameterWidget";
 import { DataPreview } from "../../../DataPreview/DataPreview";
 import { IDatasetConfigPreview } from "@ducks/shared/typings";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
+import { useTranslation } from "react-i18next";
 
 export interface IProps {
     form: any;
@@ -51,6 +52,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
 
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     const initialValues = existingTaskValuesToFlatParameters(updateTask);
+    const [t] = useTranslation();
 
     // addition restriction for the hook form parameter values
     const valueRestrictions = (param: IArtefactItemProperty) => {
@@ -58,7 +60,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
             return {
                 pattern: {
                     value: /^[0-9]*$/,
-                    message: "must be an integer number",
+                    message: t("form.validations.integer", "must be an integer number"),
                 },
             };
         } else {
@@ -108,7 +110,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                     );
                     // Set default value
                     let currentValue = value;
-                    if (updateTask) {
+                    if (updateTask && parameterValues[paramId] !== undefined) {
                         // Set existing value
                         currentValue = parameterValues[paramId].value;
                     }
@@ -179,8 +181,8 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                         <FieldItem
                             key={LABEL}
                             labelAttributes={{
-                                text: "Label",
-                                info: "required",
+                                text: t("form.field.label"),
+                                info: t("common.words.required"),
                                 htmlFor: LABEL,
                             }}
                             hasStateDanger={errorMessage("Label", errors.label) ? true : false}
@@ -196,7 +198,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                         <FieldItem
                             key={DESCRIPTION}
                             labelAttributes={{
-                                text: "Description",
+                                text: t("form.field.description"),
                                 htmlFor: DESCRIPTION,
                             }}
                         >
@@ -236,15 +238,18 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                         ))}
                     </AdvancedOptionsArea>
                 )}
-                {artefact.taskType === "Dataset" && (
+                {artefact.taskType?.toLowerCase() === DATA_TYPES.DATASET && (
                     <>
                         <Spacing />
                         <DataPreview
-                            title={"Preview"}
+                            title={t("pages.dataset.title")}
                             preview={datasetConfigPreview(projectId, artefact.pluginId, getValues())}
                             externalValidation={{
                                 validate: triggerValidation,
-                                errorMessage: "Parameter validation failed. Please fix the issues first.",
+                                errorMessage: t(
+                                    "form.validations.parameter",
+                                    "Parameter validation failed. Please fix the issues first."
+                                ),
                             }}
                             datasetConfigValues={getValues}
                         />

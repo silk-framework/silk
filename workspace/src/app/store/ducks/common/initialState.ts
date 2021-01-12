@@ -1,12 +1,12 @@
-import { IArtefactItem, IArtefactModal, ICommonState } from "./typings";
-import { getLocale } from "./thunks/locale.thunk";
+import { IArtefactModal, ICommonState } from "./typings";
+import Store from "store";
 
 export function initialArtefactModalState(): IArtefactModal {
     return {
         isOpen: false,
         error: {},
         artefactsList: [],
-        selectedArtefact: {} as IArtefactItem,
+        selectedArtefact: undefined,
         cachedArtefactProperties: {},
         selectedDType: "all",
         loading: false,
@@ -16,14 +16,14 @@ export function initialArtefactModalState(): IArtefactModal {
 
 export function initialCommonState(): ICommonState {
     return {
-        locale: getLocale(),
+        locale: Store.get("locale"),
         currentProjectId: null,
         currentTaskId: null,
         authenticated: true,
         searchQuery: "",
         error: {},
         availableDataTypes: {},
-        initialSettings: {},
+        initialSettings: { emptyWorkspace: true, initialLanguage: "en", hotKeys: {} },
         exportTypes: [],
         artefactModal: initialArtefactModalState(),
     };

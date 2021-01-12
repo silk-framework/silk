@@ -77,7 +77,7 @@ export interface IDetailedArtefactItem {
 /** Overview version of an item description. */
 export interface IArtefactItem {
     key: string;
-    taskType: string;
+    taskType?: string;
     title?: string;
     description?: string;
     categories?: string[];
@@ -118,7 +118,7 @@ export interface IArtefactModal {
     }[];
 
     // The selected item type
-    selectedArtefact: IArtefactItem;
+    selectedArtefact?: IArtefactItem;
 
     // cached plugin descriptions
     cachedArtefactProperties: {
@@ -142,11 +142,45 @@ export interface ICommonState {
     currentProjectId: string;
     currentTaskId: string;
     locale: string;
-    initialSettings: any;
+    initialSettings: IInitFrontend;
     authenticated: boolean;
     searchQuery: string;
     error?: any;
     availableDataTypes: IAvailableDataTypes;
     exportTypes: IExportTypes[];
     artefactModal: IArtefactModal;
+}
+
+/** Config information from the backend to initialize the frontend. */
+export interface IInitFrontend {
+    /**
+     * If the workspace if currently empty, i.e. has no projects in it.
+     */
+    emptyWorkspace: boolean;
+    /**
+     * Initial language from backend. This can be "overwritten" by the user via the UI.
+     */
+    initialLanguage: string;
+
+    /** The max. file upload size in bytes supported by the backend. */
+    maxFileUploadSize?: number;
+
+    /**
+     * DM url, in case of missing, hide navigation bar
+     */
+    dmBaseUrl?: string;
+
+    /** Configured links to the DM that should be displayed in the global navigation menu. */
+    dmModuleLinks?: IDmLink[];
+
+    /** Hotkey configuration for the frontend. */
+    hotKeys: Partial<Record<HotKeyIds, string>>;
+}
+
+type HotKeyIds = "quickSearch";
+
+export interface IDmLink {
+    path: string;
+    defaultLabel: string;
+    icon?: string;
 }

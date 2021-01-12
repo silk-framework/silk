@@ -9,10 +9,12 @@ const WIDGET_NAME = "configuration";
 
 const updatePrefixList = (data) => {
     return (dispatch) => {
-        const formattedPrefixes = Object.keys(data).map((key) => ({
-            prefixName: key,
-            prefixUri: data[key],
-        }));
+        const formattedPrefixes = Object.keys(data)
+            .sort((left, right) => (left < right ? -1 : 1))
+            .map((key) => ({
+                prefixName: key,
+                prefixUri: data[key],
+            }));
         dispatch(setPrefixes(formattedPrefixes));
     };
 };

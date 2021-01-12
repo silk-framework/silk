@@ -88,7 +88,7 @@ export interface IRelatedItem {
 export interface IItemLink {
     label: string;
     path: string;
-    itemType: string;
+    itemType?: string;
 }
 
 export interface IItemInfo {
@@ -161,7 +161,9 @@ export interface IPreviewResponse {
 
 /** The actual values of the preview */
 export interface IPreviewContent {
+    // The attribute names.
     attributes: string[];
+    // The values for each attribute. This must have the same length as the attributes array.
     values: CellType[][];
 }
 
@@ -191,7 +193,8 @@ export interface IResourceListPayload {
     offset?: number;
 }
 
-export interface IResourceListResponse {
+/** Project file resource. */
+export interface IProjectResource {
     /**
      * Last modification Datetime
      */

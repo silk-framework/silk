@@ -1,5 +1,4 @@
 import { authorize, getTokenFromStore, isAuthenticated, logout, logoutFromDi } from "./thunks/auth.thunk";
-import { changeLocale } from "./thunks/locale.thunk";
 import { commonSlice } from "@ducks/common/commonSlice";
 import { batch } from "react-redux";
 import asModifier from "../../../utils/asModifier";
@@ -16,6 +15,8 @@ import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } fro
 import { routerOp } from "@ducks/router";
 import { TaskType } from "@ducks/shared/typings";
 import { HttpError } from "../../../services/fetch/responseInterceptor";
+import i18Instance from "../../../../language";
+import Store from "store";
 
 const {
     setError,
@@ -34,6 +35,7 @@ const {
     setTaskId,
     setModalError,
     setExportTypes,
+    changeLanguage,
 } = commonSlice.actions;
 
 const fetchCommonSettingsAsync = () => {
@@ -41,6 +43,11 @@ const fetchCommonSettingsAsync = () => {
         try {
             const data = await requestInitFrontend();
             dispatch(setInitialSettings(data));
+
+            const selectedLng = Store.get("locale");
+            if (!selectedLng) {
+                dispatch(changeLocale(data.initialLanguage));
+            }
         } catch (error) {
             dispatch(setError(error));
         }
@@ -201,7 +208,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: TaskT
                 dispatch(closeArtefactModal());
                 dispatch(
                     routerOp.goToTaskPage({
-                        id: data.id,
+                        id: data.data.id,
                         type: taskType,
                         projectId: currentProjectId,
                         label,
@@ -262,6 +269,14 @@ const resetArtefactModal = (shouldClose: boolean = false) => (dispatch) => {
     if (shouldClose) {
         dispatch(closeArtefactModal());
     }
+};
+
+const changeLocale = (locale: string) => {
+    return async (dispatch) => {
+        await i18Instance.changeLanguage(locale);
+        Store.set("locale", locale);
+        dispatch(changeLanguage(locale));
+    };
 };
 
 export default {

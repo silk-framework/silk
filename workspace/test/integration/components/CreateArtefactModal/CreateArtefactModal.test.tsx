@@ -3,7 +3,8 @@ import "@testing-library/jest-dom";
 import mockAxios from "../../../__mocks__/axios";
 import { ReactWrapper } from "enzyme";
 import { SERVE_PATH } from "../../../../src/app/constants/path";
-import { createBrowserHistory } from "history";
+import { createMemoryHistory } from "history";
+
 import {
     apiUrl,
     byName,
@@ -14,8 +15,6 @@ import {
     findAll,
     findSingleElement,
     legacyApiUrl,
-    logRequests,
-    logWrapperHtmlOnError,
     mockAxiosResponse,
     mockedAxiosError,
     mockedAxiosResponse,
@@ -33,6 +32,8 @@ import {
 import { atomicParamDescription, objectParamDescription } from "./CreateArtefactModalHelper";
 import { INPUT_TYPES } from "../../../../src/app/constants";
 import { TaskTypes } from "../../../../src/app/store/ducks/shared/typings";
+import { MemoryHistory } from "history/createMemoryHistory";
+import { Simulate } from "react-dom/test-utils";
 
 describe("Task creation widget", () => {
     beforeAll(() => {
@@ -46,22 +47,27 @@ describe("Task creation widget", () => {
     const PROJECT_ID = "projectId";
     const TASK_ID = "taskId";
 
+    interface IWrapper {
+        wrapper: ReactWrapper<any, any>;
+        history: MemoryHistory<{}>;
+    }
+
     const createArtefactWrapper = (
         currentUrl: string = `${SERVE_PATH}`,
         existingTask?: RecursivePartial<IProjectTaskUpdatePayload>
-    ) => {
-        const history = createBrowserHistory();
-        history.location.pathname = currentUrl;
-        return withMount(
-            testWrapper(<CreateArtefactModal />, history, {
-                common: {
-                    artefactModal: {
-                        isOpen: true,
-                        updateExistingTask: existingTask,
-                    },
+    ): IWrapper => {
+        const history = createMemoryHistory();
+        history.push(currentUrl);
+
+        const provider = testWrapper(<CreateArtefactModal />, history, {
+            common: {
+                artefactModal: {
+                    isOpen: true,
+                    updateExistingTask: existingTask,
                 },
-            })
-        );
+            },
+        });
+        return { wrapper: withMount(provider), history };
     };
 
     // Loads the selection list modal with mocked artefact list
@@ -72,7 +78,7 @@ describe("Task creation widget", () => {
             mockedAxiosResponse({ data: mockArtefactListResponse })
         );
         if (!existingTask) {
-            await waitFor(() => expect(selectionItems(wrapper)).toHaveLength(3));
+            await waitFor(() => expect(selectionItems(wrapper.wrapper)).toHaveLength(3));
         }
         return wrapper;
     };
@@ -89,20 +95,29 @@ describe("Task creation widget", () => {
         return findAll(dialogWrapper, ".eccgui-overviewitem__list .eccgui-overviewitem__item");
     };
 
-    const pluginCreationDialogWrapper = async (existingTask?: RecursivePartial<IProjectTaskUpdatePayload>) => {
+    const pluginCreationDialogWrapper = async (
+        doubleClickToAdd: boolean = true,
+        existingTask?: RecursivePartial<IProjectTaskUpdatePayload>
+    ) => {
         const wrapper = await createMockedListWrapper(existingTask);
-        const pluginA = selectionItems(wrapper)[1];
+        const pluginA = selectionItems(wrapper.wrapper)[1];
         if (!existingTask) {
-            // Double-click "Plugin A"
-            clickWrapperElement(pluginA);
-            clickWrapperElement(pluginA);
+            if (doubleClickToAdd) {
+                // Double-click "Plugin A"
+                clickWrapperElement(pluginA);
+                clickWrapperElement(pluginA);
+            } else {
+                // Use Add button
+                clickWrapperElement(pluginA);
+                clickWrapperElement(findSingleElement(wrapper.wrapper, byTestId("item-add-btn")));
+            }
             mockAxios.mockResponseFor(
                 { url: apiUrl("core/plugins/pluginA") },
                 mockedAxiosResponse({ data: mockPluginDescription })
             );
         }
         await waitFor(() => {
-            const labels = findAll(wrapper, ".eccgui-label .eccgui-label__text").map((e) => e.text());
+            const labels = findAll(wrapper.wrapper, ".eccgui-label .eccgui-label__text").map((e) => e.text());
             Object.entries(mockPluginDescription.properties).forEach(([paramId, attributes]) =>
                 expect(labels).toContain(attributes.title)
             );
@@ -174,7 +189,7 @@ describe("Task creation widget", () => {
     };
 
     it("should show only the project artefact to select when on the main search page", async () => {
-        const wrapper = createArtefactWrapper();
+        const { wrapper } = createArtefactWrapper();
         const dialog = await fetchDialog(wrapper);
         const items = selectionItems(dialog);
         expect(items).toHaveLength(1);
@@ -182,7 +197,7 @@ describe("Task creation widget", () => {
     });
 
     it("should show the project artefact and all task artefacts when being in a project context", async () => {
-        const wrapper = await createMockedListWrapper();
+        const { wrapper } = await createMockedListWrapper();
         const items = selectionItems(wrapper);
         expect(items[0].html()).toContain("Project");
         expect(items[1].html()).toContain("Plugin A");
@@ -196,8 +211,12 @@ describe("Task creation widget", () => {
         await pluginCreationDialogWrapper();
     });
 
+    it("should open the plugin configuration dialog when clicking an item from the list and then 'Add'", async () => {
+        await pluginCreationDialogWrapper(false);
+    });
+
     it("should show a form with parameters of different types", async () => {
-        const wrapper = await pluginCreationDialogWrapper();
+        const { wrapper } = await pluginCreationDialogWrapper();
         // boolean parameter
         expect(findAll(wrapper, 'input[type="checkbox"]')).toHaveLength(1);
         // password parameter
@@ -220,7 +239,7 @@ describe("Task creation widget", () => {
         });
 
     it("should show validation errors for an unfinished form when clicking 'Create'", async () => {
-        const wrapper = await pluginCreationDialogWrapper();
+        const { wrapper } = await pluginCreationDialogWrapper();
         clickCreate(wrapper);
         await expectValidationErrors(wrapper, 3);
         // Enter valid value for int parameter
@@ -232,27 +251,38 @@ describe("Task creation widget", () => {
     });
 
     it("should send the correct request when clicking 'Create' on a valid form", async () => {
-        const wrapper = await pluginCreationDialogWrapper();
+        const { wrapper, history } = await pluginCreationDialogWrapper();
         changeValue(findSingleElement(wrapper, "#intParam"), "100");
         changeValue(findSingleElement(wrapper, "#label"), "Some label");
+        changeValue(findSingleElement(wrapper, "#description"), "Some description");
         changeValue(findSingleElement(wrapper, byName("objectParameter.subStringParam")), "Something");
         clickCreate(wrapper);
         await expectValidationErrors(wrapper, 0);
-        const request = mockAxios.getReqByUrl(legacyApiUrl("workspace/projects/projectId/tasks"));
+        const tasksUri = legacyApiUrl("workspace/projects/projectId/tasks");
+        const request = mockAxios.getReqByUrl(tasksUri);
         expect(request).toBeTruthy();
         const metaData = request.data.metadata;
         const data = request.data.data;
         expect(metaData.label).toBe("Some label");
+        expect(metaData.description).toBe("Some description");
         expect(data.taskType).toBe(TaskTypes.CUSTOM_TASK);
         expect(data.type).toBe("pluginA");
         expect(data.parameters.intParam).toEqual("100");
         expect(data.parameters.booleanParam).toEqual("false");
         expect(data.parameters.objectParameter.subStringParam).toEqual("Something");
         expect(data.parameters.stringParam).toEqual("default string");
+        // Test redirection to task details page
+        const newTaskId = "newTaskId";
+        mockAxiosResponse(tasksUri, { data: { id: newTaskId } });
+        await waitFor(() => {
+            expect(history.location.pathname).toEqual(
+                expect.stringMatching(new RegExp(`projects/${PROJECT_ID}/task/${newTaskId}$`))
+            );
+        });
     });
 
     it("should show an error message if task creation failed in the backend", async () => {
-        const wrapper = await pluginCreationDialogWrapper();
+        const { wrapper } = await pluginCreationDialogWrapper();
         changeValue(findSingleElement(wrapper, "#intParam"), "100");
         changeValue(findSingleElement(wrapper, "#label"), "Some label");
         changeValue(findSingleElement(wrapper, byName("objectParameter.subStringParam")), "Something");
@@ -268,6 +298,29 @@ describe("Task creation widget", () => {
         await waitFor(() => {
             const error = findSingleElement(wrapper, ".eccgui-intent--danger");
             expect(error.text().toLowerCase()).toContain(expectedErrorMsg);
+        });
+    });
+
+    it("should allow to create a new project", async () => {
+        const { wrapper } = await createMockedListWrapper();
+        const PROJECT_LABEL = "Project label";
+        const PROJECT_DESCRIPTION = "Project description";
+        const project = selectionItems(wrapper)[0];
+        clickWrapperElement(project);
+        clickWrapperElement(project);
+        expect(findAll(wrapper, "#label")).toHaveLength(1);
+        changeValue(findSingleElement(wrapper, "#label"), PROJECT_LABEL);
+        changeValue(findSingleElement(wrapper, "#description"), PROJECT_DESCRIPTION);
+        clickCreate(wrapper);
+        await expectValidationErrors(wrapper, 0);
+        await waitFor(() => {
+            const expectedPayload = {
+                metaData: {
+                    label: PROJECT_LABEL,
+                    description: PROJECT_DESCRIPTION,
+                },
+            };
+            checkRequestMade(apiUrl("/workspace/projects"), "POST", expectedPayload);
         });
     });
 
@@ -296,7 +349,7 @@ describe("Task creation widget", () => {
     };
 
     it("should use existing values to set the initial parameter values on update", async () => {
-        const wrapper = await pluginCreationDialogWrapper({
+        const { wrapper } = await pluginCreationDialogWrapper(true, {
             projectId: PROJECT_ID,
             taskId: TASK_ID,
             taskPluginDetails: mockPluginDescription,

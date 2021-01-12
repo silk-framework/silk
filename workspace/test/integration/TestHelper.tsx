@@ -1,5 +1,5 @@
 import React from "react";
-import { History } from "history";
+import { createBrowserHistory, createMemoryHistory, History } from "history";
 import { EnzymePropSelector, mount, ReactWrapper } from "enzyme";
 import { Provider } from "react-redux";
 import { AppLayout } from "../../src/app/views/layout/AppLayout/AppLayout";
@@ -23,8 +23,13 @@ import {
 } from "../../src/app/services/fetch/responseInterceptor";
 import { AxiosError } from "axios";
 
-const mockValues = {
-    pathName: "/what?",
+interface IMockValues {
+    history: History;
+    useParams: Record<string, string>;
+}
+
+const mockValues: IMockValues = {
+    history: createMemoryHistory(),
     useParams: {
         projectId: "Set me via TestHelper.setUseParams!",
         taskId: "Set me via TestHelper.setUseParams!",
@@ -36,11 +41,7 @@ const host = process.env.HOST;
 jest.mock("../../src/app/store/configureStore", () => {
     return {
         getHistory: jest.fn().mockImplementation(() => {
-            return {
-                location: {
-                    pathname: mockValues.pathName,
-                },
-            };
+            return mockValues.history;
         }),
     };
 });
@@ -81,6 +82,7 @@ export const createStore = (history: History<{}>, initialState: RecursivePartial
     // Create store with merged state
     return configureStore({
         reducer: root,
+        middleware,
         preloadedState: state,
     });
 };
@@ -100,13 +102,13 @@ export const withRender = (component, rerender?: Function) => (rerender ? rerend
 
 /** Returns a wrapper for the application. */
 export const testWrapper = (
-    component: JSX.Element,
-    history: History<{}>,
+    component: React.ReactNode,
+    history: History<{}> = createBrowserHistory(),
     initialState: RecursivePartial<IStore> = {}
 ) => {
     const store = createStore(history, initialState);
     // Set path name of global mock
-    mockValues.pathName = history?.location?.pathname;
+    mockValues.history = history;
 
     return (
         <Provider store={store}>
@@ -195,11 +197,23 @@ export const logPageOnError = (err: Error) => {
     return err;
 };
 
+/** Log the wrapper HTML to the console */
+export const logWrapperHtml = (wrapper: ReactWrapper<any, any>) => {
+    wrapper.update();
+    console.log(wrapper.html());
+};
+
+/** Returns the HTML of th given React wrapper */
+export const wrapperHtml = (wrapper: ReactWrapper<any, any>): string => {
+    wrapper.update();
+    return wrapper.html();
+};
+
 /** Logs the wrapper HTML on error. */
 export const logWrapperHtmlOnError = (wrapper: ReactWrapper<any, any>) => {
     wrapper.update();
     return (err: Error) => {
-        console.log(wrapper.html());
+        logWrapperHtml(wrapper);
         return err;
     };
 };
@@ -289,6 +303,8 @@ export const mockAxiosResponse = (
         } else {
             mockAxios.mockResponseFor(criteria, response as HttpResponse, silentMode);
         }
+    } else {
+        throw new Error("No request to mock for " + criteria);
     }
 };
 
@@ -321,7 +337,7 @@ export const legacyApiUrl = (path: string): string => {
 
 // Prepend a "/" in front of the path if it is missing.
 const prependSlash = function (path: string) {
-    if (!path.startsWith("/")) {
+    if (!path.startsWith("/") && !path.startsWith("?")) {
         return "/" + path;
     } else {
         return path;

@@ -2,22 +2,17 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import { sharedOp } from "@ducks/shared";
 import { ITaskParameter } from "@ducks/common/typings";
-import {
-    Accordion,
-    AccordionItem,
-    FieldItem,
-    FieldSet,
-    HtmlContentBlock,
-    OverflowText,
-    TitleSubsection,
-    Label,
-} from "@gui-elements/index";
+import { WhiteSpaceContainer, FieldItem, FieldSet, Label, TitleSubsection } from "@gui-elements/index";
 import { Intent } from "@gui-elements/blueprint/constants";
 import { Autocomplete } from "../../../Autocomplete/Autocomplete";
 import { InputMapper } from "./InputMapper";
 import { AppToaster } from "../../../../../services/toaster";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
+import { useTranslation } from "react-i18next";
+import { firstNonEmptyLine } from "../../../ContentBlobToggler";
+import { ContentBlobToggler } from "../../../ContentBlobToggler/ContentBlobToggler";
+import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 
 const MAXLENGTH_TOOLTIP = 40;
 const MAXLENGTH_SIMPLEHELP = 288;
@@ -64,6 +59,16 @@ export const errorMessage = (title: string, errors: any) => {
     }
 };
 
+// Label of auto-completion results
+const autoCompleteLabel = (item: IAutocompleteDefaultResponse) => {
+    const label = item.label || item.value;
+    if (label === "") {
+        return "\u00A0";
+    } else {
+        return label;
+    }
+};
+
 /** Widget for a single parameter of a task. */
 export const ParameterWidget = (props: IProps) => {
     const {
@@ -80,6 +85,7 @@ export const ParameterWidget = (props: IProps) => {
     const errors = formHooks.errors[taskParameter.paramId];
     const propertyDetails = taskParameter.param;
     const { title, description, autoCompletion } = propertyDetails;
+    const [t] = useTranslation();
 
     const selectDependentValues = (): string[] => {
         return autoCompletion.autoCompletionDependsOnParameters.flatMap((paramId) => {
@@ -93,9 +99,9 @@ export const ParameterWidget = (props: IProps) => {
         });
     };
 
-    const handleAutoCompleteInput = async (input: string = "") => {
+    const handleAutoCompleteInput = async (input: string) => {
         try {
-            return await sharedOp.getAutocompleteResultsAsync({
+            const autoCompleteResponse = await sharedOp.getAutocompleteResultsAsync({
                 pluginId: pluginId,
                 parameterId: taskParameter.paramId,
                 projectId,
@@ -103,6 +109,7 @@ export const ParameterWidget = (props: IProps) => {
                 textQuery: input,
                 limit: 100, // The auto-completion is only showing the first n values TODO: Make auto-completion list scrollable?
             });
+            return autoCompleteResponse.data;
         } catch (e) {
             if (e.isHttpError && e.httpStatus !== 400) {
                 // For now hide 400 errors from user, since they are not helpful.
@@ -120,23 +127,27 @@ export const ParameterWidget = (props: IProps) => {
 
     let propertyHelperText = null;
     if (description && description.length > MAXLENGTH_TOOLTIP) {
-        propertyHelperText =
-            description.length > MAXLENGTH_SIMPLEHELP ? (
-                <Accordion align="end">
-                    <AccordionItem
-                        title={<OverflowText inline>{description}</OverflowText>}
-                        fullWidth
-                        condensed
-                        noBorder
-                    >
-                        <HtmlContentBlock>
+        propertyHelperText = (
+            <ContentBlobToggler
+                className="di__parameter_widget__description"
+                contentPreview={description}
+                previewMaxLength={MAXLENGTH_SIMPLEHELP}
+                contentFullview={description}
+                renderContentFullview={(content) => {
+                    return (
+                        <WhiteSpaceContainer
+                            marginTop="tiny"
+                            marginRight="xlarge"
+                            marginBottom="small"
+                            marginLeft="regular"
+                        >
                             <ReactMarkdown source={description} />
-                        </HtmlContentBlock>
-                    </AccordionItem>
-                </Accordion>
-            ) : (
-                description
-            );
+                        </WhiteSpaceContainer>
+                    );
+                }}
+                renderContentPreview={firstNonEmptyLine}
+            />
+        );
     }
 
     if (propertyDetails.type === "object") {
@@ -148,7 +159,7 @@ export const ParameterWidget = (props: IProps) => {
                     <Label
                         isLayoutForElement="span"
                         text={<TitleSubsection useHtmlElement="span">{title}</TitleSubsection>}
-                        info={required ? "required" : ""}
+                        info={required ? t("common.words.required") : ""}
                         tooltip={description && description.length <= MAXLENGTH_TOOLTIP ? description : ""}
                     />
                 }
@@ -181,7 +192,7 @@ export const ParameterWidget = (props: IProps) => {
                     <Label
                         isLayoutForElement="span"
                         text={<TitleSubsection useHtmlElement="span">{title}</TitleSubsection>}
-                        info={required ? "required" : ""}
+                        info={required ? t("common.words.required") : ""}
                         tooltip={description && description.length <= MAXLENGTH_TOOLTIP ? description : ""}
                     />
                 }
@@ -203,7 +214,7 @@ export const ParameterWidget = (props: IProps) => {
             <FieldItem
                 labelAttributes={{
                     text: title,
-                    info: required ? "required" : "",
+                    info: required ? t("common.words.required") : "",
                     htmlFor: formParamId,
                     tooltip: description && description.length <= MAXLENGTH_TOOLTIP ? description : "",
                 }}
@@ -212,7 +223,7 @@ export const ParameterWidget = (props: IProps) => {
                 messageText={errorMessage(title, errors)}
             >
                 {!!autoCompletion ? (
-                    <Autocomplete
+                    <Autocomplete<IAutocompleteDefaultResponse, string>
                         autoCompletion={autoCompletion}
                         onSearch={handleAutoCompleteInput}
                         onChange={changeHandlers[formParamId]}
@@ -228,6 +239,9 @@ export const ParameterWidget = (props: IProps) => {
                             intent: errors ? Intent.DANGER : Intent.NONE,
                         }}
                         resetPossible={!required}
+                        itemKey={(item) => item.value}
+                        itemRenderer={autoCompleteLabel}
+                        itemValueRenderer={autoCompleteLabel}
                     />
                 ) : (
                     <InputMapper

@@ -3,22 +3,21 @@ import { ISearchResultsServer } from "@ducks/workspace/typings";
 import {
     Card,
     ContextMenu,
-    Icon,
+    Highlighter,
     IconButton,
     MenuDivider,
     MenuItem,
+    OverflowText,
     OverviewItem,
     OverviewItemActions,
     OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
-    OverflowText,
     Spacing,
     Tag,
 } from "@gui-elements/index";
 import { routerOp } from "@ducks/router";
 import { useDispatch, useSelector } from "react-redux";
-import { Highlighter } from "../Highlighter/Highlighter";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import { IPageLabels } from "@ducks/router/operations";
@@ -26,9 +25,13 @@ import { DATA_TYPES } from "../../../constants";
 import { commonSel } from "@ducks/common";
 import { IExportTypes } from "@ducks/common/typings";
 import { downloadResource } from "../../../utils/downloadResource";
+import { useTranslation } from "react-i18next";
+import ItemDepiction from "../../shared/ItemDepiction";
+import { useIFrameWindowLinks } from "../IframeWindow/iframewindowHooks";
 
 interface IProps {
     item: ISearchResultsServer;
+
     searchValue?: string;
 
     onOpenDeleteModal(item: ISearchResultsServer);
@@ -50,23 +53,28 @@ export default function SearchItem({
 }: IProps) {
     const dispatch = useDispatch();
     const exportTypes = useSelector(commonSel.exportTypesSelector);
-
+    const [t] = useTranslation();
     // Remove detailsPath
-    const contextMenuItems = item.itemLinks
-        .slice(1)
-        .map((link) => (
-            <MenuItem
-                key={link.path}
-                text={link.label}
-                href={link.path}
-                icon={getItemLinkIcons(link.label)}
-                target={"_blank"}
-            />
-        ));
+    const itemLinks = item.itemLinks.slice(1);
+    const { iframeWindow, toggleIFrameLink } = useIFrameWindowLinks(itemLinks);
+    const contextMenuItems = itemLinks.map((link) => (
+        <MenuItem
+            key={link.path}
+            text={t("common.legacyGui." + link.label, link.label)}
+            icon={getItemLinkIcons(link.label)}
+            onClick={() =>
+                toggleIFrameLink({
+                    path: link.path,
+                    label: link.label,
+                    itemType: null,
+                })
+            }
+        />
+    ));
 
     if (item.type === DATA_TYPES.PROJECT && !!exportTypes.length) {
         contextMenuItems.push(
-            <MenuItem key="export" text={"Export to"}>
+            <MenuItem key="export" text={t("common.action.export", "Export to")}>
                 {exportTypes.map((type) => (
                     <MenuItem
                         key={type.id}
@@ -79,16 +87,19 @@ export default function SearchItem({
     }
 
     const goToDetailsPage = (e) => {
-        e.preventDefault();
-        const detailsPath = item.itemLinks[0].path;
-        const labels: IPageLabels = {};
-        if (item.type === "project") {
-            labels.projectLabel = item.label;
-        } else {
-            labels.taskLabel = item.label;
+        // Only open page in same tab if user did not try to open in new tab
+        if (!e?.ctrlKey) {
+            e.preventDefault();
+            const detailsPath = item.itemLinks[0].path;
+            const labels: IPageLabels = {};
+            if (item.type === DATA_TYPES.PROJECT) {
+                labels.projectLabel = item.label;
+            } else {
+                labels.taskLabel = item.label;
+            }
+            labels.itemType = item.type;
+            dispatch(routerOp.goToPage(detailsPath, labels));
         }
-        labels.itemType = item.type;
-        dispatch(routerOp.goToPage(detailsPath, labels));
     };
 
     const handleExport = async (type: IExportTypes) => {
@@ -99,7 +110,7 @@ export default function SearchItem({
         <Card isOnlyLayout>
             <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined}>
                 <OverviewItemDepiction>
-                    <Icon name={"artefact-" + item.type} large />
+                    <ItemDepiction itemType={item.type} pluginId={item.pluginId} />
                 </OverviewItemDepiction>
                 <OverviewItemDescription>
                     <OverviewItemLine>
@@ -115,10 +126,15 @@ export default function SearchItem({
                     {(item.description || item.projectId) && (
                         <OverviewItemLine small>
                             <OverflowText>
-                                {!parentProjectId && item.type !== "project" && (
-                                    <Tag>{item.projectLabel ? item.projectLabel : item.projectId}</Tag>
+                                {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
+                                    <Tag>
+                                        <Highlighter
+                                            label={item.projectLabel ? item.projectLabel : item.projectId}
+                                            searchValue={searchValue}
+                                        />
+                                    </Tag>
                                 )}
-                                {item.description && !parentProjectId && item.type !== "project" && (
+                                {item.description && !parentProjectId && item.type !== DATA_TYPES.PROJECT && (
                                     <Spacing vertical size="small" />
                                 )}
                                 {item.description && <Highlighter label={item.description} searchValue={searchValue} />}
@@ -130,28 +146,34 @@ export default function SearchItem({
                     <IconButton
                         data-test-id={"open-duplicate-modal"}
                         name="item-clone"
-                        text="Clone"
+                        text={t("common.action.clone", "Clone")}
                         onClick={onOpenDuplicateModal}
                     />
                     {!!item.itemLinks.length && (
                         <IconButton
                             name="item-viewdetails"
-                            text="Show details"
+                            text={t("common.action.showDetails", "Show details")}
                             onClick={goToDetailsPage}
                             href={item.itemLinks[0].path}
                         />
                     )}
-                    <ContextMenu togglerText="Show more options">
+                    <ContextMenu togglerText={t("common.action.moreOptions", "Show more options")}>
                         {contextMenuItems.length ? (
                             <>
                                 {contextMenuItems}
                                 <MenuDivider />
                             </>
                         ) : null}
-                        <MenuItem key="delete" icon={"item-remove"} onClick={onOpenDeleteModal} text={"Delete"} />
+                        <MenuItem
+                            key="delete"
+                            icon={"item-remove"}
+                            onClick={onOpenDeleteModal}
+                            text={t("common.action.delete", "Delete")}
+                        />
                     </ContextMenu>
                 </OverviewItemActions>
             </OverviewItem>
+            {iframeWindow}
         </Card>
     );
 }

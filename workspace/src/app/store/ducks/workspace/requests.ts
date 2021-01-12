@@ -1,7 +1,14 @@
-import { IAppliedFacetState, IFacetState, ISorterListItemState } from "@ducks/workspace/typings";
+import {
+    IAppliedFacetState,
+    IFacetState,
+    IProjectExecutionStatus,
+    IProjectImportDetails,
+    IRecentlyViewedItem,
+    ISorterListItemState,
+    ITaskLink,
+} from "@ducks/workspace/typings";
 import fetch from "../../../services/fetch";
 import { legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
-import { VoidOrNever } from "../../../../app";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 
 export interface ISearchListRequest {
@@ -44,16 +51,22 @@ export const requestSearchList = async (payload: ISearchListRequest): Promise<IS
     }
 };
 
-export const requestRemoveProject = async (itemId: string): Promise<VoidOrNever> => {
-    await fetch({
+export const requestRemoveProject = async (itemId: string): Promise<FetchResponse<void>> => {
+    return await fetch({
         url: legacyApiEndpoint(`/projects/${itemId}`),
         method: "DELETE",
     });
 };
 
-export const requestRemoveTask = async (itemId: string, projectId?: string): Promise<VoidOrNever> => {
-    await fetch({
-        url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}?removeDependentTasks=true`),
+export const requestRemoveTask = async (
+    itemId: string,
+    projectId?: string,
+    removeDependentTasks: boolean = false
+): Promise<FetchResponse<void>> => {
+    return await fetch({
+        url:
+            legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}`) +
+            (removeDependentTasks ? "?removeDependentTasks=true" : ""),
         method: "DELETE",
     });
 };
@@ -164,19 +177,22 @@ export const requestRemoveProjectPrefix = async (prefixName: string, projectId: 
 };
 
 //missing-type
-export const requestIfResourceExists = async (projectId: string, resourceName: string): Promise<any | never> => {
+export const requestIfResourceExists = async (projectId: string, resourceName: string): Promise<boolean> => {
     try {
         const { data } = await fetch({
             url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/metadata`),
         });
-        return data;
+        return "size" in data;
     } catch (e) {
-        throw handleError(e);
+        if (e.isHttpError && e.httpStatus === 404) {
+            return false;
+        }
+        throw e;
     }
 };
 
 /** Remove a project file resource. */
-export const removeProjectFileResource = async (projectId: string, resourceName: string): Promise<void> => {
+export const requestRemoveProjectResource = async (projectId: string, resourceName: string): Promise<void> => {
     try {
         await fetch({
             url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}`),
@@ -188,15 +204,13 @@ export const removeProjectFileResource = async (projectId: string, resourceName:
 };
 
 /** Returns all tasks that depend on a specific resource. */
-export const projectFileResourceDependents = async (projectId: string, resourceName: string): Promise<string[]> => {
-    try {
-        const { data } = await fetch({
-            url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/usage`),
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+export const projectFileResourceDependents = async (
+    projectId: string,
+    resourceName: string
+): Promise<FetchResponse<ITaskLink[]>> => {
+    return fetch({
+        url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/usage`),
+    });
 };
 
 //missing-type
@@ -225,4 +239,57 @@ export const requestWarningMarkdown = async (taskId: string, projectId: string):
     } catch (e) {
         throw handleError(e);
     }
+};
+
+const projectImportEndpoint = (projectImportId: string) => workspaceApi(`/projectImport/${projectImportId}`);
+
+/** Fetch the project import details for the previously uploaded project file. */
+export const requestProjectImportDetails = async (
+    projectImportId: string
+): Promise<FetchResponse<IProjectImportDetails>> => {
+    return fetch({
+        url: projectImportEndpoint(projectImportId),
+    });
+};
+
+/** Deletes the project import resource and the uploaded file in the backend. */
+export const requestDeleteProjectImport = async (projectImportId: string): Promise<FetchResponse<void>> => {
+    return fetch({
+        url: projectImportEndpoint(projectImportId),
+        method: "DELETE",
+    });
+};
+
+/** Start the actual project import for the previously uploaded project file.
+ *
+ * @param projectImportId The project import ID.
+ * @param generateNewId   If the project should be imported under a freshly generated ID. E.g. when there already exists a project with the same ID.
+ */
+export const requestStartProjectImport = async (
+    projectImportId: string,
+    generateNewId: boolean,
+    overwriteExistingProject: boolean
+): Promise<FetchResponse<void>> => {
+    return fetch({
+        url:
+            projectImportEndpoint(projectImportId) +
+            `?generateNewId=${generateNewId}&overwriteExisting=${overwriteExistingProject}`,
+        method: "POST",
+    });
+};
+
+/** When the actual project import has been started, this endpoint will inform about the progress. */
+export const requestProjectImportExecutionStatus = async (
+    projectImportId: string
+): Promise<FetchResponse<IProjectExecutionStatus>> => {
+    return fetch({
+        url: projectImportEndpoint(projectImportId) + "/status",
+    });
+};
+
+/** Fetch the recently viewed items of the current user. */
+export const recentlyViewedItems = async (): Promise<FetchResponse<IRecentlyViewedItem[]>> => {
+    return fetch({
+        url: workspaceApi("/recentlyViewedItems"),
+    });
 };

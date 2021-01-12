@@ -1,8 +1,9 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import { createBrowserHistory } from "history";
+import { createBrowserHistory, History, LocationState } from "history";
 import mockAxios from "../../../__mocks__/axios";
 import {
+    checkRequestMade,
     findAll,
     findSingleElement,
     mockedAxiosResponse,
@@ -18,21 +19,36 @@ import { waitFor } from "@testing-library/react";
 
 describe("Related items", () => {
     let hostPath = process.env.HOST;
+    let history: History<LocationState> = null;
     afterEach(() => {
         mockAxios.reset();
     });
 
     it("should display related items according to the project ID and task ID from the URL", async () => {
         const nrItems = 11;
-        let wrapper = loadRelatedItems();
+        const wrapper = loadRelatedItems();
         await checkRelatedItems(nrItems, wrapper);
     });
 
     it("should display related items according to the project ID and task ID from the props", async () => {
         const nrItems = 11;
-        let wrapper = loadRelatedItems({ projectId: PROJECT_ID, taskId: TASK_ID }, `${SERVE_PATH}`);
+        const wrapper = loadRelatedItems({ projectId: PROJECT_ID, taskId: TASK_ID }, `${SERVE_PATH}`);
         await checkRelatedItems(nrItems, wrapper);
     });
+
+    it("should reload the related items when changing the project or task", async () => {
+        const nrItems = 11;
+        const wrapper = loadRelatedItems();
+        await checkRelatedItems(nrItems, wrapper);
+        const otherTask = "otherTask";
+        history.push(workspacePath(`/projects/${PROJECT_ID}/task/${otherTask}`));
+        await waitFor(() => {
+            checkRequestMade(relatedItemsUrl(otherTask));
+        });
+    });
+
+    const relatedItemsUrl = (taskId: string = TASK_ID) =>
+        hostPath + `/api/workspace/projects/${PROJECT_ID}/tasks/${taskId}/relatedItems`;
 
     const PROJECT_ID = "cmem";
     const TASK_ID = "someTask";
@@ -43,7 +59,7 @@ describe("Related items", () => {
         props: { projectId?: string; taskId?: string } = {},
         currentUrl: string = `${SERVE_PATH}/projects/${PROJECT_ID}/task/${TASK_ID}`
     ) => {
-        const history = createBrowserHistory();
+        history = createBrowserHistory();
         history.location.pathname = currentUrl;
 
         return withMount(testWrapper(<RelatedItems {...props} />, history));
@@ -52,7 +68,7 @@ describe("Related items", () => {
     /** Check the initial representation of the related items component. */
     const checkRelatedItems = async function (nrItems: number, wrapper: ReactWrapper<any, any, React.Component>) {
         mockAxios.mockResponseFor(
-            { url: hostPath + `/api/workspace/projects/${PROJECT_ID}/tasks/${TASK_ID}/relatedItems` },
+            { url: relatedItemsUrl() },
             mockedAxiosResponse({ data: RelatedItemsTestHelper.generateRelatedItemsJson(nrItems, ITEM_PREFIX) })
         );
 

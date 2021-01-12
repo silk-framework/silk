@@ -1,6 +1,7 @@
 import {
     datasetsLegacyApi,
     legacyApiEndpoint,
+    profilingApi,
     projectApi,
     resourcesLegacyApi,
     workspaceApi,
@@ -21,11 +22,12 @@ import {
     IRelatedItemsResponse,
     IRequestAutocompletePayload,
     IResourceListPayload,
-    IResourceListResponse,
+    IProjectResource,
     IResourcePreview,
     ITaskMetadataResponse,
 } from "@ducks/shared/typings";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
+import { ITypeProfilingDetails } from "../../../views/shared/profiling/PropertyProfilingOverview/PropertyProfilingOverview";
 
 /**
  * @private
@@ -41,17 +43,12 @@ const handleError = (error) => {
  */
 export const requestAutocompleteResults = async (
     payload: IRequestAutocompletePayload
-): Promise<FetchResponse<IAutocompleteDefaultResponse> | never> => {
-    try {
-        const { data } = await fetch({
-            url: workspaceApi(`/pluginParameterAutoCompletion`),
-            method: "POST",
-            body: payload,
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+): Promise<FetchResponse<IAutocompleteDefaultResponse[]>> => {
+    return fetch({
+        url: workspaceApi(`/pluginParameterAutoCompletion`),
+        method: "POST",
+        body: payload,
+    });
 };
 
 /**
@@ -181,7 +178,7 @@ export const requestTaskItemInfo = async (projectId: string, taskId: string): Pr
 export const requestResourcesList = async (
     projectId: string,
     filters: IResourceListPayload = {}
-): Promise<FetchResponse<IResourceListResponse> | never> => {
+): Promise<FetchResponse<IProjectResource[]>> => {
     return fetch({
         url: legacyApiEndpoint(`/projects/${projectId}/resources`),
         body: filters,
@@ -196,6 +193,35 @@ export const requestPreview = async (
         url,
         method: "POST",
         body: preview,
+    });
+};
+
+/** Profiles a specific type from the dataset. */
+export const profileDatasetType = async (
+    projectId: string,
+    datasetId: string,
+    typePath: string
+): Promise<FetchResponse<void>> => {
+    const url = profilingApi(`/profileType/${projectId}/${datasetId}`);
+    return fetch({
+        url,
+        method: "POST",
+        body: {
+            sourceType: typePath,
+        },
+    });
+};
+
+/** Returns profiling information about a specific type from a dataset. */
+export const datasetTypeProfilingInfo = async (
+    projectId: string,
+    datasetId: string,
+    type: string
+): Promise<FetchResponse<ITypeProfilingDetails>> => {
+    const url = profilingApi(`/schemaClass/${projectId}/${datasetId}`);
+    return fetch({
+        url,
+        body: { typePath: type },
     });
 };
 
