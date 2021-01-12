@@ -6,7 +6,7 @@ const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
 const merge = require('webpack-merge');
 const baseConfig = require('./webpack.base.config.js');
 
-baseConfig.output.path = resolveApp('../silk-workbench/silk-workbench-core/public/libs/silk-react-components')
+baseConfig.output.path = resolveApp('../../target/web/public/main/lib/silk-workbench-core/libs/silk-react-components/')
 
 module.exports = merge(baseConfig, {
   mode: 'development',
