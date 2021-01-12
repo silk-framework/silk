@@ -7,6 +7,7 @@ interface IProps {
     source?: string | ITargetWithSelected[];
 }
 
+/** Shows additional information for a dataset source path, e.g. examples values. */
 export function ExampleInfoBox({source}: IProps) {
     const context = useContext(SuggestionListContext);
     const {exampleValues, portalContainer} = context;
@@ -22,10 +23,11 @@ export function ExampleInfoBox({source}: IProps) {
     }
 
     return (
-        examples.length ? <ContextMenu
+        examples && examples.length ? <ContextMenu
             portalContainer={portalContainer}
             togglerElement={'item-info'}
         >
+            Example values:
             <ul>
                 {
                     examples.map(example =>
