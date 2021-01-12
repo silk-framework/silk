@@ -200,6 +200,7 @@ class MappingsTree extends React.Component {
                         <RuleTitle rule={parent} />
                         { this.renderRuleIcon(id) }
                     </span>
+                    tschicki
                 </span>
                 {parentType === MAPPING_RULE_TYPE_OBJECT && (
                     <small className="ecc-silk-mapping__treenav--item-subtitle">
