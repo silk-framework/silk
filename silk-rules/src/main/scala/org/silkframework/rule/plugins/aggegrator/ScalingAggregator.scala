@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.Aggregator
+import org.silkframework.rule.similarity.{Aggregator, SimilarityScore, SingleValueAggregator, WeightedSimilarityScore}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 @Plugin(
@@ -12,17 +12,12 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 )
 case class ScalingAggregator(
   @Param("All input similarity values are multiplied with this factor.")
-  factor: Double = 1.0) extends Aggregator {
+  factor: Double = 1.0) extends SingleValueAggregator {
 
   require(factor >= 0.0 && factor <= 1.0, "Scaling factor must be a value between 0.0 and 1.0.")
 
-  override def evaluate(values: Traversable[(Int, Double)]): Option[Double] = {
-    if (values.isEmpty) {
-      None
-    } else {
-      require(values.size == 1, "Accepts exactly one input")
-      Some(values.head._2 * factor)
-    }
+  override def evaluateValue(value: WeightedSimilarityScore): SimilarityScore = {
+    SimilarityScore(value.score.map(score => factor * score))
   }
 
   override def combineIndexes(index1: Index, index2: Index): Index = index1

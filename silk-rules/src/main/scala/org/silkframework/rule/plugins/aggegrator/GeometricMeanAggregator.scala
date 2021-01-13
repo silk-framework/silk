@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.Aggregator
+import org.silkframework.rule.similarity.{Aggregator, SimilarityScore, WeightedSimilarityScore}
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 import scala.math._
@@ -30,15 +30,26 @@ import scala.math._
   description = "Compute the (weighted) geometric mean."
 )
 case class GeometricMeanAggregator() extends Aggregator {
-  override def evaluate(values: Traversable[(Int, Double)]) = {
-    if (!values.isEmpty) {
-      val weightedProduct = values.map { case (weight, value) => pow(value, weight) }.reduceLeft(_ * _)
-      val totalWeights = values.map { case (weight, value) => weight }.sum
 
-      Some(pow(weightedProduct, 1.0 / totalWeights))
+  override def evaluate(values: Seq[WeightedSimilarityScore]): SimilarityScore = {
+    if (values.nonEmpty) {
+      var sumWeights = 0
+      var weightedProduct = 1.0
+
+      for (WeightedSimilarityScore(score, weight) <- values) {
+        score match {
+          case Some(score) =>
+            sumWeights += weight
+            weightedProduct *= pow(score, weight)
+          case None =>
+            return SimilarityScore.none
+        }
+      }
+
+      SimilarityScore(pow(weightedProduct, 1.0 / sumWeights))
     }
     else {
-      None
+      SimilarityScore.none
     }
   }
 

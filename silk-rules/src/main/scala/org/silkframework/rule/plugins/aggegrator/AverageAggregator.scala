@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.Aggregator
+import org.silkframework.rule.similarity.{Aggregator, SimilarityScore, WeightedSimilarityScore}
 import org.silkframework.runtime.plugin.PluginCategories
 import org.silkframework.runtime.plugin.annotations.Plugin
 
@@ -29,28 +29,31 @@ case class AverageAggregator() extends Aggregator {
   private val positiveWeight: Int = 1
   private val negativeWeight: Int = 1
 
-  override def evaluate(values: Traversable[(Int, Double)]): Option[Double] = {
+  override def evaluate(values: Seq[WeightedSimilarityScore]): SimilarityScore = {
     if (values.nonEmpty) {
       var sumWeights = 0
       var sumValues = 0.0
 
-      for ((weight, value) <- values) {
-        if (value >= 0.0) {
-          sumWeights += weight * positiveWeight
-          sumValues += weight * positiveWeight * value
-        }
-        else if (value < 0.0) {
-          sumWeights += weight * negativeWeight
-          sumValues += weight * negativeWeight * value
+      for (WeightedSimilarityScore(score, weight) <- values) {
+        score match {
+          case Some(score) =>
+            if (score >= 0.0) {
+              sumWeights += weight * positiveWeight
+              sumValues += weight * positiveWeight * score
+            }
+            else if (score < 0.0) {
+              sumWeights += weight * negativeWeight
+              sumValues += weight * negativeWeight * score
+            }
+          case None =>
+            return SimilarityScore.none
         }
       }
 
-      val average = sumValues / sumWeights
-
-      Some(average)
+      SimilarityScore(sumValues / sumWeights)
     }
     else {
-      None
+      SimilarityScore.none
     }
   }
 

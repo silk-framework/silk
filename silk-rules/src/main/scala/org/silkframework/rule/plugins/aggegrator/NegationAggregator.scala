@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.Aggregator
+import org.silkframework.rule.similarity.{Aggregator, SimilarityScore, SingleValueAggregator, WeightedSimilarityScore}
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
@@ -10,15 +10,10 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   label = "Negate",
   description = "Negates the result of the first input comparison. All other inputs are ignored."
 )
-case class NegationAggregator() extends Aggregator {
+case class NegationAggregator() extends SingleValueAggregator {
 
-  override def evaluate(values: Traversable[(Int, Double)]): Option[Double] = {
-    if (values.isEmpty) {
-      None
-    } else {
-      require(values.size == 1, "Accepts exactly one input")
-      Some(0.0 - values.head._2)
-    }
+  override def evaluateValue(value: WeightedSimilarityScore): SimilarityScore = {
+    SimilarityScore(value.score.map(score => 0.0 - score))
   }
 
   /* Since it's impossible for the aggregator to know how to create an inverse index, map to default index */

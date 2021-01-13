@@ -47,16 +47,16 @@ case class Aggregation(id: Identifier = Operator.generateId,
   override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
     val totalWeights = operators.foldLeft(0)(_ + _.weight)
 
-    var weightedValues: List[(Int, Double)] = Nil
+    var weightedValues: List[WeightedSimilarityScore] = Nil
     for(op <- operators) {
       val opThreshold = aggregator.computeThreshold(limit, op.weight.toDouble / totalWeights)
       op(entities, opThreshold) match {
         case Some(v) =>
-          weightedValues ::= (op.weight, v)
+          weightedValues ::= WeightedSimilarityScore(v, op.weight)
         case None =>
           op.missingValueStrategy match {
             case MissingValueStrategy.required =>
-              weightedValues ::= (op.weight, Double.NegativeInfinity)
+              weightedValues ::= WeightedSimilarityScore(None, op.weight)
             case MissingValueStrategy.failFast =>
               return None
             case MissingValueStrategy.optional =>
@@ -65,7 +65,7 @@ case class Aggregation(id: Identifier = Operator.generateId,
       }
     }
 
-    aggregator.evaluate(weightedValues)
+    aggregator.evaluate(weightedValues).score
   }
 
   /**

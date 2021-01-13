@@ -17,7 +17,7 @@ package org.silkframework.rule.evaluation
 import org.silkframework.entity.Entity
 import org.silkframework.rule.evaluation.DetailedEvaluator.evaluateOperator
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
-import org.silkframework.rule.similarity.{Aggregation, Comparison, MissingValueStrategy, SimilarityOperator}
+import org.silkframework.rule.similarity.{Aggregation, Comparison, MissingValueStrategy, SimilarityOperator, WeightedSimilarityScore}
 import org.silkframework.rule.{LinkageRule, TransformRule}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.DPair
@@ -107,14 +107,14 @@ object DetailedEvaluator {
       }
     }
 
-    var weightedValues: Seq[(Int, Double)] = Nil
+    var weightedValues = Seq[WeightedSimilarityScore]()
 
     for((op, value) <- agg.operators zip operatorValues.map(_.score)) yield {
       value match {
         case Some(v) =>
-          weightedValues :+= (op.weight, v)
+          weightedValues :+= WeightedSimilarityScore(v, op.weight)
         case None if op.missingValueStrategy == MissingValueStrategy.required =>
-          weightedValues :+= (op.weight, Double.NegativeInfinity)
+          weightedValues :+= WeightedSimilarityScore(None, op.weight)
         case None if op.missingValueStrategy == MissingValueStrategy.failFast =>
           return AggregatorConfidence(None, agg, operatorValues)
         case None =>
@@ -123,7 +123,7 @@ object DetailedEvaluator {
     }
 
     val aggregatedValue = agg.aggregator.evaluate(weightedValues)
-    AggregatorConfidence(aggregatedValue, agg, operatorValues)
+    AggregatorConfidence(aggregatedValue.score, agg, operatorValues)
   }
 
   private def evaluateComparison(comparison: Comparison, entities: DPair[Entity], threshold: Double): ComparisonConfidence = {

@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.Aggregator
+import org.silkframework.rule.similarity.{Aggregator, SimilarityScore, WeightedSimilarityScore}
 import org.silkframework.runtime.plugin.PluginCategories
 import org.silkframework.runtime.plugin.annotations.Plugin
 
@@ -29,15 +29,15 @@ case class MaximumAggregator() extends Aggregator {
   /**
    * Returns the maximum of the provided values.
    */
-  override def evaluate(values: Traversable[(Int, Double)]): Option[Double] = {
+  override def evaluate(values: Seq[WeightedSimilarityScore]): SimilarityScore = {
     if (values.isEmpty) {
-      None
+      SimilarityScore.none
     } else {
-      var max = Double.MinValue
-      for(value <- values if value._2 > max) {
-        max = value._2
+      var maxScore = Double.MinValue
+      for(value <- values) {
+        maxScore = math.max(maxScore, value.score.getOrElse(-1.0))
       }
-      Some(max)
+      SimilarityScore(maxScore)
     }
   }
 

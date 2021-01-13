@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.Aggregator
+import org.silkframework.rule.similarity.{Aggregator, SimilarityScore, SingleValueAggregator, WeightedSimilarityScore}
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
@@ -10,21 +10,15 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   label = "Handle missing values",
   description = "TODO."
 )
-case class HandleMissingValuesAggregator(defaultValue: Boolean) extends Aggregator {
+case class HandleMissingValuesAggregator(defaultValue: Boolean) extends SingleValueAggregator {
 
   private val defaultSimilarity = if(defaultValue) 1.0 else -1.0
 
-  override def evaluate(values: Traversable[(Int, Double)]): Option[Double] = {
-    if (values.isEmpty) {
-      Some(defaultSimilarity)
+  override def evaluateValue(value: WeightedSimilarityScore): SimilarityScore = {
+    if (value.score.isEmpty) {
+      SimilarityScore(defaultSimilarity)
     } else {
-      require(values.size == 1, "Accepts exactly one input")
-      val value = values.head._2
-      if(value == Double.NegativeInfinity) {
-        Some(defaultSimilarity)
-      } else {
-        Some(values.head._2)
-      }
+      value.unweighted
     }
   }
 
