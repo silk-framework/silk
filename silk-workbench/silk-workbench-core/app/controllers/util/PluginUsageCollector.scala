@@ -29,7 +29,7 @@ object PluginUsageCollector {
   private def pluginUsagesInSimilarityOperator(op: SimilarityOperator): Set[Identifier] = {
     op match {
       case comparison: Comparison =>
-        Set(comparison.metric.pluginSpec.id)
+        comparison.inputs.flatMap(pluginUsagesInInputOperator).toSet + comparison.metric.pluginSpec.id
       case aggregation: Aggregation =>
         aggregation.operators.flatMap(pluginUsagesInSimilarityOperator).toSet + aggregation.aggregator.pluginSpec.id
     }
