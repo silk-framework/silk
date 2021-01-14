@@ -14,22 +14,7 @@
 
 package org.silkframework.rule.plugins.aggregator
 
-import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.rule.plugins.aggegrator.MaximumAggregator
-import org.silkframework.test.PluginTest
-import org.silkframework.testutil.approximatelyEqualTo
+import org.silkframework.rule.test.AggregatorTest
 
-
-class MaximumAggregatorTest extends PluginTest {
-
-  val aggregator = new MaximumAggregator()
-
-  it should "return the maximum" in {
-    aggregator.evaluate((1, 1.0) :: (1, 1.0) :: (1, 1.0) :: Nil).get should be(approximatelyEqualTo(1.0))
-    aggregator.evaluate((1, 1.0) :: (1, 0.0) :: Nil).get should be(approximatelyEqualTo(1.0))
-    aggregator.evaluate((1, 0.4) :: (1, 0.5) :: (1, 0.6) :: Nil).get should be(approximatelyEqualTo(0.6))
-    aggregator.evaluate((1, 0.0) :: (1, 0.0) :: Nil).get should be(approximatelyEqualTo(0.0))
-  }
-
-  override def pluginObject = MaximumAggregator()
-}
+class MaximumAggregatorTest extends AggregatorTest[MaximumAggregator]

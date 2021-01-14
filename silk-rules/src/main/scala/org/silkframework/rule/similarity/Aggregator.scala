@@ -21,11 +21,6 @@ trait Aggregator extends AnyPlugin {
 
   def evaluate(values: Seq[WeightedSimilarityScore]): SimilarityScore
 
-  // TODO remove
-  def evaluate(weightedValues: Traversable[(Int, Double)]): Option[Double] = {
-    evaluate(weightedValues.map { case (weight, score) => WeightedSimilarityScore(score, weight) }.toSeq).score
-  }
-
   /**
     * Aggregates or manipulates the child indexes. The default implementation leaves the indexes as they are.
     * @param indexes

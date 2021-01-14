@@ -14,26 +14,7 @@
 
 package org.silkframework.rule.plugins.aggregator
 
-import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.rule.plugins.aggegrator.AverageAggregator
-import org.silkframework.test.PluginTest
-import org.silkframework.testutil.approximatelyEqualTo
+import org.silkframework.rule.test.AggregatorTest
 
-
-class AverageAggregatorTest extends PluginTest {
-
-  val aggregator = new AverageAggregator()
-
-  it should "compute the arithmetic mean for non-weighted inputs" in {
-    aggregator.evaluate((1, 1.0) :: (1, 1.0) :: (1, 1.0) :: Nil).get should be(approximatelyEqualTo(1.0))
-    aggregator.evaluate((1, 1.0) :: (1, 0.0) :: Nil).get should be(approximatelyEqualTo(0.5))
-    aggregator.evaluate((1, 0.4) :: (1, 0.5) :: (1, 0.6) :: Nil).get should be(approximatelyEqualTo(0.5))
-    aggregator.evaluate((1, 0.0) :: (1, 0.0) :: Nil).get should be(approximatelyEqualTo(0.0))
-  }
-
-  it should "compute the weighted arithmetic mean for weighted inputs" in {
-    aggregator.evaluate((2, 1.0) :: (1, 0.0) :: (1, 0.0) :: Nil).get should be(approximatelyEqualTo(0.5))
-  }
-
-  override def pluginObject = AverageAggregator()
-}
+class AverageAggregatorTest extends AggregatorTest[AverageAggregator]

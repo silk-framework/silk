@@ -17,7 +17,7 @@ package org.silkframework.rule.plugins.aggegrator
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.{Aggregator, SimilarityScore, WeightedSimilarityScore}
 import org.silkframework.runtime.plugin.PluginCategories
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{AggregatorExample, AggregatorExamples, Plugin}
 
 @Plugin(
   id = "average",
@@ -25,6 +25,22 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   label = "Average",
   description = "Computes the weighted average."
 )
+@AggregatorExamples(Array(
+  new AggregatorExample(
+    inputs = Array(0.4, 0.5, 0.9),
+    output = 0.6
+  ),
+  new AggregatorExample(
+    inputs = Array(0.3, 0.5, 0.6),
+    weights = Array(1, 1, 2),
+    output = 0.5
+  ),
+  new AggregatorExample(
+    description = "Missing scores always lead to an output of none.",
+    inputs = Array(-1.0, Double.NaN, 1.0),
+    output = Double.NaN
+  )
+))
 case class AverageAggregator() extends Aggregator {
   private val positiveWeight: Int = 1
   private val negativeWeight: Int = 1
