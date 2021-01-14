@@ -2,17 +2,20 @@ package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.{Aggregator, SimilarityScore, SingleValueAggregator, WeightedSimilarityScore}
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.PluginCategories
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 @Plugin(
   id = "handleMissingValues",
-  categories = Array("All"),
+  categories = Array("All", PluginCategories.recommended),
   label = "Handle missing values",
-  description = "TODO."
+  description = "Generates a default similarity score, if no similarity score is provided (e.g., due to missing values)."
 )
-case class HandleMissingValuesAggregator(defaultValue: Boolean) extends SingleValueAggregator {
+case class HandleMissingValuesAggregator(
+  @Param("The default value to be generated, if no similarity score is provided. '1' represents boolean true and '-1' represents boolean false.")
+  defaultValue: Double) extends SingleValueAggregator {
 
-  private val defaultSimilarity = if(defaultValue) 1.0 else -1.0
+  private val defaultSimilarity = defaultValue
 
   override def evaluateValue(value: WeightedSimilarityScore): SimilarityScore = {
     if (value.score.isEmpty) {

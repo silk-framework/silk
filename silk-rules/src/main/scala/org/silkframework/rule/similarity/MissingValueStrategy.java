@@ -19,28 +19,31 @@ public enum MissingValueStrategy {
     }
 
     public static MissingValueStrategy fromDeprecatedBoolean(boolean value) {
-        if(value) {
-            return MissingValueStrategy.failFast;
-        } else {
-            return MissingValueStrategy.optional;
-        }
+        return MissingValueStrategy.required; // overwritten for testing
+//        if(value) {
+//            return MissingValueStrategy.failFast;
+//        } else {
+//            return MissingValueStrategy.optional;
+//        }
     }
 
     public static MissingValueStrategy fromDeprecatedBoolean(Option<?> value) {
-        if(value.isDefined()) {
-            return MissingValueStrategy.fromDeprecatedBoolean(value.get().toString());
-        } else {
-            return MissingValueStrategy.required;
-        }
+        return MissingValueStrategy.required; // overwritten for testing
+//        if(value.isDefined()) {
+//            return MissingValueStrategy.fromDeprecatedBoolean(value.get().toString());
+//        } else {
+//            return MissingValueStrategy.required;
+//        }
     }
 
     public static MissingValueStrategy fromDeprecatedBoolean(String value) {
-        if (value.isEmpty()) {
-            return MissingValueStrategy.required;
-        } else if(Boolean.parseBoolean(value)) {
-            return MissingValueStrategy.failFast;
-        } else {
-            return MissingValueStrategy.optional;
-        }
+        return MissingValueStrategy.required; // overwritten for testing
+//        if (value.isEmpty()) {
+//            return MissingValueStrategy.required;
+//        } else if(Boolean.parseBoolean(value)) {
+//            return MissingValueStrategy.failFast;
+//        } else {
+//            return MissingValueStrategy.optional;
+//        }
     }
 }
