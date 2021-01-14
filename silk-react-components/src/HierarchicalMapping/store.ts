@@ -26,7 +26,7 @@ let _apiDetails = {};
 export const setApiDetails = data => {
     _apiDetails = {...data};
 };
-export const getApiDetails = () => _apiDetails;
+export const getApiDetails = (): any => _apiDetails;
 
 const mapPeakResult = (returned) => {
     if (_.get(returned, 'body.status.id') !== 'success') {
@@ -39,7 +39,7 @@ const mapPeakResult = (returned) => {
             ),
         };
     }
-    
+
     return {
         example: returned.body,
     };
@@ -56,7 +56,7 @@ const editMappingRule = (payload, id, parent) => {
             },
         });
     }
-    
+
     return silkStore.request({
         topic: 'transform.task.rule.rules.append',
         data: {
@@ -72,7 +72,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
         ...curr,
         breadcrumbs,
     };
-    
+
     if (element.id === id || _.get(element, 'rules.uriRule.id') === id) {
         return element;
     } else if (_.has(element, 'rules.propertyRules')) {
@@ -90,7 +90,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
                 result = findRule(child, id, isObjectMapping, bc);
             }
         });
-        
+
         if (
             isObjectMapping &&
             result !== null &&
@@ -98,13 +98,13 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
         ) {
             result = element;
         }
-        
+
         return result;
     }
     return null;
 }
 
-const handleCreatedSelectBoxValue = (data, path) => {
+const handleCreatedSelectBoxValue = (data, path): any => {
     if (_.has(data, [path, 'value'])) {
         return _.get(data, [path, 'value']);
     }
@@ -113,12 +113,80 @@ const handleCreatedSelectBoxValue = (data, path) => {
     if (_.isEmpty(_.get(data, [path]))) {
         return '';
     }
-    
+
     return _.get(data, [path]);
 };
 
-const prepareValueMappingPayload = data => {
-    const payload = {
+export interface IMetaData {
+    // A human-readable label
+    label: string
+    // An optional description
+    description?: string
+}
+
+/** The value type of a target property, e.g. string, int, language tag etc. */
+export interface IValueType {
+    /** Node type ID, e.g. "uri", "lang", "StringValueType" etc. */
+    nodeType: string
+    /** If this is a custom data type, this specifies the URI of the data type. */
+    uri?: string
+    /** If this is a language tagged property, this specifies the language. */
+    lang?: string
+}
+
+/** The target of a mapping rule. */
+export interface IMappingTarget {
+    /** Target URI, not necessarily a URI, this depends on the target dataset, e.g. this could be any string when writing to JSON. */
+    uri: string
+    /** The value type, e.g. string, int, URI etc. */
+    valueType: IValueType
+    /** Special attribute which only has relevance when mapping to XML. If true this will become an attribute. */
+    isAttribute?: boolean
+    /** If true the generated property will have a reversed direction. This only applies to graph datasets, i.e. RDF. */
+    isBackwardProperty?: boolean
+}
+
+/** The base interface for all mapping rules. */
+export interface ITransformRule {
+    /** The (unique) ID of the mapping rule. */
+    id?: string
+    /** The type of the mapping. */
+    type?: MappingType
+    /** Meta data of the mapping rule. */
+    metadata: IMetaData
+}
+
+/** Interface of a value mapping. */
+export interface IValueMapping extends ITransformRule {
+    /** The mapping target. */
+    mappingTarget: IMappingTarget
+    /** The source (Silk) path expression. */
+    sourcePath?: string
+}
+
+export interface IObjectMapping extends ITransformRule {
+    /** The mapping target. */
+    mappingTarget: IMappingTarget
+    /** The source (Silk) path expression. */
+    sourcePath?: string
+    /** The child mapping rules of this object mapping. */
+    rules: any // TODO: Improve type
+}
+
+interface IProps {
+    comment?: string
+    label: string
+    isAttribute: boolean
+    type: MappingType
+    sourceProperty: string
+    id: string
+}
+
+type MappingType = "direct" | "complex" | "object" | "uri" | "complexUri"
+
+/** Construct the payload for a value mapping. */
+const prepareValueMappingPayload = (data: IProps) => {
+    const payload: IValueMapping = {
         metadata: {
             description: data.comment,
             label: data.label,
@@ -129,31 +197,31 @@ const prepareValueMappingPayload = data => {
             isAttribute: data.isAttribute,
         },
     };
-    
+
     if (data.type === MAPPING_RULE_TYPE_DIRECT) {
         payload.sourcePath = data.sourceProperty
             ? handleCreatedSelectBoxValue(data, 'sourceProperty')
             : '';
     }
-    
+
     if (!data.id) {
         payload.type = data.type;
     }
-    
+
     return payload;
 };
 
 const prepareObjectMappingPayload = data => {
     const typeRules = _.map(data.targetEntityType, typeRule => {
         const value = _.get(typeRule, 'value', typeRule);
-        
+
         return {
             type: 'type',
             typeUri: value,
         };
     });
-    
-    const payload = {
+
+    const payload: IObjectMapping = {
         metadata: {
             description: data.comment,
             label: data.label,
@@ -178,12 +246,12 @@ const prepareObjectMappingPayload = data => {
             typeRules,
         },
     };
-    
+
     if (!data.id) {
         payload.type = MAPPING_RULE_TYPE_OBJECT;
         payload.rules.propertyRules = [];
     }
-    
+
     return payload;
 };
 
@@ -204,16 +272,16 @@ const createGeneratedRules = ({rules, parentId}) =>
                 progressNumber: _.round(count / total * 100, 0),
                 lastUpdate: `Saved ${count} of ${total} rules.`,
             });
-            
+
             all.push(result);
-            
+
             return all;
         }, [])
         .map(createdRules => {
             const failedRules = _.filter(createdRules, 'error');
-            
+
             if (_.size(failedRules)) {
-                const error = new Error('Could not create rules.');
+                const error: Error & {failedRules?: any[]} = new Error('Could not create rules.');
                 error.failedRules = failedRules;
                 throw error;
             }
@@ -253,7 +321,7 @@ export const generateRuleAsync = (correspondences, parentId, uriPrefix) => {
 
 export const getVocabInfoAsync = (uri, field) => {
     const path = [uri, field];
-    
+
     if (_.has(vocabularyCache, path)) {
         return Rx.Observable.just({
             info: _.get(vocabularyCache, path),
@@ -271,9 +339,9 @@ export const getVocabInfoAsync = (uri, field) => {
                 ['body', 'genericInfo', field],
                 null
             );
-            
+
             _.set(vocabularyCache, path, info);
-            
+
             return {
                 info,
             };
@@ -292,7 +360,7 @@ export const getSuggestionsAsync = data => {
                 // It comes always {title: "Not Found", detail: "Not Found"} when the endpoint is not found.
                 // see: SilkErrorHandler.scala
                 const errorBody = _.get(err, 'response.body');
-                
+
                 if (err.status === 404 && errorBody.title === 'Not Found' && errorBody.detail === 'Not Found') {
                     return Rx.Observable.return(null);
                 }
@@ -302,7 +370,7 @@ export const getSuggestionsAsync = data => {
             .map(returned => {
                 const data = _.get(returned, 'body.matches', {});
                 const error = _.get(returned, 'error', []);
-                
+
                 if (error) {
                     return {
                         error,
@@ -347,7 +415,7 @@ export const getSuggestionsAsync = data => {
                         label
                     });
                 });
-    
+
                 if (data.matchFromDataset) {
                     sourcePathsResponse.data.forEach(sourcePath => {
                         const isExists = suggestions.some(suggestion => suggestion.source === sourcePath);
@@ -384,9 +452,9 @@ export const childExampleAsync = data => {
                 throw new Error('Rule send to rule.child.example type must be in ("value","object","uri","complexURI")');
         }
     };
-    
+
     const rule = getRule(rawRule, ruleType);
-    
+
     if (rule && id) {
         return silkStore
             .request({
@@ -395,7 +463,7 @@ export const childExampleAsync = data => {
             })
             .map(mapPeakResult);
     }
-    
+
     return Rx.Observable();
 };
 
@@ -422,11 +490,11 @@ export const getHierarchyAsync = () => {
         })
         .map(returned => {
             const rules = returned.body;
-            
+
             if (!_.isString(rootId)) {
                 rootId = rules.id;
             }
-            
+
             return {
                 hierarchy: rules,
             };
@@ -462,7 +530,7 @@ export const getRuleAsync = (id, isObjectMapping = false) => {
 
 export const autocompleteAsync = data => {
     const {entity, input, ruleId = rootId} = data;
-    
+
     let channel = 'transform.task.rule.completions.';
     switch (entity) {
         case 'propertyType':
@@ -480,7 +548,7 @@ export const autocompleteAsync = data => {
         default:
             isDebugMode(`No autocomplete defined for ${entity}`);
     }
-    
+
     return silkStore
         .request({
             topic: channel,

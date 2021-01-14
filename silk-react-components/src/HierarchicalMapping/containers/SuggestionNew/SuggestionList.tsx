@@ -1,9 +1,10 @@
-import React, { useContext, useEffect, useState } from 'react';
-import { AlertDialog, Button, Pagination, Spinner, Table } from '@gui-elements/index';
+import React, {useContext, useEffect, useState} from 'react';
+import {AlertDialog, Button, Pagination, Spinner, Table} from '@gui-elements/index';
 import {
     IAddedSuggestion,
     IPageSuggestion,
-    IPlainObject, IPrefix,
+    IPlainObject,
+    IPrefix,
     ISortDirection,
     ITableHeader,
     ITargetWithSelected,
@@ -13,9 +14,9 @@ import _ from 'lodash';
 import paginate from "../../utils/paginate";
 import STableBody from "./SuggestionTable/STableBody";
 import STableHeader from "./SuggestionTable/STableHeader";
-import { SuggestionListContext } from "./SuggestionContainer";
-import { PrefixDialog } from "./PrefixDialog";
-import { filterRowsByColumnModifier, sortRows } from "./utils";
+import {SuggestionListContext} from "./SuggestionContainer";
+import {PrefixDialog} from "./PrefixDialog";
+import {filterRowsByColumnModifier, sortRows} from "./utils";
 import AppliedFilters from "./AppliedFilters";
 
 interface IPagination {
@@ -379,29 +380,28 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                     onRemove={(key) => handleFilterColumn(key, '', true)}
                 />
             }
-            <Table>
-                <STableHeader
-                    headers={headers}
-                    isAllSelected={isAllSelected()}
-                    toggleSelectAll={toggleSelectAll}
-                    onSwap={handleSwap}
-                    onSort={handleSort}
-                    onApplyFilter={handleFilterColumn}
-                    sortDirections={sortDirections}
-                    appliedFilters={columnFilters}
-                />
-                {
-                    !allRows.length ? <p>No results found.</p> :
-                        <STableBody
-                            pageRows={pageRows}
-                            selectedSources={selectedSources}
-                            toggleRowSelect={toggleRowSelect}
-                            onModifyTarget={handleModifyTarget}
-                        />
-                }
-            </Table>
+            allRows.length === 0 ? <p>No results found.</p> : (
+                <Table>
+                    <STableHeader
+                        headers={headers}
+                        isAllSelected={isAllSelected()}
+                        toggleSelectAll={toggleSelectAll}
+                        onSwap={handleSwap}
+                        onSort={handleSort}
+                        onApplyFilter={handleFilterColumn}
+                        sortDirections={sortDirections}
+                        appliedFilters={columnFilters}
+                    />
+                    <STableBody
+                        pageRows={pageRows}
+                        selectedSources={selectedSources}
+                        toggleRowSelect={toggleRowSelect}
+                        onModifyTarget={handleModifyTarget}
+                    />
+                </Table>
+            )
             {
-                !!allRows.length && <>
+                allRows.length > 0 && <>
                     <Pagination
                         onChange={handlePageChange}
                         totalItems={allRows.length}

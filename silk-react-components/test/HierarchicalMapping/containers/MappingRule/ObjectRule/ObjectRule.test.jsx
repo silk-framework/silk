@@ -29,7 +29,7 @@ const onClickedRemoveFn = jest.fn();
 
 const props = {
     parentId: '',
-    parent: undefined,
+    parent: {id: '', type: false},
     edit: false,
     type: 'root',
     ruleData: {
@@ -69,11 +69,11 @@ const getWrapper = (renderer = shallow, arg = props) => renderer(
 describe("ObjectMappingRule Component", () => {
     describe("on component mounted, ", () => {
         let wrapper;
-        
+
         beforeEach(() => {
             wrapper = getWrapper(shallow);
         });
-        
+
         it("should ObjectMappingRuleForm rendered, when `props.edit` is true", () => {
             const wrapper = getWrapper(shallow, {
                 ...props,
@@ -81,7 +81,7 @@ describe("ObjectMappingRule Component", () => {
             });
             expect(wrapper.find(ObjectMappingRuleForm)).toHaveLength(1);
         });
-        
+
         it('should render ObjectTargetProperty components, when `props.type` is NOT `root`', () => {
             const wrapper = getWrapper(shallow, {
                 ...props,
@@ -89,7 +89,7 @@ describe("ObjectMappingRule Component", () => {
             });
            expect(wrapper.find(TargetProperty)).toHaveLength(1);
         });
-    
+
         it('should render ObjectEntityRelation components, when `props.type` is NOT `root`', () => {
             const wrapper = getWrapper(shallow, {
                 ...props,
@@ -97,11 +97,11 @@ describe("ObjectMappingRule Component", () => {
             });
             expect(wrapper.find(ObjectEntityRelation)).toHaveLength(1);
         });
-        
+
         it('should ObjectTypeRules component rendered, when `props.typeRules` first object have `uri` property', () => {
             expect(wrapper.find(ObjectTypeRules)).toHaveLength(1);
         });
-        
+
         it('should ObjectSourcePath component rendered, when `props.type` is Object and sourcePath presented in `ruleData`,', () => {
             const wrapper = getWrapper(shallow, {
                 ...props,
@@ -109,7 +109,7 @@ describe("ObjectMappingRule Component", () => {
             });
             expect(wrapper.find(ObjectSourcePath)).toHaveLength(1);
         });
-    
+
         it('should ExampleTarget component rendered, when `props.rules.uriRule.id` is presented', () => {
             const wrapper = getWrapper(shallow, {
                ...props,
@@ -124,33 +124,33 @@ describe("ObjectMappingRule Component", () => {
             });
             expect(wrapper.find(ExampleTarget)).toHaveLength(1);
         });
-        
+
         it('should MetadataLabel component rendered, when `props.metadata.label` is presented', () => {
             expect(wrapper.find(MetadataLabel)).toHaveLength(1);
         });
-    
+
         it('should ExampleTarget component rendered, when `props.metadata.description` is presented', () => {
             expect(wrapper.find(MetadataDesc)).toHaveLength(1);
         });
-        
+
         afterEach(() => {
             wrapper.unmount();
         });
     });
-    
+
     describe("on user interaction", () => {
         it("should EDIT button toggle the `edit` property in state", () => {
             const wrapper = getWrapper(mount);
             wrapper.find(EditButton).simulate('click');
             expect(wrapper.state().edit).toBe(true);
         });
-    
+
         it("should CopyButton button call `handleCopy` function from props, with right arguments", () => {
             const wrapper = getWrapper(mount);
             wrapper.find(CopyButton).simulate('click');
             expect(handleCopyFn).toBeCalledWith(props.ruleData.id, props.ruleData.type);
         });
-    
+
         it("should CloneButton button call `handleClone` function from props, with right arguments", () => {
             const wrapper = getWrapper(mount, {
                 ...props,
@@ -162,7 +162,7 @@ describe("ObjectMappingRule Component", () => {
             wrapper.find(CloneButton).simulate('click');
             expect(handleCloneFn).toBeCalledWith(props.ruleData.id, 'object', props.ruleData.parentId);
         });
-    
+
         it("should DeleteButton button call `onClickedRemove` function from props, with right arguments", () => {
             const wrapper = getWrapper(mount, {
                 ...props,
@@ -176,6 +176,6 @@ describe("ObjectMappingRule Component", () => {
                 parent: ''
             });
         });
-        
+
     });
 });

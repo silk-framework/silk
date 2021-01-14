@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
     Button,
     Divider,
@@ -10,11 +10,11 @@ import {
     SectionHeader,
     TitleMainsection
 } from "@gui-elements/index";
-import { TableContainer } from 'carbon-components-react';
+import {TableContainer} from 'carbon-components-react';
 import SuggestionList from "./SuggestionList";
 import SuggestionHeader from "./SuggestionHeader";
-import { generateRuleAsync, getSuggestionsAsync, prefixesAsync, schemaExampleValuesAsync } from "../../store";
-import { IAddedSuggestion, ITransformedSuggestion } from "./suggestion.typings";
+import {generateRuleAsync, getSuggestionsAsync, prefixesAsync, schemaExampleValuesAsync} from "../../store";
+import {IAddedSuggestion, ITransformedSuggestion} from "./suggestion.typings";
 
 interface ISuggestionListContext {
     // Can be deleted when popup issue gone
@@ -62,13 +62,15 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         (async function () {
             setLoading(true);
             try {
-                await loadData(isFromDataset);
-                await loadExampleValues();
-                await loadPrefixes();
+                await Promise.all([
+                    loadData(isFromDataset),
+                    loadExampleValues(),
+                    loadPrefixes()
+                ])
             } catch (e)  {
                 setError([
                     ...error,
-                    ...e
+                    e
                 ])
             } finally {
                 setLoading(false);

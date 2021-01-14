@@ -44,12 +44,12 @@ class ObjectRule extends React.Component {
         ]).isRequired,
         ruleData: PropTypes.object.isRequired,
     };
-    
+
     state = {
         edit: !!this.props.edit,
         href: '',
     };
-    
+
     constructor(props) {
         super(props);
         this.editUriRule = this.editUriRule.bind(this);
@@ -59,7 +59,7 @@ class ObjectRule extends React.Component {
         this.handleCopy = this.handleCopy.bind(this);
         this.handleClone = this.handleClone.bind(this);
     }
-    
+
     componentDidMount() {
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.handleCloseEdit);
         if (_.has(this.props, 'ruleData.rules.uriRule.id')) {
@@ -68,11 +68,11 @@ class ObjectRule extends React.Component {
             });
         }
     }
-    
+
     componentWillUnmount() {
         EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.handleCloseEdit);
     }
-    
+
     componentWillReceiveProps(nextProps) {
         if (_.has(nextProps, 'ruleData.rules.uriRule.id')) {
             this.setState({
@@ -80,7 +80,7 @@ class ObjectRule extends React.Component {
             })
         }
     }
-    
+
     editUriRule(event) {
         if (isDebugMode()) {
             event.stopPropagation();
@@ -93,7 +93,7 @@ class ObjectRule extends React.Component {
             this.createUriRule();
         }
     };
-    
+
     createUriRule() {
         const rule = _.cloneDeep(this.props.ruleData);
         rule.rules.uriRule = {
@@ -114,14 +114,14 @@ class ObjectRule extends React.Component {
             );
         return false;
     }
-    
+
     removeUriRule() {
         if (isDebugMode()) {
             event.stopPropagation();
             alert('Normally this would open the complex editor (aka jsplumb view)');
             return false;
         }
-        
+
         const rule = _.cloneDeep(this.props.ruleData);
         const callbackFn = () => {
             rule.rules.uriRule = null;
@@ -138,51 +138,50 @@ class ObjectRule extends React.Component {
         this.props.onClickedRemove(null, callbackFn);
         return false;
     };
-    
+
     handleEdit() {
         this.setState({
             edit: !this.state.edit,
         });
     };
-    
+
     handleCloseEdit = (obj) => {
         if (obj.id === this.props.ruleData.id) {
             this.setState({edit: false});
         }
     };
-    
+
     handleCopy = () => {
         const {id, type} = this.props.ruleData;
         this.props.handleCopy(id, type);
     };
-    
+
     handleClone = () => {
         const {id, type, parentId} = this.props.ruleData;
         this.props.handleClone(id, type, parentId);
     };
-    
+
     handleAddNewRule = (callback) => {
         EventEmitter.emit(MESSAGES.RELOAD);
         callback && callback();
     };
-    
+
     render() {
         const {type, ruleData} = this.props;
         const {edit} = this.state;
         const {type: ruleType} = ruleData;
-        
+
         if (edit) {
             return (
                 <ObjectMappingRuleForm
                     id={this.props.ruleData.id}
-                    parent={this.props.parent}
                     parentId={this.props.parentId}
                     ruleData={transformRuleOfObjectMapping(ruleData)}
                     onAddNewRule={this.handleAddNewRule}
                 />
             );
         }
-        
+
         // @FIXME type vs ruleType is it not same?
         return (
             <div>
