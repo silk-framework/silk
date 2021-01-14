@@ -36,12 +36,12 @@ class AggregationTest extends FlatSpec with Matchers {
     ) should be(approximatelyEqualToOption(Some(0.7)))
   }
 
-  "Aggregation with average aggregator" should "return the average of all values if the operators not returning a value are not required" in {
+  "Aggregation with average aggregator" should "return no similarity score if at least one input score is missing" in {
     eval(
       operator(_required = false, value = Some(0.8)) ::
       operator(_required = false, value = Some(0.6)) ::
       operator(_required = false, value = None) :: Nil
-    ) should be(approximatelyEqualToOption(Some(0.7)))
+    ) should be(approximatelyEqualToOption(None))
   }
 
   "Aggregation with average aggregator" should "return nothing if a required operator does not return a value" in {
