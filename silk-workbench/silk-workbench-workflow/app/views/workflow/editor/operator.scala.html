@@ -4,6 +4,7 @@
 @import org.silkframework.workspace.activity.workflow.Workflow
 @import org.silkframework.config.ProductionConfig
 @import models.workflow.WorkflowConfig
+@import config.WorkbenchLinks
 
 @(taskActions: TaskActions, workflow: ProjectTask[Workflow], pos: Option[(Int, Int)] = None)
 
@@ -18,7 +19,7 @@
   <div class="operatorContent">
     @* Could show icon: <img src="@controllers.workspace.routes.Assets.at(taskActions.icon)" />*@
     @taskActions.task.taskLabel()
-    @for(link <- WorkflowConfig.editorLink(taskActions, workflow.id)) {
+    @for(link <- WorkbenchLinks.editorLink(taskActions, workflow.id)) {
       <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="cursor:pointer;" onclick="window.open('@link', '_blank')" />
     }
   </div>
