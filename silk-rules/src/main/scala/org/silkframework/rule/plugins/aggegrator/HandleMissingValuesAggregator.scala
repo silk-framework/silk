@@ -23,8 +23,9 @@ import org.silkframework.runtime.plugin.annotations.{AggregatorExample, Aggregat
   )
 ))
 case class HandleMissingValuesAggregator(
-  @Param("The default value to be generated, if no similarity score is provided. '1' represents boolean true and '-1' represents boolean false.")
+  @Param("The default value to be generated, if no similarity score is provided. Must be a value between -1 (inclusive) and 1 (inclusive). '1' represents boolean true and '-1' represents boolean false.")
   defaultValue: Double = -1.0) extends SingleValueAggregator {
+  require(defaultValue >= -1.0 && defaultValue <= 1.0, "Default value must be between -1 (inclusive) and 1 (inclusive).")
 
   private val defaultSimilarity = defaultValue
 
