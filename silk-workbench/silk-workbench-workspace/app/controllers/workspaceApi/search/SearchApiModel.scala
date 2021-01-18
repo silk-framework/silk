@@ -192,6 +192,14 @@ object SearchApiModel {
 
   lazy implicit val facetedSearchResult: Writes[FacetedSearchResult] = Json.writes[FacetedSearchResult]
 
+  type ProjectOrTask = Either[(ProjectTask[_ <: TaskSpec], TypedTasks), Project]
+
+  /** Tasks of a specific item type, e.g. dataset, transform, workflow... */
+  case class TypedTasks(project: String,
+                        projectLabel: String,
+                        itemType: ItemType,
+                        tasks: Seq[ProjectTask[_ <: TaskSpec]])
+
   /** A search request that supports types and facets. */
   case class FacetedSearchRequest(project: Option[String] = None,
                                   itemType: Option[ItemType] = None,
@@ -225,15 +233,23 @@ object SearchApiModel {
       val facetSettings = facets.getOrElse(Seq.empty)
       tasks = tasks.map(t => filterTasksByFacetSettings(t, overallFacetCollector, facetSettings))
       selectedProjects = selectedProjects.filter(p => overallFacetCollector.filterAndCollectProjects(p, facetSettings))
-      val jsonResult = selectedProjects.map(toJson) ++ tasks.flatMap(toJson)
-      val sorted = sort(jsonResult)
+      val tasksWithTypedTask: Seq[ProjectOrTask] = tasks.flatMap(typedTasks =>
+        typedTasks.tasks.map(typedTask => Left((typedTask, typedTasks))))
+      val selectProjectsEither: Seq[ProjectOrTask] = selectedProjects.map(Right.apply)
+      val projectsAndTasks: Seq[ProjectOrTask] = selectProjectsEither ++ tasksWithTypedTask
+      val sorted = sort(projectsAndTasks)
       val resultWindow =
         if(workingLimit != 0) {
           sorted.slice(workingOffset, workingOffset + workingLimit)
         } else {
           sorted.drop(workingOffset)
         }
-      val withItemLinks = addItemLinks(resultWindow)
+      val resultWindowJson = resultWindow map {
+        case left @ Left((task, typedTasks)) => (toJson(task, typedTasks), left)
+        case right @ Right(project) => (toJson(project), right)
+      }
+      val withItemLinks = addItemLinks(resultWindowJson)
+
       val facetResults = overallFacetCollector.results
 
       Json.toJson(FacetedSearchResult(
@@ -245,29 +261,29 @@ object SearchApiModel {
     }
 
     // Sort results according to request
-    private def sort(jsonResult: Seq[JsObject])
+    private def sort(projectOrTasks: Seq[ProjectOrTask])
                     (implicit accessMonitor: WorkbenchAccessMonitor,
-                     userContext: UserContext): Seq[JsObject] = {
+                     userContext: UserContext): Seq[ProjectOrTask] = {
       sortBy match {
         case None =>
-          sortByMostRecentlyViewed(jsonResult)
+          sortByMostRecentlyViewed(projectOrTasks)
         case Some(by) =>
           val sortAsc = !sortOrder.contains(SortOrder.DESC)
-          val fetchValue: JsObject => String = sortValueFunction(by)
+          val fetchValue: ProjectOrTask => String = sortValueFunction(by)
           val sortFunction: (String, String) => Boolean = createSearchFunction(sortAsc)
-          jsonResult.sortWith((left, right) => sortFunction(fetchValue(left), fetchValue(right)))
+          projectOrTasks.sortWith((left, right) => sortFunction(fetchValue(left), fetchValue(right)))
       }
     }
 
     // Sorts the result list by most recently viewed items of the user
-    private def sortByMostRecentlyViewed(jsonResult: Seq[JsObject])
+    private def sortByMostRecentlyViewed(jsonResult: Seq[ProjectOrTask])
                                         (implicit accessMonitor: WorkbenchAccessMonitor,
-                                         userContext: UserContext): Seq[JsObject] = {
+                                         userContext: UserContext): Seq[ProjectOrTask] = {
       val userAccessItems = accessMonitor.getAccessItems.reverse // last item is the most recent item, so reverse
       val userAccessItemSet = userAccessItems.toSet
-      val (recentlyViewed, others) = jsonResult.partition(jsObject => userAccessItemSet.contains(jsToWorkspaceItem(jsObject)))
+      val (recentlyViewed, others) = jsonResult.partition(projectOrTask => userAccessItemSet.contains(toWorkspaceItem(projectOrTask)))
       val recentlyViewedSorted = {
-        val resultMap = recentlyViewed.map(jsObj => jsToWorkspaceItem(jsObj) -> jsObj).toMap
+        val resultMap = recentlyViewed.map(projectOrTask => toWorkspaceItem(projectOrTask) -> projectOrTask).toMap
         for (userAccessItem <- userAccessItems if resultMap.contains(userAccessItem)) yield {
           resultMap(userAccessItem)
         }
@@ -275,35 +291,37 @@ object SearchApiModel {
       recentlyViewedSorted ++ others
     }
 
-    private def jsToWorkspaceItem(jsObject: JsObject)
+    private def toWorkspaceItem(projectOrTask: ProjectOrTask)
                                  (implicit accessMonitor: WorkbenchAccessMonitor): WorkspaceItem = {
-      jsObject.value(TYPE).as[String] match {
-        case PROJECT_TYPE =>
-          WorkspaceProject(jsObject.value(ID).as[String])
-        case _ =>
-          WorkspaceTask(jsObject.value(PROJECT_ID).as[String], jsObject.value(ID).as[String])
+      projectOrTask match {
+        case Right(project) =>
+          WorkspaceProject(project.name)
+        case Left((projectTask, _)) =>
+          WorkspaceTask(projectTask.project.name, projectTask.id)
       }
     }
 
     override protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], task: ProjectTask[_ <: TaskSpec]): Boolean = {
       val taskLabel = task.metaData.label
       val name = if(taskLabel.trim != "") taskLabel else task.id.toString
-      matchesSearchTerm(lowerCaseSearchTerms, name, task.metaData.description.getOrElse(""))
+      // also search in project if search is not restricted to a specific project
+      val searchInProject = if(project.isEmpty) label(task.project) else ""
+      matchesSearchTerm(lowerCaseSearchTerms, name, task.metaData.description.getOrElse(""), searchInProject)
     }
 
     // Adds links to related pages to the result item
-    private def addItemLinks(results: Seq[JsObject]): Seq[JsObject] = {
+    private def addItemLinks(results: Seq[(JsObject, ProjectOrTask)]): Seq[JsObject] = {
 
-      results map { result =>
-        val project = jsonPropertyStringValue(result, PROJECT_ID)
-        val itemId = jsonPropertyStringValue(result, ID)
-        val links: Seq[ItemLink] = ItemType.itemTypeFormat.reads(result.value(TYPE)).asOpt match {
+      results map { case (resultJson, projectOrTask) =>
+        val project = jsonPropertyStringValue(resultJson, PROJECT_ID)
+        val itemId = jsonPropertyStringValue(resultJson, ID)
+        val links: Seq[ItemLink] = ItemType.itemTypeFormat.reads(resultJson.value(TYPE)).asOpt match {
           case Some(itemType) =>
-            ItemType.itemTypeLinks(itemType, project, itemId)
+            ItemType.itemTypeLinks(itemType, project, itemId, projectOrTask.left.toOption.map(_._1.data))
           case None =>
             Seq.empty
         }
-        result + ("itemLinks" -> JsArray(links.map(ItemLink.itemLinkFormat.writes)))
+        resultJson + ("itemLinks" -> JsArray(links.map(ItemLink.itemLinkFormat.writes)))
       }
     }
 
@@ -342,12 +360,6 @@ object SearchApiModel {
       }
     }
 
-    /** Tasks of a specific item type, e.g. dataset, transform, workflow... */
-    case class TypedTasks(project: String,
-                          projectLabel: String,
-                          itemType: ItemType,
-                          tasks: Seq[ProjectTask[_ <: TaskSpec]])
-
     /** Fetch tasks of a specific type. */
     def fetchTasksOfType(project: Project,
                          itemType: ItemType)
@@ -368,38 +380,59 @@ object SearchApiModel {
         Seq(
           TYPE -> JsString(PROJECT_TYPE),
           ID -> JsString(project.config.id),
-          LABEL -> JsString(project.config.metaData.label)
+          LABEL -> JsString(label(project))
         ) ++ project.config.metaData.description.toSeq.map { desc =>
           DESCRIPTION -> JsString(desc)
         }
       )
     }
 
-    private def toJson(typedTask: TypedTasks): Seq[JsObject] = {
-      typedTask.tasks map { task =>
-        JsObject(Seq(
-          PROJECT_ID -> JsString(typedTask.project),
-          PROJECT_LABEL -> JsString(typedTask.projectLabel),
-          TYPE -> JsString(typedTask.itemType.id),
-          ID -> JsString(task.id),
-          LABEL -> JsString(task.metaData.label),
-          DESCRIPTION -> JsString(""),
-          PLUGIN_ID -> JsString(PluginDescription(task).id)
-        ) ++ task.metaData.description.map(d => DESCRIPTION -> JsString(d)))
-      }
+    private def toJson(typedTasks: TypedTasks): Seq[JsObject] = {
+      typedTasks.tasks.map(t => toJson(t, typedTasks))
+    }
+
+    private def toJson(task: ProjectTask[_ <: TaskSpec],
+                       typedTask: TypedTasks): JsObject = {
+      JsObject(Seq(
+        PROJECT_ID -> JsString(typedTask.project),
+        PROJECT_LABEL -> JsString(typedTask.projectLabel),
+        TYPE -> JsString(typedTask.itemType.id),
+        ID -> JsString(task.id),
+        LABEL -> JsString(label(task)),
+        DESCRIPTION -> JsString(""),
+        PLUGIN_ID -> JsString(PluginDescription(task).id)
+      ) ++ task.metaData.description.map(d => DESCRIPTION -> JsString(d)))
+    }
+  }
+
+  private def label(project: Project): String = {
+    if(project.config.metaData.label.trim.nonEmpty) {
+      project.config.metaData.label.trim
+    } else {
+      project.name
+    }
+  }
+
+  private def label(task: ProjectTask[_ <: TaskSpec]): String = {
+    task.taskLabel(Int.MaxValue)
+  }
+
+  private def label(projectOrTask: ProjectOrTask): String = {
+    projectOrTask match {
+      case Left((task, _)) => label(task)
+      case Right(project) => label(project)
     }
   }
 
   /** Function that extracts a value from the JSON object. */
-  private def sortValueFunction(by: SortBy.Value): JsObject => String = {
+  private def sortValueFunction(by: SortBy.Value): ProjectOrTask => String = {
     // memorize converted values in order to not recompute
-    val valueMapping = mutable.HashMap[JsObject, String]()
-    jsObject: JsObject => {
+    val valueMapping = mutable.HashMap[ProjectOrTask, String]()
+    projectOrTask: ProjectOrTask => {
       valueMapping.getOrElseUpdate(
-        jsObject,
+        projectOrTask,
         by match {
-          case SortBy.label =>
-            jsObject.value(LABEL).asOpt[String].filter(_.nonEmpty).getOrElse(jsObject.value(ID).as[String]).toLowerCase
+          case SortBy.label => label(projectOrTask).toLowerCase
         }
       )
     }

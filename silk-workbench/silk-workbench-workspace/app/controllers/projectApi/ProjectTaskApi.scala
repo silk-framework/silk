@@ -27,7 +27,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with ControllerUtils
         flatMap(id => project.anyTaskOption(id))
     val relatedItems = relatedTasks map { task =>
       val itemType = ItemType.itemType(task)
-      val itemLinks = ItemType.itemTypeLinks(itemType, projectId, task.id)
+      val itemLinks = ItemType.itemTypeLinks(itemType, projectId, task.id, Some(task.data))
       RelatedItem(task.id, task.taskLabel(Int.MaxValue), task.metaData.description, itemType.label, itemLinks)
     }
     val filteredItems = filterRelatedItems(relatedItems, textQuery)
@@ -40,7 +40,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with ControllerUtils
   def itemLinks(projectId: String, taskId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val task = anyTask(projectId, taskId)
     val itemType = ItemType.itemType(task)
-    val itemLinks = ItemType.itemTypeLinks(itemType, projectId, task.id)
+    val itemLinks = ItemType.itemTypeLinks(itemType, projectId, task.id, Some(task.data))
     Ok(Json.toJson(itemLinks))
   }
 

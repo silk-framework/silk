@@ -1,6 +1,8 @@
 package org.silkframework.rule.execution
 
+import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.execution.ExecutionReport
+import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.TransformReport._
 import org.silkframework.util.Identifier
 
@@ -11,17 +13,17 @@ import org.silkframework.util.Identifier
   * @param entityErrorCounter The number of entities that have been erroneous.
   * @param ruleResults The transformation statistics for each mapping rule by name.
   */
-case class TransformReport( label: String,
-                            entityCounter: Long = 0L,
-                            entityErrorCounter: Long = 0L,
-                            ruleResults: Map[Identifier, RuleResult] = Map.empty,
-                            globalErrors: Seq[String] = Seq.empty
+case class TransformReport(task: Task[TransformSpec],
+                           entityCounter: Long = 0L,
+                           entityErrorCounter: Long = 0L,
+                           ruleResults: Map[Identifier, RuleResult] = Map.empty,
+                           globalErrors: Seq[String] = Seq.empty
                           ) extends ExecutionReport {
 
   lazy val summary: Seq[(String, String)] = {
     Seq(
-      "number of entities" -> entityCounter.toString,
-      "number of errors" -> entityErrorCounter.toString
+      "Number of entities" -> entityCounter.toString,
+      "Number of errors" -> entityErrorCounter.toString
     )
   }
 
@@ -72,8 +74,12 @@ object TransformReport {
     *
     * @param entity The URI of the entity for which the error occurred.
     * @param value The erroneous value
-    * @param exception The cause
+    * @param message The error description
     */
-  case class RuleError(entity: String, value: Seq[Seq[String]], exception: Throwable)
+  case class RuleError(entity: String, value: Seq[Seq[String]], message: String)
+
+  object RuleError {
+    def apply(entity: String, value: Seq[Seq[String]], exception: Throwable): RuleError = new RuleError(entity, value, exception.getMessage)
+  }
 
 }

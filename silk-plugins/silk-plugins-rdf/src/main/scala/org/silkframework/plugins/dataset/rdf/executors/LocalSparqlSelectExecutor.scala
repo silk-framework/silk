@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.rdf.executors
 
-import org.silkframework.config.{Prefixes, Task}
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DataSource
 import org.silkframework.dataset.rdf.{SparqlEndpointEntityTable, SparqlResults}
 import org.silkframework.entity.{Entity, EntitySchema}
@@ -23,7 +23,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
 
     inputs match {
       case Seq(sparql: SparqlEndpointEntityTable) =>
-        implicit val executionReportUpdater: SparqlSelectExecutionReportUpdater = SparqlSelectExecutionReportUpdater(task.taskLabel(), context)
+        implicit val executionReportUpdater: SparqlSelectExecutionReportUpdater = SparqlSelectExecutionReportUpdater(task, context)
         val entities = executeOnSparqlEndpointEntityTable(taskData, sparql, executionReportUpdater = Some(executionReportUpdater))
         Some(GenericEntityTable(entities, entitySchema = taskData.outputSchema, task))
       case _ =>
@@ -86,7 +86,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
   }
 }
 
-case class SparqlSelectExecutionReportUpdater(taskLabel: String,
+case class SparqlSelectExecutionReportUpdater(task: Task[TaskSpec],
                                               context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
   override def entityLabelSingle: String = "Row"
 

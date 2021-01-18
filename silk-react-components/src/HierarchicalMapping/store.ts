@@ -502,8 +502,9 @@ export const getHierarchyAsync = () => {
 };
 
 export const getEditorHref = ruleId => {
-    const {transformTask, baseUrl, project} = getApiDetails();
-    return ruleId ? `${baseUrl}/transform/${project}/${transformTask}/editor/${ruleId}` : null;
+    const { transformTask, baseUrl, project } = getApiDetails();
+    const inlineView = (window.location !== window.parent.location) ? "true" : "false"
+    return ruleId ? `${baseUrl}/transform/${project}/${transformTask}/editor/${ruleId}?inlineView=${inlineView}` : null;
 };
 
 export const getRuleAsync = (id, isObjectMapping = false) => {

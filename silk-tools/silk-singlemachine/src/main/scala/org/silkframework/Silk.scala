@@ -167,10 +167,8 @@ object Silk {
                              (implicit userContext: UserContext): Unit = {
     val generateLinks =
       new GenerateLinks(
-        id = linkSpec.id,
-        label = linkSpec.id,
+        linkSpec,
         inputs = linkSpec.findSources(config.sources),
-        linkSpec = linkSpec,
         output = config.output.map(_.linkSink),
         runtimeConfig = config.runtime.copy(numThreads = numThreads, reloadCache = reload)
       )
@@ -186,7 +184,7 @@ object Silk {
   private def executeTransform(config: LinkingConfig, transform: Task[TransformSpec]): Unit = {
     val input = config.source(transform.selection.inputId).source
     implicit val prefixes: Prefixes = config.prefixes
-    Activity(new ExecuteTransform(transform.taskLabel(), (_) => input, transform.data, (_) =>
+    Activity(new ExecuteTransform(transform, (_) => input, (_) =>
       new CombinedEntitySink(config.output.map(_.entitySink).toSeq))).startBlocking() // TODO: Allow to set error output
   }
 

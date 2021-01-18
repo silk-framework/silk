@@ -12,4 +12,8 @@ DELETE        /projectImport/:projectImportId                                   
 POST          /projectImport/:projectImportId                                   controllers.workspaceApi.ProjectImportApi.startProjectImport(projectImportId: String, generateNewId: Boolean ?= false, overwriteExisting: Boolean ?= false)
 GET           /projectImport/:projectImportId/status                            controllers.workspaceApi.ProjectImportApi.projectImportExecutionStatus(projectImportId: String, timeout: Int ?= 20000)
 
+# Execution Report API
+GET           /reports/list                                                     controllers.workspaceApi.ReportsApi.listReports(projectId: Option[String] ?= None, taskId: Option[String] ?= None)
+GET           /reports/report                                                   controllers.workspaceApi.ReportsApi.retrieveReport(projectId, taskId, time)
+
 ->            /projects                   projectsApi.Routes

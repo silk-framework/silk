@@ -28,6 +28,8 @@ import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
 import org.silkframework.util.{DPair, Identifier}
 import LinkPoolGeneratorUtils._
+import org.silkframework.config.PlainTask
+
 import scala.util.Random
 
 case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
@@ -57,7 +59,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       val op = new SampleOperator()
       val linkSpec2 = linkSpec.copy(rule = LinkageRule(op))
 
-      val generateLinks = new GenerateLinks("PoolGenerator", "Pool Generator", inputs, linkSpec2, None, runtimeConfig) {
+      val generateLinks = new GenerateLinks(PlainTask("PoolGenerator", linkSpec2), inputs, None, runtimeConfig) {
          override def entityDescs = entitySchemata
       }
 

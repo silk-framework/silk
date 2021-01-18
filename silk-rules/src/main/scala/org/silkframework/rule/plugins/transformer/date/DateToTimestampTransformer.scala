@@ -20,16 +20,11 @@ import javax.xml.datatype.DatatypeFactory
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.annotations.Plugin
 
-/**
- * Convert an xsd:date to a Unix timestamp.
- *
- * @author Robert Isele
- */
 @Plugin(
   id = "datetoTimestamp",
   categories = Array("Date"),
   label = "Date to timestamp",
-  description = "Convert an xsd:date to a Unix timestamp."
+  description = "Convert an xsd:date to a timestamp in milliseconds."
 )
 case class DateToTimestampTransformer() extends SimpleTransformer {
 
