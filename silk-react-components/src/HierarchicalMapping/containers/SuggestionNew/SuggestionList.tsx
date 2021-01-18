@@ -380,26 +380,28 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                     onRemove={(key) => handleFilterColumn(key, '', true)}
                 />
             }
-            allRows.length === 0 ? <p>No results found.</p> : (
-                <Table>
-                    <STableHeader
-                        headers={headers}
-                        isAllSelected={isAllSelected()}
-                        toggleSelectAll={toggleSelectAll}
-                        onSwap={handleSwap}
-                        onSort={handleSort}
-                        onApplyFilter={handleFilterColumn}
-                        sortDirections={sortDirections}
-                        appliedFilters={columnFilters}
-                    />
-                    <STableBody
-                        pageRows={pageRows}
-                        selectedSources={selectedSources}
-                        toggleRowSelect={toggleRowSelect}
-                        onModifyTarget={handleModifyTarget}
-                    />
-                </Table>
-            )
+            {
+                allRows.length === 0 ? <p>No results found.</p> : (
+                    <Table>
+                        <STableHeader
+                            headers={headers}
+                            isAllSelected={isAllSelected()}
+                            toggleSelectAll={toggleSelectAll}
+                            onSwap={handleSwap}
+                            onSort={handleSort}
+                            onApplyFilter={handleFilterColumn}
+                            sortDirections={sortDirections}
+                            appliedFilters={columnFilters}
+                        />
+                        <STableBody
+                            pageRows={pageRows}
+                            selectedSources={selectedSources}
+                            toggleRowSelect={toggleRowSelect}
+                            onModifyTarget={handleModifyTarget}
+                        />
+                    </Table>
+                )
+            }
             {
                 allRows.length > 0 && <>
                     <Pagination
