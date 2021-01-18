@@ -87,6 +87,9 @@ export interface IUploaderOptions {
      * - Write new file name
      */
     onChange?(value: File | string);
+
+    /** The max. file upload size in bytes. */
+    maxFileUploadSizeBytes?: number;
 }
 
 interface IState {
@@ -147,13 +150,21 @@ export class FileUploader extends React.Component<IUploaderOptions, IState> {
             visibleFileDelete: "",
         };
 
+        if (props.maxFileUploadSizeBytes) {
+            this.uppy.setOptions({
+                restrictions: {
+                    maxFileSize: props.maxFileUploadSizeBytes,
+                    // Restrict to 1 file if allowMultiple == false
+                    maxNumberOfFiles: props.allowMultiple ? undefined : 1,
+                },
+            });
+        }
         this.uppy.use(XHR, {
             method: "PUT",
             fieldName: "file",
             allowMultipleUploads: props.allowMultiple,
-            // restrictions: {
-            // maxNumberOfFiles: 4,
-            // },
+            // Only upload one file at the same time
+            limit: 1,
         });
     }
 

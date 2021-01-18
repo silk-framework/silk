@@ -8,6 +8,8 @@ import { FileUploader } from "../../../FileUploader/FileUploader";
 import { AppToaster } from "../../../../../services/toaster";
 import { requestResourcesList } from "@ducks/shared/requests";
 import { defaultValueAsJs, stringValueAsJs } from "../../../../../utils/transformers";
+import { useSelector } from "react-redux";
+import { commonSel } from "@ducks/common";
 
 interface IProps {
     projectId: string;
@@ -39,6 +41,7 @@ interface IInputAttributes {
 
 /** Maps an atomic value to the corresponding value type widget. */
 export function InputMapper({ projectId, parameter, intent, onChange, initialValues }: IProps) {
+    const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const { paramId, param } = parameter;
     const initialValue =
         initialValues[paramId] !== undefined
@@ -87,11 +90,13 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
         case INPUT_TYPES.PASSWORD:
             return <TextField {...inputAttributes} type={"password"} />;
         case INPUT_TYPES.RESOURCE:
+            const resourceNameFn = (item) => item.name;
             return (
                 <FileUploader
                     projectId={projectId}
                     advanced={true}
-                    allowMultiple={true}
+                    allowMultiple={false}
+                    maxFileUploadSizeBytes={maxFileUploadSize}
                     autocomplete={{
                         autoCompletion: {
                             allowOnlyAutoCompletedValues: true,
@@ -99,8 +104,9 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
                             autoCompletionDependsOnParameters: [],
                         },
                         onSearch: handleFileSearch,
-                        itemRenderer: (item) => item.name,
-                        itemValueSelector: (item) => item.name,
+                        itemRenderer: resourceNameFn,
+                        itemValueRenderer: resourceNameFn,
+                        itemValueSelector: resourceNameFn,
                     }}
                     onUploadSuccess={(file) => {
                         // FIXME: the onChange function is not called on upload success, so this is a workaround

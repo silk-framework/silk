@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
     Button,
+    Highlighter,
     Icon,
     Notification,
     OverflowText,
@@ -10,13 +11,14 @@ import {
     OverviewItemLine,
     SimpleDialog,
 } from "@gui-elements/index";
+import { extractSearchWords } from "@gui-elements/src/components/Typography/Highlighter";
+import { CLASSPREFIX as eccguiprefix } from "@gui-elements/src/configuration/constants";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
 import { useTranslation } from "react-i18next";
 import { recentlyViewedItems } from "@ducks/workspace/requests";
 import { IRecentlyViewedItem } from "@ducks/workspace/typings";
 import { ErrorResponse } from "../../../services/fetch/responseInterceptor";
 import { Loading } from "../Loading/Loading";
-import { extractSearchWords, Highlighter } from "../Highlighter/Highlighter";
 import { IItemLink } from "@ducks/shared/typings";
 import { useDispatch, useSelector } from "react-redux";
 import { routerOp } from "@ducks/router";
@@ -75,7 +77,10 @@ export function RecentlyViewedModal() {
 
     useHotKey({
         hotkey: hotKeys.quickSearch,
-        handler: () => setIsOpen(true),
+        handler: () => {
+            setIsOpen(true);
+            return false; // prevent default
+        },
     });
     const close = () => {
         setRecentItems([]);
@@ -98,13 +103,14 @@ export function RecentlyViewedModal() {
         return taskLabel ? `${taskLabel} (${projectLabel})` : projectLabel;
     };
     // The representation of an item as an option in the selection list
-    const itemOption = (item: IRecentlyViewedItem, query: string, active: boolean) => {
+    const itemOption = (item: IRecentlyViewedItem, query: string, active: boolean, handleSelectClick: () => any) => {
         const label = item.taskLabel || item.taskId || item.projectLabel || item.projectId;
         return (
             <OverviewItem
+                className={active ? `${eccguiprefix}-overviewitem__item--active` : ""}
                 key={item.projectId + item.taskId}
                 hasSpacing
-                style={active ? { backgroundColor: "#0a67a3", color: "#fff" } : undefined}
+                onClick={handleSelectClick}
             >
                 <OverviewItemDepiction>
                     <ItemDepiction itemType={item.itemType} pluginId={item.pluginId} />
@@ -174,9 +180,9 @@ export function RecentlyViewedModal() {
     const createNewItemRenderer = (query: string, active: boolean) => {
         return (
             <OverviewItem
+                className={active ? `${eccguiprefix}-overviewitem__item--active` : ""}
                 key={query}
                 densityHigh
-                style={active ? { backgroundColor: "#0a67a3", color: "#fff" } : undefined}
             >
                 <OverviewItemDescription>
                     <OverviewItemLine>
@@ -201,6 +207,8 @@ export function RecentlyViewedModal() {
                 inputProps={{ placeholder: t("RecentlyViewedModal.placeholder") }}
                 createNewItemFromQuery={globalSearch}
                 createNewItemRenderer={createNewItemRenderer}
+                // Since nothing ever gets displayed in the input field (we immediately navigate away), return empty string
+                itemValueRenderer={() => ""}
             />
         );
     };

@@ -19,7 +19,10 @@ export const EmptyWorkspace = () => {
     return (
         <div style={{ textAlign: "center" }}>
             <TitleMainsection>
-                {t("pages.workspace.empty", "Workspace is empty, so start please create your first project")}
+                {t(
+                    "pages.workspace.empty",
+                    "Your workspace is empty. In order to start, create a new project or import an existing project from an exported project file."
+                )}
             </TitleMainsection>
             <Spacing size="large" />
             <Button onClick={openCreateProjectModal} large elevated>
