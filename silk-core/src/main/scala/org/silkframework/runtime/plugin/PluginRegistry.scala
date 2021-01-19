@@ -206,7 +206,8 @@ object PluginRegistry {
     val pluginClasses = for(module <- modules; pluginClass <- module.pluginClasses) yield pluginClass
 
     // Create a plugin description for each plugin class (can be done in parallel)
-    val pluginDescs = for(pluginClass <- pluginClasses.par) yield PluginDescription.create(pluginClass)
+    // TODO there is a race condition that leads to a dead lock if the follwing is executed in parallel
+    val pluginDescs = for(pluginClass <- pluginClasses) yield PluginDescription.create(pluginClass)
 
     // Register plugins (must currently be done sequentially as registerPlugin is not thread safe)
     for(pluginDesc <- pluginDescs.seq)

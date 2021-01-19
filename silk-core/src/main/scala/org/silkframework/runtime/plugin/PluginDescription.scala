@@ -14,18 +14,16 @@
 
 package org.silkframework.runtime.plugin
 
-import java.lang.reflect.{Constructor, InvocationTargetException, Type}
-
-import com.thoughtworks.paranamer.BytecodeReadingParanamer
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager, ResourceNotFoundException}
-import org.silkframework.util.StringUtils._
 import org.silkframework.util.Identifier
+import org.silkframework.util.StringUtils._
 import org.silkframework.workspace.WorkspaceReadTrait
 
+import java.lang.reflect.{Constructor, InvocationTargetException, Type}
 import scala.io.Source
 import scala.language.existentials
 import scala.util.control.NonFatal
@@ -219,10 +217,9 @@ object PluginDescription {
   private def getParameters[T](pluginClass: Class[T]): Array[Parameter] = {
     val constructor = getConstructor(pluginClass)
     val paramAnnotations = constructor.getParameterAnnotations.map(_.collect{ case p: Param => p })
-    val paranamer = new BytecodeReadingParanamer()
-    val parameterNames = paranamer.lookupParameterNames(constructor)
+    val parameterNames = constructor.getParameters.map(_.getName)
     val parameterTypes = constructor.getGenericParameterTypes
-    val defaultValues = getDefaultValues(pluginClass, parameterNames.size)
+    val defaultValues = getDefaultValues(pluginClass, parameterNames.length)
 
     for ((((parName, parType), defaultValue), annotations) <- parameterNames zip parameterTypes zip defaultValues zip paramAnnotations) yield {
       val pluginParam = annotations.headOption

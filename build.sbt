@@ -107,7 +107,6 @@ lazy val core = (project in file("silk-core"))
     name := "Silk Core",
     libraryDependencies += "com.typesafe" % "config" % "1.3.1", // Should always use the same version as the Play Framework dependency
     libraryDependencies += "com.github.halfmatthalfcat" %% "stringmetric-core" % "0.28.0",
-    libraryDependencies += "com.thoughtworks.paranamer" % "paranamer" % "2.7",
     // Additional scala standard libraries
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.1.0",
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
