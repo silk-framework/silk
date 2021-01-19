@@ -1,11 +1,9 @@
+import org.apache.commons.io.FileUtils
+
 import java.io.File
 import java.util.logging.Logger
 import java.util.regex.Pattern
-
-import org.apache.commons.io.FileUtils
-
 import scala.sys.process.{BasicIO, Process, ProcessLogger}
-import scala.util.matching.Regex
 
 object ReactBuildHelper {
   val log: Logger = Logger.getLogger(this.getClass.getCanonicalName)
@@ -14,7 +12,7 @@ object ReactBuildHelper {
   /**
     * The Yarn command to execute, needs to be found on Windows first.
     */
-  val yarnCommand: String = sys.props.get("os.name") match {
+  lazy val yarnCommand: String = sys.props.get("os.name") match {
     case Some(os) if os.toLowerCase.contains("win") =>
       // On windows, we need to provide the path of the yarn script manually
       process("where.exe" :: "yarn.cmd" :: Nil).trim
