@@ -1,15 +1,14 @@
 package org.silkframework.runtime.plugin
 
-import java.io.File
-import java.net.{URL, URLClassLoader}
-import java.util.ServiceLoader
-import java.util.logging.Logger
-
-import javax.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig, Prefixes}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.Identifier
 
+import java.io.File
+import java.net.{URL, URLClassLoader}
+import java.util.ServiceLoader
+import java.util.logging.Logger
+import javax.inject.Inject
 import scala.collection.JavaConversions._
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
@@ -206,8 +205,7 @@ object PluginRegistry {
     val pluginClasses = for(module <- modules; pluginClass <- module.pluginClasses) yield pluginClass
 
     // Create a plugin description for each plugin class (can be done in parallel)
-    // TODO there is a race condition that leads to a dead lock if the follwing is executed in parallel
-    val pluginDescs = for(pluginClass <- pluginClasses) yield PluginDescription.create(pluginClass)
+    val pluginDescs = pluginClasses.par.map(PluginDescriptionFactory)
 
     // Register plugins (must currently be done sequentially as registerPlugin is not thread safe)
     for(pluginDesc <- pluginDescs.seq)
@@ -328,5 +326,14 @@ object PluginRegistry {
       // Build a map from each category to all corresponding plugins
       categoriesAndPlugins.groupBy(_._1).mapValues(_.map(_._2))
     }
+  }
+}
+
+/**
+  * Function that creates a plugin description from a Java class.
+  */
+private object PluginDescriptionFactory extends (Class[_] => PluginDescription[_]) {
+  override def apply(v1: Class[_]): PluginDescription[_] = {
+    PluginDescription.create(v1)
   }
 }
