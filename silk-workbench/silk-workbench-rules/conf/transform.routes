@@ -43,6 +43,7 @@ GET           /tasks/:project/:task/rule/:rule/completions/targetTypes          
 GET           /tasks/:project/:task/rule/:rule/completions/targetProperties        controllers.transform.AutoCompletionApi.targetProperties(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30)
 GET           /tasks/:project/:task/rule/:rule/completions/valueTypes              controllers.transform.AutoCompletionApi.valueTypes(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30)
 
+GET           /tasks/:project/:task/targetVocabulary/vocabularies                  controllers.transform.TargetVocabularyApi.vocabularyInfos(project: String, task: String)
 GET           /tasks/:project/:task/targetVocabulary/type                          controllers.transform.TargetVocabularyApi.getTypeInfo(project: String, task: String, uri: String)
 GET           /tasks/:project/:task/targetVocabulary/property                      controllers.transform.TargetVocabularyApi.getPropertyInfo(project: String, task: String, uri: String)
 GET           /tasks/:project/:task/targetVocabulary/typeOrProperty                controllers.transform.TargetVocabularyApi.getTypeOrPropertyInfo(project: String, task: String, uri: String)

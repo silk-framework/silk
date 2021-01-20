@@ -14,7 +14,8 @@ import {TableContainer} from 'carbon-components-react';
 import SuggestionList from "./SuggestionList";
 import SuggestionHeader from "./SuggestionHeader";
 import {generateRuleAsync, getSuggestionsAsync, prefixesAsync, schemaExampleValuesAsync} from "../../store";
-import {IAddedSuggestion, ITransformedSuggestion} from "./suggestion.typings";
+import {IAddedSuggestion, ITransformedSuggestion, IVocabularyInfo} from "./suggestion.typings";
+import silkApi from "../../../api/silkRestApi";
 
 interface ISuggestionListContext {
     // Can be deleted when popup issue gone
@@ -40,6 +41,8 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     // Loading indicator
     const [loading, setLoading] = useState(false);
 
+    const [vocabularies, setVocabularies] = useState<IVocabularyInfo[]>([])
+
     const [error, setError] = useState<any[]>([]);
 
     const [data, setData] = useState<ITransformedSuggestion[]>([]);
@@ -57,6 +60,10 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     const [prefixList, setPrefixList] = useState([]);
 
     const portalContainerRef = useRef();
+
+    useEffect(() => {
+        // silkApi.retrieveTransformVocabularyInfos(BAS)
+    })
 
     useEffect(() => {
         (async function () {

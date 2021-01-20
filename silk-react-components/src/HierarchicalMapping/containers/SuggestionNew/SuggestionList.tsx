@@ -380,7 +380,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                     onRemove={(key) => handleFilterColumn(key, '', true)}
                 />
             }
-            allRows.length === 0 ? <p>No results found.</p> : (
+            {allRows.length === 0 ? <p>No results found.</p> : (
                 <Table>
                     <STableHeader
                         headers={headers}
@@ -399,7 +399,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                         onModifyTarget={handleModifyTarget}
                     />
                 </Table>
-            )
+            )}
             {
                 allRows.length > 0 && <>
                     <Pagination

@@ -103,6 +103,17 @@ const silkApi = {
         return this.handleErrorCode(promise);
     },
 
+    /** Retrieves information of the registered vocabularies of this transformation */
+    retrieveTransformVocabularyInfos: (baseUrl: string, projectId: string, transformTaskId: string) => {
+        const requestUrl = this.vocabularyInfoEndpoint(baseUrl, projectId, transformTaskId)
+
+        const promise = superagent
+            .get(requestUrl)
+            .accept(CONTENT_TYPE_JSON);
+
+        return this.handleErrorCode(promise);
+    },
+
     /**
      * Requests auto-completion suggestions for the script task code.
      */
@@ -165,6 +176,10 @@ const silkApi = {
 
     reportEndpoint: function(baseUrl, projectId, taskId, time) {
         return `${baseUrl}/api/workspace/reports/report?projectId=${projectId}&taskId=${taskId}&time=${time}`;
+    },
+
+    vocabularyInfoEndpoint: (baseUrl: string, projectId: string, transformTaskId: string) => {
+        return `${baseUrl}/transform//tasks/${projectId}/${transformTaskId}/targetVocabulary/vocabularies`;
     },
 };
 
