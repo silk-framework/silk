@@ -1,6 +1,11 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
     Button,
+    Card,
+    CardTitle,
+    CardHeader,
+    CardContent,
+    CardOptions,
     Divider,
     Grid,
     GridColumn,
@@ -250,64 +255,62 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
 
     return (
-        <Section>
-            <SectionHeader>
-                <Grid>
-                    <GridRow>
-                        <GridColumn verticalAlign="center">
-                            <TitleMainsection>Mapping Suggestions</TitleMainsection>
-                        </GridColumn>
-                    </GridRow>
-                    <Spacing size={"small"} />
-                    { vocabsAvailable && <GridRow>
-                        <GridColumn>
-                            <Button affirmative onClick={() => setShowMatchingDialog(true)} data-test-id={'find_matches'}>Find
-                                Matches</Button>
-                        </GridColumn>
-                    </GridRow> }
-                </Grid>
-            </SectionHeader>
-            <Divider addSpacing="medium"/>
-            {
-                (!loading && !!error.length) && <Notification danger>
-                    <ul>
-                        {
-                            error.map(err => <>
-                                <li key={err.detail}>
-                                    <h3>{err.title}</h3>
-                                    <p>{err.detail}</p>
-                                </li>
-                            </>)
-                        }
-                    </ul>
-                </Notification>
-            }
-            <div ref={portalContainerRef}>
-                <SuggestionListContext.Provider value={{
-                    portalContainer: portalContainerRef.current,
-                    exampleValues,
-                    search: submittedSearch,
-                    isFromDataset,
-                }}>
-                    <TableContainer>
+        <Card>
+            <CardHeader>
+                <CardTitle>
+                   Mapping Suggestions
+                </CardTitle>
+                <CardOptions>
+                    { vocabsAvailable && (
+                        <Button affirmative onClick={() => setShowMatchingDialog(true)} data-test-id={'find_matches'}>
+                            Find Matches
+                        </Button>
+                    )}
+                </CardOptions>
+            </CardHeader>
+            <Divider />
+            <CardContent>
+                {
+                    (!loading && !!error.length) && <Notification danger>
+                        <ul>
+                            {
+                                error.map(err => <>
+                                    <li key={err.detail}>
+                                        <h3>{err.title}</h3>
+                                        <p>{err.detail}</p>
+                                    </li>
+                                </>)
+                            }
+                        </ul>
+                    </Notification>
+                }
+                <div ref={portalContainerRef}>
+                    <SuggestionListContext.Provider value={{
+                        portalContainer: portalContainerRef.current,
+                        exampleValues,
+                        search: submittedSearch,
+                        isFromDataset,
+                    }}>
+                        <TableContainer>
 
-                                <SuggestionHeader onSearch={handleSearch}/>
-                                <SuggestionList
-                                    rows={filteredData}
-                                    prefixList={prefixList}
-                                    onSwapAction={handleSwapAction}
-                                    onAdd={handleAdd}
-                                    onAskDiscardChanges={onAskDiscardChanges}
-                                    loading={loading}
-                                />
-                    </TableContainer>
-                    { showMatchingDialog && vocabsAvailable && <VocabularyMatchingDialog
-                        availableVocabularies={vocabularies}
-                        onClose={() => setShowMatchingDialog(false)}
-                        executeMatching={(vocabs) => loadVocabularyMatches(isFromDataset, true, true, vocabs)}
-                    /> }
-                </SuggestionListContext.Provider>
-            </div>
-        </Section>
+                                    <SuggestionHeader onSearch={handleSearch}/>
+                                    <SuggestionList
+                                        rows={filteredData}
+                                        prefixList={prefixList}
+                                        onSwapAction={handleSwapAction}
+                                        onAdd={handleAdd}
+                                        onAskDiscardChanges={onAskDiscardChanges}
+                                        loading={loading}
+                                    />
+                        </TableContainer>
+                        { showMatchingDialog && vocabsAvailable && <VocabularyMatchingDialog
+                            availableVocabularies={vocabularies}
+                            onClose={() => setShowMatchingDialog(false)}
+                            executeMatching={(vocabs) => loadVocabularyMatches(isFromDataset, true, true, vocabs)}
+                        /> }
+                    </SuggestionListContext.Provider>
+                </div>
+            </CardContent>
+        </Card>
     )
 }

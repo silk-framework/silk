@@ -1,4 +1,5 @@
 @import "~@eccenca/gui-elements/src/configuration.default";
+@import "~@gui-elements/src/configuration/variables";
 .ecc-component-messagehandler {
     .ecc-temp__appmessages & {
         position: fixed;
@@ -60,7 +61,9 @@ ul.ecc-hierarchical-mapping-error-list {
     height: 100%;
     flex-shrink: 1;
     flex-grow: 1;
-    position: relative;
+    position: sticky;
+    left: 0;
+    top: 0;
     margin: $ecc-size-block-whitespace/2;
     box-sizing: border-box;
 
@@ -77,13 +80,9 @@ ul.ecc-hierarchical-mapping-error-list {
         }
     }
 
-    & > .mdl-card {
-        position: sticky;
-        left: 0;
-        top: 0;
-        width: 100%;
+    & > .#{$eccgui}-card {
 
-        .mdl-card__content {
+        .#{$eccgui}__content {
             max-height: calc(100vh - #{$layout-header-desktop-row-height} - #{$tab-height} - #{2 * $ecc-size-block-whitespace});
             overflow: auto;
         }
@@ -160,11 +159,7 @@ ul.ecc-hierarchical-mapping-error-list {
     }
 
     .mdl-card__title-back {
-        position: relative;
-        margin-left: -1 * $ecc-size-block-whitespace;
         align-self: flex-start;
-        margin-top: -0.5 * ($button-icon-size - $typo-icon-font-size);
-        margin-bottom: -0.5 * ($button-icon-size - $typo-icon-font-size);
     }
 
     .mdl-card__title-text {
@@ -183,6 +178,10 @@ ul.ecc-hierarchical-mapping-error-list {
     top: 0;
     z-index: 10;
     margin-bottom: $ecc-size-block-whitespace;
+}
+
+.ecc-silk-mapping__navheader-row {
+    //overflow: visible;
 }
 
 .ecc-silk-mapping__rulesobject {
