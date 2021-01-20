@@ -15,7 +15,7 @@ import {
     Section,
     SectionHeader,
     TitleMainsection,
-    TableContainer, Spacing,
+    TableContainer,
 } from "@gui-elements/index";
 import SuggestionList from "./SuggestionList";
 import SuggestionHeader from "./SuggestionHeader";
