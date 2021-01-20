@@ -3,11 +3,10 @@ package org.silkframework.plugins.dataset.rdf.access
 import java.io.{BufferedOutputStream, File, FileOutputStream, OutputStream}
 import java.nio.file.Files
 import java.util.logging.Logger
-
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.rdf.{GraphStoreFileUploadTrait, GraphStoreTrait, Quad}
 import org.silkframework.dataset._
-import org.silkframework.entity.{Link, ValueType}
+import org.silkframework.entity.{Link, StringValueType, ValueType}
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
@@ -23,7 +22,8 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
                           graphUri: String,
                           formatterOpt: Option[RdfFormatter],
                           comment: Option[String],
-                          dropGraphOnClear: Boolean) extends EntitySink with LinkSink with TripleSink with RdfSink {
+                          dropGraphOnClear: Boolean,
+                          writeGraphType: Boolean) extends EntitySink with LinkSink with TripleSink with RdfSink {
 
   private var properties = Seq[TypedProperty]()
   private var output: Option[OutputStream] = None
@@ -74,6 +74,10 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
     if(output.isEmpty) {
       output = initOutputStream
       log.fine("Initialized graph store sink.")
+    }
+    if (writeGraphType) {
+      writeTriple(this.graphUri, "rdf:Type", "di:Dataset", ValueType.URI)
+      log.fine("Type to indicate that the dataset was written by Dataintegration was set.")
     }
   }
 
